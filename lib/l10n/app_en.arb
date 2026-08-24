@@ -1046,6 +1046,14 @@
     }
   },
   "aiReviewNoMatch": "No match — tap to search",
+  "aiReviewUncertain": "Unsure ({percent}%)",
+  "@aiReviewUncertain": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
   "aiReviewConfidence": "Confidence",
   "aiReviewAddItem": "Add item manually",
   "aiReviewReplaceItem": "Replace item",

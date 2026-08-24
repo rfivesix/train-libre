@@ -7,13 +7,15 @@ void main() {
     'NSCameraUsageDescription',
     'NSHealthShareUsageDescription',
     'NSHealthUpdateUsageDescription',
-    'NSPhotoLibraryUsageDescription',
-  };
-
-  const removedSensitiveKeys = {
     'NSMicrophoneUsageDescription',
+    'NSPhotoLibraryUsageDescription',
     'NSSpeechRecognitionUsageDescription',
   };
+
+  // Microphone and speech recognition were previously asserted to be absent.
+  // Meal dictation now needs both, so they moved into [permissionKeys] and are
+  // localized like every other usage string.
+  const removedSensitiveKeys = <String>{};
 
   test('English InfoPlist permission strings exist for every iOS usage key',
       () async {

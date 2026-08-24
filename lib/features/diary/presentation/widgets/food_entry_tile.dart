@@ -8,6 +8,7 @@ import '../../domain/models/food_item.dart';
 import '../food_detail_screen.dart';
 import '../diary_view_model.dart';
 import '../../../../widgets/common/glass_actionable_card.dart';
+import 'diary_food_row.dart';
 
 class FoodEntryTile extends StatelessWidget {
   final TrackedFoodItem trackedItem;
@@ -23,7 +24,6 @@ class FoodEntryTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
     final themeService = Provider.of<ThemeService>(context);
     final baseFoodLang = BaseFoodLanguageService.resolveLanguageCode(
@@ -49,27 +49,15 @@ class FoodEntryTile extends StatelessWidget {
               .loadDataForDate(context.read<DiaryViewModel>().selectedDate);
         });
       },
-      child: ListTile(
-        contentPadding: EdgeInsets.zero,
-        title: Text(
-          trackedItem.item.source == FoodItemSource.base
-              ? trackedItem.item.getLocalizedName(
-                  context,
-                  languageCode: baseFoodLang,
-                )
-              : trackedItem.item.getLocalizedName(context),
-          style: theme.textTheme.titleMedium,
-        ),
-        subtitle: Text(
-          '${trackedItem.entry.quantityInGrams}${l10n.unit_grams}',
-          style: theme.textTheme.bodyMedium?.copyWith(
-            color: theme.textTheme.bodySmall?.color,
-          ),
-        ),
-        trailing: Text(
-          '${trackedItem.calculatedCalories} ${l10n.unit_kcal}',
-          style: theme.textTheme.labelLarge,
-        ),
+      child: DiaryFoodRow(
+        name: trackedItem.item.source == FoodItemSource.base
+            ? trackedItem.item.getLocalizedName(
+                context,
+                languageCode: baseFoodLang,
+              )
+            : trackedItem.item.getLocalizedName(context),
+        amountLabel: '${trackedItem.entry.quantityInGrams}${l10n.unit_grams}',
+        energyLabel: '${trackedItem.calculatedCalories} ${l10n.unit_kcal}',
       ),
     );
   }

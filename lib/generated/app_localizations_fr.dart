@@ -2640,6 +2640,11 @@ class AppLocalizationsFr extends AppLocalizations {
       'Aucune correspondance – appuyez pour rechercher';
 
   @override
+  String aiReviewUncertain(int percent) {
+    return 'Incertain ($percent%)';
+  }
+
+  @override
   String get aiReviewConfidence => 'Confiance';
 
   @override

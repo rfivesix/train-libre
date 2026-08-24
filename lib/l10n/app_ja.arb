@@ -1047,6 +1047,7 @@
     }
   },
   "aiReviewNoMatch": "一致しません — タップして検索します",
+  "aiReviewUncertain": "不確か（{percent}%）",
   "aiReviewConfidence": "自信",
   "aiReviewAddItem": "項目を手動で追加する",
   "aiReviewReplaceItem": "アイテムを交換する",

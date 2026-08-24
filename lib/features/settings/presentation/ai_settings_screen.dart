@@ -16,6 +16,8 @@ import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../widgets/common/app_button.dart';
 import 'dart:async';
 import '../../../services/telemetry/telemetry_service.dart';
+import '../../depth_scan/data/depth_scan_settings.dart';
+import '../../depth_scan/platform/depth_scan_channel.dart';
 
 /// Settings page for configuring the AI Meal Capture feature.
 ///
@@ -43,12 +45,28 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
   bool _hasKey = false;
   int _timeoutSeconds = 60;
 
+  /// Only shown on devices that can actually measure — elsewhere the switch
+  /// would advertise something the hardware cannot do.
+  bool _hasLidar = false;
+  bool _scaleHintEnabled = true;
+
   @override
   void initState() {
     super.initState();
     unawaited(TelemetryService.instance
         .trackScreenView(screenName: ScreenName.aiSettings));
     _loadSettings();
+    unawaited(_loadDepthSettings());
+  }
+
+  Future<void> _loadDepthSettings() async {
+    final capability = await DepthScanChannel.instance.capability();
+    final enabled = await DepthScanSettings.instance.isScaleHintEnabled();
+    if (!mounted) return;
+    setState(() {
+      _hasLidar = capability.depthSupported;
+      _scaleHintEnabled = enabled;
+    });
   }
 
   @override
@@ -340,6 +358,28 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                       value: aiEnabled,
                       onChanged: (value) => themeService.setAiEnabled(value),
                     ),
+                    if (aiEnabled && _hasLidar) ...[
+                      const SizedBox(height: 12),
+                      PlatformAdaptiveSwitchListTile(
+                        contentPadding: EdgeInsets.zero,
+                        secondary: const Icon(LucideIcons.ruler),
+                        title: const Text(
+                          'LiDAR-Maßstab senden',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        subtitle: const Text(
+                          'Misst Abstand und Bildausschnitt in Zentimetern und gibt sie der KI mit. '
+                          'Ausschalten, um zu vergleichen, ob die Schätzung dadurch besser wird.',
+                        ),
+                        value: _scaleHintEnabled,
+                        onChanged: (value) async {
+                          await DepthScanSettings.instance
+                              .setScaleHintEnabled(value);
+                          if (!mounted) return;
+                          setState(() => _scaleHintEnabled = value);
+                        },
+                      ),
+                    ],
                     if (aiEnabled) ...[
                       const SizedBox(height: 12),
                       PlatformAdaptiveDropdownFormField<AiProvider>(

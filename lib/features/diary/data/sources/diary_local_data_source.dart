@@ -1,5 +1,6 @@
 // lib/features/diary/data/sources/diary_local_data_source.dart
 import 'dart:async';
+import '../meal_photo_store.dart';
 import 'package:uuid/uuid.dart';
 import '../../../../data/drift_database.dart' as drift_db
     hide Supplement, SupplementLog, WorkoutLog;
@@ -222,6 +223,7 @@ class DiaryLocalDataSource {
       );
     }).toList();
   }
+
   Future<bool> hasAnyDiaryEntries() async {
     if (await (_db.select(_db.nutritionLogs)..limit(1)).getSingleOrNull() != null) return true;
     if (await (_db.select(_db.fluidLogs)..limit(1)).getSingleOrNull() != null) return true;
@@ -230,17 +232,24 @@ class DiaryLocalDataSource {
     if (await (_db.select(_db.healthStepSegments)..limit(1)).getSingleOrNull() != null) return true;
 
     try {
-      final sleepRes = await _db.customSelect('SELECT 1 FROM sleep_raw_imports LIMIT 1').getSingleOrNull();
+      final sleepRes = await _db
+          .customSelect('SELECT 1 FROM sleep_raw_imports LIMIT 1')
+          .getSingleOrNull();
       if (sleepRes != null) return true;
     } catch (_) {}
 
     try {
-      final pulseRes = await _db.customSelect('SELECT 1 FROM pulse_hourly_aggregates LIMIT 1').getSingleOrNull();
+      final pulseRes = await _db
+          .customSelect('SELECT 1 FROM pulse_hourly_aggregates LIMIT 1')
+          .getSingleOrNull();
       if (pulseRes != null) return true;
     } catch (_) {}
 
     try {
-      final weightRes = await _db.customSelect("SELECT COUNT(*) as count FROM measurements WHERE chart_type = 'weight'").getSingleOrNull();
+      final weightRes = await _db
+          .customSelect(
+              "SELECT COUNT(*) as count FROM measurements WHERE chart_type = 'weight'")
+          .getSingleOrNull();
       if (weightRes != null && weightRes.read<int>('count') > 1) return true;
     } catch (_) {}
 
@@ -952,7 +961,8 @@ class DiaryLocalDataSource {
         .write(companion);
   }
 
-  Future<void> deleteMealEntry(String id, {required bool deleteFoodLogs}) async {
+  Future<void> deleteMealEntry(String id,
+      {required bool deleteFoodLogs}) async {
     if (deleteFoodLogs) {
       final logs = await (_db.select(_db.nutritionLogs)
             ..where((t) => t.mealEntryId.equals(id)))
@@ -970,6 +980,18 @@ class DiaryLocalDataSource {
         ),
       );
     }
+    // The photo belongs to the meal entry, so it goes with it — otherwise the
+    // files accumulate forever with nothing referencing them.
+    final entry = await (_db.select(_db.mealEntries)
+          ..where((t) => t.id.equals(id)))
+        .getSingleOrNull();
+    if (entry != null) {
+      await MealPhotoStore.instance.delete(
+        photoPath: entry.photoPath,
+        thumbPath: entry.photoThumbPath,
+      );
+    }
+
     await (_db.delete(_db.mealEntries)..where((t) => t.id.equals(id))).go();
   }
 }

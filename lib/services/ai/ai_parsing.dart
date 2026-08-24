@@ -32,11 +32,6 @@ extension AiParsing on AiService {
                     confidence: (e['confidence'] as num?)?.toDouble(),
                     stateHint: e['stateHint'] as String?,
                     catalogSearchTerm: e['catalogSearchTerm'] as String?,
-                    regions: (e['regions'] as List<dynamic>?)
-                            ?.map((r) =>
-                                ItemRegion.fromMap(r as Map<String, dynamic>))
-                            .toList() ??
-                        const [],
                   ))
               .toList();
           return AiMealCandidate(
@@ -54,11 +49,6 @@ extension AiParsing on AiService {
                   confidence: (e['confidence'] as num?)?.toDouble(),
                   stateHint: e['stateHint'] as String?,
                   catalogSearchTerm: e['catalogSearchTerm'] as String?,
-                  regions: (e['regions'] as List<dynamic>?)
-                          ?.map((r) =>
-                              ItemRegion.fromMap(r as Map<String, dynamic>))
-                          .toList() ??
-                      const [],
                 ))
             .toList();
         return AiMealCandidate(items: items);
@@ -86,11 +76,6 @@ extension AiParsing on AiService {
                     confidence: (e['confidence'] as num?)?.toDouble(),
                     stateHint: e['stateHint'] as String?,
                     catalogSearchTerm: e['catalogSearchTerm'] as String?,
-                    regions: (e['regions'] as List<dynamic>?)
-                            ?.map((r) =>
-                                ItemRegion.fromMap(r as Map<String, dynamic>))
-                            .toList() ??
-                        const [],
                   ))
               .toList();
           return AiMealCandidate(
@@ -114,11 +99,6 @@ extension AiParsing on AiService {
                   confidence: (e['confidence'] as num?)?.toDouble(),
                   stateHint: e['stateHint'] as String?,
                   catalogSearchTerm: e['catalogSearchTerm'] as String?,
-                  regions: (e['regions'] as List<dynamic>?)
-                          ?.map((r) =>
-                              ItemRegion.fromMap(r as Map<String, dynamic>))
-                          .toList() ??
-                      const [],
                 ))
             .toList();
         return AiMealCandidate(items: items);

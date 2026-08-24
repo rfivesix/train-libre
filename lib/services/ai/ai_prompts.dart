@@ -7,7 +7,6 @@ abstract class _AiPrompts {
     String? appLanguage,
     String? catalogLanguage,
     DepthScaleFacts? depthFacts,
-    bool includeRegionsRule = true,
   }) {
     final effectiveAppLang = appLanguage ?? languageCode;
     final effectiveCatalogLang = catalogLanguage;
@@ -28,20 +27,6 @@ abstract class _AiPrompts {
         'If an item represents a packaged product, brand, or regional dish, also provide a "catalogSearchTerm" '
         'field in "$effectiveCatalogLang" (e.g. name: "Schinkenbaguette", catalogSearchTerm: "Baguette au jambon").',
       );
-    }
-
-    if (includeRegionsRule) {
-      langRuleBuffer.write('''
-
-12. LOCALIZATION: For each item that is clearly visible as a distinct area in the image, add a "regions" array.
-    Each region has:
-      "box": [x, y, width, height], values 0.0-1.0, origin top-left
-      "polygon": optional [x1, y1, x2, y2, ...], 4 to 12 points, clockwise, following the outline. Omit if unsure.
-    - If one food appears in SEVERAL separate places (e.g. two pieces of chicken on opposite sides of the plate), return SEVERAL regions in the SAME item. Never split it into multiple items, and never draw one large region spanning the gap between them.
-    - Use at most 4 regions per item.
-    - Return "regions": [] for anything you cannot point at: seasoning, oil, salt, sugar, sauces mixed into a dish, ingredients inside a soup, stew, smoothie or wrap, and anything hidden behind other food.
-    - Do NOT invent regions to be helpful. An empty array is a correct answer and is preferred over a guess.
-    - Do NOT return a region that covers the whole dish or the whole plate.''');
     }
 
     final depthBlockBuffer = StringBuffer();
@@ -89,7 +74,6 @@ The JSON object must have exactly these two fields:
    - "estimatedGrams": integer (estimated weight in grams)
    - "confidence": number (0.0 to 1.0)
    - "stateHint": string or null (e.g. "cooked", "raw", "boiled")
-   - "regions": array of region objects with "box" ([x, y, w, h] normalized 0.0-1.0) and optional "polygon"
 
 Example response:
 {
@@ -105,8 +89,8 @@ Example response:
     "contextNotes": "Made with 3 eggs and 10g of butter"
   },
   "items": [
-    {"name": "Egg", "catalogSearchTerm": "Oeuf", "estimatedGrams": 150, "confidence": 0.9, "stateHint": "cooked", "regions": [{"box": [0.2, 0.3, 0.4, 0.3]}]},
-    {"name": "Butter", "catalogSearchTerm": "Beurre", "estimatedGrams": 10, "confidence": 0.8, "stateHint": "raw", "regions": []}
+    {"name": "Egg", "catalogSearchTerm": "Oeuf", "estimatedGrams": 150, "confidence": 0.9, "stateHint": "cooked"},
+    {"name": "Butter", "catalogSearchTerm": "Beurre", "estimatedGrams": 10, "confidence": 0.8, "stateHint": "raw"}
   ]
 }
 ''';

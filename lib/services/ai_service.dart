@@ -16,7 +16,6 @@ import 'ai_matching_language_service.dart';
 import 'package:uuid/uuid.dart';
 import 'telemetry/telemetry_service.dart';
 import 'telemetry/telemetry_buckets.dart';
-import '../features/depth_scan/domain/models/item_region.dart';
 import '../features/depth_scan/domain/models/depth_scale_facts.dart';
 
 part 'ai/ai_models.dart';
@@ -689,6 +688,7 @@ Repair the candidate. When database candidates are listed, pick the EXACT name f
       temperature: 0.1,
     );
     final repaired = await _parseItemsFromContent(raw);
+
     return AiMealCandidate(
       items: repaired
           .map(

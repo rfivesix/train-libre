@@ -140,7 +140,11 @@ import UIKit
       self?.homeWidgetBridge.handle(call: call, result: result)
     }
 
-    DepthScanPlugin.register(with: messenger)
+    // Needs a registrar rather than a bare messenger: the capture session also
+    // vends a platform view for the camera preview.
+    if let depthRegistrar = registrar(forPlugin: "DepthScanPlugin") {
+      DepthScanPlugin.register(with: depthRegistrar)
+    }
 
     channelsConfigured = true
   }

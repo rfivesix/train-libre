@@ -17,6 +17,10 @@ class MealReviewComparisonCard extends StatelessWidget {
   final String name;
   final int estimatedGrams;
   final double confidence;
+
+  /// Optional badge shown before the name — the numbered pin that matches the
+  /// marker on the meal photo.
+  final Widget? leading;
   final FoodItem? matchedFood;
   final List<AiValidationIssue> issues;
   final AiNutritionTotals nutrition;
@@ -31,6 +35,7 @@ class MealReviewComparisonCard extends StatelessWidget {
     required this.name,
     required this.estimatedGrams,
     required this.confidence,
+    this.leading,
     required this.matchedFood,
     required this.issues,
     required this.nutrition,
@@ -83,6 +88,13 @@ class MealReviewComparisonCard extends StatelessWidget {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  if (leading != null) ...[
+                    Padding(
+                      padding: const EdgeInsets.only(
+                          top: 2, right: DesignConstants.spacingM),
+                      child: leading!,
+                    ),
+                  ],
                   // Left: food info
                   Expanded(
                     child: Column(
@@ -96,8 +108,8 @@ class MealReviewComparisonCard extends StatelessWidget {
                         ),
                         const SizedBox(height: DesignConstants.spacingXS),
                         if (hasMatch)
-                          Text(
-                            '${() {
+                          Builder(
+                            builder: (context) {
                               final themeService =
                                   Provider.of<ThemeService>(context);
                               final baseFoodLang =
@@ -105,14 +117,25 @@ class MealReviewComparisonCard extends StatelessWidget {
                                 choice: themeService.baseFoodLanguage,
                                 context: context,
                               );
-                              return matchedFood!.source == FoodItemSource.base
-                                  ? matchedFood!.getLocalizedName(context,
-                                      languageCode: baseFoodLang)
-                                  : matchedFood!.getLocalizedName(context);
-                            }()} • ${matchedFood!.calories} kcal/100g',
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: theme.colorScheme.primary,
-                            ),
+                              final matchName =
+                                  matchedFood!.source == FoodItemSource.base
+                                      ? matchedFood!.getLocalizedName(context,
+                                          languageCode: baseFoodLang)
+                                      : matchedFood!.getLocalizedName(context);
+                              // Only name the database entry when it differs —
+                              // printing the same word twice tells the user
+                              // nothing and makes the card look cluttered.
+                              final differs = matchName.trim().toLowerCase() !=
+                                  name.trim().toLowerCase();
+                              return Text(
+                                differs
+                                    ? '$matchName • ${matchedFood!.calories} kcal/100g'
+                                    : '${matchedFood!.calories} kcal/100g',
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: theme.colorScheme.primary,
+                                ),
+                              );
+                            },
                           )
                         else
                           Text(
@@ -127,27 +150,33 @@ class MealReviewComparisonCard extends StatelessWidget {
                         // Macro badges row
                         const SizedBox(height: 6),
                         MealReviewMacrosBar(nutrition: nutrition),
-                        const SizedBox(height: DesignConstants.spacingXS),
-                        // Confidence chip
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: DesignConstants.spacingS,
-                            vertical: 2,
-                          ),
-                          decoration: BoxDecoration(
-                            color: confidenceColor.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(
-                                DesignConstants.borderRadiusM),
-                          ),
-                          child: Text(
-                            '${(confidence * 100).round()}%',
-                            style: TextStyle(
-                              color: confidenceColor,
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
+                        // Confidence is only worth showing when it is low
+                        // enough to be worth a second look. A green "95%" on
+                        // every row is one more colour competing for attention
+                        // and nothing the user can act on.
+                        if (confidence < 0.7) ...[
+                          const SizedBox(height: DesignConstants.spacingXS),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: DesignConstants.spacingS,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: confidenceColor.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(
+                                  DesignConstants.borderRadiusM),
+                            ),
+                            child: Text(
+                              l10n.aiReviewUncertain(
+                                  (confidence * 100).round()),
+                              style: TextStyle(
+                                color: confidenceColor,
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
-                        ),
+                        ],
                         if (issues
                             .where(
                               (issue) =>

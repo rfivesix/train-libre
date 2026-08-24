@@ -1,6 +1,10 @@
 // lib/features/diary/presentation/meal_entry_screen.dart
 
+import '../data/meal_photo_store.dart';
+import '../domain/models/meal_capture_meta.dart';
+import 'dart:async';
 import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:intl/intl.dart';
@@ -16,8 +20,10 @@ import '../domain/models/food_item.dart';
 import '../domain/models/meal_entry.dart';
 import '../domain/models/tracked_food_item.dart';
 import '../domain/repositories/diary_repository.dart';
+import '../../../services/ai_meal_validation.dart';
 import 'dialogs/delete_meal_entry_bottom_sheet.dart';
-import 'widgets/meal_photo_overlay_widget.dart';
+import 'widgets/meal_photo_widget.dart';
+import 'widgets/meal_review_comparison_card.dart';
 import 'general_food_selection_screen.dart';
 import 'food_detail_screen.dart';
 
@@ -39,7 +45,6 @@ class MealEntryScreen extends StatefulWidget {
 class _MealEntryScreenState extends State<MealEntryScreen> {
   late MealEntry _mealEntry;
   late List<TrackedFoodItem> _items;
-  int? _selectedRegionIndex;
   bool _isSaving = false;
 
   @override
@@ -112,7 +117,8 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
   void _updateQuantity(int index, int delta) {
     setState(() {
       final current = _items[index];
-      final newQuantity = (current.entry.quantityInGrams + delta).clamp(5, 5000);
+      final newQuantity =
+          (current.entry.quantityInGrams + delta).clamp(5, 5000);
       _items[index] = TrackedFoodItem(
         item: current.item,
         entry: current.entry.copyWith(quantityInGrams: newQuantity),
@@ -122,7 +128,8 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
 
   Future<void> _showDirectQuantityDialog(int index) async {
     final current = _items[index];
-    final controller = TextEditingController(text: '${current.entry.quantityInGrams}');
+    final controller =
+        TextEditingController(text: '${current.entry.quantityInGrams}');
     final l10n = AppLocalizations.of(context)!;
 
     final result = await showGlassBottomMenu<int>(
@@ -141,7 +148,8 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
                 labelText: 'Menge in Gramm',
                 suffixText: 'g',
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
+                  borderRadius:
+                      BorderRadius.circular(DesignConstants.borderRadiusM),
                 ),
               ),
             ),
@@ -186,6 +194,33 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
     );
   }
 
+  /// Removes an ingredient from the meal. The row is only dropped locally;
+  /// the diary is written when the screen is left, like every other edit here.
+  void _deleteItem(int index) {
+    if (index < 0 || index >= _items.length) return;
+    setState(() {
+      _items.removeAt(index);
+    });
+  }
+
+  /// Swaps the food behind a row while keeping its amount — the same action the
+  /// review screen offers, so both screens behave alike.
+  Future<void> _replaceIngredient(int index) async {
+    if (index < 0 || index >= _items.length) return;
+    final replacement = await Navigator.of(context).push<FoodItem>(
+      MaterialPageRoute(builder: (_) => const GeneralFoodSelectionScreen()),
+    );
+    if (replacement == null || !mounted) return;
+
+    final existing = _items[index];
+    setState(() {
+      _items[index] = TrackedFoodItem(
+        item: replacement,
+        entry: existing.entry.copyWith(barcode: replacement.barcode),
+      );
+    });
+  }
+
   Future<void> _addNewIngredient() async {
     final selectedFood = await Navigator.of(context).push<FoodItem>(
       MaterialPageRoute(
@@ -209,9 +244,12 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
     }
   }
 
-  Future<void> _saveAndClose() async {
+  /// Writes the pending edits. Called when the screen is left rather than from
+  /// a confirm button — nothing here is a draft the user might want to discard,
+  /// so asking them to press "done" only adds a step.
+  Future<void> _persistChanges() async {
     if (_isSaving) return;
-    setState(() => _isSaving = true);
+    _isSaving = true;
 
     final repo = context.read<IDiaryRepository>();
 
@@ -223,12 +261,9 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
       if (item.entry.id != null) {
         await repo.updateFoodEntry(item.entry);
       } else {
-        await repo.insertFoodEntry(item.entry.copyWith(mealEntryId: _mealEntry.id));
+        await repo
+            .insertFoodEntry(item.entry.copyWith(mealEntryId: _mealEntry.id));
       }
-    }
-
-    if (mounted) {
-      Navigator.of(context).pop(true);
     }
   }
 
@@ -244,7 +279,8 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
           onTap: () {
             Navigator.of(context).pop();
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Als Mahlzeiten-Vorlage gespeichert.')),
+              const SnackBar(
+                  content: Text('Als Mahlzeiten-Vorlage gespeichert.')),
             );
           },
         ),
@@ -320,76 +356,78 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final bg = theme.scaffoldBackgroundColor;
-    final cardBg = isDark ? const Color(0xFF161616) : Colors.white;
     final titleColor = isDark ? Colors.white : const Color(0xFF12120F);
-    final subtitleColor = isDark ? const Color(0xFF8A8A82) : const Color(0xFF6A6A62);
-    final topPadding = MediaQuery.of(context).padding.top;
+    final subtitleColor =
+        isDark ? const Color(0xFF8A8A82) : const Color(0xFF6A6A62);
 
-    final hasPhoto = _mealEntry.photoPath != null &&
-        _mealEntry.photoPath!.isNotEmpty &&
-        File(_mealEntry.photoPath!).existsSync();
-    final photoFile = hasPhoto ? File(_mealEntry.photoPath!) : null;
+    final captureMeta = MealCaptureMeta.tryParse(_mealEntry.captureMeta);
+    final photoFiles = <File>[];
+    for (final path in [
+      _mealEntry.photoPath,
+      ...?captureMeta?.extraPhotoPaths,
+    ]) {
+      final file = MealPhotoStore.instance.resolveSync(path);
+      if (file != null && file.existsSync()) photoFiles.add(file);
+    }
+    final hasPhoto = photoFiles.isNotEmpty;
     final timeStr = DateFormat('HH:mm').format(_mealEntry.consumedAt);
-    final localizedMealType = _getLocalizedMealName(context, _mealEntry.mealType);
+    final localizedMealType =
+        _getLocalizedMealName(context, _mealEntry.mealType);
 
-    final overlayItems = _items.asMap().entries.map((e) {
-      final factor = e.value.entry.quantityInGrams / 100.0;
-      return OverlayItemDisplay(
-        name: e.value.item.name,
-        grams: e.value.entry.quantityInGrams,
-        kcal: (e.value.item.calories * factor).round(),
-        regions: const [], // extracted if present in meta
-        color: MealOverlayColors.forIndex(e.key),
-      );
-    }).toList();
+    return PopScope(
+      canPop: true,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) unawaited(_persistChanges());
+      },
+      child: Scaffold(
+        backgroundColor: bg,
+        appBar: GlobalAppBar(
+          title: _mealEntry.title ?? localizedMealType,
+          actions: [
+            IconButton(
+              icon: const Icon(LucideIcons.ellipsis, size: 20),
+              tooltip: 'Optionen',
+              onPressed: _showOverflowMenu,
+            ),
+          ],
+        ),
+        body: Column(
+          children: [
+            Expanded(
+              child: ListView(
+                padding: EdgeInsets.zero,
+                children: [
+                  // The photo sits below the bar with a clear gap, full width,
+                  // rounded at the top like every other surface in the app.
+                  if (hasPhoto) ...[
+                    const SizedBox(height: DesignConstants.spacingM),
+                    MealPhotoWidget(photoFiles: photoFiles, height: 300),
+                  ] else
+                    const SizedBox(height: DesignConstants.spacingM),
 
-    final bool hasVisibleRegions = overlayItems.any((it) => it.regions.isNotEmpty);
-
-    return Scaffold(
-      extendBodyBehindAppBar: true,
-      backgroundColor: bg,
-      appBar: GlobalAppBar(
-        title: _mealEntry.title ?? localizedMealType,
-        actions: [
-          IconButton(
-            icon: const Icon(LucideIcons.ellipsis, size: 20),
-            tooltip: 'Optionen',
-            onPressed: _showOverflowMenu,
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          Expanded(
-            child: ListView(
-              padding: EdgeInsets.zero,
-              children: [
-                // Top Stage: Photo with gradients (or top spacer if no photo)
-                if (hasPhoto)
-                  MealPhotoOverlayWidget(
-                    photoFile: photoFile,
-                    height: 320,
-                    items: overlayItems,
-                    selectedIndex: _selectedRegionIndex,
-                    onItemTapped: (idx) => setState(() => _selectedRegionIndex = idx),
-                  )
-                else
-                  SizedBox(height: kToolbarHeight + topPadding + 16),
-
-                // Title & Subtitle Header
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.baseline,
-                        textBaseline: TextBaseline.alphabetic,
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Expanded(
-                            child: Text(
-                              _mealEntry.title ?? localizedMealType,
+                  // The meal's name is already in the app bar; repeating it
+                  // here just pushed the numbers down a line. Energy leads,
+                  // macros sit right-aligned beside it.
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '$localizedMealType · $timeStr',
+                          style: TextStyle(
+                            fontFamily: 'Plus Jakarta Sans',
+                            fontWeight: FontWeight.w500,
+                            fontSize: 14,
+                            color: subtitleColor,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Text(
+                              '$_totalKcal kcal',
                               style: TextStyle(
                                 fontFamily: 'Plus Jakarta Sans',
                                 fontWeight: FontWeight.w800,
@@ -397,187 +435,81 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
                                 color: titleColor,
                               ),
                             ),
-                          ),
-                          const SizedBox(width: 12),
-                          Text(
-                            '$_totalKcal kcal',
-                            style: TextStyle(
-                              fontFamily: 'Plus Jakarta Sans',
-                              fontWeight: FontWeight.w800,
-                              fontSize: 20,
-                              color: titleColor,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '$localizedMealType · $timeStr',
-                        style: TextStyle(
-                          fontFamily: 'Plus Jakarta Sans',
-                          fontWeight: FontWeight.w500,
-                          fontSize: 14,
-                          color: subtitleColor,
+                            const Spacer(),
+                            _buildMacroPill('P', '${_totalProtein.round()}g',
+                                const Color(0xFFFF453A)),
+                            const SizedBox(width: 8),
+                            _buildMacroPill('C', '${_totalCarbs.round()}g',
+                                const Color(0xFF30D158)),
+                            const SizedBox(width: 8),
+                            _buildMacroPill('F', '${_totalFat.round()}g',
+                                const Color(0xFFBF5AF2)),
+                          ],
                         ),
-                      ),
-                      const SizedBox(height: 12),
-
-                      // Macro summary pills
-                      Row(
-                        children: [
-                          _buildMacroPill('P', '${_totalProtein.round()}g', const Color(0xFFFF453A)),
-                          const SizedBox(width: 8),
-                          _buildMacroPill('C', '${_totalCarbs.round()}g', const Color(0xFF30D158)),
-                          const SizedBox(width: 8),
-                          _buildMacroPill('F', '${_totalFat.round()}g', const Color(0xFFBF5AF2)),
-                        ],
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
 
-                const SizedBox(height: 16),
+                  const SizedBox(height: 16),
 
-                // Ingredients List
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Column(
-                    children: [
-                      ..._items.asMap().entries.map((entry) {
-                        final idx = entry.key;
-                        final tracked = entry.value;
-                        final isSelected = _selectedRegionIndex == idx;
-                        final color = MealOverlayColors.forIndex(idx);
+                  // Ingredients List
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Column(
+                      children: [
+                        // Same card the review screen uses, so a saved meal
+                        // and a meal being reviewed are one screen with two
+                        // states rather than two things that look alike.
+                        ..._items.asMap().entries.map((entry) {
+                          final idx = entry.key;
+                          final tracked = entry.value;
+                          final factor = tracked.entry.quantityInGrams / 100.0;
 
-                        return Container(
-                          margin: const EdgeInsets.only(bottom: 8),
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                          decoration: BoxDecoration(
-                            color: cardBg,
-                            borderRadius: BorderRadius.circular(DesignConstants.borderRadiusL),
-                            border: Border.all(
-                              color: isSelected
-                                  ? MealOverlayColors.selectedBorder
-                                  : (isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.06)),
-                              width: isSelected ? 1.5 : 1.0,
+                          return MealReviewComparisonCard(
+                            dismissibleKey: ValueKey(
+                                'meal_item_${tracked.entry.id ?? idx}'),
+                            name: tracked.item.name,
+                            estimatedGrams: tracked.entry.quantityInGrams,
+                            // A saved entry carries no open uncertainty; the
+                            // card hides the chip above 0.7 anyway.
+                            confidence: 1.0,
+                            matchedFood: tracked.item,
+                            issues: const [],
+                            nutrition: AiNutritionTotals(
+                              kcal: tracked.item.calories * factor,
+                              protein: tracked.item.protein * factor,
+                              carbs: tracked.item.carbs * factor,
+                              fat: tracked.item.fat * factor,
                             ),
-                          ),
-                          child: Row(
-                            children: [
-                              // Conditional Dot: Only rendered when valid regions exist (Screen C4 / D6b)
-                              if (hasVisibleRegions) ...[
-                                Container(
-                                  width: 8,
-                                  height: 8,
-                                  decoration: BoxDecoration(
-                                    color: color,
-                                    shape: BoxShape.circle,
-                                  ),
-                                ),
-                                const SizedBox(width: 10),
-                              ],
+                            onDismissed: () => _deleteItem(idx),
+                            onTap: () => _openItemDetail(tracked),
+                            onReplace: () => _replaceIngredient(idx),
+                            onEditQuantity: () =>
+                                _showDirectQuantityDialog(idx),
+                            onQuickAdjustQuantity: (delta) =>
+                                _updateQuantity(idx, delta),
+                          );
+                        }),
 
-                              // Ingredient Name (Tapping opens FoodDetailScreen)
-                              Expanded(
-                                child: InkWell(
-                                  onTap: () => _openItemDetail(tracked),
-                                  borderRadius: BorderRadius.circular(6),
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(vertical: 4),
-                                    child: Text(
-                                      tracked.item.name,
-                                      style: TextStyle(
-                                        fontFamily: 'Plus Jakarta Sans',
-                                        fontWeight: FontWeight.w700,
-                                        fontSize: 14.5,
-                                        color: titleColor,
-                                      ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ),
-                              ),
+                        const SizedBox(height: 8),
 
-                              // Quantity Stepper with direct click on grams (Screen D3)
-                              Container(
-                                decoration: BoxDecoration(
-                                  color: isDark ? const Color(0xFF222220) : const Color(0xFFE8E8E0),
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    _buildStepperButton(
-                                      icon: LucideIcons.minus,
-                                      onTap: () => _updateQuantity(idx, -10),
-                                    ),
-                                    InkWell(
-                                      onTap: () => _showDirectQuantityDialog(idx),
-                                      borderRadius: BorderRadius.circular(6),
-                                      child: Padding(
-                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                                        child: Text(
-                                          '${tracked.entry.quantityInGrams} g',
-                                          style: TextStyle(
-                                            fontFamily: 'Plus Jakarta Sans',
-                                            fontWeight: FontWeight.w700,
-                                            fontSize: 13,
-                                            color: titleColor,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                    _buildStepperButton(
-                                      icon: LucideIcons.plus,
-                                      onTap: () => _updateQuantity(idx, 10),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      }),
-
-                      const SizedBox(height: 8),
-
-                      // Add Ingredient Button
-                      AppButton.secondary(
-                        onPressed: _addNewIngredient,
-                        label: 'Zutat hinzufügen',
-                        tooltip: 'Zutat hinzufügen',
-                        icon: LucideIcons.plus,
-                      ),
-                    ],
+                        // Add Ingredient Button
+                        AppButton.secondary(
+                          onPressed: _addNewIngredient,
+                          label: 'Zutat hinzufügen',
+                          tooltip: 'Zutat hinzufügen',
+                          icon: LucideIcons.plus,
+                        ),
+                      ],
+                    ),
                   ),
-                ),
 
-                const SizedBox(height: 100),
-              ],
+                  const SizedBox(height: 100),
+                ],
+              ),
             ),
-          ),
-
-          // Bottom Bar: "Fertig" (Speichern)
-          Container(
-            padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
-            decoration: BoxDecoration(
-              color: bg,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.1),
-                  blurRadius: 10,
-                  offset: const Offset(0, -2),
-                ),
-              ],
-            ),
-            child: AppButton.primary(
-              onPressed: _isSaving ? null : _saveAndClose,
-              label: 'Fertig',
-              tooltip: 'Fertig',
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -597,17 +529,6 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
           fontSize: 11.5,
           color: color,
         ),
-      ),
-    );
-  }
-
-  Widget _buildStepperButton({required IconData icon, required VoidCallback onTap}) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(10),
-      child: Padding(
-        padding: const EdgeInsets.all(6),
-        child: Icon(icon, size: 14),
       ),
     );
   }

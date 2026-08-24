@@ -1047,6 +1047,7 @@
     }
   },
   "aiReviewNoMatch": "Kein Treffer — tippe zum Suchen",
+  "aiReviewUncertain": "Unsicher ({percent}%)",
   "aiReviewConfidence": "Konfidenz",
   "aiReviewAddItem": "Zutat manuell hinzufügen",
   "aiReviewReplaceItem": "Zutat ersetzen",

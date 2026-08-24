@@ -98,31 +98,10 @@ class _MealReviewValidationSummaryState
                     ),
                 ],
               ),
-              Padding(
-                padding: const EdgeInsets.only(
-                    top: DesignConstants.spacingXS, left: 26),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      LucideIcons.circle_dollar_sign,
-                      size: 11,
-                      color: theme.colorScheme.onSurfaceVariant
-                          .withValues(alpha: 0.55),
-                    ),
-                    const SizedBox(width: DesignConstants.spacingXS),
-                    Text(
-                      l10n.aiValidationCostEstimation(
-                          1200 + (widget.itemsCount * 80)),
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        fontSize: 10,
-                        color: theme.colorScheme.onSurfaceVariant
-                            .withValues(alpha: 0.65),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              // The token cost line was removed: it showed
+              // `1200 + itemsCount * 80`, a made-up number presented with a
+              // currency icon as if it had been measured. Real usage belongs in
+              // the developer inspector, not on the user's review screen.
               if (isExpanded) ...[
                 if (validation.repairLimitReached) ...[
                   const SizedBox(height: DesignConstants.spacingS),

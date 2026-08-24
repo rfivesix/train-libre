@@ -765,13 +765,6 @@ class _AddFoodScreenState extends State<AddFoodScreen>
               decoration: BoxDecoration(
                 color: const Color(0xFFC9EF00),
                 borderRadius: BorderRadius.circular(14),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFFA8C400).withValues(alpha: 0.35),
-                    blurRadius: 6,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -864,7 +857,9 @@ class _AddFoodScreenState extends State<AddFoodScreen>
                   }
 
                   if (idx == _baseCategories.length + 1) {
-                    return const BottomContentSpacer();
+                    // Extra room for the floating "Custom Food" button, which
+                    // otherwise covers the last category row.
+                    return const BottomContentSpacer(extra: 72);
                   }
 
                   final cat = _baseCategories[idx - 1];

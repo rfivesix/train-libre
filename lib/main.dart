@@ -30,6 +30,7 @@ import 'features/whats_new/data/whats_new_service.dart';
 import 'features/app/presentation/legal_screen.dart';
 import 'core/infrastructure/icloud_sync_service.dart';
 
+import 'features/diary/data/meal_photo_store.dart';
 import 'features/diary/domain/repositories/diary_repository.dart';
 import 'features/diary/data/nutrition_repository.dart';
 import 'features/workout/domain/repositories/workout_repository.dart';
@@ -95,6 +96,10 @@ void main() async {
 
   // FIX: Ensures DateFormat does not throw LocaleDataException on non-en_US locales.
   await initializeDateFormatting();
+
+  // Meal photos are stored as paths relative to the support directory; caching
+  // it once here lets widgets resolve them synchronously while building.
+  await MealPhotoStore.instance.ensureInitialized();
 
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,

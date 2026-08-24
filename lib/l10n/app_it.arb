@@ -1047,6 +1047,7 @@
     }
   },
   "aiReviewNoMatch": "Nessuna corrispondenza: tocca per cercare",
+  "aiReviewUncertain": "Incerto ({percent}%)",
   "aiReviewConfidence": "Fiducia",
   "aiReviewAddItem": "Aggiungi l'articolo manualmente",
   "aiReviewReplaceItem": "Sostituisci l'articolo",

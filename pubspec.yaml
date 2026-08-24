@@ -80,6 +80,7 @@ dependencies:
   workmanager: ^0.10.7
   posthog_flutter: ^5.36.0
   audioplayers: ^6.1.0
+  speech_to_text: ^7.4.0
 dev_dependencies:
   flutter_test:
     sdk: flutter

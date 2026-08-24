@@ -28,37 +28,142 @@ class DepthCaptureResult {
   });
 }
 
+/// What the native capture session can do on this device.
+class DepthScanCapability {
+  /// A depth map is delivered with each photo.
+  final bool depthSupported;
+
+  /// The unified session can run at all. False on Android and in tests, where
+  /// the capture screen falls back to the scanner plus image picker.
+  final bool cameraAvailable;
+
+  const DepthScanCapability({
+    required this.depthSupported,
+    required this.cameraAvailable,
+  });
+
+  static const none =
+      DepthScanCapability(depthSupported: false, cameraAvailable: false);
+}
+
 /// Interface for native depth scan capability and capture.
 abstract class IDepthScanService {
   Future<bool> isLiDARSupported();
+  Future<DepthScanCapability> capability();
+  Future<bool> startSession();
+  Future<void> stopSession();
+  Stream<String> get barcodes;
   Future<DepthCaptureResult?> capture();
+  Future<bool> makeThumbnail({
+    required String sourcePath,
+    required String targetPath,
+    double maxSize,
+    double quality,
+  });
 }
 
 /// Production implementation communicating with native iOS AVFoundation LiDAR session.
 class DepthScanChannel implements IDepthScanService {
-  static const MethodChannel _channel = MethodChannel('com.trainlibre.app/depth_scan');
+  static const MethodChannel _channel =
+      MethodChannel('com.trainlibre.app/depth_scan');
+  static const EventChannel _barcodeChannel =
+      EventChannel('com.trainlibre.app/depth_scan/barcodes');
+
+  /// Platform view id of the live preview. Registered natively alongside the
+  /// method channel, so it is only available where [capability] reports a
+  /// usable camera.
+  static const String previewViewType = 'com.trainlibre.app/depth_scan_preview';
 
   static final DepthScanChannel instance = DepthScanChannel._();
   DepthScanChannel._();
 
-  bool? _cachedSupported;
+  DepthScanCapability? _cachedCapability;
+  Stream<String>? _barcodeStream;
 
   @override
-  Future<bool> isLiDARSupported() async {
-    if (_cachedSupported != null) return _cachedSupported!;
+  Future<bool> isLiDARSupported() async => (await capability()).depthSupported;
+
+  @override
+  Future<DepthScanCapability> capability() async {
+    if (_cachedCapability != null) return _cachedCapability!;
     if (!Platform.isIOS) {
-      _cachedSupported = false;
-      return false;
+      _cachedCapability = DepthScanCapability.none;
+      return _cachedCapability!;
     }
 
     try {
       final res = await _channel.invokeMapMethod<String, dynamic>('capability');
-      final supported = (res?['supported'] as bool?) ?? false;
-      _cachedSupported = supported;
-      return supported;
+      final capability = DepthScanCapability(
+        depthSupported: (res?['supported'] as bool?) ?? false,
+        cameraAvailable: (res?['cameraAvailable'] as bool?) ?? false,
+      );
+      _cachedCapability = capability;
+      return capability;
     } catch (e) {
       debugPrint('[DepthScanChannel] capability check failed: $e');
-      _cachedSupported = false;
+      _cachedCapability = DepthScanCapability.none;
+      return DepthScanCapability.none;
+    }
+  }
+
+  /// Starts the shared session. Safe to call repeatedly — the native side
+  /// configures once and only restarts when it was stopped.
+  @override
+  Future<bool> startSession() async {
+    if (!Platform.isIOS) return false;
+    try {
+      return await _channel.invokeMethod<bool>('start') ?? false;
+    } catch (e) {
+      debugPrint('[DepthScanChannel] start failed: $e');
+      return false;
+    }
+  }
+
+  @override
+  Future<void> stopSession() async {
+    if (!Platform.isIOS) return;
+    try {
+      await _channel.invokeMethod<bool>('stop');
+    } catch (e) {
+      debugPrint('[DepthScanChannel] stop failed: $e');
+    }
+  }
+
+  /// Barcodes seen by the running session. Emits the same code repeatedly while
+  /// it stays in frame; de-duplication belongs to the caller, which knows
+  /// whether the user already dismissed a suggestion.
+  @override
+  Stream<String> get barcodes {
+    if (!Platform.isIOS) return const Stream<String>.empty();
+    _barcodeStream ??= _barcodeChannel
+        .receiveBroadcastStream()
+        .map((event) => event as String)
+        .where((code) => code.isNotEmpty);
+    return _barcodeStream!;
+  }
+
+  /// Writes a downscaled JPEG copy of [sourcePath] to [targetPath].
+  ///
+  /// Native because Flutter ships no JPEG encoder; used for meal photo
+  /// thumbnails from both the camera and the gallery.
+  @override
+  Future<bool> makeThumbnail({
+    required String sourcePath,
+    required String targetPath,
+    double maxSize = 320,
+    double quality = 0.8,
+  }) async {
+    if (!Platform.isIOS) return false;
+    try {
+      return await _channel.invokeMethod<bool>('makeThumbnail', {
+            'sourcePath': sourcePath,
+            'targetPath': targetPath,
+            'maxSize': maxSize,
+            'quality': quality,
+          }) ??
+          false;
+    } catch (e) {
+      debugPrint('[DepthScanChannel] makeThumbnail failed: $e');
       return false;
     }
   }
@@ -75,8 +180,14 @@ class DepthScanChannel implements IDepthScanService {
       if (imagePath == null || !File(imagePath).existsSync()) return null;
 
       final imageFile = File(imagePath);
-      final depthMap = res['depth'] as Map<String, dynamic>?;
-      final intrinsicsMap = res['intrinsics'] as Map<String, dynamic>?;
+      // The platform codec hands nested maps back as Map<Object?, Object?>, so
+      // a direct cast to Map<String, dynamic> throws — and the throw would be
+      // swallowed below, leaving depth silently unavailable forever.
+      Map<String, dynamic>? asStringMap(Object? value) =>
+          value is Map ? Map<String, dynamic>.from(value) : null;
+
+      final depthMap = asStringMap(res['depth']);
+      final intrinsicsMap = asStringMap(res['intrinsics']);
 
       Float32List? depthBuffer;
       int width = 0;
@@ -88,11 +199,21 @@ class DepthScanChannel implements IDepthScanService {
         height = (depthMap['height'] as num?)?.toInt() ?? 0;
         accuracy = depthMap['accuracy'] as String? ?? 'relative';
         final rawBytes = depthMap['values'] as Uint8List?;
-        if (rawBytes != null && rawBytes.isNotEmpty) {
-          depthBuffer = rawBytes.buffer.asFloat32List(
-            rawBytes.offsetInBytes,
-            rawBytes.lengthInBytes ~/ 4,
-          );
+        if (rawBytes != null && rawBytes.lengthInBytes >= 4) {
+          final floatCount = rawBytes.lengthInBytes ~/ 4;
+          if (rawBytes.offsetInBytes % 4 == 0) {
+            depthBuffer = rawBytes.buffer
+                .asFloat32List(rawBytes.offsetInBytes, floatCount);
+          } else {
+            // A misaligned view would throw; copying is cheap enough at this
+            // size (a 256x192 map is under 200 KB) and always works.
+            final data = ByteData.sublistView(rawBytes);
+            final copy = Float32List(floatCount);
+            for (var i = 0; i < floatCount; i++) {
+              copy[i] = data.getFloat32(i * 4, Endian.little);
+            }
+            depthBuffer = copy;
+          }
         }
       }
 
@@ -102,7 +223,10 @@ class DepthScanChannel implements IDepthScanService {
       }
 
       DepthScaleFacts? scaleFacts;
-      if (depthBuffer != null && intrinsics != null && width > 0 && height > 0) {
+      if (depthBuffer != null &&
+          intrinsics != null &&
+          width > 0 &&
+          height > 0) {
         scaleFacts = DepthScaleCalculator.calculate(
           depthBuffer: depthBuffer,
           width: width,

@@ -2552,6 +2552,11 @@ class AppLocalizationsJa extends AppLocalizations {
   String get aiReviewNoMatch => '一致しません — タップして検索します';
 
   @override
+  String aiReviewUncertain(int percent) {
+    return '不確か（$percent%）';
+  }
+
+  @override
   String get aiReviewConfidence => '自信';
 
   @override

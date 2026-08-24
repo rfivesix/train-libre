@@ -4736,6 +4736,12 @@ abstract class AppLocalizations {
   /// **'No match — tap to search'**
   String get aiReviewNoMatch;
 
+  /// No description provided for @aiReviewUncertain.
+  ///
+  /// In en, this message translates to:
+  /// **'Unsure ({percent}%)'**
+  String aiReviewUncertain(int percent);
+
   /// No description provided for @aiReviewConfidence.
   ///
   /// In en, this message translates to:

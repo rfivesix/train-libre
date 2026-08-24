@@ -7,6 +7,8 @@ import '../domain/models/food_entry.dart';
 import '../domain/models/food_item.dart';
 import '../domain/models/meal_entry.dart';
 import '../domain/repositories/diary_repository.dart';
+import '../data/meal_photo_store.dart';
+import '../domain/models/meal_capture_meta.dart';
 import '../../../services/ai_meal_validation.dart';
 import '../../../services/ai_matching_language_service.dart';
 import '../../../services/ai_service.dart';
@@ -20,7 +22,7 @@ import 'food_detail_screen.dart';
 import 'meal_editor_screen.dart';
 import 'widgets/meal_review_comparison_card.dart';
 import 'widgets/meal_review_validation_summary.dart';
-import 'widgets/meal_photo_overlay_widget.dart';
+import 'widgets/meal_photo_widget.dart';
 import '../../depth_scan/domain/models/depth_scale_facts.dart';
 import '../../depth_scan/platform/depth_scan_channel.dart';
 import '../../depth_scan/presentation/meal_scan_debug_view.dart';
@@ -45,6 +47,10 @@ class AiMealReviewScreen extends StatefulWidget {
   final String? sentPrompt;
   final String? rawResponse;
 
+  /// Dictated description that accompanied the capture, kept so a later
+  /// re-analysis can send the same context again.
+  final String? voiceTranscript;
+
   const AiMealReviewScreen({
     super.key,
     required this.suggestions,
@@ -56,6 +62,7 @@ class AiMealReviewScreen extends StatefulWidget {
     this.depthFacts,
     this.sentPrompt,
     this.rawResponse,
+    this.voiceTranscript,
   });
 
   @override
@@ -437,13 +444,35 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
           _validation?.candidate.mealName ??
           (_items.isNotEmpty ? _items.first.suggestion.name : 'Mahlzeit');
 
+      // The captured file lives in a temporary directory the system may purge,
+      // so it has to be copied into durable storage before its path is stored.
+      MealPhotoPaths? photoPaths;
+      final extraPhotoPaths = <String>[];
+      for (var i = 0; i < widget.originalImages.length; i++) {
+        final saved =
+            await MealPhotoStore.instance.save(widget.originalImages[i]);
+        if (saved == null) continue;
+        if (photoPaths == null) {
+          photoPaths = saved;
+        } else {
+          extraPhotoPaths.add(saved.photoPath);
+        }
+      }
+      final captureMeta = MealCaptureMeta(
+        depthFacts: widget.depthFacts,
+        extraPhotoPaths: extraPhotoPaths,
+      );
+
       final mealEntry = MealEntry(
         id: mealEntryId,
         title: candidateDish,
         consumedAt: _selectedTimestamp,
         mealType: _selectedMealType,
-        photoPath: widget.originalImages.isNotEmpty ? widget.originalImages.first.path : null,
-        source: 'aiPhoto',
+        photoPath: photoPaths?.photoPath,
+        photoThumbPath: photoPaths?.thumbPath,
+        voiceTranscript: widget.voiceTranscript,
+        captureMeta: captureMeta.isEmpty ? null : captureMeta.toJson(),
+        source: widget.originalImages.isEmpty ? 'aiText' : 'aiPhoto',
       );
       await diaryRepo.insertMealEntry(mealEntry);
 
@@ -530,25 +559,11 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
   // Build
   // ---------------------------------------------------------------------------
 
-  int? _selectedRegionIndex;
-
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final topPadding = MediaQuery.of(context).padding.top + kToolbarHeight;
-
-    final overlayItems = _items.asMap().entries.map((e) {
-      final it = e.value;
-      final kcal = it.nutrition.kcal.round();
-      return OverlayItemDisplay(
-        name: it.suggestion.name,
-        grams: it.suggestion.estimatedGrams,
-        kcal: kcal,
-        regions: it.suggestion.regions,
-        color: MealOverlayColors.forIndex(e.key),
-      );
-    }).toList();
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -559,17 +574,14 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
             icon: const Icon(LucideIcons.sparkles, size: 20),
             tooltip: 'LiDAR & AI Insights',
             onPressed: () {
-              final rawRegions = _items
-                  .expand((it) => it.suggestion.regions)
-                  .toList();
               Navigator.of(context).push(
                 MaterialPageRoute(
                   builder: (_) => MealScanDebugView(
                     captureResult: widget.depthResult,
-                    scaleFacts: widget.depthFacts ?? widget.depthResult?.scaleFacts,
+                    scaleFacts:
+                        widget.depthFacts ?? widget.depthResult?.scaleFacts,
                     sentPrompt: widget.sentPrompt,
                     rawResponse: widget.rawResponse,
-                    rawRegions: rawRegions,
                   ),
                 ),
               );
@@ -585,15 +597,20 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
                 top: DesignConstants.cardPadding.top + topPadding,
               ),
               children: [
-                // Organic Photo Overlay Blobs / Multi-Photo Carousel (Screens C1, C2, C3, C4)
+                // The photo runs edge to edge; OverflowBox lets it escape the
+                // list's horizontal padding without restructuring the list.
                 if (widget.originalImages.isNotEmpty) ...[
-                  MealPhotoOverlayWidget(
-                    photoFiles: widget.originalImages,
-                    photoFile: widget.originalImages.first,
+                  SizedBox(
                     height: 300,
-                    items: overlayItems,
-                    selectedIndex: _selectedRegionIndex,
-                    onItemTapped: (idx) => setState(() => _selectedRegionIndex = idx),
+                    child: OverflowBox(
+                      maxWidth: MediaQuery.sizeOf(context).width,
+                      maxHeight: 300,
+                      child: MealPhotoWidget(
+                        photoFiles: widget.originalImages,
+                        photoFile: widget.originalImages.first,
+                        height: 300,
+                      ),
+                    ),
                   ),
                   const SizedBox(height: DesignConstants.spacingM),
                 ],

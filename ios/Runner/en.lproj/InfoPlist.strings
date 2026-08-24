@@ -1,6 +1,8 @@
 "NSCameraUsageDescription" = "Train Libre uses the camera for barcode scanning and optional AI meal photo analysis.";
 "NSHealthShareUsageDescription" = "Train Libre reads steps, sleep, and heart-rate data from Apple Health to show health and recovery views you enable.";
 "NSHealthUpdateUsageDescription" = "Train Libre writes measurements, nutrition, hydration, and workouts to Apple Health when you enable one-way health export.";
+"NSMicrophoneUsageDescription" = "Train Libre uses the microphone only while you hold the dictation button to describe a meal.";
 "NSPhotoLibraryUsageDescription" = "Train Libre uses photo library access for optional AI meal analysis and profile images.";
+"NSSpeechRecognitionUsageDescription" = "Train Libre converts your spoken meal description into text. On-device recognition is used whenever your device supports it.";
 "shortcut.addFood" = "Add Food";
 "shortcut.startWorkout" = "Start Workout";

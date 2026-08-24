@@ -2617,6 +2617,11 @@ class AppLocalizationsDe extends AppLocalizations {
   String get aiReviewNoMatch => 'Kein Treffer — tippe zum Suchen';
 
   @override
+  String aiReviewUncertain(int percent) {
+    return 'Unsicher ($percent%)';
+  }
+
+  @override
   String get aiReviewConfidence => 'Konfidenz';
 
   @override

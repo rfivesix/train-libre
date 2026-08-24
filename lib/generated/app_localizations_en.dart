@@ -2604,6 +2604,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get aiReviewNoMatch => 'No match — tap to search';
 
   @override
+  String aiReviewUncertain(int percent) {
+    return 'Unsure ($percent%)';
+  }
+
+  @override
   String get aiReviewConfidence => 'Confidence';
 
   @override
