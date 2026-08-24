@@ -2639,6 +2639,7 @@
   "mealAnalysisAnalyzing": "Analisi del pasto",
   "mealAnalysisMatching": "Confronto degli ingredienti",
   "mealAnalysisFailed": "Non ha funzionato",
+  "mealAnalysisProcessingTag": "AI VISION PROCESSING",
   "aiScannerTitle": "Scanner IA",
   "aiCaptureAnalyzing": "Analisi…",
   "aiCaptureAnalyzeMeal": "Analizza il pasto ({count})",

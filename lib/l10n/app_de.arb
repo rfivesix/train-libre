@@ -2638,6 +2638,7 @@
   "mealAnalysisAnalyzing": "Mahlzeit wird analysiert",
   "mealAnalysisMatching": "Zutaten werden abgeglichen",
   "mealAnalysisFailed": "Das hat nicht geklappt",
+  "mealAnalysisProcessingTag": "AI VISION PROCESSING",
   "aiScannerTitle": "KI-Scanner",
   "aiCaptureAnalyzing": "Analysiere…",
   "aiCaptureAnalyzeMeal": "Mahlzeit analysieren ({count})",

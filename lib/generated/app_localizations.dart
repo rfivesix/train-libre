@@ -10225,6 +10225,12 @@ abstract class AppLocalizations {
   /// **'That did not work'**
   String get mealAnalysisFailed;
 
+  /// No description provided for @mealAnalysisProcessingTag.
+  ///
+  /// In en, this message translates to:
+  /// **'AI VISION PROCESSING'**
+  String get mealAnalysisProcessingTag;
+
   /// No description provided for @aiScannerTitle.
   ///
   /// In en, this message translates to:

@@ -5924,6 +5924,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get mealAnalysisFailed => 'Non ha funzionato';
 
   @override
+  String get mealAnalysisProcessingTag => 'AI VISION PROCESSING';
+
+  @override
   String get aiScannerTitle => 'Scanner IA';
 
   @override

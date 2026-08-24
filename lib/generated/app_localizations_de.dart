@@ -5885,6 +5885,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get mealAnalysisFailed => 'Das hat nicht geklappt';
 
   @override
+  String get mealAnalysisProcessingTag => 'AI VISION PROCESSING';
+
+  @override
   String get aiScannerTitle => 'KI-Scanner';
 
   @override

@@ -1,10 +1,11 @@
 // lib/features/diary/presentation/meal_analysis_screen.dart
 
 import 'dart:io';
-import '../../../generated/app_localizations.dart';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import '../../../generated/app_localizations.dart';
+import 'widgets/ai_neural_cloud_orb_widget.dart';
 
 /// Stages the capture screen walks through while a meal is being analysed.
 ///
@@ -23,16 +24,15 @@ class MealAnalysisController extends ValueNotifier<MealAnalysisPhase> {
   MealAnalysisController() : super(MealAnalysisPhase.preparing);
 }
 
-/// PLACEHOLDER — blocking screen shown while a meal is analysed.
+/// Immersive blocking screen shown while a meal is being analysed.
 ///
-/// This is scaffolding, not the finished thing: it holds the position, the
-/// route behaviour and the phase wiring so the real design can drop straight
-/// in. What it already gets right and the replacement must keep:
+/// Features an abstract, hardware-accelerated **Liquid Cloud Orb** animation
+/// with 3 organic rotating clouds with position-based scale modulation.
 ///
-/// * It blocks. The user cannot edit the input underneath while a request is
-///   in flight, which was possible before.
-/// * It shows no fake progress. Indeterminate motion only.
-/// * It can be left. A request that hangs must not trap the user.
+/// Core invariants:
+/// * It blocks: The user cannot edit inputs underneath while a request is in flight.
+/// * Indeterminate motion: No fake percentages.
+/// * Escape hatch: Can be cancelled anytime via [onCancel].
 class MealAnalysisScreen extends StatelessWidget {
   final MealAnalysisController controller;
   final File? previewImage;
@@ -54,8 +54,8 @@ class MealAnalysisScreen extends StatelessWidget {
     return PageRouteBuilder<void>(
       opaque: true,
       barrierDismissible: false,
-      transitionDuration: const Duration(milliseconds: 220),
-      reverseTransitionDuration: const Duration(milliseconds: 180),
+      transitionDuration: const Duration(milliseconds: 260),
+      reverseTransitionDuration: const Duration(milliseconds: 200),
       pageBuilder: (_, __, ___) => MealAnalysisScreen(
         controller: controller,
         previewImage: previewImage,
@@ -66,7 +66,7 @@ class MealAnalysisScreen extends StatelessWidget {
     );
   }
 
-  String _label(AppLocalizations l10n, MealAnalysisPhase phase) {
+  String _statusLabel(AppLocalizations l10n, MealAnalysisPhase phase) {
     return switch (phase) {
       MealAnalysisPhase.preparing => l10n.mealAnalysisPreparing,
       MealAnalysisPhase.analyzing => l10n.mealAnalysisAnalyzing,
@@ -78,6 +78,9 @@ class MealAnalysisScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final orbSize = (screenWidth * 0.78).clamp(260.0, 360.0);
+
     return PopScope(
       // Leaving is offered explicitly below rather than by a back swipe, so a
       // half-finished request cannot be left behind by accident.
@@ -87,59 +90,119 @@ class MealAnalysisScreen extends StatelessWidget {
         body: Stack(
           fit: StackFit.expand,
           children: [
+            // 1. Deep Space Atmosphere or Frosted Captured Backdrop
             if (previewImage != null) ...[
-              Image.file(previewImage!, fit: BoxFit.cover),
-              BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
-                child: Container(color: Colors.black.withValues(alpha: 0.55)),
+              Positioned.fill(
+                child: Image.file(
+                  previewImage!,
+                  fit: BoxFit.cover,
+                ),
               ),
-            ],
-            SafeArea(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Spacer(),
-                  const SizedBox(
-                    width: 56,
-                    height: 56,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2.5,
-                      color: Color(0xFFC9EF00),
+              Positioned.fill(
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 28, sigmaY: 28),
+                  child: Container(
+                    color: const Color(0xE607090E),
+                  ),
+                ),
+              ),
+            ] else ...[
+              Positioned.fill(
+                child: Container(
+                  decoration: const BoxDecoration(
+                    gradient: RadialGradient(
+                      center: Alignment.center,
+                      radius: 0.95,
+                      colors: [
+                        Color(0xFF090C06),
+                        Color(0xFF05070A),
+                        Colors.black,
+                      ],
+                      stops: [0.0, 0.55, 1.0],
                     ),
                   ),
-                  const SizedBox(height: 24),
-                  ValueListenableBuilder<MealAnalysisPhase>(
-                    valueListenable: controller,
-                    builder: (context, phase, _) {
-                      return AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 220),
-                        child: Text(
-                          _label(l10n, phase),
-                          key: ValueKey(phase),
-                          style: const TextStyle(
-                            fontFamily: 'Plus Jakarta Sans',
-                            fontWeight: FontWeight.w700,
-                            fontSize: 17,
-                            color: Colors.white,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      );
-                    },
+                ),
+              ),
+            ],
+
+            // 2. Abstract Liquid Cloud Orb & Minimal Status
+            SafeArea(
+              child: Column(
+                children: [
+                  const Spacer(flex: 3),
+
+                  // Center 3-Cloud Liquid Orb
+                  Center(
+                    child: AiNeuralCloudOrbWidget(
+                      size: orbSize,
+                      showAmbientGlow: true,
+                    ),
                   ),
-                  const Spacer(),
+
+                  const Spacer(flex: 2),
+
+                  // Clean Status Text (No processing tag)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 32),
+                    child: ValueListenableBuilder<MealAnalysisPhase>(
+                      valueListenable: controller,
+                      builder: (context, phase, _) {
+                        return AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 240),
+                          transitionBuilder: (child, animation) {
+                            return FadeTransition(
+                              opacity: animation,
+                              child: SlideTransition(
+                                position: Tween<Offset>(
+                                  begin: const Offset(0.0, 0.15),
+                                  end: Offset.zero,
+                                ).animate(animation),
+                                child: child,
+                              ),
+                            );
+                          },
+                          child: Text(
+                            _statusLabel(l10n, phase),
+                            key: ValueKey(phase),
+                            style: const TextStyle(
+                              fontFamily: 'Plus Jakarta Sans',
+                              fontWeight: FontWeight.w600,
+                              fontSize: 16,
+                              color: Colors.white,
+                              letterSpacing: 0.2,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+
+                  const Spacer(flex: 3),
+
+                  // Cancel / Abbrechen Button
                   if (onCancel != null)
                     Padding(
-                      padding: const EdgeInsets.only(bottom: 24),
+                      padding: const EdgeInsets.only(bottom: 20),
                       child: TextButton(
                         onPressed: onCancel,
+                        style: TextButton.styleFrom(
+                          foregroundColor: const Color(0xFFFF453A),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 24,
+                            vertical: 12,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                        ),
                         child: Text(
                           l10n.cancel,
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontFamily: 'Plus Jakarta Sans',
                             fontWeight: FontWeight.w600,
                             fontSize: 15,
-                            color: Colors.white.withValues(alpha: 0.7),
+                            color: Color(0xFFFF453A),
                           ),
                         ),
                       ),

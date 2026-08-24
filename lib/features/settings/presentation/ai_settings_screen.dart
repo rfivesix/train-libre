@@ -18,6 +18,7 @@ import 'dart:async';
 import '../../../services/telemetry/telemetry_service.dart';
 import '../../depth_scan/data/depth_scan_settings.dart';
 import '../../depth_scan/platform/depth_scan_channel.dart';
+import '../../diary/presentation/meal_analysis_screen.dart';
 
 /// Settings page for configuring the AI Meal Capture feature.
 ///
@@ -291,6 +292,39 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
     } finally {
       if (mounted) setState(() => _isTesting = false);
     }
+  }
+
+  void _openAnimationPreview(BuildContext context) {
+    final controller = MealAnalysisController();
+    Timer? loopTimer;
+
+    final phases = [
+      MealAnalysisPhase.preparing,
+      MealAnalysisPhase.analyzing,
+      MealAnalysisPhase.matching,
+    ];
+    int phaseIndex = 0;
+
+    // Slowly cycle through phases every 4.5 seconds for testing
+    loopTimer = Timer.periodic(const Duration(milliseconds: 4500), (_) {
+      phaseIndex = (phaseIndex + 1) % phases.length;
+      controller.value = phases[phaseIndex];
+    });
+
+    Navigator.of(context)
+        .push(
+      MealAnalysisScreen.route(
+        controller: controller,
+        onCancel: () {
+          loopTimer?.cancel();
+          Navigator.of(context).pop();
+        },
+      ),
+    )
+        .then((_) {
+      loopTimer?.cancel();
+      controller.dispose();
+    });
   }
 
   @override
@@ -595,6 +629,40 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                         ],
                       ),
                     ],
+                  ],
+                ),
+              ),
+            ),
+
+            const SizedBox(height: DesignConstants.spacingL),
+
+            // --- Animation Testing & Preview ---
+            AppSectionHeader(title: 'AI Animation Preview'),
+            SummaryCard(
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Neural Liquid Orb Animation',
+                      style: theme.textTheme.labelLarge
+                          ?.copyWith(fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Öffnet den Ladebildschirm im Dauerlauf-Modus, um die visuellen Effekte und Phasen-Übergänge live zu testen.',
+                      style: theme.textTheme.bodySmall
+                          ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                    ),
+                    const SizedBox(height: 12),
+                    AppButton.secondary(
+                      onPressed: () => _openAnimationPreview(context),
+                      label: 'Animation im Vollbild testen',
+                      tooltip: 'Animation im Vollbild testen',
+                      icon: LucideIcons.play,
+                    ),
                   ],
                 ),
               ),

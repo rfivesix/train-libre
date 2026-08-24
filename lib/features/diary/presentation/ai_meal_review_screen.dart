@@ -567,22 +567,45 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
   Future<bool> _confirmDiscard() async {
     if (_isSaving) return true;
     final l10n = AppLocalizations.of(context)!;
-    final discard = await showDialog<bool>(
+    final discard = await showGlassBottomMenu<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(l10n.aiReviewDiscardTitle),
-        content: Text(l10n.aiReviewDiscardBody),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: Text(l10n.cancel),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            child: Text(
-              l10n.discard,
-              style: TextStyle(color: Theme.of(ctx).colorScheme.error),
+      title: l10n.aiReviewDiscardTitle,
+      contentBuilder: (ctx, close) => Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            l10n.aiReviewDiscardBody,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: Theme.of(ctx).colorScheme.onSurfaceVariant,
+              fontSize: 14,
             ),
+          ),
+          const SizedBox(height: DesignConstants.spacingL),
+          Row(
+            children: [
+              Expanded(
+                child: AppButton.secondary(
+                  onPressed: () {
+                    close();
+                    Navigator.of(ctx).pop(false);
+                  },
+                  label: l10n.cancel,
+                  tooltip: l10n.cancel,
+                ),
+              ),
+              const SizedBox(width: DesignConstants.spacingM),
+              Expanded(
+                child: AppButton.danger(
+                  onPressed: () {
+                    close();
+                    Navigator.of(ctx).pop(true);
+                  },
+                  label: l10n.discard,
+                  tooltip: l10n.discard,
+                ),
+              ),
+            ],
           ),
         ],
       ),

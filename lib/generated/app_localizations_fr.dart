@@ -5939,6 +5939,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get mealAnalysisFailed => 'Cela n\'a pas fonctionné';
 
   @override
+  String get mealAnalysisProcessingTag => 'AI VISION PROCESSING';
+
+  @override
   String get aiScannerTitle => 'Scanner IA';
 
   @override

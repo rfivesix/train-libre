@@ -5650,6 +5650,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get mealAnalysisFailed => 'うまくいきませんでした';
 
   @override
+  String get mealAnalysisProcessingTag => 'AI VISION PROCESSING';
+
+  @override
   String get aiScannerTitle => 'AIスキャナー';
 
   @override

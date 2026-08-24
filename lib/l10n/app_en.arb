@@ -2779,6 +2779,7 @@
   "mealAnalysisAnalyzing": "Analysing the meal",
   "mealAnalysisMatching": "Matching the ingredients",
   "mealAnalysisFailed": "That did not work",
+  "mealAnalysisProcessingTag": "AI VISION PROCESSING",
   "aiScannerTitle": "AI scanner",
   "aiCaptureAnalyzing": "Analysing…",
   "aiCaptureAnalyzeMeal": "Analyse meal ({count})",

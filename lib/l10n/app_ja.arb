@@ -2639,6 +2639,7 @@
   "mealAnalysisAnalyzing": "食事を解析しています",
   "mealAnalysisMatching": "食材を照合しています",
   "mealAnalysisFailed": "うまくいきませんでした",
+  "mealAnalysisProcessingTag": "AI VISION PROCESSING",
   "aiScannerTitle": "AIスキャナー",
   "aiCaptureAnalyzing": "解析中…",
   "aiCaptureAnalyzeMeal": "食事を解析（{count}）",
