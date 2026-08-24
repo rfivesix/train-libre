@@ -19,6 +19,7 @@ import '../../../services/telemetry/telemetry_service.dart';
 import '../../depth_scan/data/depth_scan_settings.dart';
 import '../../depth_scan/platform/depth_scan_channel.dart';
 import '../../diary/presentation/meal_analysis_screen.dart';
+import '../../../services/haptic_feedback_service.dart';
 
 /// Settings page for configuring the AI Meal Capture feature.
 ///
@@ -297,6 +298,7 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
   void _openAnimationPreview(BuildContext context) {
     final controller = MealAnalysisController();
     Timer? loopTimer;
+    HapticFeedbackService.instance.startAiWaiting();
 
     final phases = [
       MealAnalysisPhase.preparing,
@@ -317,12 +319,14 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
         controller: controller,
         onCancel: () {
           loopTimer?.cancel();
+          HapticFeedbackService.instance.stopAiWaiting();
           Navigator.of(context).pop();
         },
       ),
     )
         .then((_) {
       loopTimer?.cancel();
+      HapticFeedbackService.instance.stopAiWaiting();
       controller.dispose();
     });
   }
