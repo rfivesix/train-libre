@@ -17,9 +17,8 @@ import '../../../widgets/common/app_button.dart';
 import 'dart:async';
 import '../../../services/telemetry/telemetry_service.dart';
 import '../../depth_scan/data/depth_scan_settings.dart';
+import '../../../services/voice/voice_dictation_settings.dart';
 import '../../depth_scan/platform/depth_scan_channel.dart';
-import '../../diary/presentation/meal_analysis_screen.dart';
-import '../../../services/haptic_feedback_service.dart';
 
 /// Settings page for configuring the AI Meal Capture feature.
 ///
@@ -51,6 +50,8 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
   /// would advertise something the hardware cannot do.
   bool _hasLidar = false;
   bool _scaleHintEnabled = true;
+  bool _depthImageEnabled = true;
+  bool _voiceTidyEnabled = true;
 
   @override
   void initState() {
@@ -59,16 +60,25 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
         .trackScreenView(screenName: ScreenName.aiSettings));
     _loadSettings();
     unawaited(_loadDepthSettings());
+    unawaited(_loadVoiceSettings());
   }
 
   Future<void> _loadDepthSettings() async {
     final capability = await DepthScanChannel.instance.capability();
     final enabled = await DepthScanSettings.instance.isScaleHintEnabled();
+    final depthImage = await DepthScanSettings.instance.isDepthImageEnabled();
     if (!mounted) return;
     setState(() {
       _hasLidar = capability.depthSupported;
       _scaleHintEnabled = enabled;
+      _depthImageEnabled = depthImage;
     });
+  }
+
+  Future<void> _loadVoiceSettings() async {
+    final enabled = await VoiceDictationSettings.instance.isAiTidyEnabled();
+    if (!mounted) return;
+    setState(() => _voiceTidyEnabled = enabled);
   }
 
   @override
@@ -295,42 +305,6 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
     }
   }
 
-  void _openAnimationPreview(BuildContext context) {
-    final controller = MealAnalysisController();
-    Timer? loopTimer;
-    HapticFeedbackService.instance.startAiWaiting();
-
-    final phases = [
-      MealAnalysisPhase.preparing,
-      MealAnalysisPhase.analyzing,
-      MealAnalysisPhase.matching,
-    ];
-    int phaseIndex = 0;
-
-    // Slowly cycle through phases every 4.5 seconds for testing
-    loopTimer = Timer.periodic(const Duration(milliseconds: 4500), (_) {
-      phaseIndex = (phaseIndex + 1) % phases.length;
-      controller.value = phases[phaseIndex];
-    });
-
-    Navigator.of(context)
-        .push(
-      MealAnalysisScreen.route(
-        controller: controller,
-        onCancel: () {
-          loopTimer?.cancel();
-          HapticFeedbackService.instance.stopAiWaiting();
-          Navigator.of(context).pop();
-        },
-      ),
-    )
-        .then((_) {
-      loopTimer?.cancel();
-      HapticFeedbackService.instance.stopAiWaiting();
-      controller.dispose();
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -414,8 +388,42 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                           setState(() => _scaleHintEnabled = value);
                         },
                       ),
+                      const SizedBox(height: 12),
+                      PlatformAdaptiveSwitchListTile(
+                        contentPadding: EdgeInsets.zero,
+                        secondary: const Icon(LucideIcons.layers),
+                        title: Text(
+                          l10n.aiDepthImageTitle,
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        subtitle: Text(l10n.aiDepthImageSubtitle),
+                        value: _depthImageEnabled,
+                        onChanged: (value) async {
+                          await DepthScanSettings.instance
+                              .setDepthImageEnabled(value);
+                          if (!mounted) return;
+                          setState(() => _depthImageEnabled = value);
+                        },
+                      ),
                     ],
                     if (aiEnabled) ...[
+                      const SizedBox(height: 12),
+                      PlatformAdaptiveSwitchListTile(
+                        contentPadding: EdgeInsets.zero,
+                        secondary: const Icon(LucideIcons.mic),
+                        title: Text(
+                          l10n.aiVoiceTidyTitle,
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        subtitle: Text(l10n.aiVoiceTidySubtitle),
+                        value: _voiceTidyEnabled,
+                        onChanged: (value) async {
+                          await VoiceDictationSettings.instance
+                              .setAiTidyEnabled(value);
+                          if (!mounted) return;
+                          setState(() => _voiceTidyEnabled = value);
+                        },
+                      ),
                       const SizedBox(height: 12),
                       PlatformAdaptiveDropdownFormField<AiProvider>(
                         initialValue: _selectedProvider,
@@ -633,40 +641,6 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                         ],
                       ),
                     ],
-                  ],
-                ),
-              ),
-            ),
-
-            const SizedBox(height: DesignConstants.spacingL),
-
-            // --- Animation Testing & Preview ---
-            AppSectionHeader(title: 'AI Animation Preview'),
-            SummaryCard(
-              child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Neural Liquid Orb Animation',
-                      style: theme.textTheme.labelLarge
-                          ?.copyWith(fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Öffnet den Ladebildschirm im Dauerlauf-Modus, um die visuellen Effekte und Phasen-Übergänge live zu testen.',
-                      style: theme.textTheme.bodySmall
-                          ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
-                    ),
-                    const SizedBox(height: 12),
-                    AppButton.secondary(
-                      onPressed: () => _openAnimationPreview(context),
-                      label: 'Animation im Vollbild testen',
-                      tooltip: 'Animation im Vollbild testen',
-                      icon: LucideIcons.play,
-                    ),
                   ],
                 ),
               ),

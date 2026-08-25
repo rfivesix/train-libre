@@ -6021,6 +6021,35 @@ class AppLocalizationsIt extends AppLocalizations {
   String get voiceRetake => 'Registra di nuovo';
 
   @override
+  String voiceTidiedIn(String seconds) {
+    return 'Sistemato dall’IA in $seconds s';
+  }
+
+  @override
+  String get aiDepthImageTitle => 'Invia anche la mappa di profondità';
+
+  @override
+  String get aiDepthImageSubtitle =>
+      'Allega il rilievo a falsi colori come seconda immagine, così il modello valuta anche l’altezza e non solo il contorno. Costa un’immagine in più per analisi.';
+
+  @override
+  String get aiVoiceTidyTitle => 'Sistema la dettatura con l’IA';
+
+  @override
+  String get aiVoiceTidySubtitle =>
+      'Dopo aver parlato, il testo viene corretto e diviso in punti elenco. Costa una richiesta e qualche secondo.';
+
+  @override
+  String get voicePermissionTitle => 'Microfono e riconoscimento vocale';
+
+  @override
+  String get voicePermissionBody =>
+      'Per dettare un pasto, Train Libre ha bisogno del microfono durante la registrazione e del riconoscimento vocale per trascrivere ciò che dici. Il riconoscimento avviene sul dispositivo quando possibile. Nulla viene registrato o conservato.';
+
+  @override
+  String get voicePermissionContinue => 'Continua';
+
+  @override
   String get voiceApplyText => 'Usa questo testo';
 
   @override

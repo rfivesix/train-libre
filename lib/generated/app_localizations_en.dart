@@ -5933,6 +5933,35 @@ class AppLocalizationsEn extends AppLocalizations {
   String get voiceRetake => 'Record again';
 
   @override
+  String voiceTidiedIn(String seconds) {
+    return 'Tidied up by AI in $seconds s';
+  }
+
+  @override
+  String get aiDepthImageTitle => 'Send the depth map too';
+
+  @override
+  String get aiDepthImageSubtitle =>
+      'Attaches the false-colour relief of the meal as a second image, so the model can judge height as well as outline. Costs one extra image per analysis.';
+
+  @override
+  String get aiVoiceTidyTitle => 'Tidy up dictation with AI';
+
+  @override
+  String get aiVoiceTidySubtitle =>
+      'After you finish speaking, the transcript is corrected and split into bullet points. Costs one request and a few seconds.';
+
+  @override
+  String get voicePermissionTitle => 'Microphone and speech recognition';
+
+  @override
+  String get voicePermissionBody =>
+      'To dictate a meal, Train Libre needs the microphone while you hold the button, and speech recognition to turn what you said into text. Recognition runs on your device whenever it can. Nothing is recorded or kept.';
+
+  @override
+  String get voicePermissionContinue => 'Continue';
+
+  @override
   String get voiceApplyText => 'Use this text';
 
   @override

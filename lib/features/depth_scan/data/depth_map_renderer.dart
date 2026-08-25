@@ -1,157 +1,207 @@
 // lib/features/depth_scan/data/depth_map_renderer.dart
 
-import 'dart:math' as math;
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 /// A rendered depth map together with the scale it was drawn at.
-///
-/// The bands are returned rather than assumed, because they are not always the
-/// default table scale — see [DepthMapRenderer.renderBands].
 class DepthBandRender {
   final Uint8List rgba;
 
-  /// Lower bound of each of the eight bands, in cm above [referenceCm].
-  final List<double> bandsCm;
+  /// Distance the brightest band starts at; anything closer shares it.
+  final double minDistanceCm;
 
-  /// Distance of the reference surface from the camera, in cm.
-  final double referenceCm;
+  /// Distance the darkest band starts at; everything beyond shares it.
+  final double maxDistanceCm;
 
-  /// True when the subject stood too far off the reference surface for the
-  /// fixed table scale, and the bands were stretched to fit it instead.
-  final bool adaptive;
+  /// Width of one band in cm.
+  final double stepCm;
 
-  /// Highest elevation actually measured, in cm above the reference.
-  final double peakElevationCm;
+  /// Share of measured pixels that fell outside [minDistanceCm]..[maxDistanceCm]
+  /// and were therefore clamped into the end bands.
+  final double outsideRangeFraction;
+
+  /// True when the range was derived from the frame rather than given.
+  final bool autoRanged;
+
+  /// Closest and farthest measured distance in the frame, in cm.
+  final double nearestCm;
+  final double farthestCm;
+
+  /// Share of the frame the sensor returned no usable reading for.
+  final double invalidFraction;
 
   const DepthBandRender({
     required this.rgba,
-    required this.bandsCm,
-    required this.referenceCm,
-    required this.adaptive,
-    required this.peakElevationCm,
+    required this.minDistanceCm,
+    required this.maxDistanceCm,
+    required this.stepCm,
+    required this.outsideRangeFraction,
+    required this.nearestCm,
+    required this.farthestCm,
+    required this.invalidFraction,
+    required this.autoRanged,
+    required this.palette,
   });
+
+  /// The colours the bands were drawn with, index 0 farthest.
+  final List<List<int>> palette;
+
+  int get bandCount => palette.length;
+
+  /// Distance range covered by [index], nearest band last.
+  ({double fromCm, double toCm}) rangeOf(int index) {
+    final fromCm = minDistanceCm + (bandCount - 1 - index) * stepCm;
+    return (fromCm: fromCm, toCm: fromCm + stepCm);
+  }
 }
 
-/// Renders a raw LiDAR Float32 depth buffer into an 8-band discrete relative depth map.
+/// Renders a raw depth buffer into 8 discrete bands of absolute distance.
 ///
-/// Darkest band represents the reference surface or below; brightest band
-/// represents the highest point. Missing/invalid pixels are rendered as neutral
-/// gray.
+/// Bands are plain distance from the camera, not height above whatever happens
+/// to be behind the subject. The earlier version derived a reference plane from
+/// the frame and coloured everything relative to it, which only made sense when
+/// the subject really was sitting on a surface that filled the background —
+/// point the camera at a room and the "reference" lands on a wall metres away,
+/// and the picture stops meaning anything.
+///
+/// By default the ramp spans what the frame actually contains rather than a
+/// fixed window: eight bands across a plate that sits between 24 and 31 cm are
+/// one centimetre apart, where a fixed 0-80 cm scale would have painted the
+/// whole thing in one colour. Missing readings are rendered as neutral gray.
 class DepthMapRenderer {
-  /// 8 discrete band thresholds in cm above the reference surface.
+  /// Far end used when the frame holds too little to measure a range from.
+  static const double defaultMaxDistanceCm = 80.0;
+
+  /// Narrowest auto range. Below this the bands would be finer than the
+  /// sensor's own noise and the picture would show that noise, not the food.
+  static const double minAutoSpanCm = 4.0;
+
+  /// Percentile the auto range is cut at, at both ends.
   ///
-  /// Tuned for food on a plate, which is the case that matters — a portion is
-  /// a couple of centimetres tall and the interesting detail is all near the
-  /// bottom of the range.
-  static const List<double> defaultBandsCm = [
-    0.0, // Band 1: At or below the reference surface
-    1.0, // Band 2: 0-1 cm
-    2.0, // Band 3: 1-2 cm
-    3.0, // Band 4: 2-3 cm
-    4.0, // Band 5: 3-4 cm
-    5.5, // Band 6: 4-5.5 cm
-    7.0, // Band 7: 5.5-7 cm
-    10.0, // Band 8: >7 cm (brightest)
+  /// A handful of stray readings — a speck of sensor noise, one pixel of the
+  /// window frame behind — would otherwise stretch the ramp over metres and
+  /// undo the whole point of fitting it to the subject.
+  static const double _autoClipPercentile = 0.02;
+
+  /// How many bands the ramp is cut into.
+  ///
+  /// Eight was far too coarse to read a portion off: across a plate spanning
+  /// eight centimetres each band covered a full centimetre, and rice heaped in
+  /// the middle looked the same as rice spread flat.
+  ///
+  /// Forty puts the steps at two millimetres on that same plate. That is finer
+  /// than the sensor's own noise, which is roughly one percent of distance —
+  /// so the last few bands describe noise rather than food. They are kept
+  /// anyway: at this density the picture stops reading as bands at all and
+  /// becomes a smooth relief, and the extra dithering along an edge is a fairer
+  /// picture of an uncertain measurement than a hard line would be.
+  static const int defaultBandCount = 40;
+
+  /// Viridis control points, farthest (dark) to nearest (bright).
+  ///
+  /// Sampled rather than listed per band so the band count can change without
+  /// anyone hand-picking twenty colours. Viridis is perceptually uniform, so
+  /// plain RGB interpolation between neighbouring stops holds up.
+  static const List<List<int>> viridisAnchors = [
+    [68, 1, 84],
+    [72, 40, 120],
+    [62, 74, 137],
+    [49, 104, 142],
+    [38, 130, 142],
+    [31, 158, 137],
+    [53, 183, 121],
+    [109, 205, 89],
+    [180, 222, 44],
+    [253, 231, 37],
   ];
 
-  /// 8 discrete Viridis-like RGB palette steps (monotonic brightness).
-  static const List<List<int>> bandPaletteRgb = [
-    [68, 1, 84], // 1: Deep purple / surface
-    [72, 40, 120], // 2
-    [62, 74, 137], // 3
-    [49, 104, 142], // 4
-    [38, 130, 142], // 5
-    [31, 158, 137], // 6
-    [53, 183, 121], // 7
-    [253, 231, 37], // 8: Vibrant yellow / peak
-  ];
+  /// [count] colours sampled off the ramp, index 0 farthest.
+  static List<List<int>> paletteFor(int count, {bool viridis = true}) {
+    if (count < 2) return [viridisAnchors.last];
+    return List.generate(count, (i) {
+      final t = i / (count - 1);
+      if (!viridis) {
+        final grey = (t * 255).round().clamp(0, 255);
+        return [grey, grey, grey];
+      }
+      final scaled = t * (viridisAnchors.length - 1);
+      final low = scaled.floor().clamp(0, viridisAnchors.length - 1);
+      final high = (low + 1).clamp(0, viridisAnchors.length - 1);
+      final f = scaled - low;
+      return List.generate(
+        3,
+        (c) => (viridisAnchors[low][c] +
+                (viridisAnchors[high][c] - viridisAnchors[low][c]) * f)
+            .round()
+            .clamp(0, 255),
+      );
+    });
+  }
 
   static const List<int> invalidPixelRgb = [140, 140, 140]; // Neutral Gray
 
-  /// Beyond this much elevation the fixed table scale has nothing left to say —
-  /// every pixel of the subject lands in the top band and the map goes flat.
-  static const double _adaptiveThresholdCm = 12.0;
-
   static bool _isUsable(double v) =>
-      v.isFinite && !v.isNaN && v > 0.05 && v < 4.0;
+      v.isFinite && !v.isNaN && v > 0.05 && v < 6.0;
 
-  /// The distance of the surface the subject is sitting in front of.
-  ///
-  /// Taken from a ring around the edge of the frame rather than the whole
-  /// frame: the subject occupies the middle, so a plain median of everything
-  /// drifts onto the subject itself as it fills more of the picture.
-  static double _referenceMeters(
-    Float32List depthBuffer,
-    int width,
-    int height,
-  ) {
-    final borderX = math.max(1, (width * 0.12).round());
-    final borderY = math.max(1, (height * 0.12).round());
-
-    final ring = <double>[];
-    for (int y = 0; y < height; y++) {
-      final isEdgeRow = y < borderY || y >= height - borderY;
-      for (int x = 0; x < width; x++) {
-        if (!isEdgeRow && x >= borderX && x < width - borderX) continue;
-        final index = y * width + x;
-        if (index >= depthBuffer.length) continue;
-        final val = depthBuffer[index];
-        if (_isUsable(val)) ring.add(val);
-      }
-    }
-
-    final samples = ring.length >= 32 ? ring : _allValid(depthBuffer);
-    if (samples.isEmpty) return 0.0;
-    samples.sort();
-    return samples[samples.length ~/ 2];
-  }
-
-  static List<double> _allValid(Float32List depthBuffer) {
+  /// The span the frame's own readings occupy, clipped at both ends.
+  static ({double minCm, double maxCm})? _autoRange(Float32List depthBuffer) {
     final valid = <double>[];
-    for (final val in depthBuffer) {
-      if (_isUsable(val)) valid.add(val);
+    for (final value in depthBuffer) {
+      if (_isUsable(value)) valid.add(value * 100.0);
     }
-    return valid;
+    if (valid.length < 32) return null;
+
+    valid.sort();
+    final lowIndex = (valid.length * _autoClipPercentile).floor();
+    final highIndex = (valid.length * (1 - _autoClipPercentile))
+        .ceil()
+        .clamp(0, valid.length - 1);
+
+    var minCm = valid[lowIndex];
+    var maxCm = valid[highIndex];
+    if (maxCm - minCm < minAutoSpanCm) {
+      final centre = (minCm + maxCm) / 2;
+      minCm = centre - minAutoSpanCm / 2;
+      maxCm = centre + minAutoSpanCm / 2;
+    }
+    if (minCm < 0) minCm = 0;
+    return (minCm: minCm, maxCm: maxCm);
   }
 
-  /// Renders the depth buffer and reports the scale it chose.
+  /// Renders the depth buffer and reports the scale it was drawn at.
+  ///
+  /// Leaving both bounds null fits the ramp to the frame — see [_autoRange].
   static DepthBandRender renderBands({
     required Float32List depthBuffer,
     required int width,
     required int height,
-    double? referenceMedianMeters,
+    double? minDistanceCm,
+    double? maxDistanceCm,
+    int bandCount = defaultBandCount,
     bool useViridis = true,
   }) {
     final rgba = Uint8List(width * height * 4);
-    final referenceMeters =
-        referenceMedianMeters ?? _referenceMeters(depthBuffer, width, height);
+    final palette = paletteFor(bandCount, viridis: useViridis);
 
-    // How far the subject actually rises off that surface decides the scale.
-    // A plate of food stays inside the fixed bands; an object held up in the
-    // air is metres away from the wall behind it and would otherwise render as
-    // one solid block of the top colour.
-    final elevations = <double>[];
-    for (final val in depthBuffer) {
-      if (!_isUsable(val)) continue;
-      final elevationCm = (referenceMeters - val) * 100.0;
-      if (elevationCm > 0) elevations.add(elevationCm);
-    }
-    elevations.sort();
-    final peak = elevations.isEmpty
-        ? 0.0
-        : elevations[((elevations.length * 0.98) - 1)
-            .clamp(0, elevations.length - 1)
-            .toInt()];
+    final autoRanged = minDistanceCm == null && maxDistanceCm == null;
+    final auto = autoRanged ? _autoRange(depthBuffer) : null;
+    final rampMin = auto?.minCm ?? minDistanceCm ?? 0.0;
+    final rampMax = auto?.maxCm ?? maxDistanceCm ?? defaultMaxDistanceCm;
+    final span = (rampMax - rampMin).abs() < 0.001
+        ? defaultMaxDistanceCm
+        : rampMax - rampMin;
+    final stepCm = span / bandCount;
 
-    final adaptive = peak > _adaptiveThresholdCm;
-    final bands = adaptive ? _scaledBands(peak) : defaultBandsCm;
+    var valid = 0;
+    var outside = 0;
+    var nearest = double.infinity;
+    var farthest = 0.0;
 
     for (int i = 0; i < depthBuffer.length; i++) {
-      final val = depthBuffer[i];
+      final value = depthBuffer[i];
       final offset = i * 4;
 
-      if (!_isUsable(val)) {
+      if (!_isUsable(value)) {
         rgba[offset] = invalidPixelRgb[0];
         rgba[offset + 1] = invalidPixelRgb[1];
         rgba[offset + 2] = invalidPixelRgb[2];
@@ -159,21 +209,18 @@ class DepthMapRenderer {
         continue;
       }
 
-      // Closer to the camera means a smaller distance, so a higher elevation.
-      final elevationCm = (referenceMeters - val) * 100.0;
+      final distanceCm = value * 100.0;
+      valid++;
+      if (distanceCm < nearest) nearest = distanceCm;
+      if (distanceCm > farthest) farthest = distanceCm;
+      if (distanceCm < rampMin || distanceCm >= rampMax) outside++;
 
-      int bandIndex = 0;
-      for (int b = 0; b < bands.length; b++) {
-        if (elevationCm >= bands[b]) bandIndex = b;
-      }
+      // Nearest gets the brightest band; both ends absorb whatever lies past
+      // them rather than being left unpainted.
+      final stepsAway = ((distanceCm - rampMin) / stepCm).floor();
+      final bandIndex = (bandCount - 1 - stepsAway).clamp(0, bandCount - 1);
 
-      final color = useViridis
-          ? bandPaletteRgb[bandIndex.clamp(0, 7)]
-          : [
-              (bandIndex * 32).clamp(0, 255),
-              (bandIndex * 32).clamp(0, 255),
-              (bandIndex * 32).clamp(0, 255),
-            ];
+      final color = palette[bandIndex];
 
       rgba[offset] = color[0];
       rgba[offset + 1] = color[1];
@@ -181,25 +228,19 @@ class DepthMapRenderer {
       rgba[offset + 3] = 255;
     }
 
+    final total = depthBuffer.isEmpty ? 1 : depthBuffer.length;
     return DepthBandRender(
       rgba: rgba,
-      bandsCm: bands,
-      referenceCm: referenceMeters * 100.0,
-      adaptive: adaptive,
-      peakElevationCm: peak,
+      minDistanceCm: rampMin,
+      maxDistanceCm: rampMin + span,
+      stepCm: stepCm,
+      outsideRangeFraction: valid == 0 ? 0 : outside / valid,
+      nearestCm: valid == 0 ? 0 : nearest,
+      farthestCm: farthest,
+      invalidFraction: (total - valid) / total,
+      autoRanged: autoRanged && auto != null,
+      palette: palette,
     );
-  }
-
-  /// The default band shape stretched to span [peakCm].
-  ///
-  /// Keeps the ramp's relative spacing — dense at the bottom, coarse at the
-  /// top — so the picture reads the same way at either scale.
-  static List<double> _scaledBands(double peakCm) {
-    final top = defaultBandsCm.last;
-    final factor = peakCm / top;
-    return defaultBandsCm
-        .map((cm) => double.parse((cm * factor).toStringAsFixed(1)))
-        .toList(growable: false);
   }
 
   /// Renders the depth buffer to an RGBA byte buffer (width * height * 4 bytes).
@@ -207,14 +248,18 @@ class DepthMapRenderer {
     required Float32List depthBuffer,
     required int width,
     required int height,
-    double? referenceMedianMeters,
+    double? minDistanceCm,
+    double? maxDistanceCm,
+    int bandCount = defaultBandCount,
     bool useViridis = true,
   }) =>
       renderBands(
         depthBuffer: depthBuffer,
         width: width,
         height: height,
-        referenceMedianMeters: referenceMedianMeters,
+        minDistanceCm: minDistanceCm,
+        maxDistanceCm: maxDistanceCm,
+        bandCount: bandCount,
         useViridis: useViridis,
       ).rgba;
 
@@ -223,12 +268,18 @@ class DepthMapRenderer {
     required Float32List depthBuffer,
     required int width,
     required int height,
+    double? minDistanceCm,
+    double? maxDistanceCm,
+    int bandCount = defaultBandCount,
     bool useViridis = true,
   }) async {
     final render = renderBands(
       depthBuffer: depthBuffer,
       width: width,
       height: height,
+      minDistanceCm: minDistanceCm,
+      maxDistanceCm: maxDistanceCm,
+      bandCount: bandCount,
       useViridis: useViridis,
     );
 

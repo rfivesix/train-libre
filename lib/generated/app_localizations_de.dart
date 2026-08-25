@@ -5982,6 +5982,35 @@ class AppLocalizationsDe extends AppLocalizations {
   String get voiceRetake => 'Neu aufnehmen';
 
   @override
+  String voiceTidiedIn(String seconds) {
+    return 'Von der KI aufbereitet in $seconds s';
+  }
+
+  @override
+  String get aiDepthImageTitle => 'Tiefenkarte mitsenden';
+
+  @override
+  String get aiDepthImageSubtitle =>
+      'Hängt das Falschfarben-Relief der Mahlzeit als zweites Bild an, damit das Modell auch die Höhe beurteilen kann, nicht nur den Umriss. Kostet ein zusätzliches Bild pro Analyse.';
+
+  @override
+  String get aiVoiceTidyTitle => 'Diktat per KI aufbereiten';
+
+  @override
+  String get aiVoiceTidySubtitle =>
+      'Nach dem Sprechen wird der Text korrigiert und in Stichpunkte zerlegt. Kostet eine Anfrage und ein paar Sekunden.';
+
+  @override
+  String get voicePermissionTitle => 'Mikrofon und Spracherkennung';
+
+  @override
+  String get voicePermissionBody =>
+      'Zum Diktieren einer Mahlzeit braucht Train Libre das Mikrofon, solange du aufnimmst, und die Spracherkennung, um das Gesagte in Text umzuwandeln. Die Erkennung läuft auf deinem Gerät, wann immer das möglich ist. Es wird nichts aufgezeichnet oder aufbewahrt.';
+
+  @override
+  String get voicePermissionContinue => 'Weiter';
+
+  @override
   String get voiceApplyText => 'Text übernehmen';
 
   @override

@@ -5743,6 +5743,35 @@ class AppLocalizationsJa extends AppLocalizations {
   String get voiceRetake => '録音し直す';
 
   @override
+  String voiceTidiedIn(String seconds) {
+    return 'AI が $seconds 秒で整理しました';
+  }
+
+  @override
+  String get aiDepthImageTitle => '深度マップも送信';
+
+  @override
+  String get aiDepthImageSubtitle =>
+      '食事の擬似カラー起伏を 2 枚目の画像として添付し、輪郭だけでなく高さも判断できるようにします。1 回の解析につき画像が 1 枚増えます。';
+
+  @override
+  String get aiVoiceTidyTitle => '音声入力を AI で整える';
+
+  @override
+  String get aiVoiceTidySubtitle =>
+      '話し終わると、テキストが修正され箇条書きに分割されます。1 回のリクエストと数秒かかります。';
+
+  @override
+  String get voicePermissionTitle => 'マイクと音声認識';
+
+  @override
+  String get voicePermissionBody =>
+      '食事を音声入力するには、録音中のマイクと、話した内容を文字にする音声認識が必要です。可能な場合は端末内で認識します。録音は保存されません。';
+
+  @override
+  String get voicePermissionContinue => '続ける';
+
+  @override
   String get voiceApplyText => 'このテキストを使う';
 
   @override

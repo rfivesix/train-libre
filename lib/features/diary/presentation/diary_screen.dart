@@ -1647,7 +1647,7 @@ class _MealCardState extends State<_MealCard> {
                                       );
                                 }
                               },
-                              onLongPressMeal: () async {
+                              onDeleteMeal: () async {
                                 final meal = mealEntriesById[entryId]!;
                                 final childItems = groupedByMealEntry[entryId]!;
                                 int mealKcal = 0;
@@ -1664,16 +1664,23 @@ class _MealCardState extends State<_MealCard> {
                                   itemCount: childItems.length,
                                   totalKcal: mealKcal,
                                 );
-                                if (choice != null && context.mounted) {
-                                  final deleteLogs =
-                                      choice == DeleteMealChoice.deleteAll;
-                                  await context
-                                      .read<DiaryViewModel>()
-                                      .deleteMealEntry(
-                                        meal.id,
-                                        deleteFoodLogs: deleteLogs,
-                                      );
+                                if (choice == null || !context.mounted) {
+                                  return false;
                                 }
+
+                                final viewModel =
+                                    context.read<DiaryViewModel>();
+                                await viewModel.deleteMealEntry(
+                                  meal.id,
+                                  deleteFoodLogs:
+                                      choice == DeleteMealChoice.deleteAll,
+                                );
+                                // Without this the row stays on screen: nothing
+                                // watches the meal_entries table, so the diary
+                                // never learns the meal is gone.
+                                await viewModel
+                                    .loadDataForDate(viewModel.selectedDate);
+                                return true;
                               },
                               onEditItem: widget.onEditFood,
                               onDeleteItem: widget.onDeleteFood,

@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:crypto/crypto.dart';
 
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:path_provider/path_provider.dart';
@@ -269,11 +270,14 @@ class MealEntries extends Table with HybridId, MetaColumns {
   DateTimeColumn get consumedAt => dateTime()();
   TextColumn get mealType => text()(); // Breakfast, Lunch, Dinner, Snack
   TextColumn get title => text().nullable()(); // e.g., "Hähnchen mit Reis"
-  TextColumn get source => text()(); // aiPhoto, aiVoice, aiText, barcode, manual, template
-  TextColumn get photoPath => text().nullable()(); // Relative to app support dir
+  TextColumn get source =>
+      text()(); // aiPhoto, aiVoice, aiText, barcode, manual, template
+  TextColumn get photoPath =>
+      text().nullable()(); // Relative to app support dir
   TextColumn get photoThumbPath => text().nullable()();
   TextColumn get voiceTranscript => text().nullable()();
-  TextColumn get captureMeta => text().nullable()(); // JSON: DepthScaleFacts, regions, provider
+  TextColumn get captureMeta =>
+      text().nullable()(); // JSON: DepthScaleFacts, regions, provider
 }
 
 @TableIndex(name: 'idx_nutrition_consumed_at', columns: {#consumedAt})
@@ -542,8 +546,74 @@ class AppDatabase extends _$AppDatabase {
   @override
   int get schemaVersion => 25;
 
+  /// Adds whatever the file is missing compared to the generated tables.
+  ///
+  /// A drift migration only runs when `user_version` changes. While a feature
+  /// is being built the same version number gets extended more than once, and a
+  /// device that already recorded that version never sees the later additions.
+  /// That is not hypothetical: it left `nutrition_logs.meal_entry_id` missing on
+  /// an installed build, so every query touching that table threw and nothing
+  /// could be logged at all — with a reinstall, and losing the diary, as the
+  /// only way out.
+  ///
+  /// Runs on every open and does nothing when the schema already agrees. Only
+  /// additive repairs: a missing table is created, a missing nullable or
+  /// defaulted column is added. Anything else is reported and left alone, since
+  /// guessing a value for an existing row is not this function's decision to
+  /// make.
+  Future<List<String>> reconcileSchema() async {
+    final repaired = <String>[];
+    final migrator = createMigrator();
+
+    for (final table in allTables) {
+      final name = table.actualTableName;
+      final existing = await _columnsOf(this, name);
+
+      if (existing.isEmpty) {
+        await migrator.createTable(table);
+        repaired.add('table $name');
+        continue;
+      }
+
+      for (final column in table.$columns) {
+        if (existing.contains(column.name)) continue;
+
+        final canBeAdded = column.$nullable ||
+            column.defaultValue != null ||
+            column.clientDefault != null;
+        if (!canBeAdded) {
+          // A NOT NULL column with no default cannot be filled in for rows that
+          // already exist; that needs a real migration, not a repair.
+          debugPrint(
+            '[AppDatabase] cannot repair $name.${column.name}: '
+            'not nullable and has no default',
+          );
+          continue;
+        }
+
+        await migrator.addColumn(table, column);
+        repaired.add('$name.${column.name}');
+      }
+    }
+
+    if (repaired.isNotEmpty) {
+      debugPrint('[AppDatabase] repaired schema: ${repaired.join(', ')}');
+      // Indexes belong to the columns that were just restored.
+      await customStatement(
+        'CREATE INDEX IF NOT EXISTS idx_meal_entries_consumed_at ON meal_entries (consumed_at);',
+      );
+      await customStatement(
+        'CREATE INDEX IF NOT EXISTS idx_nutrition_logs_meal_entry_id ON nutrition_logs (meal_entry_id);',
+      );
+    }
+    return repaired;
+  }
+
   @override
   MigrationStrategy get migration => MigrationStrategy(
+        beforeOpen: (details) async {
+          await reconcileSchema();
+        },
         onCreate: (Migrator m) async {
           await m.createAll();
           await _createSleepPersistenceSchema(this);
@@ -580,45 +650,45 @@ class AppDatabase extends _$AppDatabase {
         },
         onUpgrade: (Migrator m, int from, int to) async {
           try {
-          if (from < 2) {
-            await m.createTable(favorites);
-            // Important: add the missing column.
-            await m.addColumn(products, products.category);
-          }
-          // Migration V2 -> V3 (sync columns & RIR)
-          if (from < 3) {
-            // Add RIR to SetLogs
-            await m.addColumn(setLogs, setLogs.rir);
+            if (from < 2) {
+              await m.createTable(favorites);
+              // Important: add the missing column.
+              await m.addColumn(products, products.category);
+            }
+            // Migration V2 -> V3 (sync columns & RIR)
+            if (from < 3) {
+              // Add RIR to SetLogs
+              await m.addColumn(setLogs, setLogs.rir);
 
-            // Make favorites syncable (add missing columns)
-            // MetaColumns adds: createdAt, updatedAt, deletedAt
-            // Favorites already had barcode and createdAt manually before.
-            // Only updatedAt and deletedAt need to be added.
-            await m.addColumn(favorites, favorites.updatedAt);
-            await m.addColumn(favorites, favorites.deletedAt);
-          }
-          if (from < 4) {
-            await m.addColumn(profiles, profiles.birthday);
-          }
-          if (from < 5) {
-            await m.addColumn(profiles, profiles.height);
-            await m.addColumn(profiles, profiles.gender);
-          }
-          if (from < 6) {
-            await m.createTable(dailyGoalsHistory);
-          }
-          if (from < 7) {
-            await m.addColumn(supplements, supplements.isTracked);
-            await m.createTable(supplementSettingsHistory);
-          }
-          if (from < 8) {
-            await customStatement(
-              'ALTER TABLE app_settings ADD COLUMN target_steps INTEGER NOT NULL DEFAULT 8000',
-            );
-            await customStatement(
-              'ALTER TABLE daily_goals_history ADD COLUMN target_steps INTEGER NOT NULL DEFAULT 8000',
-            );
-            await customStatement('''
+              // Make favorites syncable (add missing columns)
+              // MetaColumns adds: createdAt, updatedAt, deletedAt
+              // Favorites already had barcode and createdAt manually before.
+              // Only updatedAt and deletedAt need to be added.
+              await m.addColumn(favorites, favorites.updatedAt);
+              await m.addColumn(favorites, favorites.deletedAt);
+            }
+            if (from < 4) {
+              await m.addColumn(profiles, profiles.birthday);
+            }
+            if (from < 5) {
+              await m.addColumn(profiles, profiles.height);
+              await m.addColumn(profiles, profiles.gender);
+            }
+            if (from < 6) {
+              await m.createTable(dailyGoalsHistory);
+            }
+            if (from < 7) {
+              await m.addColumn(supplements, supplements.isTracked);
+              await m.createTable(supplementSettingsHistory);
+            }
+            if (from < 8) {
+              await customStatement(
+                'ALTER TABLE app_settings ADD COLUMN target_steps INTEGER NOT NULL DEFAULT 8000',
+              );
+              await customStatement(
+                'ALTER TABLE daily_goals_history ADD COLUMN target_steps INTEGER NOT NULL DEFAULT 8000',
+              );
+              await customStatement('''
           CREATE TABLE IF NOT EXISTS health_step_segments (
             local_id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
             id TEXT NOT NULL UNIQUE,
@@ -633,34 +703,34 @@ class AppDatabase extends _$AppDatabase {
             external_key TEXT NOT NULL UNIQUE
           )
         ''');
-          }
-          if (from < 9) {
-            await _createSleepPersistenceSchema(this);
-          }
-          if (from >= 9 && from < 10) {
-            await customStatement(
-              'ALTER TABLE sleep_nightly_analyses ADD COLUMN interruptions_count INTEGER NULL',
-            );
-            await customStatement(
-              'ALTER TABLE sleep_nightly_analyses ADD COLUMN interruptions_wake_minutes INTEGER NULL',
-            );
-          }
-          if (from >= 10 && from < 11) {
-            await customStatement(
-              'ALTER TABLE sleep_nightly_analyses ADD COLUMN score_completeness REAL NULL',
-            );
-            await customStatement(
-              'ALTER TABLE sleep_nightly_analyses ADD COLUMN regularity_sri REAL NULL',
-            );
-            await customStatement(
-              'ALTER TABLE sleep_nightly_analyses ADD COLUMN regularity_valid_days INTEGER NULL',
-            );
-            await customStatement(
-              'ALTER TABLE sleep_nightly_analyses ADD COLUMN regularity_is_stable INTEGER NULL',
-            );
-          }
-          if (from < 12) {
-            await customStatement('''
+            }
+            if (from < 9) {
+              await _createSleepPersistenceSchema(this);
+            }
+            if (from >= 9 && from < 10) {
+              await customStatement(
+                'ALTER TABLE sleep_nightly_analyses ADD COLUMN interruptions_count INTEGER NULL',
+              );
+              await customStatement(
+                'ALTER TABLE sleep_nightly_analyses ADD COLUMN interruptions_wake_minutes INTEGER NULL',
+              );
+            }
+            if (from >= 10 && from < 11) {
+              await customStatement(
+                'ALTER TABLE sleep_nightly_analyses ADD COLUMN score_completeness REAL NULL',
+              );
+              await customStatement(
+                'ALTER TABLE sleep_nightly_analyses ADD COLUMN regularity_sri REAL NULL',
+              );
+              await customStatement(
+                'ALTER TABLE sleep_nightly_analyses ADD COLUMN regularity_valid_days INTEGER NULL',
+              );
+              await customStatement(
+                'ALTER TABLE sleep_nightly_analyses ADD COLUMN regularity_is_stable INTEGER NULL',
+              );
+            }
+            if (from < 12) {
+              await customStatement('''
           CREATE TABLE IF NOT EXISTS health_export_records (
             local_id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
             id TEXT NOT NULL UNIQUE,
@@ -671,342 +741,353 @@ class AppDatabase extends _$AppDatabase {
             UNIQUE(platform, domain, idempotency_key)
           )
         ''');
-          }
-          if (from < 13) {
-            await _createPulsePersistenceSchema(this);
-          }
-          if (from < 14) {
-            await customStatement(
-              'ALTER TABLE products ADD COLUMN name_de TEXT NULL',
-            );
-            await customStatement(
-              'ALTER TABLE products ADD COLUMN name_en TEXT NULL',
-            );
-            // Back-fill: copy existing name into name_de for base products
-            // so they have a value until the next re-import.
-            await customStatement(
-              "UPDATE products SET name_de = name WHERE source = 'base'",
-            );
-          }
-          if (from < 15) {
-            await m.addColumn(exercises, exercises.usageCount);
-            await m.addColumn(products, products.usageCount);
-            await customStatement(
-              'CREATE INDEX IF NOT EXISTS exercises_usage_count_idx ON exercises (usage_count);',
-            );
-            await customStatement(
-              'CREATE INDEX IF NOT EXISTS products_usage_count_idx ON products (usage_count);',
-            );
-          }
-          if (from < 16) {
-            // Defensive migration: Check if columns exist before adding them.
-            final productsColumns =
-                await customSelect('PRAGMA table_info(products)').get();
-            final names =
-                productsColumns.map((c) => c.read<String>('name')).toSet();
-
-            if (!names.contains('caffeine_mg_per_100g')) {
-              await m.addColumn(products, products.caffeineMgPer100g);
             }
-            if (!names.contains('ingredients_text')) {
-              await m.addColumn(products, products.ingredientsText);
+            if (from < 13) {
+              await _createPulsePersistenceSchema(this);
             }
-            if (!names.contains('ingredients_analysis_tags')) {
-              await m.addColumn(products, products.ingredientsAnalysisTags);
-            }
-            if (!names.contains('additives_tags')) {
-              await m.addColumn(products, products.additivesTags);
-            }
-            if (!names.contains('product_quantity')) {
-              await m.addColumn(products, products.productQuantity);
-            }
-            if (!names.contains('product_quantity_unit')) {
-              await m.addColumn(products, products.productQuantityUnit);
-            }
-            if (!names.contains('is_fluid')) {
-              await m.addColumn(products, products.isFluid);
-            }
-          }
-          if (from < 17) {
-            await m.addColumn(fluidLogs, fluidLogs.carbsPer100ml);
-          }
-          if (from < 18) {
-            await m.addColumn(routineExercises, routineExercises.notes);
-            await m.createTable(workoutExerciseLogs);
-          }
-          if (from < 19) {
-            // Defensive migration for auto-restored databases
-            final columns =
-                await customSelect('PRAGMA table_info(sleep_nightly_analyses)')
-                    .get();
-            final names = columns.map((c) => c.read<String>('name')).toSet();
-
-            if (!names.contains('score_breakdown_json')) {
+            if (from < 14) {
               await customStatement(
-                'ALTER TABLE sleep_nightly_analyses ADD COLUMN score_breakdown_json TEXT NULL',
+                'ALTER TABLE products ADD COLUMN name_de TEXT NULL',
+              );
+              await customStatement(
+                'ALTER TABLE products ADD COLUMN name_en TEXT NULL',
+              );
+              // Back-fill: copy existing name into name_de for base products
+              // so they have a value until the next re-import.
+              await customStatement(
+                "UPDATE products SET name_de = name WHERE source = 'base'",
               );
             }
-          }
-          if (from < 20) {
-            // Defensive migration for auto-restored databases / existing installs at v19
-            final columns =
-                await customSelect('PRAGMA table_info(sleep_nightly_analyses)')
-                    .get();
-            final names = columns.map((c) => c.read<String>('name')).toSet();
-
-            if (!names.contains('score_breakdown_json')) {
+            if (from < 15) {
+              await m.addColumn(exercises, exercises.usageCount);
+              await m.addColumn(products, products.usageCount);
               await customStatement(
-                'ALTER TABLE sleep_nightly_analyses ADD COLUMN score_breakdown_json TEXT NULL',
+                'CREATE INDEX IF NOT EXISTS exercises_usage_count_idx ON exercises (usage_count);',
+              );
+              await customStatement(
+                'CREATE INDEX IF NOT EXISTS products_usage_count_idx ON products (usage_count);',
               );
             }
-          }
-          if (from < 21) {
-            await m.createTable(userFoodOverrides);
-          }
-          if (from < 22) {
-            await m.addColumn(exercises, exercises.replacesExerciseId);
-            await customStatement(
-                "UPDATE exercises SET source = 'wger' WHERE source = 'base'");
-          }
-          if (from < 23) {
-            // 1. Create translation tables
-            await m.createTable(exerciseTranslations);
-            await m.createTable(userFoodOverrideTranslations);
+            if (from < 16) {
+              // Defensive migration: Check if columns exist before adding them.
+              final productsColumns =
+                  await customSelect('PRAGMA table_info(products)').get();
+              final names =
+                  productsColumns.map((c) => c.read<String>('name')).toSet();
 
-            // 2. Backfill exercise translations
-            await customStatement('''
+              if (!names.contains('caffeine_mg_per_100g')) {
+                await m.addColumn(products, products.caffeineMgPer100g);
+              }
+              if (!names.contains('ingredients_text')) {
+                await m.addColumn(products, products.ingredientsText);
+              }
+              if (!names.contains('ingredients_analysis_tags')) {
+                await m.addColumn(products, products.ingredientsAnalysisTags);
+              }
+              if (!names.contains('additives_tags')) {
+                await m.addColumn(products, products.additivesTags);
+              }
+              if (!names.contains('product_quantity')) {
+                await m.addColumn(products, products.productQuantity);
+              }
+              if (!names.contains('product_quantity_unit')) {
+                await m.addColumn(products, products.productQuantityUnit);
+              }
+              if (!names.contains('is_fluid')) {
+                await m.addColumn(products, products.isFluid);
+              }
+            }
+            if (from < 17) {
+              await m.addColumn(fluidLogs, fluidLogs.carbsPer100ml);
+            }
+            if (from < 18) {
+              await m.addColumn(routineExercises, routineExercises.notes);
+              await m.createTable(workoutExerciseLogs);
+            }
+            if (from < 19) {
+              // Defensive migration for auto-restored databases
+              final columns = await customSelect(
+                      'PRAGMA table_info(sleep_nightly_analyses)')
+                  .get();
+              final names = columns.map((c) => c.read<String>('name')).toSet();
+
+              if (!names.contains('score_breakdown_json')) {
+                await customStatement(
+                  'ALTER TABLE sleep_nightly_analyses ADD COLUMN score_breakdown_json TEXT NULL',
+                );
+              }
+            }
+            if (from < 20) {
+              // Defensive migration for auto-restored databases / existing installs at v19
+              final columns = await customSelect(
+                      'PRAGMA table_info(sleep_nightly_analyses)')
+                  .get();
+              final names = columns.map((c) => c.read<String>('name')).toSet();
+
+              if (!names.contains('score_breakdown_json')) {
+                await customStatement(
+                  'ALTER TABLE sleep_nightly_analyses ADD COLUMN score_breakdown_json TEXT NULL',
+                );
+              }
+            }
+            if (from < 21) {
+              await m.createTable(userFoodOverrides);
+            }
+            if (from < 22) {
+              await m.addColumn(exercises, exercises.replacesExerciseId);
+              await customStatement(
+                  "UPDATE exercises SET source = 'wger' WHERE source = 'base'");
+            }
+            if (from < 23) {
+              // 1. Create translation tables
+              await m.createTable(exerciseTranslations);
+              await m.createTable(userFoodOverrideTranslations);
+
+              // 2. Backfill exercise translations
+              await customStatement('''
               INSERT INTO exercise_translations (id, created_at, updated_at, exercise_id, language_code, name, description)
               SELECT lower(hex(randomblob(16))), strftime('%s','now')*1000, strftime('%s','now')*1000, id, 'de', name_de, description_de
               FROM exercises WHERE name_de IS NOT NULL AND name_de != '';
             ''');
-            await customStatement('''
+              await customStatement('''
               INSERT INTO exercise_translations (id, created_at, updated_at, exercise_id, language_code, name, description)
               SELECT lower(hex(randomblob(16))), strftime('%s','now')*1000, strftime('%s','now')*1000, id, 'en', name_en, description_en
               FROM exercises WHERE name_en IS NOT NULL AND name_en != '';
             ''');
 
-            // 3. Backfill user food override translations
-            await customStatement('''
+              // 3. Backfill user food override translations
+              await customStatement('''
               INSERT INTO user_food_override_translations (id, created_at, updated_at, user_food_override_id, language_code, name)
               SELECT lower(hex(randomblob(16))), strftime('%s','now')*1000, strftime('%s','now')*1000, id, 'de', name_de
               FROM user_food_overrides WHERE name_de IS NOT NULL AND name_de != '';
             ''');
-            await customStatement('''
+              await customStatement('''
               INSERT INTO user_food_override_translations (id, created_at, updated_at, user_food_override_id, language_code, name)
               SELECT lower(hex(randomblob(16))), strftime('%s','now')*1000, strftime('%s','now')*1000, id, 'en', name_en
               FROM user_food_overrides WHERE name_en IS NOT NULL AND name_en != '';
             ''');
 
-            // 4. Alter products (base foods) and food_categories tables to add the flat columns
-            await m.addColumn(products, products.nameFr);
-            await m.addColumn(products, products.categoryFr);
-            await m.addColumn(products, products.nameIt);
-            await m.addColumn(products, products.categoryIt);
-            await m.addColumn(products, products.nameJa);
-            await m.addColumn(products, products.categoryJa);
+              // 4. Alter products (base foods) and food_categories tables to add the flat columns
+              await m.addColumn(products, products.nameFr);
+              await m.addColumn(products, products.categoryFr);
+              await m.addColumn(products, products.nameIt);
+              await m.addColumn(products, products.categoryIt);
+              await m.addColumn(products, products.nameJa);
+              await m.addColumn(products, products.categoryJa);
 
-            await m.addColumn(foodCategories, foodCategories.nameFr);
-            await m.addColumn(foodCategories, foodCategories.nameIt);
-            await m.addColumn(foodCategories, foodCategories.nameJa);
+              await m.addColumn(foodCategories, foodCategories.nameFr);
+              await m.addColumn(foodCategories, foodCategories.nameIt);
+              await m.addColumn(foodCategories, foodCategories.nameJa);
 
-            // 5. Drop legacy columns
-            await customStatement('ALTER TABLE exercises DROP COLUMN name_de;');
-            await customStatement('ALTER TABLE exercises DROP COLUMN name_en;');
-            await customStatement(
-                'ALTER TABLE exercises DROP COLUMN description_de;');
-            await customStatement(
-                'ALTER TABLE exercises DROP COLUMN description_en;');
+              // 5. Drop legacy columns
+              await customStatement(
+                  'ALTER TABLE exercises DROP COLUMN name_de;');
+              await customStatement(
+                  'ALTER TABLE exercises DROP COLUMN name_en;');
+              await customStatement(
+                  'ALTER TABLE exercises DROP COLUMN description_de;');
+              await customStatement(
+                  'ALTER TABLE exercises DROP COLUMN description_en;');
 
-            await customStatement(
-                'ALTER TABLE user_food_overrides DROP COLUMN name_de;');
-            await customStatement(
-                'ALTER TABLE user_food_overrides DROP COLUMN name_en;');
-          }
-          if (from < 24) {
-            // Phase 1: CREATE new table
-            await m.createTable(offProductsArchive);
+              await customStatement(
+                  'ALTER TABLE user_food_overrides DROP COLUMN name_de;');
+              await customStatement(
+                  'ALTER TABLE user_food_overrides DROP COLUMN name_en;');
+            }
+            if (from < 24) {
+              // Phase 1: CREATE new table
+              await m.createTable(offProductsArchive);
 
-            // Phase 2: ADD new column to NutritionLogs
-            await m.addColumn(nutritionLogs, nutritionLogs.archiveLocalId);
+              // Phase 2: ADD new column to NutritionLogs
+              await m.addColumn(nutritionLogs, nutritionLogs.archiveLocalId);
 
-            // Phase 3: BACKFILL archive from existing Products + NutritionLogs
-            final productsToArchive = await customSelect('''
+              // Phase 3: BACKFILL archive from existing Products + NutritionLogs
+              final productsToArchive = await customSelect('''
               SELECT DISTINCT p.* FROM products p
               WHERE p.barcode IN (SELECT DISTINCT legacy_barcode FROM nutrition_logs WHERE legacy_barcode IS NOT NULL AND legacy_barcode != '')
                  OR p.id IN (SELECT DISTINCT product_id FROM nutrition_logs WHERE product_id IS NOT NULL)
             ''').get();
 
-            final overridesRows =
-                await customSelect('SELECT * FROM user_food_overrides').get();
-            final overridesMap = {
-              for (final row in overridesRows) row.read<String>('barcode'): row
-            };
+              final overridesRows =
+                  await customSelect('SELECT * FROM user_food_overrides').get();
+              final overridesMap = {
+                for (final row in overridesRows)
+                  row.read<String>('barcode'): row
+              };
 
-            final productIdToHash = <String, String>{};
-            final barcodeToHash = <String, String>{};
+              final productIdToHash = <String, String>{};
+              final barcodeToHash = <String, String>{};
 
-            for (final row in productsToArchive) {
-              final id = row.read<String>('id');
-              final barcode = row.read<String>('barcode');
-              final pName = row.read<String>('name');
-              final pBrand = row.read<String?>('brand');
-              final pCalories = row.read<int>('calories');
-              final pProtein = row.read<double>('protein');
-              final pCarbs = row.read<double>('carbs');
-              final pFat = row.read<double>('fat');
-              final pSugar = row.read<double?>('sugar');
-              final pFiber = row.read<double?>('fiber');
-              final pSalt = row.read<double?>('salt');
-              final pCaffeine = row.read<double?>('caffeine');
-              final pCaffeineMgPer100g =
-                  row.read<double?>('caffeine_mg_per_100g');
-              final pProductQuantity = row.read<double?>('product_quantity');
-              final pProductQuantityUnit =
-                  row.read<String?>('product_quantity_unit');
-              final pIsFluid = row.read<bool>('is_fluid');
-              final pIsLiquid = row.read<bool>('is_liquid');
-              final pSource = row.read<String>('source');
-              final pCategory = row.read<String?>('category');
+              for (final row in productsToArchive) {
+                final id = row.read<String>('id');
+                final barcode = row.read<String>('barcode');
+                final pName = row.read<String>('name');
+                final pBrand = row.read<String?>('brand');
+                final pCalories = row.read<int>('calories');
+                final pProtein = row.read<double>('protein');
+                final pCarbs = row.read<double>('carbs');
+                final pFat = row.read<double>('fat');
+                final pSugar = row.read<double?>('sugar');
+                final pFiber = row.read<double?>('fiber');
+                final pSalt = row.read<double?>('salt');
+                final pCaffeine = row.read<double?>('caffeine');
+                final pCaffeineMgPer100g =
+                    row.read<double?>('caffeine_mg_per_100g');
+                final pProductQuantity = row.read<double?>('product_quantity');
+                final pProductQuantityUnit =
+                    row.read<String?>('product_quantity_unit');
+                final pIsFluid = row.read<bool>('is_fluid');
+                final pIsLiquid = row.read<bool>('is_liquid');
+                final pSource = row.read<String>('source');
+                final pCategory = row.read<String?>('category');
 
-              final o = overridesMap[barcode];
-              final hadOverride = o != null;
+                final o = overridesMap[barcode];
+                final hadOverride = o != null;
 
-              final name = o?.read<String>('name') ?? pName;
-              final brand = o?.read<String?>('brand') ?? pBrand;
-              final calories = o?.read<int>('calories') ?? pCalories;
-              final protein = o?.read<double>('protein') ?? pProtein;
-              final carbs = o?.read<double>('carbs') ?? pCarbs;
-              final fat = o?.read<double>('fat') ?? pFat;
-              final sugar = o?.read<double?>('sugar') ?? pSugar;
-              final fiber = o?.read<double?>('fiber') ?? pFiber;
-              final salt = o?.read<double?>('salt') ?? pSalt;
-              final caffeine = o?.read<double?>('caffeine') ?? pCaffeine;
-              final caffeineMgPer100g =
-                  o?.read<double?>('caffeine_mg_per_100g') ??
-                      pCaffeineMgPer100g;
-              final productQuantity =
-                  o?.read<double?>('product_quantity') ?? pProductQuantity;
-              final productQuantityUnit =
-                  o?.read<String?>('product_quantity_unit') ??
-                      pProductQuantityUnit;
-              final isFluid = o?.read<bool>('is_fluid') ?? pIsFluid;
-              final isLiquid = o?.read<bool>('is_liquid') ?? pIsLiquid;
-              final category = o?.read<String?>('category') ?? pCategory;
+                final name = o?.read<String>('name') ?? pName;
+                final brand = o?.read<String?>('brand') ?? pBrand;
+                final calories = o?.read<int>('calories') ?? pCalories;
+                final protein = o?.read<double>('protein') ?? pProtein;
+                final carbs = o?.read<double>('carbs') ?? pCarbs;
+                final fat = o?.read<double>('fat') ?? pFat;
+                final sugar = o?.read<double?>('sugar') ?? pSugar;
+                final fiber = o?.read<double?>('fiber') ?? pFiber;
+                final salt = o?.read<double?>('salt') ?? pSalt;
+                final caffeine = o?.read<double?>('caffeine') ?? pCaffeine;
+                final caffeineMgPer100g =
+                    o?.read<double?>('caffeine_mg_per_100g') ??
+                        pCaffeineMgPer100g;
+                final productQuantity =
+                    o?.read<double?>('product_quantity') ?? pProductQuantity;
+                final productQuantityUnit =
+                    o?.read<String?>('product_quantity_unit') ??
+                        pProductQuantityUnit;
+                final isFluid = o?.read<bool>('is_fluid') ?? pIsFluid;
+                final isLiquid = o?.read<bool>('is_liquid') ?? pIsLiquid;
+                final category = o?.read<String?>('category') ?? pCategory;
 
-              final contentHash = calculateProductContentHash(
-                barcode: barcode,
-                name: name,
-                brand: brand,
-                calories: calories,
-                protein: protein,
-                carbs: carbs,
-                fat: fat,
-                sugar: sugar,
-                fiber: fiber,
-                salt: salt,
-                caffeine: caffeine,
-                caffeineMgPer100g: caffeineMgPer100g,
-                productQuantity: productQuantity,
-                productQuantityUnit: productQuantityUnit,
-                isFluid: isFluid,
-                isLiquid: isLiquid,
-                hadUserOverride: hadOverride,
-              );
+                final contentHash = calculateProductContentHash(
+                  barcode: barcode,
+                  name: name,
+                  brand: brand,
+                  calories: calories,
+                  protein: protein,
+                  carbs: carbs,
+                  fat: fat,
+                  sugar: sugar,
+                  fiber: fiber,
+                  salt: salt,
+                  caffeine: caffeine,
+                  caffeineMgPer100g: caffeineMgPer100g,
+                  productQuantity: productQuantity,
+                  productQuantityUnit: productQuantityUnit,
+                  isFluid: isFluid,
+                  isLiquid: isLiquid,
+                  hadUserOverride: hadOverride,
+                );
 
-              productIdToHash[id] = contentHash;
-              barcodeToHash[barcode] = contentHash;
+                productIdToHash[id] = contentHash;
+                barcodeToHash[barcode] = contentHash;
 
-              await customStatement('''
+                await customStatement('''
                 INSERT OR IGNORE INTO off_products_archive (
                   id, barcode, product_name, brand, calories, protein, carbs, fat,
                   sugar, fiber, salt, caffeine, caffeine_mg_per_100g, product_quantity, product_quantity_unit,
                   is_fluid, is_liquid, category, content_hash, source, had_user_override, created_at, updated_at
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
               ''', [
-                const Uuid().v4(),
-                barcode,
-                name,
-                brand,
-                calories,
-                protein,
-                carbs,
-                fat,
-                sugar,
-                fiber,
-                salt,
-                caffeine,
-                caffeineMgPer100g,
-                productQuantity,
-                productQuantityUnit,
-                isFluid ? 1 : 0,
-                isLiquid ? 1 : 0,
-                category,
-                contentHash,
-                pSource,
-                hadOverride ? 1 : 0,
-                DateTime.now().millisecondsSinceEpoch,
-                DateTime.now().millisecondsSinceEpoch,
-              ]);
-            }
-
-            final archiveRows = await customSelect(
-                    'SELECT local_id, content_hash FROM off_products_archive')
-                .get();
-            final hashToLocalId = {
-              for (final row in archiveRows)
-                row.read<String>('content_hash'): row.read<int>('local_id')
-            };
-
-            final logs = await customSelect(
-                    'SELECT local_id, product_id, legacy_barcode FROM nutrition_logs')
-                .get();
-            for (final log in logs) {
-              final logLocalId = log.read<int>('local_id');
-              final productId = log.read<String?>('product_id');
-              final legacyBarcode = log.read<String?>('legacy_barcode');
-
-              String? matchedHash;
-              if (productId != null) {
-                matchedHash = productIdToHash[productId];
-              }
-              if (matchedHash == null && legacyBarcode != null) {
-                matchedHash = barcodeToHash[legacyBarcode];
+                  const Uuid().v4(),
+                  barcode,
+                  name,
+                  brand,
+                  calories,
+                  protein,
+                  carbs,
+                  fat,
+                  sugar,
+                  fiber,
+                  salt,
+                  caffeine,
+                  caffeineMgPer100g,
+                  productQuantity,
+                  productQuantityUnit,
+                  isFluid ? 1 : 0,
+                  isLiquid ? 1 : 0,
+                  category,
+                  contentHash,
+                  pSource,
+                  hadOverride ? 1 : 0,
+                  DateTime.now().millisecondsSinceEpoch,
+                  DateTime.now().millisecondsSinceEpoch,
+                ]);
               }
 
-              if (matchedHash != null) {
-                final archiveLocalId = hashToLocalId[matchedHash];
-                if (archiveLocalId != null) {
-                  await customStatement(
-                    'UPDATE nutrition_logs SET archive_local_id = ? WHERE local_id = ?',
-                    [archiveLocalId, logLocalId],
-                  );
+              final archiveRows = await customSelect(
+                      'SELECT local_id, content_hash FROM off_products_archive')
+                  .get();
+              final hashToLocalId = {
+                for (final row in archiveRows)
+                  row.read<String>('content_hash'): row.read<int>('local_id')
+              };
+
+              final logs = await customSelect(
+                      'SELECT local_id, product_id, legacy_barcode FROM nutrition_logs')
+                  .get();
+              for (final log in logs) {
+                final logLocalId = log.read<int>('local_id');
+                final productId = log.read<String?>('product_id');
+                final legacyBarcode = log.read<String?>('legacy_barcode');
+
+                String? matchedHash;
+                if (productId != null) {
+                  matchedHash = productIdToHash[productId];
+                }
+                if (matchedHash == null && legacyBarcode != null) {
+                  matchedHash = barcodeToHash[legacyBarcode];
+                }
+
+                if (matchedHash != null) {
+                  final archiveLocalId = hashToLocalId[matchedHash];
+                  if (archiveLocalId != null) {
+                    await customStatement(
+                      'UPDATE nutrition_logs SET archive_local_id = ? WHERE local_id = ?',
+                      [archiveLocalId, logLocalId],
+                    );
+                  }
                 }
               }
-            }
 
-            // Phase 4: CREATE indexes
-            await customStatement(
-              'CREATE UNIQUE INDEX IF NOT EXISTS idx_archive_content_hash ON off_products_archive (content_hash);',
-            );
-            await customStatement(
-              'CREATE INDEX IF NOT EXISTS idx_archive_barcode ON off_products_archive (barcode);',
-            );
-          }
-          if (from < 25) {
-            await m.createTable(mealEntries);
-            await m.addColumn(nutritionLogs, nutritionLogs.mealEntryId);
-            await customStatement(
-              'CREATE INDEX IF NOT EXISTS idx_meal_entries_consumed_at ON meal_entries (consumed_at);',
-            );
-            await customStatement(
-              'CREATE INDEX IF NOT EXISTS idx_nutrition_logs_meal_entry_id ON nutrition_logs (meal_entry_id);',
-            );
-          }
-          unawaited(TelemetryService.instance.trackDbMigrationStatus(
-            fromVersion: from,
-            toVersion: to,
-            success: true,
-          ));
+              // Phase 4: CREATE indexes
+              await customStatement(
+                'CREATE UNIQUE INDEX IF NOT EXISTS idx_archive_content_hash ON off_products_archive (content_hash);',
+              );
+              await customStatement(
+                'CREATE INDEX IF NOT EXISTS idx_archive_barcode ON off_products_archive (barcode);',
+              );
+            }
+            if (from < 25) {
+              // Guarded rather than plain: a run that got as far as the table and
+              // then failed would otherwise throw "table already exists" on every
+              // later attempt, and the upgrade could never complete.
+              if (!await _tableExists(this, mealEntries.actualTableName)) {
+                await m.createTable(mealEntries);
+              }
+              if (!await _columnExists(
+                  this, nutritionLogs.actualTableName, 'meal_entry_id')) {
+                await m.addColumn(nutritionLogs, nutritionLogs.mealEntryId);
+              }
+              await customStatement(
+                'CREATE INDEX IF NOT EXISTS idx_meal_entries_consumed_at ON meal_entries (consumed_at);',
+              );
+              await customStatement(
+                'CREATE INDEX IF NOT EXISTS idx_nutrition_logs_meal_entry_id ON nutrition_logs (meal_entry_id);',
+              );
+            }
+            unawaited(TelemetryService.instance.trackDbMigrationStatus(
+              fromVersion: from,
+              toVersion: to,
+              success: true,
+            ));
           } catch (e) {
             unawaited(TelemetryService.instance.trackDbMigrationStatus(
               fromVersion: from,
@@ -1244,4 +1325,24 @@ String calculateProductContentHash({
   ];
   final bytes = utf8.encode(parts.join('|'));
   return sha256.convert(bytes).toString();
+}
+
+/// Column names of [table], or an empty set when the table does not exist.
+Future<Set<String>> _columnsOf(GeneratedDatabase db, String table) async {
+  final rows = await db.customSelect('PRAGMA table_info($table);').get();
+  return rows.map((row) => row.read<String>('name')).toSet();
+}
+
+Future<bool> _tableExists(GeneratedDatabase db, String table) async {
+  final columns = await _columnsOf(db, table);
+  return columns.isNotEmpty;
+}
+
+Future<bool> _columnExists(
+  GeneratedDatabase db,
+  String table,
+  String column,
+) async {
+  final columns = await _columnsOf(db, table);
+  return columns.contains(column);
 }

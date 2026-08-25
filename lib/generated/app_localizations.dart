@@ -10399,6 +10399,54 @@ abstract class AppLocalizations {
   /// **'Record again'**
   String get voiceRetake;
 
+  /// No description provided for @voiceTidiedIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Tidied up by AI in {seconds} s'**
+  String voiceTidiedIn(String seconds);
+
+  /// No description provided for @aiDepthImageTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Send the depth map too'**
+  String get aiDepthImageTitle;
+
+  /// No description provided for @aiDepthImageSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Attaches the false-colour relief of the meal as a second image, so the model can judge height as well as outline. Costs one extra image per analysis.'**
+  String get aiDepthImageSubtitle;
+
+  /// No description provided for @aiVoiceTidyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Tidy up dictation with AI'**
+  String get aiVoiceTidyTitle;
+
+  /// No description provided for @aiVoiceTidySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'After you finish speaking, the transcript is corrected and split into bullet points. Costs one request and a few seconds.'**
+  String get aiVoiceTidySubtitle;
+
+  /// No description provided for @voicePermissionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Microphone and speech recognition'**
+  String get voicePermissionTitle;
+
+  /// No description provided for @voicePermissionBody.
+  ///
+  /// In en, this message translates to:
+  /// **'To dictate a meal, Train Libre needs the microphone while you hold the button, and speech recognition to turn what you said into text. Recognition runs on your device whenever it can. Nothing is recorded or kept.'**
+  String get voicePermissionBody;
+
+  /// No description provided for @voicePermissionContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get voicePermissionContinue;
+
   /// No description provided for @voiceApplyText.
   ///
   /// In en, this message translates to:

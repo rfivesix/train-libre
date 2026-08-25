@@ -5,6 +5,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:speech_to_text/speech_recognition_result.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 
@@ -60,6 +61,27 @@ class VoiceDictationService {
   bool get isListening => _speech.isListening;
   bool get onDeviceAvailable => _onDeviceAvailable;
   bool get lastRunUsedNetwork => _lastRunUsedNetwork;
+
+  /// Whether the microphone and speech recognition have already been granted.
+  ///
+  /// Asked separately from [prepare] because `initialize` is what triggers the
+  /// system prompts, and those must not be the first thing the user sees —
+  /// they get an explanation first.
+  Future<bool> hasPermissions() async {
+    if (_initialized && _speech.isAvailable) return true;
+    try {
+      final microphone = await Permission.microphone.status;
+      if (!microphone.isGranted) return false;
+      if (Platform.isIOS || Platform.isMacOS) {
+        final speech = await Permission.speech.status;
+        if (!speech.isGranted) return false;
+      }
+      return true;
+    } catch (e) {
+      debugPrint('[VoiceDictation] permission check failed: $e');
+      return false;
+    }
+  }
 
   /// Initialises the recognizer and requests permission. Safe to call repeatedly.
   Future<VoiceAvailability> prepare() async {
@@ -176,8 +198,39 @@ class VoiceDictationService {
     }
   }
 
+  /// Turns the platform's raw sound level into a 0-to-1 loudness.
+  ///
+  /// The two platforms report on completely different scales and neither is
+  /// meaningful to a UI: iOS sends dBFS (`20*log10(rms)`), so silence sits
+  /// around -60 and a shout approaches 0, while Android sends roughly -2 to 10.
+  /// Treating the iOS numbers as if they were Android's clamped every reading
+  /// to the floor, which is why the level looked frozen at zero.
+  static double normalizeLevel(double raw) => Platform.isIOS || Platform.isMacOS
+      ? normalizeDbLevel(raw)
+      : normalizeAndroidLevel(raw);
+
+  /// Apple's scale: dBFS, where 0 is the loudest the microphone can encode.
+  ///
+  /// The floor is -45 dB, roughly a quiet room — below that there is nothing
+  /// worth showing, and mapping from -60 would leave normal speech bunched into
+  /// the top third of the range.
+  static double normalizeDbLevel(double db) {
+    if (db.isNaN || db.isInfinite) return 0;
+    const floorDb = -45.0;
+    return ((db - floorDb) / -floorDb).clamp(0.0, 1.0);
+  }
+
+  /// Android's scale: roughly -2 for silence to 10 for loud.
+  static double normalizeAndroidLevel(double raw) {
+    if (raw.isNaN || raw.isInfinite) return 0;
+    return ((raw + 2) / 12).clamp(0.0, 1.0);
+  }
+
   /// Starts listening. [onPartial] fires continuously, [onFinal] once the
   /// recognizer settles on a result.
+  ///
+  /// [onSoundLevel] reports loudness already normalised to 0 to 1 — see
+  /// [normalizeLevel].
   ///
   /// Returns false when listening could not be started at all.
   Future<bool> start({
@@ -211,7 +264,9 @@ class VoiceDictationService {
       try {
         await _speech.listen(
           onResult: handleResult,
-          onSoundLevelChange: onSoundLevel,
+          onSoundLevelChange: onSoundLevel == null
+              ? null
+              : (level) => onSoundLevel(normalizeLevel(level)),
           listenOptions: SpeechListenOptions(
             partialResults: true,
             onDevice: onDevice,

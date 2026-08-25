@@ -552,26 +552,36 @@ class AiService {
   // ---------------------------------------------------------------------------
 
   /// Analyzes one or more meal images and returns suggested food items.
+  /// [depthMap] is appended after the photos and described by [depthMapLegend];
+  /// both must be given together or not at all, since a false-colour image with
+  /// no scale tells the model nothing.
   Future<AiMealCandidate> analyzeImages(
     List<File> images, {
     String? textHint,
     String? languageCode,
     AiMatchingContext? matchingContext,
     DepthScaleFacts? depthFacts,
+    File? depthMap,
+    String? depthMapLegend,
   }) async {
     final userContent =
         textHint ?? 'Analyze this meal and identify all food components.';
+    final attachDepthMap = depthMap != null &&
+        depthMapLegend != null &&
+        depthMapLegend.trim().isNotEmpty;
+
     final prompt = _AiPrompts.buildSystemPrompt(
       languageCode: languageCode,
       appLanguage: matchingContext?.appLanguage,
       catalogLanguage: matchingContext?.catalogLanguage,
       depthFacts: depthFacts,
+      depthMapLegend: attachDepthMap ? depthMapLegend : null,
     );
 
     final raw = await _callSelectedProviderRaw(
       userContent: userContent,
       systemPrompt: prompt,
-      images: images,
+      images: attachDepthMap ? [...images, depthMap] : images,
       temperature: 0.3,
     );
 
@@ -597,6 +607,84 @@ class AiService {
     );
 
     return _parseMealCandidateFromContent(raw);
+  }
+
+  /// Turns a raw dictation transcript into bullets, correcting mishearings.
+  ///
+  /// Returns null when there is nothing to tidy or the provider is unavailable
+  /// — dictation has to keep working without an API key, so every failure here
+  /// falls back to the locally cleaned transcript rather than surfacing.
+  Future<VoiceTranscriptSummary?> tidyVoiceTranscript(String transcript) async {
+    final trimmed = transcript.trim();
+    if (trimmed.isEmpty) return null;
+
+    final stopwatch = Stopwatch()..start();
+    try {
+      // Capped well below the configured request timeout. Tidying is a nicety
+      // on top of a transcript the user can already read and send; holding them
+      // on a spinner for a minute to get it would be a bad trade.
+      final raw = await _callSelectedProviderRaw(
+        userContent: trimmed,
+        systemPrompt: _AiPrompts.buildVoiceTidyPrompt(),
+        temperature: 0.1,
+      ).timeout(const Duration(seconds: 15));
+      stopwatch.stop();
+      final summary = _parseVoiceSummary(raw, stopwatch.elapsed);
+      if (summary == null || summary.isEmpty) return null;
+      return summary;
+    } catch (e) {
+      debugPrint('[AiService] transcript tidy failed: $e');
+      return null;
+    }
+  }
+
+  @visibleForTesting
+  VoiceTranscriptSummary? parseVoiceSummaryForTesting(String content) =>
+      _parseVoiceSummary(content, Duration.zero);
+
+  VoiceTranscriptSummary? _parseVoiceSummary(String content, Duration elapsed) {
+    var cleaned = content.trim();
+    if (cleaned.startsWith('```')) {
+      cleaned = cleaned.replaceFirst(RegExp(r'^```\w*\n?'), '');
+      cleaned = cleaned.replaceFirst(RegExp(r'\n?```$'), '');
+      cleaned = cleaned.trim();
+    }
+    final start = cleaned.indexOf('{');
+    final end = cleaned.lastIndexOf('}');
+    if (start < 0 || end <= start) return null;
+
+    try {
+      final decoded =
+          jsonDecode(cleaned.substring(start, end + 1)) as Map<String, dynamic>;
+      final rawBullets = decoded['bullets'];
+      if (rawBullets is! List) return null;
+
+      final bullets = <VoiceTranscriptBullet>[];
+      for (final entry in rawBullets) {
+        if (entry is! Map) continue;
+        final text = (entry['text'] as String?)?.trim();
+        if (text == null || text.isEmpty) continue;
+        final notes = <String>[];
+        final rawNotes = entry['notes'];
+        if (rawNotes is List) {
+          for (final note in rawNotes) {
+            final value = note?.toString().trim();
+            if (value != null && value.isNotEmpty) notes.add(value);
+          }
+        }
+        bullets.add(VoiceTranscriptBullet(text: text, notes: notes));
+      }
+
+      final context = (decoded['context'] as String?)?.trim();
+      return VoiceTranscriptSummary(
+        bullets: bullets,
+        context: (context == null || context.isEmpty) ? null : context,
+        elapsed: elapsed,
+      );
+    } catch (e) {
+      debugPrint('[AiService] transcript tidy parse failed: $e');
+      return null;
+    }
   }
 
   /// Retries analysis with user feedback to refine the results.

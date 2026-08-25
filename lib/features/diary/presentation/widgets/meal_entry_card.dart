@@ -15,7 +15,14 @@ class MealEntryCard extends StatefulWidget {
   final MealEntry mealEntry;
   final List<TrackedFoodItem> items;
   final VoidCallback? onTapDetail;
-  final VoidCallback? onLongPressMeal;
+
+  /// Runs the delete flow and reports whether the meal was really removed.
+  ///
+  /// Returning the outcome matters: the card sits in a `Dismissible`, and a
+  /// swipe that confirms unconditionally tears the row out of the tree even
+  /// when the user backs out of the sheet — which then throws "a dismissed
+  /// Dismissible widget is still part of the tree".
+  final Future<bool> Function()? onDeleteMeal;
   final ValueChanged<TrackedFoodItem>? onEditItem;
   final Future<void> Function(int)? onDeleteItem;
 
@@ -24,7 +31,7 @@ class MealEntryCard extends StatefulWidget {
     required this.mealEntry,
     required this.items,
     this.onTapDetail,
-    this.onLongPressMeal,
+    this.onDeleteMeal,
     this.onEditItem,
     this.onDeleteItem,
   });
@@ -74,11 +81,13 @@ class _MealEntryCardState extends State<MealEntryCard> {
           GlassActionableCard(
             dismissibleKey: Key('meal_entry_${widget.mealEntry.id}'),
             onEdit: widget.onTapDetail,
-            onDelete: widget.onLongPressMeal,
+            // The whole delete flow lives in `confirmDelete`, because that is
+            // the only hook whose answer decides whether the row disappears.
             // Deleting a meal asks its own question — keep the meal but drop
-            // the grouping, or remove everything. The generic confirmation
+            // the grouping, or remove everything — so the generic confirmation
             // would have been a second, differently worded dialog on top.
-            confirmDelete: () async => true,
+            onDelete: () {},
+            confirmDelete: widget.onDeleteMeal,
             child: // Header Row
                 //
                 // The photo sits *behind* the text rather than beside it, fading
@@ -88,7 +97,9 @@ class _MealEntryCardState extends State<MealEntryCard> {
                 InkWell(
               borderRadius: BorderRadius.circular(12),
               onTap: widget.onTapDetail,
-              onLongPress: widget.onLongPressMeal,
+              onLongPress: widget.onDeleteMeal == null
+                  ? null
+                  : () => widget.onDeleteMeal!(),
               child: Stack(
                 children: [
                   if (hasPhoto)

@@ -1,4 +1,6 @@
 import 'dart:io';
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 import '../../../data/database_helper.dart';
@@ -25,7 +27,8 @@ import 'widgets/meal_review_validation_summary.dart';
 import 'widgets/meal_photo_widget.dart';
 import '../../depth_scan/domain/models/depth_scale_facts.dart';
 import '../../depth_scan/platform/depth_scan_channel.dart';
-import '../../depth_scan/presentation/meal_scan_debug_view.dart';
+import '../../depth_scan/data/depth_map_renderer.dart';
+import '../../depth_scan/presentation/widgets/depth_legend.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../widgets/common/common.dart';
 import 'package:provider/provider.dart';
@@ -70,6 +73,10 @@ class AiMealReviewScreen extends StatefulWidget {
 }
 
 class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
+  bool _showDepthMap = false;
+  ui.Image? _depthImage;
+  DepthBandRender? _depthRender;
+
   late List<_ReviewItem> _items;
   final _feedbackController = TextEditingController();
   bool _showFeedback = false;
@@ -104,6 +111,7 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
 
   @override
   void dispose() {
+    _depthImage?.dispose();
     _stopAiWaitingHaptics();
     _feedbackController.dispose();
     super.dispose();
@@ -564,6 +572,48 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
   /// Leaving this screen returns all the way to where the capture started, so
   /// a stray back swipe would otherwise silently discard a finished analysis
   /// with no way to get it back.
+  // ---------------------------------------------------------------------------
+  // Depth map
+  // ---------------------------------------------------------------------------
+
+  bool get _hasDepthMap =>
+      (widget.depthResult?.depthBuffer?.isNotEmpty ?? false) &&
+      (widget.depthResult?.depthWidth ?? 0) > 0;
+
+  Future<void> _toggleDepthMap() async {
+    if (!_showDepthMap && _depthImage == null) {
+      await _renderDepthMap();
+      if (!mounted) return;
+    }
+    HapticFeedbackService.instance.selectionFeedback();
+    setState(() => _showDepthMap = !_showDepthMap);
+  }
+
+  /// Rendered on first use rather than up front: most reviews never open it,
+  /// and decoding a depth map into an image costs a frame.
+  Future<void> _renderDepthMap() async {
+    final capture = widget.depthResult;
+    final buffer = capture?.depthBuffer;
+    if (capture == null || buffer == null) return;
+    try {
+      final result = await DepthMapRenderer.createUiImage(
+        depthBuffer: buffer,
+        width: capture.depthWidth,
+        height: capture.depthHeight,
+      );
+      if (!mounted) {
+        result.image.dispose();
+        return;
+      }
+      setState(() {
+        _depthImage = result.image;
+        _depthRender = result.render;
+      });
+    } catch (e) {
+      debugPrint('[AiMealReview] depth render failed: $e');
+    }
+  }
+
   Future<bool> _confirmDiscard() async {
     if (_isSaving) return true;
     final l10n = AppLocalizations.of(context)!;
@@ -631,25 +681,6 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
         extendBodyBehindAppBar: true,
         appBar: GlobalAppBar(
           title: l10n.aiReviewTitle,
-          actions: [
-            IconButton(
-              icon: const Icon(LucideIcons.sparkles, size: 20),
-              tooltip: 'LiDAR & AI Insights',
-              onPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => MealScanDebugView(
-                      captureResult: widget.depthResult,
-                      scaleFacts:
-                          widget.depthFacts ?? widget.depthResult?.scaleFacts,
-                      sentPrompt: widget.sentPrompt,
-                      rawResponse: widget.rawResponse,
-                    ),
-                  ),
-                );
-              },
-            ),
-          ],
         ),
         body: Column(
           children: [
@@ -667,13 +698,45 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
                       child: OverflowBox(
                         maxWidth: MediaQuery.sizeOf(context).width,
                         maxHeight: 300,
-                        child: MealPhotoWidget(
-                          photoFiles: widget.originalImages,
-                          photoFile: widget.originalImages.first,
-                          height: 300,
+                        child: Stack(
+                          fit: StackFit.expand,
+                          children: [
+                            // Same crop as the photo, deliberately: the two
+                            // are the same framing, and letterboxing one of
+                            // them makes them look like different shots.
+                            if (_showDepthMap && _depthImage != null)
+                              RawImage(
+                                image: _depthImage,
+                                fit: BoxFit.cover,
+                                width: double.infinity,
+                                height: double.infinity,
+                              )
+                            else
+                              MealPhotoWidget(
+                                photoFiles: widget.originalImages,
+                                photoFile: widget.originalImages.first,
+                                height: 300,
+                              ),
+                            // Only offered where there is a depth map to show;
+                            // on a phone without the sensor the control would
+                            // advertise something that does not exist.
+                            if (_hasDepthMap)
+                              Positioned(
+                                top: 12,
+                                right: 16,
+                                child: _DepthToggleButton(
+                                  active: _showDepthMap,
+                                  onTap: _toggleDepthMap,
+                                ),
+                              ),
+                          ],
                         ),
                       ),
                     ),
+                    if (_showDepthMap && _depthRender != null) ...[
+                      const SizedBox(height: DesignConstants.spacingS),
+                      _DepthLegendPanel(render: _depthRender!),
+                    ],
                     const SizedBox(height: DesignConstants.spacingM),
                   ],
 
@@ -924,4 +987,108 @@ class _ReviewItem {
     this.issues = const [],
     this.nutrition = AiNutritionTotals.zero,
   });
+}
+
+/// The LiDAR chip over the meal photo.
+class _DepthToggleButton extends StatelessWidget {
+  final bool active;
+  final VoidCallback onTap;
+
+  const _DepthToggleButton({required this.active, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    const lime = Color(0xFFC9EF00);
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: active
+              ? lime.withValues(alpha: 0.9)
+              : Colors.black.withValues(alpha: 0.55),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: active ? lime : Colors.white.withValues(alpha: 0.5),
+          ),
+        ),
+        child: Text(
+          'LiDAR',
+          style: TextStyle(
+            fontFamily: 'monospace',
+            fontWeight: FontWeight.w700,
+            fontSize: 11,
+            letterSpacing: 0.8,
+            color: active ? const Color(0xFF12120F) : Colors.white,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// The legend under the depth map, folded away until asked for.
+///
+/// Collapsed by default: the picture reads well enough on its own, and someone
+/// who just wants to check their portion should not have to scroll past a
+/// colour scale to reach their items.
+class _DepthLegendPanel extends StatefulWidget {
+  final DepthBandRender render;
+
+  const _DepthLegendPanel({required this.render});
+
+  @override
+  State<_DepthLegendPanel> createState() => _DepthLegendPanelState();
+}
+
+class _DepthLegendPanelState extends State<_DepthLegendPanel> {
+  bool _expanded = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final muted = theme.colorScheme.onSurfaceVariant;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        InkWell(
+          borderRadius: BorderRadius.circular(8),
+          onTap: () => setState(() => _expanded = !_expanded),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 6),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  _expanded ? LucideIcons.chevron_up : LucideIcons.chevron_down,
+                  size: 16,
+                  color: muted,
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  'Farbskala',
+                  style: TextStyle(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w600,
+                    color: muted,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        AnimatedCrossFade(
+          duration: const Duration(milliseconds: 220),
+          crossFadeState:
+              _expanded ? CrossFadeState.showSecond : CrossFadeState.showFirst,
+          firstChild: const SizedBox(width: double.infinity),
+          secondChild: Padding(
+            padding: const EdgeInsets.only(bottom: 4),
+            child: DepthLegend(render: widget.render),
+          ),
+        ),
+      ],
+    );
+  }
 }

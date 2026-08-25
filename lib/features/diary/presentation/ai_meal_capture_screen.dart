@@ -17,6 +17,7 @@ import '../../../services/ai_service.dart';
 import 'util/photo_pre_processor.dart';
 import '../../../services/ai_matching_language_service.dart';
 import '../../../services/haptic_feedback_service.dart';
+import '../../depth_scan/data/depth_map_attachment.dart';
 import '../../depth_scan/data/depth_scan_settings.dart';
 import '../../depth_scan/platform/depth_scan_channel.dart';
 import '../../app/presentation/widgets/glass_bottom_menu.dart';
@@ -35,6 +36,7 @@ import '../../../widgets/common/database_placeholder_widget.dart';
 import '../../../widgets/common/app_button.dart';
 import '../../../services/telemetry/telemetry_service.dart';
 import '../../../services/voice/voice_dictation_service.dart';
+import '../../../util/permission_dialogs.dart';
 
 /// Screen for capturing meal input via live camera, photo(s), barcode or text (Screens A1–A6).
 class AiMealCaptureScreen extends StatefulWidget {
@@ -485,6 +487,16 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
     final scaleHintEnabled =
         await DepthScanSettings.instance.isScaleHintEnabled();
     final depthFacts = scaleHintEnabled ? _lastDepthCapture?.scaleFacts : null;
+
+    // The relief of the meal, as a second image. Rendered here rather than kept
+    // around: the band scale is fitted to the frame, so it only exists once the
+    // capture it belongs to does.
+    final capture = _lastDepthCapture;
+    DepthMapAttachment? depthMap;
+    if (capture != null &&
+        await DepthScanSettings.instance.isDepthImageEnabled()) {
+      depthMap = await buildDepthMapAttachment(capture);
+    }
     if (!mounted) return;
 
     controller.value = MealAnalysisPhase.analyzing;
@@ -499,6 +511,8 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
           textHint: text.isNotEmpty ? text : null,
           matchingContext: matchingContext,
           depthFacts: depthFacts,
+          depthMap: depthMap?.file,
+          depthMapLegend: depthMap?.describeForPrompt(),
         );
       } else {
         candidate = await AiService.instance.analyzeText(
@@ -1270,6 +1284,34 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
     // recogniser reliably fell over, and the viewfinder is behind a full-height
     // sheet anyway.
     await _suspendCameraForDictation();
+
+    // Explained before the system prompt appears, the same way every other
+    // permission in the app is. Apple rejects builds that fire the microphone
+    // and speech-recognition prompts with no context, and the user deserves to
+    // know what is being asked for before deciding.
+    if (!await VoiceDictationService.instance.hasPermissions()) {
+      if (!mounted) {
+        await _resumeCameraAfterDictation();
+        return;
+      }
+      final l10n = AppLocalizations.of(context)!;
+      final proceed = await showPrePermissionDialog(
+        context: context,
+        title: l10n.voicePermissionTitle,
+        body: l10n.voicePermissionBody,
+        continueLabel: l10n.voicePermissionContinue,
+        cancelLabel: l10n.cancel,
+      );
+      if (!proceed) {
+        await _resumeCameraAfterDictation();
+        return;
+      }
+    }
+    if (!mounted) {
+      await _resumeCameraAfterDictation();
+      return;
+    }
+
     final availability = await VoiceDictationService.instance.prepare();
     if (!mounted) {
       await _resumeCameraAfterDictation();
@@ -1298,6 +1340,11 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
       exampleHint: _images.isEmpty
           ? l10n.voiceExampleStandalone
           : l10n.voiceExampleWithPhoto,
+      // Same wording as the button on this screen, so the sheet's primary
+      // action reads as the same step rather than a different one.
+      analyzeLabel: _images.isNotEmpty
+          ? l10n.aiCaptureAnalyzeMeal(_images.length)
+          : l10n.aiCaptureAnalyzeText,
     );
 
     await _resumeCameraAfterDictation();
@@ -1306,10 +1353,14 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
     setState(() {
       _isDictating = false;
       if (result != null) {
-        _textController.text = result.trim();
+        _textController.text = result.text.trim();
         _showTextInput = _textController.text.isNotEmpty;
       }
     });
+
+    if (result != null && result.analyzeNow && _hasInput) {
+      await _analyze();
+    }
   }
 
   Future<void> _suspendCameraForDictation() async {

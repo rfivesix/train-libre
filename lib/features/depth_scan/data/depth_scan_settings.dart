@@ -13,8 +13,10 @@ class DepthScanSettings {
   DepthScanSettings._();
 
   static const String scaleHintKey = 'depth_scan_scale_hint_enabled';
+  static const String depthImageKey = 'depth_scan_depth_image_enabled';
 
   bool? _cached;
+  bool? _depthImageCached;
 
   Future<bool> isScaleHintEnabled() async {
     final cached = _cached;
@@ -29,5 +31,26 @@ class DepthScanSettings {
     _cached = enabled;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(scaleHintKey, enabled);
+  }
+
+  /// Whether the depth map is sent to the model as a second image next to the
+  /// photo, on top of the measured numbers.
+  ///
+  /// Separate from the scale hint so the two can be judged apart: the numbers
+  /// are cheap and certain, the picture costs a second image per analysis and
+  /// its worth is exactly the open question.
+  Future<bool> isDepthImageEnabled() async {
+    final cached = _depthImageCached;
+    if (cached != null) return cached;
+    final prefs = await SharedPreferences.getInstance();
+    final value = prefs.getBool(depthImageKey) ?? true;
+    _depthImageCached = value;
+    return value;
+  }
+
+  Future<void> setDepthImageEnabled(bool enabled) async {
+    _depthImageCached = enabled;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(depthImageKey, enabled);
   }
 }

@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 
 import '../../../../generated/app_localizations.dart';
+import '../../../../services/ai_service.dart';
 import '../../../../services/haptic_feedback_service.dart';
 import '../../../../services/voice/transcript_cleanup.dart';
 import '../../../../services/voice/voice_dictation_service.dart';
@@ -16,22 +17,35 @@ import '../../../app/presentation/widgets/glass_bottom_menu.dart';
 import '../widgets/ai_neural_cloud_orb_widget.dart';
 import '../widgets/animated_transcript_text.dart';
 
-/// Opens the dictation sheet and returns the text the user accepted, or null.
+/// What the user decided to do with a finished transcript.
+class VoiceDictationResult {
+  final String text;
+
+  /// True when they asked for the analysis to start straight away rather than
+  /// returning to the viewfinder.
+  final bool analyzeNow;
+
+  const VoiceDictationResult({required this.text, required this.analyzeNow});
+}
+
+/// Opens the dictation sheet and returns what the user accepted, or null.
 ///
 /// A full-height sheet rather than a small panel: dictating is the whole task
 /// while it is happening, and the transcript needs room to be read back before
 /// it is trusted.
-Future<String?> showVoiceDictationSheet({
+Future<VoiceDictationResult?> showVoiceDictationSheet({
   required BuildContext context,
   String? initialText,
   required String exampleHint,
+  required String analyzeLabel,
 }) {
-  return showGlassBottomMenu<String>(
+  return showGlassBottomMenu<VoiceDictationResult>(
     context: context,
     expandToFullHeight: true,
     contentBuilder: (ctx, _) => _VoiceDictationView(
       initialText: initialText ?? '',
       exampleHint: exampleHint,
+      analyzeLabel: analyzeLabel,
     ),
   );
 }
@@ -41,10 +55,12 @@ enum _DictationPhase { idle, starting, listening, tidying, done }
 class _VoiceDictationView extends StatefulWidget {
   final String initialText;
   final String exampleHint;
+  final String analyzeLabel;
 
   const _VoiceDictationView({
     required this.initialText,
     required this.exampleHint,
+    required this.analyzeLabel,
   });
 
   @override
@@ -59,6 +75,9 @@ class _VoiceDictationViewState extends State<_VoiceDictationView> {
   bool _cleanedSomething = false;
   bool _editing = false;
   double _level = 0;
+
+  /// Bullets from the AI pass, or null when it did not run or did not help.
+  VoiceTranscriptSummary? _summary;
 
   /// Everything the user had before this session, kept in front of whatever
   /// they dictate now.
@@ -125,6 +144,14 @@ class _VoiceDictationViewState extends State<_VoiceDictationView> {
       _phase = _DictationPhase.starting;
       _cleanedSomething = false;
       _editing = false;
+      // Stale from the previous run, and the cloud would open already swollen.
+      _level = 0;
+      // "Record again" starts over. Leaving the finished transcript on screen
+      // meant it sat there looking accepted until the first new word replaced
+      // it — and stayed for good if the user said nothing.
+      _liveTranscript = _baseText;
+      _editController.text = _baseText;
+      _summary = null;
     });
 
     final chosen =
@@ -152,12 +179,34 @@ class _VoiceDictationViewState extends State<_VoiceDictationView> {
       setState(() => _phase = _DictationPhase.idle);
       return;
     }
-    HapticFeedbackService.instance.selectionFeedback();
     setState(() => _phase = _DictationPhase.listening);
   }
 
   String _merge(String spoken) =>
       _baseText.isEmpty ? spoken : '$_baseText $spoken';
+
+  /// Already 0 to 1 — `VoiceDictationService` normalises the platform scale.
+  double get _normalizedLevel => _level.clamp(0.0, 1.0);
+
+  /// The accent's opposite hue, lifted enough to stay legible on a dark sheet.
+  ///
+  /// Tidying and listening looked identical: same shape, same colour, only the
+  /// caption underneath differed. Flipping the hue makes the state change
+  /// unmistakable without inventing a second animation.
+  Color _complementOf(Color accent) {
+    final hsl = HSLColor.fromColor(accent);
+    return hsl
+        .withHue((hsl.hue + 180) % 360)
+        .withSaturation(hsl.saturation.clamp(0.7, 1.0))
+        .withLightness(0.62)
+        .toColor();
+  }
+
+  /// True while the cloud should be a cloud rather than a resting circle.
+  bool get _isRecordingShape =>
+      _phase == _DictationPhase.starting ||
+      _phase == _DictationPhase.listening ||
+      _phase == _DictationPhase.tidying;
 
   Future<void> _stop() async {
     setState(() {
@@ -174,10 +223,39 @@ class _VoiceDictationViewState extends State<_VoiceDictationView> {
 
     final raw = _liveTranscript.trim();
     final cleaned = TranscriptCleanup.clean(raw);
+    // The local pass lands first and unconditionally: it costs nothing, needs
+    // no network and no key, and it is what remains if the request below fails.
     setState(() {
       _cleanedSomething = cleaned.isNotEmpty && cleaned != raw;
       _liveTranscript = cleaned;
       _editController.text = cleaned;
+    });
+
+    if (cleaned.isEmpty) {
+      setState(() => _phase = _DictationPhase.done);
+      HapticFeedbackService.instance.confirmationFeedback();
+      return;
+    }
+
+    // Rules cannot fix a misheard food name — "Sriracha" comes back as "Sir
+    // Ratscher" and no dictionary of filler words will ever catch that.
+    final tidyEnabled = await VoiceDictationSettings.instance.isAiTidyEnabled();
+    if (!mounted) return;
+    if (!tidyEnabled) {
+      setState(() => _phase = _DictationPhase.done);
+      HapticFeedbackService.instance.confirmationFeedback();
+      return;
+    }
+
+    final summary = await AiService.instance.tidyVoiceTranscript(cleaned);
+    if (!mounted) return;
+
+    setState(() {
+      _summary = summary;
+      if (summary != null) {
+        _liveTranscript = summary.toMarkdown();
+        _editController.text = _liveTranscript;
+      }
       _phase = _DictationPhase.done;
     });
     HapticFeedbackService.instance.confirmationFeedback();
@@ -248,6 +326,123 @@ class _VoiceDictationViewState extends State<_VoiceDictationView> {
     );
   }
 
+  /// The tidied transcript as one line per food, with whatever the user said
+  /// about that food indented underneath it.
+  Widget _buildBullets(
+    VoiceTranscriptSummary summary,
+    Color ink,
+    Color muted,
+    Color lime,
+  ) {
+    final l10n = AppLocalizations.of(context)!;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        for (final bullet in summary.bullets)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(top: 7, right: 10),
+                      child: Container(
+                        width: 6,
+                        height: 6,
+                        decoration:
+                            BoxDecoration(color: lime, shape: BoxShape.circle),
+                      ),
+                    ),
+                    Expanded(
+                      child: Text(
+                        bullet.text,
+                        style: TextStyle(
+                          fontFamily: 'Plus Jakarta Sans',
+                          fontSize: 17,
+                          height: 1.35,
+                          fontWeight: FontWeight.w700,
+                          color: ink,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                // Indented under its food rather than appended to the line: a
+                // qualifier read as part of the name would send the analysis
+                // looking for a product called "Hähnchen Trockengewicht".
+                for (final note in bullet.notes)
+                  Padding(
+                    padding: const EdgeInsets.only(left: 16, top: 3),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(top: 6, right: 8),
+                          child: Container(
+                            width: 10,
+                            height: 1.5,
+                            color: muted,
+                          ),
+                        ),
+                        Expanded(
+                          child: Text(
+                            note,
+                            style: TextStyle(
+                              fontFamily: 'Plus Jakarta Sans',
+                              fontSize: 14,
+                              height: 1.35,
+                              fontWeight: FontWeight.w500,
+                              color: muted,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        if (summary.context != null)
+          Padding(
+            padding: const EdgeInsets.only(top: 2),
+            child: Text(
+              summary.context!,
+              style: TextStyle(
+                fontFamily: 'Plus Jakarta Sans',
+                fontSize: 14,
+                fontStyle: FontStyle.italic,
+                color: muted,
+              ),
+            ),
+          ),
+        const SizedBox(height: 6),
+        // Shown so the wait can be judged rather than guessed at.
+        Text(
+          l10n.voiceTidiedIn(
+              (summary.elapsed.inMilliseconds / 1000).toStringAsFixed(1)),
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w600,
+            color: muted.withValues(alpha: 0.8),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _finish({required bool analyzeNow}) async {
+    final text = (_editing ? _editController.text : _liveTranscript).trim();
+    await VoiceDictationService.instance.cancel();
+    if (!mounted) return;
+    Navigator.of(context).pop(
+      VoiceDictationResult(text: text, analyzeNow: analyzeNow),
+    );
+  }
+
   String _statusFor(AppLocalizations l10n) => switch (_phase) {
         _DictationPhase.idle => l10n.voiceTapToRecord,
         _DictationPhase.starting => l10n.voiceStarting,
@@ -298,20 +493,29 @@ class _VoiceDictationViewState extends State<_VoiceDictationView> {
           Expanded(
             flex: 4,
             child: Center(
-              child: GestureDetector(
+              // No wrapper gesture detector: the orb has its own, and an outer
+              // one loses the arena to it — which is exactly why tapping only
+              // recoloured the cloud and never started the recording.
+              child: AiNeuralCloudOrbWidget(
+                size: 210,
                 onTap: _toggleRecording,
-                behavior: HitTestBehavior.opaque,
-                child: AnimatedScale(
-                  duration: const Duration(milliseconds: 140),
-                  scale: isListening
-                      ? 1.0 + ((_level.clamp(-2.0, 10.0) + 2) / 12) * 0.16
-                      : 0.86,
-                  child: AiNeuralCloudOrbWidget(
-                    size: 200,
-                    showAmbientGlow:
-                        isListening || _phase == _DictationPhase.tidying,
-                  ),
-                ),
+                accentColor: _phase == _DictationPhase.tidying
+                    ? _complementOf(theme.colorScheme.primary)
+                    : null,
+                // A calm circle until there is something to listen to, then the
+                // cloud forms; it swells and flows faster with the voice.
+                morph: _isRecordingShape ? 1.0 : 0.0,
+                energy: _isRecordingShape ? _normalizedLevel : 0.0,
+                // Calmer than the analysis screen: this one is waiting for the
+                // user, not working on something.
+                flowSpeed: 0.55,
+                // Listening but silent sits at dye step 2; a voice lifts it to
+                // step 3 or 4 depending on how loud it is. Going all the way to
+                // full accent while nothing is being said left no headroom to
+                // show that anything had been heard.
+                tint: _isRecordingShape ? 0.4 : 0.0,
+                tintEnergyGain: _isRecordingShape ? 0.4 : 0.0,
+                showAmbientGlow: true,
               ),
             ),
           ),
@@ -397,20 +601,23 @@ class _VoiceDictationViewState extends State<_VoiceDictationView> {
                               })
                           : null,
                       behavior: HitTestBehavior.opaque,
-                      child: AnimatedTranscriptText(
-                        text: _liveTranscript,
-                        placeholder: _phase == _DictationPhase.done
-                            ? l10n.voiceNothingHeard
-                            : l10n.voiceTranscriptHint,
-                        style: TextStyle(
-                          fontFamily: 'Plus Jakarta Sans',
-                          fontSize: 17,
-                          height: 1.4,
-                          fontWeight: FontWeight.w600,
-                          color: ink,
-                        ),
-                        placeholderStyle: TextStyle(fontSize: 15, color: muted),
-                      ),
+                      child: _summary != null
+                          ? _buildBullets(_summary!, ink, muted, lime)
+                          : AnimatedTranscriptText(
+                              text: _liveTranscript,
+                              placeholder: _phase == _DictationPhase.done
+                                  ? l10n.voiceNothingHeard
+                                  : l10n.voiceTranscriptHint,
+                              style: TextStyle(
+                                fontFamily: 'Plus Jakarta Sans',
+                                fontSize: 17,
+                                height: 1.4,
+                                fontWeight: FontWeight.w600,
+                                color: ink,
+                              ),
+                              placeholderStyle:
+                                  TextStyle(fontSize: 15, color: muted),
+                            ),
                     ),
                   ),
           ),
@@ -436,16 +643,24 @@ class _VoiceDictationViewState extends State<_VoiceDictationView> {
         ],
 
         const SizedBox(height: DesignConstants.spacingL),
+        // Analysing is what nearly everyone wants next, so it is the one
+        // prominent action. Handing the text back stays available as a quiet
+        // second option rather than disappearing: dictating a note *onto* a
+        // photo already taken is a real flow — the example hint above literally
+        // advertises it — and it would be lost if this only ever sent.
         AppButton.primary(
-          onPressed: () async {
-            final text =
-                (_editing ? _editController.text : _liveTranscript).trim();
-            await VoiceDictationService.instance.cancel();
-            if (!context.mounted) return;
-            Navigator.of(context).pop(text);
-          },
-          label: l10n.voiceApplyText,
-          tooltip: l10n.voiceApplyText,
+          onPressed: () => _finish(analyzeNow: true),
+          label: widget.analyzeLabel,
+          tooltip: widget.analyzeLabel,
+        ),
+        const SizedBox(height: 4),
+        TextButton(
+          onPressed: () => _finish(analyzeNow: false),
+          style: TextButton.styleFrom(foregroundColor: muted),
+          child: Text(
+            l10n.voiceApplyText,
+            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+          ),
         ),
         const SizedBox(height: DesignConstants.spacingS),
       ],

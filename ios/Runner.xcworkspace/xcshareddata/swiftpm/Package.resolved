@@ -1,4 +1,5 @@
 {
+  "originHash" : "5485b75ecb59cdc0e85856e99adebdad96cbb7218c4d3b52b10794cb8309ab99",
   "pins" : [
     {
       "identity" : "cwlcatchexception",
@@ -14,10 +15,10 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/PostHog/posthog-ios",
       "state" : {
-        "revision" : "a437780deee17304deb4a0ee632c44ebc37aa04e",
-        "version" : "3.69.10"
+        "revision" : "4cf77c21b424ca16ec827da2fb3f0c61ee90d2aa",
+        "version" : "3.69.12"
       }
     }
   ],
-  "version" : 2
+  "version" : 3
 }
