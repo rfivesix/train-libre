@@ -1211,27 +1211,25 @@ class _MainScreenState extends State<MainScreen>
     final topLeft = renderObject.localToGlobal(Offset.zero);
     final rect = topLeft & renderObject.size;
 
+    final barContext = _tourNavigationBarKey.currentContext;
+    RenderBox? barBox;
+    Rect? barRect;
+    if (barContext != null) {
+      final barRender = barContext.findRenderObject();
+      if (barRender is RenderBox && barRender.hasSize) {
+        barBox = barRender;
+        barRect = barBox.localToGlobal(Offset.zero) & barBox.size;
+      }
+    }
+
     if (key == _tourNavigationBarKey) {
-      final diaryCtx = _tourDiaryTabKey.currentContext;
-      final nutritionCtx = _tourNutritionTabKey.currentContext;
-      if (diaryCtx != null && nutritionCtx != null) {
-        final diaryBox = diaryCtx.findRenderObject() as RenderBox?;
-        final nutritionBox = nutritionCtx.findRenderObject() as RenderBox?;
-        if (diaryBox != null &&
-            diaryBox.hasSize &&
-            nutritionBox != null &&
-            nutritionBox.hasSize) {
-          final diaryTopLeft = diaryBox.localToGlobal(Offset.zero);
-          final nutritionTopLeft = nutritionBox.localToGlobal(Offset.zero);
-          final diaryRect = diaryTopLeft & diaryBox.size;
-          final nutritionRect = nutritionTopLeft & nutritionBox.size;
-          return Rect.fromLTRB(
-            diaryRect.left - 20,
-            diaryRect.top - 12,
-            nutritionRect.right + 20,
-            diaryRect.bottom + 22,
-          );
-        }
+      if (barRect != null) {
+        return Rect.fromLTWH(
+          barRect.left - 4,
+          barRect.top - 4,
+          barRect.width + 8,
+          barRect.height + 8,
+        );
       }
       return rect;
     }
@@ -1248,10 +1246,26 @@ class _MainScreenState extends State<MainScreen>
         key == _tourWorkoutTabKey ||
         key == _tourStatisticsTabKey ||
         key == _tourNutritionTabKey) {
+      if (barRect != null) {
+        final tabWidth = barRect.width / 4;
+        int tabIndex = 0;
+        if (key == _tourDiaryTabKey) tabIndex = 0;
+        if (key == _tourWorkoutTabKey) tabIndex = 1;
+        if (key == _tourStatisticsTabKey) tabIndex = 2;
+        if (key == _tourNutritionTabKey) tabIndex = 3;
+
+        final tabLeft = barRect.left + (tabIndex * tabWidth);
+        return Rect.fromLTWH(
+          tabLeft - 1.5,
+          barRect.top + 1.0,
+          tabWidth + 3.0,
+          barRect.height - 2.0,
+        );
+      }
       return Rect.fromCenter(
         center: Offset(rect.center.dx, rect.center.dy + 8),
-        width: 76,
-        height: 60,
+        width: 72,
+        height: 52,
       );
     }
 
@@ -1613,8 +1627,11 @@ class _MainScreenState extends State<MainScreen>
                             child: Row(
                               children: [
                                 Expanded(
-                                  child: KeyedSubtree(
+                                  child: SizedBox(
                                     key: _tourNavigationBarKey,
+                                    width: maxTabW,
+                                    height: DesignConstants
+                                        .bottomNavigationBarHeight,
                                     child: GlassTabBar.bottom(
                                       selectedIndex: _currentIndex,
                                       onTabSelected: _onNavigationTapped,
