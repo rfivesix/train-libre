@@ -267,7 +267,7 @@ struct QuickActionsView: View {
           QuickActionTile(kind: kind, isAiEnabled: entry.isAiEnabled)
         }
       }
-      .padding(12)
+      .padding(TGTheme.containerPadding)
       .containerBackground(.fill.tertiary, for: .widget)
     } else {
       VStack(spacing: TGTheme.gridSpacing) {
@@ -280,7 +280,7 @@ struct QuickActionsView: View {
           QuickActionTile(kind: kinds[3], isAiEnabled: entry.isAiEnabled)
         }
       }
-      .padding(12)
+      .padding(TGTheme.containerPadding)
       .containerBackground(.fill.tertiary, for: .widget)
     }
   }
@@ -330,7 +330,7 @@ struct QuickActionTile: View {
         kind.tint
       }
     }
-    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+    .clipShape(RoundedRectangle(cornerRadius: TGTheme.tileRadius, style: .continuous))
     .opacity(isDisabled ? 0.4 : 1)
   }
 }
