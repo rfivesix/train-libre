@@ -10210,7 +10210,7 @@ abstract class AppLocalizations {
   /// No description provided for @mealAnalysisAnalyzing.
   ///
   /// In en, this message translates to:
-  /// **'Analysing the meal'**
+  /// **'Analyzing the meal'**
   String get mealAnalysisAnalyzing;
 
   /// No description provided for @mealAnalysisMatching.
@@ -10240,19 +10240,19 @@ abstract class AppLocalizations {
   /// No description provided for @aiCaptureAnalyzing.
   ///
   /// In en, this message translates to:
-  /// **'Analysing…'**
+  /// **'Analyzing…'**
   String get aiCaptureAnalyzing;
 
   /// No description provided for @aiCaptureAnalyzeMeal.
   ///
   /// In en, this message translates to:
-  /// **'Analyse meal ({count})'**
+  /// **'Analyze meal ({count})'**
   String aiCaptureAnalyzeMeal(int count);
 
   /// No description provided for @aiCaptureAnalyzeText.
   ///
   /// In en, this message translates to:
-  /// **'Analyse text'**
+  /// **'Analyze text'**
   String get aiCaptureAnalyzeText;
 
   /// No description provided for @aiCaptureDescribeHint.
@@ -10330,8 +10330,74 @@ abstract class AppLocalizations {
   /// No description provided for @voiceNetworkNotice.
   ///
   /// In en, this message translates to:
-  /// **'This device cannot recognise speech locally. The recording is sent to the system’s speech recognition to be transcribed.'**
+  /// **'This device cannot recognize speech locally. The recording is sent to the system’s speech recognition to be transcribed.'**
   String get voiceNetworkNotice;
+
+  /// No description provided for @voiceTapToRecord.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to start recording'**
+  String get voiceTapToRecord;
+
+  /// No description provided for @voiceTapToFinish.
+  ///
+  /// In en, this message translates to:
+  /// **'Listening — tap to finish'**
+  String get voiceTapToFinish;
+
+  /// No description provided for @voiceStarting.
+  ///
+  /// In en, this message translates to:
+  /// **'Getting ready…'**
+  String get voiceStarting;
+
+  /// No description provided for @voiceTidyingUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Tidying up your words…'**
+  String get voiceTidyingUp;
+
+  /// No description provided for @voiceNothingHeard.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing was recognized. Try again, or type it instead.'**
+  String get voiceNothingHeard;
+
+  /// No description provided for @voiceLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'Language'**
+  String get voiceLanguage;
+
+  /// No description provided for @voiceLanguageTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Dictation language'**
+  String get voiceLanguageTitle;
+
+  /// No description provided for @voiceLanguageSystem.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow the device'**
+  String get voiceLanguageSystem;
+
+  /// No description provided for @voiceLanguageHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick the language you speak, not the one the app is in.'**
+  String get voiceLanguageHint;
+
+  /// No description provided for @voiceCleanedNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'Filler words removed'**
+  String get voiceCleanedNotice;
+
+  /// No description provided for @voiceRetake.
+  ///
+  /// In en, this message translates to:
+  /// **'Record again'**
+  String get voiceRetake;
 
   /// No description provided for @voiceApplyText.
   ///
@@ -10342,7 +10408,7 @@ abstract class AppLocalizations {
   /// No description provided for @voiceTranscriptHint.
   ///
   /// In en, this message translates to:
-  /// **'Recognised text — editable here'**
+  /// **'Recognized text — editable here'**
   String get voiceTranscriptHint;
 
   /// No description provided for @voiceUnavailablePermission.

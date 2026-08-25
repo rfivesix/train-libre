@@ -395,10 +395,16 @@ class _MainScreenState extends State<MainScreen>
             await DatabaseHelper.instance.insertFluidEntry(newFluidEntry);
           }
           _refreshHomeScreen();
-        } catch (e) {
+        } catch (e, stack) {
+          // The bare word "Error" gave no way to tell a failed write from a
+          // failed lookup; the message is what makes a report actionable.
+          debugPrint('[Diary] barcode log failed: $e\n$stack');
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(AppLocalizations.of(context)!.error)),
+              SnackBar(
+                content: Text('${AppLocalizations.of(context)!.error}: $e'),
+                duration: const Duration(seconds: 8),
+              ),
             );
           }
         }
@@ -831,10 +837,14 @@ class _MainScreenState extends State<MainScreen>
           foodEntryId: newFoodEntryId,
         );
       }
-    } catch (e) {
+    } catch (e, stack) {
+      debugPrint('[Diary] food log failed: $e\n$stack');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.error)),
+          SnackBar(
+            content: Text('${l10n.error}: $e'),
+            duration: const Duration(seconds: 8),
+          ),
         );
       }
     } finally {

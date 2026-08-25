@@ -30,6 +30,7 @@ import '../../../widgets/common/global_app_bar.dart';
 import '../data/sources/product_local_data_source.dart';
 import '../domain/models/food_item.dart';
 import 'dialogs/quantity_log_flow.dart';
+import 'dialogs/voice_dictation_sheet.dart';
 import '../../../widgets/common/database_placeholder_widget.dart';
 import '../../../widgets/common/app_button.dart';
 import '../../../services/telemetry/telemetry_service.dart';
@@ -81,7 +82,6 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
 
   // Voice dictation state
   bool _isDictating = false;
-  double _dictationLevel = 0;
 
   // Photo state
   final List<File> _images = [];
@@ -1259,7 +1259,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
     );
   }
 
-  /// Hold-to-talk dictation.
+  /// Opens the dictation sheet and folds the result back into the note field.
   ///
   /// The transcript is always shown for editing before it is used: dictation
   /// mishears numbers, and "150 g" turning into "115 g" would silently produce
@@ -1291,208 +1291,25 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
     }
 
     final l10n = AppLocalizations.of(context)!;
-    final textEditController =
-        TextEditingController(text: _textController.text);
-    final baseText = _textController.text.trim();
-
-    await showGlassBottomMenu<void>(
+    setState(() => _isDictating = true);
+    final result = await showVoiceDictationSheet(
       context: context,
-      title: l10n.voiceDictationTitle,
-      contentBuilder: (ctx, close) {
-        return StatefulBuilder(
-          builder: (ctx, setSheetState) {
-            // Starting is asynchronous, so a second press while the first is
-            // still coming up would ask the recogniser for a session it already
-            // has — and the release that ends it could arrive first.
-            var starting = false;
-            var releasedEarly = false;
-
-            void applyTranscript(String text) {
-              textEditController.text =
-                  baseText.isEmpty ? text : '$baseText $text';
-              textEditController.selection = TextSelection.collapsed(
-                offset: textEditController.text.length,
-              );
-            }
-
-            Future<void> endDictation() async {
-              await VoiceDictationService.instance.stop();
-              if (!ctx.mounted) return;
-              setSheetState(() {
-                _isDictating = false;
-                _dictationLevel = 0;
-              });
-            }
-
-            Future<void> beginDictation() async {
-              if (starting || _isDictating) return;
-              starting = true;
-              releasedEarly = false;
-              final started = await VoiceDictationService.instance.start(
-                localeId: Localizations.localeOf(ctx)
-                    .toLanguageTag()
-                    .replaceAll('-', '_'),
-                onPartial: (text) {
-                  if (!ctx.mounted) return;
-                  applyTranscript(text);
-                },
-                onFinal: (text) {
-                  if (!ctx.mounted) return;
-                  applyTranscript(text);
-                  setSheetState(() {});
-                },
-                onSoundLevel: (level) {
-                  if (!ctx.mounted) return;
-                  setSheetState(() => _dictationLevel = level);
-                },
-              );
-              starting = false;
-              if (!ctx.mounted) {
-                await VoiceDictationService.instance.cancel();
-                return;
-              }
-              setSheetState(() => _isDictating = started);
-              if (started) {
-                HapticFeedbackService.instance.selectionFeedback();
-                // The button was let go while the session was still coming up.
-                if (releasedEarly) await endDictation();
-              }
-            }
-
-            Future<void> handleRelease() async {
-              if (starting) {
-                releasedEarly = true;
-                return;
-              }
-              await endDictation();
-            }
-
-            final level = (_dictationLevel.clamp(-2.0, 10.0) + 2) / 12;
-
-            return Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(18),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF1E1E1E),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Colors.white12),
-                  ),
-                  child: Column(
-                    children: [
-                      GestureDetector(
-                        onTapDown: (_) => beginDictation(),
-                        onTapUp: (_) => handleRelease(),
-                        onTapCancel: handleRelease,
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 120),
-                          width: 72 + (_isDictating ? level * 24 : 0),
-                          height: 72 + (_isDictating ? level * 24 : 0),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFC9EF00)
-                                .withValues(alpha: _isDictating ? 0.45 : 0.2),
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
-                            LucideIcons.mic,
-                            color: Color(0xFFC9EF00),
-                            size: 30,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        _isDictating
-                            ? l10n.voiceSpeakNow
-                            : l10n.voiceHoldToTalk,
-                        style: const TextStyle(
-                          fontFamily: 'Plus Jakarta Sans',
-                          fontWeight: FontWeight.w700,
-                          fontSize: 15,
-                          color: Colors.white,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        _images.isEmpty
-                            ? l10n.voiceExampleStandalone
-                            : l10n.voiceExampleWithPhoto,
-                        style: TextStyle(
-                          fontFamily: 'Plus Jakarta Sans',
-                          fontWeight: FontWeight.w500,
-                          fontSize: 12.5,
-                          color: Colors.white.withValues(alpha: 0.6),
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      if (VoiceDictationService
-                          .instance.lastRunUsedNetwork) ...[
-                        const SizedBox(height: 8),
-                        Text(
-                          l10n.voiceNetworkNotice,
-                          style: TextStyle(
-                            fontFamily: 'Plus Jakarta Sans',
-                            fontWeight: FontWeight.w500,
-                            fontSize: 11.5,
-                            color: Colors.orange.withValues(alpha: 0.85),
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 14),
-                TextField(
-                  controller: textEditController,
-                  // Grows with the transcript: dictation regularly produces
-                  // more than three lines, and the tail used to be the only
-                  // part still visible.
-                  minLines: 3,
-                  maxLines: 8,
-                  keyboardType: TextInputType.multiline,
-                  textCapitalization: TextCapitalization.sentences,
-                  style: const TextStyle(color: Colors.white),
-                  decoration: InputDecoration(
-                    hintText: l10n.voiceTranscriptHint,
-                    hintStyle:
-                        TextStyle(color: Colors.white.withValues(alpha: 0.5)),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 14),
-                AppButton.primary(
-                  onPressed: () async {
-                    await endDictation();
-                    setState(() {
-                      _textController.text = textEditController.text.trim();
-                      _showTextInput = _textController.text.isNotEmpty;
-                    });
-                    close();
-                  },
-                  label: l10n.voiceApplyText,
-                  tooltip: l10n.voiceApplyText,
-                ),
-              ],
-            );
-          },
-        );
-      },
+      initialText: _textController.text,
+      exampleHint: _images.isEmpty
+          ? l10n.voiceExampleStandalone
+          : l10n.voiceExampleWithPhoto,
     );
 
-    await VoiceDictationService.instance.cancel();
     await _resumeCameraAfterDictation();
-    if (mounted) {
-      setState(() {
-        _isDictating = false;
-        _dictationLevel = 0;
-      });
-    }
+    if (!mounted) return;
+
+    setState(() {
+      _isDictating = false;
+      if (result != null) {
+        _textController.text = result.trim();
+        _showTextInput = _textController.text.isNotEmpty;
+      }
+    });
   }
 
   Future<void> _suspendCameraForDictation() async {

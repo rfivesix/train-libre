@@ -584,12 +584,14 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
           const SizedBox(height: DesignConstants.spacingL),
           Row(
             children: [
+              // Only `pop` — never `close()` as well. `close()` is a
+              // `maybePop`, whose async continuation lands after this frame
+              // has already popped the sheet, so the pair could take the
+              // review screen down with it while `onPopInvokedWithResult` was
+              // still running its own pop.
               Expanded(
                 child: AppButton.secondary(
-                  onPressed: () {
-                    close();
-                    Navigator.of(ctx).pop(false);
-                  },
+                  onPressed: () => Navigator.of(ctx).pop(false),
                   label: l10n.cancel,
                   tooltip: l10n.cancel,
                 ),
@@ -597,10 +599,7 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
               const SizedBox(width: DesignConstants.spacingM),
               Expanded(
                 child: AppButton.danger(
-                  onPressed: () {
-                    close();
-                    Navigator.of(ctx).pop(true);
-                  },
+                  onPressed: () => Navigator.of(ctx).pop(true),
                   label: l10n.discard,
                   tooltip: l10n.discard,
                 ),

@@ -5710,6 +5710,39 @@ class AppLocalizationsJa extends AppLocalizations {
       'この端末は音声をローカルで認識できません。録音は文字起こしのためシステムの音声認識に送信されます。';
 
   @override
+  String get voiceTapToRecord => 'タップして録音';
+
+  @override
+  String get voiceTapToFinish => '認識中 — タップで終了';
+
+  @override
+  String get voiceStarting => '準備中…';
+
+  @override
+  String get voiceTidyingUp => 'テキストを整えています…';
+
+  @override
+  String get voiceNothingHeard => '認識できませんでした。もう一度試すか、入力してください。';
+
+  @override
+  String get voiceLanguage => '言語';
+
+  @override
+  String get voiceLanguageTitle => '音声入力の言語';
+
+  @override
+  String get voiceLanguageSystem => 'デバイスに合わせる';
+
+  @override
+  String get voiceLanguageHint => 'アプリの言語ではなく、話す言語を選んでください。';
+
+  @override
+  String get voiceCleanedNotice => 'フィラーを削除しました';
+
+  @override
+  String get voiceRetake => '録音し直す';
+
+  @override
   String get voiceApplyText => 'このテキストを使う';
 
   @override

@@ -53,7 +53,7 @@ Future<QuantitySelection?> showQuantityMenu(
           ? item.getLocalizedName(context, languageCode: baseFoodLang)
           : item.getLocalizedName(context);
     }(),
-    contentBuilder: (ctx, close) {
+    contentBuilder: (ctx, _) {
       return Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -68,10 +68,7 @@ Future<QuantitySelection?> showQuantityMenu(
             children: [
               Expanded(
                 child: AppButton.secondary(
-                  onPressed: () {
-                    close();
-                    Navigator.of(ctx).pop(null);
-                  },
+                  onPressed: () => Navigator.of(ctx).pop(null),
                   label: l10n.cancel,
                   tooltip: l10n.cancel,
                 ),
@@ -90,7 +87,6 @@ Future<QuantitySelection?> showQuantityMenu(
                     final caffeine = double.tryParse(
                       state.caffeineText.replaceAll(',', '.'),
                     );
-                    close();
                     Navigator.of(ctx).pop((
                       quantity: quantity,
                       timestamp: state.selectedDateTime,

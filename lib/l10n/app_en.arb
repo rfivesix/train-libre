@@ -2776,13 +2776,13 @@
     }
   },
   "mealAnalysisPreparing": "Preparing the capture",
-  "mealAnalysisAnalyzing": "Analysing the meal",
+  "mealAnalysisAnalyzing": "Analyzing the meal",
   "mealAnalysisMatching": "Matching the ingredients",
   "mealAnalysisFailed": "That did not work",
   "mealAnalysisProcessingTag": "AI VISION PROCESSING",
   "aiScannerTitle": "AI scanner",
-  "aiCaptureAnalyzing": "Analysing…",
-  "aiCaptureAnalyzeMeal": "Analyse meal ({count})",
+  "aiCaptureAnalyzing": "Analyzing…",
+  "aiCaptureAnalyzeMeal": "Analyze meal ({count})",
   "@aiCaptureAnalyzeMeal": {
     "placeholders": {
       "count": {
@@ -2790,7 +2790,7 @@
       }
     }
   },
-  "aiCaptureAnalyzeText": "Analyse text",
+  "aiCaptureAnalyzeText": "Analyze text",
   "aiCaptureDescribeHint": "Describe the meal (e.g. 2 eggs with toast)…",
   "aiCaptureBarcodeDetected": "Barcode detected",
   "aiCaptureLogBarcode": "Log",
@@ -2810,9 +2810,20 @@
   "voiceSpeakNow": "Speak now — release to finish",
   "voiceExampleStandalone": "e.g. “A vegetable kebab with flatbread and garlic sauce”",
   "voiceExampleWithPhoto": "Add what the photo cannot show — e.g. “fried in two tablespoons of olive oil”",
-  "voiceNetworkNotice": "This device cannot recognise speech locally. The recording is sent to the system’s speech recognition to be transcribed.",
+  "voiceNetworkNotice": "This device cannot recognize speech locally. The recording is sent to the system’s speech recognition to be transcribed.",
+  "voiceTapToRecord": "Tap to start recording",
+  "voiceTapToFinish": "Listening — tap to finish",
+  "voiceStarting": "Getting ready…",
+  "voiceTidyingUp": "Tidying up your words…",
+  "voiceNothingHeard": "Nothing was recognized. Try again, or type it instead.",
+  "voiceLanguage": "Language",
+  "voiceLanguageTitle": "Dictation language",
+  "voiceLanguageSystem": "Follow the device",
+  "voiceLanguageHint": "Pick the language you speak, not the one the app is in.",
+  "voiceCleanedNotice": "Filler words removed",
+  "voiceRetake": "Record again",
   "voiceApplyText": "Use this text",
-  "voiceTranscriptHint": "Recognised text — editable here",
+  "voiceTranscriptHint": "Recognized text — editable here",
   "voiceUnavailablePermission": "Dictation needs microphone and speech recognition access. You can still type the text.",
   "voiceUnavailableUnsupported": "This device offers no speech recognition. You can type the text instead.",
   "voiceUnavailableFailed": "Speech recognition could not be started. You can type the text instead.",

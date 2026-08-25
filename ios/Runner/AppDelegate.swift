@@ -102,20 +102,24 @@ import UIKit
     binaryMessenger: FlutterBinaryMessenger? = nil,
     pluginRegistry: FlutterPluginRegistry? = nil
   ) {
-    // Registration is tracked apart from the method channels: this runs once
-    // from engine initialisation and again from `applicationDidBecomeActive`,
-    // and only one of the two is guaranteed to have a usable plugin registry.
-    // Bundling it into `channelsConfigured` meant a nil registrar on the first
-    // pass silently left the capture session unregistered for the whole run —
-    // Dart then saw `MissingPluginException`, decided the device had no camera
-    // session, and fell back to the scanner plus system camera with no depth.
-    registerDepthScanIfNeeded(pluginRegistry: pluginRegistry ?? self)
-
-    guard !channelsConfigured else { return }
+    // Nothing here may run before there is an engine to talk to — asking the
+    // app delegate for a plugin registrar that early perturbs registration for
+    // every other plugin as well.
     let messenger =
       binaryMessenger
       ?? resolveFlutterViewController()?.binaryMessenger
     guard let messenger else { return }
+
+    // Tracked apart from the method channels: this runs from engine
+    // initialisation and again from `applicationDidBecomeActive`, and only one
+    // of the two is guaranteed to have a usable plugin registry. Bundling it
+    // into `channelsConfigured` meant a nil registrar on the first pass
+    // silently left the capture session unregistered for the whole run — Dart
+    // then saw `MissingPluginException`, decided the device had no camera
+    // session, and fell back to the system camera with no depth.
+    registerDepthScanIfNeeded(pluginRegistry: pluginRegistry ?? self)
+
+    guard !channelsConfigured else { return }
 
     let channel = FlutterMethodChannel(name: stepsChannelName, binaryMessenger: messenger)
     channel.setMethodCallHandler { [weak self] call, result in

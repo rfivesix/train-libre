@@ -5947,6 +5947,41 @@ class AppLocalizationsDe extends AppLocalizations {
       'Dieses Gerät erkennt Sprache nicht lokal. Die Aufnahme wird zur Umwandlung an die Spracherkennung des Systems gesendet.';
 
   @override
+  String get voiceTapToRecord => 'Zum Aufnehmen tippen';
+
+  @override
+  String get voiceTapToFinish => 'Hört zu — zum Beenden tippen';
+
+  @override
+  String get voiceStarting => 'Einen Moment…';
+
+  @override
+  String get voiceTidyingUp => 'Text wird aufgeräumt…';
+
+  @override
+  String get voiceNothingHeard =>
+      'Nichts erkannt. Versuch es noch einmal oder tippe den Text.';
+
+  @override
+  String get voiceLanguage => 'Sprache';
+
+  @override
+  String get voiceLanguageTitle => 'Diktiersprache';
+
+  @override
+  String get voiceLanguageSystem => 'Wie das Gerät';
+
+  @override
+  String get voiceLanguageHint =>
+      'Wähle die Sprache, die du sprichst — nicht die der App.';
+
+  @override
+  String get voiceCleanedNotice => 'Füllwörter entfernt';
+
+  @override
+  String get voiceRetake => 'Neu aufnehmen';
+
+  @override
   String get voiceApplyText => 'Text übernehmen';
 
   @override

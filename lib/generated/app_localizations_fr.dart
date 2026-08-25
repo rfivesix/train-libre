@@ -6001,6 +6001,41 @@ class AppLocalizationsFr extends AppLocalizations {
       'Cet appareil ne reconnaît pas la parole localement. L’enregistrement est envoyé à la reconnaissance vocale du système pour être transcrit.';
 
   @override
+  String get voiceTapToRecord => 'Touchez pour enregistrer';
+
+  @override
+  String get voiceTapToFinish => 'À l’écoute — touchez pour terminer';
+
+  @override
+  String get voiceStarting => 'Un instant…';
+
+  @override
+  String get voiceTidyingUp => 'Nettoyage du texte…';
+
+  @override
+  String get voiceNothingHeard =>
+      'Rien n’a été reconnu. Réessayez ou saisissez le texte.';
+
+  @override
+  String get voiceLanguage => 'Langue';
+
+  @override
+  String get voiceLanguageTitle => 'Langue de dictée';
+
+  @override
+  String get voiceLanguageSystem => 'Comme l’appareil';
+
+  @override
+  String get voiceLanguageHint =>
+      'Choisissez la langue que vous parlez, pas celle de l’app.';
+
+  @override
+  String get voiceCleanedNotice => 'Mots de remplissage supprimés';
+
+  @override
+  String get voiceRetake => 'Réenregistrer';
+
+  @override
   String get voiceApplyText => 'Utiliser ce texte';
 
   @override

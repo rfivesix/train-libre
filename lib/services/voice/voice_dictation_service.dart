@@ -103,11 +103,44 @@ class VoiceDictationService {
     }
   }
 
+  /// Every locale the platform recognizer offers, sorted by display name.
+  ///
+  /// Exposed so the user can pick the language they actually speak instead of
+  /// inheriting the interface language.
+  Future<List<({String id, String name})>> availableLocales() async {
+    final availability = await prepare();
+    if (!availability.available) return const [];
+    try {
+      final locales = await _speech.locales();
+      final mapped = locales
+          .map((l) => (id: l.localeId, name: l.name))
+          .toList(growable: false)
+        ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+      return mapped;
+    } catch (e) {
+      debugPrint('[VoiceDictation] locales failed: $e');
+      return const [];
+    }
+  }
+
+  /// The device's own recognizer locale, used when the user has not picked one.
+  Future<String?> systemLocaleId() async {
+    try {
+      final system = await _speech.systemLocale();
+      return system?.localeId;
+    } catch (e) {
+      debugPrint('[VoiceDictation] systemLocale failed: $e');
+      return null;
+    }
+  }
+
   /// The recognizer id that really exists for [localeId].
   ///
   /// The app hands us a bare language tag such as `de`, which is not one of the
   /// recognizer's supported locales — asking for it produced a recognizer with
   /// no on-device assets, which is exactly the case that used to crash.
+  Future<String?> resolveLocale(String? localeId) => _resolveLocale(localeId);
+
   Future<String?> _resolveLocale(String? localeId) async {
     if (!Platform.isIOS) return localeId;
     try {

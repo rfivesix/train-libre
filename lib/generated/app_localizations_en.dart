@@ -5827,7 +5827,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mealAnalysisPreparing => 'Preparing the capture';
 
   @override
-  String get mealAnalysisAnalyzing => 'Analysing the meal';
+  String get mealAnalysisAnalyzing => 'Analyzing the meal';
 
   @override
   String get mealAnalysisMatching => 'Matching the ingredients';
@@ -5842,15 +5842,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get aiScannerTitle => 'AI scanner';
 
   @override
-  String get aiCaptureAnalyzing => 'Analysing…';
+  String get aiCaptureAnalyzing => 'Analyzing…';
 
   @override
   String aiCaptureAnalyzeMeal(int count) {
-    return 'Analyse meal ($count)';
+    return 'Analyze meal ($count)';
   }
 
   @override
-  String get aiCaptureAnalyzeText => 'Analyse text';
+  String get aiCaptureAnalyzeText => 'Analyze text';
 
   @override
   String get aiCaptureDescribeHint =>
@@ -5895,13 +5895,48 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get voiceNetworkNotice =>
-      'This device cannot recognise speech locally. The recording is sent to the system’s speech recognition to be transcribed.';
+      'This device cannot recognize speech locally. The recording is sent to the system’s speech recognition to be transcribed.';
+
+  @override
+  String get voiceTapToRecord => 'Tap to start recording';
+
+  @override
+  String get voiceTapToFinish => 'Listening — tap to finish';
+
+  @override
+  String get voiceStarting => 'Getting ready…';
+
+  @override
+  String get voiceTidyingUp => 'Tidying up your words…';
+
+  @override
+  String get voiceNothingHeard =>
+      'Nothing was recognized. Try again, or type it instead.';
+
+  @override
+  String get voiceLanguage => 'Language';
+
+  @override
+  String get voiceLanguageTitle => 'Dictation language';
+
+  @override
+  String get voiceLanguageSystem => 'Follow the device';
+
+  @override
+  String get voiceLanguageHint =>
+      'Pick the language you speak, not the one the app is in.';
+
+  @override
+  String get voiceCleanedNotice => 'Filler words removed';
+
+  @override
+  String get voiceRetake => 'Record again';
 
   @override
   String get voiceApplyText => 'Use this text';
 
   @override
-  String get voiceTranscriptHint => 'Recognised text — editable here';
+  String get voiceTranscriptHint => 'Recognized text — editable here';
 
   @override
   String get voiceUnavailablePermission =>

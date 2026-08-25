@@ -30,6 +30,7 @@ class _MealScanDebugViewState extends State<MealScanDebugView>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   ui.Image? _depthUiImage;
+  DepthBandRender? _depthRender;
   bool _useViridis = true;
   double? _inspectedPixelDistanceCm;
   Offset? _inspectedNormalizedOffset;
@@ -53,13 +54,17 @@ class _MealScanDebugViewState extends State<MealScanDebugView>
     final h = widget.captureResult?.depthHeight ?? 0;
 
     if (buffer != null && w > 0 && h > 0) {
-      final img = await DepthMapRenderer.createUiImage(
+      final result = await DepthMapRenderer.createUiImage(
         depthBuffer: buffer,
         width: w,
         height: h,
+        useViridis: _useViridis,
       );
       if (mounted) {
-        setState(() => _depthUiImage = img);
+        setState(() {
+          _depthUiImage = result.image;
+          _depthRender = result.render;
+        });
       }
     }
   }
@@ -237,18 +242,39 @@ class _MealScanDebugViewState extends State<MealScanDebugView>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Diskrete 8 Bänder (Relativ zur Tischebene)',
+              Text(
+                  _depthRender?.adaptive == true
+                      ? 'Diskrete 8 Bänder (automatisch gedehnt)'
+                      : 'Diskrete 8 Bänder (Relativ zur Tischebene)',
                   style: TextStyle(
                       fontWeight: FontWeight.w800,
                       fontSize: 14,
                       color: titleColor)),
+              if (_depthRender != null) ...[
+                const SizedBox(height: 4),
+                Text(
+                  _depthRender!.adaptive
+                      ? 'Referenzfläche ${_depthRender!.referenceCm.toStringAsFixed(0)} cm · '
+                          'Motiv ragt ${_depthRender!.peakElevationCm.toStringAsFixed(0)} cm heraus — '
+                          'die feste Tischskala wäre komplett gesättigt, daher gedehnt.'
+                      : 'Referenzfläche ${_depthRender!.referenceCm.toStringAsFixed(0)} cm · '
+                          'Motiv ragt ${_depthRender!.peakElevationCm.toStringAsFixed(1)} cm heraus.',
+                  style: TextStyle(
+                    fontSize: 11.5,
+                    height: 1.35,
+                    color: titleColor.withValues(alpha: 0.65),
+                  ),
+                ),
+              ],
               const SizedBox(height: 10),
               ...DepthMapRenderer.bandPaletteRgb.asMap().entries.map((e) {
                 final idx = e.key;
                 final rgb = e.value;
+                final bands =
+                    _depthRender?.bandsCm ?? DepthMapRenderer.defaultBandsCm;
                 final desc = idx == 0
-                    ? 'Band 1: Tischebene oder darunter'
-                    : 'Band ${idx + 1}: ${DepthMapRenderer.defaultBandsCm[idx]} cm+ Erhebung';
+                    ? 'Band 1: Referenzfläche oder darunter'
+                    : 'Band ${idx + 1}: ${bands[idx]} cm+ Erhebung';
 
                 return Padding(
                   padding: const EdgeInsets.symmetric(vertical: 3),

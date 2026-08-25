@@ -2,6 +2,7 @@
 
 import AVFoundation
 import Flutter
+import ImageIO
 import UIKit
 
 /// Bridges the unified capture session to Flutter.
@@ -338,6 +339,22 @@ public class DepthScanController: NSObject {
 
   // MARK: Lifecycle
 
+  /// Runs an AVFoundation call that can raise rather than return an error.
+  ///
+  /// `startRunning`/`stopRunning` raise an `NSException` when the session is in
+  /// a state they dislike — most often one being reconfigured from elsewhere.
+  /// Swift cannot catch that, so a session torn down at an awkward moment took
+  /// the whole app with it from a background queue. Losing the preview is a far
+  /// better outcome than losing the process.
+  @discardableResult
+  private func guarded(_ what: String, _ block: () -> Void) -> Bool {
+    if let exception = TLExceptionCatcher.catchException(block) {
+      NSLog("[DepthScan] %@ raised: %@", what, exception.reason ?? exception.name.rawValue)
+      return false
+    }
+    return true
+  }
+
   public func start(completion: @escaping (Bool) -> Void) {
     sessionQueue.async { [weak self] in
       guard let self else {
@@ -353,7 +370,7 @@ public class DepthScanController: NSObject {
       }
 
       if !self.session.isRunning {
-        self.session.startRunning()
+        self.guarded("startRunning") { self.session.startRunning() }
       }
 
       DispatchQueue.main.async { completion(self.session.isRunning) }
@@ -363,11 +380,25 @@ public class DepthScanController: NSObject {
   public func stop() {
     sessionQueue.async { [weak self] in
       guard let self, self.session.isRunning else { return }
-      self.session.stopRunning()
+      self.guarded("stopRunning") { self.session.stopRunning() }
     }
   }
 
   private func configureSession() -> Bool {
+    var configured = false
+    let completed = guarded("configureSession") {
+      configured = self.applyConfiguration()
+    }
+    if !completed {
+      // The block bailed out mid-configuration; the session must not be left
+      // between begin and commit or every later start/stop raises as well.
+      guarded("commitConfiguration") { self.session.commitConfiguration() }
+      return false
+    }
+    return configured
+  }
+
+  private func applyConfiguration() -> Bool {
     session.beginConfiguration()
     session.sessionPreset = .photo
 
@@ -486,7 +517,18 @@ public class DepthScanController: NSObject {
     }
     // The photo output only holds the delegate weakly.
     captureDelegate = delegate
-    output.capturePhoto(with: settings, delegate: delegate)
+    if let exception = TLExceptionCatcher.catchException({
+      output.capturePhoto(with: settings, delegate: delegate)
+    }) {
+      captureDelegate = nil
+      let reason = exception.reason ?? exception.name.rawValue
+      if includeDepth {
+        // Almost always the depth request the output would not accept.
+        capture(with: output, includeDepth: false, completion: completion)
+      } else {
+        DispatchQueue.main.async { completion(nil, "capturePhoto raised: \(reason)") }
+      }
+    }
   }
 
   /// Blocks the session queue until the camera has settled, or the budget runs
@@ -585,7 +627,18 @@ final class PhotoCaptureDelegate: NSObject, AVCapturePhotoCaptureDelegate {
     var depthResult: [String: Any]?
     var intrinsicsResult: [String: Any]?
 
-    if let depthData = photo.depthData?.converting(
+    // The photo is written with an EXIF orientation tag; the depth map is not
+    // rotated at all. Left alone the two disagree by a quarter turn, which is
+    // why the depth preview came out sideways next to its own photo.
+    var orientedDepth = photo.depthData
+    if let raw = photo.metadata[kCGImagePropertyOrientation as String] as? UInt32,
+      let exif = CGImagePropertyOrientation(rawValue: raw),
+      let depth = orientedDepth
+    {
+      orientedDepth = depth.applyingExifOrientation(exif)
+    }
+
+    if let depthData = orientedDepth?.converting(
       toDepthDataType: kCVPixelFormatType_DepthFloat32)
     {
       let pixelBuffer = depthData.depthDataMap
@@ -595,8 +648,16 @@ final class PhotoCaptureDelegate: NSObject, AVCapturePhotoCaptureDelegate {
       let height = CVPixelBufferGetHeight(pixelBuffer)
 
       if let baseAddress = CVPixelBufferGetBaseAddress(pixelBuffer) {
-        let byteCount = width * height * MemoryLayout<Float32>.size
-        let rawData = Data(bytes: baseAddress, count: byteCount)
+        // Rotating the depth map leaves rows padded to an alignment boundary,
+        // so the buffer is no longer width*4 bytes per row. Copying it as one
+        // block then skewed the image by a few pixels per row.
+        let bytesPerRow = CVPixelBufferGetBytesPerRow(pixelBuffer)
+        let rowBytes = width * MemoryLayout<Float32>.size
+        var rawData = Data(capacity: rowBytes * height)
+        for row in 0..<height {
+          let rowStart = baseAddress.advanced(by: row * bytesPerRow)
+          rawData.append(Data(bytes: rowStart, count: rowBytes))
+        }
         depthResult = [
           "width": width,
           "height": height,

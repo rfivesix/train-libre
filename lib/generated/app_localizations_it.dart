@@ -5986,6 +5986,41 @@ class AppLocalizationsIt extends AppLocalizations {
       'Questo dispositivo non riconosce il parlato localmente. La registrazione viene inviata al riconoscimento vocale di sistema per la trascrizione.';
 
   @override
+  String get voiceTapToRecord => 'Tocca per registrare';
+
+  @override
+  String get voiceTapToFinish => 'In ascolto — tocca per terminare';
+
+  @override
+  String get voiceStarting => 'Un attimo…';
+
+  @override
+  String get voiceTidyingUp => 'Sto ripulendo il testo…';
+
+  @override
+  String get voiceNothingHeard =>
+      'Nulla riconosciuto. Riprova oppure scrivi il testo.';
+
+  @override
+  String get voiceLanguage => 'Lingua';
+
+  @override
+  String get voiceLanguageTitle => 'Lingua di dettatura';
+
+  @override
+  String get voiceLanguageSystem => 'Come il dispositivo';
+
+  @override
+  String get voiceLanguageHint =>
+      'Scegli la lingua che parli, non quella dell’app.';
+
+  @override
+  String get voiceCleanedNotice => 'Intercalari rimossi';
+
+  @override
+  String get voiceRetake => 'Registra di nuovo';
+
+  @override
   String get voiceApplyText => 'Usa questo testo';
 
   @override
