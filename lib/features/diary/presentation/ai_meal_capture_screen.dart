@@ -133,7 +133,10 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
     if (Platform.isAndroid) {
       _qrController?.pauseCamera();
     } else if (Platform.isIOS) {
-      if (_isTopRoute && !_isCameraSuspended && !_isAnalyzing && !_isDictating) {
+      if (_isTopRoute &&
+          !_isCameraSuspended &&
+          !_isAnalyzing &&
+          !_isDictating) {
         _qrController?.resumeCamera();
       }
     }
@@ -511,7 +514,8 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
           _distanceHint =
               _distanceHintFor(AppLocalizations.of(context)!, capture);
         });
-        if (capture.scaleFacts?.isValid == true || capture.depthBuffer != null) {
+        if (capture.scaleFacts?.isValid == true ||
+            capture.depthBuffer != null) {
           unawaited(TelemetryService.instance
               .trackFeatureUsed(featureKey: FeatureKey.lidarDepthCaptured));
         }
@@ -547,7 +551,8 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
         maxWidth: 1440,
       );
       if (picked.isNotEmpty && mounted) {
-        final newFiles = picked.take(remaining).map((x) => File(x.path)).toList();
+        final newFiles =
+            picked.take(remaining).map((x) => File(x.path)).toList();
         setState(() {
           _images.addAll(newFiles);
         });
@@ -1046,7 +1051,8 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                           child: ListView.separated(
                             scrollDirection: Axis.horizontal,
                             itemCount: _images.length,
-                            separatorBuilder: (_, __) => const SizedBox(width: 8),
+                            separatorBuilder: (_, __) =>
+                                const SizedBox(width: 8),
                             itemBuilder: (context, idx) {
                               return Stack(
                                 children: [
@@ -1096,7 +1102,8 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                               borderRadius: BorderRadius.circular(
                                   DesignConstants.borderRadiusL),
                               border: Border.all(
-                                  color: isDark ? Colors.white12 : Colors.black12),
+                                  color:
+                                      isDark ? Colors.white12 : Colors.black12),
                             ),
                             padding: const EdgeInsets.only(
                                 left: DesignConstants.spacingL),
@@ -1134,7 +1141,8 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                                   child: IconButton(
                                     icon: Icon(LucideIcons.check,
                                         color: isDark
-                                            ? Colors.white.withValues(alpha: 0.8)
+                                            ? Colors.white
+                                                .withValues(alpha: 0.8)
                                             : Colors.black87,
                                         size: 18),
                                     onPressed: () =>
@@ -1149,7 +1157,8 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                       // Passive Barcode Detection Banner (if detected or during tour step 1)
                       if (_isTourActive && _tourStep == 1)
                         _buildDemoBarcodeBanner(l10n, primaryAccent)
-                      else if (_barcodeDetectionEnabled && _detectedBarcode != null)
+                      else if (_barcodeDetectionEnabled &&
+                          _detectedBarcode != null)
                         _buildBarcodeBanner(l10n, primaryAccent),
 
                       // Shutter & Primary Action Bar
@@ -1410,8 +1419,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
   }
 
   Rect? _rectForKey(GlobalKey? key) {
-    final renderBox =
-        key?.currentContext?.findRenderObject() as RenderBox?;
+    final renderBox = key?.currentContext?.findRenderObject() as RenderBox?;
     if (renderBox == null || !renderBox.hasSize) return null;
     final overlayBox =
         _overlayKey.currentContext?.findRenderObject() as RenderBox?;
@@ -1666,7 +1674,8 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                           fontFamily: 'Plus Jakarta Sans',
                           fontWeight: FontWeight.w700,
                           fontSize: 15,
-                          color: isDark ? Colors.white : const Color(0xFF12120F),
+                          color:
+                              isDark ? Colors.white : const Color(0xFF12120F),
                         ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,

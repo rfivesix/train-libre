@@ -27,6 +27,11 @@ const _kICloudBackupFileName = 'icloud_backup.zip';
 /// backup.
 const _kICloudLegacyBackupFileName = 'icloud_backup.sqlite';
 
+/// The archive the previous backup is moved to before a new one is uploaded.
+/// Never restored from automatically — it is there so a bad backup does not
+/// leave the account with nothing.
+const _kICloudPreviousBackupFileName = 'icloud_backup.previous.zip';
+
 /// The SharedPreferences key for toggling automated iCloud sync.
 const String kICloudSyncEnabledKey = 'is_icloud_sync_enabled';
 
@@ -135,6 +140,7 @@ class ICloudSyncService {
     // For manual alpha-debugging, we execute this inline without a silent catch
     // block to allow the UI to catch and inspect PlatformExceptions.
     final archive = await _buildArchive(db);
+    await _keepPreviousRemoteBackup();
     await _uploadWithProgress(archive.path, _kICloudBackupFileName, onProgress);
     await _dropLegacyRemoteBackup();
 
@@ -155,6 +161,7 @@ class ICloudSyncService {
         'iCloud backup: archive created ($archiveSizeBytes bytes, ${(archiveSizeBytes / (1024 * 1024)).toStringAsFixed(2)} MiB), starting upload',
       );
 
+      await _keepPreviousRemoteBackup();
       await _uploadWithProgress(archive.path, _kICloudBackupFileName, null);
       await _dropLegacyRemoteBackup();
 
@@ -204,6 +211,37 @@ class ICloudSyncService {
     }
 
     return archive;
+  }
+
+  /// Moves the current archive aside before a new one takes its place.
+  ///
+  /// One generation, deliberately: a restore that goes wrong is followed by
+  /// the next automatic sync uploading the wrong state over the only copy
+  /// there is. Keeping the previous archive is the difference between an
+  /// annoyance and lost data, and costs one extra file in the container.
+  Future<void> _keepPreviousRemoteBackup() async {
+    try {
+      final files = await ICloudStorage.gather(
+        containerId: _containerId,
+        onUpdate: null,
+      );
+      if (!files.any((f) => f.relativePath == _kICloudBackupFileName)) return;
+
+      if (files.any((f) => f.relativePath == _kICloudPreviousBackupFileName)) {
+        await ICloudStorage.delete(
+          containerId: _containerId,
+          relativePath: _kICloudPreviousBackupFileName,
+        );
+      }
+      await ICloudStorage.move(
+        containerId: _containerId,
+        fromRelativePath: _kICloudBackupFileName,
+        toRelativePath: _kICloudPreviousBackupFileName,
+      );
+    } catch (e) {
+      // Best effort: failing to keep the old copy must not stop the new one.
+      debugPrint('iCloud backup: could not keep the previous archive: $e');
+    }
   }
 
   /// Removes the bare-SQLite backup an older build left in the container.
@@ -357,11 +395,16 @@ class ICloudSyncService {
         }
       }
 
-      // Restore shared preferences from the new database snapshot.
-      final restoredDb = AppDatabase();
+      // Read the restored file through the helper rather than a second
+      // `AppDatabase()` of our own. Two connections on one SQLite file is
+      // fragile at the best of times, and closing the private one when the
+      // reads are done was leaving the running app on a dead connection —
+      // every later query threw "the connection was closed" until the app was
+      // killed and started cold. The helper's instance is the one the app
+      // itself will use from here on, and it is never closed.
+      final restoredDb = DatabaseHelper.instance.dbInstance;
       await _extractSharedPreferences(restoredDb);
       await _pruneOrphanMedia(restoredDb);
-      await restoredDb.close();
 
       if (downloadFile.existsSync()) downloadFile.deleteSync();
 
