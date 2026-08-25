@@ -8,6 +8,8 @@ import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../../generated/app_localizations.dart';
 import '../../../../services/ai_service.dart';
 import '../../../../services/haptic_feedback_service.dart';
+import '../../../../services/telemetry/telemetry_service.dart';
+import '../../../../services/telemetry/telemetry_buckets.dart';
 import '../../../../services/voice/transcript_cleanup.dart';
 import '../../../../services/voice/voice_dictation_service.dart';
 import '../../../../services/voice/voice_dictation_settings.dart';
@@ -139,6 +141,8 @@ class _VoiceDictationViewState extends State<_VoiceDictationView> {
     await _start();
   }
 
+  final Stopwatch _recordingStopwatch = Stopwatch();
+
   Future<void> _start() async {
     setState(() {
       _phase = _DictationPhase.starting;
@@ -158,6 +162,10 @@ class _VoiceDictationViewState extends State<_VoiceDictationView> {
         _localeId ?? await VoiceDictationService.instance.systemLocaleId();
     if (!mounted) return;
 
+    _recordingStopwatch
+      ..reset()
+      ..start();
+
     final started = await VoiceDictationService.instance.start(
       localeId: chosen,
       onPartial: (text) {
@@ -176,6 +184,14 @@ class _VoiceDictationViewState extends State<_VoiceDictationView> {
 
     if (!mounted) return;
     if (!started) {
+      _recordingStopwatch.stop();
+      unawaited(TelemetryService.instance.trackVoiceDictationCompleted(
+        durationBucket: '<5s',
+        aiTidyUpEnabled: false,
+        surface: 'ai_meal_capture',
+        success: false,
+        errorCode: 'start_failed',
+      ));
       setState(() => _phase = _DictationPhase.idle);
       return;
     }
@@ -209,6 +225,13 @@ class _VoiceDictationViewState extends State<_VoiceDictationView> {
       _phase == _DictationPhase.tidying;
 
   Future<void> _stop() async {
+    _recordingStopwatch.stop();
+    final durationBucket =
+        TelemetryBuckets.getVoiceDurationBucket(_recordingStopwatch.elapsed);
+    unawaited(TelemetryService.instance.trackFeatureUsed(
+      featureKey: FeatureKey.voiceDictationUsed,
+    ));
+
     setState(() {
       _phase = _DictationPhase.tidying;
       _level = 0;
@@ -232,6 +255,12 @@ class _VoiceDictationViewState extends State<_VoiceDictationView> {
     });
 
     if (cleaned.isEmpty) {
+      unawaited(TelemetryService.instance.trackVoiceDictationCompleted(
+        durationBucket: durationBucket,
+        aiTidyUpEnabled: false,
+        surface: 'ai_meal_capture',
+        success: true,
+      ));
       setState(() => _phase = _DictationPhase.done);
       HapticFeedbackService.instance.confirmationFeedback();
       return;
@@ -242,6 +271,12 @@ class _VoiceDictationViewState extends State<_VoiceDictationView> {
     final tidyEnabled = await VoiceDictationSettings.instance.isAiTidyEnabled();
     if (!mounted) return;
     if (!tidyEnabled) {
+      unawaited(TelemetryService.instance.trackVoiceDictationCompleted(
+        durationBucket: durationBucket,
+        aiTidyUpEnabled: false,
+        surface: 'ai_meal_capture',
+        success: true,
+      ));
       setState(() => _phase = _DictationPhase.done);
       HapticFeedbackService.instance.confirmationFeedback();
       return;
@@ -249,6 +284,13 @@ class _VoiceDictationViewState extends State<_VoiceDictationView> {
 
     final summary = await AiService.instance.tidyVoiceTranscript(cleaned);
     if (!mounted) return;
+
+    unawaited(TelemetryService.instance.trackVoiceDictationCompleted(
+      durationBucket: durationBucket,
+      aiTidyUpEnabled: true,
+      surface: 'ai_meal_capture',
+      success: true,
+    ));
 
     setState(() {
       _summary = summary;

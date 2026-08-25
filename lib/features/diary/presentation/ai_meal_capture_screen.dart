@@ -9,6 +9,7 @@ import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:qr_code_scanner_plus/qr_code_scanner_plus.dart';
+import 'package:uuid/uuid.dart';
 
 import '../../../generated/app_localizations.dart';
 import '../../../navigation/app_route_observer.dart';
@@ -35,6 +36,7 @@ import 'dialogs/voice_dictation_sheet.dart';
 import '../../../widgets/common/database_placeholder_widget.dart';
 import '../../../widgets/common/app_button.dart';
 import '../../../services/telemetry/telemetry_service.dart';
+import '../../../services/telemetry/telemetry_buckets.dart';
 import '../../../services/voice/voice_dictation_service.dart';
 import '../../../util/permission_dialogs.dart';
 
@@ -484,6 +486,10 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
           _distanceHint =
               _distanceHintFor(AppLocalizations.of(context)!, capture);
         });
+        if (capture.scaleFacts?.isValid == true || capture.depthBuffer != null) {
+          unawaited(TelemetryService.instance
+              .trackFeatureUsed(featureKey: FeatureKey.lidarDepthCaptured));
+        }
         _preProcessor.processImages([capture.imageFile]);
         return;
       }
@@ -609,9 +615,30 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
 
     controller.value = MealAnalysisPhase.analyzing;
 
+    final stopwatch = Stopwatch()..start();
+    final requestId = const Uuid().v4();
+    final provider = (await AiService.instance.getSelectedProvider()).name;
+    final text = _textController.text.trim();
+    final hasImages = _images.isNotEmpty;
+    final hasText = text.isNotEmpty;
+    final hasVoice = _isDictating || text.isNotEmpty;
+    final hasLidar = _depthCaptures.values.any((c) => c.depthBuffer != null);
+    final inputMode = hasImages && hasText
+        ? 'multimodal'
+        : (hasImages ? 'photo' : 'text_only');
+
+    unawaited(TelemetryService.instance.trackAiMealScanRequested(
+      requestId: requestId,
+      provider: provider,
+      inputMode: inputMode,
+      photoCount: _images.length,
+      hasLidar: hasLidar,
+      hasVoiceInput: hasVoice,
+      hasTextInput: hasText,
+    ));
+
     try {
       AiMealCandidate candidate;
-      final text = _textController.text.trim();
 
       if (_images.isNotEmpty) {
         candidate = await AiService.instance.analyzeImages(
@@ -636,6 +663,27 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
       if (!mounted) return;
       // The user walked away from the wait; their result is no longer wanted.
       if (_analysisCancelled) return;
+
+      stopwatch.stop();
+      final latencyBucket =
+          TelemetryBuckets.getLatencyBucket(stopwatch.elapsed);
+      final itemCountBucket = TelemetryBuckets.getItemCountBucket(
+          validationOutcome.validation.candidate.items.length);
+
+      unawaited(TelemetryService.instance.trackAiMealScanCompleted(
+        requestId: requestId,
+        provider: provider,
+        latencyBucket: latencyBucket,
+        success: true,
+        inputMode: inputMode,
+        photoCount: _images.length,
+        hasLidar: hasLidar,
+        hasVoiceInput: hasVoice,
+        hasTextInput: hasText,
+        validationPassed: validationOutcome.validation.passed,
+        repairAttemptsCount: validationOutcome.repairPassesUsed,
+        suggestedItemsCountBucket: itemCountBucket,
+      ));
 
       _stopAiWaitingHaptics();
       _dismissAnalysisScreen();
@@ -679,10 +727,40 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
         Navigator.of(context).pop(saved == true);
       }
     } on AiKeyMissingException {
+      stopwatch.stop();
+      final latencyBucket =
+          TelemetryBuckets.getLatencyBucket(stopwatch.elapsed);
+      unawaited(TelemetryService.instance.trackAiMealScanCompleted(
+        requestId: requestId,
+        provider: provider,
+        latencyBucket: latencyBucket,
+        success: false,
+        errorCode: 'key_missing',
+        inputMode: inputMode,
+        photoCount: _images.length,
+        hasLidar: hasLidar,
+        hasVoiceInput: hasVoice,
+        hasTextInput: hasText,
+      ));
       _dismissAnalysisScreen();
       if (!mounted) return;
       _showKeyMissingDialog();
     } on AiServiceException catch (e) {
+      stopwatch.stop();
+      final latencyBucket =
+          TelemetryBuckets.getLatencyBucket(stopwatch.elapsed);
+      unawaited(TelemetryService.instance.trackAiMealScanCompleted(
+        requestId: requestId,
+        provider: provider,
+        latencyBucket: latencyBucket,
+        success: false,
+        errorCode: e.runtimeType.toString(),
+        inputMode: inputMode,
+        photoCount: _images.length,
+        hasLidar: hasLidar,
+        hasVoiceInput: hasVoice,
+        hasTextInput: hasText,
+      ));
       _dismissAnalysisScreen();
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -693,6 +771,21 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
         ),
       );
     } catch (e) {
+      stopwatch.stop();
+      final latencyBucket =
+          TelemetryBuckets.getLatencyBucket(stopwatch.elapsed);
+      unawaited(TelemetryService.instance.trackAiMealScanCompleted(
+        requestId: requestId,
+        provider: provider,
+        latencyBucket: latencyBucket,
+        success: false,
+        errorCode: e.runtimeType.toString(),
+        inputMode: inputMode,
+        photoCount: _images.length,
+        hasLidar: hasLidar,
+        hasVoiceInput: hasVoice,
+        hasTextInput: hasText,
+      ));
       _dismissAnalysisScreen();
       if (!mounted) return;
       final l10n = AppLocalizations.of(context)!;

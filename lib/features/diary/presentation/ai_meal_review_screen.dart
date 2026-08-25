@@ -38,6 +38,7 @@ import '../../../services/theme_service.dart';
 import '../../../services/base_food_language_service.dart';
 import '../../../widgets/common/app_button.dart';
 import '../../../services/telemetry/telemetry_service.dart';
+import '../../../services/telemetry/telemetry_buckets.dart';
 import 'dart:async';
 
 /// Review screen for AI-suggested food items.
@@ -470,6 +471,10 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
     final feedback = _feedbackController.text.trim();
     if (feedback.isEmpty) return;
 
+    unawaited(TelemetryService.instance.trackFeatureUsed(
+      featureKey: FeatureKey.aiMealCorrectionSubmitted,
+    ));
+
     setState(() => _isRetrying = true);
     _startAiWaitingHaptics();
 
@@ -495,6 +500,7 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
     unawaited(Navigator.of(context).push(_analysisRoute!));
 
     controller.value = MealAnalysisPhase.analyzing;
+    final stopwatch = Stopwatch()..start();
 
     try {
       final matchingContext =
@@ -532,6 +538,16 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
 
       if (!mounted || _analysisCancelled) return;
 
+      stopwatch.stop();
+      final latencyBucket =
+          TelemetryBuckets.getLatencyBucket(stopwatch.elapsed);
+      unawaited(TelemetryService.instance.trackAiMealCorrectionCompleted(
+        hasImages: widget.originalImages.isNotEmpty,
+        latencyBucket: latencyBucket,
+        success: true,
+        repairAttemptsCount: outcome.repairPassesUsed,
+      ));
+
       _stopAiWaitingHaptics();
       _dismissAnalysisScreen();
 
@@ -544,6 +560,15 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
         });
       }
     } on AiServiceException catch (e) {
+      stopwatch.stop();
+      final latencyBucket =
+          TelemetryBuckets.getLatencyBucket(stopwatch.elapsed);
+      unawaited(TelemetryService.instance.trackAiMealCorrectionCompleted(
+        hasImages: widget.originalImages.isNotEmpty,
+        latencyBucket: latencyBucket,
+        success: false,
+        errorCode: e.runtimeType.toString(),
+      ));
       _stopAiWaitingHaptics();
       _dismissAnalysisScreen();
       if (mounted) {
@@ -748,9 +773,14 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
   }
 
   Future<void> _toggleDepthMap() async {
-    if (!_showDepthMap && !_depthImages.containsKey(_currentPhotoIndex)) {
-      await _renderDepthMapFor(_currentPhotoIndex);
-      if (!mounted) return;
+    if (!_showDepthMap) {
+      unawaited(TelemetryService.instance.trackFeatureUsed(
+        featureKey: FeatureKey.lidarDepthVisualized,
+      ));
+      if (!_depthImages.containsKey(_currentPhotoIndex)) {
+        await _renderDepthMapFor(_currentPhotoIndex);
+        if (!mounted) return;
+      }
     }
     HapticFeedbackService.instance.selectionFeedback();
     setState(() => _showDepthMap = !_showDepthMap);

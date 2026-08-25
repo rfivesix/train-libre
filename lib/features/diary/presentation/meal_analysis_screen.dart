@@ -1,11 +1,11 @@
-// lib/features/diary/presentation/meal_analysis_screen.dart
-
+import 'dart:async';
 import 'dart:io';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import '../../../generated/app_localizations.dart';
 import '../../../services/haptic_feedback_service.dart';
+import '../../../services/telemetry/telemetry_service.dart';
 import 'widgets/ai_neural_cloud_orb_widget.dart';
 
 /// Stages the capture screen walks through while a meal is being analysed.
@@ -79,6 +79,8 @@ class _MealAnalysisScreenState extends State<MealAnalysisScreen> {
   @override
   void initState() {
     super.initState();
+    unawaited(TelemetryService.instance
+        .trackScreenView(screenName: ScreenName.mealAnalysis));
     widget.controller.addListener(_onPhaseChanged);
   }
 
