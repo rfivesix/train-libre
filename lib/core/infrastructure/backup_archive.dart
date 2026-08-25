@@ -16,7 +16,7 @@ import '../../util/encryption_util.dart';
 /// the payload instead.
 ///
 /// Only the *previews* go in. They are what the diary list shows, they are
-/// around 15 KB each rather than 150 KB, and a backup meant to be mailed to
+/// around 30 KB each rather than 150 KB, and a backup meant to be mailed to
 /// yourself or parked in a cloud folder should not be carrying a full photo
 /// library. The full-size photos stay on the device that took them.
 ///

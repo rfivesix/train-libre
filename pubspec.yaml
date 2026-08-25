@@ -88,6 +88,10 @@ dev_dependencies:
   flutter_launcher_icons: ^0.14.4
   build_runner: ^2.15.1
   drift_dev: ^2.34.4
+  # Imported directly by the camera/permission widget tests, which mock the
+  # platform interfaces rather than the plugin facades.
+  permission_handler_platform_interface: ^4.4.0
+  plugin_platform_interface: ^2.1.8
 # dependency_overrides:
 
 flutter_launcher_icons:

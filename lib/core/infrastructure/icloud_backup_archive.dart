@@ -22,7 +22,7 @@ import 'backup_archive.dart';
 /// ```
 ///
 /// Only the previews go in, for the same reason [BackupArchive] gives: they
-/// are around 15 KB against 150 KB for the photo itself, and iCloud is a
+/// are around 30 KB against 150 KB for the photo itself, and iCloud is a
 /// backup of the diary, not a photo library.
 ///
 /// Nothing here is encrypted. A `.trainlibre` file is handed to whatever the

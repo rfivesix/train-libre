@@ -213,9 +213,9 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
     unawaited(VoiceDictationService.instance.cancel());
     if (_useNativeSession) {
       unawaited(DepthScanChannel.instance.stopSession());
-    } else {
-      _qrController?.dispose();
     }
+    // The QR controller is not disposed here: it self-disposes when the
+    // QRView is unmounted, and calling it again is deprecated.
     _preProcessor.dispose();
     _textController.dispose();
     _analyzeButtonAnimationController.dispose();
@@ -366,6 +366,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
 
     setState(() => _isLoggingBarcode = true);
     await _suspendCamera();
+    if (!mounted) return;
     try {
       final logged = await logFoodItemWithQuantity(
         context,
@@ -613,6 +614,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
       },
     );
     _analysisCancelled = false;
+    if (!mounted) return;
     unawaited(Navigator.of(context).push(_analysisRoute!));
 
     if (!mounted) return;

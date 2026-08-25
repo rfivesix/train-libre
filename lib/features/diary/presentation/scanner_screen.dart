@@ -132,7 +132,8 @@ class _ScannerScreenState extends State<ScannerScreen>
     if (_isRouteObserverAttached) {
       appRouteObserver.unsubscribe(this);
     }
-    controller?.dispose();
+    // The QR controller self-disposes when the QRView is unmounted; disposing
+    // it here as well is deprecated.
     _animationController.dispose();
     WidgetsBinding.instance.removeObserver(this);
     // Restore default app orientations

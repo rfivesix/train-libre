@@ -294,7 +294,7 @@ class AppMediaStore {
   /// The meal previews that go into a backup.
   ///
   /// Previews only, deliberately: they are what the diary list shows, they are
-  /// around 15 KB each rather than 150 KB, and a backup meant to be mailed to
+  /// around 30 KB each rather than 150 KB, and a backup meant to be mailed to
   /// yourself or parked in a cloud folder should not carry a full photo
   /// library. Entries whose preview is missing contribute nothing rather than
   /// falling back to the full photo.
