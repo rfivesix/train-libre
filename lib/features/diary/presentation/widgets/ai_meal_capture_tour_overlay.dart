@@ -296,12 +296,23 @@ class _InvertedHolesClipper extends CustomClipper<Path> {
 
   @override
   Path getClip(Size size) {
-    final path = Path()..addRect(Offset.zero & size);
-    for (final hole in holes) {
-      path.addRRect(hole);
+    final outer = Path()..addRect(Offset.zero & size);
+    if (holes.isEmpty) return outer;
+
+    // The holes are unioned rather than punched out with an even-odd fill:
+    // the blur tiers inflate every hole by up to 27px, so two spotlights that
+    // sit close together (barcode banner + barcode button) grow into each
+    // other. With even-odd the overlap flips back to "filled" and paints a
+    // blurred pill in the gap between them.
+    var holePath = Path()..addRRect(holes.first);
+    for (int i = 1; i < holes.length; i++) {
+      holePath = Path.combine(
+        PathOperation.union,
+        holePath,
+        Path()..addRRect(holes[i]),
+      );
     }
-    path.fillType = PathFillType.evenOdd;
-    return path;
+    return Path.combine(PathOperation.difference, outer, holePath);
   }
 
   @override

@@ -1203,35 +1203,45 @@ class _MainScreenState extends State<MainScreen>
     ];
   }
 
-  Rect? _rectForKey(GlobalKey key) {
+  /// Global bounds of [key] including every ancestor transform.
+  ///
+  /// `localToGlobal(Offset.zero) & box.size` only transforms the origin and
+  /// then bolts the *untransformed* size onto it, so any ancestor scale (route
+  /// transitions, animated wrappers) yields a rect that no longer matches what
+  /// is painted on screen. Transforming the whole rect keeps the spotlight on
+  /// the widget even mid-animation.
+  Rect? _globalRectOf(GlobalKey key) {
     final targetContext = key.currentContext;
     if (targetContext == null) return null;
     final renderObject = targetContext.findRenderObject();
     if (renderObject is! RenderBox || !renderObject.hasSize) return null;
-    final topLeft = renderObject.localToGlobal(Offset.zero);
-    final rect = topLeft & renderObject.size;
+    return MatrixUtils.transformRect(
+      renderObject.getTransformTo(null),
+      Offset.zero & renderObject.size,
+    );
+  }
 
-    final barContext = _tourNavigationBarKey.currentContext;
-    RenderBox? barBox;
-    Rect? barRect;
-    if (barContext != null) {
-      final barRender = barContext.findRenderObject();
-      if (barRender is RenderBox && barRender.hasSize) {
-        barBox = barRender;
-        barRect = barBox.localToGlobal(Offset.zero) & barBox.size;
-      }
-    }
+  Rect? _rectForKey(GlobalKey key) {
+    final rect = _globalRectOf(key);
+    if (rect == null) return null;
+
+    final Rect? barRect = _globalRectOf(_tourNavigationBarKey);
 
     if (key == _tourNavigationBarKey) {
-      if (barRect != null) {
-        return Rect.fromLTWH(
-          barRect.left - 4,
-          barRect.top - 4,
-          barRect.width + 8,
-          barRect.height + 8,
-        );
+      var bounds = barRect ?? rect;
+      // The tab icons sit in their own render boxes, so folding them in keeps
+      // the spotlight covering all four tabs even if the bar itself reports a
+      // shorter box than it paints.
+      for (final tabKey in [
+        _tourDiaryTabKey,
+        _tourWorkoutTabKey,
+        _tourStatisticsTabKey,
+        _tourNutritionTabKey,
+      ]) {
+        final tabRect = _globalRectOf(tabKey);
+        if (tabRect != null) bounds = bounds.expandToInclude(tabRect);
       }
-      return rect;
+      return bounds.inflate(4);
     }
 
     if (key == _tourFabKey) {
@@ -1358,6 +1368,31 @@ class _MainScreenState extends State<MainScreen>
       }
     });
 
+    _syncTourTargetRect(index, step);
+  }
+
+  /// Number of consecutive identical measurements that count as "the layout has
+  /// settled".
+  static const int _tourTargetStableFrames = 3;
+
+  /// Upper bound on re-measurements (~1s at 60fps), so a permanently animating
+  /// anchor can never keep the loop alive.
+  static const int _tourTargetMaxFrames = 60;
+
+  /// Re-measures the anchor until its rect stops moving.
+  ///
+  /// The very first step is measured while the route transition that reveals
+  /// the main screen is still running, so a single post-frame measurement
+  /// captures the bottom navigation bar mid-animation and the spotlight ends up
+  /// cut short. Following the anchor for a few frames pins it to the final
+  /// layout instead of to whatever the first frame happened to show.
+  void _syncTourTargetRect(
+    int index,
+    _AppTourStep step, {
+    int frame = 0,
+    Rect? previousRect,
+    int stableFrames = 0,
+  }) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted || !_isTourActive || _tourStepIndex != index) return;
       final targetRect =
@@ -1365,7 +1400,25 @@ class _MainScreenState extends State<MainScreen>
       if (targetRect != null && targetRect != _tourTargetRect) {
         setState(() => _tourTargetRect = targetRect);
       }
+
+      final int nextStableFrames =
+          (targetRect != null && targetRect == previousRect)
+              ? stableFrames + 1
+              : 0;
+      if (nextStableFrames >= _tourTargetStableFrames ||
+          frame + 1 >= _tourTargetMaxFrames) {
+        return;
+      }
+      _syncTourTargetRect(
+        index,
+        step,
+        frame: frame + 1,
+        previousRect: targetRect,
+        stableFrames: nextStableFrames,
+      );
     });
+    // A post-frame callback only runs if another frame is actually produced.
+    WidgetsBinding.instance.scheduleFrame();
   }
 
   Future<void> _nextTourStep() async {
