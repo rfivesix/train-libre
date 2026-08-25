@@ -30,18 +30,23 @@ class SafStorageService {
     return SafPickedDirectory(treeUri: treeUri, displayPath: displayPath);
   }
 
-  Future<String?> writeTextFileToTree({
+  /// Copies the local file at [sourcePath] into the picked tree.
+  ///
+  /// Takes a path rather than the bytes: an auto-backup archive carries the
+  /// meal previews and can run to tens of megabytes, and pushing that through
+  /// the method channel would copy it twice in memory for no reason.
+  Future<String?> writeFileToTree({
     required String treeUri,
     required String fileName,
-    required String content,
-    String mimeType = 'application/json',
+    required String sourcePath,
+    String mimeType = 'application/zip',
   }) async {
     final raw = await _channel.invokeMethod<dynamic>(
-      'writeTextFileToTree',
+      'writeFileToTree',
       <String, dynamic>{
         'treeUri': treeUri,
         'fileName': fileName,
-        'content': content,
+        'sourcePath': sourcePath,
         'mimeType': mimeType,
       },
     );

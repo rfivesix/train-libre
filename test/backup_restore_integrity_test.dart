@@ -1,7 +1,11 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:drift/native.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
+import 'package:train_libre/features/diary/data/meal_photo_store.dart';
 import 'package:train_libre/core/infrastructure/backup_manager.dart';
 import 'package:train_libre/data/database_helper.dart';
 import 'package:train_libre/data/drift_database.dart'
@@ -159,6 +163,70 @@ void main() {
       final logs = await db.select(db.nutritionLogs).get();
       expect(logs, hasLength(1));
       expect(logs.first.mealEntryId, mealEntryId);
+    });
+
+    test('a backup archive carries the meal previews to a fresh device',
+        () async {
+      // path_provider has no implementation under `flutter test`, so the photo
+      // folder is pointed at a real temporary directory instead.
+      final supportDir =
+          await Directory.systemTemp.createTemp('meal_photos_test');
+      addTearDown(() async {
+        if (await supportDir.exists()) await supportDir.delete(recursive: true);
+      });
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+        const MethodChannel('plugins.flutter.io/path_provider'),
+        (call) async => supportDir.path,
+      );
+      addTearDown(() {
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(
+          const MethodChannel('plugins.flutter.io/path_provider'),
+          null,
+        );
+      });
+
+      final photoDir = Directory(
+        p.join(supportDir.path, MealPhotoStore.folderName),
+      )..createSync(recursive: true);
+      final fullPhoto = File(p.join(photoDir.path, 'abc.jpg'))
+        ..writeAsBytesSync(List<int>.filled(4096, 7));
+      final preview = File(p.join(photoDir.path, 'abc_thumb.jpg'))
+        ..writeAsBytesSync(List<int>.filled(64, 3));
+
+      const mealEntryId = 'meal-entry-photo';
+      final diaryDb = dbHelper.diaryLocalDataSource;
+      await diaryDb.insertMealEntry(
+        MealEntry(
+          id: mealEntryId,
+          consumedAt: DateTime(2026, 4, 3, 8, 0),
+          mealType: 'mealtypeBreakfast',
+          title: 'Porridge',
+          source: 'aiPhoto',
+          photoPath: 'meal_photos/abc.jpg',
+          photoThumbPath: 'meal_photos/abc_thumb.jpg',
+        ),
+      );
+
+      final archive = await backupManager.buildBackupArchive(
+        targetPath: p.join(supportDir.path, 'backup.zip'),
+      );
+
+      // Stand in for a fresh device: the rows and every photo file are gone.
+      fullPhoto.deleteSync();
+      preview.deleteSync();
+      await db.delete(db.mealEntries).go();
+
+      expect(await backupManager.importFullBackupAuto(archive.path), isTrue);
+
+      final restored = await diaryDb.getMealEntryById(mealEntryId);
+      expect(restored, isNotNull);
+      expect(restored!.title, 'Porridge');
+
+      // The preview comes back; the full-size photo deliberately does not.
+      expect(File(p.join(photoDir.path, 'abc_thumb.jpg')).existsSync(), isTrue);
+      expect(File(p.join(photoDir.path, 'abc.jpg')).existsSync(), isFalse);
     });
 
     test('changed goals/settings and target prefs survive backup restore',

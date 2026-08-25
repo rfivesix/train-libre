@@ -616,7 +616,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
     final result = await FilePicker.pickFiles(
       type: FileType.custom,
-      allowedExtensions: ['json'],
+      // `json` stays allowed: backups written before the archive format are
+      // still valid and still restore.
+      allowedExtensions: ['zip', 'json'],
     );
     if (result == null || result.files.single.path == null) return;
 

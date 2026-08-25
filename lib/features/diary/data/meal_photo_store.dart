@@ -36,6 +36,9 @@ class MealPhotoStore {
   MealPhotoStore._();
 
   static const String _folder = 'meal_photos';
+
+  /// The photo folder, relative to the application support directory.
+  static String get folderName => _folder;
   static const _uuid = Uuid();
 
   String? _basePath;

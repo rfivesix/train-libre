@@ -366,8 +366,17 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
       _mealEntry.photoPath,
       ...?captureMeta?.extraPhotoPaths,
     ]) {
+      // The preview is the fallback, because a backup carries only those: a
+      // meal restored onto a new device has its thumbnail and nothing else,
+      // and a soft picture beats an empty frame.
       final file = MealPhotoStore.instance.resolveSync(path);
-      if (file != null && file.existsSync()) photoFiles.add(file);
+      if (file != null && file.existsSync()) {
+        photoFiles.add(file);
+        continue;
+      }
+      final thumb = MealPhotoStore.instance
+          .resolveSync(MealPhotoStore.thumbPathFor(path));
+      if (thumb != null && thumb.existsSync()) photoFiles.add(thumb);
     }
     final hasPhoto = photoFiles.isNotEmpty;
     final timeStr = DateFormat('HH:mm').format(_mealEntry.consumedAt);
