@@ -641,6 +641,8 @@
   "appTourStepNutritionBody": "Nutrition は、食事を計画し、目標を確認し、食事テンプレートなどのツールにアクセスするのに役立ちます。",
   "appTourStepStatisticsTitle": "統計",
   "appTourStepStatisticsBody": "統計は傾向と進捗状況を示すため、時間の経過とともにデータがどのように変化するかを理解できます。",
+  "appTourRestartTitle": "アプリツアーを見る",
+  "appTourRestartSubtitle": "主要な機能と導入ガイドをもう一度確認する",
   "onbSetGoalsCta": "目標を設定する",
   "@onbSetGoalsCta": {
     "description": "Optional CTA linking to Goals screen from onboarding"

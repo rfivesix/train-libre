@@ -1607,6 +1607,13 @@ class AppLocalizationsDe extends AppLocalizations {
       'Die Statistiken zeigen Trends und Fortschritt, damit du Veränderungen besser verstehst.';
 
   @override
+  String get appTourRestartTitle => 'App-Tour ansehen';
+
+  @override
+  String get appTourRestartSubtitle =>
+      'Einführung und wichtige Bereiche erneut durchgehen';
+
+  @override
   String get onbSetGoalsCta => 'Ziele festlegen';
 
   @override

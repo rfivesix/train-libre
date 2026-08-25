@@ -1212,11 +1212,35 @@ class _MainScreenState extends State<MainScreen>
     final rect = topLeft & renderObject.size;
 
     if (key == _tourNavigationBarKey) {
-      return Rect.fromLTWH(
-        rect.left + 16,
-        rect.top,
-        rect.width,
-        rect.height,
+      final diaryCtx = _tourDiaryTabKey.currentContext;
+      final nutritionCtx = _tourNutritionTabKey.currentContext;
+      if (diaryCtx != null && nutritionCtx != null) {
+        final diaryBox = diaryCtx.findRenderObject() as RenderBox?;
+        final nutritionBox = nutritionCtx.findRenderObject() as RenderBox?;
+        if (diaryBox != null &&
+            diaryBox.hasSize &&
+            nutritionBox != null &&
+            nutritionBox.hasSize) {
+          final diaryTopLeft = diaryBox.localToGlobal(Offset.zero);
+          final nutritionTopLeft = nutritionBox.localToGlobal(Offset.zero);
+          final diaryRect = diaryTopLeft & diaryBox.size;
+          final nutritionRect = nutritionTopLeft & nutritionBox.size;
+          return Rect.fromLTRB(
+            diaryRect.left - 20,
+            diaryRect.top - 12,
+            nutritionRect.right + 20,
+            diaryRect.bottom + 22,
+          );
+        }
+      }
+      return rect;
+    }
+
+    if (key == _tourFabKey) {
+      return Rect.fromCenter(
+        center: rect.center,
+        width: 72,
+        height: 72,
       );
     }
 
@@ -1224,11 +1248,10 @@ class _MainScreenState extends State<MainScreen>
         key == _tourWorkoutTabKey ||
         key == _tourStatisticsTabKey ||
         key == _tourNutritionTabKey) {
-      return Rect.fromLTWH(
-        rect.left - 12,
-        rect.top - 4,
-        rect.width + 24,
-        rect.height + 28,
+      return Rect.fromCenter(
+        center: Offset(rect.center.dx, rect.center.dy + 8),
+        width: 76,
+        height: 60,
       );
     }
 
@@ -1285,10 +1308,16 @@ class _MainScreenState extends State<MainScreen>
     unawaited(TelemetryService.instance
         .trackFeatureUsed(featureKey: FeatureKey.appTourStarted));
     await AppTourService.instance.markOfferShown();
+    if (!mounted) return;
+    final l10n = AppLocalizations.of(context)!;
+    final steps = _buildAppTourSteps(l10n);
+    final initialTarget = steps.isNotEmpty
+        ? (_rectForKey(steps[0].anchorKey) ?? _rectForKey(_tourNavigationBarKey))
+        : null;
     setState(() {
       _isTourActive = true;
       _tourStepIndex = 0;
-      _tourTargetRect = null;
+      _tourTargetRect = initialTarget;
       _isAddMenuOpen = false;
     });
     _menuController.reverse();
@@ -1306,19 +1335,22 @@ class _MainScreenState extends State<MainScreen>
       _onNavigationTapped(step.tabIndex);
     }
 
+    final immediateTarget =
+        _rectForKey(step.anchorKey) ?? _rectForKey(_tourNavigationBarKey);
     setState(() {
       _tourStepIndex = index;
-      _tourTargetRect = null;
+      if (immediateTarget != null) {
+        _tourTargetRect = immediateTarget;
+      }
     });
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted || !_isTourActive) return;
-      Future.delayed(const Duration(milliseconds: 50), () {
-        if (!mounted || !_isTourActive || _tourStepIndex != index) return;
-        final targetRect =
-            _rectForKey(step.anchorKey) ?? _rectForKey(_tourNavigationBarKey);
+      if (!mounted || !_isTourActive || _tourStepIndex != index) return;
+      final targetRect =
+          _rectForKey(step.anchorKey) ?? _rectForKey(_tourNavigationBarKey);
+      if (targetRect != null && targetRect != _tourTargetRect) {
         setState(() => _tourTargetRect = targetRect);
-      });
+      }
     });
   }
 

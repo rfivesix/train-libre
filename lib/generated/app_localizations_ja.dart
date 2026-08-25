@@ -1574,6 +1574,12 @@ class AppLocalizationsJa extends AppLocalizations {
       '統計は傾向と進捗状況を示すため、時間の経過とともにデータがどのように変化するかを理解できます。';
 
   @override
+  String get appTourRestartTitle => 'アプリツアーを見る';
+
+  @override
+  String get appTourRestartSubtitle => '主要な機能と導入ガイドをもう一度確認する';
+
+  @override
   String get onbSetGoalsCta => '目標を設定する';
 
   @override

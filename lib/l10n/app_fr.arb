@@ -641,6 +641,8 @@
   "appTourStepNutritionBody": "La nutrition vous aide à planifier vos repas, à revoir vos objectifs et à accéder à des outils tels que des modèles de repas.",
   "appTourStepStatisticsTitle": "Statistiques",
   "appTourStepStatisticsBody": "Les statistiques montrent les tendances et les progrès afin que vous puissiez comprendre comment vos données évoluent au fil du temps.",
+  "appTourRestartTitle": "Voir la visite guidée",
+  "appTourRestartSubtitle": "Revoir l'introduction et les fonctionnalités clés",
   "onbSetGoalsCta": "Fixer des objectifs",
   "@onbSetGoalsCta": {
     "description": "Optional CTA linking to Goals screen from onboarding"

@@ -31,6 +31,7 @@ import '../../onboarding/presentation/initial_consent_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../widgets/common/app_button.dart';
+import '../../../services/app_tour_service.dart';
 import '../../../services/telemetry/telemetry_service.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -603,6 +604,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
           SummaryCard(
             child: Column(
               children: [
+                _buildNavigationCard(
+                  context: context,
+                  icon: LucideIcons.sparkles,
+                  title: l10n.appTourRestartTitle,
+                  subtitle: l10n.appTourRestartSubtitle,
+                  tileKey: const Key('settings_restart_app_tour_tile'),
+                  onTap: () async {
+                    await AppTourService.instance.requestRestartFromSettings();
+                    if (!context.mounted) return;
+                    Navigator.of(context).popUntil((route) => route.isFirst);
+                  },
+                  wrapInCard: false,
+                ),
+                const Divider(height: 1),
                 _buildNavigationCard(
                   context: context,
                   icon: LucideIcons.message_square,

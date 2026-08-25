@@ -641,6 +641,8 @@
   "appTourStepNutritionBody": "Im Ernährungsbereich planst du Mahlzeiten, prüfst Ziele und nutzt Tools wie Meal-Vorlagen.",
   "appTourStepStatisticsTitle": "Statistiken",
   "appTourStepStatisticsBody": "Die Statistiken zeigen Trends und Fortschritt, damit du Veränderungen besser verstehst.",
+  "appTourRestartTitle": "App-Tour ansehen",
+  "appTourRestartSubtitle": "Einführung und wichtige Bereiche erneut durchgehen",
   "onbSetGoalsCta": "Ziele festlegen",
   "@onbSetGoalsCta": {
     "description": "Optionale CTA-Verknüpfung zur Ziele-Seite im Onboarding"

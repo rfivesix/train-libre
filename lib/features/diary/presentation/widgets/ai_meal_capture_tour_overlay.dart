@@ -39,11 +39,29 @@ class AiMealCaptureTourOverlay extends StatelessWidget {
         : DesignConstants.brandAccentColorLightMode;
 
     final holes = targetRects.map((rect) {
-      final isCircular = (rect.width - rect.height).abs() <= 6;
-      final radius = isCircular
-          ? Radius.circular(rect.width / 2)
-          : (rect.width > 120 ? const Radius.circular(16) : const Radius.circular(18));
-      return RRect.fromRectAndRadius(rect.inflate(4), radius);
+      final isShutterCircle =
+          (rect.width - rect.height).abs() <= 6 && rect.width >= 58;
+      if (isShutterCircle) {
+        final inflated = rect.inflate(4);
+        return RRect.fromRectAndRadius(
+          inflated,
+          Radius.circular(inflated.width / 2),
+        );
+      }
+      final isBanner = rect.width > 120;
+      if (isBanner) {
+        // Generous padding for banner horizontally and on top, without bleeding downwards into buttons
+        final adjustedRect = Rect.fromLTRB(
+          rect.left - 4,
+          rect.top - 4,
+          rect.right + 4,
+          rect.bottom + 1,
+        );
+        return RRect.fromRectAndRadius(adjustedRect, const Radius.circular(22));
+      }
+      // Squircle secondary buttons (48x48 rounded rectangles with 16px radius)
+      final inflated = rect.inflate(4.5);
+      return RRect.fromRectAndRadius(inflated, const Radius.circular(19));
     }).toList();
 
     return Material(
@@ -51,16 +69,11 @@ class AiMealCaptureTourOverlay extends StatelessWidget {
       color: Colors.transparent,
       child: Stack(
         children: [
-          // 1. Strong frosted-glass blur & darkened backdrop with cutouts for focused items
+          // 1. Frosted-glass blur & dark tint with soft feathered falloff around the focused item
           Positioned.fill(
-            child: ClipPath(
-              clipper: _InvertedHolesClipper(holes: holes),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
-                child: Container(
-                  color: Colors.black.withValues(alpha: isDark ? 0.62 : 0.48),
-                ),
-              ),
+            child: _FeatheredBackdropLayer(
+              holes: holes,
+              isDark: isDark,
             ),
           ),
 
@@ -238,27 +251,71 @@ class AiMealCaptureTourOverlay extends StatelessWidget {
   }
 }
 
-class _InvertedHolesClipper extends CustomClipper<Path> {
+/// Renders a frosted-glass backdrop filter with soft, silky feathered gradient
+/// cutouts for each focused hole using GPU offscreen shader masking.
+class _FeatheredBackdropLayer extends StatelessWidget {
   final List<RRect> holes;
+  final bool isDark;
 
-  _InvertedHolesClipper({required this.holes});
-
-  @override
-  Path getClip(Size size) {
-    final path = Path()..addRect(Offset.zero & size);
-    for (final hole in holes) {
-      path.addRRect(hole);
-    }
-    path.fillType = PathFillType.evenOdd;
-    return path;
-  }
+  const _FeatheredBackdropLayer({
+    required this.holes,
+    required this.isDark,
+  });
 
   @override
-  bool shouldReclip(covariant _InvertedHolesClipper oldClipper) {
-    if (oldClipper.holes.length != holes.length) return true;
-    for (int i = 0; i < holes.length; i++) {
-      if (oldClipper.holes[i] != holes[i]) return true;
+  Widget build(BuildContext context) {
+    if (holes.isEmpty) {
+      return BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+        child: Container(
+          color: Colors.black.withValues(alpha: isDark ? 0.62 : 0.48),
+        ),
+      );
     }
-    return false;
+
+    return ShaderMask(
+      blendMode: BlendMode.dstIn,
+      shaderCallback: (bounds) {
+        final recorder = PictureRecorder();
+        final canvas = Canvas(recorder, bounds);
+
+        // 1. Fill entire screen with solid white (opaque = full blur & dim)
+        canvas.drawRect(bounds, Paint()..color = Colors.white);
+
+        // 2. Carve out holes with smooth feathered gradient falloff
+        for (final hole in holes) {
+          // Fully clear center
+          final corePaint = Paint()
+            ..color = Colors.black
+            ..blendMode = BlendMode.dstOut;
+          canvas.drawRRect(hole.deflate(6), corePaint);
+
+          // Soft Gaussian feathering around the perimeter (14px smooth transition)
+          final featherPaint = Paint()
+            ..color = Colors.black
+            ..blendMode = BlendMode.dstOut
+            ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 14.0);
+          canvas.drawRRect(hole, featherPaint);
+        }
+
+        final picture = recorder.endRecording();
+        final img = picture.toImageSync(
+          bounds.width.toInt().clamp(1, 4096),
+          bounds.height.toInt().clamp(1, 4096),
+        );
+        return ImageShader(
+          img,
+          TileMode.clamp,
+          TileMode.clamp,
+          Matrix4.identity().storage,
+        );
+      },
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+        child: Container(
+          color: Colors.black.withValues(alpha: isDark ? 0.62 : 0.48),
+        ),
+      ),
+    );
   }
 }

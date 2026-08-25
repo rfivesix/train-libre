@@ -1490,9 +1490,9 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
   Widget _buildDemoBarcodeBanner(AppLocalizations l10n, Color primaryAccent) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
-      key: _keyBarcodeBanner,
       padding: const EdgeInsets.only(bottom: DesignConstants.spacingM),
       child: Material(
+        key: _keyBarcodeBanner,
         color: isDark ? const Color(0xFF1E1E1E) : const Color(0xFFEFEFE8),
         borderRadius: BorderRadius.circular(20),
         child: Container(

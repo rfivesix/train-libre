@@ -1601,6 +1601,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'Statistics shows trends and progress so you can understand how your data changes over time.';
 
   @override
+  String get appTourRestartTitle => 'View App Tour';
+
+  @override
+  String get appTourRestartSubtitle =>
+      'Review the introduction and key features';
+
+  @override
   String get onbSetGoalsCta => 'Set goals';
 
   @override

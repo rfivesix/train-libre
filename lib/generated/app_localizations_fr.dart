@@ -1620,6 +1620,13 @@ class AppLocalizationsFr extends AppLocalizations {
       'Les statistiques montrent les tendances et les progrès afin que vous puissiez comprendre comment vos données évoluent au fil du temps.';
 
   @override
+  String get appTourRestartTitle => 'Voir la visite guidée';
+
+  @override
+  String get appTourRestartSubtitle =>
+      'Revoir l\'introduction et les fonctionnalités clés';
+
+  @override
   String get onbSetGoalsCta => 'Fixer des objectifs';
 
   @override

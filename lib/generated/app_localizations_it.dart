@@ -1611,6 +1611,13 @@ class AppLocalizationsIt extends AppLocalizations {
       'Le statistiche mostrano tendenze e progressi in modo che tu possa capire come cambiano i tuoi dati nel tempo.';
 
   @override
+  String get appTourRestartTitle => 'Guarda il tour dell\'app';
+
+  @override
+  String get appTourRestartSubtitle =>
+      'Rivedi l\'introduzione e le funzioni principali';
+
+  @override
   String get onbSetGoalsCta => 'Stabilisci obiettivi';
 
   @override

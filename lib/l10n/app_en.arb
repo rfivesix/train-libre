@@ -640,6 +640,8 @@
   "appTourStepNutritionBody": "Nutrition helps you plan meals, review targets, and access tools like meal templates.",
   "appTourStepStatisticsTitle": "Statistics",
   "appTourStepStatisticsBody": "Statistics shows trends and progress so you can understand how your data changes over time.",
+  "appTourRestartTitle": "View App Tour",
+  "appTourRestartSubtitle": "Review the introduction and key features",
   "onbSetGoalsCta": "Set goals",
   "@onbSetGoalsCta": {
     "description": "Optional CTA linking to Goals screen from onboarding"

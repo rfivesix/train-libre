@@ -2870,6 +2870,18 @@ abstract class AppLocalizations {
   /// **'Statistics shows trends and progress so you can understand how your data changes over time.'**
   String get appTourStepStatisticsBody;
 
+  /// No description provided for @appTourRestartTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'View App Tour'**
+  String get appTourRestartTitle;
+
+  /// No description provided for @appTourRestartSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Review the introduction and key features'**
+  String get appTourRestartSubtitle;
+
   /// Optional CTA linking to Goals screen from onboarding
   ///
   /// In en, this message translates to:
