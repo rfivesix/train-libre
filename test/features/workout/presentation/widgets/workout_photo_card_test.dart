@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -9,6 +10,7 @@ import 'package:path/path.dart' as p;
 import 'package:train_libre/core/media/app_media_store.dart';
 import 'package:train_libre/features/workout/presentation/widgets/workout_photo_card.dart';
 import 'package:train_libre/generated/app_localizations.dart';
+import 'package:train_libre/widgets/common/app_button.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -116,6 +118,48 @@ void main() {
       expect(find.byIcon(LucideIcons.trash_2), findsOneWidget);
       // Add buttons (bottom right) are hidden because photo count is 4
       expect(find.byIcon(LucideIcons.camera), findsNothing);
+    });
+
+    testWidgets(
+        'shows glass bottom menu on delete and calls onPhotosChanged on confirm',
+        (tester) async {
+      await tester.binding.setSurfaceSize(const Size(800, 1200));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final testImageBytes = base64Decode(
+        'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
+      );
+
+      write('media/workouts/p1.jpg', testImageBytes);
+      write('media/workouts/p2.jpg', testImageBytes);
+
+      List<String>? updatedResult;
+
+      await tester.pumpWidget(
+        createWidget(
+          photoPaths: ['media/workouts/p1.jpg', 'media/workouts/p2.jpg'],
+          isEditable: true,
+          onPhotosChanged: (paths) => updatedResult = paths,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byIcon(LucideIcons.trash_2), findsOneWidget);
+      await tester.tap(find.byIcon(LucideIcons.trash_2));
+      await tester.pumpAndSettle();
+
+      // Glass bottom menu is shown with title and confirm button
+      expect(find.text('Remove photo'), findsOneWidget);
+      expect(find.text('Delete'), findsOneWidget);
+      expect(find.text('Cancel'), findsOneWidget);
+
+      // Tap Delete in glass bottom menu
+      final deleteBtn =
+          tester.widgetList<AppButton>(find.byType(AppButton)).last;
+      deleteBtn.onPressed?.call();
+      await tester.pumpAndSettle();
+
+      expect(updatedResult, ['media/workouts/p2.jpg']);
     });
   });
 }

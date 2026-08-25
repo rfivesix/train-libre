@@ -527,7 +527,6 @@ Future<bool> showDeleteConfirmation(
               Expanded(
                 child: AppButton.secondary(
                   onPressed: () {
-                    close();
                     Navigator.of(ctx).pop(false);
                   },
                   label: l10n.cancel,
@@ -538,7 +537,6 @@ Future<bool> showDeleteConfirmation(
               Expanded(
                 child: AppButton.danger(
                   onPressed: () {
-                    close();
                     Navigator.of(ctx).pop(true);
                   },
                   label: effectiveConfirmLabel,
@@ -591,7 +589,6 @@ Future<ActiveWorkoutConflictResult> showActiveWorkoutConflictDialog(
               Expanded(
                 child: AppButton.secondary(
                   onPressed: () {
-                    close();
                     Navigator.of(ctx).pop(ActiveWorkoutConflictResult.cancel);
                   },
                   label: l10n.cancel,
@@ -602,7 +599,6 @@ Future<ActiveWorkoutConflictResult> showActiveWorkoutConflictDialog(
               Expanded(
                 child: AppButton.danger(
                   onPressed: () {
-                    close();
                     Navigator.of(ctx).pop(ActiveWorkoutConflictResult.discard);
                   },
                   label: l10n.discardButton,
@@ -616,7 +612,6 @@ Future<ActiveWorkoutConflictResult> showActiveWorkoutConflictDialog(
             width: double.infinity,
             child: AppButton.primary(
               onPressed: () {
-                close();
                 Navigator.of(ctx).pop(ActiveWorkoutConflictResult.resume);
               },
               label: l10n.resumeWorkoutButton,

@@ -7,6 +7,7 @@ import 'package:image_picker/image_picker.dart';
 
 import '../../../../generated/app_localizations.dart';
 import '../../../../util/design_constants.dart';
+import '../../../app/presentation/widgets/glass_bottom_menu.dart';
 import '../../data/sources/workout_local_data_source.dart';
 import '../../data/workout_photo_store.dart';
 
@@ -160,30 +161,15 @@ class _WorkoutPhotoCardState extends State<WorkoutPhotoCard> {
   Future<void> _confirmDeletePhoto(int index) async {
     if (index < 0 || index >= widget.photoPaths.length) return;
     final l10n = AppLocalizations.of(context)!;
-    final theme = Theme.of(context);
 
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(l10n.workoutPhotoRemove),
-        content: Text(l10n.workoutPhotoRemoveConfirm),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: Text(l10n.cancel),
-          ),
-          FilledButton(
-            style: FilledButton.styleFrom(
-              backgroundColor: theme.colorScheme.error,
-            ),
-            onPressed: () => Navigator.of(ctx).pop(true),
-            child: Text(l10n.delete),
-          ),
-        ],
-      ),
+    final confirm = await showDeleteConfirmation(
+      context,
+      title: l10n.workoutPhotoRemove,
+      content: l10n.workoutPhotoRemoveConfirm,
+      confirmLabel: l10n.delete,
     );
 
-    if (confirm != true || !mounted) return;
+    if (!confirm || !mounted) return;
 
     final pathToDelete = widget.photoPaths[index];
     final updated = List<String>.from(widget.photoPaths)..removeAt(index);

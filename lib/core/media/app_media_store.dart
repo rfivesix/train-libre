@@ -173,7 +173,7 @@ class AppMediaStore {
         final file = await resolve(target);
         if (file == null) continue;
         try {
-          if (await file.exists()) await file.delete();
+          if (file.existsSync()) file.deleteSync();
         } catch (e) {
           debugPrint('[AppMediaStore] delete failed for $target: $e');
         }
