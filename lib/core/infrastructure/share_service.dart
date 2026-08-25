@@ -13,7 +13,10 @@ import '../../features/diary/domain/models/food_item.dart';
 import '../../features/workout/domain/models/set_log.dart';
 import '../../features/workout/data/sources/workout_local_data_source.dart';
 import '../../features/sleep/data/repository/sleep_query_repository.dart';
+import '../../features/supplements/domain/models/supplement.dart';
+import '../../features/supplements/domain/models/supplement_log.dart';
 import '../../util/date_util.dart';
+import '../../util/supplement_l10n.dart';
 import '../../generated/app_localizations.dart';
 import '../../features/sleep/data/persistence/dao/sleep_canonical_dao.dart';
 import '../../services/unit_service.dart';
@@ -103,21 +106,33 @@ class ShareService {
     final fluidEntries =
         await dbHelper.diaryLocalDataSource.getFluidEntriesForDate(targetDate);
 
-    // 3. Fetch Workouts
+    // 3. Fetch Supplements (definitions valid for the day + logged intake)
+    final supplementLogs = await dbHelper.supplementLocalDataSource
+        .getSupplementLogsForDate(targetDate);
+    final supplementsForDate = supplementLogs.isEmpty
+        ? const <Supplement>[]
+        : await dbHelper.supplementLocalDataSource
+            .getSupplementsForDate(targetDate);
+    final supplementsById = <int, Supplement>{
+      for (final s in supplementsForDate)
+        if (s.id != null) s.id!: s,
+    };
+
+    // 4. Fetch Workouts
     final workouts = await dbHelper.workoutLocalDataSource
         .getWorkoutLogsForDateRange(start, end);
 
-    // 4. Fetch Sleep
+    // 5. Fetch Sleep
     final sleepRepo = DriftSleepQueryRepository(database: dbHelper.dbInstance);
     final sleepAnalysis = await sleepRepo.getNightlyAnalysisByDate(targetDate);
 
-    // 5. Fetch Measurements (Metrics)
+    // 6. Fetch Measurements (Metrics)
     final sessions =
         await dbHelper.profileLocalDataSource.getMeasurementSessions();
     final dailySessions =
         sessions.where((s) => s.timestamp.isSameDate(targetDate)).toList();
 
-    // 6. Fetch Goals
+    // 7. Fetch Goals
     final goalsData = await dbHelper.getGoalsForDate(targetDate);
     final targetSugar =
         await UserPreferencesRepository.instance.getTargetSugar() ?? 50;
@@ -127,6 +142,8 @@ class ShareService {
         l10n?.shareDailyLogTitle ?? '[l10n:shareDailyLogTitle]';
     final headerNutrition =
         l10n?.nutritionHubTitle ?? '[l10n:nutritionHubTitle]';
+    final headerSupplements =
+        l10n?.supplementTrackerTitle ?? '[l10n:supplementTrackerTitle]';
     final headerWorkouts = l10n?.workoutsLabel ?? '[l10n:workoutsLabel]';
     final headerSleep = l10n?.sleepSectionTitle ?? '[l10n:sleepSectionTitle]';
     final headerMetrics =
@@ -161,6 +178,9 @@ class ShareService {
     final labelSleepHeartRate =
         l10n?.shareSleepRestingHeartRate ?? '[l10n:shareSleepRestingHeartRate]';
 
+    final labelDailyGoal = l10n?.dailyGoalLabel ?? '[l10n:dailyGoalLabel]';
+    final labelDailyLimit = l10n?.dailyLimitLabel ?? '[l10n:dailyLimitLabel]';
+
     final labelNotes = l10n?.notesLabel ?? '[l10n:notesLabel]';
     final labelReps = l10n?.repsLabelShort ?? '[l10n:repsLabelShort]';
     final labelWeight = unitService.suffixFor(UnitDimension.weight);
@@ -170,7 +190,7 @@ class ShareService {
     final unitG = l10n?.unit_grams ?? '[l10n:unit_grams]';
     final unitMl = l10n?.unit_milliliters ?? '[l10n:unit_milliliters]';
 
-    // 7. Build the Markdown content
+    // 8. Build the Markdown content
     final buffer = StringBuffer();
 
     // Date Header
@@ -312,6 +332,59 @@ class ShareService {
       final targetWater = goalsData?.targetWater ?? 3000;
       buffer.writeln(
           '- $labelWater: ${totalWater.round()} / $targetWater $unitMl\n');
+    }
+
+    // Section: Supplements
+    buffer.writeln('## $headerSupplements');
+    if (supplementLogs.isEmpty) {
+      final labelNoSupplements =
+          l10n?.nothingTrackedYet ?? '[l10n:nothingTrackedYet]';
+      buffer.writeln('$labelNoSupplements\n');
+    } else {
+      // Group the day's intake by supplement, keeping each single log visible.
+      final logsBySupplement = <int, List<SupplementLog>>{};
+      for (final log in supplementLogs) {
+        logsBySupplement.putIfAbsent(log.supplementId, () => []).add(log);
+      }
+
+      String nameFor(int supplementId) {
+        final supplement = supplementsById[supplementId];
+        if (supplement == null) return '#$supplementId';
+        return l10n != null
+            ? localizeSupplementName(supplement, l10n)
+            : supplement.name;
+      }
+
+      final supplementIds = logsBySupplement.keys.toList()
+        ..sort((a, b) =>
+            nameFor(a).toLowerCase().compareTo(nameFor(b).toLowerCase()));
+
+      for (final supplementId in supplementIds) {
+        final logs = logsBySupplement[supplementId]!
+          ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
+        final supplement = supplementsById[supplementId];
+        final unit = logs.first.unit;
+        final total = logs.fold<double>(0, (sum, log) => sum + log.dose);
+
+        final goal = supplement?.dailyGoal;
+        final limit = supplement?.dailyLimit;
+        final targetStr = goal != null
+            ? ' / ${_formatDose(goal)}'
+            : (limit != null ? ' / ${_formatDose(limit)}' : '');
+        final targetLabel = goal != null
+            ? ' ($labelDailyGoal)'
+            : (limit != null ? ' ($labelDailyLimit)' : '');
+
+        buffer.writeln(
+            '- ${nameFor(supplementId)}: ${_formatDose(total)}$targetStr $unit$targetLabel');
+        if (logs.length > 1) {
+          for (final log in logs) {
+            buffer.writeln(
+                '  - ${_formatTime(log.timestamp)}: ${_formatDose(log.dose)} ${log.unit}');
+          }
+        }
+      }
+      buffer.writeln();
     }
 
     // Section: Workouts
@@ -549,6 +622,10 @@ class ShareService {
         if (key.isEmpty) return key;
         return key[0].toUpperCase() + key.substring(1).replaceAll('_', ' ');
     }
+  }
+
+  String _formatDose(double value) {
+    return value.toStringAsFixed(2).replaceAll(RegExp(r'\.?0+$'), '');
   }
 
   String _formatTime(DateTime dt) {
