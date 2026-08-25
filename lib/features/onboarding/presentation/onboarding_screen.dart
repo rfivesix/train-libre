@@ -6,7 +6,6 @@ import '../../../util/design_constants.dart';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:provider/provider.dart';
-import '../../../main.dart' as app_main;
 import '../../../core/infrastructure/backup_manager.dart';
 import '../../../core/infrastructure/basis_data_manager.dart';
 import '../../../data/database_helper.dart';
