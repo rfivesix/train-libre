@@ -6133,4 +6133,56 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get speechOnDeviceBody =>
       'Spoken meals (“2 eggs with toast and coffee”) are turned into text directly on your device and stay private.';
+
+  @override
+  String get aiCaptureTourStepShutterTitle => 'Capture Meal Photos';
+
+  @override
+  String get aiCaptureTourStepShutterDesc =>
+      'Take up to 4 photos of your meal from different angles with the shutter. On supported devices, LiDAR automatically captures depth data for even more accurate portion estimates.';
+
+  @override
+  String get aiCaptureTourStepBarcodeTitle => 'Automatic Barcode Detection';
+
+  @override
+  String get aiCaptureTourStepBarcodeDesc =>
+      'Hold packaged foods in front of the camera – barcodes are automatically recognized in real time. Use this button to toggle the live scanner on or off anytime.';
+
+  @override
+  String get aiCaptureTourBarcodeDemoProduct => 'Organic Rolled Oats 500g';
+
+  @override
+  String get aiCaptureTourBarcodeDemoHint =>
+      'Here\'s what it looks like when you scan a barcode!';
+
+  @override
+  String get aiCaptureTourStepGalleryTitle => 'Select from Library';
+
+  @override
+  String get aiCaptureTourStepGalleryDesc =>
+      'Already took photos of your meal? Choose up to 4 images directly from your photo library.';
+
+  @override
+  String get aiCaptureTourStepVoiceTitle => 'Voice Dictation';
+
+  @override
+  String get aiCaptureTourStepVoiceDesc =>
+      'Tap the microphone to dictate ingredients, brands, or amounts (e.g. \'200g chicken breast with rice\'). AI tidies and analyzes your speech automatically.';
+
+  @override
+  String get aiCaptureTourStepTextTitle => 'Text & Notes';
+
+  @override
+  String get aiCaptureTourStepTextDesc =>
+      'Add written notes or describe your meal purely via text if you don\'t want to take a photo.';
+
+  @override
+  String get aiCaptureTourStepAnalyzeTitle => 'Smart AI Analysis';
+
+  @override
+  String get aiCaptureTourStepAnalyzeDesc =>
+      'Once a photo, voice transcript, or text is ready, tap Analyze. The AI identifies food items, estimates portions, and matches everything against your nutrition targets.';
+
+  @override
+  String get aiCaptureTourReplayTooltip => 'Replay capture guide';
 }

@@ -2720,5 +2720,20 @@
   "mealPhotoDeleted": "Photos supprimées.",
   "speechSectionTitle": "Saisie vocale et dictée",
   "speechOnDeviceActive": "Reconnaissance vocale sur l’appareil active",
-  "speechOnDeviceBody": "Les repas dictés (« 2 œufs avec pain grillé et café ») sont transcrits directement sur ton appareil et restent privés."
+  "speechOnDeviceBody": "Les repas dictés (« 2 œufs avec pain grillé et café ») sont transcrits directement sur ton appareil et restent privés.",
+  "aiCaptureTourStepShutterTitle": "Photographier le repas",
+  "aiCaptureTourStepShutterDesc": "Prends jusqu'à 4 photos sous différents angles avec le déclencheur. Sur les appareils compatibles, le LiDAR capture automatiquement les données de profondeur.",
+  "aiCaptureTourStepBarcodeTitle": "Détection automatique de code-barres",
+  "aiCaptureTourStepBarcodeDesc": "Place les aliments emballés devant la caméra : le code-barres est reconnu instantanément en temps réel. Ce bouton permet d'activer ou désactiver le scanner.",
+  "aiCaptureTourBarcodeDemoProduct": "Flocons d'avoine bio 500g",
+  "aiCaptureTourBarcodeDemoHint": "Voici comment s'affiche la détection de code-barres !",
+  "aiCaptureTourStepGalleryTitle": "Photos depuis la galerie",
+  "aiCaptureTourStepGalleryDesc": "Tu as déjà pris des photos ? Sélectionne jusqu'à 4 images directement depuis ta photothèque.",
+  "aiCaptureTourStepVoiceTitle": "Dictée vocale",
+  "aiCaptureTourStepVoiceDesc": "Appuie sur le micro pour énoncer ingrédients, marques ou portions (ex. « 200g de poulet avec du riz »). L'IA nettoie et analyse ton dictat automatiquement.",
+  "aiCaptureTourStepTextTitle": "Texte et notes",
+  "aiCaptureTourStepTextDesc": "Ajoute des précisions ou décris ton repas entièrement par texte si tu ne souhaites pas prendre de photo.",
+  "aiCaptureTourStepAnalyzeTitle": "Analyse IA intelligente",
+  "aiCaptureTourStepAnalyzeDesc": "Dès qu'une photo, dictée ou note est prête, appuie sur Analyser. L'IA détecte les aliments, estime les portions et fait le lien avec tes macros.",
+  "aiCaptureTourReplayTooltip": "Revoir l'introduction"
 }

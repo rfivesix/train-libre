@@ -6222,4 +6222,58 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get speechOnDeviceBody =>
       'I pasti dettati («2 uova con toast e caffè») vengono trascritti direttamente sul dispositivo e restano privati.';
+
+  @override
+  String get aiCaptureTourStepShutterTitle => 'Fotografa il pasto';
+
+  @override
+  String get aiCaptureTourStepShutterDesc =>
+      'Scatta fino a 4 foto da diverse angolazioni con il pulsante di scatto. Sui dispositivi supportati, il LiDAR rileva automaticamente i dati di profondità.';
+
+  @override
+  String get aiCaptureTourStepBarcodeTitle =>
+      'Riconoscimento automatico del codice a barre';
+
+  @override
+  String get aiCaptureTourStepBarcodeDesc =>
+      'Inquadra gli alimenti confezionati: il codice a barre viene riconosciuto all\'istante in tempo reale. Puoi attivare o disattivare lo scanner con questo pulsante.';
+
+  @override
+  String get aiCaptureTourBarcodeDemoProduct =>
+      'Fiocchi d\'avena biologici 500g';
+
+  @override
+  String get aiCaptureTourBarcodeDemoHint =>
+      'Ecco come appare la scansione del codice a barre!';
+
+  @override
+  String get aiCaptureTourStepGalleryTitle => 'Foto dalla galleria';
+
+  @override
+  String get aiCaptureTourStepGalleryDesc =>
+      'Hai già scattato delle foto? Scegli fino a 4 immagini direttamente dalla tua libreria.';
+
+  @override
+  String get aiCaptureTourStepVoiceTitle => 'Dettatura vocale';
+
+  @override
+  String get aiCaptureTourStepVoiceDesc =>
+      'Tocca il microfono per dettare ingredienti, marche o porzioni (es. «200g petto di pollo con riso»). L\'IA pulisce e analizza la registrazione automaticamente.';
+
+  @override
+  String get aiCaptureTourStepTextTitle => 'Testo e note';
+
+  @override
+  String get aiCaptureTourStepTextDesc =>
+      'Aggiungi dettagli scritti o descrivi il tuo pasto solo tramite testo se preferisci non scattare foto.';
+
+  @override
+  String get aiCaptureTourStepAnalyzeTitle => 'Analisi IA intelligente';
+
+  @override
+  String get aiCaptureTourStepAnalyzeDesc =>
+      'Non appena foto, dettatura o testo sono pronti, tocca Analizza. L\'IA riconosce gli alimenti, stima i grammi e calcola i tuoi macronutrienti.';
+
+  @override
+  String get aiCaptureTourReplayTooltip => 'Rivedi l\'introduzione';
 }

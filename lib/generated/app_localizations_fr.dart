@@ -6239,4 +6239,57 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get speechOnDeviceBody =>
       'Les repas dictés (« 2 œufs avec pain grillé et café ») sont transcrits directement sur ton appareil et restent privés.';
+
+  @override
+  String get aiCaptureTourStepShutterTitle => 'Photographier le repas';
+
+  @override
+  String get aiCaptureTourStepShutterDesc =>
+      'Prends jusqu\'à 4 photos sous différents angles avec le déclencheur. Sur les appareils compatibles, le LiDAR capture automatiquement les données de profondeur.';
+
+  @override
+  String get aiCaptureTourStepBarcodeTitle =>
+      'Détection automatique de code-barres';
+
+  @override
+  String get aiCaptureTourStepBarcodeDesc =>
+      'Place les aliments emballés devant la caméra : le code-barres est reconnu instantanément en temps réel. Ce bouton permet d\'activer ou désactiver le scanner.';
+
+  @override
+  String get aiCaptureTourBarcodeDemoProduct => 'Flocons d\'avoine bio 500g';
+
+  @override
+  String get aiCaptureTourBarcodeDemoHint =>
+      'Voici comment s\'affiche la détection de code-barres !';
+
+  @override
+  String get aiCaptureTourStepGalleryTitle => 'Photos depuis la galerie';
+
+  @override
+  String get aiCaptureTourStepGalleryDesc =>
+      'Tu as déjà pris des photos ? Sélectionne jusqu\'à 4 images directement depuis ta photothèque.';
+
+  @override
+  String get aiCaptureTourStepVoiceTitle => 'Dictée vocale';
+
+  @override
+  String get aiCaptureTourStepVoiceDesc =>
+      'Appuie sur le micro pour énoncer ingrédients, marques ou portions (ex. « 200g de poulet avec du riz »). L\'IA nettoie et analyse ton dictat automatiquement.';
+
+  @override
+  String get aiCaptureTourStepTextTitle => 'Texte et notes';
+
+  @override
+  String get aiCaptureTourStepTextDesc =>
+      'Ajoute des précisions ou décris ton repas entièrement par texte si tu ne souhaites pas prendre de photo.';
+
+  @override
+  String get aiCaptureTourStepAnalyzeTitle => 'Analyse IA intelligente';
+
+  @override
+  String get aiCaptureTourStepAnalyzeDesc =>
+      'Dès qu\'une photo, dictée ou note est prête, appuie sur Analyser. L\'IA détecte les aliments, estime les portions et fait le lien avec tes macros.';
+
+  @override
+  String get aiCaptureTourReplayTooltip => 'Revoir l\'introduction';
 }

@@ -10716,6 +10716,96 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Spoken meals (“2 eggs with toast and coffee”) are turned into text directly on your device and stay private.'**
   String get speechOnDeviceBody;
+
+  /// No description provided for @aiCaptureTourStepShutterTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Capture Meal Photos'**
+  String get aiCaptureTourStepShutterTitle;
+
+  /// No description provided for @aiCaptureTourStepShutterDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Take up to 4 photos of your meal from different angles with the shutter. On supported devices, LiDAR automatically captures depth data for even more accurate portion estimates.'**
+  String get aiCaptureTourStepShutterDesc;
+
+  /// No description provided for @aiCaptureTourStepBarcodeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatic Barcode Detection'**
+  String get aiCaptureTourStepBarcodeTitle;
+
+  /// No description provided for @aiCaptureTourStepBarcodeDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Hold packaged foods in front of the camera – barcodes are automatically recognized in real time. Use this button to toggle the live scanner on or off anytime.'**
+  String get aiCaptureTourStepBarcodeDesc;
+
+  /// No description provided for @aiCaptureTourBarcodeDemoProduct.
+  ///
+  /// In en, this message translates to:
+  /// **'Organic Rolled Oats 500g'**
+  String get aiCaptureTourBarcodeDemoProduct;
+
+  /// No description provided for @aiCaptureTourBarcodeDemoHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Here\'s what it looks like when you scan a barcode!'**
+  String get aiCaptureTourBarcodeDemoHint;
+
+  /// No description provided for @aiCaptureTourStepGalleryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Select from Library'**
+  String get aiCaptureTourStepGalleryTitle;
+
+  /// No description provided for @aiCaptureTourStepGalleryDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Already took photos of your meal? Choose up to 4 images directly from your photo library.'**
+  String get aiCaptureTourStepGalleryDesc;
+
+  /// No description provided for @aiCaptureTourStepVoiceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice Dictation'**
+  String get aiCaptureTourStepVoiceTitle;
+
+  /// No description provided for @aiCaptureTourStepVoiceDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap the microphone to dictate ingredients, brands, or amounts (e.g. \'200g chicken breast with rice\'). AI tidies and analyzes your speech automatically.'**
+  String get aiCaptureTourStepVoiceDesc;
+
+  /// No description provided for @aiCaptureTourStepTextTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Text & Notes'**
+  String get aiCaptureTourStepTextTitle;
+
+  /// No description provided for @aiCaptureTourStepTextDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Add written notes or describe your meal purely via text if you don\'t want to take a photo.'**
+  String get aiCaptureTourStepTextDesc;
+
+  /// No description provided for @aiCaptureTourStepAnalyzeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Smart AI Analysis'**
+  String get aiCaptureTourStepAnalyzeTitle;
+
+  /// No description provided for @aiCaptureTourStepAnalyzeDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Once a photo, voice transcript, or text is ready, tap Analyze. The AI identifies food items, estimates portions, and matches everything against your nutrition targets.'**
+  String get aiCaptureTourStepAnalyzeDesc;
+
+  /// No description provided for @aiCaptureTourReplayTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Replay capture guide'**
+  String get aiCaptureTourReplayTooltip;
 }
 
 class _AppLocalizationsDelegate

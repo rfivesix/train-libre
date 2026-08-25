@@ -5933,4 +5933,55 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String get speechOnDeviceBody =>
       '話した食事（「卵2個とトーストとコーヒー」）は端末内でテキストに変換され、外部に出ません。';
+
+  @override
+  String get aiCaptureTourStepShutterTitle => '食事を撮影';
+
+  @override
+  String get aiCaptureTourStepShutterDesc =>
+      'シャッターボタンで異なる角度から最大4枚の写真を撮影できます。対応端末ではLiDARが自動で深度データを取得し、より正確に量を推定します。';
+
+  @override
+  String get aiCaptureTourStepBarcodeTitle => '自動バーコード認識';
+
+  @override
+  String get aiCaptureTourStepBarcodeDesc =>
+      'パッケージ食品をカメラに向けるとバーコードをリアルタイムで自動認識します。このボタンでスキャナーをオン/オフできます。';
+
+  @override
+  String get aiCaptureTourBarcodeDemoProduct => '有機オートミール 500g';
+
+  @override
+  String get aiCaptureTourBarcodeDemoHint => 'バーコードをスキャンするとこのように表示されます！';
+
+  @override
+  String get aiCaptureTourStepGalleryTitle => 'ライブラリから選択';
+
+  @override
+  String get aiCaptureTourStepGalleryDesc =>
+      'すでに撮影済みの写真がありますか？フォトライブラリから最大4枚を直接選択できます。';
+
+  @override
+  String get aiCaptureTourStepVoiceTitle => '音声入力・口述';
+
+  @override
+  String get aiCaptureTourStepVoiceDesc =>
+      'マイクをタップして材料や量（例：「チキン200gとご飯」）を話すと、AIが自動で整理・解析します。';
+
+  @override
+  String get aiCaptureTourStepTextTitle => 'テキスト・メモ入力';
+
+  @override
+  String get aiCaptureTourStepTextDesc =>
+      '写真の代わりにテキストだけで食事内容を入力したり、補足メモを追加できます。';
+
+  @override
+  String get aiCaptureTourStepAnalyzeTitle => 'スマートAI解析';
+
+  @override
+  String get aiCaptureTourStepAnalyzeDesc =>
+      '写真・音声・テキストが揃ったら「解析」をタップ。AIが食品を特定し、栄養目標と照合します。';
+
+  @override
+  String get aiCaptureTourReplayTooltip => '案内をもう一度見る';
 }

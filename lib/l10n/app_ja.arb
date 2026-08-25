@@ -2720,5 +2720,20 @@
   "mealPhotoDeleted": "写真を削除しました。",
   "speechSectionTitle": "音声入力・口述",
   "speechOnDeviceActive": "端末内の音声認識が有効",
-  "speechOnDeviceBody": "話した食事（「卵2個とトーストとコーヒー」）は端末内でテキストに変換され、外部に出ません。"
+  "speechOnDeviceBody": "話した食事（「卵2個とトーストとコーヒー」）は端末内でテキストに変換され、外部に出ません。",
+  "aiCaptureTourStepShutterTitle": "食事を撮影",
+  "aiCaptureTourStepShutterDesc": "シャッターボタンで異なる角度から最大4枚の写真を撮影できます。対応端末ではLiDARが自動で深度データを取得し、より正確に量を推定します。",
+  "aiCaptureTourStepBarcodeTitle": "自動バーコード認識",
+  "aiCaptureTourStepBarcodeDesc": "パッケージ食品をカメラに向けるとバーコードをリアルタイムで自動認識します。このボタンでスキャナーをオン/オフできます。",
+  "aiCaptureTourBarcodeDemoProduct": "有機オートミール 500g",
+  "aiCaptureTourBarcodeDemoHint": "バーコードをスキャンするとこのように表示されます！",
+  "aiCaptureTourStepGalleryTitle": "ライブラリから選択",
+  "aiCaptureTourStepGalleryDesc": "すでに撮影済みの写真がありますか？フォトライブラリから最大4枚を直接選択できます。",
+  "aiCaptureTourStepVoiceTitle": "音声入力・口述",
+  "aiCaptureTourStepVoiceDesc": "マイクをタップして材料や量（例：「チキン200gとご飯」）を話すと、AIが自動で整理・解析します。",
+  "aiCaptureTourStepTextTitle": "テキスト・メモ入力",
+  "aiCaptureTourStepTextDesc": "写真の代わりにテキストだけで食事内容を入力したり、補足メモを追加できます。",
+  "aiCaptureTourStepAnalyzeTitle": "スマートAI解析",
+  "aiCaptureTourStepAnalyzeDesc": "写真・音声・テキストが揃ったら「解析」をタップ。AIが食品を特定し、栄養目標と照合します。",
+  "aiCaptureTourReplayTooltip": "案内をもう一度見る"
 }

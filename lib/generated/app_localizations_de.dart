@@ -6183,4 +6183,56 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get speechOnDeviceBody =>
       'Gesprochene Mahlzeiten („2 Eier mit Toast und Kaffee“) werden direkt auf deinem Gerät in Text umgewandelt und bleiben privat.';
+
+  @override
+  String get aiCaptureTourStepShutterTitle => 'Mahlzeit fotografieren';
+
+  @override
+  String get aiCaptureTourStepShutterDesc =>
+      'Nimm mit dem Auslöser bis zu 4 Fotos deiner Mahlzeit aus verschiedenen Winkeln auf. Bei unterstützten Geräten erfasst LiDAR automatisch Tiefendaten für noch präzisere Portionsschätzungen.';
+
+  @override
+  String get aiCaptureTourStepBarcodeTitle => 'Automatische Barcode-Erkennung';
+
+  @override
+  String get aiCaptureTourStepBarcodeDesc =>
+      'Halte verpackte Lebensmittel vor die Kamera – der Barcode wird automatisch in Echtzeit erkannt. Über diesen Knopf kannst du den Scanner jederzeit ein- oder ausschalten.';
+
+  @override
+  String get aiCaptureTourBarcodeDemoProduct => 'Bio-Haferflocken 500g';
+
+  @override
+  String get aiCaptureTourBarcodeDemoHint =>
+      'Jo, so sieht\'s aus, wenn du einen Barcode scannst!';
+
+  @override
+  String get aiCaptureTourStepGalleryTitle => 'Fotos aus der Mediathek';
+
+  @override
+  String get aiCaptureTourStepGalleryDesc =>
+      'Bereits Fotos von deinem Essen gemacht? Wähle bis zu 4 Bilder direkt aus deiner Fotogalerie aus.';
+
+  @override
+  String get aiCaptureTourStepVoiceTitle => 'Sprachaufnahme & Diktat';
+
+  @override
+  String get aiCaptureTourStepVoiceDesc =>
+      'Tippe auf das Mikrofon, um Zutaten, Marken oder Mengen einzusprechen (z. B. „200g Hähnchenbrust mit Reis“). Die KI bereinigt und analysiert dein Diktat automatisch.';
+
+  @override
+  String get aiCaptureTourStepTextTitle => 'Text & Notizen eingeben';
+
+  @override
+  String get aiCaptureTourStepTextDesc =>
+      'Füge schriftliche Hinweise hinzu oder beschreibe deine Mahlzeit komplett per Text, falls du kein Foto machen möchtest.';
+
+  @override
+  String get aiCaptureTourStepAnalyzeTitle => 'Smarte KI-Analyse';
+
+  @override
+  String get aiCaptureTourStepAnalyzeDesc =>
+      'Sobald ein Foto, Diktat oder Text vorhanden ist, erkennt die KI deine Lebensmittel, schätzt Gramm-Angaben und gleicht sie mit deinen Nährwerten ab.';
+
+  @override
+  String get aiCaptureTourReplayTooltip => 'Einführung ansehen';
 }

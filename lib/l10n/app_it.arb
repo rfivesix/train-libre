@@ -2720,5 +2720,20 @@
   "mealPhotoDeleted": "Foto eliminate.",
   "speechSectionTitle": "Input vocale e dettatura",
   "speechOnDeviceActive": "Riconoscimento vocale sul dispositivo attivo",
-  "speechOnDeviceBody": "I pasti dettati («2 uova con toast e caffè») vengono trascritti direttamente sul dispositivo e restano privati."
+  "speechOnDeviceBody": "I pasti dettati («2 uova con toast e caffè») vengono trascritti direttamente sul dispositivo e restano privati.",
+  "aiCaptureTourStepShutterTitle": "Fotografa il pasto",
+  "aiCaptureTourStepShutterDesc": "Scatta fino a 4 foto da diverse angolazioni con il pulsante di scatto. Sui dispositivi supportati, il LiDAR rileva automaticamente i dati di profondità.",
+  "aiCaptureTourStepBarcodeTitle": "Riconoscimento automatico del codice a barre",
+  "aiCaptureTourStepBarcodeDesc": "Inquadra gli alimenti confezionati: il codice a barre viene riconosciuto all'istante in tempo reale. Puoi attivare o disattivare lo scanner con questo pulsante.",
+  "aiCaptureTourBarcodeDemoProduct": "Fiocchi d'avena biologici 500g",
+  "aiCaptureTourBarcodeDemoHint": "Ecco come appare la scansione del codice a barre!",
+  "aiCaptureTourStepGalleryTitle": "Foto dalla galleria",
+  "aiCaptureTourStepGalleryDesc": "Hai già scattato delle foto? Scegli fino a 4 immagini direttamente dalla tua libreria.",
+  "aiCaptureTourStepVoiceTitle": "Dettatura vocale",
+  "aiCaptureTourStepVoiceDesc": "Tocca il microfono per dettare ingredienti, marche o porzioni (es. «200g petto di pollo con riso»). L'IA pulisce e analizza la registrazione automaticamente.",
+  "aiCaptureTourStepTextTitle": "Testo e note",
+  "aiCaptureTourStepTextDesc": "Aggiungi dettagli scritti o descrivi il tuo pasto solo tramite testo se preferisci non scattare foto.",
+  "aiCaptureTourStepAnalyzeTitle": "Analisi IA intelligente",
+  "aiCaptureTourStepAnalyzeDesc": "Non appena foto, dettatura o testo sono pronti, tocca Analizza. L'IA riconosce gli alimenti, stima i grammi e calcola i tuoi macronutrienti.",
+  "aiCaptureTourReplayTooltip": "Rivedi l'introduzione"
 }

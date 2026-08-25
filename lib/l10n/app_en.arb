@@ -2912,5 +2912,20 @@
   "mealPhotoDeleted": "Photos deleted.",
   "speechSectionTitle": "Voice input & dictation",
   "speechOnDeviceActive": "On-device speech recognition active",
-  "speechOnDeviceBody": "Spoken meals (“2 eggs with toast and coffee”) are turned into text directly on your device and stay private."
+  "speechOnDeviceBody": "Spoken meals (“2 eggs with toast and coffee”) are turned into text directly on your device and stay private.",
+  "aiCaptureTourStepShutterTitle": "Capture Meal Photos",
+  "aiCaptureTourStepShutterDesc": "Take up to 4 photos of your meal from different angles with the shutter. On supported devices, LiDAR automatically captures depth data for even more accurate portion estimates.",
+  "aiCaptureTourStepBarcodeTitle": "Automatic Barcode Detection",
+  "aiCaptureTourStepBarcodeDesc": "Hold packaged foods in front of the camera – barcodes are automatically recognized in real time. Use this button to toggle the live scanner on or off anytime.",
+  "aiCaptureTourBarcodeDemoProduct": "Organic Rolled Oats 500g",
+  "aiCaptureTourBarcodeDemoHint": "Here's what it looks like when you scan a barcode!",
+  "aiCaptureTourStepGalleryTitle": "Select from Library",
+  "aiCaptureTourStepGalleryDesc": "Already took photos of your meal? Choose up to 4 images directly from your photo library.",
+  "aiCaptureTourStepVoiceTitle": "Voice Dictation",
+  "aiCaptureTourStepVoiceDesc": "Tap the microphone to dictate ingredients, brands, or amounts (e.g. '200g chicken breast with rice'). AI tidies and analyzes your speech automatically.",
+  "aiCaptureTourStepTextTitle": "Text & Notes",
+  "aiCaptureTourStepTextDesc": "Add written notes or describe your meal purely via text if you don't want to take a photo.",
+  "aiCaptureTourStepAnalyzeTitle": "Smart AI Analysis",
+  "aiCaptureTourStepAnalyzeDesc": "Once a photo, voice transcript, or text is ready, tap Analyze. The AI identifies food items, estimates portions, and matches everything against your nutrition targets.",
+  "aiCaptureTourReplayTooltip": "Replay capture guide"
 }
