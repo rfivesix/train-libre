@@ -23,6 +23,7 @@ import '../../app/presentation/widgets/glass_bottom_menu.dart';
 import 'general_food_selection_screen.dart';
 import 'food_detail_screen.dart';
 import 'meal_editor_screen.dart';
+import 'meal_analysis_screen.dart';
 import 'widgets/meal_review_comparison_card.dart';
 import 'widgets/meal_review_validation_summary.dart';
 import 'widgets/meal_photo_widget.dart';
@@ -91,7 +92,19 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
   bool _isSaving = false;
   bool _isMatching = true;
   bool _aiWaitingHapticActive = false;
+  MealAnalysisController? _analysisController;
+  Route<void>? _analysisRoute;
+  bool _analysisCancelled = false;
   AiValidationResult? _validation;
+
+  void _dismissAnalysisScreen() {
+    if (_analysisRoute == null) return;
+    final navigator = Navigator.of(context);
+    if (navigator.canPop()) {
+      navigator.removeRoute(_analysisRoute!);
+    }
+    _analysisRoute = null;
+  }
 
   // Meal type selection
   late String _selectedMealType;
@@ -459,18 +472,46 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
 
     setState(() => _isRetrying = true);
     _startAiWaitingHaptics();
+
+    final controller = MealAnalysisController();
+    _analysisController?.dispose();
+    _analysisController = controller;
+    _analysisCancelled = false;
+
+    _analysisRoute = MealAnalysisScreen.route(
+      controller: controller,
+      previewImage: widget.originalImages.isNotEmpty
+          ? widget.originalImages.first
+          : null,
+      onCancel: () {
+        _analysisCancelled = true;
+        _stopAiWaitingHaptics();
+        _dismissAnalysisScreen();
+        if (mounted) {
+          setState(() => _isRetrying = false);
+        }
+      },
+    );
+    unawaited(Navigator.of(context).push(_analysisRoute!));
+
+    controller.value = MealAnalysisPhase.analyzing;
+
     try {
       final matchingContext =
           await AiMatchingLanguageService.resolveMatchingContext(
         context: context,
       );
-      if (!mounted) return;
+      if (!mounted || _analysisCancelled) return;
       final candidate = await AiService.instance.retry(
         previousResults: _items.map((e) => e.suggestion).toList(),
         feedback: feedback,
         images: widget.originalImages.isNotEmpty ? widget.originalImages : null,
         matchingContext: matchingContext,
       );
+
+      if (!mounted || _analysisCancelled) return;
+      controller.value = MealAnalysisPhase.matching;
+
       final orchestrator = AiRepairOrchestrator(
         validationEngine: AiMealValidationEngine(),
       );
@@ -488,6 +529,12 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
           );
         },
       );
+
+      if (!mounted || _analysisCancelled) return;
+
+      _stopAiWaitingHaptics();
+      _dismissAnalysisScreen();
+
       if (mounted) {
         setState(() {
           _applyValidationResult(outcome.validation);
@@ -497,6 +544,8 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
         });
       }
     } on AiServiceException catch (e) {
+      _stopAiWaitingHaptics();
+      _dismissAnalysisScreen();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -508,6 +557,7 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
       }
     } finally {
       _stopAiWaitingHaptics();
+      _dismissAnalysisScreen();
       if (mounted) setState(() => _isRetrying = false);
     }
   }
