@@ -554,11 +554,12 @@ class BackupManager {
         // Runs after the rows are in and before orphaned files are swept, so
         // the previews land while the entries that name them already exist.
         () async {
-          final dir = Directory(
-            p.join(await MealPhotoStore.instance.ensureInitialized(),
-                MealPhotoStore.folderName),
+          // The rows are in by now, so they can say where their previews go.
+          final placement = await AppMediaStore.instance
+              .mealThumbPlacement(_dbHelper.dbInstance);
+          final written = await contents.extractThumbnails(
+            placement.directoryFor,
           );
-          final written = await contents.extractThumbnails(dir);
           if (written > 0) {
             debugPrint('Restored $written meal preview(s) from the backup.');
           }

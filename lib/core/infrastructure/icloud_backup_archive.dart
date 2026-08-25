@@ -137,8 +137,12 @@ class ICloudBackupArchive {
     }
   }
 
-  /// Writes the meal previews inside [archivePath] into [directory] and
-  /// reports how many landed.
+  /// Writes the meal previews inside [archivePath] to disk and reports how
+  /// many landed.
+  ///
+  /// [directoryFor] decides where each one goes from its file name, because
+  /// the restored rows — not this device's layout — say where their preview
+  /// has to be; see `AppMediaStore.mealThumbPlacement`.
   ///
   /// Entry names are reduced to their base name before use: a zip may name its
   /// entries anything at all, including `../`, and nothing in a backup has any
@@ -146,7 +150,7 @@ class ICloudBackupArchive {
   /// not cost the user the restore.
   static Future<int> extractThumbnails({
     required String archivePath,
-    required Directory directory,
+    required Directory Function(String fileName) directoryFor,
   }) async {
     var written = 0;
     final input = InputFileStream(archivePath);
@@ -161,6 +165,7 @@ class ICloudBackupArchive {
           if (name.isEmpty || name == '.' || name == '..') continue;
 
           try {
+            final directory = directoryFor(name);
             if (!await directory.exists()) {
               await directory.create(recursive: true);
             }

@@ -354,10 +354,10 @@ class ICloudSyncService {
       // pointing at it if the copy fails.
       if (isArchive) {
         try {
+          final placement = await AppMediaStore.instance.mealThumbPlacement(db);
           final written = await ICloudBackupArchive.extractThumbnails(
             archivePath: downloadPath,
-            directory:
-                await AppMediaStore.instance.directoryOf(MediaDomain.meals),
+            directoryFor: placement.directoryFor,
           );
           if (written > 0) {
             debugPrint('iCloud restore: restored $written meal preview(s)');

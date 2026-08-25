@@ -17,7 +17,8 @@ void main() {
 
   setUp(() async {
     workDir = await Directory.systemTemp.createTemp('icloud_copy_test');
-    live = AppDatabase(NativeDatabase(File(p.join(workDir.path, 'live.sqlite'))));
+    live =
+        AppDatabase(NativeDatabase(File(p.join(workDir.path, 'live.sqlite'))));
   });
 
   tearDown(() async {

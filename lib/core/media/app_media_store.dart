@@ -263,6 +263,34 @@ class AppMediaStore {
     return referenced;
   }
 
+  /// Every preview path the meal entries in [db] name, in storage order.
+  static Future<List<String>> _mealThumbPaths(AppDatabase db) async {
+    final paths = <String>[];
+    final seen = <String>{};
+    final rows = await db
+        .customSelect('SELECT photo_path, photo_thumb_path, capture_meta '
+            'FROM meal_entries')
+        .get();
+    for (final row in rows) {
+      final candidates = <String?>[
+        row.data['photo_thumb_path'] as String?,
+        // A row written before previews existed may still have one on disk
+        // under the name `save` would have given it.
+        thumbPathFor(row.data['photo_path'] as String?),
+        for (final extra in MealCaptureMeta.tryParse(
+              row.data['capture_meta'] as String?,
+            )?.extraPhotoPaths ??
+            const <String>[])
+          thumbPathFor(extra),
+      ];
+      for (final candidate in candidates) {
+        if (candidate == null || candidate.isEmpty) continue;
+        if (seen.add(candidate)) paths.add(candidate);
+      }
+    }
+    return paths;
+  }
+
   /// The meal previews that go into a backup.
   ///
   /// Previews only, deliberately: they are what the diary list shows, they are
@@ -273,29 +301,9 @@ class AppMediaStore {
   Future<List<File>> collectMealThumbnails(AppDatabase db) async {
     final files = <File>[];
     try {
-      final rows = await db
-          .customSelect('SELECT photo_path, photo_thumb_path, capture_meta '
-              'FROM meal_entries')
-          .get();
-      final seen = <String>{};
-      for (final row in rows) {
-        final candidates = <String?>[
-          row.data['photo_thumb_path'] as String?,
-          // A row written before previews existed may still have one on disk
-          // under the name `save` would have given it.
-          thumbPathFor(row.data['photo_path'] as String?),
-          for (final extra in MealCaptureMeta.tryParse(
-                row.data['capture_meta'] as String?,
-              )?.extraPhotoPaths ??
-              const <String>[])
-            thumbPathFor(extra),
-        ];
-        for (final candidate in candidates) {
-          if (candidate == null || candidate.isEmpty) continue;
-          if (!seen.add(candidate)) continue;
-          final file = await resolve(candidate);
-          if (file != null && await file.exists()) files.add(file);
-        }
+      for (final candidate in await _mealThumbPaths(db)) {
+        final file = await resolve(candidate);
+        if (file != null && await file.exists()) files.add(file);
       }
     } catch (e) {
       // A backup without previews is still a backup worth having.
@@ -303,4 +311,52 @@ class AppMediaStore {
     }
     return files;
   }
+
+  /// Where the previews of a restored backup have to land.
+  ///
+  /// A backup travels with the previews under one flat name, but the rows it
+  /// restores carry the path each one had on the device that wrote it — and
+  /// that is not always this device's layout. A meal logged by a build that
+  /// stored photos in `meal_photos/` names that folder forever; writing its
+  /// preview into `media/meals/` instead leaves the row pointing at nothing
+  /// and the meal shows up without its picture. So the rows decide, and only a
+  /// preview no row claims falls back to this feature's own folder.
+  Future<MealThumbPlacement> mealThumbPlacement(AppDatabase db) async {
+    final base = await ensureInitialized();
+    final directories = <String, String>{};
+    try {
+      for (final relative in await _mealThumbPaths(db)) {
+        directories[p.basename(relative)] = p.dirname(relative);
+      }
+    } catch (e) {
+      debugPrint('[AppMediaStore] reading preview locations failed: $e');
+    }
+    return MealThumbPlacement(
+      basePath: base,
+      directoriesByName: directories,
+      defaultDirectory: MediaDomain.meals.folder,
+    );
+  }
+}
+
+/// Where each restored meal preview belongs, by file name.
+class MealThumbPlacement {
+  const MealThumbPlacement({
+    required this.basePath,
+    required this.directoriesByName,
+    required this.defaultDirectory,
+  });
+
+  /// Absolute application support directory.
+  final String basePath;
+
+  /// Preview file name to the folder its row names, relative to [basePath].
+  final Map<String, String> directoriesByName;
+
+  /// Where a preview no row claims goes, relative to [basePath].
+  final String defaultDirectory;
+
+  Directory directoryFor(String fileName) => Directory(
+        p.join(basePath, directoriesByName[fileName] ?? defaultDirectory),
+      );
 }

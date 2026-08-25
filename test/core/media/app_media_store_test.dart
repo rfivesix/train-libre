@@ -1,9 +1,11 @@
 import 'dart:io';
 
+import 'package:drift/native.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 import 'package:train_libre/core/media/app_media_store.dart';
+import 'package:train_libre/data/drift_database.dart';
 import 'package:train_libre/features/diary/data/meal_photo_store.dart';
 
 void main() {
@@ -161,6 +163,88 @@ void main() {
         ),
         0,
       );
+    });
+  });
+
+  group('mealThumbPlacement', () {
+    // The one that bit us in the field: a meal logged by a build that stored
+    // photos under `meal_photos/` names that folder in its row forever. Its
+    // restored preview has to land there, not in this build's own folder, or
+    // the row points at nothing and the meal shows up without its picture.
+    Future<AppDatabase> mealDb(List<Map<String, String?>> entries) async {
+      final db = AppDatabase(NativeDatabase.memory());
+      addTearDown(db.close);
+      for (var i = 0; i < entries.length; i++) {
+        await db.customStatement(
+          'INSERT INTO meal_entries (id, consumed_at, meal_type, title, '
+          'source, photo_path, photo_thumb_path) VALUES (?, ?, ?, ?, ?, ?, ?)',
+          [
+            'entry-$i',
+            1787000000,
+            'mealtypeLunch',
+            'Pizza',
+            'aiPhoto',
+            entries[i]['photo'],
+            entries[i]['thumb'],
+          ],
+        );
+      }
+      return db;
+    }
+
+    test('sends a preview to the folder its row names', () async {
+      final db = await mealDb([
+        {
+          'photo': 'meal_photos/abc.jpg',
+          'thumb': 'meal_photos/abc_thumb.jpg',
+        },
+      ]);
+
+      final placement = await AppMediaStore.instance.mealThumbPlacement(db);
+
+      expect(
+        placement.directoryFor('abc_thumb.jpg').path,
+        p.join(supportDir.path, 'meal_photos'),
+      );
+    });
+
+    test('follows each row separately', () async {
+      final db = await mealDb([
+        {'photo': 'meal_photos/old.jpg', 'thumb': 'meal_photos/old_thumb.jpg'},
+        {'photo': 'media/meals/new.jpg', 'thumb': 'media/meals/new_thumb.jpg'},
+      ]);
+
+      final placement = await AppMediaStore.instance.mealThumbPlacement(db);
+
+      expect(placement.directoryFor('old_thumb.jpg').path,
+          p.join(supportDir.path, 'meal_photos'));
+      expect(placement.directoryFor('new_thumb.jpg').path,
+          p.join(supportDir.path, 'media', 'meals'));
+    });
+
+    test('falls back to this feature folder for a preview no row claims',
+        () async {
+      final db = await mealDb(const []);
+
+      final placement = await AppMediaStore.instance.mealThumbPlacement(db);
+
+      expect(
+        placement.directoryFor('orphan_thumb.jpg').path,
+        p.join(supportDir.path, 'media', 'meals'),
+      );
+    });
+
+    test('finds the preview of a row that only stores its photo', () async {
+      // Written before previews were stored as their own column, and the
+      // extra shots of a multi-photo capture, are found by convention.
+      final db = await mealDb([
+        {'photo': 'meal_photos/abc.jpg', 'thumb': null},
+      ]);
+
+      final placement = await AppMediaStore.instance.mealThumbPlacement(db);
+
+      expect(placement.directoryFor('abc_thumb.jpg').path,
+          p.join(supportDir.path, 'meal_photos'));
     });
   });
 

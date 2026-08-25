@@ -10,9 +10,7 @@ import '../../../core/infrastructure/export_manager.dart';
 import '../../../core/infrastructure/import_manager.dart';
 import '../../../generated/app_localizations.dart';
 import '../../../widgets/common/summary_card.dart';
-import '../../app/presentation/app_initializer_screen.dart';
 import '../../onboarding/presentation/onboarding_screen.dart';
-import '../../onboarding/presentation/initial_consent_screen.dart';
 import '../../exercise_catalog/presentation/exercise_mapping_screen.dart';
 import '../../../services/local_app_data_reset_service.dart';
 import '../../workout/presentation/live_workout_view_model.dart';
@@ -38,6 +36,7 @@ import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../widgets/common/app_button.dart';
 import 'dart:async';
 import '../../../services/telemetry/telemetry_service.dart';
+import '../../../widgets/common/app_restart.dart';
 
 /// A screen for managing application data and backups.
 ///
@@ -606,14 +605,12 @@ class _DataManagementScreenState extends State<DataManagementScreen> {
         ),
       );
       if (!mounted) return;
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(
-          builder: (_) => InitialConsentScreen(
-            nextScreen: const AppInitializerScreen(skipOffDatabase: true),
-          ),
-        ),
-        (route) => false,
-      );
+      // Restart rather than navigate: the wipe cleared the preferences and
+      // emptied every table, but the running app still holds the services,
+      // view models and caches that were built from them. `main` rebuilds all
+      // of it and lands on the consent screen by itself, because that is what
+      // a device with no preferences is.
+      restartApp();
     } catch (_) {
       if (!mounted) return;
       setState(() => _isLocalResetRunning = false);

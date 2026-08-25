@@ -27,12 +27,12 @@ import '../../../services/local_app_data_reset_service.dart';
 import '../../workout/presentation/live_workout_view_model.dart';
 import '../../../widgets/common/common.dart';
 import '../../app/presentation/app_initializer_screen.dart';
-import '../../onboarding/presentation/initial_consent_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../widgets/common/app_button.dart';
 import '../../../services/app_tour_service.dart';
 import '../../../services/telemetry/telemetry_service.dart';
+import '../../../widgets/common/app_restart.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({
@@ -77,9 +77,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _loadOffCatalogSettings();
     _loadBaseFoodLanguage();
     _loadTelemetryOptIn();
-    unawaited(TelemetryService.instance.trackScreenView(screenName: ScreenName.settingsMain));
+    unawaited(TelemetryService.instance
+        .trackScreenView(screenName: ScreenName.settingsMain));
   }
-
 
   Future<void> _loadTelemetryOptIn() async {
     final optedIn = await TelemetryService.instance.isOptedIn();
@@ -256,8 +256,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ),
     );
   }
-
-
 
   bool _settingsChildMayHaveChanged(bool? result) {
     // iOS interactive back-swipe completes a route with a null result. These
@@ -669,7 +667,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           AppLinkRow(
             key: const Key('settings_reset_telemetry_data'),
             title: 'Telemetrie-Daten löschen',
-            subtitle: 'Löscht alle gespeicherten IDs lokal und auf dem PostHog-Server',
+            subtitle:
+                'Löscht alle gespeicherten IDs lokal und auf dem PostHog-Server',
             trailingIcon: LucideIcons.trash_2,
             onTap: () async {
               final confirmed = await _showTelemetryDeletionConfirmation();
@@ -780,14 +779,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
       );
       if (!mounted) return;
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(
-          builder: (_) => InitialConsentScreen(
-            nextScreen: const AppInitializerScreen(),
-          ),
-        ),
-        (route) => false,
-      );
+      // Restart rather than navigate: the wipe cleared the preferences and
+      // emptied every table, but the running app still holds the services,
+      // view models and caches that were built from them. `main` rebuilds all
+      // of it and lands on the consent screen by itself, because that is what
+      // a device with no preferences is.
+      restartApp();
     } catch (_) {
       if (!mounted) return;
       setState(() => _isLocalResetRunning = false);
@@ -956,8 +953,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
         return l10n.fiber;
     }
   }
-
-
 }
 
 class _OffCatalogRegionPickerContent extends StatefulWidget {

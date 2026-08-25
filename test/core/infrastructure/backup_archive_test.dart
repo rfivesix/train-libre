@@ -40,7 +40,7 @@ void main() {
       expect(contents.payload['schemaVersion'], 7);
 
       final target = Directory(p.join(workDir.path, 'restored'));
-      expect(await contents.extractThumbnails(target), 1);
+      expect(await contents.extractThumbnails((_) => target), 1);
       expect(
         await File(p.join(target.path, 'abc_thumb.jpg')).readAsBytes(),
         [1, 2, 3, 4, 5],
@@ -68,7 +68,7 @@ void main() {
       expect(contents.payload['secret'], 'BREAKFAST');
 
       final target = Directory(p.join(workDir.path, 'restored'));
-      expect(await contents.extractThumbnails(target), 1);
+      expect(await contents.extractThumbnails((_) => target), 1);
       expect(
         await File(p.join(target.path, 'abc_thumb.jpg')).readAsString(),
         'PREVIEW',
@@ -128,7 +128,7 @@ void main() {
       addTearDown(contents.close);
 
       final target = Directory(p.join(workDir.path, 'restored'));
-      expect(await contents.extractThumbnails(target), 1);
+      expect(await contents.extractThumbnails((_) => target), 1);
       expect(
         await File(p.join(target.path, 'abc_thumb.jpg')).readAsBytes(),
         [9],
@@ -151,7 +151,7 @@ void main() {
 
       expect(
         await contents.extractThumbnails(
-          Directory(p.join(workDir.path, 'restored')),
+          (_) => Directory(p.join(workDir.path, 'restored')),
         ),
         0,
       );

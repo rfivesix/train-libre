@@ -190,12 +190,20 @@ class BackupArchiveContents {
   /// The backup document, in the same shape a bare JSON backup has.
   final Map<String, dynamic> payload;
 
-  /// Writes the meal previews into [directory] and reports how many landed.
+  /// Writes the meal previews to disk and reports how many landed.
+  ///
+  /// [directoryFor] decides where each one goes from its file name, because
+  /// the restored rows — not this device's layout — say where their preview
+  /// has to be; see `AppMediaStore.mealThumbPlacement`. A backup restored onto
+  /// a build that keeps photos elsewhere than the one that wrote it would
+  /// otherwise leave every row pointing at nothing.
   ///
   /// Entry names are reduced to their base name before use: a zip may name its
   /// entries anything at all, including `../`, and nothing in a backup has any
   /// business writing outside the photo folder.
-  Future<int> extractThumbnails(Directory directory) async {
+  Future<int> extractThumbnails(
+    Directory Function(String fileName) directoryFor,
+  ) async {
     var written = 0;
     for (final file in _archive.files) {
       if (!file.isFile) continue;
@@ -215,6 +223,7 @@ class BackupArchiveContents {
         final cipher = _cipher;
         final bytes =
             cipher == null ? file.content : await cipher.decrypt(file.content);
+        final directory = directoryFor(name);
         if (!await directory.exists()) {
           await directory.create(recursive: true);
         }

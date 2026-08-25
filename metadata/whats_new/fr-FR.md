@@ -6,6 +6,18 @@
   récente en premier. Ensuite : python3 script/build_whats_new.py --write --sync-store
 -->
 
+## 1.2.0 (2026-08-26)
+
+{camera} Enregistrer un repas à partir d'une photo : vise ton assiette et l'IA en fait des aliments distincts, avec quantités, calories et macros. Jusqu'à quatre photos par repas, tout reste corrigeable ou remplaçable avant l'enregistrement - et les produits emballés sont reconnus par leur code-barres dans la même vue, sans changer de mode.
+
+{smartphone} Des portions mesurées, pas devinées : sur les iPhone équipés du LiDAR, la caméra mesure la distance de l'assiette et la taille réelle de la zone visible, puis transmet ces valeurs à l'IA. La mesure se désactive dans les réglages IA.
+
+{mic} Dis simplement ce qu'il y a dedans : maintiens le bouton micro et décris ton repas - seul ou en complément de la photo. Mode de cuisson, huile et ingrédients cachés sont justement ce qu'une photo ne montre pas. La reconnaissance se fait sur ton appareil quand c'est possible, et tu peux corriger le texte avant l'envoi.
+
+{utensils} Un journal plus lisible : un repas scanné reste une seule entrée avec sa photo et se déplie sur ses ingrédients. Les entrées sont triées par calories, les plus élevées d'abord, et quantités et calories s'alignent dans les mêmes colonnes sur chaque ligne.
+
+{cloud} Tes photos de repas dans la sauvegarde iCloud : la sauvegarde automatique emporte désormais les photos de tes repas, pour qu'un iPhone restauré affiche tes repas tels que tu les as enregistrés. La restauration est aussi plus sûre : elle ne demande plus de redémarrage, et la sauvegarde précédente est conservée comme copie de secours.
+
 ## 1.1.1 (2026-08-12)
 
 {layout_grid} Widgets d'écran d'accueil sur Android : la famille de widgets arrive sur Android - ta dernière séance avec sa carte musculaire, la récupération musculaire, tes pas des 7 derniers jours, tes mensurations, la nutrition du jour et les actions rapides. Ajoute-les depuis le sélecteur de widgets de ton lanceur ; nutrition, mensurations et actions rapides se reconfigurent à tout moment.

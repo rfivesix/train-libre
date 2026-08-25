@@ -54,6 +54,7 @@ import '../../health_export/models/export_models.dart';
 import 'package:uuid/uuid.dart';
 import '../../../services/telemetry/telemetry_service.dart';
 import '../../../widgets/common/app_button.dart';
+import '../../../widgets/common/app_restart.dart';
 
 /// The initial setup flow for new users.
 ///
@@ -522,7 +523,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     if (!mounted) return;
 
     if (_requiresHardRestart) {
-      app_main.main();
+      restartApp();
       return;
     }
 

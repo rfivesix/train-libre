@@ -66,7 +66,8 @@ void main() {
       expect(cardioSet.rpe, 8);
     });
 
-    test('CSV parsing with German headers and set-type abbreviations', () async {
+    test('CSV parsing with German headers and set-type abbreviations',
+        () async {
       final csvString = 'übung,typ,gewicht,wiederholungen,notiz,datum,name\n'
           'Kniebeugen,w,120,5,Erster Satz,23.05.2026 15:30,Leg Day\n'
           'Kniebeugen,f,150,3,Failure set,23.05.2026 15:30,Leg Day\n'
@@ -151,12 +152,15 @@ void main() {
         expect(result.length, 1,
             reason: 'Failed parsing date string: $rawDate');
         expect(result.first.startTime.year, 2026);
-        expect(result.first.startTime.hour, rawDate.contains('14:21') ? 14 : 14);
-        expect(result.first.startTime.minute, rawDate.contains('14:21') ? 21 : 35);
+        expect(
+            result.first.startTime.hour, rawDate.contains('14:21') ? 14 : 14);
+        expect(
+            result.first.startTime.minute, rawDate.contains('14:21') ? 21 : 35);
       }
     });
 
-    test('CSV parsing with Hevy German format ("25 Juli 2026, 14:21")', () async {
+    test('CSV parsing with Hevy German format ("25 Juli 2026, 14:21")',
+        () async {
       final csvString =
           '"title","start_time","end_time","description","exercise_title","superset_id","exercise_notes","set_index","set_type","weight_kg","reps","distance_km","duration_seconds","rpe"\n'
           '"Beine","25 Juli 2026, 14:21","25 Juli 2026, 16:27","","Hackenschmidt Squat (Maschine)",,"Die schwere Variante",0,"warmup",20,10,,,\n'
@@ -197,7 +201,8 @@ void main() {
       expect(result.length, 0); // start_time is required in CSV row grouping!
     });
 
-    test('Handles malformed file extensions or data errors gracefully', () async {
+    test('Handles malformed file extensions or data errors gracefully',
+        () async {
       final params = ImportBackgroundTaskParams(
         fileBytes: Uint8List.fromList(utf8.encode('random,garbage,data')),
         extension: 'unsupported',
@@ -225,7 +230,8 @@ void main() {
         isImperial: false,
       );
 
-      final result2 = await ImportManager.decodeAndGroupWorkouts(paramsHeaderOnly);
+      final result2 =
+          await ImportManager.decodeAndGroupWorkouts(paramsHeaderOnly);
       expect(result2, isEmpty);
     });
   });

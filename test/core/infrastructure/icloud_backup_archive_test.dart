@@ -64,7 +64,7 @@ void main() {
       expect(
         await ICloudBackupArchive.extractThumbnails(
           archivePath: archive.path,
-          directory: photoDir,
+          directoryFor: (_) => photoDir,
         ),
         1,
       );
@@ -109,7 +109,8 @@ void main() {
       expect(
         await ICloudBackupArchive.extractThumbnails(
           archivePath: archive.path,
-          directory: Directory(p.join(workDir.path, 'media', 'meals')),
+          directoryFor: (_) =>
+              Directory(p.join(workDir.path, 'media', 'meals')),
         ),
         0,
       );
@@ -160,7 +161,8 @@ void main() {
       expect(
         await ICloudBackupArchive.extractThumbnails(
           archivePath: archive.path,
-          directory: Directory(p.join(workDir.path, 'media', 'meals')),
+          directoryFor: (_) =>
+              Directory(p.join(workDir.path, 'media', 'meals')),
         ),
         1,
       );

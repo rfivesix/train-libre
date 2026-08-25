@@ -54,11 +54,15 @@ OPEN SOURCE E DATI APERTI:
 Sviluppato in modo trasparente sui database aperti e affidabili di Open Food Facts e wger. Il codice sorgente completo è pubblicamente accessibile: le nostre promesse sulla privacy si verificano, non si prendono per buone.
 
 ## Release Notes (What's New / Release Notes in this version)
-Widget per la schermata Home su Android: la famiglia di widget arriva su Android - il tuo ultimo allenamento con la mappa muscolare, il recupero muscolare, i passi degli ultimi 7 giorni, le misure corporee, la nutrizione di oggi e le azioni rapide. Aggiungili dal selettore di widget del tuo launcher; nutrizione, misure e azioni rapide si possono riconfigurare in qualsiasi momento.
+Registra un pasto da una foto: inquadra il piatto e l'IA lo trasforma in singoli alimenti con quantità, calorie e macro. Fino a quattro foto per pasto, tutto correggibile o sostituibile prima di salvare - e i prodotti confezionati vengono riconosciuti dal codice a barre nella stessa schermata, senza cambiare modalità.
 
-L'allenamento in corso nelle notifiche: un allenamento in corso compare ora nelle notifiche con il conto alla rovescia del recupero e, su Android 16, diventa una Live Update con un indicatore nella barra di stato. Completare una serie, aggiungere o togliere 15 secondi e saltare il recupero si fanno da lì, senza aprire l'app.
+Porzioni misurate, non stimate: sugli iPhone con LiDAR la fotocamera misura quanto è distante il piatto e quanto è grande davvero l'area inquadrata, e passa questi dati all'IA. La misurazione si può disattivare nelle impostazioni IA.
 
-Riquadri delle impostazioni rapide: tutte e sette le azioni rapide - scanner di codici a barre, riconoscimento pasti con IA, avvia allenamento, aggiungi acqua, registra un integratore, aggiungi una misura e aggiungi un alimento - sono ora disponibili come riquadri nelle tue impostazioni rapide.
+Di' semplicemente cosa c'è dentro: tieni premuto il pulsante del microfono e descrivi il pasto - da solo o insieme alla foto. Cottura, olio e ingredienti nascosti sono proprio ciò che una foto non può mostrare. Il riconoscimento avviene sul dispositivo quando è possibile e puoi correggere il testo prima di inviarlo.
+
+Un diario più chiaro: un pasto scansionato resta una sola voce con la sua foto e si può espandere sui suoi ingredienti. Le voci sono ordinate per calorie, dalle più alte, e quantità e calorie sono allineate nelle stesse colonne su ogni riga.
+
+Le foto dei pasti nel backup iCloud: il backup automatico porta con sé anche le foto dei pasti, così un iPhone ripristinato mostra i pasti come li hai registrati. Il ripristino è anche più sicuro: non richiede più un riavvio e il backup precedente viene conservato come copia di riserva.
 
 ## Support URL (Support Web Page URL)
 https://rfivesix.github.io/train-libre/support.html
