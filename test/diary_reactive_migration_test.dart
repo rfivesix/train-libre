@@ -143,6 +143,9 @@ class FakeWorkoutRepository implements IWorkoutRepository {
     required String name,
   }) async =>
       Routine(id: 1, name: name);
+
+  @override
+  Future<void> updateWorkoutLogPhotos(int logId, List<String> paths) async {}
 }
 
 void main() {

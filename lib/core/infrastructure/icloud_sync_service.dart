@@ -187,13 +187,18 @@ class ICloudSyncService {
     // VACUUM INTO creates a defragmented, non-locked copy of the live DB.
     await db.customStatement('VACUUM INTO ?', [snapshotPath]);
 
-    final thumbnails = await AppMediaStore.instance.collectMealThumbnails(db);
-    debugPrint('iCloud backup: bundling ${thumbnails.length} meal preview(s)');
+    final mealThumbnails =
+        await AppMediaStore.instance.collectMealThumbnails(db);
+    final workoutThumbnails =
+        await AppMediaStore.instance.collectWorkoutThumbnails(db);
+    debugPrint(
+        'iCloud backup: bundling ${mealThumbnails.length} meal preview(s), ${workoutThumbnails.length} workout preview(s)');
 
     final archive = await ICloudBackupArchive.pack(
       targetPath: await _localArchivePath,
       database: snapshotFile,
-      thumbnails: thumbnails,
+      thumbnails: mealThumbnails,
+      workoutThumbnails: workoutThumbnails,
     );
 
     // The snapshot is now inside the archive; keeping it would double what the
@@ -354,16 +359,29 @@ class ICloudSyncService {
       // pointing at it if the copy fails.
       if (isArchive) {
         try {
-          final placement = await AppMediaStore.instance.mealThumbPlacement(db);
-          final written = await ICloudBackupArchive.extractThumbnails(
+          final mealPlacement = await AppMediaStore.instance.mealThumbPlacement(db);
+          final mealWritten = await ICloudBackupArchive.extractThumbnails(
             archivePath: downloadPath,
-            directoryFor: placement.directoryFor,
+            directoryFor: mealPlacement.directoryFor,
+            domain: MediaDomain.meals,
           );
-          if (written > 0) {
-            debugPrint('iCloud restore: restored $written meal preview(s)');
+          if (mealWritten > 0) {
+            debugPrint('iCloud restore: restored $mealWritten meal preview(s)');
+          }
+
+          final workoutPlacement =
+              await AppMediaStore.instance.workoutThumbPlacement(db);
+          final workoutWritten = await ICloudBackupArchive.extractThumbnails(
+            archivePath: downloadPath,
+            directoryFor: workoutPlacement.directoryFor,
+            domain: MediaDomain.workouts,
+          );
+          if (workoutWritten > 0) {
+            debugPrint(
+                'iCloud restore: restored $workoutWritten workout preview(s)');
           }
         } catch (e) {
-          // The meals themselves are back; missing previews are not worth
+          // The database itself is back; missing previews are not worth
           // failing the restore over.
           debugPrint('iCloud restore: extracting previews failed: $e');
         }
@@ -474,16 +492,31 @@ class ICloudSyncService {
   /// leaves behind.
   Future<void> _pruneOrphanMedia(AppDatabase db) async {
     try {
-      final referenced = await AppMediaStore.referencedMealPaths(db);
-      final removed = await AppMediaStore.instance.pruneOrphans(
+      final referencedMeals = await AppMediaStore.referencedMealPaths(db);
+      final removedMeals = await AppMediaStore.instance.pruneOrphans(
         domain: MediaDomain.meals,
-        referencedPaths: referenced,
+        referencedPaths: referencedMeals,
       );
-      if (removed > 0) {
-        debugPrint('iCloud restore: pruned $removed orphaned meal photo(s)');
+      if (removedMeals > 0) {
+        debugPrint('iCloud restore: pruned $removedMeals orphaned meal photo(s)');
       }
     } catch (e) {
       debugPrint('iCloud restore: pruning orphaned meal photos failed: $e');
+    }
+
+    try {
+      final referencedWorkouts =
+          await AppMediaStore.referencedWorkoutPaths(db);
+      final removedWorkouts = await AppMediaStore.instance.pruneOrphans(
+        domain: MediaDomain.workouts,
+        referencedPaths: referencedWorkouts,
+      );
+      if (removedWorkouts > 0) {
+        debugPrint(
+            'iCloud restore: pruned $removedWorkouts orphaned workout photo(s)');
+      }
+    } catch (e) {
+      debugPrint('iCloud restore: pruning orphaned workout photos failed: $e');
     }
   }
 

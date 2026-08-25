@@ -11,8 +11,10 @@ import '../../domain/models/set_template.dart';
 import '../../domain/models/workout_log.dart';
 import '../../domain/classification/workout_classification.dart';
 import '../../../statistics/domain/recovery_domain_service.dart';
+import '../../../../core/media/app_media_store.dart';
 import '../../../../util/muscle_analytics_utils.dart';
 import '../../../../util/perf_debug_timer.dart';
+import '../workout_photo_store.dart';
 
 part 'parts/exercises_queries.dart';
 part 'parts/routines_queries.dart';
@@ -127,6 +129,23 @@ class WorkoutLocalDataSource {
     );
   }
 
+  static List<String> _extractPhotoPaths(
+    String? photoPath,
+    String? photoExtraPaths,
+  ) {
+    if (photoPath == null || photoPath.isEmpty) return const [];
+    final paths = <String>[photoPath];
+    if (photoExtraPaths != null && photoExtraPaths.isNotEmpty) {
+      try {
+        final decoded = jsonDecode(photoExtraPaths);
+        if (decoded is List) {
+          paths.addAll(decoded.whereType<String>());
+        }
+      } catch (_) {}
+    }
+    return paths;
+  }
+
   WorkoutLog _mapWorkoutLogWithSets(
     db.WorkoutLog logRow,
     List<db.SetLog> setRows,
@@ -138,6 +157,10 @@ class WorkoutLocalDataSource {
       startTime: logRow.startTime,
       endTime: logRow.endTime,
       notes: logRow.notes,
+      photoPaths: _extractPhotoPaths(
+        logRow.photoPath,
+        logRow.photoExtraPaths,
+      ),
       sets:
           setRows.map((row) => _mapSetLogToModel(row, logRow.localId)).toList(),
     );

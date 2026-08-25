@@ -5990,4 +5990,22 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get aiCaptureTourReplayTooltip => '案内をもう一度見る';
+
+  @override
+  String get workoutPhotoAdd => '写真を追加';
+
+  @override
+  String get workoutPhotoTake => '写真を撮る';
+
+  @override
+  String get workoutPhotoFromLibrary => 'ライブラリから選択';
+
+  @override
+  String get workoutPhotoRemove => '写真を削除';
+
+  @override
+  String get workoutPhotoRemoveConfirm => 'この写真を削除してもよろしいですか？';
+
+  @override
+  String get workoutPhotoLimitReached => '写真の上限（4枚）に達しました';
 }

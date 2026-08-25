@@ -2737,5 +2737,11 @@
   "aiCaptureTourStepTextDesc": "Ajoute des précisions ou décris ton repas entièrement par texte si tu ne souhaites pas prendre de photo.",
   "aiCaptureTourStepAnalyzeTitle": "Analyse IA intelligente",
   "aiCaptureTourStepAnalyzeDesc": "Dès qu'une photo, dictée ou note est prête, appuie sur Analyser. L'IA détecte les aliments, estime les portions et fait le lien avec tes macros.",
-  "aiCaptureTourReplayTooltip": "Revoir l'introduction"
+  "aiCaptureTourReplayTooltip": "Revoir l'introduction",
+  "workoutPhotoAdd": "Ajouter une photo",
+  "workoutPhotoTake": "Prendre une photo",
+  "workoutPhotoFromLibrary": "Choisir dans la bibliothèque",
+  "workoutPhotoRemove": "Supprimer la photo",
+  "workoutPhotoRemoveConfirm": "Voulez-vous vraiment supprimer cette photo ?",
+  "workoutPhotoLimitReached": "Maximum de 4 photos atteint"
 }

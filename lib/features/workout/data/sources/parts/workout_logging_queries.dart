@@ -238,10 +238,57 @@ extension WorkoutLoggingQueries on WorkoutLocalDataSource {
 
   Future<void> deleteWorkoutLog(int logId) async {
     final dbInstance = await database;
+    final row = await (dbInstance.select(dbInstance.workoutLogs)
+          ..where((tbl) => tbl.localId.equals(logId)))
+        .getSingleOrNull();
+    if (row != null) {
+      final extraPaths = <String>[];
+      if (row.photoExtraPaths != null && row.photoExtraPaths!.isNotEmpty) {
+        try {
+          final decoded = jsonDecode(row.photoExtraPaths!);
+          if (decoded is List) {
+            extraPaths.addAll(decoded.whereType<String>());
+          }
+        } catch (_) {}
+      }
+      await WorkoutPhotoStore.instance.delete(
+        photoPath: row.photoPath,
+        thumbPath: row.photoThumbPath,
+        extraPaths: extraPaths,
+      );
+    }
     await (dbInstance.delete(
       dbInstance.workoutLogs,
     )..where((tbl) => tbl.localId.equals(logId)))
         .go();
+  }
+
+  Future<void> updateWorkoutLogPhotos(int logId, List<String> paths) async {
+    final dbInstance = await database;
+    if (paths.isEmpty) {
+      await (dbInstance.update(dbInstance.workoutLogs)
+            ..where((tbl) => tbl.localId.equals(logId)))
+          .write(
+        const db.WorkoutLogsCompanion(
+          photoPath: drift.Value(null),
+          photoThumbPath: drift.Value(null),
+          photoExtraPaths: drift.Value(null),
+        ),
+      );
+    } else {
+      final first = paths.first;
+      final thumb = AppMediaStore.thumbPathFor(first);
+      final extras = paths.length > 1 ? jsonEncode(paths.sublist(1)) : null;
+      await (dbInstance.update(dbInstance.workoutLogs)
+            ..where((tbl) => tbl.localId.equals(logId)))
+          .write(
+        db.WorkoutLogsCompanion(
+          photoPath: drift.Value(first),
+          photoThumbPath: drift.Value(thumb),
+          photoExtraPaths: drift.Value(extras),
+        ),
+      );
+    }
   }
 
   Future<List<WorkoutLog>> getWorkoutLogs() async {
@@ -266,6 +313,10 @@ extension WorkoutLoggingQueries on WorkoutLocalDataSource {
             startTime: r.startTime,
             endTime: r.endTime,
             notes: r.notes,
+            photoPaths: WorkoutLocalDataSource._extractPhotoPaths(
+              r.photoPath,
+              r.photoExtraPaths,
+            ),
           ),
         )
         .toList();
@@ -471,6 +522,12 @@ extension WorkoutLoggingQueries on WorkoutLocalDataSource {
 
       // WorkoutLogs
       for (final w in workoutLogs) {
+        final firstPhoto = w.photoPaths.isNotEmpty ? w.photoPaths.first : null;
+        final thumbPhoto =
+            firstPhoto != null ? AppMediaStore.thumbPathFor(firstPhoto) : null;
+        final extraPhotos =
+            w.photoPaths.length > 1 ? jsonEncode(w.photoPaths.sublist(1)) : null;
+
         final wRow =
             await dbInstance.into(dbInstance.workoutLogs).insertReturning(
                   db.WorkoutLogsCompanion(
@@ -479,6 +536,9 @@ extension WorkoutLoggingQueries on WorkoutLocalDataSource {
                     status: const drift.Value('completed'),
                     routineNameSnapshot: drift.Value(w.routineName),
                     notes: drift.Value(w.notes),
+                    photoPath: drift.Value(firstPhoto),
+                    photoThumbPath: drift.Value(thumbPhoto),
+                    photoExtraPaths: drift.Value(extraPhotos),
                   ),
                 );
 

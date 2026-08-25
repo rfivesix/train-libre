@@ -8,6 +8,8 @@
 
 ## 1.2.0 (2026-08-26)
 
+{camera} Fotos für deine Workouts: Halte deine Trainingseinheiten mit bis zu 4 Fotos fest. Nimm Fotos direkt mit der Kamera auf oder wähle sie aus deiner Mediathek – sowohl direkt nach dem Training in der Zusammenfassung als auch nachträglich im Trainingsverlauf. Alle Fotos und Vorschauen werden auch im Backup gesichert.
+
 {camera} Mahlzeiten per Foto erfassen: Richte die Kamera auf deinen Teller und die KI macht daraus einzelne Lebensmittel mit Menge, Kalorien und Makros. Bis zu vier Fotos pro Mahlzeit, alles vor dem Speichern korrigierbar oder austauschbar - und verpackte Produkte erkennt dieselbe Ansicht direkt am Barcode, ohne den Modus zu wechseln.
 
 {smartphone} Portionen gemessen statt geschätzt: Auf iPhones mit LiDAR misst die Kamera, wie weit dein Teller entfernt ist und wie groß der sichtbare Ausschnitt tatsächlich ist, und gibt das an die KI weiter. In den KI-Einstellungen kannst du die Messung abschalten.
@@ -16,7 +18,7 @@
 
 {utensils} Übersichtlicheres Tagebuch: Eine erfasste Mahlzeit bleibt ein Eintrag mit Foto und lässt sich zu ihren Zutaten aufklappen. Einträge sind nach Kalorien sortiert, die größten zuerst, und Menge und Kalorien stehen in jeder Zeile in denselben Spalten.
 
-{cloud} Deine Mahlzeitenfotos im iCloud-Backup: Das automatische Backup nimmt jetzt auch die Fotos deiner Mahlzeiten mit, damit ein wiederhergestelltes iPhone deine Mahlzeiten so zeigt, wie du sie erfasst hast. Das Wiederherstellen ist außerdem sicherer: Es braucht keinen Neustart mehr, und das vorherige Backup bleibt als Reservekopie erhalten.
+{cloud} Deine Fotos im iCloud-Backup: Das automatische Backup nimmt jetzt auch die Fotos deiner Mahlzeiten und Workouts mit, damit ein wiederhergestelltes iPhone deine Einträge so zeigt, wie du sie erfasst hast. Das Wiederherstellen ist außerdem sicherer: Es braucht keinen Neustart mehr, und das vorherige Backup bleibt als Reservekopie erhalten.
 
 ## 1.1.1 (2026-08-12)
 

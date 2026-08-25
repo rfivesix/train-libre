@@ -1,5 +1,3 @@
-// lib/core/infrastructure/backup_archive.dart
-
 import 'dart:convert';
 import 'dart:io';
 import 'package:archive/archive_io.dart';
@@ -7,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as p;
 
 import '../../util/encryption_util.dart';
+import '../media/app_media_store.dart';
 
 /// The container a backup travels in.
 ///
@@ -25,6 +24,7 @@ import '../../util/encryption_util.dart';
 /// ```text
 /// backup.json                       the payload, as before
 /// thumbs/meals/<name>_thumb.jpg     one preview per meal that has one
+/// thumbs/workouts/<name>_thumb.jpg  one preview per workout that has one
 /// ```
 ///
 /// Previews sit in a folder named after the feature they belong to, the same
@@ -46,6 +46,9 @@ class BackupArchive {
   /// straight into [thumbsFolder]; [BackupArchiveContents.extractThumbnails]
   /// still takes those.
   static const String mealThumbsFolder = '$thumbsFolder/meals';
+
+  /// Where workout previews go.
+  static const String workoutThumbsFolder = '$thumbsFolder/workouts';
   static const String encryptedSuffix = '.enc';
 
   /// Previews are already-compressed JPEGs; deflating them again costs CPU and
@@ -67,13 +70,14 @@ class BackupArchive {
 
   /// Writes a backup archive to [targetPath].
   ///
-  /// [thumbnails] are copied in under their own file names; anything that
-  /// disappeared between being listed and being read is skipped rather than
-  /// failing the whole export.
+  /// [thumbnails] (and optional [workoutThumbnails]) are copied in under their
+  /// own file names; anything that disappeared between being listed and being
+  /// read is skipped rather than failing the whole export.
   static Future<File> write({
     required String targetPath,
     required String payloadJson,
-    required List<File> thumbnails,
+    List<File> thumbnails = const [],
+    List<File> workoutThumbnails = const [],
     String? passphrase,
   }) async {
     final cipher = passphrase == null || passphrase.isEmpty
@@ -108,12 +112,33 @@ class BackupArchive {
           continue;
         }
         var name = p.basename(thumb.path);
-        if (!used.add(name)) continue;
+        final folder = thumb.path.contains('/workouts/') ||
+                thumb.path.contains('\\workouts\\')
+            ? workoutThumbsFolder
+            : mealThumbsFolder;
+        if (!used.add('$folder/$name')) continue;
         if (cipher != null) {
           bytes = await cipher.encrypt(bytes);
           name = '$name$encryptedSuffix';
         }
-        _addBytes(encoder, '$mealThumbsFolder/$name', bytes);
+        _addBytes(encoder, '$folder/$name', bytes);
+      }
+
+      for (final thumb in workoutThumbnails) {
+        List<int> bytes;
+        try {
+          bytes = await thumb.readAsBytes();
+        } catch (e) {
+          debugPrint('[BackupArchive] skipping unreadable ${thumb.path}: $e');
+          continue;
+        }
+        var name = p.basename(thumb.path);
+        if (!used.add('$workoutThumbsFolder/$name')) continue;
+        if (cipher != null) {
+          bytes = await cipher.encrypt(bytes);
+          name = '$name$encryptedSuffix';
+        }
+        _addBytes(encoder, '$workoutThumbsFolder/$name', bytes);
       }
     } finally {
       await encoder.close();
@@ -190,24 +215,24 @@ class BackupArchiveContents {
   /// The backup document, in the same shape a bare JSON backup has.
   final Map<String, dynamic> payload;
 
-  /// Writes the meal previews to disk and reports how many landed.
+  /// Writes the previews to disk and reports how many landed.
   ///
-  /// [directoryFor] decides where each one goes from its file name, because
-  /// the restored rows — not this device's layout — say where their preview
-  /// has to be; see `AppMediaStore.mealThumbPlacement`. A backup restored onto
-  /// a build that keeps photos elsewhere than the one that wrote it would
-  /// otherwise leave every row pointing at nothing.
+  /// [directoryFor] decides where each one goes from its file name.
   ///
   /// Entry names are reduced to their base name before use: a zip may name its
   /// entries anything at all, including `../`, and nothing in a backup has any
   /// business writing outside the photo folder.
   Future<int> extractThumbnails(
-    Directory Function(String fileName) directoryFor,
-  ) async {
+    Directory Function(String fileName) directoryFor, {
+    MediaDomain domain = MediaDomain.meals,
+  }) async {
     var written = 0;
     for (final file in _archive.files) {
       if (!file.isFile) continue;
-      if (!_isMealThumb(file.name)) continue;
+      if (domain == MediaDomain.meals && !_isMealThumb(file.name)) continue;
+      if (domain == MediaDomain.workouts && !_isWorkoutThumb(file.name)) {
+        continue;
+      }
 
       var name = p.basename(file.name);
       if (_cipher != null) {
@@ -239,11 +264,15 @@ class BackupArchiveContents {
 
   /// True for the meal previews of both archive generations: the current
   /// `thumbs/meals/<name>` and the flat `thumbs/<name>` written before the
-  /// previews were split by feature. A future `thumbs/<other>/<name>` is not
-  /// a meal preview and must not land in the meal folder.
+  /// previews were split by feature.
   static bool _isMealThumb(String entryName) {
     if (entryName.startsWith('${BackupArchive.mealThumbsFolder}/')) return true;
     return p.url.dirname(entryName) == BackupArchive.thumbsFolder;
+  }
+
+  /// True for workout previews in `thumbs/workouts/<name>`.
+  static bool _isWorkoutThumb(String entryName) {
+    return entryName.startsWith('${BackupArchive.workoutThumbsFolder}/');
   }
 
   Future<void> close() async {

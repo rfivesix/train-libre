@@ -3490,6 +3490,24 @@ class $WorkoutLogsTable extends WorkoutLogs
   late final GeneratedColumn<String> notes = GeneratedColumn<String>(
       'notes', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _photoPathMeta =
+      const VerificationMeta('photoPath');
+  @override
+  late final GeneratedColumn<String> photoPath = GeneratedColumn<String>(
+      'photo_path', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _photoThumbPathMeta =
+      const VerificationMeta('photoThumbPath');
+  @override
+  late final GeneratedColumn<String> photoThumbPath = GeneratedColumn<String>(
+      'photo_thumb_path', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _photoExtraPathsMeta =
+      const VerificationMeta('photoExtraPaths');
+  @override
+  late final GeneratedColumn<String> photoExtraPaths = GeneratedColumn<String>(
+      'photo_extra_paths', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns => [
         localId,
@@ -3504,7 +3522,10 @@ class $WorkoutLogsTable extends WorkoutLogs
         endTime,
         status,
         visibility,
-        notes
+        notes,
+        photoPath,
+        photoThumbPath,
+        photoExtraPaths
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -3573,6 +3594,22 @@ class $WorkoutLogsTable extends WorkoutLogs
       context.handle(
           _notesMeta, notes.isAcceptableOrUnknown(data['notes']!, _notesMeta));
     }
+    if (data.containsKey('photo_path')) {
+      context.handle(_photoPathMeta,
+          photoPath.isAcceptableOrUnknown(data['photo_path']!, _photoPathMeta));
+    }
+    if (data.containsKey('photo_thumb_path')) {
+      context.handle(
+          _photoThumbPathMeta,
+          photoThumbPath.isAcceptableOrUnknown(
+              data['photo_thumb_path']!, _photoThumbPathMeta));
+    }
+    if (data.containsKey('photo_extra_paths')) {
+      context.handle(
+          _photoExtraPathsMeta,
+          photoExtraPaths.isAcceptableOrUnknown(
+              data['photo_extra_paths']!, _photoExtraPathsMeta));
+    }
     return context;
   }
 
@@ -3608,6 +3645,12 @@ class $WorkoutLogsTable extends WorkoutLogs
           .read(DriftSqlType.string, data['${effectivePrefix}visibility'])!,
       notes: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}notes']),
+      photoPath: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}photo_path']),
+      photoThumbPath: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}photo_thumb_path']),
+      photoExtraPaths: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}photo_extra_paths']),
     );
   }
 
@@ -3631,6 +3674,18 @@ class WorkoutLog extends DataClass implements Insertable<WorkoutLog> {
   final String status;
   final String visibility;
   final String? notes;
+
+  /// First photo of the session, relative to the application support
+  /// directory. Its own column rather than part of [photoExtraPaths] so that
+  /// everything showing a single picture reads a column instead of parsing
+  /// JSON.
+  final String? photoPath;
+  final String? photoThumbPath;
+
+  /// Photos two to four, as a JSON array of relative paths. Their previews are
+  /// found by convention (`AppMediaStore.thumbPathFor`) rather than stored a
+  /// second time.
+  final String? photoExtraPaths;
   const WorkoutLog(
       {required this.localId,
       required this.id,
@@ -3644,7 +3699,10 @@ class WorkoutLog extends DataClass implements Insertable<WorkoutLog> {
       this.endTime,
       required this.status,
       required this.visibility,
-      this.notes});
+      this.notes,
+      this.photoPath,
+      this.photoThumbPath,
+      this.photoExtraPaths});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -3672,6 +3730,15 @@ class WorkoutLog extends DataClass implements Insertable<WorkoutLog> {
     map['visibility'] = Variable<String>(visibility);
     if (!nullToAbsent || notes != null) {
       map['notes'] = Variable<String>(notes);
+    }
+    if (!nullToAbsent || photoPath != null) {
+      map['photo_path'] = Variable<String>(photoPath);
+    }
+    if (!nullToAbsent || photoThumbPath != null) {
+      map['photo_thumb_path'] = Variable<String>(photoThumbPath);
+    }
+    if (!nullToAbsent || photoExtraPaths != null) {
+      map['photo_extra_paths'] = Variable<String>(photoExtraPaths);
     }
     return map;
   }
@@ -3701,6 +3768,15 @@ class WorkoutLog extends DataClass implements Insertable<WorkoutLog> {
       visibility: Value(visibility),
       notes:
           notes == null && nullToAbsent ? const Value.absent() : Value(notes),
+      photoPath: photoPath == null && nullToAbsent
+          ? const Value.absent()
+          : Value(photoPath),
+      photoThumbPath: photoThumbPath == null && nullToAbsent
+          ? const Value.absent()
+          : Value(photoThumbPath),
+      photoExtraPaths: photoExtraPaths == null && nullToAbsent
+          ? const Value.absent()
+          : Value(photoExtraPaths),
     );
   }
 
@@ -3722,6 +3798,9 @@ class WorkoutLog extends DataClass implements Insertable<WorkoutLog> {
       status: serializer.fromJson<String>(json['status']),
       visibility: serializer.fromJson<String>(json['visibility']),
       notes: serializer.fromJson<String?>(json['notes']),
+      photoPath: serializer.fromJson<String?>(json['photoPath']),
+      photoThumbPath: serializer.fromJson<String?>(json['photoThumbPath']),
+      photoExtraPaths: serializer.fromJson<String?>(json['photoExtraPaths']),
     );
   }
   @override
@@ -3741,6 +3820,9 @@ class WorkoutLog extends DataClass implements Insertable<WorkoutLog> {
       'status': serializer.toJson<String>(status),
       'visibility': serializer.toJson<String>(visibility),
       'notes': serializer.toJson<String?>(notes),
+      'photoPath': serializer.toJson<String?>(photoPath),
+      'photoThumbPath': serializer.toJson<String?>(photoThumbPath),
+      'photoExtraPaths': serializer.toJson<String?>(photoExtraPaths),
     };
   }
 
@@ -3757,7 +3839,10 @@ class WorkoutLog extends DataClass implements Insertable<WorkoutLog> {
           Value<DateTime?> endTime = const Value.absent(),
           String? status,
           String? visibility,
-          Value<String?> notes = const Value.absent()}) =>
+          Value<String?> notes = const Value.absent(),
+          Value<String?> photoPath = const Value.absent(),
+          Value<String?> photoThumbPath = const Value.absent(),
+          Value<String?> photoExtraPaths = const Value.absent()}) =>
       WorkoutLog(
         localId: localId ?? this.localId,
         id: id ?? this.id,
@@ -3774,6 +3859,12 @@ class WorkoutLog extends DataClass implements Insertable<WorkoutLog> {
         status: status ?? this.status,
         visibility: visibility ?? this.visibility,
         notes: notes.present ? notes.value : this.notes,
+        photoPath: photoPath.present ? photoPath.value : this.photoPath,
+        photoThumbPath:
+            photoThumbPath.present ? photoThumbPath.value : this.photoThumbPath,
+        photoExtraPaths: photoExtraPaths.present
+            ? photoExtraPaths.value
+            : this.photoExtraPaths,
       );
   WorkoutLog copyWithCompanion(WorkoutLogsCompanion data) {
     return WorkoutLog(
@@ -3793,6 +3884,13 @@ class WorkoutLog extends DataClass implements Insertable<WorkoutLog> {
       visibility:
           data.visibility.present ? data.visibility.value : this.visibility,
       notes: data.notes.present ? data.notes.value : this.notes,
+      photoPath: data.photoPath.present ? data.photoPath.value : this.photoPath,
+      photoThumbPath: data.photoThumbPath.present
+          ? data.photoThumbPath.value
+          : this.photoThumbPath,
+      photoExtraPaths: data.photoExtraPaths.present
+          ? data.photoExtraPaths.value
+          : this.photoExtraPaths,
     );
   }
 
@@ -3811,7 +3909,10 @@ class WorkoutLog extends DataClass implements Insertable<WorkoutLog> {
           ..write('endTime: $endTime, ')
           ..write('status: $status, ')
           ..write('visibility: $visibility, ')
-          ..write('notes: $notes')
+          ..write('notes: $notes, ')
+          ..write('photoPath: $photoPath, ')
+          ..write('photoThumbPath: $photoThumbPath, ')
+          ..write('photoExtraPaths: $photoExtraPaths')
           ..write(')'))
         .toString();
   }
@@ -3830,7 +3931,10 @@ class WorkoutLog extends DataClass implements Insertable<WorkoutLog> {
       endTime,
       status,
       visibility,
-      notes);
+      notes,
+      photoPath,
+      photoThumbPath,
+      photoExtraPaths);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -3847,7 +3951,10 @@ class WorkoutLog extends DataClass implements Insertable<WorkoutLog> {
           other.endTime == this.endTime &&
           other.status == this.status &&
           other.visibility == this.visibility &&
-          other.notes == this.notes);
+          other.notes == this.notes &&
+          other.photoPath == this.photoPath &&
+          other.photoThumbPath == this.photoThumbPath &&
+          other.photoExtraPaths == this.photoExtraPaths);
 }
 
 class WorkoutLogsCompanion extends UpdateCompanion<WorkoutLog> {
@@ -3864,6 +3971,9 @@ class WorkoutLogsCompanion extends UpdateCompanion<WorkoutLog> {
   final Value<String> status;
   final Value<String> visibility;
   final Value<String?> notes;
+  final Value<String?> photoPath;
+  final Value<String?> photoThumbPath;
+  final Value<String?> photoExtraPaths;
   const WorkoutLogsCompanion({
     this.localId = const Value.absent(),
     this.id = const Value.absent(),
@@ -3878,6 +3988,9 @@ class WorkoutLogsCompanion extends UpdateCompanion<WorkoutLog> {
     this.status = const Value.absent(),
     this.visibility = const Value.absent(),
     this.notes = const Value.absent(),
+    this.photoPath = const Value.absent(),
+    this.photoThumbPath = const Value.absent(),
+    this.photoExtraPaths = const Value.absent(),
   });
   WorkoutLogsCompanion.insert({
     this.localId = const Value.absent(),
@@ -3893,6 +4006,9 @@ class WorkoutLogsCompanion extends UpdateCompanion<WorkoutLog> {
     this.status = const Value.absent(),
     this.visibility = const Value.absent(),
     this.notes = const Value.absent(),
+    this.photoPath = const Value.absent(),
+    this.photoThumbPath = const Value.absent(),
+    this.photoExtraPaths = const Value.absent(),
   }) : startTime = Value(startTime);
   static Insertable<WorkoutLog> custom({
     Expression<int>? localId,
@@ -3908,6 +4024,9 @@ class WorkoutLogsCompanion extends UpdateCompanion<WorkoutLog> {
     Expression<String>? status,
     Expression<String>? visibility,
     Expression<String>? notes,
+    Expression<String>? photoPath,
+    Expression<String>? photoThumbPath,
+    Expression<String>? photoExtraPaths,
   }) {
     return RawValuesInsertable({
       if (localId != null) 'local_id': localId,
@@ -3924,6 +4043,9 @@ class WorkoutLogsCompanion extends UpdateCompanion<WorkoutLog> {
       if (status != null) 'status': status,
       if (visibility != null) 'visibility': visibility,
       if (notes != null) 'notes': notes,
+      if (photoPath != null) 'photo_path': photoPath,
+      if (photoThumbPath != null) 'photo_thumb_path': photoThumbPath,
+      if (photoExtraPaths != null) 'photo_extra_paths': photoExtraPaths,
     });
   }
 
@@ -3940,7 +4062,10 @@ class WorkoutLogsCompanion extends UpdateCompanion<WorkoutLog> {
       Value<DateTime?>? endTime,
       Value<String>? status,
       Value<String>? visibility,
-      Value<String?>? notes}) {
+      Value<String?>? notes,
+      Value<String?>? photoPath,
+      Value<String?>? photoThumbPath,
+      Value<String?>? photoExtraPaths}) {
     return WorkoutLogsCompanion(
       localId: localId ?? this.localId,
       id: id ?? this.id,
@@ -3955,6 +4080,9 @@ class WorkoutLogsCompanion extends UpdateCompanion<WorkoutLog> {
       status: status ?? this.status,
       visibility: visibility ?? this.visibility,
       notes: notes ?? this.notes,
+      photoPath: photoPath ?? this.photoPath,
+      photoThumbPath: photoThumbPath ?? this.photoThumbPath,
+      photoExtraPaths: photoExtraPaths ?? this.photoExtraPaths,
     );
   }
 
@@ -4001,6 +4129,15 @@ class WorkoutLogsCompanion extends UpdateCompanion<WorkoutLog> {
     if (notes.present) {
       map['notes'] = Variable<String>(notes.value);
     }
+    if (photoPath.present) {
+      map['photo_path'] = Variable<String>(photoPath.value);
+    }
+    if (photoThumbPath.present) {
+      map['photo_thumb_path'] = Variable<String>(photoThumbPath.value);
+    }
+    if (photoExtraPaths.present) {
+      map['photo_extra_paths'] = Variable<String>(photoExtraPaths.value);
+    }
     return map;
   }
 
@@ -4019,7 +4156,10 @@ class WorkoutLogsCompanion extends UpdateCompanion<WorkoutLog> {
           ..write('endTime: $endTime, ')
           ..write('status: $status, ')
           ..write('visibility: $visibility, ')
-          ..write('notes: $notes')
+          ..write('notes: $notes, ')
+          ..write('photoPath: $photoPath, ')
+          ..write('photoThumbPath: $photoThumbPath, ')
+          ..write('photoExtraPaths: $photoExtraPaths')
           ..write(')'))
         .toString();
   }
@@ -21746,6 +21886,9 @@ typedef $$WorkoutLogsTableCreateCompanionBuilder = WorkoutLogsCompanion
   Value<String> status,
   Value<String> visibility,
   Value<String?> notes,
+  Value<String?> photoPath,
+  Value<String?> photoThumbPath,
+  Value<String?> photoExtraPaths,
 });
 typedef $$WorkoutLogsTableUpdateCompanionBuilder = WorkoutLogsCompanion
     Function({
@@ -21762,6 +21905,9 @@ typedef $$WorkoutLogsTableUpdateCompanionBuilder = WorkoutLogsCompanion
   Value<String> status,
   Value<String> visibility,
   Value<String?> notes,
+  Value<String?> photoPath,
+  Value<String?> photoThumbPath,
+  Value<String?> photoExtraPaths,
 });
 
 final class $$WorkoutLogsTableReferences
@@ -21876,6 +22022,17 @@ class $$WorkoutLogsTableFilterComposer
 
   ColumnFilters<String> get notes => $composableBuilder(
       column: $table.notes, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get photoPath => $composableBuilder(
+      column: $table.photoPath, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get photoThumbPath => $composableBuilder(
+      column: $table.photoThumbPath,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get photoExtraPaths => $composableBuilder(
+      column: $table.photoExtraPaths,
+      builder: (column) => ColumnFilters(column));
 
   $$RoutinesTableFilterComposer get routineId {
     final $$RoutinesTableFilterComposer composer = $composerBuilder(
@@ -22007,6 +22164,17 @@ class $$WorkoutLogsTableOrderingComposer
   ColumnOrderings<String> get notes => $composableBuilder(
       column: $table.notes, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<String> get photoPath => $composableBuilder(
+      column: $table.photoPath, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get photoThumbPath => $composableBuilder(
+      column: $table.photoThumbPath,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get photoExtraPaths => $composableBuilder(
+      column: $table.photoExtraPaths,
+      builder: (column) => ColumnOrderings(column));
+
   $$RoutinesTableOrderingComposer get routineId {
     final $$RoutinesTableOrderingComposer composer = $composerBuilder(
         composer: this,
@@ -22072,6 +22240,15 @@ class $$WorkoutLogsTableAnnotationComposer
 
   GeneratedColumn<String> get notes =>
       $composableBuilder(column: $table.notes, builder: (column) => column);
+
+  GeneratedColumn<String> get photoPath =>
+      $composableBuilder(column: $table.photoPath, builder: (column) => column);
+
+  GeneratedColumn<String> get photoThumbPath => $composableBuilder(
+      column: $table.photoThumbPath, builder: (column) => column);
+
+  GeneratedColumn<String> get photoExtraPaths => $composableBuilder(
+      column: $table.photoExtraPaths, builder: (column) => column);
 
   $$RoutinesTableAnnotationComposer get routineId {
     final $$RoutinesTableAnnotationComposer composer = $composerBuilder(
@@ -22199,6 +22376,9 @@ class $$WorkoutLogsTableTableManager extends RootTableManager<
             Value<String> status = const Value.absent(),
             Value<String> visibility = const Value.absent(),
             Value<String?> notes = const Value.absent(),
+            Value<String?> photoPath = const Value.absent(),
+            Value<String?> photoThumbPath = const Value.absent(),
+            Value<String?> photoExtraPaths = const Value.absent(),
           }) =>
               WorkoutLogsCompanion(
             localId: localId,
@@ -22214,6 +22394,9 @@ class $$WorkoutLogsTableTableManager extends RootTableManager<
             status: status,
             visibility: visibility,
             notes: notes,
+            photoPath: photoPath,
+            photoThumbPath: photoThumbPath,
+            photoExtraPaths: photoExtraPaths,
           ),
           createCompanionCallback: ({
             Value<int> localId = const Value.absent(),
@@ -22229,6 +22412,9 @@ class $$WorkoutLogsTableTableManager extends RootTableManager<
             Value<String> status = const Value.absent(),
             Value<String> visibility = const Value.absent(),
             Value<String?> notes = const Value.absent(),
+            Value<String?> photoPath = const Value.absent(),
+            Value<String?> photoThumbPath = const Value.absent(),
+            Value<String?> photoExtraPaths = const Value.absent(),
           }) =>
               WorkoutLogsCompanion.insert(
             localId: localId,
@@ -22244,6 +22430,9 @@ class $$WorkoutLogsTableTableManager extends RootTableManager<
             status: status,
             visibility: visibility,
             notes: notes,
+            photoPath: photoPath,
+            photoThumbPath: photoThumbPath,
+            photoExtraPaths: photoExtraPaths,
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (

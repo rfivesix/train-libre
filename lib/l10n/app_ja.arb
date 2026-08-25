@@ -2737,5 +2737,11 @@
   "aiCaptureTourStepTextDesc": "写真の代わりにテキストだけで食事内容を入力したり、補足メモを追加できます。",
   "aiCaptureTourStepAnalyzeTitle": "スマートAI解析",
   "aiCaptureTourStepAnalyzeDesc": "写真・音声・テキストが揃ったら「解析」をタップ。AIが食品を特定し、栄養目標と照合します。",
-  "aiCaptureTourReplayTooltip": "案内をもう一度見る"
+  "aiCaptureTourReplayTooltip": "案内をもう一度見る",
+  "workoutPhotoAdd": "写真を追加",
+  "workoutPhotoTake": "写真を撮る",
+  "workoutPhotoFromLibrary": "ライブラリから選択",
+  "workoutPhotoRemove": "写真を削除",
+  "workoutPhotoRemoveConfirm": "この写真を削除してもよろしいですか？",
+  "workoutPhotoLimitReached": "写真の上限（4枚）に達しました"
 }

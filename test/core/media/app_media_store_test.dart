@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:drift/native.dart';
@@ -7,6 +8,7 @@ import 'package:path/path.dart' as p;
 import 'package:train_libre/core/media/app_media_store.dart';
 import 'package:train_libre/data/drift_database.dart';
 import 'package:train_libre/features/diary/data/meal_photo_store.dart';
+import 'package:train_libre/features/workout/data/workout_photo_store.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -46,12 +48,19 @@ void main() {
     test('every domain has its own folder under the media root', () {
       expect(MediaDomain.meals.folder, p.join('media', 'meals'));
       expect(MealPhotoStore.folderName, MediaDomain.meals.folder);
+      expect(MediaDomain.workouts.folder, p.join('media', 'workouts'));
+      expect(WorkoutPhotoStore.folderName, MediaDomain.workouts.folder);
     });
 
     test('directoryOf creates the folder it names', () async {
       final dir = await AppMediaStore.instance.directoryOf(MediaDomain.meals);
       expect(dir.existsSync(), isTrue);
       expect(dir.path, p.join(supportDir.path, 'media', 'meals'));
+
+      final workoutDir =
+          await AppMediaStore.instance.directoryOf(MediaDomain.workouts);
+      expect(workoutDir.existsSync(), isTrue);
+      expect(workoutDir.path, p.join(supportDir.path, 'media', 'workouts'));
     });
   });
 
@@ -89,6 +98,10 @@ void main() {
         AppMediaStore.thumbPathFor('media/meals/abc.jpg'),
         'media/meals/abc_thumb.jpg',
       );
+      expect(
+        AppMediaStore.thumbPathFor('media/workouts/xyz.jpg'),
+        'media/workouts/xyz_thumb.jpg',
+      );
       expect(AppMediaStore.thumbPathFor(null), isNull);
       expect(AppMediaStore.thumbPathFor(''), isNull);
     });
@@ -99,8 +112,8 @@ void main() {
       await AppMediaStore.instance.ensureInitialized();
       write('media/meals/keep.jpg', [1]);
       write('media/meals/keep_thumb.jpg', [2]);
-      write('media/meals/orphan.jpg', [3]);
-      write('media/meals/orphan_thumb.jpg', [4]);
+      write('media/meals/drop.jpg', [3]);
+      write('media/meals/drop_thumb.jpg', [4]);
 
       final removed = await AppMediaStore.instance.pruneOrphans(
         domain: MediaDomain.meals,
@@ -111,14 +124,15 @@ void main() {
       expect(File(p.join(supportDir.path, 'media/meals/keep.jpg')).existsSync(),
           isTrue);
       expect(
-        File(p.join(supportDir.path, 'media/meals/keep_thumb.jpg'))
-            .existsSync(),
-        isTrue,
-      );
+          File(p.join(supportDir.path, 'media/meals/keep_thumb.jpg'))
+              .existsSync(),
+          isTrue);
+      expect(File(p.join(supportDir.path, 'media/meals/drop.jpg')).existsSync(),
+          isFalse);
       expect(
-        File(p.join(supportDir.path, 'media/meals/orphan.jpg')).existsSync(),
-        isFalse,
-      );
+          File(p.join(supportDir.path, 'media/meals/drop_thumb.jpg'))
+              .existsSync(),
+          isFalse);
     });
 
     test('sweeps the legacy folder too', () async {
@@ -138,10 +152,10 @@ void main() {
       );
     });
 
-    test('matches by file name, not by folder', () async {
-      // A restored row may still name the legacy folder while the file it
-      // refers to now lives under the media root. Deleting it because the two
-      // folders differ would be exactly the wrong outcome.
+    test('matches referenced files by name regardless of folder path',
+        () async {
+      // Row references `meal_photos/abc.jpg` (legacy), but the actual file
+      // sits in `media/meals/abc.jpg` — must not be pruned.
       await AppMediaStore.instance.ensureInitialized();
       write('media/meals/abc.jpg', [1]);
 
@@ -248,6 +262,79 @@ void main() {
     });
   });
 
+  group('workoutThumbPlacement', () {
+    Future<AppDatabase> workoutDb(List<Map<String, dynamic>> entries) async {
+      final db = AppDatabase(NativeDatabase.memory());
+      addTearDown(db.close);
+      for (var i = 0; i < entries.length; i++) {
+        await db.customStatement(
+          'INSERT INTO workout_logs (id, local_id, start_time, end_time, status, '
+          'photo_path, photo_thumb_path, photo_extra_paths) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+          [
+            'workout-$i',
+            i + 1,
+            1787000000,
+            1787003600,
+            'completed',
+            entries[i]['photo'],
+            entries[i]['thumb'],
+            entries[i]['extras'],
+          ],
+        );
+      }
+      return db;
+    }
+
+    test('sends a preview to the folder its row names and finds extras',
+        () async {
+      final db = await workoutDb([
+        {
+          'photo': 'media/workouts/w1.jpg',
+          'thumb': 'media/workouts/w1_thumb.jpg',
+          'extras': jsonEncode(['media/workouts/w2.jpg', 'media/workouts/w3.jpg']),
+        },
+      ]);
+
+      final placement =
+          await AppMediaStore.instance.workoutThumbPlacement(db);
+
+      expect(
+        placement.directoryFor('w1_thumb.jpg').path,
+        p.join(supportDir.path, 'media', 'workouts'),
+      );
+      expect(
+        placement.directoryFor('w2_thumb.jpg').path,
+        p.join(supportDir.path, 'media', 'workouts'),
+      );
+      expect(
+        placement.directoryFor('w3_thumb.jpg').path,
+        p.join(supportDir.path, 'media', 'workouts'),
+      );
+    });
+
+    test('referencedWorkoutPaths collects photoPath and extraPaths', () async {
+      final db = await workoutDb([
+        {
+          'photo': 'media/workouts/w1.jpg',
+          'thumb': 'media/workouts/w1_thumb.jpg',
+          'extras': jsonEncode(['media/workouts/w2.jpg']),
+        },
+        {
+          'photo': null,
+          'thumb': null,
+          'extras': null,
+        },
+      ]);
+
+      final paths = await AppMediaStore.referencedWorkoutPaths(db);
+      expect(paths, {
+        'media/workouts/w1.jpg',
+        'media/workouts/w1_thumb.jpg',
+        'media/workouts/w2.jpg',
+      });
+    });
+  });
+
   group('deleteAll', () {
     test('removes each path and the preview beside it', () async {
       await AppMediaStore.instance.ensureInitialized();
@@ -262,7 +349,24 @@ void main() {
         extraPaths: const ['media/meals/extra.jpg'],
       );
 
-      final dir = Directory(p.join(supportDir.path, 'media/meals'));
+      final dir = Directory(p.join(supportDir.path, 'media', 'meals'));
+      expect(dir.listSync(), isEmpty);
+    });
+
+    test('removes workout paths and extra photos', () async {
+      await AppMediaStore.instance.ensureInitialized();
+      write('media/workouts/w1.jpg', [1]);
+      write('media/workouts/w1_thumb.jpg', [2]);
+      write('media/workouts/w2.jpg', [3]);
+      write('media/workouts/w2_thumb.jpg', [4]);
+
+      await WorkoutPhotoStore.instance.delete(
+        photoPath: 'media/workouts/w1.jpg',
+        thumbPath: 'media/workouts/w1_thumb.jpg',
+        extraPaths: const ['media/workouts/w2.jpg'],
+      );
+
+      final dir = Directory(p.join(supportDir.path, 'media', 'workouts'));
       expect(dir.listSync(), isEmpty);
     });
   });

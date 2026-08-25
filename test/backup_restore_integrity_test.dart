@@ -7,6 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 import 'package:train_libre/core/media/app_media_store.dart';
 import 'package:train_libre/features/diary/data/meal_photo_store.dart';
+import 'package:train_libre/features/workout/data/workout_photo_store.dart';
 import 'package:train_libre/core/infrastructure/backup_manager.dart';
 import 'package:train_libre/data/database_helper.dart';
 import 'package:train_libre/data/drift_database.dart'
@@ -231,6 +232,98 @@ void main() {
       // The preview comes back; the full-size photo deliberately does not.
       expect(File(p.join(photoDir.path, 'abc_thumb.jpg')).existsSync(), isTrue);
       expect(File(p.join(photoDir.path, 'abc.jpg')).existsSync(), isFalse);
+    });
+
+    test(
+        'workout logs with up to 4 photos survive backup restore and previews extract properly',
+        () async {
+      final supportDir =
+          await Directory.systemTemp.createTemp('workout_photos_test');
+      addTearDown(() async {
+        if (await supportDir.exists()) await supportDir.delete(recursive: true);
+      });
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+        const MethodChannel('plugins.flutter.io/path_provider'),
+        (call) async => supportDir.path,
+      );
+      addTearDown(() {
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(
+          const MethodChannel('plugins.flutter.io/path_provider'),
+          null,
+        );
+      });
+
+      AppMediaStore.instance.resetForTesting();
+      addTearDown(AppMediaStore.instance.resetForTesting);
+
+      final photoDir = Directory(
+        p.join(supportDir.path, WorkoutPhotoStore.folderName),
+      )..createSync(recursive: true);
+
+      final full1 = File(p.join(photoDir.path, 'w1.jpg'))
+        ..writeAsBytesSync(List<int>.filled(4096, 1));
+      final thumb1 = File(p.join(photoDir.path, 'w1_thumb.jpg'))
+        ..writeAsBytesSync(List<int>.filled(64, 1));
+      final full2 = File(p.join(photoDir.path, 'w2.jpg'))
+        ..writeAsBytesSync(List<int>.filled(4096, 2));
+      final thumb2 = File(p.join(photoDir.path, 'w2_thumb.jpg'))
+        ..writeAsBytesSync(List<int>.filled(64, 2));
+      final full3 = File(p.join(photoDir.path, 'w3.jpg'))
+        ..writeAsBytesSync(List<int>.filled(4096, 3));
+      final thumb3 = File(p.join(photoDir.path, 'w3_thumb.jpg'))
+        ..writeAsBytesSync(List<int>.filled(64, 3));
+      final full4 = File(p.join(photoDir.path, 'w4.jpg'))
+        ..writeAsBytesSync(List<int>.filled(4096, 4));
+      final thumb4 = File(p.join(photoDir.path, 'w4_thumb.jpg'))
+        ..writeAsBytesSync(List<int>.filled(64, 4));
+
+      final ongoing = await workoutDb.startWorkout(routineName: 'Push Day');
+      await workoutDb.finishWorkout(
+        ongoing.id!,
+        title: 'Push Day',
+        notes: 'Great pump',
+      );
+
+      final photoPaths = [
+        '${WorkoutPhotoStore.folderName}/w1.jpg',
+        '${WorkoutPhotoStore.folderName}/w2.jpg',
+        '${WorkoutPhotoStore.folderName}/w3.jpg',
+        '${WorkoutPhotoStore.folderName}/w4.jpg',
+      ];
+      await workoutDb.updateWorkoutLogPhotos(ongoing.id!, photoPaths);
+
+      final archive = await backupManager.buildBackupArchive(
+        targetPath: p.join(supportDir.path, 'workout_backup.zip'),
+      );
+
+      // Simulate restore on fresh device
+      full1.deleteSync();
+      thumb1.deleteSync();
+      full2.deleteSync();
+      thumb2.deleteSync();
+      full3.deleteSync();
+      thumb3.deleteSync();
+      full4.deleteSync();
+      thumb4.deleteSync();
+      await db.delete(db.workoutLogs).go();
+
+      expect(await backupManager.importFullBackupAuto(archive.path), isTrue);
+
+      final restoredLogs = await workoutDb.getWorkoutLogs();
+      expect(restoredLogs.length, 1);
+      final restored = restoredLogs.first;
+      expect(restored.routineName, 'Push Day');
+      expect(restored.notes, 'Great pump');
+      expect(restored.photoPaths, photoPaths);
+
+      // Previews are extracted, full-size files are not in archive
+      expect(File(p.join(photoDir.path, 'w1_thumb.jpg')).existsSync(), isTrue);
+      expect(File(p.join(photoDir.path, 'w2_thumb.jpg')).existsSync(), isTrue);
+      expect(File(p.join(photoDir.path, 'w3_thumb.jpg')).existsSync(), isTrue);
+      expect(File(p.join(photoDir.path, 'w4_thumb.jpg')).existsSync(), isTrue);
+      expect(File(p.join(photoDir.path, 'w1.jpg')).existsSync(), isFalse);
     });
 
     test('changed goals/settings and target prefs survive backup restore',

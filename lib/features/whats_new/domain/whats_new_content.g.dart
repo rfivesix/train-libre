@@ -21,6 +21,12 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
       entries: <WhatsNewEntry>[
         WhatsNewEntry(
           icon: LucideIcons.camera,
+          title: 'Photos for your workouts',
+          body:
+              'Capture your workout sessions with up to 4 photos. Take pictures directly with your camera or select them from your library – right in the workout summary or later in your workout history. All photos and previews are safely included in backups.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.camera,
           title: 'Log a meal from a photo',
           body:
               'Point the camera at your plate and the AI turns it into individual foods with amounts, calories and macros. Take up to four photos of the same meal, correct or swap anything before saving - and packaged products are recognised by their barcode in the very same view, without switching modes.',
@@ -45,9 +51,9 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
         ),
         WhatsNewEntry(
           icon: LucideIcons.cloud,
-          title: 'Your meal photos in the iCloud backup',
+          title: 'Your photos in the iCloud backup',
           body:
-              'The automatic backup now carries the photos of your meals, so a restored iPhone shows your meals the way you logged them. Restoring is also safer: it no longer needs a restart, and the previous backup is kept as a spare copy.',
+              'The automatic backup now carries the photos of your meals and workouts, so a restored iPhone shows your entries the way you logged them. Restoring is also safer: it no longer needs a restart, and the previous backup is kept as a spare copy.',
         ),
       ],
     ),
@@ -119,6 +125,12 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
       entries: <WhatsNewEntry>[
         WhatsNewEntry(
           icon: LucideIcons.camera,
+          title: 'Fotos für deine Workouts',
+          body:
+              'Halte deine Trainingseinheiten mit bis zu 4 Fotos fest. Nimm Fotos direkt mit der Kamera auf oder wähle sie aus deiner Mediathek – sowohl direkt nach dem Training in der Zusammenfassung als auch nachträglich im Trainingsverlauf. Alle Fotos und Vorschauen werden auch im Backup gesichert.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.camera,
           title: 'Mahlzeiten per Foto erfassen',
           body:
               'Richte die Kamera auf deinen Teller und die KI macht daraus einzelne Lebensmittel mit Menge, Kalorien und Makros. Bis zu vier Fotos pro Mahlzeit, alles vor dem Speichern korrigierbar oder austauschbar - und verpackte Produkte erkennt dieselbe Ansicht direkt am Barcode, ohne den Modus zu wechseln.',
@@ -143,9 +155,9 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
         ),
         WhatsNewEntry(
           icon: LucideIcons.cloud,
-          title: 'Deine Mahlzeitenfotos im iCloud-Backup',
+          title: 'Deine Fotos im iCloud-Backup',
           body:
-              'Das automatische Backup nimmt jetzt auch die Fotos deiner Mahlzeiten mit, damit ein wiederhergestelltes iPhone deine Mahlzeiten so zeigt, wie du sie erfasst hast. Das Wiederherstellen ist außerdem sicherer: Es braucht keinen Neustart mehr, und das vorherige Backup bleibt als Reservekopie erhalten.',
+              'Das automatische Backup nimmt jetzt auch die Fotos deiner Mahlzeiten und Workouts mit, damit ein wiederhergestelltes iPhone deine Einträge so zeigt, wie du sie erfasst hast. Das Wiederherstellen ist außerdem sicherer: Es braucht keinen Neustart mehr, und das vorherige Backup bleibt als Reservekopie erhalten.',
         ),
       ],
     ),
@@ -217,6 +229,12 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
       entries: <WhatsNewEntry>[
         WhatsNewEntry(
           icon: LucideIcons.camera,
+          title: 'Photos pour vos entraînements',
+          body:
+              'Capturez vos séances d\'entraînement avec jusqu\'à 4 photos. Prenez des photos directement avec votre appareil ou choisissez-les dans votre bibliothèque, dans le récapitulatif ou dans l\'historique d\'entraînement.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.camera,
           title: 'Enregistrer un repas à partir d\'une photo',
           body:
               'vise ton assiette et l\'IA en fait des aliments distincts, avec quantités, calories et macros. Jusqu\'à quatre photos par repas, tout reste corrigeable ou remplaçable avant l\'enregistrement - et les produits emballés sont reconnus par leur code-barres dans la même vue, sans changer de mode.',
@@ -241,9 +259,9 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
         ),
         WhatsNewEntry(
           icon: LucideIcons.cloud,
-          title: 'Tes photos de repas dans la sauvegarde iCloud',
+          title: 'Tes photos dans la sauvegarde iCloud',
           body:
-              'la sauvegarde automatique emporte désormais les photos de tes repas, pour qu\'un iPhone restauré affiche tes repas tels que tu les as enregistrés. La restauration est aussi plus sûre : elle ne demande plus de redémarrage, et la sauvegarde précédente est conservée comme copie de secours.',
+              'la sauvegarde automatique emporte désormais les photos de tes repas et de tes entraînements, pour qu\'un iPhone restauré affiche tes entrées telles que tu les as enregistrées. La restauration est aussi plus sûre : elle ne demande plus de redémarrage, et la sauvegarde précédente est conservée comme copie de secours.',
         ),
       ],
     ),
@@ -315,6 +333,12 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
       entries: <WhatsNewEntry>[
         WhatsNewEntry(
           icon: LucideIcons.camera,
+          title: 'Foto per i tuoi allenamenti',
+          body:
+              'Immortala le tue sessioni di allenamento con un massimo di 4 foto. Scatta direttamente con la fotocamera o scegli dalla libreria, nel riepilogo dell\'allenamento o nella cronologia.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.camera,
           title: 'Registra un pasto da una foto',
           body:
               'inquadra il piatto e l\'IA lo trasforma in singoli alimenti con quantità, calorie e macro. Fino a quattro foto per pasto, tutto correggibile o sostituibile prima di salvare - e i prodotti confezionati vengono riconosciuti dal codice a barre nella stessa schermata, senza cambiare modalità.',
@@ -339,9 +363,9 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
         ),
         WhatsNewEntry(
           icon: LucideIcons.cloud,
-          title: 'Le foto dei pasti nel backup iCloud',
+          title: 'Le tue foto nel backup iCloud',
           body:
-              'il backup automatico porta con sé anche le foto dei pasti, così un iPhone ripristinato mostra i pasti come li hai registrati. Il ripristino è anche più sicuro: non richiede più un riavvio e il backup precedente viene conservato come copia di riserva.',
+              'il backup automatico porta con sé anche le foto dei tuoi pasti e dei tuoi allenamenti, così un iPhone ripristinato mostra le tue voci come le hai registrate. Il ripristino è anche più sicuro: non richiede più un riavvio e il backup precedente viene conservato come copia di riserva.',
         ),
       ],
     ),
@@ -413,6 +437,12 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
       entries: <WhatsNewEntry>[
         WhatsNewEntry(
           icon: LucideIcons.camera,
+          title: 'ワークアウトの写真記録',
+          body:
+              'トレーニングに最大4枚の写真を添付できるようになりました。カメラでの直接撮影やライブラリからの選択に対応し、サマリー画面や履歴詳細からいつでも追加・確認できます。',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.camera,
           title: '写真から食事を記録',
           body:
               'カメラをお皿に向けるだけで、AIが個々の食品として量・カロリー・PFCに分解します。1回の食事につき最大4枚まで撮影でき、保存前に修正や差し替えが可能です。市販の包装食品は同じ画面のままバーコードで認識されるので、モードを切り替える必要はありません。',
@@ -437,9 +467,9 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
         ),
         WhatsNewEntry(
           icon: LucideIcons.cloud,
-          title: 'iCloudバックアップに食事の写真も',
+          title: 'iCloudバックアップに写真も保存',
           body:
-              '自動バックアップが食事の写真も一緒に保存するようになり、復元したiPhoneでも記録したときのままの食事が表示されます。復元自体も安全になりました。再起動が不要になり、直前のバックアップは予備として残ります。',
+              '自動バックアップが食事やワークアウトの写真も一緒に保存するようになり、復元したiPhoneでも記録したときのまま表示されます。復元自体も安全になりました。再起動が不要になり、直前のバックアップは予備として残ります。',
         ),
       ],
     ),

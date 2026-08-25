@@ -27,6 +27,7 @@ import '../../features/profile/data/sources/profile_local_data_source.dart';
 import '../../features/supplements/data/sources/supplement_local_data_source.dart';
 import '../../features/steps/data/sources/steps_local_data_source.dart';
 import '../../features/workout/data/sources/workout_local_data_source.dart';
+import '../../features/workout/data/workout_photo_store.dart';
 import '../../features/diary/domain/models/food_item.dart';
 import '../../features/app/domain/models/train_libre_backup.dart';
 import '../../util/encryption_util.dart';
@@ -456,13 +457,15 @@ class BackupManager {
     token?.throwIfCancelled();
 
     onProgress?.call('meal_photos', 1.0);
-    final thumbnails = await collectMealThumbnails();
+    final mealThumbnails = await collectMealThumbnails();
+    final workoutThumbnails = await collectWorkoutThumbnails();
     token?.throwIfCancelled();
 
     final file = await BackupArchive.write(
       targetPath: targetPath,
       payloadJson: jsonString,
-      thumbnails: thumbnails,
+      thumbnails: mealThumbnails,
+      workoutThumbnails: workoutThumbnails,
       passphrase: passphrase,
     );
     token?.throwIfCancelled();
@@ -493,6 +496,11 @@ class BackupManager {
   @visibleForTesting
   Future<List<File>> collectMealThumbnails() =>
       AppMediaStore.instance.collectMealThumbnails(_dbHelper.dbInstance);
+
+  /// The workout previews that go into a backup archive.
+  @visibleForTesting
+  Future<List<File>> collectWorkoutThumbnails() =>
+      AppMediaStore.instance.collectWorkoutThumbnails(_dbHelper.dbInstance);
 
   Future<bool> importFullBackupAuto(
     String filePath, {
@@ -555,13 +563,25 @@ class BackupManager {
         // the previews land while the entries that name them already exist.
         () async {
           // The rows are in by now, so they can say where their previews go.
-          final placement = await AppMediaStore.instance
+          final mealPlacement = await AppMediaStore.instance
               .mealThumbPlacement(_dbHelper.dbInstance);
-          final written = await contents.extractThumbnails(
-            placement.directoryFor,
+          final mealWritten = await contents.extractThumbnails(
+            mealPlacement.directoryFor,
+            domain: MediaDomain.meals,
           );
-          if (written > 0) {
-            debugPrint('Restored $written meal preview(s) from the backup.');
+          if (mealWritten > 0) {
+            debugPrint('Restored $mealWritten meal preview(s) from the backup.');
+          }
+
+          final workoutPlacement = await AppMediaStore.instance
+              .workoutThumbPlacement(_dbHelper.dbInstance);
+          final workoutWritten = await contents.extractThumbnails(
+            workoutPlacement.directoryFor,
+            domain: MediaDomain.workouts,
+          );
+          if (workoutWritten > 0) {
+            debugPrint(
+                'Restored $workoutWritten workout preview(s) from the backup.');
           }
         },
       );
@@ -1159,7 +1179,7 @@ class BackupManager {
           debugPrint('Restoring meal previews failed: $e');
         }
       }
-      await _pruneOrphanMealPhotos();
+      await _pruneOrphanMedia();
       onProgress?.call('done', 1.0);
     }
     debugPrint("Backup import succeeded.");
@@ -1168,25 +1188,34 @@ class BackupManager {
     return true;
   }
 
-  /// Removes meal photos the restored database no longer refers to.
+  /// Removes media files the restored database no longer refers to.
   ///
   /// A restore replaces the rows but not the files: without this the photos of
-  /// every meal that was just wiped stay on disk forever, and on a device that
-  /// restores repeatedly they are the largest thing the app leaves behind.
-  ///
-  /// Only the previews travel in the archive, so restoring onto the same
-  /// device keeps its full-size photos — their paths still resolve — while a
-  /// fresh device gets the meals with their previews and nothing more.
-  Future<void> _pruneOrphanMealPhotos() async {
+  /// every meal/workout that was just wiped stay on disk forever.
+  Future<void> _pruneOrphanMedia() async {
     try {
-      final referenced =
+      final referencedMeals =
           await AppMediaStore.referencedMealPaths(_dbHelper.dbInstance);
-      final removed = await MealPhotoStore.instance.pruneOrphans(referenced);
-      if (removed > 0) {
-        debugPrint('Pruned $removed orphaned meal photo(s) after restore.');
+      final removedMeals =
+          await MealPhotoStore.instance.pruneOrphans(referencedMeals);
+      if (removedMeals > 0) {
+        debugPrint('Pruned $removedMeals orphaned meal photo(s) after restore.');
       }
     } catch (e) {
       debugPrint('Pruning orphaned meal photos failed: $e');
+    }
+
+    try {
+      final referencedWorkouts =
+          await AppMediaStore.referencedWorkoutPaths(_dbHelper.dbInstance);
+      final removedWorkouts =
+          await WorkoutPhotoStore.instance.pruneOrphans(referencedWorkouts);
+      if (removedWorkouts > 0) {
+        debugPrint(
+            'Pruned $removedWorkouts orphaned workout photo(s) after restore.');
+      }
+    } catch (e) {
+      debugPrint('Pruning orphaned workout photos failed: $e');
     }
   }
 

@@ -2737,5 +2737,11 @@
   "aiCaptureTourStepTextDesc": "Aggiungi dettagli scritti o descrivi il tuo pasto solo tramite testo se preferisci non scattare foto.",
   "aiCaptureTourStepAnalyzeTitle": "Analisi IA intelligente",
   "aiCaptureTourStepAnalyzeDesc": "Non appena foto, dettatura o testo sono pronti, tocca Analizza. L'IA riconosce gli alimenti, stima i grammi e calcola i tuoi macronutrienti.",
-  "aiCaptureTourReplayTooltip": "Rivedi l'introduzione"
+  "aiCaptureTourReplayTooltip": "Rivedi l'introduzione",
+  "workoutPhotoAdd": "Aggiungi foto",
+  "workoutPhotoTake": "Scatta foto",
+  "workoutPhotoFromLibrary": "Scegli dalla libreria",
+  "workoutPhotoRemove": "Rimuovi foto",
+  "workoutPhotoRemoveConfirm": "Vuoi davvero rimuovere questa foto?",
+  "workoutPhotoLimitReached": "Raggiunto il limite massimo di 4 foto"
 }

@@ -10818,6 +10818,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Replay capture guide'**
   String get aiCaptureTourReplayTooltip;
+
+  /// No description provided for @workoutPhotoAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add photo'**
+  String get workoutPhotoAdd;
+
+  /// No description provided for @workoutPhotoTake.
+  ///
+  /// In en, this message translates to:
+  /// **'Take photo'**
+  String get workoutPhotoTake;
+
+  /// No description provided for @workoutPhotoFromLibrary.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose from library'**
+  String get workoutPhotoFromLibrary;
+
+  /// No description provided for @workoutPhotoRemove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove photo'**
+  String get workoutPhotoRemove;
+
+  /// No description provided for @workoutPhotoRemoveConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to remove this photo?'**
+  String get workoutPhotoRemoveConfirm;
+
+  /// No description provided for @workoutPhotoLimitReached.
+  ///
+  /// In en, this message translates to:
+  /// **'Maximum of 4 photos reached'**
+  String get workoutPhotoLimitReached;
 }
 
 class _AppLocalizationsDelegate

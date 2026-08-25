@@ -1,0 +1,121 @@
+import 'dart:io';
+
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
+import 'package:train_libre/core/media/app_media_store.dart';
+import 'package:train_libre/features/workout/presentation/widgets/workout_photo_card.dart';
+import 'package:train_libre/generated/app_localizations.dart';
+
+void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  late Directory supportDir;
+
+  setUp(() async {
+    supportDir =
+        await Directory.systemTemp.createTemp('workout_photo_card_test');
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
+      const MethodChannel('plugins.flutter.io/path_provider'),
+      (call) async => supportDir.path,
+    );
+    AppMediaStore.instance.resetForTesting();
+    await AppMediaStore.instance.ensureInitialized();
+  });
+
+  tearDown(() async {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
+      const MethodChannel('plugins.flutter.io/path_provider'),
+      null,
+    );
+    AppMediaStore.instance.resetForTesting();
+    if (await supportDir.exists()) await supportDir.delete(recursive: true);
+  });
+
+  File write(String relative, List<int> bytes) {
+    final file = File(p.join(supportDir.path, relative));
+    file.parent.createSync(recursive: true);
+    file.writeAsBytesSync(bytes);
+    return file;
+  }
+
+  Widget createWidget({
+    required List<String> photoPaths,
+    bool isEditable = true,
+    ValueChanged<List<String>>? onPhotosChanged,
+  }) {
+    return MaterialApp(
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [Locale('en')],
+      home: Scaffold(
+        body: WorkoutPhotoCard(
+          photoPaths: photoPaths,
+          isEditable: isEditable,
+          onPhotosChanged: onPhotosChanged,
+        ),
+      ),
+    );
+  }
+
+  group('WorkoutPhotoCard', () {
+    testWidgets('renders SizedBox.shrink when empty and not editable',
+        (tester) async {
+      await tester.pumpWidget(
+        createWidget(photoPaths: const [], isEditable: false),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(AspectRatio), findsNothing);
+      expect(find.byIcon(LucideIcons.camera), findsNothing);
+    });
+
+    testWidgets(
+        'renders dashed card with camera and gallery when empty and editable',
+        (tester) async {
+      await tester.pumpWidget(
+        createWidget(photoPaths: const [], isEditable: true),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(AspectRatio), findsOneWidget);
+      expect(find.byIcon(LucideIcons.camera), findsOneWidget);
+      expect(find.byIcon(LucideIcons.image), findsOneWidget);
+    });
+
+    testWidgets('hides add buttons when 4 photos are present', (tester) async {
+      write('media/workouts/p1.jpg', [1, 2, 3]);
+      write('media/workouts/p2.jpg', [1, 2, 3]);
+      write('media/workouts/p3.jpg', [1, 2, 3]);
+      write('media/workouts/p4.jpg', [1, 2, 3]);
+
+      final paths = [
+        'media/workouts/p1.jpg',
+        'media/workouts/p2.jpg',
+        'media/workouts/p3.jpg',
+        'media/workouts/p4.jpg',
+      ];
+
+      await tester.pumpWidget(
+        createWidget(photoPaths: paths, isEditable: true),
+      );
+      await tester.pumpAndSettle();
+
+      // Carousel is rendered
+      expect(find.byType(PageView), findsOneWidget);
+      // Delete button is present in top right
+      expect(find.byIcon(LucideIcons.trash_2), findsOneWidget);
+      // Add buttons (bottom right) are hidden because photo count is 4
+      expect(find.byIcon(LucideIcons.camera), findsNothing);
+    });
+  });
+}

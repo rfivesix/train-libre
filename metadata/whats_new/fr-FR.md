@@ -8,6 +8,8 @@
 
 ## 1.2.0 (2026-08-26)
 
+{camera} Photos pour vos entraînements : Capturez vos séances d'entraînement avec jusqu'à 4 photos. Prenez des photos directement avec votre appareil ou choisissez-les dans votre bibliothèque, dans le récapitulatif ou dans l'historique d'entraînement.
+
 {camera} Enregistrer un repas à partir d'une photo : vise ton assiette et l'IA en fait des aliments distincts, avec quantités, calories et macros. Jusqu'à quatre photos par repas, tout reste corrigeable ou remplaçable avant l'enregistrement - et les produits emballés sont reconnus par leur code-barres dans la même vue, sans changer de mode.
 
 {smartphone} Des portions mesurées, pas devinées : sur les iPhone équipés du LiDAR, la caméra mesure la distance de l'assiette et la taille réelle de la zone visible, puis transmet ces valeurs à l'IA. La mesure se désactive dans les réglages IA.
@@ -16,7 +18,7 @@
 
 {utensils} Un journal plus lisible : un repas scanné reste une seule entrée avec sa photo et se déplie sur ses ingrédients. Les entrées sont triées par calories, les plus élevées d'abord, et quantités et calories s'alignent dans les mêmes colonnes sur chaque ligne.
 
-{cloud} Tes photos de repas dans la sauvegarde iCloud : la sauvegarde automatique emporte désormais les photos de tes repas, pour qu'un iPhone restauré affiche tes repas tels que tu les as enregistrés. La restauration est aussi plus sûre : elle ne demande plus de redémarrage, et la sauvegarde précédente est conservée comme copie de secours.
+{cloud} Tes photos dans la sauvegarde iCloud : la sauvegarde automatique emporte désormais les photos de tes repas et de tes entraînements, pour qu'un iPhone restauré affiche tes entrées telles que tu les as enregistrées. La restauration est aussi plus sûre : elle ne demande plus de redémarrage, et la sauvegarde précédente est conservée comme copie de secours.
 
 ## 1.1.1 (2026-08-12)
 

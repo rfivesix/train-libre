@@ -1,5 +1,4 @@
-// lib/core/media/app_media_store.dart
-
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
@@ -14,12 +13,10 @@ import 'meal_image_processor.dart';
 /// The feature an image belongs to.
 ///
 /// Every domain gets its own folder under `media/`, on disk and inside a
-/// backup archive alike. Meals are the only one today; the split exists so the
-/// next feature that stores images adds a value here instead of a second,
-/// differently shaped photo store — and so a backup written now stays readable
-/// once it does.
+/// backup archive alike.
 enum MediaDomain {
-  meals;
+  meals,
+  workouts;
 
   /// Folder of this domain, relative to the application support directory.
   String get folder => p.join(AppMediaStore.mediaRoot, name);
@@ -160,8 +157,8 @@ class AppMediaStore {
   /// The preview that [save] writes next to [path].
   ///
   /// Extra photos of a multi-shot capture only carry their full-size path in
-  /// `MealCaptureMeta`, so their preview is found by convention rather than
-  /// stored a second time.
+  /// `MealCaptureMeta` (meals) or `photoExtraPaths` (workouts), so their
+  /// preview is found by convention rather than stored a second time.
   static String? thumbPathFor(String? path) {
     if (path == null || path.isEmpty) return null;
     final ext = p.extension(path);
@@ -238,10 +235,6 @@ class AppMediaStore {
   }
 
   // ── Meal domain queries ───────────────────────────────────────────────────
-  //
-  // Both backup paths and the restore sweep need the same two answers out of
-  // the meal rows. They used to ask three times in three places, which is one
-  // place too many for a query that decides what gets deleted.
 
   /// Every image path the meal entries in [db] refer to: full-size photos,
   /// their stored previews and the extra shots of a multi-photo capture.
@@ -292,12 +285,6 @@ class AppMediaStore {
   }
 
   /// The meal previews that go into a backup.
-  ///
-  /// Previews only, deliberately: they are what the diary list shows, they are
-  /// around 30 KB each rather than 150 KB, and a backup meant to be mailed to
-  /// yourself or parked in a cloud folder should not carry a full photo
-  /// library. Entries whose preview is missing contribute nothing rather than
-  /// falling back to the full photo.
   Future<List<File>> collectMealThumbnails(AppDatabase db) async {
     final files = <File>[];
     try {
@@ -306,22 +293,13 @@ class AppMediaStore {
         if (file != null && await file.exists()) files.add(file);
       }
     } catch (e) {
-      // A backup without previews is still a backup worth having.
       debugPrint('[AppMediaStore] collecting meal previews failed: $e');
     }
     return files;
   }
 
   /// Where the previews of a restored backup have to land.
-  ///
-  /// A backup travels with the previews under one flat name, but the rows it
-  /// restores carry the path each one had on the device that wrote it — and
-  /// that is not always this device's layout. A meal logged by a build that
-  /// stored photos in `meal_photos/` names that folder forever; writing its
-  /// preview into `media/meals/` instead leaves the row pointing at nothing
-  /// and the meal shows up without its picture. So the rows decide, and only a
-  /// preview no row claims falls back to this feature's own folder.
-  Future<MealThumbPlacement> mealThumbPlacement(AppDatabase db) async {
+  Future<MediaThumbPlacement> mealThumbPlacement(AppDatabase db) async {
     final base = await ensureInitialized();
     final directories = <String, String>{};
     try {
@@ -331,17 +309,113 @@ class AppMediaStore {
     } catch (e) {
       debugPrint('[AppMediaStore] reading preview locations failed: $e');
     }
-    return MealThumbPlacement(
+    return MediaThumbPlacement(
       basePath: base,
       directoriesByName: directories,
       defaultDirectory: MediaDomain.meals.folder,
     );
   }
+
+  // ── Workout domain queries ────────────────────────────────────────────────
+
+  /// Every image path the workout logs in [db] refer to: full-size photos,
+  /// their stored previews and the extra photos.
+  static Future<Set<String>> referencedWorkoutPaths(AppDatabase db) async {
+    final referenced = <String>{};
+    final rows = await db
+        .customSelect('SELECT photo_path, photo_thumb_path, photo_extra_paths '
+            'FROM workout_logs')
+        .get();
+    for (final row in rows) {
+      final photo = row.data['photo_path'];
+      final thumb = row.data['photo_thumb_path'];
+      if (photo is String && photo.isNotEmpty) referenced.add(photo);
+      if (thumb is String && thumb.isNotEmpty) referenced.add(thumb);
+      final extrasRaw = row.data['photo_extra_paths'] as String?;
+      if (extrasRaw != null && extrasRaw.isNotEmpty) {
+        try {
+          final decoded = jsonDecode(extrasRaw);
+          if (decoded is List) {
+            for (final extra in decoded) {
+              if (extra is String && extra.isNotEmpty) referenced.add(extra);
+            }
+          }
+        } catch (_) {}
+      }
+    }
+    return referenced;
+  }
+
+  /// Every preview path the workout logs in [db] name, in storage order.
+  static Future<List<String>> _workoutThumbPaths(AppDatabase db) async {
+    final paths = <String>[];
+    final seen = <String>{};
+    final rows = await db
+        .customSelect('SELECT photo_path, photo_thumb_path, photo_extra_paths '
+            'FROM workout_logs')
+        .get();
+    for (final row in rows) {
+      final candidates = <String?>[
+        row.data['photo_thumb_path'] as String?,
+        thumbPathFor(row.data['photo_path'] as String?),
+      ];
+      final extrasRaw = row.data['photo_extra_paths'] as String?;
+      if (extrasRaw != null && extrasRaw.isNotEmpty) {
+        try {
+          final decoded = jsonDecode(extrasRaw);
+          if (decoded is List) {
+            for (final extra in decoded) {
+              if (extra is String && extra.isNotEmpty) {
+                candidates.add(thumbPathFor(extra));
+              }
+            }
+          }
+        } catch (_) {}
+      }
+      for (final candidate in candidates) {
+        if (candidate == null || candidate.isEmpty) continue;
+        if (seen.add(candidate)) paths.add(candidate);
+      }
+    }
+    return paths;
+  }
+
+  /// The workout previews that go into a backup.
+  Future<List<File>> collectWorkoutThumbnails(AppDatabase db) async {
+    final files = <File>[];
+    try {
+      for (final candidate in await _workoutThumbPaths(db)) {
+        final file = await resolve(candidate);
+        if (file != null && await file.exists()) files.add(file);
+      }
+    } catch (e) {
+      debugPrint('[AppMediaStore] collecting workout previews failed: $e');
+    }
+    return files;
+  }
+
+  /// Where the workout previews of a restored backup have to land.
+  Future<MediaThumbPlacement> workoutThumbPlacement(AppDatabase db) async {
+    final base = await ensureInitialized();
+    final directories = <String, String>{};
+    try {
+      for (final relative in await _workoutThumbPaths(db)) {
+        directories[p.basename(relative)] = p.dirname(relative);
+      }
+    } catch (e) {
+      debugPrint('[AppMediaStore] reading workout preview locations failed: $e');
+    }
+    return MediaThumbPlacement(
+      basePath: base,
+      directoriesByName: directories,
+      defaultDirectory: MediaDomain.workouts.folder,
+    );
+  }
 }
 
-/// Where each restored meal preview belongs, by file name.
-class MealThumbPlacement {
-  const MealThumbPlacement({
+/// Where each restored preview belongs, by file name.
+class MediaThumbPlacement {
+  const MediaThumbPlacement({
     required this.basePath,
     required this.directoriesByName,
     required this.defaultDirectory,
@@ -360,3 +434,6 @@ class MealThumbPlacement {
         p.join(basePath, directoriesByName[fileName] ?? defaultDirectory),
       );
 }
+
+typedef MealThumbPlacement = MediaThumbPlacement;
+typedef WorkoutThumbPlacement = MediaThumbPlacement;

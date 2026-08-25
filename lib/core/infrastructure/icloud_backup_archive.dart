@@ -1,11 +1,10 @@
-// lib/core/infrastructure/icloud_backup_archive.dart
-
 import 'dart:io';
 
 import 'package:archive/archive_io.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as p;
 
+import '../media/app_media_store.dart';
 import 'backup_archive.dart';
 
 /// The container the automatic iCloud backup travels in.
@@ -19,6 +18,7 @@ import 'backup_archive.dart';
 /// ```text
 /// icloud_backup.sqlite              the VACUUMed database snapshot
 /// thumbs/meals/<name>_thumb.jpg     one preview per meal that has one
+/// thumbs/workouts/<name>_thumb.jpg  one preview per workout that has one
 /// ```
 ///
 /// Only the previews go in, for the same reason [BackupArchive] gives: they
@@ -38,6 +38,9 @@ class ICloudBackupArchive {
   /// [BackupArchive] uses, so the two formats never drift apart.
   static const String mealThumbsFolder = BackupArchive.mealThumbsFolder;
 
+  /// Where workout previews sit inside the archive.
+  static const String workoutThumbsFolder = BackupArchive.workoutThumbsFolder;
+
   /// Deflate level for the snapshot.
   ///
   /// A VACUUMed SQLite file compresses several times over, and the upload is
@@ -50,14 +53,16 @@ class ICloudBackupArchive {
   /// saves close to nothing.
   static const CompressionType _storeOnly = CompressionType.none;
 
-  /// Writes [database] and [thumbnails] to an archive at [targetPath].
+  /// Writes [database] and [thumbnails] (and optional [workoutThumbnails]) to
+  /// an archive at [targetPath].
   ///
   /// A preview that disappeared between being listed and being read is skipped
   /// rather than failing the whole backup.
   static Future<File> pack({
     required String targetPath,
     required File database,
-    required List<File> thumbnails,
+    List<File> thumbnails = const [],
+    List<File> workoutThumbnails = const [],
   }) async {
     final existing = File(targetPath);
     if (await existing.exists()) await existing.delete();
@@ -72,11 +77,29 @@ class ICloudBackupArchive {
       final used = <String>{};
       for (final thumb in thumbnails) {
         final name = p.basename(thumb.path);
-        if (!used.add(name)) continue;
+        final folder = thumb.path.contains('/workouts/') ||
+                thumb.path.contains('\\workouts\\')
+            ? workoutThumbsFolder
+            : mealThumbsFolder;
+        if (!used.add('$folder/$name')) continue;
         try {
           final bytes = await thumb.readAsBytes();
           encoder.addArchiveFile(
-            ArchiveFile.bytes('$mealThumbsFolder/$name', bytes)
+            ArchiveFile.bytes('$folder/$name', bytes)
+              ..compression = _storeOnly,
+          );
+        } catch (e) {
+          debugPrint('[ICloudBackupArchive] skipping ${thumb.path}: $e');
+        }
+      }
+
+      for (final thumb in workoutThumbnails) {
+        final name = p.basename(thumb.path);
+        if (!used.add('$workoutThumbsFolder/$name')) continue;
+        try {
+          final bytes = await thumb.readAsBytes();
+          encoder.addArchiveFile(
+            ArchiveFile.bytes('$workoutThumbsFolder/$name', bytes)
               ..compression = _storeOnly,
           );
         } catch (e) {
@@ -137,12 +160,13 @@ class ICloudBackupArchive {
     }
   }
 
-  /// Writes the meal previews inside [archivePath] to disk and reports how
+  /// Writes the previews inside [archivePath] to disk and reports how
   /// many landed.
   ///
   /// [directoryFor] decides where each one goes from its file name, because
   /// the restored rows — not this device's layout — say where their preview
-  /// has to be; see `AppMediaStore.mealThumbPlacement`.
+  /// has to be; see `AppMediaStore.mealThumbPlacement` and
+  /// `AppMediaStore.workoutThumbPlacement`.
   ///
   /// Entry names are reduced to their base name before use: a zip may name its
   /// entries anything at all, including `../`, and nothing in a backup has any
@@ -151,15 +175,19 @@ class ICloudBackupArchive {
   static Future<int> extractThumbnails({
     required String archivePath,
     required Directory Function(String fileName) directoryFor,
+    MediaDomain domain = MediaDomain.meals,
   }) async {
     var written = 0;
     final input = InputFileStream(archivePath);
     try {
       final archive = ZipDecoder().decodeStream(input);
       try {
+        final prefix = domain == MediaDomain.meals
+            ? '$mealThumbsFolder/'
+            : '$workoutThumbsFolder/';
         for (final file in archive.files) {
           if (!file.isFile) continue;
-          if (!file.name.startsWith('$mealThumbsFolder/')) continue;
+          if (!file.name.startsWith(prefix)) continue;
 
           final name = p.basename(file.name);
           if (name.isEmpty || name == '.' || name == '..') continue;

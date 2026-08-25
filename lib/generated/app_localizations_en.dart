@@ -6192,4 +6192,23 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get aiCaptureTourReplayTooltip => 'Replay capture guide';
+
+  @override
+  String get workoutPhotoAdd => 'Add photo';
+
+  @override
+  String get workoutPhotoTake => 'Take photo';
+
+  @override
+  String get workoutPhotoFromLibrary => 'Choose from library';
+
+  @override
+  String get workoutPhotoRemove => 'Remove photo';
+
+  @override
+  String get workoutPhotoRemoveConfirm =>
+      'Are you sure you want to remove this photo?';
+
+  @override
+  String get workoutPhotoLimitReached => 'Maximum of 4 photos reached';
 }

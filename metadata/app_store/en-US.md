@@ -54,6 +54,8 @@ OPEN SOURCE & OPEN DATA:
 Built transparently on trusted community catalogs from Open Food Facts and the wger exercise database. The full source code is publicly accessible, so our privacy claims can be verified rather than just believed.
 
 ## Release Notes (What's New / Release Notes in this version)
+Photos for your workouts: Capture your workout sessions with up to 4 photos. Take pictures directly with your camera or select them from your library – right in the workout summary or later in your workout history. All photos and previews are safely included in backups.
+
 Log a meal from a photo: Point the camera at your plate and the AI turns it into individual foods with amounts, calories and macros. Take up to four photos of the same meal, correct or swap anything before saving - and packaged products are recognised by their barcode in the very same view, without switching modes.
 
 Portion sizes measured, not guessed: On iPhone models with LiDAR the camera measures how far away your plate is and how large the visible area really is, and passes that to the AI. You can turn the measurement off in the AI settings.
@@ -62,7 +64,7 @@ Just say what's in it: Hold the microphone button and describe your meal - on it
 
 A clearer diary: A scanned meal stays one entry with its photo and can be unfolded into its ingredients. Entries are sorted by calories, largest first, and amounts and calories now line up in the same columns on every row.
 
-Your meal photos in the iCloud backup: The automatic backup now carries the photos of your meals, so a restored iPhone shows your meals the way you logged them. Restoring is also safer: it no longer needs a restart, and the previous backup is kept as a spare copy.
+Your photos in the iCloud backup: The automatic backup now carries the photos of your meals and workouts, so a restored iPhone shows your entries the way you logged them. Restoring is also safer: it no longer needs a restart, and the previous backup is kept as a spare copy.
 
 ## Support URL (Support Web Page URL)
 https://rfivesix.github.io/train-libre/support.html

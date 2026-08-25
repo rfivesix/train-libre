@@ -2736,5 +2736,11 @@
   "aiCaptureTourStepTextDesc": "Füge schriftliche Hinweise hinzu oder beschreibe deine Mahlzeit komplett per Text, falls du kein Foto machen möchtest.",
   "aiCaptureTourStepAnalyzeTitle": "Smarte KI-Analyse",
   "aiCaptureTourStepAnalyzeDesc": "Sobald ein Foto, Diktat oder Text vorhanden ist, erkennt die KI deine Lebensmittel, schätzt Gramm-Angaben und gleicht sie mit deinen Nährwerten ab.",
-  "aiCaptureTourReplayTooltip": "Einführung ansehen"
+  "aiCaptureTourReplayTooltip": "Einführung ansehen",
+  "workoutPhotoAdd": "Foto hinzufügen",
+  "workoutPhotoTake": "Foto aufnehmen",
+  "workoutPhotoFromLibrary": "Aus Mediathek wählen",
+  "workoutPhotoRemove": "Foto entfernen",
+  "workoutPhotoRemoveConfirm": "Möchtest du dieses Foto wirklich entfernen?",
+  "workoutPhotoLimitReached": "Maximal 4 Fotos erreicht"
 }

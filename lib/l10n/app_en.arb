@@ -2929,5 +2929,11 @@
   "aiCaptureTourStepTextDesc": "Add written notes or describe your meal purely via text if you don't want to take a photo.",
   "aiCaptureTourStepAnalyzeTitle": "Smart AI Analysis",
   "aiCaptureTourStepAnalyzeDesc": "Once a photo, voice transcript, or text is ready, tap Analyze. The AI identifies food items, estimates portions, and matches everything against your nutrition targets.",
-  "aiCaptureTourReplayTooltip": "Replay capture guide"
+  "aiCaptureTourReplayTooltip": "Replay capture guide",
+  "workoutPhotoAdd": "Add photo",
+  "workoutPhotoTake": "Take photo",
+  "workoutPhotoFromLibrary": "Choose from library",
+  "workoutPhotoRemove": "Remove photo",
+  "workoutPhotoRemoveConfirm": "Are you sure you want to remove this photo?",
+  "workoutPhotoLimitReached": "Maximum of 4 photos reached"
 }

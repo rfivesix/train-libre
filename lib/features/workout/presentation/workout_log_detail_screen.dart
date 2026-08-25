@@ -27,6 +27,7 @@ import '../../../widgets/common/dual_body_highlighter.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/summary_card.dart';
 import '../../../widgets/common/common.dart';
+import 'widgets/workout_photo_card.dart';
 import 'widgets/workout_summary_bar.dart';
 import 'widgets/workout_heart_rate_section.dart';
 import 'widgets/workout_exercise_log_card.dart';
@@ -139,17 +140,7 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
     if (!mounted || _isEditMode) return;
 
     setState(() {
-      _log = WorkoutLog(
-        id: _log!.id,
-        routineName: _log!.routineName,
-        routineId: _log!.routineId,
-        startTime: _log!.startTime,
-        endTime: _log!.endTime,
-        notes: _log!.notes,
-        startZoneOffsetMinutes: _log!.startZoneOffsetMinutes,
-        endZoneOffsetMinutes: _log!.endZoneOffsetMinutes,
-        sets: mutableSets,
-      );
+      _log = _log!.copyWith(sets: mutableSets);
       _groupedSets = updatedGroups;
       _exerciseDetails = updatedDetails;
     });
@@ -1002,6 +993,29 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                               ),
                             ),
                           ),
+
+                          // Workout Photos (UNDER Header Info)
+                          if (_log!.photoPaths.isNotEmpty || _isEditMode)
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(
+                                DesignConstants.screenPaddingHorizontal,
+                                0,
+                                DesignConstants.screenPaddingHorizontal,
+                                DesignConstants.spacingM,
+                              ),
+                              child: WorkoutPhotoCard(
+                                workoutLogId: _log!.id,
+                                photoPaths: _log!.photoPaths,
+                                isEditable: _isEditMode,
+                                onPhotosChanged: (updatedPaths) {
+                                  setState(() {
+                                    _log = _log!.copyWith(
+                                      photoPaths: updatedPaths,
+                                    );
+                                  });
+                                },
+                              ),
+                            ),
                           if (_exerciseDetails.isNotEmpty) ...[
                             Builder(
                               builder: (context) {

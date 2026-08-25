@@ -8,6 +8,8 @@
 
 ## 1.2.0 (2026-08-26)
 
+{camera} Foto per i tuoi allenamenti: Immortala le tue sessioni di allenamento con un massimo di 4 foto. Scatta direttamente con la fotocamera o scegli dalla libreria, nel riepilogo dell'allenamento o nella cronologia.
+
 {camera} Registra un pasto da una foto: inquadra il piatto e l'IA lo trasforma in singoli alimenti con quantità, calorie e macro. Fino a quattro foto per pasto, tutto correggibile o sostituibile prima di salvare - e i prodotti confezionati vengono riconosciuti dal codice a barre nella stessa schermata, senza cambiare modalità.
 
 {smartphone} Porzioni misurate, non stimate: sugli iPhone con LiDAR la fotocamera misura quanto è distante il piatto e quanto è grande davvero l'area inquadrata, e passa questi dati all'IA. La misurazione si può disattivare nelle impostazioni IA.
@@ -16,7 +18,7 @@
 
 {utensils} Un diario più chiaro: un pasto scansionato resta una sola voce con la sua foto e si può espandere sui suoi ingredienti. Le voci sono ordinate per calorie, dalle più alte, e quantità e calorie sono allineate nelle stesse colonne su ogni riga.
 
-{cloud} Le foto dei pasti nel backup iCloud: il backup automatico porta con sé anche le foto dei pasti, così un iPhone ripristinato mostra i pasti come li hai registrati. Il ripristino è anche più sicuro: non richiede più un riavvio e il backup precedente viene conservato come copia di riserva.
+{cloud} Le tue foto nel backup iCloud: il backup automatico porta con sé anche le foto dei tuoi pasti e dei tuoi allenamenti, così un iPhone ripristinato mostra le tue voci come le hai registrate. Il ripristino è anche più sicuro: non richiede più un riavvio e il backup precedente viene conservato come copia di riserva.
 
 ## 1.1.1 (2026-08-12)
 

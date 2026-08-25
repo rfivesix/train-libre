@@ -138,4 +138,8 @@ class WorkoutRepository implements IWorkoutRepository {
         workoutLogId: workoutLogId,
         name: name,
       );
+
+  @override
+  Future<void> updateWorkoutLogPhotos(int logId, List<String> paths) =>
+      _localDataSource.updateWorkoutLogPhotos(logId, paths);
 }

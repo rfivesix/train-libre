@@ -142,6 +142,18 @@ class WorkoutLogs extends Table with HybridId, MetaColumns {
       text().withDefault(const Constant('ongoing'))(); // ongoing, completed
   TextColumn get visibility => text().withDefault(const Constant('private'))();
   TextColumn get notes => text().nullable()();
+
+  /// First photo of the session, relative to the application support
+  /// directory. Its own column rather than part of [photoExtraPaths] so that
+  /// everything showing a single picture reads a column instead of parsing
+  /// JSON.
+  TextColumn get photoPath => text().nullable()();
+  TextColumn get photoThumbPath => text().nullable()();
+
+  /// Photos two to four, as a JSON array of relative paths. Their previews are
+  /// found by convention (`AppMediaStore.thumbPathFor`) rather than stored a
+  /// second time.
+  TextColumn get photoExtraPaths => text().nullable()();
 }
 
 // 8. SetLogs
@@ -544,7 +556,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
-  int get schemaVersion => 25;
+  int get schemaVersion => 26;
 
   /// Adds whatever the file is missing compared to the generated tables.
   ///
@@ -1082,6 +1094,11 @@ class AppDatabase extends _$AppDatabase {
               await customStatement(
                 'CREATE INDEX IF NOT EXISTS idx_nutrition_logs_meal_entry_id ON nutrition_logs (meal_entry_id);',
               );
+            }
+            if (from < 26) {
+              await m.addColumn(workoutLogs, workoutLogs.photoPath);
+              await m.addColumn(workoutLogs, workoutLogs.photoThumbPath);
+              await m.addColumn(workoutLogs, workoutLogs.photoExtraPaths);
             }
             unawaited(TelemetryService.instance.trackDbMigrationStatus(
               fromVersion: from,
