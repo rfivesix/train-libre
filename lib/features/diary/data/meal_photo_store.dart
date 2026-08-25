@@ -7,7 +7,7 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:uuid/uuid.dart';
 
-import '../../depth_scan/platform/depth_scan_channel.dart';
+import '../../../core/media/meal_image_processor.dart';
 
 /// Relative locations of a stored meal photo.
 class MealPhotoPaths {
@@ -66,13 +66,28 @@ class MealPhotoStore {
       final id = _uuid.v4();
       final photoRelative = p.join(_folder, '$id.jpg');
       final photoAbsolute = p.join(base, photoRelative);
-      await source.copy(photoAbsolute);
+
+      // Scaled rather than copied: a full-resolution camera photo is 3–8 MB,
+      // and three meals a day would put several gigabytes of pixels nobody
+      // ever looks at on the device. Falls back to the plain copy when the
+      // platform has no encoder, because a photo at any size beats none.
+      final scaled = await MealImageProcessor.instance.downscale(
+        sourcePath: source.path,
+        targetPath: photoAbsolute,
+        maxEdge: MealImageProcessor.storageMaxEdge,
+        quality: MealImageProcessor.storageQuality,
+      );
+      if (!scaled) {
+        await source.copy(photoAbsolute);
+      }
 
       final thumbRelative = p.join(_folder, '${id}_thumb.jpg');
       final thumbAbsolute = p.join(base, thumbRelative);
-      final thumbCreated = await DepthScanChannel.instance.makeThumbnail(
+      final thumbCreated = await MealImageProcessor.instance.downscale(
         sourcePath: photoAbsolute,
         targetPath: thumbAbsolute,
+        maxEdge: MealImageProcessor.thumbMaxEdge,
+        quality: MealImageProcessor.thumbQuality,
       );
 
       return MealPhotoPaths(
@@ -103,9 +118,70 @@ class MealPhotoStore {
     return resolveSync(storedPath);
   }
 
-  /// Best-effort removal of both files behind a meal entry.
-  Future<void> delete({String? photoPath, String? thumbPath}) async {
-    for (final path in [photoPath, thumbPath]) {
+  /// The preview that `save` writes next to [photoPath].
+  ///
+  /// Extra photos of a multi-shot capture only carry their full-size path in
+  /// `MealCaptureMeta`, so their preview is found by convention rather than
+  /// stored a second time.
+  static String? thumbPathFor(String? photoPath) {
+    if (photoPath == null || photoPath.isEmpty) return null;
+    final ext = p.extension(photoPath);
+    return '${p.withoutExtension(photoPath)}_thumb$ext';
+  }
+
+  /// Deletes every file in the photo folder that no meal entry refers to.
+  ///
+  /// Needed after a backup restore: the restore replaces the database but not
+  /// the folder, so the photos of the meals that were just wiped would sit
+  /// there forever with nothing left pointing at them.
+  Future<int> pruneOrphans(Set<String> referencedPaths) async {
+    try {
+      final base = await ensureInitialized();
+      final folder = Directory(p.join(base, _folder));
+      if (!await folder.exists()) return 0;
+
+      final keep = <String>{};
+      for (final path in referencedPaths) {
+        if (path.isEmpty) continue;
+        keep.add(p.basename(path));
+        final thumb = thumbPathFor(path);
+        if (thumb != null) keep.add(p.basename(thumb));
+      }
+
+      var removed = 0;
+      await for (final entity in folder.list()) {
+        if (entity is! File) continue;
+        if (keep.contains(p.basename(entity.path))) continue;
+        try {
+          await entity.delete();
+          removed++;
+        } catch (e) {
+          debugPrint('[MealPhotoStore] prune failed for ${entity.path}: $e');
+        }
+      }
+      return removed;
+    } catch (e) {
+      debugPrint('[MealPhotoStore] prune failed: $e');
+      return 0;
+    }
+  }
+
+  /// Best-effort removal of every file behind a meal entry.
+  ///
+  /// [extraPaths] carries the additional photos of a multi-shot capture. They
+  /// used to be left behind, which meant every deleted multi-photo meal leaked
+  /// its extras with nothing left in the database pointing at them.
+  Future<void> delete({
+    String? photoPath,
+    String? thumbPath,
+    List<String> extraPaths = const [],
+  }) async {
+    final targets = <String?>[
+      photoPath,
+      thumbPath,
+      for (final extra in extraPaths) ...[extra, thumbPathFor(extra)],
+    ];
+    for (final path in targets) {
       final file = await resolve(path);
       if (file == null) continue;
       try {

@@ -1,5 +1,7 @@
 // lib/features/diary/presentation/widgets/meal_entry_card.dart
 
+import 'dart:io';
+
 import '../../data/meal_photo_store.dart';
 import '../../../../generated/app_localizations.dart';
 import 'diary_food_row.dart';
@@ -43,6 +45,15 @@ class MealEntryCard extends StatefulWidget {
 class _MealEntryCardState extends State<MealEntryCard> {
   bool _isExpanded = false;
 
+  /// First of [paths] that actually resolves to a file on disk.
+  File? _firstExisting(List<String?> paths) {
+    for (final path in paths) {
+      final file = MealPhotoStore.instance.resolveSync(path);
+      if (file != null && file.existsSync()) return file;
+    }
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -63,9 +74,15 @@ class _MealEntryCardState extends State<MealEntryCard> {
     final timeStr = DateFormat('HH:mm').format(widget.mealEntry.consumedAt);
     final countStr =
         '${l10n.mealIngredientCount(widget.items.length)} · $timeStr';
-    final photoFile =
-        MealPhotoStore.instance.resolveSync(widget.mealEntry.photoPath);
-    final hasPhoto = photoFile != null && photoFile.existsSync();
+    // The preview, not the full photo: this is a list, and decoding a 1600 px
+    // JPEG per row into memory is what makes it stutter while scrolling.
+    // Entries saved before thumbnails existed, and rows whose preview went
+    // missing, still fall back to the original.
+    final photoFile = _firstExisting([
+      widget.mealEntry.photoThumbPath,
+      widget.mealEntry.photoPath,
+    ]);
+    final hasPhoto = photoFile != null;
 
     // No background of its own: this already sits inside the meal-type card,
     // and a second filled, rounded surface made the diary look like nested
@@ -130,6 +147,10 @@ class _MealEntryCardState extends State<MealEntryCard> {
                                 photoFile,
                                 fit: BoxFit.cover,
                                 alignment: Alignment.centerLeft,
+                                // Caps the decode for rows that still fall
+                                // back to the full-size photo; without it the
+                                // list holds a full bitmap per meal.
+                                cacheWidth: 720,
                               ),
                             ),
                           ),

@@ -19,7 +19,9 @@ import 'catalog_state_prefs.dart';
 import '../../data/database_helper.dart';
 import '../../data/drift_database.dart' as db;
 import '../../features/diary/data/sources/diary_local_data_source.dart';
+import '../../features/diary/data/meal_photo_store.dart';
 import '../../features/diary/data/sources/meal_local_data_source.dart';
+import '../../features/diary/domain/models/meal_capture_meta.dart';
 import '../../features/profile/data/sources/profile_local_data_source.dart';
 import '../../features/supplements/data/sources/supplement_local_data_source.dart';
 import '../../features/steps/data/sources/steps_local_data_source.dart';
@@ -337,6 +339,15 @@ class BackupManager {
         await _fetchTable('pulse_aggregate_metadata');
     token?.throwIfCancelled();
 
+    // Raw rows rather than a typed model: this table still moves with the AI
+    // capture feature, and a backup that silently drops meals — their title,
+    // photo, transcript and depth facts — is worse than one that carries a few
+    // columns it does not understand. The photo *files* stay out; this is a
+    // JSON document, and base64 images would multiply its size.
+    onProgress?.call('meal_entries', 0.97);
+    payload['meal_entries'] = await _fetchTable('meal_entries');
+    token?.throwIfCancelled();
+
     onProgress?.call('cardio_data', 0.98);
     payload['cardio_activities'] = await _fetchTable('cardio_activities');
     payload['cardio_samples'] = await _fetchTable('cardio_samples');
@@ -648,6 +659,8 @@ class BackupManager {
         await dbInst.delete(dbInst.supplementLogs).go();
         await dbInst.delete(dbInst.fluidLogs).go();
         await dbInst.delete(dbInst.nutritionLogs).go();
+        // After the logs, which reference it.
+        await dbInst.delete(dbInst.mealEntries).go();
         await dbInst.customStatement('DELETE FROM off_products_archive');
         await dbInst.delete(dbInst.measurements).go();
         await dbInst.delete(dbInst.mealItems).go();
@@ -709,6 +722,12 @@ class BackupManager {
         onProgress?.call('products_archive', 0.30);
         await _importTable(
             'off_products_archive', payload['offProductsArchive']);
+        token?.throwIfCancelled();
+
+        // Before the food logs: each of those may point at a meal entry, and
+        // restoring the logs first would leave the grouping dangling.
+        onProgress?.call('meal_entries', 0.33);
+        await _importTable('meal_entries', payload['meal_entries']);
         token?.throwIfCancelled();
 
         onProgress?.call('user_data', 0.35);
@@ -1042,12 +1061,48 @@ class BackupManager {
     }
 
     if (success) {
+      await _pruneOrphanMealPhotos();
       onProgress?.call('done', 1.0);
     }
     debugPrint("Backup import succeeded.");
     unawaited(TelemetryService.instance
         .trackFeatureUsed(featureKey: FeatureKey.jsonBackupRestored));
     return true;
+  }
+
+  /// Removes meal photos the restored database no longer refers to.
+  ///
+  /// A restore replaces the rows but not the files: without this the photos of
+  /// every meal that was just wiped stay on disk forever, and on a device that
+  /// restores repeatedly they are the largest thing the app leaves behind.
+  ///
+  /// The files themselves are deliberately not in the backup — it is a single
+  /// JSON document, and base64 photos would grow it by orders of magnitude.
+  /// Restoring onto the same device keeps its photos, because the paths still
+  /// resolve; restoring onto a new one shows the meals without them.
+  Future<void> _pruneOrphanMealPhotos() async {
+    try {
+      final rows = await _dbHelper.dbInstance
+          .customSelect('SELECT photo_path, photo_thumb_path, capture_meta '
+              'FROM meal_entries')
+          .get();
+      final referenced = <String>{};
+      for (final row in rows) {
+        final photo = row.data['photo_path'];
+        final thumb = row.data['photo_thumb_path'];
+        if (photo is String) referenced.add(photo);
+        if (thumb is String) referenced.add(thumb);
+        final meta =
+            MealCaptureMeta.tryParse(row.data['capture_meta'] as String?);
+        if (meta != null) referenced.addAll(meta.extraPhotoPaths);
+      }
+      final removed = await MealPhotoStore.instance.pruneOrphans(referenced);
+      if (removed > 0) {
+        debugPrint('Pruned $removed orphaned meal photo(s) after restore.');
+      }
+    } catch (e) {
+      debugPrint('Pruning orphaned meal photos failed: $e');
+    }
   }
 
   Future<void> _importTable(String tableName, List<dynamic>? rows) async {

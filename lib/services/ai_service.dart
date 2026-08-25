@@ -10,6 +10,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../core/media/meal_image_processor.dart';
 import 'ai_meal_validation.dart';
 import 'ai_meal_context.dart';
 import 'ai_matching_language_service.dart';
@@ -819,11 +820,17 @@ Repair the candidate. When database candidates are listed, pick the EXACT name f
       }
       final model = await resolveAndPersistSelectedModel(providerEnum);
 
+      // Scaled before encoding: the raw camera file is 3–8 MB, base64 adds a
+      // third on top, and the models resize to about 1024 px anyway — four
+      // untouched photos meant tens of megabytes uploaded over mobile data for
+      // pixels the provider throws away. The capture screen has usually
+      // prepared these already, so this is a cache hit by the time it runs.
       final imageDataList = <String>[];
       if (images != null) {
         for (final img in images) {
-          final bytes = await img.readAsBytes();
-          imageDataList.add(await compute(base64Encode, bytes));
+          final prepared =
+              await MealImageProcessor.instance.prepareForAnalysis(img);
+          imageDataList.add(prepared.base64);
         }
       }
 

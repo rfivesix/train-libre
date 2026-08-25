@@ -30,6 +30,7 @@ import androidx.health.connect.client.units.Mass
 import androidx.health.connect.client.units.Percentage
 import androidx.health.connect.client.units.Volume
 import com.rfivesix.trainlibre.liveupdate.WorkoutLiveActivityBridge
+import com.rfivesix.trainlibre.media.ImageOpsPlugin
 import com.rfivesix.trainlibre.widgets.HomeWidgetBridge
 import com.rfivesix.trainlibre.widgets.WidgetDeepLinks
 import io.flutter.embedding.android.FlutterActivity
@@ -159,6 +160,13 @@ class MainActivity : FlutterActivity() {
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
+
+        MethodChannel(
+            flutterEngine.dartExecutor.binaryMessenger,
+            ImageOpsPlugin.channelName,
+        ).setMethodCallHandler { call, result ->
+            ImageOpsPlugin.handle(call, result)
+        }
 
         MethodChannel(
             flutterEngine.dartExecutor.binaryMessenger,

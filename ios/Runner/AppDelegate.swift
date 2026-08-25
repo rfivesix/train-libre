@@ -158,6 +158,14 @@ import UIKit
       self?.homeWidgetBridge.handle(call: call, result: result)
     }
 
+    let imageOpsChannel = FlutterMethodChannel(
+      name: ImageOpsPlugin.channelName,
+      binaryMessenger: messenger
+    )
+    imageOpsChannel.setMethodCallHandler { call, result in
+      ImageOpsPlugin.handle(call, result: result)
+    }
+
     let speechCapabilityChannel = FlutterMethodChannel(
       name: SpeechCapabilityPlugin.channelName,
       binaryMessenger: messenger

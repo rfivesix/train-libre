@@ -9,6 +9,7 @@ import '../../../../data/database_helper.dart';
 import '../../../../util/date_util.dart';
 import '../../domain/models/food_entry.dart';
 import '../../domain/models/meal_entry.dart';
+import '../../domain/models/meal_capture_meta.dart';
 import '../../domain/models/fluid_entry.dart';
 import '../../../supplements/domain/models/supplement.dart' as domain;
 import '../../../supplements/data/sources/supplement_local_data_source.dart';
@@ -225,11 +226,26 @@ class DiaryLocalDataSource {
   }
 
   Future<bool> hasAnyDiaryEntries() async {
-    if (await (_db.select(_db.nutritionLogs)..limit(1)).getSingleOrNull() != null) return true;
-    if (await (_db.select(_db.fluidLogs)..limit(1)).getSingleOrNull() != null) return true;
-    if (await (_db.select(_db.supplementLogs)..limit(1)).getSingleOrNull() != null) return true;
-    if (await (_db.select(_db.workoutLogs)..limit(1)).getSingleOrNull() != null) return true;
-    if (await (_db.select(_db.healthStepSegments)..limit(1)).getSingleOrNull() != null) return true;
+    if (await (_db.select(_db.nutritionLogs)..limit(1)).getSingleOrNull() !=
+        null) {
+      return true;
+    }
+    if (await (_db.select(_db.fluidLogs)..limit(1)).getSingleOrNull() != null) {
+      return true;
+    }
+    if (await (_db.select(_db.supplementLogs)..limit(1)).getSingleOrNull() !=
+        null) {
+      return true;
+    }
+    if (await (_db.select(_db.workoutLogs)..limit(1)).getSingleOrNull() !=
+        null) {
+      return true;
+    }
+    if (await (_db.select(_db.healthStepSegments)..limit(1))
+            .getSingleOrNull() !=
+        null) {
+      return true;
+    }
 
     try {
       final sleepRes = await _db
@@ -677,6 +693,9 @@ class DiaryLocalDataSource {
             mealType: row.mealType,
             updatedAt: row.updatedAt,
             archiveLocalId: row.archiveLocalId,
+            // Carried so a backup keeps the link to the meal that groups this
+            // item; without it a restore returns loose ingredients.
+            mealEntryId: row.mealEntryId,
           ),
         )
         .toList();
@@ -710,6 +729,7 @@ class DiaryLocalDataSource {
         mealType: log.mealType,
         updatedAt: log.updatedAt,
         archiveLocalId: log.archiveLocalId,
+        mealEntryId: log.mealEntryId,
       ));
     }
     return result;
@@ -986,9 +1006,11 @@ class DiaryLocalDataSource {
           ..where((t) => t.id.equals(id)))
         .getSingleOrNull();
     if (entry != null) {
+      final meta = MealCaptureMeta.tryParse(entry.captureMeta);
       await MealPhotoStore.instance.delete(
         photoPath: entry.photoPath,
         thumbPath: entry.photoThumbPath,
+        extraPaths: meta?.extraPhotoPaths ?? const [],
       );
     }
 

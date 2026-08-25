@@ -54,12 +54,6 @@ abstract class IDepthScanService {
   Future<void> stopSession();
   Stream<String> get barcodes;
   Future<DepthCaptureResult?> capture();
-  Future<bool> makeThumbnail({
-    required String sourcePath,
-    required String targetPath,
-    double maxSize,
-    double quality,
-  });
 }
 
 /// Production implementation communicating with native iOS AVFoundation LiDAR session.
@@ -142,32 +136,6 @@ class DepthScanChannel implements IDepthScanService {
         .map((event) => event as String)
         .where((code) => code.isNotEmpty);
     return _barcodeStream!;
-  }
-
-  /// Writes a downscaled JPEG copy of [sourcePath] to [targetPath].
-  ///
-  /// Native because Flutter ships no JPEG encoder; used for meal photo
-  /// thumbnails from both the camera and the gallery.
-  @override
-  Future<bool> makeThumbnail({
-    required String sourcePath,
-    required String targetPath,
-    double maxSize = 320,
-    double quality = 0.8,
-  }) async {
-    if (!Platform.isIOS) return false;
-    try {
-      return await _channel.invokeMethod<bool>('makeThumbnail', {
-            'sourcePath': sourcePath,
-            'targetPath': targetPath,
-            'maxSize': maxSize,
-            'quality': quality,
-          }) ??
-          false;
-    } catch (e) {
-      debugPrint('[DepthScanChannel] makeThumbnail failed: $e');
-      return false;
-    }
   }
 
   @override

@@ -9,6 +9,7 @@ import 'package:train_libre/data/drift_database.dart'
 import 'package:train_libre/features/diary/data/sources/product_local_data_source.dart';
 import 'package:train_libre/features/workout/data/sources/workout_local_data_source.dart';
 import 'package:train_libre/features/diary/domain/models/food_entry.dart';
+import 'package:train_libre/features/diary/domain/models/meal_entry.dart';
 import 'package:train_libre/features/profile/domain/models/measurement.dart';
 import 'package:train_libre/features/profile/domain/models/measurement_session.dart';
 import 'package:train_libre/features/workout/domain/models/set_log.dart';
@@ -100,6 +101,64 @@ void main() {
       expect(restoredEntries.first.barcode, 'base-apple');
       expect(restoredEntries.first.quantityInGrams, 180);
       expect(restoredEntries.first.mealType, 'mealtypeLunch');
+    });
+
+    test('AI meal entries and their grouping survive backup restore', () async {
+      await db.into(db.products).insert(
+            const ProductsCompanion(
+              barcode: drift.Value('base-rice'),
+              name: drift.Value('Rice'),
+              calories: drift.Value(130),
+              protein: drift.Value(2.7),
+              carbs: drift.Value(28),
+              fat: drift.Value(0.3),
+              source: drift.Value('base'),
+            ),
+          );
+
+      const mealEntryId = 'meal-entry-1';
+      final diaryDb = dbHelper.diaryLocalDataSource;
+      await diaryDb.insertMealEntry(
+        MealEntry(
+          id: mealEntryId,
+          consumedAt: DateTime(2026, 4, 2, 13, 0),
+          mealType: 'mealtypeLunch',
+          title: 'Chicken with rice',
+          source: 'aiPhoto',
+          photoPath: 'meal_photos/abc.jpg',
+          photoThumbPath: 'meal_photos/abc_thumb.jpg',
+          voiceTranscript: 'a bowl of rice',
+          captureMeta: '{"provider":"openai"}',
+        ),
+      );
+      await dbHelper.insertFoodEntry(
+        FoodEntry(
+          barcode: 'base-rice',
+          timestamp: DateTime(2026, 4, 2, 13, 0),
+          quantityInGrams: 150,
+          mealType: 'mealtypeLunch',
+          mealEntryId: mealEntryId,
+        ),
+      );
+
+      final payload = await backupManager.generateBackupPayloadForTesting();
+      expect(
+          await backupManager.importBackupPayloadForTesting(payload), isTrue);
+
+      final restored = await diaryDb.getMealEntryById(mealEntryId);
+      expect(restored, isNotNull);
+      expect(restored!.title, 'Chicken with rice');
+      expect(restored.source, 'aiPhoto');
+      expect(restored.photoPath, 'meal_photos/abc.jpg');
+      expect(restored.photoThumbPath, 'meal_photos/abc_thumb.jpg');
+      expect(restored.voiceTranscript, 'a bowl of rice');
+      expect(restored.captureMeta, '{"provider":"openai"}');
+
+      // The link back from the logged item is what turns those rows into one
+      // meal again; without it a restore leaves loose ingredients behind.
+      final logs = await db.select(db.nutritionLogs).get();
+      expect(logs, hasLength(1));
+      expect(logs.first.mealEntryId, mealEntryId);
     });
 
     test('changed goals/settings and target prefs survive backup restore',

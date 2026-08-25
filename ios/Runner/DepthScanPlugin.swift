@@ -81,24 +81,6 @@ public class DepthScanPlugin: NSObject {
         }
       }
 
-    case "makeThumbnail":
-      guard let args = call.arguments as? [String: Any],
-        let sourcePath = args["sourcePath"] as? String,
-        let targetPath = args["targetPath"] as? String
-      else {
-        result(false)
-        return
-      }
-      let maxSize = (args["maxSize"] as? NSNumber)?.doubleValue ?? 320
-      let quality = (args["quality"] as? NSNumber)?.doubleValue ?? 0.8
-      let ok = ImageDownscaler.write(
-        sourcePath: sourcePath,
-        targetPath: targetPath,
-        maxSize: CGFloat(maxSize),
-        quality: CGFloat(quality)
-      )
-      result(ok)
-
     default:
       result(FlutterMethodNotImplemented)
     }
@@ -252,6 +234,45 @@ enum ImageDownscaler {
       return true
     } catch {
       return false
+    }
+  }
+}
+
+// MARK: - Image ops
+
+/// Scaling for meal photos, on its own channel.
+///
+/// Lives in this file because `ImageDownscaler` does; it has nothing to do with
+/// the depth session and is reachable on devices without one.
+public enum ImageOpsPlugin {
+  public static let channelName = "com.trainlibre.app/image_ops"
+
+  public static func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
+    switch call.method {
+    case "downscale":
+      guard let args = call.arguments as? [String: Any],
+        let sourcePath = args["sourcePath"] as? String,
+        let targetPath = args["targetPath"] as? String
+      else {
+        result(false)
+        return
+      }
+      let maxSize = (args["maxSize"] as? NSNumber)?.doubleValue ?? 1024
+      let quality = (args["quality"] as? NSNumber)?.doubleValue ?? 0.8
+      // Decoding a 12 MP JPEG and re-encoding it takes long enough to drop
+      // frames if it runs on the platform thread.
+      DispatchQueue.global(qos: .userInitiated).async {
+        let ok = ImageDownscaler.write(
+          sourcePath: sourcePath,
+          targetPath: targetPath,
+          maxSize: CGFloat(maxSize),
+          quality: CGFloat(quality)
+        )
+        DispatchQueue.main.async { result(ok) }
+      }
+
+    default:
+      result(FlutterMethodNotImplemented)
     }
   }
 }

@@ -150,7 +150,8 @@ class DatabaseHelper {
                 consumedAt: drift.Value(e.timestamp),
                 amount: drift.Value(e.quantityInGrams.toDouble()),
                 mealType: drift.Value(e.mealType),
-                archiveLocalId: drift.Value(e.archiveLocalId)),
+                archiveLocalId: drift.Value(e.archiveLocalId),
+                mealEntryId: drift.Value(e.mealEntryId)),
             mode: drift.InsertMode.insertOrReplace);
       }
       for (final e in fluidEntries) {
