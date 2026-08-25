@@ -1620,6 +1620,13 @@ class AppLocalizationsFr extends AppLocalizations {
       'Les statistiques montrent les tendances et les progrès afin que vous puissiez comprendre comment vos données évoluent au fil du temps.';
 
   @override
+  String get appTourRestartTitle => 'Voir la visite guidée';
+
+  @override
+  String get appTourRestartSubtitle =>
+      'Revoir l\'introduction et les fonctionnalités clés';
+
+  @override
   String get onbSetGoalsCta => 'Fixer des objectifs';
 
   @override
@@ -2638,6 +2645,11 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get aiReviewNoMatch =>
       'Aucune correspondance – appuyez pour rechercher';
+
+  @override
+  String aiReviewUncertain(int percent) {
+    return 'Incertain ($percent%)';
+  }
 
   @override
   String get aiReviewConfidence => 'Confiance';
@@ -5920,4 +5932,371 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get whatsNewAboutRowSubtitle =>
       'Points forts de cette version et des précédentes';
+
+  @override
+  String get mealAnalysisPreparing => 'Préparation de la prise de vue';
+
+  @override
+  String get mealAnalysisAnalyzing => 'Analyse du repas';
+
+  @override
+  String get mealAnalysisMatching => 'Correspondance des ingrédients';
+
+  @override
+  String get mealAnalysisFailed => 'Cela n\'a pas fonctionné';
+
+  @override
+  String get mealAnalysisProcessingTag => 'AI VISION PROCESSING';
+
+  @override
+  String get aiScannerTitle => 'Scanner IA';
+
+  @override
+  String get aiCaptureAnalyzing => 'Analyse…';
+
+  @override
+  String aiCaptureAnalyzeMeal(int count) {
+    return 'Analyser le repas ($count)';
+  }
+
+  @override
+  String get aiCaptureAnalyzeText => 'Analyser le texte';
+
+  @override
+  String get aiCaptureDescribeHint =>
+      'Décris le repas (p. ex. 2 œufs avec du pain grillé)…';
+
+  @override
+  String get aiCaptureBarcodeDetected => 'Code-barres détecté';
+
+  @override
+  String get aiCaptureLogBarcode => 'Ajouter';
+
+  @override
+  String aiCaptureBarcodeFallback(String code) {
+    return 'Code-barres $code';
+  }
+
+  @override
+  String get aiCaptureMoveCloser => 'Approche-toi un peu';
+
+  @override
+  String get aiCaptureMoveAway => 'Éloigne-toi un peu';
+
+  @override
+  String get aiCaptureOpenSettings => 'Ouvrir les réglages';
+
+  @override
+  String get voiceDictationTitle => 'Dicter le repas';
+
+  @override
+  String get voiceHoldToTalk => 'Maintiens pour parler';
+
+  @override
+  String get voiceSpeakNow => 'Parle maintenant — relâche pour terminer';
+
+  @override
+  String get voiceExampleStandalone =>
+      'p. ex. « Un kebab aux légumes avec pain plat et sauce à l’ail »';
+
+  @override
+  String get voiceExampleWithPhoto =>
+      'Ajoute ce que la photo ne montre pas — p. ex. « frit dans deux cuillères d’huile d’olive »';
+
+  @override
+  String get voiceNetworkNotice =>
+      'Cet appareil ne reconnaît pas la parole localement. L’enregistrement est envoyé à la reconnaissance vocale du système pour être transcrit.';
+
+  @override
+  String get voiceTapToRecord => 'Touchez pour enregistrer';
+
+  @override
+  String get voiceTapToFinish => 'À l’écoute — touchez pour terminer';
+
+  @override
+  String get voiceStarting => 'Un instant…';
+
+  @override
+  String get voiceTidyingUp => 'Nettoyage du texte…';
+
+  @override
+  String get voiceNothingHeard =>
+      'Rien n’a été reconnu. Réessayez ou saisissez le texte.';
+
+  @override
+  String get voiceLanguage => 'Langue';
+
+  @override
+  String get voiceLanguageTitle => 'Langue de dictée';
+
+  @override
+  String get voiceLanguageSystem => 'Comme l’appareil';
+
+  @override
+  String get voiceLanguageHint =>
+      'Choisissez la langue que vous parlez, pas celle de l’app.';
+
+  @override
+  String get voiceCleanedNotice => 'Mots de remplissage supprimés';
+
+  @override
+  String get voiceRetake => 'Réenregistrer';
+
+  @override
+  String voiceTidiedIn(String seconds) {
+    return 'Mis au propre par l’IA en $seconds s';
+  }
+
+  @override
+  String get aiDepthImageTitle => 'Envoyer aussi la carte de profondeur';
+
+  @override
+  String get aiDepthImageSubtitle =>
+      'Joint le relief en fausses couleurs comme deuxième image, pour que le modèle juge aussi la hauteur et pas seulement le contour. Coûte une image de plus par analyse.';
+
+  @override
+  String get aiVoiceTidyTitle => 'Mettre la dictée au propre avec l’IA';
+
+  @override
+  String get aiVoiceTidySubtitle =>
+      'Après avoir parlé, le texte est corrigé et découpé en points. Coûte une requête et quelques secondes.';
+
+  @override
+  String get voicePermissionTitle => 'Microphone et reconnaissance vocale';
+
+  @override
+  String get voicePermissionBody =>
+      'Pour dicter un repas, Train Libre a besoin du microphone pendant l’enregistrement et de la reconnaissance vocale pour transcrire vos paroles. La reconnaissance se fait sur votre appareil dès que possible. Rien n’est enregistré ni conservé.';
+
+  @override
+  String get voicePermissionContinue => 'Continuer';
+
+  @override
+  String get voiceApplyText => 'Utiliser ce texte';
+
+  @override
+  String get voiceTranscriptHint => 'Texte reconnu — modifiable ici';
+
+  @override
+  String get voiceUnavailablePermission =>
+      'La dictée nécessite l’accès au micro et à la reconnaissance vocale. Tu peux toujours saisir le texte.';
+
+  @override
+  String get voiceUnavailableUnsupported =>
+      'Cet appareil ne propose pas de reconnaissance vocale. Tu peux saisir le texte.';
+
+  @override
+  String get voiceUnavailableFailed =>
+      'La reconnaissance vocale n’a pas pu démarrer. Tu peux saisir le texte.';
+
+  @override
+  String get mealFallbackTitle => 'Repas';
+
+  @override
+  String mealIngredientCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ingrédients',
+      one: '1 ingrédient',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get mealDetailOptions => 'Options';
+
+  @override
+  String get mealDetailAddIngredient => 'Ajouter un ingrédient';
+
+  @override
+  String get mealDetailSaveAsTemplate => 'Enregistrer comme modèle';
+
+  @override
+  String get mealDetailSavedAsTemplate => 'Enregistré comme modèle de repas.';
+
+  @override
+  String get mealDetailChangeMealType => 'Changer le type de repas';
+
+  @override
+  String get mealDetailSelectMealType => 'Choisir le type de repas';
+
+  @override
+  String get mealDetailAmountInGrams => 'Quantité en grammes';
+
+  @override
+  String get mealDetailApply => 'Appliquer';
+
+  @override
+  String get mealDeleteQuestion => 'Que faire de ce repas ?';
+
+  @override
+  String get mealDeleteUngroupTitle => 'Dissoudre uniquement le groupe';
+
+  @override
+  String mealDeleteUngroupBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'La photo et le groupe sont supprimés. Les $count entrées restent seules dans le journal — tes totaux du jour ne changent pas.',
+      one:
+          'La photo et le groupe sont supprimés. L’entrée reste seule dans le journal — tes totaux du jour ne changent pas.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get mealDeleteAllTitle => 'Supprimer le repas et ses entrées';
+
+  @override
+  String mealDeleteAllBody(int count, int kcal) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'La photo, le groupe et les $count entrées disparaissent du journal. $kcal kcal sont retirées de ta journée.',
+      one:
+          'La photo, le groupe et l’entrée disparaissent du journal. $kcal kcal sont retirées de ta journée.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get reanalysisTitle => 'Nouveau résultat';
+
+  @override
+  String get reanalysisSubtitle =>
+      'C’est toi qui décides ce qui reste enregistré.';
+
+  @override
+  String get reanalysisPrevious => 'ACTUEL';
+
+  @override
+  String get reanalysisNew => 'NOUVEAU';
+
+  @override
+  String get reanalysisKeepPrevious => 'Garder l’actuel';
+
+  @override
+  String get reanalysisApplyNew => 'Utiliser le nouveau';
+
+  @override
+  String get reanalysisDiffHint => 'Marqué = diffère de ce qui est enregistré';
+
+  @override
+  String get aiReviewDiscardTitle => 'Abandonner ce repas ?';
+
+  @override
+  String get aiReviewDiscardBody =>
+      'L’analyse n’a pas été enregistrée et sera perdue.';
+
+  @override
+  String get aiLidarScaleTitle => 'Envoyer l’échelle LiDAR';
+
+  @override
+  String get aiLidarScaleSubtitle =>
+      'Mesure la distance et la taille du cadre en centimètres et les transmet à l’IA. Désactive pour comparer si l’estimation s’améliore vraiment.';
+
+  @override
+  String get mealPhotoStorageSection => 'Photos de repas (stockage)';
+
+  @override
+  String get mealPhotoRetentionTitle => 'Durée de conservation';
+
+  @override
+  String get mealPhotoRetentionBody =>
+      'Les photos sont supprimées automatiquement à l’expiration du délai. Les entrées nutritionnelles du journal sont conservées.';
+
+  @override
+  String mealPhotoRetentionDays(int days) {
+    return '$days jours';
+  }
+
+  @override
+  String get mealPhotoRetentionDefaultSuffix => '(par défaut)';
+
+  @override
+  String get mealPhotoRetentionUnlimited => 'Illimité';
+
+  @override
+  String get mealPhotoRetentionSaved => 'Durée de conservation enregistrée.';
+
+  @override
+  String get mealPhotoDeleteAll => 'Supprimer toutes les photos locales';
+
+  @override
+  String get mealPhotoDeleteAllTitle =>
+      'Supprimer toutes les photos de repas ?';
+
+  @override
+  String get mealPhotoDeleteAllBody =>
+      'Seuls les fichiers image sont supprimés de l’appareil. Tes entrées et calories dans le journal restent inchangées.';
+
+  @override
+  String get mealPhotoDeleted => 'Photos supprimées.';
+
+  @override
+  String get speechSectionTitle => 'Saisie vocale et dictée';
+
+  @override
+  String get speechOnDeviceActive =>
+      'Reconnaissance vocale sur l’appareil active';
+
+  @override
+  String get speechOnDeviceBody =>
+      'Les repas dictés (« 2 œufs avec pain grillé et café ») sont transcrits directement sur ton appareil et restent privés.';
+
+  @override
+  String get aiCaptureTourStepShutterTitle => 'Photographier le repas';
+
+  @override
+  String get aiCaptureTourStepShutterDesc =>
+      'Prends jusqu\'à 4 photos sous différents angles avec le déclencheur. Sur les appareils compatibles, le LiDAR capture automatiquement les données de profondeur.';
+
+  @override
+  String get aiCaptureTourStepBarcodeTitle =>
+      'Détection automatique de code-barres';
+
+  @override
+  String get aiCaptureTourStepBarcodeDesc =>
+      'Place les aliments emballés devant la caméra : le code-barres est reconnu instantanément en temps réel. Ce bouton permet d\'activer ou désactiver le scanner.';
+
+  @override
+  String get aiCaptureTourBarcodeDemoProduct => 'Flocons d\'avoine bio 500g';
+
+  @override
+  String get aiCaptureTourBarcodeDemoHint =>
+      'Voici comment s\'affiche la détection de code-barres !';
+
+  @override
+  String get aiCaptureTourStepGalleryTitle => 'Photos depuis la galerie';
+
+  @override
+  String get aiCaptureTourStepGalleryDesc =>
+      'Tu as déjà pris des photos ? Sélectionne jusqu\'à 4 images directement depuis ta photothèque.';
+
+  @override
+  String get aiCaptureTourStepVoiceTitle => 'Dictée vocale';
+
+  @override
+  String get aiCaptureTourStepVoiceDesc =>
+      'Appuie sur le micro pour énoncer ingrédients, marques ou portions (ex. « 200g de poulet avec du riz »). L\'IA nettoie et analyse ton dictat automatiquement.';
+
+  @override
+  String get aiCaptureTourStepTextTitle => 'Texte et notes';
+
+  @override
+  String get aiCaptureTourStepTextDesc =>
+      'Ajoute des précisions ou décris ton repas entièrement par texte si tu ne souhaites pas prendre de photo.';
+
+  @override
+  String get aiCaptureTourStepAnalyzeTitle => 'Analyse IA intelligente';
+
+  @override
+  String get aiCaptureTourStepAnalyzeDesc =>
+      'Dès qu\'une photo, dictée ou note est prête, appuie sur Analyser. L\'IA détecte les aliments, estime les portions et fait le lien avec tes macros.';
+
+  @override
+  String get aiCaptureTourReplayTooltip => 'Revoir l\'introduction';
 }

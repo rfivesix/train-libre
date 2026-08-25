@@ -109,6 +109,11 @@ class NoOpTelemetryService implements TelemetryService {
   Future<void> trackAiMealScanRequested({
     required String requestId,
     required String provider,
+    String? inputMode,
+    int? photoCount,
+    bool? hasLidar,
+    bool? hasVoiceInput,
+    bool? hasTextInput,
   }) async {}
 
   @override
@@ -117,6 +122,32 @@ class NoOpTelemetryService implements TelemetryService {
     required String provider,
     required String latencyBucket,
     required bool success,
+    String? errorCode,
+    String? inputMode,
+    int? photoCount,
+    bool? hasLidar,
+    bool? hasVoiceInput,
+    bool? hasTextInput,
+    bool? validationPassed,
+    int? repairAttemptsCount,
+    String? suggestedItemsCountBucket,
+  }) async {}
+
+  @override
+  Future<void> trackVoiceDictationCompleted({
+    required String durationBucket,
+    required bool aiTidyUpEnabled,
+    required String surface,
+    required bool success,
+    String? errorCode,
+  }) async {}
+
+  @override
+  Future<void> trackAiMealCorrectionCompleted({
+    required bool hasImages,
+    required String latencyBucket,
+    required bool success,
+    int? repairAttemptsCount,
     String? errorCode,
   }) async {}
 

@@ -16,6 +16,9 @@ import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../widgets/common/app_button.dart';
 import 'dart:async';
 import '../../../services/telemetry/telemetry_service.dart';
+import '../../depth_scan/data/depth_scan_settings.dart';
+import '../../../services/voice/voice_dictation_settings.dart';
+import '../../depth_scan/platform/depth_scan_channel.dart';
 
 /// Settings page for configuring the AI Meal Capture feature.
 ///
@@ -43,12 +46,39 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
   bool _hasKey = false;
   int _timeoutSeconds = 60;
 
+  /// Only shown on devices that can actually measure — elsewhere the switch
+  /// would advertise something the hardware cannot do.
+  bool _hasLidar = false;
+  bool _scaleHintEnabled = true;
+  bool _depthImageEnabled = true;
+  bool _voiceTidyEnabled = true;
+
   @override
   void initState() {
     super.initState();
     unawaited(TelemetryService.instance
         .trackScreenView(screenName: ScreenName.aiSettings));
     _loadSettings();
+    unawaited(_loadDepthSettings());
+    unawaited(_loadVoiceSettings());
+  }
+
+  Future<void> _loadDepthSettings() async {
+    final capability = await DepthScanChannel.instance.capability();
+    final enabled = await DepthScanSettings.instance.isScaleHintEnabled();
+    final depthImage = await DepthScanSettings.instance.isDepthImageEnabled();
+    if (!mounted) return;
+    setState(() {
+      _hasLidar = capability.depthSupported;
+      _scaleHintEnabled = enabled;
+      _depthImageEnabled = depthImage;
+    });
+  }
+
+  Future<void> _loadVoiceSettings() async {
+    final enabled = await VoiceDictationSettings.instance.isAiTidyEnabled();
+    if (!mounted) return;
+    setState(() => _voiceTidyEnabled = enabled);
   }
 
   @override
@@ -340,7 +370,60 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                       value: aiEnabled,
                       onChanged: (value) => themeService.setAiEnabled(value),
                     ),
+                    if (aiEnabled && _hasLidar) ...[
+                      const SizedBox(height: 12),
+                      PlatformAdaptiveSwitchListTile(
+                        contentPadding: EdgeInsets.zero,
+                        secondary: const Icon(LucideIcons.ruler),
+                        title: Text(
+                          l10n.aiLidarScaleTitle,
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        subtitle: Text(l10n.aiLidarScaleSubtitle),
+                        value: _scaleHintEnabled,
+                        onChanged: (value) async {
+                          await DepthScanSettings.instance
+                              .setScaleHintEnabled(value);
+                          if (!mounted) return;
+                          setState(() => _scaleHintEnabled = value);
+                        },
+                      ),
+                      const SizedBox(height: 12),
+                      PlatformAdaptiveSwitchListTile(
+                        contentPadding: EdgeInsets.zero,
+                        secondary: const Icon(LucideIcons.layers),
+                        title: Text(
+                          l10n.aiDepthImageTitle,
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        subtitle: Text(l10n.aiDepthImageSubtitle),
+                        value: _depthImageEnabled,
+                        onChanged: (value) async {
+                          await DepthScanSettings.instance
+                              .setDepthImageEnabled(value);
+                          if (!mounted) return;
+                          setState(() => _depthImageEnabled = value);
+                        },
+                      ),
+                    ],
                     if (aiEnabled) ...[
+                      const SizedBox(height: 12),
+                      PlatformAdaptiveSwitchListTile(
+                        contentPadding: EdgeInsets.zero,
+                        secondary: const Icon(LucideIcons.mic),
+                        title: Text(
+                          l10n.aiVoiceTidyTitle,
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        subtitle: Text(l10n.aiVoiceTidySubtitle),
+                        value: _voiceTidyEnabled,
+                        onChanged: (value) async {
+                          await VoiceDictationSettings.instance
+                              .setAiTidyEnabled(value);
+                          if (!mounted) return;
+                          setState(() => _voiceTidyEnabled = value);
+                        },
+                      ),
                       const SizedBox(height: 12),
                       PlatformAdaptiveDropdownFormField<AiProvider>(
                         initialValue: _selectedProvider,
@@ -558,6 +641,132 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                         ],
                       ),
                     ],
+                  ],
+                ),
+              ),
+            ),
+
+            const SizedBox(height: DesignConstants.spacingL),
+
+            // --- Photo Storage & Retention (Screen E2) ---
+            AppSectionHeader(title: l10n.mealPhotoStorageSection),
+            SummaryCard(
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l10n.mealPhotoRetentionTitle,
+                      style: theme.textTheme.labelLarge
+                          ?.copyWith(fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      l10n.mealPhotoRetentionBody,
+                      style: theme.textTheme.bodySmall
+                          ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                    ),
+                    const SizedBox(height: 12),
+                    DropdownButtonFormField<int>(
+                      initialValue: 180,
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                        contentPadding:
+                            EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      ),
+                      items: [
+                        for (final days in [30, 90, 180, 365])
+                          DropdownMenuItem(
+                            value: days,
+                            child: Text(days == 180
+                                ? '${l10n.mealPhotoRetentionDays(days)} '
+                                    '${l10n.mealPhotoRetentionDefaultSuffix}'
+                                : l10n.mealPhotoRetentionDays(days)),
+                          ),
+                        DropdownMenuItem(
+                          value: -1,
+                          child: Text(l10n.mealPhotoRetentionUnlimited),
+                        ),
+                      ],
+                      onChanged: (val) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text(l10n.mealPhotoRetentionSaved)),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 14),
+                    AppButton.secondary(
+                      onPressed: () {
+                        showDialog(
+                          context: context,
+                          builder: (ctx) => AlertDialog(
+                            title: Text(l10n.mealPhotoDeleteAllTitle),
+                            content: Text(l10n.mealPhotoDeleteAllBody),
+                            actions: [
+                              TextButton(
+                                  onPressed: () => Navigator.of(ctx).pop(),
+                                  child: Text(l10n.cancel)),
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.of(ctx).pop();
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                        content: Text(l10n.mealPhotoDeleted)),
+                                  );
+                                },
+                                child: Text(l10n.delete,
+                                    style: const TextStyle(color: Colors.red)),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                      label: l10n.mealPhotoDeleteAll,
+                      tooltip: l10n.mealPhotoDeleteAll,
+                      icon: LucideIcons.trash_2,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            const SizedBox(height: DesignConstants.spacingL),
+
+            // --- Speech Recognition (Screen E3) ---
+            AppSectionHeader(title: l10n.speechSectionTitle),
+            SummaryCard(
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          width: 8,
+                          height: 8,
+                          decoration: const BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Color(0xFF34C759),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          l10n.speechOnDeviceActive,
+                          style: theme.textTheme.labelLarge
+                              ?.copyWith(fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      l10n.speechOnDeviceBody,
+                      style: theme.textTheme.bodySmall
+                          ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                    ),
                   ],
                 ),
               ),

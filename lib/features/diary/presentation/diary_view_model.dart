@@ -8,10 +8,11 @@ import '../domain/calculate_daily_nutrition_use_case.dart';
 import '../domain/models/daily_goal.dart';
 import '../domain/models/daily_nutrition.dart';
 import '../domain/models/fluid_entry.dart';
+import '../domain/models/food_entry.dart';
+import '../domain/models/meal_entry.dart';
+import '../domain/models/food_item.dart';
 import '../domain/models/tracked_food_item.dart';
 import '../../supplements/domain/models/tracked_supplement.dart';
-import '../domain/models/food_entry.dart';
-import '../domain/models/food_item.dart';
 import '../../supplements/domain/models/supplement.dart';
 import '../../supplements/domain/models/supplement_log.dart';
 import '../../../util/date_util.dart';
@@ -104,6 +105,7 @@ class DiaryViewModel extends ChangeNotifier {
 
   StreamSubscription<DailyGoal?>? _goalsSubscription;
   StreamSubscription<List<FoodEntry>>? _entriesSubscription;
+  StreamSubscription<List<MealEntry>>? _mealEntriesSubscription;
   StreamSubscription<List<FluidEntry>>? _fluidsSubscription;
   StreamSubscription<List<Supplement>>? _supplementsSubscription;
   StreamSubscription<List<SupplementLog>>? _supplementLogsSubscription;
@@ -116,6 +118,7 @@ class DiaryViewModel extends ChangeNotifier {
 
   DailyGoal? _activeGoals;
   List<FoodEntry> _activeEntries = [];
+  List<MealEntry> _activeMealEntries = [];
   List<FluidEntry> _activeFluids = [];
   List<Supplement> _activeSupplements = [];
   List<SupplementLog> _activeSupplementLogs = [];
@@ -124,6 +127,8 @@ class DiaryViewModel extends ChangeNotifier {
   bool isLoading = true;
   DailyNutrition? dailyNutrition;
   Map<String, List<TrackedFoodItem>> entriesByMeal = {};
+  List<MealEntry> mealEntries = [];
+  Map<String, MealEntry> get mealEntriesById => {for (final m in mealEntries) m.id: m};
   List<FluidEntry> fluidEntries = [];
   List<TrackedSupplement> trackedSupplements = [];
   Map<String, dynamic>? workoutSummary;
@@ -192,6 +197,7 @@ class DiaryViewModel extends ChangeNotifier {
     _updateDebounceTimer?.cancel();
     _goalsSubscription?.cancel();
     _entriesSubscription?.cancel();
+    _mealEntriesSubscription?.cancel();
     _fluidsSubscription?.cancel();
     _supplementsSubscription?.cancel();
     _supplementLogsSubscription?.cancel();
@@ -209,17 +215,13 @@ class DiaryViewModel extends ChangeNotifier {
     // Cancel existing subscriptions
     _goalsSubscription?.cancel();
     _entriesSubscription?.cancel();
+    _mealEntriesSubscription?.cancel();
     _fluidsSubscription?.cancel();
     _supplementsSubscription?.cancel();
     _supplementLogsSubscription?.cancel();
     _workoutsSubscription?.cancel();
 
     // Re-establish reactive stream listeners for the new selected date
-    // NOTE: We intentionally do NOT set isLoading=true or call notifyListeners()
-    // here. The UI keeps the previous day's data fully rendered (stale-while-
-    // revalidate) while the new streams resolve. _executeCalculatedState() will
-    // call notifyListeners() exactly once when the complete new-date payload is
-    // ready, producing a single atomic swap with zero intermediate flicker.
     _goalsSubscription = _nutritionRepo.watchGoalsForDate(diaryDate).listen((
       goals,
     ) {
@@ -230,6 +232,13 @@ class DiaryViewModel extends ChangeNotifier {
     _entriesSubscription = _nutritionRepo.watchEntriesForDate(diaryDate).listen(
       (entries) {
         _activeEntries = entries;
+        _updateCalculatedState();
+      },
+    );
+
+    _mealEntriesSubscription = _nutritionRepo.watchMealEntriesForDate(diaryDate).listen(
+      (meals) {
+        _activeMealEntries = meals;
         _updateCalculatedState();
       },
     );
@@ -368,6 +377,7 @@ class DiaryViewModel extends ChangeNotifier {
 
       dailyNutrition = state.summary;
       entriesByMeal = state.entriesByMeal;
+      mealEntries = List.from(_activeMealEntries);
       fluidEntries = _activeFluids;
       trackedSupplements = state.trackedSupplements;
       workoutSummary = state.workoutSummary;
@@ -393,6 +403,14 @@ class DiaryViewModel extends ChangeNotifier {
 
   Future<void> deleteFoodEntry(int id) async {
     await _nutritionRepo.deleteFoodEntry(id);
+  }
+
+  Future<void> deleteMealEntry(String id, {required bool deleteFoodLogs}) async {
+    await _nutritionRepo.deleteMealEntry(id, deleteFoodLogs: deleteFoodLogs);
+  }
+
+  Future<void> updateMealEntry(MealEntry entry) async {
+    await _nutritionRepo.updateMealEntry(entry);
   }
 
   Future<void> deleteFluidEntry(int id) async {

@@ -395,10 +395,16 @@ class _MainScreenState extends State<MainScreen>
             await DatabaseHelper.instance.insertFluidEntry(newFluidEntry);
           }
           _refreshHomeScreen();
-        } catch (e) {
+        } catch (e, stack) {
+          // The bare word "Error" gave no way to tell a failed write from a
+          // failed lookup; the message is what makes a report actionable.
+          debugPrint('[Diary] barcode log failed: $e\n$stack');
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(AppLocalizations.of(context)!.error)),
+              SnackBar(
+                content: Text('${AppLocalizations.of(context)!.error}: $e'),
+                duration: const Duration(seconds: 8),
+              ),
             );
           }
         }
@@ -831,10 +837,14 @@ class _MainScreenState extends State<MainScreen>
           foodEntryId: newFoodEntryId,
         );
       }
-    } catch (e) {
+    } catch (e, stack) {
+      debugPrint('[Diary] food log failed: $e\n$stack');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.error)),
+          SnackBar(
+            content: Text('${l10n.error}: $e'),
+            duration: const Duration(seconds: 8),
+          ),
         );
       }
     } finally {
@@ -1193,20 +1203,52 @@ class _MainScreenState extends State<MainScreen>
     ];
   }
 
-  Rect? _rectForKey(GlobalKey key) {
+  /// Global bounds of [key] including every ancestor transform.
+  ///
+  /// `localToGlobal(Offset.zero) & box.size` only transforms the origin and
+  /// then bolts the *untransformed* size onto it, so any ancestor scale (route
+  /// transitions, animated wrappers) yields a rect that no longer matches what
+  /// is painted on screen. Transforming the whole rect keeps the spotlight on
+  /// the widget even mid-animation.
+  Rect? _globalRectOf(GlobalKey key) {
     final targetContext = key.currentContext;
     if (targetContext == null) return null;
     final renderObject = targetContext.findRenderObject();
     if (renderObject is! RenderBox || !renderObject.hasSize) return null;
-    final topLeft = renderObject.localToGlobal(Offset.zero);
-    final rect = topLeft & renderObject.size;
+    return MatrixUtils.transformRect(
+      renderObject.getTransformTo(null),
+      Offset.zero & renderObject.size,
+    );
+  }
+
+  Rect? _rectForKey(GlobalKey key) {
+    final rect = _globalRectOf(key);
+    if (rect == null) return null;
+
+    final Rect? barRect = _globalRectOf(_tourNavigationBarKey);
 
     if (key == _tourNavigationBarKey) {
-      return Rect.fromLTWH(
-        rect.left + 16,
-        rect.top,
-        rect.width,
-        rect.height,
+      var bounds = barRect ?? rect;
+      // The tab icons sit in their own render boxes, so folding them in keeps
+      // the spotlight covering all four tabs even if the bar itself reports a
+      // shorter box than it paints.
+      for (final tabKey in [
+        _tourDiaryTabKey,
+        _tourWorkoutTabKey,
+        _tourStatisticsTabKey,
+        _tourNutritionTabKey,
+      ]) {
+        final tabRect = _globalRectOf(tabKey);
+        if (tabRect != null) bounds = bounds.expandToInclude(tabRect);
+      }
+      return bounds.inflate(4);
+    }
+
+    if (key == _tourFabKey) {
+      return Rect.fromCenter(
+        center: rect.center,
+        width: 72,
+        height: 72,
       );
     }
 
@@ -1214,11 +1256,26 @@ class _MainScreenState extends State<MainScreen>
         key == _tourWorkoutTabKey ||
         key == _tourStatisticsTabKey ||
         key == _tourNutritionTabKey) {
-      return Rect.fromLTWH(
-        rect.left - 12,
-        rect.top - 4,
-        rect.width + 24,
-        rect.height + 28,
+      if (barRect != null) {
+        final tabWidth = barRect.width / 4;
+        int tabIndex = 0;
+        if (key == _tourDiaryTabKey) tabIndex = 0;
+        if (key == _tourWorkoutTabKey) tabIndex = 1;
+        if (key == _tourStatisticsTabKey) tabIndex = 2;
+        if (key == _tourNutritionTabKey) tabIndex = 3;
+
+        final tabLeft = barRect.left + (tabIndex * tabWidth);
+        return Rect.fromLTWH(
+          tabLeft - 1.5,
+          barRect.top + 1.0,
+          tabWidth + 3.0,
+          barRect.height - 2.0,
+        );
+      }
+      return Rect.fromCenter(
+        center: Offset(rect.center.dx, rect.center.dy + 8),
+        width: 72,
+        height: 52,
       );
     }
 
@@ -1275,10 +1332,16 @@ class _MainScreenState extends State<MainScreen>
     unawaited(TelemetryService.instance
         .trackFeatureUsed(featureKey: FeatureKey.appTourStarted));
     await AppTourService.instance.markOfferShown();
+    if (!mounted) return;
+    final l10n = AppLocalizations.of(context)!;
+    final steps = _buildAppTourSteps(l10n);
+    final initialTarget = steps.isNotEmpty
+        ? (_rectForKey(steps[0].anchorKey) ?? _rectForKey(_tourNavigationBarKey))
+        : null;
     setState(() {
       _isTourActive = true;
       _tourStepIndex = 0;
-      _tourTargetRect = null;
+      _tourTargetRect = initialTarget;
       _isAddMenuOpen = false;
     });
     _menuController.reverse();
@@ -1296,20 +1359,66 @@ class _MainScreenState extends State<MainScreen>
       _onNavigationTapped(step.tabIndex);
     }
 
+    final immediateTarget =
+        _rectForKey(step.anchorKey) ?? _rectForKey(_tourNavigationBarKey);
     setState(() {
       _tourStepIndex = index;
-      _tourTargetRect = null;
+      if (immediateTarget != null) {
+        _tourTargetRect = immediateTarget;
+      }
     });
 
+    _syncTourTargetRect(index, step);
+  }
+
+  /// Number of consecutive identical measurements that count as "the layout has
+  /// settled".
+  static const int _tourTargetStableFrames = 3;
+
+  /// Upper bound on re-measurements (~1s at 60fps), so a permanently animating
+  /// anchor can never keep the loop alive.
+  static const int _tourTargetMaxFrames = 60;
+
+  /// Re-measures the anchor until its rect stops moving.
+  ///
+  /// The very first step is measured while the route transition that reveals
+  /// the main screen is still running, so a single post-frame measurement
+  /// captures the bottom navigation bar mid-animation and the spotlight ends up
+  /// cut short. Following the anchor for a few frames pins it to the final
+  /// layout instead of to whatever the first frame happened to show.
+  void _syncTourTargetRect(
+    int index,
+    _AppTourStep step, {
+    int frame = 0,
+    Rect? previousRect,
+    int stableFrames = 0,
+  }) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted || !_isTourActive) return;
-      Future.delayed(const Duration(milliseconds: 50), () {
-        if (!mounted || !_isTourActive || _tourStepIndex != index) return;
-        final targetRect =
-            _rectForKey(step.anchorKey) ?? _rectForKey(_tourNavigationBarKey);
+      if (!mounted || !_isTourActive || _tourStepIndex != index) return;
+      final targetRect =
+          _rectForKey(step.anchorKey) ?? _rectForKey(_tourNavigationBarKey);
+      if (targetRect != null && targetRect != _tourTargetRect) {
         setState(() => _tourTargetRect = targetRect);
-      });
+      }
+
+      final int nextStableFrames =
+          (targetRect != null && targetRect == previousRect)
+              ? stableFrames + 1
+              : 0;
+      if (nextStableFrames >= _tourTargetStableFrames ||
+          frame + 1 >= _tourTargetMaxFrames) {
+        return;
+      }
+      _syncTourTargetRect(
+        index,
+        step,
+        frame: frame + 1,
+        previousRect: targetRect,
+        stableFrames: nextStableFrames,
+      );
     });
+    // A post-frame callback only runs if another frame is actually produced.
+    WidgetsBinding.instance.scheduleFrame();
   }
 
   Future<void> _nextTourStep() async {
@@ -1571,8 +1680,11 @@ class _MainScreenState extends State<MainScreen>
                             child: Row(
                               children: [
                                 Expanded(
-                                  child: KeyedSubtree(
+                                  child: SizedBox(
                                     key: _tourNavigationBarKey,
+                                    width: maxTabW,
+                                    height: DesignConstants
+                                        .bottomNavigationBarHeight,
                                     child: GlassTabBar.bottom(
                                       selectedIndex: _currentIndex,
                                       onTabSelected: _onNavigationTapped,

@@ -640,6 +640,8 @@
   "appTourStepNutritionBody": "Nutrition helps you plan meals, review targets, and access tools like meal templates.",
   "appTourStepStatisticsTitle": "Statistics",
   "appTourStepStatisticsBody": "Statistics shows trends and progress so you can understand how your data changes over time.",
+  "appTourRestartTitle": "View App Tour",
+  "appTourRestartSubtitle": "Review the introduction and key features",
   "onbSetGoalsCta": "Set goals",
   "@onbSetGoalsCta": {
     "description": "Optional CTA linking to Goals screen from onboarding"
@@ -1046,6 +1048,14 @@
     }
   },
   "aiReviewNoMatch": "No match — tap to search",
+  "aiReviewUncertain": "Unsure ({percent}%)",
+  "@aiReviewUncertain": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
   "aiReviewConfidence": "Confidence",
   "aiReviewAddItem": "Add item manually",
   "aiReviewReplaceItem": "Replace item",
@@ -2766,5 +2776,158 @@
         "example": "1.0.2"
       }
     }
-  }
+  },
+  "mealAnalysisPreparing": "Preparing the capture",
+  "mealAnalysisAnalyzing": "Analyzing the meal",
+  "mealAnalysisMatching": "Matching the ingredients",
+  "mealAnalysisFailed": "That did not work",
+  "mealAnalysisProcessingTag": "AI VISION PROCESSING",
+  "aiScannerTitle": "AI scanner",
+  "aiCaptureAnalyzing": "Analyzing…",
+  "aiCaptureAnalyzeMeal": "Analyze meal ({count})",
+  "@aiCaptureAnalyzeMeal": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "aiCaptureAnalyzeText": "Analyze text",
+  "aiCaptureDescribeHint": "Describe the meal (e.g. 2 eggs with toast)…",
+  "aiCaptureBarcodeDetected": "Barcode detected",
+  "aiCaptureLogBarcode": "Log",
+  "aiCaptureBarcodeFallback": "Barcode {code}",
+  "@aiCaptureBarcodeFallback": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "aiCaptureMoveCloser": "Move a little closer",
+  "aiCaptureMoveAway": "Move back a little",
+  "aiCaptureOpenSettings": "Open settings",
+  "voiceDictationTitle": "Dictate the meal",
+  "voiceHoldToTalk": "Hold to speak",
+  "voiceSpeakNow": "Speak now — release to finish",
+  "voiceExampleStandalone": "e.g. “A vegetable kebab with flatbread and garlic sauce”",
+  "voiceExampleWithPhoto": "Add what the photo cannot show — e.g. “fried in two tablespoons of olive oil”",
+  "voiceNetworkNotice": "This device cannot recognize speech locally. The recording is sent to the system’s speech recognition to be transcribed.",
+  "voiceTapToRecord": "Tap to start recording",
+  "voiceTapToFinish": "Listening — tap to finish",
+  "voiceStarting": "Getting ready…",
+  "voiceTidyingUp": "Tidying up your words…",
+  "voiceNothingHeard": "Nothing was recognized. Try again, or type it instead.",
+  "voiceLanguage": "Language",
+  "voiceLanguageTitle": "Dictation language",
+  "voiceLanguageSystem": "Follow the device",
+  "voiceLanguageHint": "Pick the language you speak, not the one the app is in.",
+  "voiceCleanedNotice": "Filler words removed",
+  "voiceRetake": "Record again",
+  "voiceTidiedIn": "Tidied up by AI in {seconds} s",
+  "@voiceTidiedIn": {
+    "placeholders": {
+      "seconds": {
+        "type": "String"
+      }
+    }
+  },
+  "aiDepthImageTitle": "Send the depth map too",
+  "aiDepthImageSubtitle": "Attaches the false-colour relief of the meal as a second image, so the model can judge height as well as outline. Costs one extra image per analysis.",
+  "aiVoiceTidyTitle": "Tidy up dictation with AI",
+  "aiVoiceTidySubtitle": "After you finish speaking, the transcript is corrected and split into bullet points. Costs one request and a few seconds.",
+  "voicePermissionTitle": "Microphone and speech recognition",
+  "voicePermissionBody": "To dictate a meal, Train Libre needs the microphone while you hold the button, and speech recognition to turn what you said into text. Recognition runs on your device whenever it can. Nothing is recorded or kept.",
+  "voicePermissionContinue": "Continue",
+  "voiceApplyText": "Use this text",
+  "voiceTranscriptHint": "Recognized text — editable here",
+  "voiceUnavailablePermission": "Dictation needs microphone and speech recognition access. You can still type the text.",
+  "voiceUnavailableUnsupported": "This device offers no speech recognition. You can type the text instead.",
+  "voiceUnavailableFailed": "Speech recognition could not be started. You can type the text instead.",
+  "mealFallbackTitle": "Meal",
+  "mealIngredientCount": "{count, plural, =1{1 ingredient} other{{count} ingredients}}",
+  "@mealIngredientCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "mealDetailOptions": "Options",
+  "mealDetailAddIngredient": "Add ingredient",
+  "mealDetailSaveAsTemplate": "Save as template",
+  "mealDetailSavedAsTemplate": "Saved as a meal template.",
+  "mealDetailChangeMealType": "Change meal type",
+  "mealDetailSelectMealType": "Select meal type",
+  "mealDetailAmountInGrams": "Amount in grams",
+  "mealDetailApply": "Apply",
+  "mealDeleteQuestion": "What should happen to this meal?",
+  "mealDeleteUngroupTitle": "Only remove the grouping",
+  "mealDeleteUngroupBody": "{count, plural, =1{The photo and the grouping are removed. The entry stays in the diary on its own — your daily totals do not change.} other{The photo and the grouping are removed. The {count} entries stay in the diary on their own — your daily totals do not change.}}",
+  "@mealDeleteUngroupBody": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "mealDeleteAllTitle": "Delete the meal and its entries",
+  "mealDeleteAllBody": "{count, plural, =1{The photo, the grouping and the entry disappear from the diary. {kcal} kcal are removed from your day.} other{The photo, the grouping and all {count} entries disappear from the diary. {kcal} kcal are removed from your day.}}",
+  "@mealDeleteAllBody": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "kcal": {
+        "type": "int"
+      }
+    }
+  },
+  "reanalysisTitle": "New result",
+  "reanalysisSubtitle": "You decide what stays saved.",
+  "reanalysisPrevious": "CURRENT",
+  "reanalysisNew": "NEW",
+  "reanalysisKeepPrevious": "Keep current",
+  "reanalysisApplyNew": "Use the new one",
+  "reanalysisDiffHint": "Marked = differs from what is saved",
+  "aiReviewDiscardTitle": "Discard this meal?",
+  "aiReviewDiscardBody": "The analysis has not been saved and will be lost.",
+  "aiLidarScaleTitle": "Send LiDAR scale",
+  "aiLidarScaleSubtitle": "Measures distance and frame size in centimetres and passes them to the AI. Switch off to compare whether the estimate actually improves.",
+  "mealPhotoStorageSection": "Meal photos (storage)",
+  "mealPhotoRetentionTitle": "Retention period",
+  "mealPhotoRetentionBody": "Photos are deleted automatically once the period is over. The nutrition entries in the diary remain.",
+  "mealPhotoRetentionDays": "{days} days",
+  "@mealPhotoRetentionDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "mealPhotoRetentionDefaultSuffix": "(default)",
+  "mealPhotoRetentionUnlimited": "Unlimited",
+  "mealPhotoRetentionSaved": "Retention period saved.",
+  "mealPhotoDeleteAll": "Delete all local photos",
+  "mealPhotoDeleteAllTitle": "Delete all meal photos?",
+  "mealPhotoDeleteAllBody": "Only the image files are removed from the device. Your entries and calories in the diary stay exactly as they are.",
+  "mealPhotoDeleted": "Photos deleted.",
+  "speechSectionTitle": "Voice input & dictation",
+  "speechOnDeviceActive": "On-device speech recognition active",
+  "speechOnDeviceBody": "Spoken meals (“2 eggs with toast and coffee”) are turned into text directly on your device and stay private.",
+  "aiCaptureTourStepShutterTitle": "Capture Meal Photos",
+  "aiCaptureTourStepShutterDesc": "Take up to 4 photos of your meal from different angles with the shutter. On supported devices, LiDAR automatically captures depth data for even more accurate portion estimates.",
+  "aiCaptureTourStepBarcodeTitle": "Automatic Barcode Detection",
+  "aiCaptureTourStepBarcodeDesc": "Hold packaged foods in front of the camera – barcodes are automatically recognized in real time. Use this button to toggle the live scanner on or off anytime.",
+  "aiCaptureTourBarcodeDemoProduct": "Organic Rolled Oats 500g",
+  "aiCaptureTourBarcodeDemoHint": "Here's what it looks like when you scan a barcode!",
+  "aiCaptureTourStepGalleryTitle": "Select from Library",
+  "aiCaptureTourStepGalleryDesc": "Already took photos of your meal? Choose up to 4 images directly from your photo library.",
+  "aiCaptureTourStepVoiceTitle": "Voice Dictation",
+  "aiCaptureTourStepVoiceDesc": "Tap the microphone to dictate ingredients, brands, or amounts (e.g. '200g chicken breast with rice'). AI tidies and analyzes your speech automatically.",
+  "aiCaptureTourStepTextTitle": "Text & Notes",
+  "aiCaptureTourStepTextDesc": "Add written notes or describe your meal purely via text if you don't want to take a photo.",
+  "aiCaptureTourStepAnalyzeTitle": "Smart AI Analysis",
+  "aiCaptureTourStepAnalyzeDesc": "Once a photo, voice transcript, or text is ready, tap Analyze. The AI identifies food items, estimates portions, and matches everything against your nutrition targets.",
+  "aiCaptureTourReplayTooltip": "Replay capture guide"
 }

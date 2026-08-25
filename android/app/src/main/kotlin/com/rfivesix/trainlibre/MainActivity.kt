@@ -30,6 +30,7 @@ import androidx.health.connect.client.units.Mass
 import androidx.health.connect.client.units.Percentage
 import androidx.health.connect.client.units.Volume
 import com.rfivesix.trainlibre.liveupdate.WorkoutLiveActivityBridge
+import com.rfivesix.trainlibre.media.ImageOpsPlugin
 import com.rfivesix.trainlibre.widgets.HomeWidgetBridge
 import com.rfivesix.trainlibre.widgets.WidgetDeepLinks
 import io.flutter.embedding.android.FlutterActivity
@@ -41,6 +42,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.File
 import java.time.Instant
 import java.time.ZoneOffset
 
@@ -162,6 +164,13 @@ class MainActivity : FlutterActivity() {
 
         MethodChannel(
             flutterEngine.dartExecutor.binaryMessenger,
+            ImageOpsPlugin.channelName,
+        ).setMethodCallHandler { call, result ->
+            ImageOpsPlugin.handle(call, result)
+        }
+
+        MethodChannel(
+            flutterEngine.dartExecutor.binaryMessenger,
             healthChannelName,
         ).setMethodCallHandler { call, result ->
             when (call.method) {
@@ -210,7 +219,7 @@ class MainActivity : FlutterActivity() {
         ).setMethodCallHandler { call, result ->
             when (call.method) {
                 "pickDirectory" -> handlePickDirectory(result)
-                "writeTextFileToTree" -> handleWriteTextFileToTree(call, result)
+                "writeFileToTree" -> handleWriteFileToTree(call, result)
                 "pruneAutoBackupsInTree" -> handlePruneAutoBackupsInTree(call, result)
                 else -> result.notImplemented()
             }
@@ -1377,15 +1386,22 @@ class MainActivity : FlutterActivity() {
         directoryPickerLauncher.launch(null)
     }
 
-    private fun handleWriteTextFileToTree(call: MethodCall, result: MethodChannel.Result) {
+    /**
+     * Copies a local file into the folder the user picked.
+     *
+     * Streamed from disk rather than handed the bytes over the channel: a
+     * backup archive carries the meal previews and is far too big to be worth
+     * copying through Dart.
+     */
+    private fun handleWriteFileToTree(call: MethodCall, result: MethodChannel.Result) {
         val args = call.arguments as? Map<*, *> ?: emptyMap<String, Any>()
         val treeUriRaw = args["treeUri"] as? String
         val fileName = args["fileName"] as? String
-        val content = args["content"] as? String
-        val mimeType = (args["mimeType"] as? String) ?: "application/json"
+        val sourcePath = args["sourcePath"] as? String
+        val mimeType = (args["mimeType"] as? String) ?: "application/zip"
 
-        if (treeUriRaw.isNullOrBlank() || fileName.isNullOrBlank() || content == null) {
-            result.error("invalid_args", "treeUri, fileName and content are required", null)
+        if (treeUriRaw.isNullOrBlank() || fileName.isNullOrBlank() || sourcePath.isNullOrBlank()) {
+            result.error("invalid_args", "treeUri, fileName and sourcePath are required", null)
             return
         }
 
@@ -1402,11 +1418,15 @@ class MainActivity : FlutterActivity() {
                 val created = root.createFile(mimeType, fileName)
                     ?: throw IllegalStateException("Unable to create file in selected folder")
 
+                val source = File(sourcePath)
+                if (!source.isFile) {
+                    throw IllegalStateException("Source file no longer exists")
+                }
                 contentResolver.openOutputStream(created.uri, "wt").use { out ->
                     if (out == null) {
                         throw IllegalStateException("Unable to open output stream")
                     }
-                    out.write(content.toByteArray(Charsets.UTF_8))
+                    source.inputStream().use { input -> input.copyTo(out) }
                     out.flush()
                 }
 

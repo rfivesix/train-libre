@@ -50,37 +50,36 @@ void main() {
   });
 
   group('SafStorageService file operations', () {
-    test('writeTextFileToTree forwards args with default mimeType', () async {
+    test('writeFileToTree forwards args with default mimeType', () async {
       late MethodCall capturedCall;
       messenger.setMockMethodCallHandler(channel, (call) async {
         capturedCall = call;
-        return <String, dynamic>{'displayPath': '/storage/backups/file.json'};
+        return <String, dynamic>{'displayPath': '/storage/backups/file.zip'};
       });
 
-      final result = await SafStorageService.instance.writeTextFileToTree(
+      final result = await SafStorageService.instance.writeFileToTree(
         treeUri: 'content://tree/abc',
-        fileName: 'file.json',
-        content: '{"ok":true}',
+        fileName: 'file.zip',
+        sourcePath: '/tmp/staged.zip',
       );
 
-      expect(result, '/storage/backups/file.json');
-      expect(capturedCall.method, 'writeTextFileToTree');
+      expect(result, '/storage/backups/file.zip');
+      expect(capturedCall.method, 'writeFileToTree');
       expect(capturedCall.arguments, <String, dynamic>{
         'treeUri': 'content://tree/abc',
-        'fileName': 'file.json',
-        'content': '{"ok":true}',
-        'mimeType': 'application/json',
+        'fileName': 'file.zip',
+        'sourcePath': '/tmp/staged.zip',
+        'mimeType': 'application/zip',
       });
     });
 
-    test('writeTextFileToTree returns null for invalid response shape',
-        () async {
+    test('writeFileToTree returns null for invalid response shape', () async {
       messenger.setMockMethodCallHandler(channel, (call) async => 42);
 
-      final result = await SafStorageService.instance.writeTextFileToTree(
+      final result = await SafStorageService.instance.writeFileToTree(
         treeUri: 'content://tree/abc',
-        fileName: 'file.json',
-        content: '{}',
+        fileName: 'file.zip',
+        sourcePath: '/tmp/staged.zip',
       );
 
       expect(result, isNull);

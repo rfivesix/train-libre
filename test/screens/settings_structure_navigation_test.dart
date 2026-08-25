@@ -254,7 +254,7 @@ void main() {
           find.byKey(const Key('settings_section_health_tracking'));
       final diaryText = find.text('Additional Nutrient in Overview');
 
-      expect(restartTile, findsNothing);
+      expect(restartTile, findsOneWidget);
       expect(healthSection, findsOneWidget);
       expect(diaryText, findsOneWidget);
 

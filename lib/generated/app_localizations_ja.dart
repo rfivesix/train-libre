@@ -1574,6 +1574,12 @@ class AppLocalizationsJa extends AppLocalizations {
       '統計は傾向と進捗状況を示すため、時間の経過とともにデータがどのように変化するかを理解できます。';
 
   @override
+  String get appTourRestartTitle => 'アプリツアーを見る';
+
+  @override
+  String get appTourRestartSubtitle => '主要な機能と導入ガイドをもう一度確認する';
+
+  @override
   String get onbSetGoalsCta => '目標を設定する';
 
   @override
@@ -2550,6 +2556,11 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get aiReviewNoMatch => '一致しません — タップして検索します';
+
+  @override
+  String aiReviewUncertain(int percent) {
+    return '不確か（$percent%）';
+  }
 
   @override
   String get aiReviewConfidence => '自信';
@@ -5631,4 +5642,352 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get whatsNewAboutRowSubtitle => 'このバージョンと以前のバージョンの主な変更点';
+
+  @override
+  String get mealAnalysisPreparing => '撮影を準備しています';
+
+  @override
+  String get mealAnalysisAnalyzing => '食事を解析しています';
+
+  @override
+  String get mealAnalysisMatching => '食材を照合しています';
+
+  @override
+  String get mealAnalysisFailed => 'うまくいきませんでした';
+
+  @override
+  String get mealAnalysisProcessingTag => 'AI VISION PROCESSING';
+
+  @override
+  String get aiScannerTitle => 'AIスキャナー';
+
+  @override
+  String get aiCaptureAnalyzing => '解析中…';
+
+  @override
+  String aiCaptureAnalyzeMeal(int count) {
+    return '食事を解析（$count）';
+  }
+
+  @override
+  String get aiCaptureAnalyzeText => 'テキストを解析';
+
+  @override
+  String get aiCaptureDescribeHint => '食事を説明してください（例：卵2個とトースト）…';
+
+  @override
+  String get aiCaptureBarcodeDetected => 'バーコードを検出';
+
+  @override
+  String get aiCaptureLogBarcode => '記録';
+
+  @override
+  String aiCaptureBarcodeFallback(String code) {
+    return 'バーコード $code';
+  }
+
+  @override
+  String get aiCaptureMoveCloser => 'もう少し近づいてください';
+
+  @override
+  String get aiCaptureMoveAway => '少し離れてください';
+
+  @override
+  String get aiCaptureOpenSettings => '設定を開く';
+
+  @override
+  String get voiceDictationTitle => '食事を音声入力';
+
+  @override
+  String get voiceHoldToTalk => '押しながら話してください';
+
+  @override
+  String get voiceSpeakNow => '話してください — 離すと終了します';
+
+  @override
+  String get voiceExampleStandalone => '例：「フラットブレッドとガーリックソースの野菜ケバブ」';
+
+  @override
+  String get voiceExampleWithPhoto =>
+      '写真ではわからないことを補ってください — 例：「オリーブオイル大さじ2で炒めた」';
+
+  @override
+  String get voiceNetworkNotice =>
+      'この端末は音声をローカルで認識できません。録音は文字起こしのためシステムの音声認識に送信されます。';
+
+  @override
+  String get voiceTapToRecord => 'タップして録音';
+
+  @override
+  String get voiceTapToFinish => '認識中 — タップで終了';
+
+  @override
+  String get voiceStarting => '準備中…';
+
+  @override
+  String get voiceTidyingUp => 'テキストを整えています…';
+
+  @override
+  String get voiceNothingHeard => '認識できませんでした。もう一度試すか、入力してください。';
+
+  @override
+  String get voiceLanguage => '言語';
+
+  @override
+  String get voiceLanguageTitle => '音声入力の言語';
+
+  @override
+  String get voiceLanguageSystem => 'デバイスに合わせる';
+
+  @override
+  String get voiceLanguageHint => 'アプリの言語ではなく、話す言語を選んでください。';
+
+  @override
+  String get voiceCleanedNotice => 'フィラーを削除しました';
+
+  @override
+  String get voiceRetake => '録音し直す';
+
+  @override
+  String voiceTidiedIn(String seconds) {
+    return 'AI が $seconds 秒で整理しました';
+  }
+
+  @override
+  String get aiDepthImageTitle => '深度マップも送信';
+
+  @override
+  String get aiDepthImageSubtitle =>
+      '食事の擬似カラー起伏を 2 枚目の画像として添付し、輪郭だけでなく高さも判断できるようにします。1 回の解析につき画像が 1 枚増えます。';
+
+  @override
+  String get aiVoiceTidyTitle => '音声入力を AI で整える';
+
+  @override
+  String get aiVoiceTidySubtitle =>
+      '話し終わると、テキストが修正され箇条書きに分割されます。1 回のリクエストと数秒かかります。';
+
+  @override
+  String get voicePermissionTitle => 'マイクと音声認識';
+
+  @override
+  String get voicePermissionBody =>
+      '食事を音声入力するには、録音中のマイクと、話した内容を文字にする音声認識が必要です。可能な場合は端末内で認識します。録音は保存されません。';
+
+  @override
+  String get voicePermissionContinue => '続ける';
+
+  @override
+  String get voiceApplyText => 'このテキストを使う';
+
+  @override
+  String get voiceTranscriptHint => '認識されたテキスト — ここで修正できます';
+
+  @override
+  String get voiceUnavailablePermission =>
+      '音声入力にはマイクと音声認識の許可が必要です。テキストを入力することもできます。';
+
+  @override
+  String get voiceUnavailableUnsupported =>
+      'この端末は音声認識に対応していません。代わりにテキストを入力してください。';
+
+  @override
+  String get voiceUnavailableFailed => '音声認識を開始できませんでした。代わりにテキストを入力してください。';
+
+  @override
+  String get mealFallbackTitle => '食事';
+
+  @override
+  String mealIngredientCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '食材$count品',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get mealDetailOptions => 'オプション';
+
+  @override
+  String get mealDetailAddIngredient => '食材を追加';
+
+  @override
+  String get mealDetailSaveAsTemplate => 'テンプレートとして保存';
+
+  @override
+  String get mealDetailSavedAsTemplate => '食事テンプレートとして保存しました。';
+
+  @override
+  String get mealDetailChangeMealType => '食事の種類を変更';
+
+  @override
+  String get mealDetailSelectMealType => '食事の種類を選択';
+
+  @override
+  String get mealDetailAmountInGrams => '量（グラム）';
+
+  @override
+  String get mealDetailApply => '適用';
+
+  @override
+  String get mealDeleteQuestion => 'この食事をどうしますか？';
+
+  @override
+  String get mealDeleteUngroupTitle => 'グループ化だけを解除';
+
+  @override
+  String mealDeleteUngroupBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '写真とグループ化を削除します。$count件の記録は個別に日記に残り、1日の合計は変わりません。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get mealDeleteAllTitle => '食事と記録をすべて削除';
+
+  @override
+  String mealDeleteAllBody(int count, int kcal) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '写真・グループ化・$count件の記録が日記から消えます。$kcal kcal がその日の合計から差し引かれます。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get reanalysisTitle => '新しい結果';
+
+  @override
+  String get reanalysisSubtitle => '保存する内容はあなたが決めます。';
+
+  @override
+  String get reanalysisPrevious => '現在';
+
+  @override
+  String get reanalysisNew => '新規';
+
+  @override
+  String get reanalysisKeepPrevious => '現在のものを保持';
+
+  @override
+  String get reanalysisApplyNew => '新しいものを使う';
+
+  @override
+  String get reanalysisDiffHint => '印付き＝保存済みの内容と異なります';
+
+  @override
+  String get aiReviewDiscardTitle => 'この食事を破棄しますか？';
+
+  @override
+  String get aiReviewDiscardBody => '解析結果は保存されておらず、失われます。';
+
+  @override
+  String get aiLidarScaleTitle => 'LiDARスケールを送信';
+
+  @override
+  String get aiLidarScaleSubtitle =>
+      '距離と画角をセンチメートルで測定し、AIに渡します。推定が実際に良くなるか比べるにはオフにしてください。';
+
+  @override
+  String get mealPhotoStorageSection => '食事の写真（保存容量）';
+
+  @override
+  String get mealPhotoRetentionTitle => '保存期間';
+
+  @override
+  String get mealPhotoRetentionBody => '期間が過ぎると写真は自動的に削除されます。日記の栄養記録は残ります。';
+
+  @override
+  String mealPhotoRetentionDays(int days) {
+    return '$days日';
+  }
+
+  @override
+  String get mealPhotoRetentionDefaultSuffix => '（既定）';
+
+  @override
+  String get mealPhotoRetentionUnlimited => '無制限';
+
+  @override
+  String get mealPhotoRetentionSaved => '保存期間を保存しました。';
+
+  @override
+  String get mealPhotoDeleteAll => 'ローカルの写真をすべて削除';
+
+  @override
+  String get mealPhotoDeleteAllTitle => '食事の写真をすべて削除しますか？';
+
+  @override
+  String get mealPhotoDeleteAllBody =>
+      '端末から画像ファイルだけが削除されます。日記の記録とカロリーはそのまま残ります。';
+
+  @override
+  String get mealPhotoDeleted => '写真を削除しました。';
+
+  @override
+  String get speechSectionTitle => '音声入力・口述';
+
+  @override
+  String get speechOnDeviceActive => '端末内の音声認識が有効';
+
+  @override
+  String get speechOnDeviceBody =>
+      '話した食事（「卵2個とトーストとコーヒー」）は端末内でテキストに変換され、外部に出ません。';
+
+  @override
+  String get aiCaptureTourStepShutterTitle => '食事を撮影';
+
+  @override
+  String get aiCaptureTourStepShutterDesc =>
+      'シャッターボタンで異なる角度から最大4枚の写真を撮影できます。対応端末ではLiDARが自動で深度データを取得し、より正確に量を推定します。';
+
+  @override
+  String get aiCaptureTourStepBarcodeTitle => '自動バーコード認識';
+
+  @override
+  String get aiCaptureTourStepBarcodeDesc =>
+      'パッケージ食品をカメラに向けるとバーコードをリアルタイムで自動認識します。このボタンでスキャナーをオン/オフできます。';
+
+  @override
+  String get aiCaptureTourBarcodeDemoProduct => '有機オートミール 500g';
+
+  @override
+  String get aiCaptureTourBarcodeDemoHint => 'バーコードをスキャンするとこのように表示されます！';
+
+  @override
+  String get aiCaptureTourStepGalleryTitle => 'ライブラリから選択';
+
+  @override
+  String get aiCaptureTourStepGalleryDesc =>
+      'すでに撮影済みの写真がありますか？フォトライブラリから最大4枚を直接選択できます。';
+
+  @override
+  String get aiCaptureTourStepVoiceTitle => '音声入力・口述';
+
+  @override
+  String get aiCaptureTourStepVoiceDesc =>
+      'マイクをタップして材料や量（例：「チキン200gとご飯」）を話すと、AIが自動で整理・解析します。';
+
+  @override
+  String get aiCaptureTourStepTextTitle => 'テキスト・メモ入力';
+
+  @override
+  String get aiCaptureTourStepTextDesc =>
+      '写真の代わりにテキストだけで食事内容を入力したり、補足メモを追加できます。';
+
+  @override
+  String get aiCaptureTourStepAnalyzeTitle => 'スマートAI解析';
+
+  @override
+  String get aiCaptureTourStepAnalyzeDesc =>
+      '写真・音声・テキストが揃ったら「解析」をタップ。AIが食品を特定し、栄養目標と照合します。';
+
+  @override
+  String get aiCaptureTourReplayTooltip => '案内をもう一度見る';
 }

@@ -29,4 +29,21 @@ abstract class TelemetryBuckets {
     if (ms < 10000) return '5-10s';
     return '>10s';
   }
+
+  /// Converts voice recording duration into a coarse bucket.
+  static String getVoiceDurationBucket(Duration duration) {
+    final seconds = duration.inSeconds;
+    if (seconds < 5) return '<5s';
+    if (seconds < 15) return '5-15s';
+    if (seconds < 30) return '15-30s';
+    return '>30s';
+  }
+
+  /// Converts food item count into a coarse bucket.
+  static String getItemCountBucket(int count) {
+    if (count <= 0) return '0';
+    if (count <= 2) return '1-2';
+    if (count <= 5) return '3-5';
+    return '6+';
+  }
 }

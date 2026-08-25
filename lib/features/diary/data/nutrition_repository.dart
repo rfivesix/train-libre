@@ -4,6 +4,7 @@ import 'sources/diary_local_data_source.dart';
 import 'sources/product_local_data_source.dart';
 import '../domain/models/fluid_entry.dart';
 import '../domain/models/food_entry.dart';
+import '../domain/models/meal_entry.dart';
 import '../domain/models/food_item.dart';
 import '../domain/repositories/diary_repository.dart';
 import '../../supplements/domain/models/supplement_log.dart';
@@ -119,6 +120,26 @@ class NutritionRepository implements IDiaryRepository {
   }) =>
       _localDataSource.insertFoodEntry(entry, telemetrySource: telemetrySource);
 
+
+  @override
+  Stream<List<MealEntry>> watchMealEntriesForDate(DateTime date) =>
+      _localDataSource.watchMealEntriesForDate(date);
+
+  @override
+  Future<MealEntry?> getMealEntryById(String id) =>
+      _localDataSource.getMealEntryById(id);
+
+  @override
+  Future<String> insertMealEntry(MealEntry entry) =>
+      _localDataSource.insertMealEntry(entry);
+
+  @override
+  Future<void> updateMealEntry(MealEntry entry) =>
+      _localDataSource.updateMealEntry(entry);
+
+  @override
+  Future<void> deleteMealEntry(String id, {required bool deleteFoodLogs}) =>
+      _localDataSource.deleteMealEntry(id, deleteFoodLogs: deleteFoodLogs);
 
   @override
   Future<void> updateSupplementLog(SupplementLog log) =>

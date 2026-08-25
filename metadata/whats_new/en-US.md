@@ -6,6 +6,18 @@
   Newest version first. Regenerate with: python3 script/build_whats_new.py
 -->
 
+## 1.2.0 (2026-08-26)
+
+{camera} Log a meal from a photo: Point the camera at your plate and the AI turns it into individual foods with amounts, calories and macros. Take up to four photos of the same meal, correct or swap anything before saving - and packaged products are recognised by their barcode in the very same view, without switching modes.
+
+{smartphone} Portion sizes measured, not guessed: On iPhone models with LiDAR the camera measures how far away your plate is and how large the visible area really is, and passes that to the AI. You can turn the measurement off in the AI settings.
+
+{mic} Just say what's in it: Hold the microphone button and describe your meal - on its own or in addition to the photo. Cooking method, oil and hidden ingredients are exactly what a photo cannot show. Recognition runs on your device wherever possible, and you can edit the text before anything is sent.
+
+{utensils} A clearer diary: A scanned meal stays one entry with its photo and can be unfolded into its ingredients. Entries are sorted by calories, largest first, and amounts and calories now line up in the same columns on every row.
+
+{cloud} Your meal photos in the iCloud backup: The automatic backup now carries the photos of your meals, so a restored iPhone shows your meals the way you logged them. Restoring is also safer: it no longer needs a restart, and the previous backup is kept as a spare copy.
+
 ## 1.1.1 (2026-08-12)
 
 {layout_grid} Home screen widgets on Android: The widget family has arrived on Android - your last workout with its muscle map, muscle recovery, your steps of the last 7 days, body measurements, today's nutrition and quick actions. Add them from your launcher's widget picker; nutrition, measurements and quick actions can be reconfigured at any time.

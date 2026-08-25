@@ -1,5 +1,4 @@
-// lib/data/basis_data_manager.dart
-
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
@@ -19,6 +18,7 @@ import '../../services/base_food_language_service.dart';
 import '../../services/exercise_catalog_refresh_service.dart';
 import '../../services/off_catalog_country_service.dart';
 import '../../services/off_catalog_refresh_service.dart';
+import '../../services/telemetry/telemetry_service.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import '../../generated/app_localizations.dart';
 import '../../features/diary/domain/use_cases/retain_historical_off_products_use_case.dart';
@@ -1050,6 +1050,18 @@ class BasisDataManager {
         final storedVersion =
             storedVersionAfterImport(assetVersion: assetVersion);
         await prefs.setString(prefKey, storedVersion);
+
+        if (prefKey.startsWith(OffCatalogCountryService.installedVersionKeyPrefix)) {
+          if (installedVersion == '0') {
+            unawaited(TelemetryService.instance.trackFeatureUsed(
+              featureKey: FeatureKey.offCatalogInstalled,
+            ));
+          } else {
+            unawaited(TelemetryService.instance.trackFeatureUsed(
+              featureKey: FeatureKey.offCatalogUpdated,
+            ));
+          }
+        }
 
         // If we just successfully imported base foods, mark the enrichment version as well.
         if (prefKey == _keyVersionFood) {

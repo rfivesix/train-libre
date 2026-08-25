@@ -2,12 +2,21 @@
   "originHash" : "5485b75ecb59cdc0e85856e99adebdad96cbb7218c4d3b52b10794cb8309ab99",
   "pins" : [
     {
+      "identity" : "cwlcatchexception",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/mattgallagher/CwlCatchException.git",
+      "state" : {
+        "revision" : "07b2ba21d361c223e25e3c1e924288742923f08c",
+        "version" : "2.2.1"
+      }
+    },
+    {
       "identity" : "posthog-ios",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/PostHog/posthog-ios",
       "state" : {
-        "revision" : "9b12d093e774883c40ee456e34b74b45cee03d46",
-        "version" : "3.69.5"
+        "revision" : "4cf77c21b424ca16ec827da2fb3f0c61ee90d2aa",
+        "version" : "3.69.12"
       }
     }
   ],
