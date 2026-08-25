@@ -47,6 +47,7 @@ class AiMealReviewScreen extends StatefulWidget {
   final DateTime? initialDate;
   final String? initialMealType;
   final DepthCaptureResult? depthResult;
+  final Map<String, DepthCaptureResult>? depthResultsByPath;
   final DepthScaleFacts? depthFacts;
   final String? sentPrompt;
   final String? rawResponse;
@@ -63,6 +64,7 @@ class AiMealReviewScreen extends StatefulWidget {
     this.initialDate,
     this.initialMealType,
     this.depthResult,
+    this.depthResultsByPath,
     this.depthFacts,
     this.sentPrompt,
     this.rawResponse,
@@ -75,6 +77,10 @@ class AiMealReviewScreen extends StatefulWidget {
 
 class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
   bool _showDepthMap = false;
+  bool _showDepthLegend = false;
+  int _currentPhotoIndex = 0;
+  final Map<int, ui.Image> _depthImages = {};
+  final Map<int, DepthBandRender> _depthRenders = {};
   ui.Image? _depthImage;
   DepthBandRender? _depthRender;
 
@@ -204,6 +210,9 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
   @override
   void dispose() {
     _depthImage?.dispose();
+    for (final img in _depthImages.values) {
+      img.dispose();
+    }
     _stopAiWaitingHaptics();
     _feedbackController.dispose();
     super.dispose();
@@ -668,13 +677,29 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
   // Depth map
   // ---------------------------------------------------------------------------
 
-  bool get _hasDepthMap =>
-      (widget.depthResult?.depthBuffer?.isNotEmpty ?? false) &&
-      (widget.depthResult?.depthWidth ?? 0) > 0;
+  DepthCaptureResult? _getDepthCaptureFor(int index) {
+    if (widget.originalImages.isEmpty ||
+        index < 0 ||
+        index >= widget.originalImages.length) {
+      return widget.depthResult;
+    }
+    final path = widget.originalImages[index].path;
+    return widget.depthResultsByPath?[path] ??
+        (index == 0 ? widget.depthResult : null);
+  }
+
+
+  bool _hasDepthMapFor(int index) {
+    final cap = _getDepthCaptureFor(index);
+    return cap != null &&
+        cap.depthBuffer != null &&
+        cap.depthBuffer!.isNotEmpty &&
+        cap.depthWidth > 0;
+  }
 
   Future<void> _toggleDepthMap() async {
-    if (!_showDepthMap && _depthImage == null) {
-      await _renderDepthMap();
+    if (!_showDepthMap && !_depthImages.containsKey(_currentPhotoIndex)) {
+      await _renderDepthMapFor(_currentPhotoIndex);
       if (!mounted) return;
     }
     HapticFeedbackService.instance.selectionFeedback();
@@ -683,10 +708,12 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
 
   /// Rendered on first use rather than up front: most reviews never open it,
   /// and decoding a depth map into an image costs a frame.
-  Future<void> _renderDepthMap() async {
-    final capture = widget.depthResult;
+  Future<void> _renderDepthMapFor(int index) async {
+    final capture = _getDepthCaptureFor(index);
     final buffer = capture?.depthBuffer;
     if (capture == null || buffer == null) return;
+    if (_depthImages.containsKey(index)) return;
+
     try {
       final result = await DepthMapRenderer.createUiImage(
         depthBuffer: buffer,
@@ -698,11 +725,15 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
         return;
       }
       setState(() {
-        _depthImage = result.image;
-        _depthRender = result.render;
+        _depthImages[index] = result.image;
+        _depthRenders[index] = result.render;
+        if (index == 0) {
+          _depthImage = result.image;
+          _depthRender = result.render;
+        }
       });
     } catch (e) {
-      debugPrint('[AiMealReview] depth render failed: $e');
+      debugPrint('[AiMealReview] depth render failed for image $index: $e');
     }
   }
 
@@ -762,7 +793,6 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
     final titleColor = isDark ? Colors.white : const Color(0xFF12120F);
     final subtitleColor =
         isDark ? const Color(0xFF8A8A82) : const Color(0xFF6A6A62);
-    final topPadding = MediaQuery.of(context).padding.top;
     final timeStr = DateFormat('HH:mm').format(_selectedTimestamp);
     final localizedMealType =
         _getLocalizedMealName(context, _selectedMealType);
@@ -778,7 +808,6 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
         }
       },
       child: Scaffold(
-        extendBodyBehindAppBar: true,
         appBar: GlobalAppBar(
           title: l10n.aiReviewTitle,
         ),
@@ -792,79 +821,143 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
                     MealPhotoWidget(
                       photoFiles: widget.originalImages,
                       photoFile: widget.originalImages.first,
-                      depthImage: _showDepthMap ? _depthImage : null,
-                      overlayTrailing: _hasDepthMap
+                      depthImage: _showDepthMap
+                          ? (_depthImages[0] ?? _depthImage)
+                          : null,
+                      depthImages: _showDepthMap ? _depthImages : null,
+                      onPageChanged: (idx) {
+                        setState(() => _currentPhotoIndex = idx);
+                        if (_showDepthMap &&
+                            !_depthImages.containsKey(idx) &&
+                            _hasDepthMapFor(idx)) {
+                          _renderDepthMapFor(idx);
+                        }
+                      },
+                      overlayTrailing: _hasDepthMapFor(_currentPhotoIndex)
                           ? _DepthToggleButton(
                               active: _showDepthMap,
                               onTap: _toggleDepthMap,
                             )
                           : null,
-                      height: 300 + topPadding,
+                      height: 280,
                       roundedTop: false,
+                      fadeBottom: true,
                     ),
-                    if (_showDepthMap && _depthRender != null) ...[
-                      const SizedBox(height: DesignConstants.spacingS),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                        child: _DepthLegendPanel(render: _depthRender!),
-                      ),
-                    ],
                   ] else
-                    SizedBox(
-                      height:
-                          topPadding + kToolbarHeight + DesignConstants.spacingS,
-                    ),
+                    const SizedBox(height: DesignConstants.spacingS),
 
-                  // Header Section matching Meal Detail Screen
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          mealTitle,
-                          style: TextStyle(
-                            fontFamily: 'Plus Jakarta Sans',
-                            fontWeight: FontWeight.w800,
-                            fontSize: 22,
-                            color: titleColor,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          '$localizedMealType · $timeStr',
-                          style: TextStyle(
-                            fontFamily: 'Plus Jakarta Sans',
-                            fontWeight: FontWeight.w500,
-                            fontSize: 14,
-                            color: subtitleColor,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Text(
-                              '$_totalKcal kcal',
-                              style: TextStyle(
-                                fontFamily: 'Plus Jakarta Sans',
-                                fontWeight: FontWeight.w800,
-                                fontSize: 24,
-                                color: titleColor,
-                              ),
+                  Transform.translate(
+                    offset: Offset(
+                        0, widget.originalImages.isNotEmpty ? -32 : 0),
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            mealTitle,
+                            style: TextStyle(
+                              fontFamily: 'Plus Jakarta Sans',
+                              fontWeight: FontWeight.w800,
+                              fontSize: 22,
+                              color: titleColor,
                             ),
-                            const Spacer(),
-                            _buildMacroPill('P', '${_totalProtein.round()}g',
-                                const Color(0xFFFF453A)),
-                            const SizedBox(width: 8),
-                            _buildMacroPill('C', '${_totalCarbs.round()}g',
-                                const Color(0xFF30D158)),
-                            const SizedBox(width: 8),
-                            _buildMacroPill('F', '${_totalFat.round()}g',
-                                const Color(0xFFBF5AF2)),
+                          ),
+                          const SizedBox(height: 4),
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Text(
+                                '$localizedMealType · $timeStr',
+                                style: TextStyle(
+                                  fontFamily: 'Plus Jakarta Sans',
+                                  fontWeight: FontWeight.w500,
+                                  fontSize: 14,
+                                  color: subtitleColor,
+                                ),
+                              ),
+                              const Spacer(),
+                              if (_showDepthMap &&
+                                  (_depthRenders[_currentPhotoIndex] ??
+                                          (_currentPhotoIndex == 0
+                                              ? _depthRender
+                                              : null)) !=
+                                      null &&
+                                  _hasDepthMapFor(_currentPhotoIndex))
+                                InkWell(
+                                  borderRadius: BorderRadius.circular(8),
+                                  onTap: () => setState(() =>
+                                      _showDepthLegend = !_showDepthLegend),
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 4, vertical: 2),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Text(
+                                          'Farbskala',
+                                          style: TextStyle(
+                                            fontSize: 12.5,
+                                            fontWeight: FontWeight.w600,
+                                            color: subtitleColor,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Icon(
+                                          _showDepthLegend
+                                              ? LucideIcons.chevron_up
+                                              : LucideIcons.chevron_down,
+                                          size: 15,
+                                          color: subtitleColor,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                          if (_showDepthMap &&
+                              (_depthRenders[_currentPhotoIndex] ??
+                                      (_currentPhotoIndex == 0
+                                          ? _depthRender
+                                          : null)) !=
+                                  null &&
+                              _showDepthLegend &&
+                              _hasDepthMapFor(_currentPhotoIndex)) ...[
+                            const SizedBox(height: 8),
+                            DepthLegend(
+                              render: _depthRenders[_currentPhotoIndex] ??
+                                  (_currentPhotoIndex == 0
+                                      ? _depthRender!
+                                      : _depthRenders[_currentPhotoIndex]!),
+                            ),
                           ],
-                        ),
-                      ],
+                          const SizedBox(height: 8),
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Text(
+                                '$_totalKcal kcal',
+                                style: TextStyle(
+                                  fontFamily: 'Plus Jakarta Sans',
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 24,
+                                  color: titleColor,
+                                ),
+                              ),
+                              const Spacer(),
+                              _buildMacroPill('P', '${_totalProtein.round()}g',
+                                  const Color(0xFFFF453A)),
+                              const SizedBox(width: 8),
+                              _buildMacroPill('C', '${_totalCarbs.round()}g',
+                                  const Color(0xFF30D158)),
+                              const SizedBox(width: 8),
+                              _buildMacroPill('F', '${_totalFat.round()}g',
+                                  const Color(0xFFBF5AF2)),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                   ),
 
@@ -1169,72 +1262,6 @@ class _DepthToggleButton extends StatelessWidget {
           ),
         ),
       ),
-    );
-  }
-}
-
-/// The legend under the depth map, folded away until asked for.
-///
-/// Collapsed by default: the picture reads well enough on its own, and someone
-/// who just wants to check their portion should not have to scroll past a
-/// colour scale to reach their items.
-class _DepthLegendPanel extends StatefulWidget {
-  final DepthBandRender render;
-
-  const _DepthLegendPanel({required this.render});
-
-  @override
-  State<_DepthLegendPanel> createState() => _DepthLegendPanelState();
-}
-
-class _DepthLegendPanelState extends State<_DepthLegendPanel> {
-  bool _expanded = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final muted = theme.colorScheme.onSurfaceVariant;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        InkWell(
-          borderRadius: BorderRadius.circular(8),
-          onTap: () => setState(() => _expanded = !_expanded),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 6),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  _expanded ? LucideIcons.chevron_up : LucideIcons.chevron_down,
-                  size: 16,
-                  color: muted,
-                ),
-                const SizedBox(width: 6),
-                Text(
-                  'Farbskala',
-                  style: TextStyle(
-                    fontSize: 12.5,
-                    fontWeight: FontWeight.w600,
-                    color: muted,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-        AnimatedCrossFade(
-          duration: const Duration(milliseconds: 220),
-          crossFadeState:
-              _expanded ? CrossFadeState.showSecond : CrossFadeState.showFirst,
-          firstChild: const SizedBox(width: double.infinity),
-          secondChild: Padding(
-            padding: const EdgeInsets.only(bottom: 4),
-            child: DepthLegend(render: widget.render),
-          ),
-        ),
-      ],
     );
   }
 }

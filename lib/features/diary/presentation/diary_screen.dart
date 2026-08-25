@@ -46,6 +46,7 @@ import 'widgets/fluid_entry_tile.dart';
 import 'widgets/meal_entry_card.dart';
 import 'dialogs/delete_meal_entry_bottom_sheet.dart';
 import 'meal_entry_screen.dart';
+import '../data/meal_photo_store.dart';
 import '../domain/models/meal_entry.dart';
 import 'widgets/recommendation_banner.dart';
 import 'meal_screen.dart';
@@ -1614,15 +1615,24 @@ class _MealCardState extends State<_MealCard> {
                         ..sort((a, b) => kcalOfGroup(groupedByMealEntry[b]!)
                             .compareTo(kcalOfGroup(groupedByMealEntry[a]!)));
 
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          if (items.isNotEmpty)
-                            const SizedBox(height: DesignConstants.spacingS),
+                      bool entryHasPhoto(MealEntry? entry) {
+                        if (entry == null) return false;
+                        for (final path in [
+                          entry.photoThumbPath,
+                          entry.photoPath
+                        ]) {
+                          final file =
+                              MealPhotoStore.instance.resolveSync(path);
+                          if (file != null && file.existsSync()) return true;
+                        }
+                        return false;
+                      }
 
-                          // Render grouped MealEntry cards
-                          for (final entryId in orderedMealIds)
-                            MealEntryCard(
+                      final sectionItems = <({bool hasPhoto, Widget widget})>[
+                        for (final entryId in orderedMealIds)
+                          (
+                            hasPhoto: entryHasPhoto(mealEntriesById[entryId]),
+                            widget: MealEntryCard(
                               key: ValueKey(entryId),
                               mealEntry: mealEntriesById[entryId]!,
                               items: groupedByMealEntry[entryId]!,
@@ -1647,7 +1657,7 @@ class _MealCardState extends State<_MealCard> {
                                       );
                                 }
                               },
-                              onDeleteMeal: () async {
+                              onConfirmDeleteMeal: () async {
                                 final meal = mealEntriesById[entryId]!;
                                 final childItems = groupedByMealEntry[entryId]!;
                                 int mealKcal = 0;
@@ -1657,49 +1667,52 @@ class _MealCardState extends State<_MealCard> {
                                   mealKcal +=
                                       (it.item.calories * factor).round();
                                 }
-                                final choice =
-                                    await DeleteMealEntryBottomSheet.show(
+                                return await DeleteMealEntryBottomSheet.show(
                                   context,
                                   mealTitle: meal.title ?? 'Mahlzeit',
                                   itemCount: childItems.length,
                                   totalKcal: mealKcal,
                                 );
-                                if (choice == null || !context.mounted) {
-                                  return false;
-                                }
-
+                              },
+                              onDeleteMeal: (choice) {
+                                final meal = mealEntriesById[entryId];
+                                if (meal == null) return;
                                 final viewModel =
                                     context.read<DiaryViewModel>();
-                                await viewModel.deleteMealEntry(
+                                viewModel.deleteMealEntry(
                                   meal.id,
                                   deleteFoodLogs:
                                       choice == DeleteMealChoice.deleteAll,
                                 );
-                                // Without this the row stays on screen: nothing
-                                // watches the meal_entries table, so the diary
-                                // never learns the meal is gone.
-                                await viewModel
-                                    .loadDataForDate(viewModel.selectedDate);
-                                return true;
                               },
                               onEditItem: widget.onEditFood,
                               onDeleteItem: widget.onDeleteFood,
                             ),
+                          ),
+                        for (final item in standaloneItems)
+                          (
+                            hasPhoto: false,
+                            widget: FoodEntryTile(
+                              trackedItem: item,
+                              onEdit: widget.onEditFood,
+                              onDelete: widget.onDeleteFood,
+                            ),
+                          ),
+                      ];
 
-                          // Render standalone food entry tiles
-                          ...standaloneItems.asMap().entries.expand((entry) {
-                            final index = entry.key;
-                            final item = entry.value;
-                            return [
-                              if (groupedByMealEntry.isNotEmpty || index > 0)
-                                const Divider(height: 1),
-                              FoodEntryTile(
-                                trackedItem: item,
-                                onEdit: widget.onEditFood,
-                                onDelete: widget.onDeleteFood,
-                              ),
-                            ];
-                          }),
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (items.isNotEmpty)
+                            const SizedBox(height: DesignConstants.spacingS),
+
+                          for (int i = 0; i < sectionItems.length; i++) ...[
+                            if (i > 0 &&
+                                !sectionItems[i - 1].hasPhoto &&
+                                !sectionItems[i].hasPhoto)
+                              const Divider(height: 1),
+                            sectionItems[i].widget,
+                          ],
 
                           if (solidItems.isNotEmpty) ...[
                             const SizedBox(height: DesignConstants.spacingXS),

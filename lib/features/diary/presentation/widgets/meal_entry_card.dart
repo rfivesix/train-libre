@@ -8,6 +8,7 @@ import 'diary_food_row.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:intl/intl.dart';
+import '../dialogs/delete_meal_entry_bottom_sheet.dart';
 import '../../domain/models/meal_entry.dart';
 import '../../domain/models/tracked_food_item.dart';
 import '../../../../widgets/common/glass_actionable_card.dart';
@@ -18,13 +19,11 @@ class MealEntryCard extends StatefulWidget {
   final List<TrackedFoodItem> items;
   final VoidCallback? onTapDetail;
 
-  /// Runs the delete flow and reports whether the meal was really removed.
-  ///
-  /// Returning the outcome matters: the card sits in a `Dismissible`, and a
-  /// swipe that confirms unconditionally tears the row out of the tree even
-  /// when the user backs out of the sheet — which then throws "a dismissed
-  /// Dismissible widget is still part of the tree".
-  final Future<bool> Function()? onDeleteMeal;
+  /// Asks the user how to handle meal ingredients when deleting.
+  final Future<DeleteMealChoice?> Function()? onConfirmDeleteMeal;
+
+  /// Performs the actual deletion after dismissal animation completes.
+  final void Function(DeleteMealChoice choice)? onDeleteMeal;
   final ValueChanged<TrackedFoodItem>? onEditItem;
   final Future<void> Function(int)? onDeleteItem;
 
@@ -33,6 +32,7 @@ class MealEntryCard extends StatefulWidget {
     required this.mealEntry,
     required this.items,
     this.onTapDetail,
+    this.onConfirmDeleteMeal,
     this.onDeleteMeal,
     this.onEditItem,
     this.onDeleteItem,
@@ -44,6 +44,7 @@ class MealEntryCard extends StatefulWidget {
 
 class _MealEntryCardState extends State<MealEntryCard> {
   bool _isExpanded = false;
+  DeleteMealChoice? _pendingDeleteChoice;
 
   /// First of [paths] that actually resolves to a file on disk.
   File? _firstExisting(List<String?> paths) {
@@ -98,13 +99,22 @@ class _MealEntryCardState extends State<MealEntryCard> {
           GlassActionableCard(
             dismissibleKey: Key('meal_entry_${widget.mealEntry.id}'),
             onEdit: widget.onTapDetail,
-            // The whole delete flow lives in `confirmDelete`, because that is
-            // the only hook whose answer decides whether the row disappears.
-            // Deleting a meal asks its own question — keep the meal but drop
-            // the grouping, or remove everything — so the generic confirmation
-            // would have been a second, differently worded dialog on top.
-            onDelete: () {},
-            confirmDelete: widget.onDeleteMeal,
+            onDelete: widget.onDeleteMeal == null
+                ? null
+                : () {
+                    final choice = _pendingDeleteChoice;
+                    if (choice != null) {
+                      _pendingDeleteChoice = null;
+                      widget.onDeleteMeal!(choice);
+                    }
+                  },
+            confirmDelete: widget.onConfirmDeleteMeal == null
+                ? null
+                : () async {
+                    final choice = await widget.onConfirmDeleteMeal!();
+                    _pendingDeleteChoice = choice;
+                    return choice != null;
+                  },
             child: // Header Row
                 //
                 // The photo sits *behind* the text rather than beside it, fading
@@ -114,9 +124,6 @@ class _MealEntryCardState extends State<MealEntryCard> {
                 InkWell(
               borderRadius: BorderRadius.circular(12),
               onTap: widget.onTapDetail,
-              onLongPress: widget.onDeleteMeal == null
-                  ? null
-                  : () => widget.onDeleteMeal!(),
               child: Stack(
                 children: [
                   if (hasPhoto)

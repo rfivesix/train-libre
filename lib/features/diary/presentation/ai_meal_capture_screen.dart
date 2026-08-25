@@ -92,6 +92,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
 
   // Photo state
   final List<File> _images = [];
+  final Map<String, DepthCaptureResult> _depthCaptures = {};
   DepthCaptureResult? _lastDepthCapture;
   static const int _maxImages = 4;
   final PhotoPreProcessor _preProcessor = PhotoPreProcessor();
@@ -478,6 +479,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
         final capture = res;
         setState(() {
           _lastDepthCapture = capture;
+          _depthCaptures[capture.imageFile.path] = capture;
           _images.add(capture.imageFile);
           _distanceHint =
               _distanceHintFor(AppLocalizations.of(context)!, capture);
@@ -529,6 +531,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
 
   void _removeImage(int index) {
     final file = _images[index];
+    _depthCaptures.remove(file.path);
     _preProcessor.cancelAndRemove(file);
     setState(() => _images.removeAt(index));
   }
@@ -663,6 +666,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
             initialDate: widget.initialDate,
             initialMealType: resolvedMealType,
             depthResult: _lastDepthCapture,
+            depthResultsByPath: _depthCaptures,
             depthFacts: _lastDepthCapture?.scaleFacts,
             voiceTranscript: text.isNotEmpty ? text : null,
           ),
@@ -783,7 +787,11 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final lime = const Color(0xFFC9EF00);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bg = Theme.of(context).scaffoldBackgroundColor;
+    final primaryAccent = isDark
+        ? const Color(0xFFC9EF00)
+        : DesignConstants.brandAccentColorLightMode;
 
     if (!_isOffDbInitialized) {
       return Scaffold(
@@ -799,9 +807,6 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
         ),
       );
     }
-
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bg = Theme.of(context).scaffoldBackgroundColor;
 
     return Scaffold(
       backgroundColor: bg,
@@ -844,353 +849,351 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
         top: false,
         child: Column(
           children: [
-            // 1. Live Camera Viewfinder (4:3 aspect ratio = 3:4 portrait)
+            // 1. Live Camera Viewfinder (full width, maximum screen height with rounded corners)
             Expanded(
-              child: Center(
-                child: Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(20),
-                    child: AspectRatio(
-                      aspectRatio: 3 / 4,
-                      child: Stack(
-                        fit: StackFit.expand,
-                        children: [
-                          if (!_cameraPermission.isGranted)
-                            _buildCameraFallback()
-                          else if (_useNativeSession)
-                            UiKitView(
-                              viewType: DepthScanChannel.previewViewType,
-                              creationParamsCodec: const StandardMessageCodec(),
-                            )
-                          else
-                            QRView(
-                              key: qrKey,
-                              onQRViewCreated: _onQRViewCreated,
-                              overlay: null,
-                            ),
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(24),
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      if (!_cameraPermission.isGranted)
+                        _buildCameraFallback()
+                      else if (_useNativeSession)
+                        const UiKitView(
+                          viewType: DepthScanChannel.previewViewType,
+                          creationParamsCodec: StandardMessageCodec(),
+                        )
+                      else
+                        QRView(
+                          key: qrKey,
+                          onQRViewCreated: _onQRViewCreated,
+                          overlay: null,
+                        ),
 
-                          // Distance guidance overlay if needed
-                          if (_distanceHint != null)
-                            Positioned(
-                              top: 16,
-                              left: 0,
-                              right: 0,
-                              child: Center(
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 14, vertical: 6),
-                                  decoration: BoxDecoration(
-                                    color: Colors.black.withValues(alpha: 0.65),
-                                    borderRadius: BorderRadius.circular(14),
-                                    border: Border.all(
-                                        color: Colors.white24, width: 1),
-                                  ),
-                                  child: Text(
-                                    _distanceHint!,
-                                    style: const TextStyle(
-                                      fontFamily: 'Plus Jakarta Sans',
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: 12,
-                                      color: Colors.white,
-                                    ),
-                                  ),
+                      // Distance guidance overlay if needed
+                      if (_distanceHint != null)
+                        Positioned(
+                          top: 16,
+                          left: 0,
+                          right: 0,
+                          child: Center(
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 14, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: Colors.black.withValues(alpha: 0.65),
+                                borderRadius: BorderRadius.circular(14),
+                                border: Border.all(
+                                    color: Colors.white24, width: 1),
+                              ),
+                              child: Text(
+                                _distanceHint!,
+                                style: const TextStyle(
+                                  fontFamily: 'Plus Jakarta Sans',
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 12,
+                                  color: Colors.white,
                                 ),
                               ),
                             ),
-                        ],
-                      ),
-                    ),
+                          ),
+                        ),
+                    ],
                   ),
                 ),
               ),
             ),
 
-            // 2. Bottom Controls Area
+            // 2. Bottom Controls Area (compact, pinned to bottom)
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 4, 20, 16),
+              padding: const EdgeInsets.fromLTRB(16, 2, 16, 6),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                        // Captured Photos Strip
-                        if (_images.isNotEmpty)
-                          Container(
-                            height: 60,
-                            margin: const EdgeInsets.only(bottom: 10),
-                            child: ListView.separated(
-                              scrollDirection: Axis.horizontal,
-                              itemCount: _images.length,
-                              separatorBuilder: (_, __) =>
-                                  const SizedBox(width: 8),
-                              itemBuilder: (context, idx) {
-                                return Stack(
-                                  children: [
-                                    ClipRRect(
-                                      borderRadius: BorderRadius.circular(12),
-                                      child: Image.file(
-                                        _images[idx],
-                                        width: 60,
-                                        height: 60,
-                                        fit: BoxFit.cover,
-                                      ),
+                  // Captured Photos Strip
+                  if (_images.isNotEmpty)
+                    Container(
+                      height: 48,
+                      margin: const EdgeInsets.only(bottom: 4),
+                      child: ListView.separated(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: _images.length,
+                        separatorBuilder: (_, __) => const SizedBox(width: 8),
+                        itemBuilder: (context, idx) {
+                          return Stack(
+                            children: [
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(10),
+                                child: Image.file(
+                                  _images[idx],
+                                  width: 48,
+                                  height: 48,
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                              Positioned(
+                                top: 2,
+                                right: 2,
+                                child: GestureDetector(
+                                  onTap: () => _removeImage(idx),
+                                  child: Container(
+                                    width: 18,
+                                    height: 18,
+                                    alignment: Alignment.center,
+                                    decoration: const BoxDecoration(
+                                      color: Color(0xCC000000),
+                                      shape: BoxShape.circle,
                                     ),
-                                    Positioned(
-                                      top: 4,
-                                      right: 4,
-                                      child: GestureDetector(
-                                        onTap: () => _removeImage(idx),
-                                        child: Container(
-                                          width: 20,
-                                          height: 20,
-                                          alignment: Alignment.center,
-                                          decoration: const BoxDecoration(
-                                            color: Color(0xCC000000),
-                                            shape: BoxShape.circle,
-                                          ),
-                                          child: const Icon(LucideIcons.x,
-                                              size: 12, color: Colors.white),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                );
-                              },
-                            ),
-                          ),
+                                    child: const Icon(LucideIcons.x,
+                                        size: 11, color: Colors.white),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          );
+                        },
+                      ),
+                    ),
 
-                        // Expandable Text Input Row
-                        if (_showTextInput)
-                          Padding(
-                            padding: const EdgeInsets.only(
-                                bottom: DesignConstants.spacingS),
-                            child: Container(
-                              decoration: BoxDecoration(
+                  // Expandable Text Input Row
+                  if (_showTextInput)
+                    Padding(
+                      padding: const EdgeInsets.only(
+                          bottom: DesignConstants.spacingS),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? const Color(0xFF1E1E1E)
+                              : const Color(0xFFE8E8E0),
+                          borderRadius: BorderRadius.circular(
+                              DesignConstants.borderRadiusL),
+                          border: Border.all(
+                              color: isDark ? Colors.white12 : Colors.black12),
+                        ),
+                        padding: const EdgeInsets.only(
+                            left: DesignConstants.spacingL),
+                        child: TextField(
+                          controller: _textController,
+                          autofocus: true,
+                          minLines: 1,
+                          maxLines: 4,
+                          keyboardType: TextInputType.multiline,
+                          textInputAction: TextInputAction.newline,
+                          textCapitalization: TextCapitalization.sentences,
+                          style: TextStyle(
+                              color: isDark
+                                  ? Colors.white
+                                  : const Color(0xFF12120F)),
+                          decoration: InputDecoration(
+                            hintText: l10n.aiCaptureDescribeHint,
+                            hintStyle: TextStyle(
                                 color: isDark
-                                    ? const Color(0xFF1E1E1E)
-                                    : const Color(0xFFE8E8E0),
-                                borderRadius: BorderRadius.circular(
-                                    DesignConstants.borderRadiusL),
-                                border: Border.all(
+                                    ? Colors.white54
+                                    : Colors.black45),
+                            filled: false,
+                            isDense: true,
+                            contentPadding: const EdgeInsets.symmetric(
+                                vertical: DesignConstants.spacingM),
+                            border: InputBorder.none,
+                            enabledBorder: InputBorder.none,
+                            focusedBorder: InputBorder.none,
+                            suffixIconConstraints: const BoxConstraints(
+                                minWidth: 44, minHeight: 44),
+                            suffixIcon: Align(
+                              alignment: Alignment.topCenter,
+                              widthFactor: 1,
+                              heightFactor: 1,
+                              child: IconButton(
+                                icon: Icon(LucideIcons.check,
                                     color: isDark
-                                        ? Colors.white12
-                                        : Colors.black12),
-                              ),
-                              padding: const EdgeInsets.only(
-                                  left: DesignConstants.spacingL),
-                              child: TextField(
-                                controller: _textController,
-                                autofocus: true,
-                                minLines: 1,
-                                maxLines: 4,
-                                keyboardType: TextInputType.multiline,
-                                textInputAction: TextInputAction.newline,
-                                textCapitalization:
-                                    TextCapitalization.sentences,
-                                style: TextStyle(
-                                    color: isDark
-                                        ? Colors.white
-                                        : const Color(0xFF12120F)),
-                                decoration: InputDecoration(
-                                  hintText: l10n.aiCaptureDescribeHint,
-                                  hintStyle: TextStyle(
-                                      color: isDark
-                                          ? Colors.white54
-                                          : Colors.black45),
-                                  filled: false,
-                                  isDense: true,
-                                  contentPadding: const EdgeInsets.symmetric(
-                                      vertical: DesignConstants.spacingM),
-                                  border: InputBorder.none,
-                                  enabledBorder: InputBorder.none,
-                                  focusedBorder: InputBorder.none,
-                                  suffixIconConstraints: const BoxConstraints(
-                                      minWidth: 44, minHeight: 44),
-                                  suffixIcon: Align(
-                                    alignment: Alignment.topCenter,
-                                    widthFactor: 1,
-                                    heightFactor: 1,
-                                    child: IconButton(
-                                      icon: Icon(LucideIcons.check,
-                                          color: isDark
-                                              ? Colors.white.withValues(alpha: 0.8)
-                                              : Colors.black87,
-                                          size: 18),
-                                      onPressed: () => setState(
-                                          () => _showTextInput = false),
-                                    ),
-                                  ),
-                                ),
+                                        ? Colors.white.withValues(alpha: 0.8)
+                                        : Colors.black87,
+                                    size: 18),
+                                onPressed: () =>
+                                    setState(() => _showTextInput = false),
                               ),
                             ),
                           ),
+                        ),
+                      ),
+                    ),
 
-                        // Passive Barcode Detection Banner (if detected)
-                        if (_barcodeDetectionEnabled &&
-                            _detectedBarcode != null)
-                          _buildBarcodeBanner(l10n, lime),
+                  // Passive Barcode Detection Banner (if detected)
+                  if (_barcodeDetectionEnabled && _detectedBarcode != null)
+                    _buildBarcodeBanner(l10n, primaryAccent),
 
-                        // Shutter & Primary Action Bar
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
+                  // Shutter & Primary Action Bar
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Expanded(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
-                            Expanded(
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceEvenly,
-                                children: [
-                                  // Gallery Button
-                                  _buildFrostedButton(
-                                    icon: LucideIcons.image,
-                                    onTap: _pickFromGallery,
-                                  ),
-
-                                  // Barcode detection toggle
-                                  _buildFrostedButton(
-                                    icon: LucideIcons.scan_barcode,
-                                    isActive: _barcodeDetectionEnabled,
-                                    onTap: () {
-                                      setState(() {
-                                        _barcodeDetectionEnabled =
-                                            !_barcodeDetectionEnabled;
-                                        if (!_barcodeDetectionEnabled) {
-                                          _detectedBarcode = null;
-                                          _detectedProduct = null;
-                                        }
-                                      });
-                                    },
-                                  ),
-                                ],
-                              ),
+                            // Gallery Button
+                            _buildFrostedButton(
+                              icon: LucideIcons.image,
+                              onTap: _pickFromGallery,
                             ),
 
-                            // Shutter Button (72px diameter)
-                            GestureDetector(
-                              onTap: _takeShutterPhoto,
-                              child: Container(
-                                width: 72,
-                                height: 72,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  border: Border.all(
-                                    color: isDark
-                                        ? Colors.white.withValues(alpha: 0.9)
-                                        : const Color(0xFF12120F)
-                                            .withValues(alpha: 0.8),
-                                    width: 3.5,
-                                  ),
-                                ),
-                                padding: const EdgeInsets.all(4),
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    color: isDark
-                                        ? Colors.white
-                                        : const Color(0xFF12120F),
-                                    shape: BoxShape.circle,
-                                  ),
-                                ),
-                              ),
-                            ),
-
-                            Expanded(
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceEvenly,
-                                children: [
-                                  // Voice Dictation Button (Microphone)
-                                  _buildFrostedButton(
-                                    icon: LucideIcons.mic,
-                                    isActive: _isDictating,
-                                    onTap: _openVoiceDictationModal,
-                                  ),
-
-                                  // Text Note Toggle Button
-                                  _buildFrostedButton(
-                                    icon: LucideIcons.pencil,
-                                    isActive: _showTextInput ||
-                                        _textController.text.isNotEmpty,
-                                    onTap: () {
-                                      setState(() {
-                                        _showTextInput = !_showTextInput;
-                                      });
-                                    },
-                                  ),
-                                ],
-                              ),
+                            // Barcode detection toggle
+                            _buildFrostedButton(
+                              icon: LucideIcons.scan_barcode,
+                              isActive: _barcodeDetectionEnabled,
+                              onTap: () {
+                                setState(() {
+                                  _barcodeDetectionEnabled =
+                                      !_barcodeDetectionEnabled;
+                                  if (!_barcodeDetectionEnabled) {
+                                    _detectedBarcode = null;
+                                    _detectedProduct = null;
+                                  }
+                                });
+                              },
                             ),
                           ],
                         ),
+                      ),
 
-                        // "Analysieren" Button (Appears when input is ready)
-                        if (_hasInput) ...[
-                          const SizedBox(height: 12),
-                          SizedBox(
-                            width: double.infinity,
-                            height: 48,
-                            child: ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: lime,
-                                foregroundColor: const Color(0xFF12120F),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                                elevation: 0,
-                              ),
-                              onPressed: _isAnalyzing ? null : _analyze,
-                              child: _isAnalyzing
-                                  ? Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        const SizedBox(
-                                          width: 18,
-                                          height: 18,
-                                          child: CircularProgressIndicator(
-                                            strokeWidth: 2.5,
-                                            color: Color(0xFF12120F),
-                                          ),
-                                        ),
-                                        const SizedBox(width: 10),
-                                        Text(
-                                          l10n.aiCaptureAnalyzing,
-                                          style: const TextStyle(
-                                            fontFamily: 'Plus Jakarta Sans',
-                                            fontWeight: FontWeight.w700,
-                                            fontSize: 15,
-                                          ),
-                                        ),
-                                      ],
-                                    )
-                                  : Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        const Icon(LucideIcons.sparkles,
-                                            size: 18, color: Color(0xFF12120F)),
-                                        const SizedBox(width: 8),
-                                        Text(
-                                          _images.isNotEmpty
-                                              ? l10n.aiCaptureAnalyzeMeal(
-                                                  _images.length)
-                                              : l10n.aiCaptureAnalyzeText,
-                                          style: const TextStyle(
-                                            fontFamily: 'Plus Jakarta Sans',
-                                            fontWeight: FontWeight.w800,
-                                            fontSize: 16,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
+                      // Shutter Button (68px diameter)
+                      GestureDetector(
+                        onTap: _takeShutterPhoto,
+                        child: Container(
+                          width: 68,
+                          height: 68,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: isDark
+                                  ? Colors.white.withValues(alpha: 0.9)
+                                  : const Color(0xFF12120F)
+                                      .withValues(alpha: 0.8),
+                              width: 3.5,
                             ),
                           ),
-                        ],
-                      ],
-                    ),
+                          padding: const EdgeInsets.all(4),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: isDark
+                                  ? Colors.white
+                                  : const Color(0xFF12120F),
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                        ),
+                      ),
+
+                      Expanded(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            // Voice Dictation Button (Microphone)
+                            _buildFrostedButton(
+                              icon: LucideIcons.mic,
+                              isActive: _isDictating,
+                              onTap: _openVoiceDictationModal,
+                            ),
+
+                            // Text Note Toggle Button
+                            _buildFrostedButton(
+                              icon: LucideIcons.pencil,
+                              isActive: _showTextInput ||
+                                  _textController.text.isNotEmpty,
+                              onTap: () {
+                                setState(() {
+                                  _showTextInput = !_showTextInput;
+                                });
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
+
+                  // "Analysieren" Button (Appears when input is ready)
+                  if (_hasInput) ...[
+                    const SizedBox(height: 8),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 46,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: primaryAccent,
+                          foregroundColor: isDark
+                              ? const Color(0xFF12120F)
+                              : Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          elevation: 0,
+                        ),
+                        onPressed: _isAnalyzing ? null : _analyze,
+                        child: _isAnalyzing
+                            ? Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  SizedBox(
+                                    width: 18,
+                                    height: 18,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2.5,
+                                      color: isDark
+                                          ? const Color(0xFF12120F)
+                                          : Colors.white,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Text(
+                                    l10n.aiCaptureAnalyzing,
+                                    style: TextStyle(
+                                      fontFamily: 'Plus Jakarta Sans',
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 15,
+                                      color: isDark
+                                          ? const Color(0xFF12120F)
+                                          : Colors.white,
+                                    ),
+                                  ),
+                                ],
+                              )
+                            : Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(LucideIcons.sparkles,
+                                      size: 18,
+                                      color: isDark
+                                          ? const Color(0xFF12120F)
+                                          : Colors.white),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    _images.isNotEmpty
+                                        ? l10n.aiCaptureAnalyzeMeal(
+                                            _images.length)
+                                        : l10n.aiCaptureAnalyzeText,
+                                    style: TextStyle(
+                                      fontFamily: 'Plus Jakarta Sans',
+                                      fontWeight: FontWeight.w800,
+                                      fontSize: 15,
+                                      color: isDark
+                                          ? const Color(0xFF12120F)
+                                          : Colors.white,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),
-          );
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _buildCameraFallback() {
@@ -1243,7 +1246,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
     );
   }
 
-  Widget _buildBarcodeBanner(AppLocalizations l10n, Color lime) {
+  Widget _buildBarcodeBanner(AppLocalizations l10n, Color primaryAccent) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final label = _detectedProduct?.name ??
         l10n.aiCaptureBarcodeFallback(_detectedBarcode!);
@@ -1260,11 +1263,12 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
             padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: lime.withValues(alpha: 0.8), width: 2),
+              border: Border.all(
+                  color: primaryAccent.withValues(alpha: 0.8), width: 2),
             ),
             child: Row(
               children: [
-                Icon(LucideIcons.scan_barcode, color: isDark ? lime : const Color(0xFF5E7500), size: 26),
+                Icon(LucideIcons.scan_barcode, color: primaryAccent, size: 26),
                 const SizedBox(width: 14),
                 Expanded(
                   child: Column(
@@ -1278,7 +1282,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                           fontWeight: FontWeight.w700,
                           fontSize: 12,
                           letterSpacing: 0.4,
-                          color: isDark ? lime : const Color(0xFF5E7500),
+                          color: primaryAccent,
                         ),
                       ),
                       const SizedBox(height: 2),
@@ -1301,25 +1305,27 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                   padding:
                       const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                   decoration: BoxDecoration(
-                    color: lime,
+                    color: primaryAccent,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: _isLoggingBarcode
-                      ? const SizedBox(
+                      ? SizedBox(
                           width: 16,
                           height: 16,
                           child: CircularProgressIndicator(
                             strokeWidth: 2.2,
-                            color: Color(0xFF12120F),
+                            color:
+                                isDark ? const Color(0xFF12120F) : Colors.white,
                           ),
                         )
                       : Text(
                           l10n.aiCaptureLogBarcode,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontFamily: 'Plus Jakarta Sans',
                             fontWeight: FontWeight.w800,
                             fontSize: 14,
-                            color: Color(0xFF12120F),
+                            color:
+                                isDark ? const Color(0xFF12120F) : Colors.white,
                           ),
                         ),
                 ),
@@ -1337,7 +1343,9 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
     bool isActive = false,
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    const lime = Color(0xFFC9EF00);
+    final primaryAccent = isDark
+        ? const Color(0xFFC9EF00)
+        : DesignConstants.brandAccentColorLightMode;
     return GestureDetector(
       onTap: onTap,
       child: ClipRRect(
@@ -1347,14 +1355,14 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
           height: 48,
           decoration: BoxDecoration(
             color: isActive
-                ? lime.withValues(alpha: 0.3)
+                ? primaryAccent.withValues(alpha: isDark ? 0.3 : 0.15)
                 : (isDark
                     ? Colors.white.withValues(alpha: 0.14)
                     : Colors.black.withValues(alpha: 0.08)),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
               color: isActive
-                  ? lime
+                  ? primaryAccent
                   : (isDark ? Colors.white24 : Colors.black12),
               width: 1,
             ),
@@ -1362,7 +1370,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
           child: Icon(
             icon,
             color: isActive
-                ? lime
+                ? primaryAccent
                 : (isDark ? Colors.white : const Color(0xFF12120F)),
             size: 20,
           ),

@@ -383,15 +383,12 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
     final localizedMealType =
         _getLocalizedMealName(context, _mealEntry.mealType);
 
-    final topPadding = MediaQuery.of(context).padding.top;
-
     return PopScope(
       canPop: true,
       onPopInvokedWithResult: (didPop, _) {
         if (didPop) unawaited(_persistChanges());
       },
       child: Scaffold(
-        extendBodyBehindAppBar: true,
         backgroundColor: bg,
         appBar: GlobalAppBar(
           title: _mealEntry.title ?? localizedMealType,
@@ -412,109 +409,115 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
                   if (hasPhoto)
                     MealPhotoWidget(
                       photoFiles: photoFiles,
-                      height: 300 + topPadding,
+                      height: 280,
                       roundedTop: false,
+                      fadeBottom: true,
                     )
                   else
-                    SizedBox(
-                      height:
-                          topPadding + kToolbarHeight + DesignConstants.spacingS,
-                    ),
+                    const SizedBox(height: DesignConstants.spacingS),
 
-                  // The meal's name is already in the app bar; repeating it
-                  // here just pushed the numbers down a line. Energy leads,
-                  // macros sit right-aligned beside it.
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+                  Transform.translate(
+                    offset: Offset(0, hasPhoto ? -32 : 0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          '$localizedMealType · $timeStr',
-                          style: TextStyle(
-                            fontFamily: 'Plus Jakarta Sans',
-                            fontWeight: FontWeight.w500,
-                            fontSize: 14,
-                            color: subtitleColor,
+                        // The meal's name is already in the app bar; repeating it
+                        // here just pushed the numbers down a line. Energy leads,
+                        // macros sit right-aligned beside it.
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '$localizedMealType · $timeStr',
+                                style: TextStyle(
+                                  fontFamily: 'Plus Jakarta Sans',
+                                  fontWeight: FontWeight.w500,
+                                  fontSize: 14,
+                                  color: subtitleColor,
+                                ),
+                              ),
+                              const SizedBox(height: 6),
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    '$_totalKcal kcal',
+                                    style: TextStyle(
+                                      fontFamily: 'Plus Jakarta Sans',
+                                      fontWeight: FontWeight.w800,
+                                      fontSize: 24,
+                                      color: titleColor,
+                                    ),
+                                  ),
+                                  const Spacer(),
+                                  _buildMacroPill('P', '${_totalProtein.round()}g',
+                                      const Color(0xFFFF453A)),
+                                  const SizedBox(width: 8),
+                                  _buildMacroPill('C', '${_totalCarbs.round()}g',
+                                      const Color(0xFF30D158)),
+                                  const SizedBox(width: 8),
+                                  _buildMacroPill('F', '${_totalFat.round()}g',
+                                      const Color(0xFFBF5AF2)),
+                                ],
+                              ),
+                            ],
                           ),
                         ),
-                        const SizedBox(height: 6),
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Text(
-                              '$_totalKcal kcal',
-                              style: TextStyle(
-                                fontFamily: 'Plus Jakarta Sans',
-                                fontWeight: FontWeight.w800,
-                                fontSize: 24,
-                                color: titleColor,
+
+                        const SizedBox(height: 16),
+
+                        // Ingredients List
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          child: Column(
+                            children: [
+                              // Same card the review screen uses, so a saved meal
+                              // and a meal being reviewed are one screen with two
+                              // states rather than two things that look alike.
+                              ..._items.asMap().entries.map((entry) {
+                                final idx = entry.key;
+                                final tracked = entry.value;
+                                final factor = tracked.entry.quantityInGrams / 100.0;
+
+                                return MealReviewComparisonCard(
+                                  dismissibleKey: ValueKey(
+                                      'meal_item_${tracked.entry.id ?? idx}'),
+                                  name: tracked.item.name,
+                                  estimatedGrams: tracked.entry.quantityInGrams,
+                                  // A saved entry carries no open uncertainty; the
+                                  // card hides the chip above 0.7 anyway.
+                                  confidence: 1.0,
+                                  matchedFood: tracked.item,
+                                  issues: const [],
+                                  nutrition: AiNutritionTotals(
+                                    kcal: tracked.item.calories * factor,
+                                    protein: tracked.item.protein * factor,
+                                    carbs: tracked.item.carbs * factor,
+                                    fat: tracked.item.fat * factor,
+                                  ),
+                                  onDismissed: () => _deleteItem(idx),
+                                  onTap: () => _openItemDetail(tracked),
+                                  onReplace: () => _replaceIngredient(idx),
+                                  onEditQuantity: () =>
+                                      _showDirectQuantityDialog(idx),
+                                  onQuickAdjustQuantity: (delta) =>
+                                      _updateQuantity(idx, delta),
+                                );
+                              }),
+
+                              const SizedBox(height: 8),
+
+                              // Add Ingredient Button
+                              AppButton.secondary(
+                                onPressed: _addNewIngredient,
+                                label: l10n.mealDetailAddIngredient,
+                                tooltip: l10n.mealDetailAddIngredient,
+                                icon: LucideIcons.plus,
                               ),
-                            ),
-                            const Spacer(),
-                            _buildMacroPill('P', '${_totalProtein.round()}g',
-                                const Color(0xFFFF453A)),
-                            const SizedBox(width: 8),
-                            _buildMacroPill('C', '${_totalCarbs.round()}g',
-                                const Color(0xFF30D158)),
-                            const SizedBox(width: 8),
-                            _buildMacroPill('F', '${_totalFat.round()}g',
-                                const Color(0xFFBF5AF2)),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  // Ingredients List
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Column(
-                      children: [
-                        // Same card the review screen uses, so a saved meal
-                        // and a meal being reviewed are one screen with two
-                        // states rather than two things that look alike.
-                        ..._items.asMap().entries.map((entry) {
-                          final idx = entry.key;
-                          final tracked = entry.value;
-                          final factor = tracked.entry.quantityInGrams / 100.0;
-
-                          return MealReviewComparisonCard(
-                            dismissibleKey: ValueKey(
-                                'meal_item_${tracked.entry.id ?? idx}'),
-                            name: tracked.item.name,
-                            estimatedGrams: tracked.entry.quantityInGrams,
-                            // A saved entry carries no open uncertainty; the
-                            // card hides the chip above 0.7 anyway.
-                            confidence: 1.0,
-                            matchedFood: tracked.item,
-                            issues: const [],
-                            nutrition: AiNutritionTotals(
-                              kcal: tracked.item.calories * factor,
-                              protein: tracked.item.protein * factor,
-                              carbs: tracked.item.carbs * factor,
-                              fat: tracked.item.fat * factor,
-                            ),
-                            onDismissed: () => _deleteItem(idx),
-                            onTap: () => _openItemDetail(tracked),
-                            onReplace: () => _replaceIngredient(idx),
-                            onEditQuantity: () =>
-                                _showDirectQuantityDialog(idx),
-                            onQuickAdjustQuantity: (delta) =>
-                                _updateQuantity(idx, delta),
-                          );
-                        }),
-
-                        const SizedBox(height: 8),
-
-                        // Add Ingredient Button
-                        AppButton.secondary(
-                          onPressed: _addNewIngredient,
-                          label: l10n.mealDetailAddIngredient,
-                          tooltip: l10n.mealDetailAddIngredient,
-                          icon: LucideIcons.plus,
+                            ],
+                          ),
                         ),
                       ],
                     ),
