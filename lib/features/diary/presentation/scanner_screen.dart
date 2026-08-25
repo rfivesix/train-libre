@@ -11,6 +11,7 @@ import 'dart:developer' as developer;
 import '../../../services/haptic_feedback_service.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../core/infrastructure/basis_data_manager.dart';
+import '../../../navigation/app_route_observer.dart';
 import '../../../widgets/common/database_placeholder_widget.dart';
 import '../../../util/design_constants.dart';
 import '../../../widgets/common/app_button.dart';
@@ -28,11 +29,13 @@ class ScannerScreen extends StatefulWidget {
 }
 
 class _ScannerScreenState extends State<ScannerScreen>
-    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver, RouteAware {
   bool _isDone = false;
   PermissionStatus _cameraPermissionStatus = PermissionStatus.denied;
   bool _isCheckingPermission = true;
   bool _isRequestingPermission = false;
+  bool _isRouteObserverAttached = false;
+  bool _isTopRoute = true;
   late final AnimationController _animationController;
   late final Animation<double> _animation;
 
@@ -45,7 +48,9 @@ class _ScannerScreenState extends State<ScannerScreen>
     if (Platform.isAndroid) {
       controller?.pauseCamera();
     } else if (Platform.isIOS) {
-      controller?.resumeCamera();
+      if (_isTopRoute) {
+        controller?.resumeCamera();
+      }
     }
   }
 
@@ -90,7 +95,44 @@ class _ScannerScreenState extends State<ScannerScreen>
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final route = ModalRoute.of(context);
+    if (!_isRouteObserverAttached && route is PageRoute<dynamic>) {
+      appRouteObserver.subscribe(this, route);
+      _isRouteObserverAttached = true;
+    }
+  }
+
+  @override
+  void didPush() {
+    _isTopRoute = true;
+  }
+
+  @override
+  void didPushNext() {
+    _isTopRoute = false;
+    controller?.pauseCamera();
+  }
+
+  @override
+  void didPopNext() {
+    _isTopRoute = true;
+    controller?.resumeCamera();
+  }
+
+  @override
+  void didPop() {
+    _isTopRoute = false;
+    controller?.pauseCamera();
+  }
+
+  @override
   void dispose() {
+    if (_isRouteObserverAttached) {
+      appRouteObserver.unsubscribe(this);
+    }
+    controller?.dispose();
     _animationController.dispose();
     WidgetsBinding.instance.removeObserver(this);
     // Restore default app orientations
@@ -123,6 +165,12 @@ class _ScannerScreenState extends State<ScannerScreen>
     if (state == AppLifecycleState.resumed) {
       // Re-check permission if returning from settings or another app
       _checkPermission();
+      if (_isTopRoute) {
+        controller?.resumeCamera();
+      }
+    } else if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive) {
+      controller?.pauseCamera();
     }
   }
 

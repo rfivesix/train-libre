@@ -12,6 +12,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:qr_code_scanner_plus/qr_code_scanner_plus.dart';
 
 import '../../../generated/app_localizations.dart';
+import '../../../navigation/app_route_observer.dart';
 import '../../../services/ai_meal_validation.dart';
 import '../../../services/ai_service.dart';
 import 'util/photo_pre_processor.dart';
@@ -54,9 +55,14 @@ class AiMealCaptureScreen extends StatefulWidget {
 }
 
 class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
-    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver, RouteAware {
   final _textController = TextEditingController();
   final ImagePicker _picker = ImagePicker();
+
+  // Navigation & Lifecycle state
+  bool _isRouteObserverAttached = false;
+  bool _isTopRoute = true;
+  bool _isCameraSuspended = false;
 
   // Camera & Barcode state
   final GlobalKey qrKey = GlobalKey(debugLabel: 'QR_Capture');
@@ -109,7 +115,9 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
     if (Platform.isAndroid) {
       _qrController?.pauseCamera();
     } else if (Platform.isIOS) {
-      _qrController?.resumeCamera();
+      if (_isTopRoute && !_isCameraSuspended && !_isAnalyzing && !_isDictating) {
+        _qrController?.resumeCamera();
+      }
     }
   }
 
@@ -129,7 +137,45 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final route = ModalRoute.of(context);
+    if (!_isRouteObserverAttached && route is PageRoute<dynamic>) {
+      appRouteObserver.subscribe(this, route);
+      _isRouteObserverAttached = true;
+    }
+  }
+
+  @override
+  void didPush() {
+    _isTopRoute = true;
+  }
+
+  @override
+  void didPushNext() {
+    _isTopRoute = false;
+    unawaited(_suspendCamera());
+  }
+
+  @override
+  void didPopNext() {
+    _isTopRoute = true;
+    if (!_isAnalyzing && !_isDictating) {
+      unawaited(_resumeCamera());
+    }
+  }
+
+  @override
+  void didPop() {
+    _isTopRoute = false;
+    unawaited(_suspendCamera());
+  }
+
+  @override
   void dispose() {
+    if (_isRouteObserverAttached) {
+      appRouteObserver.unsubscribe(this);
+    }
     WidgetsBinding.instance.removeObserver(this);
     _stopAiWaitingHaptics();
     _barcodeSubscription?.cancel();
@@ -137,6 +183,8 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
     unawaited(VoiceDictationService.instance.cancel());
     if (_useNativeSession) {
       unawaited(DepthScanChannel.instance.stopSession());
+    } else {
+      _qrController?.dispose();
     }
     _preProcessor.dispose();
     _textController.dispose();
@@ -147,13 +195,48 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
-    if (!_useNativeSession) return;
 
     if (state == AppLifecycleState.resumed) {
-      unawaited(DepthScanChannel.instance.startSession());
+      if (_isTopRoute &&
+          !_isCameraSuspended &&
+          !_isAnalyzing &&
+          !_isDictating) {
+        unawaited(_resumeCamera());
+      }
     } else if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.inactive) {
-      unawaited(DepthScanChannel.instance.stopSession());
+      if (_useNativeSession) {
+        unawaited(DepthScanChannel.instance.stopSession());
+      } else {
+        unawaited(_qrController?.pauseCamera());
+      }
+    }
+  }
+
+  /// Suspends active camera preview and depth/barcode hardware.
+  Future<void> _suspendCamera() async {
+    _isCameraSuspended = true;
+    if (_useNativeSession) {
+      await DepthScanChannel.instance.stopSession();
+    } else {
+      await _qrController?.pauseCamera();
+    }
+  }
+
+  /// Resumes active camera preview and depth/barcode hardware if the screen is currently active.
+  Future<void> _resumeCamera() async {
+    _isCameraSuspended = false;
+    if (!mounted ||
+        !_cameraPermission.isGranted ||
+        !_isTopRoute ||
+        _isAnalyzing ||
+        _isDictating) {
+      return;
+    }
+    if (_useNativeSession) {
+      await DepthScanChannel.instance.startSession();
+    } else {
+      await _qrController?.resumeCamera();
     }
   }
 
@@ -188,6 +271,9 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
     });
 
     if (!capability.cameraAvailable) return;
+    if (_isCameraSuspended || !_isTopRoute || _isAnalyzing || _isDictating) {
+      return;
+    }
 
     final started = await DepthScanChannel.instance.startSession();
     if (!mounted) return;
@@ -198,6 +284,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
       return;
     }
 
+    _barcodeSubscription?.cancel();
     _barcodeSubscription =
         DepthScanChannel.instance.barcodes.listen(_onBarcodeDetected);
   }
@@ -248,6 +335,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
     }
 
     setState(() => _isLoggingBarcode = true);
+    await _suspendCamera();
     try {
       final logged = await logFoodItemWithQuantity(
         context,
@@ -265,7 +353,12 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
         return;
       }
     } finally {
-      if (mounted) setState(() => _isLoggingBarcode = false);
+      if (mounted) {
+        setState(() => _isLoggingBarcode = false);
+        if (_isTopRoute && !_isAnalyzing && !_isDictating) {
+          unawaited(_resumeCamera());
+        }
+      }
     }
   }
 
@@ -415,16 +508,23 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
     final remaining = _maxImages - _images.length;
     if (remaining <= 0) return;
 
-    final List<XFile> picked = await _picker.pickMultiImage(
-      imageQuality: 85,
-      maxWidth: 1440,
-    );
-    if (picked.isNotEmpty && mounted) {
-      final newFiles = picked.take(remaining).map((x) => File(x.path)).toList();
-      setState(() {
-        _images.addAll(newFiles);
-      });
-      _preProcessor.processImages(newFiles);
+    await _suspendCamera();
+    try {
+      final List<XFile> picked = await _picker.pickMultiImage(
+        imageQuality: 85,
+        maxWidth: 1440,
+      );
+      if (picked.isNotEmpty && mounted) {
+        final newFiles = picked.take(remaining).map((x) => File(x.path)).toList();
+        setState(() {
+          _images.addAll(newFiles);
+        });
+        _preProcessor.processImages(newFiles);
+      }
+    } finally {
+      if (mounted && _isTopRoute && !_isAnalyzing && !_isDictating) {
+        unawaited(_resumeCamera());
+      }
     }
   }
 
@@ -451,6 +551,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
     if (!_hasInput) return;
     setState(() => _isAnalyzing = true);
     _startAiWaitingHaptics();
+    await _suspendCamera();
 
     // A blocking screen while the request is in flight: previously the capture
     // screen stayed editable underneath, so images could be added or removed
@@ -465,7 +566,12 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
         _analysisCancelled = true;
         _stopAiWaitingHaptics();
         _dismissAnalysisScreen();
-        if (mounted) setState(() => _isAnalyzing = false);
+        if (mounted) {
+          setState(() => _isAnalyzing = false);
+          if (_isTopRoute && !_isDictating) {
+            unawaited(_resumeCamera());
+          }
+        }
       },
     );
     _analysisCancelled = false;
@@ -597,7 +703,12 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
     } finally {
       _stopAiWaitingHaptics();
       _dismissAnalysisScreen();
-      if (mounted) setState(() => _isAnalyzing = false);
+      if (mounted) {
+        setState(() => _isAnalyzing = false);
+        if (_isTopRoute && !_isDictating) {
+          unawaited(_resumeCamera());
+        }
+      }
     }
   }
 
@@ -622,9 +733,11 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
     );
   }
 
-  void _showKeyMissingDialog() {
+  void _showKeyMissingDialog() async {
     final l10n = AppLocalizations.of(context)!;
-    showGlassBottomMenu<void>(
+    await _suspendCamera();
+    if (!mounted) return;
+    await showGlassBottomMenu<void>(
       context: context,
       title: l10n.aiValidationApiKeyRequiredTitle,
       contentBuilder: (ctx, close) => Column(
@@ -663,6 +776,9 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
         ],
       ),
     );
+    if (mounted && _isTopRoute && !_isAnalyzing && !_isDictating) {
+      unawaited(_resumeCamera());
+    }
   }
 
   @override
@@ -1283,7 +1399,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
     // against a live capture session is the one configuration where the
     // recogniser reliably fell over, and the viewfinder is behind a full-height
     // sheet anyway.
-    await _suspendCameraForDictation();
+    await _suspendCamera();
 
     // Explained before the system prompt appears, the same way every other
     // permission in the app is. Apple rejects builds that fire the microphone
@@ -1291,7 +1407,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
     // know what is being asked for before deciding.
     if (!await VoiceDictationService.instance.hasPermissions()) {
       if (!mounted) {
-        await _resumeCameraAfterDictation();
+        await _resumeCamera();
         return;
       }
       final l10n = AppLocalizations.of(context)!;
@@ -1303,23 +1419,23 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
         cancelLabel: l10n.cancel,
       );
       if (!proceed) {
-        await _resumeCameraAfterDictation();
+        await _resumeCamera();
         return;
       }
     }
     if (!mounted) {
-      await _resumeCameraAfterDictation();
+      await _resumeCamera();
       return;
     }
 
     final availability = await VoiceDictationService.instance.prepare();
     if (!mounted) {
-      await _resumeCameraAfterDictation();
+      await _resumeCamera();
       return;
     }
 
     if (!availability.available) {
-      await _resumeCameraAfterDictation();
+      await _resumeCamera();
       if (!mounted) return;
       final l10n = AppLocalizations.of(context)!;
       final message = switch (availability.reason) {
@@ -1347,8 +1463,10 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
           : l10n.aiCaptureAnalyzeText,
     );
 
-    await _resumeCameraAfterDictation();
-    if (!mounted) return;
+    if (!mounted) {
+      await _resumeCamera();
+      return;
+    }
 
     setState(() {
       _isDictating = false;
@@ -1360,22 +1478,8 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
 
     if (result != null && result.analyzeNow && _hasInput) {
       await _analyze();
-    }
-  }
-
-  Future<void> _suspendCameraForDictation() async {
-    if (_useNativeSession) {
-      await DepthScanChannel.instance.stopSession();
     } else {
-      await _qrController?.pauseCamera();
-    }
-  }
-
-  Future<void> _resumeCameraAfterDictation() async {
-    if (_useNativeSession) {
-      await DepthScanChannel.instance.startSession();
-    } else {
-      await _qrController?.resumeCamera();
+      await _resumeCamera();
     }
   }
 
