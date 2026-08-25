@@ -58,12 +58,6 @@ class ICloudSyncService {
 
   // ── Paths ────────────────────────────────────────────────────────────────
 
-  /// The active Drift SQLite file path.
-  Future<String> get _activeDatabasePath async {
-    final dir = await getApplicationDocumentsDirectory();
-    return p.join(dir.path, 'app_hybrid.sqlite');
-  }
-
   Future<Directory> get _localBackupDir async {
     final dir = await getApplicationSupportDirectory();
     final backupDir = Directory(p.join(dir.path, 'backups'));
@@ -299,38 +293,40 @@ class ICloudSyncService {
 
   // ── Download & Restore ────────────────────────────────────────────────────
 
-  /// Downloads the iCloud backup and overwrites the active database.
+  /// Downloads the iCloud backup and restores it into the live database.
   ///
-  /// The caller does not have to close the database first — this method closes
-  /// the active Drift connection itself, because the file swap is only safe
-  /// once no connection holds the old file. The app must be restarted
-  /// afterwards so every provider is rebuilt against the restored database.
+  /// The snapshot is copied *into* the open database rather than swapped in as
+  /// a file. Swapping meant closing the connection first, and every data
+  /// source built in `main` holds that connection object: from the moment of
+  /// the swap the diary, the profile and the supplements all threw "the
+  /// connection was closed", and only a full restart brought them back. Since
+  /// onboarding continues after a restore — region, catalog download,
+  /// permissions — a restart in the middle of it is not an option, so nothing
+  /// is closed at all.
   ///
   /// Returns `true` on success.
   Future<bool> downloadAndRestore({
     void Function(double progress)? onProgress,
   }) async {
     if (!Platform.isIOS && !Platform.isMacOS) return false;
+
+    final workDir = await _localBackupDir;
+    final downloadPath = p.join(workDir.path, 'icloud_restore_download');
+    final snapshotPath = p.join(workDir.path, 'icloud_restore_snapshot.sqlite');
+    final downloadFile = File(downloadPath);
+    final snapshotFile = File(snapshotPath);
+
     try {
       final remoteName = await _remoteBackupName();
       if (remoteName == null) return false;
 
-      final activePath = await _activeDatabasePath;
-      final downloadPath = '$activePath.restore_download';
-      final tempPath = '$activePath.restore_tmp';
-
       // Ensure a clean start.
-      final downloadFile = File(downloadPath);
-      final tempFile = File(tempPath);
       if (downloadFile.existsSync()) downloadFile.deleteSync();
-      if (tempFile.existsSync()) tempFile.deleteSync();
+      if (snapshotFile.existsSync()) snapshotFile.deleteSync();
 
-      // Download from iCloud into a temp file.
       await _downloadWithProgress(remoteName, downloadPath, onProgress);
 
-      // Verify the downloaded file exists and is non-empty.
       if (!downloadFile.existsSync() || downloadFile.lengthSync() == 0) {
-        if (downloadFile.existsSync()) downloadFile.deleteSync();
         return false;
       }
 
@@ -341,43 +337,21 @@ class ICloudSyncService {
       if (isArchive) {
         final extracted = await ICloudBackupArchive.extractDatabase(
           archivePath: downloadPath,
-          targetPath: tempPath,
+          targetPath: snapshotPath,
         );
         if (!extracted) {
-          // An archive without a database is not a restore. Swapping the live
-          // file for it would empty the app.
-          if (tempFile.existsSync()) tempFile.deleteSync();
-          downloadFile.deleteSync();
+          // An archive without a database is not a restore.
           return false;
         }
       } else {
-        downloadFile.renameSync(tempPath);
+        downloadFile.renameSync(snapshotPath);
       }
 
-      // Release the live connection before swapping the file underneath it.
-      // Replacing an open SQLite file leaves the old connection writing to an
-      // unlinked inode and hands every later caller a closed database.
-      await DatabaseHelper.closeAndResetDriftDb();
+      final db = DatabaseHelper.instance.dbInstance;
+      await _copySnapshotIntoLiveDatabase(db, snapshotPath);
 
-      // Atomically replace the active database.
-      await tempFile.rename(activePath);
-
-      // Drop journal sidecars belonging to the *previous* database — SQLite
-      // would otherwise try to recover the restored file from them.
-      for (final suffix in const ['-wal', '-shm', '-journal']) {
-        final sidecar = File('$activePath$suffix');
-        if (sidecar.existsSync()) {
-          try {
-            sidecar.deleteSync();
-          } catch (e) {
-            debugPrint('iCloud restore: could not delete $suffix sidecar: $e');
-          }
-        }
-      }
-
-      // Previews only after the swap: the rows that name them are in place by
-      // then, so a failure earlier leaves no files behind with nothing
-      // pointing at them.
+      // Previews after the rows, so nothing is left on disk with no entry
+      // pointing at it if the copy fails.
       if (isArchive) {
         try {
           final written = await ICloudBackupArchive.extractThumbnails(
@@ -395,26 +369,100 @@ class ICloudSyncService {
         }
       }
 
-      // Read the restored file through the helper rather than a second
-      // `AppDatabase()` of our own. Two connections on one SQLite file is
-      // fragile at the best of times, and closing the private one when the
-      // reads are done was leaving the running app on a dead connection —
-      // every later query threw "the connection was closed" until the app was
-      // killed and started cold. The helper's instance is the one the app
-      // itself will use from here on, and it is never closed.
-      final restoredDb = DatabaseHelper.instance.dbInstance;
-      await _extractSharedPreferences(restoredDb);
-      await _pruneOrphanMedia(restoredDb);
+      await _extractSharedPreferences(db);
+      await _pruneOrphanMedia(db);
 
-      if (downloadFile.existsSync()) downloadFile.deleteSync();
-
-      // Catalog presence was memoized against the database we just replaced.
+      // Catalog presence was memoized against the rows we just replaced.
       BasisDataManager.instance.invalidateCatalogPresenceCache();
 
       return true;
     } catch (e) {
       debugPrint('iCloud restore failed: $e');
       rethrow;
+    } finally {
+      for (final file in [downloadFile, snapshotFile]) {
+        try {
+          if (file.existsSync()) file.deleteSync();
+        } catch (e) {
+          debugPrint('iCloud restore: could not clean up ${file.path}: $e');
+        }
+      }
+    }
+  }
+
+  /// Replaces the contents of the live database with the snapshot's.
+  ///
+  /// Table by table, over the connection the app is already using. Only the
+  /// columns both sides have are carried across, so a backup written by an
+  /// older or newer build restores what it can instead of failing outright,
+  /// and a table this build does not know is skipped rather than guessed at.
+  ///
+  /// Tables the snapshot does not carry are left alone: they belong to a
+  /// feature added after the backup was written, and wiping them would lose
+  /// data the backup never claimed to replace.
+  @visibleForTesting
+  Future<void> copySnapshotIntoLiveDatabaseForTesting(
+    AppDatabase db,
+    String snapshotPath,
+  ) =>
+      _copySnapshotIntoLiveDatabase(db, snapshotPath);
+
+  Future<void> _copySnapshotIntoLiveDatabase(
+    AppDatabase db,
+    String snapshotPath,
+  ) async {
+    // Foreign keys off for the duration: the tables are copied one at a time,
+    // so every order but the last leaves some reference temporarily dangling.
+    await db.customStatement('PRAGMA foreign_keys = OFF');
+    try {
+      await db.customStatement('ATTACH DATABASE ? AS restore', [snapshotPath]);
+      try {
+        final tables = await db
+            .customSelect("SELECT name FROM restore.sqlite_master "
+                "WHERE type = 'table' AND name NOT LIKE 'sqlite_%'")
+            .get();
+
+        var copied = 0;
+        await db.transaction(() async {
+          for (final row in tables) {
+            final table = row.read<String>('name');
+
+            final liveColumns = await _columnNames(db, 'main', table);
+            if (liveColumns.isEmpty) continue;
+            final snapshotColumns = await _columnNames(db, 'restore', table);
+            final shared = liveColumns.where(snapshotColumns.contains).toList();
+            if (shared.isEmpty) continue;
+
+            final columnList = shared.map((c) => '"$c"').join(', ');
+            await db.customStatement('DELETE FROM main."$table"');
+            await db.customStatement(
+              'INSERT INTO main."$table" ($columnList) '
+              'SELECT $columnList FROM restore."$table"',
+            );
+            copied++;
+          }
+        });
+        debugPrint('iCloud restore: copied $copied table(s) from the backup');
+      } finally {
+        await db.customStatement('DETACH DATABASE restore');
+      }
+    } finally {
+      await db.customStatement('PRAGMA foreign_keys = ON');
+    }
+  }
+
+  Future<List<String>> _columnNames(
+    AppDatabase db,
+    String schema,
+    String table,
+  ) async {
+    try {
+      final rows =
+          await db.customSelect('PRAGMA $schema.table_info("$table")').get();
+      return [for (final row in rows) row.read<String>('name')];
+    } catch (e) {
+      // The table does not exist in this schema.
+      return const [];
     }
   }
 
