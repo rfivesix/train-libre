@@ -100,8 +100,10 @@ class DepthScanChannel implements IDepthScanService {
       _cachedCapability = capability;
       return capability;
     } catch (e) {
+      // Deliberately not cached: a failed check is almost always the native
+      // side not being wired up yet, and caching it condemned the rest of the
+      // run to the fallback camera with no depth data even after it came up.
       debugPrint('[DepthScanChannel] capability check failed: $e');
-      _cachedCapability = DepthScanCapability.none;
       return DepthScanCapability.none;
     }
   }
@@ -245,6 +247,9 @@ class DepthScanChannel implements IDepthScanService {
         accuracy: accuracy,
         scaleFacts: scaleFacts,
       );
+    } on PlatformException catch (e) {
+      debugPrint('[DepthScanChannel] capture failed: ${e.code} ${e.message}');
+      return null;
     } catch (e) {
       debugPrint('[DepthScanChannel] capture error: $e');
       return null;

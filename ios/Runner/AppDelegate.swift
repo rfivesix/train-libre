@@ -9,6 +9,7 @@ import UIKit
   private let sleepHealthKitChannelName = "trainlibre.health/sleep_healthkit"
   private let exportAppleHealthChannelName = "trainlibre.health/export_apple_health"
   private var channelsConfigured = false
+  private var depthScanRegistered = false
   private let liveActivityBridge = WorkoutLiveActivityBridge()
   private let homeWidgetBridge = HomeWidgetBridge()
   private var pendingShortcutURL: URL?
@@ -91,12 +92,25 @@ import UIKit
 
   func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
     GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
-    configureChannelsIfNeeded(binaryMessenger: engineBridge.applicationRegistrar.messenger())
+    configureChannelsIfNeeded(
+      binaryMessenger: engineBridge.applicationRegistrar.messenger(),
+      pluginRegistry: engineBridge.pluginRegistry
+    )
   }
 
   private func configureChannelsIfNeeded(
-    binaryMessenger: FlutterBinaryMessenger? = nil
+    binaryMessenger: FlutterBinaryMessenger? = nil,
+    pluginRegistry: FlutterPluginRegistry? = nil
   ) {
+    // Registration is tracked apart from the method channels: this runs once
+    // from engine initialisation and again from `applicationDidBecomeActive`,
+    // and only one of the two is guaranteed to have a usable plugin registry.
+    // Bundling it into `channelsConfigured` meant a nil registrar on the first
+    // pass silently left the capture session unregistered for the whole run —
+    // Dart then saw `MissingPluginException`, decided the device had no camera
+    // session, and fell back to the scanner plus system camera with no depth.
+    registerDepthScanIfNeeded(pluginRegistry: pluginRegistry ?? self)
+
     guard !channelsConfigured else { return }
     let messenger =
       binaryMessenger
@@ -140,13 +154,27 @@ import UIKit
       self?.homeWidgetBridge.handle(call: call, result: result)
     }
 
-    // Needs a registrar rather than a bare messenger: the capture session also
-    // vends a platform view for the camera preview.
-    if let depthRegistrar = registrar(forPlugin: "DepthScanPlugin") {
-      DepthScanPlugin.register(with: depthRegistrar)
+    let speechCapabilityChannel = FlutterMethodChannel(
+      name: SpeechCapabilityPlugin.channelName,
+      binaryMessenger: messenger
+    )
+    speechCapabilityChannel.setMethodCallHandler { call, result in
+      SpeechCapabilityPlugin.handle(call, result: result)
     }
 
     channelsConfigured = true
+  }
+
+  /// Needs a registrar rather than a bare messenger: the capture session also
+  /// vends a platform view for the camera preview. Retried until it succeeds,
+  /// because the registry is not necessarily available on the first attempt.
+  private func registerDepthScanIfNeeded(pluginRegistry: FlutterPluginRegistry) {
+    guard !depthScanRegistered else { return }
+    guard let depthRegistrar = pluginRegistry.registrar(forPlugin: "DepthScanPlugin") else {
+      return
+    }
+    DepthScanPlugin.register(with: depthRegistrar)
+    depthScanRegistered = true
   }
 
   private func resolveFlutterViewController() -> FlutterViewController? {

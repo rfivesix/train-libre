@@ -5906,6 +5906,9 @@ class AppLocalizationsDe extends AppLocalizations {
       'Mahlzeit beschreiben (z. B. 2 Eier mit Toast)…';
 
   @override
+  String get aiCaptureBarcodeDetected => 'Barcode erkannt';
+
+  @override
   String get aiCaptureLogBarcode => 'Loggen';
 
   @override

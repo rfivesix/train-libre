@@ -5857,6 +5857,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'Describe the meal (e.g. 2 eggs with toast)…';
 
   @override
+  String get aiCaptureBarcodeDetected => 'Barcode detected';
+
+  @override
   String get aiCaptureLogBarcode => 'Log';
 
   @override

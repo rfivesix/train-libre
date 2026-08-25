@@ -2645,6 +2645,7 @@
   "aiCaptureAnalyzeMeal": "食事を解析（{count}）",
   "aiCaptureAnalyzeText": "テキストを解析",
   "aiCaptureDescribeHint": "食事を説明してください（例：卵2個とトースト）…",
+  "aiCaptureBarcodeDetected": "バーコードを検出",
   "aiCaptureLogBarcode": "記録",
   "aiCaptureBarcodeFallback": "バーコード {code}",
   "aiCaptureMoveCloser": "もう少し近づいてください",

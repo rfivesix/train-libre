@@ -5670,6 +5670,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get aiCaptureDescribeHint => '食事を説明してください（例：卵2個とトースト）…';
 
   @override
+  String get aiCaptureBarcodeDetected => 'バーコードを検出';
+
+  @override
   String get aiCaptureLogBarcode => '記録';
 
   @override

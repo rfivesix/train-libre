@@ -5960,6 +5960,9 @@ class AppLocalizationsFr extends AppLocalizations {
       'Décris le repas (p. ex. 2 œufs avec du pain grillé)…';
 
   @override
+  String get aiCaptureBarcodeDetected => 'Code-barres détecté';
+
+  @override
   String get aiCaptureLogBarcode => 'Ajouter';
 
   @override

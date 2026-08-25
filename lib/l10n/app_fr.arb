@@ -2645,6 +2645,7 @@
   "aiCaptureAnalyzeMeal": "Analyser le repas ({count})",
   "aiCaptureAnalyzeText": "Analyser le texte",
   "aiCaptureDescribeHint": "Décris le repas (p. ex. 2 œufs avec du pain grillé)…",
+  "aiCaptureBarcodeDetected": "Code-barres détecté",
   "aiCaptureLogBarcode": "Ajouter",
   "aiCaptureBarcodeFallback": "Code-barres {code}",
   "aiCaptureMoveCloser": "Approche-toi un peu",

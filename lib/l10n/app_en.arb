@@ -2792,6 +2792,7 @@
   },
   "aiCaptureAnalyzeText": "Analyse text",
   "aiCaptureDescribeHint": "Describe the meal (e.g. 2 eggs with toast)…",
+  "aiCaptureBarcodeDetected": "Barcode detected",
   "aiCaptureLogBarcode": "Log",
   "aiCaptureBarcodeFallback": "Barcode {code}",
   "@aiCaptureBarcodeFallback": {

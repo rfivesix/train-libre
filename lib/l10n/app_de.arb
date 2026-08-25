@@ -2644,6 +2644,7 @@
   "aiCaptureAnalyzeMeal": "Mahlzeit analysieren ({count})",
   "aiCaptureAnalyzeText": "Text analysieren",
   "aiCaptureDescribeHint": "Mahlzeit beschreiben (z. B. 2 Eier mit Toast)…",
+  "aiCaptureBarcodeDetected": "Barcode erkannt",
   "aiCaptureLogBarcode": "Loggen",
   "aiCaptureBarcodeFallback": "Barcode {code}",
   "aiCaptureMoveCloser": "Etwas näher herangehen",

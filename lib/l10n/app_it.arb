@@ -2645,6 +2645,7 @@
   "aiCaptureAnalyzeMeal": "Analizza il pasto ({count})",
   "aiCaptureAnalyzeText": "Analizza il testo",
   "aiCaptureDescribeHint": "Descrivi il pasto (es. 2 uova con toast)…",
+  "aiCaptureBarcodeDetected": "Codice a barre rilevato",
   "aiCaptureLogBarcode": "Registra",
   "aiCaptureBarcodeFallback": "Codice a barre {code}",
   "aiCaptureMoveCloser": "Avvicinati un po’",

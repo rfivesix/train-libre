@@ -28,6 +28,8 @@ import '../../../util/design_constants.dart';
 import '../../../core/infrastructure/basis_data_manager.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import '../data/sources/product_local_data_source.dart';
+import '../domain/models/food_item.dart';
+import 'dialogs/quantity_log_flow.dart';
 import '../../../widgets/common/database_placeholder_widget.dart';
 import '../../../widgets/common/app_button.dart';
 import '../../../services/telemetry/telemetry_service.dart';
@@ -58,7 +60,8 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
   QRViewController? _qrController;
   PermissionStatus _cameraPermission = PermissionStatus.denied;
   String? _detectedBarcode;
-  String? _detectedBarcodeName;
+  FoodItem? _detectedProduct;
+  bool _isLoggingBarcode = false;
 
   /// Passive barcode detection. On by default — most packaged foods are logged
   /// this way — but switchable, because on a plated meal the constant chip is
@@ -70,7 +73,6 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
   /// is available. Only then does the separate scanner camera stay out of the
   /// picture — two sessions cannot own the back camera at the same time.
   bool _useNativeSession = false;
-  bool _nativeSessionRunning = false;
   StreamSubscription<String>? _barcodeSubscription;
 
   /// Set when the last capture measured a distance outside the range LiDAR can
@@ -194,7 +196,6 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
       return;
     }
 
-    setState(() => _nativeSessionRunning = true);
     _barcodeSubscription =
         DepthScanChannel.instance.barcodes.listen(_onBarcodeDetected);
   }
@@ -206,16 +207,64 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
     HapticFeedbackService.instance.confirmationFeedback();
     setState(() {
       _detectedBarcode = code;
-      _detectedBarcodeName = null;
+      _detectedProduct = null;
     });
 
     try {
       final item =
           await ProductLocalDataSource.instance.getProductByBarcode(code);
       if (item != null && mounted && _detectedBarcode == code) {
-        setState(() => _detectedBarcodeName = item.name);
+        setState(() => _detectedProduct = item);
       }
     } catch (_) {}
+  }
+
+  /// Logs the product behind the recognised code straight from the viewfinder.
+  ///
+  /// This used to `pop` the raw barcode string, but both callers push this
+  /// screen as a `Route<bool>` — the mismatched result blew up inside the
+  /// navigator and left the app wedged with an unfinished pop. Logging here and
+  /// returning the plain "something was saved" flag keeps the contract the
+  /// callers already expect.
+  Future<void> _logDetectedBarcode() async {
+    final code = _detectedBarcode;
+    if (code == null || _isLoggingBarcode) return;
+
+    final l10n = AppLocalizations.of(context)!;
+    final product = _detectedProduct ??
+        await ProductLocalDataSource.instance.getProductByBarcode(code);
+    if (!mounted) return;
+
+    if (product == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(l10n.snackbarBarcodeNotFound(code)),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
+    setState(() => _isLoggingBarcode = true);
+    try {
+      final logged = await logFoodItemWithQuantity(
+        context,
+        product,
+        initialDate: widget.initialDate,
+        initialMealType: widget.initialMealType ??
+            MealTypeTimeExtension.fromCurrentTime().toMealTypeKey,
+        telemetrySource: 'ai_meal_capture_barcode',
+      );
+      if (!mounted) return;
+      if (logged) {
+        unawaited(TelemetryService.instance
+            .trackFeatureUsed(featureKey: FeatureKey.barcodeScanned));
+        Navigator.of(context).pop(true);
+        return;
+      }
+    } finally {
+      if (mounted) setState(() => _isLoggingBarcode = false);
+    }
   }
 
   Future<void> _checkPermission() async {
@@ -240,20 +289,21 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
     _qrController = controller;
     controller.scannedDataStream.listen((scanData) async {
       final code = scanData.code;
+      if (!_barcodeDetectionEnabled || !mounted) return;
       if (code != null && code != _detectedBarcode && code.isNotEmpty) {
         HapticFeedbackService.instance.confirmationFeedback();
         setState(() {
           _detectedBarcode = code;
-          _detectedBarcodeName = null;
+          _detectedProduct = null;
         });
 
         // Lookup product name asynchronously in background
         try {
           final item =
               await ProductLocalDataSource.instance.getProductByBarcode(code);
-          if (item != null && mounted) {
+          if (item != null && mounted && _detectedBarcode == code) {
             setState(() {
-              _detectedBarcodeName = item.name;
+              _detectedProduct = item;
             });
           }
         } catch (_) {}
@@ -275,10 +325,18 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
 
   String? _detectMealTypeFromText(String text) {
     final lower = text.toLowerCase();
-    if (lower.contains('breakfast') || lower.contains('frühstück')) return 'mealtypeBreakfast';
-    if (lower.contains('lunch') || lower.contains('mittag')) return 'mealtypeLunch';
-    if (lower.contains('dinner') || lower.contains('abend')) return 'mealtypeDinner';
-    if (lower.contains('snack') || lower.contains('zwischenmahlzeit')) return 'mealtypeSnack';
+    if (lower.contains('breakfast') || lower.contains('frühstück')) {
+      return 'mealtypeBreakfast';
+    }
+    if (lower.contains('lunch') || lower.contains('mittag')) {
+      return 'mealtypeLunch';
+    }
+    if (lower.contains('dinner') || lower.contains('abend')) {
+      return 'mealtypeDinner';
+    }
+    if (lower.contains('snack') || lower.contains('zwischenmahlzeit')) {
+      return 'mealtypeSnack';
+    }
     return null;
   }
 
@@ -308,20 +366,34 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
     // The running session takes the photo — including on devices without
     // LiDAR, where it simply returns no depth map. Opening the system camera
     // on top of a live preview would be the wrong thing everywhere.
-    if (_useNativeSession && _nativeSessionRunning) {
-      try {
-        final res = await DepthScanChannel.instance.capture();
-        if (res != null && mounted) {
-          setState(() {
-            _lastDepthCapture = res;
-            _images.add(res.imageFile);
-            _distanceHint =
-                _distanceHintFor(AppLocalizations.of(context)!, res);
-          });
-          _preProcessor.processImages([res.imageFile]);
-          return;
+    if (_useNativeSession) {
+      // One retry through a restart before giving up: the session is stopped on
+      // every backgrounding, and a shutter tap that lost that race used to fall
+      // straight through to the system camera — which is a photo with no depth
+      // map, silently, for the rest of the session.
+      var res = await DepthScanChannel.instance.capture();
+      if (res == null) {
+        final restarted = await DepthScanChannel.instance.startSession();
+        if (!mounted) return;
+        if (restarted) {
+          res = await DepthScanChannel.instance.capture();
         }
-      } catch (_) {}
+      }
+
+      if (res != null && mounted) {
+        final capture = res;
+        setState(() {
+          _lastDepthCapture = capture;
+          _images.add(capture.imageFile);
+          _distanceHint =
+              _distanceHintFor(AppLocalizations.of(context)!, capture);
+        });
+        _preProcessor.processImages([capture.imageFile]);
+        return;
+      }
+      if (!mounted) return;
+      debugPrint('[AiMealCapture] native capture unavailable, '
+          'falling back to the system camera without depth');
     }
 
     // Fallback: Camera image picker
@@ -720,75 +792,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
               ),
             ),
 
-          // 4. Passive Barcode Detection Banner (if detected)
-          if (_barcodeDetectionEnabled && _detectedBarcode != null)
-            Positioned(
-              top: 100,
-              left: 20,
-              right: 20,
-              child: GestureDetector(
-                onTap: () {
-                  Navigator.of(context).pop(_detectedBarcode);
-                },
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(16),
-                  child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 12),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF1E1E1E).withValues(alpha: 0.9),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                            color: lime.withValues(alpha: 0.6), width: 1.5),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(LucideIcons.scan_barcode, color: lime, size: 20),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Text(
-                              _detectedBarcodeName ??
-                                  l10n.aiCaptureBarcodeFallback(
-                                      _detectedBarcode!),
-                              style: const TextStyle(
-                                fontFamily: 'Plus Jakarta Sans',
-                                fontWeight: FontWeight.w700,
-                                fontSize: 13,
-                                color: Colors.white,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 10, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: lime,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Text(
-                              l10n.aiCaptureLogBarcode,
-                              style: TextStyle(
-                                fontFamily: 'Plus Jakarta Sans',
-                                fontWeight: FontWeight.w800,
-                                fontSize: 12,
-                                color: Color(0xFF12120F),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-
-          // 5. Bottom Controls (Thumbnails, Shutter, Text & Analyze)
+          // 4. Bottom Controls (Thumbnails, Shutter, Text & Analyze)
           SafeArea(
             child: Align(
               alignment: Alignment.bottomCenter,
@@ -864,6 +868,16 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                           child: TextField(
                             controller: _textController,
                             autofocus: true,
+                            // A meal description is a sentence, not a search
+                            // term: it wraps and the field grows with it, up to
+                            // five lines, after which it scrolls. Single-line
+                            // meant everything but the tail end scrolled out of
+                            // sight while typing.
+                            minLines: 1,
+                            maxLines: 5,
+                            keyboardType: TextInputType.multiline,
+                            textInputAction: TextInputAction.newline,
+                            textCapitalization: TextCapitalization.sentences,
                             style: const TextStyle(color: Colors.white),
                             decoration: InputDecoration(
                               hintText: l10n.aiCaptureDescribeHint,
@@ -878,19 +892,38 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                               border: InputBorder.none,
                               enabledBorder: InputBorder.none,
                               focusedBorder: InputBorder.none,
-                              suffixIcon: IconButton(
-                                icon: Icon(LucideIcons.check,
-                                    color: Colors.white.withValues(alpha: 0.8),
-                                    size: 18),
-                                onPressed: () =>
-                                    setState(() => _showTextInput = false),
+                              // Aligned to the first line: an icon centred over
+                              // a five-line field drifts away from the text.
+                              suffixIconConstraints: const BoxConstraints(
+                                  minWidth: 48, minHeight: 48),
+                              suffixIcon: Align(
+                                alignment: Alignment.topCenter,
+                                widthFactor: 1,
+                                heightFactor: 1,
+                                child: IconButton(
+                                  icon: Icon(LucideIcons.check,
+                                      color:
+                                          Colors.white.withValues(alpha: 0.8),
+                                      size: 18),
+                                  onPressed: () =>
+                                      setState(() => _showTextInput = false),
+                                ),
                               ),
                             ),
-                            onSubmitted: (_) =>
-                                setState(() => _showTextInput = false),
                           ),
                         ),
                       ),
+
+                    // Passive Barcode Detection Banner (if detected)
+                    //
+                    // Sits directly above the shutter rather than up by the app
+                    // bar: it is an offer to act, and every other control on
+                    // this screen is within thumb reach at the bottom. Solid
+                    // rather than frosted on purpose — a blur layer over the
+                    // live camera preview is the most expensive thing this
+                    // screen could composite, and it showed.
+                    if (_barcodeDetectionEnabled && _detectedBarcode != null)
+                      _buildBarcodeBanner(l10n, lime),
 
                     // Shutter & Primary Action Bar
                     //
@@ -921,7 +954,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                                         !_barcodeDetectionEnabled;
                                     if (!_barcodeDetectionEnabled) {
                                       _detectedBarcode = null;
-                                      _detectedBarcodeName = null;
+                                      _detectedProduct = null;
                                     }
                                   });
                                 },
@@ -1104,6 +1137,92 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
     );
   }
 
+  Widget _buildBarcodeBanner(AppLocalizations l10n, Color lime) {
+    final label = _detectedProduct?.name ??
+        l10n.aiCaptureBarcodeFallback(_detectedBarcode!);
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: DesignConstants.spacingM),
+      child: Material(
+        color: const Color(0xFF1E1E1E),
+        borderRadius: BorderRadius.circular(20),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(20),
+          onTap: _isLoggingBarcode ? null : _logDetectedBarcode,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: lime.withValues(alpha: 0.7), width: 2),
+            ),
+            child: Row(
+              children: [
+                Icon(LucideIcons.scan_barcode, color: lime, size: 26),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        l10n.aiCaptureBarcodeDetected,
+                        style: TextStyle(
+                          fontFamily: 'Plus Jakarta Sans',
+                          fontWeight: FontWeight.w700,
+                          fontSize: 12,
+                          letterSpacing: 0.4,
+                          color: lime,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        label,
+                        style: const TextStyle(
+                          fontFamily: 'Plus Jakarta Sans',
+                          fontWeight: FontWeight.w700,
+                          fontSize: 16,
+                          color: Colors.white,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: lime,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: _isLoggingBarcode
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2.2,
+                            color: Color(0xFF12120F),
+                          ),
+                        )
+                      : Text(
+                          l10n.aiCaptureLogBarcode,
+                          style: const TextStyle(
+                            fontFamily: 'Plus Jakarta Sans',
+                            fontWeight: FontWeight.w800,
+                            fontSize: 14,
+                            color: Color(0xFF12120F),
+                          ),
+                        ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildFrostedButton({
     required IconData icon,
     required VoidCallback onTap,
@@ -1146,10 +1265,20 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
   /// mishears numbers, and "150 g" turning into "115 g" would silently produce
   /// a wrong meal.
   Future<void> _openVoiceDictationModal() async {
+    // The camera stands down for the duration. An `AVAudioEngine` starting up
+    // against a live capture session is the one configuration where the
+    // recogniser reliably fell over, and the viewfinder is behind a full-height
+    // sheet anyway.
+    await _suspendCameraForDictation();
     final availability = await VoiceDictationService.instance.prepare();
-    if (!mounted) return;
+    if (!mounted) {
+      await _resumeCameraAfterDictation();
+      return;
+    }
 
     if (!availability.available) {
+      await _resumeCameraAfterDictation();
+      if (!mounted) return;
       final l10n = AppLocalizations.of(context)!;
       final message = switch (availability.reason) {
         VoiceUnavailableReason.permissionDenied =>
@@ -1172,42 +1301,70 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
       contentBuilder: (ctx, close) {
         return StatefulBuilder(
           builder: (ctx, setSheetState) {
+            // Starting is asynchronous, so a second press while the first is
+            // still coming up would ask the recogniser for a session it already
+            // has — and the release that ends it could arrive first.
+            var starting = false;
+            var releasedEarly = false;
+
+            void applyTranscript(String text) {
+              textEditController.text =
+                  baseText.isEmpty ? text : '$baseText $text';
+              textEditController.selection = TextSelection.collapsed(
+                offset: textEditController.text.length,
+              );
+            }
+
+            Future<void> endDictation() async {
+              await VoiceDictationService.instance.stop();
+              if (!ctx.mounted) return;
+              setSheetState(() {
+                _isDictating = false;
+                _dictationLevel = 0;
+              });
+            }
+
             Future<void> beginDictation() async {
+              if (starting || _isDictating) return;
+              starting = true;
+              releasedEarly = false;
               final started = await VoiceDictationService.instance.start(
                 localeId: Localizations.localeOf(ctx)
                     .toLanguageTag()
                     .replaceAll('-', '_'),
                 onPartial: (text) {
-                  textEditController.text =
-                      baseText.isEmpty ? text : '$baseText $text';
-                  textEditController.selection = TextSelection.collapsed(
-                    offset: textEditController.text.length,
-                  );
+                  if (!ctx.mounted) return;
+                  applyTranscript(text);
                 },
                 onFinal: (text) {
-                  textEditController.text =
-                      baseText.isEmpty ? text : '$baseText $text';
-                  textEditController.selection = TextSelection.collapsed(
-                    offset: textEditController.text.length,
-                  );
+                  if (!ctx.mounted) return;
+                  applyTranscript(text);
                   setSheetState(() {});
                 },
                 onSoundLevel: (level) {
+                  if (!ctx.mounted) return;
                   setSheetState(() => _dictationLevel = level);
                 },
               );
+              starting = false;
+              if (!ctx.mounted) {
+                await VoiceDictationService.instance.cancel();
+                return;
+              }
               setSheetState(() => _isDictating = started);
               if (started) {
                 HapticFeedbackService.instance.selectionFeedback();
+                // The button was let go while the session was still coming up.
+                if (releasedEarly) await endDictation();
               }
             }
 
-            Future<void> endDictation() async {
-              await VoiceDictationService.instance.stop();
-              setSheetState(() {
-                _isDictating = false;
-                _dictationLevel = 0;
-              });
+            Future<void> handleRelease() async {
+              if (starting) {
+                releasedEarly = true;
+                return;
+              }
+              await endDictation();
             }
 
             final level = (_dictationLevel.clamp(-2.0, 10.0) + 2) / 12;
@@ -1227,8 +1384,8 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                     children: [
                       GestureDetector(
                         onTapDown: (_) => beginDictation(),
-                        onTapUp: (_) => endDictation(),
-                        onTapCancel: endDictation,
+                        onTapUp: (_) => handleRelease(),
+                        onTapCancel: handleRelease,
                         child: AnimatedContainer(
                           duration: const Duration(milliseconds: 120),
                           width: 72 + (_isDictating ? level * 24 : 0),
@@ -1291,7 +1448,13 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                 const SizedBox(height: 14),
                 TextField(
                   controller: textEditController,
-                  maxLines: 3,
+                  // Grows with the transcript: dictation regularly produces
+                  // more than three lines, and the tail used to be the only
+                  // part still visible.
+                  minLines: 3,
+                  maxLines: 8,
+                  keyboardType: TextInputType.multiline,
+                  textCapitalization: TextCapitalization.sentences,
                   style: const TextStyle(color: Colors.white),
                   decoration: InputDecoration(
                     hintText: l10n.voiceTranscriptHint,
@@ -1323,11 +1486,28 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
     );
 
     await VoiceDictationService.instance.cancel();
+    await _resumeCameraAfterDictation();
     if (mounted) {
       setState(() {
         _isDictating = false;
         _dictationLevel = 0;
       });
+    }
+  }
+
+  Future<void> _suspendCameraForDictation() async {
+    if (_useNativeSession) {
+      await DepthScanChannel.instance.stopSession();
+    } else {
+      await _qrController?.pauseCamera();
+    }
+  }
+
+  Future<void> _resumeCameraAfterDictation() async {
+    if (_useNativeSession) {
+      await DepthScanChannel.instance.startSession();
+    } else {
+      await _qrController?.resumeCamera();
     }
   }
 

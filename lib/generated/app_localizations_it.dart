@@ -5945,6 +5945,9 @@ class AppLocalizationsIt extends AppLocalizations {
       'Descrivi il pasto (es. 2 uova con toast)…';
 
   @override
+  String get aiCaptureBarcodeDetected => 'Codice a barre rilevato';
+
+  @override
   String get aiCaptureLogBarcode => 'Registra';
 
   @override

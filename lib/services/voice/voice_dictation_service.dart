@@ -1,8 +1,10 @@
 // lib/services/voice/voice_dictation_service.dart
 
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:speech_to_text/speech_recognition_result.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 
@@ -46,6 +48,11 @@ class VoiceDictationService {
 
   final SpeechToText _speech = SpeechToText();
 
+  /// Native probe for what the platform speech recognizer can actually do.
+  /// See `SpeechCapabilityPlugin` for why this cannot be asked of the plugin.
+  static const MethodChannel _capabilityChannel =
+      MethodChannel('trainlibre.speech/capability');
+
   bool _initialized = false;
   bool _onDeviceAvailable = false;
   bool _lastRunUsedNetwork = false;
@@ -65,7 +72,8 @@ class VoiceDictationService {
 
     try {
       final available = await _speech.initialize(
-        onError: (error) => debugPrint('[VoiceDictation] error: ${error.errorMsg}'),
+        onError: (error) =>
+            debugPrint('[VoiceDictation] error: ${error.errorMsg}'),
         onStatus: (status) => debugPrint('[VoiceDictation] status: $status'),
         debugLogging: false,
       );
@@ -95,6 +103,46 @@ class VoiceDictationService {
     }
   }
 
+  /// The recognizer id that really exists for [localeId].
+  ///
+  /// The app hands us a bare language tag such as `de`, which is not one of the
+  /// recognizer's supported locales — asking for it produced a recognizer with
+  /// no on-device assets, which is exactly the case that used to crash.
+  Future<String?> _resolveLocale(String? localeId) async {
+    if (!Platform.isIOS) return localeId;
+    try {
+      final resolved = await _capabilityChannel.invokeMethod<String>(
+        'resolveLocale',
+        {'localeId': localeId},
+      );
+      return resolved ?? localeId;
+    } catch (e) {
+      debugPrint('[VoiceDictation] locale resolve failed: $e');
+      return localeId;
+    }
+  }
+
+  /// Whether local transcription is genuinely possible for [localeId].
+  ///
+  /// Asked up front rather than by trying: `speech_to_text` answers an
+  /// unsupported on-device request by completing the same platform message
+  /// twice, which brings the engine down instead of returning an error.
+  Future<bool> _canRunOnDevice(String? localeId) async {
+    if (!Platform.isIOS) return true;
+    try {
+      final supported = await _capabilityChannel.invokeMethod<bool>(
+        'onDeviceSupported',
+        {'localeId': localeId},
+      );
+      return supported ?? false;
+    } catch (e) {
+      // No probe means no way to know it is safe, and the failure mode of
+      // guessing wrong is a crash rather than a fallback.
+      debugPrint('[VoiceDictation] on-device probe failed: $e');
+      return false;
+    }
+  }
+
   /// Starts listening. [onPartial] fires continuously, [onFinal] once the
   /// recognizer settles on a result.
   ///
@@ -108,6 +156,13 @@ class VoiceDictationService {
     final availability = await prepare();
     if (!availability.available) return false;
 
+    // A session already running would be refused by the platform anyway, and
+    // starting a second one on top of it is how the audio engine ends up with
+    // two taps on the same bus.
+    if (_speech.isListening) {
+      await cancel();
+    }
+
     void handleResult(SpeechRecognitionResult result) {
       final words = result.recognizedWords.trim();
       if (result.finalResult) {
@@ -117,11 +172,8 @@ class VoiceDictationService {
       }
     }
 
-    // The plugin exposes no reliable "is on-device recognition available" query,
-    // so availability is established by trying it: with onDevice: true the
-    // platform refuses rather than silently going to the network. If that
-    // refusal happens we retry over the network and remember it, so the UI can
-    // say so.
+    final resolvedLocale = await _resolveLocale(localeId);
+
     Future<bool> attempt({required bool onDevice}) async {
       try {
         await _speech.listen(
@@ -132,7 +184,7 @@ class VoiceDictationService {
             onDevice: onDevice,
             cancelOnError: true,
             listenMode: ListenMode.dictation,
-            localeId: localeId,
+            localeId: resolvedLocale,
             // Generous: the user ends dictation by releasing the button.
             listenFor: const Duration(seconds: 60),
             pauseFor: const Duration(seconds: 10),
@@ -149,17 +201,33 @@ class VoiceDictationService {
       return _speech.isListening;
     }
 
-    if (await attempt(onDevice: true)) {
-      _onDeviceAvailable = true;
-      _lastRunUsedNetwork = false;
-      return true;
+    // On-device only when the platform says it can — never on spec.
+    if (await _canRunOnDevice(resolvedLocale)) {
+      if (await attempt(onDevice: true)) {
+        _onDeviceAvailable = true;
+        _lastRunUsedNetwork = false;
+        return true;
+      }
+      // Unconditional: a session that never reached the listening state still
+      // holds the audio engine, and the retry below would be refused.
+      await _forceReset();
     }
 
-    await cancel();
     final started = await attempt(onDevice: false);
     _onDeviceAvailable = false;
     _lastRunUsedNetwork = started;
     return started;
+  }
+
+  /// Tears a half-started session down even when the plugin no longer thinks it
+  /// is listening — that flag is set from a callback the refused path skips.
+  Future<void> _forceReset() async {
+    try {
+      await _speech.cancel();
+    } catch (e) {
+      debugPrint('[VoiceDictation] reset failed: $e');
+    }
+    await Future<void>.delayed(const Duration(milliseconds: 80));
   }
 
   /// Stops listening and lets the recognizer deliver its final result.

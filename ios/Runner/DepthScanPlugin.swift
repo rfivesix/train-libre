@@ -62,8 +62,22 @@ public class DepthScanPlugin: NSObject {
       result(true)
 
     case "capture":
-      DepthScanController.shared.capturePhotoWithDepth { response in
-        result(response)
+      DepthScanController.shared.capturePhotoWithDepth { response, failure in
+        if let response {
+          result(response)
+        } else {
+          // An explicit error rather than a bare nil: Dart used to treat every
+          // failure here as "this device has no capture session" and quietly
+          // opened the system camera instead, which is exactly how a broken
+          // session turned into permanently missing depth data.
+          result(
+            FlutterError(
+              code: "capture_failed",
+              message: failure ?? "Photo capture failed",
+              details: nil
+            )
+          )
+        }
       }
 
     case "makeThumbnail":
@@ -102,11 +116,30 @@ final class BarcodeStreamHandler: NSObject, FlutterStreamHandler {
 
   private var sink: FlutterEventSink?
 
+  /// Guards `lastValue`/`lastEmit`, which are written from the metadata queue
+  /// and read from nowhere else — but the sink itself is main-thread only.
+  private let gate = NSLock()
+  private var lastValue: String?
+  private var lastEmit: TimeInterval = 0
+
+  /// How long the same code stays suppressed after it was forwarded once.
+  ///
+  /// `AVCaptureMetadataOutput` reports a code in *every* frame it stays visible
+  /// in, so without this the stream fires 30–60 times a second for as long as
+  /// the barcode is in view. Each of those was a main-queue hop plus a platform
+  /// channel message, which pinned the UI thread and made the screen look
+  /// frozen from the moment the first code was recognised.
+  private static let repeatInterval: TimeInterval = 2.0
+
   func onListen(
     withArguments arguments: Any?,
     eventSink events: @escaping FlutterEventSink
   ) -> FlutterError? {
     sink = events
+    gate.lock()
+    lastValue = nil
+    lastEmit = 0
+    gate.unlock()
     return nil
   }
 
@@ -116,6 +149,16 @@ final class BarcodeStreamHandler: NSObject, FlutterStreamHandler {
   }
 
   func emit(_ value: String) {
+    let now = Date().timeIntervalSinceReferenceDate
+    gate.lock()
+    let suppressed = value == lastValue && now - lastEmit < BarcodeStreamHandler.repeatInterval
+    if !suppressed {
+      lastValue = value
+      lastEmit = now
+    }
+    gate.unlock()
+    guard !suppressed else { return }
+
     DispatchQueue.main.async { [weak self] in
       self?.sink?(value)
     }
@@ -221,6 +264,11 @@ public class DepthScanController: NSObject {
   /// configuration blocks the caller, so it must stay off the main thread.
   private let sessionQueue = DispatchQueue(label: "com.trainlibre.app.depth_scan.session")
 
+  /// Barcode metadata has its own serial queue. Sharing `sessionQueue` meant the
+  /// 1.2 s focus wait before a photo blocked barcode delivery, and a barcode in
+  /// frame delayed the shutter by however many frames had queued up behind it.
+  private let metadataQueue = DispatchQueue(label: "com.trainlibre.app.depth_scan.metadata")
+
   private let session = AVCaptureSession()
   private var photoOutput: AVCapturePhotoOutput?
   private var videoDevice: AVCaptureDevice?
@@ -243,14 +291,35 @@ public class DepthScanController: NSObject {
     return bestBackCamera() != nil
   }
 
-  /// LiDAR camera when the device has one, plain wide angle otherwise. Devices
-  /// without LiDAR still get preview, barcodes and photos — only the depth map
-  /// is missing, and the whole capture screen behaves the same either way.
+  /// The most depth-capable back camera the device has.
+  ///
+  /// LiDAR first — it is the only one that reports *absolute* distances, which
+  /// is what the portion-size hint is built on. The multi-camera devices come
+  /// next: their disparity-based depth is relative, but it still yields a depth
+  /// map, so a non-Pro iPhone is no longer stuck with a flat photo. Plain wide
+  /// angle is the last resort; there the screen behaves the same, just without
+  /// a depth map.
   private static func bestBackCamera() -> AVCaptureDevice? {
-    if #available(iOS 15.4, *),
-      let lidar = AVCaptureDevice.default(.builtInLiDARDepthCamera, for: .video, position: .back)
-    {
-      return lidar
+    var wanted: [AVCaptureDevice.DeviceType] = []
+    if #available(iOS 15.4, *) {
+      wanted.append(.builtInLiDARDepthCamera)
+    }
+    wanted.append(contentsOf: [
+      .builtInDualWideCamera,
+      .builtInDualCamera,
+      .builtInTripleCamera,
+      .builtInWideAngleCamera,
+    ])
+
+    let discovery = AVCaptureDevice.DiscoverySession(
+      deviceTypes: wanted,
+      mediaType: .video,
+      position: .back
+    )
+    for type in wanted {
+      if let match = discovery.devices.first(where: { $0.deviceType == type }) {
+        return match
+      }
     }
     return AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back)
   }
@@ -339,7 +408,7 @@ public class DepthScanController: NSObject {
     let metadata = AVCaptureMetadataOutput()
     if session.canAddOutput(metadata) {
       session.addOutput(metadata)
-      metadata.setMetadataObjectsDelegate(self, queue: sessionQueue)
+      metadata.setMetadataObjectsDelegate(self, queue: metadataQueue)
       let wanted: [AVMetadataObject.ObjectType] = [
         .ean13, .ean8, .upce, .code128, .code39, .code93, .itf14, .dataMatrix, .qr,
       ]
@@ -355,31 +424,69 @@ public class DepthScanController: NSObject {
 
   // MARK: Capture
 
-  public func capturePhotoWithDepth(completion: @escaping ([String: Any]?) -> Void) {
+  public func capturePhotoWithDepth(
+    completion: @escaping ([String: Any]?, String?) -> Void
+  ) {
     sessionQueue.async { [weak self] in
-      guard let self, self.session.isRunning, let output = self.photoOutput else {
-        DispatchQueue.main.async { completion(nil) }
+      guard let self else {
+        DispatchQueue.main.async { completion(nil, "Capture session went away") }
+        return
+      }
+
+      // A stopped session used to mean an immediate nil, and the screen then
+      // fell through to the system camera. The session is stopped on every
+      // backgrounding, so a shutter tap racing the resume hit this routinely.
+      if !self.session.isRunning {
+        if !self.isConfigured, !self.configureSession() {
+          DispatchQueue.main.async { completion(nil, "Camera could not be configured") }
+          return
+        }
+        self.session.startRunning()
+      }
+
+      guard self.session.isRunning, let output = self.photoOutput else {
+        DispatchQueue.main.async { completion(nil, "Capture session is not running") }
         return
       }
 
       self.waitForStableExposureAndFocus()
-
-      let settings: AVCapturePhotoSettings
-      if output.availablePhotoCodecTypes.contains(.jpeg) {
-        settings = AVCapturePhotoSettings(format: [AVVideoCodecKey: AVVideoCodecType.jpeg])
-      } else {
-        settings = AVCapturePhotoSettings()
-      }
-      settings.isDepthDataDeliveryEnabled = output.isDepthDataDeliveryEnabled
-
-      let delegate = PhotoCaptureDelegate { [weak self] response in
-        DispatchQueue.main.async { completion(response) }
-        self?.captureDelegate = nil
-      }
-      // The photo output only holds the delegate weakly.
-      self.captureDelegate = delegate
-      output.capturePhoto(with: settings, delegate: delegate)
+      self.capture(with: output, includeDepth: output.isDepthDataDeliveryEnabled, completion: completion)
     }
+  }
+
+  /// One `capturePhoto` round trip. Split out so a depth capture that the photo
+  /// output refuses can be retried as a plain photo — losing the size hint is a
+  /// great deal better than losing the picture.
+  private func capture(
+    with output: AVCapturePhotoOutput,
+    includeDepth: Bool,
+    completion: @escaping ([String: Any]?, String?) -> Void
+  ) {
+    let settings: AVCapturePhotoSettings
+    if output.availablePhotoCodecTypes.contains(.jpeg) {
+      settings = AVCapturePhotoSettings(format: [AVVideoCodecKey: AVVideoCodecType.jpeg])
+    } else {
+      settings = AVCapturePhotoSettings()
+    }
+    settings.isDepthDataDeliveryEnabled = includeDepth && output.isDepthDataDeliveryEnabled
+
+    let delegate = PhotoCaptureDelegate { [weak self] response, failure in
+      guard let self else {
+        DispatchQueue.main.async { completion(response, failure) }
+        return
+      }
+      self.captureDelegate = nil
+      if response == nil && includeDepth {
+        self.sessionQueue.async {
+          self.capture(with: output, includeDepth: false, completion: completion)
+        }
+        return
+      }
+      DispatchQueue.main.async { completion(response, failure) }
+    }
+    // The photo output only holds the delegate weakly.
+    captureDelegate = delegate
+    output.capturePhoto(with: settings, delegate: delegate)
   }
 
   /// Blocks the session queue until the camera has settled, or the budget runs
@@ -421,11 +528,35 @@ extension DepthScanController: AVCaptureMetadataOutputObjectsDelegate {
 
 /// One-shot delegate for a single `capturePhoto` call.
 final class PhotoCaptureDelegate: NSObject, AVCapturePhotoCaptureDelegate {
-  private let completion: ([String: Any]?) -> Void
+  private let originalCompletion: ([String: Any]?, String?) -> Void
+  private var hasCompleted = false
+  private let gate = NSLock()
 
-  init(completion: @escaping ([String: Any]?) -> Void) {
-    self.completion = completion
+  init(completion: @escaping ([String: Any]?, String?) -> Void) {
+    self.originalCompletion = completion
     super.init()
+  }
+
+  /// Fires the completion exactly once. Both callbacks below can be the last
+  /// one the output sends, depending on where the capture went wrong, and a
+  /// completion that never fires leaves the shutter hanging forever.
+  private func completion(_ response: [String: Any]?, _ failure: String?) {
+    gate.lock()
+    let alreadyDone = hasCompleted
+    hasCompleted = true
+    gate.unlock()
+    guard !alreadyDone else { return }
+    originalCompletion(response, failure)
+  }
+
+  func photoOutput(
+    _ output: AVCapturePhotoOutput,
+    didFinishCaptureFor resolvedSettings: AVCaptureResolvedPhotoSettings,
+    error: Error?
+  ) {
+    // Only reached as a fallback: on the happy path the photo callback below
+    // has already completed and this is a no-op.
+    completion(nil, error.map { "Capture failed: \($0.localizedDescription)" } ?? "Capture produced no photo")
   }
 
   func photoOutput(
@@ -433,8 +564,12 @@ final class PhotoCaptureDelegate: NSObject, AVCapturePhotoCaptureDelegate {
     didFinishProcessingPhoto photo: AVCapturePhoto,
     error: Error?
   ) {
-    guard error == nil, let photoData = photo.fileDataRepresentation() else {
-      completion(nil)
+    if let error {
+      completion(nil, "Photo output failed: \(error.localizedDescription)")
+      return
+    }
+    guard let photoData = photo.fileDataRepresentation() else {
+      completion(nil, "Photo output produced no file data")
       return
     }
 
@@ -443,7 +578,7 @@ final class PhotoCaptureDelegate: NSObject, AVCapturePhotoCaptureDelegate {
     do {
       try photoData.write(to: imageURL, options: .atomic)
     } catch {
-      completion(nil)
+      completion(nil, "Could not write photo: \(error.localizedDescription)")
       return
     }
 
@@ -489,6 +624,6 @@ final class PhotoCaptureDelegate: NSObject, AVCapturePhotoCaptureDelegate {
     var response: [String: Any] = ["imagePath": imageURL.path]
     if let depthResult { response["depth"] = depthResult }
     if let intrinsicsResult { response["intrinsics"] = intrinsicsResult }
-    completion(response)
+    completion(response, nil)
   }
 }

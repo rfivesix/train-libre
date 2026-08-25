@@ -10261,6 +10261,12 @@ abstract class AppLocalizations {
   /// **'Describe the meal (e.g. 2 eggs with toast)…'**
   String get aiCaptureDescribeHint;
 
+  /// No description provided for @aiCaptureBarcodeDetected.
+  ///
+  /// In en, this message translates to:
+  /// **'Barcode detected'**
+  String get aiCaptureBarcodeDetected;
+
   /// No description provided for @aiCaptureLogBarcode.
   ///
   /// In en, this message translates to:

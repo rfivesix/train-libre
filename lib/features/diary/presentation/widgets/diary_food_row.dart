@@ -50,10 +50,15 @@ class DiaryFoodRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final nameStyle = isNested
         ? theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600)
         : theme.textTheme.titleMedium;
     final mutedColor = theme.textTheme.bodySmall?.color;
+    // The energy value of a standalone entry carries the same weight as the
+    // entry's name, so it takes the same full-contrast ink: white on dark,
+    // near-black on light. `onSurface` looked washed out in dark mode.
+    final energyColor = isDark ? Colors.white : const Color(0xFF12120F);
 
     return Padding(
       padding: EdgeInsets.symmetric(vertical: isNested ? 7 : 10),
@@ -86,9 +91,8 @@ class DiaryFoodRow extends StatelessWidget {
                 fontWeight: isNested ? FontWeight.w600 : FontWeight.w700,
                 // Explicit: `labelLarge` inherits a muted colour in the light
                 // theme, which made every energy value look disabled.
-                color: isNested
-                    ? theme.textTheme.bodyMedium?.color
-                    : theme.colorScheme.onSurface,
+                color:
+                    isNested ? theme.textTheme.bodyMedium?.color : energyColor,
               ),
               maxLines: 1,
             ),
