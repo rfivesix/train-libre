@@ -16,13 +16,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:path/path.dart' as p;
 
 import 'backup_archive.dart';
+import '../media/app_media_store.dart';
 import 'catalog_state_prefs.dart';
 import '../../data/database_helper.dart';
 import '../../data/drift_database.dart' as db;
 import '../../features/diary/data/sources/diary_local_data_source.dart';
 import '../../features/diary/data/meal_photo_store.dart';
 import '../../features/diary/data/sources/meal_local_data_source.dart';
-import '../../features/diary/domain/models/meal_capture_meta.dart';
 import '../../features/profile/data/sources/profile_local_data_source.dart';
 import '../../features/supplements/data/sources/supplement_local_data_source.dart';
 import '../../features/steps/data/sources/steps_local_data_source.dart';
@@ -488,42 +488,11 @@ class BackupManager {
 
   /// The meal previews that go into a backup archive.
   ///
-  /// Previews only, deliberately — see [BackupArchive]. Entries whose preview
-  /// is missing contribute nothing rather than falling back to the full photo.
+  /// Previews only, deliberately — see [BackupArchive]. The iCloud backup asks
+  /// [AppMediaStore] the same question, so the answer lives there.
   @visibleForTesting
-  Future<List<File>> collectMealThumbnails() async {
-    final files = <File>[];
-    try {
-      final rows = await _dbHelper.dbInstance
-          .customSelect('SELECT photo_path, photo_thumb_path, capture_meta '
-              'FROM meal_entries')
-          .get();
-      final seen = <String>{};
-      for (final row in rows) {
-        final candidates = <String?>[
-          row.data['photo_thumb_path'] as String?,
-          // A row written before previews existed may still have one on disk
-          // under the name `save` would have given it.
-          MealPhotoStore.thumbPathFor(row.data['photo_path'] as String?),
-          for (final extra in MealCaptureMeta.tryParse(
-                row.data['capture_meta'] as String?,
-              )?.extraPhotoPaths ??
-              const <String>[])
-            MealPhotoStore.thumbPathFor(extra),
-        ];
-        for (final candidate in candidates) {
-          if (candidate == null || candidate.isEmpty) continue;
-          if (!seen.add(candidate)) continue;
-          final file = await MealPhotoStore.instance.resolve(candidate);
-          if (file != null && await file.exists()) files.add(file);
-        }
-      }
-    } catch (e) {
-      // A backup without previews is still a backup worth having.
-      debugPrint('Collecting meal previews for backup failed: $e');
-    }
-    return files;
-  }
+  Future<List<File>> collectMealThumbnails() =>
+      AppMediaStore.instance.collectMealThumbnails(_dbHelper.dbInstance);
 
   Future<bool> importFullBackupAuto(
     String filePath, {
@@ -1204,26 +1173,13 @@ class BackupManager {
   /// every meal that was just wiped stay on disk forever, and on a device that
   /// restores repeatedly they are the largest thing the app leaves behind.
   ///
-  /// The files themselves are deliberately not in the backup — it is a single
-  /// JSON document, and base64 photos would grow it by orders of magnitude.
-  /// Restoring onto the same device keeps its photos, because the paths still
-  /// resolve; restoring onto a new one shows the meals without them.
+  /// Only the previews travel in the archive, so restoring onto the same
+  /// device keeps its full-size photos — their paths still resolve — while a
+  /// fresh device gets the meals with their previews and nothing more.
   Future<void> _pruneOrphanMealPhotos() async {
     try {
-      final rows = await _dbHelper.dbInstance
-          .customSelect('SELECT photo_path, photo_thumb_path, capture_meta '
-              'FROM meal_entries')
-          .get();
-      final referenced = <String>{};
-      for (final row in rows) {
-        final photo = row.data['photo_path'];
-        final thumb = row.data['photo_thumb_path'];
-        if (photo is String) referenced.add(photo);
-        if (thumb is String) referenced.add(thumb);
-        final meta =
-            MealCaptureMeta.tryParse(row.data['capture_meta'] as String?);
-        if (meta != null) referenced.addAll(meta.extraPhotoPaths);
-      }
+      final referenced =
+          await AppMediaStore.referencedMealPaths(_dbHelper.dbInstance);
       final removed = await MealPhotoStore.instance.pruneOrphans(referenced);
       if (removed > 0) {
         debugPrint('Pruned $removed orphaned meal photo(s) after restore.');

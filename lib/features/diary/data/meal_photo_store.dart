@@ -2,12 +2,7 @@
 
 import 'dart:io';
 
-import 'package:flutter/foundation.dart';
-import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
-import 'package:uuid/uuid.dart';
-
-import '../../../core/media/meal_image_processor.dart';
+import '../../../core/media/app_media_store.dart';
 
 /// Relative locations of a stored meal photo.
 class MealPhotoPaths {
@@ -21,153 +16,56 @@ class MealPhotoPaths {
   const MealPhotoPaths({required this.photoPath, this.thumbPath});
 }
 
-/// Owns meal photos on disk.
+/// Meal photos, as the diary sees them.
 ///
-/// Two rules matter here and both have bitten this feature before:
-///
-/// * Photos handed over by the camera or the picker live in a temporary
-///   directory that the system purges. They must be copied somewhere durable
-///   before their path is written to the database.
-/// * Only *relative* paths are persisted. The iOS container path changes with
-///   every app update, so an absolute path in the database is guaranteed to
-///   break.
+/// The files themselves belong to [AppMediaStore], which owns every feature's
+/// images under one set of rules. This stays as the meal-shaped face of it so
+/// the capture, diary and detail screens keep talking about photos and
+/// previews rather than about media domains.
 class MealPhotoStore {
   static final MealPhotoStore instance = MealPhotoStore._();
   MealPhotoStore._();
 
-  static const String _folder = 'meal_photos';
+  static const MediaDomain _domain = MediaDomain.meals;
 
   /// The photo folder, relative to the application support directory.
-  static String get folderName => _folder;
-  static const _uuid = Uuid();
-
-  String? _basePath;
+  static String get folderName => _domain.folder;
 
   /// Resolves and caches the support directory. Cheap to call repeatedly.
-  Future<String> ensureInitialized() async {
-    final cached = _basePath;
-    if (cached != null) return cached;
-    final dir = await getApplicationSupportDirectory();
-    _basePath = dir.path;
-    return dir.path;
-  }
+  Future<String> ensureInitialized() =>
+      AppMediaStore.instance.ensureInitialized();
 
   /// Copies [source] into durable storage and creates a preview.
   ///
   /// Returns null when the copy fails; callers must then store no path at all
   /// rather than pointing at the temporary file.
   Future<MealPhotoPaths?> save(File source) async {
-    if (!await source.exists()) return null;
-
-    try {
-      final base = await ensureInitialized();
-      final folder = Directory(p.join(base, _folder));
-      if (!await folder.exists()) {
-        await folder.create(recursive: true);
-      }
-
-      final id = _uuid.v4();
-      final photoRelative = p.join(_folder, '$id.jpg');
-      final photoAbsolute = p.join(base, photoRelative);
-
-      // Scaled rather than copied: a full-resolution camera photo is 3–8 MB,
-      // and three meals a day would put several gigabytes of pixels nobody
-      // ever looks at on the device. Falls back to the plain copy when the
-      // platform has no encoder, because a photo at any size beats none.
-      final scaled = await MealImageProcessor.instance.downscale(
-        sourcePath: source.path,
-        targetPath: photoAbsolute,
-        maxEdge: MealImageProcessor.storageMaxEdge,
-        quality: MealImageProcessor.storageQuality,
-      );
-      if (!scaled) {
-        await source.copy(photoAbsolute);
-      }
-
-      final thumbRelative = p.join(_folder, '${id}_thumb.jpg');
-      final thumbAbsolute = p.join(base, thumbRelative);
-      final thumbCreated = await MealImageProcessor.instance.downscale(
-        sourcePath: photoAbsolute,
-        targetPath: thumbAbsolute,
-        maxEdge: MealImageProcessor.thumbMaxEdge,
-        quality: MealImageProcessor.thumbQuality,
-      );
-
-      return MealPhotoPaths(
-        photoPath: photoRelative,
-        thumbPath: thumbCreated ? thumbRelative : null,
-      );
-    } catch (e) {
-      debugPrint('[MealPhotoStore] save failed: $e');
-      return null;
-    }
+    final stored = await AppMediaStore.instance.save(source, domain: _domain);
+    if (stored == null) return null;
+    return MealPhotoPaths(
+      photoPath: stored.path,
+      thumbPath: stored.thumbPath,
+    );
   }
 
-  /// Turns a stored path into a file.
-  ///
-  /// Absolute paths are passed through unchanged so rows written before this
-  /// store existed keep resolving for as long as their file survives.
-  File? resolveSync(String? storedPath) {
-    if (storedPath == null || storedPath.isEmpty) return null;
-    if (p.isAbsolute(storedPath)) return File(storedPath);
-    final base = _basePath;
-    if (base == null) return null;
-    return File(p.join(base, storedPath));
-  }
+  /// Turns a stored path into a file. Null before [ensureInitialized] has run
+  /// for a relative path.
+  File? resolveSync(String? storedPath) =>
+      AppMediaStore.instance.resolveSync(storedPath);
 
-  Future<File?> resolve(String? storedPath) async {
-    if (storedPath == null || storedPath.isEmpty) return null;
-    await ensureInitialized();
-    return resolveSync(storedPath);
-  }
+  Future<File?> resolve(String? storedPath) =>
+      AppMediaStore.instance.resolve(storedPath);
 
-  /// The preview that `save` writes next to [photoPath].
-  ///
-  /// Extra photos of a multi-shot capture only carry their full-size path in
-  /// `MealCaptureMeta`, so their preview is found by convention rather than
-  /// stored a second time.
-  static String? thumbPathFor(String? photoPath) {
-    if (photoPath == null || photoPath.isEmpty) return null;
-    final ext = p.extension(photoPath);
-    return '${p.withoutExtension(photoPath)}_thumb$ext';
-  }
+  /// The preview that [save] writes next to [photoPath].
+  static String? thumbPathFor(String? photoPath) =>
+      AppMediaStore.thumbPathFor(photoPath);
 
   /// Deletes every file in the photo folder that no meal entry refers to.
-  ///
-  /// Needed after a backup restore: the restore replaces the database but not
-  /// the folder, so the photos of the meals that were just wiped would sit
-  /// there forever with nothing left pointing at them.
-  Future<int> pruneOrphans(Set<String> referencedPaths) async {
-    try {
-      final base = await ensureInitialized();
-      final folder = Directory(p.join(base, _folder));
-      if (!await folder.exists()) return 0;
-
-      final keep = <String>{};
-      for (final path in referencedPaths) {
-        if (path.isEmpty) continue;
-        keep.add(p.basename(path));
-        final thumb = thumbPathFor(path);
-        if (thumb != null) keep.add(p.basename(thumb));
-      }
-
-      var removed = 0;
-      await for (final entity in folder.list()) {
-        if (entity is! File) continue;
-        if (keep.contains(p.basename(entity.path))) continue;
-        try {
-          await entity.delete();
-          removed++;
-        } catch (e) {
-          debugPrint('[MealPhotoStore] prune failed for ${entity.path}: $e');
-        }
-      }
-      return removed;
-    } catch (e) {
-      debugPrint('[MealPhotoStore] prune failed: $e');
-      return 0;
-    }
-  }
+  Future<int> pruneOrphans(Set<String> referencedPaths) =>
+      AppMediaStore.instance.pruneOrphans(
+        domain: _domain,
+        referencedPaths: referencedPaths,
+      );
 
   /// Best-effort removal of every file behind a meal entry.
   ///
@@ -178,20 +76,13 @@ class MealPhotoStore {
     String? photoPath,
     String? thumbPath,
     List<String> extraPaths = const [],
-  }) async {
-    final targets = <String?>[
+  }) {
+    // `deleteAll` removes each path's preview by convention; `thumbPath` is
+    // passed as well because a row may name a preview that does not follow it.
+    return AppMediaStore.instance.deleteAll([
       photoPath,
       thumbPath,
-      for (final extra in extraPaths) ...[extra, thumbPathFor(extra)],
-    ];
-    for (final path in targets) {
-      final file = await resolve(path);
-      if (file == null) continue;
-      try {
-        if (await file.exists()) await file.delete();
-      } catch (e) {
-        debugPrint('[MealPhotoStore] delete failed for $path: $e');
-      }
-    }
+      ...extraPaths,
+    ]);
   }
 }

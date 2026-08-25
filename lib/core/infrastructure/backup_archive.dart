@@ -23,9 +23,14 @@ import '../../util/encryption_util.dart';
 /// Layout:
 ///
 /// ```text
-/// backup.json                  the payload, as before
-/// thumbs/<name>_thumb.jpg      one preview per meal that has one
+/// backup.json                       the payload, as before
+/// thumbs/meals/<name>_thumb.jpg     one preview per meal that has one
 /// ```
+///
+/// Previews sit in a folder named after the feature they belong to, the same
+/// way they do on disk. The next feature that stores images adds a sibling
+/// folder instead of forcing a second archive format, and an archive written
+/// today keeps restoring once it does.
 ///
 /// An encrypted archive stores the same tree with `encryption.json` added and
 /// every other entry suffixed `.enc`. The previews are encrypted too — an
@@ -36,6 +41,11 @@ class BackupArchive {
   static const String encryptedPayloadEntry = 'backup.json.enc';
   static const String keyHeaderEntry = 'encryption.json';
   static const String thumbsFolder = 'thumbs';
+
+  /// Where meal previews go. Archives written before the split put them
+  /// straight into [thumbsFolder]; [BackupArchiveContents.extractThumbnails]
+  /// still takes those.
+  static const String mealThumbsFolder = '$thumbsFolder/meals';
   static const String encryptedSuffix = '.enc';
 
   /// Previews are already-compressed JPEGs; deflating them again costs CPU and
@@ -103,7 +113,7 @@ class BackupArchive {
           bytes = await cipher.encrypt(bytes);
           name = '$name$encryptedSuffix';
         }
-        _addBytes(encoder, '$thumbsFolder/$name', bytes);
+        _addBytes(encoder, '$mealThumbsFolder/$name', bytes);
       }
     } finally {
       await encoder.close();
@@ -180,7 +190,7 @@ class BackupArchiveContents {
   /// The backup document, in the same shape a bare JSON backup has.
   final Map<String, dynamic> payload;
 
-  /// Writes the previews into [directory] and reports how many landed.
+  /// Writes the meal previews into [directory] and reports how many landed.
   ///
   /// Entry names are reduced to their base name before use: a zip may name its
   /// entries anything at all, including `../`, and nothing in a backup has any
@@ -189,7 +199,7 @@ class BackupArchiveContents {
     var written = 0;
     for (final file in _archive.files) {
       if (!file.isFile) continue;
-      if (!file.name.startsWith('${BackupArchive.thumbsFolder}/')) continue;
+      if (!_isMealThumb(file.name)) continue;
 
       var name = p.basename(file.name);
       if (_cipher != null) {
@@ -216,6 +226,15 @@ class BackupArchiveContents {
       }
     }
     return written;
+  }
+
+  /// True for the meal previews of both archive generations: the current
+  /// `thumbs/meals/<name>` and the flat `thumbs/<name>` written before the
+  /// previews were split by feature. A future `thumbs/<other>/<name>` is not
+  /// a meal preview and must not land in the meal folder.
+  static bool _isMealThumb(String entryName) {
+    if (entryName.startsWith('${BackupArchive.mealThumbsFolder}/')) return true;
+    return p.url.dirname(entryName) == BackupArchive.thumbsFolder;
   }
 
   Future<void> close() async {

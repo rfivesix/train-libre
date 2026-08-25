@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:archive/archive_io.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 import 'package:train_libre/core/infrastructure/backup_archive.dart';
@@ -25,8 +26,7 @@ void main() {
   }
 
   group('BackupArchive', () {
-    test('carries the payload and the previews through a round trip',
-        () async {
+    test('carries the payload and the previews through a round trip', () async {
       final thumb = await writeThumb('abc_thumb.jpg', [1, 2, 3, 4, 5]);
       final archive = await BackupArchive.write(
         targetPath: p.join(workDir.path, 'backup.zip'),
@@ -47,8 +47,7 @@ void main() {
       );
     });
 
-    test('an encrypted archive leaves nothing readable in the clear',
-        () async {
+    test('an encrypted archive leaves nothing readable in the clear', () async {
       final thumb = await writeThumb('abc_thumb.jpg', utf8.encode('PREVIEW'));
       final archive = await BackupArchive.write(
         targetPath: p.join(workDir.path, 'backup.zip'),
@@ -92,6 +91,69 @@ void main() {
       expect(
         () => BackupArchive.open(archive.path, passphrase: 'wrong'),
         throwsA(anything),
+      );
+    });
+
+    test('files the previews by feature, next to the payload', () async {
+      final archive = await BackupArchive.write(
+        targetPath: p.join(workDir.path, 'backup.zip'),
+        payloadJson: '{}',
+        thumbnails: [
+          await writeThumb('abc_thumb.jpg', [1])
+        ],
+      );
+
+      final input = InputFileStream(archive.path);
+      final names =
+          ZipDecoder().decodeStream(input).files.map((f) => f.name).toList();
+      await input.close();
+
+      expect(names, contains('backup.json'));
+      expect(names, contains('thumbs/meals/abc_thumb.jpg'));
+    });
+
+    test('still takes the flat previews of an older archive', () async {
+      // Archives written before the previews were split by feature put them
+      // straight into `thumbs/`. They have to keep restoring.
+      final path = p.join(workDir.path, 'legacy.zip');
+      final encoder = ZipFileEncoder();
+      encoder.create(path);
+      encoder.addArchiveFile(
+        ArchiveFile.bytes('backup.json', utf8.encode('{"schemaVersion":7}')),
+      );
+      encoder.addArchiveFile(ArchiveFile.bytes('thumbs/abc_thumb.jpg', [9]));
+      await encoder.close();
+
+      final contents = await BackupArchive.open(path);
+      addTearDown(contents.close);
+
+      final target = Directory(p.join(workDir.path, 'restored'));
+      expect(await contents.extractThumbnails(target), 1);
+      expect(
+        await File(p.join(target.path, 'abc_thumb.jpg')).readAsBytes(),
+        [9],
+      );
+    });
+
+    test('leaves another feature\'s previews to that feature', () async {
+      // `thumbs/<other>/` is not a meal preview and must not land in the meal
+      // folder once a second feature stores images.
+      final path = p.join(workDir.path, 'future.zip');
+      final encoder = ZipFileEncoder();
+      encoder.create(path);
+      encoder
+          .addArchiveFile(ArchiveFile.bytes('backup.json', utf8.encode('{}')));
+      encoder.addArchiveFile(ArchiveFile.bytes('thumbs/workouts/x.jpg', [1]));
+      await encoder.close();
+
+      final contents = await BackupArchive.open(path);
+      addTearDown(contents.close);
+
+      expect(
+        await contents.extractThumbnails(
+          Directory(p.join(workDir.path, 'restored')),
+        ),
+        0,
       );
     });
 

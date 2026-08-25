@@ -5,6 +5,7 @@ import 'package:drift/native.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
+import 'package:train_libre/core/media/app_media_store.dart';
 import 'package:train_libre/features/diary/data/meal_photo_store.dart';
 import 'package:train_libre/core/infrastructure/backup_manager.dart';
 import 'package:train_libre/data/database_helper.dart';
@@ -187,6 +188,9 @@ void main() {
         );
       });
 
+      AppMediaStore.instance.resetForTesting();
+      addTearDown(AppMediaStore.instance.resetForTesting);
+
       final photoDir = Directory(
         p.join(supportDir.path, MealPhotoStore.folderName),
       )..createSync(recursive: true);
@@ -204,8 +208,8 @@ void main() {
           mealType: 'mealtypeBreakfast',
           title: 'Porridge',
           source: 'aiPhoto',
-          photoPath: 'meal_photos/abc.jpg',
-          photoThumbPath: 'meal_photos/abc_thumb.jpg',
+          photoPath: '${MealPhotoStore.folderName}/abc.jpg',
+          photoThumbPath: '${MealPhotoStore.folderName}/abc_thumb.jpg',
         ),
       );
 

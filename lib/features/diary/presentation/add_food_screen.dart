@@ -740,57 +740,98 @@ class _AddFoodScreenState extends State<AddFoodScreen>
             ),
           ),
           const SizedBox(width: 8),
-          // Screen E1 AI Scan button right in the search row
-          GestureDetector(
-            onTap: () async {
-              final result = await Navigator.of(context).push<bool>(
-                MaterialPageRoute(
-                  builder: (_) => AiMealCaptureScreen(
-                    initialDate: widget.initialDate,
-                    initialMealType: widget.initialMealType,
-                  ),
+          // Screen E1 AI Scan button right in the search row.
+          // With AI features off, the same slot opens the barcode scanner.
+          if (!context.watch<ThemeService>().isAiEnabled)
+            GestureDetector(
+              onTap: _scanBarcodeAndPop,
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                curve: Curves.easeInOut,
+                height: 48,
+                padding: EdgeInsets.symmetric(
+                  horizontal: isSearching ? 14 : 16,
                 ),
-              );
-              if (result == true && mounted) {
-                Navigator.of(context).pop(true);
-              }
-            },
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              curve: Curves.easeInOut,
-              height: 48,
-              padding: EdgeInsets.symmetric(
-                horizontal: isSearching ? 14 : 16,
-              ),
-              decoration: BoxDecoration(
-                color: const Color(0xFFC9EF00),
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(
-                    LucideIcons.sparkles,
-                    color: Color(0xFF12120F),
-                    size: 19,
-                  ),
-                  if (!isSearching) ...[
-                    const SizedBox(width: 6),
-                    const Text(
-                      'AI',
-                      style: TextStyle(
-                        fontFamily: 'Plus Jakarta Sans',
-                        fontWeight: FontWeight.w800,
-                        fontSize: 14,
-                        color: Color(0xFF12120F),
-                      ),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFC9EF00),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(
+                      LucideIcons.scan_barcode,
+                      color: Color(0xFF12120F),
+                      size: 19,
                     ),
+                    if (!isSearching) ...[
+                      const SizedBox(width: 6),
+                      Text(
+                        l10n.scann_barcode_capslock,
+                        style: const TextStyle(
+                          fontFamily: 'Plus Jakarta Sans',
+                          fontWeight: FontWeight.w800,
+                          fontSize: 14,
+                          color: Color(0xFF12120F),
+                        ),
+                      ),
+                    ],
                   ],
-                ],
+                ),
+              ),
+            )
+          else
+            GestureDetector(
+              onTap: () async {
+                final result = await Navigator.of(context).push<bool>(
+                  MaterialPageRoute(
+                    builder: (_) => AiMealCaptureScreen(
+                      initialDate: widget.initialDate,
+                      initialMealType: widget.initialMealType,
+                    ),
+                  ),
+                );
+                if (result == true && mounted) {
+                  Navigator.of(context).pop(true);
+                }
+              },
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                curve: Curves.easeInOut,
+                height: 48,
+                padding: EdgeInsets.symmetric(
+                  horizontal: isSearching ? 14 : 16,
+                ),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFC9EF00),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(
+                      LucideIcons.sparkles,
+                      color: Color(0xFF12120F),
+                      size: 19,
+                    ),
+                    if (!isSearching) ...[
+                      const SizedBox(width: 6),
+                      const Text(
+                        'AI',
+                        style: TextStyle(
+                          fontFamily: 'Plus Jakarta Sans',
+                          fontWeight: FontWeight.w800,
+                          fontSize: 14,
+                          color: Color(0xFF12120F),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
               ),
             ),
-          ),
         ],
       ),
     );
