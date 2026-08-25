@@ -275,10 +275,14 @@ class _GlassBottomMenuSheet extends StatelessWidget {
                 children: [
                   Positioned.fill(
                     child: DecoratedBox(
-                      decoration: BoxDecoration(
+                      // Superellipse, not a plain circular radius: a circular
+                      // tint would cut across the squircle glass corners.
+                      decoration: ShapeDecoration(
                         color: neutralTint,
-                        borderRadius:
-                            BorderRadius.vertical(top: Radius.circular(r)),
+                        shape: const RoundedSuperellipseBorder(
+                          borderRadius:
+                              BorderRadius.vertical(top: Radius.circular(r)),
+                        ),
                       ),
                     ),
                   ),
@@ -321,9 +325,13 @@ class _GlassBottomMenuSheet extends StatelessWidget {
                   right: 0,
                   top: 0,
                   bottom: -keyboardInset,
-                  child: ClipRRect(
-                    borderRadius:
-                        BorderRadius.vertical(top: Radius.circular(r)),
+                  child: ClipPath(
+                    clipper: const ShapeBorderClipper(
+                      shape: RoundedSuperellipseBorder(
+                        borderRadius:
+                            BorderRadius.vertical(top: Radius.circular(r)),
+                      ),
+                    ),
                     child: RepaintBoundary(
                       child: AdaptiveGlass(
                         settings: LiquidGlassSettings(

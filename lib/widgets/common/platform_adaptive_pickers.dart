@@ -362,7 +362,8 @@ class _GlassPickerSheet extends StatelessWidget {
     final Color effectiveGlass = DesignConstants.glassColor(isDark);
     const double r = 24;
     final topPadding = media.padding.top > 0 ? media.padding.top : 44.0;
-    final maxAvailableHeight = media.size.height - topPadding - 16 - keyboardInset;
+    final maxAvailableHeight =
+        media.size.height - topPadding - 16 - keyboardInset;
 
     return SafeArea(
       top: false,
@@ -370,7 +371,8 @@ class _GlassPickerSheet extends StatelessWidget {
       child: Align(
         alignment: Alignment.bottomCenter,
         child: ConstrainedBox(
-          constraints: BoxConstraints(maxWidth: 680, maxHeight: maxAvailableHeight),
+          constraints:
+              BoxConstraints(maxWidth: 680, maxHeight: maxAvailableHeight),
           child: Stack(
             clipBehavior: Clip.none,
             children: [
@@ -380,8 +382,13 @@ class _GlassPickerSheet extends StatelessWidget {
                   right: 0,
                   top: 0,
                   bottom: -keyboardInset,
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.vertical(top: Radius.circular(r)),
+                  child: ClipPath(
+                    clipper: const ShapeBorderClipper(
+                      shape: RoundedSuperellipseBorder(
+                        borderRadius:
+                            BorderRadius.vertical(top: Radius.circular(r)),
+                      ),
+                    ),
                     child: RepaintBoundary(
                       child: AdaptiveGlass(
                         settings: LiquidGlassSettings(
@@ -439,10 +446,15 @@ class _GlassPickerSheet extends StatelessWidget {
                         children: [
                           Positioned.fill(
                             child: DecoratedBox(
-                              decoration: BoxDecoration(
+                              // Superellipse, not a plain circular radius: a
+                              // circular tint would cut across the squircle
+                              // glass corners.
+                              decoration: ShapeDecoration(
                                 color: neutralTint,
-                                borderRadius: BorderRadius.vertical(
-                                    top: Radius.circular(r)),
+                                shape: const RoundedSuperellipseBorder(
+                                  borderRadius: BorderRadius.vertical(
+                                      top: Radius.circular(r)),
+                                ),
                               ),
                             ),
                           ),
@@ -464,7 +476,8 @@ class _GlassPickerSheet extends StatelessWidget {
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                const SizedBox(height: DesignConstants.spacingS),
+                                const SizedBox(
+                                    height: DesignConstants.spacingS),
                                 Center(
                                   child: Container(
                                     width: 44,
@@ -857,108 +870,108 @@ Future<Duration?> showAdaptiveDurationPicker({
     builder: (ctx) {
       return _GlassPickerSheet(
         child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Padding(
-                padding: const EdgeInsets.only(
-                  left: DesignConstants.spacingL,
-                  right: DesignConstants.spacingL,
-                  top: DesignConstants.spacingL,
-                  bottom: DesignConstants.spacingS,
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const SizedBox(width: 80),
-                    Expanded(
-                      child: Text(
-                        title ?? l10n?.restTimerLabel ?? 'Timer',
-                        textAlign: TextAlign.center,
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
-                    SizedBox(
-                      width: 100,
-                      child: Align(
-                        alignment: Alignment.centerRight,
-                        child: TextButton(
-                          style: TextButton.styleFrom(
-                            padding: EdgeInsets.zero,
-                            minimumSize: const Size(0, 0),
-                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          ),
-                          onPressed: () {
-                            HapticFeedbackService.instance.selectionFeedback();
-                            Navigator.pop(ctx, Duration.zero);
-                          },
-                          child: Text(
-                            l10n?.removeTimer ?? 'Timer entfernen',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w600,
-                              color: theme.colorScheme.error,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(
+                left: DesignConstants.spacingL,
+                right: DesignConstants.spacingL,
+                top: DesignConstants.spacingL,
+                bottom: DesignConstants.spacingS,
               ),
-              SizedBox(
-                height: 200,
-                child: CupertinoTheme(
-                  data: CupertinoThemeData(
-                    brightness: isDark ? Brightness.dark : Brightness.light,
-                    textTheme: CupertinoTextThemeData(
-                      pickerTextStyle: TextStyle(
-                        color: isDark ? Colors.white : Colors.black87,
-                        fontSize: 22,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const SizedBox(width: 80),
+                  Expanded(
+                    child: Text(
+                      title ?? l10n?.restTimerLabel ?? 'Timer',
+                      textAlign: TextAlign.center,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                   ),
-                  child: CupertinoTimerPicker(
-                    mode: CupertinoTimerPickerMode.hms,
-                    initialTimerDuration: initialDuration,
-                    onTimerDurationChanged: (Duration newDuration) {
-                      selectedDuration = newDuration;
-                    },
+                  SizedBox(
+                    width: 100,
+                    child: Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton(
+                        style: TextButton.styleFrom(
+                          padding: EdgeInsets.zero,
+                          minimumSize: const Size(0, 0),
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        ),
+                        onPressed: () {
+                          HapticFeedbackService.instance.selectionFeedback();
+                          Navigator.pop(ctx, Duration.zero);
+                        },
+                        child: Text(
+                          l10n?.removeTimer ?? 'Timer entfernen',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            color: theme.colorScheme.error,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(
+              height: 200,
+              child: CupertinoTheme(
+                data: CupertinoThemeData(
+                  brightness: isDark ? Brightness.dark : Brightness.light,
+                  textTheme: CupertinoTextThemeData(
+                    pickerTextStyle: TextStyle(
+                      color: isDark ? Colors.white : Colors.black87,
+                      fontSize: 22,
+                    ),
                   ),
                 ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(
-                  left: DesignConstants.spacingL,
-                  right: DesignConstants.spacingL,
-                  top: DesignConstants.spacingXS,
-                  bottom: DesignConstants.spacingM,
-                ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: AppButton.secondary(
-                        onPressed: () => Navigator.pop(ctx),
-                        label: l10n?.cancel ?? 'Cancel',
-                        tooltip: l10n?.cancel ?? 'Cancel',
-                      ),
-                    ),
-                    const SizedBox(width: DesignConstants.spacingM),
-                    Expanded(
-                      child: AppButton.primary(
-                        onPressed: () => Navigator.pop(ctx, selectedDuration),
-                        label: l10n?.snackbarButtonOK ?? 'OK',
-                        tooltip: l10n?.snackbarButtonOK ?? 'OK',
-                      ),
-                    ),
-                  ],
+                child: CupertinoTimerPicker(
+                  mode: CupertinoTimerPickerMode.hms,
+                  initialTimerDuration: initialDuration,
+                  onTimerDurationChanged: (Duration newDuration) {
+                    selectedDuration = newDuration;
+                  },
                 ),
               ),
-            ],
-          ),
-        );
-      },
-    );
+            ),
+            Padding(
+              padding: const EdgeInsets.only(
+                left: DesignConstants.spacingL,
+                right: DesignConstants.spacingL,
+                top: DesignConstants.spacingXS,
+                bottom: DesignConstants.spacingM,
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: AppButton.secondary(
+                      onPressed: () => Navigator.pop(ctx),
+                      label: l10n?.cancel ?? 'Cancel',
+                      tooltip: l10n?.cancel ?? 'Cancel',
+                    ),
+                  ),
+                  const SizedBox(width: DesignConstants.spacingM),
+                  Expanded(
+                    child: AppButton.primary(
+                      onPressed: () => Navigator.pop(ctx, selectedDuration),
+                      label: l10n?.snackbarButtonOK ?? 'OK',
+                      tooltip: l10n?.snackbarButtonOK ?? 'OK',
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    },
+  );
 
   return selected;
 }
@@ -1047,90 +1060,88 @@ Future<double?> showAdaptiveTargetRatePicker({
     builder: (ctx) {
       return _GlassPickerSheet(
         child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  vertical: DesignConstants.spacingL,
-                ),
-                child: Center(
-                  child: Text(
-                    l10n?.customTargetRateDialogTitle ??
-                        'Eigene Zielrate festlegen',
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                vertical: DesignConstants.spacingL,
+              ),
+              child: Center(
+                child: Text(
+                  l10n?.customTargetRateDialogTitle ??
+                      'Eigene Zielrate festlegen',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
               ),
-              SizedBox(
-                height: 200,
-                child: CupertinoTheme(
-                  data: CupertinoThemeData(
-                    brightness: isDark ? Brightness.dark : Brightness.light,
-                    textTheme: CupertinoTextThemeData(
-                      pickerTextStyle: TextStyle(
-                        color: isDark ? Colors.white : Colors.black87,
-                        fontSize: 20,
-                        fontWeight: FontWeight.w600,
-                      ),
+            ),
+            SizedBox(
+              height: 200,
+              child: CupertinoTheme(
+                data: CupertinoThemeData(
+                  brightness: isDark ? Brightness.dark : Brightness.light,
+                  textTheme: CupertinoTextThemeData(
+                    pickerTextStyle: TextStyle(
+                      color: isDark ? Colors.white : Colors.black87,
+                      fontSize: 20,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
-                  child: CupertinoPicker(
-                    scrollController: FixedExtentScrollController(
-                      initialItem: initialIndex,
-                    ),
-                    itemExtent: 42,
-                    onSelectedItemChanged: (int index) {
-                      selectedIndex = index;
-                      selectedValue = rateValues[index];
-                      HapticFeedbackService.instance.selectionFeedback();
-                    },
-                    children: rateValues
-                        .map((val) => Center(child: Text(formatRate(val))))
-                        .toList(),
+                ),
+                child: CupertinoPicker(
+                  scrollController: FixedExtentScrollController(
+                    initialItem: initialIndex,
                   ),
+                  itemExtent: 42,
+                  onSelectedItemChanged: (int index) {
+                    selectedIndex = index;
+                    selectedValue = rateValues[index];
+                    HapticFeedbackService.instance.selectionFeedback();
+                  },
+                  children: rateValues
+                      .map((val) => Center(child: Text(formatRate(val))))
+                      .toList(),
                 ),
               ),
-
-              Padding(
-                padding: const EdgeInsets.only(
-                  left: DesignConstants.spacingL,
-                  right: DesignConstants.spacingL,
-                  top: DesignConstants.spacingXS,
-                  bottom: DesignConstants.spacingM,
-                ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: AppButton.secondary(
-                        onPressed: () => Navigator.pop(ctx),
-                        label: l10n?.cancel ?? 'Cancel',
-                        tooltip: l10n?.cancel ?? 'Cancel',
-                      ),
-                    ),
-                    const SizedBox(width: DesignConstants.spacingM),
-                    Expanded(
-                      child: AppButton.primary(
-                        onPressed: () {
-                          final finalSigned = goal == BodyweightGoal.loseWeight
-                              ? -selectedValue
-                              : selectedValue;
-                          Navigator.pop(ctx, finalSigned);
-                        },
-                        label: l10n?.snackbarButtonOK ?? 'OK',
-                        tooltip: l10n?.snackbarButtonOK ?? 'OK',
-                      ),
-                    ),
-                  ],
-                ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(
+                left: DesignConstants.spacingL,
+                right: DesignConstants.spacingL,
+                top: DesignConstants.spacingXS,
+                bottom: DesignConstants.spacingM,
               ),
-            ],
-          ),
-        );
-      },
-    );
+              child: Row(
+                children: [
+                  Expanded(
+                    child: AppButton.secondary(
+                      onPressed: () => Navigator.pop(ctx),
+                      label: l10n?.cancel ?? 'Cancel',
+                      tooltip: l10n?.cancel ?? 'Cancel',
+                    ),
+                  ),
+                  const SizedBox(width: DesignConstants.spacingM),
+                  Expanded(
+                    child: AppButton.primary(
+                      onPressed: () {
+                        final finalSigned = goal == BodyweightGoal.loseWeight
+                            ? -selectedValue
+                            : selectedValue;
+                        Navigator.pop(ctx, finalSigned);
+                      },
+                      label: l10n?.snackbarButtonOK ?? 'OK',
+                      tooltip: l10n?.snackbarButtonOK ?? 'OK',
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    },
+  );
 
   return result;
 }
-
