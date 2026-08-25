@@ -2,7 +2,6 @@
 
 import 'dart:async';
 import 'dart:io';
-import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -801,11 +800,11 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
       );
     }
 
-    final topPadding = MediaQuery.of(context).padding.top;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bg = Theme.of(context).scaffoldBackgroundColor;
 
     return Scaffold(
-      extendBodyBehindAppBar: true,
-      backgroundColor: Colors.black,
+      backgroundColor: bg,
       appBar: GlobalAppBar(
         title: l10n.aiScannerTitle,
         actions: [
@@ -817,18 +816,23 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                   padding:
                       const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.18),
+                    color: isDark
+                        ? Colors.white.withValues(alpha: 0.18)
+                        : Colors.black.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.white30, width: 1),
+                    border: Border.all(
+                      color: isDark ? Colors.white30 : Colors.black26,
+                      width: 1,
+                    ),
                   ),
-                  child: const Text(
+                  child: Text(
                     'LiDAR',
                     style: TextStyle(
                       fontFamily: 'monospace',
                       fontWeight: FontWeight.w700,
                       fontSize: 11,
                       letterSpacing: 0.8,
-                      color: Colors.white,
+                      color: isDark ? Colors.white : Colors.black87,
                     ),
                   ),
                 ),
@@ -836,385 +840,357 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
             ),
         ],
       ),
-      body: Stack(
-        fit: StackFit.expand,
-        children: [
-          // 1. Live Camera Viewfinder
-          if (!_cameraPermission.isGranted)
-            _buildCameraFallback()
-          else if (_useNativeSession)
-            // Preview, barcode detection and the photo all come from one native
-            // session; a second camera client here would black this out.
-            UiKitView(
-              viewType: DepthScanChannel.previewViewType,
-              creationParamsCodec: const StandardMessageCodec(),
-            )
-          else
-            QRView(
-              key: qrKey,
-              onQRViewCreated: _onQRViewCreated,
-              overlay: null,
-            ),
+      body: SafeArea(
+        top: false,
+        child: Column(
+          children: [
+            // 1. Live Camera Viewfinder (4:3 aspect ratio = 3:4 portrait)
+            Expanded(
+              child: Center(
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(20),
+                    child: AspectRatio(
+                      aspectRatio: 3 / 4,
+                      child: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          if (!_cameraPermission.isGranted)
+                            _buildCameraFallback()
+                          else if (_useNativeSession)
+                            UiKitView(
+                              viewType: DepthScanChannel.previewViewType,
+                              creationParamsCodec: const StandardMessageCodec(),
+                            )
+                          else
+                            QRView(
+                              key: qrKey,
+                              onQRViewCreated: _onQRViewCreated,
+                              overlay: null,
+                            ),
 
-          // 2. Subtle Dark Gradients for contrast
-          Positioned.fill(
-            child: IgnorePointer(
-              child: Column(
-                children: [
-                  Container(
-                    height: 140,
-                    decoration: const BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          Color(0xCC000000),
-                          Colors.transparent,
+                          // Distance guidance overlay if needed
+                          if (_distanceHint != null)
+                            Positioned(
+                              top: 16,
+                              left: 0,
+                              right: 0,
+                              child: Center(
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 14, vertical: 6),
+                                  decoration: BoxDecoration(
+                                    color: Colors.black.withValues(alpha: 0.65),
+                                    borderRadius: BorderRadius.circular(14),
+                                    border: Border.all(
+                                        color: Colors.white24, width: 1),
+                                  ),
+                                  child: Text(
+                                    _distanceHint!,
+                                    style: const TextStyle(
+                                      fontFamily: 'Plus Jakarta Sans',
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 12,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
                         ],
                       ),
                     ),
                   ),
-                  const Spacer(),
-                  Container(
-                    height: 240,
-                    decoration: const BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.bottomCenter,
-                        end: Alignment.topCenter,
-                        colors: [
-                          Color(0xD9000000),
-                          Colors.transparent,
+                ),
+              ),
+            ),
+
+            // 2. Bottom Controls Area
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 4, 20, 16),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                        // Captured Photos Strip
+                        if (_images.isNotEmpty)
+                          Container(
+                            height: 60,
+                            margin: const EdgeInsets.only(bottom: 10),
+                            child: ListView.separated(
+                              scrollDirection: Axis.horizontal,
+                              itemCount: _images.length,
+                              separatorBuilder: (_, __) =>
+                                  const SizedBox(width: 8),
+                              itemBuilder: (context, idx) {
+                                return Stack(
+                                  children: [
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(12),
+                                      child: Image.file(
+                                        _images[idx],
+                                        width: 60,
+                                        height: 60,
+                                        fit: BoxFit.cover,
+                                      ),
+                                    ),
+                                    Positioned(
+                                      top: 4,
+                                      right: 4,
+                                      child: GestureDetector(
+                                        onTap: () => _removeImage(idx),
+                                        child: Container(
+                                          width: 20,
+                                          height: 20,
+                                          alignment: Alignment.center,
+                                          decoration: const BoxDecoration(
+                                            color: Color(0xCC000000),
+                                            shape: BoxShape.circle,
+                                          ),
+                                          child: const Icon(LucideIcons.x,
+                                              size: 12, color: Colors.white),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              },
+                            ),
+                          ),
+
+                        // Expandable Text Input Row
+                        if (_showTextInput)
+                          Padding(
+                            padding: const EdgeInsets.only(
+                                bottom: DesignConstants.spacingS),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: isDark
+                                    ? const Color(0xFF1E1E1E)
+                                    : const Color(0xFFE8E8E0),
+                                borderRadius: BorderRadius.circular(
+                                    DesignConstants.borderRadiusL),
+                                border: Border.all(
+                                    color: isDark
+                                        ? Colors.white12
+                                        : Colors.black12),
+                              ),
+                              padding: const EdgeInsets.only(
+                                  left: DesignConstants.spacingL),
+                              child: TextField(
+                                controller: _textController,
+                                autofocus: true,
+                                minLines: 1,
+                                maxLines: 4,
+                                keyboardType: TextInputType.multiline,
+                                textInputAction: TextInputAction.newline,
+                                textCapitalization:
+                                    TextCapitalization.sentences,
+                                style: TextStyle(
+                                    color: isDark
+                                        ? Colors.white
+                                        : const Color(0xFF12120F)),
+                                decoration: InputDecoration(
+                                  hintText: l10n.aiCaptureDescribeHint,
+                                  hintStyle: TextStyle(
+                                      color: isDark
+                                          ? Colors.white54
+                                          : Colors.black45),
+                                  filled: false,
+                                  isDense: true,
+                                  contentPadding: const EdgeInsets.symmetric(
+                                      vertical: DesignConstants.spacingM),
+                                  border: InputBorder.none,
+                                  enabledBorder: InputBorder.none,
+                                  focusedBorder: InputBorder.none,
+                                  suffixIconConstraints: const BoxConstraints(
+                                      minWidth: 44, minHeight: 44),
+                                  suffixIcon: Align(
+                                    alignment: Alignment.topCenter,
+                                    widthFactor: 1,
+                                    heightFactor: 1,
+                                    child: IconButton(
+                                      icon: Icon(LucideIcons.check,
+                                          color: isDark
+                                              ? Colors.white.withValues(alpha: 0.8)
+                                              : Colors.black87,
+                                          size: 18),
+                                      onPressed: () => setState(
+                                          () => _showTextInput = false),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+
+                        // Passive Barcode Detection Banner (if detected)
+                        if (_barcodeDetectionEnabled &&
+                            _detectedBarcode != null)
+                          _buildBarcodeBanner(l10n, lime),
+
+                        // Shutter & Primary Action Bar
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Expanded(
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
+                                children: [
+                                  // Gallery Button
+                                  _buildFrostedButton(
+                                    icon: LucideIcons.image,
+                                    onTap: _pickFromGallery,
+                                  ),
+
+                                  // Barcode detection toggle
+                                  _buildFrostedButton(
+                                    icon: LucideIcons.scan_barcode,
+                                    isActive: _barcodeDetectionEnabled,
+                                    onTap: () {
+                                      setState(() {
+                                        _barcodeDetectionEnabled =
+                                            !_barcodeDetectionEnabled;
+                                        if (!_barcodeDetectionEnabled) {
+                                          _detectedBarcode = null;
+                                          _detectedProduct = null;
+                                        }
+                                      });
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ),
+
+                            // Shutter Button (72px diameter)
+                            GestureDetector(
+                              onTap: _takeShutterPhoto,
+                              child: Container(
+                                width: 72,
+                                height: 72,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: isDark
+                                        ? Colors.white.withValues(alpha: 0.9)
+                                        : const Color(0xFF12120F)
+                                            .withValues(alpha: 0.8),
+                                    width: 3.5,
+                                  ),
+                                ),
+                                padding: const EdgeInsets.all(4),
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: isDark
+                                        ? Colors.white
+                                        : const Color(0xFF12120F),
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                              ),
+                            ),
+
+                            Expanded(
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
+                                children: [
+                                  // Voice Dictation Button (Microphone)
+                                  _buildFrostedButton(
+                                    icon: LucideIcons.mic,
+                                    isActive: _isDictating,
+                                    onTap: _openVoiceDictationModal,
+                                  ),
+
+                                  // Text Note Toggle Button
+                                  _buildFrostedButton(
+                                    icon: LucideIcons.pencil,
+                                    isActive: _showTextInput ||
+                                        _textController.text.isNotEmpty,
+                                    onTap: () {
+                                      setState(() {
+                                        _showTextInput = !_showTextInput;
+                                      });
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+
+                        // "Analysieren" Button (Appears when input is ready)
+                        if (_hasInput) ...[
+                          const SizedBox(height: 12),
+                          SizedBox(
+                            width: double.infinity,
+                            height: 48,
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: lime,
+                                foregroundColor: const Color(0xFF12120F),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                elevation: 0,
+                              ),
+                              onPressed: _isAnalyzing ? null : _analyze,
+                              child: _isAnalyzing
+                                  ? Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        const SizedBox(
+                                          width: 18,
+                                          height: 18,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2.5,
+                                            color: Color(0xFF12120F),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 10),
+                                        Text(
+                                          l10n.aiCaptureAnalyzing,
+                                          style: const TextStyle(
+                                            fontFamily: 'Plus Jakarta Sans',
+                                            fontWeight: FontWeight.w700,
+                                            fontSize: 15,
+                                          ),
+                                        ),
+                                      ],
+                                    )
+                                  : Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        const Icon(LucideIcons.sparkles,
+                                            size: 18, color: Color(0xFF12120F)),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          _images.isNotEmpty
+                                              ? l10n.aiCaptureAnalyzeMeal(
+                                                  _images.length)
+                                              : l10n.aiCaptureAnalyzeText,
+                                          style: const TextStyle(
+                                            fontFamily: 'Plus Jakarta Sans',
+                                            fontWeight: FontWeight.w800,
+                                            fontSize: 16,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                            ),
+                          ),
                         ],
-                      ),
+                      ],
                     ),
                   ),
                 ],
               ),
             ),
-          ),
-
-          // 3. Distance guidance, only when the last measurement was out of
-          // range. No pill in the normal case — there is nothing to say.
-          if (_distanceHint != null)
-            Positioned(
-              top: kToolbarHeight + topPadding + 10,
-              left: 0,
-              right: 0,
-              child: Center(
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha: 0.55),
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: Colors.white24, width: 1),
-                  ),
-                  child: Text(
-                    _distanceHint!,
-                    style: const TextStyle(
-                      fontFamily: 'Plus Jakarta Sans',
-                      fontWeight: FontWeight.w600,
-                      fontSize: 12,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-
-          // 4. Bottom Controls (Thumbnails, Shutter, Text & Analyze)
-          SafeArea(
-            child: Align(
-              alignment: Alignment.bottomCenter,
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // Captured Photos Strip
-                    if (_images.isNotEmpty)
-                      Container(
-                        height: 64,
-                        margin: const EdgeInsets.only(bottom: 12),
-                        child: ListView.separated(
-                          scrollDirection: Axis.horizontal,
-                          itemCount: _images.length,
-                          separatorBuilder: (_, __) => const SizedBox(width: 8),
-                          itemBuilder: (context, idx) {
-                            return Stack(
-                              children: [
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(12),
-                                  child: Image.file(
-                                    _images[idx],
-                                    width: 64,
-                                    height: 64,
-                                    fit: BoxFit.cover,
-                                  ),
-                                ),
-                                Positioned(
-                                  top: 4,
-                                  right: 4,
-                                  child: GestureDetector(
-                                    onTap: () => _removeImage(idx),
-                                    child: Container(
-                                      width: 20,
-                                      height: 20,
-                                      alignment: Alignment.center,
-                                      decoration: const BoxDecoration(
-                                        color: Color(0xCC000000),
-                                        shape: BoxShape.circle,
-                                      ),
-                                      child: const Icon(LucideIcons.x,
-                                          size: 12, color: Colors.white),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            );
-                          },
-                        ),
-                      ),
-
-                    // Expandable Text Input Row
-                    //
-                    // Plain surface, no accent outline: lime marks the one
-                    // primary action on a screen, and a focused text field is
-                    // already obvious from the cursor and the keyboard.
-                    if (_showTextInput)
-                      Padding(
-                        padding: const EdgeInsets.only(
-                            bottom: DesignConstants.spacingM),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color:
-                                const Color(0xFF1E1E1E).withValues(alpha: 0.92),
-                            borderRadius: BorderRadius.circular(
-                                DesignConstants.borderRadiusL),
-                            border: Border.all(color: Colors.white12),
-                          ),
-                          padding: const EdgeInsets.only(
-                              left: DesignConstants.spacingL),
-                          child: TextField(
-                            controller: _textController,
-                            autofocus: true,
-                            // A meal description is a sentence, not a search
-                            // term: it wraps and the field grows with it, up to
-                            // five lines, after which it scrolls. Single-line
-                            // meant everything but the tail end scrolled out of
-                            // sight while typing.
-                            minLines: 1,
-                            maxLines: 5,
-                            keyboardType: TextInputType.multiline,
-                            textInputAction: TextInputAction.newline,
-                            textCapitalization: TextCapitalization.sentences,
-                            style: const TextStyle(color: Colors.white),
-                            decoration: InputDecoration(
-                              hintText: l10n.aiCaptureDescribeHint,
-                              hintStyle: TextStyle(
-                                  color: Colors.white.withValues(alpha: 0.5)),
-                              // The theme fills inputs by default, which drew a
-                              // second, lighter pill inside this container.
-                              filled: false,
-                              isDense: true,
-                              contentPadding: const EdgeInsets.symmetric(
-                                  vertical: DesignConstants.spacingL),
-                              border: InputBorder.none,
-                              enabledBorder: InputBorder.none,
-                              focusedBorder: InputBorder.none,
-                              // Aligned to the first line: an icon centred over
-                              // a five-line field drifts away from the text.
-                              suffixIconConstraints: const BoxConstraints(
-                                  minWidth: 48, minHeight: 48),
-                              suffixIcon: Align(
-                                alignment: Alignment.topCenter,
-                                widthFactor: 1,
-                                heightFactor: 1,
-                                child: IconButton(
-                                  icon: Icon(LucideIcons.check,
-                                      color:
-                                          Colors.white.withValues(alpha: 0.8),
-                                      size: 18),
-                                  onPressed: () =>
-                                      setState(() => _showTextInput = false),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-
-                    // Passive Barcode Detection Banner (if detected)
-                    //
-                    // Sits directly above the shutter rather than up by the app
-                    // bar: it is an offer to act, and every other control on
-                    // this screen is within thumb reach at the bottom. Solid
-                    // rather than frosted on purpose — a blur layer over the
-                    // live camera preview is the most expensive thing this
-                    // screen could composite, and it showed.
-                    if (_barcodeDetectionEnabled && _detectedBarcode != null)
-                      _buildBarcodeBanner(l10n, lime),
-
-                    // Shutter & Primary Action Bar
-                    //
-                    // Three columns of equal weight rather than four evenly
-                    // spread buttons: with four, the shutter ends up right of
-                    // the screen centre, which every camera app gets right and
-                    // the eye notices immediately.
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Expanded(
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: [
-                              // Gallery Button
-                              _buildFrostedButton(
-                                icon: LucideIcons.image,
-                                onTap: _pickFromGallery,
-                              ),
-
-                              // Barcode detection toggle
-                              _buildFrostedButton(
-                                icon: LucideIcons.scan_barcode,
-                                isActive: _barcodeDetectionEnabled,
-                                onTap: () {
-                                  setState(() {
-                                    _barcodeDetectionEnabled =
-                                        !_barcodeDetectionEnabled;
-                                    if (!_barcodeDetectionEnabled) {
-                                      _detectedBarcode = null;
-                                      _detectedProduct = null;
-                                    }
-                                  });
-                                },
-                              ),
-                            ],
-                          ),
-                        ),
-
-                        // Shutter Button (76px diameter Screen A1)
-                        GestureDetector(
-                          onTap: _takeShutterPhoto,
-                          child: Container(
-                            width: 76,
-                            height: 76,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                  color: Colors.white.withValues(alpha: 0.9),
-                                  width: 3.5),
-                            ),
-                            padding: const EdgeInsets.all(4),
-                            child: Container(
-                              decoration: const BoxDecoration(
-                                color: Colors.white,
-                                shape: BoxShape.circle,
-                              ),
-                            ),
-                          ),
-                        ),
-
-                        Expanded(
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: [
-                              // Voice Dictation Button (Microphone)
-                              _buildFrostedButton(
-                                icon: LucideIcons.mic,
-                                isActive: _isDictating,
-                                onTap: _openVoiceDictationModal,
-                              ),
-
-                              // Text Note Toggle Button
-                              _buildFrostedButton(
-                                icon: LucideIcons.pencil,
-                                isActive: _showTextInput ||
-                                    _textController.text.isNotEmpty,
-                                onTap: () {
-                                  setState(() {
-                                    _showTextInput = !_showTextInput;
-                                  });
-                                },
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-
-                    // "Analysieren" Button (Appears when input is ready)
-                    if (_hasInput) ...[
-                      const SizedBox(height: 16),
-                      SizedBox(
-                        width: double.infinity,
-                        height: 52,
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: lime,
-                            foregroundColor: const Color(0xFF12120F),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(19),
-                            ),
-                            elevation: 0,
-                          ),
-                          onPressed: _isAnalyzing ? null : _analyze,
-                          // A bare spinner on an otherwise empty bar read as a
-                          // broken button; the wait itself now has its own
-                          // screen, so this only has to stay recognisable.
-                          child: _isAnalyzing
-                              ? Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    const SizedBox(
-                                      width: 18,
-                                      height: 18,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2.5,
-                                        color: Color(0xFF12120F),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 10),
-                                    Text(
-                                      l10n.aiCaptureAnalyzing,
-                                      style: const TextStyle(
-                                        fontFamily: 'Plus Jakarta Sans',
-                                        fontWeight: FontWeight.w800,
-                                        fontSize: 16,
-                                      ),
-                                    ),
-                                  ],
-                                )
-                              : Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    const Icon(LucideIcons.sparkles,
-                                        size: 18, color: Color(0xFF12120F)),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      _images.isNotEmpty
-                                          ? l10n.aiCaptureAnalyzeMeal(
-                                              _images.length)
-                                          : l10n.aiCaptureAnalyzeText,
-                                      style: const TextStyle(
-                                        fontFamily: 'Plus Jakarta Sans',
-                                        fontWeight: FontWeight.w800,
-                                        fontSize: 16,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
+          );
   }
 
   Widget _buildCameraFallback() {
@@ -1268,30 +1244,32 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
   }
 
   Widget _buildBarcodeBanner(AppLocalizations l10n, Color lime) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final label = _detectedProduct?.name ??
         l10n.aiCaptureBarcodeFallback(_detectedBarcode!);
 
     return Padding(
       padding: const EdgeInsets.only(bottom: DesignConstants.spacingM),
       child: Material(
-        color: const Color(0xFF1E1E1E),
+        color: isDark ? const Color(0xFF1E1E1E) : const Color(0xFFEFEFE8),
         borderRadius: BorderRadius.circular(20),
         child: InkWell(
           borderRadius: BorderRadius.circular(20),
           onTap: _isLoggingBarcode ? null : _logDetectedBarcode,
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: lime.withValues(alpha: 0.7), width: 2),
+              border: Border.all(color: lime.withValues(alpha: 0.8), width: 2),
             ),
             child: Row(
               children: [
-                Icon(LucideIcons.scan_barcode, color: lime, size: 26),
-                const SizedBox(width: 12),
+                Icon(LucideIcons.scan_barcode, color: isDark ? lime : const Color(0xFF5E7500), size: 26),
+                const SizedBox(width: 14),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
                         l10n.aiCaptureBarcodeDetected,
@@ -1300,17 +1278,17 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                           fontWeight: FontWeight.w700,
                           fontSize: 12,
                           letterSpacing: 0.4,
-                          color: lime,
+                          color: isDark ? lime : const Color(0xFF5E7500),
                         ),
                       ),
                       const SizedBox(height: 2),
                       Text(
                         label,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontFamily: 'Plus Jakarta Sans',
                           fontWeight: FontWeight.w700,
-                          fontSize: 16,
-                          color: Colors.white,
+                          fontSize: 15,
+                          color: isDark ? Colors.white : const Color(0xFF12120F),
                         ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
@@ -1358,31 +1336,35 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
     required VoidCallback onTap,
     bool isActive = false,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     const lime = Color(0xFFC9EF00);
     return GestureDetector(
       onTap: onTap,
       child: ClipRRect(
         borderRadius: BorderRadius.circular(16),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-          child: Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
+        child: Container(
+          width: 48,
+          height: 48,
+          decoration: BoxDecoration(
+            color: isActive
+                ? lime.withValues(alpha: 0.3)
+                : (isDark
+                    ? Colors.white.withValues(alpha: 0.14)
+                    : Colors.black.withValues(alpha: 0.08)),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
               color: isActive
-                  ? lime.withValues(alpha: 0.3)
-                  : Colors.white.withValues(alpha: 0.14),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: isActive ? lime : Colors.white24,
-                width: 1,
-              ),
+                  ? lime
+                  : (isDark ? Colors.white24 : Colors.black12),
+              width: 1,
             ),
-            child: Icon(
-              icon,
-              color: isActive ? lime : Colors.white,
-              size: 20,
-            ),
+          ),
+          child: Icon(
+            icon,
+            color: isActive
+                ? lime
+                : (isDark ? Colors.white : const Color(0xFF12120F)),
+            size: 20,
           ),
         ),
       ),

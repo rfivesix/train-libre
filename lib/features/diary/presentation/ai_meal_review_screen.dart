@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 import '../../../data/database_helper.dart';
 import '../../../generated/app_localizations.dart';
@@ -89,6 +90,97 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
   // Meal type selection
   late String _selectedMealType;
   late DateTime _selectedTimestamp;
+
+  int get _totalKcal {
+    if (_validation != null) return _validation!.totals.kcalRounded;
+    int sum = 0;
+    for (final item in _items) {
+      sum += item.nutrition.kcalRounded;
+    }
+    return sum;
+  }
+
+  double get _totalProtein {
+    if (_validation != null) return _validation!.totals.protein;
+    double sum = 0;
+    for (final item in _items) {
+      sum += item.nutrition.protein;
+    }
+    return sum;
+  }
+
+  double get _totalCarbs {
+    if (_validation != null) return _validation!.totals.carbs;
+    double sum = 0;
+    for (final item in _items) {
+      sum += item.nutrition.carbs;
+    }
+    return sum;
+  }
+
+  double get _totalFat {
+    if (_validation != null) return _validation!.totals.fat;
+    double sum = 0;
+    for (final item in _items) {
+      sum += item.nutrition.fat;
+    }
+    return sum;
+  }
+
+  String _getDerivedMealTitle(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final dish = _validation?.candidate.context?.dishType;
+    if (dish != null && dish.trim().isNotEmpty) return dish;
+    final mealName = _validation?.candidate.mealName;
+    if (mealName != null && mealName.trim().isNotEmpty) return mealName;
+    if (_items.isNotEmpty && _items.first.suggestion.name.trim().isNotEmpty) {
+      return _items.first.suggestion.name;
+    }
+    return l10n.mealFallbackTitle;
+  }
+
+  String _getLocalizedMealName(BuildContext context, String key) {
+    final l10n = AppLocalizations.of(context)!;
+    switch (key.toLowerCase()) {
+      case 'mealtypebreakfast':
+      case 'breakfast':
+      case 'frühstück':
+        return l10n.mealtypeBreakfast;
+      case 'mealtypelunch':
+      case 'lunch':
+      case 'mittagessen':
+        return l10n.mealtypeLunch;
+      case 'mealtypedinner':
+      case 'dinner':
+      case 'abendessen':
+        return l10n.mealtypeDinner;
+      case 'mealtypesnack':
+      case 'snack':
+      case 'snacks':
+        return l10n.mealtypeSnack;
+      default:
+        return key;
+    }
+  }
+
+  Widget _buildMacroPill(String label, String value, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(
+        '$label $value',
+        style: TextStyle(
+          fontFamily: 'Plus Jakarta Sans',
+          fontWeight: FontWeight.w700,
+          fontSize: 11.5,
+          color: color,
+        ),
+      ),
+    );
+  }
 
   @override
   void initState() {
@@ -666,7 +758,15 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
-    final topPadding = MediaQuery.of(context).padding.top + kToolbarHeight;
+    final isDark = theme.brightness == Brightness.dark;
+    final titleColor = isDark ? Colors.white : const Color(0xFF12120F);
+    final subtitleColor =
+        isDark ? const Color(0xFF8A8A82) : const Color(0xFF6A6A62);
+    final topPadding = MediaQuery.of(context).padding.top;
+    final timeStr = DateFormat('HH:mm').format(_selectedTimestamp);
+    final localizedMealType =
+        _getLocalizedMealName(context, _selectedMealType);
+    final mealTitle = _getDerivedMealTitle(context);
 
     return PopScope(
       canPop: false,
@@ -686,169 +786,215 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
           children: [
             Expanded(
               child: ListView(
-                padding: DesignConstants.cardPadding.copyWith(
-                  top: DesignConstants.cardPadding.top + topPadding,
-                ),
+                padding: EdgeInsets.zero,
                 children: [
-                  // The photo runs edge to edge; OverflowBox lets it escape the
-                  // list's horizontal padding without restructuring the list.
                   if (widget.originalImages.isNotEmpty) ...[
-                    SizedBox(
-                      height: 300,
-                      child: OverflowBox(
-                        maxWidth: MediaQuery.sizeOf(context).width,
-                        maxHeight: 300,
-                        child: Stack(
-                          fit: StackFit.expand,
-                          children: [
-                            // Same crop as the photo, deliberately: the two
-                            // are the same framing, and letterboxing one of
-                            // them makes them look like different shots.
-                            if (_showDepthMap && _depthImage != null)
-                              RawImage(
-                                image: _depthImage,
-                                fit: BoxFit.cover,
-                                width: double.infinity,
-                                height: double.infinity,
-                              )
-                            else
-                              MealPhotoWidget(
-                                photoFiles: widget.originalImages,
-                                photoFile: widget.originalImages.first,
-                                height: 300,
-                              ),
-                            // Only offered where there is a depth map to show;
-                            // on a phone without the sensor the control would
-                            // advertise something that does not exist.
-                            if (_hasDepthMap)
-                              Positioned(
-                                top: 12,
-                                right: 16,
-                                child: _DepthToggleButton(
-                                  active: _showDepthMap,
-                                  onTap: _toggleDepthMap,
-                                ),
-                              ),
-                          ],
-                        ),
-                      ),
+                    MealPhotoWidget(
+                      photoFiles: widget.originalImages,
+                      photoFile: widget.originalImages.first,
+                      depthImage: _showDepthMap ? _depthImage : null,
+                      overlayTrailing: _hasDepthMap
+                          ? _DepthToggleButton(
+                              active: _showDepthMap,
+                              onTap: _toggleDepthMap,
+                            )
+                          : null,
+                      height: 300 + topPadding,
+                      roundedTop: false,
                     ),
                     if (_showDepthMap && _depthRender != null) ...[
                       const SizedBox(height: DesignConstants.spacingS),
-                      _DepthLegendPanel(render: _depthRender!),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: _DepthLegendPanel(render: _depthRender!),
+                      ),
                     ],
-                    const SizedBox(height: DesignConstants.spacingM),
-                  ],
+                  ] else
+                    SizedBox(
+                      height:
+                          topPadding + kToolbarHeight + DesignConstants.spacingS,
+                    ),
 
-                  // Header
-                  Text(
-                    l10n.aiReviewFoundItems(_items.length),
-                    style: theme.textTheme.titleMedium,
+                  // Header Section matching Meal Detail Screen
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          mealTitle,
+                          style: TextStyle(
+                            fontFamily: 'Plus Jakarta Sans',
+                            fontWeight: FontWeight.w800,
+                            fontSize: 22,
+                            color: titleColor,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          '$localizedMealType · $timeStr',
+                          style: TextStyle(
+                            fontFamily: 'Plus Jakarta Sans',
+                            fontWeight: FontWeight.w500,
+                            fontSize: 14,
+                            color: subtitleColor,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Text(
+                              '$_totalKcal kcal',
+                              style: TextStyle(
+                                fontFamily: 'Plus Jakarta Sans',
+                                fontWeight: FontWeight.w800,
+                                fontSize: 24,
+                                color: titleColor,
+                              ),
+                            ),
+                            const Spacer(),
+                            _buildMacroPill('P', '${_totalProtein.round()}g',
+                                const Color(0xFFFF453A)),
+                            const SizedBox(width: 8),
+                            _buildMacroPill('C', '${_totalCarbs.round()}g',
+                                const Color(0xFF30D158)),
+                            const SizedBox(width: 8),
+                            _buildMacroPill('F', '${_totalFat.round()}g',
+                                const Color(0xFFBF5AF2)),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
-                  const SizedBox(height: DesignConstants.spacingM),
-                  if (_validation != null) ...[
-                    MealReviewValidationSummary(
-                      validation: _validation!,
-                      itemsCount: _items.length,
+
+                  const SizedBox(height: 16),
+
+                  if (_validation != null &&
+                      (!_validation!.passed ||
+                          _validation!.allIssues.any((i) =>
+                              i.severity != AiValidationSeverity.info))) ...[
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: MealReviewValidationSummary(
+                        validation: _validation!,
+                        itemsCount: _items.length,
+                      ),
                     ),
                     const SizedBox(height: DesignConstants.spacingM),
                   ],
-
-                  // Meal type selector removed from here — relocated to bottom bar
 
                   // Items list
-                  if (_isMatching)
-                    const Center(
-                      child: Padding(
-                        padding: EdgeInsets.all(DesignConstants.spacingXL),
-                        child: CircularProgressIndicator(),
-                      ),
-                    )
-                  else
-                    ..._items.asMap().entries.map((entry) {
-                      final index = entry.key;
-                      final item = entry.value;
-                      return MealReviewComparisonCard(
-                        dismissibleKey: ValueKey(item.hashCode),
-                        name: item.suggestion.name,
-                        estimatedGrams: item.suggestion.estimatedGrams,
-                        confidence: item.suggestion.confidence,
-                        matchedFood: item.matchedFood,
-                        issues: item.issues,
-                        nutrition: item.nutrition,
-                        onDismissed: () => _removeItem(index),
-                        onTap: item.matchedFood != null
-                            ? () => _inspectFood(index)
-                            : () => _replaceWithFood(index),
-                        onReplace: () => _replaceWithFood(index),
-                        onEditQuantity: () => _editQuantity(index),
-                        onQuickAdjustQuantity: (delta) =>
-                            _adjustQuantityBy(index, delta),
-                      );
-                    }),
-
-                  // Add item button
                   Padding(
-                    padding: const EdgeInsets.symmetric(
-                        vertical: DesignConstants.spacingS),
-                    child: AppButton.secondary(
-                      onPressed: _addManualItem,
-                      label: l10n.aiReviewAddItem,
-                      tooltip: l10n.aiReviewAddItem,
-                      icon: LucideIcons.plus,
-                    ),
-                  ),
-
-                  // Feedback section
-                  const SizedBox(height: DesignConstants.spacingM),
-                  InkWell(
-                    onTap: () => setState(() => _showFeedback = !_showFeedback),
-                    child: Row(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Column(
                       children: [
-                        Icon(
-                          _showFeedback
-                              ? LucideIcons.chevron_up
-                              : LucideIcons.chevron_down,
-                          color: theme.colorScheme.primary,
-                        ),
-                        const SizedBox(width: DesignConstants.spacingS),
-                        Text(
-                          l10n.aiReviewFeedbackSection,
-                          style: theme.textTheme.titleSmall?.copyWith(
-                            color: theme.colorScheme.primary,
+                        if (_isMatching)
+                          const Center(
+                            child: Padding(
+                              padding:
+                                  EdgeInsets.all(DesignConstants.spacingXL),
+                              child: CircularProgressIndicator(),
+                            ),
+                          )
+                        else
+                          ..._items.asMap().entries.map((entry) {
+                            final index = entry.key;
+                            final item = entry.value;
+                            return MealReviewComparisonCard(
+                              dismissibleKey: ValueKey(item.hashCode),
+                              name: item.suggestion.name,
+                              estimatedGrams: item.suggestion.estimatedGrams,
+                              confidence: item.suggestion.confidence,
+                              matchedFood: item.matchedFood,
+                              issues: item.issues,
+                              nutrition: item.nutrition,
+                              onDismissed: () => _removeItem(index),
+                              onTap: item.matchedFood != null
+                                  ? () => _inspectFood(index)
+                                  : () => _replaceWithFood(index),
+                              onReplace: () => _replaceWithFood(index),
+                              onEditQuantity: () => _editQuantity(index),
+                              onQuickAdjustQuantity: (delta) =>
+                                  _adjustQuantityBy(index, delta),
+                            );
+                          }),
+
+                        const SizedBox(height: 8),
+
+                        // Add item button (compact, centered)
+                        Center(
+                          child: AppButton.secondary(
+                            onPressed: _addManualItem,
+                            label: l10n.aiReviewAddItem,
+                            tooltip: l10n.aiReviewAddItem,
+                            icon: LucideIcons.plus,
                           ),
                         ),
                       ],
                     ),
                   ),
-                  if (_showFeedback) ...[
-                    const SizedBox(height: DesignConstants.spacingS),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 6,
+
+                  // Feedback section
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _buildFeedbackChip(theme, 'Larger portions'),
-                        _buildFeedbackChip(theme, 'Smaller portions'),
-                        _buildFeedbackChip(theme, 'Separate ingredients'),
-                        _buildFeedbackChip(theme, 'No sauce/dressing'),
+                        const SizedBox(height: DesignConstants.spacingM),
+                        InkWell(
+                          onTap: () => setState(
+                              () => _showFeedback = !_showFeedback),
+                          child: Row(
+                            children: [
+                              Icon(
+                                _showFeedback
+                                    ? LucideIcons.chevron_up
+                                    : LucideIcons.chevron_down,
+                                color: theme.colorScheme.primary,
+                              ),
+                              const SizedBox(width: DesignConstants.spacingS),
+                              Text(
+                                l10n.aiReviewFeedbackSection,
+                                style: theme.textTheme.titleSmall?.copyWith(
+                                  color: theme.colorScheme.primary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        if (_showFeedback) ...[
+                          const SizedBox(height: DesignConstants.spacingS),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 6,
+                            children: [
+                              _buildFeedbackChip(theme, 'Larger portions'),
+                              _buildFeedbackChip(theme, 'Smaller portions'),
+                              _buildFeedbackChip(theme, 'Separate ingredients'),
+                              _buildFeedbackChip(theme, 'No sauce/dressing'),
+                            ],
+                          ),
+                          const SizedBox(height: DesignConstants.spacingS),
+                          TextField(
+                            controller: _feedbackController,
+                            maxLines: 3,
+                            decoration: InputDecoration(
+                              hintText: l10n.aiReviewFeedbackHint,
+                              border: const OutlineInputBorder(),
+                            ),
+                          ),
+                          const SizedBox(height: DesignConstants.spacingS),
+                          AppButton.secondary(
+                            onPressed:
+                                _isRetrying ? null : _retryWithFeedback,
+                            label: l10n.aiReviewRetryButton,
+                            tooltip: l10n.aiReviewRetryButton,
+                          ),
+                        ],
                       ],
                     ),
-                    const SizedBox(height: DesignConstants.spacingS),
-                    TextField(
-                      controller: _feedbackController,
-                      maxLines: 3,
-                      decoration: InputDecoration(
-                        hintText: l10n.aiReviewFeedbackHint,
-                        border: const OutlineInputBorder(),
-                      ),
-                    ),
-                    const SizedBox(height: DesignConstants.spacingS),
-                    AppButton.secondary(
-                      onPressed: _isRetrying ? null : _retryWithFeedback,
-                      label: l10n.aiReviewRetryButton,
-                      tooltip: l10n.aiReviewRetryButton,
-                    ),
-                  ],
+                  ),
 
                   const SizedBox(height: 80), // Bottom padding for save button
                 ],

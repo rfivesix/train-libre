@@ -383,12 +383,15 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
     final localizedMealType =
         _getLocalizedMealName(context, _mealEntry.mealType);
 
+    final topPadding = MediaQuery.of(context).padding.top;
+
     return PopScope(
       canPop: true,
       onPopInvokedWithResult: (didPop, _) {
         if (didPop) unawaited(_persistChanges());
       },
       child: Scaffold(
+        extendBodyBehindAppBar: true,
         backgroundColor: bg,
         appBar: GlobalAppBar(
           title: _mealEntry.title ?? localizedMealType,
@@ -406,13 +409,17 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
               child: ListView(
                 padding: EdgeInsets.zero,
                 children: [
-                  // The photo sits below the bar with a clear gap, full width,
-                  // rounded at the top like every other surface in the app.
-                  if (hasPhoto) ...[
-                    const SizedBox(height: DesignConstants.spacingM),
-                    MealPhotoWidget(photoFiles: photoFiles, height: 300),
-                  ] else
-                    const SizedBox(height: DesignConstants.spacingM),
+                  if (hasPhoto)
+                    MealPhotoWidget(
+                      photoFiles: photoFiles,
+                      height: 300 + topPadding,
+                      roundedTop: false,
+                    )
+                  else
+                    SizedBox(
+                      height:
+                          topPadding + kToolbarHeight + DesignConstants.spacingS,
+                    ),
 
                   // The meal's name is already in the app bar; repeating it
                   // here just pushed the numbers down a line. Energy leads,

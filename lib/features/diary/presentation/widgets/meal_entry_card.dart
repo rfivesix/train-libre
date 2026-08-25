@@ -123,35 +123,29 @@ class _MealEntryCardState extends State<MealEntryCard> {
                     Positioned.fill(
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(10),
-                        // Reaches past the left edge of the row and fades out
-                        // well before the numbers on the right. The previous
-                        // version stopped at a fixed fraction of the width,
-                        // which left a visible vertical seam.
-                        child: Transform.translate(
-                          offset: const Offset(-18, 0),
-                          child: ShaderMask(
-                            shaderCallback: (rect) => const LinearGradient(
-                              begin: Alignment.centerLeft,
-                              end: Alignment.centerRight,
-                              colors: [
-                                Colors.white,
-                                Colors.white,
-                                Colors.transparent,
-                              ],
-                              stops: [0.0, 0.18, 0.72],
-                            ).createShader(rect),
-                            blendMode: BlendMode.dstIn,
-                            child: Opacity(
-                              opacity: isDark ? 0.30 : 0.20,
-                              child: Image.file(
-                                photoFile,
-                                fit: BoxFit.cover,
-                                alignment: Alignment.centerLeft,
-                                // Caps the decode for rows that still fall
-                                // back to the full-size photo; without it the
-                                // list holds a full bitmap per meal.
-                                cacheWidth: 720,
-                              ),
+                        child: ShaderMask(
+                          shaderCallback: (rect) => const LinearGradient(
+                            begin: Alignment.centerLeft,
+                            end: Alignment.centerRight,
+                            colors: [
+                              Colors.transparent,
+                              Colors.white,
+                              Colors.white,
+                              Colors.transparent,
+                            ],
+                            stops: [0.0, 0.20, 0.80, 1.0],
+                          ).createShader(rect),
+                          blendMode: BlendMode.dstIn,
+                          child: Opacity(
+                            opacity: isDark ? 0.30 : 0.20,
+                            child: Image.file(
+                              photoFile,
+                              fit: BoxFit.cover,
+                              alignment: Alignment.center,
+                              // Caps the decode for rows that still fall
+                              // back to the full-size photo; without it the
+                              // list holds a full bitmap per meal.
+                              cacheWidth: 720,
                             ),
                           ),
                         ),

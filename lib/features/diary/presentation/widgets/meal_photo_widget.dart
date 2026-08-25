@@ -1,25 +1,20 @@
-// lib/features/diary/presentation/widgets/meal_photo_widget.dart
-
 import 'dart:io';
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 
-/// The photo of a meal — one image, or a swipeable carousel when a capture
-/// produced several.
-///
-/// This used to also annotate the individual foods: coloured regions first,
-/// then numbered pins. Both were dropped. The coordinates a vision model
-/// returns for the parts of a meal are not dependable enough to draw on a
-/// photo, and an annotation that is confidently in the wrong place is worse
-/// than none at all. The photo now simply shows what was eaten.
+/// The photo of a meal — one image, a swipeable carousel when a capture
+/// produced several, or a LiDAR depth map.
 class MealPhotoWidget extends StatefulWidget {
   final File? photoFile;
   final List<File> photoFiles;
   final String? photoUrl;
+  final ui.Image? depthImage;
+  final Widget? overlayTrailing;
   final double height;
 
-  /// Rounds the top corners. Off when the photo runs full-bleed under a
-  /// transparent app bar, where rounded corners would cut into the status bar.
+  /// Rounds the top corners. Defaults to false because the photo runs
+  /// full-bleed under a transparent app bar.
   final bool roundedTop;
 
   const MealPhotoWidget({
@@ -27,8 +22,10 @@ class MealPhotoWidget extends StatefulWidget {
     this.photoFile,
     this.photoFiles = const [],
     this.photoUrl,
+    this.depthImage,
+    this.overlayTrailing,
     this.height = 318,
-    this.roundedTop = true,
+    this.roundedTop = false,
   });
 
   @override
@@ -75,7 +72,14 @@ class _MealPhotoWidgetState extends State<MealPhotoWidget> {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            if (hasMultiple)
+            if (widget.depthImage != null)
+              RawImage(
+                image: widget.depthImage,
+                fit: BoxFit.cover,
+                width: double.infinity,
+                height: double.infinity,
+              )
+            else if (hasMultiple)
               PageView.builder(
                 controller: _pageController,
                 itemCount: files.length,
@@ -102,7 +106,7 @@ class _MealPhotoWidgetState extends State<MealPhotoWidget> {
                 child: Column(
                   children: [
                     Container(
-                      height: 80,
+                      height: 100,
                       decoration: const BoxDecoration(
                         gradient: LinearGradient(
                           begin: Alignment.topCenter,
@@ -113,7 +117,7 @@ class _MealPhotoWidgetState extends State<MealPhotoWidget> {
                     ),
                     const Spacer(),
                     Container(
-                      height: 90,
+                      height: 110,
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
                           begin: Alignment.bottomCenter,
@@ -130,7 +134,14 @@ class _MealPhotoWidgetState extends State<MealPhotoWidget> {
               ),
             ),
 
-            if (hasMultiple)
+            if (widget.overlayTrailing != null)
+              Positioned(
+                top: MediaQuery.of(context).padding.top + 8,
+                right: 16,
+                child: widget.overlayTrailing!,
+              ),
+
+            if (hasMultiple && widget.depthImage == null)
               Positioned(
                 bottom: 12,
                 left: 0,
