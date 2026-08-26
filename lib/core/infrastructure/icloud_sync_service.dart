@@ -444,6 +444,7 @@ class ICloudSyncService {
         await db.transaction(() async {
           for (final row in tables) {
             final table = row.read<String>('name');
+            if (!RegExp(r'^[a-zA-Z0-9_]+$').hasMatch(table)) continue;
 
             final liveColumns = await _columnNames(db, 'main', table);
             if (liveColumns.isEmpty) continue;
