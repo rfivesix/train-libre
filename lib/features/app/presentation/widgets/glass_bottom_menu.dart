@@ -195,7 +195,13 @@ class _GlassBottomMenuSheet extends StatelessWidget {
                     // a scroll view would hand it an unbounded height instead.
                     return expandToFullHeight
                         ? content
-                        : SingleChildScrollView(child: content);
+                        : SingleChildScrollView(
+                            clipBehavior: Clip.none,
+                            padding: const EdgeInsets.only(
+                              top: DesignConstants.spacingXS,
+                            ),
+                            child: content,
+                          );
                   },
                 ),
               ),

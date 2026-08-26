@@ -33,6 +33,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Diary Entries Are Ordered by Energy:** Within a meal type, meals and standalone entries are sorted by calories, largest first, and so are the ingredients inside a meal. What contributed most is what the user came to look at.
 - **Meal Photos Sit Behind the Row, Not Beside It:** A thumbnail in front of the title pushed it in by its own width, so meals and plain entries no longer began at the same edge. The photo is now a centered backdrop fading out to transparent on both sides, and row dividers only appear between adjacent entries when neither of them has one.
 - **Main App Walkthrough Modernization (`AppTourOverlay`):** A 10-tier progressive concentric Gaussian blur ramp (`sigma: 1.8` per tier over 30 px) gives a feathered falloff without hard edges, with pill progress indicators, flush inner tab pill cutouts (keeping the top and bottom bar edges blurred while focusing the tab pill), full-size bar encapsulation in step 1, and bottom-pinned card transitions without the upward jump flicker.
+- **Supplement Intake List Typography (`LogSupplementMenu`):** Supplement items in the "Log Intake" bottom sheet now use the standardized design system typography (`textTheme.titleMedium` with `FontWeight.w600`, 16 sp) instead of unstyled body text, matching the rest of the bottom menu tiles and improving readability.
 - **Performance and GC Optimizations:**
   - **`SupplementsViewModel`:** Replaced linear $O(N \times M)$ scan (`tracked.any(...)`) with an $O(1)$ `Set<int> trackedIds` lookup and eliminated redundant hash map lookups during daily state calculation.
   - **`BasisDataManager`:** Converted two-pass `.whereType` / `.where` filtering during exercise catalog import into a single-pass companion partition loop.
@@ -48,6 +49,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **iOS Usage Descriptions for Microphone and Speech Recognition:** Both keys are added to `Info.plist` and localized in all five `InfoPlist.strings` catalogues. `test/ios_permission_strings_test.dart` previously asserted their absence and now asserts their presence alongside the other usage keys.
 
 ### Fixed
+- **Text Field Floating Label Clipping in Bottom Menus & Measurement Forms (`MeasurementFormSheet`, `_GlassBottomMenuSheet`):** Fixed an issue where focusing a text field inside bottom menus or the "Add Measurement" sheet caused the floating label (`labelText`, e.g. "Body weight") to be clipped in half at the top boundary. Added top headroom padding and configured `SingleChildScrollView` with `clipBehavior: Clip.none` so floating labels animate smoothly onto the top border without being cut off.
 - **Energy Values Were Grey in the Light Theme:** `labelLarge` inherits a muted colour, which made every calorie figure in the diary look disabled. They are now explicitly set in the primary text colour.
 - **Nutrition Explorer:** The catalogue reserves room for the floating "Custom Food" button, which covered its last row, and the AI pill lost its drop shadow — the only glow in the app.
 
