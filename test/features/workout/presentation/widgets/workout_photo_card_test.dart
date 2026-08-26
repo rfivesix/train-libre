@@ -11,6 +11,7 @@ import 'package:train_libre/core/media/app_media_store.dart';
 import 'package:train_libre/features/workout/presentation/widgets/workout_photo_card.dart';
 import 'package:train_libre/generated/app_localizations.dart';
 import 'package:train_libre/widgets/common/app_button.dart';
+import 'package:train_libre/widgets/common/summary_card.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -60,10 +61,12 @@ void main() {
       ],
       supportedLocales: const [Locale('en')],
       home: Scaffold(
-        body: WorkoutPhotoCard(
-          photoPaths: photoPaths,
-          isEditable: isEditable,
-          onPhotosChanged: onPhotosChanged,
+        body: SingleChildScrollView(
+          child: WorkoutPhotoCard(
+            photoPaths: photoPaths,
+            isEditable: isEditable,
+            onPhotosChanged: onPhotosChanged,
+          ),
         ),
       ),
     );
@@ -82,15 +85,20 @@ void main() {
     });
 
     testWidgets(
-        'renders dashed card with camera and gallery when empty and editable',
+        'renders compact summary card with camera and gallery when empty and editable',
         (tester) async {
       await tester.pumpWidget(
         createWidget(photoPaths: const [], isEditable: true),
       );
       await tester.pumpAndSettle();
 
-      expect(find.byType(AspectRatio), findsOneWidget);
-      expect(find.byIcon(LucideIcons.camera), findsOneWidget);
+      // Compact card without forced 1:1 AspectRatio
+      expect(find.byType(AspectRatio), findsNothing);
+      expect(find.byType(SummaryCard), findsOneWidget);
+      expect(find.text('Add photo'), findsOneWidget);
+      expect(find.text('Take photo'), findsOneWidget);
+      expect(find.text('Choose from library'), findsOneWidget);
+      expect(find.byIcon(LucideIcons.camera), findsNWidgets(2));
       expect(find.byIcon(LucideIcons.image), findsOneWidget);
     });
 
@@ -114,10 +122,11 @@ void main() {
 
       // Carousel is rendered
       expect(find.byType(PageView), findsOneWidget);
-      // Delete button is present in top right
+      // Delete button is present in header
       expect(find.byIcon(LucideIcons.trash_2), findsOneWidget);
-      // Add buttons (bottom right) are hidden because photo count is 4
-      expect(find.byIcon(LucideIcons.camera), findsNothing);
+      // Bottom add buttons are hidden because photo count is 4
+      expect(find.text('Take photo'), findsNothing);
+      expect(find.text('Choose from library'), findsNothing);
     });
 
     testWidgets(

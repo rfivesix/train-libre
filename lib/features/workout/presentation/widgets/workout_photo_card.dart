@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
@@ -7,13 +6,15 @@ import 'package:image_picker/image_picker.dart';
 
 import '../../../../generated/app_localizations.dart';
 import '../../../../util/design_constants.dart';
+import '../../../../widgets/common/app_button.dart';
+import '../../../../widgets/common/summary_card.dart';
 import '../../../app/presentation/widgets/glass_bottom_menu.dart';
 import '../../data/sources/workout_local_data_source.dart';
 import '../../data/workout_photo_store.dart';
 
-/// A 1:1 aspect ratio card displaying workout photos in a carousel,
+/// A card displaying workout photos in a carousel (or a compact glass card when empty),
 /// with support for adding up to 4 photos via direct camera capture or gallery picker,
-/// deleting existing photos, and displaying a dashed empty state when no photos are present.
+/// deleting existing photos, and seamless integration with app themes and liquid glass design tokens.
 class WorkoutPhotoCard extends StatefulWidget {
   final int? workoutLogId;
   final List<String> photoPaths;
@@ -199,279 +200,187 @@ class _WorkoutPhotoCardState extends State<WorkoutPhotoCard> {
     final theme = Theme.of(context);
     final files = _resolveFiles();
 
-    if (widget.photoPaths.isEmpty) {
-      if (!widget.isEditable) {
-        return const SizedBox.shrink();
-      }
-      return _buildEmptyState(context, l10n, theme);
+    if (widget.photoPaths.isEmpty && !widget.isEditable) {
+      return const SizedBox.shrink();
     }
 
+    final hasPhotos = files.isNotEmpty;
     final hasMultiple = files.length > 1;
     final canAddMore = widget.isEditable &&
         widget.photoPaths.length < WorkoutPhotoStore.maxPhotos;
 
-    return AspectRatio(
-      aspectRatio: 1.0,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            // Carousel or single image
-            if (hasMultiple)
-              PageView.builder(
-                controller: _pageController,
-                itemCount: files.length,
-                onPageChanged: (idx) => setState(() => _activePage = idx),
-                itemBuilder: (context, idx) {
-                  return Image.file(
-                    files[idx],
-                    fit: BoxFit.cover,
-                    width: double.infinity,
-                    height: double.infinity,
-                  );
-                },
-              )
-            else if (files.isNotEmpty)
-              Image.file(
-                files.first,
-                fit: BoxFit.cover,
-                width: double.infinity,
-                height: double.infinity,
-              )
-            else
-              Container(
-                color: theme.colorScheme.surfaceContainerHighest,
-                alignment: Alignment.center,
-                child: Icon(
-                  LucideIcons.image,
-                  size: 48,
+    return SummaryCard(
+      margin: EdgeInsets.zero,
+      padding: const EdgeInsets.all(DesignConstants.spacingM),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Header Row: Icon, Title, Page/Limit count, and Delete button
+          Row(
+            children: [
+              Icon(
+                LucideIcons.camera,
+                size: 16,
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+              const SizedBox(width: DesignConstants.spacingS),
+              Text(
+                l10n.workoutPhotoAdd,
+                style: theme.textTheme.labelMedium?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
-
-            // Top right: Delete button
-            if (widget.isEditable && files.isNotEmpty)
-              Positioned(
-                top: 12,
-                right: 12,
-                child: _buildActionButton(
-                  icon: LucideIcons.trash_2,
+              const Spacer(),
+              Text(
+                hasMultiple
+                    ? '${_activePage + 1} / ${files.length}'
+                    : '${files.length} / ${WorkoutPhotoStore.maxPhotos}',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color:
+                      theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                ),
+              ),
+              if (widget.isEditable && hasPhotos) ...[
+                const SizedBox(width: DesignConstants.spacingS),
+                IconButton(
+                  icon: const Icon(
+                    LucideIcons.trash_2,
+                    size: 16,
+                    color: Color(0xFFFF6B6B),
+                  ),
                   tooltip: l10n.workoutPhotoRemove,
-                  onTap: () => _confirmDeletePhoto(_activePage),
-                  isDestructive: true,
+                  onPressed: _isProcessing
+                      ? null
+                      : () => _confirmDeletePhoto(_activePage),
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(
+                    minWidth: 24,
+                    minHeight: 24,
+                  ),
+                  visualDensity: VisualDensity.compact,
                 ),
-              ),
+              ],
+            ],
+          ),
 
-            // Bottom center: Dots indicator
-            if (hasMultiple)
-              Positioned(
-                bottom: 14,
-                left: 0,
-                right: 0,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: List.generate(files.length, (idx) {
-                    final isActive = idx == _activePage;
-                    return AnimatedContainer(
-                      duration: const Duration(milliseconds: 250),
-                      margin: const EdgeInsets.symmetric(horizontal: 3),
-                      width: isActive ? 16 : 6,
-                      height: 6,
-                      decoration: BoxDecoration(
-                        color: isActive
-                            ? const Color(0xFFC9EF00)
-                            : Colors.white.withValues(alpha: 0.6),
-                        borderRadius: BorderRadius.circular(3),
-                      ),
-                    );
-                  }),
-                ),
-              ),
-
-            // Bottom right: Add photos buttons (Camera + Gallery)
-            if (canAddMore)
-              Positioned(
-                bottom: 12,
-                right: 12,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    _buildActionButton(
-                      icon: LucideIcons.camera,
-                      tooltip: l10n.workoutPhotoTake,
-                      onTap: _takePhoto,
-                    ),
-                    const SizedBox(width: 8),
-                    _buildActionButton(
-                      icon: LucideIcons.image,
-                      tooltip: l10n.workoutPhotoFromLibrary,
-                      onTap: _pickFromGallery,
-                    ),
-                  ],
-                ),
-              ),
-
-            // Progress indicator overlay
-            if (_isProcessing)
-              Container(
-                color: Colors.black45,
-                child: const Center(
-                  child: CircularProgressIndicator(color: Colors.white),
-                ),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildEmptyState(
-    BuildContext context,
-    AppLocalizations l10n,
-    ThemeData theme,
-  ) {
-    final isDark = theme.brightness == Brightness.dark;
-    final borderColor = isDark
-        ? Colors.white.withValues(alpha: 0.2)
-        : Colors.black.withValues(alpha: 0.2);
-    final cardBg = isDark
-        ? theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3)
-        : theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.4);
-
-    return AspectRatio(
-      aspectRatio: 1.0,
-      child: CustomPaint(
-        painter: _DashedBorderPainter(
-          color: borderColor,
-          strokeWidth: 1.5,
-          radius: DesignConstants.borderRadiusM,
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
-          child: Material(
-            color: cardBg,
-            child: InkWell(
-              onTap: _takePhoto,
+          // Photo carousel / single image if present
+          if (hasPhotos) ...[
+            const SizedBox(height: DesignConstants.spacingM),
+            ClipRRect(
               borderRadius:
                   BorderRadius.circular(DesignConstants.borderRadiusM),
-              child: Padding(
-                padding: const EdgeInsets.all(DesignConstants.spacingL),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
+              child: AspectRatio(
+                aspectRatio: 1.0,
+                child: Stack(
+                  fit: StackFit.expand,
                   children: [
-                    if (_isProcessing)
-                      const CircularProgressIndicator()
-                    else ...[
-                      Icon(
-                        LucideIcons.camera,
-                        size: 40,
-                        color: theme.colorScheme.primary,
+                    if (hasMultiple)
+                      PageView.builder(
+                        controller: _pageController,
+                        itemCount: files.length,
+                        onPageChanged: (idx) =>
+                            setState(() => _activePage = idx),
+                        itemBuilder: (context, idx) {
+                          return Image.file(
+                            files[idx],
+                            fit: BoxFit.cover,
+                            width: double.infinity,
+                            height: double.infinity,
+                          );
+                        },
+                      )
+                    else
+                      Image.file(
+                        files.first,
+                        fit: BoxFit.cover,
+                        width: double.infinity,
+                        height: double.infinity,
                       ),
-                      const SizedBox(height: DesignConstants.spacingS),
-                      Text(
-                        l10n.workoutPhotoTake,
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
+
+                    // Dot indicators on multi-image
+                    if (hasMultiple)
+                      Positioned(
+                        bottom: 10,
+                        left: 0,
+                        right: 0,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: List.generate(files.length, (idx) {
+                            final isActive = idx == _activePage;
+                            return AnimatedContainer(
+                              duration: const Duration(milliseconds: 250),
+                              margin: const EdgeInsets.symmetric(
+                                horizontal: 3,
+                              ),
+                              width: isActive ? 16 : 6,
+                              height: 6,
+                              decoration: BoxDecoration(
+                                color: isActive
+                                    ? const Color(0xFFC9EF00)
+                                    : Colors.white.withValues(alpha: 0.6),
+                                borderRadius: BorderRadius.circular(3),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(
+                                      alpha: 0.35,
+                                    ),
+                                    blurRadius: 3,
+                                  ),
+                                ],
+                              ),
+                            );
+                          }),
                         ),
-                        textAlign: TextAlign.center,
                       ),
-                      const SizedBox(height: DesignConstants.spacingM),
-                      FilledButton.tonalIcon(
-                        onPressed: _pickFromGallery,
-                        icon: const Icon(LucideIcons.image, size: 18),
-                        label: Text(l10n.workoutPhotoFromLibrary),
-                        style: FilledButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: DesignConstants.spacingM,
-                            vertical: DesignConstants.spacingS,
+
+                    if (_isProcessing)
+                      Container(
+                        color: Colors.black45,
+                        child: const Center(
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
                           ),
                         ),
                       ),
-                    ],
                   ],
                 ),
               ),
             ),
-          ),
-        ),
+          ],
+
+          // Action buttons (Camera + Gallery) if editable and photo limit not reached
+          if (canAddMore) ...[
+            const SizedBox(height: DesignConstants.spacingM),
+            Row(
+              children: [
+                Expanded(
+                  child: AppButton.secondary(
+                    icon: LucideIcons.camera,
+                    label: l10n.workoutPhotoTake,
+                    tooltip: l10n.workoutPhotoTake,
+                    size: AppButtonSize.medium,
+                    isLoading: _isProcessing,
+                    onPressed: _isProcessing ? null : _takePhoto,
+                  ),
+                ),
+                const SizedBox(width: DesignConstants.spacingS),
+                Expanded(
+                  child: AppButton.secondary(
+                    icon: LucideIcons.image,
+                    label: l10n.workoutPhotoFromLibrary,
+                    tooltip: l10n.workoutPhotoFromLibrary,
+                    size: AppButtonSize.medium,
+                    isLoading: _isProcessing,
+                    onPressed: _isProcessing ? null : _pickFromGallery,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ],
       ),
     );
   }
-
-  Widget _buildActionButton({
-    required IconData icon,
-    required String tooltip,
-    required VoidCallback onTap,
-    bool isDestructive = false,
-  }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.55),
-        shape: BoxShape.circle,
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: IconButton(
-          icon: Icon(
-            icon,
-            size: 20,
-            color: isDestructive ? const Color(0xFFFF6B6B) : Colors.white,
-          ),
-          tooltip: tooltip,
-          onPressed: _isProcessing ? null : onTap,
-          padding: const EdgeInsets.all(8),
-          constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
-        ),
-      ),
-    );
-  }
-}
-
-class _DashedBorderPainter extends CustomPainter {
-  final Color color;
-  final double strokeWidth;
-  final double radius;
-
-  static const double _dash = 6.0;
-  static const double _gap = 4.0;
-
-  _DashedBorderPainter({
-    required this.color,
-    this.strokeWidth = 1.5,
-    this.radius = 12.0,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..strokeWidth = strokeWidth
-      ..style = PaintingStyle.stroke;
-
-    final rrect = RRect.fromRectAndRadius(
-      Offset.zero & size,
-      Radius.circular(radius),
-    );
-    final path = Path()..addRRect(rrect);
-
-    final metrics = path.computeMetrics();
-    for (final metric in metrics) {
-      var distance = 0.0;
-      while (distance < metric.length) {
-        final len = math.min(_dash, metric.length - distance);
-        canvas.drawPath(
-          metric.extractPath(distance, distance + len),
-          paint,
-        );
-        distance += _dash + _gap;
-      }
-    }
-  }
-
-  @override
-  bool shouldRepaint(_DashedBorderPainter oldDelegate) =>
-      color != oldDelegate.color ||
-      strokeWidth != oldDelegate.strokeWidth ||
-      radius != oldDelegate.radius;
 }
