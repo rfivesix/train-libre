@@ -130,8 +130,11 @@ class PulseAnalysisEngine {
     }
 
     if (totalSeconds <= 0) {
-      return samples.fold<double>(0, (sum, sample) => sum + sample.bpm) /
-          samples.length;
+      var sum = 0.0;
+      for (var i = 0; i < samples.length; i++) {
+        sum += samples[i].bpm;
+      }
+      return sum / samples.length;
     }
     return weightedSum / totalSeconds;
   }
