@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:figma_squircle/figma_squircle.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:image_picker/image_picker.dart';
@@ -12,9 +13,9 @@ import '../../../app/presentation/widgets/glass_bottom_menu.dart';
 import '../../data/sources/workout_local_data_source.dart';
 import '../../data/workout_photo_store.dart';
 
-/// A card displaying workout photos in a carousel (or a compact glass card when empty),
-/// with support for adding up to 4 photos via direct camera capture or gallery picker,
-/// deleting existing photos, and seamless integration with app themes and liquid glass design tokens.
+/// A card displaying workout photos:
+/// - In edit mode: inside a [SummaryCard] with header, actions, and delete button.
+/// - In view mode: clean full-width squircle photo carousel without outer card borders or redundant headers.
 class WorkoutPhotoCard extends StatefulWidget {
   final int? workoutLogId;
   final List<String> photoPaths;
@@ -200,187 +201,244 @@ class _WorkoutPhotoCardState extends State<WorkoutPhotoCard> {
     final theme = Theme.of(context);
     final files = _resolveFiles();
 
-    if (widget.photoPaths.isEmpty && !widget.isEditable) {
-      return const SizedBox.shrink();
+    if (files.isEmpty) {
+      if (!widget.isEditable) {
+        return const SizedBox.shrink();
+      }
+      return SummaryCard(
+        margin: EdgeInsets.zero,
+        padding: const EdgeInsets.all(DesignConstants.spacingM),
+        child: Row(
+          children: [
+            Expanded(
+              child: AppButton.secondary(
+                icon: LucideIcons.camera,
+                label: l10n.workoutPhotoTake,
+                tooltip: l10n.workoutPhotoTake,
+                size: AppButtonSize.medium,
+                isLoading: _isProcessing,
+                onPressed: _isProcessing ? null : _takePhoto,
+              ),
+            ),
+            const SizedBox(width: DesignConstants.spacingS),
+            Expanded(
+              child: AppButton.secondary(
+                icon: LucideIcons.image,
+                label: l10n.workoutPhotoFromLibrary,
+                tooltip: l10n.workoutPhotoFromLibrary,
+                size: AppButtonSize.medium,
+                isLoading: _isProcessing,
+                onPressed: _isProcessing ? null : _pickFromGallery,
+              ),
+            ),
+          ],
+        ),
+      );
     }
 
-    final hasPhotos = files.isNotEmpty;
     final hasMultiple = files.length > 1;
     final canAddMore = widget.isEditable &&
         widget.photoPaths.length < WorkoutPhotoStore.maxPhotos;
+    final isDark = theme.brightness == Brightness.dark;
 
-    return SummaryCard(
-      margin: EdgeInsets.zero,
-      padding: const EdgeInsets.all(DesignConstants.spacingM),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Header Row: Icon, Title, Page/Limit count, and Delete button
-          Row(
-            children: [
-              Icon(
-                LucideIcons.camera,
-                size: 16,
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-              const SizedBox(width: DesignConstants.spacingS),
-              Text(
-                l10n.workoutPhotoAdd,
-                style: theme.textTheme.labelMedium?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const Spacer(),
-              Text(
-                hasMultiple
-                    ? '${_activePage + 1} / ${files.length}'
-                    : '${files.length} / ${WorkoutPhotoStore.maxPhotos}',
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color:
-                      theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
-                ),
-              ),
-              if (widget.isEditable && hasPhotos) ...[
-                const SizedBox(width: DesignConstants.spacingS),
-                IconButton(
-                  icon: const Icon(
-                    LucideIcons.trash_2,
-                    size: 16,
-                    color: Color(0xFFFF6B6B),
-                  ),
-                  tooltip: l10n.workoutPhotoRemove,
-                  onPressed: _isProcessing
-                      ? null
-                      : () => _confirmDeletePhoto(_activePage),
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(
-                    minWidth: 24,
-                    minHeight: 24,
-                  ),
-                  visualDensity: VisualDensity.compact,
-                ),
-              ],
-            ],
+    final squircleRadius = SmoothBorderRadius(
+      cornerRadius: DesignConstants.borderRadiusL,
+      cornerSmoothing: 0.6,
+    );
+    final squircle = SmoothRectangleBorder(borderRadius: squircleRadius);
+    final clipper = ShapeBorderClipper(shape: squircle);
+
+    final photoWidget = AspectRatio(
+      aspectRatio: 1.0,
+      child: ClipPath(
+        clipper: clipper,
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(DesignConstants.borderRadiusL),
+            border: Border.all(
+              color: isDark
+                  ? Colors.white.withValues(alpha: 0.12)
+                  : Colors.black.withValues(alpha: 0.08),
+              width: 0.5,
+            ),
           ),
-
-          // Photo carousel / single image if present
-          if (hasPhotos) ...[
-            const SizedBox(height: DesignConstants.spacingM),
-            ClipRRect(
-              borderRadius:
-                  BorderRadius.circular(DesignConstants.borderRadiusM),
-              child: AspectRatio(
-                aspectRatio: 1.0,
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    if (hasMultiple)
-                      PageView.builder(
-                        controller: _pageController,
-                        itemCount: files.length,
-                        onPageChanged: (idx) =>
-                            setState(() => _activePage = idx),
-                        itemBuilder: (context, idx) {
-                          return Image.file(
-                            files[idx],
-                            fit: BoxFit.cover,
-                            width: double.infinity,
-                            height: double.infinity,
-                          );
-                        },
-                      )
-                    else
-                      Image.file(
-                        files.first,
+          child: ClipPath(
+            clipper: clipper,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                if (hasMultiple)
+                  PageView.builder(
+                    controller: _pageController,
+                    itemCount: files.length,
+                    onPageChanged: (idx) =>
+                        setState(() => _activePage = idx),
+                    itemBuilder: (context, idx) {
+                      return Image.file(
+                        files[idx],
                         fit: BoxFit.cover,
                         width: double.infinity,
                         height: double.infinity,
-                      ),
+                      );
+                    },
+                  )
+                else
+                  Image.file(
+                    files.first,
+                    fit: BoxFit.cover,
+                    width: double.infinity,
+                    height: double.infinity,
+                  ),
 
-                    // Dot indicators on multi-image
-                    if (hasMultiple)
-                      Positioned(
-                        bottom: 10,
-                        left: 0,
-                        right: 0,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: List.generate(files.length, (idx) {
-                            final isActive = idx == _activePage;
-                            return AnimatedContainer(
-                              duration: const Duration(milliseconds: 250),
-                              margin: const EdgeInsets.symmetric(
-                                horizontal: 3,
-                              ),
-                              width: isActive ? 16 : 6,
-                              height: 6,
-                              decoration: BoxDecoration(
-                                color: isActive
-                                    ? const Color(0xFFC9EF00)
-                                    : Colors.white.withValues(alpha: 0.6),
-                                borderRadius: BorderRadius.circular(3),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withValues(
-                                      alpha: 0.35,
-                                    ),
-                                    blurRadius: 3,
-                                  ),
-                                ],
-                              ),
-                            );
-                          }),
+                // Top badge: counter inside the image (top-left in all modes)
+                if (hasMultiple)
+                  Positioned(
+                    top: 12,
+                    left: 12,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 5,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.55),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.25),
+                          width: 0.5,
                         ),
                       ),
+                      child: Text(
+                        l10n.workoutPhotoPagination(
+                          _activePage + 1,
+                          files.length,
+                        ),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
 
-                    if (_isProcessing)
-                      Container(
-                        color: Colors.black45,
-                        child: const Center(
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
+                // Top right: Delete button inside the image (in edit mode)
+                if (widget.isEditable)
+                  Positioned(
+                    top: 10,
+                    right: 10,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.55),
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.25),
+                          width: 0.5,
+                        ),
+                      ),
+                      child: Material(
+                        color: Colors.transparent,
+                        child: IconButton(
+                          icon: const Icon(
+                            LucideIcons.trash_2,
+                            size: 16,
+                            color: Color(0xFFFF6B6B),
+                          ),
+                          tooltip: l10n.workoutPhotoRemove,
+                          onPressed: _isProcessing
+                              ? null
+                              : () => _confirmDeletePhoto(_activePage),
+                          padding: const EdgeInsets.all(8),
+                          constraints: const BoxConstraints(
+                            minWidth: 32,
+                            minHeight: 32,
                           ),
                         ),
                       ),
-                  ],
-                ),
+                    ),
+                  ),
+
+                // Dot indicators at bottom center
+                if (hasMultiple)
+                  Positioned(
+                    bottom: 12,
+                    left: 0,
+                    right: 0,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: List.generate(files.length, (idx) {
+                        final isActive = idx == _activePage;
+                        return AnimatedContainer(
+                          duration: const Duration(milliseconds: 250),
+                          margin: const EdgeInsets.symmetric(horizontal: 3),
+                          width: isActive ? 16 : 6,
+                          height: 6,
+                          decoration: BoxDecoration(
+                            color: isActive
+                                ? const Color(0xFFC9EF00)
+                                : Colors.white.withValues(alpha: 0.6),
+                            borderRadius: BorderRadius.circular(3),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.35),
+                                blurRadius: 3,
+                              ),
+                            ],
+                          ),
+                        );
+                      }),
+                    ),
+                  ),
+
+                if (_isProcessing)
+                  Container(
+                    color: Colors.black45,
+                    child: const Center(
+                      child: CircularProgressIndicator(color: Colors.white),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    if (!canAddMore) {
+      return photoWidget;
+    }
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        photoWidget,
+        const SizedBox(height: DesignConstants.spacingS),
+        Row(
+          children: [
+            Expanded(
+              child: AppButton.secondary(
+                icon: LucideIcons.camera,
+                label: l10n.workoutPhotoTake,
+                tooltip: l10n.workoutPhotoTake,
+                size: AppButtonSize.medium,
+                isLoading: _isProcessing,
+                onPressed: _isProcessing ? null : _takePhoto,
+              ),
+            ),
+            const SizedBox(width: DesignConstants.spacingS),
+            Expanded(
+              child: AppButton.secondary(
+                icon: LucideIcons.image,
+                label: l10n.workoutPhotoFromLibrary,
+                tooltip: l10n.workoutPhotoFromLibrary,
+                size: AppButtonSize.medium,
+                isLoading: _isProcessing,
+                onPressed: _isProcessing ? null : _pickFromGallery,
               ),
             ),
           ],
-
-          // Action buttons (Camera + Gallery) if editable and photo limit not reached
-          if (canAddMore) ...[
-            const SizedBox(height: DesignConstants.spacingM),
-            Row(
-              children: [
-                Expanded(
-                  child: AppButton.secondary(
-                    icon: LucideIcons.camera,
-                    label: l10n.workoutPhotoTake,
-                    tooltip: l10n.workoutPhotoTake,
-                    size: AppButtonSize.medium,
-                    isLoading: _isProcessing,
-                    onPressed: _isProcessing ? null : _takePhoto,
-                  ),
-                ),
-                const SizedBox(width: DesignConstants.spacingS),
-                Expanded(
-                  child: AppButton.secondary(
-                    icon: LucideIcons.image,
-                    label: l10n.workoutPhotoFromLibrary,
-                    tooltip: l10n.workoutPhotoFromLibrary,
-                    size: AppButtonSize.medium,
-                    isLoading: _isProcessing,
-                    onPressed: _isProcessing ? null : _pickFromGallery,
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

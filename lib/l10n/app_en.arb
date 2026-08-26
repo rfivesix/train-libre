@@ -2935,5 +2935,17 @@
   "workoutPhotoFromLibrary": "Choose from library",
   "workoutPhotoRemove": "Remove photo",
   "workoutPhotoRemoveConfirm": "Are you sure you want to remove this photo?",
-  "workoutPhotoLimitReached": "Maximum of 4 photos reached"
+  "workoutPhotoLimitReached": "Maximum of 4 photos reached",
+  "workoutPhotoPagination": "{current} of {total}",
+  "@workoutPhotoPagination": {
+    "description": "Pagination indicator for workout photo carousel",
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  }
 }

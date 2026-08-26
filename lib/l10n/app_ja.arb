@@ -2743,5 +2743,17 @@
   "workoutPhotoFromLibrary": "ライブラリから選択",
   "workoutPhotoRemove": "写真を削除",
   "workoutPhotoRemoveConfirm": "この写真を削除してもよろしいですか？",
-  "workoutPhotoLimitReached": "写真の上限（4枚）に達しました"
+  "workoutPhotoLimitReached": "写真の上限（4枚）に達しました",
+  "workoutPhotoPagination": "{current} / {total}",
+  "@workoutPhotoPagination": {
+    "description": "Pagination indicator for workout photo carousel",
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  }
 }

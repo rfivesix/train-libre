@@ -92,13 +92,13 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Compact card without forced 1:1 AspectRatio
+      // Compact card without forced 1:1 AspectRatio and without Add photo header
       expect(find.byType(AspectRatio), findsNothing);
       expect(find.byType(SummaryCard), findsOneWidget);
-      expect(find.text('Add photo'), findsOneWidget);
+      expect(find.text('Add photo'), findsNothing);
       expect(find.text('Take photo'), findsOneWidget);
       expect(find.text('Choose from library'), findsOneWidget);
-      expect(find.byIcon(LucideIcons.camera), findsNWidgets(2));
+      expect(find.byIcon(LucideIcons.camera), findsOneWidget);
       expect(find.byIcon(LucideIcons.image), findsOneWidget);
     });
 
@@ -169,6 +169,29 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(updatedResult, ['media/workouts/p2.jpg']);
+    });
+
+    testWidgets('renders borderless squircle photo without SummaryCard in view mode',
+        (tester) async {
+      write('media/workouts/p1.jpg', [1, 2, 3]);
+      write('media/workouts/p2.jpg', [1, 2, 3]);
+
+      await tester.pumpWidget(
+        createWidget(
+          photoPaths: ['media/workouts/p1.jpg', 'media/workouts/p2.jpg'],
+          isEditable: false,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // In view mode: No SummaryCard frame and no "Add photo" header
+      expect(find.byType(SummaryCard), findsNothing);
+      expect(find.text('Add photo'), findsNothing);
+      expect(find.byType(PageView), findsOneWidget);
+      // Top-right counter badge is rendered on multi-photo
+      expect(find.text('1 of 2'), findsOneWidget);
+      // No trash button
+      expect(find.byIcon(LucideIcons.trash_2), findsNothing);
     });
   });
 }

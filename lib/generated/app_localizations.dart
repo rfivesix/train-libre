@@ -10854,6 +10854,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Maximum of 4 photos reached'**
   String get workoutPhotoLimitReached;
+
+  /// Pagination indicator for workout photo carousel
+  ///
+  /// In en, this message translates to:
+  /// **'{current} of {total}'**
+  String workoutPhotoPagination(int current, int total);
 }
 
 class _AppLocalizationsDelegate

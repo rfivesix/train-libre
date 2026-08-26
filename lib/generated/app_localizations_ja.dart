@@ -6008,4 +6008,9 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get workoutPhotoLimitReached => '写真の上限（4枚）に達しました';
+
+  @override
+  String workoutPhotoPagination(int current, int total) {
+    return '$current / $total';
+  }
 }

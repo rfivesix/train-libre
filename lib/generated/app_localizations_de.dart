@@ -6257,8 +6257,13 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get workoutPhotoRemoveConfirm =>
-      'Möchtest du dieses Foto wirklich entfernen?';
+      'Are you sure you want to remove this photo?';
 
   @override
   String get workoutPhotoLimitReached => 'Maximal 4 Fotos erreicht';
+
+  @override
+  String workoutPhotoPagination(int current, int total) {
+    return '$current von $total';
+  }
 }
