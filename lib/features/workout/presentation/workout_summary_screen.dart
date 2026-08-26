@@ -385,7 +385,17 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
                       Expanded(
                         child: ListView(
                           children: [
-                            // Routine Title, Date/Time & Notes (Hero Section FIRST)
+                            // Overall statistics (very top, under the app bar)
+                            WorkoutSummaryBar(
+                              duration:
+                                  _log!.endTime?.difference(_log!.startTime),
+                              volume: globalVolume,
+                              sets: _log!.sets.length,
+                              progress: null,
+                            ),
+                            const SizedBox(height: DesignConstants.spacingL),
+
+                            // Routine Title, Date/Time & Notes
                             Text(
                               _log!.routineName != null &&
                                       _log!.routineName!.isNotEmpty
@@ -419,7 +429,7 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
                             ],
                             const SizedBox(height: DesignConstants.spacingM),
 
-                            // Photos (under Title, Date and Time)
+                            // Photos (under Title, Date, Time and Stats)
                             WorkoutPhotoCard(
                               workoutLogId: _log!.id,
                               photoPaths: _log!.photoPaths,
@@ -431,16 +441,6 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
                                   );
                                 });
                               },
-                            ),
-                            const SizedBox(height: DesignConstants.spacingL),
-
-                            // Overall statistics
-                            WorkoutSummaryBar(
-                              duration:
-                                  _log!.endTime?.difference(_log!.startTime),
-                              volume: globalVolume,
-                              sets: _log!.sets.length,
-                              progress: null,
                             ),
                             const SizedBox(height: DesignConstants.spacingL),
 
