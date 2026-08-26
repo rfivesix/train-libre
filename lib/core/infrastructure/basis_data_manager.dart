@@ -1238,10 +1238,17 @@ class BasisDataManager {
           );
 
           // Exercise bundles need two passes: first insert exercises, then translations.
-          final exerciseBundles =
-              mappedCompanions.whereType<_ExerciseBundle>().toList();
-          final otherCompanions =
-              mappedCompanions.where((c) => c is! _ExerciseBundle).toList();
+          final exerciseBundles = <_ExerciseBundle>[];
+          final otherCompanions = <dynamic>[];
+          // ⚡ Bolt Optimization: Single-pass iteration to partition companions
+          // Replaces two O(N) `.where` passes, avoiding redundant array allocations.
+          for (final companion in mappedCompanions) {
+            if (companion is _ExerciseBundle) {
+              exerciseBundles.add(companion);
+            } else {
+              otherCompanions.add(companion);
+            }
+          }
 
           debugPrint(
             '[ExerciseCatalog]   [$taskLabel] Batch #$batchNumber: '
