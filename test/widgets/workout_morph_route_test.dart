@@ -35,6 +35,45 @@ void main() {
     expect(find.text('main'), findsOneWidget);
   });
 
+  testWidgets('mid-flight the page is scaled and the screen behind is dimmed',
+      (tester) async {
+    final navigatorKey = GlobalKey<NavigatorState>();
+    await tester.pumpWidget(MaterialApp(
+      navigatorKey: navigatorKey,
+      home: const Scaffold(body: Text('main')),
+    ));
+
+    navigatorKey.currentState!.push(
+      WorkoutMorphRoute<void>(
+        builder: (_) => const Scaffold(body: Text('workout')),
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 80));
+
+    // The content moves with the container rather than sitting still behind a
+    // widening window — that is what separates a morph from a reveal.
+    final transform = tester.widget<Transform>(
+      find
+          .ancestor(of: find.text('workout'), matching: find.byType(Transform))
+          .first,
+    );
+    // The x scale specifically — `getMaxScaleOnAxis` maxes over all three axes
+    // and would keep reporting the untouched z scale of 1.0.
+    final scale = transform.transform.getRow(0).x;
+    expect(scale, lessThan(1.0));
+    expect(scale, greaterThan(0.5));
+
+    // And the screen left behind is dimmed.
+    final scrim = tester.widgetList<ColoredBox>(find.byType(ColoredBox));
+    expect(
+      scrim.any((box) => box.color.a > 0.0 && box.color.a < 1.0),
+      isTrue,
+    );
+
+    await tester.pumpAndSettle();
+  });
+
   test('the overlay rect matches where the bar is positioned', () {
     const screen = Size(390, 844);
     final rect = DesignConstants.workoutOverlayRect(screen);
