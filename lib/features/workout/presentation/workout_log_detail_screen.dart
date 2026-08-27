@@ -82,6 +82,29 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
   // Use repsController for REPS or TIME (min)
   final Map<int, TextEditingController> _repsControllers = {};
   final Map<int, TextEditingController> _rirControllers = {};
+  final Set<String> _deletingExerciseNames = <String>{};
+
+  void _onDeleteExercise(String exName, List<SetLog> sets) {
+    if (_deletingExerciseNames.contains(exName)) return;
+    HapticFeedbackService.instance.selectionFeedback();
+    setState(() {
+      _deletingExerciseNames.add(exName);
+    });
+    Future.delayed(const Duration(milliseconds: 280), () {
+      if (mounted) {
+        setState(() {
+          _deletingExerciseNames.remove(exName);
+          for (var set in sets) {
+            _weightControllers.remove(set.id!)?.dispose();
+            _repsControllers.remove(set.id!)?.dispose();
+            _rirControllers.remove(set.id!)?.dispose();
+          }
+          _groupedSets.remove(exName);
+          _exerciseNotes.remove(exName);
+        });
+      }
+    });
+  }
 
   bool _pulseTrackingEnabled = false;
   DateTime? _editedStartTime;
@@ -1270,95 +1293,114 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                                   }
                                 }
 
-                                return RepaintBoundary(
+                                final isDeleting =
+                                    _deletingExerciseNames.contains(exerciseName);
+
+                                return KeyedSubtree(
                                   key: ValueKey(exerciseName),
-                                  child: KeyedSubtree(
-                                    key: _dragAnchor.keyFor(exerciseName),
-                                    child: WorkoutExerciseLogCard(
-                                      exerciseName: exerciseName,
-                                      exercise: exercise,
-                                      sets: sets,
-                                      isEditMode: true,
-                                      isCardio: isCardio,
-                                      isDragging: _isDragging,
-                                      onPointerDown: (event) {
-                                        _collapseTimer?.cancel();
-                                        _collapseTimer = Timer(
-                                            const Duration(milliseconds: 300),
-                                            () => _collapseCards(exerciseName));
-                                      },
-                                      onPointerUp: (event) => handleRelease(),
-                                      onPointerMove: (event) {
-                                        // Cancel timer if finger moves – user is scrolling, not drag-holding.
-                                        if (event.delta.dy.abs() > 4.0 ||
-                                            event.delta.dx.abs() > 4.0) {
-                                          _collapseTimer?.cancel();
-                                        }
-                                      },
-                                      onPointerCancel: (event) =>
-                                          handleRelease(),
-                                      weightControllers: _weightControllers,
-                                      repsControllers: _repsControllers,
-                                      rirControllers: _rirControllers,
-                                      exerciseNote:
-                                          _exerciseNotes[exerciseName],
-                                      onEditNotes: (exName) =>
-                                          _editExerciseNotes(context, exName),
-                                      onDeleteExercise: (exName) {
-                                        setState(() {
-                                          for (var set in sets) {
-                                            _weightControllers
-                                                .remove(set.id!)
-                                                ?.dispose();
-                                            _repsControllers
-                                                .remove(set.id!)
-                                                ?.dispose();
-                                            _rirControllers
-                                                .remove(set.id!)
-                                                ?.dispose();
-                                          }
-                                          _groupedSets.remove(exName);
-                                          _exerciseNotes.remove(exName);
-                                        });
-                                      },
-                                      onAddSet: () {
-                                        final newSet = SetLog(
-                                          id: -DateTime.now()
-                                              .millisecondsSinceEpoch,
-                                          workoutLogId: _log!.id!,
-                                          exerciseName: exerciseName,
-                                          setType: 'normal',
-                                          isCompleted: true,
-                                        );
-                                        setState(() {
-                                          sets.add(newSet);
-                                          _weightControllers[newSet.id!] =
-                                              TextEditingController();
-                                          _repsControllers[newSet.id!] =
-                                              TextEditingController();
-                                          _rirControllers[newSet.id!] =
-                                              TextEditingController();
-                                        });
-                                      },
-                                      onDeleteSet: (setId) {
-                                        setState(() {
-                                          sets.removeWhere(
-                                              (s) => s.id == setId);
-                                          _weightControllers
-                                              .remove(setId)
-                                              ?.dispose();
-                                          _repsControllers
-                                              .remove(setId)
-                                              ?.dispose();
-                                          _rirControllers
-                                              .remove(setId)
-                                              ?.dispose();
-                                        });
-                                      },
-                                      onSetTypeTap: (setId) =>
-                                          _showSetTypePicker(setId),
-                                      index: index,
-                                    ),
+                                  child: AnimatedSize(
+                                    duration: const Duration(milliseconds: 280),
+                                    curve: Curves.easeInOutCubic,
+                                    alignment: Alignment.topCenter,
+                                    child: isDeleting
+                                        ? const SizedBox(
+                                            width: double.infinity, height: 0)
+                                        : AnimatedOpacity(
+                                            duration: const Duration(
+                                                milliseconds: 180),
+                                            curve: Curves.easeOut,
+                                            opacity: isDeleting ? 0.0 : 1.0,
+                                            child: RepaintBoundary(
+                                              key: ValueKey(exerciseName),
+                                              child: KeyedSubtree(
+                                                key: _dragAnchor
+                                                    .keyFor(exerciseName),
+                                                child: WorkoutExerciseLogCard(
+                                                  exerciseName: exerciseName,
+                                                  exercise: exercise,
+                                                  sets: sets,
+                                                  isEditMode: true,
+                                                  isCardio: isCardio,
+                                                  isDragging: _isDragging,
+                                                  onPointerDown: (event) {
+                                                    _collapseTimer?.cancel();
+                                                    _collapseTimer = Timer(
+                                                        const Duration(
+                                                            milliseconds: 300),
+                                                        () => _collapseCards(
+                                                            exerciseName));
+                                                  },
+                                                  onPointerUp: (event) =>
+                                                      handleRelease(),
+                                                  onPointerMove: (event) {
+                                                    // Cancel timer if finger moves – user is scrolling, not drag-holding.
+                                                    if (event.delta.dy.abs() >
+                                                            4.0 ||
+                                                        event.delta.dx.abs() >
+                                                            4.0) {
+                                                      _collapseTimer?.cancel();
+                                                    }
+                                                  },
+                                                  onPointerCancel: (event) =>
+                                                      handleRelease(),
+                                                  weightControllers:
+                                                      _weightControllers,
+                                                  repsControllers:
+                                                      _repsControllers,
+                                                  rirControllers:
+                                                      _rirControllers,
+                                                  exerciseNote: _exerciseNotes[
+                                                      exerciseName],
+                                                  onEditNotes: (exName) =>
+                                                      _editExerciseNotes(
+                                                          context, exName),
+                                                  onDeleteExercise: (exName) =>
+                                                      _onDeleteExercise(
+                                                          exName, sets),
+                                                  onAddSet: () {
+                                                    final newSet = SetLog(
+                                                      id: -DateTime.now()
+                                                          .millisecondsSinceEpoch,
+                                                      workoutLogId: _log!.id!,
+                                                      exerciseName: exerciseName,
+                                                      setType: 'normal',
+                                                      isCompleted: true,
+                                                    );
+                                                    setState(() {
+                                                      sets.add(newSet);
+                                                      _weightControllers[
+                                                              newSet.id!] =
+                                                          TextEditingController();
+                                                      _repsControllers[
+                                                              newSet.id!] =
+                                                          TextEditingController();
+                                                      _rirControllers[
+                                                              newSet.id!] =
+                                                          TextEditingController();
+                                                    });
+                                                  },
+                                                  onDeleteSet: (setId) {
+                                                    setState(() {
+                                                      sets.removeWhere(
+                                                          (s) => s.id == setId);
+                                                      _weightControllers
+                                                          .remove(setId)
+                                                          ?.dispose();
+                                                      _repsControllers
+                                                          .remove(setId)
+                                                          ?.dispose();
+                                                      _rirControllers
+                                                          .remove(setId)
+                                                          ?.dispose();
+                                                    });
+                                                  },
+                                                  onSetTypeTap: (setId) =>
+                                                      _showSetTypePicker(setId),
+                                                  index: index,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
                                   ),
                                 );
                               },

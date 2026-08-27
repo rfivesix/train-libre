@@ -471,11 +471,24 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
     ).reorderExercise(oldIndex, newIndex);
   }
 
+  final Set<int> _deletingExerciseIds = <int>{};
+
   void _removeExercise(RoutineExercise exerciseToRemove) {
-    Provider.of<LiveWorkoutViewModel>(
-      context,
-      listen: false,
-    ).removeExercise(exerciseToRemove.id!);
+    final id = exerciseToRemove.id;
+    if (id == null || _deletingExerciseIds.contains(id)) return;
+    HapticFeedbackService.instance.selectionFeedback();
+    setState(() {
+      _deletingExerciseIds.add(id);
+    });
+    Future.delayed(const Duration(milliseconds: 280), () {
+      if (mounted) {
+        _deletingExerciseIds.remove(id);
+        Provider.of<LiveWorkoutViewModel>(
+          context,
+          listen: false,
+        ).removeExercise(id);
+      }
+    });
   }
 
   void _editExerciseNotes(BuildContext context, RoutineExercise re) async {
@@ -967,16 +980,28 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                         }
                                       }
 
+                                      final isDeleting = _deletingExerciseIds.contains(routineExercise.id);
+
                                       return KeyedSubtree(
                                         key: _exerciseCardKeys.putIfAbsent(
                                           routineExercise.id ?? index,
                                           () => GlobalKey(),
                                         ),
-                                        child: RepaintBoundary(
-                                          key: ValueKey(routineExercise.id),
-                                          child: KeyedSubtree(
-                                            key: _dragAnchor.keyFor(exerciseId),
-                                            child: WorkoutCard(
+                                        child: AnimatedSize(
+                                          duration: const Duration(milliseconds: 280),
+                                          curve: Curves.easeInOutCubic,
+                                          alignment: Alignment.topCenter,
+                                          child: isDeleting
+                                              ? const SizedBox(width: double.infinity, height: 0)
+                                              : AnimatedOpacity(
+                                                  duration: const Duration(milliseconds: 180),
+                                                  curve: Curves.easeOut,
+                                                  opacity: isDeleting ? 0.0 : 1.0,
+                                                  child: RepaintBoundary(
+                                                    key: ValueKey(routineExercise.id),
+                                                    child: KeyedSubtree(
+                                                      key: _dragAnchor.keyFor(exerciseId),
+                                                      child: WorkoutCard(
                                               child: Column(
                                                 crossAxisAlignment:
                                                     CrossAxisAlignment.start,
@@ -1407,8 +1432,10 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                             ),
                                           ),
                                         ),
-                                      );
-                                    },
+                                      ),
+                                    ),
+                                  );
+                                },
                                   ),
                           ),
                         ],

@@ -63,6 +63,7 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
   final Map<int, TextEditingController> _repsControllers = {};
   final Map<int, TextEditingController> _weightControllers = {};
   final Map<int, TextEditingController> _rirControllers = {};
+  final Set<int> _deletingExerciseIds = <int>{};
   static const ShareService _shareService = ShareService();
 
   String _originalState = '';
@@ -687,6 +688,15 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
     );
 
     if (confirmed && _routineId != null) {
+      final id = ex.id;
+      if (id != null) {
+        HapticFeedbackService.instance.selectionFeedback();
+        setState(() {
+          _deletingExerciseIds.add(id);
+        });
+        await Future.delayed(const Duration(milliseconds: 280));
+        _deletingExerciseIds.remove(id);
+      }
       await WorkoutLocalDataSource.instance.removeExerciseFromRoutine(ex.id!);
       _loadExercisesForRoutine();
     }
@@ -916,66 +926,108 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                                         }
                                       }
 
-                                      return RepaintBoundary(
-                                        key: ValueKey(routineExercise.id),
-                                        child: KeyedSubtree(
-                                          key: _dragAnchor.keyFor(exerciseId),
-                                          child: EditRoutineExerciseCard(
-                                            routineExercise: routineExercise,
-                                            index: index,
-                                            isCardio: isCardio,
-                                            isDragging: _isDragging,
-                                            isEditMode: _isEditMode,
-                                            onPointerDown: _isEditMode
-                                                ? (event) {
-                                                    _collapseTimer?.cancel();
-                                                    _collapseTimer = Timer(
-                                                        const Duration(
-                                                            milliseconds: 300),
-                                                        () => _collapseCards(
-                                                            exerciseId));
-                                                  }
-                                                : null,
-                                            onPointerUp: _isEditMode
-                                                ? (event) => handleRelease()
-                                                : null,
-                                            onPointerMove: _isEditMode
-                                                ? (event) {
-                                                    // Cancel timer if finger moves – user is scrolling, not drag-holding.
-                                                    if (event.delta.dy.abs() >
-                                                            4.0 ||
-                                                        event.delta.dx.abs() >
-                                                            4.0) {
-                                                      _collapseTimer?.cancel();
-                                                    }
-                                                  }
-                                                : null,
-                                            onPointerCancel: _isEditMode
-                                                ? (event) => handleRelease()
-                                                : null,
-                                            repsControllers: _repsControllers,
-                                            weightControllers:
-                                                _weightControllers,
-                                            rirControllers: _rirControllers,
-                                            onEditNotes: () =>
-                                                _editExerciseNotes(
-                                                    context, routineExercise),
-                                            onEditPauseTime: () =>
-                                                _editPauseTime(routineExercise),
-                                            onDeleteExercise: () =>
-                                                _deleteSingleExercise(
-                                                    routineExercise),
-                                            onAddSet: () =>
-                                                _addSet(routineExercise),
-                                            onShowSetTypePicker:
-                                                _showSetTypePicker,
-                                            onRemoveSet:
-                                                (template, listIndex) =>
-                                                    _removeSet(
-                                                        routineExercise,
-                                                        template.id!,
-                                                        listIndex),
-                                          ),
+                                      final isDeleting = _deletingExerciseIds
+                                          .contains(routineExercise.id);
+
+                                      return KeyedSubtree(
+                                        key: ValueKey(
+                                            routineExercise.id ?? index),
+                                        child: AnimatedSize(
+                                          duration: const Duration(
+                                              milliseconds: 280),
+                                          curve: Curves.easeInOutCubic,
+                                          alignment: Alignment.topCenter,
+                                          child: isDeleting
+                                              ? const SizedBox(
+                                                  width: double.infinity,
+                                                  height: 0)
+                                              : AnimatedOpacity(
+                                                  duration: const Duration(
+                                                      milliseconds: 180),
+                                                  curve: Curves.easeOut,
+                                                  opacity:
+                                                      isDeleting ? 0.0 : 1.0,
+                                                  child: RepaintBoundary(
+                                                    key: ValueKey(
+                                                        routineExercise.id),
+                                                    child: KeyedSubtree(
+                                                      key: _dragAnchor
+                                                          .keyFor(exerciseId),
+                                                      child:
+                                                          EditRoutineExerciseCard(
+                                                        routineExercise:
+                                                            routineExercise,
+                                                        index: index,
+                                                        isCardio: isCardio,
+                                                        isDragging:
+                                                            _isDragging,
+                                                        isEditMode:
+                                                            _isEditMode,
+                                                        onPointerDown:
+                                                            _isEditMode
+                                                                ? (event) {
+                                                                    _collapseTimer
+                                                                        ?.cancel();
+                                                                    _collapseTimer = Timer(
+                                                                        const Duration(
+                                                                            milliseconds: 300),
+                                                                        () => _collapseCards(exerciseId));
+                                                                  }
+                                                                : null,
+                                                        onPointerUp:
+                                                            _isEditMode
+                                                                ? (event) =>
+                                                                    handleRelease()
+                                                                : null,
+                                                        onPointerMove:
+                                                            _isEditMode
+                                                                ? (event) {
+                                                                    // Cancel timer if finger moves – user is scrolling, not drag-holding.
+                                                                    if (event.delta.dy.abs() > 4.0 ||
+                                                                        event.delta.dx.abs() > 4.0) {
+                                                                      _collapseTimer
+                                                                          ?.cancel();
+                                                                    }
+                                                                  }
+                                                                : null,
+                                                        onPointerCancel:
+                                                            _isEditMode
+                                                                ? (event) =>
+                                                                    handleRelease()
+                                                                : null,
+                                                        repsControllers:
+                                                            _repsControllers,
+                                                        weightControllers:
+                                                            _weightControllers,
+                                                        rirControllers:
+                                                            _rirControllers,
+                                                        onEditNotes: () =>
+                                                            _editExerciseNotes(
+                                                                context,
+                                                                routineExercise),
+                                                        onEditPauseTime: () =>
+                                                            _editPauseTime(
+                                                                routineExercise),
+                                                        onDeleteExercise: () =>
+                                                            _deleteSingleExercise(
+                                                                routineExercise),
+                                                        onAddSet: () =>
+                                                            _addSet(
+                                                                routineExercise),
+                                                        onShowSetTypePicker:
+                                                            _showSetTypePicker,
+                                                        onRemoveSet:
+                                                            (template,
+                                                                    listIndex) =>
+                                                                _removeSet(
+                                                                    routineExercise,
+                                                                    template
+                                                                        .id!,
+                                                                    listIndex),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
                                         ),
                                       );
                                     },
