@@ -14,6 +14,7 @@ FONCTIONNALITÉS CLÉS :
 • Enregistrez vos séries une par une : échauffement, séries effectives, séries à l'échec et dropsets.
 • Mesurez des indicateurs précis : répétitions, charge, et RPE / RIR (effort perçu / répétitions en réserve).
 • Créez des routines réutilisables, des exercices personnalisés, et consultez tout l'historique de vos séances.
+• Ajoutez jusqu'à 4 photos à chaque séance, conservées dans vos sauvegardes.
 
 2. NUTRITION & TDEE BASÉS SUR LA SCIENCE
 • Enregistrez vos repas, calories, macronutriments, hydratation, caféine, créatine et compléments alimentaires.
@@ -29,6 +30,7 @@ FONCTIONNALITÉS CLÉS :
 
 5. SAISIE DE REPAS PAR IA (optionnel — BYOK)
 • Apportez votre propre clé API (BYOK) : suivi optionnel des repas par IA, fonctionnant avec votre propre clé. Désactivé par défaut.
+• Photo, code-barres et voix dans un même écran : photographiez votre assiette, laissez l'écran lire un code-barres, ou décrivez le repas à la voix. Avec le LiDAR, la portion est mesurée, pas devinée.
 • Correspondance intelligente : un système de recherche locale floue (« Top-N alternatives ») couplé à Open Food Facts identifie précisément votre assiette, sans hallucinations.
 • 100 % transparent : chaque suggestion de l'IA est entièrement vérifiable et modifiable avant enregistrement.
 

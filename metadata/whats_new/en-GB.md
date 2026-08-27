@@ -10,6 +10,8 @@
 
 {camera} Photos for your workouts: Capture your workout sessions with up to 4 photos. Take pictures directly with your camera or select them from your library – right in the workout summary or later in your workout history. All photos and previews are safely included in backups.
 
+{dumbbell} Your running workout, always one tap away: The bar above the tab bar now shows at a glance whether you are working or resting, how long is left and which exercise your next open set belongs to. Tapping it grows the workout out of the bar instead of pushing in a new screen, and the chevron in its header shrinks it back down.
+
 {camera} Log a meal from a photo: Point the camera at your plate and the AI turns it into individual foods with amounts, calories and macros. Take up to four photos of the same meal, correct or swap anything before saving - and packaged products are recognised by their barcode in the very same view, without switching modes.
 
 {smartphone} Portion sizes measured, not guessed: On iPhone models with LiDAR the camera measures how far away your plate is and how large the visible area really is, and passes that to the AI. You can turn the measurement off in the AI settings.

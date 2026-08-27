@@ -10,6 +10,8 @@
 
 {camera} Photos pour vos entraînements : Capturez vos séances d'entraînement avec jusqu'à 4 photos. Prenez des photos directement avec votre appareil ou choisissez-les dans votre bibliothèque, dans le récapitulatif ou dans l'historique d'entraînement.
 
+{dumbbell} Ton entraînement en cours toujours à portée : la barre au-dessus de la navigation indique d'un coup d'œil si tu travailles ou si tu récupères, combien de temps il reste et à quel exercice appartient ta prochaine série. Un appui fait grandir l'entraînement depuis la barre au lieu d'ouvrir un nouvel écran, et le chevron de l'en-tête le fait redescendre.
+
 {camera} Enregistrer un repas à partir d'une photo : vise ton assiette et l'IA en fait des aliments distincts, avec quantités, calories et macros. Jusqu'à quatre photos par repas, tout reste corrigeable ou remplaçable avant l'enregistrement - et les produits emballés sont reconnus par leur code-barres dans la même vue, sans changer de mode.
 
 {smartphone} Des portions mesurées, pas devinées : sur les iPhone équipés du LiDAR, la caméra mesure la distance de l'assiette et la taille réelle de la zone visible, puis transmet ces valeurs à l'IA. La mesure se désactive dans les réglages IA.

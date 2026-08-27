@@ -26,6 +26,12 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
               'Capture your workout sessions with up to 4 photos. Take pictures directly with your camera or select them from your library – right in the workout summary or later in your workout history. All photos and previews are safely included in backups.',
         ),
         WhatsNewEntry(
+          icon: LucideIcons.dumbbell,
+          title: 'Your running workout, always one tap away',
+          body:
+              'The bar above the tab bar now shows at a glance whether you are working or resting, how long is left and which exercise your next open set belongs to. Tapping it grows the workout out of the bar instead of pushing in a new screen, and the chevron in its header shrinks it back down.',
+        ),
+        WhatsNewEntry(
           icon: LucideIcons.camera,
           title: 'Log a meal from a photo',
           body:
@@ -128,6 +134,12 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
           title: 'Fotos für deine Workouts',
           body:
               'Halte deine Trainingseinheiten mit bis zu 4 Fotos fest. Nimm Fotos direkt mit der Kamera auf oder wähle sie aus deiner Mediathek – sowohl direkt nach dem Training in der Zusammenfassung als auch nachträglich im Trainingsverlauf. Alle Fotos und Vorschauen werden auch im Backup gesichert.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.dumbbell,
+          title: 'Dein laufendes Workout immer im Blick',
+          body:
+              'Die Leiste über der Navigation zeigt auf einen Blick, ob du trainierst oder pausierst, wie lange noch, und zu welcher Übung dein nächster offener Satz gehört. Ein Tipp lässt das Workout aus der Leiste herauswachsen, statt einen neuen Bildschirm hereinzuschieben - der Pfeil im Kopfbereich schrumpft es wieder dorthin zurück.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.camera,
@@ -234,6 +246,12 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
               'Capturez vos séances d\'entraînement avec jusqu\'à 4 photos. Prenez des photos directement avec votre appareil ou choisissez-les dans votre bibliothèque, dans le récapitulatif ou dans l\'historique d\'entraînement.',
         ),
         WhatsNewEntry(
+          icon: LucideIcons.dumbbell,
+          title: 'Ton entraînement en cours toujours à portée',
+          body:
+              'la barre au-dessus de la navigation indique d\'un coup d\'œil si tu travailles ou si tu récupères, combien de temps il reste et à quel exercice appartient ta prochaine série. Un appui fait grandir l\'entraînement depuis la barre au lieu d\'ouvrir un nouvel écran, et le chevron de l\'en-tête le fait redescendre.',
+        ),
+        WhatsNewEntry(
           icon: LucideIcons.camera,
           title: 'Enregistrer un repas à partir d\'une photo',
           body:
@@ -338,6 +356,12 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
               'Immortala le tue sessioni di allenamento con un massimo di 4 foto. Scatta direttamente con la fotocamera o scegli dalla libreria, nel riepilogo dell\'allenamento o nella cronologia.',
         ),
         WhatsNewEntry(
+          icon: LucideIcons.dumbbell,
+          title: 'L\'allenamento in corso sempre a portata',
+          body:
+              'la barra sopra la navigazione mostra a colpo d\'occhio se stai lavorando o recuperando, quanto manca e a quale esercizio appartiene la prossima serie aperta. Un tocco fa crescere l\'allenamento dalla barra invece di aprire una nuova schermata, e il chevron nell\'intestazione lo fa tornare giù.',
+        ),
+        WhatsNewEntry(
           icon: LucideIcons.camera,
           title: 'Registra un pasto da una foto',
           body:
@@ -440,6 +464,12 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
           title: 'ワークアウトの写真記録',
           body:
               'トレーニングに最大4枚の写真を添付できるようになりました。カメラでの直接撮影やライブラリからの選択に対応し、サマリー画面や履歴詳細からいつでも追加・確認できます。',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.dumbbell,
+          title: '進行中のワークアウトをいつでも手元に',
+          body:
+              'ナビゲーションの上のバーに、トレーニング中か休憩中か、残り時間、次の未完了セットがどの種目のものかがひと目で分かるようになりました。タップするとワークアウトがバーから広がって開き、ヘッダーのシェブロンでバーに縮んで戻ります。',
         ),
         WhatsNewEntry(
           icon: LucideIcons.camera,

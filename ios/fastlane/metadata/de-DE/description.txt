@@ -14,6 +14,7 @@ KERN-FEATURES:
 • Protokolliere deine Workouts Satz für Satz – inklusive Aufwärmsätzen, Arbeitssätzen, Sätzen bis zum Muskelversagen und Dropsets.
 • Erfasse präzise Metriken: Wiederholungen, Gewicht und RPE / RIR (subjektive Anstrengung / Wiederholungen in Reserve).
 • Erstelle wiederverwendbare Routinen und eigene Übungen und analysiere deine gesamte Trainingshistorie.
+• Halte jede Einheit mit bis zu 4 Fotos fest – aufgenommen mit der Kamera oder aus deiner Mediathek – und behalte sie auch im Backup.
 
 2. WISSENSCHAFTLICH FUNDIERTE ERNÄHRUNG & TDEE
 • Tracke Mahlzeiten, Kalorien, Makronährstoffe, Flüssigkeitszufuhr, Koffein, Kreatin und eigene Supplemente.
@@ -29,6 +30,7 @@ KERN-FEATURES:
 
 5. KI-MAHLZEITEN-ERFASSUNG (Optional)
 • Bring Your Own Key (BYOK): Optionale KI-Erkennung von Mahlzeiten über deinen eigenen API-Schlüssel. Standardmäßig deaktiviert.
+• Foto, Barcode und Sprache in einer Ansicht: Fotografiere deinen Teller, lass dieselbe Ansicht den Barcode eines verpackten Produkts erkennen oder beschreibe die Mahlzeit einfach per Sprache. Auf iPhones mit LiDAR wird die Portionsgröße gemessen statt geschätzt.
 • Intelligenter Abgleich: Ein lokales „Top-N Fuzzy Alternatives"-System in Kombination mit Open Food Facts ordnet deine Mahlzeit präzise zu und verhindert Halluzinationen zuverlässig.
 • 100 % transparent: Jeder KI-Vorschlag ist vor dem Speichern vollständig überprüfbar und anpassbar.
 

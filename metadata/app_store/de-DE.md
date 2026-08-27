@@ -29,6 +29,7 @@ KERN-FEATURES:
 • Protokolliere deine Workouts Satz für Satz – inklusive Aufwärmsätzen, Arbeitssätzen, Sätzen bis zum Muskelversagen und Dropsets.
 • Erfasse präzise Metriken: Wiederholungen, Gewicht und RPE / RIR (subjektive Anstrengung / Wiederholungen in Reserve).
 • Erstelle wiederverwendbare Routinen und eigene Übungen und analysiere deine gesamte Trainingshistorie.
+• Halte jede Einheit mit bis zu 4 Fotos fest – aufgenommen mit der Kamera oder aus deiner Mediathek – und behalte sie auch im Backup.
 
 2. WISSENSCHAFTLICH FUNDIERTE ERNÄHRUNG & TDEE
 • Tracke Mahlzeiten, Kalorien, Makronährstoffe, Flüssigkeitszufuhr, Koffein, Kreatin und eigene Supplemente.
@@ -44,6 +45,7 @@ KERN-FEATURES:
 
 5. KI-MAHLZEITEN-ERFASSUNG (Optional)
 • Bring Your Own Key (BYOK): Optionale KI-Erkennung von Mahlzeiten über deinen eigenen API-Schlüssel. Standardmäßig deaktiviert.
+• Foto, Barcode und Sprache in einer Ansicht: Fotografiere deinen Teller, lass dieselbe Ansicht den Barcode eines verpackten Produkts erkennen oder beschreibe die Mahlzeit einfach per Sprache. Auf iPhones mit LiDAR wird die Portionsgröße gemessen statt geschätzt.
 • Intelligenter Abgleich: Ein lokales „Top-N Fuzzy Alternatives"-System in Kombination mit Open Food Facts ordnet deine Mahlzeit präzise zu und verhindert Halluzinationen zuverlässig.
 • 100 % transparent: Jeder KI-Vorschlag ist vor dem Speichern vollständig überprüfbar und anpassbar.
 
@@ -55,6 +57,8 @@ Transparent aufgebaut auf den vertrauenswürdigen Community-Katalogen von Open F
 
 ## Release Notes (What's New / Release Notes in this version)
 Fotos für deine Workouts: Halte deine Trainingseinheiten mit bis zu 4 Fotos fest. Nimm Fotos direkt mit der Kamera auf oder wähle sie aus deiner Mediathek – sowohl direkt nach dem Training in der Zusammenfassung als auch nachträglich im Trainingsverlauf. Alle Fotos und Vorschauen werden auch im Backup gesichert.
+
+Dein laufendes Workout immer im Blick: Die Leiste über der Navigation zeigt auf einen Blick, ob du trainierst oder pausierst, wie lange noch, und zu welcher Übung dein nächster offener Satz gehört. Ein Tipp lässt das Workout aus der Leiste herauswachsen, statt einen neuen Bildschirm hereinzuschieben - der Pfeil im Kopfbereich schrumpft es wieder dorthin zurück.
 
 Mahlzeiten per Foto erfassen: Richte die Kamera auf deinen Teller und die KI macht daraus einzelne Lebensmittel mit Menge, Kalorien und Makros. Bis zu vier Fotos pro Mahlzeit, alles vor dem Speichern korrigierbar oder austauschbar - und verpackte Produkte erkennt dieselbe Ansicht direkt am Barcode, ohne den Modus zu wechseln.
 

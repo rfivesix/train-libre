@@ -29,6 +29,7 @@ CARATTERISTICHE PRINCIPALI:
 • Registra gli allenamenti serie per serie: riscaldamento, serie effettive, serie a cedimento e dropset.
 • Traccia metriche precise: ripetizioni, carico e RPE / RIR (sforzo percepito / ripetizioni in riserva).
 • Crea schede riutilizzabili, aggiungi esercizi personalizzati e consulta lo storico completo delle sessioni.
+• Aggiungi fino a 4 foto a ogni sessione, scattate con la fotocamera o scelte dalla libreria e conservate anche nei backup.
 
 2. NUTRIZIONE SCIENTIFICA E CALCOLO TDEE
 • Registra pasti, calorie, macronutrienti, idratazione, caffeina, creatina e integratori personalizzati.
@@ -44,6 +45,7 @@ CARATTERISTICHE PRINCIPALI:
 
 5. RICONOSCIMENTO PASTI CON IA (opzionale — BYOK)
 • Chiave API personale (BYOK): riconoscimento dei pasti tramite IA che funziona con la tua chiave. Disattivato di default.
+• Foto, codice a barre e voce in un'unica schermata: fotografa il piatto, lascia che la stessa schermata riconosca il codice a barre di un prodotto confezionato, oppure descrivi il pasto a voce. Sugli iPhone con LiDAR la porzione viene misurata, non stimata.
 • Abbinamento contestuale: un sistema di ricerca locale "Top-N alternative" combinato con Open Food Facts identifica accuratamente gli alimenti ed evita allucinazioni.
 • 100% trasparente: ogni suggerimento dell'IA è completamente revisionabile e modificabile prima del salvataggio.
 
@@ -55,6 +57,8 @@ Sviluppato in modo trasparente sui database aperti e affidabili di Open Food Fac
 
 ## Release Notes (What's New / Release Notes in this version)
 Foto per i tuoi allenamenti: Immortala le tue sessioni di allenamento con un massimo di 4 foto. Scatta direttamente con la fotocamera o scegli dalla libreria, nel riepilogo dell'allenamento o nella cronologia.
+
+L'allenamento in corso sempre a portata: la barra sopra la navigazione mostra a colpo d'occhio se stai lavorando o recuperando, quanto manca e a quale esercizio appartiene la prossima serie aperta. Un tocco fa crescere l'allenamento dalla barra invece di aprire una nuova schermata, e il chevron nell'intestazione lo fa tornare giù.
 
 Registra un pasto da una foto: inquadra il piatto e l'IA lo trasforma in singoli alimenti con quantità, calorie e macro. Fino a quattro foto per pasto, tutto correggibile o sostituibile prima di salvare - e i prodotti confezionati vengono riconosciuti dal codice a barre nella stessa schermata, senza cambiare modalità.
 

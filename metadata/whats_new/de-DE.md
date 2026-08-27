@@ -10,6 +10,8 @@
 
 {camera} Fotos für deine Workouts: Halte deine Trainingseinheiten mit bis zu 4 Fotos fest. Nimm Fotos direkt mit der Kamera auf oder wähle sie aus deiner Mediathek – sowohl direkt nach dem Training in der Zusammenfassung als auch nachträglich im Trainingsverlauf. Alle Fotos und Vorschauen werden auch im Backup gesichert.
 
+{dumbbell} Dein laufendes Workout immer im Blick: Die Leiste über der Navigation zeigt auf einen Blick, ob du trainierst oder pausierst, wie lange noch, und zu welcher Übung dein nächster offener Satz gehört. Ein Tipp lässt das Workout aus der Leiste herauswachsen, statt einen neuen Bildschirm hereinzuschieben - der Pfeil im Kopfbereich schrumpft es wieder dorthin zurück.
+
 {camera} Mahlzeiten per Foto erfassen: Richte die Kamera auf deinen Teller und die KI macht daraus einzelne Lebensmittel mit Menge, Kalorien und Makros. Bis zu vier Fotos pro Mahlzeit, alles vor dem Speichern korrigierbar oder austauschbar - und verpackte Produkte erkennt dieselbe Ansicht direkt am Barcode, ohne den Modus zu wechseln.
 
 {smartphone} Portionen gemessen statt geschätzt: Auf iPhones mit LiDAR misst die Kamera, wie weit dein Teller entfernt ist und wie groß der sichtbare Ausschnitt tatsächlich ist, und gibt das an die KI weiter. In den KI-Einstellungen kannst du die Messung abschalten.

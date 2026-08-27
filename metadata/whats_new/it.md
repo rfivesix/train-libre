@@ -10,6 +10,8 @@
 
 {camera} Foto per i tuoi allenamenti: Immortala le tue sessioni di allenamento con un massimo di 4 foto. Scatta direttamente con la fotocamera o scegli dalla libreria, nel riepilogo dell'allenamento o nella cronologia.
 
+{dumbbell} L'allenamento in corso sempre a portata: la barra sopra la navigazione mostra a colpo d'occhio se stai lavorando o recuperando, quanto manca e a quale esercizio appartiene la prossima serie aperta. Un tocco fa crescere l'allenamento dalla barra invece di aprire una nuova schermata, e il chevron nell'intestazione lo fa tornare giù.
+
 {camera} Registra un pasto da una foto: inquadra il piatto e l'IA lo trasforma in singoli alimenti con quantità, calorie e macro. Fino a quattro foto per pasto, tutto correggibile o sostituibile prima di salvare - e i prodotti confezionati vengono riconosciuti dal codice a barre nella stessa schermata, senza cambiare modalità.
 
 {smartphone} Porzioni misurate, non stimate: sugli iPhone con LiDAR la fotocamera misura quanto è distante il piatto e quanto è grande davvero l'area inquadrata, e passa questi dati all'IA. La misurazione si può disattivare nelle impostazioni IA.

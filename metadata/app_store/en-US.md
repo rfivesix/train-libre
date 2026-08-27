@@ -29,6 +29,7 @@ KEY FEATURES:
 • Log workouts set by set, including warm-ups, working sets, failure sets, and dropsets.
 • Track precise metrics: reps, weight, and RPE / RIR (Rate of Perceived Exertion / Reps in Reserve).
 • Build reusable routines, add custom exercises, and review your full session history.
+• Attach up to 4 photos to any session, taken with the camera or picked from your library, and keep them in your backups.
 
 2. SCIENCE-BASED NUTRITION & TDEE
 • Log meals, calories, macronutrients, hydration, caffeine, creatine, and custom supplements.
@@ -44,6 +45,7 @@ KEY FEATURES:
 
 5. BYOK AI MEAL CAPTURE (Optional)
 • Bring Your Own Key (BYOK): optional AI meal recognition that runs on your own API key. Disabled by default.
+• Photo, Barcode and Voice in One View: photograph your plate, let the same screen pick up the barcode of a packaged product, or simply describe the meal by voice. On iPhone models with LiDAR, portion size is measured instead of guessed.
 • State-Aware Matching: a local "Top-N Fuzzy Alternatives" system integrated with Open Food Facts matches your plate accurately while strictly preventing hallucinations.
 • 100% Transparent: every AI suggestion is fully reviewable and adjustable before saving.
 
@@ -55,6 +57,8 @@ Built transparently on trusted community catalogs from Open Food Facts and the w
 
 ## Release Notes (What's New / Release Notes in this version)
 Photos for your workouts: Capture your workout sessions with up to 4 photos. Take pictures directly with your camera or select them from your library – right in the workout summary or later in your workout history. All photos and previews are safely included in backups.
+
+Your running workout, always one tap away: The bar above the tab bar now shows at a glance whether you are working or resting, how long is left and which exercise your next open set belongs to. Tapping it grows the workout out of the bar instead of pushing in a new screen, and the chevron in its header shrinks it back down.
 
 Log a meal from a photo: Point the camera at your plate and the AI turns it into individual foods with amounts, calories and macros. Take up to four photos of the same meal, correct or swap anything before saving - and packaged products are recognised by their barcode in the very same view, without switching modes.
 
