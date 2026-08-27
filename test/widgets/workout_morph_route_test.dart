@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:train_libre/features/workout/presentation/workout_morph_route.dart';
@@ -92,21 +94,26 @@ void main() {
     await tester.pumpAndSettle();
 
     navigatorKey.currentState!.pop();
-    await tester.pump();
-    // The transition's clock only starts on its first tick, so this frame is
-    // the zero point — measuring from the pump before it would be 540ms early.
-    await tester.pump(Duration.zero);
-    // Near the end of the collapse the page must already be almost gone,
-    // so what is left on screen is the real bar rather than a stand-in that
-    // gets swapped out on the final frame.
-    await tester.pump(const Duration(milliseconds: 540));
 
-    final opacity = tester.widget<Opacity>(
-      find
-          .ancestor(of: find.text('workout'), matching: find.byType(Opacity))
-          .first,
-    );
-    expect(opacity.opacity, lessThan(0.15));
+    // Stepped frame by frame rather than sampled at one timestamp: a route's
+    // clock only starts on its first tick, so any fixed offset silently means
+    // a different point in the animation than it reads as.
+    var lowest = 1.0;
+    for (var i = 0; i < 45; i++) {
+      await tester
+          .pump(i == 0 ? Duration.zero : const Duration(milliseconds: 16));
+      if (find.text('workout').evaluate().isEmpty) break;
+      final fades = tester.widgetList<Opacity>(find.ancestor(
+        of: find.text('workout'),
+        matching: find.byType(Opacity),
+      ));
+      if (fades.isNotEmpty) lowest = math.min(lowest, fades.first.opacity);
+    }
+
+    // The page must have faded out before it is taken away, so what is left
+    // standing is the real bar rather than a stand-in swapped out on the
+    // final frame.
+    expect(lowest, lessThan(0.15));
     expect(find.text('main'), findsOneWidget);
 
     await tester.pumpAndSettle();
@@ -200,6 +207,18 @@ void main() {
       }
     }
 
+    // Mid-collapse the bar is legitimately absent from the tree: the page is
+    // still fully opaque and covering it, so the copy is not built. Only the
+    // two hand-over moments have to be gap-free.
+    Future<void> skipTo(int ms) async {
+      var elapsed = 0;
+      await tester.pump(Duration.zero);
+      while (elapsed < ms) {
+        await tester.pump(const Duration(milliseconds: 16));
+        elapsed += 16;
+      }
+    }
+
     navigatorKey.currentState!.push(
       WorkoutMorphRoute<void>(
         builder: (_) => const Scaffold(body: Text('workout')),
@@ -213,10 +232,9 @@ void main() {
 
     navigatorKey.currentState!.pop();
     await tester.pump();
-    await tester.pump(Duration.zero);
+    await skipTo(450);
     // Landing: the screen has to have its bar back before the copy goes.
-    await tester.pump(const Duration(milliseconds: 560));
-    await stepThrough(8);
+    await stepThrough(14);
     await tester.pumpAndSettle();
     expect(find.text('bar'), findsOneWidget);
   });
