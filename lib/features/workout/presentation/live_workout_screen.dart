@@ -181,6 +181,7 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
   /// This screen's own route, captured while the element is still active so
   /// `dispose()` can compare against it without an inherited-widget lookup.
   Route<dynamic>? _ownRoute;
+  Widget? _cachedRestBottomBar;
 
   @override
   void initState() {
@@ -1342,84 +1343,92 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                                                   builder: (context,
                                                                       exerciseSetLogs,
                                                                       child) {
-                                                                    return Column(
-                                                                      crossAxisAlignment:
-                                                                          CrossAxisAlignment
-                                                                              .start,
-                                                                      children: [
-                                                                        // FIX: Insert header row dynamically.
-                                                                        _buildHeaderRow(
-                                                                          routineExercise,
-                                                                          l10n,
-                                                                        ),
+                                                                    return AnimatedSize(
+                                                                      duration:
+                                                                          const Duration(milliseconds: 260),
+                                                                      curve:
+                                                                          Curves.easeInOutCubic,
+                                                                      alignment:
+                                                                          Alignment.topCenter,
+                                                                      child: Column(
+                                                                        crossAxisAlignment:
+                                                                            CrossAxisAlignment
+                                                                                .start,
+                                                                        children: [
+                                                                          // FIX: Insert header row dynamically.
+                                                                          _buildHeaderRow(
+                                                                            routineExercise,
+                                                                            l10n,
+                                                                          ),
 
-                                                                        // Set Rows
-                                                                        ...routineExercise
-                                                                            .setTemplates
-                                                                            .asMap()
-                                                                            .entries
-                                                                            .map((setEntry) {
-                                                                          final templateId = setEntry
-                                                                              .value
-                                                                              .id!;
-                                                                          final template =
-                                                                              setEntry.value; // <--- Template
-                                                                          final setLog =
-                                                                              exerciseSetLogs[templateId];
+                                                                          // Set Rows
+                                                                          ...routineExercise
+                                                                              .setTemplates
+                                                                              .asMap()
+                                                                              .entries
+                                                                              .map((setEntry) {
+                                                                            final templateId = setEntry
+                                                                                .value
+                                                                                .id!;
+                                                                            final template =
+                                                                                setEntry.value; // <--- Template
+                                                                            final setLog =
+                                                                                exerciseSetLogs[templateId];
 
-                                                                          if (setLog ==
-                                                                              null) {
-                                                                            return const SizedBox.shrink();
-                                                                          }
-                                                                          int workingSetIndex =
-                                                                              0;
-                                                                          for (int i = 0;
-                                                                              i <= setEntry.key;
-                                                                              i++) {
-                                                                            final currentTemplateId =
-                                                                                routineExercise.setTemplates[i].id!;
-                                                                            if (exerciseSetLogs[currentTemplateId]?.setType !=
-                                                                                'warmup') {
-                                                                              workingSetIndex++;
+                                                                            if (setLog ==
+                                                                                null) {
+                                                                              return const SizedBox.shrink();
                                                                             }
-                                                                          }
+                                                                            int workingSetIndex =
+                                                                                0;
+                                                                            for (int i = 0;
+                                                                                i <= setEntry.key;
+                                                                                i++) {
+                                                                              final currentTemplateId =
+                                                                                  routineExercise.setTemplates[i].id!;
+                                                                              if (exerciseSetLogs[currentTemplateId]?.setType !=
+                                                                                  'warmup') {
+                                                                                workingSetIndex++;
+                                                                              }
+                                                                            }
 
-                                                                          return LiveWorkoutSetRow(
-                                                                            setIndex:
-                                                                                workingSetIndex,
-                                                                            rowIndex:
-                                                                                setEntry.key,
-                                                                            templateId:
-                                                                                templateId,
-                                                                            setLog:
-                                                                                setLog,
-                                                                            lastPerfSets:
-                                                                                manager.lastPerformances[routineExercise.exercise.nameEn] ?? [],
-                                                                            template:
-                                                                                template,
-                                                                            manager:
-                                                                                manager,
-                                                                            isCardio:
-                                                                                _isCardio(routineExercise),
-                                                                          );
-                                                                        }),
-                                                                        Padding(
-                                                                          padding:
-                                                                              const EdgeInsets.symmetric(
-                                                                            horizontal:
-                                                                                16.0,
+                                                                            return LiveWorkoutSetRow(
+                                                                              setIndex:
+                                                                                  workingSetIndex,
+                                                                              rowIndex:
+                                                                                  setEntry.key,
+                                                                              templateId:
+                                                                                  templateId,
+                                                                              setLog:
+                                                                                  setLog,
+                                                                              lastPerfSets:
+                                                                                  manager.lastPerformances[routineExercise.exercise.nameEn] ?? [],
+                                                                              template:
+                                                                                  template,
+                                                                              manager:
+                                                                                  manager,
+                                                                              isCardio:
+                                                                                  _isCardio(routineExercise),
+                                                                            );
+                                                                          }),
+                                                                          Padding(
+                                                                            padding:
+                                                                                const EdgeInsets.symmetric(
+                                                                              horizontal:
+                                                                                  16.0,
+                                                                            ),
+                                                                            child:
+                                                                                TextButton.icon(
+                                                                              onPressed: () =>
+                                                                                  _addSet(routineExercise),
+                                                                              icon:
+                                                                                  const Icon(LucideIcons.plus),
+                                                                              label:
+                                                                                  Text(l10n.addSetButton),
+                                                                            ),
                                                                           ),
-                                                                          child:
-                                                                              TextButton.icon(
-                                                                            onPressed: () =>
-                                                                                _addSet(routineExercise),
-                                                                            icon:
-                                                                                const Icon(LucideIcons.plus),
-                                                                            label:
-                                                                                Text(l10n.addSetButton),
-                                                                          ),
-                                                                        ),
-                                                                      ],
+                                                                        ],
+                                                                      ),
                                                                     );
                                                                   },
                                                                 ),
@@ -1471,7 +1480,8 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                             ),
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
-                              mainAxisAlignment: MainAxis                               children: [
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
                                 _HiddenWhileKeyboardVisible(
                                   child: AnimatedBuilder(
                                     animation: manager,
@@ -1539,7 +1549,7 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                           ),
                         );
                       },
-                    ),             ),
+                    ),
 
                     // --- Top Celebration Banner ---
                     Positioned(
@@ -1573,208 +1583,211 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
     final isDark = theme.brightness == Brightness.dark;
     final double r = DesignConstants.workoutOverlayHeight / 2;
 
-    if (isRunning) {
-      final restSeconds = manager.remainingRestSeconds;
-      final minutes = restSeconds ~/ 60;
-      final seconds = restSeconds % 60;
-      final timerStr =
-          '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
-
-      return Padding(
-        padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-        child: SizedBox(
-          height: DesignConstants.workoutOverlayHeight,
-          child: Stack(
-            children: [
-              Positioned.fill(
-                child: ClipPath(
-                  clipper: ShadowOuterClipper(borderRadius: r),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(r),
-                      boxShadow: DesignConstants.glassShadow(isDark),
-                    ),
-                  ),
-                ),
-              ),
-              GlassAdaptiveScope(
-                maxQuality: DesignConstants.defaultGlassQuality,
-                minQuality: DesignConstants.minGlassQuality,
-                child: GlassContainer(
-                  useOwnLayer: true,
-                  height: DesignConstants.workoutOverlayHeight,
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 20.0, vertical: 12.0),
-                  shape: LiquidRoundedSuperellipse(borderRadius: r),
-                  quality: DesignConstants.defaultGlassQuality,
-                  settings: DesignConstants.liquidGlassSettings(isDark),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      // -15 Button
-                      SizedBox(
-                        height: 38,
-                        width: 48,
-                        child: TextButton(
-                          style: TextButton.styleFrom(
-                            minimumSize: Size.zero,
-                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                            backgroundColor: isDark
-                                ? Colors.white.withValues(alpha: 0.08)
-                                : Colors.black.withValues(alpha: 0.06),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                              side: BorderSide(
-                                color: isDark
-                                    ? Colors.white.withValues(alpha: 0.1)
-                                    : Colors.black.withValues(alpha: 0.05),
-                              ),
-                            ),
-                            padding: EdgeInsets.zero,
-                          ),
-                          onPressed: () => manager.adjustRestTime(-15),
-                          child: Text(
-                            "-15",
-                            style: TextStyle(
-                              color: theme.colorScheme.onSurface,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 15,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      // Timer Text
-                      Container(
-                        height: 38,
-                        alignment: Alignment.center,
-                        child: Text(
-                          timerStr,
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            color: theme.colorScheme.onSurface,
-                            fontFeatures: const [FontFeature.tabularFigures()],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      // +15 Button
-                      SizedBox(
-                        height: 38,
-                        width: 48,
-                        child: TextButton(
-                          style: TextButton.styleFrom(
-                            minimumSize: Size.zero,
-                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                            backgroundColor: isDark
-                                ? Colors.white.withValues(alpha: 0.08)
-                                : Colors.black.withValues(alpha: 0.06),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                              side: BorderSide(
-                                color: isDark
-                                    ? Colors.white.withValues(alpha: 0.1)
-                                    : Colors.black.withValues(alpha: 0.05),
-                              ),
-                            ),
-                            padding: EdgeInsets.zero,
-                          ),
-                          onPressed: () => manager.adjustRestTime(15),
-                          child: Text(
-                            "+15",
-                            style: TextStyle(
-                              color: theme.colorScheme.onSurface,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 15,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const Spacer(),
-                      // Skip Button
-                      SizedBox(
-                        height: 38,
-                        child: AppButton.primary(
-                          onPressed: () => manager.cancelRest(),
-                          label: l10n.skipButton,
-                          tooltip: l10n.skipButton,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
     const saturatedAccent = DesignConstants.brandAccentColor;
-    final glassSettings = LiquidGlassSettings(
+    final defaultGlass = DesignConstants.liquidGlassSettings(isDark);
+    final doneGlass = LiquidGlassSettings(
       thickness: 30,
       blur: 0.0,
-      glassColor: saturatedAccent, // 100% solid, 0% transparency
+      glassColor: saturatedAccent,
       lightIntensity: isDark ? 0.55 : 0.80,
       saturation: 1.0,
       ambientRim: 0.2,
     );
 
+    final currentGlassSettings = isDoneBanner ? doneGlass : defaultGlass;
+
+    final restSeconds = manager.remainingRestSeconds;
+    final minutes = restSeconds ~/ 60;
+    final seconds = restSeconds % 60;
+    final timerStr =
+        '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
       child: SizedBox(
         height: DesignConstants.workoutOverlayHeight,
-        child: GlassAdaptiveScope(
-          maxQuality: DesignConstants.defaultGlassQuality,
-          minQuality: DesignConstants.minGlassQuality,
-          child: GlassContainer(
-            useOwnLayer: true,
-            height: DesignConstants.workoutOverlayHeight,
-            padding:
-                const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
-            shape: LiquidRoundedSuperellipse(borderRadius: r),
-            quality: DesignConstants.defaultGlassQuality,
-            settings: glassSettings,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(LucideIcons.circle_check, color: Colors.black),
-                    const SizedBox(width: 8),
-                    Text(
-                      l10n.restOverLabel, //"Pause vorbei!",
-                      style: const TextStyle(
-                        color: Colors.black,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(
-                  height: 38,
-                  child: TextButton(
-                    style: TextButton.styleFrom(
-                      minimumSize: Size.zero,
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      foregroundColor: Colors.black,
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                    ),
-                    onPressed: () => manager.cancelRest(),
-                    child: Text(
-                      l10n.snackbar_button_ok,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 15,
-                      ),
-                    ),
+        child: Stack(
+          children: [
+            Positioned.fill(
+              child: ClipPath(
+                clipper: ShadowOuterClipper(borderRadius: r),
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(r),
+                    boxShadow: DesignConstants.glassShadow(isDark),
                   ),
                 ),
-              ],
+              ),
             ),
-          ),
+            GlassAdaptiveScope(
+              maxQuality: DesignConstants.defaultGlassQuality,
+              minQuality: DesignConstants.minGlassQuality,
+              child: GlassContainer(
+                useOwnLayer: true,
+                height: DesignConstants.workoutOverlayHeight,
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 20.0, vertical: 12.0),
+                shape: LiquidRoundedSuperellipse(borderRadius: r),
+                quality: DesignConstants.defaultGlassQuality,
+                settings: currentGlassSettings,
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 280),
+                  switchInCurve: Curves.easeOutCubic,
+                  switchOutCurve: Curves.easeInCubic,
+                  transitionBuilder: (child, animation) {
+                    return FadeTransition(
+                      opacity: animation,
+                      child: child,
+                    );
+                  },
+                  child: isDoneBanner
+                      ? Row(
+                          key: const ValueKey('rest_done'),
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(LucideIcons.circle_check,
+                                    color: Colors.black),
+                                const SizedBox(width: 8),
+                                Text(
+                                  l10n.restOverLabel,
+                                  style: const TextStyle(
+                                    color: Colors.black,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            SizedBox(
+                              height: 38,
+                              child: TextButton(
+                                style: TextButton.styleFrom(
+                                  minimumSize: Size.zero,
+                                  tapTargetSize:
+                                      MaterialTapTargetSize.shrinkWrap,
+                                  foregroundColor: Colors.black,
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 16),
+                                ),
+                                onPressed: () => manager.cancelRest(),
+                                child: Text(
+                                  l10n.snackbar_button_ok,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 15,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        )
+                      : Row(
+                          key: const ValueKey('rest_running'),
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            // -15 Button
+                            SizedBox(
+                              height: 38,
+                              width: 48,
+                              child: TextButton(
+                                style: TextButton.styleFrom(
+                                  minimumSize: Size.zero,
+                                  tapTargetSize:
+                                      MaterialTapTargetSize.shrinkWrap,
+                                  backgroundColor: isDark
+                                      ? Colors.white.withValues(alpha: 0.08)
+                                      : Colors.black.withValues(alpha: 0.06),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                    side: BorderSide(
+                                      color: isDark
+                                          ? Colors.white.withValues(alpha: 0.1)
+                                          : Colors.black.withValues(alpha: 0.05),
+                                    ),
+                                  ),
+                                  padding: EdgeInsets.zero,
+                                ),
+                                onPressed: () => manager.adjustRestTime(-15),
+                                child: Text(
+                                  "-15",
+                                  style: TextStyle(
+                                    color: theme.colorScheme.onSurface,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 15,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            // Timer Text
+                            Container(
+                              height: 38,
+                              alignment: Alignment.center,
+                              child: Text(
+                                timerStr,
+                                style: TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                  color: theme.colorScheme.onSurface,
+                                  fontFeatures: const [
+                                    FontFeature.tabularFigures()
+                                  ],
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            // +15 Button
+                            SizedBox(
+                              height: 38,
+                              width: 48,
+                              child: TextButton(
+                                style: TextButton.styleFrom(
+                                  minimumSize: Size.zero,
+                                  tapTargetSize:
+                                      MaterialTapTargetSize.shrinkWrap,
+                                  backgroundColor: isDark
+                                      ? Colors.white.withValues(alpha: 0.08)
+                                      : Colors.black.withValues(alpha: 0.06),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                    side: BorderSide(
+                                      color: isDark
+                                          ? Colors.white.withValues(alpha: 0.1)
+                                          : Colors.black.withValues(alpha: 0.05),
+                                    ),
+                                  ),
+                                  padding: EdgeInsets.zero,
+                                ),
+                                onPressed: () => manager.adjustRestTime(15),
+                                child: Text(
+                                  "+15",
+                                  style: TextStyle(
+                                    color: theme.colorScheme.onSurface,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 15,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const Spacer(),
+                            // Skip Button
+                            SizedBox(
+                              height: 38,
+                              child: AppButton.primary(
+                                onPressed: () => manager.cancelRest(),
+                                label: l10n.skipButton,
+                                tooltip: l10n.skipButton,
+                              ),
+                            ),
+                          ],
+                        ),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );

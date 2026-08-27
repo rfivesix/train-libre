@@ -236,50 +236,59 @@ class _MealEntryCardState extends State<MealEntryCard> {
           ),
 
           // Expanded In-Place Sub-Items (Screen D2)
-          if (_isExpanded && widget.items.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.only(left: 4, bottom: 8),
-              child: Stack(
-                children: [
-                  // Vertical Tree Line
-                  Positioned(
-                    left: 0,
-                    top: 0,
-                    bottom: 12,
-                    child: Container(
-                      width: 1.5,
-                      color: branchLineColor,
-                    ),
-                  ),
-
-                  // Sub-ingredient rows
-                  Padding(
-                    padding: const EdgeInsets.only(left: 12),
-                    child: Column(
-                      children: widget.items.map((tracked) {
-                        final factor = tracked.entry.quantityInGrams / 100.0;
-                        final itemKcal =
-                            (tracked.item.calories * factor).round();
-
-                        return GlassActionableCard(
-                          dismissibleKey: Key('meal_item_${tracked.entry.id}'),
-                          onEdit: () => widget.onEditItem?.call(tracked),
-                          onDelete: () => tracked.entry.id != null
-                              ? widget.onDeleteItem?.call(tracked.entry.id!)
-                              : null,
-                          child: DiaryFoodRow(
-                            name: tracked.item.name,
-                            amountLabel: '${tracked.entry.quantityInGrams} g',
-                            energyLabel: '$itemKcal kcal',
-                            isNested: true,
+          AnimatedSize(
+            duration: const Duration(milliseconds: 280),
+            curve: Curves.easeInOutCubic,
+            alignment: Alignment.topCenter,
+            child: _isExpanded && widget.items.isNotEmpty
+                ? Padding(
+                    padding: const EdgeInsets.only(left: 4, bottom: 8),
+                    child: Stack(
+                      children: [
+                        // Vertical Tree Line
+                        Positioned(
+                          left: 0,
+                          top: 0,
+                          bottom: 12,
+                          child: Container(
+                            width: 1.5,
+                            color: branchLineColor,
                           ),
-                        );
-                      }).toList(),
+                        ),
+
+                        // Sub-ingredient rows
+                        Padding(
+                          padding: const EdgeInsets.only(left: 12),
+                          child: Column(
+                            children: widget.items.map((tracked) {
+                              final factor =
+                                  tracked.entry.quantityInGrams / 100.0;
+                              final itemKcal =
+                                  (tracked.item.calories * factor).round();
+
+                              return GlassActionableCard(
+                                dismissibleKey:
+                                    Key('meal_item_${tracked.entry.id}'),
+                                onEdit: () => widget.onEditItem?.call(tracked),
+                                onDelete: () => tracked.entry.id != null
+                                    ? widget.onDeleteItem?.call(tracked.entry.id!)
+                                    : null,
+                                child: DiaryFoodRow(
+                                  name: tracked.item.name,
+                                  amountLabel:
+                                      '${tracked.entry.quantityInGrams} g',
+                                  energyLabel: '$itemKcal kcal',
+                                  isNested: true,
+                                ),
+                              );
+                            }).toList(),
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                ],
-              ),
-            ),
+                  )
+                : const SizedBox.shrink(),
+          ),
         ],
       ),
     );

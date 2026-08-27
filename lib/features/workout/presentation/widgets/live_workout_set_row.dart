@@ -550,6 +550,11 @@ class LiveWorkoutSetRow extends StatelessWidget {
                     color: isCompleted ? Colors.green : Colors.grey,
                   ),
                   onPressed: () async {
+                    if (!isCompleted) {
+                      HapticFeedbackService.instance.confirmationFeedback();
+                    } else {
+                      HapticFeedbackService.instance.selectionFeedback();
+                    }
                     // updateSet fills the input fields with the values it
                     // resolved from the template, for every completion path.
                     await manager.updateSet(

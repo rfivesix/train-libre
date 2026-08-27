@@ -510,7 +510,7 @@ To deploy Train Libre updates in the French, Italian, and Japanese App Stores an
 Unlike static sites that generate separate HTML files for each language version, the Train Libre website uses a single-page localized template system driven by client-side Javascript.
 
 1. **Static Templates**: All compliance pages (`docs/privacy.html`, `docs/terms.html`, `docs/impressum.html`, and `docs/privacy-policy/index.html`) write structural nodes once, embedding descriptive `data-i18n` translation keys on all translatable elements.
-2. **Translation Registry**: A central dictionary (`TRANSLATIONS` inside [script.js](file:///Users/richardgeorgschotte/Projekte/train-libre/docs/script.js)) stores translation strings nested under each locale key (`en`, `de`, `fr`, `it`, `ja`).
+2. **Translation Registry**: A central dictionary (`TRANSLATIONS` inside [script.js](../../docs/script.js)) stores translation strings nested under each locale key (`en`, `de`, `fr`, `it`, `ja`).
 3. **Dropdown Menu Navigation**: Each compliance page hosts a language selection dropdown. To support new locales, dropdown items must be appended to the menu list:
    ```html
    <!-- Example: French language selector added to all docs/*.html pages -->
@@ -540,20 +540,20 @@ Train Libre enforces sandboxed local storage. The translated Privacy Policy and 
 2. Ensure the first key is the locale code: `"@@locale": "es"`.
 
 ### Step 2: Register Language in App Settings
-1. Open [base_food_language_service.dart](file:///Users/richardgeorgschotte/Projekte/train-libre/lib/services/base_food_language_service.dart). Add `es` to `BaseFoodLanguage` enum.
-2. Open [ai_matching_language_service.dart](file:///Users/richardgeorgschotte/Projekte/train-libre/lib/services/ai_matching_language_service.dart). Add `es` to `AiMatchingLanguage` enum.
-3. Open [settings_screen.dart](file:///Users/richardgeorgschotte/Projekte/train-libre/lib/features/settings/presentation/settings_screen.dart).
+1. Open [base_food_language_service.dart](../../lib/services/base_food_language_service.dart). Add `es` to `BaseFoodLanguage` enum.
+2. Open [ai_matching_language_service.dart](../../lib/services/ai_matching_language_service.dart). Add `es` to `AiMatchingLanguage` enum.
+3. Open [settings_screen.dart](../../lib/features/settings/presentation/settings_screen.dart).
    - In `_baseFoodLanguageLabel` function, add a mapper case returning your newly added ARB string label:
      `BaseFoodLanguage.es => l10n.settingsBaseFoodLanguageSpanish,`
 4. Register the new UI label key in both `app_en.arb` and the new `app_es.arb` (e.g. `"settingsBaseFoodLanguageSpanish": "Spanish (Español)"`).
 
 ### Step 3: Map Data Pipelines
 - **For wger (exercises)**:
-  1. Open [create_wger_exercise_db.py](file:///Users/richardgeorgschotte/Projekte/train-libre/script/create_wger_exercise_db.py).
+  1. Open [create_wger_exercise_db.py](../../script/create_wger_exercise_db.py).
   2. Locate the `LANGUAGE_ID_MAP`. Look up wger's API language ID for Spanish (which is `3`) and add it to the map:
      `3: "es"`
 - **For Open Food Facts (food)**:
-  1. Open [create_off_food_db.py](file:///Users/richardgeorgschotte/Projekte/train-libre/script/create_off_food_db.py).
+  1. Open [create_off_food_db.py](../../script/create_off_food_db.py).
   2. Add `es` to the `COUNTRY_CONFIG` map under country key `es` (Spain) or `mx` (Mexico) containing preferred languages list and country tags:
      ```python
      "es": {
@@ -565,7 +565,7 @@ Train Libre enforces sandboxed local storage. The translated Privacy Policy and 
   1. Update the flat columns (`name_es`, `category_es`) directly in the `products` and `categories` tables of `train_libre_base_foods.db`.
 
 ### Step 4: Localize Web Compliance Pages (script.js & HTML)
-1. Open [script.js](file:///Users/richardgeorgschotte/Projekte/train-libre/docs/script.js).
+1. Open [script.js](../../docs/script.js).
 2. Append `es: { ... }` block containing all translated keys for ToS, Privacy Policy, and landing strings.
 3. Open all compliance templates in `docs/` (`index.html`, `privacy.html`, `terms.html`, etc.) and append the Spanish `<button class="dropdown-item" data-lang="es">` item inside the `.dropdown-menu` container.
 4. Add the Spanish code to the `langFolder` mapping in `script.js` (e.g. `es: "es-ES"`).

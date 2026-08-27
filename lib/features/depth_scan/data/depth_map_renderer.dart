@@ -55,7 +55,7 @@ class DepthBandRender {
   }
 }
 
-/// Renders a raw depth buffer into 8 discrete bands of absolute distance.
+/// Renders a raw depth buffer into discrete bands of absolute distance.
 ///
 /// Bands are plain distance from the camera, not height above whatever happens
 /// to be behind the subject. The earlier version derived a reference plane from
@@ -65,9 +65,10 @@ class DepthBandRender {
 /// and the picture stops meaning anything.
 ///
 /// By default the ramp spans what the frame actually contains rather than a
-/// fixed window: eight bands across a plate that sits between 24 and 31 cm are
-/// one centimetre apart, where a fixed 0-80 cm scale would have painted the
-/// whole thing in one colour. Missing readings are rendered as neutral gray.
+/// fixed window: a plate that sits between 24 and 31 cm gets the whole ramp,
+/// where a fixed 0-80 cm scale would have painted it in one colour. See
+/// [defaultBandCount] for how finely the ramp is cut. Missing readings are
+/// rendered as neutral gray.
 class DepthMapRenderer {
   /// Far end used when the frame holds too little to measure a range from.
   static const double defaultMaxDistanceCm = 80.0;

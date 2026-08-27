@@ -289,7 +289,7 @@ class MealEntries extends Table with HybridId, MetaColumns {
   TextColumn get photoThumbPath => text().nullable()();
   TextColumn get voiceTranscript => text().nullable()();
   TextColumn get captureMeta =>
-      text().nullable()(); // JSON: DepthScaleFacts, regions, provider
+      text().nullable()(); // JSON: DepthScaleFacts, provider/model, extra photos
 }
 
 @TableIndex(name: 'idx_nutrition_consumed_at', columns: {#consumedAt})

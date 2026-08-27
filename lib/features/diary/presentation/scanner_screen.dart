@@ -1,4 +1,4 @@
-// lib/screens/scanner_screen.dart
+// lib/features/diary/presentation/scanner_screen.dart
 
 import 'dart:async';
 import 'dart:io';
@@ -19,8 +19,10 @@ import '../../../services/telemetry/telemetry_service.dart';
 
 /// A screen that utilizes the device camera to scan barcodes for product identification.
 ///
-/// Uses the `flutter_zxing` package (FLOSS-compatible) to detect barcodes and
-/// returns the first successfully scanned code to the calling screen.
+/// Uses the `qr_code_scanner_plus` package (FLOSS-compatible) to detect
+/// barcodes and returns the first successfully scanned code to the calling
+/// screen. This is the standalone barcode entrance; `AiMealCaptureScreen`
+/// additionally detects barcodes passively on its unified camera session.
 class ScannerScreen extends StatefulWidget {
   const ScannerScreen({super.key});
 

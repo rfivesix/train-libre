@@ -212,58 +212,63 @@ class EditRoutineExerciseCard extends StatelessWidget {
                         ),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 0.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _buildHeaderRow(context, routineExercise, l10n),
-                            ...routineExercise.setTemplates
-                                .asMap()
-                                .entries
-                                .map((entry) {
-                              final setIndex = entry.key;
-                              final setTemplate = entry.value;
+                        child: AnimatedSize(
+                          duration: const Duration(milliseconds: 260),
+                          curve: Curves.easeInOutCubic,
+                          alignment: Alignment.topCenter,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _buildHeaderRow(context, routineExercise, l10n),
+                              ...routineExercise.setTemplates
+                                  .asMap()
+                                  .entries
+                                  .map((entry) {
+                                final setIndex = entry.key;
+                                final setTemplate = entry.value;
 
-                              int workingSetIndex = 0;
-                              for (int i = 0; i <= setIndex; i++) {
-                                if (routineExercise.setTemplates[i].setType !=
-                                    'warmup') {
-                                  workingSetIndex++;
+                                int workingSetIndex = 0;
+                                for (int i = 0; i <= setIndex; i++) {
+                                  if (routineExercise.setTemplates[i].setType !=
+                                      'warmup') {
+                                    workingSetIndex++;
+                                  }
                                 }
-                              }
 
-                              return RoutineSetRowWidget(
-                                key: ValueKey(setTemplate.id),
-                                setIndex: workingSetIndex,
-                                rowIndex: setIndex,
-                                routineExercise: routineExercise,
-                                template: setTemplate,
-                                listIndex: setIndex,
-                                isCardio: isCardio,
-                                repsController:
-                                    repsControllers[setTemplate.id!]!,
-                                weightController:
-                                    weightControllers[setTemplate.id!]!,
-                                rirController: rirControllers[setTemplate.id!]!,
-                                onShowSetTypePicker: () =>
-                                    onShowSetTypePicker(setTemplate),
-                                onRemoveSet: () =>
-                                    onRemoveSet(setTemplate, setIndex),
-                                isEditMode: isEditMode,
-                              );
-                            }),
-                            if (isEditMode) ...[
-                              const SizedBox(height: DesignConstants.spacingS),
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 16.0),
-                                child: TextButton.icon(
-                                  onPressed: onAddSet,
-                                  icon: const Icon(LucideIcons.plus),
-                                  label: Text(l10n.addSetButton),
+                                return RoutineSetRowWidget(
+                                  key: ValueKey(setTemplate.id),
+                                  setIndex: workingSetIndex,
+                                  rowIndex: setIndex,
+                                  routineExercise: routineExercise,
+                                  template: setTemplate,
+                                  listIndex: setIndex,
+                                  isCardio: isCardio,
+                                  repsController:
+                                      repsControllers[setTemplate.id!]!,
+                                  weightController:
+                                      weightControllers[setTemplate.id!]!,
+                                  rirController: rirControllers[setTemplate.id!]!,
+                                  onShowSetTypePicker: () =>
+                                      onShowSetTypePicker(setTemplate),
+                                  onRemoveSet: () =>
+                                      onRemoveSet(setTemplate, setIndex),
+                                  isEditMode: isEditMode,
+                                );
+                              }),
+                              if (isEditMode) ...[
+                                const SizedBox(height: DesignConstants.spacingS),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 16.0),
+                                  child: TextButton.icon(
+                                    onPressed: onAddSet,
+                                    icon: const Icon(LucideIcons.plus),
+                                    label: Text(l10n.addSetButton),
+                                  ),
                                 ),
-                              ),
+                              ],
                             ],
-                          ],
+                          ),
                         ),
                       ),
                     ],

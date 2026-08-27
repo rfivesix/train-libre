@@ -10,7 +10,7 @@ Train Libre is an offline-first, privacy-respecting health, nutrition, sleep, an
 
 ### Key Technical Pillars
 1.  **Zero Backend Dependency**: No external cloud service is required for registration, database writes, sync logs, or analytic graphs.
-2.  **User-Driven Connectivity**: Network operations are strictly confined to user-initiated actions, specifically Bring Your Own Key (BYOK) AI capture APIs and native system Health platforms (Apple HealthKit / Google Health Connect).
+2.  **User-Driven Connectivity**: Network operations are strictly confined to user-initiated actions, specifically Bring Your Own Key (BYOK) AI capture APIs, the platform speech recognizer used for meal dictation when no on-device recognizer exists, catalog downloads, and native system Health platforms (Apple HealthKit / Google Health Connect).
 3.  **Performance and Battery Preservation**: Database access and background syncing utilize optimized local querying, caching, and lazy initialization to minimize battery usage and CPU overhead.
 
 ---
@@ -30,7 +30,7 @@ The application's framework and core modules are built using the following techn
 
 A core tenet of the Train Libre development lifecycle is strict mathematical and logic regression checking. Due to the high sensitivity of personal health records and the mathematical nature of the TDEE (Total Daily Energy Expenditure) filter, any logic drift would result in erroneous calorie targets or synchronization corruption.
 
-To prevent regressions, the codebase features a robust test suite comprising **119 individual test files** and **680+ automated tests**.
+To prevent regressions, the codebase features a robust test suite comprising **147 individual test files** and **900+ automated tests**.
 
 ### Test Categories
 1.  **Unit Tests**: Validate mathematical engines (e.g., `BayesianTdeeEstimator` and Kalman updates), text token fuzzy matching scores, data parsing models, and canonical health-data mapping algorithms.

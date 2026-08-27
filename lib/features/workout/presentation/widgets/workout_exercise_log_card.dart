@@ -224,80 +224,85 @@ class WorkoutExerciseLogCard extends StatelessWidget {
                       // Header Row
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 0.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            if (isCardio)
-                              Row(
-                                children: [
-                                  _buildHeader(l10n.setLabel, flex: 2),
-                                  _buildHeader(
-                                      l10n.cardioDistanceLabel(context
+                        child: AnimatedSize(
+                          duration: const Duration(milliseconds: 260),
+                          curve: Curves.easeInOutCubic,
+                          alignment: Alignment.topCenter,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              if (isCardio)
+                                Row(
+                                  children: [
+                                    _buildHeader(l10n.setLabel, flex: 2),
+                                    _buildHeader(
+                                        l10n.cardioDistanceLabel(context
+                                            .read<UnitService>()
+                                            .suffixFor(UnitDimension.distance)),
+                                        flex: 4),
+                                    const SizedBox(width: 8),
+                                    _buildHeader(l10n.cardioTimeLabel, flex: 4),
+                                    const SizedBox(width: 8),
+                                    _buildHeader(l10n.cardioIntensityShortLabel,
+                                        flex: 2),
+                                    const SizedBox(
+                                        width: 48), // Space for check/delete
+                                  ],
+                                )
+                              else
+                                Row(
+                                  children: [
+                                    _buildHeader(l10n.setLabel, flex: 2),
+                                    _buildHeader(
+                                      context
                                           .read<UnitService>()
-                                          .suffixFor(UnitDimension.distance)),
-                                      flex: 4),
-                                  const SizedBox(width: 8),
-                                  _buildHeader(l10n.cardioTimeLabel, flex: 4),
-                                  const SizedBox(width: 8),
-                                  _buildHeader(l10n.cardioIntensityShortLabel,
-                                      flex: 2),
-                                  const SizedBox(
-                                      width: 48), // Space for check/delete
-                                ],
-                              )
-                            else
-                              Row(
-                                children: [
-                                  _buildHeader(l10n.setLabel, flex: 2),
-                                  _buildHeader(
-                                    context
-                                        .read<UnitService>()
-                                        .suffixFor(UnitDimension.weight),
-                                    flex: 2,
-                                  ),
-                                  _buildHeader(l10n.repsLabel, flex: 2),
-                                  _buildHeader("RIR", flex: 2),
-                                  const SizedBox(width: 48),
-                                ],
-                              ),
-
-                            // Set Rows
-                            ...sets.asMap().entries.map((setEntry) {
-                              final setLog = setEntry.value;
-                              final rowIndex = setEntry.key;
-                              int workingSetIndex = 0;
-                              for (int i = 0; i <= rowIndex; i++) {
-                                if (sets[i].setType != 'warmup') {
-                                  workingSetIndex++;
-                                }
-                              }
-
-                              return WorkoutLogSetRow(
-                                setLog: setLog,
-                                rowIndex: rowIndex,
-                                workingSetIndex: workingSetIndex,
-                                exerciseName: exerciseName,
-                                isEditMode: isEditMode,
-                                isCardio: isCardio,
-                                weightController: weightControllers[setLog.id],
-                                repsController: repsControllers[setLog.id],
-                                rirController: rirControllers[setLog.id],
-                                onDelete: () => onDeleteSet(setLog.id!),
-                                onSetTypeTap: () => onSetTypeTap(setLog.id!),
-                              );
-                            }),
-
-                            if (isEditMode)
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 16.0),
-                                child: TextButton.icon(
-                                  onPressed: onAddSet,
-                                  icon: const Icon(LucideIcons.plus),
-                                  label: Text(l10n.addSetButton),
+                                          .suffixFor(UnitDimension.weight),
+                                      flex: 2,
+                                    ),
+                                    _buildHeader(l10n.repsLabel, flex: 2),
+                                    _buildHeader("RIR", flex: 2),
+                                    const SizedBox(width: 48),
+                                  ],
                                 ),
-                              ),
-                          ],
+
+                              // Set Rows
+                              ...sets.asMap().entries.map((setEntry) {
+                                final setLog = setEntry.value;
+                                final rowIndex = setEntry.key;
+                                int workingSetIndex = 0;
+                                for (int i = 0; i <= rowIndex; i++) {
+                                  if (sets[i].setType != 'warmup') {
+                                    workingSetIndex++;
+                                  }
+                                }
+
+                                return WorkoutLogSetRow(
+                                  setLog: setLog,
+                                  rowIndex: rowIndex,
+                                  workingSetIndex: workingSetIndex,
+                                  exerciseName: exerciseName,
+                                  isEditMode: isEditMode,
+                                  isCardio: isCardio,
+                                  weightController: weightControllers[setLog.id],
+                                  repsController: repsControllers[setLog.id],
+                                  rirController: rirControllers[setLog.id],
+                                  onDelete: () => onDeleteSet(setLog.id!),
+                                  onSetTypeTap: () => onSetTypeTap(setLog.id!),
+                                );
+                              }),
+
+                              if (isEditMode)
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 16.0),
+                                  child: TextButton.icon(
+                                    onPressed: onAddSet,
+                                    icon: const Icon(LucideIcons.plus),
+                                    label: Text(l10n.addSetButton),
+                                  ),
+                                ),
+                            ],
+                          ),
                         ),
                       ),
                     ],
