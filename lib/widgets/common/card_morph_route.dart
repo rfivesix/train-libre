@@ -130,6 +130,8 @@ class CardMorphRoute<T> extends PageRoute<T> {
     return offset & renderBox.size;
   }
 
+  Rect? _resolvedSourceRect;
+
   @override
   Widget buildTransitions(
     BuildContext context,
@@ -137,7 +139,8 @@ class CardMorphRoute<T> extends PageRoute<T> {
     Animation<double> secondaryAnimation,
     Widget child,
   ) {
-    final measured = sourceRect ?? measureRect(sourceContext);
+    _resolvedSourceRect ??= sourceRect ?? measureRect(sourceContext);
+    final measured = _resolvedSourceRect;
 
     // Fallback if no source bounds could be resolved: soft fade
     if (measured == null) {
@@ -156,15 +159,22 @@ class CardMorphRoute<T> extends PageRoute<T> {
   }
 
   @override
-  void install() {
-    super.install();
-    if (onSourceVisibilityChanged == null) return;
-    // Deliberately 1 frame late: the route content is not in the tree until the
-    // frame after the push, so hiding any earlier leaves a 1-frame gap.
-    SchedulerBinding.instance.addPostFrameCallback((_) {
-      if (isActive) onSourceVisibilityChanged?.call(true);
-    });
-    animation?.addStatusListener(_handleAnimationStatus);
+  Animation<double> createAnimation() {
+    final anim = super.createAnimation();
+    if (onSourceVisibilityChanged != null) {
+      anim.addStatusListener(_handleAnimationStatus);
+    }
+    return anim;
+  }
+
+  @override
+  TickerFuture didPush() {
+    if (onSourceVisibilityChanged != null) {
+      SchedulerBinding.instance.addPostFrameCallback((_) {
+        if (isActive) onSourceVisibilityChanged?.call(true);
+      });
+    }
+    return super.didPush();
   }
 
   void _handleAnimationStatus(AnimationStatus status) {
@@ -215,7 +225,7 @@ class _CardMorphTransitionState extends State<_CardMorphTransition> {
   bool _isDragging = false;
 
   void _handleDragStart(DragStartDetails details) {
-    if (details.globalPosition.dx <= 32.0 && widget.animation.isCompleted) {
+    if (details.globalPosition.dx <= 40.0 && widget.animation.isCompleted) {
       _isDragging = true;
       widget.route.handleDragStart();
     }
@@ -231,17 +241,13 @@ class _CardMorphTransitionState extends State<_CardMorphTransition> {
     if (!_isDragging) return;
     _isDragging = false;
     final double velocity = details.primaryVelocity ?? 0.0;
-    final bool shouldPop = velocity > 300.0 ||
-        (widget.animation.value < 0.65 && velocity > -100.0);
+    final double progress = widget.animation.value;
+    final bool shouldPop = velocity > 300.0 || (progress < 0.7 && velocity > -100.0);
     widget.route.handleDragEnd(shouldPop: shouldPop);
   }
 
   @override
   Widget build(BuildContext context) {
-    final Size screen = MediaQuery.of(context).size;
-    final Rect fullRect = Offset.zero & screen;
-    final double screenRadius =
-        Theme.of(context).platform == TargetPlatform.iOS ? 48.0 : 0.0;
     final ThemeData theme = Theme.of(context);
 
     final Widget? source = widget.sourceBuilder != null
@@ -251,23 +257,22 @@ class _CardMorphTransitionState extends State<_CardMorphTransition> {
           )
         : null;
 
-    // Smooth color ramp from the card's surface tone to the screen background
-    final Color startCardColor = theme.brightness == Brightness.dark
-        ? const Color(0xFF1C1C1E)
-        : const Color(0xFFF2F2F7);
-    final Color endBgColor = theme.scaffoldBackgroundColor;
-
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
       onHorizontalDragStart: _handleDragStart,
-      onHorizontalDragUpdate: (d) => _handleDragUpdate(d, screen.width),
-      onHorizontalDragEnd: (d) => _handleDragEnd(d, screen.width),
+      onHorizontalDragUpdate: (d) => _handleDragUpdate(d, MediaQuery.sizeOf(context).width),
+      onHorizontalDragEnd: (d) => _handleDragEnd(d, MediaQuery.sizeOf(context).width),
       child: AnimatedBuilder(
         animation: widget.animation,
         child: widget.child,
         builder: (context, page) {
           final double raw = widget.animation.value.clamp(0.0, 1.0);
           if (raw >= 1.0) return page!;
+
+          final Size screen = MediaQuery.sizeOf(context);
+          final Rect fullRect = Offset.zero & screen;
+          final double screenRadius =
+              MediaQuery.viewPaddingOf(context).bottom > 0 ? 44.0 : 0.0;
 
           // If morphOnPop is false and we are popping (e.g. LiveWorkoutScreen minimizing to bottom bar),
           // slide down off screen smoothly towards the bottom progress bar:
@@ -301,22 +306,13 @@ class _CardMorphTransitionState extends State<_CardMorphTransition> {
             (t * _kRadiusLead).clamp(0.0, 1.0),
           )!;
 
-          final Color containerColor = Color.lerp(
-            startCardColor,
-            endBgColor,
-            Curves.easeOutCubic.transform(t),
-          )!;
-
           final double scale = rect.width / screen.width;
           final double sourceScale = rect.width / widget.sourceRect.width;
 
-          // Content fade: destination page materializes smoothly between 12% and 62% of progress
-          final double pageFadeProgress = ((t - 0.12) / 0.50).clamp(0.0, 1.0);
-          final double pageOpacity =
-              Curves.easeOutCubic.transform(pageFadeProgress);
-
-          // Source card fade: stays solid while card expands, then fades out gently
-          final double sourceOpacity = (1.0 - (t / 0.35)).clamp(0.0, 1.0);
+          // Content fade: destination page and its background fade smoothly
+          // across the lower range (0.0 to 0.25) so it dissolves gently into the source FAB/card.
+          const double kFadeThreshold = 0.25;
+          final double pageOpacity = (t / kFadeThreshold).clamp(0.0, 1.0);
 
           return Stack(
             fit: StackFit.expand,
@@ -331,13 +327,17 @@ class _CardMorphTransitionState extends State<_CardMorphTransition> {
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
-                    // Full container ramped background: grows organically with surface color
-                    Positioned.fromRect(
-                      rect: rect,
-                      child: ColoredBox(color: containerColor),
-                    ),
+                    // Full scaffold background fading in sync with the page
+                    if (pageOpacity > 0.0)
+                      Positioned.fromRect(
+                        rect: rect,
+                        child: ColoredBox(
+                          color: theme.scaffoldBackgroundColor
+                              .withValues(alpha: pageOpacity),
+                        ),
+                      ),
 
-                    // Destination page (materializes smoothly inside the container)
+                    // Destination page (fades in/out smoothly as it expands/collapses)
                     if (pageOpacity > 0.0)
                       Opacity(
                         opacity: pageOpacity,
@@ -349,35 +349,33 @@ class _CardMorphTransitionState extends State<_CardMorphTransition> {
                         ),
                       ),
 
-                    // Source card widget (if provided)
-                    if (source != null && sourceOpacity > 0.0)
+                    // Source element (e.g. GlassFab or card copy) sits smoothly over the page
+                    // during flight so its liquid glass blur refracts the page underneath
+                    if (source != null && t < 0.45)
                       Positioned(
                         left: 0,
                         top: 0,
-                        child: Opacity(
-                          opacity: sourceOpacity,
-                          child: Transform(
-                            transform: Matrix4.identity()
-                              ..translateByDouble(
-                                  rect.left, rect.top, 0.0, 1.0)
-                              ..scaleByDouble(
-                                  sourceScale, sourceScale, 1.0, 1.0),
-                            child: SizedBox(
-                              width: widget.sourceRect.width,
-                              height: widget.sourceRect.height,
-                              child: Material(
-                                type: MaterialType.transparency,
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(
-                                      widget.sourceBorderRadius),
-                                  child: OverflowBox(
-                                    alignment: Alignment.topLeft,
-                                    minWidth: widget.sourceRect.width,
-                                    maxWidth: widget.sourceRect.width,
-                                    minHeight: widget.sourceRect.height,
-                                    maxHeight: widget.sourceRect.height,
-                                    child: source,
-                                  ),
+                        child: Transform(
+                          transform: Matrix4.identity()
+                            ..translateByDouble(
+                                rect.left, rect.top, 0.0, 1.0)
+                            ..scaleByDouble(
+                                sourceScale, sourceScale, 1.0, 1.0),
+                          child: SizedBox(
+                            width: widget.sourceRect.width,
+                            height: widget.sourceRect.height,
+                            child: Material(
+                              type: MaterialType.transparency,
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(
+                                    widget.sourceBorderRadius),
+                                child: OverflowBox(
+                                  alignment: Alignment.topLeft,
+                                  minWidth: widget.sourceRect.width,
+                                  maxWidth: widget.sourceRect.width,
+                                  minHeight: widget.sourceRect.height,
+                                  maxHeight: widget.sourceRect.height,
+                                  child: source,
                                 ),
                               ),
                             ),

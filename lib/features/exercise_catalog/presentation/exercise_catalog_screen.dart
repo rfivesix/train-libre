@@ -45,6 +45,7 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
       widget.repository ?? context.read<IExerciseCatalogRepository>();
   List<Exercise> _foundExercises = [];
   bool _isLoading = true;
+  bool _isFabHidden = false;
   final _searchController = TextEditingController();
   List<String> _allCategories = [];
   final List<String> _selectedCategories = [];
@@ -307,24 +308,42 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
           ),
         ],
       ),
-      floatingActionButton: Builder(
-        builder: (fabCtx) => GlassFab(
-          label: l10n.create_exercise_screen_title,
-          onPressed: () {
-            Navigator.of(context)
-                .push(
-              CardMorphRoute(
-                sourceContext: fabCtx,
-                builder: (context) =>
-                    CreateExerciseScreen(repository: _repository),
-              ),
-            )
-                .then((wasCreated) {
-              if (wasCreated == true) {
-                _runFilter(_searchController.text);
-              }
-            });
-          },
+      floatingActionButton: Opacity(
+        opacity: _isFabHidden ? 0.0 : 1.0,
+        child: IgnorePointer(
+          ignoring: _isFabHidden,
+          child: Builder(
+            builder: (fabCtx) {
+              Widget buildFab({VoidCallback? onPressed}) => GlassFab(
+                    label: l10n.create_exercise_screen_title,
+                    onPressed: onPressed ?? () {},
+                  );
+
+              return GlassFab(
+                label: l10n.create_exercise_screen_title,
+                onPressed: () {
+                  Navigator.of(context)
+                      .push(
+                    CardMorphRoute(
+                      sourceContext: fabCtx,
+                      sourceBorderRadius: 28.0,
+                      sourceBuilder: (_) => buildFab(),
+                      onSourceVisibilityChanged: (hidden) {
+                        if (mounted) setState(() => _isFabHidden = hidden);
+                      },
+                      builder: (context) =>
+                          CreateExerciseScreen(repository: _repository),
+                    ),
+                  )
+                      .then((wasCreated) {
+                    if (wasCreated == true) {
+                      _runFilter(_searchController.text);
+                    }
+                  });
+                },
+              );
+            },
+          ),
         ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,

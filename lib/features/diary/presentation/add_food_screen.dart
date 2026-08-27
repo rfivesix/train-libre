@@ -157,6 +157,7 @@ class _AddFoodScreenState extends State<AddFoodScreen>
   bool _isLoadingMeals = true;
   int _currentTab = 0; // 0=catalog, 1=recent, 2=favorites, 3=meals
   final bool _suspendFab = false;
+  bool _isFabHidden = false;
   static const double _bottomPadding = 100.0;
 
   Future<void> _loadMeals() async {
@@ -363,11 +364,18 @@ class _AddFoodScreenState extends State<AddFoodScreen>
     }
   }
 
-  void _navigateAndCreateFood({BuildContext? sourceContext}) {
+  void _navigateAndCreateFood({
+    BuildContext? sourceContext,
+    WidgetBuilder? sourceBuilder,
+    void Function(bool hidden)? onSourceVisibilityChanged,
+  }) {
     Navigator.of(context)
         .push(
       CardMorphRoute(
         sourceContext: sourceContext,
+        sourceBorderRadius: 28.0,
+        sourceBuilder: sourceBuilder,
+        onSourceVisibilityChanged: onSourceVisibilityChanged,
         builder: (context) => const CreateFoodScreen(),
       ),
     )
@@ -420,7 +428,12 @@ class _AddFoodScreenState extends State<AddFoodScreen>
     }
   }
 
-  Future<void> _createMealAndOpenEditor(AppLocalizations l10n, {BuildContext? sourceContext}) async {
+  Future<void> _createMealAndOpenEditor(
+    AppLocalizations l10n, {
+    BuildContext? sourceContext,
+    WidgetBuilder? sourceBuilder,
+    void Function(bool hidden)? onSourceVisibilityChanged,
+  }) async {
     final sourceRect = CardMorphRoute.measureRect(sourceContext);
     // Keep a non-empty default name to satisfy the NOT NULL DB constraint.
     final defaultName = l10n.mealTypeLabel; // e.g. "Meal"
@@ -435,6 +448,9 @@ class _AddFoodScreenState extends State<AddFoodScreen>
     await Navigator.of(context).push(
       CardMorphRoute(
         sourceRect: sourceRect,
+        sourceBorderRadius: 28.0,
+        sourceBuilder: sourceBuilder,
+        onSourceVisibilityChanged: onSourceVisibilityChanged,
         builder: (_) => MealScreen(meal: meal, startInEdit: true),
       ),
     );
@@ -561,16 +577,42 @@ class _AddFoodScreenState extends State<AddFoodScreen>
       ),
       floatingActionButton: _suspendFab
           ? null
-          : Builder(
-              builder: (fabCtx) => GlassFab(
-                label: fabLabel,
-                onPressed: () {
-                  if (_currentTab == 3) {
-                    _createMealAndOpenEditor(l10n, sourceContext: fabCtx);
-                  } else {
-                    _navigateAndCreateFood(sourceContext: fabCtx);
-                  }
-                },
+          : Opacity(
+              opacity: _isFabHidden ? 0.0 : 1.0,
+              child: IgnorePointer(
+                ignoring: _isFabHidden,
+                child: Builder(
+                  builder: (fabCtx) {
+                    Widget buildFab({VoidCallback? onPressed}) => GlassFab(
+                          label: fabLabel,
+                          onPressed: onPressed ?? () {},
+                        );
+
+                    return GlassFab(
+                      label: fabLabel,
+                      onPressed: () {
+                        if (_currentTab == 3) {
+                          _createMealAndOpenEditor(
+                            l10n,
+                            sourceContext: fabCtx,
+                            sourceBuilder: (_) => buildFab(),
+                            onSourceVisibilityChanged: (hidden) {
+                              if (mounted) setState(() => _isFabHidden = hidden);
+                            },
+                          );
+                        } else {
+                          _navigateAndCreateFood(
+                            sourceContext: fabCtx,
+                            sourceBuilder: (_) => buildFab(),
+                            onSourceVisibilityChanged: (hidden) {
+                              if (mounted) setState(() => _isFabHidden = hidden);
+                            },
+                          );
+                        }
+                      },
+                    );
+                  },
+                ),
               ),
             ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,

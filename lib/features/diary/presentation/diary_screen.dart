@@ -1052,23 +1052,31 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
                                 ? const SizedBox.shrink(key: ValueKey('no_summary'))
                                 : Builder(
                                     key: const ValueKey('has_summary'),
-                                    builder: (cardCtx) => RepaintBoundary(
-                                      child: TodaysWorkoutSummaryCard(
-                                        duration: workoutSummary['duration'] as Duration,
-                                        volume: workoutSummary['volume'] as double,
-                                        sets: workoutSummary['sets'] as int,
-                                        workoutCount: workoutSummary['count'] as int,
+                                    builder: (cardCtx) {
+                                      Widget buildSummaryCard({VoidCallback? onTap}) =>
+                                          RepaintBoundary(
+                                            child: TodaysWorkoutSummaryCard(
+                                              duration: workoutSummary['duration'] as Duration,
+                                              volume: workoutSummary['volume'] as double,
+                                              sets: workoutSummary['sets'] as int,
+                                              workoutCount: workoutSummary['count'] as int,
+                                              onTap: onTap ?? () {},
+                                            ),
+                                          );
+
+                                      return buildSummaryCard(
                                         onTap: () {
                                           Navigator.of(context).push(
                                             CardMorphRoute(
                                               sourceContext: cardCtx,
+                                              sourceBuilder: (_) => buildSummaryCard(),
                                               builder: (context) =>
                                                   const WorkoutHistoryScreen(),
                                             ),
                                           );
                                         },
-                                      ),
-                                    ),
+                                      );
+                                    },
                                   ),
                           ),
                         );

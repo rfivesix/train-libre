@@ -37,6 +37,7 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
   static const ShareService _shareService = ShareService();
   late final Stream<List<Routine>> _routinesStream;
   bool _initialRoutineOpened = false;
+  bool _isFabHidden = false;
   final Set<int> _dismissedRoutineIds = {};
 
   @override
@@ -125,10 +126,17 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
     );
   }
 
-  void _createNewRoutine({BuildContext? sourceContext}) {
+  void _createNewRoutine({
+    BuildContext? sourceContext,
+    WidgetBuilder? sourceBuilder,
+    void Function(bool hidden)? onSourceVisibilityChanged,
+  }) {
     Navigator.of(context).push(
       CardMorphRoute(
         sourceContext: sourceContext,
+        sourceBorderRadius: 28.0,
+        sourceBuilder: sourceBuilder,
+        onSourceVisibilityChanged: onSourceVisibilityChanged,
         builder: (context) => const EditRoutineScreen(),
       ),
     );
@@ -369,10 +377,29 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
           );
         },
       ),
-      floatingActionButton: Builder(
-        builder: (fabCtx) => GlassFab(
-          label: l10n.addRoutineButton,
-          onPressed: () => _createNewRoutine(sourceContext: fabCtx),
+      floatingActionButton: Opacity(
+        opacity: _isFabHidden ? 0.0 : 1.0,
+        child: IgnorePointer(
+          ignoring: _isFabHidden,
+          child: Builder(
+            builder: (fabCtx) {
+              Widget buildFab({VoidCallback? onPressed}) => GlassFab(
+                    label: l10n.addRoutineButton,
+                    onPressed: onPressed ?? () {},
+                  );
+
+              return GlassFab(
+                label: l10n.addRoutineButton,
+                onPressed: () => _createNewRoutine(
+                  sourceContext: fabCtx,
+                  sourceBuilder: (_) => buildFab(),
+                  onSourceVisibilityChanged: (hidden) {
+                    if (mounted) setState(() => _isFabHidden = hidden);
+                  },
+                ),
+              );
+            },
+          ),
         ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
