@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## [1.2.0] - 2026-08-26
+## [1.2.0-beta.1] - 2026-08-27
 
 ### Added
 - **Workout Photos (`WorkoutPhotoCard`, `WorkoutPhotoStore`):** Workouts now support capturing and attaching up to 4 photos. Photos can be added directly via native camera capture or photo library selection in both `WorkoutSummaryScreen` and `WorkoutLogDetailScreen` (during edit mode). Features compact liquid-glass `AppButton` actions when empty or adding more photos, a full-width squircle photo carousel with localized pagination badges (`1 von 2`) and delete action neatly overlaid inside the image corners, and dot indicators for multi-photo carousels. Photos and their 320 px previews are stored in durable application support storage (`media/workouts/`), seamlessly bundled into manual `.trainlibre` and automatic iCloud backups (`thumbs/workouts/`), and safely cleaned up on log deletion or backup restore.
