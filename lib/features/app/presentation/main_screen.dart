@@ -1707,12 +1707,11 @@ class _MainScreenState extends State<MainScreen>
                                       verticalPadding: 0.0,
                                       quality:
                                           DesignConstants.defaultGlassQuality,
+                                      // Drag-time bloom, unrelated to the
+                                      // indicator's resting inset.
                                       indicatorExpansion:
                                           const EdgeInsets.symmetric(
-                                        horizontal: 14,
-                                        vertical: DesignConstants
-                                            .floatingBarPillInset,
-                                      ),
+                                              horizontal: 14, vertical: 8),
                                       selectedIconColor:
                                           theme.colorScheme.primary,
                                       unselectedIconColor:

@@ -133,7 +133,12 @@ class DesignConstants {
   /// Inset of the pills inside the floating bottom bars — the selected-tab
   /// indicator in the bottom navigation and the circular affordances in the
   /// running workout bar. Shared so both bars keep the same rhythm.
-  static const double floatingBarPillInset = 8.0;
+  ///
+  /// 4.0 is what `GlassTabBar` insets its indicator by (`padding:
+  /// EdgeInsets.all(4)` in the package's tab bar internals). Not to be confused
+  /// with the tab bar's `indicatorExpansion`, which is how far the indicator
+  /// blooms *outwards* while being dragged.
+  static const double floatingBarPillInset = 4.0;
 
   /// Diameter / height of those pills. Derived from the inset, so the pill
   /// always reaches to within [floatingBarPillInset] of the bar's edges.

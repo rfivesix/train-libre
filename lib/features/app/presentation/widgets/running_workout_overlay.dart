@@ -4,11 +4,6 @@ import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import '../../../../generated/app_localizations.dart';
 import '../../../../util/design_constants.dart';
 
-/// Status dot colors. Green while the workout runs, blue while a pause counts
-/// down — the same two signals the live workout screen uses.
-const Color _kRunningDotColor = Color(0xFF30D158);
-const Color _kRestColor = Color(0xFF4C8EFF);
-
 /// The minimized running workout bar shown above the bottom navigation.
 ///
 /// Three zones: an expand affordance on the left, status and context in the
@@ -110,7 +105,11 @@ class _RunningWorkoutRow extends StatelessWidget {
     final Color onSurface = isDark ? Colors.white : Colors.black;
     final Color pillColor = DesignConstants.floatingBarPillColor(isDark);
 
-    final Color accent = isResting ? _kRestColor : colorScheme.primary;
+    // The accent marks whatever is actually counting down for the user: the
+    // pause while one runs, and otherwise nothing — the workout duration is
+    // just there, so it stays neutral. Only the app's own accent is used; the
+    // greens and blues of the mock appear nowhere else in the app.
+    final Color timerColor = isResting ? colorScheme.primary : onSurface;
     final String statusLabel = isResting ? l10n.restTimerLabel : l10n.workout;
     final String timeText = isResting ? restDuration : elapsedDuration;
     final String? subtitle = (exerciseName != null && exerciseName!.isNotEmpty)
@@ -148,8 +147,9 @@ class _RunningWorkoutRow extends StatelessWidget {
                               height: 7,
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                                color:
-                                    isResting ? _kRestColor : _kRunningDotColor,
+                                // The live indicator itself never changes —
+                                // the workout is running either way.
+                                color: colorScheme.primary,
                               ),
                             ),
                             const SizedBox(
@@ -162,7 +162,7 @@ class _RunningWorkoutRow extends StatelessWidget {
                                     TextSpan(
                                       text: timeText,
                                       style: TextStyle(
-                                        color: accent,
+                                        color: timerColor,
                                         fontFeatures: const [
                                           FontFeature.tabularFigures()
                                         ],

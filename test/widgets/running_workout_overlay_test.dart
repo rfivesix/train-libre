@@ -3,6 +3,7 @@ import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:train_libre/features/app/presentation/widgets/running_workout_overlay.dart';
 import 'package:train_libre/generated/app_localizations.dart';
+import 'package:train_libre/util/design_constants.dart';
 
 Widget _host({
   String elapsed = '05:23',
@@ -62,6 +63,29 @@ void main() {
     expect(find.textContaining('Workout'), findsOneWidget);
     // No placeholder copy — the row is simply absent.
     expect(find.byType(Text), findsOneWidget);
+  });
+
+  testWidgets('the affordances match the bottom navigation pill geometry',
+      (tester) async {
+    await tester.pumpWidget(_host());
+    await tester.pumpAndSettle();
+
+    final bar = tester.getRect(find.byType(RunningWorkoutOverlay));
+    for (final icon in [LucideIcons.chevron_up, LucideIcons.trash_2]) {
+      final circle = tester.getRect(
+        find
+            .ancestor(
+              of: find.byIcon(icon),
+              matching: find.byType(Container),
+            )
+            .first,
+      );
+      expect(circle.height, DesignConstants.floatingBarPillSize);
+      expect(circle.width, DesignConstants.floatingBarPillSize);
+      // Same inset from the bar's edge as the selected-tab indicator.
+      expect(circle.top - bar.top, DesignConstants.floatingBarPillInset);
+      expect(bar.bottom - circle.bottom, DesignConstants.floatingBarPillInset);
+    }
   });
 
   testWidgets('tapping the bar expands, tapping the bin discards',
