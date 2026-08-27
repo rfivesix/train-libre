@@ -1476,6 +1476,53 @@ class _MainScreenState extends State<MainScreen>
   String _formatRestDuration(int seconds) =>
       _formatDuration(Duration(seconds: seconds));
 
+  /// The minimized running workout bar.
+  ///
+  /// Built through one method because [WorkoutMorphRoute] renders a second
+  /// instance of it as the thing the morph grows out of. The two have to be
+  /// the same widget with the same data or the handoff shows.
+  Widget _buildRunningWorkoutOverlay(BuildContext context) {
+    final manager = context.watch<LiveWorkoutViewModel>();
+    return RunningWorkoutOverlay(
+      elapsedDuration: _formatDuration(manager.elapsedDuration),
+      restDuration: _formatRestDuration(manager.remainingRestSeconds),
+      isResting: manager.isResting,
+      exerciseName: manager.currentExerciseNameFor(
+        Localizations.localeOf(context).languageCode,
+      ),
+      onExpand: () {
+        final log = context.read<LiveWorkoutViewModel>().workoutLog;
+        if (log != null) {
+          Navigator.of(context).push(
+            WorkoutMorphRoute<void>(
+              builder: (_) => LiveWorkoutScreen(workoutLog: log, routine: null),
+              sourceBuilder: _buildRunningWorkoutOverlay,
+            ),
+          );
+        }
+      },
+      onDiscard: () async {
+        final l10n = AppLocalizations.of(context)!;
+        final wsm = context.read<LiveWorkoutViewModel>();
+        final logId = wsm.workoutLog?.id;
+
+        final confirmed = await showDeleteConfirmation(
+          context,
+          title: l10n.discard_button,
+          content: l10n.deleteWorkoutConfirmContent,
+          confirmLabel: l10n.discard_button,
+        );
+
+        if (confirmed) {
+          if (logId != null) {
+            await WorkoutLocalDataSource.instance.deleteWorkoutLog(logId);
+          }
+          await wsm.finishWorkout();
+        }
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -1491,7 +1538,6 @@ class _MainScreenState extends State<MainScreen>
 
     final manager = context.watch<LiveWorkoutViewModel>();
     final bool isWorkoutRunning = manager.isActive;
-    final String elapsed = _formatDuration(manager.elapsedDuration);
 
     // Animation parameters
     // const basePad = 120.0; // Unused locally
@@ -1553,57 +1599,20 @@ class _MainScreenState extends State<MainScreen>
             ),
           ),
         ),
-        // Laufendes Workout Overlay
+        // Laufendes Workout Overlay. Hidden for the length of a morph — the
+        // transition renders its own copy of this very widget and moves it, so
+        // the original must not sit motionless underneath.
         if (isWorkoutRunning)
           Positioned(
             bottom: DesignConstants.workoutOverlayBottomInset,
             left: DesignConstants.floatingBarHorizontalInset,
             right: DesignConstants.floatingBarHorizontalInset,
-            child: RepaintBoundary(
-              child: RunningWorkoutOverlay(
-                elapsedDuration: elapsed,
-                restDuration: _formatRestDuration(
-                  manager.remainingRestSeconds,
-                ),
-                isResting: manager.isResting,
-                exerciseName: manager.currentExerciseNameFor(
-                  Localizations.localeOf(context).languageCode,
-                ),
-                onExpand: () {
-                  final log = context.read<LiveWorkoutViewModel>().workoutLog;
-                  if (log != null) {
-                    Navigator.of(context).push(
-                      WorkoutMorphRoute<void>(
-                        builder: (_) =>
-                            LiveWorkoutScreen(workoutLog: log, routine: null),
-                      ),
-                    );
-                  }
-                },
-                onDiscard: () async {
-                  final l10n = AppLocalizations.of(context)!;
-                  final wsm = context.read<LiveWorkoutViewModel>();
-                  final logId = wsm.workoutLog?.id;
-
-                  // FIX: showDeleteConfirmation instead of showDialog.
-                  final confirmed = await showDeleteConfirmation(
-                    context,
-                    title: l10n.discard_button, // "Discard"
-                    content:
-                        l10n.deleteWorkoutConfirmContent, // "Really delete?"
-                    confirmLabel: l10n.discard_button, // Red button: "Discard"
-                  );
-
-                  if (confirmed) {
-                    if (logId != null) {
-                      await WorkoutLocalDataSource.instance.deleteWorkoutLog(
-                        logId,
-                      );
-                    }
-                    await wsm.finishWorkout();
-                  }
-                },
-              ),
+            child: ValueListenableBuilder<bool>(
+              valueListenable: workoutMorphSourceHidden,
+              builder: (context, hidden, _) => hidden
+                  ? const SizedBox.shrink()
+                  : RepaintBoundary(
+                      child: _buildRunningWorkoutOverlay(context)),
             ),
           ),
         // Bottom Nav Bar & FAB

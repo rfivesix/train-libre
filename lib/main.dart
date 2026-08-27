@@ -978,7 +978,18 @@ class NoGlowScrollBehavior extends ScrollBehavior {
 
   @override
   ScrollPhysics getScrollPhysics(BuildContext context) {
-    // iOS-Style: Bouncing
-    return const BouncingScrollPhysics();
+    // iOS-Style: Bouncing, on every platform.
+    //
+    // This is UIScrollView's own feel, not an approximation of it:
+    // [BouncingScrollPhysics] defaults to `ScrollDecelerationRate.normal`,
+    // which is the same 0.998 as `UIScrollViewDecelerationRateNormal`.
+    //
+    // The [RangeMaintainingScrollPhysics] parent is what Flutter's own iOS
+    // default wraps, and it is not optional: without it a list jumps when
+    // something above the viewport changes size — a chart finishing its load,
+    // an expanding card — instead of holding the reader's place.
+    return const BouncingScrollPhysics(
+      parent: RangeMaintainingScrollPhysics(),
+    );
   }
 }

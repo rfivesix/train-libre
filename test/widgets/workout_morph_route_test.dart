@@ -21,6 +21,7 @@ void main() {
     // Mid-transition the page is already mounted, clipped to the growing pill,
     // and the screen underneath is still painted.
     await tester.pump();
+    await tester.pump(Duration.zero);
     await tester.pump(const Duration(milliseconds: 200));
     expect(find.text('workout'), findsOneWidget);
     expect(find.text('main'), findsOneWidget);
@@ -49,6 +50,7 @@ void main() {
       ),
     );
     await tester.pump();
+    await tester.pump(Duration.zero);
     await tester.pump(const Duration(milliseconds: 80));
 
     // The content moves with the container rather than sitting still behind a
@@ -72,6 +74,151 @@ void main() {
     );
 
     await tester.pumpAndSettle();
+  });
+
+  testWidgets('collapsing hands over to the real bar by fading, not by a swap',
+      (tester) async {
+    final navigatorKey = GlobalKey<NavigatorState>();
+    await tester.pumpWidget(MaterialApp(
+      navigatorKey: navigatorKey,
+      home: const Scaffold(body: Text('main')),
+    ));
+
+    navigatorKey.currentState!.push(
+      WorkoutMorphRoute<void>(
+        builder: (_) => const Scaffold(body: Text('workout')),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    navigatorKey.currentState!.pop();
+    await tester.pump();
+    // The transition's clock only starts on its first tick, so this frame is
+    // the zero point — measuring from the pump before it would be 540ms early.
+    await tester.pump(Duration.zero);
+    // Near the end of the collapse the page must already be almost gone,
+    // so what is left on screen is the real bar rather than a stand-in that
+    // gets swapped out on the final frame.
+    await tester.pump(const Duration(milliseconds: 540));
+
+    final opacity = tester.widget<Opacity>(
+      find
+          .ancestor(of: find.text('workout'), matching: find.byType(Opacity))
+          .first,
+    );
+    expect(opacity.opacity, lessThan(0.15));
+    expect(find.text('main'), findsOneWidget);
+
+    await tester.pumpAndSettle();
+    expect(find.text('workout'), findsNothing);
+  });
+
+  testWidgets('the bar it grew out of travels with it and hands over',
+      (tester) async {
+    final navigatorKey = GlobalKey<NavigatorState>();
+    await tester.pumpWidget(MaterialApp(
+      navigatorKey: navigatorKey,
+      home: Scaffold(
+        body: ValueListenableBuilder<bool>(
+          valueListenable: workoutMorphSourceHidden,
+          builder: (context, hidden, _) =>
+              hidden ? const SizedBox.shrink() : const Text('bar'),
+        ),
+      ),
+    ));
+    expect(find.text('bar'), findsOneWidget);
+
+    navigatorKey.currentState!.push(
+      WorkoutMorphRoute<void>(
+        builder: (_) => const Scaffold(body: Text('workout')),
+        sourceBuilder: (_) => const Text('bar'),
+      ),
+    );
+    // The screen keeps its bar until the route's copy is actually in the tree,
+    // so there is never a frame without one.
+    await tester.pump();
+    expect(find.text('bar'), findsOneWidget);
+
+    await tester.pump(const Duration(milliseconds: 16));
+    expect(workoutMorphSourceHidden.value, isTrue);
+    expect(find.text('bar'), findsOneWidget);
+
+    await tester.pump(const Duration(milliseconds: 60));
+
+    // Both contents are on screen at once, each carried by the container —
+    // that overlap is what makes it a morph rather than one thing fading out
+    // while another fades in somewhere else.
+    expect(find.text('bar'), findsOneWidget);
+    expect(find.text('workout'), findsOneWidget);
+    final barTransform = tester.widget<Transform>(
+      find
+          .ancestor(of: find.text('bar'), matching: find.byType(Transform))
+          .first,
+    );
+    expect(barTransform.transform.getRow(0).x, greaterThan(1.0));
+
+    // The bar is liquid glass, and a glass backdrop filter renders as nothing
+    // inside a save layer. So it must never sit under an Opacity, or it would
+    // be flat for the whole hand-over and then snap in when the fade ends.
+    expect(
+      find.ancestor(of: find.text('bar'), matching: find.byType(Opacity)),
+      findsNothing,
+    );
+
+    await tester.pumpAndSettle();
+    expect(find.text('bar'), findsNothing);
+
+    navigatorKey.currentState!.pop();
+    await tester.pumpAndSettle();
+    // And the screen takes its bar back once the route is gone.
+    expect(workoutMorphSourceHidden.value, isFalse);
+    expect(find.text('bar'), findsOneWidget);
+  });
+
+  testWidgets('there is never a frame without a bar, at either end',
+      (tester) async {
+    final navigatorKey = GlobalKey<NavigatorState>();
+    await tester.pumpWidget(MaterialApp(
+      navigatorKey: navigatorKey,
+      home: Scaffold(
+        body: ValueListenableBuilder<bool>(
+          valueListenable: workoutMorphSourceHidden,
+          builder: (context, hidden, _) =>
+              hidden ? const SizedBox.shrink() : const Text('bar'),
+        ),
+      ),
+    ));
+
+    Future<void> stepThrough(int frames) async {
+      for (var i = 0; i < frames; i++) {
+        await tester.pump(const Duration(milliseconds: 16));
+        expect(
+          find.text('bar'),
+          findsWidgets,
+          reason: 'no bar on screen at frame $i — it blinks out',
+        );
+      }
+    }
+
+    navigatorKey.currentState!.push(
+      WorkoutMorphRoute<void>(
+        builder: (_) => const Scaffold(body: Text('workout')),
+        sourceBuilder: (_) => const Text('bar'),
+      ),
+    );
+    // Opening: the copy has to be in the tree before the screen drops its own.
+    await tester.pump();
+    await stepThrough(8);
+    await tester.pumpAndSettle();
+
+    navigatorKey.currentState!.pop();
+    await tester.pump();
+    await tester.pump(Duration.zero);
+    // Landing: the screen has to have its bar back before the copy goes.
+    await tester.pump(const Duration(milliseconds: 560));
+    await stepThrough(8);
+    await tester.pumpAndSettle();
+    expect(find.text('bar'), findsOneWidget);
   });
 
   test('the overlay rect matches where the bar is positioned', () {
