@@ -651,8 +651,10 @@ final class PhotoCaptureDelegate: NSObject, AVCapturePhotoCaptureDelegate {
     // The photo is written with an EXIF orientation tag; the depth map is not
     // rotated at all. Left alone the two disagree by a quarter turn, which is
     // why the depth preview came out sideways next to its own photo.
+    let exifOrientationRaw =
+      photo.metadata[kCGImagePropertyOrientation as String] as? UInt32
     var orientedDepth = photo.depthData
-    if let raw = photo.metadata[kCGImagePropertyOrientation as String] as? UInt32,
+    if let raw = exifOrientationRaw,
       let exif = CGImagePropertyOrientation(rawValue: raw),
       let depth = orientedDepth
     {
@@ -706,6 +708,22 @@ final class PhotoCaptureDelegate: NSObject, AVCapturePhotoCaptureDelegate {
     var response: [String: Any] = ["imagePath": imageURL.path]
     if let depthResult { response["depth"] = depthResult }
     if let intrinsicsResult { response["intrinsics"] = intrinsicsResult }
+
+    // Reported so the Dart side can check the depth map, the intrinsics and the
+    // photo against each other. `applyingExifOrientation` above rotates the
+    // depth pixels but is not documented to rotate the calibration data with
+    // them, and a frame size derived from unrotated intrinsics would be a
+    // quarter turn out. These are the numbers that settle it on real hardware.
+    var photoInfo: [String: Any] = [:]
+    if let raw = exifOrientationRaw { photoInfo["exifOrientation"] = Int(raw) }
+    if let pixelWidth = photo.metadata[kCGImagePropertyPixelWidth as String] as? Int,
+      let pixelHeight = photo.metadata[kCGImagePropertyPixelHeight as String] as? Int
+    {
+      photoInfo["pixelWidth"] = pixelWidth
+      photoInfo["pixelHeight"] = pixelHeight
+    }
+    if !photoInfo.isEmpty { response["photo"] = photoInfo }
+
     completion(response, nil)
   }
 }

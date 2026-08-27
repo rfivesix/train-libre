@@ -158,6 +158,7 @@ class DepthScanChannel implements IDepthScanService {
 
       final depthMap = asStringMap(res['depth']);
       final intrinsicsMap = asStringMap(res['intrinsics']);
+      final photoMap = asStringMap(res['photo']);
 
       Float32List? depthBuffer;
       int width = 0;
@@ -204,6 +205,13 @@ class DepthScanChannel implements IDepthScanService {
           intrinsics: intrinsics,
           accuracy: accuracy,
         );
+        _logScaleOrientation(
+          depthWidth: width,
+          depthHeight: height,
+          intrinsics: intrinsics,
+          facts: scaleFacts,
+          photo: photoMap,
+        );
       }
 
       return DepthCaptureResult(
@@ -222,5 +230,49 @@ class DepthScanChannel implements IDepthScanService {
       debugPrint('[DepthScanChannel] capture error: $e');
       return null;
     }
+  }
+
+  /// Logs whether the depth map and the camera intrinsics agree on which way up
+  /// the capture is.
+  ///
+  /// The native side rotates the depth pixels to match the photo, but reads the
+  /// calibration data off the rotated object without any guarantee that it was
+  /// rotated too. If it was not, `refWidth/refHeight` still describe the
+  /// landscape sensor frame while the depth map is portrait — and since
+  /// `frameWidthCm` reduces to `refWidth * distance / fx`, the width and height
+  /// handed to the model are then swapped for every single portrait shot.
+  ///
+  /// Diagnostic only, and deliberately not a fix: correcting the swap in the
+  /// wrong direction is worse than leaving it, so this reports the raw numbers
+  /// from real hardware first.
+  void _logScaleOrientation({
+    required int depthWidth,
+    required int depthHeight,
+    required CameraIntrinsics intrinsics,
+    required DepthScaleFacts facts,
+    Map<String, dynamic>? photo,
+  }) {
+    final depthPortrait = depthHeight > depthWidth;
+    final refPortrait = intrinsics.refHeight > intrinsics.refWidth;
+    final agree = depthPortrait == refPortrait;
+
+    final photoWidth = (photo?['pixelWidth'] as num?)?.toInt();
+    final photoHeight = (photo?['pixelHeight'] as num?)?.toInt();
+    final exif = (photo?['exifOrientation'] as num?)?.toInt();
+
+    debugPrint(
+      '[DepthScale] depth ${depthWidth}x$depthHeight '
+      '(${depthPortrait ? 'portrait' : 'landscape'}) | '
+      'intrinsics ref ${intrinsics.refWidth}x${intrinsics.refHeight} '
+      '(${refPortrait ? 'portrait' : 'landscape'}) | '
+      'fx=${intrinsics.fx.toStringAsFixed(1)} '
+      'fy=${intrinsics.fy.toStringAsFixed(1)} | '
+      'photo ${photoWidth ?? '?'}x${photoHeight ?? '?'} exif=${exif ?? '?'} | '
+      'frame ${facts.frameWidthCm.toStringAsFixed(1)}x'
+      '${facts.frameHeightCm.toStringAsFixed(1)} cm '
+      'at ${facts.subjectDistanceCm.toStringAsFixed(1)} cm '
+      '(valid=${facts.isValid}) | '
+      'ORIENTATION ${agree ? 'AGREES' : 'MISMATCH -> frame w/h are swapped'}',
+    );
   }
 }

@@ -1471,15 +1471,44 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                             ),
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: [
+                              mainAxisAlignment: MainAxis                               children: [
                                 _HiddenWhileKeyboardVisible(
                                   child: AnimatedBuilder(
                                     animation: manager,
                                     builder: (context, _) {
-                                      final bar = _buildRestBottomBar(
+                                      final isRunning =
+                                          manager.remainingRestSeconds > 0;
+                                      final isDoneBanner =
+                                          !isRunning && manager.showRestDone;
+                                      final showRestBar =
+                                          isRunning || isDoneBanner;
+
+                                      final freshBar = _buildRestBottomBar(
                                           l10n, colorScheme, manager);
-                                      return bar ?? const SizedBox.shrink();
+                                      if (freshBar != null) {
+                                        _cachedRestBottomBar = freshBar;
+                                      }
+
+                                      return AnimatedSlide(
+                                        duration:
+                                            const Duration(milliseconds: 320),
+                                        curve: Curves.easeInOutCubic,
+                                        offset: showRestBar
+                                            ? Offset.zero
+                                            : const Offset(0.0, 1.25),
+                                        child: AnimatedOpacity(
+                                          duration: const Duration(
+                                              milliseconds: 280),
+                                          curve: Curves.easeInOutCubic,
+                                          opacity: showRestBar ? 1.0 : 0.0,
+                                          child: IgnorePointer(
+                                            ignoring: !showRestBar,
+                                            child: freshBar ??
+                                                _cachedRestBottomBar ??
+                                                const SizedBox.shrink(),
+                                          ),
+                                        ),
+                                      );
                                     },
                                   ),
                                 ),
@@ -1494,7 +1523,9 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                       builder: (context, vm, child) {
                         final showRestBar =
                             vm.remainingRestSeconds > 0 || vm.showRestDone;
-                        return Positioned(
+                        return AnimatedPositioned(
+                          duration: const Duration(milliseconds: 320),
+                          curve: Curves.easeInOutCubic,
                           bottom: showRestBar
                               ? (20.0 +
                                   DesignConstants.workoutOverlayHeight +
@@ -1508,7 +1539,7 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                           ),
                         );
                       },
-                    ),
+                    ),             ),
 
                     // --- Top Celebration Banner ---
                     Positioned(
