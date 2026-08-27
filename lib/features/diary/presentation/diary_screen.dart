@@ -1644,65 +1644,75 @@ class _MealCardState extends State<_MealCard> {
                           (
                             hasPhoto: entryHasPhoto(mealEntriesById[entryId]),
                             widget: Builder(
-                              builder: (cardCtx) => MealEntryCard(
-                                key: ValueKey(entryId),
-                                mealEntry: mealEntriesById[entryId]!,
-                                items: groupedByMealEntry[entryId]!,
-                                onTapDetail: () async {
-                                  final result =
-                                      await Navigator.of(context).push<bool>(
-                                    CardMorphRoute(
-                                      sourceContext: cardCtx,
-                                      builder: (_) => MealEntryScreen(
-                                        mealEntry: mealEntriesById[entryId]!,
-                                        initialItems:
-                                            groupedByMealEntry[entryId]!,
-                                      ),
-                                    ),
-                                  );
-                                  if (result == true && context.mounted) {
-                                    context
-                                        .read<DiaryViewModel>()
-                                        .loadDataForDate(
-                                          context
-                                              .read<DiaryViewModel>()
-                                              .selectedDate,
+                              builder: (cardCtx) {
+                                Widget buildMealCard({VoidCallback? onTapDetail}) =>
+                                    MealEntryCard(
+                                      key: ValueKey(entryId),
+                                      mealEntry: mealEntriesById[entryId]!,
+                                      items: groupedByMealEntry[entryId]!,
+                                      onTapDetail: onTapDetail,
+                                      onConfirmDeleteMeal: () async {
+                                        final meal = mealEntriesById[entryId]!;
+                                        final childItems =
+                                            groupedByMealEntry[entryId]!;
+                                        int mealKcal = 0;
+                                        for (final it in childItems) {
+                                          final factor =
+                                              it.entry.quantityInGrams / 100.0;
+                                          mealKcal +=
+                                              (it.item.calories * factor).round();
+                                        }
+                                        return await DeleteMealEntryBottomSheet
+                                            .show(
+                                          context,
+                                          mealTitle: meal.title ?? 'Mahlzeit',
+                                          itemCount: childItems.length,
+                                          totalKcal: mealKcal,
                                         );
-                                  }
-                                },
-                              onConfirmDeleteMeal: () async {
-                                final meal = mealEntriesById[entryId]!;
-                                final childItems = groupedByMealEntry[entryId]!;
-                                int mealKcal = 0;
-                                for (final it in childItems) {
-                                  final factor =
-                                      it.entry.quantityInGrams / 100.0;
-                                  mealKcal +=
-                                      (it.item.calories * factor).round();
-                                }
-                                return await DeleteMealEntryBottomSheet.show(
-                                  context,
-                                  mealTitle: meal.title ?? 'Mahlzeit',
-                                  itemCount: childItems.length,
-                                  totalKcal: mealKcal,
+                                      },
+                                      onDeleteMeal: (choice) {
+                                        final meal = mealEntriesById[entryId];
+                                        if (meal == null) return;
+                                        final viewModel =
+                                            context.read<DiaryViewModel>();
+                                        viewModel.deleteMealEntry(
+                                          meal.id,
+                                          deleteFoodLogs: choice ==
+                                              DeleteMealChoice.deleteAll,
+                                        );
+                                      },
+                                      onEditItem: widget.onEditFood,
+                                      onDeleteItem: widget.onDeleteFood,
+                                    );
+
+                                return buildMealCard(
+                                  onTapDetail: () async {
+                                    final result =
+                                        await Navigator.of(context).push<bool>(
+                                      CardMorphRoute(
+                                        sourceContext: cardCtx,
+                                        sourceBuilder: (_) => buildMealCard(),
+                                        builder: (_) => MealEntryScreen(
+                                          mealEntry: mealEntriesById[entryId]!,
+                                          initialItems:
+                                              groupedByMealEntry[entryId]!,
+                                        ),
+                                      ),
+                                    );
+                                    if (result == true && context.mounted) {
+                                      context
+                                          .read<DiaryViewModel>()
+                                          .loadDataForDate(
+                                            context
+                                                .read<DiaryViewModel>()
+                                                .selectedDate,
+                                          );
+                                    }
+                                  },
                                 );
                               },
-                              onDeleteMeal: (choice) {
-                                final meal = mealEntriesById[entryId];
-                                if (meal == null) return;
-                                final viewModel =
-                                    context.read<DiaryViewModel>();
-                                viewModel.deleteMealEntry(
-                                  meal.id,
-                                  deleteFoodLogs:
-                                      choice == DeleteMealChoice.deleteAll,
-                                );
-                              },
-                              onEditItem: widget.onEditFood,
-                              onDeleteItem: widget.onDeleteFood,
                             ),
                           ),
-                        ),
                         for (final item in standaloneItems)
                           (
                             hasPhoto: false,

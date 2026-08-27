@@ -73,7 +73,7 @@ class _WorkoutHubScreenState extends State<WorkoutHubScreen> {
     return false;
   }
 
-  void _startEmptyWorkout({BuildContext? sourceContext}) async {
+  void _startEmptyWorkout({BuildContext? sourceContext, WidgetBuilder? sourceBuilder}) async {
     final sourceRect = CardMorphRoute.measureRect(sourceContext);
     final canProceed = await _checkAndHandleOngoingWorkout();
     if (!canProceed) return;
@@ -87,13 +87,14 @@ class _WorkoutHubScreenState extends State<WorkoutHubScreen> {
       Navigator.of(context).push(
         CardMorphRoute(
           sourceRect: sourceRect,
+          sourceBuilder: sourceBuilder,
           builder: (context) => LiveWorkoutScreen(workoutLog: newLog),
         ),
       );
     }
   }
 
-  void _startRoutine(Routine routine, {BuildContext? sourceContext}) async {
+  void _startRoutine(Routine routine, {BuildContext? sourceContext, WidgetBuilder? sourceBuilder}) async {
     final sourceRect = CardMorphRoute.measureRect(sourceContext);
     final canProceed = await _checkAndHandleOngoingWorkout();
     if (!canProceed) return;
@@ -116,6 +117,7 @@ class _WorkoutHubScreenState extends State<WorkoutHubScreen> {
       Navigator.of(context).push(
         CardMorphRoute(
           sourceRect: sourceRect,
+          sourceBuilder: sourceBuilder,
           builder: (context) => LiveWorkoutScreen(
             routine: detailedRoutine,
             workoutLog: newLog,
@@ -160,12 +162,8 @@ class _WorkoutHubScreenState extends State<WorkoutHubScreen> {
       children: [
         AppSectionHeader(title: l10n.workoutSectionStart),
         Builder(
-          builder: (cardCtx) => SummaryCard(
-            child: InkWell(
-              onTap: () => _startEmptyWorkout(sourceContext: cardCtx),
-              borderRadius: BorderRadius.circular(
-                DesignConstants.borderRadiusM,
-              ),
+          builder: (cardCtx) {
+            Widget buildEmptyCard() => SummaryCard(
               child: Padding(
                 padding: const EdgeInsets.all(20.0),
                 child: Row(
@@ -180,8 +178,34 @@ class _WorkoutHubScreenState extends State<WorkoutHubScreen> {
                   ],
                 ),
               ),
-            ),
-          ),
+            );
+
+            return SummaryCard(
+              child: InkWell(
+                onTap: () => _startEmptyWorkout(
+                  sourceContext: cardCtx,
+                  sourceBuilder: (_) => buildEmptyCard(),
+                ),
+                borderRadius: BorderRadius.circular(
+                  DesignConstants.borderRadiusM,
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(LucideIcons.circle_plus, size: 28),
+                      const SizedBox(width: DesignConstants.spacingM),
+                      Text(
+                        l10n.startEmptyWorkoutButton,
+                        style: Theme.of(context).textTheme.titleLarge,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
         ),
         const SizedBox(height: DesignConstants.spacingXL),
         AppSectionHeader(title: l10n.workoutSectionMyPlans),
@@ -321,9 +345,34 @@ class _WorkoutHubScreenState extends State<WorkoutHubScreen> {
     final screenWidth = MediaQuery.of(context).size.width;
     final cardWidth = (screenWidth - 32 - 12) / 2;
 
+    Widget buildRoutineCardContent({VoidCallback? onStart}) => SummaryCard(
+      child: Padding(
+        padding: DesignConstants.cardPadding,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              routine.name,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+            AppButton.primary(
+              onPressed: onStart ?? () {},
+              label: l10n.start_button,
+              tooltip: l10n.start_button,
+              size: AppButtonSize.medium,
+            ),
+          ],
+        ),
+      ),
+    );
+
     return SizedBox(
       width: cardWidth,
-      // FIX: Add spacing here as padding, not as margin.
       child: Padding(
         padding: const EdgeInsets.only(right: DesignConstants.spacingM),
         child: Builder(
@@ -333,6 +382,7 @@ class _WorkoutHubScreenState extends State<WorkoutHubScreen> {
                 Navigator.of(context).push(
                   CardMorphRoute(
                     sourceContext: cardCtx,
+                    sourceBuilder: (_) => buildRoutineCardContent(),
                     builder: (_) => EditRoutineScreen(routine: routine),
                   ),
                 );
@@ -353,7 +403,11 @@ class _WorkoutHubScreenState extends State<WorkoutHubScreen> {
                       overflow: TextOverflow.ellipsis,
                     ),
                     AppButton.primary(
-                      onPressed: () => _startRoutine(routine, sourceContext: cardCtx),
+                      onPressed: () => _startRoutine(
+                        routine,
+                        sourceContext: cardCtx,
+                        sourceBuilder: (_) => buildRoutineCardContent(),
+                      ),
                       label: l10n.start_button,
                       tooltip: l10n.start_button,
                       size: AppButtonSize.medium,

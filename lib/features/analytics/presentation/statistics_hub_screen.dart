@@ -423,6 +423,15 @@ class _StatisticsHubScreenView extends StatelessWidget {
           Navigator.of(context).push(
             CardMorphRoute(
               sourceContext: cardCtx,
+              sourceBuilder: (_) => StatisticsStepsCard(
+                onTap: () {},
+                title: stepsTitle,
+                chipText: subtitleRange,
+                currentSteps: currentSteps,
+                currentStepsSubtitle: stepsSubtitle,
+                dailyTotals: displayRange.dailyTotals,
+                dailyGoal: viewModel.targetSteps,
+              ),
               builder: (_) => const StepsModuleScreen(),
             ),
           );
@@ -483,6 +492,12 @@ class _StatisticsHubScreenView extends StatelessWidget {
           Navigator.of(context).push(
             CardMorphRoute(
               sourceContext: cardCtx,
+              sourceBuilder: (_) => RecoverySectionCard(
+                state: viewModel.recoveryState,
+                chipText: null,
+                onRetry: () {},
+                onTap: () {},
+              ),
               builder: (_) => const RecoveryTrackerScreen(),
             ),
           );
@@ -512,6 +527,12 @@ class _StatisticsHubScreenView extends StatelessWidget {
           Navigator.of(context).push(
             CardMorphRoute(
               sourceContext: cardCtx,
+              sourceBuilder: (_) => SleepSectionCard(
+                state: viewModel.sleepState,
+                rangeLabel: _unifiedRangeLabel(viewModel, l10n),
+                onRetry: () {},
+                onTap: () {},
+              ),
               builder: (_) => SleepDayOverviewPage(
                 selectedDay: DateTime.now(),
               ),
@@ -545,6 +566,12 @@ class _StatisticsHubScreenView extends StatelessWidget {
           Navigator.of(context).push(
             CardMorphRoute(
               sourceContext: cardCtx,
+              sourceBuilder: (_) => PulseSectionCard(
+                state: viewModel.pulseState,
+                fallbackRangeLabel: rangeLabel ?? '',
+                onRetry: () {},
+                onTap: () {},
+              ),
               builder: (_) => const PulseAnalysisScreen(),
             ),
           );
@@ -575,6 +602,12 @@ class _StatisticsHubScreenView extends StatelessWidget {
           Navigator.of(context).push(
             CardMorphRoute(
               sourceContext: cardCtx,
+              sourceBuilder: (_) => ConsistencySectionCard(
+                state: viewModel.consistencyState,
+                chipText: _unifiedRangeLabel(viewModel, l10n),
+                onRetry: () {},
+                onTap: () {},
+              ),
               builder: (_) => const ConsistencyTrackerScreen(),
             ),
           );
@@ -605,6 +638,12 @@ class _StatisticsHubScreenView extends StatelessWidget {
           Navigator.of(context).push(
             CardMorphRoute(
               sourceContext: cardCtx,
+              sourceBuilder: (_) => PerformanceSectionCard(
+                state: viewModel.performanceState,
+                chipText: _unifiedRangeLabel(viewModel, l10n),
+                onRetry: () {},
+                onTap: () {},
+              ),
               builder: (_) => const PRDashboardScreen(),
             ),
           );
@@ -636,6 +675,12 @@ class _StatisticsHubScreenView extends StatelessWidget {
           Navigator.of(context).push(
             CardMorphRoute(
               sourceContext: cardCtx,
+              sourceBuilder: (_) => MuscleVolumeSectionCard(
+                state: viewModel.volumeMusclesState,
+                rangeLabel: _unifiedRangeLabel(viewModel, l10n),
+                onRetry: () {},
+                onTap: () {},
+              ),
               builder: (_) => const MuscleGroupAnalyticsScreen(),
             ),
           );
@@ -666,6 +711,12 @@ class _StatisticsHubScreenView extends StatelessWidget {
           Navigator.of(context).push(
             CardMorphRoute(
               sourceContext: cardCtx,
+              sourceBuilder: (_) => BodyMetricsSectionCard(
+                state: viewModel.bodyNutritionState,
+                rangeLabel: _unifiedRangeLabel(viewModel, l10n),
+                onRetry: () {},
+                onTap: () {},
+              ),
               builder: (_) => BodyNutritionCorrelationScreen(
                 initialRangeIndex: viewModel.activeBlockType.index,
               ),
@@ -686,6 +737,40 @@ class _StatisticsHubScreenView extends StatelessWidget {
 
   Widget _buildMeasurementsShortcutCard(
       BuildContext context, AppLocalizations l10n) {
+    Widget buildShortcutContent() => Padding(
+      padding: const EdgeInsets.all(DesignConstants.spacingL),
+      child: Row(
+        children: [
+          Icon(
+            LucideIcons.ruler,
+            color: Theme.of(context).colorScheme.primary,
+          ),
+          const SizedBox(width: DesignConstants.spacingM),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  l10n.body_measurements,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  l10n.all_measurements_no_cap,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.outline,
+                      ),
+                ),
+              ],
+            ),
+          ),
+          const Icon(LucideIcons.chevron_right),
+        ],
+      ),
+    );
+
     return Builder(
       builder: (cardCtx) => SummaryCard(
         key: const Key('statistics_measurements_link_card'),
@@ -693,43 +778,12 @@ class _StatisticsHubScreenView extends StatelessWidget {
           Navigator.of(context).push(
             CardMorphRoute(
               sourceContext: cardCtx,
+              sourceBuilder: (_) => SummaryCard(child: buildShortcutContent()),
               builder: (_) => const MeasurementsScreen(),
             ),
           );
         },
-        child: Padding(
-          padding: const EdgeInsets.all(DesignConstants.spacingL),
-          child: Row(
-            children: [
-              Icon(
-                LucideIcons.ruler,
-                color: Theme.of(context).colorScheme.primary,
-              ),
-              const SizedBox(width: DesignConstants.spacingM),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      l10n.body_measurements,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      l10n.all_measurements_no_cap,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Theme.of(context).colorScheme.outline,
-                          ),
-                    ),
-                  ],
-                ),
-              ),
-              const Icon(LucideIcons.chevron_right),
-            ],
-          ),
-        ),
+        child: buildShortcutContent(),
       ),
     );
   }

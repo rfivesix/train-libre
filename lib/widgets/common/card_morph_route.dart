@@ -19,23 +19,32 @@ import '../../util/design_constants.dart';
 ///    in the source never loses refraction under an `Opacity` layer.
 /// 4. Background dims with a subtle scrim.
 /// 5. Handover at both ends is overlap-safe (no 1-frame blank).
-class CardMorphRoute<T> extends PageRouteBuilder<T> {
+/// 6. Supports interactive iOS edge-swipe back gesture to collapse on drag.
+class CardMorphRoute<T> extends PageRoute<T> {
   CardMorphRoute({
-    required WidgetBuilder builder,
+    required this.builder,
     this.sourceRect,
     this.sourceContext,
     this.sourceBorderRadius = DesignConstants.borderRadiusL,
     this.sourceBuilder,
+    this.morphOnPop = true,
     this.onSourceVisibilityChanged,
     super.settings,
-    Duration expandDuration = const Duration(milliseconds: 400),
-    Duration collapseDuration = const Duration(milliseconds: 350),
-  }) : super(
-          transitionDuration: expandDuration,
-          reverseTransitionDuration: collapseDuration,
-          pageBuilder: (context, animation, secondaryAnimation) =>
-              builder(context),
-        );
+    Duration expandDuration = const Duration(milliseconds: 420),
+    Duration collapseDuration = const Duration(milliseconds: 360),
+    bool maintainState = true,
+    bool fullscreenDialog = false,
+  })  : _expandDuration = expandDuration,
+        _collapseDuration = collapseDuration,
+        _maintainState = maintainState,
+        _fullscreenDialog = fullscreenDialog;
+
+  final WidgetBuilder builder;
+
+  /// Whether the route should morph back into [sourceRect] on pop.
+  /// When false (e.g. for LiveWorkoutScreen), it morphs open from the card on push,
+  /// but slides down into the bottom progress bar on pop.
+  final bool morphOnPop;
 
   /// Fixed bounding rect of the source widget in global coordinates.
   final Rect? sourceRect;
@@ -53,6 +62,62 @@ class CardMorphRoute<T> extends PageRouteBuilder<T> {
   /// Callback to hide the original source widget on screen during flight and
   /// restore it once the collapse lands.
   final void Function(bool hidden)? onSourceVisibilityChanged;
+
+  final Duration _expandDuration;
+  final Duration _collapseDuration;
+  final bool _maintainState;
+
+  @override
+  bool get maintainState => _maintainState;
+
+  final bool _fullscreenDialog;
+
+  @override
+  bool get fullscreenDialog => _fullscreenDialog;
+
+  @override
+  Color? get barrierColor => null;
+
+  @override
+  String? get barrierLabel => null;
+
+  @override
+  Duration get transitionDuration => _expandDuration;
+
+  @override
+  Duration get reverseTransitionDuration => _collapseDuration;
+
+  void handleDragStart() {
+    controller?.stop();
+  }
+
+  void handleDragUpdate(double deltaFraction) {
+    if (controller != null) {
+      controller!.value = (controller!.value - deltaFraction).clamp(0.0, 1.0);
+    }
+  }
+
+  void handleDragEnd({required bool shouldPop}) {
+    if (controller == null) return;
+    if (shouldPop) {
+      controller!.animateTo(0.0, curve: Curves.easeOutCubic).then((_) {
+        if (isActive) {
+          navigator?.pop();
+        }
+      });
+    } else {
+      controller!.animateTo(1.0, curve: Curves.easeOutCubic);
+    }
+  }
+
+  @override
+  Widget buildPage(
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+  ) {
+    return builder(context);
+  }
 
   /// Helper to measure the global rect of a given [BuildContext].
   static Rect? measureRect(BuildContext? context) {
@@ -80,10 +145,12 @@ class CardMorphRoute<T> extends PageRouteBuilder<T> {
     }
 
     return _CardMorphTransition(
+      route: this,
       animation: animation,
       sourceRect: measured,
       sourceBorderRadius: sourceBorderRadius,
       sourceBuilder: sourceBuilder,
+      morphOnPop: morphOnPop,
       child: child,
     );
   }
@@ -119,109 +186,211 @@ class CardMorphRoute<T> extends PageRouteBuilder<T> {
 const Curve _kExpandCurve = Curves.fastOutSlowIn;
 const Curve _kCollapseCurve = FlippedCurve(_kExpandCurve);
 const double _kRadiusLead = 1.35;
-const double _kPageFadeInAt = 0.30;
-const double _kScrimOpacity = 0.40;
+const double _kScrimOpacity = 0.45;
 
-class _CardMorphTransition extends StatelessWidget {
+class _CardMorphTransition extends StatefulWidget {
+  final CardMorphRoute route;
   final Animation<double> animation;
   final Rect sourceRect;
   final double sourceBorderRadius;
   final WidgetBuilder? sourceBuilder;
+  final bool morphOnPop;
   final Widget child;
 
   const _CardMorphTransition({
+    required this.route,
     required this.animation,
     required this.sourceRect,
     required this.sourceBorderRadius,
     required this.sourceBuilder,
+    required this.morphOnPop,
     required this.child,
   });
 
   @override
+  State<_CardMorphTransition> createState() => _CardMorphTransitionState();
+}
+
+class _CardMorphTransitionState extends State<_CardMorphTransition> {
+  bool _isDragging = false;
+
+  void _handleDragStart(DragStartDetails details) {
+    if (details.globalPosition.dx <= 32.0 && widget.animation.isCompleted) {
+      _isDragging = true;
+      widget.route.handleDragStart();
+    }
+  }
+
+  void _handleDragUpdate(DragUpdateDetails details, double screenWidth) {
+    if (!_isDragging) return;
+    final double delta = details.primaryDelta ?? 0.0;
+    widget.route.handleDragUpdate(delta / screenWidth);
+  }
+
+  void _handleDragEnd(DragEndDetails details, double screenWidth) {
+    if (!_isDragging) return;
+    _isDragging = false;
+    final double velocity = details.primaryVelocity ?? 0.0;
+    final bool shouldPop = velocity > 300.0 ||
+        (widget.animation.value < 0.65 && velocity > -100.0);
+    widget.route.handleDragEnd(shouldPop: shouldPop);
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final ThemeData theme = Theme.of(context);
-    final Size screen = MediaQuery.sizeOf(context);
-    final Widget? source = sourceBuilder?.call(context);
+    final Size screen = MediaQuery.of(context).size;
     final Rect fullRect = Offset.zero & screen;
-
     final double screenRadius =
-        MediaQuery.viewPaddingOf(context).bottom > 0 ? 44.0 : 0.0;
+        Theme.of(context).platform == TargetPlatform.iOS ? 48.0 : 0.0;
+    final ThemeData theme = Theme.of(context);
 
-    return AnimatedBuilder(
-      animation: animation,
-      child: child,
-      builder: (context, page) {
-        final double raw = animation.value.clamp(0.0, 1.0);
-        if (raw >= 1.0) return page!;
+    final Widget? source = widget.sourceBuilder != null
+        ? Material(
+            type: MaterialType.transparency,
+            child: widget.sourceBuilder!(context),
+          )
+        : null;
 
-        final Curve curve = animation.status == AnimationStatus.reverse
-            ? _kCollapseCurve
-            : _kExpandCurve;
-        final double t = curve.transform(raw);
+    // Smooth color ramp from the card's surface tone to the screen background
+    final Color startCardColor = theme.brightness == Brightness.dark
+        ? const Color(0xFF1C1C1E)
+        : const Color(0xFFF2F2F7);
+    final Color endBgColor = theme.scaffoldBackgroundColor;
 
-        final Rect rect = Rect.lerp(sourceRect, fullRect, t)!;
-        final double radius = lerpDouble(
-          sourceBorderRadius,
-          screenRadius,
-          (t * _kRadiusLead).clamp(0.0, 1.0),
-        )!;
+    return GestureDetector(
+      behavior: HitTestBehavior.translucent,
+      onHorizontalDragStart: _handleDragStart,
+      onHorizontalDragUpdate: (d) => _handleDragUpdate(d, screen.width),
+      onHorizontalDragEnd: (d) => _handleDragEnd(d, screen.width),
+      child: AnimatedBuilder(
+        animation: widget.animation,
+        child: widget.child,
+        builder: (context, page) {
+          final double raw = widget.animation.value.clamp(0.0, 1.0);
+          if (raw >= 1.0) return page!;
 
-        final double scale = rect.width / screen.width;
-        final double sourceScale = rect.width / sourceRect.width;
-        final double pageOpacity = (t / _kPageFadeInAt).clamp(0.0, 1.0);
-        final double stripHeight = sourceRect.height * sourceScale;
+          // If morphOnPop is false and we are popping (e.g. LiveWorkoutScreen minimizing to bottom bar),
+          // slide down off screen smoothly towards the bottom progress bar:
+          if (!widget.morphOnPop &&
+              widget.animation.status == AnimationStatus.reverse) {
+            final double popProgress = (1.0 - raw);
+            final double slideY =
+                Curves.easeInCubic.transform(popProgress) * screen.height;
+            final double scrimAlpha = raw * _kScrimOpacity;
+            return Stack(
+              fit: StackFit.expand,
+              children: [
+                ColoredBox(color: Colors.black.withValues(alpha: scrimAlpha)),
+                Transform.translate(
+                  offset: Offset(0.0, slideY),
+                  child: page,
+                ),
+              ],
+            );
+          }
 
-        return Stack(
-          fit: StackFit.expand,
-          children: [
-            ColoredBox(
-              color: Colors.black.withValues(alpha: t * _kScrimOpacity),
-            ),
-            ClipRRect(
-              clipper: _CardMorphClipper(rect: rect, radius: radius),
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  if (rect.height > stripHeight)
+          final Curve curve = widget.animation.status == AnimationStatus.reverse
+              ? _kCollapseCurve
+              : _kExpandCurve;
+          final double t = curve.transform(raw);
+
+          final Rect rect = Rect.lerp(widget.sourceRect, fullRect, t)!;
+          final double radius = lerpDouble(
+            widget.sourceBorderRadius,
+            screenRadius,
+            (t * _kRadiusLead).clamp(0.0, 1.0),
+          )!;
+
+          final Color containerColor = Color.lerp(
+            startCardColor,
+            endBgColor,
+            Curves.easeOutCubic.transform(t),
+          )!;
+
+          final double scale = rect.width / screen.width;
+          final double sourceScale = rect.width / widget.sourceRect.width;
+
+          // Content fade: destination page materializes smoothly between 12% and 62% of progress
+          final double pageFadeProgress = ((t - 0.12) / 0.50).clamp(0.0, 1.0);
+          final double pageOpacity =
+              Curves.easeOutCubic.transform(pageFadeProgress);
+
+          // Source card fade: stays solid while card expands, then fades out gently
+          final double sourceOpacity = (1.0 - (t / 0.35)).clamp(0.0, 1.0);
+
+          return Stack(
+            fit: StackFit.expand,
+            children: [
+              // Background scrim
+              ColoredBox(
+                color: Colors.black.withValues(alpha: t * _kScrimOpacity),
+              ),
+              // The expanding card body
+              ClipRRect(
+                clipper: _CardMorphClipper(rect: rect, radius: radius),
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    // Full container ramped background: grows organically with surface color
                     Positioned.fromRect(
-                      rect: Rect.fromLTRB(
-                        rect.left,
-                        rect.top + stripHeight,
-                        rect.right,
-                        rect.bottom,
-                      ),
-                      child: ColoredBox(color: theme.scaffoldBackgroundColor),
+                      rect: rect,
+                      child: ColoredBox(color: containerColor),
                     ),
-                  if (source != null && pageOpacity < 1.0)
-                    Positioned(
-                      left: 0,
-                      top: 0,
-                      child: Transform(
-                        transform: Matrix4.identity()
-                          ..translateByDouble(rect.left, rect.top, 0.0, 1.0)
-                          ..scaleByDouble(sourceScale, sourceScale, 1.0, 1.0),
-                        child: SizedBox(
-                          width: sourceRect.width,
-                          height: sourceRect.height,
-                          child: source,
+
+                    // Destination page (materializes smoothly inside the container)
+                    if (pageOpacity > 0.0)
+                      Opacity(
+                        opacity: pageOpacity,
+                        child: Transform(
+                          transform: Matrix4.identity()
+                            ..translateByDouble(rect.left, rect.top, 0.0, 1.0)
+                            ..scaleByDouble(scale, scale, 1.0, 1.0),
+                          child: page,
                         ),
                       ),
-                    ),
-                  Opacity(
-                    opacity: pageOpacity,
-                    child: Transform(
-                      transform: Matrix4.identity()
-                        ..translateByDouble(rect.left, rect.top, 0.0, 1.0)
-                        ..scaleByDouble(scale, scale, 1.0, 1.0),
-                      child: page,
-                    ),
-                  ),
-                ],
+
+                    // Source card widget (if provided)
+                    if (source != null && sourceOpacity > 0.0)
+                      Positioned(
+                        left: 0,
+                        top: 0,
+                        child: Opacity(
+                          opacity: sourceOpacity,
+                          child: Transform(
+                            transform: Matrix4.identity()
+                              ..translateByDouble(
+                                  rect.left, rect.top, 0.0, 1.0)
+                              ..scaleByDouble(
+                                  sourceScale, sourceScale, 1.0, 1.0),
+                            child: SizedBox(
+                              width: widget.sourceRect.width,
+                              height: widget.sourceRect.height,
+                              child: Material(
+                                type: MaterialType.transparency,
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(
+                                      widget.sourceBorderRadius),
+                                  child: OverflowBox(
+                                    alignment: Alignment.topLeft,
+                                    minWidth: widget.sourceRect.width,
+                                    maxWidth: widget.sourceRect.width,
+                                    minHeight: widget.sourceRect.height,
+                                    maxHeight: widget.sourceRect.height,
+                                    child: source,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
               ),
-            ),
-          ],
-        );
-      },
+            ],
+          );
+        },
+      ),
     );
   }
 }

@@ -77,7 +77,7 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
     return false;
   }
 
-  void _startWorkout(Routine routine, {BuildContext? sourceContext}) async {
+  void _startWorkout(Routine routine, {BuildContext? sourceContext, WidgetBuilder? sourceBuilder}) async {
     final sourceRect = CardMorphRoute.measureRect(sourceContext);
     final canProceed = await _checkAndHandleOngoingWorkout();
     if (!canProceed) return;
@@ -95,6 +95,7 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
       Navigator.of(context).push(
         CardMorphRoute(
           sourceRect: sourceRect,
+          sourceBuilder: sourceBuilder,
           builder: (context) => LiveWorkoutScreen(
             routine: fullRoutine,
             workoutLog: newWorkoutLog,
@@ -268,6 +269,25 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
                     Navigator.of(context).push(
                       CardMorphRoute(
                         sourceContext: cardCtx,
+                        sourceBuilder: (_) => SummaryCard(
+                          child: ListTile(
+                            leading: AppButton.primary(
+                              onPressed: () {},
+                              label: l10n.startButton,
+                              tooltip: l10n.startButton,
+                              size: AppButtonSize.small,
+                            ),
+                            title: Text(
+                              routine.name,
+                              style: const TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                            subtitle: Text(l10n.editRoutineSubtitle),
+                            trailing: Icon(
+                              LucideIcons.ellipsis_vertical,
+                              color: textTheme.bodyMedium?.color,
+                            ),
+                          ),
+                        ),
                         builder: (context) =>
                             EditRoutineScreen(routine: routine),
                       ),
@@ -276,7 +296,29 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
                   child: SummaryCard(
                     child: ListTile(
                       leading: AppButton.primary(
-                        onPressed: () => _startWorkout(routine, sourceContext: cardCtx),
+                        onPressed: () => _startWorkout(
+                          routine,
+                          sourceContext: cardCtx,
+                          sourceBuilder: (_) => SummaryCard(
+                            child: ListTile(
+                              leading: AppButton.primary(
+                                onPressed: () {},
+                                label: l10n.startButton,
+                                tooltip: l10n.startButton,
+                                size: AppButtonSize.small,
+                              ),
+                              title: Text(
+                                routine.name,
+                                style: const TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              subtitle: Text(l10n.editRoutineSubtitle),
+                              trailing: Icon(
+                                LucideIcons.ellipsis_vertical,
+                                color: textTheme.bodyMedium?.color,
+                              ),
+                            ),
+                          ),
+                        ),
                         label: l10n.startButton,
                         tooltip: l10n.startButton,
                         size: AppButtonSize.small,

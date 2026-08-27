@@ -49,7 +49,6 @@ class _TimeRangeFilterState extends State<TimeRangeFilter> {
   void didUpdateWidget(TimeRangeFilter oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.selectedIndex != widget.selectedIndex ||
-        oldWidget.displayDate != widget.displayDate ||
         oldWidget.ranges.length != widget.ranges.length) {
       if (oldWidget.ranges.length != widget.ranges.length) {
         _updateKeys();
@@ -73,21 +72,34 @@ class _TimeRangeFilterState extends State<TimeRangeFilter> {
     final key = _keys[widget.selectedIndex!];
     final chipContext = key.currentContext;
     if (chipContext != null && _scrollController.hasClients) {
-      final renderBox = chipContext.findRenderObject() as RenderBox?;
-      final scrollRenderObject =
-          _scrollController.position.context.storageContext.findRenderObject();
-      if (renderBox != null && scrollRenderObject != null) {
-        final position =
-            renderBox.localToGlobal(Offset.zero, ancestor: scrollRenderObject);
+      final chipBox = chipContext.findRenderObject() as RenderBox?;
+      final scrollBox = _scrollController
+          .position.context.storageContext
+          .findRenderObject() as RenderBox?;
+      if (chipBox != null &&
+          scrollBox != null &&
+          chipBox.attached &&
+          scrollBox.attached) {
+        final localOffset =
+            chipBox.localToGlobal(Offset.zero, ancestor: scrollBox);
         final currentScroll = _scrollController.offset;
-        final targetOffset =
-            currentScroll + position.dx - DesignConstants.cardPaddingInternal;
+        final targetOffset = currentScroll +
+            localOffset.dx -
+            DesignConstants.cardPaddingInternal;
+        final clamped = targetOffset.clamp(
+            0.0, _scrollController.position.maxScrollExtent);
 
-        _scrollController.animateTo(
-          targetOffset.clamp(0.0, _scrollController.position.maxScrollExtent),
-          duration: const Duration(milliseconds: 250),
-          curve: Curves.easeInOut,
-        );
+        if (force) {
+          if ((clamped - currentScroll).abs() > 0.5) {
+            _scrollController.animateTo(
+              clamped,
+              duration: const Duration(milliseconds: 250),
+              curve: Curves.easeOutCubic,
+            );
+          }
+        } else {
+          _scrollController.jumpTo(clamped);
+        }
       }
     }
   }
@@ -145,99 +157,117 @@ class _TimeRangeFilterState extends State<TimeRangeFilter> {
                         ),
                       ),
 
-                      // Center Divider
-                      if (widget.showDateNavigation) ...[
-                        Center(
-                          child: Container(
-                            width: 1,
-                            height: 16,
-                            color: theme.colorScheme.onPrimary
-                                .withValues(alpha: 0.3),
-                          ),
-                        ),
-
-                        // Navigation
-                        Tooltip(
-                          message: MaterialLocalizations.of(context).previousPageTooltip,
-                          child: InkWell(
-                            key: const Key('time-range-prev'),
-                            onTap: widget.onPrevious != null
-                                ? () {
-                                    HapticFeedbackService.instance
-                                        .selectionFeedback();
-                                    widget.onPrevious!();
-                                  }
-                                : null,
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 8),
-                              child: Center(
-                                child: Icon(
-                                  LucideIcons.chevron_left,
-                                  semanticLabel: MaterialLocalizations.of(context).previousPageTooltip,
-                                  size: 16,
-                                  color: widget.onPrevious != null
-                                      ? theme.colorScheme.onPrimary
-                                      : theme.disabledColor,
+                      // Animated expansion of inner date navigation
+                      if (widget.showDateNavigation)
+                        AnimatedSize(
+                          duration: const Duration(milliseconds: 220),
+                          curve: Curves.easeOutCubic,
+                          alignment: Alignment.centerLeft,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Center(
+                                child: Container(
+                                  width: 1,
+                                  height: 16,
+                                  color: theme.colorScheme.onPrimary
+                                      .withValues(alpha: 0.3),
                                 ),
                               ),
-                            ),
-                          ),
-                        ),
 
-                        if (widget.displayDate != null)
-                          InkWell(
-                            onTap: widget.onTapDateDisplay != null
-                                ? () {
-                                    HapticFeedbackService.instance
-                                        .selectionFeedback();
-                                    widget.onTapDateDisplay!();
-                                  }
-                                : null,
-                            child: Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 4),
-                              child: Center(
-                                child: Text(
-                                  widget.displayDate!,
-                                  style: theme.textTheme.labelMedium?.copyWith(
-                                    fontWeight: FontWeight.w600,
-                                    color: theme.colorScheme.onPrimary,
+                              // Navigation
+                              Tooltip(
+                                message: MaterialLocalizations.of(context)
+                                    .previousPageTooltip,
+                                child: InkWell(
+                                  key: const Key('time-range-prev'),
+                                  onTap: widget.onPrevious != null
+                                      ? () {
+                                          HapticFeedbackService.instance
+                                              .selectionFeedback();
+                                          widget.onPrevious!();
+                                        }
+                                      : null,
+                                  child: Padding(
+                                    padding:
+                                        const EdgeInsets.symmetric(horizontal: 8),
+                                    child: Center(
+                                      child: Icon(
+                                        LucideIcons.chevron_left,
+                                        semanticLabel: MaterialLocalizations.of(
+                                                context)
+                                            .previousPageTooltip,
+                                        size: 16,
+                                        color: widget.onPrevious != null
+                                            ? theme.colorScheme.onPrimary
+                                            : theme.disabledColor,
+                                      ),
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
-                          ),
 
-                        Tooltip(
-                          message: MaterialLocalizations.of(context).nextPageTooltip,
-                          child: InkWell(
-                            key: const Key('time-range-next'),
-                            onTap: widget.nextEnabled && widget.onNext != null
-                                ? () {
-                                    HapticFeedbackService.instance
-                                        .selectionFeedback();
-                                    widget.onNext!();
-                                  }
-                                : null,
-                            borderRadius: const BorderRadius.horizontal(
-                                right: Radius.circular(100)),
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 10),
-                              child: Center(
-                                child: Icon(
-                                  LucideIcons.chevron_right,
-                                  semanticLabel: MaterialLocalizations.of(context).nextPageTooltip,
-                                  size: 16,
-                                  color:
-                                      widget.nextEnabled && widget.onNext != null
-                                          ? theme.colorScheme.onPrimary
-                                          : theme.disabledColor,
+                              if (widget.displayDate != null)
+                                InkWell(
+                                  onTap: widget.onTapDateDisplay != null
+                                      ? () {
+                                          HapticFeedbackService.instance
+                                              .selectionFeedback();
+                                          widget.onTapDateDisplay!();
+                                        }
+                                      : null,
+                                  child: Padding(
+                                    padding:
+                                        const EdgeInsets.symmetric(horizontal: 4),
+                                    child: Center(
+                                      child: Text(
+                                        widget.displayDate!,
+                                        style: theme.textTheme.labelMedium?.copyWith(
+                                          fontWeight: FontWeight.w600,
+                                          color: theme.colorScheme.onPrimary,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+
+                              Tooltip(
+                                message:
+                                    MaterialLocalizations.of(context).nextPageTooltip,
+                                child: InkWell(
+                                  key: const Key('time-range-next'),
+                                  onTap: widget.nextEnabled && widget.onNext != null
+                                      ? () {
+                                          HapticFeedbackService.instance
+                                              .selectionFeedback();
+                                          widget.onNext!();
+                                        }
+                                      : null,
+                                  borderRadius: const BorderRadius.horizontal(
+                                      right: Radius.circular(100)),
+                                  child: Padding(
+                                    padding:
+                                        const EdgeInsets.symmetric(horizontal: 10),
+                                    child: Center(
+                                      child: Icon(
+                                        LucideIcons.chevron_right,
+                                        semanticLabel:
+                                            MaterialLocalizations.of(context)
+                                                .nextPageTooltip,
+                                        size: 16,
+                                        color: widget.nextEnabled &&
+                                                widget.onNext != null
+                                            ? theme.colorScheme.onPrimary
+                                            : theme.disabledColor,
+                                      ),
+                                    ),
+                                  ),
                                 ),
                               ),
-                            ),
+                            ],
                           ),
                         ),
-                      ],
                     ],
                   ),
                 ),
@@ -260,12 +290,7 @@ class _TimeRangeFilterState extends State<TimeRangeFilter> {
 
             return Container(
               key: _keys[index],
-              child: AnimatedSize(
-                duration: const Duration(milliseconds: 200),
-                curve: Curves.easeOutCubic,
-                alignment: Alignment.centerLeft,
-                child: chip,
-              ),
+              child: chip,
             );
           }),
         ),
