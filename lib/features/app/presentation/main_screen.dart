@@ -27,6 +27,7 @@ import '../../profile/presentation/measurements_screen.dart';
 import '../../diary/presentation/diary_screen.dart';
 import '../../workout/presentation/edit_routine_screen.dart';
 import '../../workout/presentation/live_workout_screen.dart';
+import '../../workout/presentation/workout_morph_route.dart';
 import '../../diary/presentation/nutrition_hub_screen.dart';
 import '../../profile/presentation/profile_screen.dart';
 import '../../analytics/presentation/statistics_hub_screen.dart';
@@ -539,7 +540,9 @@ class _MainScreenState extends State<MainScreen>
         if (manager.workoutLog != null) {
           Navigator.of(context)
               .push(
-                MaterialPageRoute(
+                // Resuming an already running session — it morphs out of the
+                // minimized bar, same as tapping the bar itself.
+                WorkoutMorphRoute<void>(
                   builder: (context) => LiveWorkoutScreen(
                     workoutLog: manager.workoutLog!,
                     routine: null,
@@ -1336,7 +1339,8 @@ class _MainScreenState extends State<MainScreen>
     final l10n = AppLocalizations.of(context)!;
     final steps = _buildAppTourSteps(l10n);
     final initialTarget = steps.isNotEmpty
-        ? (_rectForKey(steps[0].anchorKey) ?? _rectForKey(_tourNavigationBarKey))
+        ? (_rectForKey(steps[0].anchorKey) ??
+            _rectForKey(_tourNavigationBarKey))
         : null;
     setState(() {
       _isTourActive = true;
@@ -1467,6 +1471,11 @@ class _MainScreenState extends State<MainScreen>
     return '${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}';
   }
 
+  /// The remaining pause as `MM:SS`. Always minutes and seconds — a pause
+  /// never runs long enough to need an hours field.
+  String _formatRestDuration(int seconds) =>
+      _formatDuration(Duration(seconds: seconds));
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -1547,20 +1556,24 @@ class _MainScreenState extends State<MainScreen>
         // Laufendes Workout Overlay
         if (isWorkoutRunning)
           Positioned(
-            bottom: 8 +
-                8 +
-                DesignConstants.bottomNavigationBarHeight +
-                8, // 8px (Positioned bottom) + 8px (verticalPadding) + 64px (barHeight) + 8px (gap) = 88.0px
-            left: 16,
-            right: 16,
+            bottom: DesignConstants.workoutOverlayBottomInset,
+            left: DesignConstants.floatingBarHorizontalInset,
+            right: DesignConstants.floatingBarHorizontalInset,
             child: RepaintBoundary(
               child: RunningWorkoutOverlay(
                 elapsedDuration: elapsed,
-                onContinue: () {
+                restDuration: _formatRestDuration(
+                  manager.remainingRestSeconds,
+                ),
+                isResting: manager.isResting,
+                exerciseName: manager.currentExerciseNameFor(
+                  Localizations.localeOf(context).languageCode,
+                ),
+                onExpand: () {
                   final log = context.read<LiveWorkoutViewModel>().workoutLog;
                   if (log != null) {
                     Navigator.of(context).push(
-                      MaterialPageRoute(
+                      WorkoutMorphRoute<void>(
                         builder: (_) =>
                             LiveWorkoutScreen(workoutLog: log, routine: null),
                       ),
@@ -1663,12 +1676,7 @@ class _MainScreenState extends State<MainScreen>
                     Material(
                       type: MaterialType.transparency,
                       child: DefaultTextStyle(
-                        style: const TextStyle(
-                          fontSize: 11.0,
-                          fontWeight: FontWeight.w600,
-                          fontFamily: 'Inter',
-                          letterSpacing: -0.2,
-                        ),
+                        style: DesignConstants.floatingBarLabelStyle,
                         child: Padding(
                           padding: EdgeInsets.symmetric(
                             horizontal: horizontalPadding,
@@ -1701,14 +1709,17 @@ class _MainScreenState extends State<MainScreen>
                                           DesignConstants.defaultGlassQuality,
                                       indicatorExpansion:
                                           const EdgeInsets.symmetric(
-                                              horizontal: 14, vertical: 8),
+                                        horizontal: 14,
+                                        vertical: DesignConstants
+                                            .floatingBarPillInset,
+                                      ),
                                       selectedIconColor:
                                           theme.colorScheme.primary,
                                       unselectedIconColor:
                                           isDark ? Colors.white : Colors.black,
                                       indicatorColor:
-                                          (isDark ? Colors.white : Colors.black)
-                                              .withValues(alpha: 0.15),
+                                          DesignConstants.floatingBarPillColor(
+                                              isDark),
                                       settings:
                                           DesignConstants.liquidGlassSettings(
                                               isDark),

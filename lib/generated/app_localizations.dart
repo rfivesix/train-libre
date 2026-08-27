@@ -2210,6 +2210,12 @@ abstract class AppLocalizations {
   /// **'Continue'**
   String get continue_workout_button;
 
+  /// No description provided for @minimizeWorkoutButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Minimize'**
+  String get minimizeWorkoutButton;
+
   /// No description provided for @soon_available_snackbar.
   ///
   /// In en, this message translates to:

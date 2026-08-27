@@ -494,6 +494,7 @@
   "add_button": "追加",
   "discard_button": "破棄",
   "continue_workout_button": "続く",
+  "minimizeWorkoutButton": "最小化",
   "soon_available_snackbar": "この画面は近日公開予定です",
   "start_button": "始める",
   "today_overview_text": "今日に注目",

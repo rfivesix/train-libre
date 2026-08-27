@@ -493,6 +493,7 @@
   "add_button": "Add",
   "discard_button": "Discard",
   "continue_workout_button": "Continue",
+  "minimizeWorkoutButton": "Minimize",
   "soon_available_snackbar": "This screen will be available soon",
   "start_button": "Start",
   "today_overview_text": "TODAY IN FOCUS",

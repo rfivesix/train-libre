@@ -17,6 +17,7 @@ import 'services/profile_service.dart';
 import 'services/unit_service.dart';
 import 'features/workout/presentation/live_workout_view_model.dart';
 import 'features/workout/presentation/live_workout_screen.dart';
+import 'features/workout/presentation/workout_morph_route.dart';
 import 'package:provider/provider.dart';
 import 'services/theme_service.dart';
 import 'theme/app_colors.dart';
@@ -913,7 +914,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
                 (settings.name?.contains('workout/live') ?? false)) {
               final Uri? uri = Uri.tryParse(settings.name ?? '');
               final action = uri?.queryParameters['action'];
-              return MaterialPageRoute(
+              return WorkoutMorphRoute<void>(
                 settings: settings,
                 builder: (context) {
                   final wsm =
@@ -934,7 +935,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
           onUnknownRoute: (settings) {
             final Uri? uri = Uri.tryParse(settings.name ?? '');
             final action = uri?.queryParameters['action'];
-            return MaterialPageRoute(
+            return WorkoutMorphRoute<void>(
               settings: settings,
               builder: (context) {
                 final wsm =

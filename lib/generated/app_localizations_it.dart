@@ -1248,6 +1248,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get continue_workout_button => 'Continuare';
 
   @override
+  String get minimizeWorkoutButton => 'Riduci';
+
+  @override
   String get soon_available_snackbar =>
       'Questa schermata sarà presto disponibile';
 

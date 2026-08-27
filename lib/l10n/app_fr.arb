@@ -494,6 +494,7 @@
   "add_button": "Ajouter",
   "discard_button": "Jeter",
   "continue_workout_button": "Continuer",
+  "minimizeWorkoutButton": "Réduire",
   "soon_available_snackbar": "Cet écran sera bientôt disponible",
   "start_button": "Commencer",
   "today_overview_text": "AUJOURD'HUI À L'AFFICHE",

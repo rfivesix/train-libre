@@ -741,9 +741,11 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
           appBar: AppBar(
             automaticallyImplyLeading:
                 false, // We will provide our own back button
+            // Down, not back: this does not leave the workout, it minimizes
+            // it into the running workout bar above the bottom navigation.
             leading: IconButton(
-              tooltip: MaterialLocalizations.of(context).backButtonTooltip,
-              icon: const Icon(LucideIcons.arrow_left),
+              tooltip: l10n.minimizeWorkoutButton,
+              icon: const Icon(LucideIcons.chevron_down),
               onPressed: _handleBack,
             ),
             elevation: 0,

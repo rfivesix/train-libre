@@ -107,6 +107,62 @@ class DesignConstants {
   /// Standard height for floating overlays such as the Running Workout Overlay and the Live Rest Timer bar.
   static const double workoutOverlayHeight = 64.0;
 
+  /// Horizontal inset of the floating bottom bars (nav bar, running workout
+  /// overlay) from the screen edges.
+  static const double floatingBarHorizontalInset = 16.0;
+
+  /// Distance between the bottom screen edge and the running workout overlay:
+  /// 8px stack inset + 8px nav bar padding + the nav bar itself + 8px gap.
+  static const double workoutOverlayBottomInset =
+      8.0 + 8.0 + bottomNavigationBarHeight + 8.0;
+
+  /// Corner radius of the running workout overlay — half its height, so the
+  /// bar is a perfect pill.
+  static const double workoutOverlayRadius = workoutOverlayHeight / 2;
+
+  /// The screen rect the running workout overlay occupies. Single source of
+  /// truth for both the overlay's own [Positioned] and the morph transition
+  /// that grows the live workout screen out of it.
+  static Rect workoutOverlayRect(Size screen) => Rect.fromLTWH(
+        floatingBarHorizontalInset,
+        screen.height - workoutOverlayBottomInset - workoutOverlayHeight,
+        screen.width - floatingBarHorizontalInset * 2,
+        workoutOverlayHeight,
+      );
+
+  /// Inset of the pills inside the floating bottom bars — the selected-tab
+  /// indicator in the bottom navigation and the circular affordances in the
+  /// running workout bar. Shared so both bars keep the same rhythm.
+  static const double floatingBarPillInset = 8.0;
+
+  /// Diameter / height of those pills. Derived from the inset, so the pill
+  /// always reaches to within [floatingBarPillInset] of the bar's edges.
+  static const double floatingBarPillSize =
+      bottomNavigationBarHeight - floatingBarPillInset * 2;
+
+  /// Fill behind those pills — what makes them read as buttons. Single source
+  /// of truth for the navigation indicator and the workout bar's affordances.
+  static Color floatingBarPillColor(bool isDark) =>
+      (isDark ? Colors.white : Colors.black).withValues(alpha: 0.15);
+
+  /// Label typography inside the floating bottom bars.
+  static const TextStyle floatingBarLabelStyle = TextStyle(
+    fontSize: 11.0,
+    fontWeight: FontWeight.w600,
+    fontFamily: 'Inter',
+    letterSpacing: -0.2,
+  );
+
+  /// The running workout bar's status line — the one line in the bars that
+  /// carries primary information, so it is a little larger than
+  /// [floatingBarLabelStyle] while keeping its family, weight and tracking.
+  static const TextStyle floatingBarStatusStyle = TextStyle(
+    fontSize: 13.0,
+    fontWeight: FontWeight.w600,
+    fontFamily: 'Inter',
+    letterSpacing: -0.2,
+  );
+
   /// Standard size for the action item buttons inside the Speed Dial (Plus) Menu.
   static const double speedDialActionSize = 56.0;
 

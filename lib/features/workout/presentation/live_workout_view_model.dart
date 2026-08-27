@@ -103,6 +103,37 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
   Map<int, SetLog> get setLogs => _setLogs;
   bool get isActive => _workoutLog != null && _workoutLog!.endTime == null;
 
+  /// Whether a pause is currently counting down. Flips back to false the
+  /// moment the countdown hits zero or is skipped, so the minimized bar can
+  /// switch back to the workout duration without a delay of its own.
+  bool get isResting => _remainingRestSeconds > 0;
+
+  /// The exercise the minimized workout bar should name: the one the next
+  /// open set belongs to, or — once every set is ticked off — the last one
+  /// worked. Null while the workout holds no exercises at all, so the bar can
+  /// leave its second row empty instead of inventing a placeholder.
+  String? currentExerciseNameFor(String languageCode) {
+    if (_exercises.isEmpty) return null;
+    for (final exercise in _exercises) {
+      // An exercise without set templates counts as open — it was just added
+      // and is exactly what the user is about to work on.
+      final hasOpenSet = exercise.setTemplates.isEmpty ||
+          exercise.setTemplates.any((template) {
+            final templateId = template.id;
+            if (templateId == null) return false;
+            final log = _setLogs[templateId];
+            return log == null || log.isCompleted != true;
+          });
+      if (hasOpenSet) return _displayNameOf(exercise, languageCode);
+    }
+    return _displayNameOf(_exercises.last, languageCode);
+  }
+
+  String _displayNameOf(RoutineExercise exercise, String languageCode) {
+    final localized = exercise.exercise.localizedNameFor(languageCode);
+    return localized.isNotEmpty ? localized : exercise.exercise.nameEn;
+  }
+
   // ---------------------------------------------------------------------------
   // Live Activity (iOS)
   //
@@ -559,8 +590,8 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
       }
     } else {
       if (setLog.weightKg != null) {
-        weightControllers[templateId]?.text =
-            unitService.formatDisplayWeight(setLog.weightKg!, fractionDigits: 2);
+        weightControllers[templateId]?.text = unitService
+            .formatDisplayWeight(setLog.weightKg!, fractionDigits: 2);
       }
       if (setLog.reps != null) {
         repsControllers[templateId]?.text = setLog.reps!.toString();
