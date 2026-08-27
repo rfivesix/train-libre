@@ -445,6 +445,11 @@ class ICloudSyncService {
           for (final row in tables) {
             final table = row.read<String>('name');
 
+            if (!RegExp(r'^[a-zA-Z0-9_]+$').hasMatch(table)) {
+              debugPrint('Invalid table name for restore: $table');
+              continue;
+            }
+
             final liveColumns = await _columnNames(db, 'main', table);
             if (liveColumns.isEmpty) continue;
             final snapshotColumns = await _columnNames(db, 'restore', table);
@@ -474,6 +479,9 @@ class ICloudSyncService {
     String schema,
     String table,
   ) async {
+    if (!RegExp(r'^[a-zA-Z0-9_]+$').hasMatch(table)) return const [];
+    if (!RegExp(r'^[a-zA-Z0-9_]+$').hasMatch(schema)) return const [];
+
     try {
       final rows =
           await db.customSelect('PRAGMA $schema.table_info("$table")').get();
