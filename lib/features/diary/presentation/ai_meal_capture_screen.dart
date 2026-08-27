@@ -22,7 +22,9 @@ import '../../depth_scan/data/depth_map_attachment.dart';
 import '../../depth_scan/data/depth_scan_settings.dart';
 import '../../depth_scan/platform/depth_scan_channel.dart';
 import '../../app/presentation/widgets/glass_bottom_menu.dart';
+import 'ai_meal_review_reveal_route.dart';
 import 'ai_meal_review_screen.dart';
+import 'meal_analysis_morph_route.dart';
 import 'meal_analysis_screen.dart';
 import 'meal_editor_screen.dart';
 import '../../settings/presentation/ai_settings_screen.dart';
@@ -598,8 +600,12 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
     final controller = MealAnalysisController();
     _analysisController?.dispose();
     _analysisController = controller;
+    final sourceRect =
+        MealAnalysisMorphRoute.measureRect(_keyAnalyze.currentContext);
     _analysisRoute = MealAnalysisScreen.route(
       controller: controller,
+      sourceContext: _keyAnalyze.currentContext,
+      sourceRect: sourceRect,
       previewImage: _images.isNotEmpty ? _images.first : null,
       onCancel: () {
         _analysisCancelled = true;
@@ -722,14 +728,20 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
         setState(() => _isAnalyzing = false);
       }
 
+      // Smoothly contract cloud back into circle and pause before organic vapor dispersion
+      await controller.contractToCircle();
+      if (!mounted) return;
+
+      // Mark analysis finished so MealAnalysisScreen's orb and UI are completely hidden beneath review
+      controller.isFinished.value = true;
+
       final detectedType = _detectMealTypeFromText(text);
       final resolvedMealType = widget.initialMealType ??
           detectedType ??
           MealTypeTimeExtension.fromCurrentTime().toMealTypeKey;
 
-      final reviewRoute = PageRouteBuilder<bool>(
-        pageBuilder: (context, animation, secondaryAnimation) =>
-            AiMealReviewScreen(
+      final reviewRoute = AiMealReviewRevealRoute<bool>(
+        builder: (context) => AiMealReviewScreen(
           suggestions: validationOutcome.validation.candidate.items
               .map(
                 (item) => AiSuggestedItem(
@@ -749,16 +761,6 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
           depthFacts: _lastDepthCapture?.scaleFacts,
           voiceTranscript: text.isNotEmpty ? text : null,
         ),
-        transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          return FadeTransition(
-            opacity: CurvedAnimation(
-              parent: animation,
-              curve: Curves.easeOutCubic,
-            ),
-            child: child,
-          );
-        },
-        transitionDuration: const Duration(milliseconds: 300),
       );
 
       final oldAnalysisRoute = _analysisRoute;
@@ -1276,75 +1278,53 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                       // "Analysieren" Button (Appears when input is ready or during tour step 5)
                       if (_hasInput || (_isTourActive && _tourStep == 5)) ...[
                         const SizedBox(height: 8),
-                        SizedBox(
-                          key: _keyAnalyze,
-                          width: double.infinity,
-                          height: 46,
-                          child: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: primaryAccent,
-                              foregroundColor: isDark
-                                  ? const Color(0xFF12120F)
-                                  : Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              elevation: 0,
-                            ),
-                            onPressed: _isAnalyzing ? null : _analyze,
-                            child: _isAnalyzing
-                                ? Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      SizedBox(
-                                        width: 18,
-                                        height: 18,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2.5,
-                                          color: isDark
-                                              ? const Color(0xFF12120F)
-                                              : Colors.white,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 10),
-                                      Text(
-                                        l10n.aiCaptureAnalyzing,
-                                        style: TextStyle(
-                                          fontFamily: 'Plus Jakarta Sans',
-                                          fontWeight: FontWeight.w700,
-                                          fontSize: 15,
-                                          color: isDark
-                                              ? const Color(0xFF12120F)
-                                              : Colors.white,
-                                        ),
-                                      ),
-                                    ],
-                                  )
-                                : Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(LucideIcons.sparkles,
-                                          size: 18,
-                                          color: isDark
-                                              ? const Color(0xFF12120F)
-                                              : Colors.white),
-                                      const SizedBox(width: 8),
-                                      Text(
-                                        _images.isNotEmpty
-                                            ? l10n.aiCaptureAnalyzeMeal(
-                                                _images.length)
-                                            : l10n.aiCaptureAnalyzeText,
-                                        style: TextStyle(
-                                          fontFamily: 'Plus Jakarta Sans',
-                                          fontWeight: FontWeight.w800,
-                                          fontSize: 15,
-                                          color: isDark
-                                              ? const Color(0xFF12120F)
-                                              : Colors.white,
-                                        ),
-                                      ),
-                                    ],
+                        Opacity(
+                          opacity: _isAnalyzing ? 0.0 : 1.0,
+                          child: IgnorePointer(
+                            ignoring: _isAnalyzing,
+                            child: SizedBox(
+                              key: _keyAnalyze,
+                              width: double.infinity,
+                              height: 46,
+                              child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: primaryAccent,
+                                  foregroundColor: isDark
+                                      ? const Color(0xFF12120F)
+                                      : Colors.white,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(16),
                                   ),
+                                  elevation: 0,
+                                ),
+                                onPressed: _isAnalyzing ? null : _analyze,
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(LucideIcons.sparkles,
+                                        size: 18,
+                                        color: isDark
+                                            ? const Color(0xFF12120F)
+                                            : Colors.white),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      _images.isNotEmpty
+                                          ? l10n.aiCaptureAnalyzeMeal(
+                                              _images.length)
+                                          : l10n.aiCaptureAnalyzeText,
+                                      style: TextStyle(
+                                        fontFamily: 'Plus Jakarta Sans',
+                                        fontWeight: FontWeight.w800,
+                                        fontSize: 15,
+                                        color: isDark
+                                            ? const Color(0xFF12120F)
+                                            : Colors.white,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
                           ),
                         ),
                       ],

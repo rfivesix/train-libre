@@ -13,7 +13,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   - **Fluid Time Range Filter:** Smooth post-frame width expansion (`AnimatedSize`) for active date range chips.
   - **Diary Workout Summary Slide-In:** Seamless insertion animation (`AnimatedSize` & `AnimatedSwitcher`) when adding today's workout summary to the diary.
   - **Statistics Hub Cold-Start Transition:** Cross-fade transition between initial loading states and populated statistic cards.
-  - **Seamless AI Meal Flow:** Zero-flicker immediate crossfade between AI meal analysis and review.
+  - **Seamless AI Meal Flow & Morphs (`MealAnalysisMorphRoute` & `AiMealReviewRevealRoute`):** The "Analyze" button ascends into the screen center as a calm circle and blooms into the organic thinking cloud orb, which upon completion contracts and disperses into multi-directional organic vapor puffs that swell, evaporate, and uncover the review screen, with 100% voice dictation and cancellation compatibility.
 
 ### Fixed
 - **Speed Dial Glass Refraction (`SpeedDialMenuOverlay`):** Retained 100% active liquid glass background light refraction during menu expansion.

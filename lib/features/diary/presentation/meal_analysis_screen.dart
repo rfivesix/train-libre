@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import '../../../generated/app_localizations.dart';
 import '../../../services/haptic_feedback_service.dart';
 import '../../../services/telemetry/telemetry_service.dart';
+import 'meal_analysis_morph_route.dart';
 import 'widgets/ai_neural_cloud_orb_widget.dart';
 
 /// Stages the capture screen walks through while a meal is being analysed.
@@ -23,6 +24,19 @@ enum MealAnalysisPhase {
 /// Drives [MealAnalysisScreen] from the capture screen.
 class MealAnalysisController extends ValueNotifier<MealAnalysisPhase> {
   MealAnalysisController() : super(MealAnalysisPhase.preparing);
+
+  /// Whether the cloud orb has morphed from the calm circle into the undulating cloud.
+  final ValueNotifier<bool> isCloudMorphed = ValueNotifier<bool>(false);
+
+  /// Whether analysis finished and is revealing the review screen (hides orb & UI).
+  final ValueNotifier<bool> isFinished = ValueNotifier<bool>(false);
+
+  /// Contracts the cloud back into the circle and rests in the circle state.
+  Future<void> contractToCircle() async {
+    isCloudMorphed.value = false;
+    // Wait for morph back to circle (450ms) + calm pause in circle (250ms)
+    await Future.delayed(const Duration(milliseconds: 450 + 250));
+  }
 }
 
 /// Immersive blocking screen shown while a meal is being analysed.
@@ -47,24 +61,22 @@ class MealAnalysisScreen extends StatefulWidget {
     this.onCancel,
   });
 
-  /// Opens the screen as an opaque route with a soft fade.
+  /// Opens the screen via [MealAnalysisMorphRoute] with button-to-cloud ascending morph.
   static Route<void> route({
     required MealAnalysisController controller,
     File? previewImage,
     VoidCallback? onCancel,
+    BuildContext? sourceContext,
+    Rect? sourceRect,
   }) {
-    return PageRouteBuilder<void>(
-      opaque: true,
-      barrierDismissible: false,
-      transitionDuration: const Duration(milliseconds: 260),
-      reverseTransitionDuration: const Duration(milliseconds: 200),
-      pageBuilder: (_, __, ___) => MealAnalysisScreen(
+    return MealAnalysisMorphRoute<void>(
+      sourceContext: sourceContext,
+      sourceRect: sourceRect,
+      builder: (_) => MealAnalysisScreen(
         controller: controller,
         previewImage: previewImage,
         onCancel: onCancel,
       ),
-      transitionsBuilder: (_, animation, __, child) =>
-          FadeTransition(opacity: animation, child: child),
     );
   }
 
@@ -76,6 +88,9 @@ class _MealAnalysisScreenState extends State<MealAnalysisScreen> {
   final GlobalKey<AiNeuralCloudOrbWidgetState> _orbKey =
       GlobalKey<AiNeuralCloudOrbWidgetState>();
 
+  bool _isTransitionComplete = false;
+  Animation<double>? _routeAnimation;
+
   @override
   void initState() {
     super.initState();
@@ -85,7 +100,42 @@ class _MealAnalysisScreenState extends State<MealAnalysisScreen> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final anim = ModalRoute.of(context)?.animation;
+    if (anim != null && anim != _routeAnimation) {
+      _routeAnimation?.removeStatusListener(_onRouteStatus);
+      _routeAnimation = anim;
+      if (anim.isCompleted) {
+        _onTransitionComplete();
+      } else {
+        anim.addStatusListener(_onRouteStatus);
+      }
+    }
+  }
+
+  void _onRouteStatus(AnimationStatus status) {
+    if (status == AnimationStatus.completed) {
+      _onTransitionComplete();
+    }
+  }
+
+  void _onTransitionComplete() {
+    if (_isTransitionComplete || !mounted) return;
+    setState(() => _isTransitionComplete = true);
+
+    // Pause in calm circle for 320ms, then warp to cloud!
+    Future.delayed(const Duration(milliseconds: 320), () {
+      if (mounted && !widget.controller.isFinished.value) {
+        widget.controller.isCloudMorphed.value = true;
+        HapticFeedbackService.instance.selectionFeedback();
+      }
+    });
+  }
+
+  @override
   void dispose() {
+    _routeAnimation?.removeStatusListener(_onRouteStatus);
     widget.controller.removeListener(_onPhaseChanged);
     super.dispose();
   }
@@ -175,91 +225,112 @@ class _MealAnalysisScreenState extends State<MealAnalysisScreen> {
 
               // 2. Living Cloud Orb & Minimal Status
               SafeArea(
-                child: Column(
-                  children: [
-                    const Spacer(flex: 3),
+                child: ValueListenableBuilder<bool>(
+                  valueListenable: widget.controller.isFinished,
+                  builder: (context, isFinished, _) {
+                    final showContent = _isTransitionComplete && !isFinished;
+                    return AnimatedOpacity(
+                      opacity: showContent ? 1.0 : 0.0,
+                      duration: const Duration(milliseconds: 180),
+                      child: Column(
+                        children: [
+                          const Spacer(flex: 3),
 
-                    // Center Living Cloud Orb
-                    Center(
-                      child: AiNeuralCloudOrbWidget(
-                        key: _orbKey,
-                        size: orbSize,
-                        showAmbientGlow: true,
-                      ),
-                    ),
+                          // Center Living Cloud Orb
+                          Center(
+                            child: showContent
+                                ? ValueListenableBuilder<bool>(
+                                    valueListenable:
+                                        widget.controller.isCloudMorphed,
+                                    builder: (context, isMorphed, _) {
+                                      return AiNeuralCloudOrbWidget(
+                                        key: _orbKey,
+                                        size: orbSize,
+                                        morph: isMorphed ? 1.0 : 0.0,
+                                        showAmbientGlow: true,
+                                      );
+                                    },
+                                  )
+                                : SizedBox(width: orbSize, height: orbSize),
+                          ),
 
-                    const Spacer(flex: 2),
+                          const Spacer(flex: 2),
 
-                    // Clean Status Text
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 32),
-                      child: ValueListenableBuilder<MealAnalysisPhase>(
-                        valueListenable: widget.controller,
-                        builder: (context, phase, _) {
-                          return AnimatedSwitcher(
-                            duration: const Duration(milliseconds: 320),
-                            transitionBuilder: (child, animation) {
-                              return FadeTransition(
-                                opacity: animation,
-                                child: SlideTransition(
-                                  position: Tween<Offset>(
-                                    begin: const Offset(0.0, 0.12),
-                                    end: Offset.zero,
-                                  ).animate(CurvedAnimation(
-                                    parent: animation,
-                                    curve: Curves.easeOutCubic,
-                                  )),
-                                  child: child,
+                          // Clean Status Text
+                          Padding(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 32),
+                            child: ValueListenableBuilder<MealAnalysisPhase>(
+                              valueListenable: widget.controller,
+                              builder: (context, phase, _) {
+                                return AnimatedSwitcher(
+                                  duration:
+                                      const Duration(milliseconds: 320),
+                                  transitionBuilder: (child, animation) {
+                                    return FadeTransition(
+                                      opacity: animation,
+                                      child: SlideTransition(
+                                        position: Tween<Offset>(
+                                          begin: const Offset(0.0, 0.12),
+                                          end: Offset.zero,
+                                        ).animate(CurvedAnimation(
+                                          parent: animation,
+                                          curve: Curves.easeOutCubic,
+                                        )),
+                                        child: child,
+                                      ),
+                                    );
+                                  },
+                                  child: Text(
+                                    _statusLabel(l10n, phase),
+                                    key: ValueKey(phase),
+                                    style: TextStyle(
+                                      fontFamily: 'Plus Jakarta Sans',
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 16,
+                                      color: textColor,
+                                      letterSpacing: 0.2,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+
+                          const Spacer(flex: 3),
+
+                          // Cancel / Abbrechen Button in Red
+                          if (widget.onCancel != null)
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 20),
+                              child: TextButton(
+                                onPressed: widget.onCancel,
+                                style: TextButton.styleFrom(
+                                  foregroundColor: cancelColor,
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 24,
+                                    vertical: 12,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
                                 ),
-                              );
-                            },
-                            child: Text(
-                              _statusLabel(l10n, phase),
-                              key: ValueKey(phase),
-                              style: TextStyle(
-                                fontFamily: 'Plus Jakarta Sans',
-                                fontWeight: FontWeight.w600,
-                                fontSize: 16,
-                                color: textColor,
-                                letterSpacing: 0.2,
+                                child: Text(
+                                  l10n.cancel,
+                                  style: TextStyle(
+                                    fontFamily: 'Plus Jakarta Sans',
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 15,
+                                    color: cancelColor,
+                                  ),
+                                ),
                               ),
-                              textAlign: TextAlign.center,
                             ),
-                          );
-                        },
+                        ],
                       ),
-                    ),
-
-                    const Spacer(flex: 3),
-
-                    // Cancel / Abbrechen Button in Red
-                    if (widget.onCancel != null)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 20),
-                        child: TextButton(
-                          onPressed: widget.onCancel,
-                          style: TextButton.styleFrom(
-                            foregroundColor: cancelColor,
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 24,
-                              vertical: 12,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                          ),
-                          child: Text(
-                            l10n.cancel,
-                            style: TextStyle(
-                              fontFamily: 'Plus Jakarta Sans',
-                              fontWeight: FontWeight.w600,
-                              fontSize: 15,
-                              color: cancelColor,
-                            ),
-                          ),
-                        ),
-                      ),
-                  ],
+                    );
+                  },
                 ),
               ),
             ],

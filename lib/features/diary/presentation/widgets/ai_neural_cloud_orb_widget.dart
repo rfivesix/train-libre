@@ -333,11 +333,12 @@ class _OrganicLivingCloudPainter extends CustomPainter {
     final swell = 1.0 + 0.85 * energy;
 
     // 1. Soft atmospheric background glow with dynamic color tint
-    if (showAmbientGlow) {
-      final glowBreathe = 0.92 +
-          0.08 * math.sin(time * 1.6) * motion +
-          0.12 * rippleIntensity +
-          0.18 * energy;
+    if (showAmbientGlow && morph > 0.01) {
+      final glowBreathe = (0.92 +
+              0.08 * math.sin(time * 1.6) * motion +
+              0.12 * rippleIntensity +
+              0.18 * energy) *
+          morph.clamp(0.0, 1.0);
       final glowRadius = (125.0 + 12.0 * (charge / 5.0)) * scale * glowBreathe;
 
       if (isDark) {
