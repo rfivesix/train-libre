@@ -260,7 +260,12 @@ class _TimeRangeFilterState extends State<TimeRangeFilter> {
 
             return Container(
               key: _keys[index],
-              child: chip,
+              child: AnimatedSize(
+                duration: const Duration(milliseconds: 200),
+                curve: Curves.easeOutCubic,
+                alignment: Alignment.centerLeft,
+                child: chip,
+              ),
             );
           }),
         ),

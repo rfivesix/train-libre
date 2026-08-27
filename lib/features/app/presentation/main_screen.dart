@@ -638,14 +638,6 @@ class _MainScreenState extends State<MainScreen>
                   children: [
                     AppButton.primary(
                       onPressed: () async {
-                        // Show loading indicator on top of the menu.
-                        showDialog(
-                          context: context,
-                          barrierDismissible: false,
-                          builder: (_) =>
-                              const Center(child: CircularProgressIndicator()),
-                        );
-
                         final fullRoutine = await WorkoutLocalDataSource
                             .instance
                             .getRoutineById(r.id!);
@@ -654,7 +646,6 @@ class _MainScreenState extends State<MainScreen>
                             .startWorkout(routineName: r.name);
 
                         if (!mounted) return;
-                        Navigator.of(context).pop(); // Close loading indicator
 
                         if (fullRoutine != null && ctx.mounted) {
                           // Close menu and return data

@@ -18,6 +18,7 @@ import 'scanner_screen.dart';
 import 'ai_meal_capture_screen.dart';
 import '../../../util/design_constants.dart';
 import '../../../widgets/common/bottom_content_spacer.dart';
+import '../../../widgets/common/card_morph_route.dart';
 import '../../app/presentation/widgets/glass_bottom_menu.dart';
 import '../../../widgets/common/glass_fab.dart';
 import '../../../widgets/common/global_app_bar.dart';
@@ -362,9 +363,14 @@ class _AddFoodScreenState extends State<AddFoodScreen>
     }
   }
 
-  void _navigateAndCreateFood() {
+  void _navigateAndCreateFood({BuildContext? sourceContext}) {
     Navigator.of(context)
-        .push(MaterialPageRoute(builder: (context) => const CreateFoodScreen()))
+        .push(
+      CardMorphRoute(
+        sourceContext: sourceContext,
+        builder: (context) => const CreateFoodScreen(),
+      ),
+    )
         .then((_) {
       _searchController.clear();
       _runFilter('');
@@ -414,7 +420,8 @@ class _AddFoodScreenState extends State<AddFoodScreen>
     }
   }
 
-  Future<void> _createMealAndOpenEditor(AppLocalizations l10n) async {
+  Future<void> _createMealAndOpenEditor(AppLocalizations l10n, {BuildContext? sourceContext}) async {
+    final sourceRect = CardMorphRoute.measureRect(sourceContext);
     // Keep a non-empty default name to satisfy the NOT NULL DB constraint.
     final defaultName = l10n.mealTypeLabel; // e.g. "Meal"
     final newMealId = await DatabaseHelper.instance.insertMeal(
@@ -426,7 +433,8 @@ class _AddFoodScreenState extends State<AddFoodScreen>
     final meal = {'id': newMealId, 'name': defaultName, 'notes': ''};
 
     await Navigator.of(context).push(
-      MaterialPageRoute(
+      CardMorphRoute(
+        sourceRect: sourceRect,
         builder: (_) => MealScreen(meal: meal, startInEdit: true),
       ),
     );
@@ -458,18 +466,14 @@ class _AddFoodScreenState extends State<AddFoodScreen>
     final double topPadding =
         MediaQuery.of(context).padding.top + kToolbarHeight;
 
-    // Floating action button behavior by active tab.
-    VoidCallback? fabOnPressed;
+    // Floating action button label by active tab.
     String fabLabel;
     if (_suspendFab) {
-      fabOnPressed = null;
       fabLabel = '';
     } else if (_currentTab == 3) {
       fabLabel = l10n.mealsCreate;
-      fabOnPressed = () => _createMealAndOpenEditor(l10n);
     } else {
       fabLabel = l10n.fabCreateOwnFood;
-      fabOnPressed = _navigateAndCreateFood;
     }
 
     return Scaffold(
@@ -557,7 +561,18 @@ class _AddFoodScreenState extends State<AddFoodScreen>
       ),
       floatingActionButton: _suspendFab
           ? null
-          : GlassFab(label: fabLabel, onPressed: fabOnPressed ?? () {}),
+          : Builder(
+              builder: (fabCtx) => GlassFab(
+                label: fabLabel,
+                onPressed: () {
+                  if (_currentTab == 3) {
+                    _createMealAndOpenEditor(l10n, sourceContext: fabCtx);
+                  } else {
+                    _navigateAndCreateFood(sourceContext: fabCtx);
+                  }
+                },
+              ),
+            ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }

@@ -12,6 +12,7 @@ import '../../../widgets/common/platform_adaptive_dropdown.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/summary_card.dart';
 import 'create_exercise_screen.dart';
+import '../../../widgets/common/card_morph_route.dart';
 import '../../../widgets/common/glass_fab.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../core/infrastructure/basis_data_manager.dart';
@@ -306,22 +307,25 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
           ),
         ],
       ),
-      floatingActionButton: GlassFab(
-        label: l10n.create_exercise_screen_title,
-        onPressed: () {
-          Navigator.of(context)
-              .push(
-            MaterialPageRoute(
-              builder: (context) =>
-                  CreateExerciseScreen(repository: _repository),
-            ),
-          )
-              .then((wasCreated) {
-            if (wasCreated == true) {
-              _runFilter(_searchController.text);
-            }
-          });
-        },
+      floatingActionButton: Builder(
+        builder: (fabCtx) => GlassFab(
+          label: l10n.create_exercise_screen_title,
+          onPressed: () {
+            Navigator.of(context)
+                .push(
+              CardMorphRoute(
+                sourceContext: fabCtx,
+                builder: (context) =>
+                    CreateExerciseScreen(repository: _repository),
+              ),
+            )
+                .then((wasCreated) {
+              if (wasCreated == true) {
+                _runFilter(_searchController.text);
+              }
+            });
+          },
+        ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );

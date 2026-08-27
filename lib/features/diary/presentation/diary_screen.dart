@@ -27,6 +27,7 @@ import '../../../util/date_util.dart';
 import '../../../util/design_constants.dart';
 import '../../../widgets/common/common.dart';
 import '../../../widgets/common/bottom_content_spacer.dart';
+import '../../../widgets/common/card_morph_route.dart';
 import '../../../widgets/common/summary_card.dart';
 import '../../app/presentation/widgets/glass_bottom_menu.dart';
 import 'widgets/nutrition_summary_widget.dart';
@@ -1042,23 +1043,33 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
                             }
                           : vm.workoutSummary,
                       builder: (context, workoutSummary, child) {
-                        if (workoutSummary == null) {
-                          return const SizedBox.shrink();
-                        }
-                        return RepaintBoundary(
-                          child: TodaysWorkoutSummaryCard(
-                            duration: workoutSummary['duration'] as Duration,
-                            volume: workoutSummary['volume'] as double,
-                            sets: workoutSummary['sets'] as int,
-                            workoutCount: workoutSummary['count'] as int,
-                            onTap: () {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      const WorkoutHistoryScreen(),
-                                ),
-                              );
-                            },
+                        return AnimatedSize(
+                          duration: const Duration(milliseconds: 250),
+                          curve: Curves.fastOutSlowIn,
+                          child: AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 250),
+                            child: workoutSummary == null
+                                ? const SizedBox.shrink(key: ValueKey('no_summary'))
+                                : Builder(
+                                    key: const ValueKey('has_summary'),
+                                    builder: (cardCtx) => RepaintBoundary(
+                                      child: TodaysWorkoutSummaryCard(
+                                        duration: workoutSummary['duration'] as Duration,
+                                        volume: workoutSummary['volume'] as double,
+                                        sets: workoutSummary['sets'] as int,
+                                        workoutCount: workoutSummary['count'] as int,
+                                        onTap: () {
+                                          Navigator.of(context).push(
+                                            CardMorphRoute(
+                                              sourceContext: cardCtx,
+                                              builder: (context) =>
+                                                  const WorkoutHistoryScreen(),
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    ),
+                                  ),
                           ),
                         );
                       },
@@ -1632,31 +1643,33 @@ class _MealCardState extends State<_MealCard> {
                         for (final entryId in orderedMealIds)
                           (
                             hasPhoto: entryHasPhoto(mealEntriesById[entryId]),
-                            widget: MealEntryCard(
-                              key: ValueKey(entryId),
-                              mealEntry: mealEntriesById[entryId]!,
-                              items: groupedByMealEntry[entryId]!,
-                              onTapDetail: () async {
-                                final result =
-                                    await Navigator.of(context).push<bool>(
-                                  MaterialPageRoute(
-                                    builder: (_) => MealEntryScreen(
-                                      mealEntry: mealEntriesById[entryId]!,
-                                      initialItems:
-                                          groupedByMealEntry[entryId]!,
+                            widget: Builder(
+                              builder: (cardCtx) => MealEntryCard(
+                                key: ValueKey(entryId),
+                                mealEntry: mealEntriesById[entryId]!,
+                                items: groupedByMealEntry[entryId]!,
+                                onTapDetail: () async {
+                                  final result =
+                                      await Navigator.of(context).push<bool>(
+                                    CardMorphRoute(
+                                      sourceContext: cardCtx,
+                                      builder: (_) => MealEntryScreen(
+                                        mealEntry: mealEntriesById[entryId]!,
+                                        initialItems:
+                                            groupedByMealEntry[entryId]!,
+                                      ),
                                     ),
-                                  ),
-                                );
-                                if (result == true && context.mounted) {
-                                  context
-                                      .read<DiaryViewModel>()
-                                      .loadDataForDate(
-                                        context
-                                            .read<DiaryViewModel>()
-                                            .selectedDate,
-                                      );
-                                }
-                              },
+                                  );
+                                  if (result == true && context.mounted) {
+                                    context
+                                        .read<DiaryViewModel>()
+                                        .loadDataForDate(
+                                          context
+                                              .read<DiaryViewModel>()
+                                              .selectedDate,
+                                        );
+                                  }
+                                },
                               onConfirmDeleteMeal: () async {
                                 final meal = mealEntriesById[entryId]!;
                                 final childItems = groupedByMealEntry[entryId]!;
@@ -1689,6 +1702,7 @@ class _MealCardState extends State<_MealCard> {
                               onDeleteItem: widget.onDeleteFood,
                             ),
                           ),
+                        ),
                         for (final item in standaloneItems)
                           (
                             hasPhoto: false,

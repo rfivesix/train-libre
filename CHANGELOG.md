@@ -6,6 +6,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [1.2.0] - 2026-08-27
 
+### Added
+- **Universal Container Morph Route (`CardMorphRoute`):** A high-performance, reusable container transform route based on the architectural invariants of `WorkoutMorphRoute`. Features bounded clipping (`ClipRRect`), uniform matrix scaling pinned to the top-left corner, and a 30% fade-in threshold to ensure liquid glass never loses light refraction under an opacity layer and no relayout occurs during animation frames. Overlapping 1-frame callbacks eliminate blink gaps on push and pop.
+- **Statistics Hub Card Morphs:** Tapping any of the 8 module cards (Steps, Recovery, Sleep, Pulse, Consistency, PR Dashboard, Muscle Volume, Measurements) now smoothly grows the card into the full detail screen via `CardMorphRoute`.
+- **Routine Card & Quickstart Workout Start Morph:** Starting a workout from a routine card, the quickstart tile or the FAB morphs directly into `LiveWorkoutScreen` without modal blocking dialogs or abrupt page pushes.
+- **Floating Action Button Screen Expansions:** Creating exercises (`CreateExerciseScreen`), routines (`EditRoutineScreen`), or custom foods (`CreateFoodScreen`) now smoothly expands directly out of the `GlassFab` pill.
+- **Meal Entry Card Morph in Diary:** Tapping a grouped meal entry in the diary expands the card directly into the `MealEntryScreen` editor.
+
+### Changed
+- **Fluid Portion-to-100g Nutrient Interpolation (`FoodDetailScreen`):** Tapping the portion / 100g toggle bar now smoothly tweens all displayed nutrient values (calories, protein, carbs, fat, sugar, fiber, salt, caffeine) across 220 ms (`Curves.easeOutCubic`) using `TweenAnimationBuilder`, maintaining continuous value interpolation without resetting to zero on rapid toggles.
+- **Smooth TimeRangeFilter Chip Expansion:** Activating a date range chip now expands the date navigation pill smoothly using `AnimatedSize` (200 ms, `Curves.easeOutCubic`), gently sliding adjacent chips rather than snapping.
+- **Smooth Today's Workout Summary Insertion:** Completing a workout smoothly slides the workout summary card into the diary header using `AnimatedSize` and `AnimatedSwitcher` (250 ms, `Curves.fastOutSlowIn`) rather than popping into view.
+- **Statistics Hub Cold-Start Transition:** Cross-fades seamlessly between the empty state and the populated statistics sliver list without abrupt layout snapping.
+- **Seamless AI Meal Analysis to Review Transition:** Replaced the intermediate capture screen pop with an immediate crossfade (`PageRouteBuilder`) into `AiMealReviewScreen`, eliminating the 1-frame camera viewfinder flash.
+
+### Fixed
+- **Speed Dial Menu Glass Refraction Fix (`SpeedDialMenuOverlay`):** Removed the outer `Opacity` widget enclosing `AdaptiveGlass` buttons. Speed dial buttons now sprout smoothly via `Transform.scale` and translation while maintaining 100% full background light refraction throughout the animation, fading only inner icons and text labels.
+
 ## [1.2.0-beta.1] - 2026-08-27
 
 ### Added

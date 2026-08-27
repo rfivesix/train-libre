@@ -718,7 +718,6 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
       ));
 
       _stopAiWaitingHaptics();
-      _dismissAnalysisScreen();
       if (mounted) {
         setState(() => _isAnalyzing = false);
       }
@@ -728,30 +727,47 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
           detectedType ??
           MealTypeTimeExtension.fromCurrentTime().toMealTypeKey;
 
-      final saved = await Navigator.of(context).push<bool>(
-        MaterialPageRoute(
-          builder: (_) => AiMealReviewScreen(
-            suggestions: validationOutcome.validation.candidate.items
-                .map(
-                  (item) => AiSuggestedItem(
-                    name: item.name,
-                    estimatedGrams: item.grams,
-                    confidence: item.confidence ?? 1.0,
-                    matchedBarcode: item.matchedBarcode,
-                  ),
-                )
-                .toList(growable: false),
-            initialValidation: validationOutcome.validation,
-            originalImages: _images,
-            initialDate: widget.initialDate,
-            initialMealType: resolvedMealType,
-            depthResult: _lastDepthCapture,
-            depthResultsByPath: _depthCaptures,
-            depthFacts: _lastDepthCapture?.scaleFacts,
-            voiceTranscript: text.isNotEmpty ? text : null,
-          ),
+      final reviewRoute = PageRouteBuilder<bool>(
+        pageBuilder: (context, animation, secondaryAnimation) =>
+            AiMealReviewScreen(
+          suggestions: validationOutcome.validation.candidate.items
+              .map(
+                (item) => AiSuggestedItem(
+                  name: item.name,
+                  estimatedGrams: item.grams,
+                  confidence: item.confidence ?? 1.0,
+                  matchedBarcode: item.matchedBarcode,
+                ),
+              )
+              .toList(growable: false),
+          initialValidation: validationOutcome.validation,
+          originalImages: _images,
+          initialDate: widget.initialDate,
+          initialMealType: resolvedMealType,
+          depthResult: _lastDepthCapture,
+          depthResultsByPath: _depthCaptures,
+          depthFacts: _lastDepthCapture?.scaleFacts,
+          voiceTranscript: text.isNotEmpty ? text : null,
         ),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          return FadeTransition(
+            opacity: CurvedAnimation(
+              parent: animation,
+              curve: Curves.easeOutCubic,
+            ),
+            child: child,
+          );
+        },
+        transitionDuration: const Duration(milliseconds: 300),
       );
+
+      final oldAnalysisRoute = _analysisRoute;
+      _analysisRoute = null;
+      final savedFuture = Navigator.of(context).push<bool>(reviewRoute);
+      if (oldAnalysisRoute != null && oldAnalysisRoute.isActive) {
+        Navigator.of(context).removeRoute(oldAnalysisRoute);
+      }
+      final saved = await savedFuture;
       // Leaving the review returns to wherever the capture was started from,
       // saved or not. Dropping back into the viewfinder after reviewing a meal
       // is never what the user meant by "back".

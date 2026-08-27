@@ -14,6 +14,7 @@ import '../../app/presentation/widgets/glass_bottom_menu.dart';
 import '../../../widgets/common/glass_fab.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/summary_card.dart';
+import '../../../widgets/common/card_morph_route.dart';
 import '../../../widgets/common/common.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../widgets/common/app_button.dart';
@@ -76,16 +77,12 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
     return false;
   }
 
-  void _startWorkout(Routine routine) async {
+  void _startWorkout(Routine routine, {BuildContext? sourceContext}) async {
+    final sourceRect = CardMorphRoute.measureRect(sourceContext);
     final canProceed = await _checkAndHandleOngoingWorkout();
     if (!canProceed) return;
     if (!mounted) return;
 
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => const Center(child: CircularProgressIndicator()),
-    );
     final fullRoutine = await WorkoutLocalDataSource.instance.getRoutineById(
       routine.id!,
     );
@@ -93,11 +90,11 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
       routineName: routine.name,
     );
     if (!mounted) return;
-    Navigator.of(context).pop();
     if (fullRoutine != null) {
       HapticFeedbackService.instance.confirmationFeedback();
       Navigator.of(context).push(
-        MaterialPageRoute(
+        CardMorphRoute(
+          sourceRect: sourceRect,
           builder: (context) => LiveWorkoutScreen(
             routine: fullRoutine,
             workoutLog: newWorkoutLog,
@@ -107,7 +104,8 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
     }
   }
 
-  void _startEmptyWorkout() async {
+  void _startEmptyWorkout({BuildContext? sourceContext}) async {
+    final sourceRect = CardMorphRoute.measureRect(sourceContext);
     final canProceed = await _checkAndHandleOngoingWorkout();
     if (!canProceed) return;
     if (!mounted) return;
@@ -119,15 +117,19 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
     if (!mounted) return;
     HapticFeedbackService.instance.confirmationFeedback();
     Navigator.of(context).push(
-      MaterialPageRoute(
+      CardMorphRoute(
+        sourceRect: sourceRect,
         builder: (context) => LiveWorkoutScreen(workoutLog: newWorkoutLog),
       ),
     );
   }
 
-  void _createNewRoutine() {
+  void _createNewRoutine({BuildContext? sourceContext}) {
     Navigator.of(context).push(
-      MaterialPageRoute(builder: (context) => const EditRoutineScreen()),
+      CardMorphRoute(
+        sourceContext: sourceContext,
+        builder: (context) => const EditRoutineScreen(),
+      ),
     );
   }
 
@@ -224,93 +226,99 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
                 return _buildStartEmptyWorkoutCard(context, l10n);
               }
               final routine = routines[index - 1];
-              return GlassActionableCard(
-                dismissibleKey: Key('routine_${routine.id}'),
-                onEdit: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) => EditRoutineScreen(routine: routine),
-                    ),
-                  );
-                },
-                confirmDelete: () async {
-                  return await showDeleteConfirmation(
-                    context,
-                    content: l10n.deleteRoutineConfirmContent(routine.name),
-                  );
-                },
-                onDelete: () {
-                  setState(() {
-                    if (routine.id != null) {
-                      _dismissedRoutineIds.add(routine.id!);
-                    }
-                  });
-                  _performDeleteRoutine(routine);
-                },
-                additionalActions: [
-                  GlassContextAction(
-                    label: l10n.duplicate,
-                    icon: LucideIcons.copy,
-                    onTap: () => _duplicateRoutine(routine.id!),
-                  ),
-                  GlassContextAction(
-                    label: l10n.share,
-                    icon: DesignConstants.adaptiveShareIcon,
-                    onTap: () => _shareRoutine(routine),
-                  ),
-                ],
-                onTap: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) => EditRoutineScreen(routine: routine),
-                    ),
-                  );
-                },
-                child: SummaryCard(
-                  child: ListTile(
-                    leading: AppButton.primary(
-                      onPressed: () => _startWorkout(routine),
-                      label: l10n.startButton,
-                      tooltip: l10n.startButton,
-                      size: AppButtonSize.small,
-                    ),
-                    title: Text(
-                      routine.name,
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    subtitle: Text(l10n.editRoutineSubtitle),
-                    trailing: PlatformAdaptivePopupMenu<String>(
-                      icon: Icon(
-                        LucideIcons.ellipsis_vertical,
-                        color: textTheme.bodyMedium?.color,
+              return Builder(
+                builder: (cardCtx) => GlassActionableCard(
+                  dismissibleKey: Key('routine_${routine.id}'),
+                  onEdit: () {
+                    Navigator.of(context).push(
+                      CardMorphRoute(
+                        sourceContext: cardCtx,
+                        builder: (context) =>
+                            EditRoutineScreen(routine: routine),
                       ),
-                      onSelected: (value) {
-                        if (value == 'duplicate') {
-                          _duplicateRoutine(routine.id!);
-                        } else if (value == 'share') {
-                          _shareRoutine(routine);
-                        } else if (value == 'delete') {
-                          _deleteRoutine(context, routine);
-                        }
-                      },
-                      items: [
-                        PlatformAdaptivePopupMenuItem<String>(
-                          value: 'duplicate',
-                          label: l10n.duplicate,
-                          icon: LucideIcons.copy,
+                    );
+                  },
+                  confirmDelete: () async {
+                    return await showDeleteConfirmation(
+                      context,
+                      content: l10n.deleteRoutineConfirmContent(routine.name),
+                    );
+                  },
+                  onDelete: () {
+                    setState(() {
+                      if (routine.id != null) {
+                        _dismissedRoutineIds.add(routine.id!);
+                      }
+                    });
+                    _performDeleteRoutine(routine);
+                  },
+                  additionalActions: [
+                    GlassContextAction(
+                      label: l10n.duplicate,
+                      icon: LucideIcons.copy,
+                      onTap: () => _duplicateRoutine(routine.id!),
+                    ),
+                    GlassContextAction(
+                      label: l10n.share,
+                      icon: DesignConstants.adaptiveShareIcon,
+                      onTap: () => _shareRoutine(routine),
+                    ),
+                  ],
+                  onTap: () {
+                    Navigator.of(context).push(
+                      CardMorphRoute(
+                        sourceContext: cardCtx,
+                        builder: (context) =>
+                            EditRoutineScreen(routine: routine),
+                      ),
+                    );
+                  },
+                  child: SummaryCard(
+                    child: ListTile(
+                      leading: AppButton.primary(
+                        onPressed: () => _startWorkout(routine, sourceContext: cardCtx),
+                        label: l10n.startButton,
+                        tooltip: l10n.startButton,
+                        size: AppButtonSize.small,
+                      ),
+                      title: Text(
+                        routine.name,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      subtitle: Text(l10n.editRoutineSubtitle),
+                      trailing: PlatformAdaptivePopupMenu<String>(
+                        icon: Icon(
+                          LucideIcons.ellipsis_vertical,
+                          color: textTheme.bodyMedium?.color,
                         ),
-                        PlatformAdaptivePopupMenuItem<String>(
-                          value: 'share',
-                          label: l10n.share,
-                          icon: DesignConstants.adaptiveShareIcon,
-                        ),
-                        PlatformAdaptivePopupMenuItem<String>(
-                          value: 'delete',
-                          label: l10n.delete,
-                          icon: LucideIcons.trash_2,
-                          isDestructive: true,
-                        ),
-                      ],
+                        onSelected: (value) {
+                          if (value == 'duplicate') {
+                            _duplicateRoutine(routine.id!);
+                          } else if (value == 'share') {
+                            _shareRoutine(routine);
+                          } else if (value == 'delete') {
+                            _deleteRoutine(context, routine);
+                          }
+                        },
+                        items: [
+                          PlatformAdaptivePopupMenuItem<String>(
+                            value: 'duplicate',
+                            label: l10n.duplicate,
+                            icon: LucideIcons.copy,
+                          ),
+                          PlatformAdaptivePopupMenuItem<String>(
+                            value: 'share',
+                            label: l10n.share,
+                            icon: DesignConstants.adaptiveShareIcon,
+                          ),
+                          PlatformAdaptivePopupMenuItem<String>(
+                            value: 'delete',
+                            label: l10n.delete,
+                            icon: LucideIcons.trash_2,
+                            isDestructive: true,
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -319,9 +327,11 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
           );
         },
       ),
-      floatingActionButton: GlassFab(
-        label: l10n.addRoutineButton,
-        onPressed: _createNewRoutine,
+      floatingActionButton: Builder(
+        builder: (fabCtx) => GlassFab(
+          label: l10n.addRoutineButton,
+          onPressed: () => _createNewRoutine(sourceContext: fabCtx),
+        ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
@@ -332,16 +342,18 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
     BuildContext context,
     AppLocalizations l10n,
   ) {
-    return SummaryCard(
-      child: ListTile(
-        leading: const Icon(LucideIcons.circle_play),
-        title: Text(
-          l10n.startEmptyWorkoutButton,
-          style: const TextStyle(fontWeight: FontWeight.bold),
-        ),
-        onTap: _startEmptyWorkout,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
+    return Builder(
+      builder: (cardCtx) => SummaryCard(
+        child: ListTile(
+          leading: const Icon(LucideIcons.circle_play),
+          title: Text(
+            l10n.startEmptyWorkoutButton,
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
+          onTap: () => _startEmptyWorkout(sourceContext: cardCtx),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
+          ),
         ),
       ),
     );

@@ -119,13 +119,11 @@ class SpeedDialMenuOverlay extends StatelessWidget {
 
                         return Transform.translate(
                           offset: Offset(0.0, (1 - tv) * offsetY),
-                          child: Opacity(
-                            opacity: tv,
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                vertical: 6.0,
-                              ),
-                              child: Row(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 6.0,
+                            ),
+                            child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   Opacity(
@@ -249,9 +247,8 @@ class SpeedDialMenuOverlay extends StatelessWidget {
                                 ],
                               ),
                             ),
-                          ),
-                        );
-                      }).toList(),
+                          );
+                        }).toList(),
                     ),
                   ),
                 ),
