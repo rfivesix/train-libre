@@ -17,6 +17,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Fixed
 - **Speed Dial Glass Refraction (`SpeedDialMenuOverlay`):** Retained 100% active liquid glass background light refraction during menu expansion.
+- **Voice Dictation Permission Probe (`VoiceDictationService` & iOS Podfile):** Directly query native speech recognizer and microphone permissions (`SpeechToText.hasPermission`) and configure iOS preprocessor definitions (`PERMISSION_MICROPHONE=1`, `PERMISSION_SPEECH_RECOGNIZER=1`), preventing the pre-permission explanation sheet from repeatedly reappearing on cold starts once already granted.
 
 ## [1.2.0-beta.1] - 2026-08-27
 

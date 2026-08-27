@@ -70,6 +70,11 @@ class VoiceDictationService {
   Future<bool> hasPermissions() async {
     if (_initialized && _speech.isAvailable) return true;
     try {
+      if (await _speech.hasPermission) return true;
+    } catch (e) {
+      debugPrint('[VoiceDictation] _speech.hasPermission probe failed: $e');
+    }
+    try {
       final microphone = await Permission.microphone.status;
       if (!microphone.isGranted) return false;
       if (Platform.isIOS || Platform.isMacOS) {
