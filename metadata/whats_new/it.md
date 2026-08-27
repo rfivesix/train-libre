@@ -6,7 +6,7 @@
   Poi esegui: python3 script/build_whats_new.py --write --sync-store
 -->
 
-## 1.2.0 (2026-08-26)
+## 1.2.0-beta.1 (2026-08-27)
 
 {camera} Foto per i tuoi allenamenti: Immortala le tue sessioni di allenamento con un massimo di 4 foto. Scatta direttamente con la fotocamera o scegli dalla libreria, nel riepilogo dell'allenamento o nella cronologia.
 

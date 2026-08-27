@@ -6,7 +6,7 @@
   Newest version first. Regenerate with: python3 script/build_whats_new.py
 -->
 
-## 1.2.0 (2026-08-26)
+## 1.2.0-beta.1 (2026-08-27)
 
 {camera} Photos for your workouts: Capture your workout sessions with up to 4 photos. Take pictures directly with your camera or select them from your library – right in the workout summary or later in your workout history. All photos and previews are safely included in backups.
 

@@ -6,7 +6,7 @@
   récente en premier. Ensuite : python3 script/build_whats_new.py --write --sync-store
 -->
 
-## 1.2.0 (2026-08-26)
+## 1.2.0-beta.1 (2026-08-27)
 
 {camera} Photos pour vos entraînements : Capturez vos séances d'entraînement avec jusqu'à 4 photos. Prenez des photos directement avec votre appareil ou choisissez-les dans votre bibliothèque, dans le récapitulatif ou dans l'historique d'entraînement.
 

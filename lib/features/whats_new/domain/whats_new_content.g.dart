@@ -16,8 +16,8 @@ import 'whats_new_release.dart';
 const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
   'en': <WhatsNewRelease>[
     WhatsNewRelease(
-      version: '1.2.0',
-      releasedOn: '2026-08-26',
+      version: '1.2.0-beta.1',
+      releasedOn: '2026-08-27',
       entries: <WhatsNewEntry>[
         WhatsNewEntry(
           icon: LucideIcons.camera,
@@ -126,8 +126,8 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
   ],
   'de': <WhatsNewRelease>[
     WhatsNewRelease(
-      version: '1.2.0',
-      releasedOn: '2026-08-26',
+      version: '1.2.0-beta.1',
+      releasedOn: '2026-08-27',
       entries: <WhatsNewEntry>[
         WhatsNewEntry(
           icon: LucideIcons.camera,
@@ -236,8 +236,8 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
   ],
   'fr': <WhatsNewRelease>[
     WhatsNewRelease(
-      version: '1.2.0',
-      releasedOn: '2026-08-26',
+      version: '1.2.0-beta.1',
+      releasedOn: '2026-08-27',
       entries: <WhatsNewEntry>[
         WhatsNewEntry(
           icon: LucideIcons.camera,
@@ -346,8 +346,8 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
   ],
   'it': <WhatsNewRelease>[
     WhatsNewRelease(
-      version: '1.2.0',
-      releasedOn: '2026-08-26',
+      version: '1.2.0-beta.1',
+      releasedOn: '2026-08-27',
       entries: <WhatsNewEntry>[
         WhatsNewEntry(
           icon: LucideIcons.camera,
@@ -456,8 +456,8 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
   ],
   'ja': <WhatsNewRelease>[
     WhatsNewRelease(
-      version: '1.2.0',
-      releasedOn: '2026-08-26',
+      version: '1.2.0-beta.1',
+      releasedOn: '2026-08-27',
       entries: <WhatsNewEntry>[
         WhatsNewEntry(
           icon: LucideIcons.camera,
@@ -568,4 +568,4 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
 const String kWhatsNewFallbackLanguage = 'en';
 
 /// The version this catalog was generated for, taken from pubspec.yaml.
-const String kWhatsNewGeneratedForVersion = '1.2.0';
+const String kWhatsNewGeneratedForVersion = '1.2.0-beta.1';
