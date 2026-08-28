@@ -87,13 +87,18 @@ class ICloudSyncService {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(kICloudSyncEnabledKey, enabled);
 
-    unawaited(TelemetryService.instance.trackSettingToggled(
-      settingKey: 'icloud_sync_enabled',
-      value: enabled,
-    ));
+    unawaited(
+      TelemetryService.instance.trackSettingToggled(
+        settingKey: 'icloud_sync_enabled',
+        value: enabled,
+      ),
+    );
     if (enabled) {
-      unawaited(TelemetryService.instance
-          .trackFeatureUsed(featureKey: FeatureKey.icloudSyncTriggered));
+      unawaited(
+        TelemetryService.instance.trackFeatureUsed(
+          featureKey: FeatureKey.icloudSyncTriggered,
+        ),
+      );
     }
   }
 
@@ -109,7 +114,9 @@ class ICloudSyncService {
   Future<void> _setLastSyncTimestamp(DateTime timestamp) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt(
-        kICloudLastSyncTimestampKey, timestamp.millisecondsSinceEpoch);
+      kICloudLastSyncTimestampKey,
+      timestamp.millisecondsSinceEpoch,
+    );
   }
 
   // ── Upload ────────────────────────────────────────────────────────────────
@@ -140,8 +147,11 @@ class ICloudSyncService {
 
     await _setLastSyncTimestamp(DateTime.now());
 
-    unawaited(TelemetryService.instance
-        .trackFeatureUsed(featureKey: FeatureKey.icloudSyncTriggered));
+    unawaited(
+      TelemetryService.instance.trackFeatureUsed(
+        featureKey: FeatureKey.icloudSyncTriggered,
+      ),
+    );
 
     return true;
   }
@@ -187,12 +197,14 @@ class ICloudSyncService {
     // VACUUM INTO creates a defragmented, non-locked copy of the live DB.
     await db.customStatement('VACUUM INTO ?', [snapshotPath]);
 
-    final mealThumbnails =
-        await AppMediaStore.instance.collectMealThumbnails(db);
-    final workoutThumbnails =
-        await AppMediaStore.instance.collectWorkoutThumbnails(db);
+    final mealThumbnails = await AppMediaStore.instance.collectMealThumbnails(
+      db,
+    );
+    final workoutThumbnails = await AppMediaStore.instance
+        .collectWorkoutThumbnails(db);
     debugPrint(
-        'iCloud backup: bundling ${mealThumbnails.length} meal preview(s), ${workoutThumbnails.length} workout preview(s)');
+      'iCloud backup: bundling ${mealThumbnails.length} meal preview(s), ${workoutThumbnails.length} workout preview(s)',
+    );
 
     final archive = await ICloudBackupArchive.pack(
       targetPath: await _localArchivePath,
@@ -253,8 +265,9 @@ class ICloudSyncService {
         containerId: _containerId,
         onUpdate: null,
       );
-      final hasLegacy =
-          files.any((f) => f.relativePath == _kICloudLegacyBackupFileName);
+      final hasLegacy = files.any(
+        (f) => f.relativePath == _kICloudLegacyBackupFileName,
+      );
       if (!hasLegacy) return;
       await ICloudStorage.delete(
         containerId: _containerId,
@@ -337,8 +350,9 @@ class ICloudSyncService {
 
       // Sniffed rather than taken from the name: whichever file the container
       // held, what matters is whether it is an archive or a bare snapshot.
-      final isArchive =
-          await ICloudBackupArchive.looksLikeArchive(downloadFile);
+      final isArchive = await ICloudBackupArchive.looksLikeArchive(
+        downloadFile,
+      );
       if (isArchive) {
         final extracted = await ICloudBackupArchive.extractDatabase(
           archivePath: downloadPath,
@@ -359,7 +373,9 @@ class ICloudSyncService {
       // pointing at it if the copy fails.
       if (isArchive) {
         try {
-          final mealPlacement = await AppMediaStore.instance.mealThumbPlacement(db);
+          final mealPlacement = await AppMediaStore.instance.mealThumbPlacement(
+            db,
+          );
           final mealWritten = await ICloudBackupArchive.extractThumbnails(
             archivePath: downloadPath,
             directoryFor: mealPlacement.directoryFor,
@@ -369,8 +385,8 @@ class ICloudSyncService {
             debugPrint('iCloud restore: restored $mealWritten meal preview(s)');
           }
 
-          final workoutPlacement =
-              await AppMediaStore.instance.workoutThumbPlacement(db);
+          final workoutPlacement = await AppMediaStore.instance
+              .workoutThumbPlacement(db);
           final workoutWritten = await ICloudBackupArchive.extractThumbnails(
             archivePath: downloadPath,
             directoryFor: workoutPlacement.directoryFor,
@@ -378,7 +394,8 @@ class ICloudSyncService {
           );
           if (workoutWritten > 0) {
             debugPrint(
-                'iCloud restore: restored $workoutWritten workout preview(s)');
+              'iCloud restore: restored $workoutWritten workout preview(s)',
+            );
           }
         } catch (e) {
           // The database itself is back; missing previews are not worth
@@ -422,8 +439,7 @@ class ICloudSyncService {
   Future<void> copySnapshotIntoLiveDatabaseForTesting(
     AppDatabase db,
     String snapshotPath,
-  ) =>
-      _copySnapshotIntoLiveDatabase(db, snapshotPath);
+  ) => _copySnapshotIntoLiveDatabase(db, snapshotPath);
 
   Future<void> _copySnapshotIntoLiveDatabase(
     AppDatabase db,
@@ -436,14 +452,17 @@ class ICloudSyncService {
       await db.customStatement('ATTACH DATABASE ? AS restore', [snapshotPath]);
       try {
         final tables = await db
-            .customSelect("SELECT name FROM restore.sqlite_master "
-                "WHERE type = 'table' AND name NOT LIKE 'sqlite_%'")
+            .customSelect(
+              "SELECT name FROM restore.sqlite_master "
+              "WHERE type = 'table' AND name NOT LIKE 'sqlite_%'",
+            )
             .get();
 
         var copied = 0;
         await db.transaction(() async {
           for (final row in tables) {
             final table = row.read<String>('name');
+            if (!RegExp(r'^[a-zA-Z0-9_]+$').hasMatch(table)) continue;
 
             final liveColumns = await _columnNames(db, 'main', table);
             if (liveColumns.isEmpty) continue;
@@ -475,8 +494,9 @@ class ICloudSyncService {
     String table,
   ) async {
     try {
-      final rows =
-          await db.customSelect('PRAGMA $schema.table_info("$table")').get();
+      final rows = await db
+          .customSelect('PRAGMA $schema.table_info("$table")')
+          .get();
       return [for (final row in rows) row.read<String>('name')];
     } catch (e) {
       // The table does not exist in this schema.
@@ -498,22 +518,24 @@ class ICloudSyncService {
         referencedPaths: referencedMeals,
       );
       if (removedMeals > 0) {
-        debugPrint('iCloud restore: pruned $removedMeals orphaned meal photo(s)');
+        debugPrint(
+          'iCloud restore: pruned $removedMeals orphaned meal photo(s)',
+        );
       }
     } catch (e) {
       debugPrint('iCloud restore: pruning orphaned meal photos failed: $e');
     }
 
     try {
-      final referencedWorkouts =
-          await AppMediaStore.referencedWorkoutPaths(db);
+      final referencedWorkouts = await AppMediaStore.referencedWorkoutPaths(db);
       final removedWorkouts = await AppMediaStore.instance.pruneOrphans(
         domain: MediaDomain.workouts,
         referencedPaths: referencedWorkouts,
       );
       if (removedWorkouts > 0) {
         debugPrint(
-            'iCloud restore: pruned $removedWorkouts orphaned workout photo(s)');
+          'iCloud restore: pruned $removedWorkouts orphaned workout photo(s)',
+        );
       }
     } catch (e) {
       debugPrint('iCloud restore: pruning orphaned workout photos failed: $e');
@@ -598,7 +620,8 @@ class ICloudSyncService {
 
   Future<void> _bundleSharedPreferences(AppDatabase db) async {
     await db.customStatement(
-        'CREATE TABLE IF NOT EXISTS system_preferences (key TEXT PRIMARY KEY, value TEXT)');
+      'CREATE TABLE IF NOT EXISTS system_preferences (key TEXT PRIMARY KEY, value TEXT)',
+    );
     final prefs = await SharedPreferences.getInstance();
     for (final key in prefs.getKeys()) {
       final value = prefs.get(key);
@@ -617,8 +640,9 @@ class ICloudSyncService {
 
       if (strValue != null) {
         await db.customStatement(
-            'INSERT OR REPLACE INTO system_preferences (key, value) VALUES (?, ?)',
-            [key, strValue]);
+          'INSERT OR REPLACE INTO system_preferences (key, value) VALUES (?, ?)',
+          [key, strValue],
+        );
       }
     }
   }
