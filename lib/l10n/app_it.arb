@@ -2214,6 +2214,30 @@
   "settingsBaseFoodLanguageItalian": "Italiano",
   "settingsBaseFoodLanguageJapanese": "Giapponese",
   "aiModelLabel": "Modello",
+  "aiModelListFallbackTitle": "Viene mostrato l'elenco di modelli integrato",
+  "aiModelListRetry": "Ricarica i modelli",
+  "aiModelListErrorMissingKey": "Salva la tua chiave API per caricare i modelli attuali dal provider.",
+  "aiModelListErrorNetwork": "Impossibile raggiungere il provider. Controlla la connessione a Internet.",
+  "aiModelListErrorTimeout": "Il provider non ha risposto entro il timeout impostato.",
+  "aiModelListErrorAuth": "Il provider ha rifiutato la tua chiave API (HTTP {status}). Controlla la chiave e i suoi permessi.",
+  "@aiModelListErrorAuth": {
+    "placeholders": {
+      "status": {}
+    }
+  },
+  "aiModelListErrorRateLimit": "Il provider sta limitando le richieste o la quota è esaurita (HTTP {status}). Riprova tra poco.",
+  "@aiModelListErrorRateLimit": {
+    "placeholders": {
+      "status": {}
+    }
+  },
+  "aiModelListErrorHttp": "Il provider ha risposto con HTTP {status}.",
+  "@aiModelListErrorHttp": {
+    "placeholders": {
+      "status": {}
+    }
+  },
+  "aiModelListErrorResponse": "Non è stato possibile leggere l'elenco dei modelli del provider.",
   "autoBackupStoragePickerUnavailable": "Selettore di archiviazione non disponibile. Riavviare/reinstallare completamente l'app dopo l'aggiornamento.",
   "autoBackupFolderPickerFailed": "Selezione cartella non riuscita: {error}",
   "@autoBackupFolderPickerFailed": {

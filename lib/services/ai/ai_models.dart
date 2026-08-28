@@ -47,6 +47,103 @@ class AiModelOption {
   });
 }
 
+/// Why a provider's live model list could not be loaded.
+///
+/// The settings screen turns this into one sentence so the user learns *why*
+/// they are looking at a hardcoded list instead of the provider's own. A
+/// silently swallowed 401 is indistinguishable from "the provider really only
+/// offers these three models", which is exactly how a stale fallback list ends
+/// up looking like the truth.
+enum AiModelListErrorKind {
+  /// No API key stored yet, so nothing could be requested.
+  missingKey,
+
+  /// The provider has no model-listing endpoint we speak (Ollama, custom).
+  unsupported,
+
+  /// The connection failed outright — offline, DNS, TLS, refused.
+  network,
+
+  /// The request ran past the configured AI timeout.
+  timeout,
+
+  /// 401/403 — key rejected, revoked, or lacking permission.
+  auth,
+
+  /// 429 — rate limited or out of quota.
+  rateLimit,
+
+  /// Any other non-200 status.
+  http,
+
+  /// 200, but the body was not the JSON shape we expect.
+  response,
+}
+
+/// Why [AiService.loadModelOptions] fell back to the hardcoded list.
+class AiModelListError {
+  final AiModelListErrorKind kind;
+
+  /// HTTP status for the [AiModelListErrorKind.auth],
+  /// [AiModelListErrorKind.rateLimit] and [AiModelListErrorKind.http] kinds;
+  /// null otherwise.
+  final int? statusCode;
+
+  /// The provider's own `error.message`, when it sent one.
+  final String? providerMessage;
+
+  const AiModelListError(
+    this.kind, {
+    this.statusCode,
+    this.providerMessage,
+  });
+
+  /// True for the two "nothing was even attempted" kinds, which describe a
+  /// normal state rather than a failure.
+  bool get isBenign =>
+      kind == AiModelListErrorKind.missingKey ||
+      kind == AiModelListErrorKind.unsupported;
+
+  @override
+  String toString() {
+    final parts = <String>[kind.name];
+    if (statusCode != null) parts.add('HTTP $statusCode');
+    if (providerMessage != null) parts.add(providerMessage!);
+    return parts.join(': ');
+  }
+}
+
+/// A model list plus the reason it may be a fallback.
+///
+/// [AiService.getModelOptions] drops the reason for callers that only need the
+/// ids; the settings screen uses [AiService.loadModelOptions] so it can show
+/// [error] to the user.
+class AiModelListResult {
+  final List<AiModelOption> options;
+
+  /// True when [options] came from `emergencyFallbackModels` rather than from
+  /// the provider.
+  final bool isFallback;
+
+  /// Why the live list is missing. Null on the happy path.
+  final AiModelListError? error;
+
+  const AiModelListResult({
+    required this.options,
+    required this.isFallback,
+    this.error,
+  });
+}
+
+/// A raw model-id fetch: either ids, or the reason there are none.
+class AiModelIdsFetch {
+  final Set<String>? ids;
+  final AiModelListError? error;
+
+  const AiModelIdsFetch.success(Set<String> this.ids) : error = null;
+  const AiModelIdsFetch.failure(AiModelListError this.error) : ids = null;
+}
+
 /// A single food component suggested by the AI.
 class AiSuggestedItem {
   /// Display name of the detected food component.

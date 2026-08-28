@@ -394,34 +394,73 @@ class AiService {
     );
   }
 
-  Future<List<AiModelOption>> getModelOptions(AiProvider provider) async {
+  /// How many live models the picker shows at most.
+  ///
+  /// A cap is still worth having — a provider that ever returns hundreds of
+  /// ids would turn the dropdown into a wall — but the old value of 10 was
+  /// small enough that the ranking had to be right or a model became
+  /// *unreachable*. After the modality filter OpenAI returns roughly 20-40
+  /// chat-capable ids, so 50 shows all of them today while keeping a bound on
+  /// a pathological response. Ranking now only decides the order you scroll
+  /// in, not what exists.
+  static const int maxModelOptions = 50;
+
+  /// The model list plus the reason it may be a fallback.
+  ///
+  /// Prefer this over [getModelOptions] wherever the user can see the result:
+  /// it carries [AiModelListResult.error], which is the difference between
+  /// "your key is wrong" and "this provider only has three models".
+  Future<AiModelListResult> loadModelOptions(AiProvider provider) async {
     // Live provider model APIs are the primary source of truth.
     // Hardcoded metadata is used only for family/ranking hints + tiny fallback.
-    final dynamicIds = await _loadDynamicModelIds(provider);
+    final fetch = await _loadDynamicModelIds(provider);
+    final dynamicIds = fetch.ids;
     if (dynamicIds != null && dynamicIds.isNotEmpty) {
       final ranked = _rankProviderModels(
         provider: provider,
         dynamicModels: dynamicIds.toList(growable: false),
       );
-      final capped = ranked.take(10).toList(growable: false);
+      final capped = ranked.take(maxModelOptions).toList(growable: false);
       if (capped.isNotEmpty) {
-        return capped
-            .map((m) => AiModelOption(id: m, label: m))
-            .toList(growable: false);
+        return AiModelListResult(
+          options: capped
+              .map((m) => AiModelOption(id: m, label: m))
+              .toList(growable: false),
+          isFallback: false,
+        );
       }
+    }
+
+    // A 200 whose list came back empty is its own failure: everything was
+    // filtered away, or the provider answered with nothing.
+    final error =
+        fetch.error ?? const AiModelListError(AiModelListErrorKind.response);
+    if (kDebugMode && !error.isBenign) {
+      debugPrint(
+        'AiService: falling back to the built-in model list for '
+        '${provider.name} — $error',
+      );
     }
 
     // Emergency fallback only: keep this small and intentionally conservative.
     final fallback = _safeEmergencyFallback(provider);
-    return fallback
-        .map(
-          (m) => AiModelOption(
-            id: m,
-            label: m,
-            isFallback: true,
-          ),
-        )
-        .toList(growable: false);
+    return AiModelListResult(
+      options: fallback
+          .map(
+            (m) => AiModelOption(
+              id: m,
+              label: m,
+              isFallback: true,
+            ),
+          )
+          .toList(growable: false),
+      isFallback: true,
+      error: error,
+    );
+  }
+
+  Future<List<AiModelOption>> getModelOptions(AiProvider provider) async {
+    return (await loadModelOptions(provider)).options;
   }
 
   /// Resolves persisted model selection against the final allowed model list
@@ -464,88 +503,92 @@ class AiService {
     return uniqueModels;
   }
 
+  /// Orders one model id against its siblings without knowing a single model
+  /// name.
+  ///
+  /// The previous version handed fixed bonuses to literal ids (`gpt-5.4`,
+  /// `gpt-5.4-pro`, …). Those are stale on the morning of the next release:
+  /// the new flagship scores below the model it replaces and, with a short
+  /// list, drops off the end of the picker entirely. So the score is built
+  /// from three signals that age on their own:
+  ///
+  ///  1. **Version** (weight 10000) — the family version parsed out of the id.
+  ///     Dominant, so a newer generation always outranks an older one no
+  ///     matter what it is called.
+  ///  2. **Capability tier** (weight 100) — `pro`/`large`/`opus` above the
+  ///     plain name above `mini`/`nano`. Vocabulary that has survived every
+  ///     naming change so far across all five providers.
+  ///  3. **Staleness penalties** — dated snapshots, `preview`, `legacy`,
+  ///     `deprecated`.
+  ///
+  /// [AiProviderMetadata.rankingHints] survives only as a last tiebreak
+  /// (weight < 100), so it can order equals but can never hold a newer model
+  /// down.
   int _providerModelScore(AiProvider provider, String modelId) {
     final id = modelId.toLowerCase();
-    int score = 0;
+
+    var score = (_modelVersionValue(id) * 10000).round();
+    score += _modelTierScore(id) * 100;
+
+    // Tiebreak only: a curated preference among models of the same generation
+    // and tier. Deliberately smaller than one tier step.
     final hints = getProviderMetadata(provider).rankingHints;
     final hintIndex = hints.indexWhere((h) => h.toLowerCase() == id);
     if (hintIndex != -1) {
-      // Family/ranking hints: strong boost, but live availability still decides.
-      score += 1200 - (hintIndex * 15);
+      score += 60 - (hintIndex * 2).clamp(0, 50);
     }
 
-    // Penalize legacy/preview-looking entries to keep stale models lower.
-    if (id.contains('deprecated') ||
-        id.contains('legacy') ||
-        id.contains('preview')) {
-      score -= 40;
-    }
+    // Pinned snapshots duplicate a rolling id that is already in the list.
+    if (_looksLikeDatedSnapshot(id)) score -= 150;
+    if (id.contains('deprecated') || id.contains('legacy')) score -= 1000000;
+    if (id.contains('preview') || id.contains('experimental')) score -= 120;
+    if (id.contains('latest')) score += 50;
 
-    // Provider-specific alias/latest behavior is intentionally explicit.
-    switch (provider) {
-      case AiProvider.openai:
-        if (_looksLikeDatedSnapshot(id)) score -= 160;
-        if (id == 'gpt-5.4') score += 1000;
-        if (id == 'gpt-5.4-pro') score += 980;
-        if (id == 'gpt-5.4-mini') score += 960;
-        if (id == 'gpt-5.4-nano') score += 940;
-        if (id.startsWith('gpt-5')) score += 900;
-        if (id.startsWith('gpt-4.1')) score += 700;
-        if (id.startsWith('gpt-4o')) score += 600;
-        break;
-      case AiProvider.gemini:
-        if (id == 'gemini-pro-latest') score += 1000;
-        if (id == 'gemini-flash-latest') score += 980;
-        if (id == 'gemini-flash-lite-latest') score += 950;
-        if (id.contains('pro')) score += 800;
-        if (id.contains('flash')) score += 760;
-        if (id.contains('-latest')) score += 120;
-        break;
-      case AiProvider.anthropic:
-        if (id.startsWith('claude-opus-4')) score += 1000;
-        if (id.startsWith('claude-sonnet-4')) score += 950;
-        if (id.startsWith('claude-haiku-4')) score += 900;
-        if (id.contains('-latest')) score += 80;
-        break;
-      case AiProvider.mistral:
-        if (id.startsWith('mistral-large')) score += 1000;
-        if (id.startsWith('mistral-medium')) score += 900;
-        if (id.startsWith('mistral-small')) score += 820;
-        if (id.startsWith('pixtral')) score += 760;
-        if (id.contains('-latest')) score += 120;
-        break;
-      case AiProvider.xai:
-        if (id.contains('-reasoning')) score += 920;
-        if (id.contains('-non-reasoning')) score += 860;
-        if (id.contains('-latest')) score += 120;
-        break;
-      case AiProvider.ollama:
-      case AiProvider.custom:
-        break;
-    }
-
-    // Generic numeric freshness boost (keeps newer versions above older ones).
-    score += _numericFreshnessScore(id);
     return score;
   }
 
-  int _numericFreshnessScore(String id) {
-    final numbers = RegExp(r'\d+')
-        .allMatches(id)
-        .map((m) => int.tryParse(m.group(0)!) ?? 0)
-        .toList();
-    if (numbers.isEmpty) return 0;
-    final take = numbers.take(4).toList(growable: false);
-    var bonus = 0;
-    for (var i = 0; i < take.length; i++) {
-      final normalized = take[i] > 99 ? 0 : take[i];
-      bonus += normalized * (4 - i);
+  /// The family version encoded in a model id, as a comparable number.
+  ///
+  /// `gpt-5.4` → 5.4, `gpt-4o-mini` → 4, `o3` → 3, `claude-opus-4-6` → 4.6,
+  /// `gemini-2.5-pro` → 2.5, `mistral-large-3` → 3.
+  ///
+  /// Takes the *first* version-shaped token and ignores 4-digit-or-longer runs,
+  /// so date stamps (`grok-4.20-0309`, `-2026-03-01`) and serial suffixes
+  /// (`-001`) do not masquerade as versions.
+  double _modelVersionValue(String id) {
+    final withoutDates = id.replaceAll(RegExp(r'\d{4,}'), '');
+    final match = RegExp(r'(?<![0-9.])(\d{1,3})(?:[.\-](\d{1,2}))?(?![0-9])')
+        .firstMatch(withoutDates);
+    if (match == null) {
+      return 0.0;
     }
-    return bonus;
+    final major = int.tryParse(match.group(1)!) ?? 0;
+    final minor = int.tryParse(match.group(2) ?? '') ?? 0;
+    return major + (minor / 100.0);
+  }
+
+  /// Capability tier from vocabulary every provider reuses across generations.
+  ///
+  /// A model that names no tier is the family's plain flagship and sits in the
+  /// middle, above the cheap variants and below an explicit `pro`.
+  int _modelTierScore(String id) {
+    const topTier = ['-pro', 'large', 'opus', 'ultra', 'max', 'heavy'];
+    const midTier = ['medium', 'sonnet', 'fast', 'turbo'];
+    const lowTier = ['mini', 'small', 'haiku', 'flash'];
+    // `lite` sits here rather than with the low tier so `flash-lite` lands
+    // below plain `flash`, which is what it costs and what it is.
+    const bottomTier = ['nano', 'tiny', 'micro', 'lite'];
+
+    if (bottomTier.any(id.contains)) return 0;
+    if (lowTier.any(id.contains)) return 1;
+    if (topTier.any(id.contains)) return 4;
+    if (midTier.any(id.contains)) return 2;
+    return 3;
   }
 
   bool _looksLikeDatedSnapshot(String id) {
-    return RegExp(r'-\d{4}-\d{2}-\d{2}$').hasMatch(id);
+    return RegExp(r'-\d{4}-\d{2}-\d{2}$').hasMatch(id) ||
+        RegExp(r'-\d{8}$').hasMatch(id);
   }
 
   // ---------------------------------------------------------------------------

@@ -4732,6 +4732,39 @@ class AppLocalizationsJa extends AppLocalizations {
   String get aiModelLabel => 'モデル';
 
   @override
+  String get aiModelListFallbackTitle => '組み込みのモデル一覧を表示しています';
+
+  @override
+  String get aiModelListRetry => 'モデルを再読み込み';
+
+  @override
+  String get aiModelListErrorMissingKey => 'APIキーを保存すると、プロバイダーから最新のモデルを読み込めます。';
+
+  @override
+  String get aiModelListErrorNetwork => 'プロバイダーに接続できませんでした。インターネット接続を確認してください。';
+
+  @override
+  String get aiModelListErrorTimeout => '設定されたタイムアウト時間内にプロバイダーから応答がありませんでした。';
+
+  @override
+  String aiModelListErrorAuth(Object status) {
+    return 'プロバイダーがAPIキーを拒否しました (HTTP $status)。キーとその権限を確認してください。';
+  }
+
+  @override
+  String aiModelListErrorRateLimit(Object status) {
+    return 'プロバイダーのレート制限中、または利用枠を使い切っています (HTTP $status)。しばらくしてからもう一度お試しください。';
+  }
+
+  @override
+  String aiModelListErrorHttp(Object status) {
+    return 'プロバイダーが HTTP $status を返しました。';
+  }
+
+  @override
+  String get aiModelListErrorResponse => 'プロバイダーのモデル一覧を読み取れませんでした。';
+
+  @override
   String get autoBackupStoragePickerUnavailable =>
       'ストレージ ピッカーは使用できません。アップデート後はアプリを完全に再起動/再インストールしてください。';
 

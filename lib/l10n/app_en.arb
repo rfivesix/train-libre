@@ -2218,6 +2218,30 @@
   "settingsBaseFoodLanguageItalian": "Italian",
   "settingsBaseFoodLanguageJapanese": "Japanese",
   "aiModelLabel": "Model",
+  "aiModelListFallbackTitle": "Showing the built-in model list",
+  "aiModelListRetry": "Reload models",
+  "aiModelListErrorMissingKey": "Save your API key to load the current models from the provider.",
+  "aiModelListErrorNetwork": "The provider could not be reached. Check your internet connection.",
+  "aiModelListErrorTimeout": "The provider did not answer within the configured timeout.",
+  "aiModelListErrorAuth": "The provider rejected your API key (HTTP {status}). Check the key and its permissions.",
+  "@aiModelListErrorAuth": {
+    "placeholders": {
+      "status": {}
+    }
+  },
+  "aiModelListErrorRateLimit": "The provider is rate limiting or out of quota (HTTP {status}). Try again shortly.",
+  "@aiModelListErrorRateLimit": {
+    "placeholders": {
+      "status": {}
+    }
+  },
+  "aiModelListErrorHttp": "The provider answered with HTTP {status}.",
+  "@aiModelListErrorHttp": {
+    "placeholders": {
+      "status": {}
+    }
+  },
+  "aiModelListErrorResponse": "The provider's model list could not be read.",
   "autoBackupStoragePickerUnavailable": "Storage picker unavailable. Please fully restart/reinstall the app after updating.",
   "autoBackupFolderPickerFailed": "Folder picker failed: {error}",
   "@autoBackupFolderPickerFailed": {

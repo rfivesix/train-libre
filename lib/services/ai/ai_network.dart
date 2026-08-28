@@ -1,10 +1,16 @@
 part of '../ai_service.dart';
 
 extension AiNetwork on AiService {
+  /// Strips OpenAI's `-YYYY-MM-DD` snapshot suffix so `gpt-5.4-2026-03-01` and
+  /// `gpt-5.4` collapse into one entry.
+  ///
+  /// Deliberately not anchored on `gpt-`: the o-series and every future naming
+  /// scheme get dated snapshots too, and anchoring on today's family prefix is
+  /// how the list ends up frozen at one generation.
   String _normalizeOpenAiModelId(String modelId) {
     final lower = modelId.toLowerCase();
     final match =
-        RegExp(r'^(gpt-[a-z0-9.\-]+)-\d{4}-\d{2}-\d{2}$').firstMatch(lower);
+        RegExp(r'^([a-z0-9.\-]+?)-\d{4}-\d{2}-\d{2}$').firstMatch(lower);
     if (match != null) return match.group(1)!;
     return modelId;
   }
@@ -16,12 +22,34 @@ extension AiNetwork on AiService {
     return modelId;
   }
 
-  Map<String, dynamic> _openAiTokenParams(String modelId) {
+  /// Chooses between the legacy `max_tokens` and the newer
+  /// `max_completion_tokens` request parameter.
+  ///
+  /// For OpenAI the default is inverted on purpose: `max_completion_tokens` is
+  /// what every model since gpt-5 and the o-series expects, so an unknown
+  /// (read: newly released) id gets the modern parameter and only the two
+  /// known-legacy families opt out. An allow-list of new names would have to be
+  /// edited on every release day; this list only grows when OpenAI *retires*
+  /// something.
+  ///
+  /// Other providers reaching this method — Ollama and custom OpenAI-compatible
+  /// servers — keep `max_tokens`, which is what llama.cpp, vLLM and friends
+  /// actually implement.
+  Map<String, dynamic> _openAiTokenParams(
+    String modelId, {
+    AiProvider provider = AiProvider.openai,
+  }) {
     final id = modelId.toLowerCase();
-    if (id.startsWith('gpt-5') || RegExp(r'^o[0-9]').hasMatch(id)) {
-      return const {'max_completion_tokens': 2000};
+    if (provider != AiProvider.openai) {
+      return const {'max_tokens': 2000};
     }
-    return const {'max_tokens': 2000};
+    final isLegacyFamily = id.startsWith('gpt-3') ||
+        id.startsWith('gpt-4') ||
+        id.startsWith('text-') ||
+        id.startsWith('davinci') ||
+        id.startsWith('babbage');
+    if (isLegacyFamily) return const {'max_tokens': 2000};
+    return const {'max_completion_tokens': 2000};
   }
 
   String? _extractProviderErrorMessage(String body) {
@@ -260,14 +288,160 @@ extension AiNetwork on AiService {
     }
   }
 
-  Future<Set<String>?> _loadDynamicModelIds(AiProvider provider) async {
+  /// Model ids that are chat-capable in principle.
+  ///
+  /// This is an *exclusion* list of modalities, never an allow-list of names.
+  /// A prefix allow-list (`gpt-`, `grok-`, …) silently drops whole lineages —
+  /// that is how OpenAI's o-series disappeared from the picker — and it drops
+  /// every future naming scheme by construction. So: let everything through
+  /// except what plainly cannot answer a chat/completions call with a photo
+  /// attached.
+  static const List<String> _nonChatModalityTokens = <String>[
+    // Embeddings / retrieval
+    'embedding', 'embed', 'rerank',
+    // Speech
+    'audio', 'tts', 'whisper', 'transcribe', 'transcription', 'speech',
+    'voxtral', 'asr', 'voice',
+    // Image and video generation
+    'image', 'imagen', 'imagine', 'dall-e', 'dalle', 'video', 'sora',
+    // Document processing
+    'ocr',
+    // Safety classifiers
+    'moderation', 'guard',
+    // Not a chat/completions shape at all
+    'realtime',
+  ];
+
+  /// Per-provider extras: models that *are* text models but do not belong in a
+  /// meal-photo picker, either because they need a different endpoint or
+  /// because they are single-purpose (code).
+  static const Map<AiProvider, List<String>> _providerExcludedTokens =
+      <AiProvider, List<String>>{
+    AiProvider.openai: <String>[
+      'codex', // code-only
+      'deep-research', // async research endpoint, not chat/completions
+      'computer-use', // needs the tool-use loop
+      'search', // server-side web search; also refuses `temperature`
+    ],
+    AiProvider.gemini: <String>[
+      'aqa', // attributed-question-answering endpoint
+      'learnlm', // experimental education tuning
+    ],
+    AiProvider.mistral: <String>[
+      'codestral',
+      'devstral',
+      'leanstral',
+    ],
+  };
+
+  bool _isChatCapableModelId(AiProvider provider, String modelId) {
+    if (modelId.isEmpty) return false;
+    final id = modelId.toLowerCase();
+    for (final token in _nonChatModalityTokens) {
+      if (id.contains(token)) return false;
+    }
+    for (final token in _providerExcludedTokens[provider] ?? const <String>[]) {
+      if (id.contains(token)) return false;
+    }
+    return true;
+  }
+
+  /// One GET against a provider's model-listing endpoint, with every failure
+  /// mode named rather than swallowed.
+  ///
+  /// The old `catch (_) { return null; }` here is what made a wrong key, a
+  /// timeout and a rate limit all look identical to the settings screen — and
+  /// identical to "this provider genuinely has three models".
+  Future<AiModelIdsFetch> _fetchModelIds({
+    required Uri uri,
+    Map<String, String>? headers,
+    required Set<String> Function(Map<String, dynamic> json) parse,
+  }) async {
+    http.Response response;
+    try {
+      final timeoutSeconds = await getAiTimeoutSeconds();
+      response = await _httpGet(uri, headers: headers)
+          .timeout(Duration(seconds: timeoutSeconds));
+    } on TimeoutException {
+      return const AiModelIdsFetch.failure(
+        AiModelListError(AiModelListErrorKind.timeout),
+      );
+    } on SocketException catch (e) {
+      return AiModelIdsFetch.failure(
+        AiModelListError(
+          AiModelListErrorKind.network,
+          providerMessage: e.message.isEmpty ? null : e.message,
+        ),
+      );
+    } on http.ClientException catch (e) {
+      return AiModelIdsFetch.failure(
+        AiModelListError(
+          AiModelListErrorKind.network,
+          providerMessage: e.message.isEmpty ? null : e.message,
+        ),
+      );
+    } catch (e) {
+      return AiModelIdsFetch.failure(
+        AiModelListError(
+          AiModelListErrorKind.network,
+          providerMessage: e.toString(),
+        ),
+      );
+    }
+
+    final status = response.statusCode;
+    if (status != 200) {
+      final providerMessage = _extractProviderErrorMessage(response.body);
+      final kind = switch (status) {
+        401 || 403 => AiModelListErrorKind.auth,
+        429 => AiModelListErrorKind.rateLimit,
+        _ => AiModelListErrorKind.http,
+      };
+      return AiModelIdsFetch.failure(
+        AiModelListError(
+          kind,
+          statusCode: status,
+          providerMessage: providerMessage,
+        ),
+      );
+    }
+
+    try {
+      final json = jsonDecode(response.body) as Map<String, dynamic>;
+      return AiModelIdsFetch.success(parse(json));
+    } catch (e) {
+      return AiModelIdsFetch.failure(
+        AiModelListError(
+          AiModelListErrorKind.response,
+          statusCode: status,
+          providerMessage: e.toString(),
+        ),
+      );
+    }
+  }
+
+  Future<AiModelIdsFetch> _loadDynamicModelIds(AiProvider provider) async {
     if (_dynamicModelIdsLoader != null) {
-      return _dynamicModelIdsLoader!(provider);
+      final ids = await _dynamicModelIdsLoader!(provider);
+      if (ids == null) {
+        return const AiModelIdsFetch.failure(
+          AiModelListError(AiModelListErrorKind.unsupported),
+        );
+      }
+      return AiModelIdsFetch.success(ids);
     }
     final meta = getProviderMetadata(provider);
-    if (!meta.supportsDynamicModelLoading) return null;
+    if (!meta.supportsDynamicModelLoading) {
+      return const AiModelIdsFetch.failure(
+        AiModelListError(AiModelListErrorKind.unsupported),
+      );
+    }
     final apiKey = await getApiKey(provider);
-    if (apiKey == null || apiKey.isEmpty) return null;
+    if (apiKey == null || apiKey.isEmpty) {
+      return const AiModelIdsFetch.failure(
+        AiModelListError(AiModelListErrorKind.missingKey),
+      );
+    }
 
     switch (provider) {
       case AiProvider.openai:
@@ -282,176 +456,110 @@ extension AiNetwork on AiService {
         return _loadAnthropicModels(apiKey);
       case AiProvider.ollama:
       case AiProvider.custom:
-        return null;
+        return const AiModelIdsFetch.failure(
+          AiModelListError(AiModelListErrorKind.unsupported),
+        );
     }
   }
 
-  Future<Set<String>?> _loadOpenAiModels(String apiKey) async {
-    try {
-      final timeoutSeconds = await getAiTimeoutSeconds();
-      final response = await _httpGet(
-        Uri.parse('https://api.openai.com/v1/models'),
-        headers: {'Authorization': 'Bearer $apiKey'},
-      ).timeout(Duration(seconds: timeoutSeconds));
-      if (response.statusCode != 200) return null;
-      final json = jsonDecode(response.body) as Map<String, dynamic>;
-      final data = json['data'] as List<dynamic>? ?? const [];
-      final ids = data
-          .map((e) => (e as Map<String, dynamic>)['id'] as String? ?? '')
-          .where((id) => id.startsWith('gpt-'))
-          .where((id) => !id.contains('embedding'))
-          .where((id) => !id.contains('audio'))
-          .where((id) => !id.contains('realtime'))
-          .where((id) => !id.contains('transcribe'))
-          .where((id) => !id.contains('search'))
-          .where((id) => !id.contains('moderation'))
-          .where((id) => !id.contains('tts'))
-          .where((id) => !id.contains('whisper'))
-          .where((id) => !id.contains('image'))
-          .where((id) => !id.contains('codex'))
-          .where((id) => !id.contains('deep-research'))
-          .where((id) => !id.contains('search-preview'))
-          .where((id) => !id.contains('computer-use'))
-          .where((id) => !id.contains('chat-latest'))
-          .map(_normalizeOpenAiModelId)
-          .toSet();
-      return ids;
-    } catch (_) {
-      return null;
-    }
+  /// The `data: [{id: …}]` shape OpenAI, Mistral and xAI all share.
+  Set<String> _parseOpenAiStyleIds(
+    Map<String, dynamic> json,
+    AiProvider provider, {
+    String Function(String id)? normalize,
+  }) {
+    final data = json['data'] as List<dynamic>? ?? const [];
+    return data
+        .map((e) => (e as Map<String, dynamic>)['id'] as String? ?? '')
+        .where((id) => _isChatCapableModelId(provider, id))
+        .map((id) => normalize?.call(id) ?? id)
+        .toSet();
   }
 
-  Future<Set<String>?> _loadGeminiModels(String apiKey) async {
-    try {
-      final timeoutSeconds = await getAiTimeoutSeconds();
-      final response = await _httpGet(
-        Uri.parse(
-          'https://generativelanguage.googleapis.com/v1beta/models?key=$apiKey',
-        ),
-      ).timeout(Duration(seconds: timeoutSeconds));
-      if (response.statusCode != 200) return null;
-      final json = jsonDecode(response.body) as Map<String, dynamic>;
-      final data = json['models'] as List<dynamic>? ?? const [];
-      final ids = data
-          .map((e) => e as Map<String, dynamic>)
-          .where(
-            (model) => (model['supportedGenerationMethods'] as List<dynamic>? ??
-                    const [])
-                .contains('generateContent'),
-          )
-          .map((model) => model['name'] as String? ?? '')
-          .where((n) => n.startsWith('models/'))
-          .map((n) => n.substring('models/'.length))
-          .where((id) => id.contains('gemini'))
-          .where((id) => id.contains('pro') || id.contains('flash'))
-          .where((id) => !id.contains('embedding'))
-          .where((id) => !id.contains('aqa'))
-          .where((id) => !id.contains('tts'))
-          .where((id) => !id.contains('audio'))
-          .where((id) => !id.contains('transcribe'))
-          .where((id) => !id.contains('realtime'))
-          .where((id) => !id.contains('image-generation'))
-          .where((id) => !id.contains('learnlm'))
-          .toSet();
-      return ids;
-    } catch (_) {
-      return null;
-    }
+  Future<AiModelIdsFetch> _loadOpenAiModels(String apiKey) {
+    return _fetchModelIds(
+      uri: Uri.parse('https://api.openai.com/v1/models'),
+      headers: {'Authorization': 'Bearer $apiKey'},
+      parse: (json) => _parseOpenAiStyleIds(
+        json,
+        AiProvider.openai,
+        normalize: _normalizeOpenAiModelId,
+      ),
+    );
   }
 
-  Future<Set<String>?> _loadMistralModels(String apiKey) async {
-    try {
-      final timeoutSeconds = await getAiTimeoutSeconds();
-      final response = await _httpGet(
-        Uri.parse('https://api.mistral.ai/v1/models'),
-        headers: {'Authorization': 'Bearer $apiKey'},
-      ).timeout(Duration(seconds: timeoutSeconds));
-      if (response.statusCode != 200) return null;
-      final json = jsonDecode(response.body) as Map<String, dynamic>;
-      final data = json['data'] as List<dynamic>? ?? const [];
-      final ids = data
-          .map((e) => (e as Map<String, dynamic>)['id'] as String? ?? '')
-          .where((id) => id.isNotEmpty)
-          .where(
-            (id) =>
-                id.startsWith('mistral-') ||
-                id.startsWith('pixtral-') ||
-                id.startsWith('magistral-') ||
-                id.startsWith('ministral-'),
-          )
-          .where((id) => !id.contains('embed'))
-          .where((id) => !id.contains('moderation'))
-          .where((id) => !id.contains('audio'))
-          .where((id) => !id.contains('asr'))
-          .where((id) => !id.contains('ocr'))
-          .where((id) => !id.contains('tts'))
-          .where((id) => !id.contains('voxtral'))
-          .where((id) => !id.contains('codestral'))
-          .where((id) => !id.contains('devstral'))
-          .where((id) => !id.contains('leanstral'))
-          .toSet();
-      return ids;
-    } catch (_) {
-      return null;
-    }
+  Future<AiModelIdsFetch> _loadGeminiModels(String apiKey) {
+    return _fetchModelIds(
+      uri: Uri.parse(
+        'https://generativelanguage.googleapis.com/v1beta/models?key=$apiKey',
+      ),
+      parse: (json) {
+        final data = json['models'] as List<dynamic>? ?? const [];
+        return data
+            .map((e) => e as Map<String, dynamic>)
+            // A real capability flag from the API, not a guess from the name.
+            .where(
+              (model) =>
+                  (model['supportedGenerationMethods'] as List<dynamic>? ??
+                          const [])
+                      .contains('generateContent'),
+            )
+            .map((model) => model['name'] as String? ?? '')
+            .where((n) => n.startsWith('models/'))
+            .map((n) => n.substring('models/'.length))
+            // Brand filter, not a version filter: the endpoint also serves the
+            // open Gemma weights, whose vision support is inconsistent. It says
+            // nothing about which Gemini generation is allowed.
+            .where((id) => id.contains('gemini'))
+            .where((id) => _isChatCapableModelId(AiProvider.gemini, id))
+            .toSet();
+      },
+    );
   }
 
-  Future<Set<String>?> _loadXaiModels(String apiKey) async {
-    try {
-      final timeoutSeconds = await getAiTimeoutSeconds();
-      final response = await _httpGet(
-        Uri.parse('https://api.x.ai/v1/models'),
-        headers: {'Authorization': 'Bearer $apiKey'},
-      ).timeout(Duration(seconds: timeoutSeconds));
-      if (response.statusCode != 200) return null;
-      final json = jsonDecode(response.body) as Map<String, dynamic>;
-      final data = json['data'] as List<dynamic>? ?? const [];
-      final ids = data
-          .map((e) => (e as Map<String, dynamic>)['id'] as String? ?? '')
-          .where((id) => id.isNotEmpty)
-          .where((id) => id.startsWith('grok-'))
-          .where((id) => !id.contains('embedding'))
-          .where((id) => !id.contains('audio'))
-          .where((id) => !id.contains('tts'))
-          .where((id) => !id.contains('transcribe'))
-          .where((id) => !id.contains('realtime'))
-          .where((id) => !id.contains('imagine'))
-          .toSet();
-      return ids;
-    } catch (_) {
-      return null;
-    }
+  Future<AiModelIdsFetch> _loadMistralModels(String apiKey) {
+    return _fetchModelIds(
+      uri: Uri.parse('https://api.mistral.ai/v1/models'),
+      headers: {'Authorization': 'Bearer $apiKey'},
+      parse: (json) => _parseOpenAiStyleIds(json, AiProvider.mistral),
+    );
   }
 
-  Future<Set<String>?> _loadAnthropicModels(String apiKey) async {
-    try {
-      final timeoutSeconds = await getAiTimeoutSeconds();
-      final response = await _httpGet(
-        Uri.parse('https://api.anthropic.com/v1/models'),
-        headers: {
-          'x-api-key': apiKey,
-          'anthropic-version': '2023-06-01',
-        },
-      ).timeout(Duration(seconds: timeoutSeconds));
-      if (response.statusCode != 200) return null;
-      final json = jsonDecode(response.body) as Map<String, dynamic>;
-      final data = json['data'] as List<dynamic>? ?? const [];
-      final ids = data
-          .map((e) => e as Map<String, dynamic>)
-          .where((model) => (model['id'] as String?)?.isNotEmpty ?? false)
-          .where((model) => model['id'].toString().startsWith('claude-'))
-          .where((model) {
-            final capabilities = model['capabilities'] as Map<String, dynamic>?;
-            final imageInput =
-                capabilities?['image_input'] as Map<String, dynamic>?;
-            return imageInput?['supported'] == true;
-          })
-          .map((model) => model['id'] as String)
-          .toSet();
-      return ids;
-    } catch (_) {
-      return null;
-    }
+  Future<AiModelIdsFetch> _loadXaiModels(String apiKey) {
+    return _fetchModelIds(
+      uri: Uri.parse('https://api.x.ai/v1/models'),
+      headers: {'Authorization': 'Bearer $apiKey'},
+      parse: (json) => _parseOpenAiStyleIds(json, AiProvider.xai),
+    );
+  }
+
+  Future<AiModelIdsFetch> _loadAnthropicModels(String apiKey) {
+    return _fetchModelIds(
+      uri: Uri.parse('https://api.anthropic.com/v1/models'),
+      headers: {
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+      },
+      parse: (json) {
+        final data = json['data'] as List<dynamic>? ?? const [];
+        return data
+            .map((e) => e as Map<String, dynamic>)
+            // Drop only models the API *explicitly* reports as text-only.
+            // Treating a missing `capabilities` block as "no vision" would
+            // empty the entire list the day Anthropic reshapes that payload —
+            // and an empty list is indistinguishable from a failed request.
+            .where((model) {
+              final capabilities =
+                  model['capabilities'] as Map<String, dynamic>?;
+              final imageInput =
+                  capabilities?['image_input'] as Map<String, dynamic>?;
+              return imageInput?['supported'] != false;
+            })
+            .map((model) => model['id'] as String? ?? '')
+            .where((id) => _isChatCapableModelId(AiProvider.anthropic, id))
+            .toSet();
+      },
+    );
   }
 
   Future<String> _callOpenAiRaw(
@@ -480,7 +588,7 @@ extension AiNetwork on AiService {
         {'role': 'system', 'content': systemPrompt},
         {'role': 'user', 'content': contentParts},
       ],
-      ..._openAiTokenParams(effectiveModel),
+      ..._openAiTokenParams(effectiveModel, provider: provider),
       'temperature': temperature,
     });
 
