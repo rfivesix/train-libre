@@ -6,21 +6,17 @@
   Poi esegui: python3 script/build_whats_new.py --write --sync-store
 -->
 
-## 1.2.0-beta.1 (2026-08-27)
+## 1.2.0-beta.2 (2026-08-28)
 
-{camera} Foto per i tuoi allenamenti: Immortala le tue sessioni di allenamento con un massimo di 4 foto. Scatta direttamente con la fotocamera o scegli dalla libreria, nel riepilogo dell'allenamento o nella cronologia.
+{camera} Registra un pasto da una foto: inquadra il piatto e l'IA lo trasforma in singoli alimenti con quantità, calorie e macro, tutto correggibile prima di salvare. I prodotti confezionati vengono riconosciuti dal codice a barre nella stessa schermata, gli iPhone con LiDAR misurano la porzione invece di stimarla e il pulsante del microfono ti fa aggiungere ciò che una foto non mostra.
 
-{dumbbell} L'allenamento in corso sempre a portata: la barra sopra la navigazione mostra a colpo d'occhio se stai lavorando o recuperando, quanto manca e a quale esercizio appartiene la prossima serie aperta. Un tocco fa crescere l'allenamento dalla barra invece di aprire una nuova schermata, e il chevron nell'intestazione lo fa tornare giù.
+{utensils} Un diario più chiaro: un pasto scansionato resta una sola voce con la sua foto e si espande sui suoi ingredienti. Le voci sono ordinate per calorie, dalle più alte.
 
-{camera} Registra un pasto da una foto: inquadra il piatto e l'IA lo trasforma in singoli alimenti con quantità, calorie e macro. Fino a quattro foto per pasto, tutto correggibile o sostituibile prima di salvare - e i prodotti confezionati vengono riconosciuti dal codice a barre nella stessa schermata, senza cambiare modalità.
+{dumbbell} Di più dai tuoi allenamenti: conserva fino a 4 foto per sessione e la barra sopra la navigazione mostra sempre se stai lavorando o recuperando e quale esercizio viene dopo. Un tocco fa crescere l'allenamento dalla barra.
 
-{smartphone} Porzioni misurate, non stimate: sugli iPhone con LiDAR la fotocamera misura quanto è distante il piatto e quanto è grande davvero l'area inquadrata, e passa questi dati all'IA. La misurazione si può disattivare nelle impostazioni IA.
+{cloud} Le tue foto nel backup iCloud: il backup automatico porta con sé anche le foto dei tuoi pasti e dei tuoi allenamenti. Il ripristino non richiede più un riavvio e conserva il backup precedente come copia di riserva.
 
-{mic} Di' semplicemente cosa c'è dentro: tieni premuto il pulsante del microfono e descrivi il pasto - da solo o insieme alla foto. Cottura, olio e ingredienti nascosti sono proprio ciò che una foto non può mostrare. Il riconoscimento avviene sul dispositivo quando è possibile e puoi correggere il testo prima di inviarlo.
-
-{utensils} Un diario più chiaro: un pasto scansionato resta una sola voce con la sua foto e si può espandere sui suoi ingredienti. Le voci sono ordinate per calorie, dalle più alte, e quantità e calorie sono allineate nelle stesse colonne su ogni riga.
-
-{cloud} Le tue foto nel backup iCloud: il backup automatico porta con sé anche le foto dei tuoi pasti e dei tuoi allenamenti, così un iPhone ripristinato mostra le tue voci come le hai registrate. Il ripristino è anche più sicuro: non richiede più un riavvio e il backup precedente viene conservato come copia di riserva.
+{sparkles} Uso più fluido: le schede si aprono a schermo intero invece di cambiare di scatto, i numeri si contano da soli e gli esercizi rimossi si richiudono con delicatezza invece di sparire di colpo.
 
 ## 1.1.1 (2026-08-12)
 

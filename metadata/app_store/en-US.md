@@ -56,19 +56,15 @@ OPEN SOURCE & OPEN DATA:
 Built transparently on trusted community catalogs from Open Food Facts and the wger exercise database. The full source code is publicly accessible, so our privacy claims can be verified rather than just believed.
 
 ## Release Notes (What's New / Release Notes in this version)
-Photos for your workouts: Capture your workout sessions with up to 4 photos. Take pictures directly with your camera or select them from your library – right in the workout summary or later in your workout history. All photos and previews are safely included in backups.
+Log a meal from a photo: Point the camera at your plate and the AI turns it into individual foods with amounts, calories and macros - all correctable before you save. Packaged products are recognised by barcode in the very same view, iPhones with LiDAR measure the portion instead of guessing it, and the microphone button lets you add what a photo cannot show.
 
-Your running workout, always one tap away: The bar above the tab bar now shows at a glance whether you are working or resting, how long is left and which exercise your next open set belongs to. Tapping it grows the workout out of the bar instead of pushing in a new screen, and the chevron in its header shrinks it back down.
+A clearer diary: A scanned meal stays one entry with its photo and unfolds into its ingredients. Entries are sorted by calories, largest first.
 
-Log a meal from a photo: Point the camera at your plate and the AI turns it into individual foods with amounts, calories and macros. Take up to four photos of the same meal, correct or swap anything before saving - and packaged products are recognised by their barcode in the very same view, without switching modes.
+More from your training: Keep up to 4 photos per workout, and the bar above the tab bar always shows whether you are working or resting and which exercise comes next. Tapping it grows the workout out of the bar.
 
-Portion sizes measured, not guessed: On iPhone models with LiDAR the camera measures how far away your plate is and how large the visible area really is, and passes that to the AI. You can turn the measurement off in the AI settings.
+Your photos in the iCloud backup: The automatic backup now carries the photos of your meals and workouts. Restoring no longer needs a restart and keeps the previous backup as a spare copy.
 
-Just say what's in it: Hold the microphone button and describe your meal - on its own or in addition to the photo. Cooking method, oil and hidden ingredients are exactly what a photo cannot show. Recognition runs on your device wherever possible, and you can edit the text before anything is sent.
-
-A clearer diary: A scanned meal stays one entry with its photo and can be unfolded into its ingredients. Entries are sorted by calories, largest first, and amounts and calories now line up in the same columns on every row.
-
-Your photos in the iCloud backup: The automatic backup now carries the photos of your meals and workouts, so a restored iPhone shows your entries the way you logged them. Restoring is also safer: it no longer needs a restart, and the previous backup is kept as a spare copy.
+Smoother to use: Cards grow into full screen instead of switching abruptly, numbers count themselves up, and removed exercises fold away gently instead of popping out.
 
 ## Support URL (Support Web Page URL)
 https://rfivesix.github.io/train-libre/support.html

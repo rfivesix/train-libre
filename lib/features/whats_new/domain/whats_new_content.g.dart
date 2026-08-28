@@ -16,50 +16,38 @@ import 'whats_new_release.dart';
 const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
   'en': <WhatsNewRelease>[
     WhatsNewRelease(
-      version: '1.2.0-beta.1',
-      releasedOn: '2026-08-27',
+      version: '1.2.0-beta.2',
+      releasedOn: '2026-08-28',
       entries: <WhatsNewEntry>[
-        WhatsNewEntry(
-          icon: LucideIcons.camera,
-          title: 'Photos for your workouts',
-          body:
-              'Capture your workout sessions with up to 4 photos. Take pictures directly with your camera or select them from your library – right in the workout summary or later in your workout history. All photos and previews are safely included in backups.',
-        ),
-        WhatsNewEntry(
-          icon: LucideIcons.dumbbell,
-          title: 'Your running workout, always one tap away',
-          body:
-              'The bar above the tab bar now shows at a glance whether you are working or resting, how long is left and which exercise your next open set belongs to. Tapping it grows the workout out of the bar instead of pushing in a new screen, and the chevron in its header shrinks it back down.',
-        ),
         WhatsNewEntry(
           icon: LucideIcons.camera,
           title: 'Log a meal from a photo',
           body:
-              'Point the camera at your plate and the AI turns it into individual foods with amounts, calories and macros. Take up to four photos of the same meal, correct or swap anything before saving - and packaged products are recognised by their barcode in the very same view, without switching modes.',
-        ),
-        WhatsNewEntry(
-          icon: LucideIcons.smartphone,
-          title: 'Portion sizes measured, not guessed',
-          body:
-              'On iPhone models with LiDAR the camera measures how far away your plate is and how large the visible area really is, and passes that to the AI. You can turn the measurement off in the AI settings.',
-        ),
-        WhatsNewEntry(
-          icon: LucideIcons.mic,
-          title: 'Just say what\'s in it',
-          body:
-              'Hold the microphone button and describe your meal - on its own or in addition to the photo. Cooking method, oil and hidden ingredients are exactly what a photo cannot show. Recognition runs on your device wherever possible, and you can edit the text before anything is sent.',
+              'Point the camera at your plate and the AI turns it into individual foods with amounts, calories and macros - all correctable before you save. Packaged products are recognised by barcode in the very same view, iPhones with LiDAR measure the portion instead of guessing it, and the microphone button lets you add what a photo cannot show.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.utensils,
           title: 'A clearer diary',
           body:
-              'A scanned meal stays one entry with its photo and can be unfolded into its ingredients. Entries are sorted by calories, largest first, and amounts and calories now line up in the same columns on every row.',
+              'A scanned meal stays one entry with its photo and unfolds into its ingredients. Entries are sorted by calories, largest first.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.dumbbell,
+          title: 'More from your training',
+          body:
+              'Keep up to 4 photos per workout, and the bar above the tab bar always shows whether you are working or resting and which exercise comes next. Tapping it grows the workout out of the bar.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.cloud,
           title: 'Your photos in the iCloud backup',
           body:
-              'The automatic backup now carries the photos of your meals and workouts, so a restored iPhone shows your entries the way you logged them. Restoring is also safer: it no longer needs a restart, and the previous backup is kept as a spare copy.',
+              'The automatic backup now carries the photos of your meals and workouts. Restoring no longer needs a restart and keeps the previous backup as a spare copy.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.sparkles,
+          title: 'Smoother to use',
+          body:
+              'Cards grow into full screen instead of switching abruptly, numbers count themselves up, and removed exercises fold away gently instead of popping out.',
         ),
       ],
     ),
@@ -126,50 +114,38 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
   ],
   'de': <WhatsNewRelease>[
     WhatsNewRelease(
-      version: '1.2.0-beta.1',
-      releasedOn: '2026-08-27',
+      version: '1.2.0-beta.2',
+      releasedOn: '2026-08-28',
       entries: <WhatsNewEntry>[
-        WhatsNewEntry(
-          icon: LucideIcons.camera,
-          title: 'Fotos für deine Workouts',
-          body:
-              'Halte deine Trainingseinheiten mit bis zu 4 Fotos fest. Nimm Fotos direkt mit der Kamera auf oder wähle sie aus deiner Mediathek – sowohl direkt nach dem Training in der Zusammenfassung als auch nachträglich im Trainingsverlauf. Alle Fotos und Vorschauen werden auch im Backup gesichert.',
-        ),
-        WhatsNewEntry(
-          icon: LucideIcons.dumbbell,
-          title: 'Dein laufendes Workout immer im Blick',
-          body:
-              'Die Leiste über der Navigation zeigt auf einen Blick, ob du trainierst oder pausierst, wie lange noch, und zu welcher Übung dein nächster offener Satz gehört. Ein Tipp lässt das Workout aus der Leiste herauswachsen, statt einen neuen Bildschirm hereinzuschieben - der Pfeil im Kopfbereich schrumpft es wieder dorthin zurück.',
-        ),
         WhatsNewEntry(
           icon: LucideIcons.camera,
           title: 'Mahlzeiten per Foto erfassen',
           body:
-              'Richte die Kamera auf deinen Teller und die KI macht daraus einzelne Lebensmittel mit Menge, Kalorien und Makros. Bis zu vier Fotos pro Mahlzeit, alles vor dem Speichern korrigierbar oder austauschbar - und verpackte Produkte erkennt dieselbe Ansicht direkt am Barcode, ohne den Modus zu wechseln.',
-        ),
-        WhatsNewEntry(
-          icon: LucideIcons.smartphone,
-          title: 'Portionen gemessen statt geschätzt',
-          body:
-              'Auf iPhones mit LiDAR misst die Kamera, wie weit dein Teller entfernt ist und wie groß der sichtbare Ausschnitt tatsächlich ist, und gibt das an die KI weiter. In den KI-Einstellungen kannst du die Messung abschalten.',
-        ),
-        WhatsNewEntry(
-          icon: LucideIcons.mic,
-          title: 'Einfach sagen, was drin ist',
-          body:
-              'Halte die Mikrofontaste gedrückt und beschreibe deine Mahlzeit - allein oder zusätzlich zum Foto. Zubereitung, Öl und versteckte Zutaten sind genau das, was ein Foto nicht zeigen kann. Die Erkennung läuft wenn möglich auf deinem Gerät, und du kannst den Text vor dem Senden noch korrigieren.',
+              'Richte die Kamera auf deinen Teller, und die KI macht daraus einzelne Lebensmittel mit Menge, Kalorien und Makros - vor dem Speichern alles korrigierbar. Verpackte Produkte erkennt dieselbe Ansicht am Barcode, iPhones mit LiDAR messen die Portion statt zu schätzen, und per Mikrofontaste ergänzt du, was das Foto nicht zeigt.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.utensils,
           title: 'Übersichtlicheres Tagebuch',
           body:
-              'Eine erfasste Mahlzeit bleibt ein Eintrag mit Foto und lässt sich zu ihren Zutaten aufklappen. Einträge sind nach Kalorien sortiert, die größten zuerst, und Menge und Kalorien stehen in jeder Zeile in denselben Spalten.',
+              'Eine erfasste Mahlzeit bleibt ein Eintrag mit Foto und lässt sich zu ihren Zutaten aufklappen. Einträge sind nach Kalorien sortiert, die größten zuerst.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.dumbbell,
+          title: 'Mehr von deinem Training',
+          body:
+              'Halte Workouts mit bis zu 4 Fotos fest, und die Leiste über der Navigation zeigt jederzeit, ob du trainierst oder pausierst und welche Übung als Nächstes ansteht. Ein Tipp lässt das Workout aus der Leiste herauswachsen.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.cloud,
           title: 'Deine Fotos im iCloud-Backup',
           body:
-              'Das automatische Backup nimmt jetzt auch die Fotos deiner Mahlzeiten und Workouts mit, damit ein wiederhergestelltes iPhone deine Einträge so zeigt, wie du sie erfasst hast. Das Wiederherstellen ist außerdem sicherer: Es braucht keinen Neustart mehr, und das vorherige Backup bleibt als Reservekopie erhalten.',
+              'Das automatische Backup nimmt jetzt auch die Fotos deiner Mahlzeiten und Workouts mit. Das Wiederherstellen braucht außerdem keinen Neustart mehr und behält das vorherige Backup als Reservekopie.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.sparkles,
+          title: 'Flüssigere Bedienung',
+          body:
+              'Karten wachsen zum Vollbild heran statt hart umzuschalten, Zahlen zählen sich hoch, und entfernte Übungen klappen sanft zusammen, statt wegzuspringen.',
         ),
       ],
     ),
@@ -236,50 +212,38 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
   ],
   'fr': <WhatsNewRelease>[
     WhatsNewRelease(
-      version: '1.2.0-beta.1',
-      releasedOn: '2026-08-27',
+      version: '1.2.0-beta.2',
+      releasedOn: '2026-08-28',
       entries: <WhatsNewEntry>[
-        WhatsNewEntry(
-          icon: LucideIcons.camera,
-          title: 'Photos pour vos entraînements',
-          body:
-              'Capturez vos séances d\'entraînement avec jusqu\'à 4 photos. Prenez des photos directement avec votre appareil ou choisissez-les dans votre bibliothèque, dans le récapitulatif ou dans l\'historique d\'entraînement.',
-        ),
-        WhatsNewEntry(
-          icon: LucideIcons.dumbbell,
-          title: 'Ton entraînement en cours toujours à portée',
-          body:
-              'la barre au-dessus de la navigation indique d\'un coup d\'œil si tu travailles ou si tu récupères, combien de temps il reste et à quel exercice appartient ta prochaine série. Un appui fait grandir l\'entraînement depuis la barre au lieu d\'ouvrir un nouvel écran, et le chevron de l\'en-tête le fait redescendre.',
-        ),
         WhatsNewEntry(
           icon: LucideIcons.camera,
           title: 'Enregistrer un repas à partir d\'une photo',
           body:
-              'vise ton assiette et l\'IA en fait des aliments distincts, avec quantités, calories et macros. Jusqu\'à quatre photos par repas, tout reste corrigeable ou remplaçable avant l\'enregistrement - et les produits emballés sont reconnus par leur code-barres dans la même vue, sans changer de mode.',
-        ),
-        WhatsNewEntry(
-          icon: LucideIcons.smartphone,
-          title: 'Des portions mesurées, pas devinées',
-          body:
-              'sur les iPhone équipés du LiDAR, la caméra mesure la distance de l\'assiette et la taille réelle de la zone visible, puis transmet ces valeurs à l\'IA. La mesure se désactive dans les réglages IA.',
-        ),
-        WhatsNewEntry(
-          icon: LucideIcons.mic,
-          title: 'Dis simplement ce qu\'il y a dedans',
-          body:
-              'maintiens le bouton micro et décris ton repas - seul ou en complément de la photo. Mode de cuisson, huile et ingrédients cachés sont justement ce qu\'une photo ne montre pas. La reconnaissance se fait sur ton appareil quand c\'est possible, et tu peux corriger le texte avant l\'envoi.',
+              'vise ton assiette et l\'IA en fait des aliments distincts, avec quantités, calories et macros - tout reste corrigeable avant l\'enregistrement. Les produits emballés sont reconnus par leur code-barres dans la même vue, les iPhone équipés du LiDAR mesurent la portion au lieu de la deviner, et le bouton micro permet d\'ajouter ce qu\'une photo ne montre pas.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.utensils,
           title: 'Un journal plus lisible',
           body:
-              'un repas scanné reste une seule entrée avec sa photo et se déplie sur ses ingrédients. Les entrées sont triées par calories, les plus élevées d\'abord, et quantités et calories s\'alignent dans les mêmes colonnes sur chaque ligne.',
+              'un repas scanné reste une seule entrée avec sa photo et se déplie sur ses ingrédients. Les entrées sont triées par calories, les plus élevées d\'abord.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.dumbbell,
+          title: 'Plus de tes entraînements',
+          body:
+              'garde jusqu\'à 4 photos par séance, et la barre au-dessus de la navigation indique en permanence si tu travailles ou récupères et quel exercice arrive ensuite. Un appui fait grandir l\'entraînement depuis la barre.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.cloud,
           title: 'Tes photos dans la sauvegarde iCloud',
           body:
-              'la sauvegarde automatique emporte désormais les photos de tes repas et de tes entraînements, pour qu\'un iPhone restauré affiche tes entrées telles que tu les as enregistrées. La restauration est aussi plus sûre : elle ne demande plus de redémarrage, et la sauvegarde précédente est conservée comme copie de secours.',
+              'la sauvegarde automatique emporte désormais les photos de tes repas et de tes entraînements. La restauration ne demande plus de redémarrage et conserve la sauvegarde précédente comme copie de secours.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.sparkles,
+          title: 'Une utilisation plus fluide',
+          body:
+              'les cartes s\'agrandissent en plein écran au lieu de basculer d\'un coup, les chiffres défilent jusqu\'à leur valeur, et les exercices supprimés se replient en douceur au lieu de disparaître brusquement.',
         ),
       ],
     ),
@@ -346,50 +310,38 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
   ],
   'it': <WhatsNewRelease>[
     WhatsNewRelease(
-      version: '1.2.0-beta.1',
-      releasedOn: '2026-08-27',
+      version: '1.2.0-beta.2',
+      releasedOn: '2026-08-28',
       entries: <WhatsNewEntry>[
-        WhatsNewEntry(
-          icon: LucideIcons.camera,
-          title: 'Foto per i tuoi allenamenti',
-          body:
-              'Immortala le tue sessioni di allenamento con un massimo di 4 foto. Scatta direttamente con la fotocamera o scegli dalla libreria, nel riepilogo dell\'allenamento o nella cronologia.',
-        ),
-        WhatsNewEntry(
-          icon: LucideIcons.dumbbell,
-          title: 'L\'allenamento in corso sempre a portata',
-          body:
-              'la barra sopra la navigazione mostra a colpo d\'occhio se stai lavorando o recuperando, quanto manca e a quale esercizio appartiene la prossima serie aperta. Un tocco fa crescere l\'allenamento dalla barra invece di aprire una nuova schermata, e il chevron nell\'intestazione lo fa tornare giù.',
-        ),
         WhatsNewEntry(
           icon: LucideIcons.camera,
           title: 'Registra un pasto da una foto',
           body:
-              'inquadra il piatto e l\'IA lo trasforma in singoli alimenti con quantità, calorie e macro. Fino a quattro foto per pasto, tutto correggibile o sostituibile prima di salvare - e i prodotti confezionati vengono riconosciuti dal codice a barre nella stessa schermata, senza cambiare modalità.',
-        ),
-        WhatsNewEntry(
-          icon: LucideIcons.smartphone,
-          title: 'Porzioni misurate, non stimate',
-          body:
-              'sugli iPhone con LiDAR la fotocamera misura quanto è distante il piatto e quanto è grande davvero l\'area inquadrata, e passa questi dati all\'IA. La misurazione si può disattivare nelle impostazioni IA.',
-        ),
-        WhatsNewEntry(
-          icon: LucideIcons.mic,
-          title: 'Di\' semplicemente cosa c\'è dentro',
-          body:
-              'tieni premuto il pulsante del microfono e descrivi il pasto - da solo o insieme alla foto. Cottura, olio e ingredienti nascosti sono proprio ciò che una foto non può mostrare. Il riconoscimento avviene sul dispositivo quando è possibile e puoi correggere il testo prima di inviarlo.',
+              'inquadra il piatto e l\'IA lo trasforma in singoli alimenti con quantità, calorie e macro, tutto correggibile prima di salvare. I prodotti confezionati vengono riconosciuti dal codice a barre nella stessa schermata, gli iPhone con LiDAR misurano la porzione invece di stimarla e il pulsante del microfono ti fa aggiungere ciò che una foto non mostra.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.utensils,
           title: 'Un diario più chiaro',
           body:
-              'un pasto scansionato resta una sola voce con la sua foto e si può espandere sui suoi ingredienti. Le voci sono ordinate per calorie, dalle più alte, e quantità e calorie sono allineate nelle stesse colonne su ogni riga.',
+              'un pasto scansionato resta una sola voce con la sua foto e si espande sui suoi ingredienti. Le voci sono ordinate per calorie, dalle più alte.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.dumbbell,
+          title: 'Di più dai tuoi allenamenti',
+          body:
+              'conserva fino a 4 foto per sessione e la barra sopra la navigazione mostra sempre se stai lavorando o recuperando e quale esercizio viene dopo. Un tocco fa crescere l\'allenamento dalla barra.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.cloud,
           title: 'Le tue foto nel backup iCloud',
           body:
-              'il backup automatico porta con sé anche le foto dei tuoi pasti e dei tuoi allenamenti, così un iPhone ripristinato mostra le tue voci come le hai registrate. Il ripristino è anche più sicuro: non richiede più un riavvio e il backup precedente viene conservato come copia di riserva.',
+              'il backup automatico porta con sé anche le foto dei tuoi pasti e dei tuoi allenamenti. Il ripristino non richiede più un riavvio e conserva il backup precedente come copia di riserva.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.sparkles,
+          title: 'Uso più fluido',
+          body:
+              'le schede si aprono a schermo intero invece di cambiare di scatto, i numeri si contano da soli e gli esercizi rimossi si richiudono con delicatezza invece di sparire di colpo.',
         ),
       ],
     ),
@@ -456,50 +408,36 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
   ],
   'ja': <WhatsNewRelease>[
     WhatsNewRelease(
-      version: '1.2.0-beta.1',
-      releasedOn: '2026-08-27',
+      version: '1.2.0-beta.2',
+      releasedOn: '2026-08-28',
       entries: <WhatsNewEntry>[
-        WhatsNewEntry(
-          icon: LucideIcons.camera,
-          title: 'ワークアウトの写真記録',
-          body:
-              'トレーニングに最大4枚の写真を添付できるようになりました。カメラでの直接撮影やライブラリからの選択に対応し、サマリー画面や履歴詳細からいつでも追加・確認できます。',
-        ),
-        WhatsNewEntry(
-          icon: LucideIcons.dumbbell,
-          title: '進行中のワークアウトをいつでも手元に',
-          body:
-              'ナビゲーションの上のバーに、トレーニング中か休憩中か、残り時間、次の未完了セットがどの種目のものかがひと目で分かるようになりました。タップするとワークアウトがバーから広がって開き、ヘッダーのシェブロンでバーに縮んで戻ります。',
-        ),
         WhatsNewEntry(
           icon: LucideIcons.camera,
           title: '写真から食事を記録',
           body:
-              'カメラをお皿に向けるだけで、AIが個々の食品として量・カロリー・PFCに分解します。1回の食事につき最大4枚まで撮影でき、保存前に修正や差し替えが可能です。市販の包装食品は同じ画面のままバーコードで認識されるので、モードを切り替える必要はありません。',
-        ),
-        WhatsNewEntry(
-          icon: LucideIcons.smartphone,
-          title: '分量は推測ではなく計測',
-          body:
-              'LiDAR搭載のiPhoneでは、お皿までの距離と実際に写っている範囲の大きさをカメラが計測し、その値をAIに渡します。計測はAI設定でオフにできます。',
-        ),
-        WhatsNewEntry(
-          icon: LucideIcons.mic,
-          title: '中身を話すだけ',
-          body:
-              'マイクボタンを長押しして食事の内容を話してください。写真の代わりにも、写真に添えても使えます。調理法や油、隠れた材料は、写真では分からない情報です。認識は可能な限り端末内で行われ、送信前にテキストを編集できます。',
+              'カメラをお皿に向けるだけで、AIが個々の食品として量・カロリー・PFCに分解します。保存前にすべて修正でき、市販の包装食品は同じ画面のままバーコードで認識、LiDAR搭載のiPhoneでは分量を推測せずに計測し、マイクボタンで写真に写らない情報を補足できます。',
         ),
         WhatsNewEntry(
           icon: LucideIcons.utensils,
           title: '見やすくなった記録',
+          body: 'スキャンした食事は写真付きの1つの項目としてまとまり、展開すると材料が表示されます。項目はカロリーの多い順に並びます。',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.dumbbell,
+          title: 'トレーニングをもっと記録',
           body:
-              'スキャンした食事は写真付きの1つの項目としてまとまり、展開すると材料が表示されます。項目はカロリーの多い順に並び、量とカロリーはどの行でも同じ位置に揃います。',
+              'ワークアウトに最大4枚の写真を残せます。ナビゲーションの上のバーには、トレーニング中か休憩中か、次の種目は何かが常に表示され、タップするとワークアウトがバーから広がって開きます。',
         ),
         WhatsNewEntry(
           icon: LucideIcons.cloud,
           title: 'iCloudバックアップに写真も保存',
           body:
-              '自動バックアップが食事やワークアウトの写真も一緒に保存するようになり、復元したiPhoneでも記録したときのまま表示されます。復元自体も安全になりました。再起動が不要になり、直前のバックアップは予備として残ります。',
+              '自動バックアップが食事やワークアウトの写真も一緒に保存します。復元は再起動が不要になり、直前のバックアップは予備として残ります。',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.sparkles,
+          title: 'より滑らかな操作感',
+          body: 'カードが切り替わるのではなく全画面へと広がり、数値はカウントアップし、削除した種目は急に消えず静かに折りたたまれます。',
         ),
       ],
     ),
@@ -568,4 +506,4 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
 const String kWhatsNewFallbackLanguage = 'en';
 
 /// The version this catalog was generated for, taken from pubspec.yaml.
-const String kWhatsNewGeneratedForVersion = '1.2.0-beta.1';
+const String kWhatsNewGeneratedForVersion = '1.2.0-beta.2';
