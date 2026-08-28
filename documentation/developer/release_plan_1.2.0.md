@@ -94,34 +94,66 @@ davon schlagen auf dem alten Code fehl.
 **Symptom:** iPhone 16 Pro, frischer Start oder Resume nach ~2 min im
 Hintergrund: 1–2 s eingefrorene UI.
 
-**Konkreter Verdacht Resume:**
-[main_screen.dart:203](../../lib/features/app/presentation/main_screen.dart)
-ruft in `AppLifecycleState.resumed` synchron `_syncHomeWidgetsNow()` auf, das
-über `HomeWidgetSyncService.refresh()` die Statistiken neu berechnet. Der
-2-Minuten-Schwellwert des Nutzers passt verdächtig gut zu einem Cache, der
-inzwischen abgelaufen ist (`HomeWidgetSyncService.statisticsMaxAge`) — solange
-der Cache warm ist, fällt nichts auf; danach läuft die volle Berechnung auf dem
-Main Isolate.
+**Korrektur meiner ersten Analyse.** Zwei Vermutungen aus der ersten Fassung
+dieses Plans haben sich beim Nachsehen als falsch erwiesen:
 
-**Vorgehen:**
+- Der Cache in `HomeWidgetSyncService.statisticsMaxAge` steht auf **15
+  Minuten**, nicht auf 2. Die 2 Minuten des Nutzers passen also nicht dazu.
+- `AiService.migrateSecureStorageToDeviceOnly()` hat bereits einen
+  Prefs-Guard und läuft nur beim ersten Mal — kein Kostenfaktor pro Start.
 
-1. Nicht nach Gefühl gehen. Der Mac reproduziert den Jank nicht (siehe Memo
-   „Profiling UI jank"); mit dem bereits vorhandenen `jank_recorder.dart` und der
-   Telemetrie aus `76a93099` auf dem Gerät messen, Raster- und Build-Zeit
-   getrennt.
-2. Resume-Pfad: `_syncHomeWidgetsNow()` aus dem kritischen Pfad nehmen —
-   entweder einen Frame verzögert (`postFrameCallback` + kurzer Delay) oder die
-   Statistikberechnung in einen Isolate (`compute`).
-3. Kaltstart getrennt betrachten: messen, was zwischen `runApp` und erstem
-   nutzbaren Frame passiert (DB-Öffnung inkl. `reconcileSchema`,
-   Katalog-Laden, Provider-Initialisierung). Alles, was nicht für den ersten
-   Frame gebraucht wird, hinter den ersten Frame verschieben.
-4. Gegenprüfen, ob die Glass-Backdrops beitragen — pro `AppButton` entsteht ein
-   eigener `BackdropFilterLayer` (siehe Memo), und der erste Frame nach Resume
-   baut sie alle neu auf.
+Ebenfalls ausgeschlossen: die Datenbank blockiert den UI-Thread nicht.
+`_openConnection` benutzt `NativeDatabase.createInBackground`, die Queries
+laufen auf einem eigenen Isolate.
 
-**Aufwand:** mittel bis groß, stark abhängig vom Messergebnis. Erst messen,
-dann schätzen.
+Wahrscheinlicher ist etwas anderes: iOS beendet Apps im Hintergrund. Was der
+Nutzer als „Resume nach 2 Minuten" erlebt, ist mit einiger Wahrscheinlichkeit
+**derselbe Kaltstart** — dann gibt es nur ein Problem, nicht zwei.
+
+**Gebaut: die Messung, nicht die Reparatur.** Ohne Zahlen vom Gerät wäre jede
+Änderung hier geraten (siehe Memo „Profiling UI jank"), also misst die App
+jetzt selbst, wo die Sekunden hingehen:
+
+- Neu: [startup_trace.dart](../../lib/core/performance/startup_trace.dart).
+  Misst Kaltstart und Rückkehr aus dem Hintergrund jeweils bis zu dem Frame,
+  der wirklich auf dem Schirm landet (Frame-Timings, nicht `postFrameCallback`
+  — letzterer feuert, wenn der Frame *gebaut* ist, was bei einem Schirm voller
+  Backdrop-Filter deutlich zu früh ist).
+- Phasen sind an den Aufrufstellen von Hand gesetzt (`glass_init`,
+  `date_formatting`, `meal_photo_store`, `keychain_migration`, `prefs`,
+  `core_services`, `standard_supplements`, `notifications_init`,
+  `workout_restore`, `telemetry_init`, `auto_backup_check`). Zeit, die zum Lauf
+  gehört, aber zu keiner Phase, wird als `unattributed` ausgewiesen statt
+  stillschweigend verteilt — **das ist der wichtigste Wert**: ist er groß, liegt
+  es an Framework-Start, Shader-Warmup und erstem Build, nicht an App-Code.
+- Sichtbar unter Einstellungen → Performance-Log, und in der Textausgabe von
+  „Kopieren"/„Teilen" enthalten.
+
+**Behobene Messlücke im Watchdog:** `JankRecorder` übersprang beim Resume den
+nächsten Tick komplett, um die Hintergrundzeit nicht als Freeze zu zählen. Ein
+Freeze, der genau beim Zurückkommen beginnt, fiel damit vollständig in das
+übersprungene Fenster — also genau der Fall, den der Nutzer meldet. Jetzt wird
+stattdessen die Uhr beim Resume neu gesetzt: die Hintergrundzeit fällt weg, der
+Tick bleibt.
+
+**Bekannte Grenze, bewusst nicht angefasst:** Der Watchdog misst die
+*Verspätung* eines Ticks. Ein Freeze, der kurz nach einem Tick beginnt,
+verspätet den nächsten nur um Freeze minus Intervall. Bei 500 ms Intervall und
+1200 ms Schwelle bleiben Freezes unter ~1,7 s unsichtbar — die untere Hälfte
+dessen, was der Nutzer meldet. Die Schwelle wurde offenbar bewusst gewählt, und
+für Start und Resume misst jetzt `StartupTrace` die echte Spanne. Ist im Code
+dokumentiert.
+
+**Nächster Schritt — braucht das Gerät:**
+
+1. Build installieren, App kalt starten, kurz nutzen, 2–3 min in den
+   Hintergrund, zurückholen. Zwei- bis dreimal wiederholen.
+2. Einstellungen → Performance-Log → „Kopieren", Text herschicken.
+3. Erst dann entscheiden, wo repariert wird. Die Zeilen `startup[cold]` und
+   `startup[resume]` sagen, ob der Kaltstart und die Rückkehr dieselbe Sache
+   sind, und ob die Zeit in einer Phase steckt oder in `unattributed`.
+
+**Aufwand für die eigentliche Reparatur:** erst nach Schritt 2 schätzbar.
 
 ---
 

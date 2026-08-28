@@ -1,3 +1,4 @@
+import '../../../core/performance/startup_trace.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../../util/design_constants.dart';
@@ -58,7 +59,10 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
 
   Future<void> _initialize() async {
     if (!widget.isModal) {
-      await _prepareCoreServices();
+      await StartupTrace.instance.measure(
+        'core_services',
+        _prepareCoreServices,
+      );
 
       // Cold Start first launch prompt is handled during onboarding region selection.
     }
@@ -116,7 +120,10 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
 
     // 2) Trigger due auto-backup checks.
     try {
-      await BackupManager.instance.runAutoBackupIfDue();
+      await StartupTrace.instance.measure(
+        'auto_backup_check',
+        BackupManager.instance.runAutoBackupIfDue,
+      );
     } catch (e) {
       debugPrint("Auto-backup startup failed: $e");
     }
@@ -151,13 +158,19 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
     }
 
     try {
-      await DatabaseHelper.instance.ensureStandardSupplements();
+      await StartupTrace.instance.measure(
+        'standard_supplements',
+        DatabaseHelper.instance.ensureStandardSupplements,
+      );
     } catch (e) {
       debugPrint("Standard supplement setup failed: $e");
     }
 
     try {
-      await LocalNotificationService.instance.initialize();
+      await StartupTrace.instance.measure(
+        'notifications_init',
+        LocalNotificationService.instance.initialize,
+      );
       // Asynchronously trigger recommendation check on startup
       unawaited(AdaptiveNutritionRecommendationService()
           .refreshRecommendationIfDue()
@@ -171,14 +184,20 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
 
     if (workoutSessionManager != null) {
       try {
-        await workoutSessionManager.tryRestoreSession();
+        await StartupTrace.instance.measure(
+          'workout_restore',
+          workoutSessionManager.tryRestoreSession,
+        );
       } catch (e) {
         debugPrint("Workout session restore failed: $e");
       }
     }
 
     try {
-      await TelemetryService.instance.init();
+      await StartupTrace.instance.measure(
+        'telemetry_init',
+        TelemetryService.instance.init,
+      );
       final packageInfo = await PackageInfo.fromPlatform();
       final (localeStr, countryCode) =
           TelemetryService.resolveSystemLocaleAndCountry();

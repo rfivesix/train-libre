@@ -1470,6 +1470,21 @@ class AppLocalizationsDe extends AppLocalizations {
   String get performanceLogStallsSection => 'Hänger (UI-Thread blockiert)';
 
   @override
+  String get performanceLogStartupSection => 'Start & Rückkehr';
+
+  @override
+  String get performanceLogStartupEmpty => 'Noch kein Start gemessen.';
+
+  @override
+  String get performanceLogStartupCold => 'Kaltstart';
+
+  @override
+  String get performanceLogStartupResume => 'Rückkehr aus dem Hintergrund';
+
+  @override
+  String get performanceLogStartupUnattributed => 'Framework & erstes Rendern';
+
+  @override
   String get performanceLogSevereLabel => 'schwer';
 
   @override

@@ -374,14 +374,17 @@ class JankRecorder with WidgetsBindingObserver {
       final delta = now - _lastTickMs;
       _lastTickMs = now;
 
-      // iOS suspends timers in the background; the first tick after a resume
-      // would otherwise be reported as a multi-minute freeze.
       if (_skipNextWatchdogTick) {
         _skipNextWatchdogTick = false;
         return;
       }
       if (!_isForeground || _isPaused) return;
 
+      // How late this tick is, which is a lower bound on how long the isolate
+      // was blocked: a freeze starting just after a tick delays the next one by
+      // the freeze minus one interval. Freezes shorter than the threshold plus
+      // one interval therefore go unreported — for the wait after a launch or a
+      // resume, [StartupTrace] measures the real span instead.
       final lateBy = delta - _watchdogInterval.inMilliseconds;
       if (lateBy >= _stallThreshold.inMilliseconds) {
         _recordStall(lateBy);
@@ -414,7 +417,13 @@ class JankRecorder with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     final isResumed = state == AppLifecycleState.resumed;
     if (isResumed && !_isForeground) {
-      _skipNextWatchdogTick = true;
+      // iOS suspends timers in the background, so the first tick back carries
+      // the whole time away. Re-basing the clock here drops that time without
+      // dropping the tick: skipping it instead blinded the watchdog to exactly
+      // the freeze users report, the one that starts the moment the app comes
+      // back and falls entirely inside the window that was skipped.
+      final clock = _watchdogClock;
+      if (clock != null) _lastTickMs = clock.elapsedMilliseconds;
     }
     _isForeground = isResumed;
     if (!isResumed) {

@@ -15,6 +15,7 @@ import 'core/performance/device_label.dart';
 import 'core/performance/jank_recorder.dart';
 import 'core/performance/performance_telemetry.dart';
 import 'core/performance/jank_route_observer.dart';
+import 'core/performance/startup_trace.dart';
 // App startup routing is delegated to the dedicated initializer screen.
 import 'features/app/presentation/app_initializer_screen.dart';
 import 'services/profile_service.dart';
@@ -96,6 +97,12 @@ void callbackDispatcher() {
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Opened before anything else runs, so the phases below are measured against
+  // the earliest point this code can observe. Closed by the first frame that
+  // actually reaches the screen.
+  StartupTrace.instance.beginColdStart();
+  unawaited(StartupTrace.instance.attach());
+
   // Frame timings are the only way to see jank on the devices it actually
   // happens on; a development machine renders these screens well inside budget.
   final stallReporter = StallTelemetryReporter(
@@ -112,14 +119,23 @@ void main() async {
   unawaited(JankRecorder.instance.start());
 
   // Initialize Liquid Glass shaders and pipeline
-  await LiquidGlassWidgets.initialize();
+  await StartupTrace.instance.measure(
+    'glass_init',
+    LiquidGlassWidgets.initialize,
+  );
 
   // FIX: Ensures DateFormat does not throw LocaleDataException on non-en_US locales.
-  await initializeDateFormatting();
+  await StartupTrace.instance.measure(
+    'date_formatting',
+    () => initializeDateFormatting(),
+  );
 
   // Meal photos are stored as paths relative to the support directory; caching
   // it once here lets widgets resolve them synchronously while building.
-  await MealPhotoStore.instance.ensureInitialized();
+  await StartupTrace.instance.measure(
+    'meal_photo_store',
+    MealPhotoStore.instance.ensureInitialized,
+  );
 
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
@@ -128,9 +144,15 @@ void main() async {
 
   // Move any keychain items still stored with backup-eligible accessibility
   // onto the device-only class before anything reads them.
-  await AiService.migrateSecureStorageToDeviceOnly();
+  await StartupTrace.instance.measure(
+    'keychain_migration',
+    AiService.migrateSecureStorageToDeviceOnly,
+  );
 
-  final prefs = await SharedPreferences.getInstance();
+  final prefs = await StartupTrace.instance.measure(
+    'prefs',
+    SharedPreferences.getInstance,
+  );
   final hasAcceptedConsent = prefs.getBool('hasAcceptedConsent') ?? false;
   final acceptedLegalVersion = prefs.getString('acceptedLegalVersion');
 
