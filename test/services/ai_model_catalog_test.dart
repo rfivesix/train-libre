@@ -471,5 +471,26 @@ void main() {
       expect(ids, containsAll(['grok-5', 'sonic-2-fast']));
       expect(ids, isNot(contains('grok-image-1-imagine')));
     });
+
+    test(
+        'OpenAI temperature rules omit temperature for reasoning & luna models',
+        () {
+      final service = AiService.instance;
+      // Reasoning / fixed-temperature families
+      expect(service.openAiSupportsCustomTemperature('o1'), isFalse);
+      expect(service.openAiSupportsCustomTemperature('o3-mini'), isFalse);
+      expect(service.openAiSupportsCustomTemperature('o4-preview'), isFalse);
+      expect(service.openAiSupportsCustomTemperature('gpt-5.6-luna'), isFalse);
+      expect(service.openAiSupportsCustomTemperature('gpt-5.6-terra'), isFalse);
+      expect(service.openAiSupportsCustomTemperature('gpt-5.6-sol'), isFalse);
+      expect(service.openAiSupportsCustomTemperature('custom-reasoning-model'),
+          isFalse);
+
+      // Standard models that accept custom temperature
+      expect(service.openAiSupportsCustomTemperature('gpt-5.4-mini'), isTrue);
+      expect(service.openAiSupportsCustomTemperature('gpt-4o'), isTrue);
+      expect(service.openAiSupportsCustomTemperature('gpt-4o-mini'), isTrue);
+      expect(service.openAiSupportsCustomTemperature('gpt-3.5-turbo'), isTrue);
+    });
   });
 }

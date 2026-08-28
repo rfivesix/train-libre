@@ -378,6 +378,10 @@ class AiService {
     return selected;
   }
 
+  @visibleForTesting
+  bool openAiSupportsCustomTemperature(String modelId) =>
+      _openAiSupportsCustomTemperature(modelId);
+
   Future<void> setSelectedModel(AiProvider provider, String model) async {
     if (provider == AiProvider.ollama || provider == AiProvider.custom) {
       await setCustomModel(model);

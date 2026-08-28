@@ -562,6 +562,27 @@ extension AiNetwork on AiService {
     );
   }
 
+  bool _openAiSupportsCustomTemperature(
+    String modelId, {
+    AiProvider provider = AiProvider.openai,
+  }) {
+    if (provider != AiProvider.openai) return true;
+    final id = modelId.toLowerCase();
+    // OpenAI reasoning and fixed-temperature model families refuse custom temperature:
+    // - o-series: o1, o3, o4, etc.
+    // - gpt-5.6+ and specialized variants: -luna, -terra, -sol
+    // - reasoning / thinking variants
+    final isFixedTemperature = id.startsWith('o1') ||
+        id.startsWith('o3') ||
+        id.startsWith('o4') ||
+        id.contains('-luna') ||
+        id.contains('-terra') ||
+        id.contains('-sol') ||
+        id.contains('reasoning') ||
+        id.contains('thinking');
+    return !isFixedTemperature;
+  }
+
   Future<String> _callOpenAiRaw(
     String apiKey,
     String model,
@@ -582,32 +603,55 @@ extension AiNetwork on AiService {
     }
     contentParts.add({'type': 'text', 'text': userContent});
 
-    final body = jsonEncode({
+    final sendTemperature =
+        _openAiSupportsCustomTemperature(effectiveModel, provider: provider);
+
+    final requestMap = <String, dynamic>{
       'model': effectiveModel,
       'messages': [
         {'role': 'system', 'content': systemPrompt},
         {'role': 'user', 'content': contentParts},
       ],
       ..._openAiTokenParams(effectiveModel, provider: provider),
-      'temperature': temperature,
-    });
+      if (sendTemperature) 'temperature': temperature,
+    };
+
+    final body = jsonEncode(requestMap);
 
     final endpoint = baseUrlOverride != null && baseUrlOverride.isNotEmpty
         ? '${baseUrlOverride.replaceAll(RegExp(r'/+$'), '')}/chat/completions'
         : 'https://api.openai.com/v1/chat/completions';
 
+    final headers = {
+      'Content-Type': 'application/json',
+      if (apiKey.isNotEmpty) 'Authorization': 'Bearer $apiKey',
+    };
+
     try {
       final timeoutSeconds = await getAiTimeoutSeconds();
-      final response = await http
+      var response = await http
           .post(
             Uri.parse(endpoint),
-            headers: {
-              'Content-Type': 'application/json',
-              if (apiKey.isNotEmpty) 'Authorization': 'Bearer $apiKey',
-            },
+            headers: headers,
             body: body,
           )
           .timeout(Duration(seconds: timeoutSeconds));
+
+      // Automatic fallback retry for any model rejecting custom temperature
+      if (response.statusCode == 400 && requestMap.containsKey('temperature')) {
+        final message = _extractProviderErrorMessage(response.body);
+        if (message != null && message.toLowerCase().contains('temperature')) {
+          final retryMap = Map<String, dynamic>.from(requestMap)
+            ..remove('temperature');
+          response = await http
+              .post(
+                Uri.parse(endpoint),
+                headers: headers,
+                body: jsonEncode(retryMap),
+              )
+              .timeout(Duration(seconds: timeoutSeconds));
+        }
+      }
 
       if (response.statusCode == 401) throw const AiAuthException();
       if (response.statusCode == 429) throw const AiRateLimitException();
