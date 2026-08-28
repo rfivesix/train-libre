@@ -82,6 +82,58 @@ void main() {
       expect(adaptiveOnlyText, isNot(contains('backup_line: true')));
     });
 
+    test('performance section is written into the shared report', () async {
+      final builder = FeedbackReportBuilder(
+        adaptiveDiagnosticsProvider: const _FakeDiagnosticsProvider([]),
+        backupRestoreDiagnosticsProvider: const _FakeDiagnosticsProvider([]),
+        performanceDiagnosticsProvider: const _FakeDiagnosticsProvider([
+          'device: iPhone (iPhone14,4)',
+          'screen[NutritionTab]: frames=93 jank=14.0% cause=raster',
+        ]),
+        packageInfoLoader: _mockPackageInfo,
+        nowProvider: () => DateTime.utc(2026, 4, 13, 8),
+      );
+
+      final withPerformance = await builder.build(
+        options: const FeedbackReportOptions(
+          includeAdaptiveNutritionDiagnostics: false,
+          includeBackupRestoreDiagnostics: false,
+          includePerformanceDiagnostics: true,
+          includeUserNote: false,
+        ),
+        copy: _copy(),
+        userNote: '',
+      );
+
+      final text = FeedbackReportSerializer.toPlainText(
+        report: withPerformance,
+        copy: _copy(),
+      );
+
+      expect(text, contains('Performance (frame timings)'));
+      expect(text, contains('device: iPhone (iPhone14,4)'));
+      expect(text, contains('screen[NutritionTab]:'));
+
+      final withoutPerformance = await builder.build(
+        options: const FeedbackReportOptions(
+          includeAdaptiveNutritionDiagnostics: false,
+          includeBackupRestoreDiagnostics: false,
+          includePerformanceDiagnostics: false,
+          includeUserNote: false,
+        ),
+        copy: _copy(),
+        userNote: '',
+      );
+
+      expect(
+        FeedbackReportSerializer.toPlainText(
+          report: withoutPerformance,
+          copy: _copy(),
+        ),
+        isNot(contains('Performance (frame timings)')),
+      );
+    });
+
     test('user note section appears only when entered and enabled', () async {
       final builder = FeedbackReportBuilder(
         adaptiveDiagnosticsProvider: const _FakeDiagnosticsProvider([]),

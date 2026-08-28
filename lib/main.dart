@@ -11,7 +11,9 @@ import 'package:flutter/services.dart';
 import 'features/sleep/presentation/sleep_navigation.dart';
 import 'generated/app_localizations.dart';
 import 'navigation/app_route_observer.dart';
+import 'core/performance/device_label.dart';
 import 'core/performance/jank_recorder.dart';
+import 'core/performance/performance_telemetry.dart';
 import 'core/performance/jank_route_observer.dart';
 // App startup routing is delegated to the dedicated initializer screen.
 import 'features/app/presentation/app_initializer_screen.dart';
@@ -96,6 +98,17 @@ void main() async {
 
   // Frame timings are the only way to see jank on the devices it actually
   // happens on; a development machine renders these screens well inside budget.
+  final stallReporter = StallTelemetryReporter(
+    recorder: JankRecorder.instance,
+    deviceLabelResolver: DeviceLabel.load,
+    sender: (properties) =>
+        TelemetryService.instance.trackPerformanceStall(properties: properties),
+  );
+  // The send is a no-op while the user is opted out — `track` drops everything
+  // before it reaches PostHog — so no consent check is needed here.
+  JankRecorder.instance.onStall = (stall) => unawaited(
+        stallReporter.report(stall),
+      );
   unawaited(JankRecorder.instance.start());
 
   // Initialize Liquid Glass shaders and pipeline

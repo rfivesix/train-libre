@@ -181,4 +181,9 @@ class NoOpTelemetryService implements TelemetryService {
     required String submissionMethod,
     Map<String, dynamic>? diagnosticsSummary,
   }) async {}
+
+  @override
+  Future<void> trackPerformanceStall({
+    required Map<String, dynamic> properties,
+  }) async {}
 }

@@ -775,4 +775,11 @@ class PostHogTelemetryService implements TelemetryService {
       if (diagnosticsSummary != null) ...diagnosticsSummary,
     });
   }
+
+  @override
+  Future<void> trackPerformanceStall({
+    required Map<String, dynamic> properties,
+  }) async {
+    await track('performance_stall', properties: properties);
+  }
 }

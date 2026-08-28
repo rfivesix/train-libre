@@ -12,6 +12,9 @@ import '../application/feedback_report_actions.dart';
 import '../data/adaptive_nutrition_diagnostics_provider.dart';
 import '../data/backup_restore_diagnostics_provider.dart';
 import '../data/performance_diagnostics_provider.dart';
+import '../../../core/performance/device_label.dart';
+import '../../../core/performance/jank_recorder.dart';
+import '../../../core/performance/performance_telemetry.dart';
 import '../domain/feedback_report_builder.dart';
 import '../domain/feedback_report_models.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
@@ -358,13 +361,45 @@ class _FeedbackReportScreenState extends State<FeedbackReportScreen> {
   void _trackReportSubmission(String submissionMethod) {
     final noteText = _noteController.text.trim();
     final summary = _buildDiagnosticsSummary(_previewText);
-    unawaited(TelemetryService.instance.trackFeedbackReportSubmitted(
+
+    // Every submission says which platform it came from: the same screen can
+    // be smooth on one and drop frames on the other.
+    summary['platform'] = PerformanceTelemetry.platformLabel;
+
+    unawaited(_submitReport(
+      submissionMethod: submissionMethod,
+      noteText: noteText,
+      summary: summary,
+    ));
+  }
+
+  /// The performance section is a table rather than `key: value` lines, so
+  /// `_buildDiagnosticsSummary` cannot parse it out of the preview text. Its
+  /// numbers are taken from the recorder itself — otherwise the section would
+  /// show up in `included_sections` while carrying no data at all.
+  Future<void> _submitReport({
+    required String submissionMethod,
+    required String noteText,
+    required Map<String, dynamic> summary,
+  }) async {
+    if (_includePerformanceDiagnostics) {
+      try {
+        summary.addAll(PerformanceTelemetry.feedbackProperties(
+          snapshot: JankRecorder.instance.snapshot(),
+          deviceLabel: await DeviceLabel.load(),
+        ));
+      } catch (error) {
+        debugPrint('[perf] attaching performance properties failed: $error');
+      }
+    }
+
+    await TelemetryService.instance.trackFeedbackReportSubmitted(
       includedSections: _activeIncludedSections,
       hasUserNote: _includeUserNote && noteText.isNotEmpty,
       userNoteLength: _includeUserNote ? noteText.length : 0,
       submissionMethod: submissionMethod,
       diagnosticsSummary: summary,
-    ));
+    );
   }
 
   Future<void> _sendAnonymousReportToPostHog() async {

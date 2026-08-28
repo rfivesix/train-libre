@@ -71,7 +71,8 @@ abstract class FeatureKey {
   static const String voiceDictationUsed = 'voice_dictation_used';
   static const String lidarDepthCaptured = 'lidar_depth_captured';
   static const String lidarDepthVisualized = 'lidar_depth_visualized';
-  static const String aiMealCorrectionSubmitted = 'ai_meal_correction_submitted';
+  static const String aiMealCorrectionSubmitted =
+      'ai_meal_correction_submitted';
   static const String offCatalogInstalled = 'off_catalog_installed';
   static const String offCatalogUpdated = 'off_catalog_updated';
 
@@ -685,5 +686,14 @@ abstract class TelemetryService {
     required int userNoteLength,
     required String submissionMethod,
     Map<String, dynamic>? diagnosticsSummary,
+  });
+
+  /// Event 8: performance_stall
+  ///
+  /// Reported when the UI isolate stopped answering long enough for the user
+  /// to notice. Properties are built by `PerformanceTelemetry.stallProperties`
+  /// and carry only hardware identifiers, Dart class names and counters.
+  Future<void> trackPerformanceStall({
+    required Map<String, dynamic> properties,
   });
 }

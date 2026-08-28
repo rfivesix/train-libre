@@ -206,6 +206,10 @@ class JankRecorder with WidgetsBindingObserver {
   int _lastTickMs = 0;
   int _framesSinceFlush = 0;
 
+  /// Called whenever a freeze is recorded. Kept as a callback so this file
+  /// stays free of any telemetry dependency, and so tests can observe it.
+  void Function(StallEvent stall)? onStall;
+
   bool get isRunning => _isRunning;
   bool get isPaused => _isPaused;
   String get currentScreen => _screen;
@@ -395,6 +399,15 @@ class JankRecorder with WidgetsBindingObserver {
       _stalls.removeRange(0, _stalls.length - _maxStalls);
     }
     unawaited(persist());
+
+    final listener = onStall;
+    if (listener != null) {
+      try {
+        listener(_stalls.last);
+      } catch (error) {
+        debugPrint('[perf] stall listener failed: $error');
+      }
+    }
   }
 
   @override

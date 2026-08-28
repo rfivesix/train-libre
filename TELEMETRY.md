@@ -98,6 +98,7 @@ Train Libre enforces a strict zero-PII (Personally Identifiable Information) pol
 * ❌ **No Personal Nutrition Data:** No food names, brand names, custom recipe titles, calorie counts, or meal details.
 * ❌ **No Body Measurements:** No body weight, height, waist size, body fat percentage, age, or gender.
 * ❌ **No Location Data:** No GPS coordinates, IP addresses, city, state, country, or postal codes.
+* ❌ **No Screen Content in Performance Data:** Frame statistics and freeze reports carry the Dart *class name* of a screen (`"DiaryTab"`, `"AiMealCaptureScreen"`) and nothing that was displayed on it.
 
 ---
 
@@ -200,10 +201,12 @@ The closed set of values lives in `FeatureKey` (`lib/services/telemetry/telemetr
   * `is_prior_only` (bool)
 
 * **`feedback_report_submitted`** (Voluntary Diagnostic Feedback):
-  * `included_sections` (list of strings: e.g., `["adaptive_nutrition", "backup_restore", "user_note"]`)
+  * `included_sections` (list of strings: e.g., `["adaptive_nutrition", "backup_restore", "performance", "user_note"]`)
   * `has_user_note` (bool)
   * `user_note_length` (int — the length only; the note text itself is never transmitted)
   * `submission_method` (string: `"posthog_direct"`, `"email"`, `"copied"`, `"shared"`, `"saved_file"`)
+  * `platform` (string: `"ios"`, `"android"`) — the same screen can be smooth on one platform and drop frames on the other
+  * `perf_*` — only when the user left the performance section switched on: `perf_device` (model identifier, e.g. `iPhone (iPhone14,4)`), `perf_platform`, `perf_display_hz`, `perf_frame_budget_ms`, `perf_frames`, `perf_jank_frames`, `perf_jank_pct`, `perf_stalls`, `perf_worst_screen` (Dart class name), `perf_worst_screen_jank_pct`, `perf_worst_screen_cause` (`"build"` / `"raster"`), `perf_worst_screen_frames`, `perf_worst_frame_ms`, and `perf_top_screens` (list of `"ClassName:pct%:cause"` for the five worst screens)
   * `diag_*` — diagnostic state parsed from the report preview: counters (`diag_input_weight_log_count`, `diag_input_intake_logged_days`, `diag_input_window_days`), confidence and warning levels, quality flags, estimator/phase/prior state strings, backup status and due-date keys.
 
   **Excluded by `_isSensitiveDiagnosticKey`:** any key carrying a body measurement or a nutrition quantity — `diag_latest_logged_weight_kg`, `diag_input_weight_reference_kg`, `diag_*_kcal`, `diag_*_protein_g` / `_carbs_g` / `_fat_g`, `diag_*maintenance*`, `diag_target_rate_kg_per_week` and anything else matching `weight` / `_kg` / `kcal` / `calorie` / `protein` / `carbs` / `fat` / `maintenance` (pure `*_count` and `*_days` keys are kept, since a count reveals no measured value). The user-authored note is never added to the map at all.
@@ -213,6 +216,20 @@ The closed set of values lives in `FeatureKey` (`lib/services/telemetry/telemetr
 * **`voice_dictation_completed`**: `duration_bucket` (`"<5s"`, `"5-15s"`, `"15-30s"`, `">30s"`), `ai_tidy_up_enabled`, `surface`, `success`, `error_code`
 * **`ai_meal_correction_completed`**: `has_images`, `latency_bucket`, `success`, `repair_attempts_count`, `error_code`
 * **`db_migration_status`**: `from_version`, `to_version`, `success`
+
+* **`performance_stall`** (UI Freeze Detection):
+  Emitted when the UI isolate stopped answering for at least 1.2 seconds — a freeze the user experiences as the app not reacting to taps. A frozen UI is the one problem a user cannot describe usefully after the fact, so it is reported on its own rather than waiting for a feedback report that may never be sent. Capped at **5 events per app session**, so an app stuck in a pathological loop cannot flood the pipeline.
+  * `screen` (string: the Dart class name of the screen, e.g. `"DataManagementScreen"`, or a tab label such as `"DiaryTab"` — never a title or any user-authored text)
+  * `stall_ms` (int: how long the isolate was blocked)
+  * `stall_bucket` (string enum: `"1-2s"`, `"2-5s"`, `"5-10s"`, `">10s"`)
+  * `device` (string: hardware model identifier, e.g. `iPhone (iPhone14,4)` — hardware shared by millions of devices, not a person)
+  * `platform` (string: `"ios"`, `"android"`)
+  * `display_hz` (double: the display's refresh rate, which sets the frame budget — 16.7 ms at 60 Hz, 8.3 ms at 120 Hz)
+  * `screen_frames` (int: frames measured on that screen so far)
+  * `screen_jank_pct` (double: share of those frames that missed the budget)
+  * `session_stall_index` (int: 1–5, position within the current app session)
+
+  **Frame statistics never leave the device on their own.** Continuous measurement runs locally and is visible under *Settings → Performance Log*; only this stall event and a user-initiated feedback report ever transmit any of it.
 
 ---
 
