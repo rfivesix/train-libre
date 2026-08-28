@@ -13,19 +13,24 @@ import 'package:provider/provider.dart';
 import '../../../generated/app_localizations.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/app_button.dart';
+import '../../../widgets/common/platform_adaptive_pickers.dart';
 import '../../app/presentation/widgets/glass_bottom_menu.dart';
+import '../../../util/date_util.dart';
 import '../../../util/design_constants.dart';
+import '../domain/meal_reschedule.dart';
 import '../domain/models/food_entry.dart';
 import '../domain/models/food_item.dart';
 import '../domain/models/meal_entry.dart';
 import '../domain/models/tracked_food_item.dart';
 import '../domain/repositories/diary_repository.dart';
 import '../../../services/ai_meal_validation.dart';
+import '../../../services/haptic_feedback_service.dart';
 import 'dialogs/delete_meal_entry_bottom_sheet.dart';
 import 'widgets/meal_photo_widget.dart';
 import 'widgets/meal_review_comparison_card.dart';
 import 'general_food_selection_screen.dart';
 import 'food_detail_screen.dart';
+import 'util/meal_moment_format.dart';
 
 /// Full detail and editing screen for a logged meal entry (Screens D3 & D6b).
 class MealEntryScreen extends StatefulWidget {
@@ -267,6 +272,68 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
     }
   }
 
+  /// Retroactively corrects when this meal happened.
+  ///
+  /// Unlike every other edit on this screen, this one is written immediately
+  /// instead of waiting for [_persistChanges] on pop. A date change can move
+  /// the meal off the day the user is looking at, and the diary behind this
+  /// screen is a live stream — deferring the write would leave the meal showing
+  /// on the old day until the user backed out, which reads as the change having
+  /// been ignored.
+  ///
+  /// [IDiaryRepository.moveMealEntryTo] is used rather than a plain
+  /// [IDiaryRepository.updateMealEntry] because it keys off the meal id in the
+  /// database: it also catches linked rows this screen never loaded, which
+  /// [_persistChanges] alone could not.
+  Future<void> _pickDateTime() async {
+    final l10n = AppLocalizations.of(context)!;
+    final locale = Localizations.localeOf(context).toString();
+
+    final picked = await showAdaptiveDateTimePicker(
+      context: context,
+      initialDateTime: _mealEntry.consumedAt,
+      lastDate: DateTime.now().add(const Duration(days: 1)),
+    );
+    if (picked == null || !mounted) return;
+    if (picked == _mealEntry.consumedAt) return;
+
+    final movedToAnotherDay = !picked.isSameDate(_mealEntry.consumedAt);
+
+    final repo = context.read<IDiaryRepository>();
+    await repo.moveMealEntryTo(_mealEntry.id, picked);
+    if (!mounted) return;
+
+    // Mirror the same shift onto the objects this screen holds, so the pending
+    // save on pop rewrites the moved timestamps rather than dragging the items
+    // back to the old day.
+    final rescheduled = rescheduleMeal(
+      entry: _mealEntry,
+      items: _items,
+      newConsumedAt: picked,
+    );
+    setState(() {
+      _mealEntry = rescheduled.entry;
+      _items = rescheduled.items;
+    });
+
+    HapticFeedbackService.instance.confirmationFeedback();
+
+    // Only worth saying when the meal left the day it was on — otherwise the
+    // subtitle already shows the new time and a toast is just noise.
+    if (movedToAnotherDay) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            l10n.mealMovedToDate(
+              DateFormat('EEEE, d MMMM', locale).format(picked),
+            ),
+          ),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
   void _showOverflowMenu() {
     final l10n = AppLocalizations.of(context)!;
     showGlassBottomMenu<void>(
@@ -289,6 +356,17 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
           onTap: () {
             Navigator.of(context).pop();
             _showChangeMealTypeDialog();
+          },
+        ),
+        // Also reachable by tapping the subtitle; kept here too because this
+        // menu is where the screen's other "change something about this meal"
+        // actions already live.
+        GlassMenuAction(
+          icon: LucideIcons.calendar,
+          label: l10n.mealDetailChangeDateTime,
+          onTap: () {
+            Navigator.of(context).pop();
+            unawaited(_pickDateTime());
           },
         ),
         GlassMenuAction(
@@ -379,7 +457,10 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
       if (thumb != null && thumb.existsSync()) photoFiles.add(thumb);
     }
     final hasPhoto = photoFiles.isNotEmpty;
-    final timeStr = DateFormat('HH:mm').format(_mealEntry.consumedAt);
+    final timeStr = formatMealMoment(
+      _mealEntry.consumedAt,
+      locale: Localizations.localeOf(context).toString(),
+    );
     final localizedMealType =
         _getLocalizedMealName(context, _mealEntry.mealType);
 
@@ -415,7 +496,6 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
                     )
                   else
                     const SizedBox(height: DesignConstants.spacingS),
-
                   Transform.translate(
                     offset: Offset(0, hasPhoto ? -32 : 0),
                     child: Column(
@@ -429,13 +509,45 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                '$localizedMealType · $timeStr',
-                                style: TextStyle(
-                                  fontFamily: 'Plus Jakarta Sans',
-                                  fontWeight: FontWeight.w500,
-                                  fontSize: 14,
-                                  color: subtitleColor,
+                              // Where the user looks for the meal's time is
+                              // where they expect to be able to fix it, so the
+                              // subtitle itself is the control.
+                              Align(
+                                alignment: Alignment.centerLeft,
+                                child: InkWell(
+                                  key: const ValueKey(
+                                      'meal_entry_timestamp_button'),
+                                  borderRadius: BorderRadius.circular(8),
+                                  onTap: _pickDateTime,
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 4, vertical: 2),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Flexible(
+                                          child: Text(
+                                            '$localizedMealType · $timeStr',
+                                            overflow: TextOverflow.ellipsis,
+                                            style: TextStyle(
+                                              fontFamily: 'Plus Jakarta Sans',
+                                              fontWeight: FontWeight.w500,
+                                              fontSize: 14,
+                                              color: subtitleColor,
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Icon(
+                                          LucideIcons.pencil,
+                                          size: 12,
+                                          color: subtitleColor,
+                                          semanticLabel:
+                                              l10n.mealDetailChangeDateTime,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
                                 ),
                               ),
                               const SizedBox(height: 6),
@@ -452,10 +564,14 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
                                     ),
                                   ),
                                   const Spacer(),
-                                  _buildMacroPill('P', '${_totalProtein.round()}g',
+                                  _buildMacroPill(
+                                      'P',
+                                      '${_totalProtein.round()}g',
                                       const Color(0xFFFF453A)),
                                   const SizedBox(width: 8),
-                                  _buildMacroPill('C', '${_totalCarbs.round()}g',
+                                  _buildMacroPill(
+                                      'C',
+                                      '${_totalCarbs.round()}g',
                                       const Color(0xFF30D158)),
                                   const SizedBox(width: 8),
                                   _buildMacroPill('F', '${_totalFat.round()}g',
@@ -479,7 +595,8 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
                               ..._items.asMap().entries.map((entry) {
                                 final idx = entry.key;
                                 final tracked = entry.value;
-                                final factor = tracked.entry.quantityInGrams / 100.0;
+                                final factor =
+                                    tracked.entry.quantityInGrams / 100.0;
 
                                 return MealReviewComparisonCard(
                                   dismissibleKey: ValueKey(
@@ -522,7 +639,6 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
                       ],
                     ),
                   ),
-
                   const SizedBox(height: 100),
                 ],
               ),

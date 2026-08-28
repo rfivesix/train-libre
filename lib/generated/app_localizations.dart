@@ -116,6 +116,24 @@ abstract class AppLocalizations {
   /// **'Select Time'**
   String get selectTimeTitle;
 
+  /// No description provided for @selectDateTimeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Date & Time'**
+  String get selectDateTimeTitle;
+
+  /// No description provided for @mealDetailChangeDateTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Change date and time'**
+  String get mealDetailChangeDateTime;
+
+  /// No description provided for @mealMovedToDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Meal moved to {date}'**
+  String mealMovedToDate(String date);
+
   /// No description provided for @removeTimer.
   ///
   /// In en, this message translates to:

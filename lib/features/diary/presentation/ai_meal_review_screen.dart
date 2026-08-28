@@ -2,7 +2,6 @@ import 'dart:io';
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 import '../../../data/database_helper.dart';
 import '../../../generated/app_localizations.dart';
@@ -22,6 +21,7 @@ import '../../../widgets/common/global_app_bar.dart';
 import '../../app/presentation/widgets/glass_bottom_menu.dart';
 import 'general_food_selection_screen.dart';
 import 'food_detail_screen.dart';
+import 'util/meal_moment_format.dart';
 import 'meal_editor_screen.dart';
 import 'meal_analysis_screen.dart';
 import 'widgets/meal_review_comparison_card.dart';
@@ -181,6 +181,22 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
       default:
         return key;
     }
+  }
+
+  /// Lets the user correct when the meal happened before it is written.
+  ///
+  /// Nothing is in the diary yet at this point, so this only moves the
+  /// timestamp the save will use — both the meal entry and its food entries
+  /// are written from [_selectedTimestamp].
+  Future<void> _pickTimestamp() async {
+    final picked = await showAdaptiveDateTimePicker(
+      context: context,
+      initialDateTime: _selectedTimestamp,
+      lastDate: DateTime.now().add(const Duration(days: 1)),
+    );
+    if (picked == null || !mounted) return;
+    HapticFeedbackService.instance.selectionFeedback();
+    setState(() => _selectedTimestamp = picked);
   }
 
   Widget _buildMacroPill(String label, String value, Color color) {
@@ -485,9 +501,8 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
 
     _analysisRoute = MealAnalysisScreen.route(
       controller: controller,
-      previewImage: widget.originalImages.isNotEmpty
-          ? widget.originalImages.first
-          : null,
+      previewImage:
+          widget.originalImages.isNotEmpty ? widget.originalImages.first : null,
       onCancel: () {
         _analysisCancelled = true;
         _stopAiWaitingHaptics();
@@ -763,7 +778,6 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
         (index == 0 ? widget.depthResult : null);
   }
 
-
   bool _hasDepthMapFor(int index) {
     final cap = _getDepthCaptureFor(index);
     return cap != null &&
@@ -873,9 +887,11 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
     final titleColor = isDark ? Colors.white : const Color(0xFF12120F);
     final subtitleColor =
         isDark ? const Color(0xFF8A8A82) : const Color(0xFF6A6A62);
-    final timeStr = DateFormat('HH:mm').format(_selectedTimestamp);
-    final localizedMealType =
-        _getLocalizedMealName(context, _selectedMealType);
+    final timeStr = formatMealMoment(
+      _selectedTimestamp,
+      locale: Localizations.localeOf(context).toString(),
+    );
+    final localizedMealType = _getLocalizedMealName(context, _selectedMealType);
     final mealTitle = _getDerivedMealTitle(context);
 
     return PopScope(
@@ -927,8 +943,8 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
                     const SizedBox(height: DesignConstants.spacingS),
 
                   Transform.translate(
-                    offset: Offset(
-                        0, widget.originalImages.isNotEmpty ? -32 : 0),
+                    offset:
+                        Offset(0, widget.originalImages.isNotEmpty ? -32 : 0),
                     child: Padding(
                       padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
                       child: Column(
@@ -947,16 +963,51 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
                           Row(
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-                              Text(
-                                '$localizedMealType · $timeStr',
-                                style: TextStyle(
-                                  fontFamily: 'Plus Jakarta Sans',
-                                  fontWeight: FontWeight.w500,
-                                  fontSize: 14,
-                                  color: subtitleColor,
+                              // The one place the capture flow shows when the
+                              // meal happened, so it is also the place to
+                              // change it — an AI-captured meal is otherwise
+                              // stuck at whatever moment it was photographed.
+                              // Expanded rather than Flexible + Spacer: the
+                              // label takes only the width it needs, and the
+                              // slack it leaves still pushes the depth toggle
+                              // to the right edge.
+                              Expanded(
+                                child: InkWell(
+                                  key: const ValueKey(
+                                      'ai_review_timestamp_button'),
+                                  borderRadius: BorderRadius.circular(8),
+                                  onTap: _pickTimestamp,
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 4, vertical: 2),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Flexible(
+                                          child: Text(
+                                            '$localizedMealType · $timeStr',
+                                            overflow: TextOverflow.ellipsis,
+                                            style: TextStyle(
+                                              fontFamily: 'Plus Jakarta Sans',
+                                              fontWeight: FontWeight.w500,
+                                              fontSize: 14,
+                                              color: subtitleColor,
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Icon(
+                                          LucideIcons.pencil,
+                                          size: 12,
+                                          color: subtitleColor,
+                                          semanticLabel:
+                                              l10n.mealDetailChangeDateTime,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
                                 ),
                               ),
-                              const Spacer(),
                               if (_showDepthMap &&
                                   (_depthRenders[_currentPhotoIndex] ??
                                           (_currentPhotoIndex == 0
@@ -1116,8 +1167,8 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
                       children: [
                         const SizedBox(height: DesignConstants.spacingM),
                         InkWell(
-                          onTap: () => setState(
-                              () => _showFeedback = !_showFeedback),
+                          onTap: () =>
+                              setState(() => _showFeedback = !_showFeedback),
                           child: Row(
                             children: [
                               Icon(
@@ -1159,8 +1210,7 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
                           ),
                           const SizedBox(height: DesignConstants.spacingS),
                           AppButton.secondary(
-                            onPressed:
-                                _isRetrying ? null : _retryWithFeedback,
+                            onPressed: _isRetrying ? null : _retryWithFeedback,
                             label: l10n.aiReviewRetryButton,
                             tooltip: l10n.aiReviewRetryButton,
                           ),

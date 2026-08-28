@@ -2,6 +2,16 @@
   "@@locale": "fr",
   "selectDateTitle": "Choisir une date",
   "selectTimeTitle": "Choisir une heure",
+  "selectDateTimeTitle": "Choisir la date et l'heure",
+  "mealDetailChangeDateTime": "Modifier la date et l'heure",
+  "mealMovedToDate": "Repas déplacé au {date}",
+  "@mealMovedToDate": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "removeTimer": "Supprimer le minuteur",
   "noTimerLabel": "Aucun minuteur",
   "appTitle": "Train Libre",

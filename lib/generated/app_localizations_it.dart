@@ -15,6 +15,17 @@ class AppLocalizationsIt extends AppLocalizations {
   String get selectTimeTitle => 'Seleziona Ora';
 
   @override
+  String get selectDateTimeTitle => 'Seleziona data e ora';
+
+  @override
+  String get mealDetailChangeDateTime => 'Modifica data e ora';
+
+  @override
+  String mealMovedToDate(String date) {
+    return 'Pasto spostato al $date';
+  }
+
+  @override
   String get removeTimer => 'Rimuovi timer';
 
   @override

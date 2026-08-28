@@ -13,7 +13,6 @@ import '../../../../data/drift_database.dart' as db;
 import '../../../../services/telemetry/telemetry_service.dart';
 import 'dart:async';
 
-
 /// Concrete implementation of [IDiaryRepository] implementing database transaction logic.
 class NutritionRepository implements IDiaryRepository {
   final DiaryLocalDataSource _localDataSource;
@@ -50,7 +49,8 @@ class NutritionRepository implements IDiaryRepository {
   Future<bool> hasAnyDiaryEntries() => _localDataSource.hasAnyDiaryEntries();
 
   @override
-  Future<bool> hasWeightMeasurementForDate(DateTime date) => _localDataSource.hasWeightMeasurementForDate(date);
+  Future<bool> hasWeightMeasurementForDate(DateTime date) =>
+      _localDataSource.hasWeightMeasurementForDate(date);
 
   @override
   @Deprecated('Use watchGoalsForDate instead')
@@ -120,7 +120,6 @@ class NutritionRepository implements IDiaryRepository {
   }) =>
       _localDataSource.insertFoodEntry(entry, telemetrySource: telemetrySource);
 
-
   @override
   Stream<List<MealEntry>> watchMealEntriesForDate(DateTime date) =>
       _localDataSource.watchMealEntriesForDate(date);
@@ -136,6 +135,10 @@ class NutritionRepository implements IDiaryRepository {
   @override
   Future<void> updateMealEntry(MealEntry entry) =>
       _localDataSource.updateMealEntry(entry);
+
+  @override
+  Future<void> moveMealEntryTo(String mealEntryId, DateTime newConsumedAt) =>
+      _localDataSource.moveMealEntryTo(mealEntryId, newConsumedAt);
 
   @override
   Future<void> deleteMealEntry(String id, {required bool deleteFoodLogs}) =>

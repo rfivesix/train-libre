@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [1.2.0] - 2026-08-28
 
+### Added
+- **Editable Meal Date & Time (`AiMealReviewScreen`, `MealEntryScreen`, `IDiaryRepository.moveMealEntryTo`):** Date and time of AI-captured and manually saved meals can now be modified both during the review step and retroactively from the meal detail view.
+  - **Combined Date & Time Picker (`showAdaptiveDateTimePicker`):** Adaptive glass bottom sheet with combined date and time spinner wheels, ensuring date and time can be adjusted in a single interaction.
+  - **Seamless Day-Switching & Recalculation:** Moving a meal across calendar days automatically moves all linked food items, hydration entries, and supplements to the new target date, instantly updating daily totals and nutritional statistics for both the origin and destination days without leaving stranded records.
+
 ### Fixed
 - **Live Workout Data Loss on App Kill (`LiveWorkoutViewModel`, `SetLogs`):** Closing the app during a running workout could bring it back with the exercises reordered, sets moved to the wrong exercise or missing entirely, entered values (kg, reps, RIR) blanked, and per-exercise pauses gone. A running session lives in the database as a flat list of set rows and was rebuilt from them on the next start — but the rows did not actually record the session's structure, so the rebuild had to guess it.
   - **Positions Are Written, Not Assumed:** Sets created when a workout started never received a `log_order` and all carried the column default of `0`. Ordering on a column where every row is identical leaves SQLite free to return the rows in any order it likes, and since exercises were cut out of that list wherever the exercise name changed, a different order meant different exercises — the reason the damage grew with the size of the workout and looked random. Every set now stores its position at creation, and the query orders by row id as a tie-break so sessions from older builds are at least stable.

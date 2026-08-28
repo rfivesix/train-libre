@@ -41,9 +41,17 @@ abstract class IDiaryRepository {
 
   Future<String> insertMealEntry(MealEntry entry);
   Future<void> updateMealEntry(MealEntry entry);
+
+  /// Moves a logged meal and every row linked to it to [newConsumedAt].
+  ///
+  /// Use this rather than [updateMealEntry] whenever the timestamp changes:
+  /// the diary buckets rows by their own timestamp column, so the linked
+  /// nutrition, fluid and supplement logs have to move along or the two days
+  /// end up disagreeing about where the meal's calories live.
+  Future<void> moveMealEntryTo(String mealEntryId, DateTime newConsumedAt);
+
   Future<void> deleteMealEntry(String id, {required bool deleteFoodLogs});
 
   Future<void> updateSupplementLog(SupplementLog log);
   Future<void> deleteSupplementLog(int id);
 }
-
