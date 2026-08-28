@@ -22,6 +22,7 @@ import '../../../widgets/common/global_app_bar.dart';
 import 'reorder_scroll_anchor.dart';
 import 'widgets/edit_routine_exercise_card.dart';
 import 'widgets/exercise_notes_dialog.dart';
+import 'widgets/reorder_drag_proxy.dart';
 import 'widgets/routine_pause_time_dialog.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../widgets/common/app_button.dart';
@@ -854,33 +855,9 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                                           (_isDragging ? 800.0 : 0.0),
                                     ),
                                     proxyDecorator: (Widget child, int index,
-                                        Animation<double> anim) {
-                                      final routineExercise =
-                                          _routineExercises[index];
-                                      final bool isCardio =
-                                          _isCardio(routineExercise);
-                                      return Material(
-                                        elevation: 0.0,
-                                        color: Colors.transparent,
-                                        child: EditRoutineExerciseCard(
-                                          routineExercise: routineExercise,
-                                          index: index,
-                                          isCardio: isCardio,
-                                          isDragging: true,
-                                          isDraggedItem: true,
-                                          isEditMode: _isEditMode,
-                                          repsControllers: _repsControllers,
-                                          weightControllers: _weightControllers,
-                                          rirControllers: _rirControllers,
-                                          onEditNotes: () {},
-                                          onEditPauseTime: () {},
-                                          onDeleteExercise: () {},
-                                          onAddSet: () {},
-                                          onShowSetTypePicker: (_) {},
-                                          onRemoveSet: (_, __) {},
-                                        ),
-                                      );
-                                    },
+                                            Animation<double> animation) =>
+                                        buildReorderDragProxy(
+                                            context, child, animation),
                                     onReorderStart: (index) {
                                       // _isDragging is already set by the 300ms onPointerDown timer.
                                       // Do not set it here to avoid bypassing the delay.
@@ -933,8 +910,8 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                                         key: ValueKey(
                                             routineExercise.id ?? index),
                                         child: AnimatedSize(
-                                          duration: const Duration(
-                                              milliseconds: 280),
+                                          duration:
+                                              const Duration(milliseconds: 280),
                                           curve: Curves.easeInOutCubic,
                                           alignment: Alignment.topCenter,
                                           child: isDeleting
@@ -959,10 +936,8 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                                                             routineExercise,
                                                         index: index,
                                                         isCardio: isCardio,
-                                                        isDragging:
-                                                            _isDragging,
-                                                        isEditMode:
-                                                            _isEditMode,
+                                                        isDragging: _isDragging,
+                                                        isEditMode: _isEditMode,
                                                         onPointerDown:
                                                             _isEditMode
                                                                 ? (event) {
@@ -970,21 +945,24 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                                                                         ?.cancel();
                                                                     _collapseTimer = Timer(
                                                                         const Duration(
-                                                                            milliseconds: 300),
-                                                                        () => _collapseCards(exerciseId));
+                                                                            milliseconds:
+                                                                                300),
+                                                                        () => _collapseCards(
+                                                                            exerciseId));
                                                                   }
                                                                 : null,
-                                                        onPointerUp:
-                                                            _isEditMode
-                                                                ? (event) =>
-                                                                    handleRelease()
-                                                                : null,
+                                                        onPointerUp: _isEditMode
+                                                            ? (event) =>
+                                                                handleRelease()
+                                                            : null,
                                                         onPointerMove:
                                                             _isEditMode
                                                                 ? (event) {
                                                                     // Cancel timer if finger moves – user is scrolling, not drag-holding.
-                                                                    if (event.delta.dy.abs() > 4.0 ||
-                                                                        event.delta.dx.abs() > 4.0) {
+                                                                    if (event.delta.dy.abs() >
+                                                                            4.0 ||
+                                                                        event.delta.dx.abs() >
+                                                                            4.0) {
                                                                       _collapseTimer
                                                                           ?.cancel();
                                                                     }
@@ -1011,19 +989,16 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                                                         onDeleteExercise: () =>
                                                             _deleteSingleExercise(
                                                                 routineExercise),
-                                                        onAddSet: () =>
-                                                            _addSet(
-                                                                routineExercise),
+                                                        onAddSet: () => _addSet(
+                                                            routineExercise),
                                                         onShowSetTypePicker:
                                                             _showSetTypePicker,
-                                                        onRemoveSet:
-                                                            (template,
-                                                                    listIndex) =>
-                                                                _removeSet(
-                                                                    routineExercise,
-                                                                    template
-                                                                        .id!,
-                                                                    listIndex),
+                                                        onRemoveSet: (template,
+                                                                listIndex) =>
+                                                            _removeSet(
+                                                                routineExercise,
+                                                                template.id!,
+                                                                listIndex),
                                                       ),
                                                     ),
                                                   ),

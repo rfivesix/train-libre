@@ -37,6 +37,7 @@ import '../../exercise_catalog/domain/body_slug_mapper.dart';
 import 'edit_routine_screen.dart';
 import 'reorder_scroll_anchor.dart';
 import 'widgets/exercise_notes_dialog.dart';
+import 'widgets/reorder_drag_proxy.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../util/time_util.dart';
 import '../../../widgets/common/app_button.dart';
@@ -1227,39 +1228,9 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                                 _scheduleExpandAfterDrop();
                               },
                               proxyDecorator: (Widget child, int index,
-                                  Animation<double> anim) {
-                                final entry =
-                                    _groupedSets.entries.elementAt(index);
-                                final String exerciseName = entry.key;
-                                final Exercise? exercise =
-                                    _exerciseDetails[exerciseName];
-                                final List<SetLog> sets = entry.value;
-                                final isCardio = _isCardio(exerciseName);
-
-                                return Material(
-                                  elevation: 0.0,
-                                  color: Colors.transparent,
-                                  child: WorkoutExerciseLogCard(
-                                    exerciseName: exerciseName,
-                                    exercise: exercise,
-                                    sets: sets,
-                                    isEditMode: true,
-                                    isCardio: isCardio,
-                                    isDragging: true,
-                                    isDraggedItem: true,
-                                    weightControllers: _weightControllers,
-                                    repsControllers: _repsControllers,
-                                    rirControllers: _rirControllers,
-                                    exerciseNote: _exerciseNotes[exerciseName],
-                                    onEditNotes: (_) {},
-                                    onDeleteExercise: (_) {},
-                                    onAddSet: () {},
-                                    onDeleteSet: (_) {},
-                                    onSetTypeTap: (_) {},
-                                    index: index,
-                                  ),
-                                );
-                              },
+                                      Animation<double> animation) =>
+                                  buildReorderDragProxy(
+                                      context, child, animation),
                               onReorderItem: (int oldIndex, int newIndex) {
                                 setState(() {
                                   final entries = _groupedSets.entries.toList();
@@ -1293,8 +1264,8 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                                   }
                                 }
 
-                                final isDeleting =
-                                    _deletingExerciseNames.contains(exerciseName);
+                                final isDeleting = _deletingExerciseNames
+                                    .contains(exerciseName);
 
                                 return KeyedSubtree(
                                   key: ValueKey(exerciseName),
@@ -1362,7 +1333,8 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                                                       id: -DateTime.now()
                                                           .millisecondsSinceEpoch,
                                                       workoutLogId: _log!.id!,
-                                                      exerciseName: exerciseName,
+                                                      exerciseName:
+                                                          exerciseName,
                                                       setType: 'normal',
                                                       isCompleted: true,
                                                     );
