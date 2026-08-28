@@ -11,6 +11,8 @@ import 'package:flutter/services.dart';
 import 'features/sleep/presentation/sleep_navigation.dart';
 import 'generated/app_localizations.dart';
 import 'navigation/app_route_observer.dart';
+import 'core/performance/jank_recorder.dart';
+import 'core/performance/jank_route_observer.dart';
 // App startup routing is delegated to the dedicated initializer screen.
 import 'features/app/presentation/app_initializer_screen.dart';
 import 'services/profile_service.dart';
@@ -91,6 +93,10 @@ void callbackDispatcher() {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Frame timings are the only way to see jank on the devices it actually
+  // happens on; a development machine renders these screens well inside budget.
+  unawaited(JankRecorder.instance.start());
 
   // Initialize Liquid Glass shaders and pipeline
   await LiquidGlassWidgets.initialize();
@@ -895,7 +901,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
 
         return MaterialApp(
           navigatorKey: _navigatorKey,
-          navigatorObservers: [appRouteObserver],
+          navigatorObservers: [appRouteObserver, jankRouteObserver],
           debugShowCheckedModeBanner: false,
           scrollBehavior: NoGlowScrollBehavior(),
           onGenerateTitle: (context) => AppLocalizations.of(context)!.appTitle,

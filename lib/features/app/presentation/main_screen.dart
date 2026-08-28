@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
+
+import '../../../core/performance/jank_route_observer.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../services/telemetry/telemetry_service.dart';
 import '../../../data/database_helper.dart';
@@ -119,6 +121,16 @@ class _MainScreenState extends State<MainScreen>
     return DateTime.now().dateOnly;
   }
 
+  /// Tab switches happen inside one route, so the navigator observer never
+  /// sees them. Without this the four main tabs would all be recorded as a
+  /// single screen — exactly the ones the user spends most time on.
+  static const List<String> _tabPerfNames = [
+    'DiaryTab',
+    'WorkoutTab',
+    'StatisticsTab',
+    'NutritionTab',
+  ];
+
   static const List<String> _tabScreenNames = [
     ScreenName.diaryTab,
     ScreenName.workoutTab,
@@ -140,6 +152,7 @@ class _MainScreenState extends State<MainScreen>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       unawaited(_runStartupPrompts());
       if (_currentIndex >= 0 && _currentIndex < _tabScreenNames.length) {
+        _publishPerfTabLabel(_currentIndex);
         unawaited(TelemetryService.instance.trackScreenView(
           screenName: _tabScreenNames[_currentIndex],
         ));
@@ -230,6 +243,17 @@ class _MainScreenState extends State<MainScreen>
       appRouteObserver.subscribe(this, route);
       _isRouteObserverAttached = true;
     }
+    _perfRoute = route;
+    _publishPerfTabLabel(_currentIndex);
+  }
+
+  /// The route this shell lives in, so the frame recorder can attribute frames
+  /// to the selected tab rather than to the shell as a whole.
+  ModalRoute<dynamic>? _perfRoute;
+
+  void _publishPerfTabLabel(int index) {
+    if (index < 0 || index >= _tabPerfNames.length) return;
+    jankRouteObserver.setLabelForRoute(_perfRoute, _tabPerfNames[index]);
   }
 
   @override
@@ -272,6 +296,7 @@ class _MainScreenState extends State<MainScreen>
     if (index != previousIndex &&
         index >= 0 &&
         index < _tabScreenNames.length) {
+      _publishPerfTabLabel(index);
       unawaited(TelemetryService.instance.trackScreenView(
         screenName: _tabScreenNames[index],
       ));

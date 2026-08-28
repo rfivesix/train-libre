@@ -34,6 +34,9 @@ dependencies:
   provider: ^6.1.5+1
   google_fonts: ^8.2.1
   package_info_plus: ^10.2.1 # or the latest version
+  # Device model for the performance section of the feedback report: "9.7% jank"
+  # is far less useful without knowing which iPhone produced it.
+  device_info_plus: ^13.2.0
   image_picker: ^1.2.2
   cryptography: ^2.7.0
   table_calendar: ^3.2.0

@@ -1397,6 +1397,71 @@ class AppLocalizationsJa extends AppLocalizations {
   String get feedbackReportIncludeBackupRestore => 'バックアップ/復元診断';
 
   @override
+  String get feedbackReportIncludePerformance => 'パフォーマンスログ（フレームタイミング）';
+
+  @override
+  String get settingsPerformanceLogTitle => 'パフォーマンスログ';
+
+  @override
+  String get settingsPerformanceLogSubtitle => 'どの画面でフレーム落ちが起きているかを表示します';
+
+  @override
+  String get performanceLogIntro =>
+      'この端末上でリフレッシュレートとフレーム落ちを記録します。バックグラウンドで動作し、ログを共有したときにのみ端末の外に出ます。';
+
+  @override
+  String get performanceLogDeviceLabel => '端末';
+
+  @override
+  String get performanceLogDisplayLabel => 'ディスプレイ';
+
+  @override
+  String get performanceLogFramesLabel => 'フレーム';
+
+  @override
+  String get performanceLogJankLabel => 'フレーム落ち';
+
+  @override
+  String get performanceLogStallsLabel => '停止';
+
+  @override
+  String get performanceLogCopyButton => 'コピー';
+
+  @override
+  String get performanceLogShareButton => '共有';
+
+  @override
+  String get performanceLogCopiedSnack => 'パフォーマンスログをコピーしました。';
+
+  @override
+  String get performanceLogScreensSection => '画面';
+
+  @override
+  String get performanceLogEmpty => 'まだフレームは記録されていません。';
+
+  @override
+  String get performanceLogStallsSection => '停止（UIスレッドのブロック）';
+
+  @override
+  String get performanceLogSevereLabel => '重度';
+
+  @override
+  String get performanceLogPauseTitle => '計測を一時停止';
+
+  @override
+  String get performanceLogResetTitle => '計測値をリセット';
+
+  @override
+  String get performanceLogResetDialogBody =>
+      '記録されたフレーム統計と停止はすべて削除されます。計測はゼロから再開されます。';
+
+  @override
+  String get performanceLogResetConfirm => 'リセット';
+
+  @override
+  String get performanceLogResetDoneSnack => '計測値をリセットしました。';
+
+  @override
   String get feedbackReportIncludeUserNote => 'ユーザーメモ';
 
   @override

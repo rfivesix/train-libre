@@ -1423,6 +1423,73 @@ class AppLocalizationsIt extends AppLocalizations {
       'Backup/ripristino diagnostica';
 
   @override
+  String get feedbackReportIncludePerformance =>
+      'Log prestazioni (tempi dei frame)';
+
+  @override
+  String get settingsPerformanceLogTitle => 'Log prestazioni';
+
+  @override
+  String get settingsPerformanceLogSubtitle =>
+      'Mostra su quali schermate vengono persi frame';
+
+  @override
+  String get performanceLogIntro =>
+      'Registra la frequenza di aggiornamento e gli scatti direttamente su questo dispositivo. Funziona in background e lascia il dispositivo solo se condividi il log.';
+
+  @override
+  String get performanceLogDeviceLabel => 'Dispositivo';
+
+  @override
+  String get performanceLogDisplayLabel => 'Display';
+
+  @override
+  String get performanceLogFramesLabel => 'Frame';
+
+  @override
+  String get performanceLogJankLabel => 'Scatti';
+
+  @override
+  String get performanceLogStallsLabel => 'Blocchi';
+
+  @override
+  String get performanceLogCopyButton => 'Copia';
+
+  @override
+  String get performanceLogShareButton => 'Condividi';
+
+  @override
+  String get performanceLogCopiedSnack => 'Log prestazioni copiato.';
+
+  @override
+  String get performanceLogScreensSection => 'Schermate';
+
+  @override
+  String get performanceLogEmpty => 'Nessun frame registrato finora.';
+
+  @override
+  String get performanceLogStallsSection => 'Blocchi (thread UI bloccato)';
+
+  @override
+  String get performanceLogSevereLabel => 'gravi';
+
+  @override
+  String get performanceLogPauseTitle => 'Sospendi misurazione';
+
+  @override
+  String get performanceLogResetTitle => 'Azzera misurazioni';
+
+  @override
+  String get performanceLogResetDialogBody =>
+      'Tutte le statistiche dei frame e i blocchi registrati verranno eliminati. La misurazione ripartirà da zero.';
+
+  @override
+  String get performanceLogResetConfirm => 'Azzera';
+
+  @override
+  String get performanceLogResetDoneSnack => 'Misurazioni azzerate.';
+
+  @override
   String get feedbackReportIncludeUserNote => 'Nota per l\'utente';
 
   @override

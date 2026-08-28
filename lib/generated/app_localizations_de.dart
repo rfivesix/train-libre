@@ -1422,6 +1422,73 @@ class AppLocalizationsDe extends AppLocalizations {
   String get feedbackReportIncludeBackupRestore => 'Backup-/Restore-Diagnose';
 
   @override
+  String get feedbackReportIncludePerformance =>
+      'Performance Log (Frame-Timings)';
+
+  @override
+  String get settingsPerformanceLogTitle => 'Performance Log';
+
+  @override
+  String get settingsPerformanceLogSubtitle =>
+      'Zeigt, auf welchen Screens Frames verloren gehen';
+
+  @override
+  String get performanceLogIntro =>
+      'Erfasst Bildwiederholrate und Ruckler direkt auf diesem Gerät. Läuft im Hintergrund mit und verlässt das Gerät nur, wenn du das Log teilst.';
+
+  @override
+  String get performanceLogDeviceLabel => 'Gerät';
+
+  @override
+  String get performanceLogDisplayLabel => 'Display';
+
+  @override
+  String get performanceLogFramesLabel => 'Frames';
+
+  @override
+  String get performanceLogJankLabel => 'Ruckler';
+
+  @override
+  String get performanceLogStallsLabel => 'Hänger';
+
+  @override
+  String get performanceLogCopyButton => 'Kopieren';
+
+  @override
+  String get performanceLogShareButton => 'Teilen';
+
+  @override
+  String get performanceLogCopiedSnack => 'Performance Log kopiert.';
+
+  @override
+  String get performanceLogScreensSection => 'Screens';
+
+  @override
+  String get performanceLogEmpty => 'Noch keine Frames erfasst.';
+
+  @override
+  String get performanceLogStallsSection => 'Hänger (UI-Thread blockiert)';
+
+  @override
+  String get performanceLogSevereLabel => 'schwer';
+
+  @override
+  String get performanceLogPauseTitle => 'Messung pausieren';
+
+  @override
+  String get performanceLogResetTitle => 'Messwerte zurücksetzen';
+
+  @override
+  String get performanceLogResetDialogBody =>
+      'Alle erfassten Frame-Statistiken und Hänger werden gelöscht. Die Messung startet danach wieder bei null.';
+
+  @override
+  String get performanceLogResetConfirm => 'Zurücksetzen';
+
+  @override
+  String get performanceLogResetDoneSnack => 'Messwerte zurückgesetzt.';
+
+  @override
   String get feedbackReportIncludeUserNote => 'Benutzernotiz';
 
   @override

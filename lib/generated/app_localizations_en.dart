@@ -1416,6 +1416,73 @@ class AppLocalizationsEn extends AppLocalizations {
       'Backup / restore diagnostics';
 
   @override
+  String get feedbackReportIncludePerformance =>
+      'Performance log (frame timings)';
+
+  @override
+  String get settingsPerformanceLogTitle => 'Performance Log';
+
+  @override
+  String get settingsPerformanceLogSubtitle =>
+      'Shows which screens drop frames';
+
+  @override
+  String get performanceLogIntro =>
+      'Records refresh rate and dropped frames on this device. Runs in the background and only leaves the device when you share the log.';
+
+  @override
+  String get performanceLogDeviceLabel => 'Device';
+
+  @override
+  String get performanceLogDisplayLabel => 'Display';
+
+  @override
+  String get performanceLogFramesLabel => 'Frames';
+
+  @override
+  String get performanceLogJankLabel => 'Dropped frames';
+
+  @override
+  String get performanceLogStallsLabel => 'Stalls';
+
+  @override
+  String get performanceLogCopyButton => 'Copy';
+
+  @override
+  String get performanceLogShareButton => 'Share';
+
+  @override
+  String get performanceLogCopiedSnack => 'Performance log copied.';
+
+  @override
+  String get performanceLogScreensSection => 'Screens';
+
+  @override
+  String get performanceLogEmpty => 'No frames recorded yet.';
+
+  @override
+  String get performanceLogStallsSection => 'Stalls (UI thread blocked)';
+
+  @override
+  String get performanceLogSevereLabel => 'severe';
+
+  @override
+  String get performanceLogPauseTitle => 'Pause recording';
+
+  @override
+  String get performanceLogResetTitle => 'Reset measurements';
+
+  @override
+  String get performanceLogResetDialogBody =>
+      'All recorded frame statistics and stalls will be deleted. Recording starts from zero afterwards.';
+
+  @override
+  String get performanceLogResetConfirm => 'Reset';
+
+  @override
+  String get performanceLogResetDoneSnack => 'Measurements reset.';
+
+  @override
   String get feedbackReportIncludeUserNote => 'User note';
 
   @override

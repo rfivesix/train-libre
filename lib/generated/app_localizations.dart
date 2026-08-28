@@ -2528,6 +2528,132 @@ abstract class AppLocalizations {
   /// **'Backup / restore diagnostics'**
   String get feedbackReportIncludeBackupRestore;
 
+  /// No description provided for @feedbackReportIncludePerformance.
+  ///
+  /// In en, this message translates to:
+  /// **'Performance log (frame timings)'**
+  String get feedbackReportIncludePerformance;
+
+  /// No description provided for @settingsPerformanceLogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Performance Log'**
+  String get settingsPerformanceLogTitle;
+
+  /// No description provided for @settingsPerformanceLogSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Shows which screens drop frames'**
+  String get settingsPerformanceLogSubtitle;
+
+  /// No description provided for @performanceLogIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Records refresh rate and dropped frames on this device. Runs in the background and only leaves the device when you share the log.'**
+  String get performanceLogIntro;
+
+  /// No description provided for @performanceLogDeviceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Device'**
+  String get performanceLogDeviceLabel;
+
+  /// No description provided for @performanceLogDisplayLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Display'**
+  String get performanceLogDisplayLabel;
+
+  /// No description provided for @performanceLogFramesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Frames'**
+  String get performanceLogFramesLabel;
+
+  /// No description provided for @performanceLogJankLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Dropped frames'**
+  String get performanceLogJankLabel;
+
+  /// No description provided for @performanceLogStallsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Stalls'**
+  String get performanceLogStallsLabel;
+
+  /// No description provided for @performanceLogCopyButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy'**
+  String get performanceLogCopyButton;
+
+  /// No description provided for @performanceLogShareButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Share'**
+  String get performanceLogShareButton;
+
+  /// No description provided for @performanceLogCopiedSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Performance log copied.'**
+  String get performanceLogCopiedSnack;
+
+  /// No description provided for @performanceLogScreensSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Screens'**
+  String get performanceLogScreensSection;
+
+  /// No description provided for @performanceLogEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No frames recorded yet.'**
+  String get performanceLogEmpty;
+
+  /// No description provided for @performanceLogStallsSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Stalls (UI thread blocked)'**
+  String get performanceLogStallsSection;
+
+  /// No description provided for @performanceLogSevereLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'severe'**
+  String get performanceLogSevereLabel;
+
+  /// No description provided for @performanceLogPauseTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause recording'**
+  String get performanceLogPauseTitle;
+
+  /// No description provided for @performanceLogResetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset measurements'**
+  String get performanceLogResetTitle;
+
+  /// No description provided for @performanceLogResetDialogBody.
+  ///
+  /// In en, this message translates to:
+  /// **'All recorded frame statistics and stalls will be deleted. Recording starts from zero afterwards.'**
+  String get performanceLogResetDialogBody;
+
+  /// No description provided for @performanceLogResetConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset'**
+  String get performanceLogResetConfirm;
+
+  /// No description provided for @performanceLogResetDoneSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Measurements reset.'**
+  String get performanceLogResetDoneSnack;
+
   /// No description provided for @feedbackReportIncludeUserNote.
   ///
   /// In en, this message translates to:

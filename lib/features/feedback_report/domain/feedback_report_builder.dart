@@ -15,16 +15,19 @@ abstract class FeedbackReportDiagnosticsProvider {
 class FeedbackReportBuilder {
   final FeedbackReportDiagnosticsProvider _adaptiveDiagnosticsProvider;
   final FeedbackReportDiagnosticsProvider _backupRestoreDiagnosticsProvider;
+  final FeedbackReportDiagnosticsProvider? _performanceDiagnosticsProvider;
   final PackageInfoLoader _packageInfoLoader;
   final NowProvider _nowProvider;
 
   FeedbackReportBuilder({
     required FeedbackReportDiagnosticsProvider adaptiveDiagnosticsProvider,
     required FeedbackReportDiagnosticsProvider backupRestoreDiagnosticsProvider,
+    FeedbackReportDiagnosticsProvider? performanceDiagnosticsProvider,
     PackageInfoLoader? packageInfoLoader,
     NowProvider? nowProvider,
   })  : _adaptiveDiagnosticsProvider = adaptiveDiagnosticsProvider,
         _backupRestoreDiagnosticsProvider = backupRestoreDiagnosticsProvider,
+        _performanceDiagnosticsProvider = performanceDiagnosticsProvider,
         _packageInfoLoader = packageInfoLoader ?? PackageInfo.fromPlatform,
         _nowProvider = nowProvider ?? DateTime.now;
 
@@ -75,6 +78,20 @@ class FeedbackReportBuilder {
           title: copy.backupRestoreSectionTitle,
           lines: await _safeDiagnosticsLines(
             provider: _backupRestoreDiagnosticsProvider,
+            now: generatedAt,
+            unavailableValue: copy.unavailableValue,
+          ),
+        ),
+      );
+    }
+
+    final performanceProvider = _performanceDiagnosticsProvider;
+    if (options.includePerformanceDiagnostics && performanceProvider != null) {
+      sections.add(
+        FeedbackReportSection(
+          title: copy.performanceSectionTitle,
+          lines: await _safeDiagnosticsLines(
+            provider: performanceProvider,
             now: generatedAt,
             unavailableValue: copy.unavailableValue,
           ),

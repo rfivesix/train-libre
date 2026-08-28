@@ -18,6 +18,7 @@ import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/summary_card.dart';
 import 'ai_settings_screen.dart';
 import 'appearance_settings_screen.dart';
+import 'performance_diagnostics_screen.dart';
 import 'data_management_screen.dart';
 import 'health_export_settings_screen.dart';
 import 'pulse_settings_screen.dart';
@@ -680,6 +681,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   content: Text(
                     'Telemetrie-IDs & Daten wurden lokal und vom Server gelöscht.',
                   ),
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: DesignConstants.spacingS),
+          AppLinkRow(
+            key: const Key('settings_performance_log'),
+            title: l10n.settingsPerformanceLogTitle,
+            subtitle: l10n.settingsPerformanceLogSubtitle,
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const PerformanceDiagnosticsScreen(),
                 ),
               );
             },

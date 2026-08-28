@@ -11,6 +11,7 @@ import '../../../widgets/common/summary_card.dart';
 import '../application/feedback_report_actions.dart';
 import '../data/adaptive_nutrition_diagnostics_provider.dart';
 import '../data/backup_restore_diagnostics_provider.dart';
+import '../data/performance_diagnostics_provider.dart';
 import '../domain/feedback_report_builder.dart';
 import '../domain/feedback_report_models.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
@@ -37,6 +38,7 @@ class _FeedbackReportScreenState extends State<FeedbackReportScreen> {
 
   bool _includeAdaptiveDiagnostics = true;
   bool _includeBackupRestoreDiagnostics = true;
+  bool _includePerformanceDiagnostics = true;
   bool _includeUserNote = true;
 
   bool _isGeneratingPreview = false;
@@ -55,10 +57,11 @@ class _FeedbackReportScreenState extends State<FeedbackReportScreen> {
         FeedbackReportBuilder(
           adaptiveDiagnosticsProvider: AdaptiveNutritionDiagnosticsProvider(),
           backupRestoreDiagnosticsProvider: BackupRestoreDiagnosticsProvider(),
+          performanceDiagnosticsProvider: PerformanceDiagnosticsProvider(),
         );
     _actions = widget.actions ?? FeedbackReportActions();
-    unawaited(TelemetryService.instance.trackScreenView(
-        screenName: ScreenName.feedbackReport));
+    unawaited(TelemetryService.instance
+        .trackScreenView(screenName: ScreenName.feedbackReport));
   }
 
   @override
@@ -97,6 +100,7 @@ class _FeedbackReportScreenState extends State<FeedbackReportScreen> {
       options: FeedbackReportOptions(
         includeAdaptiveNutritionDiagnostics: _includeAdaptiveDiagnostics,
         includeBackupRestoreDiagnostics: _includeBackupRestoreDiagnostics,
+        includePerformanceDiagnostics: _includePerformanceDiagnostics,
         includeUserNote: _includeUserNote,
       ),
       copy: copy,
@@ -270,6 +274,7 @@ class _FeedbackReportScreenState extends State<FeedbackReportScreen> {
   List<String> get _activeIncludedSections => [
         if (_includeAdaptiveDiagnostics) 'adaptive_nutrition',
         if (_includeBackupRestoreDiagnostics) 'backup_restore',
+        if (_includePerformanceDiagnostics) 'performance',
         if (_includeUserNote && _noteController.text.trim().isNotEmpty)
           'user_note',
       ];
@@ -471,6 +476,19 @@ class _FeedbackReportScreenState extends State<FeedbackReportScreen> {
                   value: _includeBackupRestoreDiagnostics,
                   onChanged: (value) {
                     setState(() => _includeBackupRestoreDiagnostics = value);
+                  },
+                ),
+                const Divider(height: 1),
+                PlatformAdaptiveSwitchListTile(
+                  key: const Key('feedback_report_toggle_performance'),
+                  secondary: const Icon(LucideIcons.gauge),
+                  title: Text(
+                    l10n.feedbackReportIncludePerformance,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  value: _includePerformanceDiagnostics,
+                  onChanged: (value) {
+                    setState(() => _includePerformanceDiagnostics = value);
                   },
                 ),
                 const Divider(height: 1),

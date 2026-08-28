@@ -1431,6 +1431,73 @@ class AppLocalizationsFr extends AppLocalizations {
       'Diagnostic de sauvegarde/restauration';
 
   @override
+  String get feedbackReportIncludePerformance =>
+      'Journal de performance (temps d\'image)';
+
+  @override
+  String get settingsPerformanceLogTitle => 'Journal de performance';
+
+  @override
+  String get settingsPerformanceLogSubtitle =>
+      'Indique sur quels écrans des images sont perdues';
+
+  @override
+  String get performanceLogIntro =>
+      'Enregistre la fréquence d\'affichage et les saccades directement sur cet appareil. Fonctionne en arrière-plan et ne quitte l\'appareil que si vous partagez le journal.';
+
+  @override
+  String get performanceLogDeviceLabel => 'Appareil';
+
+  @override
+  String get performanceLogDisplayLabel => 'Affichage';
+
+  @override
+  String get performanceLogFramesLabel => 'Images';
+
+  @override
+  String get performanceLogJankLabel => 'Saccades';
+
+  @override
+  String get performanceLogStallsLabel => 'Blocages';
+
+  @override
+  String get performanceLogCopyButton => 'Copier';
+
+  @override
+  String get performanceLogShareButton => 'Partager';
+
+  @override
+  String get performanceLogCopiedSnack => 'Journal de performance copié.';
+
+  @override
+  String get performanceLogScreensSection => 'Écrans';
+
+  @override
+  String get performanceLogEmpty => 'Aucune image enregistrée pour l\'instant.';
+
+  @override
+  String get performanceLogStallsSection => 'Blocages (thread UI bloqué)';
+
+  @override
+  String get performanceLogSevereLabel => 'graves';
+
+  @override
+  String get performanceLogPauseTitle => 'Suspendre la mesure';
+
+  @override
+  String get performanceLogResetTitle => 'Réinitialiser les mesures';
+
+  @override
+  String get performanceLogResetDialogBody =>
+      'Toutes les statistiques d\'images et les blocages enregistrés seront supprimés. La mesure repartira de zéro.';
+
+  @override
+  String get performanceLogResetConfirm => 'Réinitialiser';
+
+  @override
+  String get performanceLogResetDoneSnack => 'Mesures réinitialisées.';
+
+  @override
   String get feedbackReportIncludeUserNote => 'Remarque utilisateur';
 
   @override
