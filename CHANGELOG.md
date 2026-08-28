@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [1.2.0] - 2026-08-28
 
+### Fixed
+- **Live Workout Data Loss on App Kill (`LiveWorkoutViewModel`, `SetLogs`):** Closing the app during a running workout could bring it back with the exercises reordered, sets moved to the wrong exercise or missing entirely, entered values (kg, reps, RIR) blanked, and per-exercise pauses gone. A running session lives in the database as a flat list of set rows and was rebuilt from them on the next start — but the rows did not actually record the session's structure, so the rebuild had to guess it.
+  - **Positions Are Written, Not Assumed:** Sets created when a workout started never received a `log_order` and all carried the column default of `0`. Ordering on a column where every row is identical leaves SQLite free to return the rows in any order it likes, and since exercises were cut out of that list wherever the exercise name changed, a different order meant different exercises — the reason the damage grew with the size of the workout and looked random. Every set now stores its position at creation, and the query orders by row id as a tie-break so sessions from older builds are at least stable.
+  - **Sets Know Their Exercise (`exercise_block`):** The exercise a set belongs to is recorded on the row instead of being inferred from the exercise name, which could not tell two entries of the same exercise apart and merged them into one. Sessions started before this column existed still restore the old way and are written down on the first restore, so the next one is exact. The column is nullable and is added by the existing schema reconciliation on open.
+  - **Every Structural Change Is Persisted:** Adding a set stored it as if it came last in the whole workout rather than after its own exercise's sets, which tore that exercise in two on the next start. Adding a set, removing a set and removing an exercise now all rewrite the session's structure, as reordering already did.
+  - **No Second Set of Empty Rows:** Reopening an ongoing workout from a view model that never restored it (the startup restore failed, or the screen opened before it ran) laid a fresh set of empty rows on top of the stored ones — a workout with its values blanked over duplicated sets. It now restores the existing session instead.
+  - **Exercise Notes Kept:** Adding or removing a set rebuilt the exercise by hand and dropped its notes in the process.
+
 ## [1.2.0-beta.2] - 2026-08-28
 
 ### Added

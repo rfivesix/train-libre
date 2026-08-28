@@ -4286,6 +4286,12 @@ class $SetLogsTable extends SetLogs with TableInfo<$SetLogsTable, SetLog> {
       type: DriftSqlType.int,
       requiredDuringInsert: false,
       defaultValue: const Constant(0));
+  static const VerificationMeta _exerciseBlockMeta =
+      const VerificationMeta('exerciseBlock');
+  @override
+  late final GeneratedColumn<int> exerciseBlock = GeneratedColumn<int>(
+      'exercise_block', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
   static const VerificationMeta _distanceMeta =
       const VerificationMeta('distance');
   @override
@@ -4321,6 +4327,7 @@ class $SetLogsTable extends SetLogs with TableInfo<$SetLogsTable, SetLog> {
         restTimeSeconds,
         isCompleted,
         logOrder,
+        exerciseBlock,
         distance,
         durationSeconds,
         notes
@@ -4410,6 +4417,12 @@ class $SetLogsTable extends SetLogs with TableInfo<$SetLogsTable, SetLog> {
       context.handle(_logOrderMeta,
           logOrder.isAcceptableOrUnknown(data['log_order']!, _logOrderMeta));
     }
+    if (data.containsKey('exercise_block')) {
+      context.handle(
+          _exerciseBlockMeta,
+          exerciseBlock.isAcceptableOrUnknown(
+              data['exercise_block']!, _exerciseBlockMeta));
+    }
     if (data.containsKey('distance')) {
       context.handle(_distanceMeta,
           distance.isAcceptableOrUnknown(data['distance']!, _distanceMeta));
@@ -4466,6 +4479,8 @@ class $SetLogsTable extends SetLogs with TableInfo<$SetLogsTable, SetLog> {
           .read(DriftSqlType.bool, data['${effectivePrefix}is_completed'])!,
       logOrder: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}log_order'])!,
+      exerciseBlock: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}exercise_block']),
       distance: attachedDatabase.typeMapping
           .read(DriftSqlType.double, data['${effectivePrefix}distance']),
       durationSeconds: attachedDatabase.typeMapping
@@ -4498,6 +4513,16 @@ class SetLog extends DataClass implements Insertable<SetLog> {
   final int? restTimeSeconds;
   final bool isCompleted;
   final int logOrder;
+
+  /// Which exercise block of a live session this set belongs to.
+  ///
+  /// A running workout is reconstructed from these rows after the app is
+  /// killed. Grouping them by exercise name cannot tell two entries of the
+  /// same exercise apart and falls apart entirely once the order is off, so
+  /// the block a set belongs to is written down rather than guessed.
+  /// Null on rows written before this column existed; the restore falls back
+  /// to the old name-based grouping for those.
+  final int? exerciseBlock;
   final double? distance;
   final int? durationSeconds;
   final String? notes;
@@ -4518,6 +4543,7 @@ class SetLog extends DataClass implements Insertable<SetLog> {
       this.restTimeSeconds,
       required this.isCompleted,
       required this.logOrder,
+      this.exerciseBlock,
       this.distance,
       this.durationSeconds,
       this.notes});
@@ -4556,6 +4582,9 @@ class SetLog extends DataClass implements Insertable<SetLog> {
     }
     map['is_completed'] = Variable<bool>(isCompleted);
     map['log_order'] = Variable<int>(logOrder);
+    if (!nullToAbsent || exerciseBlock != null) {
+      map['exercise_block'] = Variable<int>(exerciseBlock);
+    }
     if (!nullToAbsent || distance != null) {
       map['distance'] = Variable<double>(distance);
     }
@@ -4595,6 +4624,9 @@ class SetLog extends DataClass implements Insertable<SetLog> {
           : Value(restTimeSeconds),
       isCompleted: Value(isCompleted),
       logOrder: Value(logOrder),
+      exerciseBlock: exerciseBlock == null && nullToAbsent
+          ? const Value.absent()
+          : Value(exerciseBlock),
       distance: distance == null && nullToAbsent
           ? const Value.absent()
           : Value(distance),
@@ -4627,6 +4659,7 @@ class SetLog extends DataClass implements Insertable<SetLog> {
       restTimeSeconds: serializer.fromJson<int?>(json['restTimeSeconds']),
       isCompleted: serializer.fromJson<bool>(json['isCompleted']),
       logOrder: serializer.fromJson<int>(json['logOrder']),
+      exerciseBlock: serializer.fromJson<int?>(json['exerciseBlock']),
       distance: serializer.fromJson<double?>(json['distance']),
       durationSeconds: serializer.fromJson<int?>(json['durationSeconds']),
       notes: serializer.fromJson<String?>(json['notes']),
@@ -4652,6 +4685,7 @@ class SetLog extends DataClass implements Insertable<SetLog> {
       'restTimeSeconds': serializer.toJson<int?>(restTimeSeconds),
       'isCompleted': serializer.toJson<bool>(isCompleted),
       'logOrder': serializer.toJson<int>(logOrder),
+      'exerciseBlock': serializer.toJson<int?>(exerciseBlock),
       'distance': serializer.toJson<double?>(distance),
       'durationSeconds': serializer.toJson<int?>(durationSeconds),
       'notes': serializer.toJson<String?>(notes),
@@ -4675,6 +4709,7 @@ class SetLog extends DataClass implements Insertable<SetLog> {
           Value<int?> restTimeSeconds = const Value.absent(),
           bool? isCompleted,
           int? logOrder,
+          Value<int?> exerciseBlock = const Value.absent(),
           Value<double?> distance = const Value.absent(),
           Value<int?> durationSeconds = const Value.absent(),
           Value<String?> notes = const Value.absent()}) =>
@@ -4699,6 +4734,8 @@ class SetLog extends DataClass implements Insertable<SetLog> {
             : this.restTimeSeconds,
         isCompleted: isCompleted ?? this.isCompleted,
         logOrder: logOrder ?? this.logOrder,
+        exerciseBlock:
+            exerciseBlock.present ? exerciseBlock.value : this.exerciseBlock,
         distance: distance.present ? distance.value : this.distance,
         durationSeconds: durationSeconds.present
             ? durationSeconds.value
@@ -4731,6 +4768,9 @@ class SetLog extends DataClass implements Insertable<SetLog> {
       isCompleted:
           data.isCompleted.present ? data.isCompleted.value : this.isCompleted,
       logOrder: data.logOrder.present ? data.logOrder.value : this.logOrder,
+      exerciseBlock: data.exerciseBlock.present
+          ? data.exerciseBlock.value
+          : this.exerciseBlock,
       distance: data.distance.present ? data.distance.value : this.distance,
       durationSeconds: data.durationSeconds.present
           ? data.durationSeconds.value
@@ -4758,6 +4798,7 @@ class SetLog extends DataClass implements Insertable<SetLog> {
           ..write('restTimeSeconds: $restTimeSeconds, ')
           ..write('isCompleted: $isCompleted, ')
           ..write('logOrder: $logOrder, ')
+          ..write('exerciseBlock: $exerciseBlock, ')
           ..write('distance: $distance, ')
           ..write('durationSeconds: $durationSeconds, ')
           ..write('notes: $notes')
@@ -4783,6 +4824,7 @@ class SetLog extends DataClass implements Insertable<SetLog> {
       restTimeSeconds,
       isCompleted,
       logOrder,
+      exerciseBlock,
       distance,
       durationSeconds,
       notes);
@@ -4806,6 +4848,7 @@ class SetLog extends DataClass implements Insertable<SetLog> {
           other.restTimeSeconds == this.restTimeSeconds &&
           other.isCompleted == this.isCompleted &&
           other.logOrder == this.logOrder &&
+          other.exerciseBlock == this.exerciseBlock &&
           other.distance == this.distance &&
           other.durationSeconds == this.durationSeconds &&
           other.notes == this.notes);
@@ -4828,6 +4871,7 @@ class SetLogsCompanion extends UpdateCompanion<SetLog> {
   final Value<int?> restTimeSeconds;
   final Value<bool> isCompleted;
   final Value<int> logOrder;
+  final Value<int?> exerciseBlock;
   final Value<double?> distance;
   final Value<int?> durationSeconds;
   final Value<String?> notes;
@@ -4848,6 +4892,7 @@ class SetLogsCompanion extends UpdateCompanion<SetLog> {
     this.restTimeSeconds = const Value.absent(),
     this.isCompleted = const Value.absent(),
     this.logOrder = const Value.absent(),
+    this.exerciseBlock = const Value.absent(),
     this.distance = const Value.absent(),
     this.durationSeconds = const Value.absent(),
     this.notes = const Value.absent(),
@@ -4869,6 +4914,7 @@ class SetLogsCompanion extends UpdateCompanion<SetLog> {
     this.restTimeSeconds = const Value.absent(),
     this.isCompleted = const Value.absent(),
     this.logOrder = const Value.absent(),
+    this.exerciseBlock = const Value.absent(),
     this.distance = const Value.absent(),
     this.durationSeconds = const Value.absent(),
     this.notes = const Value.absent(),
@@ -4890,6 +4936,7 @@ class SetLogsCompanion extends UpdateCompanion<SetLog> {
     Expression<int>? restTimeSeconds,
     Expression<bool>? isCompleted,
     Expression<int>? logOrder,
+    Expression<int>? exerciseBlock,
     Expression<double>? distance,
     Expression<int>? durationSeconds,
     Expression<String>? notes,
@@ -4912,6 +4959,7 @@ class SetLogsCompanion extends UpdateCompanion<SetLog> {
       if (restTimeSeconds != null) 'rest_time_seconds': restTimeSeconds,
       if (isCompleted != null) 'is_completed': isCompleted,
       if (logOrder != null) 'log_order': logOrder,
+      if (exerciseBlock != null) 'exercise_block': exerciseBlock,
       if (distance != null) 'distance': distance,
       if (durationSeconds != null) 'duration_seconds': durationSeconds,
       if (notes != null) 'notes': notes,
@@ -4935,6 +4983,7 @@ class SetLogsCompanion extends UpdateCompanion<SetLog> {
       Value<int?>? restTimeSeconds,
       Value<bool>? isCompleted,
       Value<int>? logOrder,
+      Value<int?>? exerciseBlock,
       Value<double?>? distance,
       Value<int?>? durationSeconds,
       Value<String?>? notes}) {
@@ -4955,6 +5004,7 @@ class SetLogsCompanion extends UpdateCompanion<SetLog> {
       restTimeSeconds: restTimeSeconds ?? this.restTimeSeconds,
       isCompleted: isCompleted ?? this.isCompleted,
       logOrder: logOrder ?? this.logOrder,
+      exerciseBlock: exerciseBlock ?? this.exerciseBlock,
       distance: distance ?? this.distance,
       durationSeconds: durationSeconds ?? this.durationSeconds,
       notes: notes ?? this.notes,
@@ -5013,6 +5063,9 @@ class SetLogsCompanion extends UpdateCompanion<SetLog> {
     if (logOrder.present) {
       map['log_order'] = Variable<int>(logOrder.value);
     }
+    if (exerciseBlock.present) {
+      map['exercise_block'] = Variable<int>(exerciseBlock.value);
+    }
     if (distance.present) {
       map['distance'] = Variable<double>(distance.value);
     }
@@ -5044,6 +5097,7 @@ class SetLogsCompanion extends UpdateCompanion<SetLog> {
           ..write('restTimeSeconds: $restTimeSeconds, ')
           ..write('isCompleted: $isCompleted, ')
           ..write('logOrder: $logOrder, ')
+          ..write('exerciseBlock: $exerciseBlock, ')
           ..write('distance: $distance, ')
           ..write('durationSeconds: $durationSeconds, ')
           ..write('notes: $notes')
@@ -22558,6 +22612,7 @@ typedef $$SetLogsTableCreateCompanionBuilder = SetLogsCompanion Function({
   Value<int?> restTimeSeconds,
   Value<bool> isCompleted,
   Value<int> logOrder,
+  Value<int?> exerciseBlock,
   Value<double?> distance,
   Value<int?> durationSeconds,
   Value<String?> notes,
@@ -22579,6 +22634,7 @@ typedef $$SetLogsTableUpdateCompanionBuilder = SetLogsCompanion Function({
   Value<int?> restTimeSeconds,
   Value<bool> isCompleted,
   Value<int> logOrder,
+  Value<int?> exerciseBlock,
   Value<double?> distance,
   Value<int?> durationSeconds,
   Value<String?> notes,
@@ -22669,6 +22725,9 @@ class $$SetLogsTableFilterComposer
 
   ColumnFilters<int> get logOrder => $composableBuilder(
       column: $table.logOrder, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get exerciseBlock => $composableBuilder(
+      column: $table.exerciseBlock, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<double> get distance => $composableBuilder(
       column: $table.distance, builder: (column) => ColumnFilters(column));
@@ -22774,6 +22833,10 @@ class $$SetLogsTableOrderingComposer
   ColumnOrderings<int> get logOrder => $composableBuilder(
       column: $table.logOrder, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<int> get exerciseBlock => $composableBuilder(
+      column: $table.exerciseBlock,
+      builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<double> get distance => $composableBuilder(
       column: $table.distance, builder: (column) => ColumnOrderings(column));
 
@@ -22876,6 +22939,9 @@ class $$SetLogsTableAnnotationComposer
   GeneratedColumn<int> get logOrder =>
       $composableBuilder(column: $table.logOrder, builder: (column) => column);
 
+  GeneratedColumn<int> get exerciseBlock => $composableBuilder(
+      column: $table.exerciseBlock, builder: (column) => column);
+
   GeneratedColumn<double> get distance =>
       $composableBuilder(column: $table.distance, builder: (column) => column);
 
@@ -22965,6 +23031,7 @@ class $$SetLogsTableTableManager extends RootTableManager<
             Value<int?> restTimeSeconds = const Value.absent(),
             Value<bool> isCompleted = const Value.absent(),
             Value<int> logOrder = const Value.absent(),
+            Value<int?> exerciseBlock = const Value.absent(),
             Value<double?> distance = const Value.absent(),
             Value<int?> durationSeconds = const Value.absent(),
             Value<String?> notes = const Value.absent(),
@@ -22986,6 +23053,7 @@ class $$SetLogsTableTableManager extends RootTableManager<
             restTimeSeconds: restTimeSeconds,
             isCompleted: isCompleted,
             logOrder: logOrder,
+            exerciseBlock: exerciseBlock,
             distance: distance,
             durationSeconds: durationSeconds,
             notes: notes,
@@ -23007,6 +23075,7 @@ class $$SetLogsTableTableManager extends RootTableManager<
             Value<int?> restTimeSeconds = const Value.absent(),
             Value<bool> isCompleted = const Value.absent(),
             Value<int> logOrder = const Value.absent(),
+            Value<int?> exerciseBlock = const Value.absent(),
             Value<double?> distance = const Value.absent(),
             Value<int?> durationSeconds = const Value.absent(),
             Value<String?> notes = const Value.absent(),
@@ -23028,6 +23097,7 @@ class $$SetLogsTableTableManager extends RootTableManager<
             restTimeSeconds: restTimeSeconds,
             isCompleted: isCompleted,
             logOrder: logOrder,
+            exerciseBlock: exerciseBlock,
             distance: distance,
             durationSeconds: durationSeconds,
             notes: notes,

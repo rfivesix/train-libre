@@ -122,6 +122,7 @@ extension WorkoutLoggingQueries on WorkoutLocalDataSource {
       restTimeSeconds: drift.Value(setLog.restTimeSeconds),
       isCompleted: drift.Value(setLog.isCompleted ?? false),
       logOrder: drift.Value(setLog.logOrder ?? 0),
+      exerciseBlock: drift.Value(setLog.exerciseBlock),
       notes: drift.Value(setLog.notes),
       distance: drift.Value(setLog.distanceKm),
       durationSeconds: drift.Value(setLog.durationSeconds),
@@ -167,9 +168,16 @@ extension WorkoutLoggingQueries on WorkoutLocalDataSource {
 
     if (logRow == null) return null;
 
+    // Ordered by localId as well: rows written before log_order was assigned
+    // per set all carry the column default of 0, and ordering on that alone
+    // leaves SQLite free to return them in any order it likes — which is how
+    // a restored session ended up with its exercises shuffled.
     final setRows = await (dbInstance.select(dbInstance.setLogs)
           ..where((tbl) => tbl.workoutLogId.equals(logRow.id))
-          ..orderBy([(t) => drift.OrderingTerm(expression: t.logOrder)]))
+          ..orderBy([
+            (t) => drift.OrderingTerm(expression: t.logOrder),
+            (t) => drift.OrderingTerm(expression: t.localId),
+          ]))
         .get();
 
     return _mapWorkoutLogWithSets(logRow, setRows);
@@ -190,6 +198,7 @@ extension WorkoutLoggingQueries on WorkoutLocalDataSource {
           rir: drift.Value(s.rir),
           setType: drift.Value(s.setType),
           logOrder: drift.Value(s.logOrder ?? 0),
+          exerciseBlock: drift.Value(s.exerciseBlock),
           distance: drift.Value(s.distanceKm),
           durationSeconds: drift.Value(s.durationSeconds),
           restTimeSeconds: drift.Value(s.restTimeSeconds),
@@ -460,7 +469,10 @@ extension WorkoutLoggingQueries on WorkoutLocalDataSource {
 
     final query = dbInstance.select(dbInstance.setLogs)
       ..where((tbl) => tbl.workoutLogId.equals(logRow.id))
-      ..orderBy([(t) => drift.OrderingTerm(expression: t.logOrder)]);
+      ..orderBy([
+        (t) => drift.OrderingTerm(expression: t.logOrder),
+        (t) => drift.OrderingTerm(expression: t.localId),
+      ]);
 
     yield* query.watch().map(
           (rows) =>
@@ -525,8 +537,9 @@ extension WorkoutLoggingQueries on WorkoutLocalDataSource {
         final firstPhoto = w.photoPaths.isNotEmpty ? w.photoPaths.first : null;
         final thumbPhoto =
             firstPhoto != null ? AppMediaStore.thumbPathFor(firstPhoto) : null;
-        final extraPhotos =
-            w.photoPaths.length > 1 ? jsonEncode(w.photoPaths.sublist(1)) : null;
+        final extraPhotos = w.photoPaths.length > 1
+            ? jsonEncode(w.photoPaths.sublist(1))
+            : null;
 
         final wRow =
             await dbInstance.into(dbInstance.workoutLogs).insertReturning(

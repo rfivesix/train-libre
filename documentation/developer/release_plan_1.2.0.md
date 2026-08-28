@@ -38,54 +38,58 @@ Die anderen Interpolationsstellen wurden mitgeprüft und sind sauber:
 
 ---
 
-## P0 — Release-Blocker
+### Datenverlust im Live-Workout beim App-Kill ✅
 
-### 1. Datenverlust im Live-Workout beim App-Kill
+**Symptom:** App während laufendem Workout schließen → Pausen teils weg, Sätze
+und Werte (kg, RIR, Reps) zurückgesetzt, Reihenfolge vertauscht, teils Sätze
+gelöscht.
 
-**Symptom:** App während laufendem Workout schließen → Pausen einzelner Übungen
-teils weg, Sätze und eingestellte Werte (kg, RIR, Reps) zurückgesetzt,
-Reihenfolge vertauscht, teils Sätze gelöscht.
+**Ursache:** Eine laufende Session liegt als flache Liste von Satz-Zeilen in der
+DB und wird beim nächsten Start daraus rekonstruiert — aber die Zeilen hielten
+die Struktur der Session gar nicht fest, die Rekonstruktion musste sie raten.
 
-Das ist der schlimmste Punkt der Liste: stiller Verlust von Nutzereingaben in
-genau dem Feature, das die App ausmacht. Nichts anderes darf davor gefixt werden.
+- `_createInitialSetLogs` vergab nie ein `logOrder`, alle Zeilen trugen den
+  Spalten-Default `0`. Eine Sortierung über eine Spalte, in der jede Zeile
+  gleich aussieht, lässt SQLite jede beliebige Reihenfolge zurückgeben — und da
+  Übungen aus dieser Liste dort geschnitten wurden, wo sich der Übungsname
+  ändert, bedeutete eine andere Reihenfolge andere Übungen. Deshalb wuchs der
+  Schaden mit der Größe des Workouts und wirkte zufällig.
+- `addSetToExercise` schrieb `logOrder: _setLogs.length` — die Gesamtzahl, nicht
+  die Position. Der Satz sortierte ans Ende des Workouts und riss seine Übung
+  beim nächsten Start entzwei. `removeSet`/`removeExercise` reindizierten gar
+  nicht.
+- Die Zugehörigkeit eines Satzes zu einer Übung wurde aus dem Namen erschlossen;
+  zwei Einträge derselben Übung verschmolzen zu einer, samt Verlust der zweiten
+  Pause.
+- `loadInitialData` rief `startWorkout` auf, wenn das ViewModel die Session nicht
+  kannte — das legte einen zweiten Satz leerer Zeilen über die vorhandenen.
 
-**Verdacht:** Der Live-Workout-State wird nicht (vollständig) synchron beim
-Backgrounding persistiert. `live_workout_view_model.dart` hält
-`didChangeAppLifecycleState` (Zeile 319) und einen `_appLifecycleState` — zu
-prüfen ist, ob dort tatsächlich geschrieben wird und ob der Schreibvorgang bei
-`paused` noch durchläuft, bevor iOS den Prozess einfriert. Das Muster der
-Symptome (Reihenfolge vertauscht, einzelne Sätze fehlen) deutet auf zwei
-getrennte Ursachen hin, die man auseinanderhalten muss:
+**Behoben:**
 
-- **Persistenz-Lücke:** Feldwerte (kg/RIR/Reps) und Pausen leben im
-  Widget-/Controller-State und werden erst bei „Satz abschließen" geschrieben.
-  Alles Eingetippte, aber nicht Bestätigte, ist beim Kill weg.
-- **Rekonstruktions-Lücke:** Beim Wiederherstellen wird die Übungsliste ohne
-  stabile Sortierung neu geladen (fehlendes `ORDER BY` auf der Positionsspalte),
-  weshalb die Reihenfolge „zufällig" wirkt. `_onReorderItem`
-  ([live_workout_screen.dart:467](../../lib/features/workout/presentation/live_workout_screen.dart))
-  schreibt vermutlich nur in-memory.
+- Neue Spalte `set_logs.exercise_block` (nullable, wird von `reconcileSchema`
+  beim Öffnen nachgezogen; `schemaVersion` 26 → 27). Jeder Satz hält fest, zu
+  welcher Übung er gehört, statt es aus dem Namen zu erraten.
+- `logOrder` wird beim Anlegen vergeben; jede strukturelle Änderung schreibt die
+  Struktur zurück (`_updateLogOrdersInDatabase` bei Satz/Übung hinzufügen und
+  entfernen, nicht mehr nur beim Umsortieren).
+- Die Abfrage sortiert zusätzlich nach `localId`, damit Altsessions mit lauter
+  gleichen Positionen wenigstens stabil zurückkommen.
+- Altsessions werden weiterhin über den Namen gruppiert und beim ersten Restore
+  festgeschrieben, sodass der nächste exakt ist.
+- `startWorkout` restauriert eine vorhandene Session, statt leere Zeilen
+  darüberzulegen.
+- Synthetische IDs beim Restore über `_nextSyntheticId` statt Uhrzeit-Arithmetik.
+- Übungsnotizen bleiben beim Hinzufügen/Entfernen von Sätzen erhalten.
 
-**Vorgehen:**
-
-1. Reproduzieren mit `SIGKILL` statt sauberem Schließen — Xcode „Stop" auf dem
-   Gerät entspricht dem am ehesten. Vorher/Nachher-Zustand als JSON dumpen.
-2. Die Datenbank-Tabellen des laufenden Workouts inspizieren (siehe Memo
-   „Inspect the simulator container" — erst messen, dann Theorie).
-3. Schreibpfad umstellen: jede Eingabe (kg, RIR, Reps, Pause, Reihenfolge)
-   debounced (~300 ms) in die DB, plus ein synchroner Flush in
-   `AppLifecycleState.paused`/`inactive`.
-4. Beim Laden explizit nach Position sortieren.
-5. Regressionstest: State schreiben → ViewModel wegwerfen → neu laden →
-   identischer State. Der Test muss die Reihenfolge und die nicht bestätigten
-   Feldwerte mit abdecken.
-
-**Aufwand:** groß (1–2 Tage). Vermutlich der einzige Punkt, der echte
-Architekturänderung braucht.
+**Tests:** [live_workout_restore_test.dart](../../test/features/workout/live_workout_restore_test.dart)
+— 16 Tests, die das ViewModel wegwerfen und auf derselben DB neu aufbauen. Vier
+davon schlagen auf dem alten Code fehl.
 
 ---
 
-### 2. Stalls von 1–2 s bei Kaltstart und beim Resume
+## P0 — Release-Blocker
+
+### 1. Stalls von 1–2 s bei Kaltstart und beim Resume
 
 **Symptom:** iPhone 16 Pro, frischer Start oder Resume nach ~2 min im
 Hintergrund: 1–2 s eingefrorene UI.
@@ -148,7 +152,7 @@ einziger `showTimePicker`/`showDatePicker`/`CupertinoDatePicker`. Auch
    Tages-Log landet (Tageswechsel!) und die Statistik neu berechnet wird.
 
 **Aufwand:** klein bis mittel (halber Tag). Klar abgegrenzt, geringes Risiko —
-guter Kandidat, um zwischen den beiden P0-Brocken Fortschritt zu machen.
+guter Kandidat, während der P0-Punkt in einer Messphase hängt.
 
 ---
 
@@ -277,8 +281,7 @@ Inhalt, Chevron über `AnimatedRotation`. Dauer und Kurve aus
 
 | # | Thema | Prio | Aufwand |
 |---|---|---|---|
-| 1 | Workout-Datenverlust | P0 | groß |
-| 2 | Stalls (erst messen) | P0 | mittel–groß |
+| 1 | Stalls (erst messen) | P0 | mittel–groß |
 | 7 | Legal-Screen-Animation | P2 | sehr klein |
 | 6 | Drag & Drop Proxy | P2 | klein |
 | 5a | Card-Morph Rück-Fade | P2 | klein |
@@ -287,8 +290,8 @@ Inhalt, Chevron über `AnimatedRotation`. Dauer und Kurve aus
 | 5b/5d | Card-Morph nachrüsten | P2 | mittel |
 
 Die drei kleinen Punkte (7, 6, 5a) sind bewusst nach vorne gezogen: sie sind
-einzeln in Stunden erledigt und liefern sichtbaren Fortschritt, während 1 und 2
-in Messphasen hängen. 5b/5d bleibt am Ende, weil es der einzige Punkt ist, der
+einzeln in Stunden erledigt und liefern sichtbaren Fortschritt, während 1 in
+einer Messphase hängt. 5b/5d bleibt am Ende, weil es der einzige Punkt ist, der
 notfalls sauber in 1.2.1 rutschen kann.
 
 **Vor jedem Release-Build:** `flutter analyze`, `flutter test`, und die

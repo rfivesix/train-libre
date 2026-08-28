@@ -329,6 +329,18 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
 
   Future<void> startWorkout(
       WorkoutLog log, List<RoutineExercise> routineExercises) async {
+    // Reopening a session this view model no longer holds — the restore on
+    // startup never ran, or it failed and was swallowed — must not lay a
+    // second set of empty rows on top of the ones already stored. That left
+    // the workout showing blank values over duplicated sets.
+    if (log.id != null && log.endTime == null) {
+      final existing = await _repository.getSetLogsForWorkout(log.id!);
+      if (existing.isNotEmpty) {
+        await restoreWorkoutSession(log);
+        return;
+      }
+    }
+
     _workoutLog = log;
     _exercises = List.from(routineExercises);
     _setLogs.clear();
@@ -357,7 +369,12 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
     _totalVolume = 0;
     _totalSets = 0;
 
-    for (var re in _exercises) {
+    // Both the position and the exercise it belongs to are written with the
+    // row. They used to be left at the column default of 0, which made the
+    // rows indistinguishable and the restore's ordering arbitrary.
+    var logOrder = 0;
+    for (var blockIndex = 0; blockIndex < _exercises.length; blockIndex++) {
+      final re = _exercises[blockIndex];
       for (var template in re.setTemplates) {
         if (template.id == null) continue;
 
@@ -369,12 +386,15 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
           reps: null,
           restTimeSeconds: re.pauseSeconds,
           isCompleted: false,
+          logOrder: logOrder,
+          exerciseBlock: blockIndex,
           rir: null,
         );
 
         final id = await _repository.insertSetLog(newSetLog);
         _setLogs[template.id!] = newSetLog.copyWith(id: id);
         _totalSets++;
+        logOrder++;
       }
     }
     notifyListeners();
@@ -409,24 +429,27 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
       return;
     }
 
+    // Two rows with the same position must still come back in the same order
+    // every time, or the blocks below get cut in different places on each
+    // restore. Sets written before log_order was assigned per set all carry
+    // the column default of 0, so the row id is what actually separates them.
     final sortedSets = List<SetLog>.from(savedSets)
-      ..sort((a, b) => (a.logOrder ?? 0).compareTo(b.logOrder ?? 0));
+      ..sort((a, b) {
+        final byOrder = (a.logOrder ?? 0).compareTo(b.logOrder ?? 0);
+        if (byOrder != 0) return byOrder;
+        return (a.id ?? 0).compareTo(b.id ?? 0);
+      });
 
-    String? currentExerciseName;
-    List<SetLog> currentBlock = [];
-    final List<List<SetLog>> blocks = [];
+    // Sets written before the exercise_block column existed. Their session can
+    // only be rebuilt the old way, by cutting the list wherever the exercise
+    // name changes — which cannot tell two entries of the same exercise apart.
+    // It is healed at the end of this method so the next restore is exact.
+    final isLegacySession = sortedSets.any((s) => s.exerciseBlock == null);
+    final blocks = isLegacySession
+        ? _groupSetsByName(sortedSets)
+        : _groupSetsByBlock(sortedSets);
 
-    for (final s in sortedSets) {
-      if (s.exerciseName != currentExerciseName) {
-        if (currentBlock.isNotEmpty) blocks.add(currentBlock);
-        currentBlock = [s];
-        currentExerciseName = s.exerciseName;
-      } else {
-        currentBlock.add(s);
-      }
-    }
-    if (currentBlock.isNotEmpty) blocks.add(currentBlock);
-
+    final usedIds = <int>{};
     for (int i = 0; i < blocks.length; i++) {
       final block = blocks[i];
       if (block.isEmpty) continue;
@@ -444,7 +467,13 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
             secondaryMuscles: const [],
           );
 
-      final syntheticReId = DateTime.now().millisecondsSinceEpoch + i;
+      // Ids derived from the clock could collide across blocks and silently
+      // drop a set, because the map they key is the session's only copy of it.
+      final syntheticReId = _nextSyntheticId(usedIds);
+      usedIds.add(syntheticReId);
+
+      // Every set of an exercise carries that exercise's pause, so the first
+      // one that has a real pause defines the block's.
       int pauseSec = 0;
       for (final s in block) {
         if (s.restTimeSeconds != null && s.restTimeSeconds! > 0) {
@@ -452,15 +481,11 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
           break;
         }
       }
-      if (pauseSec == 0 && block.isNotEmpty) {
-        pauseSec = block.first.restTimeSeconds ?? 0;
-      }
 
       final List<SetTemplate> templates = [];
-      for (int j = 0; j < block.length; j++) {
-        final s = block[j];
-        final templateId =
-            DateTime.now().millisecondsSinceEpoch + j * 1000 + i * 10000;
+      for (final s in block) {
+        final templateId = _nextSyntheticId(usedIds);
+        usedIds.add(templateId);
 
         templates.add(
           SetTemplate(
@@ -492,9 +517,57 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
     }
     _exercises = restoredExercises;
 
+    // A session from before this column existed has just been rebuilt by
+    // guesswork. Writing the structure down now means the next kill restores
+    // it exactly instead of guessing again from rows that all look alike.
+    if (isLegacySession && restoredExercises.isNotEmpty) {
+      await _updateLogOrdersInDatabase();
+    }
+
     _startWorkoutTimer();
     notifyListeners();
     unawaited(_syncLiveActivity());
+  }
+
+  /// Groups sets by the exercise block recorded on each row.
+  ///
+  /// Blocks appear in the order the sets do, so an exercise the user moved
+  /// keeps the position it had on screen.
+  List<List<SetLog>> _groupSetsByBlock(List<SetLog> sortedSets) {
+    final byBlock = <int, List<SetLog>>{};
+    final blockOrder = <int>[];
+    for (final s in sortedSets) {
+      final block = s.exerciseBlock!;
+      final bucket = byBlock.putIfAbsent(block, () {
+        blockOrder.add(block);
+        return <SetLog>[];
+      });
+      bucket.add(s);
+    }
+    return [for (final block in blockOrder) byBlock[block]!];
+  }
+
+  /// Groups sets by runs of the same exercise name.
+  ///
+  /// Only for sessions started before the exercise block was recorded: two
+  /// adjacent entries of the same exercise collapse into one here, which is
+  /// exactly why the block is written down now.
+  List<List<SetLog>> _groupSetsByName(List<SetLog> sortedSets) {
+    final blocks = <List<SetLog>>[];
+    String? currentExerciseName;
+    List<SetLog> currentBlock = [];
+
+    for (final s in sortedSets) {
+      if (s.exerciseName != currentExerciseName) {
+        if (currentBlock.isNotEmpty) blocks.add(currentBlock);
+        currentBlock = [s];
+        currentExerciseName = s.exerciseName;
+      } else {
+        currentBlock.add(s);
+      }
+    }
+    if (currentBlock.isNotEmpty) blocks.add(currentBlock);
+    return blocks;
   }
 
   Future<void> loadInitialData(
@@ -754,11 +827,10 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
       targetRir: null,
     );
 
-    final updatedRe = RoutineExercise(
-      id: re.id,
-      exercise: re.exercise,
+    // copyWith rather than the constructor: rebuilding it by hand dropped the
+    // exercise's notes every time a set was added.
+    final updatedRe = re.copyWith(
       setTemplates: [...re.setTemplates, newTemplate],
-      pauseSeconds: re.pauseSeconds,
     );
     final newExercises = List<RoutineExercise>.from(_exercises);
     newExercises[reIndex] = updatedRe;
@@ -776,7 +848,12 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
       reps: prevSet?.reps,
       restTimeSeconds: re.pauseSeconds,
       isCompleted: false,
+      // Placeholder only. The set belongs after the exercise's other sets, not
+      // at the end of the workout, which is where the number of sets logged so
+      // far used to put it — and that is what tore an exercise in two on the
+      // next restore. _updateLogOrdersInDatabase below assigns the real one.
       logOrder: _setLogs.length,
+      exerciseBlock: reIndex,
       rir: null,
     );
 
@@ -784,6 +861,7 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
     _setLogs[tempTemplateId] = newSetLog.copyWith(id: dbId);
     _totalSets++;
 
+    await _updateLogOrdersInDatabase();
     syncControllers();
     notifyListeners();
     unawaited(_syncLiveActivity());
@@ -804,12 +882,7 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
       if (tIndex != -1) {
         final newTemplates = List<SetTemplate>.from(re.setTemplates)
           ..removeAt(tIndex);
-        newExercises[i] = RoutineExercise(
-          id: re.id,
-          exercise: re.exercise,
-          setTemplates: newTemplates,
-          pauseSeconds: re.pauseSeconds,
-        );
+        newExercises[i] = re.copyWith(setTemplates: newTemplates);
         _exercises = newExercises;
         break;
       }
@@ -823,6 +896,10 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
     weightControllers.remove(templateId);
     repsControllers.remove(templateId);
     rirControllers.remove(templateId);
+
+    // Removing a set leaves a hole in the stored positions; close it so the
+    // rows keep describing the session as it now looks.
+    await _updateLogOrdersInDatabase();
 
     notifyListeners();
     unawaited(_syncLiveActivity());
@@ -924,6 +1001,9 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
     _exercises = newExercises;
     pauseTimes.remove(routineExerciseId);
 
+    // Every block after the removed one shifted down by one.
+    await _updateLogOrdersInDatabase();
+
     notifyListeners();
     unawaited(_syncLiveActivity());
   }
@@ -944,14 +1024,26 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
     unawaited(_syncLiveActivity());
   }
 
+  /// Writes the session's structure — every set's position and the exercise it
+  /// belongs to — back to the database.
+  ///
+  /// This is what a restore after the app is killed reads, so it has to run
+  /// after *every* change to the structure: adding or removing a set or an
+  /// exercise, and reordering. Skipping it anywhere leaves the stored order
+  /// disagreeing with the screen, and the next restore rebuilds the wrong
+  /// session.
   Future<void> _updateLogOrdersInDatabase() async {
     int globalOrderCounter = 0;
     final List<SetLog> setsToUpdate = [];
-    for (final routineExercise in _exercises) {
+    for (var blockIndex = 0; blockIndex < _exercises.length; blockIndex++) {
+      final routineExercise = _exercises[blockIndex];
       for (final template in routineExercise.setTemplates) {
         final setLog = _setLogs[template.id];
         if (setLog != null) {
-          final updatedLog = setLog.copyWith(logOrder: globalOrderCounter);
+          final updatedLog = setLog.copyWith(
+            logOrder: globalOrderCounter,
+            exerciseBlock: blockIndex,
+          );
           _setLogs[template.id!] = updatedLog;
           setsToUpdate.add(updatedLog);
           globalOrderCounter++;

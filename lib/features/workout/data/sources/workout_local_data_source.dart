@@ -121,6 +121,7 @@ class WorkoutLocalDataSource {
       restTimeSeconds: row.restTimeSeconds,
       isCompleted: row.isCompleted,
       logOrder: row.logOrder,
+      exerciseBlock: row.exerciseBlock,
       notes: row.notes,
       distanceKm: row.distance,
       durationSeconds: row.durationSeconds,

@@ -174,6 +174,16 @@ class SetLogs extends Table with HybridId, MetaColumns {
   IntColumn get restTimeSeconds => integer().nullable()();
   BoolColumn get isCompleted => boolean().withDefault(const Constant(false))();
   IntColumn get logOrder => integer().withDefault(const Constant(0))();
+
+  /// Which exercise block of a live session this set belongs to.
+  ///
+  /// A running workout is reconstructed from these rows after the app is
+  /// killed. Grouping them by exercise name cannot tell two entries of the
+  /// same exercise apart and falls apart entirely once the order is off, so
+  /// the block a set belongs to is written down rather than guessed.
+  /// Null on rows written before this column existed; the restore falls back
+  /// to the old name-based grouping for those.
+  IntColumn get exerciseBlock => integer().nullable()();
   RealColumn get distance => real().nullable()(); // For cardio in the set
   IntColumn get durationSeconds => integer().nullable()(); // For cardio/static
   TextColumn get notes => text().nullable()();
@@ -288,8 +298,8 @@ class MealEntries extends Table with HybridId, MetaColumns {
       text().nullable()(); // Relative to app support dir
   TextColumn get photoThumbPath => text().nullable()();
   TextColumn get voiceTranscript => text().nullable()();
-  TextColumn get captureMeta =>
-      text().nullable()(); // JSON: DepthScaleFacts, provider/model, extra photos
+  TextColumn get captureMeta => text()
+      .nullable()(); // JSON: DepthScaleFacts, provider/model, extra photos
 }
 
 @TableIndex(name: 'idx_nutrition_consumed_at', columns: {#consumedAt})
@@ -556,7 +566,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
-  int get schemaVersion => 26;
+  int get schemaVersion => 27;
 
   /// Adds whatever the file is missing compared to the generated tables.
   ///
