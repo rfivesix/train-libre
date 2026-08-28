@@ -17,6 +17,15 @@ import '../../util/design_constants.dart';
 /// 3. The destination page cross-fades *over* the source element inside a
 ///    bounded [ClipRRect], ensuring any `saveLayer` is confined and liquid glass
 ///    in the source never loses refraction under an `Opacity` layer.
+///
+///    Which of the two does the fading is not a free choice. A source may be
+///    liquid glass, and glass is a [BackdropFilterLayer]: it can only refract
+///    what was painted into the save layer enclosing it. An `Opacity` is
+///    exactly such a save layer, and an empty one, so a fading source has
+///    nothing to refract and renders flat until its opacity reaches 1.0, at
+///    which point Flutter stops pushing the layer and the glass snaps in from
+///    nothing. Hence the source copy is always drawn at full opacity,
+///    *underneath* the page, and the page is what fades — in both directions.
 /// 4. Background dims with a subtle scrim.
 /// 5. Handover at both ends is overlap-safe (no 1-frame blank).
 /// 6. Supports interactive iOS edge-swipe back gesture to collapse on drag.
@@ -158,11 +167,15 @@ class CardMorphRoute<T> extends PageRoute<T> {
     );
   }
 
+  bool _sourceHidden = false;
+  double _lastAnimationValue = 0.0;
+
   @override
   Animation<double> createAnimation() {
     final anim = super.createAnimation();
     if (onSourceVisibilityChanged != null) {
       anim.addStatusListener(_handleAnimationStatus);
+      anim.addListener(_handleAnimationValue);
     }
     return anim;
   }
@@ -170,16 +183,56 @@ class CardMorphRoute<T> extends PageRoute<T> {
   @override
   TickerFuture didPush() {
     if (onSourceVisibilityChanged != null) {
+      // Deliberately one frame late: a route's content is not in the tree
+      // until the frame after the push, so hiding the real card any earlier
+      // leaves a frame with no card at all.
       SchedulerBinding.instance.addPostFrameCallback((_) {
-        if (isActive) onSourceVisibilityChanged?.call(true);
+        if (isActive) _setSourceHidden(true);
       });
     }
     return super.didPush();
   }
 
+  /// Hands the card back to the screen *before* the route is dismissed.
+  ///
+  /// At [_kSourceHandoverAt] the container is all but back on the card and the
+  /// copy is still drawn there — same position, same size, full opacity — so
+  /// the two overlap indistinguishably for the last few frames. Restoring on
+  /// [AnimationStatus.dismissed] instead put the original back on the very
+  /// last frame, at full density, with nothing having faded it in.
+  ///
+  /// Direction is read from the value rather than from the status: the
+  /// interactive back-swipe collapses via `animateTo(0.0)`, which reports
+  /// [AnimationStatus.forward] the whole way down.
+  void _handleAnimationValue() {
+    final double value = animation?.value ?? 0.0;
+    final bool receding = value < _lastAnimationValue;
+    _lastAnimationValue = value;
+    if (value > _kSourceHandoverAt) {
+      _setSourceHidden(true);
+    } else if (receding || animation?.status == AnimationStatus.dismissed) {
+      _setSourceHidden(false);
+    }
+  }
+
   void _handleAnimationStatus(AnimationStatus status) {
     if (status == AnimationStatus.dismissed) {
-      onSourceVisibilityChanged?.call(false);
+      _setSourceHidden(false);
+    }
+  }
+
+  /// The copy and the original must never both be absent. Routes tick and are
+  /// disposed from inside a frame, where flipping state the screen depends on
+  /// would rebuild a widget that has already been built.
+  void _setSourceHidden(bool hidden) {
+    final void Function(bool hidden)? callback = onSourceVisibilityChanged;
+    if (callback == null || _sourceHidden == hidden) return;
+    _sourceHidden = hidden;
+    if (SchedulerBinding.instance.schedulerPhase ==
+        SchedulerPhase.persistentCallbacks) {
+      SchedulerBinding.instance.addPostFrameCallback((_) => callback(hidden));
+    } else {
+      callback(hidden);
     }
   }
 
@@ -187,7 +240,10 @@ class CardMorphRoute<T> extends PageRoute<T> {
   void dispose() {
     if (onSourceVisibilityChanged != null) {
       animation?.removeStatusListener(_handleAnimationStatus);
-      onSourceVisibilityChanged?.call(false);
+      animation?.removeListener(_handleAnimationValue);
+      // Safety net for the paths that never run the collapse at all, such as
+      // a route that is replaced outright.
+      _setSourceHidden(false);
     }
     super.dispose();
   }
@@ -197,6 +253,26 @@ const Curve _kExpandCurve = Curves.fastOutSlowIn;
 const Curve _kCollapseCurve = FlippedCurve(_kExpandCurve);
 const double _kRadiusLead = 1.35;
 const double _kScrimOpacity = 0.45;
+
+/// How far the container has to have grown for the page to be fully opaque —
+/// which is also when it has finished covering the source copy underneath, so
+/// this is the length of the hand-over between the two.
+///
+/// Tied to the container's progress rather than to elapsed time on purpose:
+/// the expand and collapse curves spend their time very differently, so a
+/// time-based window would leave the page still a third opaque while the
+/// container has long stopped moving, and the hand-over would read as a flash.
+///
+/// A touch wider than the workout bar's 0.30, because a card covers far more
+/// area than a pill and a large surface needs longer to read as a dissolve
+/// rather than as an appearance.
+const double _kHandoverBand = 0.32;
+
+/// Raw animation value at or below which the screen takes its real card back.
+///
+/// The copy is still drawn there, at the card's exact position, size and full
+/// opacity, so the two overlap indistinguishably for the last few frames.
+const double _kSourceHandoverAt = 0.06;
 
 class _CardMorphTransition extends StatefulWidget {
   final CardMorphRoute route;
@@ -242,7 +318,8 @@ class _CardMorphTransitionState extends State<_CardMorphTransition> {
     _isDragging = false;
     final double velocity = details.primaryVelocity ?? 0.0;
     final double progress = widget.animation.value;
-    final bool shouldPop = velocity > 300.0 || (progress < 0.7 && velocity > -100.0);
+    final bool shouldPop =
+        velocity > 300.0 || (progress < 0.7 && velocity > -100.0);
     widget.route.handleDragEnd(shouldPop: shouldPop);
   }
 
@@ -260,8 +337,10 @@ class _CardMorphTransitionState extends State<_CardMorphTransition> {
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
       onHorizontalDragStart: _handleDragStart,
-      onHorizontalDragUpdate: (d) => _handleDragUpdate(d, MediaQuery.sizeOf(context).width),
-      onHorizontalDragEnd: (d) => _handleDragEnd(d, MediaQuery.sizeOf(context).width),
+      onHorizontalDragUpdate: (d) =>
+          _handleDragUpdate(d, MediaQuery.sizeOf(context).width),
+      onHorizontalDragEnd: (d) =>
+          _handleDragEnd(d, MediaQuery.sizeOf(context).width),
       child: AnimatedBuilder(
         animation: widget.animation,
         child: widget.child,
@@ -309,10 +388,11 @@ class _CardMorphTransitionState extends State<_CardMorphTransition> {
           final double scale = rect.width / screen.width;
           final double sourceScale = rect.width / widget.sourceRect.width;
 
-          // Content fade: destination page and its background fade smoothly
-          // across the lower range (0.0 to 0.25) so it dissolves gently into the source FAB/card.
-          const double kFadeThreshold = 0.25;
-          final double pageOpacity = (t / kFadeThreshold).clamp(0.0, 1.0);
+          // Content fade: the destination page and its background dissolve
+          // across the hand-over band. On the way back that is what reveals
+          // the source copy underneath — gradually, instead of switching it on
+          // at full density once the container has shrunk far enough.
+          final double pageOpacity = (t / _kHandoverBand).clamp(0.0, 1.0);
 
           return Stack(
             fit: StackFit.expand,
@@ -337,30 +417,24 @@ class _CardMorphTransitionState extends State<_CardMorphTransition> {
                         ),
                       ),
 
-                    // Destination page (fades in/out smoothly as it expands/collapses)
-                    if (pageOpacity > 0.0)
-                      Opacity(
-                        opacity: pageOpacity,
-                        child: Transform(
-                          transform: Matrix4.identity()
-                            ..translateByDouble(rect.left, rect.top, 0.0, 1.0)
-                            ..scaleByDouble(scale, scale, 1.0, 1.0),
-                          child: page,
-                        ),
-                      ),
-
-                    // Source element (e.g. GlassFab or card copy) sits smoothly over the page
-                    // during flight so its liquid glass blur refracts the page underneath
-                    if (source != null && t < 0.45)
+                    // Source element (e.g. GlassFab or card copy), pinned to
+                    // the same corner of the container and scaled by the same
+                    // rule as the page. Both occupy the same box and sweep
+                    // together, so what the eye sees is one turning into the
+                    // other rather than one being swapped for the other.
+                    //
+                    // Never wrapped in anything that pushes a save layer — see
+                    // the note on [CardMorphRoute]. It is drawn at full
+                    // opacity for the whole hand-over band and simply stops
+                    // being built once the page has finished covering it.
+                    if (source != null && pageOpacity < 1.0)
                       Positioned(
                         left: 0,
                         top: 0,
                         child: Transform(
                           transform: Matrix4.identity()
-                            ..translateByDouble(
-                                rect.left, rect.top, 0.0, 1.0)
-                            ..scaleByDouble(
-                                sourceScale, sourceScale, 1.0, 1.0),
+                            ..translateByDouble(rect.left, rect.top, 0.0, 1.0)
+                            ..scaleByDouble(sourceScale, sourceScale, 1.0, 1.0),
                           child: SizedBox(
                             width: widget.sourceRect.width,
                             height: widget.sourceRect.height,
@@ -380,6 +454,22 @@ class _CardMorphTransitionState extends State<_CardMorphTransition> {
                               ),
                             ),
                           ),
+                        ),
+                      ),
+
+                    // Destination page, dissolving in over the source copy on
+                    // the way out and back off it on the way in. The only
+                    // layer this transition pushes, and it sits *inside* the
+                    // clip, so its `saveLayer` is bounded by the card rather
+                    // than by the screen.
+                    if (pageOpacity > 0.0)
+                      Opacity(
+                        opacity: pageOpacity,
+                        child: Transform(
+                          transform: Matrix4.identity()
+                            ..translateByDouble(rect.left, rect.top, 0.0, 1.0)
+                            ..scaleByDouble(scale, scale, 1.0, 1.0),
+                          child: page,
                         ),
                       ),
                   ],
