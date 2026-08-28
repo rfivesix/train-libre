@@ -123,6 +123,39 @@ void main() {
     expect(await usernames(live), ['Newer feature row']);
   });
 
+  test('ignores a table whose name is not a plain identifier', () async {
+    // The snapshot comes out of the iCloud container, so its sqlite_master is
+    // external input, and SQLite cannot parameterise an identifier. A crafted
+    // name must not reach the raw DELETE the copy runs per table.
+    final snapshotPath = await buildSnapshot((snapshot) async {
+      await snapshot.customStatement(
+        'CREATE TABLE "evil""; DROP TABLE profiles; --" (id TEXT)',
+      );
+      await insertProfile(snapshot, 'backed-up', 'From the backup');
+    });
+
+    await insertProfile(live, 'local', 'On this device');
+    await live.customStatement(
+      'CREATE TABLE "evil""; DROP TABLE profiles; --" (id TEXT)',
+    );
+
+    await ICloudSyncService.instance
+        .copySnapshotIntoLiveDatabaseForTesting(live, snapshotPath);
+
+    // The well-named table still restored, and the live schema is intact.
+    expect(await usernames(live), ['From the backup']);
+    final tables = await live
+        .customSelect(
+          "SELECT name FROM sqlite_master WHERE type = 'table' "
+          "AND name NOT LIKE 'sqlite_%'",
+        )
+        .get();
+    expect(
+      [for (final row in tables) row.read<String>('name')],
+      contains('profiles'),
+    );
+  });
+
   test('restores the columns both sides share when they differ', () async {
     // A backup from an older build has fewer columns. It must restore what it
     // has rather than failing the whole thing.

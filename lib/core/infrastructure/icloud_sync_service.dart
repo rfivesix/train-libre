@@ -359,7 +359,8 @@ class ICloudSyncService {
       // pointing at it if the copy fails.
       if (isArchive) {
         try {
-          final mealPlacement = await AppMediaStore.instance.mealThumbPlacement(db);
+          final mealPlacement =
+              await AppMediaStore.instance.mealThumbPlacement(db);
           final mealWritten = await ICloudBackupArchive.extractThumbnails(
             archivePath: downloadPath,
             directoryFor: mealPlacement.directoryFor,
@@ -445,6 +446,16 @@ class ICloudSyncService {
           for (final row in tables) {
             final table = row.read<String>('name');
 
+            // The snapshot is a file from the iCloud container, so its
+            // sqlite_master is untrusted input. SQLite cannot parameterise an
+            // identifier, and every statement below interpolates the name
+            // directly, so anything that is not a plain identifier is skipped
+            // rather than quoted — the app's own tables are all snake_case.
+            if (!_safeIdentifier.hasMatch(table)) {
+              debugPrint('iCloud restore: skipped suspicious table name');
+              continue;
+            }
+
             final liveColumns = await _columnNames(db, 'main', table);
             if (liveColumns.isEmpty) continue;
             final snapshotColumns = await _columnNames(db, 'restore', table);
@@ -468,6 +479,9 @@ class ICloudSyncService {
       await db.customStatement('PRAGMA foreign_keys = ON');
     }
   }
+
+  /// Identifiers that are safe to interpolate into a raw statement.
+  static final RegExp _safeIdentifier = RegExp(r'^[A-Za-z0-9_]+$');
 
   Future<List<String>> _columnNames(
     AppDatabase db,
@@ -498,15 +512,15 @@ class ICloudSyncService {
         referencedPaths: referencedMeals,
       );
       if (removedMeals > 0) {
-        debugPrint('iCloud restore: pruned $removedMeals orphaned meal photo(s)');
+        debugPrint(
+            'iCloud restore: pruned $removedMeals orphaned meal photo(s)');
       }
     } catch (e) {
       debugPrint('iCloud restore: pruning orphaned meal photos failed: $e');
     }
 
     try {
-      final referencedWorkouts =
-          await AppMediaStore.referencedWorkoutPaths(db);
+      final referencedWorkouts = await AppMediaStore.referencedWorkoutPaths(db);
       final removedWorkouts = await AppMediaStore.instance.pruneOrphans(
         domain: MediaDomain.workouts,
         referencedPaths: referencedWorkouts,
