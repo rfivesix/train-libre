@@ -1,10 +1,32 @@
 # Entwicklungsplan bis 1.2.0 Release
 
-Stand: 2026-08-28, Basis `develop` @ `877ed0a6` (1.2.0-beta.3).
+Stand: 2026-08-29, Basis `develop` @ `b06635bc` (1.2.0-beta.3).
 Grundlage: Testrunde auf iPhone 16 Pro.
 
 Reihenfolge = Release-Reihenfolge. P0 blockt den Release, P1 sollte rein, P2 ist
 Politur, die notfalls in 1.2.1 kann.
+
+## Branch-Übersicht
+
+Nichts davon ist nach `develop` gemergt — jeder Punkt liegt auf seinem eigenen
+Branch und kann einzeln begutachtet werden. Die Spalte „Geprüft" heißt: auf dem
+Branch selbst ausgeführt, nicht aus einem Bericht übernommen.
+
+| Thema | Branch | Commit | Geprüft |
+|---|---|---|---|
+| Workout-Datenverlust beim App-Kill | `develop` | `b06635bc` | analyze sauber, 966 Tests |
+| Stalls — **nur Messung, nicht repariert** | `fix/app-stalls` | `90babfe8` | analyze sauber, 982 Tests |
+| Datum/Uhrzeit bei KI-Mahlzeiten | `feat/ai-meal-datetime` | `f2956cd2` | analyze sauber, 990 Tests |
+| OpenAI-Modellliste | `fix/openai-model-list` | `0567f321` | analyze sauber, 992 Tests |
+| Drag & Drop im Workout | `fix/live-workout-dnd` | `69665d67` | analyze sauber, 972 Tests |
+| Card-Morph Politur & Ausbau | `fix/card-morph-polish` | `075ce51d` | analyze sauber, 971 Tests |
+| Legal-Screen-Animation | `fix/legal-screen-animation` | `b20926df` | analyze sauber, 969 Tests |
+
+Die Testzahlen unterscheiden sich, weil jeder Branch nur seine eigenen Tests zu
+den 966 von `develop` hinzufügt.
+
+**Der P0 ist nicht erledigt.** Auf `fix/app-stalls` liegt die Messung, nicht die
+Reparatur. Was als Nächstes zu tun ist, steht am Ende dieses Dokuments.
 
 ---
 
@@ -94,205 +116,140 @@ davon schlagen auf dem alten Code fehl.
 **Symptom:** iPhone 16 Pro, frischer Start oder Resume nach ~2 min im
 Hintergrund: 1–2 s eingefrorene UI.
 
-**Konkreter Verdacht Resume:**
-[main_screen.dart:203](../../lib/features/app/presentation/main_screen.dart)
-ruft in `AppLifecycleState.resumed` synchron `_syncHomeWidgetsNow()` auf, das
-über `HomeWidgetSyncService.refresh()` die Statistiken neu berechnet. Der
-2-Minuten-Schwellwert des Nutzers passt verdächtig gut zu einem Cache, der
-inzwischen abgelaufen ist (`HomeWidgetSyncService.statisticsMaxAge`) — solange
-der Cache warm ist, fällt nichts auf; danach läuft die volle Berechnung auf dem
-Main Isolate.
+**Korrektur meiner ersten Analyse.** Zwei Vermutungen aus der ersten Fassung
+dieses Plans haben sich beim Nachsehen als falsch erwiesen:
 
-**Vorgehen:**
+- Der Cache in `HomeWidgetSyncService.statisticsMaxAge` steht auf **15
+  Minuten**, nicht auf 2. Die 2 Minuten des Nutzers passen also nicht dazu.
+- `AiService.migrateSecureStorageToDeviceOnly()` hat bereits einen
+  Prefs-Guard und läuft nur beim ersten Mal — kein Kostenfaktor pro Start.
 
-1. Nicht nach Gefühl gehen. Der Mac reproduziert den Jank nicht (siehe Memo
-   „Profiling UI jank"); mit dem bereits vorhandenen `jank_recorder.dart` und der
-   Telemetrie aus `76a93099` auf dem Gerät messen, Raster- und Build-Zeit
-   getrennt.
-2. Resume-Pfad: `_syncHomeWidgetsNow()` aus dem kritischen Pfad nehmen —
-   entweder einen Frame verzögert (`postFrameCallback` + kurzer Delay) oder die
-   Statistikberechnung in einen Isolate (`compute`).
-3. Kaltstart getrennt betrachten: messen, was zwischen `runApp` und erstem
-   nutzbaren Frame passiert (DB-Öffnung inkl. `reconcileSchema`,
-   Katalog-Laden, Provider-Initialisierung). Alles, was nicht für den ersten
-   Frame gebraucht wird, hinter den ersten Frame verschieben.
-4. Gegenprüfen, ob die Glass-Backdrops beitragen — pro `AppButton` entsteht ein
-   eigener `BackdropFilterLayer` (siehe Memo), und der erste Frame nach Resume
-   baut sie alle neu auf.
+Ebenfalls ausgeschlossen: die Datenbank blockiert den UI-Thread nicht.
+`_openConnection` benutzt `NativeDatabase.createInBackground`, die Queries
+laufen auf einem eigenen Isolate.
 
-**Aufwand:** mittel bis groß, stark abhängig vom Messergebnis. Erst messen,
-dann schätzen.
+Wahrscheinlicher ist etwas anderes: iOS beendet Apps im Hintergrund. Was der
+Nutzer als „Resume nach 2 Minuten" erlebt, ist mit einiger Wahrscheinlichkeit
+**derselbe Kaltstart** — dann gibt es nur ein Problem, nicht zwei.
 
----
+**Gebaut: die Messung, nicht die Reparatur.** Ohne Zahlen vom Gerät wäre jede
+Änderung hier geraten (siehe Memo „Profiling UI jank"), also misst die App
+jetzt selbst, wo die Sekunden hingehen:
 
-## P1 — sollte in 1.2.0
+- Neu: [startup_trace.dart](../../lib/core/performance/startup_trace.dart).
+  Misst Kaltstart und Rückkehr aus dem Hintergrund jeweils bis zu dem Frame,
+  der wirklich auf dem Schirm landet (Frame-Timings, nicht `postFrameCallback`
+  — letzterer feuert, wenn der Frame *gebaut* ist, was bei einem Schirm voller
+  Backdrop-Filter deutlich zu früh ist).
+- Phasen sind an den Aufrufstellen von Hand gesetzt (`glass_init`,
+  `date_formatting`, `meal_photo_store`, `keychain_migration`, `prefs`,
+  `core_services`, `standard_supplements`, `notifications_init`,
+  `workout_restore`, `telemetry_init`, `auto_backup_check`). Zeit, die zum Lauf
+  gehört, aber zu keiner Phase, wird als `unattributed` ausgewiesen statt
+  stillschweigend verteilt — **das ist der wichtigste Wert**: ist er groß, liegt
+  es an Framework-Start, Shader-Warmup und erstem Build, nicht an App-Code.
+- Sichtbar unter Einstellungen → Performance-Log, und in der Textausgabe von
+  „Kopieren"/„Teilen" enthalten.
 
-### 3. Datum/Uhrzeit bei KI-Mahlzeiten nicht änderbar
+**Behobene Messlücke im Watchdog:** `JankRecorder` übersprang beim Resume den
+nächsten Tick komplett, um die Hintergrundzeit nicht als Freeze zu zählen. Ein
+Freeze, der genau beim Zurückkommen beginnt, fiel damit vollständig in das
+übersprungene Fenster — also genau der Fall, den der Nutzer meldet. Jetzt wird
+stattdessen die Uhr beim Resume neu gesetzt: die Hintergrundzeit fällt weg, der
+Tick bleibt.
 
-**Symptom:** Für per KI erfasste Mahlzeiten gibt es keinen Ort, an dem sich
-Datum und Uhrzeit ändern lassen.
+**Bekannte Grenze, bewusst nicht angefasst:** Der Watchdog misst die
+*Verspätung* eines Ticks. Ein Freeze, der kurz nach einem Tick beginnt,
+verspätet den nächsten nur um Freeze minus Intervall. Bei 500 ms Intervall und
+1200 ms Schwelle bleiben Freezes unter ~1,7 s unsichtbar — die untere Hälfte
+dessen, was der Nutzer meldet. Die Schwelle wurde offenbar bewusst gewählt, und
+für Start und Resume misst jetzt `StartupTrace` die echte Spanne. Ist im Code
+dokumentiert.
 
-**Befund:** Kein Bug im engeren Sinn, sondern eine fehlende Funktion.
-`ai_meal_review_screen.dart` setzt `_selectedTimestamp` einmal in `initState`
-(Zeile 212) auf `initialDate ?? DateTime.now()` und schreibt ihn beim Speichern
-(Zeilen 653, 669) — der Wert wird **nirgends** verändert. In Zeile 876 wird er
-nur formatiert angezeigt. Und im gesamten `lib/features/diary` existiert kein
-einziger `showTimePicker`/`showDatePicker`/`CupertinoDatePicker`. Auch
-`meal_entry_screen.dart` zeigt `consumedAt` nur an (Zeile 382).
-
-**Vorgehen:**
-
-1. Einen gemeinsamen Picker-Sheet bauen (Datum + Uhrzeit, plattform-adaptiv wie
-   `platform_adaptive_dropdown.dart`) unter `lib/widgets/common/`.
-2. Im Review-Screen die vorhandene Zeitanzeige (Zeile 876) antippbar machen und
-   `_selectedTimestamp` setzen.
-3. Nachträgliche Korrektur im `meal_entry_screen` ebenso — das ist der Ort, an
-   dem der Nutzer sie sucht, wenn die Mahlzeit schon gespeichert ist.
-4. Beim Speichern nach Zeitänderung prüfen, dass die Mahlzeit im richtigen
-   Tages-Log landet (Tageswechsel!) und die Statistik neu berechnet wird.
-
-**Aufwand:** klein bis mittel (halber Tag). Klar abgegrenzt, geringes Risiko —
-guter Kandidat, während der P0-Punkt in einer Messphase hängt.
+**Nächster Schritt — braucht das Gerät:** siehe „Offen vor Release: P0
+Messrunde auf iPhone 16 Pro" am Ende dieses Dokuments. Solange diese Zahlen
+fehlen, ist am Startpfad nichts repariert und jede Änderung dort geraten.
 
 ---
 
-### 4. OpenAI-Modellliste zeigt nur 5.4
+### 3. Datum/Uhrzeit bei KI-Mahlzeiten änderbar & Tageswechsel ✅
 
-**Symptom:** Es werden nur `gpt-5.4`-Varianten angeboten, keine aktuellen
-Modelle. Soll live abgefragt werden, nicht fest eingestellt.
-
-**Befund:** Die Live-Abfrage **existiert bereits** —
-`getModelOptions` ([ai_service.dart:396](../../lib/services/ai_service.dart))
-fragt `_loadDynamicModelIds` und benutzt die hartkodierte Liste nur als
-Notfall-Fallback. Wenn also nur die 5.4er erscheinen, greift genau dieser
-Fallback (`emergencyFallbackModels`, ai_service.dart:117–124 — dort stehen
-exakt die 5.4-Varianten). Drei mögliche Ursachen, in dieser Reihenfolge zu
-prüfen:
-
-1. **Die Abfrage schlägt fehl und niemand merkt es.** `_loadOpenAiModels`
-   ([ai_network.dart:289](../../lib/services/ai/ai_network.dart)) fängt
-   *jeden* Fehler mit `catch (_) { return null; }` ab. Falscher Key, Timeout,
-   401 — alles führt stillschweigend zum Fallback. **Das ist zuerst zu
-   instrumentieren:** Fehler loggen und in der UI unterscheidbar machen
-   (`AiModelOption.isFallback` existiert bereits und wird auf dem Fallback-Pfad
-   gesetzt, aber offenbar nicht sichtbar dargestellt).
-2. **Der Filter ist zu eng.** Zeile 301 filtert auf
-   `id.startsWith('gpt-')`. Alles, was nicht so heißt — die `o`-Reihe und
-   künftige Namensschemata — fällt raus, obwohl `_openAiTokenParams`
-   (ai_network.dart:21) die `o`-Reihe explizit unterstützt. Dazu 14 weitere
-   `contains`-Ausschlüsse, die bei neuen Namen zu Kollateralschaden führen.
-3. **Das Ranking drückt Neues nach unten.** `_providerModelScore`
-   (ai_service.dart:487–493) vergibt fixe Boni auf die 5.4-IDs und
-   `getModelOptions` kappt hart auf `take(10)` (Zeile 406). Ein neueres Modell
-   ohne Eintrag in den `rankingHints` bekommt nur den generischen
-   `_numericFreshnessScore` und kann aus den Top 10 fallen.
-
-**Vorgehen:** Erst (1) klären — solange nicht feststeht, ob die Abfrage
-überhaupt durchkommt, ist jede Änderung an Filter und Ranking Raten. Dann den
-Filter von Deny-List auf „alles außer eindeutig ungeeigneten Modalitäten"
-umstellen, die hartkodierten ID-Boni entfernen (sie sind per Definition am Tag
-des nächsten OpenAI-Release veraltet) und das Cap anheben oder ganz streichen.
-
-**Aufwand:** klein bis mittel, sobald die Diagnose steht.
+**Befund:** Im Review-Screen und im Mahlzeiten-Detail-Screen (`MealEntryScreen`) fehlte die Möglichkeit, Datum und Uhrzeit zu korrigieren.
+**Behoben:**
+- Neuer gemeinsamer, adaptiver Picker-Sheet `showAdaptiveDateTimePicker` unter `lib/widgets/common/platform_adaptive_pickers.dart`.
+- `ai_meal_review_screen.dart` und `meal_entry_screen.dart` erlauben jetzt das Antippen des Untertitels und öffnen den kombinierten Picker.
+- Beim Tageswechsel verschiebt `IDiaryRepository.moveMealEntryTo` die Mahlzeit inklusive aller verknüpften Lebensmittel-, Hydrations- und Supplement-Einträge atomar auf den neuen Tag und berechnet die Tagessummen beider betroffener Tage neu.
+- Abgesichert durch 20 Integrationstests in `test/features/diary/data/sources/meal_entry_move_test.dart` und Screen-Tests in `test/features/diary/presentation/meal_entry_datetime_test.dart`.
 
 ---
 
-## P2 — Politur
+### 4. OpenAI-Modellliste dynamisch & transparente Fehlermeldungen ✅
 
-### 5. Card-Morph („Card-Warping") ausbauen
-
-Vier getrennte Teilaufgaben. Der Kern ist schon ein globales Widget:
-[card_morph_route.dart](../../lib/widgets/common/card_morph_route.dart).
-
-**5a — Rückweg blendet nicht ein (der eigentliche Bug).**
-Die Quell-Karte wird während des Flugs über `onSourceVisibilityChanged`
-ausgeblendet und erst bei `AnimationStatus.dismissed` wieder eingeblendet, also
-am allerletzten Frame und schlagartig auf 100 %. Dazu wird die Kopie der
-Quell-Karte im Transition-Stack nur gezeichnet, solange `t < 0.45`, und zwar
-ohne Opacity-Rampe — sie erscheint beim Unterschreiten der Schwelle abrupt mit
-voller Deckkraft. Genau das beschreibt der Testbefund.
-**Fix:** die Quell-Kopie über ein Überlappungsband (z. B. `t` 0.55→0.25)
-weich einblenden statt hart bei 0.45 einzuschalten, und die echte Karte
-darunter schon vor `dismissed` wiederherstellen, damit die Übergabe
-überlappt statt springt.
-
-**5b — Fehlende Stellen.** Aktuell verwendet in `exercise_catalog`,
-`add_food`, `diary`, `workout_hub`, `routines`, `statistics_hub` (24
-Aufrufstellen). Nachzurüsten:
-- Diary → Steps-Widget
-- Nutrition Hub komplett —
-  [nutrition_hub_screen.dart](../../lib/features/diary/presentation/nutrition_hub_screen.dart)
-  navigiert an drei Stellen (Zeilen 138, 273, 288) mit einer Standardroute.
-
-**5c — Bewusst *ohne* Morph:** Settings und die App-Link-Row. Beim Nachrüsten
-nicht versehentlich mitnehmen; ein kurzer Kommentar an diesen Aufrufstellen
-verhindert, dass es später „vergessen" nachgeholt wird.
-
-**5d — Konsistenz.** Wenn 5b erledigt ist, einmal alle `Navigator.push`-Stellen
-durchgehen und entscheiden: Morph oder bewusst nicht. Der Zwischenzustand
-„manchmal ja, manchmal nein" ist das, was sich unfertig anfühlt.
-
-**Aufwand:** 5a klein (gezielte Änderung an einer Datei), 5b mittel,
-5d Fleißarbeit.
+**Befund:** Bei Fehlern (z.B. falscher API-Key 401, Rate-Limits 429, Timeout) fiel `_loadOpenAiModels` stillschweigend auf die Notfall-Liste `emergencyFallbackModels` zurück. Zudem war der Filter auf `gpt-` beschränkt und das Ranking blockierte neuere Modellversionen.
+**Behoben:**
+- Fehler werden in `AiModelListResult` / `AiModelListError` präzise typisiert und in den Einstellungen (`AiSettingsScreen`) dem Nutzer transparent angezeigt (inkl. Statuscode und Provider-Meldung).
+- Filter lässt die `o`-Reihe sowie zukünftige Namensschemata zu und sortiert ausschließlich unpassende Modalitäten (Embeddings, Audio, Image Generation) aus.
+- Ranking ordnet Modelle dynamisch nach geparster Versionsnummer und Fähigkeits-Tier (`pro`, `large`, `opus` > Standard > `mini`, `nano`), während veraltete Modelle (`legacy`, `deprecated`) sauber ans Ende abgestuft werden.
+- Abgesichert durch 26 Unit-Tests in `test/services/ai_model_catalog_test.dart`.
 
 ---
 
-### 6. Drag & Drop im Live-Workout
+### 5. Card-Morph („Card-Warping") Politur & Konsistenz ✅
 
-**Symptom:** Das gezogene Element ist teils unsichtbar und klebt nicht genau am
-Finger.
+**5a — Rückweg-Fade:**
+- Die Quellkarte bleibt während der gesamten Rück-Transition deckend unter der Seite gezeichnet, während die darüberliegende Page weich ausfadet. Dadurch bricht der `BackdropFilter` der Liquid-Glass-Karten zu keinem Zeitpunkt ab und springt am Ende nicht.
 
-**Befund:** Der `proxyDecorator`
-([live_workout_screen.dart:853](../../lib/features/workout/presentation/live_workout_screen.dart))
-ignoriert den übergebenen `child` und **baut die Karte komplett neu auf** —
-`WorkoutCard`, `ListTile`, eigenes Layout. Damit hat das Drag-Proxy
-zwangsläufig andere Maße als die Zeile, aus der gezogen wird; genau daher der
-Positionsversatz. Die „Unsichtbarkeit" passt zu `Material(elevation: 0.0,
-color: Colors.transparent)` über einer Glass-Karte: im Overlay fehlt der
-Hintergrund, den die Karte im Listenkontext hatte.
+**5b — Nachgerüstete Stellen:**
+- Diary: `StepsSummaryCard` → `StepsModuleScreen` via `CardMorphRoute`.
+- Nutrition Hub: Alle Karten (`_buildCreateMealCard`, `_buildMealCard` → `MealScreen`, Navigation zu `SupplementHubScreen` und `AddFoodScreen`) via `CardMorphRoute`.
 
-**Fix:** `proxyDecorator` soll den `child` dekorieren, nicht ersetzen — also
-`child` in ein `Material` mit Elevation und passender Hintergrundfarbe
-(undurchsichtig, nicht `transparent`) wickeln und über `anim` skalieren. Die
-Neuaufbau-Variante ersatzlos streichen.
+**5c — Bewusst ohne Card-Morph:**
+- Settings-Bereich (`SettingsScreen` & Unterseiten): Reine Einstellungszeilen in Listenform.
+- Link-Zeilen (`AppLinkRow`): Reine Textlisten-Elemente ohne Kartenmetapher.
+- Beide Stellen sind mit entsprechenden Policy-Kommentaren im Code markiert.
 
-**Aufwand:** klein. Gutes Verhältnis von Wirkung zu Aufwand.
-
----
-
-### 7. Fehlende Animation im Legal Screen
-
-**Symptom:** Das Ausklappen der Überschriften springt.
-
-**Befund:**
-[legal_screen.dart:238](../../lib/features/app/presentation/legal_screen.dart)
-macht `setState(() => _isExpanded = !_isExpanded)` und Zeile 267 rendert den
-Inhalt hinter einem nackten `if (_isExpanded)`. Keine Animation vorhanden.
-
-**Fix:** `AnimatedSize` + `AnimatedCrossFade` (oder `AnimatedSwitcher`) um den
-Inhalt, Chevron über `AnimatedRotation`. Dauer und Kurve aus
-`DesignConstants` nehmen, damit es zum Rest passt.
-
-**Aufwand:** sehr klein (unter einer Stunde).
+**5d — Vollständige Konsistenzliste aller Navigationsrouten:**
+- **Container / Card Morph (`CardMorphRoute` / `WorkoutMorphRoute` / `MealAnalysisMorphRoute`):**
+  - Statistics Hub (alle 8 Statistik-Modulkarten)
+  - Routines Screen (Routine-Karten beim Starten/Öffnen)
+  - Workout Hub (Workouts, Routinen, Übungskatalog)
+  - Diary Screen (`MealEntryCard`, `StepsSummaryCard`, `GlassFab`)
+  - Exercise Catalog (Übungs-Detailansicht aus Karten)
+  - Add Food Screen (Lebensmittel-Detailansichten)
+  - Nutrition Hub (`SupplementHubScreen`, `AddFoodScreen`, `MealScreen`)
+  - AI Meal Capture Flow (Analyseschirm & Review-Aufdeckung)
+  - Live Workout Bar (Expand/Collapse in der App-Leiste)
+- **Standard-Routen (`MaterialPageRoute` / Modal Sheets / Replace):**
+  - Settings & Unterseiten (Listenzeilen)
+  - `AppLinkRow` (Listenzeilen)
+  - Modale Auswahldialoge (`GeneralFoodSelectionScreen`, `ScannerScreen`, Template-Picker)
+  - App-Initialisierung (`AppInitializerScreen` → `MainScreen`)
+  - Info-Screens (`LegalScreen`, `AboutScreen`)
 
 ---
 
-## Vorgeschlagene Reihenfolge
+### 6. Drag & Drop im Live-Workout, Routine-Editor & Workout-Log ✅
 
-| # | Thema | Prio | Aufwand |
-|---|---|---|---|
-| 1 | Stalls (erst messen) | P0 | mittel–groß |
-| 7 | Legal-Screen-Animation | P2 | sehr klein |
-| 6 | Drag & Drop Proxy | P2 | klein |
-| 5a | Card-Morph Rück-Fade | P2 | klein |
-| 3 | Datum/Uhrzeit KI-Mahlzeit | P1 | klein–mittel |
-| 4 | OpenAI-Modellliste | P1 | klein–mittel |
-| 5b/5d | Card-Morph nachrüsten | P2 | mittel |
+**Befund:** Der `proxyDecorator` baute die gezogene Karte neu auf (`Colors.transparent`), wodurch sie Maße verlor, vom Finger versetzte und im Overlay unsichtbar wirkte.
+**Behoben:**
+- Gemeinsamer Helfer `buildReorderDragProxy` in `lib/features/workout/presentation/widgets/reorder_drag_proxy.dart`.
+- Das originale Child-Widget wird dekoriert statt neu gebaut, mit einer opaken, themebasierten Oberfläche (`reorderDragProxySurfaceColor`), sanfter Elevation und abgerundeten Ecken.
+- Konsistent eingesetzt auf `LiveWorkoutScreen`, `EditRoutineScreen` und `WorkoutLogDetailScreen`.
+- Abgesichert durch Unit-Tests in `test/features/workout/presentation/widgets/reorder_drag_proxy_test.dart`.
 
-Die drei kleinen Punkte (7, 6, 5a) sind bewusst nach vorne gezogen: sie sind
-einzeln in Stunden erledigt und liefern sichtbaren Fortschritt, während 1 in
-einer Messphase hängt. 5b/5d bleibt am Ende, weil es der einzige Punkt ist, der
-notfalls sauber in 1.2.1 rutschen kann.
+---
+
+## Offen vor Release: P0 Messrunde auf iPhone 16 Pro
+
+### 1. Stalls von 1–2 s bei Kaltstart und beim Resume (Mess-Phase)
+
+**Status:** Messinstrumentierung (`StartupTrace`, Phasenmessung, Watchdog-Anpassung) ist auf Branch `fix/app-stalls` fertiggestellt und committet (`90babfe8`).
+
+**Nächster Schritt — Test auf iPhone 16 Pro:**
+1. Build vom Branch `fix/app-stalls` installieren.
+2. Kaltstart ausführen, kurz nutzen, 2–3 min in den Hintergrund legen, zurückholen (2–3x wiederholen).
+3. Einstellungen → Performance-Log → „Kopieren" und Text analysieren (`startup[cold]`, `startup[resume]`, `unattributed`).
+4. Anhand der Zahlen gezielt entscheiden, ob und wo App-Code optimiert wird.
 
 **Vor jedem Release-Build:** `flutter analyze`, `flutter test`, und die
 Drift-Schemaversion gegenprüfen (siehe Memo „Drift schema version drift" — eine
