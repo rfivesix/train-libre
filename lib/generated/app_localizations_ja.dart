@@ -1443,6 +1443,21 @@ class AppLocalizationsJa extends AppLocalizations {
   String get performanceLogStallsSection => '停止（UIスレッドのブロック）';
 
   @override
+  String get performanceLogStartupSection => '起動と復帰';
+
+  @override
+  String get performanceLogStartupEmpty => 'まだ起動が計測されていません。';
+
+  @override
+  String get performanceLogStartupCold => 'コールドスタート';
+
+  @override
+  String get performanceLogStartupResume => 'バックグラウンドからの復帰';
+
+  @override
+  String get performanceLogStartupUnattributed => 'フレームワークと初回描画';
+
+  @override
   String get performanceLogSevereLabel => '重度';
 
   @override

@@ -2,6 +2,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:train_libre/core/performance/jank_recorder.dart';
+import 'package:train_libre/core/performance/startup_trace.dart';
 import 'package:train_libre/features/feedback_report/data/performance_diagnostics_provider.dart';
 
 FrameTiming _frame({
@@ -192,10 +193,69 @@ void main() {
 
     test('says so plainly when nothing was recorded', () async {
       final lines = await PerformanceDiagnosticsProvider(
-              recorder: JankRecorder.createForTest())
-          .buildLines(now: DateTime.now());
+        recorder: JankRecorder.createForTest(),
+        startupTrace: StartupTrace.createForTest(clock: () => 0),
+      ).buildLines(now: DateTime.now());
 
       expect(lines, contains('status: no frames recorded yet'));
+      expect(lines, contains('startup: not measured yet'));
+    });
+
+    test('carries the launch and resume waits, phase by phase', () async {
+      // The waits users complain about produce no frames, so without these
+      // lines a report from a device that takes two seconds to open looks
+      // exactly like one from a device that opens instantly.
+      var now = 0;
+      final trace = StartupTrace.createForTest(clock: () => now);
+
+      trace.beginColdStart();
+      now = 200;
+      trace.beginPhase('glass_init');
+      now = 800;
+      trace.endPhase('glass_init');
+      now = 2000;
+      trace.noteFrameRasterized();
+
+      final lines = await PerformanceDiagnosticsProvider(
+        recorder: JankRecorder.createForTest(),
+        startupTrace: trace,
+      ).buildLines(now: DateTime.now());
+
+      expect(lines, contains('startup_cold_median_ms: 2000'));
+      final coldLine =
+          lines.firstWhere((line) => line.startsWith('startup[cold]:'));
+      expect(coldLine, contains('to_first_frame=2000ms'));
+      expect(coldLine, contains('glass_init=600ms'));
+      // The remainder is framework startup and shader warmup, and saying so is
+      // the point: it tells the reader the cost is not in the phases above.
+      expect(coldLine, contains('unattributed=1400ms'));
+    });
+
+    test('reports a resume separately from a launch', () async {
+      var now = 0;
+      final trace = StartupTrace.createForTest(clock: () => now);
+
+      trace.beginColdStart();
+      now = 900;
+      trace.noteFrameRasterized();
+      now = 90000;
+      trace.beginResume();
+      now = 91300;
+      trace.noteFrameRasterized();
+
+      final lines = await PerformanceDiagnosticsProvider(
+        recorder: JankRecorder.createForTest(),
+        startupTrace: trace,
+      ).buildLines(now: DateTime.now());
+
+      expect(lines, contains('startup_cold_median_ms: 900'));
+      expect(lines, contains('startup_resume_median_ms: 1300'));
+      expect(
+        lines.any((line) =>
+            line.startsWith('startup[resume]:') &&
+            line.contains('to_first_frame=1300ms')),
+        isTrue,
+      );
     });
   });
 }

@@ -1,5 +1,6 @@
 import '../../../core/performance/device_label.dart';
 import '../../../core/performance/jank_recorder.dart';
+import '../../../core/performance/startup_trace.dart';
 import '../domain/feedback_report_builder.dart';
 
 /// Renders the recorded frame statistics as report lines.
@@ -10,21 +11,27 @@ class PerformanceDiagnosticsProvider
     implements FeedbackReportDiagnosticsProvider {
   PerformanceDiagnosticsProvider({
     JankRecorder? recorder,
+    StartupTrace? startupTrace,
     DeviceLabelLoader? deviceLabelLoader,
     this.maxScreens = 12,
     this.maxStalls = 10,
+    this.maxStartupRuns = 6,
   })  : _recorder = recorder ?? JankRecorder.instance,
+        _startupTrace = startupTrace ?? StartupTrace.instance,
         _deviceLabelLoader = deviceLabelLoader ?? DeviceLabel.load;
 
   final JankRecorder _recorder;
+  final StartupTrace _startupTrace;
   final DeviceLabelLoader _deviceLabelLoader;
   final int maxScreens;
   final int maxStalls;
+  final int maxStartupRuns;
 
   @override
   Future<List<String>> buildLines({required DateTime now}) async {
     return buildLinesFrom(
       snapshot: _recorder.snapshot(),
+      startup: _startupTrace.snapshot(),
       now: now,
       deviceLabel: await _deviceLabelLoader(),
     );
@@ -34,6 +41,7 @@ class PerformanceDiagnosticsProvider
     required PerfSnapshot snapshot,
     required DateTime now,
     required String deviceLabel,
+    StartupSnapshot startup = const StartupSnapshot(runs: []),
   }) {
     final lines = <String>[
       'device: $deviceLabel',
@@ -46,6 +54,8 @@ class PerformanceDiagnosticsProvider
           '(${_percent(snapshot.totalJankRatio)})',
       'stalls_recorded: ${snapshot.stalls.length}',
     ];
+
+    lines.addAll(_startupLines(startup));
 
     if (snapshot.isEmpty) {
       lines.add('status: no frames recorded yet');
@@ -83,6 +93,37 @@ class PerformanceDiagnosticsProvider
       );
     }
 
+    return lines;
+  }
+
+  /// The launch and resume waits, which produce no frames to measure and so
+  /// appear nowhere in the statistics above.
+  List<String> _startupLines(StartupSnapshot startup) {
+    if (startup.isEmpty) return const ['startup: not measured yet'];
+
+    final lines = <String>[];
+    for (final kind in StartupRunKind.values) {
+      final median = startup.medianToFirstFrame(kind);
+      if (median != null) {
+        lines.add('startup_${kind.name}_median_ms: $median');
+      }
+    }
+
+    final runs = startup.runs.take(maxStartupRuns);
+    for (final run in runs) {
+      final phases = [...run.phases]
+        ..sort((a, b) => b.durationMs.compareTo(a.durationMs));
+      final detail = [
+        for (final phase in phases) '${phase.name}=${phase.durationMs}ms',
+        'unattributed=${run.unattributedMs}ms',
+      ].join(' ');
+      lines.add(
+        'startup[${run.kind.name}]: '
+        'to_first_frame=${run.toFirstFrameMs}ms '
+        'at=${_timestamp(run.at)} '
+        '$detail',
+      );
+    }
     return lines;
   }
 

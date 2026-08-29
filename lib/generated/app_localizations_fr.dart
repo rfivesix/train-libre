@@ -1479,6 +1479,22 @@ class AppLocalizationsFr extends AppLocalizations {
   String get performanceLogStallsSection => 'Blocages (thread UI bloqué)';
 
   @override
+  String get performanceLogStartupSection => 'Démarrage et reprise';
+
+  @override
+  String get performanceLogStartupEmpty =>
+      'Aucun démarrage mesuré pour l\'instant.';
+
+  @override
+  String get performanceLogStartupCold => 'Démarrage à froid';
+
+  @override
+  String get performanceLogStartupResume => 'Reprise';
+
+  @override
+  String get performanceLogStartupUnattributed => 'Framework et premier rendu';
+
+  @override
   String get performanceLogSevereLabel => 'graves';
 
   @override

@@ -9,6 +9,7 @@ import '../../../core/performance/jank_recorder.dart';
 import '../../../generated/app_localizations.dart';
 import '../../../util/design_constants.dart';
 import '../../../widgets/common/app_button.dart';
+import '../../../core/performance/startup_trace.dart';
 import '../../../widgets/common/app_section_header.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/platform_adaptive_switch_list_tile.dart';
@@ -152,6 +153,7 @@ class _PerformanceDiagnosticsScreenState
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final snapshot = _snapshot ?? _recorder.snapshot();
+    final startup = StartupTrace.instance.snapshot();
     final topPadding = MediaQuery.of(context).padding.top + kToolbarHeight;
     final theme = Theme.of(context);
 
@@ -246,6 +248,34 @@ class _PerformanceDiagnosticsScreenState
                 ],
               ),
             ),
+          const SizedBox(height: DesignConstants.spacingXL),
+          AppSectionHeader(title: l10n.performanceLogStartupSection),
+          if (startup.isEmpty)
+            SummaryCard(
+              child: Padding(
+                padding: const EdgeInsets.all(DesignConstants.spacingL),
+                child: Text(
+                  l10n.performanceLogStartupEmpty,
+                  style: theme.textTheme.bodyMedium,
+                ),
+              ),
+            )
+          else
+            SummaryCard(
+              child: Column(
+                children: [
+                  for (var i = 0; i < startup.runs.length; i++) ...[
+                    if (i > 0) const Divider(height: 1),
+                    _StartupRunTile(
+                      run: startup.runs[i],
+                      coldLabel: l10n.performanceLogStartupCold,
+                      resumeLabel: l10n.performanceLogStartupResume,
+                      unattributedLabel: l10n.performanceLogStartupUnattributed,
+                    ),
+                  ],
+                ],
+              ),
+            ),
           if (snapshot.stalls.isNotEmpty) ...[
             const SizedBox(height: DesignConstants.spacingXL),
             AppSectionHeader(title: l10n.performanceLogStallsSection),
@@ -302,12 +332,12 @@ class _PerformanceDiagnosticsScreenState
       ),
     );
   }
+}
 
-  static String _formatTime(DateTime value) {
-    String two(int input) => input.toString().padLeft(2, '0');
-    return '${two(value.day)}.${two(value.month)}. '
-        '${two(value.hour)}:${two(value.minute)}';
-  }
+String _formatTime(DateTime value) {
+  String two(int input) => input.toString().padLeft(2, '0');
+  return '${two(value.day)}.${two(value.month)}. '
+      '${two(value.hour)}:${two(value.minute)}';
 }
 
 class _MetricRow extends StatelessWidget {
@@ -387,6 +417,59 @@ class _ScreenRow extends StatelessWidget {
             ),
         ],
       ),
+    );
+  }
+}
+
+/// One launch or resume, broken into the phases that were measured.
+///
+/// The phase names stay English on purpose, matching the rest of the log:
+/// they are identifiers in the code, and a translated one cannot be searched
+/// for in a bug report.
+class _StartupRunTile extends StatelessWidget {
+  const _StartupRunTile({
+    required this.run,
+    required this.coldLabel,
+    required this.resumeLabel,
+    required this.unattributedLabel,
+  });
+
+  final StartupRun run;
+  final String coldLabel;
+  final String resumeLabel;
+  final String unattributedLabel;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final worst = run.worstPhase;
+    final phases = [...run.phases]
+      ..sort((a, b) => b.durationMs.compareTo(a.durationMs));
+
+    return ExpansionTile(
+      shape: const Border(),
+      collapsedShape: const Border(),
+      title: Text(
+        run.kind == StartupRunKind.cold ? coldLabel : resumeLabel,
+        style: theme.textTheme.titleSmall,
+      ),
+      subtitle: Text(
+        '${run.toFirstFrameMs} ms · ${_formatTime(run.at)}'
+        '${worst == null ? '' : ' · ${worst.name} ${worst.durationMs} ms'}',
+      ),
+      childrenPadding: const EdgeInsets.only(
+        left: DesignConstants.spacingL,
+        right: DesignConstants.spacingL,
+        bottom: DesignConstants.spacingM,
+      ),
+      children: [
+        for (final phase in phases)
+          _MetricRow(label: phase.name, value: '${phase.durationMs} ms'),
+        _MetricRow(
+          label: unattributedLabel,
+          value: '${run.unattributedMs} ms',
+        ),
+      ],
     );
   }
 }

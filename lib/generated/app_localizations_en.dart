@@ -1464,6 +1464,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get performanceLogStallsSection => 'Stalls (UI thread blocked)';
 
   @override
+  String get performanceLogStartupSection => 'Startup & resume';
+
+  @override
+  String get performanceLogStartupEmpty => 'No startup measured yet.';
+
+  @override
+  String get performanceLogStartupCold => 'Cold start';
+
+  @override
+  String get performanceLogStartupResume => 'Resume';
+
+  @override
+  String get performanceLogStartupUnattributed => 'Framework & first render';
+
+  @override
   String get performanceLogSevereLabel => 'severe';
 
   @override

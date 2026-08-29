@@ -108,9 +108,19 @@ void main() {
     await tester.pump();
     expect(find.text('DiaryTab'), findsOneWidget);
 
+    // The screen grew past one viewport, so the tile is not built until the
+    // list is scrolled to it — ensureVisible alone needs an element that
+    // already exists.
     final resetTile =
         find.byKey(const Key('performance_diagnostics_reset_tile'));
-    await tester.ensureVisible(resetTile);
+    await tester.scrollUntilVisible(
+      resetTile,
+      300,
+      scrollable: find.descendant(
+        of: find.byKey(const Key('performance_diagnostics_scroll_view')),
+        matching: find.byType(Scrollable),
+      ),
+    );
     await tester.pump();
     await tester.tap(resetTile);
     await tester.pumpAndSettle();

@@ -2618,6 +2618,36 @@ abstract class AppLocalizations {
   /// **'Stalls (UI thread blocked)'**
   String get performanceLogStallsSection;
 
+  /// No description provided for @performanceLogStartupSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Startup & resume'**
+  String get performanceLogStartupSection;
+
+  /// No description provided for @performanceLogStartupEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No startup measured yet.'**
+  String get performanceLogStartupEmpty;
+
+  /// No description provided for @performanceLogStartupCold.
+  ///
+  /// In en, this message translates to:
+  /// **'Cold start'**
+  String get performanceLogStartupCold;
+
+  /// No description provided for @performanceLogStartupResume.
+  ///
+  /// In en, this message translates to:
+  /// **'Resume'**
+  String get performanceLogStartupResume;
+
+  /// No description provided for @performanceLogStartupUnattributed.
+  ///
+  /// In en, this message translates to:
+  /// **'Framework & first render'**
+  String get performanceLogStartupUnattributed;
+
   /// No description provided for @performanceLogSevereLabel.
   ///
   /// In en, this message translates to:

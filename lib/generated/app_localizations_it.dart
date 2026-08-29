@@ -1471,6 +1471,21 @@ class AppLocalizationsIt extends AppLocalizations {
   String get performanceLogStallsSection => 'Blocchi (thread UI bloccato)';
 
   @override
+  String get performanceLogStartupSection => 'Avvio e ripresa';
+
+  @override
+  String get performanceLogStartupEmpty => 'Nessun avvio ancora misurato.';
+
+  @override
+  String get performanceLogStartupCold => 'Avvio a freddo';
+
+  @override
+  String get performanceLogStartupResume => 'Ripresa';
+
+  @override
+  String get performanceLogStartupUnattributed => 'Framework e primo rendering';
+
+  @override
   String get performanceLogSevereLabel => 'gravi';
 
   @override
