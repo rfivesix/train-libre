@@ -30,6 +30,10 @@ class EditRoutineExerciseCard extends StatelessWidget {
   final bool isDragging;
   final bool isDraggedItem;
   final bool isEditMode;
+  final void Function(PointerDownEvent)? onPointerDown;
+  final void Function(PointerMoveEvent)? onPointerMove;
+  final void Function(PointerUpEvent)? onPointerUp;
+  final void Function(PointerCancelEvent)? onPointerCancel;
 
   const EditRoutineExerciseCard({
     super.key,
@@ -48,6 +52,10 @@ class EditRoutineExerciseCard extends StatelessWidget {
     this.isDragging = false,
     this.isDraggedItem = false,
     this.isEditMode = true,
+    this.onPointerDown,
+    this.onPointerMove,
+    this.onPointerUp,
+    this.onPointerCancel,
   });
 
   @override
@@ -66,10 +74,16 @@ class EditRoutineExerciseCard extends StatelessWidget {
               vertical: 8.0,
             ),
             title: isEditMode
-                ? ReorderableDelayedDragStartListener(
-                    index: index,
-                    child: _buildTitleContent(
-                        context, routineExercise, textTheme, colorScheme),
+                ? Listener(
+                    onPointerDown: onPointerDown,
+                    onPointerMove: onPointerMove,
+                    onPointerUp: onPointerUp,
+                    onPointerCancel: onPointerCancel,
+                    child: ReorderableDelayedDragStartListener(
+                      index: index,
+                      child: _buildTitleContent(
+                          context, routineExercise, textTheme, colorScheme),
+                    ),
                   )
                 : _buildTitleContent(
                     context, routineExercise, textTheme, colorScheme),

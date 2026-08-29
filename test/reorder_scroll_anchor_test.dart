@@ -19,47 +19,48 @@ class _TestWorkoutReorderList extends StatefulWidget {
 class _TestWorkoutReorderListState extends State<_TestWorkoutReorderList> {
   bool _isDragging = false;
   final List<String> _items = List.generate(15, (i) => 'Exercise $i');
+  late final ReorderScrollAnchor _anchor =
+      ReorderScrollAnchor(widget.controller);
 
-  void startReorder() {
+  void startReorder(Object anchorId) {
     if (!widget.isEditMode) return;
-    setState(() => _isDragging = true);
-    if (widget.controller.hasClients) {
-      widget.controller.animateTo(
-        0.0,
-        duration: kReorderCardResizeDuration,
-        curve: Curves.easeInOutCubic,
-      );
-    }
+    _anchor.pin(
+      anchorId,
+      () => setState(() => _isDragging = true),
+    );
   }
 
-  void endReorder() {
-    Future.delayed(kReorderDropSettleDuration, () {
-      if (mounted) {
-        setState(() => _isDragging = false);
-      }
-    });
+  void endReorder(Object anchorId) {
+    _anchor.pin(
+      anchorId,
+      () => setState(() => _isDragging = false),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
-        body: ListView.builder(
+        body: ListView(
           controller: widget.controller,
-          itemCount: _items.length,
-          itemBuilder: (context, i) {
-            return AnimatedSize(
-              key: ValueKey(_items[i]),
-              duration: kReorderCardResizeDuration,
-              curve: Curves.easeInOutCubic,
-              alignment: Alignment.topCenter,
-              child: SizedBox(
-                height: _isDragging ? 50.0 : 150.0,
-                width: double.infinity,
-                child: Text(_items[i]),
+          cacheExtent: 1500.0,
+          children: [
+            ReorderHeadroom(isDragging: _isDragging),
+            for (int i = 0; i < _items.length; i++)
+              KeyedSubtree(
+                key: _anchor.keyFor(_items[i]),
+                child: AnimatedSize(
+                  duration: kReorderCardResizeDuration,
+                  curve: Curves.easeInOutCubic,
+                  alignment: Alignment.topCenter,
+                  child: SizedBox(
+                    height: _isDragging ? 50.0 : 150.0,
+                    width: double.infinity,
+                    child: Text(_items[i]),
+                  ),
+                ),
               ),
-            );
-          },
+          ],
         ),
       ),
     );
@@ -76,7 +77,7 @@ void main() {
   tearDown(() => controller.dispose());
 
   testWidgets(
-      'reorder start scrolls list to top (0.0) without artificial headroom',
+      'ReorderScrollAnchor keeps touched item pinned while list collapses',
       (tester) async {
     await tester.pumpWidget(
       _TestWorkoutReorderList(
@@ -87,22 +88,19 @@ void main() {
     final state =
         tester.state<_TestWorkoutReorderListState>(find.byType(_TestWorkoutReorderList));
 
-    // Scroll down to an offset
-    controller.jumpTo(500.0);
-    await tester.pump();
-    expect(controller.offset, 500.0);
+    // Initially, Exercise 3 is at Y = 3 * 150 = 450
+    final initialY = tester.getTopLeft(find.text('Exercise 3')).dy;
+    expect(initialY, 450.0);
 
-    // Trigger reorder collapse
-    state.startReorder();
+    // Trigger reorder pinned on Exercise 3
+    state.startReorder('Exercise 3');
+    await tester.pump(const Duration(milliseconds: 100));
+    await tester.pump(const Duration(milliseconds: 200));
     await tester.pumpAndSettle();
 
-    // List should be smoothly animated to 0.0
-    expect(controller.offset, 0.0);
-    expect(controller.position.minScrollExtent, 0.0);
-
-    // There is no negative or extra headroom above the top
-    expect(find.text('Exercise 0'), findsOneWidget);
-    expect(tester.getTopLeft(find.text('Exercise 0')).dy, 0.0);
+    // After collapse and settle with headroom, Exercise 3 stays pinned close to initial position
+    final afterCollapseY = tester.getTopLeft(find.text('Exercise 3')).dy;
+    expect((afterCollapseY - initialY).abs(), lessThan(5.0));
   });
 
   testWidgets('non-edit mode ignores reorder start', (tester) async {
@@ -115,13 +113,12 @@ void main() {
     final state =
         tester.state<_TestWorkoutReorderListState>(find.byType(_TestWorkoutReorderList));
 
-    controller.jumpTo(300.0);
-    await tester.pump();
-
-    state.startReorder();
+    final initialY = tester.getTopLeft(find.text('Exercise 3')).dy;
+    state.startReorder('Exercise 3');
     await tester.pumpAndSettle();
 
-    // In non-edit mode, scroll position stays unchanged and cards do not collapse
-    expect(controller.offset, 300.0);
+    // In non-edit mode, cards do not collapse
+    expect(tester.getTopLeft(find.text('Exercise 3')).dy, initialY);
   });
 }
+

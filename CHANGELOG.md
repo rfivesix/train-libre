@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [1.2.0] - 2026-08-30
 
+### Fixed
+- **Hevy-Style Workout Exercise Drag & Drop Reordering (`LiveWorkoutScreen`, `EditRoutineScreen`, `WorkoutLogDetailScreen`, `EditRoutineExerciseCard`, `WorkoutExerciseLogCard`, `ReorderScrollAnchor`):** Overhauled drag & drop reordering across all workout and routine screens following the industry-standard Hevy anchoring model:
+  - **Strict Edit-Mode Gating:** Long-pressing exercise cards in non-edit mode is completely ignored; detail navigation and scrolling remain instantaneous without unwanted card collapse.
+  - **Anchor-Centered Pre-Collapse & Finger Lock:** In edit mode, holding an exercise card (~180ms) smoothly collapses all cards towards the touched item (`AnimatedSize`), with `ReorderScrollAnchor` adjusting the scroll offset on every frame so the held card stays firmly locked under the user's fingertip.
+  - **Dynamic Headroom & Space Management:** `ReorderHeadroom` provides top clearance during active dragging, allowing cards above to shrink smoothly without hard-clamping at `0.0`.
+  - **Exact 60px Slot Allocation:** Because cards pre-collapse before the 500ms drag start gesture triggers, Flutter measures the item at 60px and allocates an exact 60px placeholder slot in the list, eliminating oversized empty gaps.
+  - **Smooth Post-Drop Expansion:** Upon releasing the card (`onReorderEnd`), the list places the card and smoothly expands back to full height once settled.
+
 
 ## [1.2.0-beta.4] - 2026-08-29
 
@@ -27,12 +35,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Card-Morph Expansion (`StepsSummaryCard`, `NutritionHubScreen`):** Extended `CardMorphRoute` to the Diary Steps progress card and the Nutrition Hub (Supplement Hub, Food Explorer, and Meal creator/editor cards).
 
 ### Fixed
-- **Workout Exercise Drag & Drop Reordering (`LiveWorkoutScreen`, `EditRoutineScreen`, `WorkoutLogDetailScreen`, `EditRoutineExerciseCard`, `WorkoutExerciseLogCard`):** Overhauled drag & drop reordering across all workout and routine screens:
-  - **Edit-Mode Guard:** Fixed an issue where long-pressing exercise cards in non-edit mode collapsed the cards and triggered reorder listeners. Drag listeners and card collapsing are now strictly guarded by edit mode (`_isEditMode == true`).
-  - **Upward Scroll Limit & Headroom Removal:** Removed artificial 800px headroom (`ReorderHeadroom`, `kReorderCollapseHeadroom`) at the top and bottom of lists, eliminating unbounded upward scrolling and ensuring the list bounds cleanly at `0.0`.
-  - **Top-Aligned Reorder Scroll:** On drag start (`onReorderStart`), cards smoothly collapse to compact headers (`AnimatedSize`) while the viewport animates directly to the top (`animateTo(0.0)`), keeping the dragged card firmly locked under the user's finger with full visibility of all reorder slots.
-  - **Decorating Existing Children & Exact Viewport Sizing:** Instead of rebuilding a separate card structure with mismatched metrics or applying overflowing scale factors, the drag proxy decorates the actual dragged row child directly at 1:1 scale, eliminating horizontal viewport overhang and fingertip offset.
-  - **Opaque Lift Surface:** Wrapped dragged items in an opaque theme-aware surface (`reorderDragProxySurfaceColor`) with smooth lift elevation and squircle clipping, preventing transparent glass layers from sampling an empty overlay backdrop.
 - **Card-Morph Return Transition Polish (`CardMorphRoute`):** Collapsing an expanded card previously popped the source card abruptly back into view on the final frame. The page now fades out smoothly over the fully opaque source card underneath, widening the handover band and maintaining consistent liquid glass refraction throughout the back-swipe animation.
 - **Dynamic AI Model Discovery & Error Surfacing (`AiService`, `AiSettingsScreen`):** Fixed issues where the model dropdown in AI settings fell back to hardcoded models without communicating why:
   - **Surfacing Network & Auth Errors:** Network timeouts, invalid API keys (401), rate limits (429), and HTTP errors now explicitly report their cause in the UI alongside the emergency fallback models, instead of silently failing and pretending the hardcoded list was the live response.

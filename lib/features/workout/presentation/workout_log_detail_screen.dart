@@ -69,8 +69,57 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
   bool _isEditMode = false;
   bool _isDragging = false;
   bool _isDragActive = false;
+  Timer? _collapseTimer;
   Timer? _expandTimer;
+  Offset? _pointerDownPosition;
+  Object? _touchedAnchorId;
   final ScrollController _scrollController = ScrollController();
+  late final ReorderScrollAnchor _scrollAnchor =
+      ReorderScrollAnchor(_scrollController);
+
+  void _onDragPointerDown(PointerDownEvent event, Object anchorId) {
+    if (!_isEditMode) return;
+    _touchedAnchorId = anchorId;
+    _pointerDownPosition = event.position;
+    _collapseTimer?.cancel();
+    _collapseTimer = Timer(const Duration(milliseconds: 180), () {
+      if (mounted && !_isDragging && _isEditMode) {
+        _scrollAnchor.pin(
+          _touchedAnchorId,
+          () => setState(() => _isDragging = true),
+        );
+      }
+    });
+  }
+
+  void _onDragPointerMove(PointerMoveEvent event) {
+    if (_pointerDownPosition != null) {
+      final distance = (event.position - _pointerDownPosition!).distance;
+      if (distance > 4.0) {
+        _collapseTimer?.cancel();
+        if (!_isDragActive && _isDragging) {
+          _scrollAnchor.pin(
+            _touchedAnchorId,
+            () => setState(() => _isDragging = false),
+          );
+        }
+      }
+    }
+  }
+
+  void _onDragPointerUp(PointerUpEvent event) {
+    _collapseTimer?.cancel();
+    if (!_isDragActive && _isDragging) {
+      _scheduleExpandAfterDrop();
+    }
+  }
+
+  void _onDragPointerCancel(PointerCancelEvent event) {
+    _collapseTimer?.cancel();
+    if (!_isDragActive && _isDragging) {
+      _scheduleExpandAfterDrop();
+    }
+  }
 
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _notesController;
@@ -126,7 +175,10 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
   @override
   void dispose() {
     _setLogsSubscription?.cancel();
+    _collapseTimer?.cancel();
     _expandTimer?.cancel();
+    _scrollAnchor.discard();
+    _scrollController.dispose();
     _notesController.dispose();
     _clearControllers();
     super.dispose();
@@ -193,7 +245,10 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
       kReorderDropSettleDuration,
       () {
         if (mounted && _isDragging && !_isDragActive) {
-          setState(() => _isDragging = false);
+          _scrollAnchor.pin(
+            _touchedAnchorId,
+            () => setState(() => _isDragging = false),
+          );
         }
       },
     );
@@ -900,7 +955,12 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                     Expanded(
                       child: ListView(
                         controller: _scrollController,
+                        padding: EdgeInsets.only(
+                          bottom: _isDragging ? kReorderCollapseHeadroom : 0.0,
+                        ),
                         children: [
+                          if (_isEditMode)
+                            ReorderHeadroom(isDragging: _isDragging),
                           // Header Info (Clean Hero section)
                           Padding(
                             padding: const EdgeInsets.symmetric(
@@ -1189,18 +1249,13 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                               onReorderStart: (index) {
                                 if (!_isEditMode) return;
                                 _isDragActive = true;
+                                _scrollAnchor.discard();
+                                _collapseTimer?.cancel();
                                 _expandTimer?.cancel();
                                 if (!_isDragging) {
                                   setState(() {
                                     _isDragging = true;
                                   });
-                                }
-                                if (_scrollController.hasClients) {
-                                  _scrollController.animateTo(
-                                    0.0,
-                                    duration: kReorderCardResizeDuration,
-                                    curve: Curves.easeInOutCubic,
-                                  );
                                 }
                               },
                               onReorderEnd: (index) {
@@ -1266,85 +1321,95 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                                 final isDeleting = _deletingExerciseNames
                                     .contains(exerciseName);
 
-                                return AnimatedSize(
-                                  key: ValueKey(exerciseName),
-                                  duration: kReorderCardResizeDuration,
-                                  curve: Curves.easeInOutCubic,
-                                  alignment: Alignment.topCenter,
-                                  child: isDeleting
-                                      ? const SizedBox(
-                                          width: double.infinity, height: 0)
-                                      : AnimatedOpacity(
-                                          duration: const Duration(
-                                              milliseconds: 180),
-                                          curve: Curves.easeOut,
-                                          opacity: isDeleting ? 0.0 : 1.0,
-                                          child: RepaintBoundary(
-                                            key: ValueKey(exerciseName),
-                                            child: WorkoutExerciseLogCard(
-                                              exerciseName: exerciseName,
-                                              exercise: exercise,
-                                              sets: sets,
-                                              isEditMode: true,
-                                              isCardio: isCardio,
-                                              isDragging: _isDragging,
-                                              weightControllers:
-                                                  _weightControllers,
-                                              repsControllers:
-                                                  _repsControllers,
-                                              rirControllers:
-                                                  _rirControllers,
-                                              exerciseNote: _exerciseNotes[
-                                                  exerciseName],
-                                              onEditNotes: (exName) =>
-                                                  _editExerciseNotes(
-                                                      context, exName),
-                                              onDeleteExercise: (exName) =>
-                                                  _onDeleteExercise(
-                                                      exName, sets),
-                                              onAddSet: () {
-                                                final newSet = SetLog(
-                                                  id: -DateTime.now()
-                                                      .millisecondsSinceEpoch,
-                                                  workoutLogId: _log!.id!,
-                                                  exerciseName: exerciseName,
-                                                  setType: 'normal',
-                                                  isCompleted: true,
-                                                );
-                                                setState(() {
-                                                  sets.add(newSet);
-                                                  _weightControllers[
-                                                          newSet.id!] =
-                                                      TextEditingController();
-                                                  _repsControllers[
-                                                          newSet.id!] =
-                                                      TextEditingController();
-                                                  _rirControllers[
-                                                          newSet.id!] =
-                                                      TextEditingController();
-                                                });
-                                              },
-                                              onDeleteSet: (setId) {
-                                                setState(() {
-                                                  sets.removeWhere(
-                                                      (s) => s.id == setId);
-                                                  _weightControllers
-                                                      .remove(setId)
-                                                      ?.dispose();
-                                                  _repsControllers
-                                                      .remove(setId)
-                                                      ?.dispose();
-                                                  _rirControllers
-                                                      .remove(setId)
-                                                      ?.dispose();
-                                                });
-                                              },
-                                              onSetTypeTap: (setId) =>
-                                                  _showSetTypePicker(setId),
-                                              index: index,
+                                return KeyedSubtree(
+                                  key: _scrollAnchor.keyFor(exerciseName),
+                                  child: AnimatedSize(
+                                    duration: kReorderCardResizeDuration,
+                                    curve: Curves.easeInOutCubic,
+                                    alignment: Alignment.topCenter,
+                                    child: isDeleting
+                                        ? const SizedBox(
+                                            width: double.infinity, height: 0)
+                                        : AnimatedOpacity(
+                                            duration: const Duration(
+                                                milliseconds: 180),
+                                            curve: Curves.easeOut,
+                                            opacity: isDeleting ? 0.0 : 1.0,
+                                            child: RepaintBoundary(
+                                              key: ValueKey(exerciseName),
+                                              child: WorkoutExerciseLogCard(
+                                                exerciseName: exerciseName,
+                                                exercise: exercise,
+                                                sets: sets,
+                                                isEditMode: true,
+                                                isCardio: isCardio,
+                                                isDragging: _isDragging,
+                                                onPointerDown: (e) =>
+                                                    _onDragPointerDown(
+                                                        e, exerciseName),
+                                                onPointerMove:
+                                                    _onDragPointerMove,
+                                                onPointerUp: _onDragPointerUp,
+                                                onPointerCancel:
+                                                    _onDragPointerCancel,
+                                                weightControllers:
+                                                    _weightControllers,
+                                                repsControllers:
+                                                    _repsControllers,
+                                                rirControllers:
+                                                    _rirControllers,
+                                                exerciseNote: _exerciseNotes[
+                                                    exerciseName],
+                                                onEditNotes: (exName) =>
+                                                    _editExerciseNotes(
+                                                        context, exName),
+                                                onDeleteExercise: (exName) =>
+                                                    _onDeleteExercise(
+                                                        exName, sets),
+                                                onAddSet: () {
+                                                  final newSet = SetLog(
+                                                    id: -DateTime.now()
+                                                        .millisecondsSinceEpoch,
+                                                    workoutLogId: _log!.id!,
+                                                    exerciseName: exerciseName,
+                                                    setType: 'normal',
+                                                    isCompleted: true,
+                                                  );
+                                                  setState(() {
+                                                    sets.add(newSet);
+                                                    _weightControllers[
+                                                            newSet.id!] =
+                                                        TextEditingController();
+                                                    _repsControllers[
+                                                            newSet.id!] =
+                                                        TextEditingController();
+                                                    _rirControllers[
+                                                            newSet.id!] =
+                                                        TextEditingController();
+                                                  });
+                                                },
+                                                onDeleteSet: (setId) {
+                                                  setState(() {
+                                                    sets.removeWhere(
+                                                        (s) => s.id == setId);
+                                                    _weightControllers
+                                                        .remove(setId)
+                                                        ?.dispose();
+                                                    _repsControllers
+                                                        .remove(setId)
+                                                        ?.dispose();
+                                                    _rirControllers
+                                                        .remove(setId)
+                                                        ?.dispose();
+                                                  });
+                                                },
+                                                onSetTypeTap: (setId) =>
+                                                    _showSetTypePicker(setId),
+                                                index: index,
+                                              ),
                                             ),
                                           ),
-                                        ),
+                                  ),
                                 );
                               },
                             ),
