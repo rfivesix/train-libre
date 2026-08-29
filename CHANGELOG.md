@@ -7,6 +7,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [1.2.0] - 2026-08-30
 
 ### Added
+- **Flashlight / Torch Toggle for AI & Barcode Scanners (`ScannerScreen`, `AiMealCaptureScreen`, `DepthScanPlugin.swift`, `DepthScanChannel`):** Added a dedicated flashlight toggle option (`LucideIcons.zap` / `LucideIcons.zap_off`) to both the standalone Barcode Scanner and the AI Meal Capture Scanner:
+  - **Native iOS Session Control:** Extended `DepthScanPlugin.swift` and `DepthScanController` with native AVFoundation torch mode switching (`toggleTorch`, `isTorchOn`), allowing low-light meal photography, LiDAR depth scans, and barcode recognition with live hardware illumination.
+  - **ZXing / QRView Fallback Control:** Seamlessly integrated flash toggling via `QRViewController.toggleFlash()` on Android and fallback capture paths.
+  - **Adaptive UI & Lifecycle Safety:** Displays active torch state with high-contrast accent highlights in AppBar actions, automatically resetting torch state on screen navigation or app suspension.
 - **Liquid Glass Morph Animation across Live Workout & Workout Screens (`CardMorphRoute`, `LiveWorkoutScreen`, `EditRoutineScreen`, `WorkoutHistoryScreen`, `WorkoutLogDetailScreen`, `ExerciseCatalogScreen`, `ExerciseDetailScreen`, `FoodExplorerScreen`, `MealsScreen`, `SupplementHubScreen`):** Expanded fluid container-morph transitions across all workout and catalog workflows:
   - **Live Workout Exercise Addition:** Tapping the "+ Übung hinzufügen" Glass FAB in `LiveWorkoutScreen` smoothly expands the exercise catalog directly out of the glass button with adaptive rest-timer shadow clipping, and seamlessly collapses back into the pill upon selection or dismissal.
   - **Routine Editor & History Morphing:** Extended `CardMorphRoute` to the routine editor FAB (`EditRoutineScreen`), workout log history cards (`WorkoutHistoryScreen` → `WorkoutLogDetailScreen`), exercise catalog detail views (`ExerciseCatalogScreen` → `ExerciseDetailScreen`), and in-workout title taps.
@@ -16,7 +20,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   - **Slot-Crossing Ticks:** Monitors sub-millimeter finger movements and auto-scroll viewport offsets during active drag, firing a crisp selection tick (`HapticFeedback.selectionClick`) on every slot boundary transition.
   - **Drop Settle Confirmation:** Delivers a subtle confirmation impact (`HapticFeedbackService.lightImpact`) upon releasing the card into its target position.
 
+### Changed
+- **Diary Water & Drinks Card Unification (`FluidEntryTile`, `DiaryFoodRow`, `DiaryScreen`):** Unified the "Water & Drinks" section in the Diary Screen with meal cards (Breakfast, Lunch, Dinner, Snack):
+  - **Single-Line Column Alignment:** Migrated `FluidEntryTile` from a multi-line `ListTile` to `DiaryFoodRow`, ensuring liquid amounts (e.g. `1500ml`) and calories (`480 kcal`) line up in the exact same vertical columns as food rows.
+  - **Dynamic Sugar & Caffeine Columns:** Fluid items with non-zero sugar (e.g. `S 120g`) or caffeine (e.g. `480mg`) display dedicated data columns to the left of the amount column, preserving complete nutritional visibility on individual drink items without vertical clutter.
+  - **Full Data & Nutrient Preservation:** The card header displays aggregated calories, caffeine, fluid volume, and sugar via `MacroBadgeRow`, while tapping or editing a fluid entry opens full portion and nutrient editing.
+  - **Consistent Energy Sorting:** Sorted fluids by energy descending (largest kcal first) inside the expanded card to match the food item ordering convention across the diary.
+
 ### Fixed
+- **Meal Editing Persistence & Auto-Save (`MealEntryScreen`, `DiaryScreen`, `MealScreen`):** Fixed an issue where edits made to saved meals inside `MealEntryScreen` (adjusting ingredient quantities, deleting ingredients, replacing foods, adding new items, changing meal types or renaming) were not reliably persisted to the database or reflected in the diary upon exiting:
+  - **Ingredient Deletion Persistence:** Tracked deleted item IDs so that removed meal ingredients are explicitly deleted from the database (`repo.deleteFoodEntry`) when changes are persisted, rather than leaving orphan rows in the diary.
+  - **Guaranteed Pop Lifecycle Synchronization:** Replaced fire-and-forget unawaited async calls in `PopScope` with a coordinated pop handler that awaits `_persistChanges()` before navigation finishes, preventing defunct context exceptions and database race conditions.
+  - **Immediate Diary UI Refresh:** Updated `DiaryScreen` to automatically reload diary data (`DiaryViewModel.loadDataForDate`) whenever returning from `MealEntryScreen`.
+  - **Meal Template Creation:** Implemented the functional "Save as template" (`_saveAsTemplate`) menu action in `MealEntryScreen` to insert meal templates and items into the database.
+  - **Meal Renaming & Safe Numeric Casts:** Added meal title renaming dialog in the options menu and fixed type safety in `MealScreen` for dynamic numeric quantities.
 - **Hevy-Style Workout Exercise Drag & Drop Reordering (`LiveWorkoutScreen`, `EditRoutineScreen`, `WorkoutLogDetailScreen`, `EditRoutineExerciseCard`, `WorkoutExerciseLogCard`, `ReorderScrollAnchor`):** Overhauled drag & drop reordering across all workout and routine screens following the industry-standard Hevy anchoring model:
   - **Strict Edit-Mode Gating:** Long-pressing exercise cards in non-edit mode is completely ignored; detail navigation and scrolling remain instantaneous without unwanted card collapse.
   - **Anchor-Centered Pre-Collapse & Finger Lock:** In edit mode, holding an exercise card (~180ms) smoothly collapses all cards towards the touched item (`AnimatedSize`), with `ReorderScrollAnchor` adjusting the scroll offset on every frame so the held card stays firmly locked under the user's fingertip.

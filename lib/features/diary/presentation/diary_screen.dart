@@ -1695,8 +1695,7 @@ class _MealCardState extends State<_MealCard> {
 
                                 return buildMealCard(
                                   onTapDetail: () async {
-                                    final result =
-                                        await Navigator.of(context).push<bool>(
+                                    await Navigator.of(context).push<bool>(
                                       CardMorphRoute(
                                         sourceContext: cardCtx,
                                         sourceBuilder: (_) => buildMealCard(),
@@ -1707,7 +1706,7 @@ class _MealCardState extends State<_MealCard> {
                                         ),
                                       ),
                                     );
-                                    if (result == true && context.mounted) {
+                                    if (context.mounted) {
                                       context
                                           .read<DiaryViewModel>()
                                           .loadDataForDate(
@@ -1908,24 +1907,36 @@ class _FluidsCardState extends State<_FluidsCard> {
                       ? CrossFadeState.showFirst
                       : CrossFadeState.showSecond,
                   duration: DesignConstants.expandCollapseDuration,
-                  firstChild: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (fluids.isNotEmpty)
-                        const SizedBox(height: DesignConstants.spacingS),
-                      ...fluids.asMap().entries.expand((entry) {
-                        final index = entry.key;
-                        final fluid = entry.value;
-                        return [
-                          if (index > 0) const Divider(height: 1),
-                          FluidEntryTile(
-                            entry: fluid,
-                            onEdit: widget.onEditFluid,
-                            onDelete: widget.onDeleteFluid,
-                          ),
-                        ];
-                      }),
-                    ],
+                  firstChild: Builder(
+                    builder: (context) {
+                      final sortedFluids = List<FluidEntry>.from(fluids)
+                        ..sort((a, b) {
+                          final kcalA = a.kcal ?? 0;
+                          final kcalB = b.kcal ?? 0;
+                          if (kcalA != kcalB) return kcalB.compareTo(kcalA);
+                          return b.quantityInMl.compareTo(a.quantityInMl);
+                        });
+
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (sortedFluids.isNotEmpty)
+                            const SizedBox(height: DesignConstants.spacingS),
+                          ...sortedFluids.asMap().entries.expand((entry) {
+                            final index = entry.key;
+                            final fluid = entry.value;
+                            return [
+                              if (index > 0) const Divider(height: 1),
+                              FluidEntryTile(
+                                entry: fluid,
+                                onEdit: widget.onEditFluid,
+                                onDelete: widget.onDeleteFluid,
+                              ),
+                            ];
+                          }),
+                        ],
+                      );
+                    },
                   ),
                   secondChild: const SizedBox.shrink(),
                 ),

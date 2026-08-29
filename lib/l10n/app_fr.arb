@@ -2316,6 +2316,7 @@
   "scannerOpenSettings": "Ouvrir les paramètres",
   "scannerGrantPermission": "Continuer",
   "scannerAlignInstruction": "Alignez le code-barres horizontalement à l'intérieur de la ligne laser rouge",
+  "scannerToggleFlash": "Activer/désactiver le flash",
   "about_train_libre": "À propos de Train Libre",
   "legal_notice": "Mentions légales",
   "privacy_policy": "Charte de confidentialité",

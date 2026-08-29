@@ -38,6 +38,10 @@ class DiaryFoodRow extends StatelessWidget {
   /// meal header. Rows without one still reserve the space.
   final Widget? trailing;
 
+  /// Optional extra columns (e.g. sugar, caffeine) rendered to the left of
+  /// the amount column.
+  final List<Widget>? extraColumns;
+
   const DiaryFoodRow({
     super.key,
     required this.name,
@@ -45,6 +49,7 @@ class DiaryFoodRow extends StatelessWidget {
     required this.energyLabel,
     this.isNested = false,
     this.trailing,
+    this.extraColumns,
   });
 
   @override
@@ -72,6 +77,11 @@ class DiaryFoodRow extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
             ),
           ),
+          if (extraColumns != null)
+            for (final col in extraColumns!) ...[
+              const SizedBox(width: 8),
+              col,
+            ],
           const SizedBox(width: 8),
           SizedBox(
             width: kDiaryAmountColumnWidth,

@@ -73,6 +73,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
   final GlobalKey qrKey = GlobalKey(debugLabel: 'QR_Capture');
   QRViewController? _qrController;
   PermissionStatus _cameraPermission = PermissionStatus.denied;
+  bool _isFlashOn = false;
   String? _detectedBarcode;
   FoodItem? _detectedProduct;
   bool _isLoggingBarcode = false;
@@ -248,10 +249,33 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
   /// Suspends active camera preview and depth/barcode hardware.
   Future<void> _suspendCamera() async {
     _isCameraSuspended = true;
+    if (_isFlashOn && mounted) {
+      setState(() => _isFlashOn = false);
+    }
     if (_useNativeSession) {
       await DepthScanChannel.instance.stopSession();
     } else {
       await _qrController?.pauseCamera();
+    }
+  }
+
+  Future<void> _toggleFlash() async {
+    HapticFeedbackService.instance.selectionFeedback();
+    if (_useNativeSession) {
+      final isOn = await DepthScanChannel.instance.toggleTorch();
+      if (mounted) {
+        setState(() => _isFlashOn = isOn);
+      }
+    } else if (_qrController != null) {
+      try {
+        await _qrController?.toggleFlash();
+        final status = await _qrController?.getFlashStatus();
+        if (mounted) {
+          setState(() => _isFlashOn = status ?? !_isFlashOn);
+        }
+      } catch (e) {
+        debugPrint('[AiMealCapture] toggleFlash error: $e');
+      }
     }
   }
 
@@ -415,6 +439,11 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
 
   void _onQRViewCreated(QRViewController controller) {
     _qrController = controller;
+    controller.getFlashStatus().then((status) {
+      if (mounted && status != null) {
+        setState(() => _isFlashOn = status);
+      }
+    }).catchError((_) {});
     controller.scannedDataStream.listen((scanData) async {
       final code = scanData.code;
       if (!_barcodeDetectionEnabled || !mounted) return;
@@ -956,6 +985,16 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
       appBar: GlobalAppBar(
         title: l10n.aiScannerTitle,
         actions: [
+          if (_cameraPermission.isGranted)
+            IconButton(
+              icon: Icon(
+                _isFlashOn ? LucideIcons.zap : LucideIcons.zap_off,
+                size: 20,
+                color: _isFlashOn ? primaryAccent : null,
+              ),
+              tooltip: l10n.scannerToggleFlash,
+              onPressed: _toggleFlash,
+            ),
           IconButton(
             icon: const Icon(LucideIcons.info, size: 20),
             tooltip: l10n.aiCaptureTourReplayTooltip,

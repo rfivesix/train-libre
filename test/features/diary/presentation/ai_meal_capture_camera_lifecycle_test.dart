@@ -4,6 +4,7 @@ import 'package:drift/drift.dart' as drift;
 import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:permission_handler_platform_interface/permission_handler_platform_interface.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
@@ -60,20 +61,35 @@ void main() {
           source: drift.Value('off'),
         ));
 
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(
-            const MethodChannel('net.touchcapture.qr.flutterqr/qrview_0'),
-            (MethodCall call) async {
-      qrCalls.add(call.method);
-      return true;
-    });
+    for (var i = 0; i < 20; i++) {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+              MethodChannel('net.touchcapture.qr.flutterqr/qrview_$i'),
+              (MethodCall call) async {
+        qrCalls.add(call.method);
+        return true;
+      });
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+              MethodChannel('net.touchcapture.qr.flutterqrplus/qrview_$i'),
+              (MethodCall call) async {
+        qrCalls.add(call.method);
+        return true;
+      });
+    }
   });
 
   tearDown(() async {
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(
-            const MethodChannel('net.touchcapture.qr.flutterqr/qrview_0'),
-            null);
+    for (var i = 0; i < 20; i++) {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+              MethodChannel('net.touchcapture.qr.flutterqr/qrview_$i'),
+              null);
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+              MethodChannel('net.touchcapture.qr.flutterqrplus/qrview_$i'),
+              null);
+    }
     await db.close();
   });
 
@@ -148,6 +164,67 @@ void main() {
 
       expect(find.byType(AiMealCaptureScreen), findsOneWidget);
     });
+
+    testWidgets('toggles flash on button tap and resets on suspension',
+        (tester) async {
+      final navigatorKey = GlobalKey<NavigatorState>();
+
+      await tester.pumpWidget(
+        MaterialApp(
+          navigatorKey: navigatorKey,
+          navigatorObservers: [appRouteObserver],
+          locale: const Locale('de'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: const AiMealCaptureScreen(),
+        ),
+      );
+
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+
+      final flashFinder = find.widgetWithIcon(IconButton, LucideIcons.zap_off);
+      expect(flashFinder, findsOneWidget);
+
+      final uiKitFinder = find.byType(UiKitView);
+      if (uiKitFinder.evaluate().isNotEmpty) {
+        final uikit = tester.widget<UiKitView>(uiKitFinder);
+        uikit.onPlatformViewCreated?.call(0);
+      }
+      final androidFinder = find.byType(AndroidView);
+      if (androidFinder.evaluate().isNotEmpty) {
+        final android = tester.widget<AndroidView>(androidFinder);
+        android.onPlatformViewCreated?.call(0);
+      }
+      await tester.pump();
+
+      final flashButtonFinder = find.byWidgetPredicate(
+        (w) => w is IconButton && w.tooltip == 'Blitz ein-/ausschalten',
+      );
+      expect(flashButtonFinder, findsOneWidget);
+
+      // Tap to toggle flash on
+      await tester.tap(flashButtonFinder);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+
+      expect(qrCalls, contains('toggleFlash'));
+
+      // Pushing a new route suspends camera and resets flash
+      navigatorKey.currentState!.push<void>(
+        MaterialPageRoute(
+          builder: (_) => const Scaffold(body: Text('Overlay Screen')),
+        ),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      navigatorKey.currentState!.pop();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(find.widgetWithIcon(IconButton, LucideIcons.zap_off), findsOneWidget);
+    });
   });
 
   group('ScannerScreen Camera Lifecycle', () {
@@ -184,6 +261,46 @@ void main() {
       await tester.pump(const Duration(milliseconds: 300));
 
       expect(find.byType(ScannerScreen), findsOneWidget);
+    });
+
+    testWidgets('renders flash button and handles toggle', (tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          locale: Locale('de'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: ScannerScreen(),
+        ),
+      );
+
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+
+      final flashFinder = find.widgetWithIcon(IconButton, LucideIcons.zap_off);
+      expect(flashFinder, findsOneWidget);
+
+      final uiKitFinder = find.byType(UiKitView);
+      if (uiKitFinder.evaluate().isNotEmpty) {
+        final uikit = tester.widget<UiKitView>(uiKitFinder);
+        uikit.onPlatformViewCreated?.call(0);
+      }
+      final androidFinder = find.byType(AndroidView);
+      if (androidFinder.evaluate().isNotEmpty) {
+        final android = tester.widget<AndroidView>(androidFinder);
+        android.onPlatformViewCreated?.call(0);
+      }
+      await tester.pump();
+
+      final flashButtonFinder = find.byWidgetPredicate(
+        (w) => w is IconButton && w.tooltip == 'Blitz ein-/ausschalten',
+      );
+      expect(flashButtonFinder, findsOneWidget);
+
+      await tester.tap(flashButtonFinder);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+
+      expect(qrCalls, contains('toggleFlash'));
     });
   });
 }

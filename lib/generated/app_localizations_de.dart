@@ -5148,6 +5148,9 @@ class AppLocalizationsDe extends AppLocalizations {
       'Barcode horizontal an der roten Laserlinie ausrichten';
 
   @override
+  String get scannerToggleFlash => 'Blitz ein-/ausschalten';
+
+  @override
   String get about_train_libre => 'Über Train Libre';
 
   @override

@@ -5186,6 +5186,9 @@ class AppLocalizationsIt extends AppLocalizations {
       'Allinea il codice a barre orizzontalmente all\'interno della linea laser rossa';
 
   @override
+  String get scannerToggleFlash => 'Attiva/disattiva flash';
+
+  @override
   String get about_train_libre => 'A proposito di Train Libre';
 
   @override

@@ -2315,6 +2315,7 @@
   "scannerOpenSettings": "Einstellungen öffnen",
   "scannerGrantPermission": "Weiter",
   "scannerAlignInstruction": "Barcode horizontal an der roten Laserlinie ausrichten",
+  "scannerToggleFlash": "Blitz ein-/ausschalten",
   "about_train_libre": "Über Train Libre",
   "legal_notice": "Impressum",
   "privacy_policy": "Datenschutzerklärung",

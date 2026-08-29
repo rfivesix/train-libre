@@ -33,6 +33,7 @@ class ScannerScreen extends StatefulWidget {
 class _ScannerScreenState extends State<ScannerScreen>
     with SingleTickerProviderStateMixin, WidgetsBindingObserver, RouteAware {
   bool _isDone = false;
+  bool _isFlashOn = false;
   PermissionStatus _cameraPermissionStatus = PermissionStatus.denied;
   bool _isCheckingPermission = true;
   bool _isRequestingPermission = false;
@@ -115,6 +116,9 @@ class _ScannerScreenState extends State<ScannerScreen>
   void didPushNext() {
     _isTopRoute = false;
     controller?.pauseCamera();
+    if (_isFlashOn && mounted) {
+      setState(() => _isFlashOn = false);
+    }
   }
 
   @override
@@ -127,6 +131,9 @@ class _ScannerScreenState extends State<ScannerScreen>
   void didPop() {
     _isTopRoute = false;
     controller?.pauseCamera();
+    if (_isFlashOn && mounted) {
+      setState(() => _isFlashOn = false);
+    }
   }
 
   @override
@@ -148,6 +155,11 @@ class _ScannerScreenState extends State<ScannerScreen>
 
   void _onQRViewCreated(QRViewController controller) {
     this.controller = controller;
+    controller.getFlashStatus().then((status) {
+      if (mounted && status != null) {
+        setState(() => _isFlashOn = status);
+      }
+    }).catchError((_) {});
     controller.scannedDataStream.listen((scanData) {
       if (scanData.code != null && !_isDone) {
         developer
@@ -163,6 +175,22 @@ class _ScannerScreenState extends State<ScannerScreen>
     });
   }
 
+  Future<void> _toggleFlash() async {
+    if (controller == null) return;
+    HapticFeedbackService.instance.selectionFeedback();
+    try {
+      await controller?.toggleFlash();
+      final status = await controller?.getFlashStatus();
+      if (mounted) {
+        setState(() {
+          _isFlashOn = status ?? !_isFlashOn;
+        });
+      }
+    } catch (e) {
+      debugPrint('[ScannerScreen] toggleFlash error: $e');
+    }
+  }
+
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
@@ -174,6 +202,9 @@ class _ScannerScreenState extends State<ScannerScreen>
     } else if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.inactive) {
       controller?.pauseCamera();
+      if (_isFlashOn && mounted) {
+        setState(() => _isFlashOn = false);
+      }
     }
   }
 
@@ -250,6 +281,8 @@ class _ScannerScreenState extends State<ScannerScreen>
       );
     }
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return PopScope(
       canPop: true,
       child: Scaffold(
@@ -267,6 +300,22 @@ class _ScannerScreenState extends State<ScannerScreen>
               context,
             ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900),
           ),
+          actions: [
+            if (_cameraPermissionStatus.isGranted)
+              IconButton(
+                icon: Icon(
+                  _isFlashOn ? LucideIcons.zap : LucideIcons.zap_off,
+                  size: 20,
+                  color: _isFlashOn
+                      ? (isDark
+                          ? const Color(0xFFC9EF00)
+                          : Theme.of(context).colorScheme.primary)
+                      : null,
+                ),
+                tooltip: l10n.scannerToggleFlash,
+                onPressed: _toggleFlash,
+              ),
+          ],
         ),
         body: _buildBody(l10n),
       ),

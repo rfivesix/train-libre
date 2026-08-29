@@ -385,7 +385,7 @@ class _MealScreenState extends State<MealScreen> {
       );
       await DatabaseHelper.instance.clearMealItems(mealId);
       for (final it in _items) {
-        final grams = (it['quantity_in_grams'] as int?) ?? 0;
+        final grams = (it['quantity_in_grams'] as num?)?.toInt() ?? 0;
         await DatabaseHelper.instance.addMealItem(
           mealId: mealId,
           barcode: it['barcode'] as String,

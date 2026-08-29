@@ -62,6 +62,14 @@ public class DepthScanPlugin: NSObject {
       DepthScanController.shared.stop()
       result(true)
 
+    case "toggleTorch":
+      DepthScanController.shared.toggleTorch { isOn in
+        result(isOn)
+      }
+
+    case "getTorchStatus":
+      result(DepthScanController.shared.isTorchOn())
+
     case "capture":
       DepthScanController.shared.capturePhotoWithDepth { response, failure in
         if let response {
@@ -401,8 +409,48 @@ public class DepthScanController: NSObject {
   public func stop() {
     sessionQueue.async { [weak self] in
       guard let self, self.session.isRunning else { return }
+      if let device = self.videoDevice, device.hasTorch && device.torchMode == .on {
+        self.guarded("turnOffTorchOnStop") {
+          do {
+            try device.lockForConfiguration()
+            device.torchMode = .off
+            device.unlockForConfiguration()
+          } catch {}
+        }
+      }
       self.guarded("stopRunning") { self.session.stopRunning() }
     }
+  }
+
+  public func toggleTorch(completion: @escaping (Bool) -> Void) {
+    sessionQueue.async { [weak self] in
+      guard let self, let device = self.videoDevice, device.hasTorch else {
+        DispatchQueue.main.async { completion(false) }
+        return
+      }
+      var isOn = false
+      self.guarded("toggleTorch") {
+        do {
+          try device.lockForConfiguration()
+          if device.torchMode == .on {
+            device.torchMode = .off
+            isOn = false
+          } else if device.isTorchModeSupported(.on) {
+            try device.setTorchModeOn(level: AVCaptureDevice.maxAvailableTorchLevel)
+            isOn = true
+          }
+          device.unlockForConfiguration()
+        } catch {
+          NSLog("[DepthScan] toggleTorch failed: %@", error.localizedDescription)
+        }
+      }
+      DispatchQueue.main.async { completion(isOn) }
+    }
+  }
+
+  public func isTorchOn() -> Bool {
+    guard let device = videoDevice else { return false }
+    return device.hasTorch && device.torchMode == .on
   }
 
   private func configureSession() -> Bool {

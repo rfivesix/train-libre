@@ -30,6 +30,8 @@ class _RecordingDiaryRepo implements IDiaryRepository {
   final List<({String id, DateTime to})> moves = [];
   final List<MealEntry> updatedMealEntries = [];
   final List<FoodEntry> updatedFoodEntries = [];
+  final List<FoodEntry> insertedFoodEntries = [];
+  final List<int> deletedFoodEntries = [];
 
   @override
   Future<void> moveMealEntryTo(
@@ -45,6 +47,18 @@ class _RecordingDiaryRepo implements IDiaryRepository {
   @override
   Future<void> updateFoodEntry(FoodEntry entry) async {
     updatedFoodEntries.add(entry);
+  }
+
+  @override
+  Future<int> insertFoodEntry(FoodEntry entry,
+      {String telemetrySource = 'manual_search'}) async {
+    insertedFoodEntries.add(entry);
+    return 99;
+  }
+
+  @override
+  Future<void> deleteFoodEntry(int id) async {
+    deletedFoodEntries.add(id);
   }
 
   @override
@@ -234,5 +248,106 @@ void main() {
       reason: 'the meal\'s items move by the same delta as the meal',
     );
     expect(repo.updatedFoodEntries.single.id, 7);
+  });
+
+  testWidgets(
+      'deleting an ingredient deletes the food entry on pop',
+      (tester) async {
+    final repo = _RecordingDiaryRepo();
+    await pumpScreen(tester, repo);
+
+    // Swipe to dismiss ingredient
+    await tester.drag(
+      find.byKey(const ValueKey('meal_item_7_0')),
+      const Offset(-500, 0),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Reis'), findsNothing);
+
+    // Pop the screen
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+
+    expect(repo.deletedFoodEntries, contains(7),
+        reason: 'deleted ingredient ID 7 must be deleted via repo.deleteFoodEntry');
+  });
+
+  testWidgets(
+      'quick adjusting ingredient quantity updates the food entry on pop',
+      (tester) async {
+    final repo = _RecordingDiaryRepo();
+    await pumpScreen(tester, repo);
+
+    // Tap +25g quick adjustment button
+    final plus25Finder = find.text('+25g');
+    if (plus25Finder.evaluate().isNotEmpty) {
+      await tester.tap(plus25Finder.first);
+      await tester.pumpAndSettle();
+
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+
+      expect(repo.updatedFoodEntries, isNotEmpty);
+      expect(repo.updatedFoodEntries.first.quantityInGrams, 175);
+    }
+  });
+
+  testWidgets(
+      'changing meal type updates both meal entry and linked food entries on pop',
+      (tester) async {
+    final repo = _RecordingDiaryRepo();
+    await pumpScreen(tester, repo);
+
+    // Open overflow options
+    await tester.tap(find.byTooltip('Options'));
+    await tester.pumpAndSettle();
+
+    // Select Change meal type
+    await tester.tap(find.text('Change meal type'));
+    await tester.pumpAndSettle();
+
+    // Pick Dinner
+    await tester.tap(find.text('Dinner'));
+    await tester.pumpAndSettle();
+
+    // Pop screen
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+
+    expect(repo.updatedMealEntries, isNotEmpty);
+    expect(repo.updatedMealEntries.last.mealType, 'mealtypeDinner');
+
+    expect(repo.updatedFoodEntries, isNotEmpty);
+    expect(repo.updatedFoodEntries.last.mealType, 'mealtypeDinner');
+  });
+
+  testWidgets(
+      'renaming meal updates the title and persists on pop',
+      (tester) async {
+    final repo = _RecordingDiaryRepo();
+    await pumpScreen(tester, repo);
+
+    // Open overflow options
+    await tester.tap(find.byTooltip('Options'));
+    await tester.pumpAndSettle();
+
+    // Select Rename
+    await tester.tap(find.text('Recipe name'));
+    await tester.pumpAndSettle();
+
+    // Enter new name
+    await tester.enterText(find.byType(TextField).last, 'Gesundes Mittagessen');
+    await tester.tap(find.text('Save').last);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Gesundes Mittagessen'), findsOneWidget);
+
+    // Pop screen
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+
+    expect(repo.updatedMealEntries, isNotEmpty);
+    expect(repo.updatedMealEntries.last.title, 'Gesundes Mittagessen');
   });
 }

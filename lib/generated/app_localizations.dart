@@ -8976,6 +8976,12 @@ abstract class AppLocalizations {
   /// **'Align barcode horizontally inside the red laser line'**
   String get scannerAlignInstruction;
 
+  /// No description provided for @scannerToggleFlash.
+  ///
+  /// In en, this message translates to:
+  /// **'Toggle flashlight'**
+  String get scannerToggleFlash;
+
   /// No description provided for @about_train_libre.
   ///
   /// In en, this message translates to:

@@ -52,6 +52,8 @@ abstract class IDepthScanService {
   Future<DepthScanCapability> capability();
   Future<bool> startSession();
   Future<void> stopSession();
+  Future<bool> toggleTorch();
+  Future<bool> isTorchOn();
   Stream<String> get barcodes;
   Future<DepthCaptureResult?> capture();
 }
@@ -122,6 +124,28 @@ class DepthScanChannel implements IDepthScanService {
       await _channel.invokeMethod<bool>('stop');
     } catch (e) {
       debugPrint('[DepthScanChannel] stop failed: $e');
+    }
+  }
+
+  @override
+  Future<bool> toggleTorch() async {
+    if (!Platform.isIOS) return false;
+    try {
+      return await _channel.invokeMethod<bool>('toggleTorch') ?? false;
+    } catch (e) {
+      debugPrint('[DepthScanChannel] toggleTorch failed: $e');
+      return false;
+    }
+  }
+
+  @override
+  Future<bool> isTorchOn() async {
+    if (!Platform.isIOS) return false;
+    try {
+      return await _channel.invokeMethod<bool>('getTorchStatus') ?? false;
+    } catch (e) {
+      debugPrint('[DepthScanChannel] isTorchOn failed: $e');
+      return false;
     }
   }
 

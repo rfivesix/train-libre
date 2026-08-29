@@ -10,6 +10,8 @@ import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
+import '../../../data/database_helper.dart';
+
 import '../../../generated/app_localizations.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/app_button.dart';
@@ -50,13 +52,22 @@ class MealEntryScreen extends StatefulWidget {
 class _MealEntryScreenState extends State<MealEntryScreen> {
   late MealEntry _mealEntry;
   late List<TrackedFoodItem> _items;
+  final List<int> _deletedItemIds = [];
   bool _isSaving = false;
+  bool _canPop = false;
+  IDiaryRepository? _repo;
 
   @override
   void initState() {
     super.initState();
     _mealEntry = widget.mealEntry;
     _items = List.from(widget.initialItems);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _repo ??= context.read<IDiaryRepository>();
   }
 
   int get _totalKcal {
@@ -119,7 +130,9 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
     }
   }
 
-  void _updateQuantity(int index, int delta) {
+  void _updateQuantity(TrackedFoodItem item, int delta) {
+    final index = _items.indexOf(item);
+    if (index < 0) return;
     setState(() {
       final current = _items[index];
       final newQuantity =
@@ -131,7 +144,9 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
     });
   }
 
-  Future<void> _showDirectQuantityDialog(int index) async {
+  Future<void> _showDirectQuantityDialog(TrackedFoodItem item) async {
+    final index = _items.indexOf(item);
+    if (index < 0) return;
     final current = _items[index];
     final controller =
         TextEditingController(text: '${current.entry.quantityInGrams}');
@@ -179,12 +194,15 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
     );
 
     if (result != null && result > 0 && mounted) {
-      setState(() {
-        _items[index] = TrackedFoodItem(
-          item: current.item,
-          entry: current.entry.copyWith(quantityInGrams: result),
-        );
-      });
+      final currentIdx = _items.indexOf(current);
+      if (currentIdx >= 0) {
+        setState(() {
+          _items[currentIdx] = TrackedFoodItem(
+            item: current.item,
+            entry: current.entry.copyWith(quantityInGrams: result),
+          );
+        });
+      }
     }
   }
 
@@ -199,31 +217,35 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
     );
   }
 
-  /// Removes an ingredient from the meal. The row is only dropped locally;
-  /// the diary is written when the screen is left, like every other edit here.
-  void _deleteItem(int index) {
-    if (index < 0 || index >= _items.length) return;
+  /// Removes an ingredient from the meal and schedules it for DB deletion on save.
+  void _deleteItem(TrackedFoodItem item) {
     setState(() {
-      _items.removeAt(index);
+      _items.remove(item);
+      if (item.entry.id != null) {
+        _deletedItemIds.add(item.entry.id!);
+      }
     });
   }
 
-  /// Swaps the food behind a row while keeping its amount — the same action the
-  /// review screen offers, so both screens behave alike.
-  Future<void> _replaceIngredient(int index) async {
-    if (index < 0 || index >= _items.length) return;
+  /// Swaps the food behind a row while keeping its amount.
+  Future<void> _replaceIngredient(TrackedFoodItem item) async {
+    final index = _items.indexOf(item);
+    if (index < 0) return;
     final replacement = await Navigator.of(context).push<FoodItem>(
       MaterialPageRoute(builder: (_) => const GeneralFoodSelectionScreen()),
     );
     if (replacement == null || !mounted) return;
 
-    final existing = _items[index];
-    setState(() {
-      _items[index] = TrackedFoodItem(
-        item: replacement,
-        entry: existing.entry.copyWith(barcode: replacement.barcode),
-      );
-    });
+    final currentIdx = _items.indexOf(item);
+    if (currentIdx >= 0) {
+      final existing = _items[currentIdx];
+      setState(() {
+        _items[currentIdx] = TrackedFoodItem(
+          item: replacement,
+          entry: existing.entry.copyWith(barcode: replacement.barcode),
+        );
+      });
+    }
   }
 
   Future<void> _addNewIngredient() async {
@@ -249,26 +271,139 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
     }
   }
 
-  /// Writes the pending edits. Called when the screen is left rather than from
-  /// a confirm button — nothing here is a draft the user might want to discard,
-  /// so asking them to press "done" only adds a step.
+  /// Writes all pending edits (deletions, updates, insertions) before exiting.
   Future<void> _persistChanges() async {
     if (_isSaving) return;
     _isSaving = true;
 
-    final repo = context.read<IDiaryRepository>();
+    final repo = _repo ?? (mounted ? context.read<IDiaryRepository>() : null);
+    if (repo == null) {
+      _isSaving = false;
+      return;
+    }
 
-    // Update meal entry
-    await repo.updateMealEntry(_mealEntry);
-
-    // Save item changes
-    for (final item in _items) {
-      if (item.entry.id != null) {
-        await repo.updateFoodEntry(item.entry);
-      } else {
-        await repo
-            .insertFoodEntry(item.entry.copyWith(mealEntryId: _mealEntry.id));
+    try {
+      // 1. Delete removed items
+      for (final id in _deletedItemIds) {
+        await repo.deleteFoodEntry(id);
       }
+      _deletedItemIds.clear();
+
+      // 2. Update meal entry header
+      await repo.updateMealEntry(_mealEntry);
+
+      // 3. Save item changes (update existing or insert new)
+      for (int i = 0; i < _items.length; i++) {
+        final item = _items[i];
+        if (item.entry.id != null) {
+          await repo.updateFoodEntry(item.entry);
+        } else {
+          final newId = await repo.insertFoodEntry(
+            item.entry.copyWith(mealEntryId: _mealEntry.id),
+          );
+          _items[i] = TrackedFoodItem(
+            item: item.item,
+            entry: item.entry.copyWith(id: newId, mealEntryId: _mealEntry.id),
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('Error persisting meal entry changes: $e');
+    } finally {
+      _isSaving = false;
+    }
+  }
+
+  Future<void> _handlePop([Object? result]) async {
+    await _persistChanges();
+    if (mounted) {
+      setState(() => _canPop = true);
+      Navigator.of(context).pop(result ?? true);
+    }
+  }
+
+  Future<void> _saveAsTemplate() async {
+    final l10n = AppLocalizations.of(context)!;
+    final title = (_mealEntry.title != null && _mealEntry.title!.trim().isNotEmpty)
+        ? _mealEntry.title!.trim()
+        : _getLocalizedMealName(context, _mealEntry.mealType);
+
+    final mealId = await DatabaseHelper.instance.insertMeal(
+      name: title,
+      notes: '',
+    );
+    for (final item in _items) {
+      await DatabaseHelper.instance.addMealItem(
+        mealId: mealId,
+        barcode: item.item.barcode,
+        amount: item.entry.quantityInGrams.toDouble(),
+      );
+    }
+    if (mounted) {
+      HapticFeedbackService.instance.confirmationFeedback();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.mealDetailSavedAsTemplate)),
+      );
+    }
+  }
+
+  Future<void> _showRenameMealDialog() async {
+    final l10n = AppLocalizations.of(context)!;
+    final controller = TextEditingController(text: _mealEntry.title ?? '');
+
+    final result = await showGlassBottomMenu<String?>(
+      context: context,
+      title: l10n.mealNameLabel,
+      contentBuilder: (ctx, close) {
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            TextField(
+              controller: controller,
+              autofocus: true,
+              textInputAction: TextInputAction.done,
+              decoration: InputDecoration(
+                labelText: l10n.mealNameLabel,
+                hintText: l10n.mealEditorHintExample,
+                border: OutlineInputBorder(
+                  borderRadius:
+                      BorderRadius.circular(DesignConstants.borderRadiusM),
+                ),
+              ),
+              onSubmitted: (val) {
+                close();
+                Navigator.of(ctx).pop(val);
+              },
+            ),
+            const SizedBox(height: DesignConstants.spacingM),
+            AppButton.primary(
+              onPressed: () {
+                close();
+                Navigator.of(ctx).pop(controller.text);
+              },
+              label: l10n.save,
+              tooltip: l10n.save,
+            ),
+            const SizedBox(height: DesignConstants.spacingS),
+            AppButton.secondary(
+              onPressed: () {
+                close();
+                Navigator.of(ctx).pop(null);
+              },
+              label: l10n.cancel,
+              tooltip: l10n.cancel,
+            ),
+          ],
+        );
+      },
+    );
+
+    if (result != null && mounted) {
+      final trimmed = result.trim();
+      setState(() {
+        _mealEntry = _mealEntry.copyWith(title: trimmed.isEmpty ? null : trimmed);
+      });
     }
   }
 
@@ -341,20 +476,23 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
       title: _mealEntry.title ?? l10n.mealFallbackTitle,
       actions: [
         GlassMenuAction(
+          icon: LucideIcons.pencil,
+          label: l10n.mealNameLabel,
+          onTap: () {
+            _showRenameMealDialog();
+          },
+        ),
+        GlassMenuAction(
           icon: LucideIcons.bookmark,
           label: l10n.mealDetailSaveAsTemplate,
-          onTap: () {
-            Navigator.of(context).pop();
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(l10n.mealDetailSavedAsTemplate)),
-            );
+          onTap: () async {
+            await _saveAsTemplate();
           },
         ),
         GlassMenuAction(
           icon: LucideIcons.clock,
           label: l10n.mealDetailChangeMealType,
           onTap: () {
-            Navigator.of(context).pop();
             _showChangeMealTypeDialog();
           },
         ),
@@ -365,7 +503,6 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
           icon: LucideIcons.calendar,
           label: l10n.mealDetailChangeDateTime,
           onTap: () {
-            Navigator.of(context).pop();
             unawaited(_pickDateTime());
           },
         ),
@@ -373,7 +510,6 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
           icon: LucideIcons.trash_2,
           label: l10n.delete,
           onTap: () async {
-            Navigator.of(context).pop();
             final choice = await DeleteMealEntryBottomSheet.show(
               context,
               mealTitle: _mealEntry.title ?? l10n.mealFallbackTitle,
@@ -382,7 +518,7 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
             );
 
             if (choice != null && mounted) {
-              final repo = context.read<IDiaryRepository>();
+              final repo = _repo ?? context.read<IDiaryRepository>();
               await repo.deleteMealEntry(
                 _mealEntry.id,
                 deleteFoodLogs: choice == DeleteMealChoice.deleteAll,
@@ -412,6 +548,7 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
           icon: LucideIcons.utensils,
           label: entry.$2,
           onTap: () {
+            if (!mounted) return;
             setState(() {
               _mealEntry = _mealEntry.copyWith(mealType: entry.$1);
               for (int i = 0; i < _items.length; i++) {
@@ -421,7 +558,6 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
                 );
               }
             });
-            Navigator.of(context).pop();
           },
         );
       }).toList(),
@@ -465,13 +601,22 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
         _getLocalizedMealName(context, _mealEntry.mealType);
 
     return PopScope(
-      canPop: true,
-      onPopInvokedWithResult: (didPop, _) {
-        if (didPop) unawaited(_persistChanges());
+      canPop: _canPop,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+        await _handlePop(result);
       },
       child: Scaffold(
         backgroundColor: bg,
         appBar: GlobalAppBar(
+          automaticallyImplyLeading: false,
+          leading: Navigator.of(context).canPop()
+              ? IconButton(
+                  tooltip: MaterialLocalizations.of(context).backButtonTooltip,
+                  icon: const Icon(LucideIcons.arrow_left),
+                  onPressed: () => _handlePop(true),
+                )
+              : null,
           title: _mealEntry.title ?? localizedMealType,
           actions: [
             IconButton(
@@ -600,7 +745,7 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
 
                                 return MealReviewComparisonCard(
                                   dismissibleKey: ValueKey(
-                                      'meal_item_${tracked.entry.id ?? idx}'),
+                                      'meal_item_${tracked.entry.id ?? tracked.item.barcode}_$idx'),
                                   name: tracked.item.name,
                                   estimatedGrams: tracked.entry.quantityInGrams,
                                   // A saved entry carries no open uncertainty; the
@@ -614,13 +759,13 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
                                     carbs: tracked.item.carbs * factor,
                                     fat: tracked.item.fat * factor,
                                   ),
-                                  onDismissed: () => _deleteItem(idx),
+                                  onDismissed: () => _deleteItem(tracked),
                                   onTap: () => _openItemDetail(tracked),
-                                  onReplace: () => _replaceIngredient(idx),
+                                  onReplace: () => _replaceIngredient(tracked),
                                   onEditQuantity: () =>
-                                      _showDirectQuantityDialog(idx),
+                                      _showDirectQuantityDialog(tracked),
                                   onQuickAdjustQuantity: (delta) =>
-                                      _updateQuantity(idx, delta),
+                                      _updateQuantity(tracked, delta),
                                 );
                               }),
 

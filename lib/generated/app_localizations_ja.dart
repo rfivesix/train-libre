@@ -4937,6 +4937,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get scannerAlignInstruction => '赤いレーザーラインの内側にバーコードを水平に配置します。';
 
   @override
+  String get scannerToggleFlash => 'フラッシュを切り替え';
+
+  @override
   String get about_train_libre => 'トレイン・リブレについて';
 
   @override

@@ -2320,6 +2320,7 @@
   "scannerOpenSettings": "Open Settings",
   "scannerGrantPermission": "Continue",
   "scannerAlignInstruction": "Align barcode horizontally inside the red laser line",
+  "scannerToggleFlash": "Toggle flashlight",
   "about_train_libre": "About Train Libre",
   "legal_notice": "Legal Notice",
   "privacy_policy": "Privacy Policy",

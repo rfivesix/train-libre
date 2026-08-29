@@ -5105,6 +5105,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'Align barcode horizontally inside the red laser line';
 
   @override
+  String get scannerToggleFlash => 'Toggle flashlight';
+
+  @override
   String get about_train_libre => 'About Train Libre';
 
   @override
