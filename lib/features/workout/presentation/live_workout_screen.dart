@@ -99,11 +99,10 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
     _collapseTimer?.cancel();
     _collapseTimer = Timer(const Duration(milliseconds: 200), () {
       if (mounted && !_isDragging) {
-        _scrollAnchor.capture(_touchedAnchorId);
-        setState(() => _isDragging = true);
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _scrollAnchor.restore();
-        });
+        _scrollAnchor.pin(
+          _touchedAnchorId,
+          () => setState(() => _isDragging = true),
+        );
       }
     });
   }
@@ -114,11 +113,10 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
       if (distance > 4.0) {
         _collapseTimer?.cancel();
         if (!_isDragActive && _isDragging) {
-          _scrollAnchor.capture(_touchedAnchorId);
-          setState(() => _isDragging = false);
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            _scrollAnchor.restore();
-          });
+          _scrollAnchor.pin(
+            _touchedAnchorId,
+            () => setState(() => _isDragging = false),
+          );
         }
       }
     }
@@ -314,6 +312,7 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
     WidgetsBinding.instance.removeObserver(this);
     _collapseTimer?.cancel();
     _expandTimer?.cancel();
+    _scrollAnchor.discard();
     _scrollController.dispose();
     _prEventsSubscription?.cancel();
     _prAnimationController.dispose();
@@ -496,11 +495,10 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
       kReorderDropSettleDuration,
       () {
         if (mounted && _isDragging && !_isDragActive) {
-          _scrollAnchor.capture(_touchedAnchorId);
-          setState(() => _isDragging = false);
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            _scrollAnchor.restore();
-          });
+          _scrollAnchor.pin(
+            _touchedAnchorId,
+            () => setState(() => _isDragging = false),
+          );
         }
       },
     );
@@ -977,6 +975,7 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                     ),
                                     onReorderStart: (index) {
                                       _isDragActive = true;
+                                      _scrollAnchor.discard();
                                       _collapseTimer?.cancel();
                                       _expandTimer?.cancel();
                                       if (!_isDragging) {
@@ -1031,8 +1030,7 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                           routineExercise.id ?? index,
                                         ),
                                         child: AnimatedSize(
-                                          duration:
-                                              const Duration(milliseconds: 280),
+                                          duration: kReorderCardResizeDuration,
                                           curve: Curves.easeInOutCubic,
                                           alignment: Alignment.topCenter,
                                           child: isDeleting

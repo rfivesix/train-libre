@@ -1,3 +1,5 @@
+import 'package:flutter/rendering.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
 
 /// Keeps a single list item visually pinned while the list relayouts around it.
@@ -7,11 +9,16 @@ import 'package:flutter/widgets.dart';
 /// the height of every card above the one the user is touching, which would
 /// otherwise make the list jump under the finger.
 ///
-/// [capture] remembers where the item currently sits on screen, and [restore]
-/// — called from a post-frame callback once the relayout has happened — scrolls
-/// by exactly the distance the item moved, so it ends up where it started. This
-/// measures the real render objects instead of estimating card heights, so it
-/// stays correct no matter how many sets or notes a card has.
+/// The cards resize through an [AnimatedSize], so the relayout is spread over
+/// [kReorderCardResizeDuration] rather than landing in a single frame. A
+/// one-shot correction would therefore measure the item before it has moved and
+/// do nothing at all. [pin] instead re-measures on *every* frame of the
+/// animation and scrolls by the distance the item has drifted since the pin
+/// started, so the card stays locked under the finger for the whole transition
+/// and the drag proxy spawns exactly on top of it.
+///
+/// The measurements come from the real render objects instead of estimated card
+/// heights, so they stay correct no matter how many sets or notes a card has.
 class ReorderScrollAnchor {
   ReorderScrollAnchor(this._controller);
 
@@ -21,15 +28,36 @@ class ReorderScrollAnchor {
   Object? _anchorId;
   double? _anchorY;
 
+  bool _pinActive = false;
+  Duration? _pinStartStamp;
+  Duration _pinDuration = Duration.zero;
+  bool _pinFrameScheduled = false;
+  double _lastResidual = 0.0;
+  double _lastTravel = 0.0;
+  double _lastCorrection = 0.0;
+
+  /// Corrections below this many logical pixels are left alone — they are below
+  /// the visible threshold and jumping for them only creates scroll churn.
+  static const double _tolerance = 0.5;
+
   /// The key that must be attached to the card representing [id] for the anchor
   /// to be able to measure it.
   GlobalKey keyFor(Object id) =>
       _itemKeys.putIfAbsent(id, () => GlobalKey(debugLabel: 'anchor_$id'));
 
-  /// Drops any pending measurement without acting on it.
+  /// Drops any pending measurement without acting on it, and stops an active
+  /// [pin].
+  ///
+  /// Call this as soon as something else takes over the scroll offset — most
+  /// importantly when the reorder drag itself starts, because from that moment
+  /// the list is allowed to move the item around under the drag proxy.
   void discard() {
     _anchorId = null;
     _anchorY = null;
+    _pinActive = false;
+    _pinStartStamp = null;
+    _pinDuration = Duration.zero;
+    _resetPrediction();
   }
 
   /// Records the on-screen position of [id]'s card.
@@ -44,21 +72,173 @@ class ReorderScrollAnchor {
   ///
   /// Does nothing if no measurement was captured, or if the card is no longer
   /// mounted (for example because it scrolled out of the cache extent).
+  ///
+  /// This is the one-shot form, correct only when the relayout lands in a
+  /// single frame. Anything that resizes with an animation wants [pin].
   void restore() {
+    _correct(lookAhead: false);
+    discard();
+  }
+
+  /// Holds [id] exactly where it is while [relayout] changes the card heights.
+  ///
+  /// [relayout] is the `setState` that collapses or expands the cards. The
+  /// anchor measures [id] before running it and then keeps re-correcting the
+  /// scroll offset every frame for [duration], which must cover the resize
+  /// animation. The item therefore never drifts away from the pointer, not even
+  /// mid-animation.
+  ///
+  /// The pin releases itself early if the item disappears, if the scroll view
+  /// loses its clients, or if the user starts scrolling — the anchor should
+  /// never fight a real gesture.
+  void pin(
+    Object? id,
+    VoidCallback relayout, {
+    Duration duration = kReorderCardResizeDuration,
+  }) {
+    capture(id);
+    relayout();
+
+    if (_anchorId == null || _anchorY == null) {
+      discard();
+      return;
+    }
+
+    _pinDuration = duration + _pinSlack;
+    _pinActive = true;
+    _pinStartStamp = null;
+    _resetPrediction();
+    _schedulePinFrame();
+  }
+
+  void _resetPrediction() {
+    _lastResidual = 0.0;
+    _lastTravel = 0.0;
+    _lastCorrection = 0.0;
+  }
+
+  /// One extra beat past the resize animation, so the final frame — where the
+  /// curve has settled but the layout may still be one frame behind — is
+  /// corrected too.
+  static const Duration _pinSlack = Duration(milliseconds: 60);
+
+  void _schedulePinFrame() {
+    if (_pinFrameScheduled) return;
+    _pinFrameScheduled = true;
+    SchedulerBinding.instance.addPostFrameCallback((timeStamp) {
+      _pinFrameScheduled = false;
+      _onPinFrame(timeStamp);
+    });
+    // The correction itself may be the only thing left to do in a frame, so ask
+    // for one instead of waiting on the resize animation to produce it.
+    SchedulerBinding.instance.scheduleFrame();
+  }
+
+  void _onPinFrame(Duration timeStamp) {
+    // discard() ran while the frame was in flight.
+    if (_anchorId == null || !_pinActive) return;
+    _pinStartStamp ??= timeStamp;
+
+    if (!_controller.hasClients) {
+      discard();
+      return;
+    }
+    // A real scroll gesture outranks the anchor. Our own jumps leave the
+    // direction idle, so anything else here came from the user.
+    if (_controller.position.userScrollDirection != ScrollDirection.idle) {
+      discard();
+      return;
+    }
+
+    // The look-ahead is switched off for the final frames so the card settles
+    // exactly on the anchor rather than on a prediction — that settled position
+    // is what the drag proxy spawns onto.
+    final Duration elapsed = timeStamp - _pinStartStamp!;
+    final bool lookAhead = elapsed + _lookAheadCutoff < _pinDuration;
+    if (!_correct(lookAhead: lookAhead)) {
+      // The card is gone (unmounted or scrolled out of the cache extent) and
+      // cannot be measured again.
+      discard();
+      return;
+    }
+
+    if (elapsed >= _pinDuration) {
+      discard();
+      return;
+    }
+    _schedulePinFrame();
+  }
+
+  /// Stops predicting this long before the pin expires — two frames at 60Hz.
+  static const Duration _lookAheadCutoff = Duration(milliseconds: 34);
+
+  /// How much of the frame-to-frame change in speed to carry into the
+  /// prediction. Tuned against a worst-case collapse — a full card height of
+  /// shrinkage on every card above the anchor — where it holds the card within
+  /// a few percent of the distance the list travels; 0 (constant speed) and 1
+  /// (full extrapolation) both leave noticeably more behind.
+  static const double _speedChangeCarry = 0.6;
+
+  /// Applies one correction. Returns false when the card can no longer be
+  /// measured, which is the signal to stop pinning.
+  ///
+  /// A scroll offset written from a post-frame callback only reaches the screen
+  /// on the *next* frame, by which time the resize animation has moved the card
+  /// on again. Correcting by exactly the drift just measured therefore always
+  /// trails the animation by one frame's travel, and that travel peaks in the
+  /// middle of the collapse where the curve is fastest — the card visibly sags
+  /// away from the finger and comes back. [lookAhead] adds the frame that is
+  /// about to happen to the correction so it lands in step instead of behind.
+  bool _correct({required bool lookAhead}) {
     final Object? id = _anchorId;
     final double? anchorY = _anchorY;
-    discard();
-    if (id == null || anchorY == null || !_controller.hasClients) return;
+    if (id == null || anchorY == null) return false;
+    if (!_controller.hasClients) return false;
 
     final double? currentY = _globalY(id);
-    if (currentY == null) return;
+    if (currentY == null) return false;
 
-    final double delta = currentY - anchorY;
-    if (delta.abs() < 0.5) return;
+    // Everything left over after the previous correction landed.
+    final double residual = currentY - anchorY;
+
+    // How far the resize actually moved the card during the last frame. This is
+    // not the residual: once the look-ahead starts working the residual falls to
+    // near zero, so feeding it back as a speed estimate would make the
+    // prediction collapse and then oscillate. Undoing the correction that was
+    // already applied recovers the card's real travel.
+    final double travel = residual - _lastResidual + _lastCorrection;
+
+    double correction = residual;
+    // Only predict once a previous frame has been measured, and only while the
+    // card keeps moving the same way — predicting across a direction change
+    // would lead the animation the wrong way.
+    if (lookAhead && _lastTravel != 0.0 && travel.sign == _lastTravel.sign) {
+      // The resize curve eases in and out, so the next frame is not simply a
+      // repeat of the last one; carrying part of the change in speed across
+      // tracks the curve far more closely than a constant-speed guess. Only
+      // part of it, because the ease is not a straight ramp either and a full
+      // extrapolation overshoots around the curve's inflection.
+      correction += travel + _speedChangeCarry * (travel - _lastTravel);
+    }
+
+    _lastResidual = residual;
+    _lastTravel = travel;
+
+    if (correction.abs() < _tolerance) {
+      _lastCorrection = 0.0;
+      return true;
+    }
 
     final ScrollPosition position = _controller.position;
-    _controller.jumpTo((position.pixels + delta)
-        .clamp(position.minScrollExtent, position.maxScrollExtent));
+    final double target = (position.pixels + correction)
+        .clamp(position.minScrollExtent, position.maxScrollExtent);
+    // What the viewport will really move by, which is what the next frame has
+    // to subtract back out — a clamped jump moves less than we asked for.
+    _lastCorrection = target - position.pixels;
+    if (_lastCorrection.abs() >= _tolerance) {
+      _controller.jumpTo(target);
+    }
+    return true;
   }
 
   double? _globalY(Object id) {
@@ -68,6 +248,14 @@ class ReorderScrollAnchor {
     return renderObject.localToGlobal(Offset.zero).dy;
   }
 }
+
+/// How long an exercise card takes to collapse to its header and to expand
+/// again.
+///
+/// Shared by the three workout screens' [AnimatedSize] and by
+/// [ReorderScrollAnchor.pin], which has to keep compensating for exactly as
+/// long as the cards are still resizing.
+const Duration kReorderCardResizeDuration = Duration(milliseconds: 280);
 
 /// How long to wait after a drop before expanding the cards again.
 ///

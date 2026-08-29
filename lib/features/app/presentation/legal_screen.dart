@@ -309,7 +309,7 @@ class _LegalAccordionState extends State<_LegalAccordion>
             ),
             SizeTransition(
               axis: Axis.vertical,
-              axisAlignment: -1.0,
+              alignment: Alignment.topCenter,
               sizeFactor: _expandAnimation,
               child: FadeTransition(
                 opacity: _fadeAnimation,

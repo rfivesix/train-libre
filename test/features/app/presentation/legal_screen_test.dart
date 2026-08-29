@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:train_libre/features/app/presentation/legal_screen.dart';
 import 'package:train_libre/generated/app_localizations.dart';
 
@@ -54,7 +53,7 @@ void main() {
     // SizeTransition should be vertical
     final sizeTransition = tester.widget<SizeTransition>(sizeTransitionFinder);
     expect(sizeTransition.axis, equals(Axis.vertical));
-    expect(sizeTransition.axisAlignment, equals(-1.0));
+    expect(sizeTransition.alignment, equals(Alignment.topCenter));
     expect(sizeTransition.sizeFactor.value, equals(1.0));
 
     // Tap header again to collapse
