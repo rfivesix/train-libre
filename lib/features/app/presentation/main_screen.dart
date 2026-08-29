@@ -205,7 +205,17 @@ class _MainScreenState extends State<MainScreen>
       // another process, day rollover) with nothing in-app to trigger a
       // refresh. Resume is the first moment the app can act on that, rather
       // than waiting for the next mutation or the next cold start.
-      unawaited(_syncHomeWidgetsNow());
+      //
+      // Defer widget synchronization past the first frame so the UI renders
+      // immediately without stalling on database queries or HealthKit requests.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        Timer(const Duration(milliseconds: 350), () {
+          if (mounted) {
+            unawaited(_syncHomeWidgetsNow(forceStatistics: false));
+          }
+        });
+      });
       _startWidgetRefreshTimer();
     }
   }
@@ -219,11 +229,11 @@ class _MainScreenState extends State<MainScreen>
   void _startWidgetRefreshTimer() {
     _widgetRefreshTimer?.cancel();
     _widgetRefreshTimer = Timer.periodic(const Duration(minutes: 15), (_) {
-      unawaited(_syncHomeWidgetsNow());
+      unawaited(_syncHomeWidgetsNow(forceStatistics: false));
     });
   }
 
-  Future<void> _syncHomeWidgetsNow() async {
+  Future<void> _syncHomeWidgetsNow({bool forceStatistics = true}) async {
     if (!mounted) return;
     await context.read<HomeWidgetSyncService>().refresh(
           l10n: AppLocalizations.of(context)!,
@@ -231,7 +241,7 @@ class _MainScreenState extends State<MainScreen>
           // Backgrounding is the last moment before the Home Screen is on
           // screen, so the statistics sections are recomputed rather than
           // served from the cache the cheap in-app paths rely on.
-          forceStatistics: true,
+          forceStatistics: forceStatistics,
         );
   }
 
