@@ -51,10 +51,61 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
   String _originalName = '';
   bool _isLoading = false;
   bool _isDragging = false;
+  bool _isDragActive = false;
+  Timer? _collapseTimer;
   Timer? _expandTimer;
+  Offset? _pointerDownPosition;
+  Object? _touchedAnchorId;
   final ScrollController _scrollController = ScrollController();
+  late final ReorderScrollAnchor _scrollAnchor =
+      ReorderScrollAnchor(_scrollController);
   final OverlayPortalController _fabOverlayController =
       OverlayPortalController();
+
+  void _onDragPointerDown(PointerDownEvent event, Object anchorId) {
+    _touchedAnchorId = anchorId;
+    _pointerDownPosition = event.position;
+    _collapseTimer?.cancel();
+    _collapseTimer = Timer(const Duration(milliseconds: 200), () {
+      if (mounted && !_isDragging) {
+        _scrollAnchor.capture(_touchedAnchorId);
+        setState(() => _isDragging = true);
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _scrollAnchor.restore();
+        });
+      }
+    });
+  }
+
+  void _onDragPointerMove(PointerMoveEvent event) {
+    if (_pointerDownPosition != null) {
+      final distance = (event.position - _pointerDownPosition!).distance;
+      if (distance > 4.0) {
+        _collapseTimer?.cancel();
+        if (!_isDragActive && _isDragging) {
+          _scrollAnchor.capture(_touchedAnchorId);
+          setState(() => _isDragging = false);
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _scrollAnchor.restore();
+          });
+        }
+      }
+    }
+  }
+
+  void _onDragPointerUp(PointerUpEvent event) {
+    _collapseTimer?.cancel();
+    if (!_isDragActive && _isDragging) {
+      _scheduleExpandAfterDrop();
+    }
+  }
+
+  void _onDragPointerCancel(PointerCancelEvent event) {
+    _collapseTimer?.cancel();
+    if (!_isDragActive && _isDragging) {
+      _scheduleExpandAfterDrop();
+    }
+  }
 
   final Map<int, TextEditingController> _repsControllers = {};
   final Map<int, TextEditingController> _weightControllers = {};
@@ -195,6 +246,7 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
 
   @override
   void dispose() {
+    _collapseTimer?.cancel();
     _expandTimer?.cancel();
     _scrollController.dispose();
     _nameController.dispose();
@@ -220,8 +272,12 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
     _expandTimer = Timer(
       kReorderDropSettleDuration,
       () {
-        if (mounted && _isDragging) {
+        if (mounted && _isDragging && !_isDragActive) {
+          _scrollAnchor.capture(_touchedAnchorId);
           setState(() => _isDragging = false);
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _scrollAnchor.restore();
+          });
         }
       },
     );
@@ -859,10 +915,14 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                                           context, child, animation);
                                     },
                                     onReorderStart: (index) {
+                                      _isDragActive = true;
+                                      _collapseTimer?.cancel();
                                       _expandTimer?.cancel();
-                                      setState(() {
-                                        _isDragging = true;
-                                      });
+                                      if (!_isDragging) {
+                                        setState(() {
+                                          _isDragging = true;
+                                        });
+                                      }
                                       WidgetsBinding.instance
                                           .addPostFrameCallback((_) {
                                         if (_fabOverlayController.isShowing) {
@@ -872,6 +932,7 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                                       });
                                     },
                                     onReorderEnd: (index) {
+                                      _isDragActive = false;
                                       _scheduleExpandAfterDrop();
                                     },
                                     onReorderItem: _onReorderItem,
@@ -885,7 +946,7 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                                           .contains(routineExercise.id);
 
                                       return KeyedSubtree(
-                                        key: ValueKey(
+                                        key: _scrollAnchor.keyFor(
                                             routineExercise.id ?? index),
                                         child: AnimatedSize(
                                           duration:
@@ -913,6 +974,18 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                                                       isCardio: isCardio,
                                                       isDragging: _isDragging,
                                                       isEditMode: _isEditMode,
+                                                      onPointerDown: (e) =>
+                                                          _onDragPointerDown(
+                                                              e,
+                                                              routineExercise
+                                                                      .id ??
+                                                                  index),
+                                                      onPointerMove:
+                                                          _onDragPointerMove,
+                                                      onPointerUp:
+                                                          _onDragPointerUp,
+                                                      onPointerCancel:
+                                                          _onDragPointerCancel,
                                                       repsControllers:
                                                           _repsControllers,
                                                       weightControllers:

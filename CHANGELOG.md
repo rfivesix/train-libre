@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## [1.2.0] - 2026-08-28
+## [1.2.0-beta.3] - 2026-08-29
 
 ### Added
 - **Accordion Animation (`LegalScreen`):** Animated legal notice and privacy policy sections with smooth vertical height expansion (`SizeTransition` with `axisAlignment: -1.0`, 280ms, `Curves.easeInOutCubic`), fade ramp (`FadeTransition`), and synchronous rotating chevron indicator (`RotationTransition`), ensuring text unrolls strictly from the top without horizontal reflow.
@@ -16,6 +16,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   - **App Tour Icon:** Replaced the sparkles icon on the App Tour restart tile with `LucideIcons.compass` for clearer tour and guidance semantics.
 
 ### Fixed
+- **Workout Reorder Slot Height Mismatch & Scroll Anchoring (`LiveWorkoutScreen`, `EditRoutineScreen`, `WorkoutLogDetailScreen`):** Fixed the placeholder slot size in the reorderable exercise list reserving the full expanded height of the dragged exercise card (e.g. 400px with all set rows) instead of its compact collapsed height (~60px). When dragging started, `SliverReorderableList` measured the item's `RenderBox` size before the `onReorderStart` state rebuild could take effect, creating massive blank gaps during drag-and-drop. Resolved by introducing a 200ms hold pre-collapse timer via pointer listeners (`_onDragPointerDown`, `_onDragPointerMove`, `_onDragPointerUp`, `_onDragPointerCancel`), coupled with `ReorderScrollAnchor` capture/restore so the touched card stays visually pinned directly under the user's finger while the list collapses around it. When Flutter's delayed drag start recognizer locks in, it measures the exact collapsed height without positional offset. Normal taps and scroll gestures cancel the timer immediately (<4px movement), ensuring smooth scrolling and instant exercise detail navigation without collapsing.
 - **OpenAI Model Catalog & Parameter Handling (`AiService`, `AiNetwork`):**
   - **Dynamic Model Catalog Fetching:** Added live retrieval of all chat/reasoning models from the `/v1/models` endpoint (including `gpt-5.6-luna`, `gpt-5.6-sol`, `gpt-5.6-terra`, `o1`, `o3`, `o4`), ensuring users always see up-to-date models instead of static fallback lists.
   - **Reasoning Model Compatibility:** Automatically omit unsupported parameters (e.g. `temperature`) when invoking reasoning and new-generation models, preventing HTTP 400 rejection errors, with automatic fallback retry logic.

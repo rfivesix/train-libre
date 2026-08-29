@@ -68,8 +68,59 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
   Map<String, String> _exerciseNotes = {};
   bool _isEditMode = false;
   bool _isDragging = false;
+  bool _isDragActive = false;
+  Timer? _collapseTimer;
   Timer? _expandTimer;
+  Offset? _pointerDownPosition;
+  Object? _touchedAnchorId;
   final ScrollController _scrollController = ScrollController();
+  late final ReorderScrollAnchor _scrollAnchor =
+      ReorderScrollAnchor(_scrollController);
+
+  void _onDragPointerDown(PointerDownEvent event, Object anchorId) {
+    _touchedAnchorId = anchorId;
+    _pointerDownPosition = event.position;
+    _collapseTimer?.cancel();
+    _collapseTimer = Timer(const Duration(milliseconds: 200), () {
+      if (mounted && !_isDragging) {
+        _scrollAnchor.capture(_touchedAnchorId);
+        setState(() => _isDragging = true);
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _scrollAnchor.restore();
+        });
+      }
+    });
+  }
+
+  void _onDragPointerMove(PointerMoveEvent event) {
+    if (_pointerDownPosition != null) {
+      final distance = (event.position - _pointerDownPosition!).distance;
+      if (distance > 4.0) {
+        _collapseTimer?.cancel();
+        if (!_isDragActive && _isDragging) {
+          _scrollAnchor.capture(_touchedAnchorId);
+          setState(() => _isDragging = false);
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _scrollAnchor.restore();
+          });
+        }
+      }
+    }
+  }
+
+  void _onDragPointerUp(PointerUpEvent event) {
+    _collapseTimer?.cancel();
+    if (!_isDragActive && _isDragging) {
+      _scheduleExpandAfterDrop();
+    }
+  }
+
+  void _onDragPointerCancel(PointerCancelEvent event) {
+    _collapseTimer?.cancel();
+    if (!_isDragActive && _isDragging) {
+      _scheduleExpandAfterDrop();
+    }
+  }
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _notesController;
 
@@ -124,6 +175,7 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
   @override
   void dispose() {
     _setLogsSubscription?.cancel();
+    _collapseTimer?.cancel();
     _expandTimer?.cancel();
     _notesController.dispose();
     _clearControllers();
@@ -190,8 +242,12 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
     _expandTimer = Timer(
       kReorderDropSettleDuration,
       () {
-        if (mounted && _isDragging) {
+        if (mounted && _isDragging && !_isDragActive) {
+          _scrollAnchor.capture(_touchedAnchorId);
           setState(() => _isDragging = false);
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _scrollAnchor.restore();
+          });
         }
       },
     );
@@ -1188,12 +1244,17 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                               physics: const NeverScrollableScrollPhysics(),
                               padding: EdgeInsets.zero,
                               onReorderStart: (index) {
+                                _isDragActive = true;
+                                _collapseTimer?.cancel();
                                 _expandTimer?.cancel();
-                                setState(() {
-                                  _isDragging = true;
-                                });
+                                if (!_isDragging) {
+                                  setState(() {
+                                    _isDragging = true;
+                                  });
+                                }
                               },
                               onReorderEnd: (index) {
+                                _isDragActive = false;
                                 _scheduleExpandAfterDrop();
                               },
                               proxyDecorator: (Widget child, int index,
@@ -1256,7 +1317,7 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                                     .contains(exerciseName);
 
                                 return KeyedSubtree(
-                                  key: ValueKey(exerciseName),
+                                  key: _scrollAnchor.keyFor(exerciseName),
                                   child: AnimatedSize(
                                     duration: const Duration(milliseconds: 280),
                                     curve: Curves.easeInOutCubic,
@@ -1278,6 +1339,14 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                                                 isEditMode: true,
                                                 isCardio: isCardio,
                                                 isDragging: _isDragging,
+                                                onPointerDown: (e) =>
+                                                    _onDragPointerDown(
+                                                        e, exerciseName),
+                                                onPointerMove:
+                                                    _onDragPointerMove,
+                                                onPointerUp: _onDragPointerUp,
+                                                onPointerCancel:
+                                                    _onDragPointerCancel,
                                                 weightControllers:
                                                     _weightControllers,
                                                 repsControllers:
