@@ -51,13 +51,8 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
   String _originalName = '';
   bool _isLoading = false;
   bool _isDragging = false;
-  bool _isReordering = false;
-  int? _draggedExerciseId;
-  Timer? _collapseTimer;
   Timer? _expandTimer;
   final ScrollController _scrollController = ScrollController();
-  late final ReorderScrollAnchor _dragAnchor =
-      ReorderScrollAnchor(_scrollController);
   final OverlayPortalController _fabOverlayController =
       OverlayPortalController();
 
@@ -200,7 +195,6 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
 
   @override
   void dispose() {
-    _collapseTimer?.cancel();
     _expandTimer?.cancel();
     _scrollController.dispose();
     _nameController.dispose();
@@ -220,35 +214,16 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
     return re.exercise.categoryName.toLowerCase() == 'cardio';
   }
 
-  /// Collapses every card down to its header, keeping [anchorId]'s card pinned
-  /// where it is on screen.
-  void _collapseCards(int anchorId) {
-    if (!mounted || _isDragging) return;
-    _dragAnchor.capture(anchorId);
-    setState(() => _isDragging = true);
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) _dragAnchor.restore();
-    });
-  }
-
-  /// Expands the cards again, keeping [anchorId]'s card pinned where it is.
-  void _expandCards(int? anchorId) {
-    _expandTimer?.cancel();
-    _isReordering = false;
-    if (!mounted || !_isDragging) return;
-    _dragAnchor.capture(anchorId);
-    setState(() => _isDragging = false);
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) _dragAnchor.restore();
-    });
-  }
-
   /// Expands the cards once the drop animation and the reorder have finished.
   void _scheduleExpandAfterDrop() {
     _expandTimer?.cancel();
     _expandTimer = Timer(
       kReorderDropSettleDuration,
-      () => _expandCards(_draggedExerciseId),
+      () {
+        if (mounted && _isDragging) {
+          setState(() => _isDragging = false);
+        }
+      },
     );
   }
 
@@ -859,13 +834,10 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                                         buildReorderDragProxy(
                                             context, child, animation),
                                     onReorderStart: (index) {
-                                      // _isDragging is already set by the 300ms onPointerDown timer.
-                                      // Do not set it here to avoid bypassing the delay.
                                       _expandTimer?.cancel();
-                                      _dragAnchor.discard();
-                                      _isReordering = true;
-                                      _draggedExerciseId =
-                                          _routineExercises[index].id;
+                                      setState(() {
+                                        _isDragging = true;
+                                      });
                                       WidgetsBinding.instance
                                           .addPostFrameCallback((_) {
                                         if (_fabOverlayController.isShowing) {
@@ -875,10 +847,6 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                                       });
                                     },
                                     onReorderEnd: (index) {
-                                      // The dropped card is still animating into
-                                      // place and the reorder itself only lands
-                                      // when that animation ends. Expanding now
-                                      // would fight both.
                                       _scheduleExpandAfterDrop();
                                     },
                                     onReorderItem: _onReorderItem,
@@ -887,21 +855,6 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                                           _routineExercises[index];
                                       final bool isCardio =
                                           _isCardio(routineExercise);
-
-                                      final int exerciseId =
-                                          routineExercise.id ?? -index;
-
-                                      // Released either without ever starting a
-                                      // drag, or mid-drop – in the latter case
-                                      // the list has to settle first.
-                                      void handleRelease() {
-                                        _collapseTimer?.cancel();
-                                        if (_isReordering) {
-                                          _scheduleExpandAfterDrop();
-                                        } else {
-                                          _expandCards(exerciseId);
-                                        }
-                                      }
 
                                       final isDeleting = _deletingExerciseIds
                                           .contains(routineExercise.id);
@@ -927,79 +880,40 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                                                   child: RepaintBoundary(
                                                     key: ValueKey(
                                                         routineExercise.id),
-                                                    child: KeyedSubtree(
-                                                      key: _dragAnchor
-                                                          .keyFor(exerciseId),
-                                                      child:
-                                                          EditRoutineExerciseCard(
-                                                        routineExercise:
-                                                            routineExercise,
-                                                        index: index,
-                                                        isCardio: isCardio,
-                                                        isDragging: _isDragging,
-                                                        isEditMode: _isEditMode,
-                                                        onPointerDown:
-                                                            _isEditMode
-                                                                ? (event) {
-                                                                    _collapseTimer
-                                                                        ?.cancel();
-                                                                    _collapseTimer = Timer(
-                                                                        const Duration(
-                                                                            milliseconds:
-                                                                                300),
-                                                                        () => _collapseCards(
-                                                                            exerciseId));
-                                                                  }
-                                                                : null,
-                                                        onPointerUp: _isEditMode
-                                                            ? (event) =>
-                                                                handleRelease()
-                                                            : null,
-                                                        onPointerMove:
-                                                            _isEditMode
-                                                                ? (event) {
-                                                                    // Cancel timer if finger moves – user is scrolling, not drag-holding.
-                                                                    if (event.delta.dy.abs() >
-                                                                            4.0 ||
-                                                                        event.delta.dx.abs() >
-                                                                            4.0) {
-                                                                      _collapseTimer
-                                                                          ?.cancel();
-                                                                    }
-                                                                  }
-                                                                : null,
-                                                        onPointerCancel:
-                                                            _isEditMode
-                                                                ? (event) =>
-                                                                    handleRelease()
-                                                                : null,
-                                                        repsControllers:
-                                                            _repsControllers,
-                                                        weightControllers:
-                                                            _weightControllers,
-                                                        rirControllers:
-                                                            _rirControllers,
-                                                        onEditNotes: () =>
-                                                            _editExerciseNotes(
-                                                                context,
-                                                                routineExercise),
-                                                        onEditPauseTime: () =>
-                                                            _editPauseTime(
-                                                                routineExercise),
-                                                        onDeleteExercise: () =>
-                                                            _deleteSingleExercise(
-                                                                routineExercise),
-                                                        onAddSet: () => _addSet(
-                                                            routineExercise),
-                                                        onShowSetTypePicker:
-                                                            _showSetTypePicker,
-                                                        onRemoveSet: (template,
-                                                                listIndex) =>
-                                                            _removeSet(
-                                                                routineExercise,
-                                                                template.id!,
-                                                                listIndex),
-                                                      ),
+                                                    child:
+                                                        EditRoutineExerciseCard(
+                                                      routineExercise:
+                                                          routineExercise,
+                                                      index: index,
+                                                      isCardio: isCardio,
+                                                      isDragging: _isDragging,
+                                                      isEditMode: _isEditMode,
+                                                      repsControllers:
+                                                          _repsControllers,
+                                                      weightControllers:
+                                                          _weightControllers,
+                                                      rirControllers:
+                                                          _rirControllers,
+                                                      onEditNotes: () =>
+                                                          _editExerciseNotes(
+                                                              context,
+                                                              routineExercise),
+                                                      onEditPauseTime: () =>
+                                                          _editPauseTime(
+                                                              routineExercise),
+                                                      onDeleteExercise: () =>
+                                                          _deleteSingleExercise(
+                                                              routineExercise),
+                                                      onAddSet: () => _addSet(
+                                                          routineExercise),
+                                                      onShowSetTypePicker:
+                                                          _showSetTypePicker,
+                                                      onRemoveSet: (template,
+                                                              listIndex) =>
+                                                          _removeSet(
+                                                              routineExercise,
+                                                              template.id!,
+                                                              listIndex),
                                                     ),
                                                   ),
                                                 ),

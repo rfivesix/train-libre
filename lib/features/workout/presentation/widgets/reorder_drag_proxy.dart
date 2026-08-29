@@ -34,16 +34,13 @@ Widget buildReorderDragProxy(
     animation: animation,
     builder: (BuildContext context, Widget? child) {
       final double t = Curves.easeInOut.transform(animation.value);
-      return Transform.scale(
-        scale: lerpDouble(1.0, 1.02, t)!,
-        child: Material(
-          elevation: lerpDouble(0.0, 8.0, t)!,
-          color: surface,
-          shadowColor: theme.shadowColor,
-          borderRadius: radius,
-          clipBehavior: Clip.antiAlias,
-          child: child,
-        ),
+      return Material(
+        elevation: lerpDouble(0.0, 6.0, t)!,
+        color: surface,
+        shadowColor: theme.shadowColor,
+        borderRadius: radius,
+        clipBehavior: Clip.antiAlias,
+        child: child,
       );
     },
     child: child,
