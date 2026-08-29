@@ -830,9 +830,34 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                                           (_isDragging ? 800.0 : 0.0),
                                     ),
                                     proxyDecorator: (Widget child, int index,
-                                            Animation<double> animation) =>
-                                        buildReorderDragProxy(
-                                            context, child, animation),
+                                        Animation<double> animation) {
+                                      if (index >= 0 &&
+                                          index < _routineExercises.length) {
+                                        final routineExercise =
+                                            _routineExercises[index];
+                                        final proxyChild =
+                                            EditRoutineExerciseCard(
+                                          routineExercise: routineExercise,
+                                          index: index,
+                                          isCardio: _isCardio(routineExercise),
+                                          isDragging: true,
+                                          isEditMode: _isEditMode,
+                                          repsControllers: _repsControllers,
+                                          weightControllers: _weightControllers,
+                                          rirControllers: _rirControllers,
+                                          onEditNotes: () {},
+                                          onEditPauseTime: () {},
+                                          onDeleteExercise: () {},
+                                          onAddSet: () {},
+                                          onShowSetTypePicker: (_) {},
+                                          onRemoveSet: (_, __) {},
+                                        );
+                                        return buildReorderDragProxy(
+                                            context, proxyChild, animation);
+                                      }
+                                      return buildReorderDragProxy(
+                                          context, child, animation);
+                                    },
                                     onReorderStart: (index) {
                                       _expandTimer?.cancel();
                                       setState(() {

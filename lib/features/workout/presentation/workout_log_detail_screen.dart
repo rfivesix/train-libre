@@ -1197,9 +1197,40 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                                 _scheduleExpandAfterDrop();
                               },
                               proxyDecorator: (Widget child, int index,
-                                      Animation<double> animation) =>
-                                  buildReorderDragProxy(
-                                      context, child, animation),
+                                  Animation<double> animation) {
+                                if (index >= 0 && index < _groupedSets.length) {
+                                  final entry =
+                                      _groupedSets.entries.elementAt(index);
+                                  final String exerciseName = entry.key;
+                                  final Exercise? exercise =
+                                      _exerciseDetails[exerciseName];
+                                  final List<SetLog> sets = entry.value;
+                                  final isCardio = _isCardio(exerciseName);
+
+                                  final proxyChild = WorkoutExerciseLogCard(
+                                    exerciseName: exerciseName,
+                                    exercise: exercise,
+                                    sets: sets,
+                                    isEditMode: true,
+                                    isCardio: isCardio,
+                                    isDragging: true,
+                                    weightControllers: _weightControllers,
+                                    repsControllers: _repsControllers,
+                                    rirControllers: _rirControllers,
+                                    exerciseNote: _exerciseNotes[exerciseName],
+                                    onEditNotes: (_) {},
+                                    onDeleteExercise: (_) {},
+                                    onAddSet: () {},
+                                    onDeleteSet: (_) {},
+                                    onSetTypeTap: (_) {},
+                                    index: index,
+                                  );
+                                  return buildReorderDragProxy(
+                                      context, proxyChild, animation);
+                                }
+                                return buildReorderDragProxy(
+                                    context, child, animation);
+                              },
                               onReorderItem: (int oldIndex, int newIndex) {
                                 setState(() {
                                   final entries = _groupedSets.entries.toList();
