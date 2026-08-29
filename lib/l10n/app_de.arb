@@ -2228,6 +2228,30 @@
   "settingsBaseFoodLanguageItalian": "Italienisch",
   "settingsBaseFoodLanguageJapanese": "Japanisch",
   "aiModelLabel": "Modell",
+  "aiModelListFallbackTitle": "Eingebaute Modell-Liste wird angezeigt",
+  "aiModelListRetry": "Modelle neu laden",
+  "aiModelListErrorMissingKey": "Speichere deinen API-Schlüssel, um die aktuellen Modelle vom Anbieter zu laden.",
+  "aiModelListErrorNetwork": "Der Anbieter war nicht erreichbar. Prüfe deine Internetverbindung.",
+  "aiModelListErrorTimeout": "Der Anbieter hat nicht innerhalb des eingestellten Timeouts geantwortet.",
+  "aiModelListErrorAuth": "Der Anbieter hat deinen API-Schlüssel abgelehnt (HTTP {status}). Prüfe den Schlüssel und seine Berechtigungen.",
+  "@aiModelListErrorAuth": {
+    "placeholders": {
+      "status": {}
+    }
+  },
+  "aiModelListErrorRateLimit": "Der Anbieter drosselt gerade oder das Kontingent ist aufgebraucht (HTTP {status}). Versuche es gleich noch einmal.",
+  "@aiModelListErrorRateLimit": {
+    "placeholders": {
+      "status": {}
+    }
+  },
+  "aiModelListErrorHttp": "Der Anbieter hat mit HTTP {status} geantwortet.",
+  "@aiModelListErrorHttp": {
+    "placeholders": {
+      "status": {}
+    }
+  },
+  "aiModelListErrorResponse": "Die Modell-Liste des Anbieters konnte nicht gelesen werden.",
   "autoBackupStoragePickerUnavailable": "Speicherordner-Auswahl nicht verfügbar. Bitte die App nach dem Update vollständig neu starten/neu installieren.",
   "autoBackupFolderPickerFailed": "Ordnerauswahl fehlgeschlagen: {error}",
   "@autoBackupFolderPickerFailed": {

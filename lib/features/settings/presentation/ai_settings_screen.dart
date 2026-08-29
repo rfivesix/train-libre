@@ -39,6 +39,10 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
   AiProvider _selectedProvider = AiProvider.openai;
   String _selectedModel = '';
   List<AiModelOption> _modelOptions = const [];
+
+  /// Why the picker is showing the built-in list instead of the provider's.
+  /// Null while the live list loaded fine.
+  AiModelListError? _modelListError;
   bool _isLoading = true;
   bool _isLoadingModels = false;
   bool _isTesting = false;
@@ -95,7 +99,8 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
       provider,
     );
     final key = await AiService.instance.getApiKey(provider);
-    final models = await AiService.instance.getModelOptions(provider);
+    final modelList = await AiService.instance.loadModelOptions(provider);
+    final models = modelList.options;
     final resolvedModel = _resolveModelSelection(model, models, provider);
     final customBaseUrl = await AiService.instance.getCustomBaseUrl();
     final customModel = await AiService.instance.getCustomModel();
@@ -110,6 +115,7 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
           resolvedModel,
           provider,
         );
+        _modelListError = modelList.error;
         _hasKey = key != null && key.isNotEmpty;
         _timeoutSeconds = timeout;
         if (_hasKey) {
@@ -129,7 +135,8 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
     await AiService.instance.setSelectedProvider(provider);
     final selectedModel =
         await AiService.instance.resolveAndPersistSelectedModel(provider);
-    final models = await AiService.instance.getModelOptions(provider);
+    final modelList = await AiService.instance.loadModelOptions(provider);
+    final models = modelList.options;
     final resolvedModel = _resolveModelSelection(
       selectedModel,
       models,
@@ -149,6 +156,7 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
           resolvedModel,
           provider,
         );
+        _modelListError = modelList.error;
         _hasKey = key != null && key.isNotEmpty;
         _keyController.text = _hasKey ? '••••••••••••••••••••' : '';
         _baseUrlController.text = customBaseUrl ?? '';
@@ -226,11 +234,14 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
       if (!mounted) return;
       setState(() {
         _selectedModel = selectedModel;
+        _modelListError = null;
       });
       return;
     }
     setState(() => _isLoadingModels = true);
-    final models = await AiService.instance.getModelOptions(_selectedProvider);
+    final modelList =
+        await AiService.instance.loadModelOptions(_selectedProvider);
+    final models = modelList.options;
     final selectedModel = await AiService.instance
         .resolveAndPersistSelectedModel(_selectedProvider);
     final resolvedModel = _resolveModelSelection(
@@ -247,8 +258,84 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
         resolvedModel,
         _selectedProvider,
       );
+      _modelListError = modelList.error;
       _isLoadingModels = false;
     });
+  }
+
+  /// One sentence explaining why the picker is showing the built-in list.
+  ///
+  /// Without this the user sees a short, stale list and has no way to tell it
+  /// apart from the provider's real catalogue — a rejected key looks exactly
+  /// like "this provider only offers three models".
+  String _modelListErrorMessage(AppLocalizations l10n, AiModelListError error) {
+    final status = error.statusCode?.toString() ?? '-';
+    final base = switch (error.kind) {
+      AiModelListErrorKind.missingKey => l10n.aiModelListErrorMissingKey,
+      AiModelListErrorKind.unsupported => l10n.aiModelListErrorResponse,
+      AiModelListErrorKind.network => l10n.aiModelListErrorNetwork,
+      AiModelListErrorKind.timeout => l10n.aiModelListErrorTimeout,
+      AiModelListErrorKind.auth => l10n.aiModelListErrorAuth(status),
+      AiModelListErrorKind.rateLimit => l10n.aiModelListErrorRateLimit(status),
+      AiModelListErrorKind.http => l10n.aiModelListErrorHttp(status),
+      AiModelListErrorKind.response => l10n.aiModelListErrorResponse,
+    };
+    // The provider's own wording is often the only thing that names the real
+    // cause ("insufficient permissions for /v1/models"), so pass it through.
+    final providerMessage = error.providerMessage?.trim();
+    if (providerMessage == null || providerMessage.isEmpty) return base;
+    return '$base\n$providerMessage';
+  }
+
+  Widget _buildModelListFallbackNotice(
+    AppLocalizations l10n,
+    ThemeData theme,
+    AiModelListError error,
+  ) {
+    final color = error.kind == AiModelListErrorKind.missingKey
+        ? theme.colorScheme.onSurfaceVariant
+        : theme.colorScheme.error;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(LucideIcons.triangle_alert, size: 18, color: color),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  l10n.aiModelListFallbackTitle,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: color,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  _modelListErrorMessage(l10n, error),
+                  style: theme.textTheme.bodySmall?.copyWith(color: color),
+                ),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: TextButton(
+                    style: TextButton.styleFrom(
+                      padding: EdgeInsets.zero,
+                      minimumSize: const Size(0, 32),
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    onPressed: _isLoadingModels ? null : _refreshModels,
+                    child: Text(l10n.aiModelListRetry),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   String _resolveModelSelection(
@@ -474,6 +561,12 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                                 onChanged: _onModelChanged,
                               ),
                         const SizedBox(height: 10),
+                        if (!_isLoadingModels && _modelListError != null)
+                          _buildModelListFallbackNotice(
+                            l10n,
+                            theme,
+                            _modelListError!,
+                          ),
                       ],
                       if (_selectedProvider == AiProvider.ollama) ...[
                         TextField(

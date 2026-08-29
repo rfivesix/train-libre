@@ -8646,6 +8646,60 @@ abstract class AppLocalizations {
   /// **'Model'**
   String get aiModelLabel;
 
+  /// No description provided for @aiModelListFallbackTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Showing the built-in model list'**
+  String get aiModelListFallbackTitle;
+
+  /// No description provided for @aiModelListRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Reload models'**
+  String get aiModelListRetry;
+
+  /// No description provided for @aiModelListErrorMissingKey.
+  ///
+  /// In en, this message translates to:
+  /// **'Save your API key to load the current models from the provider.'**
+  String get aiModelListErrorMissingKey;
+
+  /// No description provided for @aiModelListErrorNetwork.
+  ///
+  /// In en, this message translates to:
+  /// **'The provider could not be reached. Check your internet connection.'**
+  String get aiModelListErrorNetwork;
+
+  /// No description provided for @aiModelListErrorTimeout.
+  ///
+  /// In en, this message translates to:
+  /// **'The provider did not answer within the configured timeout.'**
+  String get aiModelListErrorTimeout;
+
+  /// No description provided for @aiModelListErrorAuth.
+  ///
+  /// In en, this message translates to:
+  /// **'The provider rejected your API key (HTTP {status}). Check the key and its permissions.'**
+  String aiModelListErrorAuth(Object status);
+
+  /// No description provided for @aiModelListErrorRateLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'The provider is rate limiting or out of quota (HTTP {status}). Try again shortly.'**
+  String aiModelListErrorRateLimit(Object status);
+
+  /// No description provided for @aiModelListErrorHttp.
+  ///
+  /// In en, this message translates to:
+  /// **'The provider answered with HTTP {status}.'**
+  String aiModelListErrorHttp(Object status);
+
+  /// No description provided for @aiModelListErrorResponse.
+  ///
+  /// In en, this message translates to:
+  /// **'The provider\'s model list could not be read.'**
+  String get aiModelListErrorResponse;
+
   /// No description provided for @autoBackupStoragePickerUnavailable.
   ///
   /// In en, this message translates to:

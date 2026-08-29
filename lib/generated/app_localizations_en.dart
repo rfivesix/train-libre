@@ -4920,6 +4920,43 @@ class AppLocalizationsEn extends AppLocalizations {
   String get aiModelLabel => 'Model';
 
   @override
+  String get aiModelListFallbackTitle => 'Showing the built-in model list';
+
+  @override
+  String get aiModelListRetry => 'Reload models';
+
+  @override
+  String get aiModelListErrorMissingKey =>
+      'Save your API key to load the current models from the provider.';
+
+  @override
+  String get aiModelListErrorNetwork =>
+      'The provider could not be reached. Check your internet connection.';
+
+  @override
+  String get aiModelListErrorTimeout =>
+      'The provider did not answer within the configured timeout.';
+
+  @override
+  String aiModelListErrorAuth(Object status) {
+    return 'The provider rejected your API key (HTTP $status). Check the key and its permissions.';
+  }
+
+  @override
+  String aiModelListErrorRateLimit(Object status) {
+    return 'The provider is rate limiting or out of quota (HTTP $status). Try again shortly.';
+  }
+
+  @override
+  String aiModelListErrorHttp(Object status) {
+    return 'The provider answered with HTTP $status.';
+  }
+
+  @override
+  String get aiModelListErrorResponse =>
+      'The provider\'s model list could not be read.';
+
+  @override
   String get autoBackupStoragePickerUnavailable =>
       'Storage picker unavailable. Please fully restart/reinstall the app after updating.';
 

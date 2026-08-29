@@ -5008,6 +5008,43 @@ class AppLocalizationsFr extends AppLocalizations {
   String get aiModelLabel => 'Modèle';
 
   @override
+  String get aiModelListFallbackTitle => 'Liste de modèles intégrée affichée';
+
+  @override
+  String get aiModelListRetry => 'Recharger les modèles';
+
+  @override
+  String get aiModelListErrorMissingKey =>
+      'Enregistrez votre clé API pour charger les modèles actuels du fournisseur.';
+
+  @override
+  String get aiModelListErrorNetwork =>
+      'Le fournisseur est injoignable. Vérifiez votre connexion Internet.';
+
+  @override
+  String get aiModelListErrorTimeout =>
+      'Le fournisseur n\'a pas répondu dans le délai configuré.';
+
+  @override
+  String aiModelListErrorAuth(Object status) {
+    return 'Le fournisseur a refusé votre clé API (HTTP $status). Vérifiez la clé et ses autorisations.';
+  }
+
+  @override
+  String aiModelListErrorRateLimit(Object status) {
+    return 'Le fournisseur limite les requêtes ou votre quota est épuisé (HTTP $status). Réessayez dans un instant.';
+  }
+
+  @override
+  String aiModelListErrorHttp(Object status) {
+    return 'Le fournisseur a répondu avec HTTP $status.';
+  }
+
+  @override
+  String get aiModelListErrorResponse =>
+      'Impossible de lire la liste de modèles du fournisseur.';
+
+  @override
   String get autoBackupStoragePickerUnavailable =>
       'Sélecteur de stockage indisponible. Veuillez redémarrer/réinstaller complètement l\'application après la mise à jour.';
 

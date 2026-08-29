@@ -4961,6 +4961,44 @@ class AppLocalizationsDe extends AppLocalizations {
   String get aiModelLabel => 'Modell';
 
   @override
+  String get aiModelListFallbackTitle =>
+      'Eingebaute Modell-Liste wird angezeigt';
+
+  @override
+  String get aiModelListRetry => 'Modelle neu laden';
+
+  @override
+  String get aiModelListErrorMissingKey =>
+      'Speichere deinen API-Schlüssel, um die aktuellen Modelle vom Anbieter zu laden.';
+
+  @override
+  String get aiModelListErrorNetwork =>
+      'Der Anbieter war nicht erreichbar. Prüfe deine Internetverbindung.';
+
+  @override
+  String get aiModelListErrorTimeout =>
+      'Der Anbieter hat nicht innerhalb des eingestellten Timeouts geantwortet.';
+
+  @override
+  String aiModelListErrorAuth(Object status) {
+    return 'Der Anbieter hat deinen API-Schlüssel abgelehnt (HTTP $status). Prüfe den Schlüssel und seine Berechtigungen.';
+  }
+
+  @override
+  String aiModelListErrorRateLimit(Object status) {
+    return 'Der Anbieter drosselt gerade oder das Kontingent ist aufgebraucht (HTTP $status). Versuche es gleich noch einmal.';
+  }
+
+  @override
+  String aiModelListErrorHttp(Object status) {
+    return 'Der Anbieter hat mit HTTP $status geantwortet.';
+  }
+
+  @override
+  String get aiModelListErrorResponse =>
+      'Die Modell-Liste des Anbieters konnte nicht gelesen werden.';
+
+  @override
   String get autoBackupStoragePickerUnavailable =>
       'Speicherordner-Auswahl nicht verfügbar. Bitte die App nach dem Update vollständig neu starten/neu installieren.';
 

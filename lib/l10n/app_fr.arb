@@ -2229,6 +2229,30 @@
   "settingsBaseFoodLanguageItalian": "Italien",
   "settingsBaseFoodLanguageJapanese": "Japonais",
   "aiModelLabel": "Modèle",
+  "aiModelListFallbackTitle": "Liste de modèles intégrée affichée",
+  "aiModelListRetry": "Recharger les modèles",
+  "aiModelListErrorMissingKey": "Enregistrez votre clé API pour charger les modèles actuels du fournisseur.",
+  "aiModelListErrorNetwork": "Le fournisseur est injoignable. Vérifiez votre connexion Internet.",
+  "aiModelListErrorTimeout": "Le fournisseur n'a pas répondu dans le délai configuré.",
+  "aiModelListErrorAuth": "Le fournisseur a refusé votre clé API (HTTP {status}). Vérifiez la clé et ses autorisations.",
+  "@aiModelListErrorAuth": {
+    "placeholders": {
+      "status": {}
+    }
+  },
+  "aiModelListErrorRateLimit": "Le fournisseur limite les requêtes ou votre quota est épuisé (HTTP {status}). Réessayez dans un instant.",
+  "@aiModelListErrorRateLimit": {
+    "placeholders": {
+      "status": {}
+    }
+  },
+  "aiModelListErrorHttp": "Le fournisseur a répondu avec HTTP {status}.",
+  "@aiModelListErrorHttp": {
+    "placeholders": {
+      "status": {}
+    }
+  },
+  "aiModelListErrorResponse": "Impossible de lire la liste de modèles du fournisseur.",
   "autoBackupStoragePickerUnavailable": "Sélecteur de stockage indisponible. Veuillez redémarrer/réinstaller complètement l'application après la mise à jour.",
   "autoBackupFolderPickerFailed": "Échec du sélecteur de dossier : {error}",
   "@autoBackupFolderPickerFailed": {
