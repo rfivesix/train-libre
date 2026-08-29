@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:ui' show FramePhase;
 
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
@@ -160,22 +161,32 @@ class StartupSnapshot {
 /// which is the honest way to report framework startup and shader warmup:
 /// visible, but not falsely attributed to app code.
 class StartupTrace {
-  StartupTrace._({int Function()? clock})
+  StartupTrace._({int Function()? clock, int Function()? wallClock})
       : _clock = clock ?? _defaultClock(),
-        _runStartedAtMs = 0;
+        _wallClock = wallClock ?? _defaultWallClock,
+        _runStartedAtMs = 0,
+        _runStartedAtWallMicros = 0;
 
   static final StartupTrace instance = StartupTrace._();
 
   /// A trace with an injectable clock, so tests do not have to wait in real
   /// time for a phase to take a measurable number of milliseconds.
+  ///
+  /// [wallClock] reports microseconds since the epoch, the domain the engine
+  /// stamps [FramePhase.rasterFinishWallTime] in.
   @visibleForTesting
-  static StartupTrace createForTest({required int Function() clock}) =>
-      StartupTrace._(clock: clock);
+  static StartupTrace createForTest({
+    required int Function() clock,
+    int Function()? wallClock,
+  }) =>
+      StartupTrace._(clock: clock, wallClock: wallClock);
 
   static int Function() _defaultClock() {
     final stopwatch = Stopwatch()..start();
     return () => stopwatch.elapsedMilliseconds;
   }
+
+  static int _defaultWallClock() => DateTime.now().microsecondsSinceEpoch;
 
   static const String prefsKey = 'perf_startup_trace_v1';
 
@@ -185,13 +196,18 @@ class StartupTrace {
 
   final int Function() _clock;
 
+  /// Microseconds since the epoch. Only used to compare against the engine's
+  /// frame timestamps, never to measure a phase — a wall clock can jump.
+  final int Function() _wallClock;
+
   final List<StartupRun> _runs = [];
   final Map<String, int> _openPhases = {};
   final List<StartupPhase> _phases = [];
 
   StartupRunKind? _openKind;
-  bool _wasForeground = true;
+  bool _wasBackgrounded = false;
   int _runStartedAtMs;
+  int _runStartedAtWallMicros;
   DateTime? _openRunAt;
   bool _isAttached = false;
 
@@ -213,6 +229,7 @@ class StartupTrace {
     _openKind = kind;
     _openRunAt = DateTime.now();
     _runStartedAtMs = _clock();
+    _runStartedAtWallMicros = _wallClock();
     _openPhases.clear();
     _phases.clear();
   }
@@ -252,7 +269,12 @@ class StartupTrace {
   /// Called from the frame timings callback rather than a post-frame callback:
   /// a post-frame callback fires when the frame has been *built*, which on a
   /// screen full of backdrop filters can be well before anything is visible.
-  void noteFrameRasterized() {
+  ///
+  /// [rasterFinishWallMicros] is the engine's own timestamp for that frame. It
+  /// has to be passed in rather than read from the clock here, because this is
+  /// called when the timing is *delivered*, not when the frame landed — see
+  /// [_onTimings].
+  void noteFrameRasterized({int? rasterFinishWallMicros}) {
     final kind = _openKind;
     if (kind == null) return;
 
@@ -267,7 +289,7 @@ class StartupTrace {
       StartupRun(
         kind: kind,
         at: _openRunAt ?? DateTime.now(),
-        toFirstFrameMs: _clock() - _runStartedAtMs,
+        toFirstFrameMs: _toFirstFrameMs(rasterFinishWallMicros),
         phases: List<StartupPhase>.unmodifiable(_phases),
       ),
     );
@@ -279,6 +301,24 @@ class StartupTrace {
     _openPhases.clear();
 
     unawaited(persist());
+  }
+
+  /// How long the run really took, in milliseconds.
+  ///
+  /// The clock here is read when the timing is *delivered*, which the engine
+  /// defers by up to a second (see [_onTimings]), so it is only the fallback.
+  /// The engine's own wall-clock stamp for the frame is the honest number.
+  int _toFirstFrameMs(int? rasterFinishWallMicros) {
+    final byDelivery = _clock() - _runStartedAtMs;
+    if (rasterFinishWallMicros == null) return byDelivery;
+
+    final byFrame = (rasterFinishWallMicros - _runStartedAtWallMicros) ~/ 1000;
+    // The frame cannot have landed before the run opened, nor after the
+    // callback reporting it — anything outside that means the wall clock moved
+    // under us (NTP, the user changing the time) or the platform left the
+    // stamp empty, and the delivery time is then the safer answer.
+    if (byFrame < 0 || byFrame > byDelivery) return byDelivery;
+    return byFrame;
   }
 
   StartupSnapshot snapshot() => StartupSnapshot(
@@ -302,9 +342,46 @@ class StartupTrace {
     await _restore();
   }
 
+  /// Closes the open run with the frame that actually ended it.
+  ///
+  /// The engine batches frame timings and flushes them at most once per second
+  /// in release builds (100ms in debug/profile), so this callback arrives long
+  /// after the frame it describes. A resume produces a single frame and then
+  /// the app sits idle, so nothing else fills the batch: reading the clock here
+  /// measured that flush delay and reported a rock-steady ~1000ms resume no
+  /// matter how fast the app actually came back. The frames carry their own
+  /// wall-clock timestamps, which is what the run is closed with instead.
   void _onTimings(List<FrameTiming> timings) {
     if (timings.isEmpty || _openKind == null) return;
-    noteFrameRasterized();
+
+    var sawWallTime = false;
+    for (final timing in timings) {
+      final wallMicros = _rasterFinishWallMicros(timing);
+      if (wallMicros == null) continue;
+      sawWallTime = true;
+      // Frames from before this run opened belong to the previous one; a batch
+      // holding only those means the frame we are waiting for has not landed.
+      if (wallMicros >= _runStartedAtWallMicros) {
+        noteFrameRasterized(rasterFinishWallMicros: wallMicros);
+        return;
+      }
+    }
+
+    // No usable stamp on this platform: close on the delivery time, which
+    // carries the batching delay but beats leaving the run open forever.
+    if (!sawWallTime) noteFrameRasterized();
+  }
+
+  /// The engine's wall-clock stamp for a frame, or null when it has none.
+  static int? _rasterFinishWallMicros(FrameTiming timing) {
+    try {
+      final micros = timing.timestampInMicroseconds(
+        FramePhase.rasterFinishWallTime,
+      );
+      return micros > 0 ? micros : null;
+    } catch (_) {
+      return null;
+    }
   }
 
   Future<void> persist() async {
@@ -347,16 +424,35 @@ class StartupTrace {
   ///
   /// iOS delivers `resumed` after transient interruptions too — a control
   /// centre pull, a permission sheet — and measuring those would bury the
-  /// returns the user actually waits for in noise.
+  /// returns the user actually waits for in noise. Those interruptions stop at
+  /// `inactive`, so only `hidden` and below count as having been away.
   void handleLifecycleState(AppLifecycleState state) {
-    final isResumed = state == AppLifecycleState.resumed;
-    if (isResumed && !_wasForeground) {
-      beginResume();
-      try {
-        WidgetsBinding.instance.scheduleFrame();
-      } catch (_) {}
+    switch (state) {
+      case AppLifecycleState.hidden:
+      case AppLifecycleState.paused:
+      case AppLifecycleState.detached:
+        _wasBackgrounded = true;
+        // A resume run whose frame never landed before the app went away again
+        // would be closed by the first frame of the *next* return, reporting
+        // the time spent in the background as if the app had been busy.
+        if (_openKind == StartupRunKind.resume) _discardOpenRun();
+      case AppLifecycleState.inactive:
+        break;
+      case AppLifecycleState.resumed:
+        if (!_wasBackgrounded) return;
+        _wasBackgrounded = false;
+        beginResume();
+        try {
+          WidgetsBinding.instance.scheduleFrame();
+        } catch (_) {}
     }
-    _wasForeground = isResumed;
+  }
+
+  void _discardOpenRun() {
+    _openKind = null;
+    _openRunAt = null;
+    _phases.clear();
+    _openPhases.clear();
   }
 }
 

@@ -10,12 +10,17 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   late int now;
+  late int wallMicros;
   late StartupTrace trace;
 
   setUp(() {
     SharedPreferences.setMockInitialValues({});
     now = 0;
-    trace = StartupTrace.createForTest(clock: () => now);
+    wallMicros = 1700000000000000;
+    trace = StartupTrace.createForTest(
+      clock: () => now,
+      wallClock: () => wallMicros,
+    );
   });
 
   test('a cold start reports the time to the first frame', () {
@@ -239,5 +244,71 @@ void main() {
     trace.noteFrameRasterized();
     expect(trace.snapshot().runs.first.kind, StartupRunKind.resume);
     expect(trace.snapshot().runs.first.toFirstFrameMs, 1200);
+  });
+
+  test('a pull of the control centre is not a resume', () {
+    // iOS stops at `inactive` for an interruption that never hides the app.
+    // Treating that as a return from the background filled the log with runs
+    // the user never waited for.
+    trace.handleLifecycleState(AppLifecycleState.paused);
+    trace.handleLifecycleState(AppLifecycleState.resumed);
+    now = 40;
+    trace.noteFrameRasterized();
+
+    trace.handleLifecycleState(AppLifecycleState.inactive);
+    trace.handleLifecycleState(AppLifecycleState.resumed);
+    expect(trace.hasOpenRun, isFalse);
+  });
+
+  test('the resume is measured to the frame, not to the timing callback', () {
+    // The engine flushes frame timings at most once a second, so the callback
+    // that closes the run arrives long after the frame it describes. Reading
+    // the clock there reported that flush delay as resume latency: a steady
+    // ~1000ms no matter how fast the app actually came back.
+    trace.handleLifecycleState(AppLifecycleState.paused);
+    trace.handleLifecycleState(AppLifecycleState.resumed);
+
+    // The frame lands 32ms in; its timing is delivered a second later.
+    final frameWallMicros = wallMicros + 32 * 1000;
+    now = 1040;
+    trace.noteFrameRasterized(rasterFinishWallMicros: frameWallMicros);
+
+    expect(trace.snapshot().runs.first.toFirstFrameMs, 32);
+  });
+
+  test('a wall clock that jumped falls back to the measured span', () {
+    trace.beginColdStart();
+    now = 900;
+
+    // A frame stamped before the run started, or after the callback that
+    // reports it, means the wall clock moved under us.
+    trace.noteFrameRasterized(rasterFinishWallMicros: wallMicros - 5000000);
+    expect(trace.snapshot().runs.single.toFirstFrameMs, 900);
+
+    trace.beginColdStart();
+    now += 700;
+    trace.noteFrameRasterized(rasterFinishWallMicros: wallMicros + 5000000);
+    expect(trace.snapshot().runs.first.toFirstFrameMs, 700);
+  });
+
+  test('a resume interrupted before its frame lands is dropped', () {
+    // Otherwise the first frame of the next return closes it, and the whole
+    // stretch spent in the background is reported as resume latency.
+    trace.handleLifecycleState(AppLifecycleState.paused);
+    trace.handleLifecycleState(AppLifecycleState.resumed);
+    expect(trace.hasOpenRun, isTrue);
+
+    trace.handleLifecycleState(AppLifecycleState.hidden);
+    expect(trace.hasOpenRun, isFalse);
+
+    now = 600000;
+    wallMicros += 600000 * 1000;
+    trace.handleLifecycleState(AppLifecycleState.resumed);
+    now = 600030;
+    trace.noteFrameRasterized(
+      rasterFinishWallMicros: wallMicros + 30 * 1000,
+    );
+
+    expect(trace.snapshot().runs.single.toFirstFrameMs, 30);
   });
 }
