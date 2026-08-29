@@ -134,6 +134,24 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
         }
       }
     }
+    if (_isDragActive) {
+      final manager = Provider.of<LiveWorkoutViewModel>(context, listen: false);
+      _trackReorderHover(event.position.dy, manager.exercises);
+    }
+  }
+
+  double? _lastDragPointerY;
+
+  void _trackReorderHover(
+      double pointerGlobalY, List<RoutineExercise> exercises) {
+    _lastDragPointerY = pointerGlobalY;
+    ReorderHapticFeedback.onPointerMove(
+      pointerGlobalY: pointerGlobalY,
+      anchor: _scrollAnchor,
+      itemIds: [
+        for (int i = 0; i < exercises.length; i++) exercises[i].id ?? i,
+      ],
+    );
   }
 
   void _onDragPointerUp(PointerUpEvent event) {
@@ -246,6 +264,7 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
     WidgetsBinding.instance.addObserver(this);
     unawaited(TelemetryService.instance
         .trackScreenView(screenName: ScreenName.liveWorkout));
+    _scrollController.addListener(_onScrollUpdated);
     _prAnimationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 600),
@@ -296,6 +315,13 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
     });
   }
 
+  void _onScrollUpdated() {
+    if (_isDragActive && _lastDragPointerY != null) {
+      final manager = Provider.of<LiveWorkoutViewModel>(context, listen: false);
+      _trackReorderHover(_lastDragPointerY!, manager.exercises);
+    }
+  }
+
   void _processPRQueue() async {
     if (_isShowingPR || _prQueue.isEmpty) return;
 
@@ -324,6 +350,7 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
       LiveWorkoutScreen.onDeepLinkReturn = null;
     }
     WidgetsBinding.instance.removeObserver(this);
+    _scrollController.removeListener(_onScrollUpdated);
     _collapseTimer?.cancel();
     _expandTimer?.cancel();
     _scrollAnchor.discard();
@@ -989,38 +1016,51 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                           Expanded(
                             child: exercises.isEmpty
                                 ? _buildEmptyState(context, l10n)
-                                : ReorderableListView.builder(
-                                    scrollController: _scrollController,
-                                    buildDefaultDragHandles: false,
-                                    scrollCacheExtent:
-                                        const ScrollCacheExtent.pixels(1500.0),
-                                    header: ReorderHeadroom(
-                                      height: _isDragging
-                                          ? _dynamicHeadroom
-                                          : 0.0,
-                                    ),
-                                    padding: EdgeInsets.only(
-                                      bottom: (showRestBar
-                                              ? 220.0
-                                              : DesignConstants
-                                                  .bottomContentSpacer) +
-                                          MediaQuery.paddingOf(context).bottom,
-                                    ),
-                                    onReorderStart: (index) {
-                                      _isDragActive = true;
-                                      _scrollAnchor.discard();
-                                      _collapseTimer?.cancel();
-                                      _expandTimer?.cancel();
-                                      if (!_isDragging) {
-                                        setState(() {
-                                          _isDragging = true;
-                                        });
+                                : Listener(
+                                    onPointerMove: (e) {
+                                      if (_isDragActive) {
+                                        final manager =
+                                            Provider.of<LiveWorkoutViewModel>(
+                                                context,
+                                                listen: false);
+                                        _trackReorderHover(
+                                            e.position.dy, manager.exercises);
                                       }
                                     },
-                                    onReorderEnd: (index) {
-                                      _isDragActive = false;
-                                      _scheduleExpandAfterDrop();
-                                    },
+                                    child: ReorderableListView.builder(
+                                      scrollController: _scrollController,
+                                      buildDefaultDragHandles: false,
+                                      scrollCacheExtent:
+                                          const ScrollCacheExtent.pixels(1500.0),
+                                      header: ReorderHeadroom(
+                                        height: _isDragging
+                                            ? _dynamicHeadroom
+                                            : 0.0,
+                                      ),
+                                      padding: EdgeInsets.only(
+                                        bottom: (showRestBar
+                                                ? 220.0
+                                                : DesignConstants
+                                                    .bottomContentSpacer) +
+                                            MediaQuery.paddingOf(context).bottom,
+                                      ),
+                                      onReorderStart: (index) {
+                                        _isDragActive = true;
+                                        ReorderHapticFeedback.onDragStart(index);
+                                        _scrollAnchor.discard();
+                                        _collapseTimer?.cancel();
+                                        _expandTimer?.cancel();
+                                        if (!_isDragging) {
+                                          setState(() {
+                                            _isDragging = true;
+                                          });
+                                        }
+                                      },
+                                      onReorderEnd: (index) {
+                                        _isDragActive = false;
+                                        ReorderHapticFeedback.onDragEnd();
+                                        _scheduleExpandAfterDrop();
+                                      },
                                     proxyDecorator: (Widget child, int index,
                                         Animation<double> animation) {
                                       final l10n =
@@ -1287,6 +1327,7 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                       );
                                     },
                                   ),
+                                ),
                           ),
                         ],
                       ),

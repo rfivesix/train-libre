@@ -172,28 +172,43 @@ void main() {
     expect(headroom5, 0.0);
   });
 
-  test('ReorderHapticFeedback lifecycle and boundary tracking', () {
+  testWidgets('ReorderHapticFeedback lifecycle and boundary tracking',
+      (tester) async {
+    final anchor = ReorderScrollAnchor(controller);
+    final itemIds = ['ex_0', 'ex_1', 'ex_2'];
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: ListView(
+            controller: controller,
+            children: [
+              for (final id in itemIds)
+                KeyedSubtree(
+                  key: anchor.keyFor(id),
+                  child: SizedBox(height: 60.0, child: Text(id)),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+
     // Start drag at index 2
     ReorderHapticFeedback.onDragStart(2);
 
-    // Pointer move within same slot 2: no extra vibration needed
+    // Pointer move within slot 2 (~150px)
     ReorderHapticFeedback.onPointerMove(
-      pointerGlobalY: 200.0,
-      viewportTop: 0.0,
-      scrollOffset: 0.0,
-      dynamicHeadroom: 50.0,
-      itemCount: 5,
-      itemHeight: 60.0,
+      pointerGlobalY: 150.0,
+      anchor: anchor,
+      itemIds: itemIds,
     );
 
-    // Pointer move crossing to slot 1: triggers selection feedback
+    // Pointer move crossing to slot 0 (~30px)
     ReorderHapticFeedback.onPointerMove(
-      pointerGlobalY: 120.0,
-      viewportTop: 0.0,
-      scrollOffset: 0.0,
-      dynamicHeadroom: 50.0,
-      itemCount: 5,
-      itemHeight: 60.0,
+      pointerGlobalY: 30.0,
+      anchor: anchor,
+      itemIds: itemIds,
     );
 
     // End drag

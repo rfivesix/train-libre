@@ -126,28 +126,12 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
 
   double? _lastDragPointerY;
 
-  double _getViewportTop() {
-    double? viewportTop;
-    if (_scrollController.hasClients) {
-      final renderBox = _scrollController
-          .position.context.notificationContext
-          ?.findRenderObject() as RenderBox?;
-      if (renderBox != null && renderBox.hasSize) {
-        viewportTop = renderBox.localToGlobal(Offset.zero).dy;
-      }
-    }
-    return viewportTop ?? (MediaQuery.paddingOf(context).top + kToolbarHeight);
-  }
-
   void _trackReorderHover(double pointerGlobalY) {
     _lastDragPointerY = pointerGlobalY;
     ReorderHapticFeedback.onPointerMove(
       pointerGlobalY: pointerGlobalY,
-      viewportTop: _getViewportTop(),
-      scrollOffset:
-          _scrollController.hasClients ? _scrollController.offset : 0.0,
-      dynamicHeadroom: _isDragging ? _dynamicHeadroom : 0.0,
-      itemCount: _groupedSets.length,
+      anchor: _scrollAnchor,
+      itemIds: _groupedSets.keys.toList(),
     );
   }
 

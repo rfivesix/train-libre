@@ -312,7 +312,7 @@ class ReorderHeadroom extends StatelessWidget {
   }
 }
 
-/// Scented haptic feedback manager for exercise card drag and drop operations.
+/// Tactile haptic feedback manager for exercise card drag and drop operations.
 ///
 /// Triggers medium impact on lift, selection ticks on crossing slot boundaries,
 /// and light impact on drop.
@@ -331,16 +331,33 @@ class ReorderHapticFeedback {
   /// whenever the dragged card crosses into a new slot boundary.
   static void onPointerMove({
     required double pointerGlobalY,
-    required double viewportTop,
-    required double scrollOffset,
-    required double dynamicHeadroom,
-    required int itemCount,
-    double itemHeight = 64.0,
+    required ReorderScrollAnchor anchor,
+    required List<Object> itemIds,
   }) {
-    if (itemCount <= 0) return;
-    final relativeY =
-        pointerGlobalY - viewportTop + scrollOffset - dynamicHeadroom;
-    final slot = (relativeY / itemHeight).floor().clamp(0, itemCount - 1);
+    if (itemIds.isEmpty) return;
+
+    int? slot;
+    double minDistance = double.infinity;
+
+    for (int i = 0; i < itemIds.length; i++) {
+      final key = anchor.keyFor(itemIds[i]);
+      final ctx = key.currentContext;
+      if (ctx != null) {
+        final rb = ctx.findRenderObject() as RenderBox?;
+        if (rb != null && rb.hasSize && rb.attached) {
+          final top = rb.localToGlobal(Offset.zero).dy;
+          final midY = top + rb.size.height / 2;
+          final distance = (midY - pointerGlobalY).abs();
+          if (distance < minDistance) {
+            minDistance = distance;
+            slot = i;
+          }
+        }
+      }
+    }
+
+    if (slot == null) return;
+
     if (_lastSlot != null && slot != _lastSlot) {
       _lastSlot = slot;
       HapticFeedbackService.instance.selectionFeedback();
