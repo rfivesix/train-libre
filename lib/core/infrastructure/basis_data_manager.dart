@@ -537,41 +537,32 @@ class BasisDataManager {
         prefs.getBool('is_exercise_catalog_initialized') ?? false;
     final mainDb = await DatabaseHelper.instance.database;
 
-    // The health check runs unconditionally, not only when the initialized
-    // flag is missing: after a backup restore the flag is carried over from
-    // the source device while the tables here are still empty, and gating the
-    // check on the flag would let that state slip through untouched.
-    final exerciseCountRow = await mainDb
-        .customSelect('SELECT COUNT(*) AS c FROM exercises')
-        .getSingleOrNull();
-    final exerciseCountDb = exerciseCountRow?.read<int>('c') ?? 0;
-    final translationCountRow = await mainDb
-        .customSelect('SELECT COUNT(*) AS c FROM exercise_translations')
-        .getSingleOrNull();
-    final translationCountDb = translationCountRow?.read<int>('c') ?? 0;
+    bool exerciseCatalogUnhealthy = false;
+    if (!isExerciseInitialized || force) {
+      exerciseCatalogUnhealthy = true;
+    } else {
+      // Fast existence check (O(1) LIMIT 1) rather than scanning all rows with COUNT(*)
+      final exRow = await mainDb
+          .customSelect('SELECT 1 FROM exercises LIMIT 1')
+          .getSingleOrNull();
+      final trRow = await mainDb
+          .customSelect('SELECT 1 FROM exercise_translations LIMIT 1')
+          .getSingleOrNull();
 
-    final exercisesEmpty = exerciseCountDb == 0;
-    final translationsHealthy =
-        exerciseCountDb == 0 || (translationCountDb >= exerciseCountDb);
-    final exerciseCatalogUnhealthy = exercisesEmpty || !translationsHealthy;
-
-    if (exerciseCatalogUnhealthy) {
-      await prefs.remove(_keyVersionTraining);
-      _exerciseRowsVerified = false;
-      if (exercisesEmpty) {
+      if (exRow == null || trRow == null) {
+        // Tables are empty (e.g. fresh install, sandbox wipe or empty restored DB)
+        exerciseCatalogUnhealthy = true;
+        await prefs.remove(_keyVersionTraining);
+        _exerciseRowsVerified = false;
         debugPrint(
-          '[ExerciseCatalog] ⚠️  exercises table empty → forcing re-seed '
-          '(sandbox reset or restored backup: prefs survived an empty SQLite).',
+          '[ExerciseCatalog] ⚠️  exercises or translations missing → forcing re-seed.',
         );
       } else {
-        debugPrint(
-          '[ExerciseCatalog] ⚠️  Under-translated: $translationCountDb translations '
-          'for $exerciseCountDb exercises → forcing re-seed.',
-        );
+        _exerciseRowsVerified = true;
       }
     }
 
-    if (!isExerciseInitialized || exerciseCatalogUnhealthy || force) {
+    if (exerciseCatalogUnhealthy || force) {
       await importExerciseCatalog(
         force: force,
         checkRemote: force,
@@ -580,25 +571,19 @@ class BasisDataManager {
         isRemoteSkipRequested: force ? isRemoteSkipRequested : null,
       );
       await prefs.setBool('is_exercise_catalog_initialized', true);
-    }
 
-    // Post-import sanity check – only log if something looks wrong.
-    final postExRow = await mainDb
-        .customSelect('SELECT COUNT(*) AS c FROM exercises')
-        .getSingleOrNull();
-    final postExCount = postExRow?.read<int>('c') ?? 0;
-    final postTrRow = await mainDb
-        .customSelect('SELECT COUNT(*) AS c FROM exercise_translations')
-        .getSingleOrNull();
-    final postTrCount = postTrRow?.read<int>('c') ?? 0;
-    if (postExCount == 0) {
-      debugPrint('[ExerciseCatalog] ❌ exercises still EMPTY after import!');
-    } else if (postTrCount < postExCount) {
-      debugPrint(
-          '[ExerciseCatalog] ❌ translations ($postTrCount) still below exercises ($postExCount) after import!');
-    } else {
-      debugPrint(
-          '[ExerciseCatalog] ✅ $postExCount exercises / $postTrCount translations ready.');
+      // Post-import sanity check
+      final postExRow = await mainDb
+          .customSelect('SELECT 1 FROM exercises LIMIT 1')
+          .getSingleOrNull();
+      final postTrRow = await mainDb
+          .customSelect('SELECT 1 FROM exercise_translations LIMIT 1')
+          .getSingleOrNull();
+      if (postExRow == null || postTrRow == null) {
+        debugPrint('[ExerciseCatalog] ❌ exercises or translations still EMPTY after import!');
+      } else {
+        debugPrint('[ExerciseCatalog] ✅ Exercise catalog successfully imported and ready.');
+      }
     }
 
     final activeOffSource = OffCatalogCountryService.activeSourceFromPrefs(

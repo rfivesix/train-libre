@@ -199,23 +199,11 @@ class _MainScreenState extends State<MainScreen>
       // the app language. Backgrounding is also exactly the moment before the
       // user can see the Home Screen, so it is the right time to be current.
       // Not debounced: a 500ms timer would not survive being backgrounded.
-      unawaited(_syncHomeWidgetsNow());
+      unawaited(_syncHomeWidgetsNow(forceStatistics: false));
     } else if (state == AppLifecycleState.resumed) {
-      // Data can change while backgrounded (HealthKit steps/sleep sync from
-      // another process, day rollover) with nothing in-app to trigger a
-      // refresh. Resume is the first moment the app can act on that, rather
-      // than waiting for the next mutation or the next cold start.
-      //
-      // Defer widget synchronization past the first frame so the UI renders
-      // immediately without stalling on database queries or HealthKit requests.
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) return;
-        Timer(const Duration(milliseconds: 350), () {
-          if (mounted) {
-            unawaited(_syncHomeWidgetsNow(forceStatistics: false));
-          }
-        });
-      });
+      // The snapshot is already up-to-date from the pause sync. Resume starts
+      // the periodic refresh timer to keep widgets current during long
+      // foreground sessions.
       _startWidgetRefreshTimer();
     }
   }

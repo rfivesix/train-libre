@@ -112,6 +112,13 @@ class ICloudSyncService {
         kICloudLastSyncTimestampKey, timestamp.millisecondsSinceEpoch);
   }
 
+  bool _isSyncing = false;
+
+  /// Minimum interval between automatic background syncs (on app pause).
+  /// Prevents rapid app switching or control center pulls from spamming
+  /// VACUUM INTO and ZIP compression operations.
+  static const Duration _minAutoSyncInterval = Duration(minutes: 5);
+
   // ── Upload ────────────────────────────────────────────────────────────────
 
   /// Checks if sync is enabled, then snapshots and uploads the database.
@@ -120,8 +127,16 @@ class ICloudSyncService {
   /// Returns `true` if the upload was performed successfully, `false` otherwise.
   Future<bool> syncIfEnabled(AppDatabase db) async {
     if (!Platform.isIOS && !Platform.isMacOS) return false;
+    if (_isSyncing) return false;
     final enabled = await isSyncEnabled();
     if (!enabled) return false;
+
+    final lastSync = await getLastSyncTimestamp();
+    if (lastSync != null &&
+        DateTime.now().difference(lastSync) < _minAutoSyncInterval) {
+      return false;
+    }
+
     return _snapshotAndUpload(db);
   }
 
@@ -130,23 +145,31 @@ class ICloudSyncService {
     void Function(double progress)? onProgress,
   }) async {
     if (!Platform.isIOS && !Platform.isMacOS) return false;
+    if (_isSyncing) return false;
+    _isSyncing = true;
 
-    // For manual alpha-debugging, we execute this inline without a silent catch
-    // block to allow the UI to catch and inspect PlatformExceptions.
-    final archive = await _buildArchive(db);
-    await _keepPreviousRemoteBackup();
-    await _uploadWithProgress(archive.path, _kICloudBackupFileName, onProgress);
-    await _dropLegacyRemoteBackup();
+    try {
+      // For manual alpha-debugging, we execute this inline without a silent catch
+      // block to allow the UI to catch and inspect PlatformExceptions.
+      final archive = await _buildArchive(db);
+      await _keepPreviousRemoteBackup();
+      await _uploadWithProgress(archive.path, _kICloudBackupFileName, onProgress);
+      await _dropLegacyRemoteBackup();
 
-    await _setLastSyncTimestamp(DateTime.now());
+      await _setLastSyncTimestamp(DateTime.now());
 
-    unawaited(TelemetryService.instance
-        .trackFeatureUsed(featureKey: FeatureKey.icloudSyncTriggered));
+      unawaited(TelemetryService.instance
+          .trackFeatureUsed(featureKey: FeatureKey.icloudSyncTriggered));
 
-    return true;
+      return true;
+    } finally {
+      _isSyncing = false;
+    }
   }
 
   Future<bool> _snapshotAndUpload(AppDatabase db) async {
+    if (_isSyncing) return false;
+    _isSyncing = true;
     try {
       final archive = await _buildArchive(db);
 
@@ -171,6 +194,8 @@ class ICloudSyncService {
       debugPrint("iCloud StackTrace: $st");
       // Swallow errors silently — backup failures should not crash the app.
       return false;
+    } finally {
+      _isSyncing = false;
     }
   }
 

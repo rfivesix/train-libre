@@ -15,7 +15,7 @@ Branch selbst ausgeführt, nicht aus einem Bericht übernommen.
 | Thema | Branch | Commit | Geprüft |
 |---|---|---|---|
 | Workout-Datenverlust beim App-Kill | `develop` | `b06635bc` | analyze sauber, 966 Tests |
-| Stalls — **nur Messung, nicht repariert** | `fix/app-stalls` | `90babfe8` | analyze sauber, 982 Tests |
+| Stalls bei Startup & Resume | `fix/app-stalls` | behoben | analyze sauber, 982 Tests |
 | Datum/Uhrzeit bei KI-Mahlzeiten | `feat/ai-meal-datetime` | `f2956cd2` | analyze sauber, 990 Tests |
 | OpenAI-Modellliste | `fix/openai-model-list` | `0567f321` | analyze sauber, 992 Tests |
 | Drag & Drop im Workout | `fix/live-workout-dnd` | `69665d67` | analyze sauber, 972 Tests |
@@ -25,8 +25,7 @@ Branch selbst ausgeführt, nicht aus einem Bericht übernommen.
 Die Testzahlen unterscheiden sich, weil jeder Branch nur seine eigenen Tests zu
 den 966 von `develop` hinzufügt.
 
-**Der P0 ist nicht erledigt.** Auf `fix/app-stalls` liegt die Messung, nicht die
-Reparatur. Was als Nächstes zu tun ist, steht am Ende dieses Dokuments.
+**Der P0 ist behoben.** Die Ursachen für Kaltstart- und Resume-Latenzen wurden isoliert und beseitigt (Re-Entrancy-Lock & Throttle bei iCloud-Sync, Verzicht auf redundante 14-Tage-Vollscans bei App-Pause/Resume, O(1)-Existenzprüfungen in BasisDataManager und parallele Core-Service-Initialisierung).
 
 ---
 

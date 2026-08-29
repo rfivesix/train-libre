@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## [1.2.0-beta.3] - 2026-08-29
+## [1.2.0-beta.4] - 2026-08-29
 
 ### Added
 - **Accordion Animation (`LegalScreen`):** Animated legal notice and privacy policy sections with smooth vertical height expansion (`SizeTransition` with `alignment: Alignment.topCenter`, 280ms, `Curves.easeInOutCubic`), fade ramp (`FadeTransition`), and synchronous rotating chevron indicator (`RotationTransition`), ensuring text unrolls strictly from the top without horizontal reflow.
@@ -40,9 +40,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   - **Every Structural Change Is Persisted:** Adding a set stored it as if it came last in the whole workout rather than after its own exercise's sets, which tore that exercise in two on the next start. Adding a set, removing a set and removing an exercise now all rewrite the session's structure, as reordering already did.
   - **No Second Set of Empty Rows:** Reopening an ongoing workout from a view model that never restored it (the startup restore failed, or the screen opened before it ran) laid a fresh set of empty rows on top of the stored ones — a workout with its values blanked over duplicated sets. It now restores the existing session instead.
   - **Exercise Notes Kept:** Adding or removing a set rebuilt the exercise by hand and dropped its notes in the process.
-- **Resume Stall Elimination (`MainScreen`, `HomeWidgetSyncService`):**
-  - Eliminated 1–2 second UI freezes when returning from the background by deferring heavy Home Widget synchronization and 14-day recovery analytics past the first rendered frame.
-  - The initial frame renders immediately upon resume without waiting for SQLite database sweeps or HealthKit requests, keeping the UI responsive.
+- **Startup & Resume Stall Elimination (`MainScreen`, `ICloudSyncService`, `BasisDataManager`, `AppInitializerScreen`, `StartupTrace`):**
+  - **Background Freeze & Re-Entrancy Throttling:** Prevented process freeze bottlenecks upon backgrounding by adding re-entrancy locks and a 5-minute throttle interval to automatic iCloud backup synchronization (`ICloudSyncService.syncIfEnabled`), eliminating competing SQLite `VACUUM INTO` and ZIP archive disk thrashing during brief app suspensions.
+  - **Clean Background Widget Sync:** Streamlined backgrounding synchronization in `MainScreen` to rely on cached recovery and steps statistics without forcing redundant 14-day database sweeps, and removed unnecessary post-resume query re-triggers.
+  - **Fast Catalog Presence Checks:** Replaced expensive `SELECT COUNT(*)` full-table scans in `BasisDataManager.checkForBasisDataUpdate` with fast `SELECT 1 ... LIMIT 1` existence checks during routine startups, skipping redundant disk reads across ~6,000 catalog and translation rows.
+  - **Parallel Core Service Initialization:** Parallelized core service boot steps (`ensureStandardSupplements`, `LocalNotificationService.initialize`, `LiveWorkoutViewModel.tryRestoreSession`, and `TelemetryService.init`) using `Future.wait` in `AppInitializerScreen`.
+  - **Immediate Resume Frame Trigger:** Added explicit `WidgetsBinding.instance.scheduleFrame()` trigger on app resume in `StartupTrace` to ensure instant frame rendering upon returning to static screens.
 - **Startup & Resume Phase Tracing (`StartupTrace`, `PerformanceDiagnosticsScreen`):**
   - Added precise millisecond-level diagnostics for app startup and background resume sequences, breaking down SQLite database initialization, Home Widget sync, and shader/backdrop warmup.
   - Fixed freeze watchdog blind spot on resume to accurately record cold/warm freezes directly in Settings → Performance Log.

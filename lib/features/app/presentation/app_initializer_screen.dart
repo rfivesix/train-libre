@@ -157,61 +157,60 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
       workoutSessionManager = null;
     }
 
-    try {
-      await StartupTrace.instance.measure(
-        'standard_supplements',
-        DatabaseHelper.instance.ensureStandardSupplements,
-      );
-    } catch (e) {
-      debugPrint("Standard supplement setup failed: $e");
-    }
-
-    try {
-      await StartupTrace.instance.measure(
-        'notifications_init',
-        LocalNotificationService.instance.initialize,
-      );
-      // Asynchronously trigger recommendation check on startup
-      unawaited(AdaptiveNutritionRecommendationService()
-          .refreshRecommendationIfDue()
+    final tasks = <Future<void>>[
+      StartupTrace.instance
+          .measure(
+            'standard_supplements',
+            DatabaseHelper.instance.ensureStandardSupplements,
+          )
           .catchError((e) {
-        debugPrint("Startup recommendation check failed: $e");
-        return null;
-      }));
-    } catch (e) {
-      debugPrint("Local notification initialization failed: $e");
-    }
-
-    if (workoutSessionManager != null) {
-      try {
-        await StartupTrace.instance.measure(
-          'workout_restore',
-          workoutSessionManager.tryRestoreSession,
-        );
-      } catch (e) {
-        debugPrint("Workout session restore failed: $e");
-      }
-    }
-
-    try {
-      await StartupTrace.instance.measure(
+        debugPrint("Standard supplement setup failed: $e");
+      }),
+      StartupTrace.instance.measure(
+        'notifications_init',
+        () async {
+          await LocalNotificationService.instance.initialize();
+          unawaited(AdaptiveNutritionRecommendationService()
+              .refreshRecommendationIfDue()
+              .catchError((e) {
+            debugPrint("Startup recommendation check failed: $e");
+            return null;
+          }));
+        },
+      ).catchError((e) {
+        debugPrint("Local notification initialization failed: $e");
+      }),
+      if (workoutSessionManager != null)
+        StartupTrace.instance
+            .measure(
+              'workout_restore',
+              workoutSessionManager.tryRestoreSession,
+            )
+            .catchError((e) {
+          debugPrint("Workout session restore failed: $e");
+        }),
+      StartupTrace.instance.measure(
         'telemetry_init',
-        TelemetryService.instance.init,
-      );
-      final packageInfo = await PackageInfo.fromPlatform();
-      final (localeStr, countryCode) =
-          TelemetryService.resolveSystemLocaleAndCountry();
+        () async {
+          await TelemetryService.instance.init();
+          final packageInfo = await PackageInfo.fromPlatform();
+          final (localeStr, countryCode) =
+              TelemetryService.resolveSystemLocaleAndCountry();
 
-      unawaited(TelemetryService.instance.trackAppLaunched(
-        appVersion: packageInfo.version,
-        osVersion: Platform.operatingSystemVersion,
-        platform: Platform.operatingSystem,
-        locale: localeStr,
-        country: countryCode,
-      ));
-    } catch (e) {
-      debugPrint("Telemetry startup tracking failed: $e");
-    }
+          unawaited(TelemetryService.instance.trackAppLaunched(
+            appVersion: packageInfo.version,
+            osVersion: Platform.operatingSystemVersion,
+            platform: Platform.operatingSystem,
+            locale: localeStr,
+            country: countryCode,
+          ));
+        },
+      ).catchError((e) {
+        debugPrint("Telemetry startup tracking failed: $e");
+      }),
+    ];
+
+    await Future.wait(tasks);
   }
 
   String _getLocalizedProgress(BuildContext context, String raw) {

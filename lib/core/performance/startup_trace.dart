@@ -352,6 +352,9 @@ class StartupTrace {
     final isResumed = state == AppLifecycleState.resumed;
     if (isResumed && !_wasForeground) {
       beginResume();
+      try {
+        WidgetsBinding.instance.scheduleFrame();
+      } catch (_) {}
     }
     _wasForeground = isResumed;
   }
