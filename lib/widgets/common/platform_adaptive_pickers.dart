@@ -43,6 +43,183 @@ Future<DateTime?> showAdaptiveDatePicker({
   );
 }
 
+/// Helper to get the localized combined date+time picker title.
+String _getSelectDateTimeTitle(BuildContext context) {
+  return AppLocalizations.of(context)?.selectDateTimeTitle ??
+      'Select Date & Time';
+}
+
+/// A platform-adaptive combined Date **and** Time picker.
+///
+/// The separate [showAdaptiveDatePicker] / [showAdaptiveTimePicker] sheets make
+/// the caller run two sheets back to back, which reads as two decisions when
+/// the user is only correcting one thing — when a meal happened. This puts both
+/// wheels in a single [CupertinoDatePicker] so the day and the clock move
+/// together and the sheet is confirmed once.
+///
+/// Returns `null` when the sheet is dismissed or cancelled. The returned value
+/// is truncated to whole minutes: the diary buckets rows by
+/// `consumedAt BETWEEN startOfDay AND 23:59:59`, and a stray sub-second
+/// component on a 23:59 pick would fall outside that window and drop the row
+/// out of its own day.
+Future<DateTime?> showAdaptiveDateTimePicker({
+  required BuildContext context,
+  required DateTime initialDateTime,
+  DateTime? firstDate,
+  DateTime? lastDate,
+}) async {
+  final isDark = Theme.of(context).brightness == Brightness.dark;
+  final l10n = AppLocalizations.of(context);
+  final theme = Theme.of(context);
+
+  final DateTime minimumDate = firstDate ?? DateTime(2000);
+  final DateTime maximumDate =
+      lastDate ?? DateTime.now().add(const Duration(days: 365));
+
+  // CupertinoDatePicker asserts on an initial value outside its own bounds, so
+  // a caller passing a stale timestamp must not be able to crash the sheet.
+  DateTime clamp(DateTime value) {
+    if (value.isBefore(minimumDate)) return minimumDate;
+    if (value.isAfter(maximumDate)) return maximumDate;
+    return value;
+  }
+
+  DateTime tempDateTime = clamp(initialDateTime);
+
+  final Color barrierColor = isDark
+      ? Colors.black.withValues(alpha: 0.5)
+      : Colors.black.withValues(alpha: 0.3);
+
+  final selected = await showModalBottomSheet<DateTime>(
+    context: context,
+    isScrollControlled: true,
+    useRootNavigator: true,
+    enableDrag: true,
+    backgroundColor: Colors.transparent,
+    barrierColor: barrierColor,
+    builder: (ctx) {
+      final kb = MediaQuery.of(ctx).viewInsets.bottom;
+      return AnimatedPadding(
+        duration: const Duration(milliseconds: 220),
+        curve: Curves.easeOutCubic,
+        padding: EdgeInsets.only(bottom: kb),
+        child: _GlassPickerSheet(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(
+                  left: DesignConstants.spacingL,
+                  right: DesignConstants.spacingL,
+                  top: DesignConstants.spacingL,
+                  bottom: DesignConstants.spacingS,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const SizedBox(width: 60),
+                    Flexible(
+                      child: Text(
+                        _getSelectDateTimeTitle(ctx),
+                        textAlign: TextAlign.center,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                    SizedBox(
+                      width: 60,
+                      child: Align(
+                        alignment: Alignment.centerRight,
+                        child: TextButton(
+                          style: TextButton.styleFrom(
+                            padding: EdgeInsets.zero,
+                            minimumSize: const Size(0, 0),
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
+                          onPressed: () {
+                            HapticFeedbackService.instance.selectionFeedback();
+                            Navigator.pop(ctx, clamp(DateTime.now()));
+                          },
+                          child: Text(
+                            l10n?.nowLabel ?? 'Now',
+                            style: const TextStyle(fontWeight: FontWeight.w600),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(
+                height: 200,
+                child: CupertinoTheme(
+                  data: CupertinoThemeData(
+                    brightness: isDark ? Brightness.dark : Brightness.light,
+                    textTheme: CupertinoTextThemeData(
+                      dateTimePickerTextStyle: TextStyle(
+                        color: isDark ? Colors.white : Colors.black87,
+                        fontSize: 18,
+                      ),
+                    ),
+                  ),
+                  child: CupertinoDatePicker(
+                    initialDateTime: tempDateTime,
+                    minimumDate: minimumDate,
+                    maximumDate: maximumDate,
+                    mode: CupertinoDatePickerMode.dateAndTime,
+                    use24hFormat: MediaQuery.alwaysUse24HourFormatOf(ctx) ||
+                        Localizations.localeOf(ctx).languageCode == 'de',
+                    onDateTimeChanged: (DateTime newDateTime) {
+                      tempDateTime = newDateTime;
+                    },
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(
+                  left: DesignConstants.spacingL,
+                  right: DesignConstants.spacingL,
+                  top: DesignConstants.spacingXS,
+                  bottom: DesignConstants.spacingM,
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: AppButton.secondary(
+                        onPressed: () => Navigator.pop(ctx),
+                        label: l10n?.cancel ?? 'Cancel',
+                        tooltip: l10n?.cancel ?? 'Cancel',
+                      ),
+                    ),
+                    const SizedBox(width: DesignConstants.spacingM),
+                    Expanded(
+                      child: AppButton.primary(
+                        onPressed: () => Navigator.pop(ctx, tempDateTime),
+                        label: l10n?.snackbarButtonOK ?? 'OK',
+                        tooltip: l10n?.snackbarButtonOK ?? 'OK',
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    },
+  );
+
+  if (selected == null) return null;
+  return DateTime(
+    selected.year,
+    selected.month,
+    selected.day,
+    selected.hour,
+    selected.minute,
+  );
+}
+
 /// A platform-adaptive Time Picker.
 ///
 /// On all platforms, displays a custom glass picker wrapping a [CupertinoDatePicker]

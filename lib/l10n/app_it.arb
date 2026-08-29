@@ -2,6 +2,16 @@
   "@@locale": "it",
   "selectDateTitle": "Seleziona Data",
   "selectTimeTitle": "Seleziona Ora",
+  "selectDateTimeTitle": "Seleziona data e ora",
+  "mealDetailChangeDateTime": "Modifica data e ora",
+  "mealMovedToDate": "Pasto spostato al {date}",
+  "@mealMovedToDate": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "removeTimer": "Rimuovi timer",
   "noTimerLabel": "Nessun timer",
   "appTitle": "Train Libre",

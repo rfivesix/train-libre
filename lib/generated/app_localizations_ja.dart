@@ -15,6 +15,17 @@ class AppLocalizationsJa extends AppLocalizations {
   String get selectTimeTitle => '時間を選択';
 
   @override
+  String get selectDateTimeTitle => '日付と時刻を選択';
+
+  @override
+  String get mealDetailChangeDateTime => '日付と時刻を変更';
+
+  @override
+  String mealMovedToDate(String date) {
+    return '食事を$dateに移動しました';
+  }
+
+  @override
   String get removeTimer => 'タイマーを削除';
 
   @override

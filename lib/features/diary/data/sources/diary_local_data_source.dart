@@ -981,6 +981,78 @@ class DiaryLocalDataSource {
         .write(companion);
   }
 
+  /// Moves a logged meal — and everything hanging off it — to [newConsumedAt].
+  ///
+  /// There is no day column anywhere in this schema: every diary query buckets
+  /// rows by their own timestamp (`consumedAt BETWEEN startOfDay AND
+  /// 23:59:59`). So rewriting only `mealEntries.consumedAt` would move the meal
+  /// *card* to the new day while its calories stayed behind on the old one —
+  /// both days would then read wrong, one short and one over. The nutrition
+  /// logs linked by [mealEntryId] have to move with it, and so do the fluid row
+  /// a logged drink carries (it feeds the day's hydration total) and the
+  /// supplement rows keyed to those logs (caffeine).
+  ///
+  /// Rows are shifted by the same delta rather than pinned to [newConsumedAt],
+  /// so an item logged ten minutes after the meal stays ten minutes after it.
+  ///
+  /// Everything happens in one transaction: a half-applied move would split a
+  /// meal across two days, which is worse than not moving it at all.
+  Future<void> moveMealEntryTo(
+      String mealEntryId, DateTime newConsumedAt) async {
+    await _db.transaction(() async {
+      final mealRow = await (_db.select(_db.mealEntries)
+            ..where((tbl) => tbl.id.equals(mealEntryId)))
+          .getSingleOrNull();
+      if (mealRow == null) return;
+
+      final delta = newConsumedAt.difference(mealRow.consumedAt);
+      if (delta == Duration.zero) return;
+
+      final now = DateTime.now();
+
+      await (_db.update(_db.mealEntries)
+            ..where((tbl) => tbl.id.equals(mealEntryId)))
+          .write(drift_db.MealEntriesCompanion(
+        consumedAt: drift.Value(newConsumedAt),
+        updatedAt: drift.Value(now),
+      ));
+
+      final logs = await (_db.select(_db.nutritionLogs)
+            ..where((tbl) => tbl.mealEntryId.equals(mealEntryId)))
+          .get();
+
+      for (final log in logs) {
+        final shifted = log.consumedAt.add(delta);
+
+        await (_db.update(_db.nutritionLogs)
+              ..where((tbl) => tbl.localId.equals(log.localId)))
+            .write(drift_db.NutritionLogsCompanion(
+          consumedAt: drift.Value(shifted),
+          updatedAt: drift.Value(now),
+        ));
+
+        await (_db.update(_db.fluidLogs)
+              ..where((tbl) => tbl.linkedNutritionLogId.equals(log.id)))
+            .write(drift_db.FluidLogsCompanion(
+          consumedAt: drift.Value(shifted),
+          updatedAt: drift.Value(now),
+        ));
+
+        final supplementRows = await (_db.select(_db.supplementLogs)
+              ..where((tbl) => tbl.sourceNutritionLogId.equals(log.id)))
+            .get();
+        for (final supplementRow in supplementRows) {
+          await (_db.update(_db.supplementLogs)
+                ..where((tbl) => tbl.localId.equals(supplementRow.localId)))
+              .write(drift_db.SupplementLogsCompanion(
+            takenAt: drift.Value(supplementRow.takenAt.add(delta)),
+            updatedAt: drift.Value(now),
+          ));
+        }
+      }
+    });
+  }
+
   Future<void> deleteMealEntry(String id,
       {required bool deleteFoodLogs}) async {
     if (deleteFoodLogs) {

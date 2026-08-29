@@ -15,6 +15,17 @@ class AppLocalizationsDe extends AppLocalizations {
   String get selectTimeTitle => 'Uhrzeit auswählen';
 
   @override
+  String get selectDateTimeTitle => 'Datum & Uhrzeit wählen';
+
+  @override
+  String get mealDetailChangeDateTime => 'Datum und Uhrzeit ändern';
+
+  @override
+  String mealMovedToDate(String date) {
+    return 'Mahlzeit verschoben auf $date';
+  }
+
+  @override
   String get removeTimer => 'Timer entfernen';
 
   @override

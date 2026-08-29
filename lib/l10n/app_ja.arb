@@ -2,6 +2,16 @@
   "@@locale": "ja",
   "selectDateTitle": "日付を選択",
   "selectTimeTitle": "時間を選択",
+  "selectDateTimeTitle": "日付と時刻を選択",
+  "mealDetailChangeDateTime": "日付と時刻を変更",
+  "mealMovedToDate": "食事を{date}に移動しました",
+  "@mealMovedToDate": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "removeTimer": "タイマーを削除",
   "noTimerLabel": "タイマーなし",
   "appTitle": "Train Libre",
