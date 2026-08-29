@@ -10,6 +10,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **OpenAI Model Catalog & Parameter Handling (`AiService`, `AiNetwork`):**
   - **Dynamic Model Catalog Fetching:** Added live retrieval of all chat/reasoning models from the `/v1/models` endpoint (including `gpt-5.6-luna`, `gpt-5.6-sol`, `gpt-5.6-terra`, `o1`, `o3`, `o4`), ensuring users always see up-to-date models instead of static fallback lists.
   - **Reasoning Model Compatibility:** Automatically omit unsupported parameters (e.g. `temperature`) when invoking reasoning and new-generation models, preventing HTTP 400 rejection errors, with automatic fallback retry logic.
+- **Resume Stall Elimination (`MainScreen`, `HomeWidgetSyncService`):**
+  - Eliminated 1–2 second UI freezes when returning from the background by deferring heavy Home Widget synchronization and 14-day recovery analytics past the first rendered frame.
+  - The initial frame renders immediately upon resume without waiting for SQLite database sweeps or HealthKit requests, keeping the UI responsive.
 - **Startup & Resume Phase Tracing (`StartupTrace`, `PerformanceDiagnosticsScreen`):**
   - Added precise millisecond-level diagnostics for app startup and background resume sequences, breaking down SQLite database initialization, Home Widget sync, and shader/backdrop warmup.
   - Fixed freeze watchdog blind spot on resume to accurately record cold/warm freezes directly in Settings → Performance Log.
