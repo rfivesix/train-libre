@@ -1159,6 +1159,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                                   widthFactor: 1,
                                   heightFactor: 1,
                                   child: IconButton(
+                                    tooltip: l10n.doneButtonLabel,
                                     icon: Icon(LucideIcons.check,
                                         color: isDark
                                             ? Colors.white
