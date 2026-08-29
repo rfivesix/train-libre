@@ -965,13 +965,17 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                     buildDefaultDragHandles: false,
                                     scrollCacheExtent:
                                         const ScrollCacheExtent.pixels(1500.0),
+                                    header: ReorderHeadroom(
+                                        isDragging: _isDragging),
                                     padding: EdgeInsets.only(
                                       bottom: (showRestBar
                                               ? 220.0
                                               : DesignConstants
                                                   .bottomContentSpacer) +
                                           MediaQuery.paddingOf(context).bottom +
-                                          (_isDragging ? 800.0 : 0.0),
+                                          (_isDragging
+                                              ? kReorderCollapseHeadroom
+                                              : 0.0),
                                     ),
                                     onReorderStart: (index) {
                                       _isDragActive = true;

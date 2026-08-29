@@ -40,23 +40,29 @@ class _CollapsibleListState extends State<_CollapsibleList> {
           scrollCacheExtent: const ScrollCacheExtent.pixels(5000.0),
           // Mirrors the extra room the workout screens keep while collapsed, so
           // the scroll offset does not get clamped away.
-          padding: EdgeInsets.only(bottom: _collapsed ? 800.0 : 0.0),
-          itemCount: 20,
-          itemBuilder: (context, index) => KeyedSubtree(
-            key: widget.anchor.keyFor(index),
-            // Mirrors the workout cards: the resize is animated, so the item
-            // drifts across many frames instead of landing in a single one.
-            child: AnimatedSize(
-              duration: kReorderCardResizeDuration,
-              curve: Curves.easeInOutCubic,
-              alignment: Alignment.topCenter,
-              child: SizedBox(
-                height: _collapsed ? 50.0 : _expandedHeight(index),
-                width: double.infinity,
-                child: Text('item $index'),
-              ),
-            ),
+          padding: EdgeInsets.only(
+            bottom: _collapsed ? kReorderCollapseHeadroom : 0.0,
           ),
+          // One extra leading child for the headroom the screens grow at the
+          // top of the list, so item N is at builder index N + 1.
+          itemCount: 21,
+          itemBuilder: (context, i) => i == 0
+              ? ReorderHeadroom(isDragging: _collapsed)
+              : KeyedSubtree(
+                  key: widget.anchor.keyFor(i - 1),
+                  // Mirrors the workout cards: the resize is animated, so the item
+                  // drifts across many frames instead of landing in a single one.
+                  child: AnimatedSize(
+                    duration: kReorderCardResizeDuration,
+                    curve: Curves.easeInOutCubic,
+                    alignment: Alignment.topCenter,
+                    child: SizedBox(
+                      height: _collapsed ? 50.0 : _expandedHeight(i - 1),
+                      width: double.infinity,
+                      child: Text('item ${i - 1}'),
+                    ),
+                  ),
+                ),
         ),
       ),
     );
@@ -146,6 +152,37 @@ void main() {
     expect(worst, lessThan(45.0));
     expect(yOf(tester, anchorIndex), closeTo(collapsedY, 0.5));
     expect(controller.offset, closeTo(1200, 0.5));
+  });
+
+  testWidgets('pins a card at the very top, where there is no room behind it',
+      (tester) async {
+    final state = await pumpList(tester);
+
+    // Hardest case for a scroll-based anchor: the list is already at its
+    // beginning, so holding the card means scrolling somewhere that does not
+    // exist yet. Without the headroom the correction is clamped away at
+    // minScrollExtent and the card keeps every pixel the card above it sheds.
+    expect(controller.offset, 0.0);
+    const topIndex = 1;
+    final before = tester.getTopLeft(find.text('item $topIndex')).dy;
+
+    state.setCollapsed(true, topIndex);
+    double worst = 0.0;
+    const step = Duration(milliseconds: 16);
+    for (Duration t = Duration.zero;
+        t < kReorderCardResizeDuration + const Duration(milliseconds: 120);
+        t += step) {
+      await tester.pump(step);
+      final drift =
+          (tester.getTopLeft(find.text('item $topIndex')).dy - before).abs();
+      if (drift > worst) worst = drift;
+    }
+
+    expect(worst, lessThan(45.0));
+    expect(tester.getTopLeft(find.text('item $topIndex')).dy,
+        closeTo(before, 0.5));
+    // The anchor scrolled into the headroom rather than being stuck at zero.
+    expect(controller.offset, greaterThan(0.0));
   });
 
   testWidgets('the pin releases itself once the resize is over',

@@ -283,7 +283,8 @@ class WorkoutExerciseLogCard extends StatelessWidget {
                                   exerciseName: exerciseName,
                                   isEditMode: isEditMode,
                                   isCardio: isCardio,
-                                  weightController: weightControllers[setLog.id],
+                                  weightController:
+                                      weightControllers[setLog.id],
                                   repsController: repsControllers[setLog.id],
                                   rirController: rirControllers[setLog.id],
                                   onDelete: () => onDeleteSet(setLog.id!),

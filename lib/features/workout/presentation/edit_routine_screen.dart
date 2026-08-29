@@ -876,12 +876,16 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                                     scrollCacheExtent:
                                         const ScrollCacheExtent.pixels(1500.0),
                                     itemCount: _routineExercises.length,
+                                    header: ReorderHeadroom(
+                                        isDragging: _isDragging),
                                     padding: EdgeInsets.only(
                                       top: _isEditMode ? 0.0 : topPadding,
                                       bottom: DesignConstants
                                               .bottomContentSpacer +
                                           MediaQuery.paddingOf(context).bottom +
-                                          (_isDragging ? 800.0 : 0.0),
+                                          (_isDragging
+                                              ? kReorderCollapseHeadroom
+                                              : 0.0),
                                     ),
                                     proxyDecorator: (Widget child, int index,
                                         Animation<double> animation) {

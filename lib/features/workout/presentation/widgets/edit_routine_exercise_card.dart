@@ -247,7 +247,8 @@ class EditRoutineExerciseCard extends StatelessWidget {
                                       repsControllers[setTemplate.id!]!,
                                   weightController:
                                       weightControllers[setTemplate.id!]!,
-                                  rirController: rirControllers[setTemplate.id!]!,
+                                  rirController:
+                                      rirControllers[setTemplate.id!]!,
                                   onShowSetTypePicker: () =>
                                       onShowSetTypePicker(setTemplate),
                                   onRemoveSet: () =>
@@ -256,7 +257,8 @@ class EditRoutineExerciseCard extends StatelessWidget {
                                 );
                               }),
                               if (isEditMode) ...[
-                                const SizedBox(height: DesignConstants.spacingS),
+                                const SizedBox(
+                                    height: DesignConstants.spacingS),
                                 Padding(
                                   padding: const EdgeInsets.symmetric(
                                       horizontal: 16.0),

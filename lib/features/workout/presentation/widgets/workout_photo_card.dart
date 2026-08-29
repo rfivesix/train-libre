@@ -271,8 +271,7 @@ class _WorkoutPhotoCardState extends State<WorkoutPhotoCard> {
                   PageView.builder(
                     controller: _pageController,
                     itemCount: files.length,
-                    onPageChanged: (idx) =>
-                        setState(() => _activePage = idx),
+                    onPageChanged: (idx) => setState(() => _activePage = idx),
                     itemBuilder: (context, idx) {
                       return Image.file(
                         files[idx],

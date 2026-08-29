@@ -954,9 +954,10 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                       child: ListView(
                         controller: _scrollController,
                         padding: EdgeInsets.only(
-                          bottom: _isDragging ? 800.0 : 0.0,
+                          bottom: _isDragging ? kReorderCollapseHeadroom : 0.0,
                         ),
                         children: [
+                          ReorderHeadroom(isDragging: _isDragging),
                           // Header Info (Clean Hero section)
                           Padding(
                             padding: const EdgeInsets.symmetric(

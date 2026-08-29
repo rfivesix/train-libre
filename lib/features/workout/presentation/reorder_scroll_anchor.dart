@@ -257,6 +257,29 @@ class ReorderScrollAnchor {
 /// long as the cards are still resizing.
 const Duration kReorderCardResizeDuration = Duration(milliseconds: 280);
 
+/// Slack kept at both ends of the list while the cards are collapsed.
+///
+/// The anchor pins a card by scrolling, so it can only hold one that has room
+/// to scroll into. A card near the top of the list has none: everything above
+/// it shrinks, the card rides up with it, and the correction is clamped away at
+/// [ScrollPosition.minScrollExtent] — the list simply cannot scroll past its own
+/// beginning. The screens therefore grow this much empty space at the *top* of
+/// the content while collapsed, which is what the correction then scrolls
+/// through, and the same amount at the bottom so the collapsed list keeps enough
+/// extent for the drag to move around in.
+///
+/// It has to cover the drop in height of everything above the touched card. That
+/// distance can never exceed how far the card sits below the top of the viewport
+/// — content above it that is off-screen is already scrolled past, and that
+/// scroll is room the correction can use — so one viewport is always enough, and
+/// this is comfortably that on a phone.
+///
+/// The space grows on [kReorderCardResizeDuration] with the same curve the cards
+/// use. Sharing the curve is what keeps it invisible: the space appearing above
+/// and the cards shrinking above cancel frame for frame, so the correction only
+/// ever has to scroll *forwards*, and never runs into the start of the list.
+const double kReorderCollapseHeadroom = 800.0;
+
 /// How long to wait after a drop before expanding the cards again.
 ///
 /// [SliverReorderableList] animates the dropped card into place over 250ms and
@@ -264,3 +287,26 @@ const Duration kReorderCardResizeDuration = Duration(milliseconds: 280);
 /// cards any earlier fights both. One extra frame of slack keeps the expansion
 /// strictly after the list has settled.
 const Duration kReorderDropSettleDuration = Duration(milliseconds: 270);
+
+/// The empty space the workout screens grow at the top of their list while the
+/// cards are collapsed, so [ReorderScrollAnchor] always has somewhere to scroll.
+///
+/// Belongs at the very start of the scrollable content — as a
+/// [ReorderableListView.header], which is its own sliver ahead of the
+/// reorderable one, or as the first child of the enclosing list. It animates in
+/// step with the cards it compensates for; see [kReorderCollapseHeadroom].
+class ReorderHeadroom extends StatelessWidget {
+  const ReorderHeadroom({super.key, required this.isDragging});
+
+  /// Whether the cards are collapsed for reordering.
+  final bool isDragging;
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedContainer(
+      duration: kReorderCardResizeDuration,
+      curve: Curves.easeInOutCubic,
+      height: isDragging ? kReorderCollapseHeadroom : 0.0,
+    );
+  }
+}

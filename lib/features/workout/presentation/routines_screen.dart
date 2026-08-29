@@ -78,7 +78,8 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
     return false;
   }
 
-  void _startWorkout(Routine routine, {BuildContext? sourceContext, WidgetBuilder? sourceBuilder}) async {
+  void _startWorkout(Routine routine,
+      {BuildContext? sourceContext, WidgetBuilder? sourceBuilder}) async {
     final sourceRect = CardMorphRoute.measureRect(sourceContext);
     final canProceed = await _checkAndHandleOngoingWorkout();
     if (!canProceed) return;
@@ -287,7 +288,8 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
                             ),
                             title: Text(
                               routine.name,
-                              style: const TextStyle(fontWeight: FontWeight.bold),
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.bold),
                             ),
                             subtitle: Text(l10n.editRoutineSubtitle),
                             trailing: Icon(
@@ -317,7 +319,8 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
                               ),
                               title: Text(
                                 routine.name,
-                                style: const TextStyle(fontWeight: FontWeight.bold),
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold),
                               ),
                               subtitle: Text(l10n.editRoutineSubtitle),
                               trailing: Icon(
