@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 
 /// A simple tappable text row for navigating to another screen.
+///
+/// Note (Card Morph Policy): Deliberately uses standard page navigation without
+/// CardMorphRoute: link rows are plain list items rather than visual cards,
+/// where a morph transition would read as over-animated.
 class AppLinkRow extends StatelessWidget {
   final String title;
   final String? subtitle;

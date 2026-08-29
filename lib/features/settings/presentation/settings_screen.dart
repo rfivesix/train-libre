@@ -909,6 +909,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return result ?? false;
   }
 
+  // Note (Card Morph Policy): Settings sub-screens deliberately use standard
+  // MaterialPageRoute transitions without CardMorphRoute: settings items are
+  // configuration rows within categorized sections rather than standalone primary
+  // content entities where card expansion would feel unnatural.
   Widget _buildNavigationCard({
     required BuildContext context,
     required IconData icon,
