@@ -1,34 +1,43 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:train_libre/features/workout/presentation/reorder_scroll_anchor.dart';
 
-/// A list whose items collapse to a header-sized box, mirroring what the
-/// workout screens do while an exercise is being dragged.
-class _CollapsibleList extends StatefulWidget {
-  const _CollapsibleList({required this.controller, required this.anchor});
+class _TestWorkoutReorderList extends StatefulWidget {
+  const _TestWorkoutReorderList({
+    required this.controller,
+    required this.isEditMode,
+  });
 
   final ScrollController controller;
-  final ReorderScrollAnchor anchor;
+  final bool isEditMode;
 
   @override
-  State<_CollapsibleList> createState() => _CollapsibleListState();
+  State<_TestWorkoutReorderList> createState() =>
+      _TestWorkoutReorderListState();
 }
 
-class _CollapsibleListState extends State<_CollapsibleList> {
-  bool _collapsed = false;
+class _TestWorkoutReorderListState extends State<_TestWorkoutReorderList> {
+  bool _isDragging = false;
+  final List<String> _items = List.generate(15, (i) => 'Exercise $i');
 
-  /// Heights differ per item so a uniform-height shortcut cannot pass by luck.
-  double _expandedHeight(int index) => 120.0 + index * 40.0;
-
-  /// Collapses/expands with the anchor holding [anchorId] in place.
-  void setCollapsed(bool value, int anchorId) {
-    widget.anchor.pin(anchorId, () => setState(() => _collapsed = value));
+  void startReorder() {
+    if (!widget.isEditMode) return;
+    setState(() => _isDragging = true);
+    if (widget.controller.hasClients) {
+      widget.controller.animateTo(
+        0.0,
+        duration: kReorderCardResizeDuration,
+        curve: Curves.easeInOutCubic,
+      );
+    }
   }
 
-  /// Collapses/expands without capturing an anchor.
-  void setCollapsedUnanchored(bool value) {
-    setState(() => _collapsed = value);
+  void endReorder() {
+    Future.delayed(kReorderDropSettleDuration, () {
+      if (mounted) {
+        setState(() => _isDragging = false);
+      }
+    });
   }
 
   @override
@@ -37,32 +46,20 @@ class _CollapsibleListState extends State<_CollapsibleList> {
       home: Scaffold(
         body: ListView.builder(
           controller: widget.controller,
-          scrollCacheExtent: const ScrollCacheExtent.pixels(5000.0),
-          // Mirrors the extra room the workout screens keep while collapsed, so
-          // the scroll offset does not get clamped away.
-          padding: EdgeInsets.only(
-            bottom: _collapsed ? kReorderCollapseHeadroom : 0.0,
-          ),
-          // One extra leading child for the headroom the screens grow at the
-          // top of the list, so item N is at builder index N + 1.
-          itemCount: 21,
-          itemBuilder: (context, i) => i == 0
-              ? ReorderHeadroom(isDragging: _collapsed)
-              : KeyedSubtree(
-                  key: widget.anchor.keyFor(i - 1),
-                  // Mirrors the workout cards: the resize is animated, so the item
-                  // drifts across many frames instead of landing in a single one.
-                  child: AnimatedSize(
-                    duration: kReorderCardResizeDuration,
-                    curve: Curves.easeInOutCubic,
-                    alignment: Alignment.topCenter,
-                    child: SizedBox(
-                      height: _collapsed ? 50.0 : _expandedHeight(i - 1),
-                      width: double.infinity,
-                      child: Text('item ${i - 1}'),
-                    ),
-                  ),
-                ),
+          itemCount: _items.length,
+          itemBuilder: (context, i) {
+            return AnimatedSize(
+              key: ValueKey(_items[i]),
+              duration: kReorderCardResizeDuration,
+              curve: Curves.easeInOutCubic,
+              alignment: Alignment.topCenter,
+              child: SizedBox(
+                height: _isDragging ? 50.0 : 150.0,
+                width: double.infinity,
+                child: Text(_items[i]),
+              ),
+            );
+          },
         ),
       ),
     );
@@ -71,184 +68,60 @@ class _CollapsibleListState extends State<_CollapsibleList> {
 
 void main() {
   late ScrollController controller;
-  late ReorderScrollAnchor anchor;
-
-  // Sits inside the viewport at scroll offset 1200 in the expanded list.
-  const anchorIndex = 6;
 
   setUp(() {
     controller = ScrollController();
-    anchor = ReorderScrollAnchor(controller);
   });
 
   tearDown(() => controller.dispose());
 
-  Future<_CollapsibleListState> pumpList(WidgetTester tester) async {
+  testWidgets(
+      'reorder start scrolls list to top (0.0) without artificial headroom',
+      (tester) async {
     await tester.pumpWidget(
-      _CollapsibleList(controller: controller, anchor: anchor),
+      _TestWorkoutReorderList(
+        controller: controller,
+        isEditMode: true,
+      ),
     );
-    return tester.state<_CollapsibleListState>(find.byType(_CollapsibleList));
-  }
+    final state =
+        tester.state<_TestWorkoutReorderListState>(find.byType(_TestWorkoutReorderList));
 
-  double yOf(WidgetTester tester, int index) =>
-      tester.getTopLeft(find.text('item $index')).dy;
-
-  /// Pumps the whole resize animation, returning the worst drift the anchored
-  /// item showed on any frame. A one-shot correction passes the endpoints and
-  /// fails badly here, which is exactly the regression this guards.
-  Future<double> worstDriftWhilePumping(
-    WidgetTester tester,
-    double expected,
-  ) async {
-    double worst = 0.0;
-    const step = Duration(milliseconds: 16);
-    for (Duration t = Duration.zero;
-        t < kReorderCardResizeDuration + const Duration(milliseconds: 120);
-        t += step) {
-      await tester.pump(step);
-      final drift = (yOf(tester, anchorIndex) - expected).abs();
-      if (drift > worst) worst = drift;
-    }
-    return worst;
-  }
-
-  testWidgets('keeps the anchored item pinned across the whole collapse',
-      (tester) async {
-    final state = await pumpList(tester);
-
-    controller.jumpTo(1200);
+    // Scroll down to an offset
+    controller.jumpTo(500.0);
     await tester.pump();
-    final before = yOf(tester, anchorIndex);
+    expect(controller.offset, 500.0);
 
-    state.setCollapsed(true, anchorIndex);
-    final worst = await worstDriftWhilePumping(tester, before);
-
-    // Everything above the anchor sheds 1020px in this list, and a one-shot
-    // correction lets the card trail the animation by up to 157px of that. The
-    // sustained, look-ahead-corrected pin keeps it inside a small fraction.
-    expect(worst, lessThan(45.0));
-    // ...and it has to land exactly on the anchor once the animation settles,
-    // because that is the position the drag proxy spawns onto.
-    expect(yOf(tester, anchorIndex), closeTo(before, 0.5));
-    // The correction has to actually move the viewport, otherwise the test
-    // would also pass with a no-op anchor.
-    expect(controller.offset, lessThan(1200));
-  });
-
-  testWidgets('keeps the anchored item pinned across the whole expansion',
-      (tester) async {
-    final state = await pumpList(tester);
-
-    controller.jumpTo(1200);
-    await tester.pump();
-
-    state.setCollapsed(true, anchorIndex);
+    // Trigger reorder collapse
+    state.startReorder();
     await tester.pumpAndSettle();
-    final collapsedY = yOf(tester, anchorIndex);
 
-    state.setCollapsed(false, anchorIndex);
-    final worst = await worstDriftWhilePumping(tester, collapsedY);
-
-    expect(worst, lessThan(45.0));
-    expect(yOf(tester, anchorIndex), closeTo(collapsedY, 0.5));
-    expect(controller.offset, closeTo(1200, 0.5));
-  });
-
-  testWidgets('pins a card at the very top, where there is no room behind it',
-      (tester) async {
-    final state = await pumpList(tester);
-
-    // Hardest case for a scroll-based anchor: the list is already at its
-    // beginning, so holding the card means scrolling somewhere that does not
-    // exist yet. Without the headroom the correction is clamped away at
-    // minScrollExtent and the card keeps every pixel the card above it sheds.
+    // List should be smoothly animated to 0.0
     expect(controller.offset, 0.0);
-    const topIndex = 1;
-    final before = tester.getTopLeft(find.text('item $topIndex')).dy;
+    expect(controller.position.minScrollExtent, 0.0);
 
-    state.setCollapsed(true, topIndex);
-    double worst = 0.0;
-    const step = Duration(milliseconds: 16);
-    for (Duration t = Duration.zero;
-        t < kReorderCardResizeDuration + const Duration(milliseconds: 120);
-        t += step) {
-      await tester.pump(step);
-      final drift =
-          (tester.getTopLeft(find.text('item $topIndex')).dy - before).abs();
-      if (drift > worst) worst = drift;
-    }
-
-    expect(worst, lessThan(45.0));
-    expect(tester.getTopLeft(find.text('item $topIndex')).dy,
-        closeTo(before, 0.5));
-    // The anchor scrolled into the headroom rather than being stuck at zero.
-    expect(controller.offset, greaterThan(0.0));
+    // There is no negative or extra headroom above the top
+    expect(find.text('Exercise 0'), findsOneWidget);
+    expect(tester.getTopLeft(find.text('Exercise 0')).dy, 0.0);
   });
 
-  testWidgets('the pin releases itself once the resize is over',
-      (tester) async {
-    final state = await pumpList(tester);
+  testWidgets('non-edit mode ignores reorder start', (tester) async {
+    await tester.pumpWidget(
+      _TestWorkoutReorderList(
+        controller: controller,
+        isEditMode: false,
+      ),
+    );
+    final state =
+        tester.state<_TestWorkoutReorderListState>(find.byType(_TestWorkoutReorderList));
 
-    controller.jumpTo(1200);
+    controller.jumpTo(300.0);
     await tester.pump();
 
-    state.setCollapsed(true, anchorIndex);
-    await tester.pumpAndSettle();
-    final settled = controller.offset;
-
-    // A scroll made after the pin expired must stick — the anchor is no longer
-    // entitled to drag the viewport back.
-    controller.jumpTo(settled + 120);
+    state.startReorder();
     await tester.pumpAndSettle();
 
-    expect(controller.offset, closeTo(settled + 120, 0.5));
-  });
-
-  testWidgets('discard stops an in-flight pin', (tester) async {
-    final state = await pumpList(tester);
-
-    controller.jumpTo(1200);
-    await tester.pump();
-
-    state.setCollapsed(true, anchorIndex);
-    await tester.pump(const Duration(milliseconds: 16));
-    anchor.discard();
-    final afterDiscard = controller.offset;
-
-    await tester.pumpAndSettle();
-
-    // The collapse runs to completion, but the anchor no longer touches the
-    // viewport, so the offset is frozen where discard() left it.
-    expect(controller.offset, closeTo(afterDiscard, 0.5));
-  });
-
-  testWidgets('restore without a capture leaves the scroll offset alone',
-      (tester) async {
-    await pumpList(tester);
-
-    controller.jumpTo(600);
-    await tester.pump();
-
-    anchor.restore();
-    await tester.pump();
-
-    expect(controller.offset, 600);
-  });
-
-  testWidgets('discard drops a pending capture', (tester) async {
-    final state = await pumpList(tester);
-
-    controller.jumpTo(600);
-    await tester.pump();
-
-    anchor.capture(anchorIndex);
-    anchor.discard();
-
-    state.setCollapsedUnanchored(true);
-    await tester.pump();
-    anchor.restore();
-    await tester.pump();
-
-    expect(controller.offset, 600);
+    // In non-edit mode, scroll position stays unchanged and cards do not collapse
+    expect(controller.offset, 300.0);
   });
 }

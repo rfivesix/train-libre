@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.2.0] - 2026-08-30
+
+
 ## [1.2.0-beta.4] - 2026-08-29
 
 ### Added
@@ -24,10 +27,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Card-Morph Expansion (`StepsSummaryCard`, `NutritionHubScreen`):** Extended `CardMorphRoute` to the Diary Steps progress card and the Nutrition Hub (Supplement Hub, Food Explorer, and Meal creator/editor cards).
 
 ### Fixed
-- **Workout Exercise Drag & Drop Reordering (`LiveWorkoutScreen`, `EditRoutineScreen`, `WorkoutLogDetailScreen`, `buildReorderDragProxy`):** Fixed issues during exercise reordering where dragged cards became semi-invisible, overflowed the screen, reserved oversized blank placeholder slots, or drifted away from the finger:
-  - **Slot Height Mismatch & Scroll Anchoring:** Fixed the placeholder slot size in `SliverReorderableList` reserving the full expanded card height (~400px with all set rows) instead of its compact collapsed height (~60px). When dragging started, Flutter measured the item's `RenderBox` size before the `onReorderStart` state rebuild took effect, creating massive blank gaps. Resolved via a 200ms hold pre-collapse timer (`_onDragPointerDown/Move/Up/Cancel`) coupled with `ReorderScrollAnchor` capture/restore, pinning the touched card visually under the user's finger while the list collapses around it so Flutter measures the exact collapsed height. Normal taps and scroll gestures cancel the timer immediately (<4px movement), keeping detail navigation and list scrolling instant.
+- **Workout Exercise Drag & Drop Reordering (`LiveWorkoutScreen`, `EditRoutineScreen`, `WorkoutLogDetailScreen`, `EditRoutineExerciseCard`, `WorkoutExerciseLogCard`):** Overhauled drag & drop reordering across all workout and routine screens:
+  - **Edit-Mode Guard:** Fixed an issue where long-pressing exercise cards in non-edit mode collapsed the cards and triggered reorder listeners. Drag listeners and card collapsing are now strictly guarded by edit mode (`_isEditMode == true`).
+  - **Upward Scroll Limit & Headroom Removal:** Removed artificial 800px headroom (`ReorderHeadroom`, `kReorderCollapseHeadroom`) at the top and bottom of lists, eliminating unbounded upward scrolling and ensuring the list bounds cleanly at `0.0`.
+  - **Top-Aligned Reorder Scroll:** On drag start (`onReorderStart`), cards smoothly collapse to compact headers (`AnimatedSize`) while the viewport animates directly to the top (`animateTo(0.0)`), keeping the dragged card firmly locked under the user's finger with full visibility of all reorder slots.
   - **Decorating Existing Children & Exact Viewport Sizing:** Instead of rebuilding a separate card structure with mismatched metrics or applying overflowing scale factors, the drag proxy decorates the actual dragged row child directly at 1:1 scale, eliminating horizontal viewport overhang and fingertip offset.
-  - **Synchronized Card Collapse on Drag Start:** Cards collapse their set rows strictly on actual reorder start (`onReorderStart`) rather than prematurely on pointer touch, ensuring the held card remains locked directly beneath the user's finger while keeping lists compact for effortless reordering.
   - **Opaque Lift Surface:** Wrapped dragged items in an opaque theme-aware surface (`reorderDragProxySurfaceColor`) with smooth lift elevation and squircle clipping, preventing transparent glass layers from sampling an empty overlay backdrop.
 - **Card-Morph Return Transition Polish (`CardMorphRoute`):** Collapsing an expanded card previously popped the source card abruptly back into view on the final frame. The page now fades out smoothly over the fully opaque source card underneath, widening the handover band and maintaining consistent liquid glass refraction throughout the back-swipe animation.
 - **Dynamic AI Model Discovery & Error Surfacing (`AiService`, `AiSettingsScreen`):** Fixed issues where the model dropdown in AI settings fell back to hardcoded models without communicating why:

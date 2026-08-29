@@ -85,56 +85,12 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
   bool _canPop = false;
   bool _isDragging = false;
   bool _isDragActive = false;
-  Timer? _collapseTimer;
   Timer? _expandTimer;
-  Offset? _pointerDownPosition;
-  Object? _touchedAnchorId;
   final ScrollController _scrollController = ScrollController();
-  late final ReorderScrollAnchor _scrollAnchor =
-      ReorderScrollAnchor(_scrollController);
+  final Map<Object, GlobalKey> _itemKeys = {};
 
-  void _onDragPointerDown(PointerDownEvent event, Object anchorId) {
-    _touchedAnchorId = anchorId;
-    _pointerDownPosition = event.position;
-    _collapseTimer?.cancel();
-    _collapseTimer = Timer(const Duration(milliseconds: 200), () {
-      if (mounted && !_isDragging) {
-        _scrollAnchor.pin(
-          _touchedAnchorId,
-          () => setState(() => _isDragging = true),
-        );
-      }
-    });
-  }
-
-  void _onDragPointerMove(PointerMoveEvent event) {
-    if (_pointerDownPosition != null) {
-      final distance = (event.position - _pointerDownPosition!).distance;
-      if (distance > 4.0) {
-        _collapseTimer?.cancel();
-        if (!_isDragActive && _isDragging) {
-          _scrollAnchor.pin(
-            _touchedAnchorId,
-            () => setState(() => _isDragging = false),
-          );
-        }
-      }
-    }
-  }
-
-  void _onDragPointerUp(PointerUpEvent event) {
-    _collapseTimer?.cancel();
-    if (!_isDragActive && _isDragging) {
-      _scheduleExpandAfterDrop();
-    }
-  }
-
-  void _onDragPointerCancel(PointerCancelEvent event) {
-    _collapseTimer?.cancel();
-    if (!_isDragActive && _isDragging) {
-      _scheduleExpandAfterDrop();
-    }
-  }
+  GlobalKey _keyFor(Object id) =>
+      _itemKeys.putIfAbsent(id, () => GlobalKey(debugLabel: 'live_exercise_$id'));
 
   /// How many frames the scroll may spend hunting for its target before it
   /// gives up. Each attempt either waits for data or advances one viewport.
@@ -173,7 +129,7 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
 
       final targetExercise = exercises[activeIndex];
       final targetContext =
-          _scrollAnchor.keyFor(targetExercise.id ?? activeIndex).currentContext;
+          _keyFor(targetExercise.id ?? activeIndex).currentContext;
 
       if (targetContext == null) {
         // Not built yet — walk down a viewport at a time so the list
@@ -310,9 +266,7 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
       LiveWorkoutScreen.onDeepLinkReturn = null;
     }
     WidgetsBinding.instance.removeObserver(this);
-    _collapseTimer?.cancel();
     _expandTimer?.cancel();
-    _scrollAnchor.discard();
     _scrollController.dispose();
     _prEventsSubscription?.cancel();
     _prAnimationController.dispose();
@@ -409,24 +363,17 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
       leading: null,
       title: isProxy
           ? titleContent
-          : Listener(
-              onPointerDown: (e) =>
-                  _onDragPointerDown(e, routineExercise.id ?? index),
-              onPointerMove: _onDragPointerMove,
-              onPointerUp: _onDragPointerUp,
-              onPointerCancel: _onDragPointerCancel,
-              child: ReorderableDelayedDragStartListener(
-                index: index,
-                child: InkWell(
-                  onTap: () => Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) => ExerciseDetailScreen(
-                        exercise: routineExercise.exercise,
-                      ),
+          : ReorderableDelayedDragStartListener(
+              index: index,
+              child: InkWell(
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => ExerciseDetailScreen(
+                      exercise: routineExercise.exercise,
                     ),
                   ),
-                  child: titleContent,
                 ),
+                child: titleContent,
               ),
             ),
       trailing: Row(
@@ -495,10 +442,7 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
       kReorderDropSettleDuration,
       () {
         if (mounted && _isDragging && !_isDragActive) {
-          _scrollAnchor.pin(
-            _touchedAnchorId,
-            () => setState(() => _isDragging = false),
-          );
+          setState(() => _isDragging = false);
         }
       },
     );
@@ -965,27 +909,27 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                     buildDefaultDragHandles: false,
                                     scrollCacheExtent:
                                         const ScrollCacheExtent.pixels(1500.0),
-                                    header: ReorderHeadroom(
-                                        isDragging: _isDragging),
                                     padding: EdgeInsets.only(
                                       bottom: (showRestBar
                                               ? 220.0
                                               : DesignConstants
                                                   .bottomContentSpacer) +
-                                          MediaQuery.paddingOf(context).bottom +
-                                          (_isDragging
-                                              ? kReorderCollapseHeadroom
-                                              : 0.0),
+                                          MediaQuery.paddingOf(context).bottom,
                                     ),
                                     onReorderStart: (index) {
                                       _isDragActive = true;
-                                      _scrollAnchor.discard();
-                                      _collapseTimer?.cancel();
                                       _expandTimer?.cancel();
                                       if (!_isDragging) {
                                         setState(() {
                                           _isDragging = true;
                                         });
+                                      }
+                                      if (_scrollController.hasClients) {
+                                        _scrollController.animateTo(
+                                          0.0,
+                                          duration: kReorderCardResizeDuration,
+                                          curve: Curves.easeInOutCubic,
+                                        );
                                       }
                                     },
                                     onReorderEnd: (index) {
@@ -1030,7 +974,7 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                           .contains(routineExercise.id);
 
                                       return KeyedSubtree(
-                                        key: _scrollAnchor.keyFor(
+                                        key: _keyFor(
                                           routineExercise.id ?? index,
                                         ),
                                         child: AnimatedSize(

@@ -52,58 +52,10 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
   bool _isLoading = false;
   bool _isDragging = false;
   bool _isDragActive = false;
-  Timer? _collapseTimer;
   Timer? _expandTimer;
-  Offset? _pointerDownPosition;
-  Object? _touchedAnchorId;
   final ScrollController _scrollController = ScrollController();
-  late final ReorderScrollAnchor _scrollAnchor =
-      ReorderScrollAnchor(_scrollController);
   final OverlayPortalController _fabOverlayController =
       OverlayPortalController();
-
-  void _onDragPointerDown(PointerDownEvent event, Object anchorId) {
-    _touchedAnchorId = anchorId;
-    _pointerDownPosition = event.position;
-    _collapseTimer?.cancel();
-    _collapseTimer = Timer(const Duration(milliseconds: 200), () {
-      if (mounted && !_isDragging) {
-        _scrollAnchor.pin(
-          _touchedAnchorId,
-          () => setState(() => _isDragging = true),
-        );
-      }
-    });
-  }
-
-  void _onDragPointerMove(PointerMoveEvent event) {
-    if (_pointerDownPosition != null) {
-      final distance = (event.position - _pointerDownPosition!).distance;
-      if (distance > 4.0) {
-        _collapseTimer?.cancel();
-        if (!_isDragActive && _isDragging) {
-          _scrollAnchor.pin(
-            _touchedAnchorId,
-            () => setState(() => _isDragging = false),
-          );
-        }
-      }
-    }
-  }
-
-  void _onDragPointerUp(PointerUpEvent event) {
-    _collapseTimer?.cancel();
-    if (!_isDragActive && _isDragging) {
-      _scheduleExpandAfterDrop();
-    }
-  }
-
-  void _onDragPointerCancel(PointerCancelEvent event) {
-    _collapseTimer?.cancel();
-    if (!_isDragActive && _isDragging) {
-      _scheduleExpandAfterDrop();
-    }
-  }
 
   final Map<int, TextEditingController> _repsControllers = {};
   final Map<int, TextEditingController> _weightControllers = {};
@@ -244,9 +196,7 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
 
   @override
   void dispose() {
-    _collapseTimer?.cancel();
     _expandTimer?.cancel();
-    _scrollAnchor.discard();
     _scrollController.dispose();
     _nameController.dispose();
     for (var c in _repsControllers.values) {
@@ -272,10 +222,7 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
       kReorderDropSettleDuration,
       () {
         if (mounted && _isDragging && !_isDragActive) {
-          _scrollAnchor.pin(
-            _touchedAnchorId,
-            () => setState(() => _isDragging = false),
-          );
+          setState(() => _isDragging = false);
         }
       },
     );
@@ -876,16 +823,11 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                                     scrollCacheExtent:
                                         const ScrollCacheExtent.pixels(1500.0),
                                     itemCount: _routineExercises.length,
-                                    header: ReorderHeadroom(
-                                        isDragging: _isDragging),
                                     padding: EdgeInsets.only(
                                       top: _isEditMode ? 0.0 : topPadding,
                                       bottom: DesignConstants
                                               .bottomContentSpacer +
-                                          MediaQuery.paddingOf(context).bottom +
-                                          (_isDragging
-                                              ? kReorderCollapseHeadroom
-                                              : 0.0),
+                                          MediaQuery.paddingOf(context).bottom,
                                     ),
                                     proxyDecorator: (Widget child, int index,
                                         Animation<double> animation) {
@@ -917,14 +859,20 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                                           context, child, animation);
                                     },
                                     onReorderStart: (index) {
+                                      if (!_isEditMode) return;
                                       _isDragActive = true;
-                                      _scrollAnchor.discard();
-                                      _collapseTimer?.cancel();
                                       _expandTimer?.cancel();
                                       if (!_isDragging) {
                                         setState(() {
                                           _isDragging = true;
                                         });
+                                      }
+                                      if (_scrollController.hasClients) {
+                                        _scrollController.animateTo(
+                                          0.0,
+                                          duration: kReorderCardResizeDuration,
+                                          curve: Curves.easeInOutCubic,
+                                        );
                                       }
                                       WidgetsBinding.instance
                                           .addPostFrameCallback((_) {
@@ -948,76 +896,61 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                                       final isDeleting = _deletingExerciseIds
                                           .contains(routineExercise.id);
 
-                                      return KeyedSubtree(
-                                        key: _scrollAnchor.keyFor(
-                                            routineExercise.id ?? index),
-                                        child: AnimatedSize(
-                                          duration: kReorderCardResizeDuration,
-                                          curve: Curves.easeInOutCubic,
-                                          alignment: Alignment.topCenter,
-                                          child: isDeleting
-                                              ? const SizedBox(
-                                                  width: double.infinity,
-                                                  height: 0)
-                                              : AnimatedOpacity(
-                                                  duration: const Duration(
-                                                      milliseconds: 180),
-                                                  curve: Curves.easeOut,
-                                                  opacity:
-                                                      isDeleting ? 0.0 : 1.0,
-                                                  child: RepaintBoundary(
-                                                    key: ValueKey(
-                                                        routineExercise.id),
-                                                    child:
-                                                        EditRoutineExerciseCard(
-                                                      routineExercise:
-                                                          routineExercise,
-                                                      index: index,
-                                                      isCardio: isCardio,
-                                                      isDragging: _isDragging,
-                                                      isEditMode: _isEditMode,
-                                                      onPointerDown: (e) =>
-                                                          _onDragPointerDown(
-                                                              e,
-                                                              routineExercise
-                                                                      .id ??
-                                                                  index),
-                                                      onPointerMove:
-                                                          _onDragPointerMove,
-                                                      onPointerUp:
-                                                          _onDragPointerUp,
-                                                      onPointerCancel:
-                                                          _onDragPointerCancel,
-                                                      repsControllers:
-                                                          _repsControllers,
-                                                      weightControllers:
-                                                          _weightControllers,
-                                                      rirControllers:
-                                                          _rirControllers,
-                                                      onEditNotes: () =>
-                                                          _editExerciseNotes(
-                                                              context,
-                                                              routineExercise),
-                                                      onEditPauseTime: () =>
-                                                          _editPauseTime(
-                                                              routineExercise),
-                                                      onDeleteExercise: () =>
-                                                          _deleteSingleExercise(
-                                                              routineExercise),
-                                                      onAddSet: () => _addSet(
-                                                          routineExercise),
-                                                      onShowSetTypePicker:
-                                                          _showSetTypePicker,
-                                                      onRemoveSet: (template,
-                                                              listIndex) =>
-                                                          _removeSet(
-                                                              routineExercise,
-                                                              template.id!,
-                                                              listIndex),
-                                                    ),
+                                      return AnimatedSize(
+                                        key: ValueKey(routineExercise.id),
+                                        duration: kReorderCardResizeDuration,
+                                        curve: Curves.easeInOutCubic,
+                                        alignment: Alignment.topCenter,
+                                        child: isDeleting
+                                            ? const SizedBox(
+                                                width: double.infinity,
+                                                height: 0)
+                                            : AnimatedOpacity(
+                                                duration: const Duration(
+                                                    milliseconds: 180),
+                                                curve: Curves.easeOut,
+                                                opacity:
+                                                    isDeleting ? 0.0 : 1.0,
+                                                child: RepaintBoundary(
+                                                  key: ValueKey(
+                                                      routineExercise.id),
+                                                  child:
+                                                      EditRoutineExerciseCard(
+                                                    routineExercise:
+                                                        routineExercise,
+                                                    index: index,
+                                                    isCardio: isCardio,
+                                                    isDragging: _isDragging,
+                                                    isEditMode: _isEditMode,
+                                                    repsControllers:
+                                                        _repsControllers,
+                                                    weightControllers:
+                                                        _weightControllers,
+                                                    rirControllers:
+                                                        _rirControllers,
+                                                    onEditNotes: () =>
+                                                        _editExerciseNotes(
+                                                            context,
+                                                            routineExercise),
+                                                    onEditPauseTime: () =>
+                                                        _editPauseTime(
+                                                            routineExercise),
+                                                    onDeleteExercise: () =>
+                                                        _deleteSingleExercise(
+                                                            routineExercise),
+                                                    onAddSet: () => _addSet(
+                                                        routineExercise),
+                                                    onShowSetTypePicker:
+                                                        _showSetTypePicker,
+                                                    onRemoveSet: (template,
+                                                            listIndex) =>
+                                                        _removeSet(
+                                                            routineExercise,
+                                                            template.id!,
+                                                            listIndex),
                                                   ),
                                                 ),
-                                        ),
+                                              ),
                                       );
                                     },
                                   ),

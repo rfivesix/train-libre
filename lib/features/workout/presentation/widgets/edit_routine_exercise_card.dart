@@ -29,10 +29,6 @@ class EditRoutineExerciseCard extends StatelessWidget {
   final Function(SetTemplate, int listIndex) onRemoveSet;
   final bool isDragging;
   final bool isDraggedItem;
-  final Function(PointerDownEvent)? onPointerDown;
-  final Function(PointerUpEvent)? onPointerUp;
-  final Function(PointerCancelEvent)? onPointerCancel;
-  final Function(PointerMoveEvent)? onPointerMove;
   final bool isEditMode;
 
   const EditRoutineExerciseCard({
@@ -51,10 +47,6 @@ class EditRoutineExerciseCard extends StatelessWidget {
     required this.onRemoveSet,
     this.isDragging = false,
     this.isDraggedItem = false,
-    this.onPointerDown,
-    this.onPointerUp,
-    this.onPointerCancel,
-    this.onPointerMove,
     this.isEditMode = true,
   });
 
@@ -73,20 +65,14 @@ class EditRoutineExerciseCard extends StatelessWidget {
               horizontal: 16.0,
               vertical: 8.0,
             ),
-            title: Listener(
-              onPointerDown: onPointerDown,
-              onPointerUp: onPointerUp,
-              onPointerCancel: onPointerCancel,
-              onPointerMove: onPointerMove,
-              child: isEditMode
-                  ? ReorderableDelayedDragStartListener(
-                      index: index,
-                      child: _buildTitleContent(
-                          context, routineExercise, textTheme, colorScheme),
-                    )
-                  : _buildTitleContent(
-                      context, routineExercise, textTheme, colorScheme),
-            ),
+            title: isEditMode
+                ? ReorderableDelayedDragStartListener(
+                    index: index,
+                    child: _buildTitleContent(
+                        context, routineExercise, textTheme, colorScheme),
+                  )
+                : _buildTitleContent(
+                    context, routineExercise, textTheme, colorScheme),
             leading: null,
             trailing: isEditMode
                 ? Row(
