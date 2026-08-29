@@ -25,6 +25,7 @@ import '../../exercise_catalog/presentation/exercise_catalog_screen.dart';
 import '../../../util/design_constants.dart';
 import '../../../widgets/common/dual_body_highlighter.dart';
 import '../../../widgets/common/global_app_bar.dart';
+import '../../../widgets/common/card_morph_route.dart';
 import '../../../widgets/common/summary_card.dart';
 import '../../../widgets/common/common.dart';
 import 'widgets/workout_photo_card.dart';
@@ -873,7 +874,7 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                 onPressed: () {
                   if (newRoutineWithDetails != null) {
                     navigator.push(
-                      MaterialPageRoute(
+                      CardMorphRoute(
                         builder: (context) =>
                             EditRoutineScreen(routine: newRoutineWithDetails),
                       ),
@@ -1482,17 +1483,20 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                             Padding(
                               padding: const EdgeInsets.all(
                                   DesignConstants.spacingL),
-                              child: TextButton.icon(
-                                onPressed: () async {
-                                  final selectedExercise =
-                                      await Navigator.of(context)
-                                          .push<Exercise>(
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          const ExerciseCatalogScreen(
-                                              isSelectionMode: true),
-                                    ),
-                                  );
+                              child: Builder(
+                                builder: (btnCtx) => TextButton.icon(
+                                  onPressed: () async {
+                                    final selectedExercise =
+                                        await Navigator.of(context)
+                                            .push<Exercise>(
+                                      CardMorphRoute(
+                                        sourceContext: btnCtx,
+                                        sourceBorderRadius: 14.0,
+                                        builder: (context) =>
+                                            const ExerciseCatalogScreen(
+                                                isSelectionMode: true),
+                                      ),
+                                    );
                                   if (selectedExercise != null) {
                                     setState(() {
                                       // Store exercise details locally so _isCardio and name work.
@@ -1532,6 +1536,7 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                                 label: Text(l10n.addExerciseToWorkoutButton),
                               ),
                             ),
+                          ),
                         ],
                       ),
                     ),

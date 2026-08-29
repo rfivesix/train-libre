@@ -57,7 +57,7 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
     if (choice == ActiveWorkoutConflictResult.resume) {
       if (mounted && manager.workoutLog != null) {
         Navigator.of(context).push(
-          MaterialPageRoute(
+          CardMorphRoute(
             builder: (context) => LiveWorkoutScreen(
               workoutLog: manager.workoutLog!,
               routine: null,
@@ -213,7 +213,7 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
             if (routineToEdit != null) {
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 Navigator.of(context).push(
-                  MaterialPageRoute(
+                  CardMorphRoute(
                     builder: (context) =>
                         EditRoutineScreen(routine: routineToEdit!),
                   ),

@@ -18,6 +18,7 @@ import '../../profile/presentation/widgets/measurement_chart_widget.dart';
 import 'package:provider/provider.dart';
 import '../../../services/profile_service.dart';
 import 'create_exercise_screen.dart';
+import '../../../widgets/common/card_morph_route.dart';
 import '../../app/presentation/widgets/glass_bottom_menu.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../services/haptic_feedback_service.dart';
@@ -362,29 +363,33 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
               icon: const Icon(LucideIcons.trash_2),
               onPressed: () => _showDeleteConfirmMenu(context),
             ),
-          IconButton(
-            tooltip: l10n.edit,
-            icon: const Icon(LucideIcons.pencil),
-            onPressed: () {
-              if (_currentExercise.source == 'user') {
-                Navigator.of(context)
-                    .push(
-                  MaterialPageRoute(
-                    builder: (context) => CreateExerciseScreen(
-                      repository: _repository,
-                      exerciseToEdit: _currentExercise,
+          Builder(
+            builder: (iconCtx) => IconButton(
+              tooltip: l10n.edit,
+              icon: const Icon(LucideIcons.pencil),
+              onPressed: () {
+                if (_currentExercise.source == 'user') {
+                  Navigator.of(context)
+                      .push(
+                    CardMorphRoute(
+                      sourceContext: iconCtx,
+                      sourceBorderRadius: 20.0,
+                      builder: (context) => CreateExerciseScreen(
+                        repository: _repository,
+                        exerciseToEdit: _currentExercise,
+                      ),
                     ),
-                  ),
-                )
-                    .then((wasSaved) {
-                  if (wasSaved == true) {
-                    _loadData();
-                  }
-                });
-              } else {
-                _showSystemEditMenu(context);
-              }
-            },
+                  )
+                      .then((wasSaved) {
+                    if (wasSaved == true) {
+                      _loadData();
+                    }
+                  });
+                } else {
+                  _showSystemEditMenu(context);
+                }
+              },
+            ),
           ),
           Padding(
             padding: const EdgeInsets.only(right: DesignConstants.spacingM),

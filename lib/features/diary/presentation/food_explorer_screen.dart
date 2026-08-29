@@ -11,6 +11,7 @@ import 'food_detail_screen.dart';
 import 'scanner_screen.dart';
 import '../../../util/design_constants.dart';
 import '../../../widgets/common/glass_fab.dart';
+import '../../../widgets/common/card_morph_route.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../widgets/common/summary_card.dart'; // Added
 import '../../../core/infrastructure/basis_data_manager.dart';
@@ -41,6 +42,7 @@ class _FoodExplorerScreenState extends State<FoodExplorerScreen>
   late TabController _tabController;
   Timer? _searchDebounce;
   bool _isOffDbInitialized = false;
+  bool _isFabHidden = false;
 
   Future<void> _checkDbStatus() async {
     final initialized =
@@ -110,9 +112,21 @@ class _FoodExplorerScreenState extends State<FoodExplorerScreen>
     }
   }
 
-  void _navigateAndCreateFood() {
+  void _navigateAndCreateFood({
+    BuildContext? sourceContext,
+    WidgetBuilder? sourceBuilder,
+    void Function(bool hidden)? onSourceVisibilityChanged,
+  }) {
     Navigator.of(context)
-        .push(MaterialPageRoute(builder: (context) => const CreateFoodScreen()))
+        .push(
+      CardMorphRoute(
+        sourceContext: sourceContext,
+        sourceBorderRadius: 28.0,
+        sourceBuilder: sourceBuilder,
+        onSourceVisibilityChanged: onSourceVisibilityChanged,
+        builder: (context) => const CreateFoodScreen(),
+      ),
+    )
         .then((_) {
       _searchController.clear();
       _runFilter('');
@@ -224,9 +238,32 @@ class _FoodExplorerScreenState extends State<FoodExplorerScreen>
           ),
         ],
       ),
-      floatingActionButton: GlassFab(
-        onPressed: _navigateAndCreateFood,
-        label: l10n.createFoodScreenTitle,
+      floatingActionButton: Opacity(
+        opacity: _isFabHidden ? 0.0 : 1.0,
+        child: IgnorePointer(
+          ignoring: _isFabHidden,
+          child: Builder(
+            builder: (fabCtx) {
+              Widget buildFab({VoidCallback? onPressed}) => GlassFab(
+                    label: l10n.createFoodScreenTitle,
+                    onPressed: onPressed ?? () {},
+                  );
+
+              return GlassFab(
+                label: l10n.createFoodScreenTitle,
+                onPressed: () {
+                  _navigateAndCreateFood(
+                    sourceContext: fabCtx,
+                    sourceBuilder: (_) => buildFab(),
+                    onSourceVisibilityChanged: (hidden) {
+                      if (mounted) setState(() => _isFabHidden = hidden);
+                    },
+                  );
+                },
+              );
+            },
+          ),
+        ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );

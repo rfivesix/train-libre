@@ -5,6 +5,7 @@ import '../../../../services/unit_service.dart';
 import '../../domain/models/set_log.dart';
 import '../../../exercise_catalog/domain/models/exercise.dart';
 import '../../../exercise_catalog/presentation/exercise_detail_screen.dart';
+import '../../../../widgets/common/card_morph_route.dart';
 import 'workout_card.dart';
 import 'workout_log_set_row.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
@@ -84,52 +85,60 @@ class WorkoutExerciseLogCard extends StatelessWidget {
                     onPointerCancel: onPointerCancel,
                     child: ReorderableDelayedDragStartListener(
                       index: index,
-                      child: InkWell(
-                        onTap: () {
-                          if (exercise != null) {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    ExerciseDetailScreen(exercise: exercise!),
+                      child: Builder(
+                        builder: (titleCtx) => InkWell(
+                          onTap: () {
+                            if (exercise != null) {
+                              Navigator.of(context).push(
+                                CardMorphRoute(
+                                  sourceContext: titleCtx,
+                                  sourceBorderRadius: 12.0,
+                                  builder: (context) =>
+                                      ExerciseDetailScreen(exercise: exercise!),
+                                ),
+                              );
+                            }
+                          },
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 4.0),
+                            child: Text(
+                              exercise?.getLocalizedName(context) ?? exerciseName,
+                              style: textTheme.titleLarge?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: isDraggedItem
+                                    ? Theme.of(context).colorScheme.primary
+                                    : null,
                               ),
-                            );
-                          }
-                        },
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 4.0),
-                          child: Text(
-                            exercise?.getLocalizedName(context) ?? exerciseName,
-                            style: textTheme.titleLarge?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: isDraggedItem
-                                  ? Theme.of(context).colorScheme.primary
-                                  : null,
                             ),
                           ),
                         ),
                       ),
                     ),
                   )
-                : InkWell(
-                    onTap: () {
-                      if (exercise != null) {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                ExerciseDetailScreen(exercise: exercise!),
+                : Builder(
+                    builder: (titleCtx) => InkWell(
+                      onTap: () {
+                        if (exercise != null) {
+                          Navigator.of(context).push(
+                            CardMorphRoute(
+                              sourceContext: titleCtx,
+                              sourceBorderRadius: 12.0,
+                              builder: (context) =>
+                                  ExerciseDetailScreen(exercise: exercise!),
+                            ),
+                          );
+                        }
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4.0),
+                        child: Text(
+                          exercise?.getLocalizedName(context) ?? exerciseName,
+                          style: textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: isDraggedItem
+                                ? Theme.of(context).colorScheme.primary
+                                : null,
                           ),
-                        );
-                      }
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 4.0),
-                      child: Text(
-                        exercise?.getLocalizedName(context) ?? exerciseName,
-                        style: textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: isDraggedItem
-                              ? Theme.of(context).colorScheme.primary
-                              : null,
                         ),
                       ),
                     ),

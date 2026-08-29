@@ -52,7 +52,7 @@ class _WorkoutHubScreenState extends State<WorkoutHubScreen> {
     if (choice == ActiveWorkoutConflictResult.resume) {
       if (mounted && manager.workoutLog != null) {
         Navigator.of(context).push(
-          MaterialPageRoute(
+          CardMorphRoute(
             builder: (context) => LiveWorkoutScreen(
               workoutLog: manager.workoutLog!,
               routine: null,

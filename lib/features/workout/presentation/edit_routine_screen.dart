@@ -18,6 +18,7 @@ import '../../exercise_catalog/presentation/exercise_catalog_screen.dart';
 import '../../../util/design_constants.dart';
 import '../../app/presentation/widgets/glass_bottom_menu.dart';
 import '../../../widgets/common/glass_fab.dart';
+import '../../../widgets/common/card_morph_route.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import 'reorder_scroll_anchor.dart';
 import 'widgets/edit_routine_exercise_card.dart';
@@ -393,14 +394,23 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
     }
   }
 
-  Future<void> _addExercises() async {
+  Future<void> _addExercises({
+    BuildContext? sourceContext,
+    WidgetBuilder? sourceBuilder,
+    void Function(bool hidden)? onSourceVisibilityChanged,
+  }) async {
+    final measuredRect = CardMorphRoute.measureRect(sourceContext);
     if (_isNewRoutine) {
       final success = await _persistRoutineState(isAddingExercise: true);
       if (!success) return;
     }
     if (!mounted) return;
     final selectedExercise = await Navigator.of(context).push<Exercise>(
-      MaterialPageRoute(
+      CardMorphRoute(
+        sourceRect: measuredRect,
+        sourceBorderRadius: 28.0,
+        sourceBuilder: sourceBuilder,
+        onSourceVisibilityChanged: onSourceVisibilityChanged,
         builder: (context) =>
             const ExerciseCatalogScreen(isSelectionMode: true),
       ),
@@ -1229,7 +1239,11 @@ class _KeyboardDoneBarState extends State<_KeyboardDoneBar>
 }
 
 class _EditRoutineFab extends StatefulWidget {
-  final VoidCallback onPressed;
+  final void Function({
+    BuildContext? sourceContext,
+    WidgetBuilder? sourceBuilder,
+    void Function(bool hidden)? onSourceVisibilityChanged,
+  }) onPressed;
 
   const _EditRoutineFab({required this.onPressed});
 
@@ -1240,6 +1254,7 @@ class _EditRoutineFab extends StatefulWidget {
 class _EditRoutineFabState extends State<_EditRoutineFab>
     with WidgetsBindingObserver {
   double _keyboardHeight = 0;
+  bool _isFabHidden = false;
 
   @override
   void initState() {
@@ -1277,9 +1292,27 @@ class _EditRoutineFabState extends State<_EditRoutineFab>
     if (_keyboardHeight > 0) {
       return const SizedBox.shrink();
     }
-    return GlassFab(
-      label: AppLocalizations.of(context)!.fabAddExercise,
-      onPressed: widget.onPressed,
+    Widget buildFabContent({VoidCallback? onPressed}) => GlassFab(
+          label: AppLocalizations.of(context)!.fabAddExercise,
+          onPressed: onPressed ?? () {},
+        );
+
+    return Opacity(
+      opacity: _isFabHidden ? 0.0 : 1.0,
+      child: IgnorePointer(
+        ignoring: _isFabHidden,
+        child: Builder(
+          builder: (fabCtx) => buildFabContent(
+            onPressed: () => widget.onPressed(
+              sourceContext: fabCtx,
+              sourceBuilder: (_) => buildFabContent(),
+              onSourceVisibilityChanged: (hidden) {
+                if (mounted) setState(() => _isFabHidden = hidden);
+              },
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

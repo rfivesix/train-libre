@@ -6,6 +6,7 @@ import '../../../../services/unit_service.dart';
 import '../../domain/models/routine_exercise.dart';
 import '../../domain/models/set_template.dart';
 import '../../../exercise_catalog/presentation/exercise_detail_screen.dart';
+import '../../../../widgets/common/card_morph_route.dart';
 import 'workout_card.dart';
 import 'routine_set_row_widget.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
@@ -338,23 +339,27 @@ class EditRoutineExerciseCard extends StatelessWidget {
     TextTheme textTheme,
     ColorScheme colorScheme,
   ) {
-    return InkWell(
-      onTap: () => Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (context) => ExerciseDetailScreen(
-            exercise: routineExercise.exercise,
+    return Builder(
+      builder: (titleCtx) => InkWell(
+        onTap: () => Navigator.of(context).push(
+          CardMorphRoute(
+            sourceContext: titleCtx,
+            sourceBorderRadius: 12.0,
+            builder: (context) => ExerciseDetailScreen(
+              exercise: routineExercise.exercise,
+            ),
           ),
         ),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 4.0),
-        child: Text(
-          routineExercise.exercise.getLocalizedName(context),
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-          style: textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.bold,
-            color: isDraggedItem ? colorScheme.primary : null,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4.0),
+          child: Text(
+            routineExercise.exercise.getLocalizedName(context),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: isDraggedItem ? colorScheme.primary : null,
+            ),
           ),
         ),
       ),

@@ -226,64 +226,67 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
                             itemCount: _foundExercises.length,
                             itemBuilder: (context, index) {
                               final exercise = _foundExercises[index];
-                              return SummaryCard(
-                                child: ListTile(
-                                  title: Row(
-                                    children: [
-                                      Expanded(
-                                        child: Text(
-                                          exercise.getLocalizedName(context),
-                                          style: const TextStyle(
-                                              fontWeight: FontWeight.bold),
-                                        ),
-                                      ),
-                                      if (exercise.source == 'user') ...[
-                                        const SizedBox(
-                                            width: DesignConstants.spacingS),
-                                        _buildSourceBadge(
-                                            context, exercise.source),
-                                      ],
-                                    ],
-                                  ),
-                                  subtitle: Text(
-                                    BodySlugMapper.localize(
-                                      context,
-                                      exercise.categoryName,
-                                    ),
-                                  ),
-                                  trailing: widget.isSelectionMode
-                                      ? IconButton(
-                                          tooltip: l10n.add_button,
-                                          icon: Icon(
-                                            LucideIcons.circle_plus,
-                                            color: colorScheme.primary,
+                              return Builder(
+                                builder: (cardCtx) => SummaryCard(
+                                  child: ListTile(
+                                    title: Row(
+                                      children: [
+                                        Expanded(
+                                          child: Text(
+                                            exercise.getLocalizedName(context),
+                                            style: const TextStyle(
+                                                fontWeight: FontWeight.bold),
                                           ),
-                                          onPressed: () => Navigator.of(context)
-                                              .pop(exercise),
-                                        )
-                                      : const Icon(
-                                          LucideIcons.chevron_right,
                                         ),
-                                  onTap: () {
-                                    if (widget.onExerciseSelected != null) {
-                                      widget.onExerciseSelected!(exercise);
-                                    } else if (widget.isSelectionMode) {
-                                      Navigator.of(context).pop(exercise);
-                                    } else {
-                                      Navigator.of(context).push(
-                                        MaterialPageRoute(
-                                          builder: (context) =>
-                                              ExerciseDetailScreen(
-                                                  exercise: exercise,
-                                                  repository: _repository),
-                                        ),
-                                      ).then((result) {
-                                        if (result == 'deleted') {
-                                          _runFilter(_searchController.text);
-                                        }
-                                      });
-                                    }
-                                  },
+                                        if (exercise.source == 'user') ...[
+                                          const SizedBox(
+                                              width: DesignConstants.spacingS),
+                                          _buildSourceBadge(
+                                              context, exercise.source),
+                                        ],
+                                      ],
+                                    ),
+                                    subtitle: Text(
+                                      BodySlugMapper.localize(
+                                        context,
+                                        exercise.categoryName,
+                                      ),
+                                    ),
+                                    trailing: widget.isSelectionMode
+                                        ? IconButton(
+                                            tooltip: l10n.add_button,
+                                            icon: Icon(
+                                              LucideIcons.circle_plus,
+                                              color: colorScheme.primary,
+                                            ),
+                                            onPressed: () => Navigator.of(context)
+                                                .pop(exercise),
+                                          )
+                                        : const Icon(
+                                            LucideIcons.chevron_right,
+                                          ),
+                                    onTap: () {
+                                      if (widget.onExerciseSelected != null) {
+                                        widget.onExerciseSelected!(exercise);
+                                      } else if (widget.isSelectionMode) {
+                                        Navigator.of(context).pop(exercise);
+                                      } else {
+                                        Navigator.of(context).push(
+                                          CardMorphRoute(
+                                            sourceContext: cardCtx,
+                                            builder: (context) =>
+                                                ExerciseDetailScreen(
+                                                    exercise: exercise,
+                                                    repository: _repository),
+                                          ),
+                                        ).then((result) {
+                                          if (result == 'deleted') {
+                                            _runFilter(_searchController.text);
+                                          }
+                                        });
+                                      }
+                                    },
+                                  ),
                                 ),
                               );
                             },

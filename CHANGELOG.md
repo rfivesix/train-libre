@@ -7,6 +7,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [1.2.0] - 2026-08-30
 
 ### Added
+- **Liquid Glass Morph Animation across Live Workout & Workout Screens (`CardMorphRoute`, `LiveWorkoutScreen`, `EditRoutineScreen`, `WorkoutHistoryScreen`, `WorkoutLogDetailScreen`, `ExerciseCatalogScreen`, `ExerciseDetailScreen`, `FoodExplorerScreen`, `MealsScreen`, `SupplementHubScreen`):** Expanded fluid container-morph transitions across all workout and catalog workflows:
+  - **Live Workout Exercise Addition:** Tapping the "+ Übung hinzufügen" Glass FAB in `LiveWorkoutScreen` smoothly expands the exercise catalog directly out of the glass button with adaptive rest-timer shadow clipping, and seamlessly collapses back into the pill upon selection or dismissal.
+  - **Routine Editor & History Morphing:** Extended `CardMorphRoute` to the routine editor FAB (`EditRoutineScreen`), workout log history cards (`WorkoutHistoryScreen` → `WorkoutLogDetailScreen`), exercise catalog detail views (`ExerciseCatalogScreen` → `ExerciseDetailScreen`), and in-workout title taps.
+  - **Unified Glass FAB Transitions:** Applied matching morph transitions to `FoodExplorerScreen`, `MealsScreen`, and `SupplementHubScreen` for a cohesive and fluid app-wide design language.
 - **Tactile Haptic Feedback on Exercise Drag & Drop (`ReorderHapticFeedback`, `HapticFeedbackService`, `LiveWorkoutScreen`, `EditRoutineScreen`, `WorkoutLogDetailScreen`):** Implemented continuous tactile feedback throughout the entire drag & drop lifecycle across all workout and routine editors:
   - **Lift Impact:** Triggers a tactile medium impact vibration (`HapticFeedbackService.chartSelectionFeedback`) when the card lifts and the drag gesture starts.
   - **Slot-Crossing Ticks:** Monitors sub-millimeter finger movements and auto-scroll viewport offsets during active drag, firing a crisp selection tick (`HapticFeedback.selectionClick`) on every slot boundary transition.

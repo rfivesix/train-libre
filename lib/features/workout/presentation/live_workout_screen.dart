@@ -8,6 +8,7 @@ import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import '../../../util/design_constants.dart';
 import '../../app/presentation/widgets/glass_bottom_menu.dart';
 import '../../../widgets/common/glass_fab.dart';
+import '../../../widgets/common/card_morph_route.dart';
 import '../data/sources/workout_local_data_source.dart';
 import '../../../generated/app_localizations.dart';
 import '../../exercise_catalog/domain/models/exercise.dart';
@@ -430,15 +431,19 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
               onPointerCancel: _onDragPointerCancel,
               child: ReorderableDelayedDragStartListener(
                 index: index,
-                child: InkWell(
-                  onTap: () => Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) => ExerciseDetailScreen(
-                        exercise: routineExercise.exercise,
+                child: Builder(
+                  builder: (titleCtx) => InkWell(
+                    onTap: () => Navigator.of(context).push(
+                      CardMorphRoute(
+                        sourceContext: titleCtx,
+                        sourceBorderRadius: 12.0,
+                        builder: (context) => ExerciseDetailScreen(
+                          exercise: routineExercise.exercise,
+                        ),
                       ),
                     ),
+                    child: titleContent,
                   ),
-                  child: titleContent,
                 ),
               ),
             ),
@@ -676,10 +681,18 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
     }
   }
 
-  void _addExercise() async {
+  void _addExercise({
+    BuildContext? sourceContext,
+    WidgetBuilder? sourceBuilder,
+    void Function(bool hidden)? onSourceVisibilityChanged,
+  }) async {
     final manager = Provider.of<LiveWorkoutViewModel>(context, listen: false);
     final selectedExercise = await Navigator.of(context).push<Exercise>(
-      MaterialPageRoute(
+      CardMorphRoute(
+        sourceContext: sourceContext,
+        sourceBorderRadius: 28.0,
+        sourceBuilder: sourceBuilder,
+        onSourceVisibilityChanged: onSourceVisibilityChanged,
         builder: (context) =>
             const ExerciseCatalogScreen(isSelectionMode: true),
       ),
@@ -1509,7 +1522,11 @@ class _LiveWorkoutKeyboardDoneBarState
 }
 
 class _LiveWorkoutFab extends StatefulWidget {
-  final VoidCallback onPressed;
+  final void Function({
+    BuildContext? sourceContext,
+    WidgetBuilder? sourceBuilder,
+    void Function(bool hidden)? onSourceVisibilityChanged,
+  }) onPressed;
 
   const _LiveWorkoutFab({required this.onPressed});
 
@@ -1573,23 +1590,45 @@ class _HiddenWhileKeyboardVisibleState
 }
 
 class _LiveWorkoutFabState extends State<_LiveWorkoutFab> {
+  bool _isFabHidden = false;
+
   @override
   Widget build(BuildContext context) {
     final showRestBar = context.select<LiveWorkoutViewModel, bool>(
         (vm) => vm.remainingRestSeconds > 0 || vm.showRestDone);
 
-    final fab = GlassFab(
-      label: AppLocalizations.of(context)!.fabAddExercise,
-      onPressed: widget.onPressed,
-    );
-
-    if (showRestBar) {
-      return ClipPath(
-        clipper: const _LiveWorkoutFabShadowClipper(),
-        child: fab,
+    Widget buildFabContent({VoidCallback? onPressed}) {
+      final fab = GlassFab(
+        label: AppLocalizations.of(context)!.fabAddExercise,
+        onPressed: onPressed ?? () {},
       );
+
+      if (showRestBar) {
+        return ClipPath(
+          clipper: const _LiveWorkoutFabShadowClipper(),
+          child: fab,
+        );
+      }
+      return fab;
     }
-    return fab;
+
+    return Opacity(
+      opacity: _isFabHidden ? 0.0 : 1.0,
+      child: IgnorePointer(
+        ignoring: _isFabHidden,
+        child: Builder(
+          builder: (fabCtx) => buildFabContent(
+            onPressed: () => widget.onPressed(
+              sourceContext: fabCtx,
+              sourceBuilder: (_) => buildFabContent(),
+              onSourceVisibilityChanged: (hidden) {
+                if (mounted) setState(() => _isFabHidden = hidden);
+              },
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 
