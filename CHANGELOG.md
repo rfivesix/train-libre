@@ -7,6 +7,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [1.2.0] - 2026-08-28
 
 ### Fixed
+- **OpenAI Model Catalog & Parameter Handling (`AiService`, `AiNetwork`):**
+  - **Dynamic Model Catalog Fetching:** Added live retrieval of all chat/reasoning models from the `/v1/models` endpoint (including `gpt-5.6-luna`, `gpt-5.6-sol`, `gpt-5.6-terra`, `o1`, `o3`, `o4`), ensuring users always see up-to-date models instead of static fallback lists.
+  - **Reasoning Model Compatibility:** Automatically omit unsupported parameters (e.g. `temperature`) when invoking reasoning and new-generation models, preventing HTTP 400 rejection errors, with automatic fallback retry logic.
+- **Startup & Resume Phase Tracing (`StartupTrace`, `PerformanceDiagnosticsScreen`):**
+  - Added precise millisecond-level diagnostics for app startup and background resume sequences, breaking down SQLite database initialization, Home Widget sync, and shader/backdrop warmup.
+  - Fixed freeze watchdog blind spot on resume to accurately record cold/warm freezes directly in Settings → Performance Log.
 - **Workout Exercise Drag & Drop Reordering (`buildReorderDragProxy`, `LiveWorkoutScreen`, `EditRoutineScreen`, `WorkoutLogDetailScreen`):** Fixed issues during exercise reordering where dragged exercise cards became semi-invisible, overflowed the screen, or drifted away from the finger.
   - **Decorating Existing Children & Exact Viewport Sizing:** Instead of rebuilding a separate card structure with mismatched metrics or applying overflowing scale factors, the drag proxy decorates the actual dragged row child directly at 1:1 scale, eliminating horizontal viewport overhang and fingertip offset.
   - **Synchronized Card Collapse on Drag Start:** Cards now collapse their set rows strictly on actual reorder start (`onReorderStart`) rather than prematurely on pointer touch, ensuring the held card remains locked directly beneath the user's finger while keeping lists compact for effortless reordering.
