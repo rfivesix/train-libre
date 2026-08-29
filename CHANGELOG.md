@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [1.2.0] - 2026-08-28
 
+### Added
+- **Accessibility & Tooltips (`AiMealCaptureScreen`):** Added localized accessibility tooltip (`doneButtonLabel`) to the checkmark dismiss button in the AI Meal Capture text input field for improved screen reader semantics and hover feedback.
+
 ### Fixed
 - **OpenAI Model Catalog & Parameter Handling (`AiService`, `AiNetwork`):**
   - **Dynamic Model Catalog Fetching:** Added live retrieval of all chat/reasoning models from the `/v1/models` endpoint (including `gpt-5.6-luna`, `gpt-5.6-sol`, `gpt-5.6-terra`, `o1`, `o3`, `o4`), ensuring users always see up-to-date models instead of static fallback lists.
