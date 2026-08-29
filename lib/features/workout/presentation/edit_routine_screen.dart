@@ -52,6 +52,7 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
   bool _isLoading = false;
   bool _isDragging = false;
   bool _isDragActive = false;
+  double _dynamicHeadroom = 0.0;
   Timer? _collapseTimer;
   Timer? _expandTimer;
   Offset? _pointerDownPosition;
@@ -60,13 +61,22 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
   late final ReorderScrollAnchor _scrollAnchor =
       ReorderScrollAnchor(_scrollController);
 
-  void _onDragPointerDown(PointerDownEvent event, Object anchorId) {
+  void _onDragPointerDown(PointerDownEvent event, Object anchorId, int index) {
     if (!_isEditMode) return;
     _touchedAnchorId = anchorId;
     _pointerDownPosition = event.position;
     _collapseTimer?.cancel();
     _collapseTimer = Timer(const Duration(milliseconds: 180), () {
       if (mounted && !_isDragging && _isEditMode) {
+        final headroom = calculateDynamicReorderHeadroom(
+          context: context,
+          scrollController: _scrollController,
+          pointerGlobalY: event.position.dy,
+          itemIndex: index,
+        );
+        setState(() {
+          _dynamicHeadroom = headroom;
+        });
         _scrollAnchor.pin(
           _touchedAnchorId,
           () => setState(() => _isDragging = true),
@@ -83,7 +93,10 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
         if (!_isDragActive && _isDragging) {
           _scrollAnchor.pin(
             _touchedAnchorId,
-            () => setState(() => _isDragging = false),
+            () => setState(() {
+              _isDragging = false;
+              _dynamicHeadroom = 0.0;
+            }),
           );
         }
       }
@@ -276,7 +289,10 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
         if (mounted && _isDragging && !_isDragActive) {
           _scrollAnchor.pin(
             _touchedAnchorId,
-            () => setState(() => _isDragging = false),
+            () => setState(() {
+              _isDragging = false;
+              _dynamicHeadroom = 0.0;
+            }),
           );
         }
       },
@@ -878,16 +894,16 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                                     scrollCacheExtent:
                                         const ScrollCacheExtent.pixels(1500.0),
                                     header: ReorderHeadroom(
-                                        isDragging: _isDragging),
+                                      height: _isDragging
+                                          ? _dynamicHeadroom
+                                          : 0.0,
+                                    ),
                                     itemCount: _routineExercises.length,
                                     padding: EdgeInsets.only(
                                       top: _isEditMode ? 0.0 : topPadding,
                                       bottom: DesignConstants
                                               .bottomContentSpacer +
-                                          MediaQuery.paddingOf(context).bottom +
-                                          (_isDragging
-                                              ? kReorderCollapseHeadroom
-                                              : 0.0),
+                                          MediaQuery.paddingOf(context).bottom,
                                     ),
                                     proxyDecorator: (Widget child, int index,
                                         Animation<double> animation) {
@@ -985,7 +1001,8 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                                                               e,
                                                               routineExercise
                                                                       .id ??
-                                                                  index),
+                                                                  index,
+                                                              index),
                                                       onPointerMove:
                                                           _onDragPointerMove,
                                                       onPointerUp:

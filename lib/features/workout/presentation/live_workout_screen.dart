@@ -85,6 +85,7 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
   bool _canPop = false;
   bool _isDragging = false;
   bool _isDragActive = false;
+  double _dynamicHeadroom = 0.0;
   Timer? _collapseTimer;
   Timer? _expandTimer;
   Offset? _pointerDownPosition;
@@ -93,12 +94,21 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
   late final ReorderScrollAnchor _scrollAnchor =
       ReorderScrollAnchor(_scrollController);
 
-  void _onDragPointerDown(PointerDownEvent event, Object anchorId) {
+  void _onDragPointerDown(PointerDownEvent event, Object anchorId, int index) {
     _touchedAnchorId = anchorId;
     _pointerDownPosition = event.position;
     _collapseTimer?.cancel();
     _collapseTimer = Timer(const Duration(milliseconds: 180), () {
       if (mounted && !_isDragging) {
+        final headroom = calculateDynamicReorderHeadroom(
+          context: context,
+          scrollController: _scrollController,
+          pointerGlobalY: event.position.dy,
+          itemIndex: index,
+        );
+        setState(() {
+          _dynamicHeadroom = headroom;
+        });
         _scrollAnchor.pin(
           _touchedAnchorId,
           () => setState(() => _isDragging = true),
@@ -115,7 +125,10 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
         if (!_isDragActive && _isDragging) {
           _scrollAnchor.pin(
             _touchedAnchorId,
-            () => setState(() => _isDragging = false),
+            () => setState(() {
+              _isDragging = false;
+              _dynamicHeadroom = 0.0;
+            }),
           );
         }
       }
@@ -411,7 +424,7 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
           ? titleContent
           : Listener(
               onPointerDown: (e) =>
-                  _onDragPointerDown(e, routineExercise.id ?? index),
+                  _onDragPointerDown(e, routineExercise.id ?? index, index),
               onPointerMove: _onDragPointerMove,
               onPointerUp: _onDragPointerUp,
               onPointerCancel: _onDragPointerCancel,
@@ -497,7 +510,10 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
         if (mounted && _isDragging && !_isDragActive) {
           _scrollAnchor.pin(
             _touchedAnchorId,
-            () => setState(() => _isDragging = false),
+            () => setState(() {
+              _isDragging = false;
+              _dynamicHeadroom = 0.0;
+            }),
           );
         }
       },
@@ -954,7 +970,7 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                               context,
                             )
                                 .colorScheme
-                                .onSurfaceVariant
+.onSurfaceVariant
                                 .withValues(alpha: 0.1),
                           ),
                           Expanded(
@@ -966,16 +982,16 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                     scrollCacheExtent:
                                         const ScrollCacheExtent.pixels(1500.0),
                                     header: ReorderHeadroom(
-                                        isDragging: _isDragging),
+                                      height: _isDragging
+                                          ? _dynamicHeadroom
+                                          : 0.0,
+                                    ),
                                     padding: EdgeInsets.only(
                                       bottom: (showRestBar
                                               ? 220.0
                                               : DesignConstants
                                                   .bottomContentSpacer) +
-                                          MediaQuery.paddingOf(context).bottom +
-                                          (_isDragging
-                                              ? kReorderCollapseHeadroom
-                                              : 0.0),
+                                          MediaQuery.paddingOf(context).bottom,
                                     ),
                                     onReorderStart: (index) {
                                       _isDragActive = true;

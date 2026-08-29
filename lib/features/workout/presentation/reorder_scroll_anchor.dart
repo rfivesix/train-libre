@@ -1,8 +1,8 @@
 // lib/features/workout/presentation/reorder_scroll_anchor.dart
 
+import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
-import 'package:flutter/widgets.dart';
 
 /// Keeps a single list item visually pinned while the list relayouts around it.
 ///
@@ -258,18 +258,6 @@ class ReorderScrollAnchor {
 /// anchor.
 const Duration kReorderCardResizeDuration = Duration(milliseconds: 280);
 
-/// Slack kept at both ends of the list while the cards are collapsed.
-///
-/// The anchor pins a card by scrolling, so it can only hold one that has room
-/// to scroll into. A card near the top of the list has none: everything above
-/// it shrinks, the card rides up with it, and the correction is clamped away at
-/// [ScrollPosition.minScrollExtent] — the list simply cannot scroll past its own
-/// beginning. The screens therefore grow this much empty space at the *top* of
-/// the content while collapsed, which is what the correction then scrolls
-/// through, and the same amount at the bottom so the collapsed list keeps enough
-/// extent for the drag to move around in.
-const double kReorderCollapseHeadroom = 800.0;
-
 /// How long to wait after a drop before expanding the cards again.
 ///
 /// [SliverReorderableList] animates the dropped card into place over 250ms and
@@ -278,24 +266,47 @@ const double kReorderCollapseHeadroom = 800.0;
 /// strictly after the list has settled.
 const Duration kReorderDropSettleDuration = Duration(milliseconds: 270);
 
-/// The empty space the workout screens grow at the top of their list while the
-/// cards are collapsed, so [ReorderScrollAnchor] always has somewhere to scroll.
-///
-/// Belongs at the very start of the scrollable content — as a
-/// [ReorderableListView.header], which is its own sliver ahead of the
-/// reorderable one, or as the first child of the enclosing list.
-class ReorderHeadroom extends StatelessWidget {
-  const ReorderHeadroom({super.key, required this.isDragging});
+/// Calculates the exact top headroom needed when pre-collapsing cards during
+/// a reorder gesture, so the touched card stays locked under the user's finger
+/// without pushing the list into arbitrary empty voids.
+double calculateDynamicReorderHeadroom({
+  required BuildContext context,
+  required ScrollController scrollController,
+  required double pointerGlobalY,
+  required int itemIndex,
+  double collapsedItemHeight = 64.0,
+}) {
+  double? viewportTop;
+  if (scrollController.hasClients) {
+    final renderBox = scrollController
+        .position.context.notificationContext
+        ?.findRenderObject() as RenderBox?;
+    if (renderBox != null && renderBox.hasSize) {
+      viewportTop = renderBox.localToGlobal(Offset.zero).dy;
+    }
+  }
+  viewportTop ??= MediaQuery.paddingOf(context).top + kToolbarHeight;
 
-  /// Whether the cards are collapsed for reordering.
-  final bool isDragging;
+  final relativeY = pointerGlobalY - viewportTop;
+  final collapsedAbove = itemIndex * collapsedItemHeight;
+  final headroom = relativeY - collapsedAbove;
+  return headroom > 0.0 ? headroom : 0.0;
+}
+
+/// The dynamically calculated space grown at the top of the list while cards
+/// are collapsed, sized strictly to what the anchor needs to hold the touched item.
+class ReorderHeadroom extends StatelessWidget {
+  const ReorderHeadroom({super.key, required this.height});
+
+  /// The height of the headroom.
+  final double height;
 
   @override
   Widget build(BuildContext context) {
     return AnimatedContainer(
       duration: kReorderCardResizeDuration,
       curve: Curves.easeInOutCubic,
-      height: isDragging ? kReorderCollapseHeadroom : 0.0,
+      height: height,
     );
   }
 }

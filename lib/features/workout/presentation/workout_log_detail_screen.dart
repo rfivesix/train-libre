@@ -69,6 +69,7 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
   bool _isEditMode = false;
   bool _isDragging = false;
   bool _isDragActive = false;
+  double _dynamicHeadroom = 0.0;
   Timer? _collapseTimer;
   Timer? _expandTimer;
   Offset? _pointerDownPosition;
@@ -77,13 +78,22 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
   late final ReorderScrollAnchor _scrollAnchor =
       ReorderScrollAnchor(_scrollController);
 
-  void _onDragPointerDown(PointerDownEvent event, Object anchorId) {
+  void _onDragPointerDown(PointerDownEvent event, Object anchorId, int index) {
     if (!_isEditMode) return;
     _touchedAnchorId = anchorId;
     _pointerDownPosition = event.position;
     _collapseTimer?.cancel();
     _collapseTimer = Timer(const Duration(milliseconds: 180), () {
       if (mounted && !_isDragging && _isEditMode) {
+        final headroom = calculateDynamicReorderHeadroom(
+          context: context,
+          scrollController: _scrollController,
+          pointerGlobalY: event.position.dy,
+          itemIndex: index,
+        );
+        setState(() {
+          _dynamicHeadroom = headroom;
+        });
         _scrollAnchor.pin(
           _touchedAnchorId,
           () => setState(() => _isDragging = true),
@@ -100,7 +110,10 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
         if (!_isDragActive && _isDragging) {
           _scrollAnchor.pin(
             _touchedAnchorId,
-            () => setState(() => _isDragging = false),
+            () => setState(() {
+              _isDragging = false;
+              _dynamicHeadroom = 0.0;
+            }),
           );
         }
       }
@@ -247,7 +260,10 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
         if (mounted && _isDragging && !_isDragActive) {
           _scrollAnchor.pin(
             _touchedAnchorId,
-            () => setState(() => _isDragging = false),
+            () => setState(() {
+              _isDragging = false;
+              _dynamicHeadroom = 0.0;
+            }),
           );
         }
       },
@@ -955,12 +971,11 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                     Expanded(
                       child: ListView(
                         controller: _scrollController,
-                        padding: EdgeInsets.only(
-                          bottom: _isDragging ? kReorderCollapseHeadroom : 0.0,
-                        ),
                         children: [
                           if (_isEditMode)
-                            ReorderHeadroom(isDragging: _isDragging),
+                            ReorderHeadroom(
+                              height: _isDragging ? _dynamicHeadroom : 0.0,
+                            ),
                           // Header Info (Clean Hero section)
                           Padding(
                             padding: const EdgeInsets.symmetric(
@@ -1346,7 +1361,7 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                                                 isDragging: _isDragging,
                                                 onPointerDown: (e) =>
                                                     _onDragPointerDown(
-                                                        e, exerciseName),
+                                                        e, exerciseName, index),
                                                 onPointerMove:
                                                     _onDragPointerMove,
                                                 onPointerUp: _onDragPointerUp,
