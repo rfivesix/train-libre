@@ -6,7 +6,7 @@
   Newest version first. Regenerate with: python3 script/build_whats_new.py
 -->
 
-## 1.2.0-beta.3 (2026-08-29)
+## 1.2.0 (2026-08-30)
 
 {camera} Log a meal from a photo: Point the camera at your plate and the AI turns it into individual foods with amounts, calories and macros - all correctable before you save. Packaged products are recognised by barcode in the very same view, iPhones with LiDAR measure the portion instead of guessing it, and the microphone button lets you add what a photo cannot show.
 

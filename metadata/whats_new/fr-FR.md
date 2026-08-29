@@ -6,7 +6,7 @@
   récente en premier. Ensuite : python3 script/build_whats_new.py --write --sync-store
 -->
 
-## 1.2.0-beta.3 (2026-08-29)
+## 1.2.0 (2026-08-30)
 
 {camera} Enregistrer un repas à partir d'une photo : vise ton assiette et l'IA en fait des aliments distincts, avec quantités, calories et macros - tout reste corrigeable avant l'enregistrement. Les produits emballés sont reconnus par leur code-barres dans la même vue, les iPhone équipés du LiDAR mesurent la portion au lieu de la deviner, et le bouton micro permet d'ajouter ce qu'une photo ne montre pas.
 

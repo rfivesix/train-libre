@@ -21,6 +21,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   - **Drop Settle Confirmation:** Delivers a subtle confirmation impact (`HapticFeedbackService.lightImpact`) upon releasing the card into its target position.
 
 ### Changed
+- **What's New Release Header (`metadata/whats_new/*`, `whats_new_content.g.dart`):** Updated release header from `1.2.0-beta.3` to official `1.2.0` release version across all localizations so that users receive the correct version title.
 - **Diary Water & Drinks Card Unification (`FluidEntryTile`, `DiaryFoodRow`, `DiaryScreen`):** Unified the "Water & Drinks" section in the Diary Screen with meal cards (Breakfast, Lunch, Dinner, Snack):
   - **Single-Line Column Alignment:** Migrated `FluidEntryTile` from a multi-line `ListTile` to `DiaryFoodRow`, ensuring liquid amounts (e.g. `1500ml`) and calories (`480 kcal`) line up in the exact same vertical columns as food rows.
   - **Dynamic Sugar & Caffeine Columns:** Fluid items with non-zero sugar (e.g. `S 120g`) or caffeine (e.g. `480mg`) display dedicated data columns to the left of the amount column, preserving complete nutritional visibility on individual drink items without vertical clutter.
