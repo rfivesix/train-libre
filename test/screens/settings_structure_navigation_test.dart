@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:train_libre/features/sleep/platform/permissions/sleep_permission_controller.dart';
 import 'package:train_libre/features/sleep/platform/permissions/sleep_permission_models.dart';
 import 'package:train_libre/features/sleep/platform/permissions/sleep_permissions_service.dart';
@@ -264,4 +265,53 @@ void main() {
       expect(diaryTop, lessThan(healthTop));
     },
   );
+
+  testWidgets('app tour restart tile uses compass icon', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(900, 3000));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    final controller =
+        SleepPermissionController(const _StubPermissionService());
+
+    await tester.pumpWidget(
+      _wrap(
+        SettingsScreen(
+          sleepSyncService: _FakeSleepSettingsService(controller: controller),
+          sleepPermissionController: controller,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final restartTile =
+        find.byKey(const Key('settings_restart_app_tour_tile'));
+    expect(restartTile, findsOneWidget);
+    expect(
+      find.descendant(of: restartTile, matching: find.byIcon(LucideIcons.compass)),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('overview extra nutrient shows dynamic icon for selected nutrient', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(900, 3000));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    final controller =
+        SleepPermissionController(const _StubPermissionService());
+
+    await tester.pumpWidget(
+      _wrap(
+        SettingsScreen(
+          sleepSyncService: _FakeSleepSettingsService(controller: controller),
+          sleepPermissionController: controller,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // Default is fiber -> wheat icon
+    expect(find.byIcon(LucideIcons.wheat), findsOneWidget);
+  });
 }

@@ -342,7 +342,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   icon: ListTile(
                     contentPadding: DesignConstants.screenPadding,
                     leading: Icon(
-                      LucideIcons.sparkles,
+                      _getExtraNutrientIcon(_overviewExtraNutrient),
                       size: 36,
                       color: Theme.of(context).colorScheme.primary,
                     ),
@@ -605,7 +605,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               children: [
                 _buildNavigationCard(
                   context: context,
-                  icon: LucideIcons.sparkles,
+                  icon: LucideIcons.compass,
                   title: l10n.appTourRestartTitle,
                   subtitle: l10n.appTourRestartSubtitle,
                   tileKey: const Key('settings_restart_app_tour_tile'),
@@ -965,6 +965,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
       case 'fiber':
       default:
         return l10n.fiber;
+    }
+  }
+
+  IconData _getExtraNutrientIcon(String key) {
+    switch (key.toLowerCase()) {
+      case 'sugar':
+        return LucideIcons.candy;
+      case 'salt':
+        return LucideIcons.cooking_pot;
+      case 'fiber':
+      default:
+        return LucideIcons.wheat;
     }
   }
 }

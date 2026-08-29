@@ -7,7 +7,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [1.2.0] - 2026-08-28
 
 ### Added
+- **Accordion Animation (`LegalScreen`):** Animated legal notice and privacy policy sections with smooth vertical height expansion (`SizeTransition` with `axisAlignment: -1.0`, 280ms, `Curves.easeInOutCubic`), fade ramp (`FadeTransition`), and synchronous rotating chevron indicator (`RotationTransition`), ensuring text unrolls strictly from the top without horizontal reflow.
 - **Accessibility & Tooltips (`AiMealCaptureScreen`):** Added localized accessibility tooltip (`doneButtonLabel`) to the checkmark dismiss button in the AI Meal Capture text input field for improved screen reader semantics and hover feedback.
+
+### Changed
+- **Settings Screen Icons (`SettingsScreen`):**
+  - **Dynamic Overview Extra Nutrient Icon:** The "Additional Nutrient in Overview" tile now dynamically shows the icon of the selected nutrient (`LucideIcons.wheat` for fiber, `LucideIcons.candy` for sugar, `LucideIcons.cooking_pot` for salt) instead of a static sparkles icon.
+  - **App Tour Icon:** Replaced the sparkles icon on the App Tour restart tile with `LucideIcons.compass` for clearer tour and guidance semantics.
 
 ### Fixed
 - **OpenAI Model Catalog & Parameter Handling (`AiService`, `AiNetwork`):**
