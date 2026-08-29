@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
+import '../../../services/haptic_feedback_service.dart';
 
 /// Keeps a single list item visually pinned while the list relayouts around it.
 ///
@@ -308,6 +309,50 @@ class ReorderHeadroom extends StatelessWidget {
       curve: Curves.easeInOutCubic,
       height: height,
     );
+  }
+}
+
+/// Scented haptic feedback manager for exercise card drag and drop operations.
+///
+/// Triggers medium impact on lift, selection ticks on crossing slot boundaries,
+/// and light impact on drop.
+class ReorderHapticFeedback {
+  ReorderHapticFeedback._();
+
+  static int? _lastSlot;
+
+  /// Called when the card is picked up / drag begins.
+  static void onDragStart(int startIndex) {
+    _lastSlot = startIndex;
+    HapticFeedbackService.instance.chartSelectionFeedback();
+  }
+
+  /// Called on pointer move or scroll during active drag to emit a crisp tick
+  /// whenever the dragged card crosses into a new slot boundary.
+  static void onPointerMove({
+    required double pointerGlobalY,
+    required double viewportTop,
+    required double scrollOffset,
+    required double dynamicHeadroom,
+    required int itemCount,
+    double itemHeight = 64.0,
+  }) {
+    if (itemCount <= 0) return;
+    final relativeY =
+        pointerGlobalY - viewportTop + scrollOffset - dynamicHeadroom;
+    final slot = (relativeY / itemHeight).floor().clamp(0, itemCount - 1);
+    if (_lastSlot != null && slot != _lastSlot) {
+      _lastSlot = slot;
+      HapticFeedbackService.instance.selectionFeedback();
+    } else {
+      _lastSlot ??= slot;
+    }
+  }
+
+  /// Called when the card is dropped.
+  static void onDragEnd() {
+    _lastSlot = null;
+    HapticFeedbackService.instance.lightImpact();
   }
 }
 

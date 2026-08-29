@@ -101,6 +101,36 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
         }
       }
     }
+    if (_isDragActive) {
+      _trackReorderHover(event.position.dy);
+    }
+  }
+
+  double? _lastDragPointerY;
+
+  double _getViewportTop() {
+    double? viewportTop;
+    if (_scrollController.hasClients) {
+      final renderBox = _scrollController
+          .position.context.notificationContext
+          ?.findRenderObject() as RenderBox?;
+      if (renderBox != null && renderBox.hasSize) {
+        viewportTop = renderBox.localToGlobal(Offset.zero).dy;
+      }
+    }
+    return viewportTop ?? (MediaQuery.paddingOf(context).top + kToolbarHeight);
+  }
+
+  void _trackReorderHover(double pointerGlobalY) {
+    _lastDragPointerY = pointerGlobalY;
+    ReorderHapticFeedback.onPointerMove(
+      pointerGlobalY: pointerGlobalY,
+      viewportTop: _getViewportTop(),
+      scrollOffset:
+          _scrollController.hasClients ? _scrollController.offset : 0.0,
+      dynamicHeadroom: _isDragging ? _dynamicHeadroom : 0.0,
+      itemCount: _routineExercises.length,
+    );
   }
 
   void _onDragPointerUp(PointerUpEvent event) {
@@ -240,6 +270,7 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
     super.initState();
     unawaited(TelemetryService.instance
         .trackScreenView(screenName: ScreenName.routineEditor));
+    _scrollController.addListener(_onScrollUpdated);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         _fabOverlayController.show();
@@ -257,8 +288,15 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
     }
   }
 
+  void _onScrollUpdated() {
+    if (_isDragActive && _lastDragPointerY != null) {
+      _trackReorderHover(_lastDragPointerY!);
+    }
+  }
+
   @override
   void dispose() {
+    _scrollController.removeListener(_onScrollUpdated);
     _collapseTimer?.cancel();
     _expandTimer?.cancel();
     _scrollAnchor.discard();
@@ -888,77 +926,85 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                                           MediaQuery.paddingOf(context).bottom,
                                     ),
                                   )
-                                : ReorderableListView.builder(
-                                    scrollController: _scrollController,
-                                    buildDefaultDragHandles: false,
-                                    scrollCacheExtent:
-                                        const ScrollCacheExtent.pixels(1500.0),
-                                    header: ReorderHeadroom(
-                                      height: _isDragging
-                                          ? _dynamicHeadroom
-                                          : 0.0,
-                                    ),
-                                    itemCount: _routineExercises.length,
-                                    padding: EdgeInsets.only(
-                                      top: _isEditMode ? 0.0 : topPadding,
-                                      bottom: DesignConstants
-                                              .bottomContentSpacer +
-                                          MediaQuery.paddingOf(context).bottom,
-                                    ),
-                                    proxyDecorator: (Widget child, int index,
-                                        Animation<double> animation) {
-                                      if (index >= 0 &&
-                                          index < _routineExercises.length) {
-                                        final routineExercise =
-                                            _routineExercises[index];
-                                        final proxyChild =
-                                            EditRoutineExerciseCard(
-                                          routineExercise: routineExercise,
-                                          index: index,
-                                          isCardio: _isCardio(routineExercise),
-                                          isDragging: true,
-                                          isEditMode: _isEditMode,
-                                          repsControllers: _repsControllers,
-                                          weightControllers: _weightControllers,
-                                          rirControllers: _rirControllers,
-                                          onEditNotes: () {},
-                                          onEditPauseTime: () {},
-                                          onDeleteExercise: () {},
-                                          onAddSet: () {},
-                                          onShowSetTypePicker: (_) {},
-                                          onRemoveSet: (_, __) {},
-                                        );
-                                        return buildReorderDragProxy(
-                                            context, proxyChild, animation);
-                                      }
-                                      return buildReorderDragProxy(
-                                          context, child, animation);
-                                    },
-                                    onReorderStart: (index) {
-                                      if (!_isEditMode) return;
-                                      _isDragActive = true;
-                                      _scrollAnchor.discard();
-                                      _collapseTimer?.cancel();
-                                      _expandTimer?.cancel();
-                                      if (!_isDragging) {
-                                        setState(() {
-                                          _isDragging = true;
-                                        });
-                                      }
-                                      WidgetsBinding.instance
-                                          .addPostFrameCallback((_) {
-                                        if (_fabOverlayController.isShowing) {
-                                          _fabOverlayController.hide();
-                                          _fabOverlayController.show();
-                                        }
-                                      });
-                                    },
-                                    onReorderEnd: (index) {
-                                      _isDragActive = false;
-                                      _scheduleExpandAfterDrop();
-                                    },
-                                    onReorderItem: _onReorderItem,
-                                    itemBuilder: (context, index) {
+                                : Listener(
+                                    onPointerMove: (e) {
+                                       if (_isDragActive) {
+                                         _trackReorderHover(e.position.dy);
+                                       }
+                                     },
+                                     child: ReorderableListView.builder(
+                                       scrollController: _scrollController,
+                                       buildDefaultDragHandles: false,
+                                       scrollCacheExtent:
+                                           const ScrollCacheExtent.pixels(1500.0),
+                                       header: ReorderHeadroom(
+                                         height: _isDragging
+                                             ? _dynamicHeadroom
+                                             : 0.0,
+                                       ),
+                                       itemCount: _routineExercises.length,
+                                       padding: EdgeInsets.only(
+                                         top: _isEditMode ? 0.0 : topPadding,
+                                         bottom: DesignConstants
+                                                 .bottomContentSpacer +
+                                             MediaQuery.paddingOf(context).bottom,
+                                       ),
+                                       proxyDecorator: (Widget child, int index,
+                                           Animation<double> animation) {
+                                         if (index >= 0 &&
+                                             index < _routineExercises.length) {
+                                           final routineExercise =
+                                               _routineExercises[index];
+                                           final proxyChild =
+                                               EditRoutineExerciseCard(
+                                             routineExercise: routineExercise,
+                                             index: index,
+                                             isCardio: _isCardio(routineExercise),
+                                             isDragging: true,
+                                             isEditMode: _isEditMode,
+                                             repsControllers: _repsControllers,
+                                             weightControllers: _weightControllers,
+                                             rirControllers: _rirControllers,
+                                             onEditNotes: () {},
+                                             onEditPauseTime: () {},
+                                             onDeleteExercise: () {},
+                                             onAddSet: () {},
+                                             onShowSetTypePicker: (_) {},
+                                             onRemoveSet: (_, __) {},
+                                           );
+                                           return buildReorderDragProxy(
+                                               context, proxyChild, animation);
+                                         }
+                                         return buildReorderDragProxy(
+                                             context, child, animation);
+                                       },
+                                       onReorderStart: (index) {
+                                         if (!_isEditMode) return;
+                                         _isDragActive = true;
+                                         ReorderHapticFeedback.onDragStart(index);
+                                         _scrollAnchor.discard();
+                                         _collapseTimer?.cancel();
+                                         _expandTimer?.cancel();
+                                         if (!_isDragging) {
+                                           setState(() {
+                                             _isDragging = true;
+                                           });
+                                         }
+                                         WidgetsBinding.instance
+                                             .addPostFrameCallback((_) {
+                                           if (_fabOverlayController.isShowing) {
+                                             _fabOverlayController.hide();
+                                             _fabOverlayController.show();
+                                           }
+                                         });
+                                       },
+                                       onReorderEnd: (index) {
+                                         _isDragActive = false;
+                                         ReorderHapticFeedback.onDragEnd();
+                                         _scheduleExpandAfterDrop();
+                                       },
+                                       onReorderItem: _onReorderItem,
+                                       itemBuilder: (context, index) {
                                       final routineExercise =
                                           _routineExercises[index];
                                       final bool isCardio =
@@ -1042,7 +1088,8 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                                       );
                                     },
                                   ),
-                      ),
+                                 ),
+                       ),
                     ],
                   ),
                 ),

@@ -118,6 +118,36 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
         }
       }
     }
+    if (_isDragActive) {
+      _trackReorderHover(event.position.dy);
+    }
+  }
+
+  double? _lastDragPointerY;
+
+  double _getViewportTop() {
+    double? viewportTop;
+    if (_scrollController.hasClients) {
+      final renderBox = _scrollController
+          .position.context.notificationContext
+          ?.findRenderObject() as RenderBox?;
+      if (renderBox != null && renderBox.hasSize) {
+        viewportTop = renderBox.localToGlobal(Offset.zero).dy;
+      }
+    }
+    return viewportTop ?? (MediaQuery.paddingOf(context).top + kToolbarHeight);
+  }
+
+  void _trackReorderHover(double pointerGlobalY) {
+    _lastDragPointerY = pointerGlobalY;
+    ReorderHapticFeedback.onPointerMove(
+      pointerGlobalY: pointerGlobalY,
+      viewportTop: _getViewportTop(),
+      scrollOffset:
+          _scrollController.hasClients ? _scrollController.offset : 0.0,
+      dynamicHeadroom: _isDragging ? _dynamicHeadroom : 0.0,
+      itemCount: _groupedSets.length,
+    );
   }
 
   void _onDragPointerUp(PointerUpEvent event) {
@@ -177,6 +207,7 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
     super.initState();
     unawaited(TelemetryService.instance
         .trackScreenView(screenName: ScreenName.workoutDetail));
+    _scrollController.addListener(_onScrollUpdated);
     _notesController = TextEditingController();
     _loadDetails();
     _setLogsSubscription = context
@@ -185,8 +216,15 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
         .listen(_onSetLogsUpdated);
   }
 
+  void _onScrollUpdated() {
+    if (_isDragActive && _lastDragPointerY != null) {
+      _trackReorderHover(_lastDragPointerY!);
+    }
+  }
+
   @override
   void dispose() {
+    _scrollController.removeListener(_onScrollUpdated);
     _setLogsSubscription?.cancel();
     _collapseTimer?.cancel();
     _expandTimer?.cancel();
@@ -1256,27 +1294,35 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                               );
                             })
                           else ...[
-                            ReorderableListView.builder(
-                              buildDefaultDragHandles: false,
-                              shrinkWrap: true,
-                              physics: const NeverScrollableScrollPhysics(),
-                              padding: EdgeInsets.zero,
-                              onReorderStart: (index) {
-                                if (!_isEditMode) return;
-                                _isDragActive = true;
-                                _scrollAnchor.discard();
-                                _collapseTimer?.cancel();
-                                _expandTimer?.cancel();
-                                if (!_isDragging) {
-                                  setState(() {
-                                    _isDragging = true;
-                                  });
+                            Listener(
+                              onPointerMove: (e) {
+                                if (_isDragActive) {
+                                  _trackReorderHover(e.position.dy);
                                 }
                               },
-                              onReorderEnd: (index) {
-                                _isDragActive = false;
-                                _scheduleExpandAfterDrop();
-                              },
+                              child: ReorderableListView.builder(
+                                buildDefaultDragHandles: false,
+                                shrinkWrap: true,
+                                physics: const NeverScrollableScrollPhysics(),
+                                padding: EdgeInsets.zero,
+                                onReorderStart: (index) {
+                                  if (!_isEditMode) return;
+                                  _isDragActive = true;
+                                  ReorderHapticFeedback.onDragStart(index);
+                                  _scrollAnchor.discard();
+                                  _collapseTimer?.cancel();
+                                  _expandTimer?.cancel();
+                                  if (!_isDragging) {
+                                    setState(() {
+                                      _isDragging = true;
+                                    });
+                                  }
+                                },
+                                onReorderEnd: (index) {
+                                  _isDragActive = false;
+                                  ReorderHapticFeedback.onDragEnd();
+                                  _scheduleExpandAfterDrop();
+                                },
                               proxyDecorator: (Widget child, int index,
                                   Animation<double> animation) {
                                 if (index >= 0 && index < _groupedSets.length) {
@@ -1428,6 +1474,7 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                                 );
                               },
                             ),
+                          ),
                           ],
 
                           // Add Exercise (Edit Mode)

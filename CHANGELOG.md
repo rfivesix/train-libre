@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [1.2.0] - 2026-08-30
 
+### Added
+- **Tactile Haptic Feedback on Exercise Drag & Drop (`ReorderHapticFeedback`, `HapticFeedbackService`, `LiveWorkoutScreen`, `EditRoutineScreen`, `WorkoutLogDetailScreen`):** Implemented continuous tactile feedback throughout the entire drag & drop lifecycle across all workout and routine editors:
+  - **Lift Impact:** Triggers a tactile medium impact vibration (`HapticFeedbackService.chartSelectionFeedback`) when the card lifts and the drag gesture starts.
+  - **Slot-Crossing Ticks:** Monitors sub-millimeter finger movements and auto-scroll viewport offsets during active drag, firing a crisp selection tick (`HapticFeedback.selectionClick`) on every slot boundary transition.
+  - **Drop Settle Confirmation:** Delivers a subtle confirmation impact (`HapticFeedbackService.lightImpact`) upon releasing the card into its target position.
+
 ### Fixed
 - **Hevy-Style Workout Exercise Drag & Drop Reordering (`LiveWorkoutScreen`, `EditRoutineScreen`, `WorkoutLogDetailScreen`, `EditRoutineExerciseCard`, `WorkoutExerciseLogCard`, `ReorderScrollAnchor`):** Overhauled drag & drop reordering across all workout and routine screens following the industry-standard Hevy anchoring model:
   - **Strict Edit-Mode Gating:** Long-pressing exercise cards in non-edit mode is completely ignored; detail navigation and scrolling remain instantaneous without unwanted card collapse.

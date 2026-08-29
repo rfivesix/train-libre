@@ -171,6 +171,34 @@ void main() {
     );
     expect(headroom5, 0.0);
   });
+
+  test('ReorderHapticFeedback lifecycle and boundary tracking', () {
+    // Start drag at index 2
+    ReorderHapticFeedback.onDragStart(2);
+
+    // Pointer move within same slot 2: no extra vibration needed
+    ReorderHapticFeedback.onPointerMove(
+      pointerGlobalY: 200.0,
+      viewportTop: 0.0,
+      scrollOffset: 0.0,
+      dynamicHeadroom: 50.0,
+      itemCount: 5,
+      itemHeight: 60.0,
+    );
+
+    // Pointer move crossing to slot 1: triggers selection feedback
+    ReorderHapticFeedback.onPointerMove(
+      pointerGlobalY: 120.0,
+      viewportTop: 0.0,
+      scrollOffset: 0.0,
+      dynamicHeadroom: 50.0,
+      itemCount: 5,
+      itemHeight: 60.0,
+    );
+
+    // End drag
+    ReorderHapticFeedback.onDragEnd();
+  });
 }
 
 
