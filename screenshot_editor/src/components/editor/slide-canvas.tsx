@@ -310,102 +310,80 @@ function hexToRgb(hex: string) {
   return { r: (num >> 16) & 0xff, g: (num >> 8) & 0xff, b: num & 0xff };
 }
 
-// Smooth wave sampled across the full deck width. `waves` is the number of
-// complete cycles over the deck, so the curve reads as continuous motion no
-// matter how many screens the deck has.
-function wavePath(totalW: number, cH: number, baseline: number, amp: number, waves: number, phase: number) {
-  const steps = 240;
-  const pts: string[] = [];
-  for (let i = 0; i <= steps; i++) {
-    const t = i / steps;
-    const x = t * totalW;
-    const y =
-      cH * baseline +
-      Math.sin(t * Math.PI * 2 * waves + phase) * cH * amp * 0.6 +
-      Math.sin(t * Math.PI * 2 * waves * 0.5 + phase * 1.7) * cH * amp * 0.4;
-    pts.push(`${i === 0 ? "M" : "L"}${x.toFixed(1)},${y.toFixed(1)}`);
+// Glow anchors expressed in deck space, so the scene is identical no matter
+// which screen paints it. [xFrac of deck, yFrac of height, wFrac of deck,
+// hFrac of height, colour]
+function deckGlows(screens: number, accent: string): Array<[number, number, number, number, string]> {
+  const { r, g, b } = hexToRgb(accent);
+  const a = (o: number) => `rgba(${r}, ${g}, ${b}, ${o})`;
+  const cool = (o: number) => `rgba(80, 150, 255, ${o})`;
+  const out: Array<[number, number, number, number, string]> = [];
+
+  // One anchor per screen, alternating top/bottom so no two neighbours read the
+  // same, sized wide enough (1.15 screens) that every one straddles a seam.
+  const w = 1.15 / screens;
+  for (let i = 0; i < screens; i++) {
+    const f = (i + 0.5) / screens;
+    const top = i % 2 === 0;
+    const isCool = i % 3 === 2;
+    out.push([
+      f + (top ? -0.014 : 0.018),
+      top ? 0.04 : 0.97,
+      w,
+      top ? 0.8 : 0.72,
+      isCool ? cool(0.13) : a(top ? 0.34 : 0.24),
+    ]);
   }
-  return pts.join(" ");
+  // Two deck-spanning washes tie the individual anchors together.
+  out.push([0.28, 0.45, 0.6, 1.4, cool(0.045)]);
+  out.push([0.7, 0.55, 0.55, 1.3, a(0.055)]);
+  return out;
 }
 
-function DeckBackground({
-  totalW,
+// One screen's slice of the deck-wide scene.
+//
+// The scene is authored in deck coordinates, but each screen paints only its
+// own 1320px window: gradient centres are shifted by -index*cW. Painting the
+// full deck box per screen instead makes html-to-image rasterise ~7x the
+// pixels for every exported frame.
+function PanoramaBackground({
+  index,
+  screens,
+  cW,
   cH,
   theme,
 }: {
-  totalW: number;
+  index: number;
+  screens: number;
+  cW: number;
   cH: number;
   theme: Theme;
 }) {
-  const { r, g, b } = hexToRgb(theme.accent);
-  const a = (o: number) => `rgba(${r}, ${g}, ${b}, ${o})`;
-  const cool = (o: number) => `rgba(64, 132, 255, ${o})`;
+  const totalW = screens * cW;
 
-  // Glow fields, positioned as fractions of the whole deck so they cross seams.
-  const glows: Array<[number, number, number, number, string]> = [
-    // [xFrac, yFrac, wFrac-of-totalW, hFrac-of-cH, color]
-    [0.045, 0.08, 0.115, 0.85, a(0.3)],
-    [0.235, 0.96, 0.16, 0.8, a(0.16)],
-    [0.42, 0.02, 0.13, 0.7, a(0.22)],
-    [0.6, 0.9, 0.175, 0.85, cool(0.14)],
-    [0.79, 0.06, 0.14, 0.75, a(0.2)],
-    [0.96, 0.88, 0.13, 0.7, a(0.15)],
-    [0.5, 0.5, 0.55, 1.5, cool(0.05)],
-  ];
-
-  const layers = glows
-    .map(
-      ([x, y, w, h, color]) =>
-        `radial-gradient(${(w * totalW).toFixed(0)}px ${(h * cH).toFixed(0)}px at ${(x * 100).toFixed(
-          2,
-        )}% ${(y * 100).toFixed(2)}%, ${color} 0%, transparent 68%)`,
-    )
+  const layers = deckGlows(screens, theme.accent)
+    .map(([x, y, gw, gh, color]) => {
+      const localX = x * totalW - index * cW;
+      return `radial-gradient(${(gw * totalW).toFixed(0)}px ${(gh * cH).toFixed(0)}px at ${localX.toFixed(
+        1,
+      )}px ${(y * cH).toFixed(1)}px, ${color} 0%, transparent 70%)`;
+    })
     .join(", ");
-
-  const horizon = wavePath(totalW, cH, 0.62, 0.2, 1.6, 0.4);
-  const horizonFill = `${horizon} L${totalW},${cH} L0,${cH} Z`;
-  const echo = wavePath(totalW, cH, 0.3, 0.14, 1.1, 2.6);
 
   return (
     <div
       aria-hidden
       style={{
         position: "absolute",
-        left: 0,
-        top: 0,
-        width: totalW,
-        height: cH,
+        inset: 0,
         overflow: "hidden",
         pointerEvents: "none",
-        background: `${layers}, linear-gradient(180deg, ${shade(theme.bg, 4)} 0%, ${theme.bg} 48%, ${shade(
+        background: `${layers}, linear-gradient(180deg, ${shade(theme.bg, 5)} 0%, ${theme.bg} 46%, ${shade(
           theme.bg,
           -3,
         )} 100%)`,
       }}
-    >
-      <svg
-        width={totalW}
-        height={cH}
-        viewBox={`0 0 ${totalW} ${cH}`}
-        style={{ position: "absolute", left: 0, top: 0, display: "block" }}
-      >
-        <defs>
-          <linearGradient id="tl-horizon-fill" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor={a(0.14)} />
-            <stop offset="45%" stopColor={a(0.03)} />
-            <stop offset="100%" stopColor={a(0)} />
-          </linearGradient>
-        </defs>
-        <path d={horizonFill} fill="url(#tl-horizon-fill)" />
-        {/* Layered strokes fake a glow without a filter, which keeps
-            html-to-image exports pixel-identical to the on-screen preview. */}
-        <path d={horizon} fill="none" stroke={a(0.05)} strokeWidth={cH * 0.02} />
-        <path d={horizon} fill="none" stroke={a(0.1)} strokeWidth={cH * 0.007} />
-        <path d={horizon} fill="none" stroke={a(0.42)} strokeWidth={cH * 0.0016} />
-        <path d={echo} fill="none" stroke={a(0.05)} strokeWidth={cH * 0.012} />
-        <path d={echo} fill="none" stroke={a(0.16)} strokeWidth={cH * 0.0011} />
-      </svg>
-    </div>
+    />
   );
 }
 
@@ -709,7 +687,6 @@ export function DeckCanvas({
         overflow: "hidden",
       }}
     >
-      {panorama && <DeckBackground totalW={totalW} cH={cH} theme={theme} />}
       {slides.map((slide, index) => {
         const screenX = index * cW;
         const active = activeSlideId === slide.id;
@@ -764,7 +741,17 @@ export function DeckCanvas({
               overflow: "hidden",
             }}
           >
-            {!panorama && <SlideBackground slide={slide} cW={cW} cH={cH} theme={theme} />}
+            {panorama ? (
+              <PanoramaBackground
+                index={index}
+                screens={slides.length}
+                cW={cW}
+                cH={cH}
+                theme={theme}
+              />
+            ) : (
+              <SlideBackground slide={slide} cW={cW} cH={cH} theme={theme} />
+            )}
             {showGuides && <ScreenGuide cW={cW} cH={cH} index={index} active={active} />}
           </div>
         );
