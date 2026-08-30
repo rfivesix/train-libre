@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 
 /// A custom painter that draws a glass sheet border that fades out vertically.
 ///
-/// The border is drawn on the top edge, top-left/top-right rounded corners,
-/// and left/right edges, fading to 0 opacity from top to bottom.
+/// The outline follows the same rounded-superellipse (squircle) geometry the
+/// liquid glass shapes use, so the hairline sits exactly on the glass edge
+/// instead of cutting across it with a circular arc. It is drawn on the top
+/// edge, the top-left/top-right corners and the left/right edges, fading to
+/// 0 opacity from top to bottom.
 class GlassBorderPainter extends CustomPainter {
   final Color color;
   final double radius;
@@ -41,28 +44,23 @@ class GlassBorderPainter extends CustomPainter {
       stops: const [0.0, 1.0],
     ).createShader(rect);
 
-    final path = Path();
-    // Start at bottom left (inset by halfStroke from the left edge)
-    path.moveTo(halfStroke, size.height);
-    // Line up to top-left corner start
-    path.lineTo(halfStroke, radius + halfStroke);
-    // Arc to top-left corner end (inset from top by halfStroke)
-    path.arcToPoint(
-      Offset(radius + halfStroke, halfStroke),
-      radius: Radius.circular(radius),
-      clockwise: true,
+    // Same shape the glass layer is clipped to (LiquidVerticalRoundedSuperellipse
+    // maps onto RoundedSuperellipseBorder), inset by half the stroke so the
+    // hairline sits inside the glass edge rather than straddling it.
+    final outline = Rect.fromLTRB(
+      halfStroke,
+      halfStroke,
+      size.width - halfStroke,
+      size.height,
     );
-    // Line across the top to top-right corner start
-    path.lineTo(size.width - radius - halfStroke, halfStroke);
-    // Arc to top-right corner end (inset from right by halfStroke)
-    path.arcToPoint(
-      Offset(size.width - halfStroke, radius + halfStroke),
-      radius: Radius.circular(radius),
-      clockwise: true,
-    );
-    // Line down to bottom right
-    path.lineTo(size.width - halfStroke, size.height);
+    final path = RoundedSuperellipseBorder(
+      borderRadius: BorderRadius.vertical(
+        top: Radius.circular((radius - halfStroke).clamp(0.0, double.infinity)),
+      ),
+    ).getOuterPath(outline);
 
+    // The bottom edge of that path is fully transparent through the gradient,
+    // so only the top edge, the two squircle corners and the side edges show.
     canvas.drawPath(path, paint);
   }
 

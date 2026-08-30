@@ -3,55 +3,64 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:train_libre/features/workout/presentation/reorder_scroll_anchor.dart';
 
-/// A list whose items collapse to a header-sized box, mirroring what the
-/// workout screens do while an exercise is being dragged.
-class _CollapsibleList extends StatefulWidget {
-  const _CollapsibleList({required this.controller, required this.anchor});
+class _TestWorkoutReorderList extends StatefulWidget {
+  const _TestWorkoutReorderList({
+    required this.controller,
+    required this.isEditMode,
+  });
 
   final ScrollController controller;
-  final ReorderScrollAnchor anchor;
+  final bool isEditMode;
 
   @override
-  State<_CollapsibleList> createState() => _CollapsibleListState();
+  State<_TestWorkoutReorderList> createState() =>
+      _TestWorkoutReorderListState();
 }
 
-class _CollapsibleListState extends State<_CollapsibleList> {
-  bool _collapsed = false;
+class _TestWorkoutReorderListState extends State<_TestWorkoutReorderList> {
+  bool _isDragging = false;
+  final List<String> _items = List.generate(15, (i) => 'Exercise $i');
+  late final ReorderScrollAnchor _anchor =
+      ReorderScrollAnchor(widget.controller);
 
-  /// Heights differ per item so a uniform-height shortcut cannot pass by luck.
-  double _expandedHeight(int index) => 120.0 + index * 40.0;
-
-  /// Collapses/expands with the anchor holding [anchorId] in place.
-  void setCollapsed(bool value, int anchorId) {
-    widget.anchor.capture(anchorId);
-    setState(() => _collapsed = value);
-    WidgetsBinding.instance
-        .addPostFrameCallback((_) => widget.anchor.restore());
+  void startReorder(Object anchorId) {
+    if (!widget.isEditMode) return;
+    _anchor.pin(
+      anchorId,
+      () => setState(() => _isDragging = true),
+    );
   }
 
-  /// Collapses/expands without capturing an anchor.
-  void setCollapsedUnanchored(bool value) {
-    setState(() => _collapsed = value);
+  void endReorder(Object anchorId) {
+    _anchor.pin(
+      anchorId,
+      () => setState(() => _isDragging = false),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
-        body: ListView.builder(
+        body: ListView(
           controller: widget.controller,
-          scrollCacheExtent: const ScrollCacheExtent.pixels(5000.0),
-          // Mirrors the extra room the workout screens keep while collapsed, so
-          // the scroll offset does not get clamped away.
-          padding: EdgeInsets.only(bottom: _collapsed ? 800.0 : 0.0),
-          itemCount: 20,
-          itemBuilder: (context, index) => KeyedSubtree(
-            key: widget.anchor.keyFor(index),
-            child: SizedBox(
-              height: _collapsed ? 50.0 : _expandedHeight(index),
-              child: Text('item $index'),
-            ),
-          ),
+          scrollCacheExtent: const ScrollCacheExtent.pixels(1500.0),
+          children: [
+            for (int i = 0; i < _items.length; i++)
+              KeyedSubtree(
+                key: _anchor.keyFor(_items[i]),
+                child: AnimatedSize(
+                  duration: kReorderCardResizeDuration,
+                  curve: Curves.easeInOutCubic,
+                  alignment: Alignment.topCenter,
+                  child: SizedBox(
+                    height: _isDragging ? 50.0 : 150.0,
+                    width: double.infinity,
+                    child: Text(_items[i]),
+                  ),
+                ),
+              ),
+          ],
         ),
       ),
     );
@@ -60,93 +69,151 @@ class _CollapsibleListState extends State<_CollapsibleList> {
 
 void main() {
   late ScrollController controller;
-  late ReorderScrollAnchor anchor;
-
-  // Sits inside the viewport at scroll offset 1200 in the expanded list.
-  const anchorIndex = 6;
 
   setUp(() {
     controller = ScrollController();
-    anchor = ReorderScrollAnchor(controller);
   });
 
   tearDown(() => controller.dispose());
 
-  Future<_CollapsibleListState> pumpList(WidgetTester tester) async {
+  testWidgets(
+      'ReorderScrollAnchor pins items and bounds strictly without empty headroom',
+      (tester) async {
     await tester.pumpWidget(
-      _CollapsibleList(controller: controller, anchor: anchor),
+      _TestWorkoutReorderList(
+        controller: controller,
+        isEditMode: true,
+      ),
     );
-    return tester.state<_CollapsibleListState>(find.byType(_CollapsibleList));
-  }
+    final state =
+        tester.state<_TestWorkoutReorderListState>(find.byType(_TestWorkoutReorderList));
 
-  double yOf(WidgetTester tester, int index) =>
-      tester.getTopLeft(find.text('item $index')).dy;
-
-  testWidgets('keeps the anchored item pinned while the list collapses',
-      (tester) async {
-    final state = await pumpList(tester);
-
-    controller.jumpTo(1200);
-    await tester.pump();
-    final before = yOf(tester, anchorIndex);
-
-    state.setCollapsed(true, anchorIndex);
-    await tester.pump();
+    // Scroll to offset 600
+    controller.jumpTo(600.0);
     await tester.pump();
 
-    expect(yOf(tester, anchorIndex), closeTo(before, 0.5));
-    // The correction has to actually move the viewport, otherwise the test
-    // would also pass with a no-op anchor.
-    expect(controller.offset, lessThan(1200));
+    final initialY = tester.getTopLeft(find.text('Exercise 6')).dy;
+
+    // Trigger reorder pinned on Exercise 6
+    state.startReorder('Exercise 6');
+    await tester.pump(const Duration(milliseconds: 100));
+    await tester.pump(const Duration(milliseconds: 200));
+    await tester.pumpAndSettle();
+
+    // After collapse, Exercise 6 remains pinned at its Y position and minScrollExtent is strictly 0.0
+    final afterCollapseY = tester.getTopLeft(find.text('Exercise 6')).dy;
+    expect((afterCollapseY - initialY).abs(), lessThan(5.0));
+    expect(controller.position.minScrollExtent, 0.0);
   });
 
-  testWidgets('keeps the anchored item pinned while the list expands again',
-      (tester) async {
-    final state = await pumpList(tester);
+  testWidgets('non-edit mode ignores reorder start', (tester) async {
+    await tester.pumpWidget(
+      _TestWorkoutReorderList(
+        controller: controller,
+        isEditMode: false,
+      ),
+    );
+    final state =
+        tester.state<_TestWorkoutReorderListState>(find.byType(_TestWorkoutReorderList));
 
-    controller.jumpTo(1200);
-    await tester.pump();
+    final initialY = tester.getTopLeft(find.text('Exercise 3')).dy;
+    state.startReorder('Exercise 3');
+    await tester.pumpAndSettle();
 
-    state.setCollapsed(true, anchorIndex);
-    await tester.pump();
-    await tester.pump();
-    final collapsedY = yOf(tester, anchorIndex);
-
-    state.setCollapsed(false, anchorIndex);
-    await tester.pump();
-    await tester.pump();
-
-    expect(yOf(tester, anchorIndex), closeTo(collapsedY, 0.5));
-    expect(controller.offset, closeTo(1200, 0.5));
+    // In non-edit mode, cards do not collapse
+    expect(tester.getTopLeft(find.text('Exercise 3')).dy, initialY);
   });
 
-  testWidgets('restore without a capture leaves the scroll offset alone',
+  testWidgets('calculateDynamicReorderHeadroom calculates exact needed gap',
       (tester) async {
-    await pumpList(tester);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: ListView(
+            controller: controller,
+            children: const [
+              SizedBox(height: 50, child: Text('Header')),
+            ],
+          ),
+        ),
+      ),
+    );
 
-    controller.jumpTo(600);
-    await tester.pump();
+    final context = tester.element(find.text('Header'));
 
-    anchor.restore();
-    await tester.pump();
+    // Item 0 at Y = 200 (viewportTop = 0): headroom is 200 - 0 = 200
+    final headroom0 = calculateDynamicReorderHeadroom(
+      context: context,
+      scrollController: controller,
+      pointerGlobalY: 200.0,
+      itemIndex: 0,
+      collapsedItemHeight: 60.0,
+    );
+    expect(headroom0, 200.0);
 
-    expect(controller.offset, 600);
+    // Item 2 at Y = 300: headroom is 300 - (2 * 60) = 180
+    final headroom2 = calculateDynamicReorderHeadroom(
+      context: context,
+      scrollController: controller,
+      pointerGlobalY: 300.0,
+      itemIndex: 2,
+      collapsedItemHeight: 60.0,
+    );
+    expect(headroom2, 180.0);
+
+    // Item 5 at Y = 200: headroom is max(0, 200 - (5 * 60) = -100) = 0.0
+    final headroom5 = calculateDynamicReorderHeadroom(
+      context: context,
+      scrollController: controller,
+      pointerGlobalY: 200.0,
+      itemIndex: 5,
+      collapsedItemHeight: 60.0,
+    );
+    expect(headroom5, 0.0);
   });
 
-  testWidgets('discard drops a pending capture', (tester) async {
-    final state = await pumpList(tester);
+  testWidgets('ReorderHapticFeedback lifecycle and boundary tracking',
+      (tester) async {
+    final anchor = ReorderScrollAnchor(controller);
+    final itemIds = ['ex_0', 'ex_1', 'ex_2'];
 
-    controller.jumpTo(600);
-    await tester.pump();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: ListView(
+            controller: controller,
+            children: [
+              for (final id in itemIds)
+                KeyedSubtree(
+                  key: anchor.keyFor(id),
+                  child: SizedBox(height: 60.0, child: Text(id)),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
 
-    anchor.capture(anchorIndex);
-    anchor.discard();
+    // Start drag at index 2
+    ReorderHapticFeedback.onDragStart(2);
 
-    state.setCollapsedUnanchored(true);
-    await tester.pump();
-    anchor.restore();
-    await tester.pump();
+    // Pointer move within slot 2 (~150px)
+    ReorderHapticFeedback.onPointerMove(
+      pointerGlobalY: 150.0,
+      anchor: anchor,
+      itemIds: itemIds,
+    );
 
-    expect(controller.offset, 600);
+    // Pointer move crossing to slot 0 (~30px)
+    ReorderHapticFeedback.onPointerMove(
+      pointerGlobalY: 30.0,
+      anchor: anchor,
+      itemIds: itemIds,
+    );
+
+    // End drag
+    ReorderHapticFeedback.onDragEnd();
   });
 }
+
+

@@ -29,6 +29,7 @@ CARATTERISTICHE PRINCIPALI:
 • Registra gli allenamenti serie per serie: riscaldamento, serie effettive, serie a cedimento e dropset.
 • Traccia metriche precise: ripetizioni, carico e RPE / RIR (sforzo percepito / ripetizioni in riserva).
 • Crea schede riutilizzabili, aggiungi esercizi personalizzati e consulta lo storico completo delle sessioni.
+• Aggiungi fino a 4 foto a ogni sessione, scattate con la fotocamera o scelte dalla libreria e conservate anche nei backup.
 
 2. NUTRIZIONE SCIENTIFICA E CALCOLO TDEE
 • Registra pasti, calorie, macronutrienti, idratazione, caffeina, creatina e integratori personalizzati.
@@ -44,6 +45,7 @@ CARATTERISTICHE PRINCIPALI:
 
 5. RICONOSCIMENTO PASTI CON IA (opzionale — BYOK)
 • Chiave API personale (BYOK): riconoscimento dei pasti tramite IA che funziona con la tua chiave. Disattivato di default.
+• Foto, codice a barre e voce in un'unica schermata: fotografa il piatto, lascia che la stessa schermata riconosca il codice a barre di un prodotto confezionato, oppure descrivi il pasto a voce. Sugli iPhone con LiDAR la porzione viene misurata, non stimata.
 • Abbinamento contestuale: un sistema di ricerca locale "Top-N alternative" combinato con Open Food Facts identifica accuratamente gli alimenti ed evita allucinazioni.
 • 100% trasparente: ogni suggerimento dell'IA è completamente revisionabile e modificabile prima del salvataggio.
 
@@ -54,11 +56,15 @@ OPEN SOURCE E DATI APERTI:
 Sviluppato in modo trasparente sui database aperti e affidabili di Open Food Facts e wger. Il codice sorgente completo è pubblicamente accessibile: le nostre promesse sulla privacy si verificano, non si prendono per buone.
 
 ## Release Notes (What's New / Release Notes in this version)
-Widget per la schermata Home su Android: la famiglia di widget arriva su Android - il tuo ultimo allenamento con la mappa muscolare, il recupero muscolare, i passi degli ultimi 7 giorni, le misure corporee, la nutrizione di oggi e le azioni rapide. Aggiungili dal selettore di widget del tuo launcher; nutrizione, misure e azioni rapide si possono riconfigurare in qualsiasi momento.
+Registra un pasto da una foto: inquadra il piatto e l'IA lo trasforma in singoli alimenti con quantità, calorie e macro, tutto correggibile prima di salvare. I prodotti confezionati vengono riconosciuti dal codice a barre nella stessa schermata, gli iPhone con LiDAR misurano la porzione invece di stimarla e il pulsante del microfono ti fa aggiungere ciò che una foto non mostra.
 
-L'allenamento in corso nelle notifiche: un allenamento in corso compare ora nelle notifiche con il conto alla rovescia del recupero e, su Android 16, diventa una Live Update con un indicatore nella barra di stato. Completare una serie, aggiungere o togliere 15 secondi e saltare il recupero si fanno da lì, senza aprire l'app.
+Un diario più chiaro: un pasto scansionato resta una sola voce con la sua foto e si espande sui suoi ingredienti. Le voci sono ordinate per calorie, dalle più alte.
 
-Riquadri delle impostazioni rapide: tutte e sette le azioni rapide - scanner di codici a barre, riconoscimento pasti con IA, avvia allenamento, aggiungi acqua, registra un integratore, aggiungi una misura e aggiungi un alimento - sono ora disponibili come riquadri nelle tue impostazioni rapide.
+Di più dai tuoi allenamenti: conserva fino a 4 foto per sessione e la barra sopra la navigazione mostra sempre se stai lavorando o recuperando e quale esercizio viene dopo. Un tocco fa crescere l'allenamento dalla barra.
+
+Le tue foto nel backup iCloud: il backup automatico porta con sé anche le foto dei tuoi pasti e dei tuoi allenamenti. Il ripristino non richiede più un riavvio e conserva il backup precedente come copia di riserva.
+
+Uso più fluido: le schede si aprono a schermo intero invece di cambiare di scatto, i numeri si contano da soli e gli esercizi rimossi si richiudono con delicatezza invece di sparire di colpo.
 
 ## Support URL (Support Web Page URL)
 https://rfivesix.github.io/train-libre/support.html

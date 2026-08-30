@@ -829,10 +829,14 @@ class _MeasurementFormSheetState extends State<MeasurementFormSheet> {
               ),
             ],
           ),
-          const SizedBox(height: DesignConstants.spacingL),
+          const SizedBox(height: DesignConstants.spacingS),
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.only(bottom: DesignConstants.spacingL),
+              clipBehavior: Clip.none,
+              padding: const EdgeInsets.only(
+                top: DesignConstants.spacingS,
+                bottom: DesignConstants.spacingL,
+              ),
               child: Form(
                 key: _formKey,
                 child: Column(

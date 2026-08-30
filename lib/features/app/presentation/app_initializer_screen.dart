@@ -1,3 +1,4 @@
+import '../../../core/performance/startup_trace.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../../util/design_constants.dart';
@@ -58,7 +59,10 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
 
   Future<void> _initialize() async {
     if (!widget.isModal) {
-      await _prepareCoreServices();
+      await StartupTrace.instance.measure(
+        'core_services',
+        _prepareCoreServices,
+      );
 
       // Cold Start first launch prompt is handled during onboarding region selection.
     }
@@ -116,7 +120,10 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
 
     // 2) Trigger due auto-backup checks.
     try {
-      await BackupManager.instance.runAutoBackupIfDue();
+      await StartupTrace.instance.measure(
+        'auto_backup_check',
+        BackupManager.instance.runAutoBackupIfDue,
+      );
     } catch (e) {
       debugPrint("Auto-backup startup failed: $e");
     }
@@ -150,49 +157,60 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
       workoutSessionManager = null;
     }
 
-    try {
-      await DatabaseHelper.instance.ensureStandardSupplements();
-    } catch (e) {
-      debugPrint("Standard supplement setup failed: $e");
-    }
-
-    try {
-      await LocalNotificationService.instance.initialize();
-      // Asynchronously trigger recommendation check on startup
-      unawaited(AdaptiveNutritionRecommendationService()
-          .refreshRecommendationIfDue()
+    final tasks = <Future<void>>[
+      StartupTrace.instance
+          .measure(
+            'standard_supplements',
+            DatabaseHelper.instance.ensureStandardSupplements,
+          )
           .catchError((e) {
-        debugPrint("Startup recommendation check failed: $e");
-        return null;
-      }));
-    } catch (e) {
-      debugPrint("Local notification initialization failed: $e");
-    }
+        debugPrint("Standard supplement setup failed: $e");
+      }),
+      StartupTrace.instance.measure(
+        'notifications_init',
+        () async {
+          await LocalNotificationService.instance.initialize();
+          unawaited(AdaptiveNutritionRecommendationService()
+              .refreshRecommendationIfDue()
+              .catchError((e) {
+            debugPrint("Startup recommendation check failed: $e");
+            return null;
+          }));
+        },
+      ).catchError((e) {
+        debugPrint("Local notification initialization failed: $e");
+      }),
+      if (workoutSessionManager != null)
+        StartupTrace.instance
+            .measure(
+              'workout_restore',
+              workoutSessionManager.tryRestoreSession,
+            )
+            .catchError((e) {
+          debugPrint("Workout session restore failed: $e");
+        }),
+      StartupTrace.instance.measure(
+        'telemetry_init',
+        () async {
+          await TelemetryService.instance.init();
+          final packageInfo = await PackageInfo.fromPlatform();
+          final (localeStr, countryCode) =
+              TelemetryService.resolveSystemLocaleAndCountry();
 
-    if (workoutSessionManager != null) {
-      try {
-        await workoutSessionManager.tryRestoreSession();
-      } catch (e) {
-        debugPrint("Workout session restore failed: $e");
-      }
-    }
+          unawaited(TelemetryService.instance.trackAppLaunched(
+            appVersion: packageInfo.version,
+            osVersion: Platform.operatingSystemVersion,
+            platform: Platform.operatingSystem,
+            locale: localeStr,
+            country: countryCode,
+          ));
+        },
+      ).catchError((e) {
+        debugPrint("Telemetry startup tracking failed: $e");
+      }),
+    ];
 
-    try {
-      await TelemetryService.instance.init();
-      final packageInfo = await PackageInfo.fromPlatform();
-      final (localeStr, countryCode) =
-          TelemetryService.resolveSystemLocaleAndCountry();
-
-      unawaited(TelemetryService.instance.trackAppLaunched(
-        appVersion: packageInfo.version,
-        osVersion: Platform.operatingSystemVersion,
-        platform: Platform.operatingSystem,
-        locale: localeStr,
-        country: countryCode,
-      ));
-    } catch (e) {
-      debugPrint("Telemetry startup tracking failed: $e");
-    }
+    await Future.wait(tasks);
   }
 
   String _getLocalizedProgress(BuildContext context, String raw) {

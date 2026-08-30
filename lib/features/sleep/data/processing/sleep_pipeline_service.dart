@@ -128,16 +128,17 @@ class SleepPipelineService {
         fromInclusive: from,
         toExclusive: to,
       );
-      final rawImportIds = sessionsToRecompute
-          .map((session) => session.rawImportId)
-          .whereType<String>()
-          .toSet()
-          .toList(growable: false);
-      final nightDates = sessionsToRecompute
-          .map((session) => _nightKey(session.endedAt))
-          .toSet()
-          .toList(growable: false)
-        ..sort();
+
+      final rawImportIdsSet = <String>{};
+      final nightDatesSet = <String>{};
+      for (final session in sessionsToRecompute) {
+        if (session.rawImportId != null) {
+          rawImportIdsSet.add(session.rawImportId!);
+        }
+        nightDatesSet.add(_nightKey(session.endedAt));
+      }
+      final rawImportIds = rawImportIdsSet.toList(growable: false);
+      final nightDates = nightDatesSet.toList(growable: false)..sort();
       token?.throwIfCancelled();
       if (nightDates.isNotEmpty) {
         await _analysesDao.deleteByNightRange(
@@ -163,11 +164,11 @@ class SleepPipelineService {
     token?.throwIfCancelled();
 
     // Pre-fetch lookback data for regularity calculation
-    final targetNights = normalizedBatch.sessions
-        .map((session) => _normalizeDay(session.endAtUtc.toLocal()))
-        .toSet()
-        .toList(growable: false)
-      ..sort();
+    final targetNightsSet = <DateTime>{};
+    for (final session in normalizedBatch.sessions) {
+      targetNightsSet.add(_normalizeDay(session.endAtUtc.toLocal()));
+    }
+    final targetNights = targetNightsSet.toList(growable: false)..sort();
     final earliestNight = targetNights.first;
     final latestNight = targetNights.last;
     final lookbackFromInclusive =
@@ -372,17 +373,31 @@ class SleepPipelineService {
         .toList(growable: false);
 
     // Filter out lookback sessions that are being replaced by the incoming batch
-    final activeLookbackSessions =
-        params.lookbackSessions.map(_toDomainSession).where((existing) {
-      final hasIdMatch =
-          mapped.sessions.any((incoming) => incoming.id == existing.id);
-      if (hasIdMatch) return false;
+    // BOLT OPTIMIZATION: Replaced chained .map().where().toList() and nested .any()
+    // with a single-pass calculation to avoid O(N*M) time complexity and array allocations.
+    final mappedSessionIds = <String>{};
+    for (final s in mapped.sessions) {
+      mappedSessionIds.add(s.id);
+    }
 
-      final hasOverlap = mapped.sessions.any((incoming) =>
-          incoming.startAtUtc.isBefore(existing.endAtUtc) &&
-          incoming.endAtUtc.isAfter(existing.startAtUtc));
-      return !hasOverlap;
-    }).toList();
+    final activeLookbackSessions = <SleepSession>[];
+    for (final row in params.lookbackSessions) {
+      final existing = _toDomainSession(row);
+      if (mappedSessionIds.contains(existing.id)) continue;
+
+      bool hasOverlap = false;
+      for (final incoming in mapped.sessions) {
+        if (incoming.startAtUtc.isBefore(existing.endAtUtc) &&
+            incoming.endAtUtc.isAfter(existing.startAtUtc)) {
+          hasOverlap = true;
+          break;
+        }
+      }
+
+      if (!hasOverlap) {
+        activeLookbackSessions.add(existing);
+      }
+    }
 
     final allSessions = [...activeLookbackSessions, ...mapped.sessions];
 

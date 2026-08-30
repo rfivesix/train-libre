@@ -684,21 +684,23 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                 SummaryCard(
                   child: Column(
                     children: [
-                      _buildNutrientRow(
+                      _buildAnimatedNutrientRow(
                         l10n.calories,
-                        "${_getDisplayValue(_displayItem.calories.toDouble()).round()} kcal",
+                        _getDisplayValue(_displayItem.calories.toDouble()),
+                        unit: 'kcal',
+                        isInt: true,
                       ),
-                      _buildNutrientRow(
+                      _buildAnimatedNutrientRow(
                         l10n.protein,
-                        "${_getDisplayValue(_displayItem.protein).toStringAsFixed(1)} g",
+                        _getDisplayValue(_displayItem.protein),
                       ),
-                      _buildNutrientRow(
+                      _buildAnimatedNutrientRow(
                         l10n.carbs,
-                        "${_getDisplayValue(_displayItem.carbs).toStringAsFixed(1)} g",
+                        _getDisplayValue(_displayItem.carbs),
                       ),
-                      _buildNutrientRow(
+                      _buildAnimatedNutrientRow(
                         l10n.fat,
-                        "${_getDisplayValue(_displayItem.fat).toStringAsFixed(1)} g",
+                        _getDisplayValue(_displayItem.fat),
                       ),
                     ],
                   ),
@@ -713,25 +715,27 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                     child: Column(
                       children: [
                         if (_displayItem.sugar != null)
-                          _buildNutrientRow(
+                          _buildAnimatedNutrientRow(
                             l10n.sugar,
-                            "${_getDisplayValue(_displayItem.sugar).toStringAsFixed(1)} g",
+                            _getDisplayValue(_displayItem.sugar!),
                           ),
                         if (_displayItem.fiber != null)
-                          _buildNutrientRow(
+                          _buildAnimatedNutrientRow(
                             l10n.fiber,
-                            "${_getDisplayValue(_displayItem.fiber).toStringAsFixed(1)} g",
+                            _getDisplayValue(_displayItem.fiber!),
                           ),
                         if (_displayItem.salt != null)
-                          _buildNutrientRow(
+                          _buildAnimatedNutrientRow(
                             l10n.salt,
-                            "${_getDisplayValue(_displayItem.salt).toStringAsFixed(1)} g",
+                            _getDisplayValue(_displayItem.salt!),
                           ),
                         if ((_displayItem.caffeineMgPer100g ?? 0) > 0 ||
                             (_displayItem.caffeineMgPer100ml ?? 0) > 0)
-                          _buildNutrientRow(
+                          _buildAnimatedNutrientRow(
                             l10n.caffeine,
-                            "${_getDisplayValue(_displayItem.caffeineMgPer100g ?? _displayItem.caffeineMgPer100ml).round()} mg",
+                            _getDisplayValue(_displayItem.caffeineMgPer100g ?? _displayItem.caffeineMgPer100ml!),
+                            unit: 'mg',
+                            isInt: true,
                           ),
                       ],
                     ),
@@ -841,11 +845,31 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
     );
   }
 
-  Widget _buildNutrientRow(String label, String value) {
+
+  Widget _buildAnimatedNutrientRow(
+    String label,
+    double value, {
+    String unit = 'g',
+    int decimals = 1,
+    bool isInt = false,
+  }) {
     return ListTile(
       dense: true,
       title: Text(label),
-      trailing: Text(value, style: Theme.of(context).textTheme.labelLarge),
+      trailing: TweenAnimationBuilder<double>(
+        tween: Tween<double>(end: value),
+        duration: const Duration(milliseconds: 220),
+        curve: Curves.easeOutCubic,
+        builder: (context, val, _) {
+          final formatted = isInt
+              ? '${val.round()} $unit'
+              : '${val.toStringAsFixed(decimals)} $unit';
+          return Text(
+            formatted,
+            style: Theme.of(context).textTheme.labelLarge,
+          );
+        },
+      ),
     );
   }
 

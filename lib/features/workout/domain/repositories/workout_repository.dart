@@ -46,4 +46,5 @@ abstract class IWorkoutRepository {
     required int workoutLogId,
     required String name,
   });
+  Future<void> updateWorkoutLogPhotos(int logId, List<String> paths);
 }

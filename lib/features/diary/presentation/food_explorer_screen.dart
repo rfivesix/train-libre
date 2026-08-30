@@ -8,8 +8,10 @@ import '../../../generated/app_localizations.dart';
 import '../domain/models/food_item.dart';
 import 'create_food_screen.dart';
 import 'food_detail_screen.dart';
+import 'scanner_screen.dart';
 import '../../../util/design_constants.dart';
 import '../../../widgets/common/glass_fab.dart';
+import '../../../widgets/common/card_morph_route.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../widgets/common/summary_card.dart'; // Added
 import '../../../core/infrastructure/basis_data_manager.dart';
@@ -40,6 +42,7 @@ class _FoodExplorerScreenState extends State<FoodExplorerScreen>
   late TabController _tabController;
   Timer? _searchDebounce;
   bool _isOffDbInitialized = false;
+  bool _isFabHidden = false;
 
   Future<void> _checkDbStatus() async {
     final initialized =
@@ -109,9 +112,21 @@ class _FoodExplorerScreenState extends State<FoodExplorerScreen>
     }
   }
 
-  void _navigateAndCreateFood() {
+  void _navigateAndCreateFood({
+    BuildContext? sourceContext,
+    WidgetBuilder? sourceBuilder,
+    void Function(bool hidden)? onSourceVisibilityChanged,
+  }) {
     Navigator.of(context)
-        .push(MaterialPageRoute(builder: (context) => const CreateFoodScreen()))
+        .push(
+      CardMorphRoute(
+        sourceContext: sourceContext,
+        sourceBorderRadius: 28.0,
+        sourceBuilder: sourceBuilder,
+        onSourceVisibilityChanged: onSourceVisibilityChanged,
+        builder: (context) => const CreateFoodScreen(),
+      ),
+    )
         .then((_) {
       _searchController.clear();
       _runFilter('');
@@ -223,12 +238,87 @@ class _FoodExplorerScreenState extends State<FoodExplorerScreen>
           ),
         ],
       ),
-      floatingActionButton: GlassFab(
-        onPressed: _navigateAndCreateFood,
-        label: l10n.createFoodScreenTitle,
+      floatingActionButton: Opacity(
+        opacity: _isFabHidden ? 0.0 : 1.0,
+        child: IgnorePointer(
+          ignoring: _isFabHidden,
+          child: Builder(
+            builder: (fabCtx) {
+              Widget buildFab({VoidCallback? onPressed}) => GlassFab(
+                    label: l10n.createFoodScreenTitle,
+                    onPressed: onPressed ?? () {},
+                  );
+
+              return GlassFab(
+                label: l10n.createFoodScreenTitle,
+                onPressed: () {
+                  _navigateAndCreateFood(
+                    sourceContext: fabCtx,
+                    sourceBuilder: (_) => buildFab(),
+                    onSourceVisibilityChanged: (hidden) {
+                      if (mounted) setState(() => _isFabHidden = hidden);
+                    },
+                  );
+                },
+              );
+            },
+          ),
+        ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
+  }
+
+  /// Compact barcode entry point next to the search field.
+  Widget _buildBarcodeButton(AppLocalizations l10n) {
+    return Tooltip(
+      message: l10n.scann_barcode_capslock,
+      child: GestureDetector(
+        onTap: _scanBarcodeAndOpenDetail,
+        child: Container(
+          height: 48,
+          width: 48,
+          decoration: BoxDecoration(
+            color: const Color(0xFFC9EF00),
+            borderRadius: BorderRadius.circular(14),
+          ),
+          child: const Icon(
+            LucideIcons.scan_barcode,
+            color: Color(0xFF12120F),
+            size: 20,
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Opens the barcode scanner and shows the matching product's detail screen.
+  Future<void> _scanBarcodeAndOpenDetail() async {
+    final l10n = AppLocalizations.of(context)!;
+    final barcode = await Navigator.of(context).push<String>(
+      MaterialPageRoute(builder: (context) => const ScannerScreen()),
+    );
+    if (barcode == null || !mounted) return;
+
+    final foodItem =
+        await ProductLocalDataSource.instance.getProductByBarcode(barcode);
+    if (!mounted) return;
+
+    if (foodItem == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.snackbarBarcodeNotFound(barcode))),
+      );
+      return;
+    }
+
+    unawaited(TelemetryService.instance
+        .trackFeatureUsed(featureKey: FeatureKey.barcodeScanned));
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => FoodDetailScreen(foodItem: foodItem),
+      ),
+    );
+    if (mounted) _loadFavorites();
   }
 
   Widget _buildSearchTab(AppLocalizations l10n) {
@@ -252,35 +342,43 @@ class _FoodExplorerScreenState extends State<FoodExplorerScreen>
       child: Column(
         children: [
           // FIX 4: TextField uses global InputDecorationTheme.
-          ValueListenableBuilder<TextEditingValue>(
-            valueListenable: _searchController,
-            builder: (context, value, child) {
-              return TextField(
-                controller: _searchController,
-                onChanged: _onSearchChanged,
-                decoration: InputDecoration(
-                  hintText: l10n.searchHintText,
-                  prefixIcon: Icon(
-                    LucideIcons.search,
-                    color: colorScheme.onSurfaceVariant,
-                    size: 20,
-                  ),
-                  suffixIcon: value.text.isNotEmpty
-                      ? IconButton(
-                          tooltip: l10n.clearSearch,
-                          icon: Icon(
-                            LucideIcons.x,
-                            color: colorScheme.onSurfaceVariant,
-                          ),
-                          onPressed: () {
-                            _searchController.clear();
-                            _runFilter('');
-                          },
-                        )
-                      : null,
+          Row(
+            children: [
+              Expanded(
+                child: ValueListenableBuilder<TextEditingValue>(
+                  valueListenable: _searchController,
+                  builder: (context, value, child) {
+                    return TextField(
+                      controller: _searchController,
+                      onChanged: _onSearchChanged,
+                      decoration: InputDecoration(
+                        hintText: l10n.searchHintText,
+                        prefixIcon: Icon(
+                          LucideIcons.search,
+                          color: colorScheme.onSurfaceVariant,
+                          size: 20,
+                        ),
+                        suffixIcon: value.text.isNotEmpty
+                            ? IconButton(
+                                tooltip: l10n.clearSearch,
+                                icon: Icon(
+                                  LucideIcons.x,
+                                  color: colorScheme.onSurfaceVariant,
+                                ),
+                                onPressed: () {
+                                  _searchController.clear();
+                                  _runFilter('');
+                                },
+                              )
+                            : null,
+                      ),
+                    );
+                  },
                 ),
-              );
-            },
+              ),
+              const SizedBox(width: 8),
+              _buildBarcodeButton(l10n),
+            ],
           ),
           const SizedBox(height: 20),
           Expanded(

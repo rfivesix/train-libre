@@ -63,11 +63,18 @@ abstract class FeatureKey {
   static const String workoutImported = 'workout_imported';
   static const String customExerciseCreated = 'custom_exercise_created';
 
-  // Nutrition
+  // Nutrition & AI
   static const String barcodeScanned = 'barcode_scanned';
   static const String customFoodCreated = 'custom_food_created';
   static const String recipeCreated = 'recipe_created';
   static const String supplementLogged = 'supplement_logged';
+  static const String voiceDictationUsed = 'voice_dictation_used';
+  static const String lidarDepthCaptured = 'lidar_depth_captured';
+  static const String lidarDepthVisualized = 'lidar_depth_visualized';
+  static const String aiMealCorrectionSubmitted =
+      'ai_meal_correction_submitted';
+  static const String offCatalogInstalled = 'off_catalog_installed';
+  static const String offCatalogUpdated = 'off_catalog_updated';
 
   // Body & health
   static const String bodyMeasurementLogged = 'body_measurement_logged';
@@ -99,6 +106,12 @@ abstract class FeatureKey {
     customFoodCreated,
     recipeCreated,
     supplementLogged,
+    voiceDictationUsed,
+    lidarDepthCaptured,
+    lidarDepthVisualized,
+    aiMealCorrectionSubmitted,
+    offCatalogInstalled,
+    offCatalogUpdated,
     bodyMeasurementLogged,
     appleHealthExported,
     healthConnectExported,
@@ -138,6 +151,7 @@ abstract class ScreenName {
   static const String createFood = 'create_food';
   static const String aiMealCapture = 'ai_meal_capture';
   static const String aiMealReview = 'ai_meal_review';
+  static const String mealAnalysis = 'meal_analysis';
   static const String barcodeScanner = 'barcode_scanner';
   static const String mealEditor = 'meal_editor';
   static const String foodExplorer = 'food_explorer';
@@ -158,6 +172,7 @@ abstract class ScreenName {
   static const String supplementsOverview = 'supplements_overview';
   static const String settingsMain = 'settings_main';
   static const String aiSettings = 'ai_settings';
+  static const String voiceDictationSettings = 'voice_dictation_settings';
 
   /// Backup, CSV export, import and local-data deletion all live on one screen
   /// ([DataManagementScreen]), so the catalog's separate `export_data`,
@@ -600,6 +615,11 @@ abstract class TelemetryService {
   Future<void> trackAiMealScanRequested({
     required String requestId,
     required String provider,
+    String? inputMode,
+    int? photoCount,
+    bool? hasLidar,
+    bool? hasVoiceInput,
+    bool? hasTextInput,
   });
 
   /// Event 8b: ai_meal_scan_completed
@@ -608,6 +628,32 @@ abstract class TelemetryService {
     required String provider,
     required String latencyBucket,
     required bool success,
+    String? errorCode,
+    String? inputMode,
+    int? photoCount,
+    bool? hasLidar,
+    bool? hasVoiceInput,
+    bool? hasTextInput,
+    bool? validationPassed,
+    int? repairAttemptsCount,
+    String? suggestedItemsCountBucket,
+  });
+
+  /// Event 12: voice_dictation_completed
+  Future<void> trackVoiceDictationCompleted({
+    required String durationBucket,
+    required bool aiTidyUpEnabled,
+    required String surface,
+    required bool success,
+    String? errorCode,
+  });
+
+  /// Event 13: ai_meal_correction_completed
+  Future<void> trackAiMealCorrectionCompleted({
+    required bool hasImages,
+    required String latencyBucket,
+    required bool success,
+    int? repairAttemptsCount,
     String? errorCode,
   });
 
@@ -640,5 +686,14 @@ abstract class TelemetryService {
     required int userNoteLength,
     required String submissionMethod,
     Map<String, dynamic>? diagnosticsSummary,
+  });
+
+  /// Event 8: performance_stall
+  ///
+  /// Reported when the UI isolate stopped answering long enough for the user
+  /// to notice. Properties are built by `PerformanceTelemetry.stallProperties`
+  /// and carry only hardware identifiers, Dart class names and counters.
+  Future<void> trackPerformanceStall({
+    required Map<String, dynamic> properties,
   });
 }

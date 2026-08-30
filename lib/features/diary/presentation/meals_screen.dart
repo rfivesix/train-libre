@@ -11,6 +11,7 @@ import '../../../services/haptic_feedback_service.dart';
 import '../../../util/design_constants.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/glass_fab.dart';
+import '../../../widgets/common/card_morph_route.dart';
 import '../../app/presentation/widgets/glass_bottom_menu.dart';
 import 'widgets/meal_item_card.dart';
 import 'widgets/confirm_log_meal_bottom_sheet.dart';
@@ -33,6 +34,7 @@ class MealsScreen extends StatefulWidget {
 class _MealsScreenState extends State<MealsScreen> {
   List<Map<String, dynamic>> _meals = [];
   bool _loading = true;
+  bool _isFabHidden = false;
 
   final Map<int, List<Map<String, dynamic>>> _mealItemsCache = {};
   final Map<int, Future<MealCardNutritionTotals>> _mealTotalsFutureCache = {};
@@ -213,7 +215,13 @@ class _MealsScreenState extends State<MealsScreen> {
     }
   }
 
-  Future<void> _createMealAndOpenEditor(AppLocalizations l10n) async {
+  Future<void> _createMealAndOpenEditor(
+    AppLocalizations l10n, {
+    BuildContext? sourceContext,
+    WidgetBuilder? sourceBuilder,
+    void Function(bool hidden)? onSourceVisibilityChanged,
+  }) async {
+    final measuredRect = CardMorphRoute.measureRect(sourceContext);
     final defaultName = l10n.mealTypeLabel;
     final newMealId = await DatabaseHelper.instance.insertMeal(
       name: defaultName,
@@ -224,7 +232,11 @@ class _MealsScreenState extends State<MealsScreen> {
     final meal = {'id': newMealId, 'name': defaultName, 'notes': ''};
 
     await Navigator.of(context).push(
-      MaterialPageRoute(
+      CardMorphRoute(
+        sourceRect: measuredRect,
+        sourceBorderRadius: 28.0,
+        sourceBuilder: sourceBuilder,
+        onSourceVisibilityChanged: onSourceVisibilityChanged,
         builder: (_) => MealScreen(meal: meal, startInEdit: true),
       ),
     );
@@ -343,29 +355,33 @@ class _MealsScreenState extends State<MealsScreen> {
                           final meal = _meals[i];
                           final mealId = meal['id'] as int;
 
-                          return MealItemCard(
-                            meal: meal,
-                            mealTotalsFuture: _getMealTotals(mealId),
-                            ingredientCount: _mealItemsCache[mealId]?.length ?? 0,
-                            onAdd: () => _confirmAndLogMeal(meal, l10n),
-                            onEdit: () async {
-                              await Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (_) =>
-                                      MealScreen(meal: meal, startInEdit: true),
-                                ),
-                              );
-                              await _reloadMeals();
-                            },
-                            onDelete: () => _deleteMeal(meal, l10n),
-                            onTap: () async {
-                              await Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (_) => MealScreen(meal: meal),
-                                ),
-                              );
-                              await _reloadMeals();
-                            },
+                          return Builder(
+                            builder: (cardCtx) => MealItemCard(
+                              meal: meal,
+                              mealTotalsFuture: _getMealTotals(mealId),
+                              ingredientCount: _mealItemsCache[mealId]?.length ?? 0,
+                              onAdd: () => _confirmAndLogMeal(meal, l10n),
+                              onEdit: () async {
+                                await Navigator.of(context).push(
+                                  CardMorphRoute(
+                                    sourceContext: cardCtx,
+                                    builder: (_) =>
+                                        MealScreen(meal: meal, startInEdit: true),
+                                  ),
+                                );
+                                await _reloadMeals();
+                              },
+                              onDelete: () => _deleteMeal(meal, l10n),
+                              onTap: () async {
+                                await Navigator.of(context).push(
+                                  CardMorphRoute(
+                                    sourceContext: cardCtx,
+                                    builder: (_) => MealScreen(meal: meal),
+                                  ),
+                                );
+                                await _reloadMeals();
+                              },
+                            ),
                           );
                         },
                       ),
@@ -387,9 +403,31 @@ class _MealsScreenState extends State<MealsScreen> {
           ),
         ],
       ),
-      floatingActionButton: GlassFab(
-        label: l10n.mealsCreate,
-        onPressed: () => _createMealAndOpenEditor(l10n),
+      floatingActionButton: Opacity(
+        opacity: _isFabHidden ? 0.0 : 1.0,
+        child: IgnorePointer(
+          ignoring: _isFabHidden,
+          child: Builder(
+            builder: (fabCtx) {
+              Widget buildFab({VoidCallback? onPressed}) => GlassFab(
+                    label: l10n.mealsCreate,
+                    onPressed: onPressed ?? () {},
+                  );
+
+              return GlassFab(
+                label: l10n.mealsCreate,
+                onPressed: () => _createMealAndOpenEditor(
+                  l10n,
+                  sourceContext: fabCtx,
+                  sourceBuilder: (_) => buildFab(),
+                  onSourceVisibilityChanged: (hidden) {
+                    if (mounted) setState(() => _isFabHidden = hidden);
+                  },
+                ),
+              );
+            },
+          ),
+        ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );

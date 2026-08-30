@@ -415,11 +415,14 @@ class HealthPulseAnalysisRepository implements PulseAnalysisRepository {
     final groupSize = (buckets.length / pointCount).ceil();
     final points = <PulseSamplePoint>[];
     for (var i = 0; i < buckets.length; i += groupSize) {
-      final group = buckets.skip(i).take(groupSize);
       var sampleCount = 0;
       var sumBpm = 0.0;
       DateTime? firstBucketStart;
-      for (final bucket in group) {
+      final end = (i + groupSize < buckets.length)
+          ? i + groupSize
+          : buckets.length;
+      for (var j = i; j < end; j++) {
+        final bucket = buckets[j];
         firstBucketStart ??= bucket.bucketStartUtc;
         sampleCount += bucket.sampleCount;
         sumBpm += bucket.sumBpm;
@@ -436,7 +439,11 @@ class HealthPulseAnalysisRepository implements PulseAnalysisRepository {
   }
 
   double _restingFromAggregateBuckets(List<PulseAggregateBucket> buckets) {
-    final sorted = buckets.map((bucket) => bucket.averageBpm).toList()..sort();
+    final sorted = List<double>.generate(
+      buckets.length,
+      (i) => buckets[i].averageBpm,
+      growable: false,
+    )..sort();
     final count = math.max(1, (sorted.length * 0.2).ceil());
     final middle = count ~/ 2;
     if (count.isOdd) return sorted[middle];

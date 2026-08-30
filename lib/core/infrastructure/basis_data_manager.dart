@@ -1,5 +1,4 @@
-// lib/data/basis_data_manager.dart
-
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
@@ -19,6 +18,7 @@ import '../../services/base_food_language_service.dart';
 import '../../services/exercise_catalog_refresh_service.dart';
 import '../../services/off_catalog_country_service.dart';
 import '../../services/off_catalog_refresh_service.dart';
+import '../../services/telemetry/telemetry_service.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import '../../generated/app_localizations.dart';
 import '../../features/diary/domain/use_cases/retain_historical_off_products_use_case.dart';
@@ -537,41 +537,32 @@ class BasisDataManager {
         prefs.getBool('is_exercise_catalog_initialized') ?? false;
     final mainDb = await DatabaseHelper.instance.database;
 
-    // The health check runs unconditionally, not only when the initialized
-    // flag is missing: after a backup restore the flag is carried over from
-    // the source device while the tables here are still empty, and gating the
-    // check on the flag would let that state slip through untouched.
-    final exerciseCountRow = await mainDb
-        .customSelect('SELECT COUNT(*) AS c FROM exercises')
-        .getSingleOrNull();
-    final exerciseCountDb = exerciseCountRow?.read<int>('c') ?? 0;
-    final translationCountRow = await mainDb
-        .customSelect('SELECT COUNT(*) AS c FROM exercise_translations')
-        .getSingleOrNull();
-    final translationCountDb = translationCountRow?.read<int>('c') ?? 0;
+    bool exerciseCatalogUnhealthy = false;
+    if (!isExerciseInitialized || force) {
+      exerciseCatalogUnhealthy = true;
+    } else {
+      // Fast existence check (O(1) LIMIT 1) rather than scanning all rows with COUNT(*)
+      final exRow = await mainDb
+          .customSelect('SELECT 1 FROM exercises LIMIT 1')
+          .getSingleOrNull();
+      final trRow = await mainDb
+          .customSelect('SELECT 1 FROM exercise_translations LIMIT 1')
+          .getSingleOrNull();
 
-    final exercisesEmpty = exerciseCountDb == 0;
-    final translationsHealthy =
-        exerciseCountDb == 0 || (translationCountDb >= exerciseCountDb);
-    final exerciseCatalogUnhealthy = exercisesEmpty || !translationsHealthy;
-
-    if (exerciseCatalogUnhealthy) {
-      await prefs.remove(_keyVersionTraining);
-      _exerciseRowsVerified = false;
-      if (exercisesEmpty) {
+      if (exRow == null || trRow == null) {
+        // Tables are empty (e.g. fresh install, sandbox wipe or empty restored DB)
+        exerciseCatalogUnhealthy = true;
+        await prefs.remove(_keyVersionTraining);
+        _exerciseRowsVerified = false;
         debugPrint(
-          '[ExerciseCatalog] ⚠️  exercises table empty → forcing re-seed '
-          '(sandbox reset or restored backup: prefs survived an empty SQLite).',
+          '[ExerciseCatalog] ⚠️  exercises or translations missing → forcing re-seed.',
         );
       } else {
-        debugPrint(
-          '[ExerciseCatalog] ⚠️  Under-translated: $translationCountDb translations '
-          'for $exerciseCountDb exercises → forcing re-seed.',
-        );
+        _exerciseRowsVerified = true;
       }
     }
 
-    if (!isExerciseInitialized || exerciseCatalogUnhealthy || force) {
+    if (exerciseCatalogUnhealthy || force) {
       await importExerciseCatalog(
         force: force,
         checkRemote: force,
@@ -580,25 +571,19 @@ class BasisDataManager {
         isRemoteSkipRequested: force ? isRemoteSkipRequested : null,
       );
       await prefs.setBool('is_exercise_catalog_initialized', true);
-    }
 
-    // Post-import sanity check – only log if something looks wrong.
-    final postExRow = await mainDb
-        .customSelect('SELECT COUNT(*) AS c FROM exercises')
-        .getSingleOrNull();
-    final postExCount = postExRow?.read<int>('c') ?? 0;
-    final postTrRow = await mainDb
-        .customSelect('SELECT COUNT(*) AS c FROM exercise_translations')
-        .getSingleOrNull();
-    final postTrCount = postTrRow?.read<int>('c') ?? 0;
-    if (postExCount == 0) {
-      debugPrint('[ExerciseCatalog] ❌ exercises still EMPTY after import!');
-    } else if (postTrCount < postExCount) {
-      debugPrint(
-          '[ExerciseCatalog] ❌ translations ($postTrCount) still below exercises ($postExCount) after import!');
-    } else {
-      debugPrint(
-          '[ExerciseCatalog] ✅ $postExCount exercises / $postTrCount translations ready.');
+      // Post-import sanity check
+      final postExRow = await mainDb
+          .customSelect('SELECT 1 FROM exercises LIMIT 1')
+          .getSingleOrNull();
+      final postTrRow = await mainDb
+          .customSelect('SELECT 1 FROM exercise_translations LIMIT 1')
+          .getSingleOrNull();
+      if (postExRow == null || postTrRow == null) {
+        debugPrint('[ExerciseCatalog] ❌ exercises or translations still EMPTY after import!');
+      } else {
+        debugPrint('[ExerciseCatalog] ✅ Exercise catalog successfully imported and ready.');
+      }
     }
 
     final activeOffSource = OffCatalogCountryService.activeSourceFromPrefs(
@@ -1051,6 +1036,18 @@ class BasisDataManager {
             storedVersionAfterImport(assetVersion: assetVersion);
         await prefs.setString(prefKey, storedVersion);
 
+        if (prefKey.startsWith(OffCatalogCountryService.installedVersionKeyPrefix)) {
+          if (installedVersion == '0') {
+            unawaited(TelemetryService.instance.trackFeatureUsed(
+              featureKey: FeatureKey.offCatalogInstalled,
+            ));
+          } else {
+            unawaited(TelemetryService.instance.trackFeatureUsed(
+              featureKey: FeatureKey.offCatalogUpdated,
+            ));
+          }
+        }
+
         // If we just successfully imported base foods, mark the enrichment version as well.
         if (prefKey == _keyVersionFood) {
           await prefs.setBool(_keyVersionFoodEnrichment, true);
@@ -1226,10 +1223,17 @@ class BasisDataManager {
           );
 
           // Exercise bundles need two passes: first insert exercises, then translations.
-          final exerciseBundles =
-              mappedCompanions.whereType<_ExerciseBundle>().toList();
-          final otherCompanions =
-              mappedCompanions.where((c) => c is! _ExerciseBundle).toList();
+          final exerciseBundles = <_ExerciseBundle>[];
+          final otherCompanions = <dynamic>[];
+          // ⚡ Bolt Optimization: Single-pass iteration to partition companions
+          // Replaces two O(N) `.where` passes, avoiding redundant array allocations.
+          for (final companion in mappedCompanions) {
+            if (companion is _ExerciseBundle) {
+              exerciseBundles.add(companion);
+            } else {
+              otherCompanions.add(companion);
+            }
+          }
 
           debugPrint(
             '[ExerciseCatalog]   [$taskLabel] Batch #$batchNumber: '

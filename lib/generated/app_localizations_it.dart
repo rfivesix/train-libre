@@ -15,6 +15,17 @@ class AppLocalizationsIt extends AppLocalizations {
   String get selectTimeTitle => 'Seleziona Ora';
 
   @override
+  String get selectDateTimeTitle => 'Seleziona data e ora';
+
+  @override
+  String get mealDetailChangeDateTime => 'Modifica data e ora';
+
+  @override
+  String mealMovedToDate(String date) {
+    return 'Pasto spostato al $date';
+  }
+
+  @override
   String get removeTimer => 'Rimuovi timer';
 
   @override
@@ -1248,6 +1259,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get continue_workout_button => 'Continuare';
 
   @override
+  String get minimizeWorkoutButton => 'Riduci';
+
+  @override
   String get soon_available_snackbar =>
       'Questa schermata sarà presto disponibile';
 
@@ -1418,6 +1432,88 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get feedbackReportIncludeBackupRestore =>
       'Backup/ripristino diagnostica';
+
+  @override
+  String get feedbackReportIncludePerformance =>
+      'Log prestazioni (tempi dei frame)';
+
+  @override
+  String get settingsPerformanceLogTitle => 'Log prestazioni';
+
+  @override
+  String get settingsPerformanceLogSubtitle =>
+      'Mostra su quali schermate vengono persi frame';
+
+  @override
+  String get performanceLogIntro =>
+      'Registra la frequenza di aggiornamento e gli scatti direttamente su questo dispositivo. Funziona in background e lascia il dispositivo solo se condividi il log.';
+
+  @override
+  String get performanceLogDeviceLabel => 'Dispositivo';
+
+  @override
+  String get performanceLogDisplayLabel => 'Display';
+
+  @override
+  String get performanceLogFramesLabel => 'Frame';
+
+  @override
+  String get performanceLogJankLabel => 'Scatti';
+
+  @override
+  String get performanceLogStallsLabel => 'Blocchi';
+
+  @override
+  String get performanceLogCopyButton => 'Copia';
+
+  @override
+  String get performanceLogShareButton => 'Condividi';
+
+  @override
+  String get performanceLogCopiedSnack => 'Log prestazioni copiato.';
+
+  @override
+  String get performanceLogScreensSection => 'Schermate';
+
+  @override
+  String get performanceLogEmpty => 'Nessun frame registrato finora.';
+
+  @override
+  String get performanceLogStallsSection => 'Blocchi (thread UI bloccato)';
+
+  @override
+  String get performanceLogStartupSection => 'Avvio e ripresa';
+
+  @override
+  String get performanceLogStartupEmpty => 'Nessun avvio ancora misurato.';
+
+  @override
+  String get performanceLogStartupCold => 'Avvio a freddo';
+
+  @override
+  String get performanceLogStartupResume => 'Ripresa';
+
+  @override
+  String get performanceLogStartupUnattributed => 'Framework e primo rendering';
+
+  @override
+  String get performanceLogSevereLabel => 'gravi';
+
+  @override
+  String get performanceLogPauseTitle => 'Sospendi misurazione';
+
+  @override
+  String get performanceLogResetTitle => 'Azzera misurazioni';
+
+  @override
+  String get performanceLogResetDialogBody =>
+      'Tutte le statistiche dei frame e i blocchi registrati verranno eliminati. La misurazione ripartirà da zero.';
+
+  @override
+  String get performanceLogResetConfirm => 'Azzera';
+
+  @override
+  String get performanceLogResetDoneSnack => 'Misurazioni azzerate.';
 
   @override
   String get feedbackReportIncludeUserNote => 'Nota per l\'utente';
@@ -1609,6 +1705,13 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get appTourStepStatisticsBody =>
       'Le statistiche mostrano tendenze e progressi in modo che tu possa capire come cambiano i tuoi dati nel tempo.';
+
+  @override
+  String get appTourRestartTitle => 'Guarda il tour dell\'app';
+
+  @override
+  String get appTourRestartSubtitle =>
+      'Rivedi l\'introduzione e le funzioni principali';
 
   @override
   String get onbSetGoalsCta => 'Stabilisci obiettivi';
@@ -2626,6 +2729,11 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get aiReviewNoMatch => 'Nessuna corrispondenza: tocca per cercare';
+
+  @override
+  String aiReviewUncertain(int percent) {
+    return 'Incerto ($percent%)';
+  }
 
   @override
   String get aiReviewConfidence => 'Fiducia';
@@ -4890,6 +4998,44 @@ class AppLocalizationsIt extends AppLocalizations {
   String get aiModelLabel => 'Modello';
 
   @override
+  String get aiModelListFallbackTitle =>
+      'Viene mostrato l\'elenco di modelli integrato';
+
+  @override
+  String get aiModelListRetry => 'Ricarica i modelli';
+
+  @override
+  String get aiModelListErrorMissingKey =>
+      'Salva la tua chiave API per caricare i modelli attuali dal provider.';
+
+  @override
+  String get aiModelListErrorNetwork =>
+      'Impossibile raggiungere il provider. Controlla la connessione a Internet.';
+
+  @override
+  String get aiModelListErrorTimeout =>
+      'Il provider non ha risposto entro il timeout impostato.';
+
+  @override
+  String aiModelListErrorAuth(Object status) {
+    return 'Il provider ha rifiutato la tua chiave API (HTTP $status). Controlla la chiave e i suoi permessi.';
+  }
+
+  @override
+  String aiModelListErrorRateLimit(Object status) {
+    return 'Il provider sta limitando le richieste o la quota è esaurita (HTTP $status). Riprova tra poco.';
+  }
+
+  @override
+  String aiModelListErrorHttp(Object status) {
+    return 'Il provider ha risposto con HTTP $status.';
+  }
+
+  @override
+  String get aiModelListErrorResponse =>
+      'Non è stato possibile leggere l\'elenco dei modelli del provider.';
+
+  @override
   String get autoBackupStoragePickerUnavailable =>
       'Selettore di archiviazione non disponibile. Riavviare/reinstallare completamente l\'app dopo l\'aggiornamento.';
 
@@ -5038,6 +5184,9 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get scannerAlignInstruction =>
       'Allinea il codice a barre orizzontalmente all\'interno della linea laser rossa';
+
+  @override
+  String get scannerToggleFlash => 'Attiva/disattiva flash';
 
   @override
   String get about_train_libre => 'A proposito di Train Libre';
@@ -5905,4 +6054,394 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get whatsNewAboutRowSubtitle =>
       'Novità di questa versione e delle precedenti';
+
+  @override
+  String get mealAnalysisPreparing => 'Preparazione dello scatto';
+
+  @override
+  String get mealAnalysisAnalyzing => 'Analisi del pasto';
+
+  @override
+  String get mealAnalysisMatching => 'Confronto degli ingredienti';
+
+  @override
+  String get mealAnalysisFailed => 'Non ha funzionato';
+
+  @override
+  String get mealAnalysisProcessingTag => 'AI VISION PROCESSING';
+
+  @override
+  String get aiScannerTitle => 'Scanner IA';
+
+  @override
+  String get aiCaptureAnalyzing => 'Analisi…';
+
+  @override
+  String aiCaptureAnalyzeMeal(int count) {
+    return 'Analizza il pasto ($count)';
+  }
+
+  @override
+  String get aiCaptureAnalyzeText => 'Analizza il testo';
+
+  @override
+  String get aiCaptureDescribeHint =>
+      'Descrivi il pasto (es. 2 uova con toast)…';
+
+  @override
+  String get aiCaptureBarcodeDetected => 'Codice a barre rilevato';
+
+  @override
+  String get aiCaptureLogBarcode => 'Registra';
+
+  @override
+  String aiCaptureBarcodeFallback(String code) {
+    return 'Codice a barre $code';
+  }
+
+  @override
+  String get aiCaptureMoveCloser => 'Avvicinati un po’';
+
+  @override
+  String get aiCaptureMoveAway => 'Allontanati un po’';
+
+  @override
+  String get aiCaptureOpenSettings => 'Apri le impostazioni';
+
+  @override
+  String get voiceDictationTitle => 'Detta il pasto';
+
+  @override
+  String get voiceHoldToTalk => 'Tieni premuto per parlare';
+
+  @override
+  String get voiceSpeakNow => 'Parla ora — rilascia per terminare';
+
+  @override
+  String get voiceExampleStandalone =>
+      'es. «Un kebab di verdure con pane piatto e salsa all’aglio»';
+
+  @override
+  String get voiceExampleWithPhoto =>
+      'Aggiungi ciò che la foto non mostra — es. «fritto in due cucchiai di olio d’oliva»';
+
+  @override
+  String get voiceNetworkNotice =>
+      'Questo dispositivo non riconosce il parlato localmente. La registrazione viene inviata al riconoscimento vocale di sistema per la trascrizione.';
+
+  @override
+  String get voiceTapToRecord => 'Tocca per registrare';
+
+  @override
+  String get voiceTapToFinish => 'In ascolto — tocca per terminare';
+
+  @override
+  String get voiceStarting => 'Un attimo…';
+
+  @override
+  String get voiceTidyingUp => 'Sto ripulendo il testo…';
+
+  @override
+  String get voiceNothingHeard =>
+      'Nulla riconosciuto. Riprova oppure scrivi il testo.';
+
+  @override
+  String get voiceLanguage => 'Lingua';
+
+  @override
+  String get voiceLanguageTitle => 'Lingua di dettatura';
+
+  @override
+  String get voiceLanguageSystem => 'Come il dispositivo';
+
+  @override
+  String get voiceLanguageHint =>
+      'Scegli la lingua che parli, non quella dell’app.';
+
+  @override
+  String get voiceCleanedNotice => 'Intercalari rimossi';
+
+  @override
+  String get voiceRetake => 'Registra di nuovo';
+
+  @override
+  String voiceTidiedIn(String seconds) {
+    return 'Sistemato dall’IA in $seconds s';
+  }
+
+  @override
+  String get aiDepthImageTitle => 'Invia anche la mappa di profondità';
+
+  @override
+  String get aiDepthImageSubtitle =>
+      'Allega il rilievo a falsi colori come seconda immagine, così il modello valuta anche l’altezza e non solo il contorno. Costa un’immagine in più per analisi.';
+
+  @override
+  String get aiVoiceTidyTitle => 'Sistema la dettatura con l’IA';
+
+  @override
+  String get aiVoiceTidySubtitle =>
+      'Dopo aver parlato, il testo viene corretto e diviso in punti elenco. Costa una richiesta e qualche secondo.';
+
+  @override
+  String get voicePermissionTitle => 'Microfono e riconoscimento vocale';
+
+  @override
+  String get voicePermissionBody =>
+      'Per dettare un pasto, Train Libre ha bisogno del microfono durante la registrazione e del riconoscimento vocale per trascrivere ciò che dici. Il riconoscimento avviene sul dispositivo quando possibile. Nulla viene registrato o conservato.';
+
+  @override
+  String get voicePermissionContinue => 'Continua';
+
+  @override
+  String get voiceApplyText => 'Usa questo testo';
+
+  @override
+  String get voiceTranscriptHint => 'Testo riconosciuto — modificabile qui';
+
+  @override
+  String get voiceUnavailablePermission =>
+      'La dettatura richiede l’accesso al microfono e al riconoscimento vocale. Puoi comunque digitare il testo.';
+
+  @override
+  String get voiceUnavailableUnsupported =>
+      'Questo dispositivo non offre il riconoscimento vocale. Puoi digitare il testo.';
+
+  @override
+  String get voiceUnavailableFailed =>
+      'Non è stato possibile avviare il riconoscimento vocale. Puoi digitare il testo.';
+
+  @override
+  String get mealFallbackTitle => 'Pasto';
+
+  @override
+  String mealIngredientCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ingredienti',
+      one: '1 ingrediente',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get mealDetailOptions => 'Opzioni';
+
+  @override
+  String get mealDetailAddIngredient => 'Aggiungi ingrediente';
+
+  @override
+  String get mealDetailSaveAsTemplate => 'Salva come modello';
+
+  @override
+  String get mealDetailSavedAsTemplate => 'Salvato come modello di pasto.';
+
+  @override
+  String get mealDetailChangeMealType => 'Cambia tipo di pasto';
+
+  @override
+  String get mealDetailSelectMealType => 'Scegli il tipo di pasto';
+
+  @override
+  String get mealDetailAmountInGrams => 'Quantità in grammi';
+
+  @override
+  String get mealDetailApply => 'Applica';
+
+  @override
+  String get mealDeleteQuestion => 'Cosa vuoi fare con questo pasto?';
+
+  @override
+  String get mealDeleteUngroupTitle => 'Sciogli solo il raggruppamento';
+
+  @override
+  String mealDeleteUngroupBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'La foto e il raggruppamento vengono rimossi. Le $count voci restano da sole nel diario — i totali giornalieri non cambiano.',
+      one:
+          'La foto e il raggruppamento vengono rimossi. La voce resta da sola nel diario — i totali giornalieri non cambiano.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get mealDeleteAllTitle => 'Elimina il pasto e le sue voci';
+
+  @override
+  String mealDeleteAllBody(int count, int kcal) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'La foto, il raggruppamento e tutte le $count voci spariscono dal diario. $kcal kcal vengono tolte dalla giornata.',
+      one:
+          'La foto, il raggruppamento e la voce spariscono dal diario. $kcal kcal vengono tolte dalla giornata.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get reanalysisTitle => 'Nuovo risultato';
+
+  @override
+  String get reanalysisSubtitle => 'Decidi tu cosa resta salvato.';
+
+  @override
+  String get reanalysisPrevious => 'ATTUALE';
+
+  @override
+  String get reanalysisNew => 'NUOVO';
+
+  @override
+  String get reanalysisKeepPrevious => 'Mantieni l’attuale';
+
+  @override
+  String get reanalysisApplyNew => 'Usa il nuovo';
+
+  @override
+  String get reanalysisDiffHint => 'Evidenziato = diverso da ciò che è salvato';
+
+  @override
+  String get aiReviewDiscardTitle => 'Vuoi scartare questo pasto?';
+
+  @override
+  String get aiReviewDiscardBody =>
+      'L’analisi non è stata salvata e andrà persa.';
+
+  @override
+  String get aiLidarScaleTitle => 'Invia la scala LiDAR';
+
+  @override
+  String get aiLidarScaleSubtitle =>
+      'Misura distanza e inquadratura in centimetri e li passa all’IA. Disattiva per confrontare se la stima migliora davvero.';
+
+  @override
+  String get mealPhotoStorageSection => 'Foto dei pasti (spazio)';
+
+  @override
+  String get mealPhotoRetentionTitle => 'Periodo di conservazione';
+
+  @override
+  String get mealPhotoRetentionBody =>
+      'Le foto vengono eliminate automaticamente allo scadere del periodo. Le voci nutrizionali nel diario restano.';
+
+  @override
+  String mealPhotoRetentionDays(int days) {
+    return '$days giorni';
+  }
+
+  @override
+  String get mealPhotoRetentionDefaultSuffix => '(predefinito)';
+
+  @override
+  String get mealPhotoRetentionUnlimited => 'Illimitato';
+
+  @override
+  String get mealPhotoRetentionSaved => 'Periodo di conservazione salvato.';
+
+  @override
+  String get mealPhotoDeleteAll => 'Elimina tutte le foto locali';
+
+  @override
+  String get mealPhotoDeleteAllTitle => 'Eliminare tutte le foto dei pasti?';
+
+  @override
+  String get mealPhotoDeleteAllBody =>
+      'Vengono rimossi solo i file immagine dal dispositivo. Le voci e le calorie nel diario restano invariate.';
+
+  @override
+  String get mealPhotoDeleted => 'Foto eliminate.';
+
+  @override
+  String get speechSectionTitle => 'Input vocale e dettatura';
+
+  @override
+  String get speechOnDeviceActive =>
+      'Riconoscimento vocale sul dispositivo attivo';
+
+  @override
+  String get speechOnDeviceBody =>
+      'I pasti dettati («2 uova con toast e caffè») vengono trascritti direttamente sul dispositivo e restano privati.';
+
+  @override
+  String get aiCaptureTourStepShutterTitle => 'Fotografa il pasto';
+
+  @override
+  String get aiCaptureTourStepShutterDesc =>
+      'Scatta fino a 4 foto da diverse angolazioni con il pulsante di scatto. Sui dispositivi supportati, il LiDAR rileva automaticamente i dati di profondità.';
+
+  @override
+  String get aiCaptureTourStepBarcodeTitle =>
+      'Riconoscimento automatico del codice a barre';
+
+  @override
+  String get aiCaptureTourStepBarcodeDesc =>
+      'Inquadra gli alimenti confezionati: il codice a barre viene riconosciuto all\'istante in tempo reale. Puoi attivare o disattivare lo scanner con questo pulsante.';
+
+  @override
+  String get aiCaptureTourBarcodeDemoProduct =>
+      'Fiocchi d\'avena biologici 500g';
+
+  @override
+  String get aiCaptureTourBarcodeDemoHint =>
+      'Ecco come appare la scansione del codice a barre!';
+
+  @override
+  String get aiCaptureTourStepGalleryTitle => 'Foto dalla galleria';
+
+  @override
+  String get aiCaptureTourStepGalleryDesc =>
+      'Hai già scattato delle foto? Scegli fino a 4 immagini direttamente dalla tua libreria.';
+
+  @override
+  String get aiCaptureTourStepVoiceTitle => 'Dettatura vocale';
+
+  @override
+  String get aiCaptureTourStepVoiceDesc =>
+      'Tocca il microfono per dettare ingredienti, marche o porzioni (es. «200g petto di pollo con riso»). L\'IA pulisce e analizza la registrazione automaticamente.';
+
+  @override
+  String get aiCaptureTourStepTextTitle => 'Testo e note';
+
+  @override
+  String get aiCaptureTourStepTextDesc =>
+      'Aggiungi dettagli scritti o descrivi il tuo pasto solo tramite testo se preferisci non scattare foto.';
+
+  @override
+  String get aiCaptureTourStepAnalyzeTitle => 'Analisi IA intelligente';
+
+  @override
+  String get aiCaptureTourStepAnalyzeDesc =>
+      'Non appena foto, dettatura o testo sono pronti, tocca Analizza. L\'IA riconosce gli alimenti, stima i grammi e calcola i tuoi macronutrienti.';
+
+  @override
+  String get aiCaptureTourReplayTooltip => 'Rivedi l\'introduzione';
+
+  @override
+  String get workoutPhotoAdd => 'Aggiungi foto';
+
+  @override
+  String get workoutPhotoTake => 'Scatta foto';
+
+  @override
+  String get workoutPhotoFromLibrary => 'Scegli dalla libreria';
+
+  @override
+  String get workoutPhotoRemove => 'Rimuovi foto';
+
+  @override
+  String get workoutPhotoRemoveConfirm => 'Vuoi davvero rimuovere questa foto?';
+
+  @override
+  String get workoutPhotoLimitReached =>
+      'Raggiunto il limite massimo di 4 foto';
+
+  @override
+  String workoutPhotoPagination(int current, int total) {
+    return '$current di $total';
+  }
 }

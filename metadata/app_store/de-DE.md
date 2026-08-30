@@ -29,6 +29,7 @@ KERN-FEATURES:
 • Protokolliere deine Workouts Satz für Satz – inklusive Aufwärmsätzen, Arbeitssätzen, Sätzen bis zum Muskelversagen und Dropsets.
 • Erfasse präzise Metriken: Wiederholungen, Gewicht und RPE / RIR (subjektive Anstrengung / Wiederholungen in Reserve).
 • Erstelle wiederverwendbare Routinen und eigene Übungen und analysiere deine gesamte Trainingshistorie.
+• Halte jede Einheit mit bis zu 4 Fotos fest – aufgenommen mit der Kamera oder aus deiner Mediathek – und behalte sie auch im Backup.
 
 2. WISSENSCHAFTLICH FUNDIERTE ERNÄHRUNG & TDEE
 • Tracke Mahlzeiten, Kalorien, Makronährstoffe, Flüssigkeitszufuhr, Koffein, Kreatin und eigene Supplemente.
@@ -44,6 +45,7 @@ KERN-FEATURES:
 
 5. KI-MAHLZEITEN-ERFASSUNG (Optional)
 • Bring Your Own Key (BYOK): Optionale KI-Erkennung von Mahlzeiten über deinen eigenen API-Schlüssel. Standardmäßig deaktiviert.
+• Foto, Barcode und Sprache in einer Ansicht: Fotografiere deinen Teller, lass dieselbe Ansicht den Barcode eines verpackten Produkts erkennen oder beschreibe die Mahlzeit einfach per Sprache. Auf iPhones mit LiDAR wird die Portionsgröße gemessen statt geschätzt.
 • Intelligenter Abgleich: Ein lokales „Top-N Fuzzy Alternatives"-System in Kombination mit Open Food Facts ordnet deine Mahlzeit präzise zu und verhindert Halluzinationen zuverlässig.
 • 100 % transparent: Jeder KI-Vorschlag ist vor dem Speichern vollständig überprüfbar und anpassbar.
 
@@ -54,11 +56,15 @@ OPEN SOURCE & OFFENE DATEN:
 Transparent aufgebaut auf den vertrauenswürdigen Community-Katalogen von Open Food Facts und der wger-Übungsdatenbank. Der vollständige Quellcode ist öffentlich einsehbar – unsere Datenschutzversprechen kann man also nachprüfen, statt sie nur zu glauben.
 
 ## Release Notes (What's New / Release Notes in this version)
-Homescreen-Widgets für Android: Die Widget-Familie gibt es jetzt auch auf Android - dein letztes Workout mit Muskelkarte, die Muskelregeneration, deine Schritte der letzten 7 Tage, Körpermaße, die heutige Ernährung und Schnellaktionen. Du fügst sie über die Widget-Auswahl deines Launchers hinzu; Ernährung, Körpermaße und Schnellaktionen kannst du jederzeit neu einstellen.
+Mahlzeiten per Foto erfassen: Richte die Kamera auf deinen Teller, und die KI macht daraus einzelne Lebensmittel mit Menge, Kalorien und Makros - vor dem Speichern alles korrigierbar. Verpackte Produkte erkennt dieselbe Ansicht am Barcode, iPhones mit LiDAR messen die Portion statt zu schätzen, und per Mikrofontaste ergänzt du, was das Foto nicht zeigt.
 
-Laufendes Workout in der Benachrichtigung: Dein Workout liegt jetzt mit Pausen-Countdown in den Benachrichtigungen, auf Android 16 wird daraus ein Live Update mit Chip in der Statusleiste. Satz abhaken, 15 Sekunden drauflegen oder abziehen und Pause überspringen geht direkt dort, ohne die App zu öffnen.
+Übersichtlicheres Tagebuch: Eine erfasste Mahlzeit bleibt ein Eintrag mit Foto und lässt sich zu ihren Zutaten aufklappen. Einträge sind nach Kalorien sortiert, die größten zuerst.
 
-Kacheln in den Schnelleinstellungen: Alle sieben Schnellaktionen - Barcode-Scanner, KI-Mahlzeitenerfassung, Workout starten, Wasser hinzufügen, Supplement eintragen, Körpermaß erfassen und Lebensmittel hinzufügen - gibt es jetzt als Kacheln in deinen Schnelleinstellungen.
+Mehr von deinem Training: Halte Workouts mit bis zu 4 Fotos fest, und die Leiste über der Navigation zeigt jederzeit, ob du trainierst oder pausierst und welche Übung als Nächstes ansteht. Ein Tipp lässt das Workout aus der Leiste herauswachsen.
+
+Deine Fotos im iCloud-Backup: Das automatische Backup nimmt jetzt auch die Fotos deiner Mahlzeiten und Workouts mit. Das Wiederherstellen braucht außerdem keinen Neustart mehr und behält das vorherige Backup als Reservekopie.
+
+Flüssigere Bedienung: Karten wachsen zum Vollbild heran statt hart umzuschalten, Zahlen zählen sich hoch, und entfernte Übungen klappen sanft zusammen, statt wegzuspringen.
 
 ## Support URL (Support Web Page URL)
 https://rfivesix.github.io/train-libre/

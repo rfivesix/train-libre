@@ -41,11 +41,13 @@ class FeedbackReportDocument {
 class FeedbackReportOptions {
   final bool includeAdaptiveNutritionDiagnostics;
   final bool includeBackupRestoreDiagnostics;
+  final bool includePerformanceDiagnostics;
   final bool includeUserNote;
 
   const FeedbackReportOptions({
     required this.includeAdaptiveNutritionDiagnostics,
     required this.includeBackupRestoreDiagnostics,
+    this.includePerformanceDiagnostics = false,
     required this.includeUserNote,
   });
 }
@@ -61,6 +63,7 @@ class FeedbackReportLocalizedCopy {
   final String userNoteSectionTitle;
   final String adaptiveSectionTitle;
   final String backupRestoreSectionTitle;
+  final String performanceSectionTitle;
 
   const FeedbackReportLocalizedCopy({
     required this.title,
@@ -73,5 +76,6 @@ class FeedbackReportLocalizedCopy {
     required this.userNoteSectionTitle,
     required this.adaptiveSectionTitle,
     required this.backupRestoreSectionTitle,
+    this.performanceSectionTitle = 'Performance (frame timings)',
   });
 }

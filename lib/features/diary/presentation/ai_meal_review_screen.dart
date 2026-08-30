@@ -1,12 +1,16 @@
-// lib/screens/ai_meal_review_screen.dart
-
 import 'dart:io';
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
+import 'package:uuid/uuid.dart';
 import '../../../data/database_helper.dart';
 import '../../../generated/app_localizations.dart';
 import '../domain/models/food_entry.dart';
 import '../domain/models/food_item.dart';
+import '../domain/models/meal_entry.dart';
+import '../domain/repositories/diary_repository.dart';
+import '../data/meal_photo_store.dart';
+import '../domain/models/meal_capture_meta.dart';
 import '../../../services/ai_meal_validation.dart';
 import '../../../services/ai_matching_language_service.dart';
 import '../../../services/ai_service.dart';
@@ -17,9 +21,16 @@ import '../../../widgets/common/global_app_bar.dart';
 import '../../app/presentation/widgets/glass_bottom_menu.dart';
 import 'general_food_selection_screen.dart';
 import 'food_detail_screen.dart';
+import 'util/meal_moment_format.dart';
 import 'meal_editor_screen.dart';
+import 'meal_analysis_screen.dart';
 import 'widgets/meal_review_comparison_card.dart';
 import 'widgets/meal_review_validation_summary.dart';
+import 'widgets/meal_photo_widget.dart';
+import '../../depth_scan/domain/models/depth_scale_facts.dart';
+import '../../depth_scan/platform/depth_scan_channel.dart';
+import '../../depth_scan/data/depth_map_renderer.dart';
+import '../../depth_scan/presentation/widgets/depth_legend.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../widgets/common/common.dart';
 import 'package:provider/provider.dart';
@@ -27,20 +38,25 @@ import '../../../services/theme_service.dart';
 import '../../../services/base_food_language_service.dart';
 import '../../../widgets/common/app_button.dart';
 import '../../../services/telemetry/telemetry_service.dart';
+import '../../../services/telemetry/telemetry_buckets.dart';
 import 'dart:async';
 
 /// Review screen for AI-suggested food items.
-///
-/// Displays the AI's decomposed meal components. Users can edit quantities,
-/// remove items, replace with database matches, add manual items, and
-/// provide feedback for a retry. Once satisfied, items are saved as
-/// [FoodEntry] records.
 class AiMealReviewScreen extends StatefulWidget {
   final List<AiSuggestedItem> suggestions;
   final AiValidationResult? initialValidation;
   final List<File> originalImages;
   final DateTime? initialDate;
   final String? initialMealType;
+  final DepthCaptureResult? depthResult;
+  final Map<String, DepthCaptureResult>? depthResultsByPath;
+  final DepthScaleFacts? depthFacts;
+  final String? sentPrompt;
+  final String? rawResponse;
+
+  /// Dictated description that accompanied the capture, kept so a later
+  /// re-analysis can send the same context again.
+  final String? voiceTranscript;
 
   const AiMealReviewScreen({
     super.key,
@@ -49,6 +65,12 @@ class AiMealReviewScreen extends StatefulWidget {
     required this.originalImages,
     this.initialDate,
     this.initialMealType,
+    this.depthResult,
+    this.depthResultsByPath,
+    this.depthFacts,
+    this.sentPrompt,
+    this.rawResponse,
+    this.voiceTranscript,
   });
 
   @override
@@ -56,6 +78,14 @@ class AiMealReviewScreen extends StatefulWidget {
 }
 
 class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
+  bool _showDepthMap = false;
+  bool _showDepthLegend = false;
+  int _currentPhotoIndex = 0;
+  final Map<int, ui.Image> _depthImages = {};
+  final Map<int, DepthBandRender> _depthRenders = {};
+  ui.Image? _depthImage;
+  DepthBandRender? _depthRender;
+
   late List<_ReviewItem> _items;
   final _feedbackController = TextEditingController();
   bool _showFeedback = false;
@@ -63,11 +93,130 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
   bool _isSaving = false;
   bool _isMatching = true;
   bool _aiWaitingHapticActive = false;
+  MealAnalysisController? _analysisController;
+  Route<void>? _analysisRoute;
+  bool _analysisCancelled = false;
   AiValidationResult? _validation;
+
+  void _dismissAnalysisScreen() {
+    if (_analysisRoute == null) return;
+    final navigator = Navigator.of(context);
+    if (navigator.canPop()) {
+      navigator.removeRoute(_analysisRoute!);
+    }
+    _analysisRoute = null;
+  }
 
   // Meal type selection
   late String _selectedMealType;
   late DateTime _selectedTimestamp;
+
+  int get _totalKcal {
+    if (_validation != null) return _validation!.totals.kcalRounded;
+    int sum = 0;
+    for (final item in _items) {
+      sum += item.nutrition.kcalRounded;
+    }
+    return sum;
+  }
+
+  double get _totalProtein {
+    if (_validation != null) return _validation!.totals.protein;
+    double sum = 0;
+    for (final item in _items) {
+      sum += item.nutrition.protein;
+    }
+    return sum;
+  }
+
+  double get _totalCarbs {
+    if (_validation != null) return _validation!.totals.carbs;
+    double sum = 0;
+    for (final item in _items) {
+      sum += item.nutrition.carbs;
+    }
+    return sum;
+  }
+
+  double get _totalFat {
+    if (_validation != null) return _validation!.totals.fat;
+    double sum = 0;
+    for (final item in _items) {
+      sum += item.nutrition.fat;
+    }
+    return sum;
+  }
+
+  String _getDerivedMealTitle(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final dish = _validation?.candidate.context?.dishType;
+    if (dish != null && dish.trim().isNotEmpty) return dish;
+    final mealName = _validation?.candidate.mealName;
+    if (mealName != null && mealName.trim().isNotEmpty) return mealName;
+    if (_items.isNotEmpty && _items.first.suggestion.name.trim().isNotEmpty) {
+      return _items.first.suggestion.name;
+    }
+    return l10n.mealFallbackTitle;
+  }
+
+  String _getLocalizedMealName(BuildContext context, String key) {
+    final l10n = AppLocalizations.of(context)!;
+    switch (key.toLowerCase()) {
+      case 'mealtypebreakfast':
+      case 'breakfast':
+      case 'frühstück':
+        return l10n.mealtypeBreakfast;
+      case 'mealtypelunch':
+      case 'lunch':
+      case 'mittagessen':
+        return l10n.mealtypeLunch;
+      case 'mealtypedinner':
+      case 'dinner':
+      case 'abendessen':
+        return l10n.mealtypeDinner;
+      case 'mealtypesnack':
+      case 'snack':
+      case 'snacks':
+        return l10n.mealtypeSnack;
+      default:
+        return key;
+    }
+  }
+
+  /// Lets the user correct when the meal happened before it is written.
+  ///
+  /// Nothing is in the diary yet at this point, so this only moves the
+  /// timestamp the save will use — both the meal entry and its food entries
+  /// are written from [_selectedTimestamp].
+  Future<void> _pickTimestamp() async {
+    final picked = await showAdaptiveDateTimePicker(
+      context: context,
+      initialDateTime: _selectedTimestamp,
+      lastDate: DateTime.now().add(const Duration(days: 1)),
+    );
+    if (picked == null || !mounted) return;
+    HapticFeedbackService.instance.selectionFeedback();
+    setState(() => _selectedTimestamp = picked);
+  }
+
+  Widget _buildMacroPill(String label, String value, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(
+        '$label $value',
+        style: TextStyle(
+          fontFamily: 'Plus Jakarta Sans',
+          fontWeight: FontWeight.w700,
+          fontSize: 11.5,
+          color: color,
+        ),
+      ),
+    );
+  }
 
   @override
   void initState() {
@@ -90,6 +239,10 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
 
   @override
   void dispose() {
+    _depthImage?.dispose();
+    for (final img in _depthImages.values) {
+      img.dispose();
+    }
     _stopAiWaitingHaptics();
     _feedbackController.dispose();
     super.dispose();
@@ -334,20 +487,52 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
     final feedback = _feedbackController.text.trim();
     if (feedback.isEmpty) return;
 
+    unawaited(TelemetryService.instance.trackFeatureUsed(
+      featureKey: FeatureKey.aiMealCorrectionSubmitted,
+    ));
+
     setState(() => _isRetrying = true);
     _startAiWaitingHaptics();
+
+    final controller = MealAnalysisController();
+    _analysisController?.dispose();
+    _analysisController = controller;
+    _analysisCancelled = false;
+
+    _analysisRoute = MealAnalysisScreen.route(
+      controller: controller,
+      previewImage:
+          widget.originalImages.isNotEmpty ? widget.originalImages.first : null,
+      onCancel: () {
+        _analysisCancelled = true;
+        _stopAiWaitingHaptics();
+        _dismissAnalysisScreen();
+        if (mounted) {
+          setState(() => _isRetrying = false);
+        }
+      },
+    );
+    unawaited(Navigator.of(context).push(_analysisRoute!));
+
+    controller.value = MealAnalysisPhase.analyzing;
+    final stopwatch = Stopwatch()..start();
+
     try {
       final matchingContext =
           await AiMatchingLanguageService.resolveMatchingContext(
         context: context,
       );
-      if (!mounted) return;
+      if (!mounted || _analysisCancelled) return;
       final candidate = await AiService.instance.retry(
         previousResults: _items.map((e) => e.suggestion).toList(),
         feedback: feedback,
         images: widget.originalImages.isNotEmpty ? widget.originalImages : null,
         matchingContext: matchingContext,
       );
+
+      if (!mounted || _analysisCancelled) return;
+      controller.value = MealAnalysisPhase.matching;
+
       final orchestrator = AiRepairOrchestrator(
         validationEngine: AiMealValidationEngine(),
       );
@@ -365,6 +550,22 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
           );
         },
       );
+
+      if (!mounted || _analysisCancelled) return;
+
+      stopwatch.stop();
+      final latencyBucket =
+          TelemetryBuckets.getLatencyBucket(stopwatch.elapsed);
+      unawaited(TelemetryService.instance.trackAiMealCorrectionCompleted(
+        hasImages: widget.originalImages.isNotEmpty,
+        latencyBucket: latencyBucket,
+        success: true,
+        repairAttemptsCount: outcome.repairPassesUsed,
+      ));
+
+      _stopAiWaitingHaptics();
+      _dismissAnalysisScreen();
+
       if (mounted) {
         setState(() {
           _applyValidationResult(outcome.validation);
@@ -374,6 +575,17 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
         });
       }
     } on AiServiceException catch (e) {
+      stopwatch.stop();
+      final latencyBucket =
+          TelemetryBuckets.getLatencyBucket(stopwatch.elapsed);
+      unawaited(TelemetryService.instance.trackAiMealCorrectionCompleted(
+        hasImages: widget.originalImages.isNotEmpty,
+        latencyBucket: latencyBucket,
+        success: false,
+        errorCode: e.runtimeType.toString(),
+      ));
+      _stopAiWaitingHaptics();
+      _dismissAnalysisScreen();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -385,6 +597,7 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
       }
     } finally {
       _stopAiWaitingHaptics();
+      _dismissAnalysisScreen();
       if (mounted) setState(() => _isRetrying = false);
     }
   }
@@ -421,9 +634,47 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
     setState(() => _isSaving = true);
 
     final db = DatabaseHelper.instance;
+    final diaryRepo = context.read<IDiaryRepository>();
     var saved = false;
 
     try {
+      final mealEntryId = const Uuid().v4();
+      final candidateDish = _validation?.candidate.context?.dishType ??
+          _validation?.candidate.mealName ??
+          (_items.isNotEmpty ? _items.first.suggestion.name : 'Mahlzeit');
+
+      // The captured file lives in a temporary directory the system may purge,
+      // so it has to be copied into durable storage before its path is stored.
+      MealPhotoPaths? photoPaths;
+      final extraPhotoPaths = <String>[];
+      for (var i = 0; i < widget.originalImages.length; i++) {
+        final saved =
+            await MealPhotoStore.instance.save(widget.originalImages[i]);
+        if (saved == null) continue;
+        if (photoPaths == null) {
+          photoPaths = saved;
+        } else {
+          extraPhotoPaths.add(saved.photoPath);
+        }
+      }
+      final captureMeta = MealCaptureMeta(
+        depthFacts: widget.depthFacts,
+        extraPhotoPaths: extraPhotoPaths,
+      );
+
+      final mealEntry = MealEntry(
+        id: mealEntryId,
+        title: candidateDish,
+        consumedAt: _selectedTimestamp,
+        mealType: _selectedMealType,
+        photoPath: photoPaths?.photoPath,
+        photoThumbPath: photoPaths?.thumbPath,
+        voiceTranscript: widget.voiceTranscript,
+        captureMeta: captureMeta.isEmpty ? null : captureMeta.toJson(),
+        source: widget.originalImages.isEmpty ? 'aiText' : 'aiPhoto',
+      );
+      await diaryRepo.insertMealEntry(mealEntry);
+
       for (final item in savePlan.matchedItems) {
         final food = item.match.bestMatch!;
 
@@ -432,6 +683,7 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
           quantityInGrams: item.candidate.grams,
           timestamp: _selectedTimestamp,
           mealType: _selectedMealType,
+          mealEntryId: mealEntryId,
         );
         await db.insertFoodEntry(entry,
             telemetrySource: FoodLogSource.aiCapture);
@@ -506,222 +758,557 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
   // Build
   // ---------------------------------------------------------------------------
 
+  /// Asks before throwing an unsaved analysis away.
+  ///
+  /// Leaving this screen returns all the way to where the capture started, so
+  /// a stray back swipe would otherwise silently discard a finished analysis
+  /// with no way to get it back.
+  // ---------------------------------------------------------------------------
+  // Depth map
+  // ---------------------------------------------------------------------------
+
+  DepthCaptureResult? _getDepthCaptureFor(int index) {
+    if (widget.originalImages.isEmpty ||
+        index < 0 ||
+        index >= widget.originalImages.length) {
+      return widget.depthResult;
+    }
+    final path = widget.originalImages[index].path;
+    return widget.depthResultsByPath?[path] ??
+        (index == 0 ? widget.depthResult : null);
+  }
+
+  bool _hasDepthMapFor(int index) {
+    final cap = _getDepthCaptureFor(index);
+    return cap != null &&
+        cap.depthBuffer != null &&
+        cap.depthBuffer!.isNotEmpty &&
+        cap.depthWidth > 0;
+  }
+
+  Future<void> _toggleDepthMap() async {
+    if (!_showDepthMap) {
+      unawaited(TelemetryService.instance.trackFeatureUsed(
+        featureKey: FeatureKey.lidarDepthVisualized,
+      ));
+      if (!_depthImages.containsKey(_currentPhotoIndex)) {
+        await _renderDepthMapFor(_currentPhotoIndex);
+        if (!mounted) return;
+      }
+    }
+    HapticFeedbackService.instance.selectionFeedback();
+    setState(() => _showDepthMap = !_showDepthMap);
+  }
+
+  /// Rendered on first use rather than up front: most reviews never open it,
+  /// and decoding a depth map into an image costs a frame.
+  Future<void> _renderDepthMapFor(int index) async {
+    final capture = _getDepthCaptureFor(index);
+    final buffer = capture?.depthBuffer;
+    if (capture == null || buffer == null) return;
+    if (_depthImages.containsKey(index)) return;
+
+    try {
+      final result = await DepthMapRenderer.createUiImage(
+        depthBuffer: buffer,
+        width: capture.depthWidth,
+        height: capture.depthHeight,
+      );
+      if (!mounted) {
+        result.image.dispose();
+        return;
+      }
+      setState(() {
+        _depthImages[index] = result.image;
+        _depthRenders[index] = result.render;
+        if (index == 0) {
+          _depthImage = result.image;
+          _depthRender = result.render;
+        }
+      });
+    } catch (e) {
+      debugPrint('[AiMealReview] depth render failed for image $index: $e');
+    }
+  }
+
+  Future<bool> _confirmDiscard() async {
+    if (_isSaving) return true;
+    final l10n = AppLocalizations.of(context)!;
+    final discard = await showGlassBottomMenu<bool>(
+      context: context,
+      title: l10n.aiReviewDiscardTitle,
+      contentBuilder: (ctx, close) => Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            l10n.aiReviewDiscardBody,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: Theme.of(ctx).colorScheme.onSurfaceVariant,
+              fontSize: 14,
+            ),
+          ),
+          const SizedBox(height: DesignConstants.spacingL),
+          Row(
+            children: [
+              // Only `pop` — never `close()` as well. `close()` is a
+              // `maybePop`, whose async continuation lands after this frame
+              // has already popped the sheet, so the pair could take the
+              // review screen down with it while `onPopInvokedWithResult` was
+              // still running its own pop.
+              Expanded(
+                child: AppButton.secondary(
+                  onPressed: () => Navigator.of(ctx).pop(false),
+                  label: l10n.cancel,
+                  tooltip: l10n.cancel,
+                ),
+              ),
+              const SizedBox(width: DesignConstants.spacingM),
+              Expanded(
+                child: AppButton.danger(
+                  onPressed: () => Navigator.of(ctx).pop(true),
+                  label: l10n.discard,
+                  tooltip: l10n.discard,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+    return discard ?? false;
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
-    final topPadding = MediaQuery.of(context).padding.top + kToolbarHeight;
+    final isDark = theme.brightness == Brightness.dark;
+    final titleColor = isDark ? Colors.white : const Color(0xFF12120F);
+    final subtitleColor =
+        isDark ? const Color(0xFF8A8A82) : const Color(0xFF6A6A62);
+    final timeStr = formatMealMoment(
+      _selectedTimestamp,
+      locale: Localizations.localeOf(context).toString(),
+    );
+    final localizedMealType = _getLocalizedMealName(context, _selectedMealType);
+    final mealTitle = _getDerivedMealTitle(context);
 
-    return Scaffold(
-      extendBodyBehindAppBar: true,
-      appBar: GlobalAppBar(title: l10n.aiReviewTitle),
-      body: Column(
-        children: [
-          Expanded(
-            child: ListView(
-              padding: DesignConstants.cardPadding.copyWith(
-                top: DesignConstants.cardPadding.top + topPadding,
-              ),
-              children: [
-                // Header
-                Text(
-                  l10n.aiReviewFoundItems(_items.length),
-                  style: theme.textTheme.titleMedium,
-                ),
-                const SizedBox(height: DesignConstants.spacingM),
-                if (_validation != null) ...[
-                  MealReviewValidationSummary(
-                    validation: _validation!,
-                    itemsCount: _items.length,
-                  ),
-                  const SizedBox(height: DesignConstants.spacingM),
-                ],
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) async {
+        if (didPop) return;
+        if (await _confirmDiscard() && mounted) {
+          if (!context.mounted) return;
+          Navigator.of(context).pop(false);
+        }
+      },
+      child: Scaffold(
+        appBar: GlobalAppBar(
+          title: l10n.aiReviewTitle,
+        ),
+        body: Column(
+          children: [
+            Expanded(
+              child: ListView(
+                padding: EdgeInsets.zero,
+                children: [
+                  if (widget.originalImages.isNotEmpty) ...[
+                    MealPhotoWidget(
+                      photoFiles: widget.originalImages,
+                      photoFile: widget.originalImages.first,
+                      depthImage: _showDepthMap
+                          ? (_depthImages[0] ?? _depthImage)
+                          : null,
+                      depthImages: _showDepthMap ? _depthImages : null,
+                      onPageChanged: (idx) {
+                        setState(() => _currentPhotoIndex = idx);
+                        if (_showDepthMap &&
+                            !_depthImages.containsKey(idx) &&
+                            _hasDepthMapFor(idx)) {
+                          _renderDepthMapFor(idx);
+                        }
+                      },
+                      overlayTrailing: _hasDepthMapFor(_currentPhotoIndex)
+                          ? _DepthToggleButton(
+                              active: _showDepthMap,
+                              onTap: _toggleDepthMap,
+                            )
+                          : null,
+                      height: 280,
+                      roundedTop: false,
+                      fadeBottom: true,
+                    ),
+                  ] else
+                    const SizedBox(height: DesignConstants.spacingS),
 
-                // Meal type selector removed from here — relocated to bottom bar
-
-                // Items list
-                if (_isMatching)
-                  const Center(
+                  Transform.translate(
+                    offset:
+                        Offset(0, widget.originalImages.isNotEmpty ? -32 : 0),
                     child: Padding(
-                      padding: EdgeInsets.all(DesignConstants.spacingXL),
-                      child: CircularProgressIndicator(),
-                    ),
-                  )
-                else
-                  ..._items.asMap().entries.map((entry) {
-                    final index = entry.key;
-                    final item = entry.value;
-                    return MealReviewComparisonCard(
-                      dismissibleKey: ValueKey(item.hashCode),
-                      name: item.suggestion.name,
-                      estimatedGrams: item.suggestion.estimatedGrams,
-                      confidence: item.suggestion.confidence,
-                      matchedFood: item.matchedFood,
-                      issues: item.issues,
-                      nutrition: item.nutrition,
-                      onDismissed: () => _removeItem(index),
-                      onTap: item.matchedFood != null
-                          ? () => _inspectFood(index)
-                          : () => _replaceWithFood(index),
-                      onReplace: () => _replaceWithFood(index),
-                      onEditQuantity: () => _editQuantity(index),
-                      onQuickAdjustQuantity: (delta) =>
-                          _adjustQuantityBy(index, delta),
-                    );
-                  }),
-
-                // Add item button
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                      vertical: DesignConstants.spacingS),
-                  child: AppButton.secondary(
-                    onPressed: _addManualItem,
-                    label: l10n.aiReviewAddItem,
-                    tooltip: l10n.aiReviewAddItem,
-                    icon: LucideIcons.plus,
-                  ),
-                ),
-
-                // Feedback section
-                const SizedBox(height: DesignConstants.spacingM),
-                InkWell(
-                  onTap: () => setState(() => _showFeedback = !_showFeedback),
-                  child: Row(
-                    children: [
-                      Icon(
-                        _showFeedback
-                            ? LucideIcons.chevron_up
-                            : LucideIcons.chevron_down,
-                        color: theme.colorScheme.primary,
+                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            mealTitle,
+                            style: TextStyle(
+                              fontFamily: 'Plus Jakarta Sans',
+                              fontWeight: FontWeight.w800,
+                              fontSize: 22,
+                              color: titleColor,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              // The one place the capture flow shows when the
+                              // meal happened, so it is also the place to
+                              // change it — an AI-captured meal is otherwise
+                              // stuck at whatever moment it was photographed.
+                              // Expanded rather than Flexible + Spacer: the
+                              // label takes only the width it needs, and the
+                              // slack it leaves still pushes the depth toggle
+                              // to the right edge.
+                              Expanded(
+                                child: InkWell(
+                                  key: const ValueKey(
+                                      'ai_review_timestamp_button'),
+                                  borderRadius: BorderRadius.circular(8),
+                                  onTap: _pickTimestamp,
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 4, vertical: 2),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Flexible(
+                                          child: Text(
+                                            '$localizedMealType · $timeStr',
+                                            overflow: TextOverflow.ellipsis,
+                                            style: TextStyle(
+                                              fontFamily: 'Plus Jakarta Sans',
+                                              fontWeight: FontWeight.w500,
+                                              fontSize: 14,
+                                              color: subtitleColor,
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Icon(
+                                          LucideIcons.pencil,
+                                          size: 12,
+                                          color: subtitleColor,
+                                          semanticLabel:
+                                              l10n.mealDetailChangeDateTime,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              if (_showDepthMap &&
+                                  (_depthRenders[_currentPhotoIndex] ??
+                                          (_currentPhotoIndex == 0
+                                              ? _depthRender
+                                              : null)) !=
+                                      null &&
+                                  _hasDepthMapFor(_currentPhotoIndex))
+                                InkWell(
+                                  borderRadius: BorderRadius.circular(8),
+                                  onTap: () => setState(() =>
+                                      _showDepthLegend = !_showDepthLegend),
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 4, vertical: 2),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Text(
+                                          'Farbskala',
+                                          style: TextStyle(
+                                            fontSize: 12.5,
+                                            fontWeight: FontWeight.w600,
+                                            color: subtitleColor,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Icon(
+                                          _showDepthLegend
+                                              ? LucideIcons.chevron_up
+                                              : LucideIcons.chevron_down,
+                                          size: 15,
+                                          color: subtitleColor,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                          if (_showDepthMap &&
+                              (_depthRenders[_currentPhotoIndex] ??
+                                      (_currentPhotoIndex == 0
+                                          ? _depthRender
+                                          : null)) !=
+                                  null &&
+                              _showDepthLegend &&
+                              _hasDepthMapFor(_currentPhotoIndex)) ...[
+                            const SizedBox(height: 8),
+                            DepthLegend(
+                              render: _depthRenders[_currentPhotoIndex] ??
+                                  (_currentPhotoIndex == 0
+                                      ? _depthRender!
+                                      : _depthRenders[_currentPhotoIndex]!),
+                            ),
+                          ],
+                          const SizedBox(height: 8),
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Text(
+                                '$_totalKcal kcal',
+                                style: TextStyle(
+                                  fontFamily: 'Plus Jakarta Sans',
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 24,
+                                  color: titleColor,
+                                ),
+                              ),
+                              const Spacer(),
+                              _buildMacroPill('P', '${_totalProtein.round()}g',
+                                  const Color(0xFFFF453A)),
+                              const SizedBox(width: 8),
+                              _buildMacroPill('C', '${_totalCarbs.round()}g',
+                                  const Color(0xFF30D158)),
+                              const SizedBox(width: 8),
+                              _buildMacroPill('F', '${_totalFat.round()}g',
+                                  const Color(0xFFBF5AF2)),
+                            ],
+                          ),
+                        ],
                       ),
-                      const SizedBox(width: DesignConstants.spacingS),
-                      Text(
-                        l10n.aiReviewFeedbackSection,
-                        style: theme.textTheme.titleSmall?.copyWith(
-                          color: theme.colorScheme.primary,
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  if (_validation != null &&
+                      (!_validation!.passed ||
+                          _validation!.allIssues.any((i) =>
+                              i.severity != AiValidationSeverity.info))) ...[
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: MealReviewValidationSummary(
+                        validation: _validation!,
+                        itemsCount: _items.length,
+                      ),
+                    ),
+                    const SizedBox(height: DesignConstants.spacingM),
+                  ],
+
+                  // Items list
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Column(
+                      children: [
+                        if (_isMatching)
+                          const Center(
+                            child: Padding(
+                              padding:
+                                  EdgeInsets.all(DesignConstants.spacingXL),
+                              child: CircularProgressIndicator(),
+                            ),
+                          )
+                        else
+                          ..._items.asMap().entries.map((entry) {
+                            final index = entry.key;
+                            final item = entry.value;
+                            return MealReviewComparisonCard(
+                              dismissibleKey: ValueKey(item.hashCode),
+                              name: item.suggestion.name,
+                              estimatedGrams: item.suggestion.estimatedGrams,
+                              confidence: item.suggestion.confidence,
+                              matchedFood: item.matchedFood,
+                              issues: item.issues,
+                              nutrition: item.nutrition,
+                              onDismissed: () => _removeItem(index),
+                              onTap: item.matchedFood != null
+                                  ? () => _inspectFood(index)
+                                  : () => _replaceWithFood(index),
+                              onReplace: () => _replaceWithFood(index),
+                              onEditQuantity: () => _editQuantity(index),
+                              onQuickAdjustQuantity: (delta) =>
+                                  _adjustQuantityBy(index, delta),
+                            );
+                          }),
+
+                        const SizedBox(height: 8),
+
+                        // Add item button (compact, centered)
+                        Center(
+                          child: AppButton.secondary(
+                            onPressed: _addManualItem,
+                            label: l10n.aiReviewAddItem,
+                            tooltip: l10n.aiReviewAddItem,
+                            icon: LucideIcons.plus,
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                ),
-                if (_showFeedback) ...[
-                  const SizedBox(height: DesignConstants.spacingS),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 6,
-                    children: [
-                      _buildFeedbackChip(theme, 'Larger portions'),
-                      _buildFeedbackChip(theme, 'Smaller portions'),
-                      _buildFeedbackChip(theme, 'Separate ingredients'),
-                      _buildFeedbackChip(theme, 'No sauce/dressing'),
-                    ],
-                  ),
-                  const SizedBox(height: DesignConstants.spacingS),
-                  TextField(
-                    controller: _feedbackController,
-                    maxLines: 3,
-                    decoration: InputDecoration(
-                      hintText: l10n.aiReviewFeedbackHint,
-                      border: const OutlineInputBorder(),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: DesignConstants.spacingS),
-                  AppButton.secondary(
-                    onPressed: _isRetrying ? null : _retryWithFeedback,
-                    label: l10n.aiReviewRetryButton,
-                    tooltip: l10n.aiReviewRetryButton,
+
+                  // Feedback section
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: DesignConstants.spacingM),
+                        InkWell(
+                          onTap: () =>
+                              setState(() => _showFeedback = !_showFeedback),
+                          child: Row(
+                            children: [
+                              Icon(
+                                _showFeedback
+                                    ? LucideIcons.chevron_up
+                                    : LucideIcons.chevron_down,
+                                color: theme.colorScheme.primary,
+                              ),
+                              const SizedBox(width: DesignConstants.spacingS),
+                              Text(
+                                l10n.aiReviewFeedbackSection,
+                                style: theme.textTheme.titleSmall?.copyWith(
+                                  color: theme.colorScheme.primary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        if (_showFeedback) ...[
+                          const SizedBox(height: DesignConstants.spacingS),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 6,
+                            children: [
+                              _buildFeedbackChip(theme, 'Larger portions'),
+                              _buildFeedbackChip(theme, 'Smaller portions'),
+                              _buildFeedbackChip(theme, 'Separate ingredients'),
+                              _buildFeedbackChip(theme, 'No sauce/dressing'),
+                            ],
+                          ),
+                          const SizedBox(height: DesignConstants.spacingS),
+                          TextField(
+                            controller: _feedbackController,
+                            maxLines: 3,
+                            decoration: InputDecoration(
+                              hintText: l10n.aiReviewFeedbackHint,
+                              border: const OutlineInputBorder(),
+                            ),
+                          ),
+                          const SizedBox(height: DesignConstants.spacingS),
+                          AppButton.secondary(
+                            onPressed: _isRetrying ? null : _retryWithFeedback,
+                            label: l10n.aiReviewRetryButton,
+                            tooltip: l10n.aiReviewRetryButton,
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 80), // Bottom padding for save button
+                ],
+              ),
+            ),
+            // Fixed bottom bar: meal-type selector + save button
+            Container(
+              padding: const EdgeInsets.fromLTRB(16, 10, 16, 24),
+              decoration: BoxDecoration(
+                color: theme.scaffoldBackgroundColor,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.1),
+                    blurRadius: 8,
+                    offset: const Offset(0, -2),
                   ),
                 ],
-
-                const SizedBox(height: 80), // Bottom padding for save button
-              ],
-            ),
-          ),
-          // Fixed bottom bar: meal-type selector + save button
-          Container(
-            padding: const EdgeInsets.fromLTRB(16, 10, 16, 24),
-            decoration: BoxDecoration(
-              color: theme.scaffoldBackgroundColor,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.1),
-                  blurRadius: 8,
-                  offset: const Offset(0, -2),
-                ),
-              ],
-            ),
-            child: Row(
-              children: [
-                // Meal-type compact dropdown
-                Expanded(
-                  flex: 2,
-                  child: PlatformAdaptiveDropdownFormField<String>(
-                    initialValue: _selectedMealType,
-                    decoration: InputDecoration(
-                      border: const OutlineInputBorder(),
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: DesignConstants.spacingS,
-                      ),
-                      isDense: true,
-                    ),
-                    items: [
-                      DropdownMenuItem(
-                        value: 'mealtypeBreakfast',
-                        child: Text(
-                          l10n.mealtypeBreakfast,
-                          overflow: TextOverflow.ellipsis,
+              ),
+              child: Row(
+                children: [
+                  // Meal-type compact dropdown
+                  Expanded(
+                    flex: 2,
+                    child: PlatformAdaptiveDropdownFormField<String>(
+                      initialValue: _selectedMealType,
+                      decoration: InputDecoration(
+                        border: const OutlineInputBorder(),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: DesignConstants.spacingS,
                         ),
+                        isDense: true,
                       ),
-                      DropdownMenuItem(
-                        value: 'mealtypeLunch',
-                        child: Text(
-                          l10n.mealtypeLunch,
-                          overflow: TextOverflow.ellipsis,
+                      items: [
+                        DropdownMenuItem(
+                          value: 'mealtypeBreakfast',
+                          child: Text(
+                            l10n.mealtypeBreakfast,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
-                      ),
-                      DropdownMenuItem(
-                        value: 'mealtypeDinner',
-                        child: Text(
-                          l10n.mealtypeDinner,
-                          overflow: TextOverflow.ellipsis,
+                        DropdownMenuItem(
+                          value: 'mealtypeLunch',
+                          child: Text(
+                            l10n.mealtypeLunch,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
-                      ),
-                      DropdownMenuItem(
-                        value: 'mealtypeSnack',
-                        child: Text(
-                          l10n.mealtypeSnack,
-                          overflow: TextOverflow.ellipsis,
+                        DropdownMenuItem(
+                          value: 'mealtypeDinner',
+                          child: Text(
+                            l10n.mealtypeDinner,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
-                      ),
-                    ],
-                    onChanged: (v) {
-                      if (v != null) {
-                        setState(() => _selectedMealType = v);
-                      }
-                    },
-                  ),
-                ),
-                const SizedBox(width: DesignConstants.spacingM),
-                // Save button
-                Expanded(
-                  flex: 3,
-                  child: SizedBox(
-                    height: 48,
-                    child: AppButton.primary(
-                      onPressed:
-                          (_items.isNotEmpty && !_isSaving && !_isMatching)
-                              ? _saveToDiary
-                              : null,
-                      label: l10n.aiReviewSaveToDiary,
-                      tooltip: l10n.aiReviewSaveToDiary,
+                        DropdownMenuItem(
+                          value: 'mealtypeSnack',
+                          child: Text(
+                            l10n.mealtypeSnack,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                      onChanged: (v) {
+                        if (v != null) {
+                          setState(() => _selectedMealType = v);
+                        }
+                      },
                     ),
                   ),
-                ),
-              ],
+                  const SizedBox(width: DesignConstants.spacingM),
+                  // Save button
+                  Expanded(
+                    flex: 3,
+                    child: SizedBox(
+                      height: 48,
+                      child: AppButton.primary(
+                        onPressed:
+                            (_items.isNotEmpty && !_isSaving && !_isMatching)
+                                ? _saveToDiary
+                                : null,
+                        label: l10n.aiReviewSaveToDiary,
+                        tooltip: l10n.aiReviewSaveToDiary,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -769,4 +1356,42 @@ class _ReviewItem {
     this.issues = const [],
     this.nutrition = AiNutritionTotals.zero,
   });
+}
+
+/// The LiDAR chip over the meal photo.
+class _DepthToggleButton extends StatelessWidget {
+  final bool active;
+  final VoidCallback onTap;
+
+  const _DepthToggleButton({required this.active, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    const lime = Color(0xFFC9EF00);
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: active
+              ? lime.withValues(alpha: 0.9)
+              : Colors.black.withValues(alpha: 0.55),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: active ? lime : Colors.white.withValues(alpha: 0.5),
+          ),
+        ),
+        child: Text(
+          'LiDAR',
+          style: TextStyle(
+            fontFamily: 'monospace',
+            fontWeight: FontWeight.w700,
+            fontSize: 11,
+            letterSpacing: 0.8,
+            color: active ? const Color(0xFF12120F) : Colors.white,
+          ),
+        ),
+      ),
+    );
+  }
 }

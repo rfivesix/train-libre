@@ -63,7 +63,8 @@ class PlatformAdaptivePopupMenu<T> extends StatelessWidget {
           child: icon,
         ),
         items: items.map((item) {
-          final isSelected = selectedValue != null && item.value == selectedValue;
+          final isSelected =
+              selectedValue != null && item.value == selectedValue;
           return GlassMenuItem(
             title: item.label,
             icon: item.icon != null ? Icon(item.icon, size: 20) : null,
@@ -150,31 +151,30 @@ class PlatformAdaptiveDropdownFormField<T> extends StatelessWidget {
 
         final selectedText =
             selectedItem != null ? _getItemText(selectedItem.child) : '';
-        // Container background and border for proper contrast across Light & Dark modes:
-        // In Light Mode inside white cards (0xFFFFFFFF), input controls need subtle background tinting
-        // and border outlining so they don't appear as invisible "white-on-white".
-        final containerFillColor = isDark
-            ? Theme.of(context).inputDecorationTheme.fillColor ?? const Color(0xFF2C2C2E)
-            : const Color(0xFFF2F2F7);
+        // Keep the collapsed trigger visually identical to a regular text field:
+        // take the fill straight from the input theme (white in Light, 0xFF2C2C2E
+        // in Dark) and stay borderless like the themed fields do.
+        final containerFillColor =
+            Theme.of(context).inputDecorationTheme.fillColor ??
+                (isDark ? const Color(0xFF2C2C2E) : Colors.white);
 
-        final borderColor = isDark
-            ? Colors.white.withValues(alpha: 0.15)
-            : Colors.black.withValues(alpha: 0.12);
+        const borderColor = Colors.transparent;
 
         final defaultDecoration = InputDecoration(
           filled: true,
           fillColor: containerFillColor,
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
-            borderSide: BorderSide(color: borderColor),
+            borderSide: const BorderSide(color: borderColor),
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
-            borderSide: BorderSide(color: borderColor),
+            borderSide: const BorderSide(color: borderColor),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
-            borderSide: BorderSide(color: Theme.of(context).colorScheme.primary, width: 2),
+            borderSide: BorderSide(
+                color: Theme.of(context).colorScheme.primary, width: 2),
           ),
           contentPadding: const EdgeInsets.symmetric(
             horizontal: DesignConstants.spacingM,
@@ -192,10 +192,12 @@ class PlatformAdaptiveDropdownFormField<T> extends StatelessWidget {
           fillColor: decoration?.fillColor ?? containerFillColor,
           filled: decoration?.filled ?? true,
           contentPadding: decoration?.contentPadding,
-          border: decoration?.border != null && decoration?.border != const OutlineInputBorder()
+          border: decoration?.border != null &&
+                  decoration?.border != const OutlineInputBorder()
               ? decoration?.border
               : defaultDecoration.border,
-          enabledBorder: decoration?.enabledBorder != null && decoration?.enabledBorder != const OutlineInputBorder()
+          enabledBorder: decoration?.enabledBorder != null &&
+                  decoration?.enabledBorder != const OutlineInputBorder()
               ? decoration?.enabledBorder
               : defaultDecoration.enabledBorder,
         );

@@ -98,8 +98,16 @@ class _LogSupplementMenuState extends State<LogSupplementMenu> {
                   ),
                   child: Row(
                     children: [
-                      Expanded(child: Text(localizeSupplementName(s, l10n))),
-                      const Icon(LucideIcons.chevron_right),
+                      Expanded(
+                        child: Text(
+                          localizeSupplementName(s, l10n),
+                          style:
+                              Theme.of(context).textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                        ),
+                      ),
+                      const Icon(LucideIcons.chevron_right, size: 22),
                     ],
                   ),
                 ),

@@ -32,6 +32,13 @@ class SetLog {
   /// The order in which this set appears in the workout log.
   final int? logOrder;
 
+  /// Which exercise block of a live session this set belongs to.
+  ///
+  /// Written while a workout runs so the session can be rebuilt exactly after
+  /// the app is killed, instead of inferring the grouping from
+  /// [exerciseName]. Null for rows written before this existed.
+  final int? exerciseBlock;
+
   /// Optional notes about the set.
   final String? notes;
 
@@ -97,6 +104,7 @@ class SetLog {
     this.restTimeSeconds,
     this.isCompleted,
     this.logOrder,
+    this.exerciseBlock,
     this.notes,
     this.distanceKm,
     this.durationSeconds,
@@ -130,6 +138,7 @@ class SetLog {
       // MODIFICATION: isCompleted can be null; map 1 to true and everything else (0, null) to false.
       isCompleted: map['is_completed'] == 1,
       logOrder: map['log_order'],
+      exerciseBlock: map['exercise_block'],
       notes: map['notes'],
       distanceKm: map['distance_km'],
       durationSeconds: map['duration_seconds'],
@@ -153,6 +162,7 @@ class SetLog {
       // MODIFICATION: Store true as 1, false/null as 0.
       'is_completed': isCompleted == true ? 1 : 0,
       'log_order': logOrder,
+      'exercise_block': exerciseBlock,
       'notes': notes,
       'distance_km': distanceKm,
       'duration_seconds': durationSeconds,
@@ -176,6 +186,7 @@ class SetLog {
     int? restTimeSeconds,
     bool? isCompleted,
     int? logOrder,
+    int? exerciseBlock,
     String? notes,
     double? distanceKm,
     int? durationSeconds,
@@ -210,6 +221,7 @@ class SetLog {
       restTimeSeconds: restTimeSeconds ?? this.restTimeSeconds,
       isCompleted: isCompleted ?? this.isCompleted,
       logOrder: logOrder ?? this.logOrder,
+      exerciseBlock: exerciseBlock ?? this.exerciseBlock,
       notes: notes ?? this.notes,
       distanceKm: clearDistance ? null : (distanceKm ?? this.distanceKm),
       durationSeconds:

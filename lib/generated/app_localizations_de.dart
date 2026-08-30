@@ -15,6 +15,17 @@ class AppLocalizationsDe extends AppLocalizations {
   String get selectTimeTitle => 'Uhrzeit auswählen';
 
   @override
+  String get selectDateTimeTitle => 'Datum & Uhrzeit wählen';
+
+  @override
+  String get mealDetailChangeDateTime => 'Datum und Uhrzeit ändern';
+
+  @override
+  String mealMovedToDate(String date) {
+    return 'Mahlzeit verschoben auf $date';
+  }
+
+  @override
   String get removeTimer => 'Timer entfernen';
 
   @override
@@ -1248,6 +1259,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get continue_workout_button => 'Fortsetzen';
 
   @override
+  String get minimizeWorkoutButton => 'Minimieren';
+
+  @override
   String get soon_available_snackbar =>
       'Dieser Screen wird bald verfügbar sein!';
 
@@ -1417,6 +1431,88 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get feedbackReportIncludeBackupRestore => 'Backup-/Restore-Diagnose';
+
+  @override
+  String get feedbackReportIncludePerformance =>
+      'Performance Log (Frame-Timings)';
+
+  @override
+  String get settingsPerformanceLogTitle => 'Performance Log';
+
+  @override
+  String get settingsPerformanceLogSubtitle =>
+      'Zeigt, auf welchen Screens Frames verloren gehen';
+
+  @override
+  String get performanceLogIntro =>
+      'Erfasst Bildwiederholrate und Ruckler direkt auf diesem Gerät. Läuft im Hintergrund mit und verlässt das Gerät nur, wenn du das Log teilst.';
+
+  @override
+  String get performanceLogDeviceLabel => 'Gerät';
+
+  @override
+  String get performanceLogDisplayLabel => 'Display';
+
+  @override
+  String get performanceLogFramesLabel => 'Frames';
+
+  @override
+  String get performanceLogJankLabel => 'Ruckler';
+
+  @override
+  String get performanceLogStallsLabel => 'Hänger';
+
+  @override
+  String get performanceLogCopyButton => 'Kopieren';
+
+  @override
+  String get performanceLogShareButton => 'Teilen';
+
+  @override
+  String get performanceLogCopiedSnack => 'Performance Log kopiert.';
+
+  @override
+  String get performanceLogScreensSection => 'Screens';
+
+  @override
+  String get performanceLogEmpty => 'Noch keine Frames erfasst.';
+
+  @override
+  String get performanceLogStallsSection => 'Hänger (UI-Thread blockiert)';
+
+  @override
+  String get performanceLogStartupSection => 'Start & Rückkehr';
+
+  @override
+  String get performanceLogStartupEmpty => 'Noch kein Start gemessen.';
+
+  @override
+  String get performanceLogStartupCold => 'Kaltstart';
+
+  @override
+  String get performanceLogStartupResume => 'Rückkehr aus dem Hintergrund';
+
+  @override
+  String get performanceLogStartupUnattributed => 'Framework & erstes Rendern';
+
+  @override
+  String get performanceLogSevereLabel => 'schwer';
+
+  @override
+  String get performanceLogPauseTitle => 'Messung pausieren';
+
+  @override
+  String get performanceLogResetTitle => 'Messwerte zurücksetzen';
+
+  @override
+  String get performanceLogResetDialogBody =>
+      'Alle erfassten Frame-Statistiken und Hänger werden gelöscht. Die Messung startet danach wieder bei null.';
+
+  @override
+  String get performanceLogResetConfirm => 'Zurücksetzen';
+
+  @override
+  String get performanceLogResetDoneSnack => 'Messwerte zurückgesetzt.';
 
   @override
   String get feedbackReportIncludeUserNote => 'Benutzernotiz';
@@ -1605,6 +1701,13 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get appTourStepStatisticsBody =>
       'Die Statistiken zeigen Trends und Fortschritt, damit du Veränderungen besser verstehst.';
+
+  @override
+  String get appTourRestartTitle => 'App-Tour ansehen';
+
+  @override
+  String get appTourRestartSubtitle =>
+      'Einführung und wichtige Bereiche erneut durchgehen';
 
   @override
   String get onbSetGoalsCta => 'Ziele festlegen';
@@ -2615,6 +2718,11 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get aiReviewNoMatch => 'Kein Treffer — tippe zum Suchen';
+
+  @override
+  String aiReviewUncertain(int percent) {
+    return 'Unsicher ($percent%)';
+  }
 
   @override
   String get aiReviewConfidence => 'Konfidenz';
@@ -4853,6 +4961,44 @@ class AppLocalizationsDe extends AppLocalizations {
   String get aiModelLabel => 'Modell';
 
   @override
+  String get aiModelListFallbackTitle =>
+      'Eingebaute Modell-Liste wird angezeigt';
+
+  @override
+  String get aiModelListRetry => 'Modelle neu laden';
+
+  @override
+  String get aiModelListErrorMissingKey =>
+      'Speichere deinen API-Schlüssel, um die aktuellen Modelle vom Anbieter zu laden.';
+
+  @override
+  String get aiModelListErrorNetwork =>
+      'Der Anbieter war nicht erreichbar. Prüfe deine Internetverbindung.';
+
+  @override
+  String get aiModelListErrorTimeout =>
+      'Der Anbieter hat nicht innerhalb des eingestellten Timeouts geantwortet.';
+
+  @override
+  String aiModelListErrorAuth(Object status) {
+    return 'Der Anbieter hat deinen API-Schlüssel abgelehnt (HTTP $status). Prüfe den Schlüssel und seine Berechtigungen.';
+  }
+
+  @override
+  String aiModelListErrorRateLimit(Object status) {
+    return 'Der Anbieter drosselt gerade oder das Kontingent ist aufgebraucht (HTTP $status). Versuche es gleich noch einmal.';
+  }
+
+  @override
+  String aiModelListErrorHttp(Object status) {
+    return 'Der Anbieter hat mit HTTP $status geantwortet.';
+  }
+
+  @override
+  String get aiModelListErrorResponse =>
+      'Die Modell-Liste des Anbieters konnte nicht gelesen werden.';
+
+  @override
   String get autoBackupStoragePickerUnavailable =>
       'Speicherordner-Auswahl nicht verfügbar. Bitte die App nach dem Update vollständig neu starten/neu installieren.';
 
@@ -5000,6 +5146,9 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get scannerAlignInstruction =>
       'Barcode horizontal an der roten Laserlinie ausrichten';
+
+  @override
+  String get scannerToggleFlash => 'Blitz ein-/ausschalten';
 
   @override
   String get about_train_libre => 'Über Train Libre';
@@ -5866,4 +6015,392 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get whatsNewAboutRowSubtitle =>
       'Highlights dieser und früherer Versionen';
+
+  @override
+  String get mealAnalysisPreparing => 'Aufnahme wird vorbereitet';
+
+  @override
+  String get mealAnalysisAnalyzing => 'Mahlzeit wird analysiert';
+
+  @override
+  String get mealAnalysisMatching => 'Zutaten werden abgeglichen';
+
+  @override
+  String get mealAnalysisFailed => 'Das hat nicht geklappt';
+
+  @override
+  String get mealAnalysisProcessingTag => 'AI VISION PROCESSING';
+
+  @override
+  String get aiScannerTitle => 'KI-Scanner';
+
+  @override
+  String get aiCaptureAnalyzing => 'Analysiere…';
+
+  @override
+  String aiCaptureAnalyzeMeal(int count) {
+    return 'Mahlzeit analysieren ($count)';
+  }
+
+  @override
+  String get aiCaptureAnalyzeText => 'Text analysieren';
+
+  @override
+  String get aiCaptureDescribeHint =>
+      'Mahlzeit beschreiben (z. B. 2 Eier mit Toast)…';
+
+  @override
+  String get aiCaptureBarcodeDetected => 'Barcode erkannt';
+
+  @override
+  String get aiCaptureLogBarcode => 'Loggen';
+
+  @override
+  String aiCaptureBarcodeFallback(String code) {
+    return 'Barcode $code';
+  }
+
+  @override
+  String get aiCaptureMoveCloser => 'Etwas näher herangehen';
+
+  @override
+  String get aiCaptureMoveAway => 'Etwas weiter weg gehen';
+
+  @override
+  String get aiCaptureOpenSettings => 'Einstellungen öffnen';
+
+  @override
+  String get voiceDictationTitle => 'Mahlzeit diktieren';
+
+  @override
+  String get voiceHoldToTalk => 'Zum Sprechen gedrückt halten';
+
+  @override
+  String get voiceSpeakNow => 'Sprich jetzt — loslassen zum Beenden';
+
+  @override
+  String get voiceExampleStandalone =>
+      'z. B. „Ein Teller Gemüsedöner mit Fladenbrot und Knoblauchsauce“';
+
+  @override
+  String get voiceExampleWithPhoto =>
+      'Ergänze, was das Foto nicht zeigt — z. B. „in zwei Esslöffeln Olivenöl gebraten“';
+
+  @override
+  String get voiceNetworkNotice =>
+      'Dieses Gerät erkennt Sprache nicht lokal. Die Aufnahme wird zur Umwandlung an die Spracherkennung des Systems gesendet.';
+
+  @override
+  String get voiceTapToRecord => 'Zum Aufnehmen tippen';
+
+  @override
+  String get voiceTapToFinish => 'Hört zu — zum Beenden tippen';
+
+  @override
+  String get voiceStarting => 'Einen Moment…';
+
+  @override
+  String get voiceTidyingUp => 'Text wird aufgeräumt…';
+
+  @override
+  String get voiceNothingHeard =>
+      'Nichts erkannt. Versuch es noch einmal oder tippe den Text.';
+
+  @override
+  String get voiceLanguage => 'Sprache';
+
+  @override
+  String get voiceLanguageTitle => 'Diktiersprache';
+
+  @override
+  String get voiceLanguageSystem => 'Wie das Gerät';
+
+  @override
+  String get voiceLanguageHint =>
+      'Wähle die Sprache, die du sprichst — nicht die der App.';
+
+  @override
+  String get voiceCleanedNotice => 'Füllwörter entfernt';
+
+  @override
+  String get voiceRetake => 'Neu aufnehmen';
+
+  @override
+  String voiceTidiedIn(String seconds) {
+    return 'Von der KI aufbereitet in $seconds s';
+  }
+
+  @override
+  String get aiDepthImageTitle => 'Tiefenkarte mitsenden';
+
+  @override
+  String get aiDepthImageSubtitle =>
+      'Hängt das Falschfarben-Relief der Mahlzeit als zweites Bild an, damit das Modell auch die Höhe beurteilen kann, nicht nur den Umriss. Kostet ein zusätzliches Bild pro Analyse.';
+
+  @override
+  String get aiVoiceTidyTitle => 'Diktat per KI aufbereiten';
+
+  @override
+  String get aiVoiceTidySubtitle =>
+      'Nach dem Sprechen wird der Text korrigiert und in Stichpunkte zerlegt. Kostet eine Anfrage und ein paar Sekunden.';
+
+  @override
+  String get voicePermissionTitle => 'Mikrofon und Spracherkennung';
+
+  @override
+  String get voicePermissionBody =>
+      'Zum Diktieren einer Mahlzeit braucht Train Libre das Mikrofon, solange du aufnimmst, und die Spracherkennung, um das Gesagte in Text umzuwandeln. Die Erkennung läuft auf deinem Gerät, wann immer das möglich ist. Es wird nichts aufgezeichnet oder aufbewahrt.';
+
+  @override
+  String get voicePermissionContinue => 'Weiter';
+
+  @override
+  String get voiceApplyText => 'Text übernehmen';
+
+  @override
+  String get voiceTranscriptHint => 'Erkannter Text — hier korrigierbar';
+
+  @override
+  String get voiceUnavailablePermission =>
+      'Ohne Mikrofon- und Spracherkennungsfreigabe geht das Diktat nicht. Du kannst den Text weiterhin eintippen.';
+
+  @override
+  String get voiceUnavailableUnsupported =>
+      'Dieses Gerät bietet keine Spracherkennung an. Du kannst den Text eintippen.';
+
+  @override
+  String get voiceUnavailableFailed =>
+      'Die Spracherkennung ließ sich nicht starten. Du kannst den Text eintippen.';
+
+  @override
+  String get mealFallbackTitle => 'Mahlzeit';
+
+  @override
+  String mealIngredientCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Zutaten',
+      one: '1 Zutat',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get mealDetailOptions => 'Optionen';
+
+  @override
+  String get mealDetailAddIngredient => 'Zutat hinzufügen';
+
+  @override
+  String get mealDetailSaveAsTemplate => 'Als Vorlage speichern';
+
+  @override
+  String get mealDetailSavedAsTemplate => 'Als Mahlzeiten-Vorlage gespeichert.';
+
+  @override
+  String get mealDetailChangeMealType => 'Mahlzeitentyp ändern';
+
+  @override
+  String get mealDetailSelectMealType => 'Mahlzeitentyp wählen';
+
+  @override
+  String get mealDetailAmountInGrams => 'Menge in Gramm';
+
+  @override
+  String get mealDetailApply => 'Übernehmen';
+
+  @override
+  String get mealDeleteQuestion => 'Was soll mit dieser Mahlzeit passieren?';
+
+  @override
+  String get mealDeleteUngroupTitle => 'Nur Gruppierung auflösen';
+
+  @override
+  String mealDeleteUngroupBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Foto und Gruppierung werden entfernt. Die $count Einträge bleiben einzeln im Tagebuch — deine Tageswerte ändern sich nicht.',
+      one:
+          'Foto und Gruppierung werden entfernt. Der Eintrag bleibt einzeln im Tagebuch — deine Tageswerte ändern sich nicht.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get mealDeleteAllTitle => 'Mahlzeit samt Einträgen löschen';
+
+  @override
+  String mealDeleteAllBody(int count, int kcal) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Foto, Gruppierung und alle $count Einträge verschwinden aus dem Tagebuch. $kcal kcal werden von deinem Tag abgezogen.',
+      one:
+          'Foto, Gruppierung und der Eintrag verschwinden aus dem Tagebuch. $kcal kcal werden von deinem Tag abgezogen.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get reanalysisTitle => 'Neues Ergebnis';
+
+  @override
+  String get reanalysisSubtitle => 'Du entscheidest, was gespeichert bleibt.';
+
+  @override
+  String get reanalysisPrevious => 'BISHER';
+
+  @override
+  String get reanalysisNew => 'NEU';
+
+  @override
+  String get reanalysisKeepPrevious => 'Bisheriges behalten';
+
+  @override
+  String get reanalysisApplyNew => 'Neues übernehmen';
+
+  @override
+  String get reanalysisDiffHint =>
+      'Markiert = weicht vom gespeicherten Stand ab';
+
+  @override
+  String get aiReviewDiscardTitle => 'Mahlzeit verwerfen?';
+
+  @override
+  String get aiReviewDiscardBody =>
+      'Die Analyse wurde nicht gespeichert und geht verloren.';
+
+  @override
+  String get aiLidarScaleTitle => 'LiDAR-Maßstab senden';
+
+  @override
+  String get aiLidarScaleSubtitle =>
+      'Misst Abstand und Bildausschnitt in Zentimetern und gibt sie der KI mit. Ausschalten, um zu vergleichen, ob die Schätzung dadurch besser wird.';
+
+  @override
+  String get mealPhotoStorageSection => 'Mahlzeitenfotos (Speicher)';
+
+  @override
+  String get mealPhotoRetentionTitle => 'Aufbewahrungsdauer';
+
+  @override
+  String get mealPhotoRetentionBody =>
+      'Fotos werden nach Ablauf der Frist automatisch gelöscht. Die Nährwerteinträge im Tagebuch bleiben erhalten.';
+
+  @override
+  String mealPhotoRetentionDays(int days) {
+    return '$days Tage';
+  }
+
+  @override
+  String get mealPhotoRetentionDefaultSuffix => '(Standard)';
+
+  @override
+  String get mealPhotoRetentionUnlimited => 'Unbegrenzt';
+
+  @override
+  String get mealPhotoRetentionSaved => 'Aufbewahrungsdauer gespeichert.';
+
+  @override
+  String get mealPhotoDeleteAll => 'Alle lokalen Fotos löschen';
+
+  @override
+  String get mealPhotoDeleteAllTitle => 'Alle Mahlzeitenfotos löschen?';
+
+  @override
+  String get mealPhotoDeleteAllBody =>
+      'Nur die Bilddateien werden vom Gerät entfernt. Deine Einträge und Kalorien im Tagebuch bleiben vollständig erhalten.';
+
+  @override
+  String get mealPhotoDeleted => 'Fotos gelöscht.';
+
+  @override
+  String get speechSectionTitle => 'Spracheingabe & Diktat';
+
+  @override
+  String get speechOnDeviceActive => 'On-Device-Spracherkennung aktiv';
+
+  @override
+  String get speechOnDeviceBody =>
+      'Gesprochene Mahlzeiten („2 Eier mit Toast und Kaffee“) werden direkt auf deinem Gerät in Text umgewandelt und bleiben privat.';
+
+  @override
+  String get aiCaptureTourStepShutterTitle => 'Mahlzeit fotografieren';
+
+  @override
+  String get aiCaptureTourStepShutterDesc =>
+      'Nimm mit dem Auslöser bis zu 4 Fotos deiner Mahlzeit aus verschiedenen Winkeln auf. Bei unterstützten Geräten erfasst LiDAR automatisch Tiefendaten für noch präzisere Portionsschätzungen.';
+
+  @override
+  String get aiCaptureTourStepBarcodeTitle => 'Automatische Barcode-Erkennung';
+
+  @override
+  String get aiCaptureTourStepBarcodeDesc =>
+      'Halte verpackte Lebensmittel vor die Kamera – der Barcode wird automatisch in Echtzeit erkannt. Über diesen Knopf kannst du den Scanner jederzeit ein- oder ausschalten.';
+
+  @override
+  String get aiCaptureTourBarcodeDemoProduct => 'Bio-Haferflocken 500g';
+
+  @override
+  String get aiCaptureTourBarcodeDemoHint =>
+      'Jo, so sieht\'s aus, wenn du einen Barcode scannst!';
+
+  @override
+  String get aiCaptureTourStepGalleryTitle => 'Fotos aus der Mediathek';
+
+  @override
+  String get aiCaptureTourStepGalleryDesc =>
+      'Bereits Fotos von deinem Essen gemacht? Wähle bis zu 4 Bilder direkt aus deiner Fotogalerie aus.';
+
+  @override
+  String get aiCaptureTourStepVoiceTitle => 'Sprachaufnahme & Diktat';
+
+  @override
+  String get aiCaptureTourStepVoiceDesc =>
+      'Tippe auf das Mikrofon, um Zutaten, Marken oder Mengen einzusprechen (z. B. „200g Hähnchenbrust mit Reis“). Die KI bereinigt und analysiert dein Diktat automatisch.';
+
+  @override
+  String get aiCaptureTourStepTextTitle => 'Text & Notizen eingeben';
+
+  @override
+  String get aiCaptureTourStepTextDesc =>
+      'Füge schriftliche Hinweise hinzu oder beschreibe deine Mahlzeit komplett per Text, falls du kein Foto machen möchtest.';
+
+  @override
+  String get aiCaptureTourStepAnalyzeTitle => 'Smarte KI-Analyse';
+
+  @override
+  String get aiCaptureTourStepAnalyzeDesc =>
+      'Sobald ein Foto, Diktat oder Text vorhanden ist, erkennt die KI deine Lebensmittel, schätzt Gramm-Angaben und gleicht sie mit deinen Nährwerten ab.';
+
+  @override
+  String get aiCaptureTourReplayTooltip => 'Einführung ansehen';
+
+  @override
+  String get workoutPhotoAdd => 'Foto hinzufügen';
+
+  @override
+  String get workoutPhotoTake => 'Foto aufnehmen';
+
+  @override
+  String get workoutPhotoFromLibrary => 'Aus Mediathek wählen';
+
+  @override
+  String get workoutPhotoRemove => 'Foto entfernen';
+
+  @override
+  String get workoutPhotoRemoveConfirm =>
+      'Are you sure you want to remove this photo?';
+
+  @override
+  String get workoutPhotoLimitReached => 'Maximal 4 Fotos erreicht';
+
+  @override
+  String workoutPhotoPagination(int current, int total) {
+    return '$current von $total';
+  }
 }

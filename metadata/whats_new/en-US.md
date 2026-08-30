@@ -6,6 +6,18 @@
   Newest version first. Regenerate with: python3 script/build_whats_new.py
 -->
 
+## 1.2.0 (2026-08-30)
+
+{camera} Log a meal from a photo: Point the camera at your plate and the AI turns it into individual foods with amounts, calories and macros - all correctable before you save. Packaged products are recognised by barcode in the very same view, iPhones with LiDAR measure the portion instead of guessing it, and the microphone button lets you add what a photo cannot show.
+
+{utensils} A clearer diary: A scanned meal stays one entry with its photo and unfolds into its ingredients. Entries are sorted by calories, largest first.
+
+{dumbbell} More from your training: Keep up to 4 photos per workout, and the bar above the tab bar always shows whether you are working or resting and which exercise comes next. Tapping it grows the workout out of the bar.
+
+{cloud} Your photos in the iCloud backup: The automatic backup now carries the photos of your meals and workouts. Restoring no longer needs a restart and keeps the previous backup as a spare copy.
+
+{sparkles} Smoother to use: Cards grow into full screen instead of switching abruptly, numbers count themselves up, and removed exercises fold away gently instead of popping out.
+
 ## 1.1.1 (2026-08-12)
 
 {layout_grid} Home screen widgets on Android: The widget family has arrived on Android - your last workout with its muscle map, muscle recovery, your steps of the last 7 days, body measurements, today's nutrition and quick actions. Add them from your launcher's widget picker; nutrition, measurements and quick actions can be reconfigured at any time.

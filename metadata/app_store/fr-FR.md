@@ -29,6 +29,7 @@ FONCTIONNALITÉS CLÉS :
 • Enregistrez vos séries une par une : échauffement, séries effectives, séries à l'échec et dropsets.
 • Mesurez des indicateurs précis : répétitions, charge, et RPE / RIR (effort perçu / répétitions en réserve).
 • Créez des routines réutilisables, des exercices personnalisés, et consultez tout l'historique de vos séances.
+• Ajoutez jusqu'à 4 photos à chaque séance, conservées dans vos sauvegardes.
 
 2. NUTRITION & TDEE BASÉS SUR LA SCIENCE
 • Enregistrez vos repas, calories, macronutriments, hydratation, caféine, créatine et compléments alimentaires.
@@ -44,6 +45,7 @@ FONCTIONNALITÉS CLÉS :
 
 5. SAISIE DE REPAS PAR IA (optionnel — BYOK)
 • Apportez votre propre clé API (BYOK) : suivi optionnel des repas par IA, fonctionnant avec votre propre clé. Désactivé par défaut.
+• Photo, code-barres et voix dans un même écran : photographiez votre assiette, laissez l'écran lire un code-barres, ou décrivez le repas à la voix. Avec le LiDAR, la portion est mesurée, pas devinée.
 • Correspondance intelligente : un système de recherche locale floue (« Top-N alternatives ») couplé à Open Food Facts identifie précisément votre assiette, sans hallucinations.
 • 100 % transparent : chaque suggestion de l'IA est entièrement vérifiable et modifiable avant enregistrement.
 
@@ -54,11 +56,15 @@ OPEN SOURCE & DONNÉES OUVERTES :
 Développé de manière transparente à partir des catalogues communautaires de confiance Open Food Facts et de la base d'exercices wger. Le code source complet est accessible publiquement : nos promesses de confidentialité se vérifient au lieu de se croire.
 
 ## Release Notes (What's New / Release Notes in this version)
-Widgets d'écran d'accueil sur Android: la famille de widgets arrive sur Android - ta dernière séance avec sa carte musculaire, la récupération musculaire, tes pas des 7 derniers jours, tes mensurations, la nutrition du jour et les actions rapides. Ajoute-les depuis le sélecteur de widgets de ton lanceur ; nutrition, mensurations et actions rapides se reconfigurent à tout moment.
+Enregistrer un repas à partir d'une photo: vise ton assiette et l'IA en fait des aliments distincts, avec quantités, calories et macros - tout reste corrigeable avant l'enregistrement. Les produits emballés sont reconnus par leur code-barres dans la même vue, les iPhone équipés du LiDAR mesurent la portion au lieu de la deviner, et le bouton micro permet d'ajouter ce qu'une photo ne montre pas.
 
-Ta séance en cours dans les notifications: une séance en cours s'affiche désormais dans tes notifications avec le compte à rebours de repos, et sur Android 16 elle devient une Live Update avec une pastille dans la barre d'état. Valider une série, ajouter ou retirer 15 secondes et passer le repos se font sur place, sans ouvrir l'app.
+Un journal plus lisible: un repas scanné reste une seule entrée avec sa photo et se déplie sur ses ingrédients. Les entrées sont triées par calories, les plus élevées d'abord.
 
-Tuiles des réglages rapides: les sept actions rapides - scanner de code-barres, capture de repas par IA, démarrer une séance, ajouter de l'eau, enregistrer un complément, ajouter une mensuration et ajouter un aliment - sont maintenant disponibles comme tuiles dans tes réglages rapides.
+Plus de tes entraînements: garde jusqu'à 4 photos par séance, et la barre au-dessus de la navigation indique en permanence si tu travailles ou récupères et quel exercice arrive ensuite. Un appui fait grandir l'entraînement depuis la barre.
+
+Tes photos dans la sauvegarde iCloud: la sauvegarde automatique emporte désormais les photos de tes repas et de tes entraînements. La restauration ne demande plus de redémarrage et conserve la sauvegarde précédente comme copie de secours.
+
+Une utilisation plus fluide: les cartes s'agrandissent en plein écran au lieu de basculer d'un coup, les chiffres défilent jusqu'à leur valeur, et les exercices supprimés se replient en douceur au lieu de disparaître brusquement.
 
 ## Support URL (Support Web Page URL)
 https://rfivesix.github.io/train-libre/support.html

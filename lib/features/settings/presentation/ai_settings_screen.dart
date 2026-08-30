@@ -16,6 +16,9 @@ import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../widgets/common/app_button.dart';
 import 'dart:async';
 import '../../../services/telemetry/telemetry_service.dart';
+import '../../depth_scan/data/depth_scan_settings.dart';
+import '../../../services/voice/voice_dictation_settings.dart';
+import '../../depth_scan/platform/depth_scan_channel.dart';
 
 /// Settings page for configuring the AI Meal Capture feature.
 ///
@@ -36,6 +39,10 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
   AiProvider _selectedProvider = AiProvider.openai;
   String _selectedModel = '';
   List<AiModelOption> _modelOptions = const [];
+
+  /// Why the picker is showing the built-in list instead of the provider's.
+  /// Null while the live list loaded fine.
+  AiModelListError? _modelListError;
   bool _isLoading = true;
   bool _isLoadingModels = false;
   bool _isTesting = false;
@@ -43,12 +50,39 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
   bool _hasKey = false;
   int _timeoutSeconds = 60;
 
+  /// Only shown on devices that can actually measure — elsewhere the switch
+  /// would advertise something the hardware cannot do.
+  bool _hasLidar = false;
+  bool _scaleHintEnabled = true;
+  bool _depthImageEnabled = true;
+  bool _voiceTidyEnabled = true;
+
   @override
   void initState() {
     super.initState();
     unawaited(TelemetryService.instance
         .trackScreenView(screenName: ScreenName.aiSettings));
     _loadSettings();
+    unawaited(_loadDepthSettings());
+    unawaited(_loadVoiceSettings());
+  }
+
+  Future<void> _loadDepthSettings() async {
+    final capability = await DepthScanChannel.instance.capability();
+    final enabled = await DepthScanSettings.instance.isScaleHintEnabled();
+    final depthImage = await DepthScanSettings.instance.isDepthImageEnabled();
+    if (!mounted) return;
+    setState(() {
+      _hasLidar = capability.depthSupported;
+      _scaleHintEnabled = enabled;
+      _depthImageEnabled = depthImage;
+    });
+  }
+
+  Future<void> _loadVoiceSettings() async {
+    final enabled = await VoiceDictationSettings.instance.isAiTidyEnabled();
+    if (!mounted) return;
+    setState(() => _voiceTidyEnabled = enabled);
   }
 
   @override
@@ -65,7 +99,8 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
       provider,
     );
     final key = await AiService.instance.getApiKey(provider);
-    final models = await AiService.instance.getModelOptions(provider);
+    final modelList = await AiService.instance.loadModelOptions(provider);
+    final models = modelList.options;
     final resolvedModel = _resolveModelSelection(model, models, provider);
     final customBaseUrl = await AiService.instance.getCustomBaseUrl();
     final customModel = await AiService.instance.getCustomModel();
@@ -80,6 +115,7 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
           resolvedModel,
           provider,
         );
+        _modelListError = modelList.error;
         _hasKey = key != null && key.isNotEmpty;
         _timeoutSeconds = timeout;
         if (_hasKey) {
@@ -99,7 +135,8 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
     await AiService.instance.setSelectedProvider(provider);
     final selectedModel =
         await AiService.instance.resolveAndPersistSelectedModel(provider);
-    final models = await AiService.instance.getModelOptions(provider);
+    final modelList = await AiService.instance.loadModelOptions(provider);
+    final models = modelList.options;
     final resolvedModel = _resolveModelSelection(
       selectedModel,
       models,
@@ -119,6 +156,7 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
           resolvedModel,
           provider,
         );
+        _modelListError = modelList.error;
         _hasKey = key != null && key.isNotEmpty;
         _keyController.text = _hasKey ? '••••••••••••••••••••' : '';
         _baseUrlController.text = customBaseUrl ?? '';
@@ -196,11 +234,14 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
       if (!mounted) return;
       setState(() {
         _selectedModel = selectedModel;
+        _modelListError = null;
       });
       return;
     }
     setState(() => _isLoadingModels = true);
-    final models = await AiService.instance.getModelOptions(_selectedProvider);
+    final modelList =
+        await AiService.instance.loadModelOptions(_selectedProvider);
+    final models = modelList.options;
     final selectedModel = await AiService.instance
         .resolveAndPersistSelectedModel(_selectedProvider);
     final resolvedModel = _resolveModelSelection(
@@ -217,8 +258,84 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
         resolvedModel,
         _selectedProvider,
       );
+      _modelListError = modelList.error;
       _isLoadingModels = false;
     });
+  }
+
+  /// One sentence explaining why the picker is showing the built-in list.
+  ///
+  /// Without this the user sees a short, stale list and has no way to tell it
+  /// apart from the provider's real catalogue — a rejected key looks exactly
+  /// like "this provider only offers three models".
+  String _modelListErrorMessage(AppLocalizations l10n, AiModelListError error) {
+    final status = error.statusCode?.toString() ?? '-';
+    final base = switch (error.kind) {
+      AiModelListErrorKind.missingKey => l10n.aiModelListErrorMissingKey,
+      AiModelListErrorKind.unsupported => l10n.aiModelListErrorResponse,
+      AiModelListErrorKind.network => l10n.aiModelListErrorNetwork,
+      AiModelListErrorKind.timeout => l10n.aiModelListErrorTimeout,
+      AiModelListErrorKind.auth => l10n.aiModelListErrorAuth(status),
+      AiModelListErrorKind.rateLimit => l10n.aiModelListErrorRateLimit(status),
+      AiModelListErrorKind.http => l10n.aiModelListErrorHttp(status),
+      AiModelListErrorKind.response => l10n.aiModelListErrorResponse,
+    };
+    // The provider's own wording is often the only thing that names the real
+    // cause ("insufficient permissions for /v1/models"), so pass it through.
+    final providerMessage = error.providerMessage?.trim();
+    if (providerMessage == null || providerMessage.isEmpty) return base;
+    return '$base\n$providerMessage';
+  }
+
+  Widget _buildModelListFallbackNotice(
+    AppLocalizations l10n,
+    ThemeData theme,
+    AiModelListError error,
+  ) {
+    final color = error.kind == AiModelListErrorKind.missingKey
+        ? theme.colorScheme.onSurfaceVariant
+        : theme.colorScheme.error;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(LucideIcons.triangle_alert, size: 18, color: color),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  l10n.aiModelListFallbackTitle,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: color,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  _modelListErrorMessage(l10n, error),
+                  style: theme.textTheme.bodySmall?.copyWith(color: color),
+                ),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: TextButton(
+                    style: TextButton.styleFrom(
+                      padding: EdgeInsets.zero,
+                      minimumSize: const Size(0, 32),
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    onPressed: _isLoadingModels ? null : _refreshModels,
+                    child: Text(l10n.aiModelListRetry),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   String _resolveModelSelection(
@@ -340,7 +457,60 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                       value: aiEnabled,
                       onChanged: (value) => themeService.setAiEnabled(value),
                     ),
+                    if (aiEnabled && _hasLidar) ...[
+                      const SizedBox(height: 12),
+                      PlatformAdaptiveSwitchListTile(
+                        contentPadding: EdgeInsets.zero,
+                        secondary: const Icon(LucideIcons.ruler),
+                        title: Text(
+                          l10n.aiLidarScaleTitle,
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        subtitle: Text(l10n.aiLidarScaleSubtitle),
+                        value: _scaleHintEnabled,
+                        onChanged: (value) async {
+                          await DepthScanSettings.instance
+                              .setScaleHintEnabled(value);
+                          if (!mounted) return;
+                          setState(() => _scaleHintEnabled = value);
+                        },
+                      ),
+                      const SizedBox(height: 12),
+                      PlatformAdaptiveSwitchListTile(
+                        contentPadding: EdgeInsets.zero,
+                        secondary: const Icon(LucideIcons.layers),
+                        title: Text(
+                          l10n.aiDepthImageTitle,
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        subtitle: Text(l10n.aiDepthImageSubtitle),
+                        value: _depthImageEnabled,
+                        onChanged: (value) async {
+                          await DepthScanSettings.instance
+                              .setDepthImageEnabled(value);
+                          if (!mounted) return;
+                          setState(() => _depthImageEnabled = value);
+                        },
+                      ),
+                    ],
                     if (aiEnabled) ...[
+                      const SizedBox(height: 12),
+                      PlatformAdaptiveSwitchListTile(
+                        contentPadding: EdgeInsets.zero,
+                        secondary: const Icon(LucideIcons.mic),
+                        title: Text(
+                          l10n.aiVoiceTidyTitle,
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        subtitle: Text(l10n.aiVoiceTidySubtitle),
+                        value: _voiceTidyEnabled,
+                        onChanged: (value) async {
+                          await VoiceDictationSettings.instance
+                              .setAiTidyEnabled(value);
+                          if (!mounted) return;
+                          setState(() => _voiceTidyEnabled = value);
+                        },
+                      ),
                       const SizedBox(height: 12),
                       PlatformAdaptiveDropdownFormField<AiProvider>(
                         initialValue: _selectedProvider,
@@ -391,6 +561,12 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                                 onChanged: _onModelChanged,
                               ),
                         const SizedBox(height: 10),
+                        if (!_isLoadingModels && _modelListError != null)
+                          _buildModelListFallbackNotice(
+                            l10n,
+                            theme,
+                            _modelListError!,
+                          ),
                       ],
                       if (_selectedProvider == AiProvider.ollama) ...[
                         TextField(
@@ -558,6 +734,132 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                         ],
                       ),
                     ],
+                  ],
+                ),
+              ),
+            ),
+
+            const SizedBox(height: DesignConstants.spacingL),
+
+            // --- Photo Storage & Retention (Screen E2) ---
+            AppSectionHeader(title: l10n.mealPhotoStorageSection),
+            SummaryCard(
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l10n.mealPhotoRetentionTitle,
+                      style: theme.textTheme.labelLarge
+                          ?.copyWith(fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      l10n.mealPhotoRetentionBody,
+                      style: theme.textTheme.bodySmall
+                          ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                    ),
+                    const SizedBox(height: 12),
+                    DropdownButtonFormField<int>(
+                      initialValue: 180,
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                        contentPadding:
+                            EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      ),
+                      items: [
+                        for (final days in [30, 90, 180, 365])
+                          DropdownMenuItem(
+                            value: days,
+                            child: Text(days == 180
+                                ? '${l10n.mealPhotoRetentionDays(days)} '
+                                    '${l10n.mealPhotoRetentionDefaultSuffix}'
+                                : l10n.mealPhotoRetentionDays(days)),
+                          ),
+                        DropdownMenuItem(
+                          value: -1,
+                          child: Text(l10n.mealPhotoRetentionUnlimited),
+                        ),
+                      ],
+                      onChanged: (val) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text(l10n.mealPhotoRetentionSaved)),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 14),
+                    AppButton.secondary(
+                      onPressed: () {
+                        showDialog(
+                          context: context,
+                          builder: (ctx) => AlertDialog(
+                            title: Text(l10n.mealPhotoDeleteAllTitle),
+                            content: Text(l10n.mealPhotoDeleteAllBody),
+                            actions: [
+                              TextButton(
+                                  onPressed: () => Navigator.of(ctx).pop(),
+                                  child: Text(l10n.cancel)),
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.of(ctx).pop();
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                        content: Text(l10n.mealPhotoDeleted)),
+                                  );
+                                },
+                                child: Text(l10n.delete,
+                                    style: const TextStyle(color: Colors.red)),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                      label: l10n.mealPhotoDeleteAll,
+                      tooltip: l10n.mealPhotoDeleteAll,
+                      icon: LucideIcons.trash_2,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            const SizedBox(height: DesignConstants.spacingL),
+
+            // --- Speech Recognition (Screen E3) ---
+            AppSectionHeader(title: l10n.speechSectionTitle),
+            SummaryCard(
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          width: 8,
+                          height: 8,
+                          decoration: const BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Color(0xFF34C759),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          l10n.speechOnDeviceActive,
+                          style: theme.textTheme.labelLarge
+                              ?.copyWith(fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      l10n.speechOnDeviceBody,
+                      style: theme.textTheme.bodySmall
+                          ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                    ),
                   ],
                 ),
               ),

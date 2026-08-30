@@ -7,7 +7,7 @@
     "en",
     "de"
   ],
-  "locale": "de",
+  "locale": "en",
   "device": "iphone",
   "orientation": "portrait",
   "appIcon": "/app-icon.png",
@@ -18,7 +18,7 @@
         "layout": "device-bottom",
         "label": {
           "en": "DIARY",
-          "de": "DIARY"
+          "de": "TAGEBUCH"
         },
         "headline": {
           "en": "All-in-One Diary: Macros, Water & More",
@@ -26,27 +26,27 @@
         },
         "screenshot": "/screenshots/{locale}/iOS_dark_diary.png",
         "transforms": {
-          "device": {
-            "x": 156.54056165594628,
-            "y": 681.8720374707259,
-            "width": 1013.6355043227666,
-            "height": 2064.96,
-            "rotation": 0,
-            "zIndex": 3
-          },
           "caption": {
-            "x": 88.80843091334896,
-            "y": 142.12384074941457,
+            "x": 105.6,
+            "y": 200,
             "width": 1108.8,
-            "height": 803.0400000000001,
+            "height": 900,
             "rotation": 0,
             "zIndex": 4
+          },
+          "device": {
+            "x": 90,
+            "y": 885.36,
+            "width": 1140,
+            "height": 2322.53,
+            "rotation": 0,
+            "zIndex": 3
           }
         }
       },
       {
         "id": "s_iphone_2",
-        "layout": "device-top",
+        "layout": "device-bottom",
         "label": {
           "en": "WORKOUT",
           "de": "WORKOUT"
@@ -56,13 +56,20 @@
           "de": "Intuitives Workout-Tracking"
         },
         "screenshot": "/screenshots/{locale}/iOS_dark_running_workout.png",
-        "inverted": true,
         "transforms": {
+          "caption": {
+            "x": 105.6,
+            "y": 200,
+            "width": 1108.8,
+            "height": 900,
+            "rotation": 0,
+            "zIndex": 4
+          },
           "device": {
-            "x": 153.1822478386166,
-            "y": -286.80000000000007,
-            "width": 1013.6355043227666,
-            "height": 2064.96,
+            "x": 90,
+            "y": 1040.75,
+            "width": 1140,
+            "height": 2322.53,
             "rotation": 0,
             "zIndex": 3
           }
@@ -72,8 +79,39 @@
         "id": "s_iphone_3",
         "layout": "device-bottom",
         "label": {
+          "en": "AI CAPTURE",
+          "de": "KI-ERKENNUNG"
+        },
+        "headline": {
+          "en": "Snap a Photo to Log Your Meals Instantly",
+          "de": "Mahlzeiten einfach per Foto loggen"
+        },
+        "screenshot": "/screenshots/{locale}/iOS_dark_ai.png",
+        "transforms": {
+          "caption": {
+            "x": 105.6,
+            "y": 200,
+            "width": 1108.8,
+            "height": 900,
+            "rotation": 0,
+            "zIndex": 4
+          },
+          "device": {
+            "x": 400,
+            "y": 900,
+            "width": 1140,
+            "height": 2322.53,
+            "rotation": -7,
+            "zIndex": 2
+          }
+        }
+      },
+      {
+        "id": "s_iphone_4",
+        "layout": "device-bottom",
+        "label": {
           "en": "METABOLISM / TDEE",
-          "de": "METABOLISM / TDEE"
+          "de": "STOFFWECHSEL / TDEE"
         },
         "headline": {
           "en": "Adaptive TDEE & Smart Calorie Recommendations",
@@ -82,62 +120,115 @@
         "screenshot": "/screenshots/{locale}/iOS_dark_nutrition.png",
         "transforms": {
           "caption": {
-            "x": 105.59916763028968,
-            "y": 145.4524964597907,
-            "width": 1109,
-            "height": 887,
+            "x": 105.6,
+            "y": 200,
+            "width": 1108.8,
+            "height": 900,
             "rotation": 0,
             "zIndex": 4
           },
           "device": {
-            "x": 153.1822478386166,
-            "y": 745.68,
-            "width": 1013.6355043227666,
-            "height": 2064.96,
+            "x": 122.754982415006,
+            "y": 948.5977491207503,
+            "width": 1140,
+            "height": 2322.53,
             "rotation": 0,
             "zIndex": 3
           }
         }
       },
       {
-        "id": "s_iphone_4",
-        "layout": "device-bottom",
-        "label": {
-          "en": "AI CAPTURE",
-          "de": "AI CAPTURE"
-        },
-        "headline": {
-          "en": "Snap a Photo to Log Your Meals Instantly",
-          "de": "Mahlzeiten einfach per Foto loggen"
-        },
-        "screenshot": "/screenshots/{locale}/iOS_dark_ai.png"
-      },
-      {
         "id": "s_iphone_5",
         "layout": "device-top",
         "label": {
           "en": "RECOVERY",
-          "de": "RECOVERY"
+          "de": "ERHOLUNG"
         },
         "headline": {
           "en": "Know Exactly When Your Muscles Are Recovered",
           "de": "Sehe genau, wann deine Muskeln bereit sind"
         },
         "screenshot": "/screenshots/{locale}/iOS_dark_recovery.png",
-        "inverted": true
+        "transforms": {
+          "caption": {
+            "x": 105.6,
+            "y": 2150,
+            "width": 1108.8,
+            "height": 900,
+            "rotation": 0,
+            "zIndex": 4
+          },
+          "device": {
+            "x": 90,
+            "y": -413.16,
+            "width": 1140,
+            "height": 2322.53,
+            "rotation": 0,
+            "zIndex": 3
+          }
+        }
       },
       {
         "id": "s_iphone_6",
         "layout": "device-bottom",
         "label": {
+          "en": "PROGRESS",
+          "de": "FORTSCHRITT"
+        },
+        "headline": {
+          "en": "Track Body Weight & Measurements Over Time",
+          "de": "Verfolge Gewicht & Maße über die Zeit"
+        },
+        "screenshot": "/screenshots/{locale}/iOS_dark_measurements.png",
+        "transforms": {
+          "caption": {
+            "x": 105.60000000000036,
+            "y": 200,
+            "width": 1108.8,
+            "height": 900,
+            "rotation": 0,
+            "zIndex": 4
+          },
+          "device": {
+            "x": 400,
+            "y": 974.16,
+            "width": 1140,
+            "height": 2322.53,
+            "rotation": 6,
+            "zIndex": 2
+          }
+        }
+      },
+      {
+        "id": "s_iphone_7",
+        "layout": "device-bottom",
+        "label": {
           "en": "PRIVACY / DATA",
-          "de": "PRIVACY / DATA"
+          "de": "PRIVATSPHÄRE / DATEN"
         },
         "headline": {
           "en": "Your Data Belongs to You: 100% Offline & Secure",
           "de": "Deine Daten gehören dir: 100% offline & sicher"
         },
-        "screenshot": "/screenshots/{locale}/iOS_dark_data.png"
+        "screenshot": "/screenshots/{locale}/iOS_dark_data.png",
+        "transforms": {
+          "caption": {
+            "x": 105.60000000000036,
+            "y": 200,
+            "width": 1108.8,
+            "height": 900,
+            "rotation": 0,
+            "zIndex": 4
+          },
+          "device": {
+            "x": 119.39273153575778,
+            "y": 1107.0274912075024,
+            "width": 1140,
+            "height": 2322.53,
+            "rotation": 0,
+            "zIndex": 3
+          }
+        }
       }
     ],
     "android": [

@@ -12,6 +12,7 @@ import 'routines_screen.dart';
 import 'workout_history_screen.dart';
 import '../../../util/design_constants.dart';
 import '../../../widgets/common/bottom_content_spacer.dart';
+import '../../../widgets/common/card_morph_route.dart';
 import '../../../widgets/common/common.dart';
 import '../../../widgets/common/summary_card.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
@@ -51,7 +52,7 @@ class _WorkoutHubScreenState extends State<WorkoutHubScreen> {
     if (choice == ActiveWorkoutConflictResult.resume) {
       if (mounted && manager.workoutLog != null) {
         Navigator.of(context).push(
-          MaterialPageRoute(
+          CardMorphRoute(
             builder: (context) => LiveWorkoutScreen(
               workoutLog: manager.workoutLog!,
               routine: null,
@@ -72,7 +73,9 @@ class _WorkoutHubScreenState extends State<WorkoutHubScreen> {
     return false;
   }
 
-  void _startEmptyWorkout() async {
+  void _startEmptyWorkout(
+      {BuildContext? sourceContext, WidgetBuilder? sourceBuilder}) async {
+    final sourceRect = CardMorphRoute.measureRect(sourceContext);
     final canProceed = await _checkAndHandleOngoingWorkout();
     if (!canProceed) return;
     if (!mounted) return;
@@ -83,14 +86,18 @@ class _WorkoutHubScreenState extends State<WorkoutHubScreen> {
     if (mounted) {
       HapticFeedbackService.instance.confirmationFeedback();
       Navigator.of(context).push(
-        MaterialPageRoute(
+        CardMorphRoute(
+          sourceRect: sourceRect,
+          sourceBuilder: sourceBuilder,
           builder: (context) => LiveWorkoutScreen(workoutLog: newLog),
         ),
       );
     }
   }
 
-  void _startRoutine(Routine routine) async {
+  void _startRoutine(Routine routine,
+      {BuildContext? sourceContext, WidgetBuilder? sourceBuilder}) async {
+    final sourceRect = CardMorphRoute.measureRect(sourceContext);
     final canProceed = await _checkAndHandleOngoingWorkout();
     if (!canProceed) return;
     if (!mounted) return;
@@ -110,7 +117,9 @@ class _WorkoutHubScreenState extends State<WorkoutHubScreen> {
     if (mounted) {
       HapticFeedbackService.instance.confirmationFeedback();
       Navigator.of(context).push(
-        MaterialPageRoute(
+        CardMorphRoute(
+          sourceRect: sourceRect,
+          sourceBuilder: sourceBuilder,
           builder: (context) => LiveWorkoutScreen(
             routine: detailedRoutine,
             workoutLog: newLog,
@@ -120,11 +129,16 @@ class _WorkoutHubScreenState extends State<WorkoutHubScreen> {
     }
   }
 
-  Future<void> _createNewRoutine() async {
+  Future<void> _createNewRoutine(
+      {BuildContext? sourceContext, WidgetBuilder? sourceBuilder}) async {
     // Navigates to the editor for a new routine.
-    final created = await Navigator.of(
-      context,
-    ).push(MaterialPageRoute(builder: (context) => const EditRoutineScreen()));
+    final created = await Navigator.of(context).push(
+      CardMorphRoute(
+        sourceContext: sourceContext,
+        sourceBuilder: sourceBuilder,
+        builder: (context) => const EditRoutineScreen(),
+      ),
+    );
     if (created == true) {
       HapticFeedbackService.instance.confirmationFeedback();
     }
@@ -151,27 +165,51 @@ class _WorkoutHubScreenState extends State<WorkoutHubScreen> {
       padding: finalPadding,
       children: [
         AppSectionHeader(title: l10n.workoutSectionStart),
-        SummaryCard(
-          child: InkWell(
-            onTap: _startEmptyWorkout,
-            borderRadius: BorderRadius.circular(
-              DesignConstants.borderRadiusM,
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(LucideIcons.circle_plus, size: 28),
-                  const SizedBox(width: DesignConstants.spacingM),
-                  Text(
-                    l10n.startEmptyWorkoutButton,
-                    style: Theme.of(context).textTheme.titleLarge,
+        Builder(
+          builder: (cardCtx) {
+            Widget buildEmptyCard() => SummaryCard(
+                  child: Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(LucideIcons.circle_plus, size: 28),
+                        const SizedBox(width: DesignConstants.spacingM),
+                        Text(
+                          l10n.startEmptyWorkoutButton,
+                          style: Theme.of(context).textTheme.titleLarge,
+                        ),
+                      ],
+                    ),
                   ),
-                ],
+                );
+
+            return SummaryCard(
+              child: InkWell(
+                onTap: () => _startEmptyWorkout(
+                  sourceContext: cardCtx,
+                  sourceBuilder: (_) => buildEmptyCard(),
+                ),
+                borderRadius: BorderRadius.circular(
+                  DesignConstants.borderRadiusM,
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(LucideIcons.circle_plus, size: 28),
+                      const SizedBox(width: DesignConstants.spacingM),
+                      Text(
+                        l10n.startEmptyWorkoutButton,
+                        style: Theme.of(context).textTheme.titleLarge,
+                      ),
+                    ],
+                  ),
+                ),
               ),
-            ),
-          ),
+            );
+          },
         ),
         const SizedBox(height: DesignConstants.spacingXL),
         AppSectionHeader(title: l10n.workoutSectionMyPlans),
@@ -200,7 +238,15 @@ class _WorkoutHubScreenState extends State<WorkoutHubScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              l10n.emptyStateWorkoutRoutinesCallout,
+                              l10n.emptyRoutinesTitle,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleMedium
+                                  ?.copyWith(fontWeight: FontWeight.bold),
+                            ),
+                            const SizedBox(height: DesignConstants.spacingXS),
+                            Text(
+                              l10n.emptyRoutinesSubtitle,
                               style: Theme.of(context)
                                   .textTheme
                                   .bodyMedium
@@ -240,11 +286,7 @@ class _WorkoutHubScreenState extends State<WorkoutHubScreen> {
           context: context,
           icon: LucideIcons.list,
           title: l10n.workoutAllRoutines,
-          onTap: () => Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (context) => const RoutinesScreen(),
-            ),
-          ),
+          destination: () => const RoutinesScreen(),
         ),
         const SizedBox(height: DesignConstants.spacingXL),
         AppSectionHeader(title: l10n.workoutSectionHistoryLibrary),
@@ -252,21 +294,13 @@ class _WorkoutHubScreenState extends State<WorkoutHubScreen> {
           context: context,
           icon: LucideIcons.history,
           title: l10n.workoutEntryWorkouts,
-          onTap: () => Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (context) => const WorkoutHistoryScreen(),
-            ),
-          ),
+          destination: () => const WorkoutHistoryScreen(),
         ),
         _buildNavigationTile(
           context: context,
           icon: LucideIcons.folder_open,
           title: l10n.drawerExerciseCatalog,
-          onTap: () => Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (context) => const ExerciseCatalogScreen(),
-            ),
-          ),
+          destination: () => const ExerciseCatalogScreen(),
         ),
         const BottomContentSpacer(),
       ],
@@ -276,27 +310,52 @@ class _WorkoutHubScreenState extends State<WorkoutHubScreen> {
   Widget _buildCreateRoutineCard(BuildContext context, AppLocalizations l10n) {
     final screenWidth = MediaQuery.of(context).size.width;
     final cardWidth = (screenWidth - 32 - 12) / 2.5; // Etwas schmaler
+
+    Widget buildCreateCardContent() => SummaryCard(
+          child: Padding(
+            padding: DesignConstants.cardPadding,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  LucideIcons.circle_plus,
+                  size: 40,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                const SizedBox(height: DesignConstants.spacingS),
+                Text(l10n.addRoutineButton, textAlign: TextAlign.center),
+              ],
+            ),
+          ),
+        );
+
     return SizedBox(
       width: cardWidth,
       child: Padding(
         padding: const EdgeInsets.only(right: DesignConstants.spacingM),
-        child: SummaryCard(
-          child: InkWell(
-            onTap: _createNewRoutine,
-            borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
-            child: Padding(
-              padding: DesignConstants.cardPadding,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    LucideIcons.circle_plus,
-                    size: 40,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                  const SizedBox(height: DesignConstants.spacingS),
-                  Text(l10n.addRoutineButton, textAlign: TextAlign.center),
-                ],
+        child: Builder(
+          builder: (cardCtx) => SummaryCard(
+            child: InkWell(
+              onTap: () => _createNewRoutine(
+                sourceContext: cardCtx,
+                sourceBuilder: (_) => buildCreateCardContent(),
+              ),
+              borderRadius:
+                  BorderRadius.circular(DesignConstants.borderRadiusM),
+              child: Padding(
+                padding: DesignConstants.cardPadding,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      LucideIcons.circle_plus,
+                      size: 40,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                    const SizedBox(height: DesignConstants.spacingS),
+                    Text(l10n.addRoutineButton, textAlign: TextAlign.center),
+                  ],
+                ),
               ),
             ),
           ),
@@ -309,42 +368,76 @@ class _WorkoutHubScreenState extends State<WorkoutHubScreen> {
     final screenWidth = MediaQuery.of(context).size.width;
     final cardWidth = (screenWidth - 32 - 12) / 2;
 
+    Widget buildRoutineCardContent({VoidCallback? onStart}) => SummaryCard(
+          child: Padding(
+            padding: DesignConstants.cardPadding,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  routine.name,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                AppButton.primary(
+                  onPressed: onStart ?? () {},
+                  label: l10n.start_button,
+                  tooltip: l10n.start_button,
+                  size: AppButtonSize.medium,
+                ),
+              ],
+            ),
+          ),
+        );
+
     return SizedBox(
       width: cardWidth,
-      // FIX: Add spacing here as padding, not as margin.
       child: Padding(
         padding: const EdgeInsets.only(right: DesignConstants.spacingM),
-        child: SummaryCard(
-          child: InkWell(
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => EditRoutineScreen(routine: routine),
+        child: Builder(
+          builder: (cardCtx) => SummaryCard(
+            child: InkWell(
+              onTap: () {
+                Navigator.of(context).push(
+                  CardMorphRoute(
+                    sourceContext: cardCtx,
+                    sourceBuilder: (_) => buildRoutineCardContent(),
+                    builder: (_) => EditRoutineScreen(routine: routine),
+                  ),
+                );
+              },
+              borderRadius:
+                  BorderRadius.circular(DesignConstants.borderRadiusM),
+              child: Padding(
+                padding: DesignConstants.cardPadding,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      routine.name,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    AppButton.primary(
+                      onPressed: () => _startRoutine(
+                        routine,
+                        sourceContext: cardCtx,
+                        sourceBuilder: (_) => buildRoutineCardContent(),
+                      ),
+                      label: l10n.start_button,
+                      tooltip: l10n.start_button,
+                      size: AppButtonSize.medium,
+                    ),
+                  ],
                 ),
-              );
-            },
-            borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
-            child: Padding(
-              padding: DesignConstants.cardPadding,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    routine.name,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  AppButton.primary(
-                    onPressed: () => _startRoutine(routine),
-                    label: l10n.start_button,
-                    tooltip: l10n.start_button,
-                    size: AppButtonSize.medium,
-                  ),
-                ],
               ),
             ),
           ),
@@ -357,16 +450,38 @@ class _WorkoutHubScreenState extends State<WorkoutHubScreen> {
     required BuildContext context,
     required IconData icon,
     required String title,
-    required VoidCallback onTap,
+    required Widget Function() destination,
   }) {
-    return SummaryCard(
-      child: ListTile(
-        leading: Icon(icon, color: Theme.of(context).colorScheme.primary),
-        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
-        trailing: const Icon(LucideIcons.chevron_right),
-        onTap: onTap,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
+    Widget buildTileContent() => SummaryCard(
+          child: ListTile(
+            leading: Icon(icon, color: Theme.of(context).colorScheme.primary),
+            title: Text(title,
+                style: const TextStyle(fontWeight: FontWeight.bold)),
+            trailing: const Icon(LucideIcons.chevron_right),
+            shape: RoundedRectangleBorder(
+              borderRadius:
+                  BorderRadius.circular(DesignConstants.borderRadiusM),
+            ),
+          ),
+        );
+
+    return Builder(
+      builder: (cardCtx) => SummaryCard(
+        child: ListTile(
+          leading: Icon(icon, color: Theme.of(context).colorScheme.primary),
+          title:
+              Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+          trailing: const Icon(LucideIcons.chevron_right),
+          onTap: () => Navigator.of(context).push(
+            CardMorphRoute(
+              sourceContext: cardCtx,
+              sourceBuilder: (_) => buildTileContent(),
+              builder: (_) => destination(),
+            ),
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
+          ),
         ),
       ),
     );

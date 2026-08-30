@@ -54,3 +54,18 @@
 **Learning:** `CalculateDailyNutritionUseCase` loops over `allSupplements` (which can be a large list) to find any untracked supplements that have logs today, and to find the base caffeine supplement. When most daily doses are for already tracked supplements, this full loop is largely redundant but is executed anyway. Furthermore, Map `update` and `containsKey` incurs redundant hash lookups compared to checking the map directly.
 **Action:** When searching an array for matching elements where we know exactly how many elements we need to find (e.g. from a Set difference), keep a running counter and `break` early from the loop once we've found all of them. Also use single hash map lookup and check against `null` instead of `update(..., ifAbsent: ...)` or `containsKey()` then `put()`.
 
+## 2024-05-18 - Avoid chained map/where pipelines in Flutter build methods
+**Learning:** Chaining `.where().toList()` and `.map().toList()` in frequently executed synchronous paths like Flutter's `build` methods causes unnecessary intermediate list allocations, which increases heap pressure and can trigger garbage collection jank. This is especially true for data visualization components (like analytics cards) that may rebuild often.
+**Action:** Replace chained iterable pipelines in UI rendering paths with standard single-pass `for` loops or Dart's collection `for-if` syntax to construct widget lists directly without intermediate arrays.
+
+## 2024-05-19 - [Optimize Sleep Metrics Calculation]
+**Learning:** Chained Dart Iterables (`.map().where().toList()`) in hot paths like the sleep pipeline calculate metrics asynchronously but create unnecessary object allocation overhead and trigger frequent GC pauses, especially when computing historical baselines across multiple days.
+**Action:** Replace functional pipeline chains with single-pass `for` loops in performance-critical data processing logic (such as repository queries or metric calculations) to minimize intermediate Iterable allocations and avoid O(N*M) lookups inside `.where()` predicates.
+
+## 2025-02-15 - Removed object allocations in heart rate analysis loop
+**Learning:** The `PulseAnalysisEngine._sanitizeAndSort` loop processes thousands of raw heart rate samples. Converting `DateTime` to UTC and performing comparisons (`isBefore`) inside this loop created a significant number of short-lived `DateTime` and `Duration` objects. Additionally, using `Map.putIfAbsent` dynamically allocated closure functions (`() => <double>[]`) for every iteration, causing significant overhead for the garbage collector on the main thread when charting heart rates.
+**Action:** Always pre-calculate epoch integer values (e.g. `millisecondsSinceEpoch`) outside of large loops for comparisons, use direct 64-bit integer logic instead of `DateTime` instances, and use direct `null` checking on maps instead of `putIfAbsent` to prevent unnecessary closures and object pressure.
+
+## 2025-02-15 - Fast Paths in ViewModels loops
+**Learning:** `_updateCalculatedState` loops over maps and lists inside `SupplementsViewModel`. Calling `.any()` on a list inside a loop creates an O(N^2) complexity bottleneck. Additionally, `doses.update(ifAbsent:)` creates closure allocations that slow down frequent re-evaluations.
+**Action:** When checking for existence inside a loop, maintain a `Set` of IDs/keys and use `.contains()` for O(1) lookups. When updating frequency or counter maps in reactive classes, replace `.update` with a direct lookup, null-check, and assignment to avoid closure allocations.

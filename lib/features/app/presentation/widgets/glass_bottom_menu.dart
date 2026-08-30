@@ -46,6 +46,7 @@ Future<T?> showGlassBottomMenu<T>({
   bool isDismissible = true,
   bool enableDrag = true,
   bool applySafeAreaBottom = true,
+  bool expandToFullHeight = false,
 }) {
   assert(
     (actions != null && contentBuilder == null) ||
@@ -79,6 +80,7 @@ Future<T?> showGlassBottomMenu<T>({
           actions: actions ?? const <GlassMenuAction>[],
           contentBuilder: contentBuilder,
           applySafeAreaBottom: applySafeAreaBottom,
+          expandToFullHeight: expandToFullHeight,
         ),
       );
     },
@@ -92,6 +94,7 @@ class _GlassBottomMenuSheet extends StatelessWidget {
     this.contentBuilder,
     this.actions = const <GlassMenuAction>[],
     this.applySafeAreaBottom = true,
+    this.expandToFullHeight = false,
   });
 
   final String? title;
@@ -99,6 +102,10 @@ class _GlassBottomMenuSheet extends StatelessWidget {
   final Widget Function(BuildContext, VoidCallback)? contentBuilder;
   final List<GlassMenuAction> actions;
   final bool applySafeAreaBottom;
+
+  /// Fills the screen instead of hugging its content. For sheets that are a
+  /// task in their own right rather than a short question.
+  final bool expandToFullHeight;
 
   @override
   Widget build(BuildContext context) {
@@ -115,13 +122,18 @@ class _GlassBottomMenuSheet extends StatelessWidget {
 
     const double r = 24;
     final topPadding = media.padding.top > 0 ? media.padding.top : 44.0;
-    final maxAvailableHeight = media.size.height - topPadding - 16 - keyboardInset;
+    final maxAvailableHeight =
+        media.size.height - topPadding - 16 - keyboardInset;
 
     Widget contentColumn() {
       return ConstrainedBox(
-        constraints: BoxConstraints(maxHeight: maxAvailableHeight),
+        constraints: BoxConstraints(
+          maxHeight: maxAvailableHeight,
+          minHeight: expandToFullHeight ? maxAvailableHeight : 0,
+        ),
         child: Column(
-          mainAxisSize: MainAxisSize.min,
+          mainAxisSize:
+              expandToFullHeight ? MainAxisSize.max : MainAxisSize.min,
           children: [
             const SizedBox(height: DesignConstants.spacingS),
             Container(
@@ -165,17 +177,32 @@ class _GlassBottomMenuSheet extends StatelessWidget {
             if (contentBuilder != null) ...[
               const SizedBox(height: DesignConstants.spacingS),
               Flexible(
-                child: SingleChildScrollView(
-                  child: Padding(
-                    padding: EdgeInsets.only(
-                        left: DesignConstants.spacingM,
-                        right: DesignConstants.spacingM,
-                        bottom: applySafeAreaBottom ? bottomInset : 0),
-                    child: contentBuilder!(
-                      context,
-                      () => Navigator.of(context).maybePop(),
-                    ),
-                  ),
+                fit: expandToFullHeight ? FlexFit.tight : FlexFit.loose,
+                child: Builder(
+                  builder: (context) {
+                    final content = Padding(
+                      padding: EdgeInsets.only(
+                          left: DesignConstants.spacingM,
+                          right: DesignConstants.spacingM,
+                          bottom: applySafeAreaBottom ? bottomInset : 0),
+                      child: contentBuilder!(
+                        context,
+                        () => Navigator.of(context).maybePop(),
+                      ),
+                    );
+                    // A full-height sheet is a screen in its own right and lays
+                    // itself out against the space it was given; wrapping it in
+                    // a scroll view would hand it an unbounded height instead.
+                    return expandToFullHeight
+                        ? content
+                        : SingleChildScrollView(
+                            clipBehavior: Clip.none,
+                            padding: const EdgeInsets.only(
+                              top: DesignConstants.spacingXS,
+                            ),
+                            child: content,
+                          );
+                  },
                 ),
               ),
             ] else if (actions.isNotEmpty) ...[
@@ -183,7 +210,8 @@ class _GlassBottomMenuSheet extends StatelessWidget {
                 constraints: const BoxConstraints(maxHeight: 420),
                 child: SingleChildScrollView(
                   child: Padding(
-                    padding: EdgeInsets.fromLTRB(8, 12, 8, 8 + (applySafeAreaBottom ? bottomInset : 0)),
+                    padding: EdgeInsets.fromLTRB(
+                        8, 12, 8, 8 + (applySafeAreaBottom ? bottomInset : 0)),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: List.generate(actions.length, (i) {
@@ -197,7 +225,8 @@ class _GlassBottomMenuSheet extends StatelessWidget {
                             title: a.label,
                             subtitle: a.subtitle,
                             onTap: () {
-                              HapticFeedbackService.instance.selectionFeedback();
+                              HapticFeedbackService.instance
+                                  .selectionFeedback();
                               Navigator.of(context).maybePop();
                               WidgetsBinding.instance.addPostFrameCallback(
                                 (_) => a.onTap(),
@@ -252,10 +281,14 @@ class _GlassBottomMenuSheet extends StatelessWidget {
                 children: [
                   Positioned.fill(
                     child: DecoratedBox(
-                      decoration: BoxDecoration(
+                      // Superellipse, not a plain circular radius: a circular
+                      // tint would cut across the squircle glass corners.
+                      decoration: ShapeDecoration(
                         color: neutralTint,
-                        borderRadius:
-                            BorderRadius.vertical(top: Radius.circular(r)),
+                        shape: const RoundedSuperellipseBorder(
+                          borderRadius:
+                              BorderRadius.vertical(top: Radius.circular(r)),
+                        ),
                       ),
                     ),
                   ),
@@ -287,7 +320,8 @@ class _GlassBottomMenuSheet extends StatelessWidget {
       child: Align(
         alignment: Alignment.bottomCenter,
         child: ConstrainedBox(
-          constraints: BoxConstraints(maxWidth: 680, maxHeight: maxAvailableHeight),
+          constraints:
+              BoxConstraints(maxWidth: 680, maxHeight: maxAvailableHeight),
           child: Stack(
             clipBehavior: Clip.none,
             children: [
@@ -297,8 +331,13 @@ class _GlassBottomMenuSheet extends StatelessWidget {
                   right: 0,
                   top: 0,
                   bottom: -keyboardInset,
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.vertical(top: Radius.circular(r)),
+                  child: ClipPath(
+                    clipper: const ShapeBorderClipper(
+                      shape: RoundedSuperellipseBorder(
+                        borderRadius:
+                            BorderRadius.vertical(top: Radius.circular(r)),
+                      ),
+                    ),
                     child: RepaintBoundary(
                       child: AdaptiveGlass(
                         settings: LiquidGlassSettings(
@@ -494,7 +533,6 @@ Future<bool> showDeleteConfirmation(
               Expanded(
                 child: AppButton.secondary(
                   onPressed: () {
-                    close();
                     Navigator.of(ctx).pop(false);
                   },
                   label: l10n.cancel,
@@ -505,7 +543,6 @@ Future<bool> showDeleteConfirmation(
               Expanded(
                 child: AppButton.danger(
                   onPressed: () {
-                    close();
                     Navigator.of(ctx).pop(true);
                   },
                   label: effectiveConfirmLabel,
@@ -558,7 +595,6 @@ Future<ActiveWorkoutConflictResult> showActiveWorkoutConflictDialog(
               Expanded(
                 child: AppButton.secondary(
                   onPressed: () {
-                    close();
                     Navigator.of(ctx).pop(ActiveWorkoutConflictResult.cancel);
                   },
                   label: l10n.cancel,
@@ -569,7 +605,6 @@ Future<ActiveWorkoutConflictResult> showActiveWorkoutConflictDialog(
               Expanded(
                 child: AppButton.danger(
                   onPressed: () {
-                    close();
                     Navigator.of(ctx).pop(ActiveWorkoutConflictResult.discard);
                   },
                   label: l10n.discardButton,
@@ -583,7 +618,6 @@ Future<ActiveWorkoutConflictResult> showActiveWorkoutConflictDialog(
             width: double.infinity,
             child: AppButton.primary(
               onPressed: () {
-                close();
                 Navigator.of(ctx).pop(ActiveWorkoutConflictResult.resume);
               },
               label: l10n.resumeWorkoutButton,

@@ -15,15 +15,19 @@ import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:path/path.dart' as p;
 
+import 'backup_archive.dart';
+import '../media/app_media_store.dart';
 import 'catalog_state_prefs.dart';
 import '../../data/database_helper.dart';
 import '../../data/drift_database.dart' as db;
 import '../../features/diary/data/sources/diary_local_data_source.dart';
+import '../../features/diary/data/meal_photo_store.dart';
 import '../../features/diary/data/sources/meal_local_data_source.dart';
 import '../../features/profile/data/sources/profile_local_data_source.dart';
 import '../../features/supplements/data/sources/supplement_local_data_source.dart';
 import '../../features/steps/data/sources/steps_local_data_source.dart';
 import '../../features/workout/data/sources/workout_local_data_source.dart';
+import '../../features/workout/data/workout_photo_store.dart';
 import '../../features/diary/domain/models/food_item.dart';
 import '../../features/app/domain/models/train_libre_backup.dart';
 import '../../util/encryption_util.dart';
@@ -337,6 +341,15 @@ class BackupManager {
         await _fetchTable('pulse_aggregate_metadata');
     token?.throwIfCancelled();
 
+    // Raw rows rather than a typed model: this table still moves with the AI
+    // capture feature, and a backup that silently drops meals — their title,
+    // photo, transcript and depth facts — is worse than one that carries a few
+    // columns it does not understand. The photo *files* stay out; this is a
+    // JSON document, and base64 images would multiply its size.
+    onProgress?.call('meal_entries', 0.97);
+    payload['meal_entries'] = await _fetchTable('meal_entries');
+    token?.throwIfCancelled();
+
     onProgress?.call('cardio_data', 0.98);
     payload['cardio_activities'] = await _fetchTable('cardio_activities');
     payload['cardio_samples'] = await _fetchTable('cardio_samples');
@@ -383,9 +396,11 @@ class BackupManager {
     void Function(String tableName, double progress)? onProgress,
   ]) async {
     try {
-      final jsonString = await _generateBackupJson(token, onProgress);
-      token?.throwIfCancelled();
-      return await _writeAndShareFile(jsonString, currentBackupFilePrefix);
+      return await _exportArchive(
+        baseName: currentBackupFilePrefix,
+        token: token,
+        onProgress: onProgress,
+      );
     } catch (e) {
       if (e is OperationCanceledException) {
         rethrow;
@@ -400,15 +415,12 @@ class BackupManager {
     void Function(String tableName, double progress)? onProgress,
   ]) async {
     try {
-      final jsonString = await _generateBackupJson(token, onProgress);
-      token?.throwIfCancelled();
-      final wrapper =
-          await EncryptionUtil.encryptString(jsonString, passphrase);
-      token?.throwIfCancelled();
-      final wrappedJson = await compute(jsonEncode, wrapper);
-      token?.throwIfCancelled();
-      return await _writeAndShareFile(
-          wrappedJson, '$currentBackupFilePrefix-enc');
+      return await _exportArchive(
+        baseName: '$currentBackupFilePrefix-enc',
+        passphrase: passphrase,
+        token: token,
+        onProgress: onProgress,
+      );
     } catch (e) {
       if (e is OperationCanceledException) {
         rethrow;
@@ -417,15 +429,54 @@ class BackupManager {
     }
   }
 
-  Future<bool> _writeAndShareFile(String content, String baseName) async {
+  Future<bool> _exportArchive({
+    required String baseName,
+    String? passphrase,
+    CancellationToken? token,
+    void Function(String tableName, double progress)? onProgress,
+  }) async {
     final tempDir = await getTemporaryDirectory();
     final ts = DateFormat('yyyy-MM-dd_HH-mm').format(DateTime.now());
-    final file = File('${tempDir.path}/$baseName-[$ts].json');
-    await file.writeAsString(content);
+    final file = await buildBackupArchive(
+      targetPath: p.join(tempDir.path, '$baseName-[$ts].zip'),
+      passphrase: passphrase,
+      token: token,
+      onProgress: onProgress,
+    );
+    return _shareBackupFile(file, ts);
+  }
+
+  /// Assembles a backup archive at [targetPath] without handing it anywhere.
+  Future<File> buildBackupArchive({
+    required String targetPath,
+    String? passphrase,
+    CancellationToken? token,
+    void Function(String tableName, double progress)? onProgress,
+  }) async {
+    final jsonString = await _generateBackupJson(token, onProgress);
+    token?.throwIfCancelled();
+
+    onProgress?.call('meal_photos', 1.0);
+    final mealThumbnails = await collectMealThumbnails();
+    final workoutThumbnails = await collectWorkoutThumbnails();
+    token?.throwIfCancelled();
+
+    final file = await BackupArchive.write(
+      targetPath: targetPath,
+      payloadJson: jsonString,
+      thumbnails: mealThumbnails,
+      workoutThumbnails: workoutThumbnails,
+      passphrase: passphrase,
+    );
+    token?.throwIfCancelled();
+    return file;
+  }
+
+  Future<bool> _shareBackupFile(File file, String timestamp) async {
     final res = await SharePlus.instance.share(
       ShareParams(
-        files: [XFile(file.path, mimeType: 'application/json')],
-        subject: '$currentBackupAppName Backup $ts',
+        files: [XFile(file.path, mimeType: 'application/zip')],
+        subject: '$currentBackupAppName Backup $timestamp',
         sharePositionOrigin: _sharePositionOrigin(),
       ),
     );
@@ -438,6 +489,19 @@ class BackupManager {
     return shared;
   }
 
+  /// The meal previews that go into a backup archive.
+  ///
+  /// Previews only, deliberately — see [BackupArchive]. The iCloud backup asks
+  /// [AppMediaStore] the same question, so the answer lives there.
+  @visibleForTesting
+  Future<List<File>> collectMealThumbnails() =>
+      AppMediaStore.instance.collectMealThumbnails(_dbHelper.dbInstance);
+
+  /// The workout previews that go into a backup archive.
+  @visibleForTesting
+  Future<List<File>> collectWorkoutThumbnails() =>
+      AppMediaStore.instance.collectWorkoutThumbnails(_dbHelper.dbInstance);
+
   Future<bool> importFullBackupAuto(
     String filePath, {
     String? passphrase,
@@ -447,7 +511,18 @@ class BackupManager {
     try {
       token?.throwIfCancelled();
       onProgress?.call('reading_backup', 0.0);
-      final raw = await File(filePath).readAsString();
+      final file = File(filePath);
+
+      // Sniffed rather than read off the extension: backups come back from
+      // cloud folders and mail attachments under all sorts of names, and every
+      // bare-JSON backup written before the archive format has to keep
+      // restoring.
+      final head = await file.openRead(0, 4).expand((chunk) => chunk).toList();
+      if (BackupArchive.looksLikeArchive(head)) {
+        return await _importArchive(filePath, passphrase, token, onProgress);
+      }
+
+      final raw = await file.readAsString();
       token?.throwIfCancelled();
 
       onProgress?.call('decrypting_backup', 0.05);
@@ -467,6 +542,51 @@ class BackupManager {
         rethrow;
       }
       return false;
+    }
+  }
+
+  Future<bool> _importArchive(
+    String filePath,
+    String? passphrase,
+    CancellationToken? token,
+    void Function(String tableName, double progress)? onProgress,
+  ) async {
+    onProgress?.call('decrypting_backup', 0.05);
+    final contents = await BackupArchive.open(filePath, passphrase: passphrase);
+    try {
+      token?.throwIfCancelled();
+      return await _importBackupPayload(
+        contents.payload,
+        token,
+        onProgress,
+        // Runs after the rows are in and before orphaned files are swept, so
+        // the previews land while the entries that name them already exist.
+        () async {
+          // The rows are in by now, so they can say where their previews go.
+          final mealPlacement = await AppMediaStore.instance
+              .mealThumbPlacement(_dbHelper.dbInstance);
+          final mealWritten = await contents.extractThumbnails(
+            mealPlacement.directoryFor,
+            domain: MediaDomain.meals,
+          );
+          if (mealWritten > 0) {
+            debugPrint('Restored $mealWritten meal preview(s) from the backup.');
+          }
+
+          final workoutPlacement = await AppMediaStore.instance
+              .workoutThumbPlacement(_dbHelper.dbInstance);
+          final workoutWritten = await contents.extractThumbnails(
+            workoutPlacement.directoryFor,
+            domain: MediaDomain.workouts,
+          );
+          if (workoutWritten > 0) {
+            debugPrint(
+                'Restored $workoutWritten workout preview(s) from the backup.');
+          }
+        },
+      );
+    } finally {
+      await contents.close();
     }
   }
 
@@ -584,6 +704,7 @@ class BackupManager {
     Map<String, dynamic> payload, [
     CancellationToken? token,
     void Function(String tableName, double progress)? onProgress,
+    Future<void> Function()? restorePhotos,
   ]) async {
     if (!_isAcceptedBackupMetadata(payload)) {
       debugPrint('Backup metadata rejected.');
@@ -648,6 +769,8 @@ class BackupManager {
         await dbInst.delete(dbInst.supplementLogs).go();
         await dbInst.delete(dbInst.fluidLogs).go();
         await dbInst.delete(dbInst.nutritionLogs).go();
+        // After the logs, which reference it.
+        await dbInst.delete(dbInst.mealEntries).go();
         await dbInst.customStatement('DELETE FROM off_products_archive');
         await dbInst.delete(dbInst.measurements).go();
         await dbInst.delete(dbInst.mealItems).go();
@@ -709,6 +832,12 @@ class BackupManager {
         onProgress?.call('products_archive', 0.30);
         await _importTable(
             'off_products_archive', payload['offProductsArchive']);
+        token?.throwIfCancelled();
+
+        // Before the food logs: each of those may point at a meal entry, and
+        // restoring the logs first would leave the grouping dangling.
+        onProgress?.call('meal_entries', 0.33);
+        await _importTable('meal_entries', payload['meal_entries']);
         token?.throwIfCancelled();
 
         onProgress?.call('user_data', 0.35);
@@ -1042,12 +1171,52 @@ class BackupManager {
     }
 
     if (success) {
+      if (restorePhotos != null) {
+        try {
+          await restorePhotos();
+        } catch (e) {
+          // The data is already restored; missing previews are cosmetic.
+          debugPrint('Restoring meal previews failed: $e');
+        }
+      }
+      await _pruneOrphanMedia();
       onProgress?.call('done', 1.0);
     }
     debugPrint("Backup import succeeded.");
     unawaited(TelemetryService.instance
         .trackFeatureUsed(featureKey: FeatureKey.jsonBackupRestored));
     return true;
+  }
+
+  /// Removes media files the restored database no longer refers to.
+  ///
+  /// A restore replaces the rows but not the files: without this the photos of
+  /// every meal/workout that was just wiped stay on disk forever.
+  Future<void> _pruneOrphanMedia() async {
+    try {
+      final referencedMeals =
+          await AppMediaStore.referencedMealPaths(_dbHelper.dbInstance);
+      final removedMeals =
+          await MealPhotoStore.instance.pruneOrphans(referencedMeals);
+      if (removedMeals > 0) {
+        debugPrint('Pruned $removedMeals orphaned meal photo(s) after restore.');
+      }
+    } catch (e) {
+      debugPrint('Pruning orphaned meal photos failed: $e');
+    }
+
+    try {
+      final referencedWorkouts =
+          await AppMediaStore.referencedWorkoutPaths(_dbHelper.dbInstance);
+      final removedWorkouts =
+          await WorkoutPhotoStore.instance.pruneOrphans(referencedWorkouts);
+      if (removedWorkouts > 0) {
+        debugPrint(
+            'Pruned $removedWorkouts orphaned workout photo(s) after restore.');
+      }
+    } catch (e) {
+      debugPrint('Pruning orphaned workout photos failed: $e');
+    }
   }
 
   Future<void> _importTable(String tableName, List<dynamic>? rows) async {
@@ -1100,16 +1269,21 @@ class BackupManager {
         return false;
       }
 
-      final jsonString = await _generateBackupJson();
-      String content = jsonString;
-      String suffix = '';
+      final usePassphrase =
+          encrypted && passphrase != null && passphrase.isNotEmpty;
+      final suffix = usePassphrase ? '-enc' : '';
 
-      if (encrypted && passphrase != null) {
-        final wrapper =
-            await EncryptionUtil.encryptString(jsonString, passphrase);
-        content = await compute(jsonEncode, wrapper);
-        suffix = '-enc';
-      }
+      // Staged in the temporary directory first: the archive is written by
+      // streaming to a file, and the destination may be a SAF tree that is not
+      // a path at all.
+      final tempDir = await getTemporaryDirectory();
+      final archive = await buildBackupArchive(
+        targetPath: p.join(
+          tempDir.path,
+          'auto-backup-${DateTime.now().millisecondsSinceEpoch}.zip',
+        ),
+        passphrase: usePassphrase ? passphrase : null,
+      );
 
       final savedDir = prefs.getString('auto_backup_dir');
       final treeUri = prefs.getString('auto_backup_tree_uri');
@@ -1118,19 +1292,21 @@ class BackupManager {
 
       if (isAndroidSaf) {
         final ts = DateFormat('yyyy-MM-dd').format(DateTime.now());
-        final fileName = '$currentAutoBackupFilePrefix$suffix-[$ts].json';
+        final fileName = '$currentAutoBackupFilePrefix$suffix-[$ts].zip';
         String? savedSafPath;
         try {
-          savedSafPath = await SafStorageService.instance.writeTextFileToTree(
+          savedSafPath = await SafStorageService.instance.writeFileToTree(
             treeUri: treeUri,
             fileName: fileName,
-            content: content,
+            sourcePath: archive.path,
+            mimeType: 'application/zip',
           );
         } catch (e) {
           debugPrint('Auto-backup SAF write threw error: $e');
         }
 
         if (savedSafPath != null) {
+          await _deleteQuietly(archive);
           await prefs.setInt('last_auto_backup_timestamp',
               DateTime.now().millisecondsSinceEpoch);
           await prefs.setString('auto_backup_last_file_path', savedSafPath);
@@ -1173,10 +1349,11 @@ class BackupManager {
 
       final ts = DateFormat('yyyy-MM-dd').format(DateTime.now());
       final file = File(p.join(
-          directory.path, '$currentAutoBackupFilePrefix$suffix-[$ts].json'));
+          directory.path, '$currentAutoBackupFilePrefix$suffix-[$ts].zip'));
 
       await directory.create(recursive: true);
-      await file.writeAsString(content, flush: true);
+      await archive.copy(file.path);
+      await _deleteQuietly(archive);
       await prefs.setInt(
           'last_auto_backup_timestamp', DateTime.now().millisecondsSinceEpoch);
 
@@ -1213,6 +1390,14 @@ class BackupManager {
         debugPrint('Auto backup prefs error: $err');
       }
       return false;
+    }
+  }
+
+  Future<void> _deleteQuietly(File file) async {
+    try {
+      if (await file.exists()) await file.delete();
+    } catch (e) {
+      debugPrint('Removing staged auto-backup failed: $e');
     }
   }
 

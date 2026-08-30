@@ -13,15 +13,15 @@ import '../../statistics/domain/body_nutrition_analytics_models.dart';
 import '../../statistics/domain/hub_payload_models.dart';
 import '../../pulse/data/pulse_repository.dart';
 import '../../sleep/data/sleep_hub_summary_repository.dart';
-import '../../sleep/presentation/sleep_navigation.dart';
 import '../../sleep/platform/sleep_sync_service.dart';
 import '../../steps/data/steps_aggregation_repository.dart';
 import '../../../generated/app_localizations.dart';
 import '../../../util/design_constants.dart';
 import '../../../widgets/common/common.dart';
 import '../../../widgets/common/bottom_content_spacer.dart';
-
+import '../../../widgets/common/card_morph_route.dart';
 import '../../../widgets/common/summary_card.dart';
+import '../../sleep/presentation/day/sleep_day_overview_page.dart';
 import '../../steps/presentation/steps_module_screen.dart';
 import 'body_nutrition_correlation_screen.dart';
 import 'consistency_tracker_screen.dart';
@@ -417,18 +417,32 @@ class _StatisticsHubScreenView extends StatelessWidget {
       stepsSubtitle = l10n.statisticsTotalSteps;
     }
 
-    Widget cardChild = StatisticsStepsCard(
-      onTap: () {
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const StepsModuleScreen()),
-        );
-      },
-      title: stepsTitle,
-      chipText: subtitleRange,
-      currentSteps: currentSteps,
-      currentStepsSubtitle: stepsSubtitle,
-      dailyTotals: displayRange.dailyTotals,
-      dailyGoal: viewModel.targetSteps,
+    Widget cardChild = Builder(
+      builder: (cardCtx) => StatisticsStepsCard(
+        onTap: () {
+          Navigator.of(context).push(
+            CardMorphRoute(
+              sourceContext: cardCtx,
+              sourceBuilder: (_) => StatisticsStepsCard(
+                onTap: () {},
+                title: stepsTitle,
+                chipText: subtitleRange,
+                currentSteps: currentSteps,
+                currentStepsSubtitle: stepsSubtitle,
+                dailyTotals: displayRange.dailyTotals,
+                dailyGoal: viewModel.targetSteps,
+              ),
+              builder: (_) => const StepsModuleScreen(),
+            ),
+          );
+        },
+        title: stepsTitle,
+        chipText: subtitleRange,
+        currentSteps: currentSteps,
+        currentStepsSubtitle: stepsSubtitle,
+        dailyTotals: displayRange.dailyTotals,
+        dailyGoal: viewModel.targetSteps,
+      ),
     );
 
     if (!hasData) {
@@ -469,15 +483,26 @@ class _StatisticsHubScreenView extends StatelessWidget {
     StatisticsHubViewModel viewModel,
     AppLocalizations l10n,
   ) {
-    final card = RecoverySectionCard(
-      state: viewModel.recoveryState,
-      chipText: null, // As requested, no pill for Recovery
-      onRetry: () => viewModel.loadHubAnalytics(),
-      onTap: () {
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const RecoveryTrackerScreen()),
-        );
-      },
+    final card = Builder(
+      builder: (cardCtx) => RecoverySectionCard(
+        state: viewModel.recoveryState,
+        chipText: null, // As requested, no pill for Recovery
+        onRetry: () => viewModel.loadHubAnalytics(),
+        onTap: () {
+          Navigator.of(context).push(
+            CardMorphRoute(
+              sourceContext: cardCtx,
+              sourceBuilder: (_) => RecoverySectionCard(
+                state: viewModel.recoveryState,
+                chipText: null,
+                onRetry: () {},
+                onTap: () {},
+              ),
+              builder: (_) => const RecoveryTrackerScreen(),
+            ),
+          );
+        },
+      ),
     );
     final hasData = viewModel.recoveryState.data?.hasData ?? false;
     if (hasData) return card;
@@ -493,11 +518,28 @@ class _StatisticsHubScreenView extends StatelessWidget {
     StatisticsHubViewModel viewModel,
     AppLocalizations l10n,
   ) {
-    final card = SleepSectionCard(
-      state: viewModel.sleepState,
-      rangeLabel: _unifiedRangeLabel(viewModel, l10n),
-      onRetry: () => viewModel.loadHubAnalytics(),
-      onTap: () => SleepNavigation.openDay(context),
+    final card = Builder(
+      builder: (cardCtx) => SleepSectionCard(
+        state: viewModel.sleepState,
+        rangeLabel: _unifiedRangeLabel(viewModel, l10n),
+        onRetry: () => viewModel.loadHubAnalytics(),
+        onTap: () {
+          Navigator.of(context).push(
+            CardMorphRoute(
+              sourceContext: cardCtx,
+              sourceBuilder: (_) => SleepSectionCard(
+                state: viewModel.sleepState,
+                rangeLabel: _unifiedRangeLabel(viewModel, l10n),
+                onRetry: () {},
+                onTap: () {},
+              ),
+              builder: (_) => SleepDayOverviewPage(
+                selectedDay: DateTime.now(),
+              ),
+            ),
+          );
+        },
+      ),
     );
     // Only show overlay when tracking IS enabled but no data
     final hasData = viewModel.sleepState.data?.hasData ?? false;
@@ -515,15 +557,26 @@ class _StatisticsHubScreenView extends StatelessWidget {
     AppLocalizations l10n,
   ) {
     final rangeLabel = _unifiedRangeLabel(viewModel, l10n);
-    final card = PulseSectionCard(
-      state: viewModel.pulseState,
-      fallbackRangeLabel: rangeLabel ?? '',
-      onRetry: () => viewModel.loadHubAnalytics(),
-      onTap: () {
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const PulseAnalysisScreen()),
-        );
-      },
+    final card = Builder(
+      builder: (cardCtx) => PulseSectionCard(
+        state: viewModel.pulseState,
+        fallbackRangeLabel: rangeLabel ?? '',
+        onRetry: () => viewModel.loadHubAnalytics(),
+        onTap: () {
+          Navigator.of(context).push(
+            CardMorphRoute(
+              sourceContext: cardCtx,
+              sourceBuilder: (_) => PulseSectionCard(
+                state: viewModel.pulseState,
+                fallbackRangeLabel: rangeLabel ?? '',
+                onRetry: () {},
+                onTap: () {},
+              ),
+              builder: (_) => const PulseAnalysisScreen(),
+            ),
+          );
+        },
+      ),
     );
     // Only show overlay when tracking IS enabled but no data
     final hasData = viewModel.pulseState.data?.hasData ?? false;
@@ -540,15 +593,26 @@ class _StatisticsHubScreenView extends StatelessWidget {
     StatisticsHubViewModel viewModel,
     AppLocalizations l10n,
   ) {
-    final card = ConsistencySectionCard(
-      state: viewModel.consistencyState,
-      chipText: _unifiedRangeLabel(viewModel, l10n),
-      onRetry: () => viewModel.loadHubAnalytics(),
-      onTap: () {
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const ConsistencyTrackerScreen()),
-        );
-      },
+    final card = Builder(
+      builder: (cardCtx) => ConsistencySectionCard(
+        state: viewModel.consistencyState,
+        chipText: _unifiedRangeLabel(viewModel, l10n),
+        onRetry: () => viewModel.loadHubAnalytics(),
+        onTap: () {
+          Navigator.of(context).push(
+            CardMorphRoute(
+              sourceContext: cardCtx,
+              sourceBuilder: (_) => ConsistencySectionCard(
+                state: viewModel.consistencyState,
+                chipText: _unifiedRangeLabel(viewModel, l10n),
+                onRetry: () {},
+                onTap: () {},
+              ),
+              builder: (_) => const ConsistencyTrackerScreen(),
+            ),
+          );
+        },
+      ),
     );
     final totalWorkouts =
         viewModel.consistencyState.data?.trainingStats.totalWorkouts ?? 0;
@@ -565,15 +629,26 @@ class _StatisticsHubScreenView extends StatelessWidget {
     StatisticsHubViewModel viewModel,
     AppLocalizations l10n,
   ) {
-    final card = PerformanceSectionCard(
-      state: viewModel.performanceState,
-      chipText: _unifiedRangeLabel(viewModel, l10n),
-      onRetry: () => viewModel.loadHubAnalytics(),
-      onTap: () {
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const PRDashboardScreen()),
-        );
-      },
+    final card = Builder(
+      builder: (cardCtx) => PerformanceSectionCard(
+        state: viewModel.performanceState,
+        chipText: _unifiedRangeLabel(viewModel, l10n),
+        onRetry: () => viewModel.loadHubAnalytics(),
+        onTap: () {
+          Navigator.of(context).push(
+            CardMorphRoute(
+              sourceContext: cardCtx,
+              sourceBuilder: (_) => PerformanceSectionCard(
+                state: viewModel.performanceState,
+                chipText: _unifiedRangeLabel(viewModel, l10n),
+                onRetry: () {},
+                onTap: () {},
+              ),
+              builder: (_) => const PRDashboardScreen(),
+            ),
+          );
+        },
+      ),
     );
     final hasRecords =
         (viewModel.performanceState.data?.recentPrs.isNotEmpty ?? false) ||
@@ -591,15 +666,26 @@ class _StatisticsHubScreenView extends StatelessWidget {
     StatisticsHubViewModel viewModel,
     AppLocalizations l10n,
   ) {
-    final card = MuscleVolumeSectionCard(
-      state: viewModel.volumeMusclesState,
-      rangeLabel: _unifiedRangeLabel(viewModel, l10n),
-      onRetry: () => viewModel.loadHubAnalytics(),
-      onTap: () {
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const MuscleGroupAnalyticsScreen()),
-        );
-      },
+    final card = Builder(
+      builder: (cardCtx) => MuscleVolumeSectionCard(
+        state: viewModel.volumeMusclesState,
+        rangeLabel: _unifiedRangeLabel(viewModel, l10n),
+        onRetry: () => viewModel.loadHubAnalytics(),
+        onTap: () {
+          Navigator.of(context).push(
+            CardMorphRoute(
+              sourceContext: cardCtx,
+              sourceBuilder: (_) => MuscleVolumeSectionCard(
+                state: viewModel.volumeMusclesState,
+                rangeLabel: _unifiedRangeLabel(viewModel, l10n),
+                onRetry: () {},
+                onTap: () {},
+              ),
+              builder: (_) => const MuscleGroupAnalyticsScreen(),
+            ),
+          );
+        },
+      ),
     );
     final hasVolumeData =
         viewModel.volumeMusclesState.data?.weeklyVolume.isNotEmpty ?? false;
@@ -616,19 +702,28 @@ class _StatisticsHubScreenView extends StatelessWidget {
     StatisticsHubViewModel viewModel,
     AppLocalizations l10n,
   ) {
-    final card = BodyMetricsSectionCard(
-      state: viewModel.bodyNutritionState,
-      rangeLabel: _unifiedRangeLabel(viewModel, l10n),
-      onRetry: () => viewModel.loadHubAnalytics(),
-      onTap: () {
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => BodyNutritionCorrelationScreen(
-              initialRangeIndex: viewModel.activeBlockType.index,
+    final card = Builder(
+      builder: (cardCtx) => BodyMetricsSectionCard(
+        state: viewModel.bodyNutritionState,
+        rangeLabel: _unifiedRangeLabel(viewModel, l10n),
+        onRetry: () => viewModel.loadHubAnalytics(),
+        onTap: () {
+          Navigator.of(context).push(
+            CardMorphRoute(
+              sourceContext: cardCtx,
+              sourceBuilder: (_) => BodyMetricsSectionCard(
+                state: viewModel.bodyNutritionState,
+                rangeLabel: _unifiedRangeLabel(viewModel, l10n),
+                onRetry: () {},
+                onTap: () {},
+              ),
+              builder: (_) => BodyNutritionCorrelationScreen(
+                initialRangeIndex: viewModel.activeBlockType.index,
+              ),
             ),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
     final bodyNutrition = viewModel.bodyNutritionState.data;
     final hasBodyData = bodyNutrition?.hasAnyData ?? false;
@@ -642,45 +737,53 @@ class _StatisticsHubScreenView extends StatelessWidget {
 
   Widget _buildMeasurementsShortcutCard(
       BuildContext context, AppLocalizations l10n) {
-    return SummaryCard(
-      key: const Key('statistics_measurements_link_card'),
-      onTap: () {
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const MeasurementsScreen()),
-        );
-      },
-      child: Padding(
-        padding: const EdgeInsets.all(DesignConstants.spacingL),
-        child: Row(
-          children: [
-            Icon(
-              LucideIcons.ruler,
-              color: Theme.of(context).colorScheme.primary,
+    Widget buildShortcutContent() => Padding(
+      padding: const EdgeInsets.all(DesignConstants.spacingL),
+      child: Row(
+        children: [
+          Icon(
+            LucideIcons.ruler,
+            color: Theme.of(context).colorScheme.primary,
+          ),
+          const SizedBox(width: DesignConstants.spacingM),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  l10n.body_measurements,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  l10n.all_measurements_no_cap,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.outline,
+                      ),
+                ),
+              ],
             ),
-            const SizedBox(width: DesignConstants.spacingM),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    l10n.body_measurements,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    l10n.all_measurements_no_cap,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context).colorScheme.outline,
-                        ),
-                  ),
-                ],
-              ),
+          ),
+          const Icon(LucideIcons.chevron_right),
+        ],
+      ),
+    );
+
+    return Builder(
+      builder: (cardCtx) => SummaryCard(
+        key: const Key('statistics_measurements_link_card'),
+        onTap: () {
+          Navigator.of(context).push(
+            CardMorphRoute(
+              sourceContext: cardCtx,
+              sourceBuilder: (_) => SummaryCard(child: buildShortcutContent()),
+              builder: (_) => const MeasurementsScreen(),
             ),
-            const Icon(LucideIcons.chevron_right),
-          ],
-        ),
+          );
+        },
+        child: buildShortcutContent(),
       ),
     );
   }

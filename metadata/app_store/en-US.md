@@ -29,6 +29,7 @@ KEY FEATURES:
 • Log workouts set by set, including warm-ups, working sets, failure sets, and dropsets.
 • Track precise metrics: reps, weight, and RPE / RIR (Rate of Perceived Exertion / Reps in Reserve).
 • Build reusable routines, add custom exercises, and review your full session history.
+• Attach up to 4 photos to any session, taken with the camera or picked from your library, and keep them in your backups.
 
 2. SCIENCE-BASED NUTRITION & TDEE
 • Log meals, calories, macronutrients, hydration, caffeine, creatine, and custom supplements.
@@ -44,6 +45,7 @@ KEY FEATURES:
 
 5. BYOK AI MEAL CAPTURE (Optional)
 • Bring Your Own Key (BYOK): optional AI meal recognition that runs on your own API key. Disabled by default.
+• Photo, Barcode and Voice in One View: photograph your plate, let the same screen pick up the barcode of a packaged product, or simply describe the meal by voice. On iPhone models with LiDAR, portion size is measured instead of guessed.
 • State-Aware Matching: a local "Top-N Fuzzy Alternatives" system integrated with Open Food Facts matches your plate accurately while strictly preventing hallucinations.
 • 100% Transparent: every AI suggestion is fully reviewable and adjustable before saving.
 
@@ -54,11 +56,15 @@ OPEN SOURCE & OPEN DATA:
 Built transparently on trusted community catalogs from Open Food Facts and the wger exercise database. The full source code is publicly accessible, so our privacy claims can be verified rather than just believed.
 
 ## Release Notes (What's New / Release Notes in this version)
-Home screen widgets on Android: The widget family has arrived on Android - your last workout with its muscle map, muscle recovery, your steps of the last 7 days, body measurements, today's nutrition and quick actions. Add them from your launcher's widget picker; nutrition, measurements and quick actions can be reconfigured at any time.
+Log a meal from a photo: Point the camera at your plate and the AI turns it into individual foods with amounts, calories and macros - all correctable before you save. Packaged products are recognised by barcode in the very same view, iPhones with LiDAR measure the portion instead of guessing it, and the microphone button lets you add what a photo cannot show.
 
-Your running workout in the notification shade: A workout in progress now sits in your notifications with its rest countdown, and on Android 16 it becomes a Live Update with a chip in the status bar. Tick off a set, add or drop 15 seconds and skip the rest right there, without opening the app.
+A clearer diary: A scanned meal stays one entry with its photo and unfolds into its ingredients. Entries are sorted by calories, largest first.
 
-Quick Settings tiles: All seven quick actions - barcode scanner, AI meal capture, start workout, add water, log a supplement, add a measurement and add food - are now available as tiles in your Quick Settings panel.
+More from your training: Keep up to 4 photos per workout, and the bar above the tab bar always shows whether you are working or resting and which exercise comes next. Tapping it grows the workout out of the bar.
+
+Your photos in the iCloud backup: The automatic backup now carries the photos of your meals and workouts. Restoring no longer needs a restart and keeps the previous backup as a spare copy.
+
+Smoother to use: Cards grow into full screen instead of switching abruptly, numbers count themselves up, and removed exercises fold away gently instead of popping out.
 
 ## Support URL (Support Web Page URL)
 https://rfivesix.github.io/train-libre/support.html

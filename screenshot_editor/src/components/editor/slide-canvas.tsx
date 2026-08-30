@@ -295,6 +295,98 @@ function shade(hex: string, percent: number) {
   return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, "0")}`;
 }
 
+// ---------- Deck-wide panorama background ----------
+//
+// The per-screen SlideBackground below lives inside an overflow:hidden screen
+// box, so every screen repeats the same blobs. In connected mode we instead
+// paint ONE background across the whole deck: glow fields and an aurora
+// horizon straddle the screen seams, so the exported screens read as slices of
+// a single scene while each still stands on its own in App Store search.
+
+function hexToRgb(hex: string) {
+  const c = hex.replace("#", "");
+  const full = c.length === 3 ? c.split("").map((x) => x + x).join("") : c;
+  const num = parseInt(full, 16);
+  return { r: (num >> 16) & 0xff, g: (num >> 8) & 0xff, b: num & 0xff };
+}
+
+// Glow anchors expressed in deck space, so the scene is identical no matter
+// which screen paints it. [xFrac of deck, yFrac of height, wFrac of deck,
+// hFrac of height, colour]
+function deckGlows(screens: number, accent: string): Array<[number, number, number, number, string]> {
+  const { r, g, b } = hexToRgb(accent);
+  const a = (o: number) => `rgba(${r}, ${g}, ${b}, ${o})`;
+  const cool = (o: number) => `rgba(80, 150, 255, ${o})`;
+  const out: Array<[number, number, number, number, string]> = [];
+
+  // One anchor per screen, alternating top/bottom so no two neighbours read the
+  // same, sized wide enough (1.15 screens) that every one straddles a seam.
+  const w = 1.15 / screens;
+  for (let i = 0; i < screens; i++) {
+    const f = (i + 0.5) / screens;
+    const top = i % 2 === 0;
+    const isCool = i % 3 === 2;
+    out.push([
+      f + (top ? -0.014 : 0.018),
+      top ? 0.04 : 0.97,
+      w,
+      top ? 0.8 : 0.72,
+      isCool ? cool(0.13) : a(top ? 0.34 : 0.24),
+    ]);
+  }
+  // Two deck-spanning washes tie the individual anchors together.
+  out.push([0.28, 0.45, 0.6, 1.4, cool(0.045)]);
+  out.push([0.7, 0.55, 0.55, 1.3, a(0.055)]);
+  return out;
+}
+
+// One screen's slice of the deck-wide scene.
+//
+// The scene is authored in deck coordinates, but each screen paints only its
+// own 1320px window: gradient centres are shifted by -index*cW. Painting the
+// full deck box per screen instead makes html-to-image rasterise ~7x the
+// pixels for every exported frame.
+function PanoramaBackground({
+  index,
+  screens,
+  cW,
+  cH,
+  theme,
+}: {
+  index: number;
+  screens: number;
+  cW: number;
+  cH: number;
+  theme: Theme;
+}) {
+  const totalW = screens * cW;
+
+  const layers = deckGlows(screens, theme.accent)
+    .map(([x, y, gw, gh, color]) => {
+      const localX = x * totalW - index * cW;
+      return `radial-gradient(${(gw * totalW).toFixed(0)}px ${(gh * cH).toFixed(0)}px at ${localX.toFixed(
+        1,
+      )}px ${(y * cH).toFixed(1)}px, ${color} 0%, transparent 70%)`;
+    })
+    .join(", ");
+
+  return (
+    <div
+      aria-hidden
+      style={{
+        position: "absolute",
+        inset: 0,
+        overflow: "hidden",
+        pointerEvents: "none",
+        background: `${layers}, linear-gradient(180deg, ${shade(theme.bg, 5)} 0%, ${theme.bg} 46%, ${shade(
+          theme.bg,
+          -3,
+        )} 100%)`,
+      }}
+    />
+  );
+}
+
 // ---------- Decorative blob ----------
 
 function Blob({
@@ -582,6 +674,9 @@ export function DeckCanvas({
 }: DeckCanvasProps) {
   const { cW, cH } = getCanvas(device, orientation);
   const totalW = Math.max(1, slides.length) * cW;
+  // One scene behind the whole deck instead of the same blobs repeated per
+  // screen. Feature graphics paint their own background.
+  const panorama = connectedCanvas && device !== "feature-graphic";
 
   return (
     <div
@@ -646,7 +741,17 @@ export function DeckCanvas({
               overflow: "hidden",
             }}
           >
-            <SlideBackground slide={slide} cW={cW} cH={cH} theme={theme} />
+            {panorama ? (
+              <PanoramaBackground
+                index={index}
+                screens={slides.length}
+                cW={cW}
+                cH={cH}
+                theme={theme}
+              />
+            ) : (
+              <SlideBackground slide={slide} cW={cW} cH={cH} theme={theme} />
+            )}
             {showGuides && <ScreenGuide cW={cW} cH={cH} index={index} active={active} />}
           </div>
         );
@@ -972,6 +1077,11 @@ function SlideElements({
     const saved = slide.transforms?.[id];
     const rotation = saved?.rotation ?? 0;
     const zIndex = saved?.zIndex ?? (id === "deviceSecondary" ? 2 : 3);
+    // Shadow scales with the frame so preview and full-res export match.
+    // drop-shadow (not box-shadow) so it follows the mockup PNG's alpha.
+    const shadow = `drop-shadow(0 ${(rect.width * 0.035).toFixed(1)}px ${(
+      rect.width * 0.075
+    ).toFixed(1)}px rgba(0,0,0,0.7))`;
     return (
       <Movable
         rect={toGlobal(rect)}
@@ -999,7 +1109,7 @@ function SlideElements({
         <Frame
           src={src}
           hideEmpty={hideEmpty}
-          style={{ width: "100%", height: "100%", ...extraStyle }}
+          style={{ width: "100%", height: "100%", filter: shadow, ...extraStyle }}
         />
       </Movable>
     );

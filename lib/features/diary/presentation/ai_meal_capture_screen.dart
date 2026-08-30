@@ -1,34 +1,50 @@
 // lib/screens/ai_meal_capture_screen.dart
 
+import 'dart:async';
 import 'dart:io';
-import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:qr_code_scanner_plus/qr_code_scanner_plus.dart';
+import 'package:uuid/uuid.dart';
+
 import '../../../generated/app_localizations.dart';
+import '../../../navigation/app_route_observer.dart';
 import '../../../services/ai_meal_validation.dart';
 import '../../../services/ai_service.dart';
 import 'util/photo_pre_processor.dart';
 import '../../../services/ai_matching_language_service.dart';
 import '../../../services/haptic_feedback_service.dart';
+import '../../depth_scan/data/depth_map_attachment.dart';
+import '../../depth_scan/data/depth_scan_settings.dart';
+import '../../depth_scan/platform/depth_scan_channel.dart';
 import '../../app/presentation/widgets/glass_bottom_menu.dart';
-import '../../../widgets/common/global_app_bar.dart';
+import 'ai_meal_review_reveal_route.dart';
 import 'ai_meal_review_screen.dart';
+import 'meal_analysis_morph_route.dart';
+import 'meal_analysis_screen.dart';
 import 'meal_editor_screen.dart';
 import '../../settings/presentation/ai_settings_screen.dart';
 import '../../../util/design_constants.dart';
-import '../../../widgets/common/algorithm_info_sheet.dart';
-import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../core/infrastructure/basis_data_manager.dart';
+import '../../../widgets/common/global_app_bar.dart';
+import '../data/sources/product_local_data_source.dart';
+import '../domain/models/food_item.dart';
+import 'dialogs/quantity_log_flow.dart';
+import 'dialogs/voice_dictation_sheet.dart';
 import '../../../widgets/common/database_placeholder_widget.dart';
 import '../../../widgets/common/app_button.dart';
-import 'dart:async';
 import '../../../services/telemetry/telemetry_service.dart';
+import '../../../services/telemetry/telemetry_buckets.dart';
+import '../../../services/voice/voice_dictation_service.dart';
+import '../../../services/ai_meal_capture_tour_service.dart';
+import 'widgets/ai_meal_capture_tour_overlay.dart';
+import '../../../util/permission_dialogs.dart';
 
-/// Screen for capturing meal input via photo(s) or text before AI analysis.
-///
-/// Minimalist design — AI gradient is concentrated only on the primary
-/// "Analyze" CTA button. All other UI elements use standard theme colours.
+/// Screen for capturing meal input via live camera, photo(s), barcode or text (Screens A1–A6).
 class AiMealCaptureScreen extends StatefulWidget {
   final DateTime? initialDate;
   final String? initialMealType;
@@ -44,22 +60,249 @@ class AiMealCaptureScreen extends StatefulWidget {
 }
 
 class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver, RouteAware {
   final _textController = TextEditingController();
   final ImagePicker _picker = ImagePicker();
 
+  // Navigation & Lifecycle state
+  bool _isRouteObserverAttached = false;
+  bool _isTopRoute = true;
+  bool _isCameraSuspended = false;
+
+  // Camera & Barcode state
+  final GlobalKey qrKey = GlobalKey(debugLabel: 'QR_Capture');
+  QRViewController? _qrController;
+  PermissionStatus _cameraPermission = PermissionStatus.denied;
+  bool _isFlashOn = false;
+  String? _detectedBarcode;
+  FoodItem? _detectedProduct;
+  bool _isLoggingBarcode = false;
+
+  /// Passive barcode detection. On by default — most packaged foods are logged
+  /// this way — but switchable, because on a plated meal the constant chip is
+  /// noise rather than help.
+  bool _barcodeDetectionEnabled = true;
+  bool _hasLidar = false;
+
+  /// True once the unified native session (preview + barcodes + photo + depth)
+  /// is available. Only then does the separate scanner camera stay out of the
+  /// picture — two sessions cannot own the back camera at the same time.
+  bool _useNativeSession = false;
+  StreamSubscription<String>? _barcodeSubscription;
+
+  /// Set when the last capture measured a distance outside the range LiDAR can
+  /// be trusted at. Replaces the previous hard-coded distance pill.
+  String? _distanceHint;
+
+  // Voice dictation state
+  bool _isDictating = false;
+
   // Photo state
   final List<File> _images = [];
+  final Map<String, DepthCaptureResult> _depthCaptures = {};
+  DepthCaptureResult? _lastDepthCapture;
   static const int _maxImages = 4;
   final PhotoPreProcessor _preProcessor = PhotoPreProcessor();
 
   // Analysis state
   bool _isAnalyzing = false;
+  MealAnalysisController? _analysisController;
+  Route<void>? _analysisRoute;
+  bool _analysisCancelled = false;
   bool _aiWaitingHapticActive = false;
+  bool _showTextInput = false;
 
   late AnimationController _analyzeButtonAnimationController;
-
   bool _isOffDbInitialized = false;
+
+  // Interactive Tour State & Global Keys
+  final GlobalKey _overlayKey = GlobalKey();
+  final GlobalKey _keyShutter = GlobalKey();
+  final GlobalKey _keyBarcode = GlobalKey();
+  final GlobalKey _keyBarcodeBanner = GlobalKey();
+  final GlobalKey _keyGallery = GlobalKey();
+  final GlobalKey _keyVoice = GlobalKey();
+  final GlobalKey _keyText = GlobalKey();
+  final GlobalKey _keyAnalyze = GlobalKey();
+
+  bool _isTourActive = false;
+  int _tourStep = 0;
+  List<Rect> _tourTargetRects = const [];
+
+  @override
+  void reassemble() {
+    super.reassemble();
+    if (_useNativeSession) return;
+    if (Platform.isAndroid) {
+      _qrController?.pauseCamera();
+    } else if (Platform.isIOS) {
+      if (_isTopRoute &&
+          !_isCameraSuspended &&
+          !_isAnalyzing &&
+          !_isDictating) {
+        _qrController?.resumeCamera();
+      }
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    unawaited(TelemetryService.instance
+        .trackScreenView(screenName: ScreenName.aiMealCapture));
+    WidgetsBinding.instance.addObserver(this);
+    _checkDbStatus();
+    unawaited(_prepareCamera());
+
+    _analyzeButtonAnimationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1500),
+    )..repeat();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
+      final tourCompleted =
+          await AiMealCaptureTourService.instance.isTourCompleted();
+      if (!tourCompleted && mounted) {
+        _startTour();
+      }
+    });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final route = ModalRoute.of(context);
+    if (!_isRouteObserverAttached && route is PageRoute<dynamic>) {
+      appRouteObserver.subscribe(this, route);
+      _isRouteObserverAttached = true;
+    }
+  }
+
+  @override
+  void didPush() {
+    _isTopRoute = true;
+  }
+
+  @override
+  void didPushNext() {
+    _isTopRoute = false;
+    unawaited(_suspendCamera());
+  }
+
+  @override
+  void didPopNext() {
+    _isTopRoute = true;
+    if (!_isAnalyzing && !_isDictating) {
+      unawaited(_resumeCamera());
+    }
+  }
+
+  @override
+  void didPop() {
+    _isTopRoute = false;
+    unawaited(_suspendCamera());
+  }
+
+  @override
+  void dispose() {
+    if (_isRouteObserverAttached) {
+      appRouteObserver.unsubscribe(this);
+    }
+    WidgetsBinding.instance.removeObserver(this);
+    _stopAiWaitingHaptics();
+    _barcodeSubscription?.cancel();
+    _analysisController?.dispose();
+    unawaited(VoiceDictationService.instance.cancel());
+    if (_useNativeSession) {
+      unawaited(DepthScanChannel.instance.stopSession());
+    }
+    // The QR controller is not disposed here: it self-disposes when the
+    // QRView is unmounted, and calling it again is deprecated.
+    _preProcessor.dispose();
+    _textController.dispose();
+    _analyzeButtonAnimationController.dispose();
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+
+    if (state == AppLifecycleState.resumed) {
+      if (_isTopRoute &&
+          !_isCameraSuspended &&
+          !_isAnalyzing &&
+          !_isDictating) {
+        unawaited(_resumeCamera());
+      }
+    } else if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive) {
+      if (_useNativeSession) {
+        unawaited(DepthScanChannel.instance.stopSession());
+      } else {
+        unawaited(_qrController?.pauseCamera());
+      }
+    }
+  }
+
+  /// Suspends active camera preview and depth/barcode hardware.
+  Future<void> _suspendCamera() async {
+    _isCameraSuspended = true;
+    if (_isFlashOn && mounted) {
+      setState(() => _isFlashOn = false);
+    }
+    if (_useNativeSession) {
+      await DepthScanChannel.instance.stopSession();
+    } else {
+      await _qrController?.pauseCamera();
+    }
+  }
+
+  Future<void> _toggleFlash() async {
+    HapticFeedbackService.instance.selectionFeedback();
+    if (_useNativeSession) {
+      final isOn = await DepthScanChannel.instance.toggleTorch();
+      if (mounted) {
+        setState(() => _isFlashOn = isOn);
+      }
+    } else if (_qrController != null) {
+      try {
+        await _qrController?.toggleFlash();
+        final status = await _qrController?.getFlashStatus();
+        if (mounted) {
+          setState(() => _isFlashOn = status ?? !_isFlashOn);
+        }
+      } catch (e) {
+        debugPrint('[AiMealCapture] toggleFlash error: $e');
+      }
+    }
+  }
+
+  /// Resumes active camera preview and depth/barcode hardware if the screen is currently active.
+  Future<void> _resumeCamera() async {
+    _isCameraSuspended = false;
+    if (!mounted ||
+        !_cameraPermission.isGranted ||
+        !_isTopRoute ||
+        _isAnalyzing ||
+        _isDictating) {
+      return;
+    }
+    if (_useNativeSession) {
+      await DepthScanChannel.instance.startSession();
+    } else {
+      await _qrController?.resumeCamera();
+    }
+  }
+
+  /// Permission first, session second — the native session cannot configure an
+  /// input without camera access.
+  Future<void> _prepareCamera() async {
+    await _checkPermission();
+    if (!mounted || !_cameraPermission.isGranted) return;
+    await _initCaptureSession();
+  }
 
   Future<void> _checkDbStatus() async {
     final initialized =
@@ -71,25 +314,158 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
     }
   }
 
-  @override
-  void initState() {
-    super.initState();
-    unawaited(TelemetryService.instance
-        .trackScreenView(screenName: ScreenName.aiMealCapture));
-    _checkDbStatus();
-    _analyzeButtonAnimationController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1500),
-    )..repeat();
+  /// Brings up the unified native session when the device has one, and only
+  /// then subscribes to its barcode stream. Falls back silently to the scanner
+  /// camera plus image picker everywhere else.
+  Future<void> _initCaptureSession() async {
+    final capability = await DepthScanChannel.instance.capability();
+    if (!mounted) return;
+
+    setState(() {
+      _hasLidar = capability.depthSupported;
+      _useNativeSession = capability.cameraAvailable;
+    });
+
+    if (!capability.cameraAvailable) return;
+    if (_isCameraSuspended || !_isTopRoute || _isAnalyzing || _isDictating) {
+      return;
+    }
+
+    final started = await DepthScanChannel.instance.startSession();
+    if (!mounted) return;
+
+    if (!started) {
+      // Native session refused; the scanner camera path still works.
+      setState(() => _useNativeSession = false);
+      return;
+    }
+
+    _barcodeSubscription?.cancel();
+    _barcodeSubscription =
+        DepthScanChannel.instance.barcodes.listen(_onBarcodeDetected);
   }
 
-  @override
-  void dispose() {
-    _stopAiWaitingHaptics();
-    _preProcessor.dispose();
-    _textController.dispose();
-    _analyzeButtonAnimationController.dispose();
-    super.dispose();
+  Future<void> _onBarcodeDetected(String code) async {
+    if (!_barcodeDetectionEnabled) return;
+    if (code.isEmpty || code == _detectedBarcode || !mounted) return;
+
+    HapticFeedbackService.instance.confirmationFeedback();
+    setState(() {
+      _detectedBarcode = code;
+      _detectedProduct = null;
+    });
+
+    try {
+      final item =
+          await ProductLocalDataSource.instance.getProductByBarcode(code);
+      if (item != null && mounted && _detectedBarcode == code) {
+        setState(() => _detectedProduct = item);
+      }
+    } catch (_) {}
+  }
+
+  /// Logs the product behind the recognised code straight from the viewfinder.
+  ///
+  /// This used to `pop` the raw barcode string, but both callers push this
+  /// screen as a `Route<bool>` — the mismatched result blew up inside the
+  /// navigator and left the app wedged with an unfinished pop. Logging here and
+  /// returning the plain "something was saved" flag keeps the contract the
+  /// callers already expect.
+  Future<void> _logDetectedBarcode() async {
+    final code = _detectedBarcode;
+    if (code == null || _isLoggingBarcode) return;
+
+    final l10n = AppLocalizations.of(context)!;
+    final product = _detectedProduct ??
+        await ProductLocalDataSource.instance.getProductByBarcode(code);
+    if (!mounted) return;
+
+    if (product == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(l10n.snackbarBarcodeNotFound(code)),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
+    setState(() => _isLoggingBarcode = true);
+    await _suspendCamera();
+    if (!mounted) return;
+    try {
+      final logged = await logFoodItemWithQuantity(
+        context,
+        product,
+        initialDate: widget.initialDate,
+        initialMealType: widget.initialMealType ??
+            MealTypeTimeExtension.fromCurrentTime().toMealTypeKey,
+        telemetrySource: 'ai_meal_capture_barcode',
+      );
+      if (!mounted) return;
+      if (logged) {
+        unawaited(TelemetryService.instance
+            .trackFeatureUsed(featureKey: FeatureKey.barcodeScanned));
+        Navigator.of(context).pop(true);
+        return;
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoggingBarcode = false);
+        if (_isTopRoute && !_isAnalyzing && !_isDictating) {
+          unawaited(_resumeCamera());
+        }
+      }
+    }
+  }
+
+  Future<void> _checkPermission() async {
+    final status = await Permission.camera.status;
+    if (status.isGranted) {
+      if (mounted) {
+        setState(() {
+          _cameraPermission = status;
+        });
+      }
+    } else {
+      final req = await Permission.camera.request();
+      if (mounted) {
+        setState(() {
+          _cameraPermission = req;
+        });
+      }
+    }
+  }
+
+  void _onQRViewCreated(QRViewController controller) {
+    _qrController = controller;
+    controller.getFlashStatus().then((status) {
+      if (mounted && status != null) {
+        setState(() => _isFlashOn = status);
+      }
+    }).catchError((_) {});
+    controller.scannedDataStream.listen((scanData) async {
+      final code = scanData.code;
+      if (!_barcodeDetectionEnabled || !mounted) return;
+      if (code != null && code != _detectedBarcode && code.isNotEmpty) {
+        HapticFeedbackService.instance.confirmationFeedback();
+        setState(() {
+          _detectedBarcode = code;
+          _detectedProduct = null;
+        });
+
+        // Lookup product name asynchronously in background
+        try {
+          final item =
+              await ProductLocalDataSource.instance.getProductByBarcode(code);
+          if (item != null && mounted && _detectedBarcode == code) {
+            setState(() {
+              _detectedProduct = item;
+            });
+          }
+        } catch (_) {}
+      }
+    });
   }
 
   void _startAiWaitingHaptics() {
@@ -106,90 +482,88 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
 
   String? _detectMealTypeFromText(String text) {
     final lower = text.toLowerCase();
-
-    // English
-    if (lower.contains('breakfast')) return 'mealtypeBreakfast';
-    if (lower.contains('lunch')) return 'mealtypeLunch';
-    if (lower.contains('dinner') || lower.contains('supper')) {
-      return 'mealtypeDinner';
-    }
-    if (lower.contains('snack')) return 'mealtypeSnack';
-
-    // German
-    if (lower.contains('frühstück') || lower.contains('fruhstuck')) {
+    if (lower.contains('breakfast') || lower.contains('frühstück')) {
       return 'mealtypeBreakfast';
     }
-    if (lower.contains('mittag')) return 'mealtypeLunch';
-    if (lower.contains('abend')) return 'mealtypeDinner';
+    if (lower.contains('lunch') || lower.contains('mittag')) {
+      return 'mealtypeLunch';
+    }
+    if (lower.contains('dinner') || lower.contains('abend')) {
+      return 'mealtypeDinner';
+    }
     if (lower.contains('snack') || lower.contains('zwischenmahlzeit')) {
       return 'mealtypeSnack';
     }
-
-    // French
-    if (lower.contains('petit-déjeuner') ||
-        lower.contains('petit déjeuner') ||
-        lower.contains('matin')) {
-      return 'mealtypeBreakfast';
-    }
-    if (lower.contains('déjeuner') ||
-        lower.contains('dejeuner') ||
-        lower.contains('midi')) {
-      return 'mealtypeLunch';
-    }
-    if (lower.contains('dîner') ||
-        lower.contains('diner') ||
-        lower.contains('souper') ||
-        lower.contains('soir')) {
-      return 'mealtypeDinner';
-    }
-    if (lower.contains('collation') ||
-        lower.contains('goûter') ||
-        lower.contains('gouter')) {
-      return 'mealtypeSnack';
-    }
-
-    // Italian
-    if (lower.contains('colazione')) return 'mealtypeBreakfast';
-    if (lower.contains('pranzo')) return 'mealtypeLunch';
-    if (lower.contains('cena')) return 'mealtypeDinner';
-    if (lower.contains('spuntino') || lower.contains('merenda')) {
-      return 'mealtypeSnack';
-    }
-
-    // Japanese
-    if (lower.contains('朝食') || lower.contains('朝ごはん')) {
-      return 'mealtypeBreakfast';
-    }
-    if (lower.contains('昼食') ||
-        lower.contains('昼ごはん') ||
-        lower.contains('ランチ')) {
-      return 'mealtypeLunch';
-    }
-    if (lower.contains('夕食') ||
-        lower.contains('晩ごはん') ||
-        lower.contains('ディナー') ||
-        lower.contains('夜ごはん')) {
-      return 'mealtypeDinner';
-    }
-    if (lower.contains('間食') ||
-        lower.contains('おやつ') ||
-        lower.contains('スナック')) {
-      return 'mealtypeSnack';
-    }
-
     return null;
   }
 
-  // ---------------------------------------------------------------------------
-  // Photo actions
-  // ---------------------------------------------------------------------------
+  /// A short, non-alarming note when the measurement fell outside the range
+  /// LiDAR is dependable at. Null means everything was fine — the common case,
+  /// which deliberately shows nothing at all.
+  String? _distanceHintFor(AppLocalizations l10n, DepthCaptureResult result) {
+    final facts = result.scaleFacts;
+    if (facts == null) return null;
+    if (facts.isValid) return null;
+    if (facts.accuracy != 'absolute') return null;
 
-  Future<void> _takePhoto() async {
+    if (facts.subjectDistanceCm < 15) {
+      return l10n.aiCaptureMoveAway;
+    }
+    if (facts.subjectDistanceCm > 120) {
+      return l10n.aiCaptureMoveCloser;
+    }
+    return null;
+  }
+
+  Future<void> _takeShutterPhoto() async {
     if (_images.length >= _maxImages) return;
+
+    HapticFeedbackService.instance.selectionFeedback();
+
+    // The running session takes the photo — including on devices without
+    // LiDAR, where it simply returns no depth map. Opening the system camera
+    // on top of a live preview would be the wrong thing everywhere.
+    if (_useNativeSession) {
+      // One retry through a restart before giving up: the session is stopped on
+      // every backgrounding, and a shutter tap that lost that race used to fall
+      // straight through to the system camera — which is a photo with no depth
+      // map, silently, for the rest of the session.
+      var res = await DepthScanChannel.instance.capture();
+      if (res == null) {
+        final restarted = await DepthScanChannel.instance.startSession();
+        if (!mounted) return;
+        if (restarted) {
+          res = await DepthScanChannel.instance.capture();
+        }
+      }
+
+      if (res != null && mounted) {
+        final capture = res;
+        setState(() {
+          _lastDepthCapture = capture;
+          _depthCaptures[capture.imageFile.path] = capture;
+          _images.add(capture.imageFile);
+          _distanceHint =
+              _distanceHintFor(AppLocalizations.of(context)!, capture);
+        });
+        if (capture.scaleFacts?.isValid == true ||
+            capture.depthBuffer != null) {
+          unawaited(TelemetryService.instance
+              .trackFeatureUsed(featureKey: FeatureKey.lidarDepthCaptured));
+        }
+        _preProcessor.processImages([capture.imageFile]);
+        return;
+      }
+      if (!mounted) return;
+      debugPrint('[AiMealCapture] native capture unavailable, '
+          'falling back to the system camera without depth');
+    }
+
+    // Fallback: Camera image picker
     final XFile? photo = await _picker.pickImage(
       source: ImageSource.camera,
-      imageQuality: 80,
-      maxWidth: 1024,
+      imageQuality: 85,
+      maxWidth: 1440,
     );
     if (photo != null && mounted) {
       final file = File(photo.path);
@@ -202,36 +576,81 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
     final remaining = _maxImages - _images.length;
     if (remaining <= 0) return;
 
-    final List<XFile> picked = await _picker.pickMultiImage(
-      imageQuality: 80,
-      maxWidth: 1024,
-    );
-    if (picked.isNotEmpty && mounted) {
-      final newFiles = picked.take(remaining).map((x) => File(x.path)).toList();
-      setState(() {
-        _images.addAll(newFiles);
-      });
-      _preProcessor.processImages(newFiles);
+    await _suspendCamera();
+    try {
+      final List<XFile> picked = await _picker.pickMultiImage(
+        imageQuality: 85,
+        maxWidth: 1440,
+      );
+      if (picked.isNotEmpty && mounted) {
+        final newFiles =
+            picked.take(remaining).map((x) => File(x.path)).toList();
+        setState(() {
+          _images.addAll(newFiles);
+        });
+        _preProcessor.processImages(newFiles);
+      }
+    } finally {
+      if (mounted && _isTopRoute && !_isAnalyzing && !_isDictating) {
+        unawaited(_resumeCamera());
+      }
     }
   }
 
   void _removeImage(int index) {
     final file = _images[index];
+    _depthCaptures.remove(file.path);
     _preProcessor.cancelAndRemove(file);
     setState(() => _images.removeAt(index));
   }
 
-  // ---------------------------------------------------------------------------
-  // Analysis
-  // ---------------------------------------------------------------------------
-
   bool get _hasInput =>
       _images.isNotEmpty || _textController.text.trim().isNotEmpty;
+
+  /// Closes the blocking analysis screen if it is still up.
+  void _dismissAnalysisScreen() {
+    if (_analysisRoute == null) return;
+    final navigator = Navigator.of(context);
+    if (navigator.canPop()) {
+      navigator.removeRoute(_analysisRoute!);
+    }
+    _analysisRoute = null;
+  }
 
   Future<void> _analyze() async {
     if (!_hasInput) return;
     setState(() => _isAnalyzing = true);
     _startAiWaitingHaptics();
+    await _suspendCamera();
+
+    // A blocking screen while the request is in flight: previously the capture
+    // screen stayed editable underneath, so images could be added or removed
+    // while they were already being analysed.
+    final controller = MealAnalysisController();
+    _analysisController?.dispose();
+    _analysisController = controller;
+    final sourceRect =
+        MealAnalysisMorphRoute.measureRect(_keyAnalyze.currentContext);
+    _analysisRoute = MealAnalysisScreen.route(
+      controller: controller,
+      sourceContext: _keyAnalyze.currentContext,
+      sourceRect: sourceRect,
+      previewImage: _images.isNotEmpty ? _images.first : null,
+      onCancel: () {
+        _analysisCancelled = true;
+        _stopAiWaitingHaptics();
+        _dismissAnalysisScreen();
+        if (mounted) {
+          setState(() => _isAnalyzing = false);
+          if (_isTopRoute && !_isDictating) {
+            unawaited(_resumeCamera());
+          }
+        }
+      },
+    );
+    _analysisCancelled = false;
+    if (!mounted) return;
+    unawaited(Navigator.of(context).push(_analysisRoute!));
 
     if (!mounted) return;
     final matchingContext =
@@ -244,15 +663,58 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
     }
     if (!mounted) return;
 
+    // Switchable so the same meal can be shot with and without the hint;
+    // otherwise there is no way to tell whether the measurement helps.
+    final scaleHintEnabled =
+        await DepthScanSettings.instance.isScaleHintEnabled();
+    final depthFacts = scaleHintEnabled ? _lastDepthCapture?.scaleFacts : null;
+
+    // The relief of the meal, as a second image. Rendered here rather than kept
+    // around: the band scale is fitted to the frame, so it only exists once the
+    // capture it belongs to does.
+    final capture = _lastDepthCapture;
+    DepthMapAttachment? depthMap;
+    if (capture != null &&
+        await DepthScanSettings.instance.isDepthImageEnabled()) {
+      depthMap = await buildDepthMapAttachment(capture);
+    }
+    if (!mounted) return;
+
+    controller.value = MealAnalysisPhase.analyzing;
+
+    final stopwatch = Stopwatch()..start();
+    final requestId = const Uuid().v4();
+    final provider = (await AiService.instance.getSelectedProvider()).name;
+    final text = _textController.text.trim();
+    final hasImages = _images.isNotEmpty;
+    final hasText = text.isNotEmpty;
+    final hasVoice = _isDictating || text.isNotEmpty;
+    final hasLidar = _depthCaptures.values.any((c) => c.depthBuffer != null);
+    final inputMode = hasImages && hasText
+        ? 'multimodal'
+        : (hasImages ? 'photo' : 'text_only');
+
+    unawaited(TelemetryService.instance.trackAiMealScanRequested(
+      requestId: requestId,
+      provider: provider,
+      inputMode: inputMode,
+      photoCount: _images.length,
+      hasLidar: hasLidar,
+      hasVoiceInput: hasVoice,
+      hasTextInput: hasText,
+    ));
+
     try {
       AiMealCandidate candidate;
-      final text = _textController.text.trim();
 
       if (_images.isNotEmpty) {
         candidate = await AiService.instance.analyzeImages(
           _images,
           textHint: text.isNotEmpty ? text : null,
           matchingContext: matchingContext,
+          depthFacts: depthFacts,
+          depthMap: depthMap?.file,
+          depthMapLegend: depthMap?.describeForPrompt(),
         );
       } else {
         candidate = await AiService.instance.analyzeText(
@@ -261,48 +723,124 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
         );
       }
 
+      controller.value = MealAnalysisPhase.matching;
       final validationOutcome =
           await _validateAndRepair(candidate, matchingContext);
 
       if (!mounted) return;
+      // The user walked away from the wait; their result is no longer wanted.
+      if (_analysisCancelled) return;
+
+      stopwatch.stop();
+      final latencyBucket =
+          TelemetryBuckets.getLatencyBucket(stopwatch.elapsed);
+      final itemCountBucket = TelemetryBuckets.getItemCountBucket(
+          validationOutcome.validation.candidate.items.length);
+
+      unawaited(TelemetryService.instance.trackAiMealScanCompleted(
+        requestId: requestId,
+        provider: provider,
+        latencyBucket: latencyBucket,
+        success: true,
+        inputMode: inputMode,
+        photoCount: _images.length,
+        hasLidar: hasLidar,
+        hasVoiceInput: hasVoice,
+        hasTextInput: hasText,
+        validationPassed: validationOutcome.validation.passed,
+        repairAttemptsCount: validationOutcome.repairPassesUsed,
+        suggestedItemsCountBucket: itemCountBucket,
+      ));
 
       _stopAiWaitingHaptics();
       if (mounted) {
         setState(() => _isAnalyzing = false);
       }
 
+      // Smoothly contract cloud back into circle and pause before organic vapor dispersion
+      await controller.contractToCircle();
+      if (!mounted) return;
+
+      // Mark analysis finished so MealAnalysisScreen's orb and UI are completely hidden beneath review
+      controller.isFinished.value = true;
+
       final detectedType = _detectMealTypeFromText(text);
       final resolvedMealType = widget.initialMealType ??
           detectedType ??
           MealTypeTimeExtension.fromCurrentTime().toMealTypeKey;
 
-      final saved = await Navigator.of(context).push<bool>(
-        MaterialPageRoute(
-          builder: (_) => AiMealReviewScreen(
-            suggestions: validationOutcome.validation.candidate.items
-                .map(
-                  (item) => AiSuggestedItem(
-                    name: item.name,
-                    estimatedGrams: item.grams,
-                    confidence: item.confidence ?? 1.0,
-                    matchedBarcode: item.matchedBarcode,
-                  ),
-                )
-                .toList(growable: false),
-            initialValidation: validationOutcome.validation,
-            originalImages: _images,
-            initialDate: widget.initialDate,
-            initialMealType: resolvedMealType,
-          ),
+      final reviewRoute = AiMealReviewRevealRoute<bool>(
+        builder: (context) => AiMealReviewScreen(
+          suggestions: validationOutcome.validation.candidate.items
+              .map(
+                (item) => AiSuggestedItem(
+                  name: item.name,
+                  estimatedGrams: item.grams,
+                  confidence: item.confidence ?? 1.0,
+                  matchedBarcode: item.matchedBarcode,
+                ),
+              )
+              .toList(growable: false),
+          initialValidation: validationOutcome.validation,
+          originalImages: _images,
+          initialDate: widget.initialDate,
+          initialMealType: resolvedMealType,
+          depthResult: _lastDepthCapture,
+          depthResultsByPath: _depthCaptures,
+          depthFacts: _lastDepthCapture?.scaleFacts,
+          voiceTranscript: text.isNotEmpty ? text : null,
         ),
       );
-      if (saved == true && mounted) {
-        Navigator.of(context).pop(true);
+
+      final oldAnalysisRoute = _analysisRoute;
+      _analysisRoute = null;
+      final savedFuture = Navigator.of(context).push<bool>(reviewRoute);
+      if (oldAnalysisRoute != null && oldAnalysisRoute.isActive) {
+        Navigator.of(context).removeRoute(oldAnalysisRoute);
+      }
+      final saved = await savedFuture;
+      // Leaving the review returns to wherever the capture was started from,
+      // saved or not. Dropping back into the viewfinder after reviewing a meal
+      // is never what the user meant by "back".
+      if (mounted) {
+        Navigator.of(context).pop(saved == true);
       }
     } on AiKeyMissingException {
+      stopwatch.stop();
+      final latencyBucket =
+          TelemetryBuckets.getLatencyBucket(stopwatch.elapsed);
+      unawaited(TelemetryService.instance.trackAiMealScanCompleted(
+        requestId: requestId,
+        provider: provider,
+        latencyBucket: latencyBucket,
+        success: false,
+        errorCode: 'key_missing',
+        inputMode: inputMode,
+        photoCount: _images.length,
+        hasLidar: hasLidar,
+        hasVoiceInput: hasVoice,
+        hasTextInput: hasText,
+      ));
+      _dismissAnalysisScreen();
       if (!mounted) return;
       _showKeyMissingDialog();
     } on AiServiceException catch (e) {
+      stopwatch.stop();
+      final latencyBucket =
+          TelemetryBuckets.getLatencyBucket(stopwatch.elapsed);
+      unawaited(TelemetryService.instance.trackAiMealScanCompleted(
+        requestId: requestId,
+        provider: provider,
+        latencyBucket: latencyBucket,
+        success: false,
+        errorCode: e.runtimeType.toString(),
+        inputMode: inputMode,
+        photoCount: _images.length,
+        hasLidar: hasLidar,
+        hasVoiceInput: hasVoice,
+        hasTextInput: hasText,
+      ));
+      _dismissAnalysisScreen();
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -312,6 +850,22 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
         ),
       );
     } catch (e) {
+      stopwatch.stop();
+      final latencyBucket =
+          TelemetryBuckets.getLatencyBucket(stopwatch.elapsed);
+      unawaited(TelemetryService.instance.trackAiMealScanCompleted(
+        requestId: requestId,
+        provider: provider,
+        latencyBucket: latencyBucket,
+        success: false,
+        errorCode: e.runtimeType.toString(),
+        inputMode: inputMode,
+        photoCount: _images.length,
+        hasLidar: hasLidar,
+        hasVoiceInput: hasVoice,
+        hasTextInput: hasText,
+      ));
+      _dismissAnalysisScreen();
       if (!mounted) return;
       final l10n = AppLocalizations.of(context)!;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -323,7 +877,13 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
       );
     } finally {
       _stopAiWaitingHaptics();
-      if (mounted) setState(() => _isAnalyzing = false);
+      _dismissAnalysisScreen();
+      if (mounted) {
+        setState(() => _isAnalyzing = false);
+        if (_isTopRoute && !_isDictating) {
+          unawaited(_resumeCamera());
+        }
+      }
     }
   }
 
@@ -348,9 +908,11 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
     );
   }
 
-  void _showKeyMissingDialog() {
+  void _showKeyMissingDialog() async {
     final l10n = AppLocalizations.of(context)!;
-    showGlassBottomMenu<void>(
+    await _suspendCamera();
+    if (!mounted) return;
+    await showGlassBottomMenu<void>(
       context: context,
       title: l10n.aiValidationApiKeyRequiredTitle,
       contentBuilder: (ctx, close) => Column(
@@ -389,397 +951,961 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
         ],
       ),
     );
+    if (mounted && _isTopRoute && !_isAnalyzing && !_isDictating) {
+      unawaited(_resumeCamera());
+    }
   }
-
-  // ---------------------------------------------------------------------------
-  // Build
-  // ---------------------------------------------------------------------------
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final theme = Theme.of(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bg = Theme.of(context).scaffoldBackgroundColor;
+    final primaryAccent = isDark
+        ? const Color(0xFFC9EF00)
+        : DesignConstants.brandAccentColorLightMode;
 
-    return Scaffold(
-      appBar: GlobalAppBar(
-        title: l10n.aiCaptureTitle,
-        actions: [
-          AlgorithmInfoButton(
-            title: l10n.infoAiMealTitle,
-            explanation: l10n.infoAiMealExplanation,
-            keyPoints: l10n.infoAiMealKeyPoints.split('\n'),
-            technicalTitle: l10n.infoAiMealTechnicalTitle,
-            technicalExplanation: l10n.infoAiMealTechnicalExplanation,
-            markdownAssetPath: 'documentation/features/byok_ai_validation.md',
-            iconColor: theme.colorScheme.onSurface,
-          ),
-        ],
-      ),
-      body: !_isOffDbInitialized
-          ? DatabasePlaceholderWidget(
-              title: l10n.offDownloadTitle,
-              body: l10n.offPlaceholderText,
-              icon: LucideIcons.database,
-              onDownloadPressed: () async {
-                await BasisDataManager.instance
-                    .promptOffDatabaseDownloadIfFirstTime(context);
-                await _checkDbStatus();
-              },
-            )
-          : Column(
-              children: [
-                Expanded(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.symmetric(vertical: 20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        if (_images.isNotEmpty) ...[
-                          _buildUnifiedPhotoList(theme),
-                          const SizedBox(height: 20),
-                        ],
-                      ],
-                    ),
-                  ),
-                ),
-
-                // Unified Input Area
-                _buildUnifiedInputArea(l10n, theme),
-
-                // Analyze button — AI gradient CTA with inline loading
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(24, 16, 24, 28),
-                  child: _AiAnalyzeButton(
-                    onPressed: (_hasInput && !_isAnalyzing) ? _analyze : null,
-                    isAnalyzing: _isAnalyzing,
-                    l10n: l10n,
-                    pulseController: _analyzeButtonAnimationController,
-                  ),
-                ),
-              ],
-            ),
-    );
-  }
-
-  // ---------------------------------------------------------------------------
-  // Content: Unified View Widgets
-  // ---------------------------------------------------------------------------
-
-  Widget _buildUnifiedPhotoList(ThemeData theme) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(
-          height: 140,
-          child: ListView.separated(
-            padding: const EdgeInsets.symmetric(
-                horizontal: DesignConstants.spacingXL),
-            scrollDirection: Axis.horizontal,
-            itemCount: _images.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 10),
-            itemBuilder: (ctx, i) => _buildPhotoThumbnail(i, theme),
-          ),
-        ),
-        const SizedBox(height: DesignConstants.spacingS),
-        Padding(
-          padding:
-              const EdgeInsets.symmetric(horizontal: DesignConstants.spacingXL),
-          child: Text(
-            '${_images.length} / $_maxImages',
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildPhotoThumbnail(int index, ThemeData theme) {
-    final file = _images[index];
-    final notifier = _preProcessor.getNotifier(file);
-
-    return ValueListenableBuilder<PreProcessState>(
-      valueListenable: notifier,
-      builder: (context, state, _) {
-        final isPreparing = state.status == PreProcessStatus.processing ||
-            state.status == PreProcessStatus.idle;
-
-        return Stack(
-          children: [
-            Container(
-              width: 140,
-              height: 140,
-              decoration: BoxDecoration(
-                borderRadius:
-                    BorderRadius.circular(DesignConstants.borderRadiusL),
-                border: Border.all(
-                  color: theme.colorScheme.outlineVariant,
-                  width: 1.5,
-                ),
-              ),
-              child: ClipRRect(
-                borderRadius:
-                    BorderRadius.circular(DesignConstants.borderRadiusL - 1.5),
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    Image.file(
-                      file,
-                      fit: BoxFit.cover,
-                    ),
-                    if (isPreparing) ...[
-                      ImageFiltered(
-                        imageFilter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
-                        child: Container(
-                          color: Colors.black.withValues(alpha: 0.15),
-                        ),
-                      ),
-                      Positioned(
-                        bottom: 0,
-                        left: 0,
-                        right: 0,
-                        child: Container(
-                          height: 5,
-                          decoration: BoxDecoration(
-                            color: Colors.grey.withValues(alpha: 0.3),
-                          ),
-                          child: FractionallySizedBox(
-                            alignment: Alignment.centerLeft,
-                            widthFactor: state.progress.clamp(0.05, 1.0),
-                            child: Container(
-                              color: theme.colorScheme.outline,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            ),
-            Positioned(
-              top: 6,
-              right: 6,
-              child: GestureDetector(
-                onTap: () => _removeImage(index),
-                child: Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha: 0.6),
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white24, width: 1),
-                  ),
-                  child:
-                      const Icon(LucideIcons.x, size: 14, color: Colors.white),
-                ),
-              ),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Widget _buildUnifiedInputArea(
-    AppLocalizations l10n,
-    ThemeData theme,
-  ) {
-    return Padding(
-      padding:
-          const EdgeInsets.symmetric(horizontal: DesignConstants.spacingXL),
-      child: Column(
-        children: [
-          TextField(
-            controller: _textController,
-            maxLines: 4,
-            minLines: 1,
-            onChanged: (_) => setState(() {}),
-            style: theme.textTheme.bodyLarge,
-            decoration: InputDecoration(
-              hintText: l10n.aiCaptureTextHint,
-              hintStyle: TextStyle(
-                color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
-              ),
-              filled: true,
-              fillColor: theme.colorScheme.surfaceContainerLow,
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: DesignConstants.spacingL,
-                vertical: DesignConstants.spacingM,
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius:
-                    BorderRadius.circular(DesignConstants.borderRadiusL),
-                borderSide: BorderSide(
-                  color: theme.colorScheme.outlineVariant,
-                  width: 1,
-                ),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius:
-                    BorderRadius.circular(DesignConstants.borderRadiusL),
-                borderSide: BorderSide(
-                  color: theme.colorScheme.primary,
-                  width: 1.5,
-                ),
-              ),
-              suffixIconConstraints: const BoxConstraints(
-                minWidth: 96,
-                maxWidth: 96,
-                minHeight: 40,
-              ),
-              suffixIcon: SizedBox(
-                width: 96,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(
-                      onPressed:
-                          _images.length < _maxImages ? _takePhoto : null,
-                      icon: const Icon(LucideIcons.camera),
-                      color: theme.colorScheme.primary,
-                      tooltip: l10n.aiCaptureTabPhoto,
-                    ),
-                    IconButton(
-                      onPressed:
-                          _images.length < _maxImages ? _pickFromGallery : null,
-                      icon: const Icon(LucideIcons.library),
-                      color: theme.colorScheme.primary,
-                      tooltip: l10n.tabFavorites,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// =============================================================================
-// AI Analyze button — gradient CTA with inline animated shimmer loading
-// =============================================================================
-
-/// The AI gradient colours used for the analyze button and entry-point accents.
-const _aiGradientColors = [
-  Color(0xFFE88DCC),
-  Color(0xFFF4A77A),
-  Color(0xFFF7D06B),
-  Color(0xFF7DDEAE),
-  Color(0xFF6DC8D9),
-];
-
-class _AiAnalyzeButton extends StatelessWidget {
-  final VoidCallback? onPressed;
-  final bool isAnalyzing;
-  final AppLocalizations l10n;
-  final AnimationController pulseController;
-
-  const _AiAnalyzeButton({
-    required this.onPressed,
-    required this.isAnalyzing,
-    required this.l10n,
-    required this.pulseController,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final enabled = onPressed != null || isAnalyzing;
-    final theme = Theme.of(context);
-
-    // Base button content (icon + text)
-    final buttonContent = Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        if (isAnalyzing)
-          const SizedBox(
-            width: 22,
-            height: 22,
-            child: CircularProgressIndicator(
-              strokeWidth: 2.5,
-              color: Colors.white,
-            ),
-          )
-        else
-          Icon(
-            LucideIcons.sparkles,
-            size: 24,
-            color: enabled ? Colors.white : theme.colorScheme.onSurfaceVariant,
-          ),
-        const SizedBox(width: 10),
-        Text(
-          isAnalyzing ? l10n.aiAnalyzing : l10n.aiAnalyzeButton,
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w700,
-            color: enabled ? Colors.white : theme.colorScheme.onSurfaceVariant,
-            letterSpacing: 0.5,
-          ),
-        ),
-      ],
-    );
-
-    if (!enabled) {
-      // Disabled state — flat, no gradient
-      return GestureDetector(
-        child: Container(
-          height: 60,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(DesignConstants.borderRadiusL),
-            color: theme.colorScheme.surfaceContainerHighest,
-          ),
-          child: buttonContent,
+    if (!_isOffDbInitialized) {
+      return Scaffold(
+        body: DatabasePlaceholderWidget(
+          title: l10n.offDownloadTitle,
+          body: l10n.offPlaceholderText,
+          icon: LucideIcons.database,
+          onDownloadPressed: () async {
+            await BasisDataManager.instance
+                .promptOffDatabaseDownloadIfFirstTime(context);
+            await _checkDbStatus();
+          },
         ),
       );
     }
 
-    // Enabled / analysing — gradient background with text on top via Stack
-    return GestureDetector(
-      onTap: onPressed,
-      child: AnimatedBuilder(
-        animation: pulseController,
-        builder: (context, _) {
-          final t = pulseController.value;
-
-          return Container(
-            height: 60,
-            decoration: BoxDecoration(
-              borderRadius:
-                  BorderRadius.circular(DesignConstants.borderRadiusL),
-              gradient: isAnalyzing
-                  ? LinearGradient(
-                      begin: Alignment(-1.0 + (t * 4.0), 0),
-                      end: Alignment(1.0 + (t * 4.0), 0),
-                      colors: const [
-                        Color(0xFFE88DCC),
-                        Color(0xFFF4A77A),
-                        Color(0xFFF7D06B),
-                        Color(0xFF7DDEAE),
-                        Color(0xFF6DC8D9),
-                        Color(0xFFE88DCC),
-                      ],
-                      tileMode: TileMode.repeated,
-                    )
-                  : const LinearGradient(
-                      colors: _aiGradientColors,
-                      begin: Alignment.centerLeft,
-                      end: Alignment.centerRight,
+    return Scaffold(
+      backgroundColor: bg,
+      appBar: GlobalAppBar(
+        title: l10n.aiScannerTitle,
+        actions: [
+          if (_cameraPermission.isGranted)
+            IconButton(
+              icon: Icon(
+                _isFlashOn ? LucideIcons.zap : LucideIcons.zap_off,
+                size: 20,
+                color: _isFlashOn ? primaryAccent : null,
+              ),
+              tooltip: l10n.scannerToggleFlash,
+              onPressed: _toggleFlash,
+            ),
+          IconButton(
+            icon: const Icon(LucideIcons.info, size: 20),
+            tooltip: l10n.aiCaptureTourReplayTooltip,
+            onPressed: _startTour,
+          ),
+          if (_hasLidar)
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.only(right: 16),
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? Colors.white.withValues(alpha: 0.18)
+                        : Colors.black.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: isDark ? Colors.white30 : Colors.black26,
+                      width: 1,
                     ),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFFE88DCC).withValues(alpha: 0.30),
-                  blurRadius: 20,
-                  spreadRadius: 2,
-                  offset: const Offset(0, 4),
+                  ),
+                  child: Text(
+                    'LiDAR',
+                    style: TextStyle(
+                      fontFamily: 'monospace',
+                      fontWeight: FontWeight.w700,
+                      fontSize: 11,
+                      letterSpacing: 0.8,
+                      color: isDark ? Colors.white : Colors.black87,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+      body: Stack(
+        key: _overlayKey,
+        children: [
+          SafeArea(
+            top: false,
+            child: Column(
+              children: [
+                // 1. Live Camera Viewfinder (full width, maximum screen height with rounded corners)
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(24),
+                      child: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          if (!_cameraPermission.isGranted)
+                            _buildCameraFallback()
+                          else if (_useNativeSession)
+                            const UiKitView(
+                              viewType: DepthScanChannel.previewViewType,
+                              creationParamsCodec: StandardMessageCodec(),
+                            )
+                          else
+                            QRView(
+                              key: qrKey,
+                              onQRViewCreated: _onQRViewCreated,
+                              overlay: null,
+                            ),
+
+                          // Distance guidance overlay if needed
+                          if (_distanceHint != null)
+                            Positioned(
+                              top: 16,
+                              left: 0,
+                              right: 0,
+                              child: Center(
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 14, vertical: 6),
+                                  decoration: BoxDecoration(
+                                    color: Colors.black.withValues(alpha: 0.65),
+                                    borderRadius: BorderRadius.circular(14),
+                                    border: Border.all(
+                                        color: Colors.white24, width: 1),
+                                  ),
+                                  child: Text(
+                                    _distanceHint!,
+                                    style: const TextStyle(
+                                      fontFamily: 'Plus Jakarta Sans',
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 12,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+
+                // 2. Bottom Controls Area (compact, pinned to bottom)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 2, 16, 6),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Captured Photos Strip
+                      if (_images.isNotEmpty)
+                        Container(
+                          height: 48,
+                          margin: const EdgeInsets.only(bottom: 4),
+                          child: ListView.separated(
+                            scrollDirection: Axis.horizontal,
+                            itemCount: _images.length,
+                            separatorBuilder: (_, __) =>
+                                const SizedBox(width: 8),
+                            itemBuilder: (context, idx) {
+                              return Stack(
+                                children: [
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(10),
+                                    child: Image.file(
+                                      _images[idx],
+                                      width: 48,
+                                      height: 48,
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ),
+                                  Positioned(
+                                    top: 2,
+                                    right: 2,
+                                    child: GestureDetector(
+                                      onTap: () => _removeImage(idx),
+                                      child: Container(
+                                        width: 18,
+                                        height: 18,
+                                        alignment: Alignment.center,
+                                        decoration: const BoxDecoration(
+                                          color: Color(0xCC000000),
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: const Icon(LucideIcons.x,
+                                            size: 11, color: Colors.white),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              );
+                            },
+                          ),
+                        ),
+
+                      // Expandable Text Input Row
+                      if (_showTextInput)
+                        Padding(
+                          padding: const EdgeInsets.only(
+                              bottom: DesignConstants.spacingS),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: isDark
+                                  ? const Color(0xFF1E1E1E)
+                                  : const Color(0xFFE8E8E0),
+                              borderRadius: BorderRadius.circular(
+                                  DesignConstants.borderRadiusL),
+                              border: Border.all(
+                                  color:
+                                      isDark ? Colors.white12 : Colors.black12),
+                            ),
+                            padding: const EdgeInsets.only(
+                                left: DesignConstants.spacingL),
+                            child: TextField(
+                              controller: _textController,
+                              autofocus: true,
+                              minLines: 1,
+                              maxLines: 4,
+                              keyboardType: TextInputType.multiline,
+                              textInputAction: TextInputAction.newline,
+                              textCapitalization: TextCapitalization.sentences,
+                              style: TextStyle(
+                                  color: isDark
+                                      ? Colors.white
+                                      : const Color(0xFF12120F)),
+                              decoration: InputDecoration(
+                                hintText: l10n.aiCaptureDescribeHint,
+                                hintStyle: TextStyle(
+                                    color: isDark
+                                        ? Colors.white54
+                                        : Colors.black45),
+                                filled: false,
+                                isDense: true,
+                                contentPadding: const EdgeInsets.symmetric(
+                                    vertical: DesignConstants.spacingM),
+                                border: InputBorder.none,
+                                enabledBorder: InputBorder.none,
+                                focusedBorder: InputBorder.none,
+                                suffixIconConstraints: const BoxConstraints(
+                                    minWidth: 44, minHeight: 44),
+                                suffixIcon: Align(
+                                  alignment: Alignment.topCenter,
+                                  widthFactor: 1,
+                                  heightFactor: 1,
+                                  child: IconButton(
+                                    tooltip: l10n.doneButtonLabel,
+                                    icon: Icon(LucideIcons.check,
+                                        color: isDark
+                                            ? Colors.white
+                                                .withValues(alpha: 0.8)
+                                            : Colors.black87,
+                                        size: 18),
+                                    onPressed: () =>
+                                        setState(() => _showTextInput = false),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+
+                      // Passive Barcode Detection Banner (if detected or during tour step 1)
+                      if (_isTourActive && _tourStep == 1)
+                        _buildDemoBarcodeBanner(l10n, primaryAccent)
+                      else if (_barcodeDetectionEnabled &&
+                          _detectedBarcode != null)
+                        _buildBarcodeBanner(l10n, primaryAccent),
+
+                      // Shutter & Primary Action Bar
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Expanded(
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                // Gallery Button
+                                _buildFrostedButton(
+                                  key: _keyGallery,
+                                  icon: LucideIcons.image,
+                                  onTap: _pickFromGallery,
+                                ),
+
+                                // Barcode detection toggle
+                                _buildFrostedButton(
+                                  key: _keyBarcode,
+                                  icon: LucideIcons.scan_barcode,
+                                  isActive: _barcodeDetectionEnabled,
+                                  onTap: () {
+                                    setState(() {
+                                      _barcodeDetectionEnabled =
+                                          !_barcodeDetectionEnabled;
+                                      if (!_barcodeDetectionEnabled) {
+                                        _detectedBarcode = null;
+                                        _detectedProduct = null;
+                                      }
+                                    });
+                                  },
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          // Shutter Button (68px diameter)
+                          GestureDetector(
+                            key: _keyShutter,
+                            onTap: _takeShutterPhoto,
+                            child: Container(
+                              width: 68,
+                              height: 68,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: isDark
+                                      ? Colors.white.withValues(alpha: 0.9)
+                                      : const Color(0xFF12120F)
+                                          .withValues(alpha: 0.8),
+                                  width: 3.5,
+                                ),
+                              ),
+                              padding: const EdgeInsets.all(4),
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: isDark
+                                      ? Colors.white
+                                      : const Color(0xFF12120F),
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                            ),
+                          ),
+
+                          Expanded(
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                // Voice Dictation Button (Microphone)
+                                _buildFrostedButton(
+                                  key: _keyVoice,
+                                  icon: LucideIcons.mic,
+                                  isActive: _isDictating,
+                                  onTap: _openVoiceDictationModal,
+                                ),
+
+                                // Text Note Toggle Button
+                                _buildFrostedButton(
+                                  key: _keyText,
+                                  icon: LucideIcons.pencil,
+                                  isActive: _showTextInput ||
+                                      _textController.text.isNotEmpty,
+                                  onTap: () {
+                                    setState(() {
+                                      _showTextInput = !_showTextInput;
+                                    });
+                                  },
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      // "Analysieren" Button (Appears when input is ready or during tour step 5)
+                      if (_hasInput || (_isTourActive && _tourStep == 5)) ...[
+                        const SizedBox(height: 8),
+                        Opacity(
+                          opacity: _isAnalyzing ? 0.0 : 1.0,
+                          child: IgnorePointer(
+                            ignoring: _isAnalyzing,
+                            child: SizedBox(
+                              key: _keyAnalyze,
+                              width: double.infinity,
+                              height: 46,
+                              child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: primaryAccent,
+                                  foregroundColor: isDark
+                                      ? const Color(0xFF12120F)
+                                      : Colors.white,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  elevation: 0,
+                                ),
+                                onPressed: _isAnalyzing ? null : _analyze,
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(LucideIcons.sparkles,
+                                        size: 18,
+                                        color: isDark
+                                            ? const Color(0xFF12120F)
+                                            : Colors.white),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      _images.isNotEmpty
+                                          ? l10n.aiCaptureAnalyzeMeal(
+                                              _images.length)
+                                          : l10n.aiCaptureAnalyzeText,
+                                      style: TextStyle(
+                                        fontFamily: 'Plus Jakarta Sans',
+                                        fontWeight: FontWeight.w800,
+                                        fontSize: 15,
+                                        color: isDark
+                                            ? const Color(0xFF12120F)
+                                            : Colors.white,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
                 ),
               ],
             ),
-            child: buttonContent,
-          );
-        },
+          ),
+          if (_isTourActive)
+            AiMealCaptureTourOverlay(
+              targetRects: _tourTargetRects,
+              title: _tourTitleForStep(_tourStep, l10n),
+              description: _tourDescForStep(_tourStep, l10n),
+              progressLabel: '${_tourStep + 1}/6',
+              nextLabel: _tourStep == 5 ? l10n.appTourDone : l10n.appTourNext,
+              skipLabel: l10n.appTourSkip,
+              onNext: _nextTourStep,
+              onSkip: _skipTour,
+            ),
+        ],
       ),
     );
+  }
+
+  void _startTour() {
+    if (!mounted) return;
+    final initialRects = _tourTargetRectsForStep(0);
+    setState(() {
+      _isTourActive = true;
+      _tourStep = 0;
+      _tourTargetRects = initialRects;
+    });
+    _showTourStep(0);
+  }
+
+  void _showTourStep(int step) {
+    if (!mounted || !_isTourActive) return;
+    HapticFeedbackService.instance.selectionFeedback();
+    final targetRects = _tourTargetRectsForStep(step);
+    setState(() {
+      _tourStep = step;
+      if (targetRects.isNotEmpty) {
+        _tourTargetRects = targetRects;
+      }
+    });
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_isTourActive || _tourStep != step) return;
+      final updatedRects = _tourTargetRectsForStep(step);
+      if (updatedRects.isNotEmpty) {
+        setState(() => _tourTargetRects = updatedRects);
+      }
+    });
+  }
+
+  List<Rect> _tourTargetRectsForStep(int step) {
+    final List<Rect> rects = [];
+    final primaryKey = _keyForTourStep(step);
+    final primaryRect = _rectForKey(primaryKey);
+    if (primaryRect != null) {
+      rects.add(primaryRect);
+    }
+    if (step == 1) {
+      final bannerRect = _rectForKey(_keyBarcodeBanner);
+      if (bannerRect != null) {
+        rects.add(bannerRect);
+      }
+    }
+    return rects;
+  }
+
+  GlobalKey? _keyForTourStep(int step) {
+    switch (step) {
+      case 0:
+        return _keyShutter;
+      case 1:
+        return _keyBarcode;
+      case 2:
+        return _keyGallery;
+      case 3:
+        return _keyVoice;
+      case 4:
+        return _keyText;
+      case 5:
+        return (_hasInput || _isTourActive) ? _keyAnalyze : _keyShutter;
+      default:
+        return null;
+    }
+  }
+
+  Rect? _rectForKey(GlobalKey? key) {
+    final renderBox = key?.currentContext?.findRenderObject() as RenderBox?;
+    if (renderBox == null || !renderBox.hasSize) return null;
+    final overlayBox =
+        _overlayKey.currentContext?.findRenderObject() as RenderBox?;
+    if (overlayBox == null || !overlayBox.hasSize) return null;
+    final localTopLeft =
+        overlayBox.globalToLocal(renderBox.localToGlobal(Offset.zero));
+    return localTopLeft & renderBox.size;
+  }
+
+  void _nextTourStep() {
+    if (!mounted || !_isTourActive) return;
+    if (_tourStep < 5) {
+      _showTourStep(_tourStep + 1);
+    } else {
+      _completeTour();
+    }
+  }
+
+  Future<void> _skipTour() async {
+    if (!mounted || !_isTourActive) return;
+    setState(() {
+      _isTourActive = false;
+      _tourTargetRects = const [];
+    });
+    await AiMealCaptureTourService.instance.markTourCompleted();
+  }
+
+  Future<void> _completeTour() async {
+    if (!mounted || !_isTourActive) return;
+    setState(() {
+      _isTourActive = false;
+      _tourTargetRects = const [];
+    });
+    await AiMealCaptureTourService.instance.markTourCompleted();
+    HapticFeedbackService.instance.confirmationFeedback();
+  }
+
+  String _tourTitleForStep(int step, AppLocalizations l10n) {
+    switch (step) {
+      case 0:
+        return l10n.aiCaptureTourStepShutterTitle;
+      case 1:
+        return l10n.aiCaptureTourStepBarcodeTitle;
+      case 2:
+        return l10n.aiCaptureTourStepGalleryTitle;
+      case 3:
+        return l10n.aiCaptureTourStepVoiceTitle;
+      case 4:
+        return l10n.aiCaptureTourStepTextTitle;
+      case 5:
+        return l10n.aiCaptureTourStepAnalyzeTitle;
+      default:
+        return '';
+    }
+  }
+
+  String _tourDescForStep(int step, AppLocalizations l10n) {
+    switch (step) {
+      case 0:
+        return l10n.aiCaptureTourStepShutterDesc;
+      case 1:
+        return l10n.aiCaptureTourStepBarcodeDesc;
+      case 2:
+        return l10n.aiCaptureTourStepGalleryDesc;
+      case 3:
+        return l10n.aiCaptureTourStepVoiceDesc;
+      case 4:
+        return l10n.aiCaptureTourStepTextDesc;
+      case 5:
+        return l10n.aiCaptureTourStepAnalyzeDesc;
+      default:
+        return '';
+    }
+  }
+
+  Widget _buildDemoBarcodeBanner(AppLocalizations l10n, Color primaryAccent) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: DesignConstants.spacingM),
+      child: Material(
+        key: _keyBarcodeBanner,
+        color: isDark ? const Color(0xFF1E1E1E) : const Color(0xFFEFEFE8),
+        borderRadius: BorderRadius.circular(20),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: primaryAccent.withValues(alpha: 0.9),
+              width: 2,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: primaryAccent.withValues(alpha: 0.25),
+                blurRadius: 10,
+                spreadRadius: 1,
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              Icon(LucideIcons.scan_barcode, color: primaryAccent, size: 26),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      l10n.aiCaptureTourBarcodeDemoHint,
+                      style: TextStyle(
+                        fontFamily: 'Plus Jakarta Sans',
+                        fontWeight: FontWeight.w700,
+                        fontSize: 12,
+                        letterSpacing: 0.4,
+                        color: primaryAccent,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      l10n.aiCaptureTourBarcodeDemoProduct,
+                      style: TextStyle(
+                        fontFamily: 'Plus Jakarta Sans',
+                        fontWeight: FontWeight.w700,
+                        fontSize: 15,
+                        color: isDark ? Colors.white : const Color(0xFF12120F),
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 12),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                decoration: BoxDecoration(
+                  color: primaryAccent,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  l10n.aiCaptureLogBarcode,
+                  style: TextStyle(
+                    fontFamily: 'Plus Jakarta Sans',
+                    fontWeight: FontWeight.w800,
+                    fontSize: 14,
+                    color: isDark ? const Color(0xFF12120F) : Colors.white,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCameraFallback() {
+    final l10n = AppLocalizations.of(context)!;
+    return Container(
+      color: const Color(0xFF121212),
+      child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(LucideIcons.camera_off, size: 48, color: Colors.white54),
+            const SizedBox(height: 16),
+            const Text(
+              'Kamerazugriff erforderlich',
+              style: TextStyle(
+                fontFamily: 'Plus Jakarta Sans',
+                fontWeight: FontWeight.w700,
+                fontSize: 18,
+                color: Colors.white,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 32),
+              child: Text(
+                'Bitte erlaube den Kamerazugriff in den Einstellungen, um Mahlzeiten direkt live zu erfassen.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontFamily: 'Plus Jakarta Sans',
+                  fontSize: 14,
+                  color: Colors.white.withValues(alpha: 0.7),
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFC9EF00),
+                foregroundColor: const Color(0xFF12120F),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14)),
+              ),
+              onPressed: openAppSettings,
+              child: Text(l10n.aiCaptureOpenSettings,
+                  style: const TextStyle(fontWeight: FontWeight.w700)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBarcodeBanner(AppLocalizations l10n, Color primaryAccent) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final label = _detectedProduct?.name ??
+        l10n.aiCaptureBarcodeFallback(_detectedBarcode!);
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: DesignConstants.spacingM),
+      child: Material(
+        color: isDark ? const Color(0xFF1E1E1E) : const Color(0xFFEFEFE8),
+        borderRadius: BorderRadius.circular(20),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(20),
+          onTap: _isLoggingBarcode ? null : _logDetectedBarcode,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                  color: primaryAccent.withValues(alpha: 0.8), width: 2),
+            ),
+            child: Row(
+              children: [
+                Icon(LucideIcons.scan_barcode, color: primaryAccent, size: 26),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        l10n.aiCaptureBarcodeDetected,
+                        style: TextStyle(
+                          fontFamily: 'Plus Jakarta Sans',
+                          fontWeight: FontWeight.w700,
+                          fontSize: 12,
+                          letterSpacing: 0.4,
+                          color: primaryAccent,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        label,
+                        style: TextStyle(
+                          fontFamily: 'Plus Jakarta Sans',
+                          fontWeight: FontWeight.w700,
+                          fontSize: 15,
+                          color:
+                              isDark ? Colors.white : const Color(0xFF12120F),
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: primaryAccent,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: _isLoggingBarcode
+                      ? SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2.2,
+                            color:
+                                isDark ? const Color(0xFF12120F) : Colors.white,
+                          ),
+                        )
+                      : Text(
+                          l10n.aiCaptureLogBarcode,
+                          style: TextStyle(
+                            fontFamily: 'Plus Jakarta Sans',
+                            fontWeight: FontWeight.w800,
+                            fontSize: 14,
+                            color:
+                                isDark ? const Color(0xFF12120F) : Colors.white,
+                          ),
+                        ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFrostedButton({
+    Key? key,
+    required IconData icon,
+    required VoidCallback onTap,
+    bool isActive = false,
+  }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryAccent = isDark
+        ? const Color(0xFFC9EF00)
+        : DesignConstants.brandAccentColorLightMode;
+    return GestureDetector(
+      key: key,
+      onTap: onTap,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          width: 48,
+          height: 48,
+          decoration: BoxDecoration(
+            color: isActive
+                ? primaryAccent.withValues(alpha: isDark ? 0.3 : 0.15)
+                : (isDark
+                    ? Colors.white.withValues(alpha: 0.14)
+                    : Colors.black.withValues(alpha: 0.08)),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: isActive
+                  ? primaryAccent
+                  : (isDark ? Colors.white24 : Colors.black12),
+              width: 1,
+            ),
+          ),
+          child: Icon(
+            icon,
+            color: isActive
+                ? primaryAccent
+                : (isDark ? Colors.white : const Color(0xFF12120F)),
+            size: 20,
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Opens the dictation sheet and folds the result back into the note field.
+  ///
+  /// The transcript is always shown for editing before it is used: dictation
+  /// mishears numbers, and "150 g" turning into "115 g" would silently produce
+  /// a wrong meal.
+  Future<void> _openVoiceDictationModal() async {
+    // The camera stands down for the duration. An `AVAudioEngine` starting up
+    // against a live capture session is the one configuration where the
+    // recogniser reliably fell over, and the viewfinder is behind a full-height
+    // sheet anyway.
+    await _suspendCamera();
+
+    // Explained before the system prompt appears, the same way every other
+    // permission in the app is. Apple rejects builds that fire the microphone
+    // and speech-recognition prompts with no context, and the user deserves to
+    // know what is being asked for before deciding.
+    if (!await VoiceDictationService.instance.hasPermissions()) {
+      if (!mounted) {
+        await _resumeCamera();
+        return;
+      }
+      final l10n = AppLocalizations.of(context)!;
+      final proceed = await showPrePermissionDialog(
+        context: context,
+        title: l10n.voicePermissionTitle,
+        body: l10n.voicePermissionBody,
+        continueLabel: l10n.voicePermissionContinue,
+        cancelLabel: l10n.cancel,
+      );
+      if (!proceed) {
+        await _resumeCamera();
+        return;
+      }
+    }
+    if (!mounted) {
+      await _resumeCamera();
+      return;
+    }
+
+    final availability = await VoiceDictationService.instance.prepare();
+    if (!mounted) {
+      await _resumeCamera();
+      return;
+    }
+
+    if (!availability.available) {
+      await _resumeCamera();
+      if (!mounted) return;
+      final l10n = AppLocalizations.of(context)!;
+      final message = switch (availability.reason) {
+        VoiceUnavailableReason.permissionDenied =>
+          l10n.voiceUnavailablePermission,
+        VoiceUnavailableReason.unsupported => l10n.voiceUnavailableUnsupported,
+        _ => l10n.voiceUnavailableFailed,
+      };
+      _showDictationFallback(message);
+      return;
+    }
+
+    final l10n = AppLocalizations.of(context)!;
+    setState(() => _isDictating = true);
+    final result = await showVoiceDictationSheet(
+      context: context,
+      initialText: _textController.text,
+      exampleHint: _images.isEmpty
+          ? l10n.voiceExampleStandalone
+          : l10n.voiceExampleWithPhoto,
+      // Same wording as the button on this screen, so the sheet's primary
+      // action reads as the same step rather than a different one.
+      analyzeLabel: _images.isNotEmpty
+          ? l10n.aiCaptureAnalyzeMeal(_images.length)
+          : l10n.aiCaptureAnalyzeText,
+    );
+
+    if (!mounted) {
+      await _resumeCamera();
+      return;
+    }
+
+    setState(() {
+      _isDictating = false;
+      if (result != null) {
+        _textController.text = result.text.trim();
+        _showTextInput = _textController.text.isNotEmpty;
+      }
+    });
+
+    if (result != null && result.analyzeNow && _hasInput) {
+      await _analyze();
+    } else {
+      await _resumeCamera();
+    }
+  }
+
+  /// Dictation is a convenience; when it is unavailable the typed path must
+  /// still be one tap away rather than a dead end.
+  void _showDictationFallback(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 5),
+      ),
+    );
+    setState(() => _showTextInput = true);
   }
 }

@@ -1,7 +1,13 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:drift/native.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
+import 'package:train_libre/core/media/app_media_store.dart';
+import 'package:train_libre/features/diary/data/meal_photo_store.dart';
+import 'package:train_libre/features/workout/data/workout_photo_store.dart';
 import 'package:train_libre/core/infrastructure/backup_manager.dart';
 import 'package:train_libre/data/database_helper.dart';
 import 'package:train_libre/data/drift_database.dart'
@@ -9,6 +15,7 @@ import 'package:train_libre/data/drift_database.dart'
 import 'package:train_libre/features/diary/data/sources/product_local_data_source.dart';
 import 'package:train_libre/features/workout/data/sources/workout_local_data_source.dart';
 import 'package:train_libre/features/diary/domain/models/food_entry.dart';
+import 'package:train_libre/features/diary/domain/models/meal_entry.dart';
 import 'package:train_libre/features/profile/domain/models/measurement.dart';
 import 'package:train_libre/features/profile/domain/models/measurement_session.dart';
 import 'package:train_libre/features/workout/domain/models/set_log.dart';
@@ -100,6 +107,223 @@ void main() {
       expect(restoredEntries.first.barcode, 'base-apple');
       expect(restoredEntries.first.quantityInGrams, 180);
       expect(restoredEntries.first.mealType, 'mealtypeLunch');
+    });
+
+    test('AI meal entries and their grouping survive backup restore', () async {
+      await db.into(db.products).insert(
+            const ProductsCompanion(
+              barcode: drift.Value('base-rice'),
+              name: drift.Value('Rice'),
+              calories: drift.Value(130),
+              protein: drift.Value(2.7),
+              carbs: drift.Value(28),
+              fat: drift.Value(0.3),
+              source: drift.Value('base'),
+            ),
+          );
+
+      const mealEntryId = 'meal-entry-1';
+      final diaryDb = dbHelper.diaryLocalDataSource;
+      await diaryDb.insertMealEntry(
+        MealEntry(
+          id: mealEntryId,
+          consumedAt: DateTime(2026, 4, 2, 13, 0),
+          mealType: 'mealtypeLunch',
+          title: 'Chicken with rice',
+          source: 'aiPhoto',
+          photoPath: 'meal_photos/abc.jpg',
+          photoThumbPath: 'meal_photos/abc_thumb.jpg',
+          voiceTranscript: 'a bowl of rice',
+          captureMeta: '{"provider":"openai"}',
+        ),
+      );
+      await dbHelper.insertFoodEntry(
+        FoodEntry(
+          barcode: 'base-rice',
+          timestamp: DateTime(2026, 4, 2, 13, 0),
+          quantityInGrams: 150,
+          mealType: 'mealtypeLunch',
+          mealEntryId: mealEntryId,
+        ),
+      );
+
+      final payload = await backupManager.generateBackupPayloadForTesting();
+      expect(
+          await backupManager.importBackupPayloadForTesting(payload), isTrue);
+
+      final restored = await diaryDb.getMealEntryById(mealEntryId);
+      expect(restored, isNotNull);
+      expect(restored!.title, 'Chicken with rice');
+      expect(restored.source, 'aiPhoto');
+      expect(restored.photoPath, 'meal_photos/abc.jpg');
+      expect(restored.photoThumbPath, 'meal_photos/abc_thumb.jpg');
+      expect(restored.voiceTranscript, 'a bowl of rice');
+      expect(restored.captureMeta, '{"provider":"openai"}');
+
+      // The link back from the logged item is what turns those rows into one
+      // meal again; without it a restore leaves loose ingredients behind.
+      final logs = await db.select(db.nutritionLogs).get();
+      expect(logs, hasLength(1));
+      expect(logs.first.mealEntryId, mealEntryId);
+    });
+
+    test('a backup archive carries the meal previews to a fresh device',
+        () async {
+      // path_provider has no implementation under `flutter test`, so the photo
+      // folder is pointed at a real temporary directory instead.
+      final supportDir =
+          await Directory.systemTemp.createTemp('meal_photos_test');
+      addTearDown(() async {
+        if (await supportDir.exists()) await supportDir.delete(recursive: true);
+      });
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+        const MethodChannel('plugins.flutter.io/path_provider'),
+        (call) async => supportDir.path,
+      );
+      addTearDown(() {
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(
+          const MethodChannel('plugins.flutter.io/path_provider'),
+          null,
+        );
+      });
+
+      AppMediaStore.instance.resetForTesting();
+      addTearDown(AppMediaStore.instance.resetForTesting);
+
+      final photoDir = Directory(
+        p.join(supportDir.path, MealPhotoStore.folderName),
+      )..createSync(recursive: true);
+      final fullPhoto = File(p.join(photoDir.path, 'abc.jpg'))
+        ..writeAsBytesSync(List<int>.filled(4096, 7));
+      final preview = File(p.join(photoDir.path, 'abc_thumb.jpg'))
+        ..writeAsBytesSync(List<int>.filled(64, 3));
+
+      const mealEntryId = 'meal-entry-photo';
+      final diaryDb = dbHelper.diaryLocalDataSource;
+      await diaryDb.insertMealEntry(
+        MealEntry(
+          id: mealEntryId,
+          consumedAt: DateTime(2026, 4, 3, 8, 0),
+          mealType: 'mealtypeBreakfast',
+          title: 'Porridge',
+          source: 'aiPhoto',
+          photoPath: '${MealPhotoStore.folderName}/abc.jpg',
+          photoThumbPath: '${MealPhotoStore.folderName}/abc_thumb.jpg',
+        ),
+      );
+
+      final archive = await backupManager.buildBackupArchive(
+        targetPath: p.join(supportDir.path, 'backup.zip'),
+      );
+
+      // Stand in for a fresh device: the rows and every photo file are gone.
+      fullPhoto.deleteSync();
+      preview.deleteSync();
+      await db.delete(db.mealEntries).go();
+
+      expect(await backupManager.importFullBackupAuto(archive.path), isTrue);
+
+      final restored = await diaryDb.getMealEntryById(mealEntryId);
+      expect(restored, isNotNull);
+      expect(restored!.title, 'Porridge');
+
+      // The preview comes back; the full-size photo deliberately does not.
+      expect(File(p.join(photoDir.path, 'abc_thumb.jpg')).existsSync(), isTrue);
+      expect(File(p.join(photoDir.path, 'abc.jpg')).existsSync(), isFalse);
+    });
+
+    test(
+        'workout logs with up to 4 photos survive backup restore and previews extract properly',
+        () async {
+      final supportDir =
+          await Directory.systemTemp.createTemp('workout_photos_test');
+      addTearDown(() async {
+        if (await supportDir.exists()) await supportDir.delete(recursive: true);
+      });
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+        const MethodChannel('plugins.flutter.io/path_provider'),
+        (call) async => supportDir.path,
+      );
+      addTearDown(() {
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(
+          const MethodChannel('plugins.flutter.io/path_provider'),
+          null,
+        );
+      });
+
+      AppMediaStore.instance.resetForTesting();
+      addTearDown(AppMediaStore.instance.resetForTesting);
+
+      final photoDir = Directory(
+        p.join(supportDir.path, WorkoutPhotoStore.folderName),
+      )..createSync(recursive: true);
+
+      final full1 = File(p.join(photoDir.path, 'w1.jpg'))
+        ..writeAsBytesSync(List<int>.filled(4096, 1));
+      final thumb1 = File(p.join(photoDir.path, 'w1_thumb.jpg'))
+        ..writeAsBytesSync(List<int>.filled(64, 1));
+      final full2 = File(p.join(photoDir.path, 'w2.jpg'))
+        ..writeAsBytesSync(List<int>.filled(4096, 2));
+      final thumb2 = File(p.join(photoDir.path, 'w2_thumb.jpg'))
+        ..writeAsBytesSync(List<int>.filled(64, 2));
+      final full3 = File(p.join(photoDir.path, 'w3.jpg'))
+        ..writeAsBytesSync(List<int>.filled(4096, 3));
+      final thumb3 = File(p.join(photoDir.path, 'w3_thumb.jpg'))
+        ..writeAsBytesSync(List<int>.filled(64, 3));
+      final full4 = File(p.join(photoDir.path, 'w4.jpg'))
+        ..writeAsBytesSync(List<int>.filled(4096, 4));
+      final thumb4 = File(p.join(photoDir.path, 'w4_thumb.jpg'))
+        ..writeAsBytesSync(List<int>.filled(64, 4));
+
+      final ongoing = await workoutDb.startWorkout(routineName: 'Push Day');
+      await workoutDb.finishWorkout(
+        ongoing.id!,
+        title: 'Push Day',
+        notes: 'Great pump',
+      );
+
+      final photoPaths = [
+        '${WorkoutPhotoStore.folderName}/w1.jpg',
+        '${WorkoutPhotoStore.folderName}/w2.jpg',
+        '${WorkoutPhotoStore.folderName}/w3.jpg',
+        '${WorkoutPhotoStore.folderName}/w4.jpg',
+      ];
+      await workoutDb.updateWorkoutLogPhotos(ongoing.id!, photoPaths);
+
+      final archive = await backupManager.buildBackupArchive(
+        targetPath: p.join(supportDir.path, 'workout_backup.zip'),
+      );
+
+      // Simulate restore on fresh device
+      full1.deleteSync();
+      thumb1.deleteSync();
+      full2.deleteSync();
+      thumb2.deleteSync();
+      full3.deleteSync();
+      thumb3.deleteSync();
+      full4.deleteSync();
+      thumb4.deleteSync();
+      await db.delete(db.workoutLogs).go();
+
+      expect(await backupManager.importFullBackupAuto(archive.path), isTrue);
+
+      final restoredLogs = await workoutDb.getWorkoutLogs();
+      expect(restoredLogs.length, 1);
+      final restored = restoredLogs.first;
+      expect(restored.routineName, 'Push Day');
+      expect(restored.notes, 'Great pump');
+      expect(restored.photoPaths, photoPaths);
+
+      // Previews are extracted, full-size files are not in archive
+      expect(File(p.join(photoDir.path, 'w1_thumb.jpg')).existsSync(), isTrue);
+      expect(File(p.join(photoDir.path, 'w2_thumb.jpg')).existsSync(), isTrue);
+      expect(File(p.join(photoDir.path, 'w3_thumb.jpg')).existsSync(), isTrue);
+      expect(File(p.join(photoDir.path, 'w4_thumb.jpg')).existsSync(), isTrue);
+      expect(File(p.join(photoDir.path, 'w1.jpg')).existsSync(), isFalse);
     });
 
     test('changed goals/settings and target prefs survive backup restore',

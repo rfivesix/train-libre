@@ -29,3 +29,7 @@
 ## 2024-05-14 - Add tooltips to IconButtons for accessibility
 **Learning:** Flutter's `MaterialLocalizations` does not provide built-in getters for password visibility toggles (e.g., 'show/hide password').
 **Action:** Custom `.arb` localization strings or existing related field labels (like `passwordLabel`) must be reused for these tooltips instead.
+
+## 2024-08-16 - Add Semantics to SetTypeChip
+**Learning:** `GestureDetector` widgets used for custom toggle buttons or icon interactions are not inherently accessible. They require a wrapping `Semantics` widget with `button: true` and an appropriate `label` (localized) to be announced correctly by screen readers.
+**Action:** Always verify custom interactive elements built with raw `GestureDetector` or `InkWell` to ensure they provide adequate `Semantics` and use `AppLocalizations` for accessibility labels.

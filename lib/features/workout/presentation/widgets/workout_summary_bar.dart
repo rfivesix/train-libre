@@ -42,47 +42,60 @@ class WorkoutSummaryBar extends StatelessWidget {
       UnitDimension.weight,
     );
 
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        // Header without gray box
-        Container(
-          margin: const EdgeInsets.symmetric(
-              horizontal: DesignConstants.spacingS,
-              vertical: DesignConstants.spacingXS),
-          padding: const EdgeInsets.symmetric(
-              vertical: DesignConstants.spacingM,
-              horizontal: DesignConstants.spacingL),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _buildStatColumn(
-                context: context,
-                label: l10n.durationLabel,
-                value: formatDuration(duration ?? Duration.zero),
-                highlight: true,
-              ),
-              _buildStatColumn(
-                context: context,
-                label: l10n.volumeLabel,
-                value:
-                    "${volumeValue.toStringAsFixed(0)} ${unitService.suffixFor(UnitDimension.weight)}",
-              ),
-              _buildStatColumn(
-                context: context,
-                label: l10n.setsLabel,
-                value: sets.toString(),
-              ),
-            ],
-          ),
-        ),
+    final totalSeconds = duration?.inSeconds ?? 0;
 
-        // Progress / spacer: full width, no padding
-        SizedBox(
-          width: double.infinity,
-          child: _WorkoutProgressBar(value: progress),
-        ),
-      ],
+    return TweenAnimationBuilder<double>(
+      duration: const Duration(milliseconds: 750),
+      curve: Curves.easeOutCubic,
+      tween: Tween<double>(begin: 0.0, end: 1.0),
+      builder: (context, progressFactor, child) {
+        final animatedSeconds = (totalSeconds * progressFactor).round();
+        final animatedVolume = volumeValue * progressFactor;
+        final animatedSets = (sets * progressFactor).round();
+
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Header without gray box
+            Container(
+              margin: const EdgeInsets.symmetric(
+                  horizontal: DesignConstants.spacingS,
+                  vertical: DesignConstants.spacingXS),
+              padding: const EdgeInsets.symmetric(
+                  vertical: DesignConstants.spacingM,
+                  horizontal: DesignConstants.spacingL),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  _buildStatColumn(
+                    context: context,
+                    label: l10n.durationLabel,
+                    value: formatDuration(Duration(seconds: animatedSeconds)),
+                    highlight: true,
+                  ),
+                  _buildStatColumn(
+                    context: context,
+                    label: l10n.volumeLabel,
+                    value:
+                        "${animatedVolume.toStringAsFixed(0)} ${unitService.suffixFor(UnitDimension.weight)}",
+                  ),
+                  _buildStatColumn(
+                    context: context,
+                    label: l10n.setsLabel,
+                    value: animatedSets.toString(),
+                  ),
+                ],
+              ),
+            ),
+
+            // Progress / spacer: full width, no padding
+            SizedBox(
+              width: double.infinity,
+              child: _WorkoutProgressBar(value: progress),
+            ),
+          ],
+        );
+      },
     );
   }
 

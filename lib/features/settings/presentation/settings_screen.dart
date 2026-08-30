@@ -18,6 +18,7 @@ import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/summary_card.dart';
 import 'ai_settings_screen.dart';
 import 'appearance_settings_screen.dart';
+import 'performance_diagnostics_screen.dart';
 import 'data_management_screen.dart';
 import 'health_export_settings_screen.dart';
 import 'pulse_settings_screen.dart';
@@ -27,11 +28,12 @@ import '../../../services/local_app_data_reset_service.dart';
 import '../../workout/presentation/live_workout_view_model.dart';
 import '../../../widgets/common/common.dart';
 import '../../app/presentation/app_initializer_screen.dart';
-import '../../onboarding/presentation/initial_consent_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../widgets/common/app_button.dart';
+import '../../../services/app_tour_service.dart';
 import '../../../services/telemetry/telemetry_service.dart';
+import '../../../widgets/common/app_restart.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({
@@ -76,9 +78,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _loadOffCatalogSettings();
     _loadBaseFoodLanguage();
     _loadTelemetryOptIn();
-    unawaited(TelemetryService.instance.trackScreenView(screenName: ScreenName.settingsMain));
+    unawaited(TelemetryService.instance
+        .trackScreenView(screenName: ScreenName.settingsMain));
   }
-
 
   Future<void> _loadTelemetryOptIn() async {
     final optedIn = await TelemetryService.instance.isOptedIn();
@@ -256,8 +258,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-
-
   bool _settingsChildMayHaveChanged(bool? result) {
     // iOS interactive back-swipe completes a route with a null result. These
     // settings sub-screens are safe to swipe away from, so refresh
@@ -342,7 +342,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   icon: ListTile(
                     contentPadding: DesignConstants.screenPadding,
                     leading: Icon(
-                      LucideIcons.sparkles,
+                      _getExtraNutrientIcon(_overviewExtraNutrient),
                       size: 36,
                       color: Theme.of(context).colorScheme.primary,
                     ),
@@ -605,6 +605,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
               children: [
                 _buildNavigationCard(
                   context: context,
+                  icon: LucideIcons.compass,
+                  title: l10n.appTourRestartTitle,
+                  subtitle: l10n.appTourRestartSubtitle,
+                  tileKey: const Key('settings_restart_app_tour_tile'),
+                  onTap: () async {
+                    await AppTourService.instance.requestRestartFromSettings();
+                    if (!context.mounted) return;
+                    Navigator.of(context).popUntil((route) => route.isFirst);
+                  },
+                  wrapInCard: false,
+                ),
+                const Divider(height: 1),
+                _buildNavigationCard(
+                  context: context,
                   icon: LucideIcons.message_square,
                   title: l10n.feedbackReportSettingsEntryTitle,
                   subtitle: l10n.feedbackReportSettingsEntrySubtitle,
@@ -654,7 +668,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           AppLinkRow(
             key: const Key('settings_reset_telemetry_data'),
             title: 'Telemetrie-Daten löschen',
-            subtitle: 'Löscht alle gespeicherten IDs lokal und auf dem PostHog-Server',
+            subtitle:
+                'Löscht alle gespeicherten IDs lokal und auf dem PostHog-Server',
             trailingIcon: LucideIcons.trash_2,
             onTap: () async {
               final confirmed = await _showTelemetryDeletionConfirmation();
@@ -666,6 +681,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   content: Text(
                     'Telemetrie-IDs & Daten wurden lokal und vom Server gelöscht.',
                   ),
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: DesignConstants.spacingS),
+          AppLinkRow(
+            key: const Key('settings_performance_log'),
+            title: l10n.settingsPerformanceLogTitle,
+            subtitle: l10n.settingsPerformanceLogSubtitle,
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const PerformanceDiagnosticsScreen(),
                 ),
               );
             },
@@ -765,14 +793,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
       );
       if (!mounted) return;
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(
-          builder: (_) => InitialConsentScreen(
-            nextScreen: const AppInitializerScreen(),
-          ),
-        ),
-        (route) => false,
-      );
+      // Restart rather than navigate: the wipe cleared the preferences and
+      // emptied every table, but the running app still holds the services,
+      // view models and caches that were built from them. `main` rebuilds all
+      // of it and lands on the consent screen by itself, because that is what
+      // a device with no preferences is.
+      restartApp();
     } catch (_) {
       if (!mounted) return;
       setState(() => _isLocalResetRunning = false);
@@ -883,6 +909,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return result ?? false;
   }
 
+  // Note (Card Morph Policy): Settings sub-screens deliberately use standard
+  // MaterialPageRoute transitions without CardMorphRoute: settings items are
+  // configuration rows within categorized sections rather than standalone primary
+  // content entities where card expansion would feel unnatural.
   Widget _buildNavigationCard({
     required BuildContext context,
     required IconData icon,
@@ -942,7 +972,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-
+  IconData _getExtraNutrientIcon(String key) {
+    switch (key.toLowerCase()) {
+      case 'sugar':
+        return LucideIcons.candy;
+      case 'salt':
+        return LucideIcons.cooking_pot;
+      case 'fiber':
+      default:
+        return LucideIcons.wheat;
+    }
+  }
 }
 
 class _OffCatalogRegionPickerContent extends StatefulWidget {

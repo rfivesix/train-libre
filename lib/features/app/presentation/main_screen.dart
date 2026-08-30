@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
+
+import '../../../core/performance/jank_route_observer.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../services/telemetry/telemetry_service.dart';
 import '../../../data/database_helper.dart';
@@ -27,6 +29,7 @@ import '../../profile/presentation/measurements_screen.dart';
 import '../../diary/presentation/diary_screen.dart';
 import '../../workout/presentation/edit_routine_screen.dart';
 import '../../workout/presentation/live_workout_screen.dart';
+import '../../workout/presentation/workout_morph_route.dart';
 import '../../diary/presentation/nutrition_hub_screen.dart';
 import '../../profile/presentation/profile_screen.dart';
 import '../../analytics/presentation/statistics_hub_screen.dart';
@@ -118,6 +121,16 @@ class _MainScreenState extends State<MainScreen>
     return DateTime.now().dateOnly;
   }
 
+  /// Tab switches happen inside one route, so the navigator observer never
+  /// sees them. Without this the four main tabs would all be recorded as a
+  /// single screen — exactly the ones the user spends most time on.
+  static const List<String> _tabPerfNames = [
+    'DiaryTab',
+    'WorkoutTab',
+    'StatisticsTab',
+    'NutritionTab',
+  ];
+
   static const List<String> _tabScreenNames = [
     ScreenName.diaryTab,
     ScreenName.workoutTab,
@@ -139,6 +152,7 @@ class _MainScreenState extends State<MainScreen>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       unawaited(_runStartupPrompts());
       if (_currentIndex >= 0 && _currentIndex < _tabScreenNames.length) {
+        _publishPerfTabLabel(_currentIndex);
         unawaited(TelemetryService.instance.trackScreenView(
           screenName: _tabScreenNames[_currentIndex],
         ));
@@ -185,13 +199,11 @@ class _MainScreenState extends State<MainScreen>
       // the app language. Backgrounding is also exactly the moment before the
       // user can see the Home Screen, so it is the right time to be current.
       // Not debounced: a 500ms timer would not survive being backgrounded.
-      unawaited(_syncHomeWidgetsNow());
+      unawaited(_syncHomeWidgetsNow(forceStatistics: false));
     } else if (state == AppLifecycleState.resumed) {
-      // Data can change while backgrounded (HealthKit steps/sleep sync from
-      // another process, day rollover) with nothing in-app to trigger a
-      // refresh. Resume is the first moment the app can act on that, rather
-      // than waiting for the next mutation or the next cold start.
-      unawaited(_syncHomeWidgetsNow());
+      // The snapshot is already up-to-date from the pause sync. Resume starts
+      // the periodic refresh timer to keep widgets current during long
+      // foreground sessions.
       _startWidgetRefreshTimer();
     }
   }
@@ -205,11 +217,11 @@ class _MainScreenState extends State<MainScreen>
   void _startWidgetRefreshTimer() {
     _widgetRefreshTimer?.cancel();
     _widgetRefreshTimer = Timer.periodic(const Duration(minutes: 15), (_) {
-      unawaited(_syncHomeWidgetsNow());
+      unawaited(_syncHomeWidgetsNow(forceStatistics: false));
     });
   }
 
-  Future<void> _syncHomeWidgetsNow() async {
+  Future<void> _syncHomeWidgetsNow({bool forceStatistics = true}) async {
     if (!mounted) return;
     await context.read<HomeWidgetSyncService>().refresh(
           l10n: AppLocalizations.of(context)!,
@@ -217,7 +229,7 @@ class _MainScreenState extends State<MainScreen>
           // Backgrounding is the last moment before the Home Screen is on
           // screen, so the statistics sections are recomputed rather than
           // served from the cache the cheap in-app paths rely on.
-          forceStatistics: true,
+          forceStatistics: forceStatistics,
         );
   }
 
@@ -229,6 +241,17 @@ class _MainScreenState extends State<MainScreen>
       appRouteObserver.subscribe(this, route);
       _isRouteObserverAttached = true;
     }
+    _perfRoute = route;
+    _publishPerfTabLabel(_currentIndex);
+  }
+
+  /// The route this shell lives in, so the frame recorder can attribute frames
+  /// to the selected tab rather than to the shell as a whole.
+  ModalRoute<dynamic>? _perfRoute;
+
+  void _publishPerfTabLabel(int index) {
+    if (index < 0 || index >= _tabPerfNames.length) return;
+    jankRouteObserver.setLabelForRoute(_perfRoute, _tabPerfNames[index]);
   }
 
   @override
@@ -271,6 +294,7 @@ class _MainScreenState extends State<MainScreen>
     if (index != previousIndex &&
         index >= 0 &&
         index < _tabScreenNames.length) {
+      _publishPerfTabLabel(index);
       unawaited(TelemetryService.instance.trackScreenView(
         screenName: _tabScreenNames[index],
       ));
@@ -395,10 +419,16 @@ class _MainScreenState extends State<MainScreen>
             await DatabaseHelper.instance.insertFluidEntry(newFluidEntry);
           }
           _refreshHomeScreen();
-        } catch (e) {
+        } catch (e, stack) {
+          // The bare word "Error" gave no way to tell a failed write from a
+          // failed lookup; the message is what makes a report actionable.
+          debugPrint('[Diary] barcode log failed: $e\n$stack');
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(AppLocalizations.of(context)!.error)),
+              SnackBar(
+                content: Text('${AppLocalizations.of(context)!.error}: $e'),
+                duration: const Duration(seconds: 8),
+              ),
             );
           }
         }
@@ -533,7 +563,9 @@ class _MainScreenState extends State<MainScreen>
         if (manager.workoutLog != null) {
           Navigator.of(context)
               .push(
-                MaterialPageRoute(
+                // Resuming an already running session — it morphs out of the
+                // minimized bar, same as tapping the bar itself.
+                WorkoutMorphRoute<void>(
                   builder: (context) => LiveWorkoutScreen(
                     workoutLog: manager.workoutLog!,
                     routine: null,
@@ -629,14 +661,6 @@ class _MainScreenState extends State<MainScreen>
                   children: [
                     AppButton.primary(
                       onPressed: () async {
-                        // Show loading indicator on top of the menu.
-                        showDialog(
-                          context: context,
-                          barrierDismissible: false,
-                          builder: (_) =>
-                              const Center(child: CircularProgressIndicator()),
-                        );
-
                         final fullRoutine = await WorkoutLocalDataSource
                             .instance
                             .getRoutineById(r.id!);
@@ -645,7 +669,6 @@ class _MainScreenState extends State<MainScreen>
                             .startWorkout(routineName: r.name);
 
                         if (!mounted) return;
-                        Navigator.of(context).pop(); // Close loading indicator
 
                         if (fullRoutine != null && ctx.mounted) {
                           // Close menu and return data
@@ -831,10 +854,14 @@ class _MainScreenState extends State<MainScreen>
           foodEntryId: newFoodEntryId,
         );
       }
-    } catch (e) {
+    } catch (e, stack) {
+      debugPrint('[Diary] food log failed: $e\n$stack');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.error)),
+          SnackBar(
+            content: Text('${l10n.error}: $e'),
+            duration: const Duration(seconds: 8),
+          ),
         );
       }
     } finally {
@@ -1193,20 +1220,52 @@ class _MainScreenState extends State<MainScreen>
     ];
   }
 
-  Rect? _rectForKey(GlobalKey key) {
+  /// Global bounds of [key] including every ancestor transform.
+  ///
+  /// `localToGlobal(Offset.zero) & box.size` only transforms the origin and
+  /// then bolts the *untransformed* size onto it, so any ancestor scale (route
+  /// transitions, animated wrappers) yields a rect that no longer matches what
+  /// is painted on screen. Transforming the whole rect keeps the spotlight on
+  /// the widget even mid-animation.
+  Rect? _globalRectOf(GlobalKey key) {
     final targetContext = key.currentContext;
     if (targetContext == null) return null;
     final renderObject = targetContext.findRenderObject();
     if (renderObject is! RenderBox || !renderObject.hasSize) return null;
-    final topLeft = renderObject.localToGlobal(Offset.zero);
-    final rect = topLeft & renderObject.size;
+    return MatrixUtils.transformRect(
+      renderObject.getTransformTo(null),
+      Offset.zero & renderObject.size,
+    );
+  }
+
+  Rect? _rectForKey(GlobalKey key) {
+    final rect = _globalRectOf(key);
+    if (rect == null) return null;
+
+    final Rect? barRect = _globalRectOf(_tourNavigationBarKey);
 
     if (key == _tourNavigationBarKey) {
-      return Rect.fromLTWH(
-        rect.left + 16,
-        rect.top,
-        rect.width,
-        rect.height,
+      var bounds = barRect ?? rect;
+      // The tab icons sit in their own render boxes, so folding them in keeps
+      // the spotlight covering all four tabs even if the bar itself reports a
+      // shorter box than it paints.
+      for (final tabKey in [
+        _tourDiaryTabKey,
+        _tourWorkoutTabKey,
+        _tourStatisticsTabKey,
+        _tourNutritionTabKey,
+      ]) {
+        final tabRect = _globalRectOf(tabKey);
+        if (tabRect != null) bounds = bounds.expandToInclude(tabRect);
+      }
+      return bounds.inflate(4);
+    }
+
+    if (key == _tourFabKey) {
+      return Rect.fromCenter(
+        center: rect.center,
+        width: 72,
+        height: 72,
       );
     }
 
@@ -1214,11 +1273,26 @@ class _MainScreenState extends State<MainScreen>
         key == _tourWorkoutTabKey ||
         key == _tourStatisticsTabKey ||
         key == _tourNutritionTabKey) {
-      return Rect.fromLTWH(
-        rect.left - 12,
-        rect.top - 4,
-        rect.width + 24,
-        rect.height + 28,
+      if (barRect != null) {
+        final tabWidth = barRect.width / 4;
+        int tabIndex = 0;
+        if (key == _tourDiaryTabKey) tabIndex = 0;
+        if (key == _tourWorkoutTabKey) tabIndex = 1;
+        if (key == _tourStatisticsTabKey) tabIndex = 2;
+        if (key == _tourNutritionTabKey) tabIndex = 3;
+
+        final tabLeft = barRect.left + (tabIndex * tabWidth);
+        return Rect.fromLTWH(
+          tabLeft - 1.5,
+          barRect.top + 1.0,
+          tabWidth + 3.0,
+          barRect.height - 2.0,
+        );
+      }
+      return Rect.fromCenter(
+        center: Offset(rect.center.dx, rect.center.dy + 8),
+        width: 72,
+        height: 52,
       );
     }
 
@@ -1275,10 +1349,17 @@ class _MainScreenState extends State<MainScreen>
     unawaited(TelemetryService.instance
         .trackFeatureUsed(featureKey: FeatureKey.appTourStarted));
     await AppTourService.instance.markOfferShown();
+    if (!mounted) return;
+    final l10n = AppLocalizations.of(context)!;
+    final steps = _buildAppTourSteps(l10n);
+    final initialTarget = steps.isNotEmpty
+        ? (_rectForKey(steps[0].anchorKey) ??
+            _rectForKey(_tourNavigationBarKey))
+        : null;
     setState(() {
       _isTourActive = true;
       _tourStepIndex = 0;
-      _tourTargetRect = null;
+      _tourTargetRect = initialTarget;
       _isAddMenuOpen = false;
     });
     _menuController.reverse();
@@ -1296,20 +1377,66 @@ class _MainScreenState extends State<MainScreen>
       _onNavigationTapped(step.tabIndex);
     }
 
+    final immediateTarget =
+        _rectForKey(step.anchorKey) ?? _rectForKey(_tourNavigationBarKey);
     setState(() {
       _tourStepIndex = index;
-      _tourTargetRect = null;
+      if (immediateTarget != null) {
+        _tourTargetRect = immediateTarget;
+      }
     });
 
+    _syncTourTargetRect(index, step);
+  }
+
+  /// Number of consecutive identical measurements that count as "the layout has
+  /// settled".
+  static const int _tourTargetStableFrames = 3;
+
+  /// Upper bound on re-measurements (~1s at 60fps), so a permanently animating
+  /// anchor can never keep the loop alive.
+  static const int _tourTargetMaxFrames = 60;
+
+  /// Re-measures the anchor until its rect stops moving.
+  ///
+  /// The very first step is measured while the route transition that reveals
+  /// the main screen is still running, so a single post-frame measurement
+  /// captures the bottom navigation bar mid-animation and the spotlight ends up
+  /// cut short. Following the anchor for a few frames pins it to the final
+  /// layout instead of to whatever the first frame happened to show.
+  void _syncTourTargetRect(
+    int index,
+    _AppTourStep step, {
+    int frame = 0,
+    Rect? previousRect,
+    int stableFrames = 0,
+  }) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted || !_isTourActive) return;
-      Future.delayed(const Duration(milliseconds: 50), () {
-        if (!mounted || !_isTourActive || _tourStepIndex != index) return;
-        final targetRect =
-            _rectForKey(step.anchorKey) ?? _rectForKey(_tourNavigationBarKey);
+      if (!mounted || !_isTourActive || _tourStepIndex != index) return;
+      final targetRect =
+          _rectForKey(step.anchorKey) ?? _rectForKey(_tourNavigationBarKey);
+      if (targetRect != null && targetRect != _tourTargetRect) {
         setState(() => _tourTargetRect = targetRect);
-      });
+      }
+
+      final int nextStableFrames =
+          (targetRect != null && targetRect == previousRect)
+              ? stableFrames + 1
+              : 0;
+      if (nextStableFrames >= _tourTargetStableFrames ||
+          frame + 1 >= _tourTargetMaxFrames) {
+        return;
+      }
+      _syncTourTargetRect(
+        index,
+        step,
+        frame: frame + 1,
+        previousRect: targetRect,
+        stableFrames: nextStableFrames,
+      );
     });
+    // A post-frame callback only runs if another frame is actually produced.
+    WidgetsBinding.instance.scheduleFrame();
   }
 
   Future<void> _nextTourStep() async {
@@ -1358,6 +1485,58 @@ class _MainScreenState extends State<MainScreen>
     return '${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}';
   }
 
+  /// The remaining pause as `MM:SS`. Always minutes and seconds — a pause
+  /// never runs long enough to need an hours field.
+  String _formatRestDuration(int seconds) =>
+      _formatDuration(Duration(seconds: seconds));
+
+  /// The minimized running workout bar.
+  ///
+  /// Built through one method because [WorkoutMorphRoute] renders a second
+  /// instance of it as the thing the morph grows out of. The two have to be
+  /// the same widget with the same data or the handoff shows.
+  Widget _buildRunningWorkoutOverlay(BuildContext context) {
+    final manager = context.watch<LiveWorkoutViewModel>();
+    return RunningWorkoutOverlay(
+      elapsedDuration: _formatDuration(manager.elapsedDuration),
+      restDuration: _formatRestDuration(manager.remainingRestSeconds),
+      isResting: manager.isResting,
+      exerciseName: manager.currentExerciseNameFor(
+        Localizations.localeOf(context).languageCode,
+      ),
+      onExpand: () {
+        final log = context.read<LiveWorkoutViewModel>().workoutLog;
+        if (log != null) {
+          Navigator.of(context).push(
+            WorkoutMorphRoute<void>(
+              builder: (_) => LiveWorkoutScreen(workoutLog: log, routine: null),
+              sourceBuilder: _buildRunningWorkoutOverlay,
+            ),
+          );
+        }
+      },
+      onDiscard: () async {
+        final l10n = AppLocalizations.of(context)!;
+        final wsm = context.read<LiveWorkoutViewModel>();
+        final logId = wsm.workoutLog?.id;
+
+        final confirmed = await showDeleteConfirmation(
+          context,
+          title: l10n.discard_button,
+          content: l10n.deleteWorkoutConfirmContent,
+          confirmLabel: l10n.discard_button,
+        );
+
+        if (confirmed) {
+          if (logId != null) {
+            await WorkoutLocalDataSource.instance.deleteWorkoutLog(logId);
+          }
+          await wsm.finishWorkout();
+        }
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -1373,7 +1552,6 @@ class _MainScreenState extends State<MainScreen>
 
     final manager = context.watch<LiveWorkoutViewModel>();
     final bool isWorkoutRunning = manager.isActive;
-    final String elapsed = _formatDuration(manager.elapsedDuration);
 
     // Animation parameters
     // const basePad = 120.0; // Unused locally
@@ -1435,53 +1613,20 @@ class _MainScreenState extends State<MainScreen>
             ),
           ),
         ),
-        // Laufendes Workout Overlay
+        // Laufendes Workout Overlay. Hidden for the length of a morph — the
+        // transition renders its own copy of this very widget and moves it, so
+        // the original must not sit motionless underneath.
         if (isWorkoutRunning)
           Positioned(
-            bottom: 8 +
-                8 +
-                DesignConstants.bottomNavigationBarHeight +
-                8, // 8px (Positioned bottom) + 8px (verticalPadding) + 64px (barHeight) + 8px (gap) = 88.0px
-            left: 16,
-            right: 16,
-            child: RepaintBoundary(
-              child: RunningWorkoutOverlay(
-                elapsedDuration: elapsed,
-                onContinue: () {
-                  final log = context.read<LiveWorkoutViewModel>().workoutLog;
-                  if (log != null) {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) =>
-                            LiveWorkoutScreen(workoutLog: log, routine: null),
-                      ),
-                    );
-                  }
-                },
-                onDiscard: () async {
-                  final l10n = AppLocalizations.of(context)!;
-                  final wsm = context.read<LiveWorkoutViewModel>();
-                  final logId = wsm.workoutLog?.id;
-
-                  // FIX: showDeleteConfirmation instead of showDialog.
-                  final confirmed = await showDeleteConfirmation(
-                    context,
-                    title: l10n.discard_button, // "Discard"
-                    content:
-                        l10n.deleteWorkoutConfirmContent, // "Really delete?"
-                    confirmLabel: l10n.discard_button, // Red button: "Discard"
-                  );
-
-                  if (confirmed) {
-                    if (logId != null) {
-                      await WorkoutLocalDataSource.instance.deleteWorkoutLog(
-                        logId,
-                      );
-                    }
-                    await wsm.finishWorkout();
-                  }
-                },
-              ),
+            bottom: DesignConstants.workoutOverlayBottomInset,
+            left: DesignConstants.floatingBarHorizontalInset,
+            right: DesignConstants.floatingBarHorizontalInset,
+            child: ValueListenableBuilder<bool>(
+              valueListenable: workoutMorphSourceHidden,
+              builder: (context, hidden, _) => hidden
+                  ? const SizedBox.shrink()
+                  : RepaintBoundary(
+                      child: _buildRunningWorkoutOverlay(context)),
             ),
           ),
         // Bottom Nav Bar & FAB
@@ -1554,12 +1699,7 @@ class _MainScreenState extends State<MainScreen>
                     Material(
                       type: MaterialType.transparency,
                       child: DefaultTextStyle(
-                        style: const TextStyle(
-                          fontSize: 11.0,
-                          fontWeight: FontWeight.w600,
-                          fontFamily: 'Inter',
-                          letterSpacing: -0.2,
-                        ),
+                        style: DesignConstants.floatingBarLabelStyle,
                         child: Padding(
                           padding: EdgeInsets.symmetric(
                             horizontal: horizontalPadding,
@@ -1571,8 +1711,11 @@ class _MainScreenState extends State<MainScreen>
                             child: Row(
                               children: [
                                 Expanded(
-                                  child: KeyedSubtree(
+                                  child: SizedBox(
                                     key: _tourNavigationBarKey,
+                                    width: maxTabW,
+                                    height: DesignConstants
+                                        .bottomNavigationBarHeight,
                                     child: GlassTabBar.bottom(
                                       selectedIndex: _currentIndex,
                                       onTabSelected: _onNavigationTapped,
@@ -1587,6 +1730,8 @@ class _MainScreenState extends State<MainScreen>
                                       verticalPadding: 0.0,
                                       quality:
                                           DesignConstants.defaultGlassQuality,
+                                      // Drag-time bloom, unrelated to the
+                                      // indicator's resting inset.
                                       indicatorExpansion:
                                           const EdgeInsets.symmetric(
                                               horizontal: 14, vertical: 8),
@@ -1595,8 +1740,8 @@ class _MainScreenState extends State<MainScreen>
                                       unselectedIconColor:
                                           isDark ? Colors.white : Colors.black,
                                       indicatorColor:
-                                          (isDark ? Colors.white : Colors.black)
-                                              .withValues(alpha: 0.15),
+                                          DesignConstants.floatingBarPillColor(
+                                              isDark),
                                       settings:
                                           DesignConstants.liquidGlassSettings(
                                               isDark),
@@ -1675,6 +1820,7 @@ class _MainScreenState extends State<MainScreen>
                                             child: Icon(
                                               LucideIcons.plus,
                                               key: _tourFabKey,
+                                              semanticLabel: l10n.addMenuTitle,
                                               color: isDark
                                                   ? Colors.white
                                                   : Colors.black,

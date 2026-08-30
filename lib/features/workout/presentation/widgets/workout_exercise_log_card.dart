@@ -5,6 +5,7 @@ import '../../../../services/unit_service.dart';
 import '../../domain/models/set_log.dart';
 import '../../../exercise_catalog/domain/models/exercise.dart';
 import '../../../exercise_catalog/presentation/exercise_detail_screen.dart';
+import '../../../../widgets/common/card_morph_route.dart';
 import 'workout_card.dart';
 import 'workout_log_set_row.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
@@ -30,10 +31,10 @@ class WorkoutExerciseLogCard extends StatelessWidget {
   final int index;
   final bool isDragging;
   final bool isDraggedItem;
-  final Function(PointerDownEvent)? onPointerDown;
-  final Function(PointerUpEvent)? onPointerUp;
-  final Function(PointerCancelEvent)? onPointerCancel;
-  final Function(PointerMoveEvent)? onPointerMove;
+  final void Function(PointerDownEvent)? onPointerDown;
+  final void Function(PointerMoveEvent)? onPointerMove;
+  final void Function(PointerUpEvent)? onPointerUp;
+  final void Function(PointerCancelEvent)? onPointerCancel;
 
   const WorkoutExerciseLogCard({
     super.key,
@@ -55,9 +56,9 @@ class WorkoutExerciseLogCard extends StatelessWidget {
     this.isDragging = false,
     this.isDraggedItem = false,
     this.onPointerDown,
+    this.onPointerMove,
     this.onPointerUp,
     this.onPointerCancel,
-    this.onPointerMove,
   });
 
   @override
@@ -79,57 +80,65 @@ class WorkoutExerciseLogCard extends StatelessWidget {
             title: isEditMode
                 ? Listener(
                     onPointerDown: onPointerDown,
+                    onPointerMove: onPointerMove,
                     onPointerUp: onPointerUp,
                     onPointerCancel: onPointerCancel,
-                    onPointerMove: onPointerMove,
                     child: ReorderableDelayedDragStartListener(
                       index: index,
-                      child: InkWell(
-                        onTap: () {
-                          if (exercise != null) {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    ExerciseDetailScreen(exercise: exercise!),
+                      child: Builder(
+                        builder: (titleCtx) => InkWell(
+                          onTap: () {
+                            if (exercise != null) {
+                              Navigator.of(context).push(
+                                CardMorphRoute(
+                                  sourceContext: titleCtx,
+                                  sourceBorderRadius: 12.0,
+                                  builder: (context) =>
+                                      ExerciseDetailScreen(exercise: exercise!),
+                                ),
+                              );
+                            }
+                          },
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 4.0),
+                            child: Text(
+                              exercise?.getLocalizedName(context) ?? exerciseName,
+                              style: textTheme.titleLarge?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: isDraggedItem
+                                    ? Theme.of(context).colorScheme.primary
+                                    : null,
                               ),
-                            );
-                          }
-                        },
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 4.0),
-                          child: Text(
-                            exercise?.getLocalizedName(context) ?? exerciseName,
-                            style: textTheme.titleLarge?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: isDraggedItem
-                                  ? Theme.of(context).colorScheme.primary
-                                  : null,
                             ),
                           ),
                         ),
                       ),
                     ),
                   )
-                : InkWell(
-                    onTap: () {
-                      if (exercise != null) {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                ExerciseDetailScreen(exercise: exercise!),
+                : Builder(
+                    builder: (titleCtx) => InkWell(
+                      onTap: () {
+                        if (exercise != null) {
+                          Navigator.of(context).push(
+                            CardMorphRoute(
+                              sourceContext: titleCtx,
+                              sourceBorderRadius: 12.0,
+                              builder: (context) =>
+                                  ExerciseDetailScreen(exercise: exercise!),
+                            ),
+                          );
+                        }
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4.0),
+                        child: Text(
+                          exercise?.getLocalizedName(context) ?? exerciseName,
+                          style: textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: isDraggedItem
+                                ? Theme.of(context).colorScheme.primary
+                                : null,
                           ),
-                        );
-                      }
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 4.0),
-                      child: Text(
-                        exercise?.getLocalizedName(context) ?? exerciseName,
-                        style: textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: isDraggedItem
-                              ? Theme.of(context).colorScheme.primary
-                              : null,
                         ),
                       ),
                     ),
@@ -224,80 +233,86 @@ class WorkoutExerciseLogCard extends StatelessWidget {
                       // Header Row
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 0.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            if (isCardio)
-                              Row(
-                                children: [
-                                  _buildHeader(l10n.setLabel, flex: 2),
-                                  _buildHeader(
-                                      l10n.cardioDistanceLabel(context
+                        child: AnimatedSize(
+                          duration: const Duration(milliseconds: 260),
+                          curve: Curves.easeInOutCubic,
+                          alignment: Alignment.topCenter,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              if (isCardio)
+                                Row(
+                                  children: [
+                                    _buildHeader(l10n.setLabel, flex: 2),
+                                    _buildHeader(
+                                        l10n.cardioDistanceLabel(context
+                                            .read<UnitService>()
+                                            .suffixFor(UnitDimension.distance)),
+                                        flex: 4),
+                                    const SizedBox(width: 8),
+                                    _buildHeader(l10n.cardioTimeLabel, flex: 4),
+                                    const SizedBox(width: 8),
+                                    _buildHeader(l10n.cardioIntensityShortLabel,
+                                        flex: 2),
+                                    const SizedBox(
+                                        width: 48), // Space for check/delete
+                                  ],
+                                )
+                              else
+                                Row(
+                                  children: [
+                                    _buildHeader(l10n.setLabel, flex: 2),
+                                    _buildHeader(
+                                      context
                                           .read<UnitService>()
-                                          .suffixFor(UnitDimension.distance)),
-                                      flex: 4),
-                                  const SizedBox(width: 8),
-                                  _buildHeader(l10n.cardioTimeLabel, flex: 4),
-                                  const SizedBox(width: 8),
-                                  _buildHeader(l10n.cardioIntensityShortLabel,
-                                      flex: 2),
-                                  const SizedBox(
-                                      width: 48), // Space for check/delete
-                                ],
-                              )
-                            else
-                              Row(
-                                children: [
-                                  _buildHeader(l10n.setLabel, flex: 2),
-                                  _buildHeader(
-                                    context
-                                        .read<UnitService>()
-                                        .suffixFor(UnitDimension.weight),
-                                    flex: 2,
-                                  ),
-                                  _buildHeader(l10n.repsLabel, flex: 2),
-                                  _buildHeader("RIR", flex: 2),
-                                  const SizedBox(width: 48),
-                                ],
-                              ),
-
-                            // Set Rows
-                            ...sets.asMap().entries.map((setEntry) {
-                              final setLog = setEntry.value;
-                              final rowIndex = setEntry.key;
-                              int workingSetIndex = 0;
-                              for (int i = 0; i <= rowIndex; i++) {
-                                if (sets[i].setType != 'warmup') {
-                                  workingSetIndex++;
-                                }
-                              }
-
-                              return WorkoutLogSetRow(
-                                setLog: setLog,
-                                rowIndex: rowIndex,
-                                workingSetIndex: workingSetIndex,
-                                exerciseName: exerciseName,
-                                isEditMode: isEditMode,
-                                isCardio: isCardio,
-                                weightController: weightControllers[setLog.id],
-                                repsController: repsControllers[setLog.id],
-                                rirController: rirControllers[setLog.id],
-                                onDelete: () => onDeleteSet(setLog.id!),
-                                onSetTypeTap: () => onSetTypeTap(setLog.id!),
-                              );
-                            }),
-
-                            if (isEditMode)
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 16.0),
-                                child: TextButton.icon(
-                                  onPressed: onAddSet,
-                                  icon: const Icon(LucideIcons.plus),
-                                  label: Text(l10n.addSetButton),
+                                          .suffixFor(UnitDimension.weight),
+                                      flex: 2,
+                                    ),
+                                    _buildHeader(l10n.repsLabel, flex: 2),
+                                    _buildHeader("RIR", flex: 2),
+                                    const SizedBox(width: 48),
+                                  ],
                                 ),
-                              ),
-                          ],
+
+                              // Set Rows
+                              ...sets.asMap().entries.map((setEntry) {
+                                final setLog = setEntry.value;
+                                final rowIndex = setEntry.key;
+                                int workingSetIndex = 0;
+                                for (int i = 0; i <= rowIndex; i++) {
+                                  if (sets[i].setType != 'warmup') {
+                                    workingSetIndex++;
+                                  }
+                                }
+
+                                return WorkoutLogSetRow(
+                                  setLog: setLog,
+                                  rowIndex: rowIndex,
+                                  workingSetIndex: workingSetIndex,
+                                  exerciseName: exerciseName,
+                                  isEditMode: isEditMode,
+                                  isCardio: isCardio,
+                                  weightController:
+                                      weightControllers[setLog.id],
+                                  repsController: repsControllers[setLog.id],
+                                  rirController: rirControllers[setLog.id],
+                                  onDelete: () => onDeleteSet(setLog.id!),
+                                  onSetTypeTap: () => onSetTypeTap(setLog.id!),
+                                );
+                              }),
+
+                              if (isEditMode)
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 16.0),
+                                  child: TextButton.icon(
+                                    onPressed: onAddSet,
+                                    icon: const Icon(LucideIcons.plus),
+                                    label: Text(l10n.addSetButton),
+                                  ),
+                                ),
+                            ],
+                          ),
                         ),
                       ),
                     ],

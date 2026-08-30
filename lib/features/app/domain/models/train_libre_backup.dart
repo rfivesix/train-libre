@@ -122,6 +122,9 @@ class TrainLibreBackup {
                   quantityInGrams: e['quantity_in_grams'],
                   mealType: e['meal_type'],
                   archiveLocalId: e['archive_local_id'],
+                  // Dropped until now, which meant every restored AI meal came
+                  // back as loose ingredients with no meal to belong to.
+                  mealEntryId: e['meal_entry_id'] as String?,
                 ),
               )
               .toList() ??
@@ -181,7 +184,8 @@ class TrainLibreBackup {
                               )
                               .toList() ??
                           [],
-                      pauseSeconds: (reMap['pause_seconds'] as num?)?.toInt() ?? (reMap['pauseSeconds'] as num?)?.toInt(),
+                      pauseSeconds: (reMap['pause_seconds'] as num?)?.toInt() ??
+                          (reMap['pauseSeconds'] as num?)?.toInt(),
                       notes: reMap['notes'] as String?,
                     );
                   }).toList() ??

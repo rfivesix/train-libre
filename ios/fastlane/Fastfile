@@ -28,6 +28,22 @@ platform :ios do
     # from pubspec.yaml via `flutter build ipa --build-number` in
     # script/deploy_release.sh; it is only parsed above to verify the IPA.
 
+    # TestFlight "What to Test". Source of truth is the checked-in file, so the
+    # testers' instructions are updated in the same commit as the feature they
+    # describe -- a hardcoded string here is the one that silently goes stale.
+    what_to_test_path = File.join(project_root, "metadata", "testflight", "what_to_test.txt")
+    if File.exist?(what_to_test_path)
+      what_to_test = File.read(what_to_test_path).strip
+      UI.message("Using TestFlight notes from metadata/testflight/what_to_test.txt")
+    else
+      what_to_test = "We are constantly working on improvements. To view the full changelog, please visit our GitHub repository."
+      UI.important("metadata/testflight/what_to_test.txt not found -- uploading the generic placeholder notes.")
+    end
+
+    if what_to_test.length > 4000
+      UI.user_error!("TestFlight notes are #{what_to_test.length} characters; App Store Connect allows 4000.")
+    end
+
     ipa_path = Dir[File.join(project_root, "build", "ios", "ipa", "**", "*.ipa")].first
     
     UI.user_error!("No compiled IPA file found in build/ios/ipa/") unless ipa_path
@@ -40,7 +56,7 @@ platform :ios do
       apple_id: "6767055511",    
       team_id: "QUXZN5283U",
       skip_waiting_for_build_processing: true,
-      changelog: "We are constantly working on improvements. To view the full changelog, please visit our GitHub repository."
+      changelog: what_to_test
     )
   end
 

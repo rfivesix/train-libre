@@ -1,7 +1,7 @@
-// lib/features/diary/domain/repositories/diary_repository.dart
 import '../models/daily_goal.dart';
 import '../models/fluid_entry.dart';
 import '../models/food_entry.dart';
+import '../models/meal_entry.dart';
 import '../models/food_item.dart';
 import '../../../supplements/domain/models/supplement_log.dart';
 
@@ -10,6 +10,8 @@ abstract class IDiaryRepository {
   Stream<DailyGoal?> watchGoalsForDate(DateTime date);
   Stream<List<FoodEntry>> watchEntriesForDate(DateTime date);
   Stream<List<FluidEntry>> watchFluidEntriesForDate(DateTime date);
+  Stream<List<MealEntry>> watchMealEntriesForDate(DateTime date);
+  Future<MealEntry?> getMealEntryById(String id);
   Future<bool> hasAnyDiaryEntries();
   Future<bool> hasWeightMeasurementForDate(DateTime date);
 
@@ -36,6 +38,19 @@ abstract class IDiaryRepository {
     FoodEntry entry, {
     String telemetrySource,
   });
+
+  Future<String> insertMealEntry(MealEntry entry);
+  Future<void> updateMealEntry(MealEntry entry);
+
+  /// Moves a logged meal and every row linked to it to [newConsumedAt].
+  ///
+  /// Use this rather than [updateMealEntry] whenever the timestamp changes:
+  /// the diary buckets rows by their own timestamp column, so the linked
+  /// nutrition, fluid and supplement logs have to move along or the two days
+  /// end up disagreeing about where the meal's calories live.
+  Future<void> moveMealEntryTo(String mealEntryId, DateTime newConsumedAt);
+
+  Future<void> deleteMealEntry(String id, {required bool deleteFoodLogs});
 
   Future<void> updateSupplementLog(SupplementLog log);
   Future<void> deleteSupplementLog(int id);

@@ -18,6 +18,7 @@ import 'scanner_screen.dart';
 import 'ai_meal_capture_screen.dart';
 import '../../../util/design_constants.dart';
 import '../../../widgets/common/bottom_content_spacer.dart';
+import '../../../widgets/common/card_morph_route.dart';
 import '../../app/presentation/widgets/glass_bottom_menu.dart';
 import '../../../widgets/common/glass_fab.dart';
 import '../../../widgets/common/global_app_bar.dart';
@@ -156,6 +157,7 @@ class _AddFoodScreenState extends State<AddFoodScreen>
   bool _isLoadingMeals = true;
   int _currentTab = 0; // 0=catalog, 1=recent, 2=favorites, 3=meals
   final bool _suspendFab = false;
+  bool _isFabHidden = false;
   static const double _bottomPadding = 100.0;
 
   Future<void> _loadMeals() async {
@@ -362,9 +364,21 @@ class _AddFoodScreenState extends State<AddFoodScreen>
     }
   }
 
-  void _navigateAndCreateFood() {
+  void _navigateAndCreateFood({
+    BuildContext? sourceContext,
+    WidgetBuilder? sourceBuilder,
+    void Function(bool hidden)? onSourceVisibilityChanged,
+  }) {
     Navigator.of(context)
-        .push(MaterialPageRoute(builder: (context) => const CreateFoodScreen()))
+        .push(
+      CardMorphRoute(
+        sourceContext: sourceContext,
+        sourceBorderRadius: 28.0,
+        sourceBuilder: sourceBuilder,
+        onSourceVisibilityChanged: onSourceVisibilityChanged,
+        builder: (context) => const CreateFoodScreen(),
+      ),
+    )
         .then((_) {
       _searchController.clear();
       _runFilter('');
@@ -414,7 +428,13 @@ class _AddFoodScreenState extends State<AddFoodScreen>
     }
   }
 
-  Future<void> _createMealAndOpenEditor(AppLocalizations l10n) async {
+  Future<void> _createMealAndOpenEditor(
+    AppLocalizations l10n, {
+    BuildContext? sourceContext,
+    WidgetBuilder? sourceBuilder,
+    void Function(bool hidden)? onSourceVisibilityChanged,
+  }) async {
+    final sourceRect = CardMorphRoute.measureRect(sourceContext);
     // Keep a non-empty default name to satisfy the NOT NULL DB constraint.
     final defaultName = l10n.mealTypeLabel; // e.g. "Meal"
     final newMealId = await DatabaseHelper.instance.insertMeal(
@@ -426,7 +446,11 @@ class _AddFoodScreenState extends State<AddFoodScreen>
     final meal = {'id': newMealId, 'name': defaultName, 'notes': ''};
 
     await Navigator.of(context).push(
-      MaterialPageRoute(
+      CardMorphRoute(
+        sourceRect: sourceRect,
+        sourceBorderRadius: 28.0,
+        sourceBuilder: sourceBuilder,
+        onSourceVisibilityChanged: onSourceVisibilityChanged,
         builder: (_) => MealScreen(meal: meal, startInEdit: true),
       ),
     );
@@ -458,18 +482,14 @@ class _AddFoodScreenState extends State<AddFoodScreen>
     final double topPadding =
         MediaQuery.of(context).padding.top + kToolbarHeight;
 
-    // Floating action button behavior by active tab.
-    VoidCallback? fabOnPressed;
+    // Floating action button label by active tab.
     String fabLabel;
     if (_suspendFab) {
-      fabOnPressed = null;
       fabLabel = '';
     } else if (_currentTab == 3) {
       fabLabel = l10n.mealsCreate;
-      fabOnPressed = () => _createMealAndOpenEditor(l10n);
     } else {
       fabLabel = l10n.fabCreateOwnFood;
-      fabOnPressed = _navigateAndCreateFood;
     }
 
     return Scaffold(
@@ -477,7 +497,9 @@ class _AddFoodScreenState extends State<AddFoodScreen>
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
 
       // Use GlobalAppBar for consistent top-level navigation styling.
-      appBar: GlobalAppBar(title: l10n.nutritionExplorerTitle),
+      appBar: GlobalAppBar(
+        title: l10n.nutritionExplorerTitle,
+      ),
 
       body: Stack(
         children: [
@@ -555,7 +577,44 @@ class _AddFoodScreenState extends State<AddFoodScreen>
       ),
       floatingActionButton: _suspendFab
           ? null
-          : GlassFab(label: fabLabel, onPressed: fabOnPressed ?? () {}),
+          : Opacity(
+              opacity: _isFabHidden ? 0.0 : 1.0,
+              child: IgnorePointer(
+                ignoring: _isFabHidden,
+                child: Builder(
+                  builder: (fabCtx) {
+                    Widget buildFab({VoidCallback? onPressed}) => GlassFab(
+                          label: fabLabel,
+                          onPressed: onPressed ?? () {},
+                        );
+
+                    return GlassFab(
+                      label: fabLabel,
+                      onPressed: () {
+                        if (_currentTab == 3) {
+                          _createMealAndOpenEditor(
+                            l10n,
+                            sourceContext: fabCtx,
+                            sourceBuilder: (_) => buildFab(),
+                            onSourceVisibilityChanged: (hidden) {
+                              if (mounted) setState(() => _isFabHidden = hidden);
+                            },
+                          );
+                        } else {
+                          _navigateAndCreateFood(
+                            sourceContext: fabCtx,
+                            sourceBuilder: (_) => buildFab(),
+                            onSourceVisibilityChanged: (hidden) {
+                              if (mounted) setState(() => _isFabHidden = hidden);
+                            },
+                          );
+                        }
+                      },
+                    );
+                  },
+                ),
+              ),
+            ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
@@ -693,20 +752,13 @@ class _AddFoodScreenState extends State<AddFoodScreen>
       );
     }
     final colorScheme = Theme.of(context).colorScheme;
-    //final textTheme = Theme.of(context).textTheme;
-    //final isLightMode = Theme.of(context).brightness == Brightness.light;
 
-    final bgColor = Theme.of(context).inputDecorationTheme.fillColor ??
-        colorScheme.surfaceContainerHighest;
-
-    // UI: Suchleiste + Scanner-Button (wie in _buildSearchTab)
+    final isSearching = _searchController.text.trim().isNotEmpty;
     final searchRow = Padding(
       padding: const EdgeInsets.symmetric(
           horizontal: DesignConstants.spacingL, vertical: 0),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // 1. Search Capsule (Mit eckigeren Ecken und zentriertem Barcode)
           Expanded(
             child: SizedBox(
               height: 48,
@@ -722,53 +774,21 @@ class _AddFoodScreenState extends State<AddFoodScreen>
                     color: colorScheme.onSurfaceVariant,
                     size: 20,
                   ),
-                  suffixIcon: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      if (_searchController.text.isNotEmpty) ...[
-                        // State A: Text present -> Show clear button
-                        SizedBox(
-                          width: 48,
-                          height: 48,
-                          child: IconButton(
-                            padding: EdgeInsets.zero,
-                            tooltip: l10n.clearSearch,
-                            icon: Icon(
-                              LucideIcons.x,
-                              color: colorScheme.onSurfaceVariant,
-                              size: 20,
-                            ),
-                            onPressed: () {
-                              _searchController.clear();
-                              _runFilter('');
-                            },
+                  suffixIcon: _searchController.text.isNotEmpty
+                      ? IconButton(
+                          padding: EdgeInsets.zero,
+                          tooltip: l10n.clearSearch,
+                          icon: Icon(
+                            LucideIcons.x,
+                            color: colorScheme.onSurfaceVariant,
+                            size: 20,
                           ),
-                        ),
-                      ] else ...[
-                        // State B: Empty field -> Show barcode scanner
-                        SizedBox(
-                          width: 48,
-                          height: 48,
-                          child: IconButton(
-                            padding: EdgeInsets.zero,
-                            tooltip: l10n.scann_barcode_capslock,
-                            icon: Icon(
-                              LucideIcons.scan_barcode,
-                              color: colorScheme.primary,
-                              size: 26,
-                            ),
-                            onPressed: _scanBarcodeAndPop,
-                          ),
-                        ),
-                      ],
-                      const SizedBox(
-                          width: DesignConstants
-                              .spacingXS), // Minimal spacing to capsule border
-                    ],
-                  ),
-                  // Symmetric horizontal padding inside container
+                          onPressed: () {
+                            _searchController.clear();
+                            _runFilter('');
+                          },
+                        )
+                      : null,
                   contentPadding: const EdgeInsets.symmetric(
                       horizontal: DesignConstants.spacingM,
                       vertical: DesignConstants.spacingM),
@@ -776,43 +796,99 @@ class _AddFoodScreenState extends State<AddFoodScreen>
               ),
             ),
           ),
-          // 2. Action Tile (AI meal capture, if enabled)
-          if (Provider.of<ThemeService>(context).isAiEnabled) ...[
-            const SizedBox(width: DesignConstants.spacingM),
-            Container(
-              height: 48,
-              width: 48,
-              decoration: BoxDecoration(
-                color: bgColor,
-                borderRadius: BorderRadius.circular(DesignConstants
-                    .borderRadiusM), // Matches medium border radius
-              ),
-              child: IconButton(
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
-                tooltip: l10n.aiMealCapture,
-                icon: ShaderMask(
-                  blendMode: BlendMode.srcIn,
-                  shaderCallback: (bounds) =>
-                      DesignConstants.createAiGradientShader(bounds),
-                  child: const Icon(LucideIcons.sparkles, size: 24),
+          const SizedBox(width: 8),
+          // Screen E1 AI Scan button right in the search row.
+          // With AI features off, the same slot opens the barcode scanner.
+          if (!context.watch<ThemeService>().isAiEnabled)
+            GestureDetector(
+              onTap: _scanBarcodeAndPop,
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                curve: Curves.easeInOut,
+                height: 48,
+                padding: EdgeInsets.symmetric(
+                  horizontal: isSearching ? 14 : 16,
                 ),
-                onPressed: () async {
-                  final result = await Navigator.of(context).push<bool>(
-                    MaterialPageRoute(
-                      builder: (_) => AiMealCaptureScreen(
-                        initialDate: widget.initialDate,
-                        initialMealType: widget.initialMealType,
-                      ),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFC9EF00),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(
+                      LucideIcons.scan_barcode,
+                      color: Color(0xFF12120F),
+                      size: 19,
                     ),
-                  );
-                  if (result == true && mounted) {
-                    Navigator.of(context).pop(true);
-                  }
-                },
+                    if (!isSearching) ...[
+                      const SizedBox(width: 6),
+                      Text(
+                        l10n.scann_barcode_capslock,
+                        style: const TextStyle(
+                          fontFamily: 'Plus Jakarta Sans',
+                          fontWeight: FontWeight.w800,
+                          fontSize: 14,
+                          color: Color(0xFF12120F),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            )
+          else
+            GestureDetector(
+              onTap: () async {
+                final result = await Navigator.of(context).push<bool>(
+                  MaterialPageRoute(
+                    builder: (_) => AiMealCaptureScreen(
+                      initialDate: widget.initialDate,
+                      initialMealType: widget.initialMealType,
+                    ),
+                  ),
+                );
+                if (result == true && mounted) {
+                  Navigator.of(context).pop(true);
+                }
+              },
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                curve: Curves.easeInOut,
+                height: 48,
+                padding: EdgeInsets.symmetric(
+                  horizontal: isSearching ? 14 : 16,
+                ),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFC9EF00),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(
+                      LucideIcons.sparkles,
+                      color: Color(0xFF12120F),
+                      size: 19,
+                    ),
+                    if (!isSearching) ...[
+                      const SizedBox(width: 6),
+                      const Text(
+                        'AI',
+                        style: TextStyle(
+                          fontFamily: 'Plus Jakarta Sans',
+                          fontWeight: FontWeight.w800,
+                          fontSize: 14,
+                          color: Color(0xFF12120F),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
               ),
             ),
-          ],
         ],
       ),
     );
@@ -823,7 +899,6 @@ class _AddFoodScreenState extends State<AddFoodScreen>
     if (q.isEmpty) {
       return Column(
         children: [
-          //const SizedBox(height: DesignConstants.spacingXS),
           searchRow,
           const SizedBox(height: DesignConstants.spacingS),
           if (_baseCategories.isEmpty)
@@ -880,7 +955,9 @@ class _AddFoodScreenState extends State<AddFoodScreen>
                   }
 
                   if (idx == _baseCategories.length + 1) {
-                    return const BottomContentSpacer();
+                    // Extra room for the floating "Custom Food" button, which
+                    // otherwise covers the last category row.
+                    return const BottomContentSpacer(extra: 72);
                   }
 
                   final cat = _baseCategories[idx - 1];

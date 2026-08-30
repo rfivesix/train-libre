@@ -10,12 +10,14 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../core/media/meal_image_processor.dart';
 import 'ai_meal_validation.dart';
 import 'ai_meal_context.dart';
 import 'ai_matching_language_service.dart';
 import 'package:uuid/uuid.dart';
 import 'telemetry/telemetry_service.dart';
 import 'telemetry/telemetry_buckets.dart';
+import '../features/depth_scan/domain/models/depth_scale_facts.dart';
 
 part 'ai/ai_models.dart';
 part 'ai/ai_prompts.dart';
@@ -376,6 +378,10 @@ class AiService {
     return selected;
   }
 
+  @visibleForTesting
+  bool openAiSupportsCustomTemperature(String modelId) =>
+      _openAiSupportsCustomTemperature(modelId);
+
   Future<void> setSelectedModel(AiProvider provider, String model) async {
     if (provider == AiProvider.ollama || provider == AiProvider.custom) {
       await setCustomModel(model);
@@ -392,34 +398,73 @@ class AiService {
     );
   }
 
-  Future<List<AiModelOption>> getModelOptions(AiProvider provider) async {
+  /// How many live models the picker shows at most.
+  ///
+  /// A cap is still worth having — a provider that ever returns hundreds of
+  /// ids would turn the dropdown into a wall — but the old value of 10 was
+  /// small enough that the ranking had to be right or a model became
+  /// *unreachable*. After the modality filter OpenAI returns roughly 20-40
+  /// chat-capable ids, so 50 shows all of them today while keeping a bound on
+  /// a pathological response. Ranking now only decides the order you scroll
+  /// in, not what exists.
+  static const int maxModelOptions = 50;
+
+  /// The model list plus the reason it may be a fallback.
+  ///
+  /// Prefer this over [getModelOptions] wherever the user can see the result:
+  /// it carries [AiModelListResult.error], which is the difference between
+  /// "your key is wrong" and "this provider only has three models".
+  Future<AiModelListResult> loadModelOptions(AiProvider provider) async {
     // Live provider model APIs are the primary source of truth.
     // Hardcoded metadata is used only for family/ranking hints + tiny fallback.
-    final dynamicIds = await _loadDynamicModelIds(provider);
+    final fetch = await _loadDynamicModelIds(provider);
+    final dynamicIds = fetch.ids;
     if (dynamicIds != null && dynamicIds.isNotEmpty) {
       final ranked = _rankProviderModels(
         provider: provider,
         dynamicModels: dynamicIds.toList(growable: false),
       );
-      final capped = ranked.take(10).toList(growable: false);
+      final capped = ranked.take(maxModelOptions).toList(growable: false);
       if (capped.isNotEmpty) {
-        return capped
-            .map((m) => AiModelOption(id: m, label: m))
-            .toList(growable: false);
+        return AiModelListResult(
+          options: capped
+              .map((m) => AiModelOption(id: m, label: m))
+              .toList(growable: false),
+          isFallback: false,
+        );
       }
+    }
+
+    // A 200 whose list came back empty is its own failure: everything was
+    // filtered away, or the provider answered with nothing.
+    final error =
+        fetch.error ?? const AiModelListError(AiModelListErrorKind.response);
+    if (kDebugMode && !error.isBenign) {
+      debugPrint(
+        'AiService: falling back to the built-in model list for '
+        '${provider.name} — $error',
+      );
     }
 
     // Emergency fallback only: keep this small and intentionally conservative.
     final fallback = _safeEmergencyFallback(provider);
-    return fallback
-        .map(
-          (m) => AiModelOption(
-            id: m,
-            label: m,
-            isFallback: true,
-          ),
-        )
-        .toList(growable: false);
+    return AiModelListResult(
+      options: fallback
+          .map(
+            (m) => AiModelOption(
+              id: m,
+              label: m,
+              isFallback: true,
+            ),
+          )
+          .toList(growable: false),
+      isFallback: true,
+      error: error,
+    );
+  }
+
+  Future<List<AiModelOption>> getModelOptions(AiProvider provider) async {
+    return (await loadModelOptions(provider)).options;
   }
 
   /// Resolves persisted model selection against the final allowed model list
@@ -462,88 +507,92 @@ class AiService {
     return uniqueModels;
   }
 
+  /// Orders one model id against its siblings without knowing a single model
+  /// name.
+  ///
+  /// The previous version handed fixed bonuses to literal ids (`gpt-5.4`,
+  /// `gpt-5.4-pro`, …). Those are stale on the morning of the next release:
+  /// the new flagship scores below the model it replaces and, with a short
+  /// list, drops off the end of the picker entirely. So the score is built
+  /// from three signals that age on their own:
+  ///
+  ///  1. **Version** (weight 10000) — the family version parsed out of the id.
+  ///     Dominant, so a newer generation always outranks an older one no
+  ///     matter what it is called.
+  ///  2. **Capability tier** (weight 100) — `pro`/`large`/`opus` above the
+  ///     plain name above `mini`/`nano`. Vocabulary that has survived every
+  ///     naming change so far across all five providers.
+  ///  3. **Staleness penalties** — dated snapshots, `preview`, `legacy`,
+  ///     `deprecated`.
+  ///
+  /// [AiProviderMetadata.rankingHints] survives only as a last tiebreak
+  /// (weight < 100), so it can order equals but can never hold a newer model
+  /// down.
   int _providerModelScore(AiProvider provider, String modelId) {
     final id = modelId.toLowerCase();
-    int score = 0;
+
+    var score = (_modelVersionValue(id) * 10000).round();
+    score += _modelTierScore(id) * 100;
+
+    // Tiebreak only: a curated preference among models of the same generation
+    // and tier. Deliberately smaller than one tier step.
     final hints = getProviderMetadata(provider).rankingHints;
     final hintIndex = hints.indexWhere((h) => h.toLowerCase() == id);
     if (hintIndex != -1) {
-      // Family/ranking hints: strong boost, but live availability still decides.
-      score += 1200 - (hintIndex * 15);
+      score += 60 - (hintIndex * 2).clamp(0, 50);
     }
 
-    // Penalize legacy/preview-looking entries to keep stale models lower.
-    if (id.contains('deprecated') ||
-        id.contains('legacy') ||
-        id.contains('preview')) {
-      score -= 40;
-    }
+    // Pinned snapshots duplicate a rolling id that is already in the list.
+    if (_looksLikeDatedSnapshot(id)) score -= 150;
+    if (id.contains('deprecated') || id.contains('legacy')) score -= 1000000;
+    if (id.contains('preview') || id.contains('experimental')) score -= 120;
+    if (id.contains('latest')) score += 50;
 
-    // Provider-specific alias/latest behavior is intentionally explicit.
-    switch (provider) {
-      case AiProvider.openai:
-        if (_looksLikeDatedSnapshot(id)) score -= 160;
-        if (id == 'gpt-5.4') score += 1000;
-        if (id == 'gpt-5.4-pro') score += 980;
-        if (id == 'gpt-5.4-mini') score += 960;
-        if (id == 'gpt-5.4-nano') score += 940;
-        if (id.startsWith('gpt-5')) score += 900;
-        if (id.startsWith('gpt-4.1')) score += 700;
-        if (id.startsWith('gpt-4o')) score += 600;
-        break;
-      case AiProvider.gemini:
-        if (id == 'gemini-pro-latest') score += 1000;
-        if (id == 'gemini-flash-latest') score += 980;
-        if (id == 'gemini-flash-lite-latest') score += 950;
-        if (id.contains('pro')) score += 800;
-        if (id.contains('flash')) score += 760;
-        if (id.contains('-latest')) score += 120;
-        break;
-      case AiProvider.anthropic:
-        if (id.startsWith('claude-opus-4')) score += 1000;
-        if (id.startsWith('claude-sonnet-4')) score += 950;
-        if (id.startsWith('claude-haiku-4')) score += 900;
-        if (id.contains('-latest')) score += 80;
-        break;
-      case AiProvider.mistral:
-        if (id.startsWith('mistral-large')) score += 1000;
-        if (id.startsWith('mistral-medium')) score += 900;
-        if (id.startsWith('mistral-small')) score += 820;
-        if (id.startsWith('pixtral')) score += 760;
-        if (id.contains('-latest')) score += 120;
-        break;
-      case AiProvider.xai:
-        if (id.contains('-reasoning')) score += 920;
-        if (id.contains('-non-reasoning')) score += 860;
-        if (id.contains('-latest')) score += 120;
-        break;
-      case AiProvider.ollama:
-      case AiProvider.custom:
-        break;
-    }
-
-    // Generic numeric freshness boost (keeps newer versions above older ones).
-    score += _numericFreshnessScore(id);
     return score;
   }
 
-  int _numericFreshnessScore(String id) {
-    final numbers = RegExp(r'\d+')
-        .allMatches(id)
-        .map((m) => int.tryParse(m.group(0)!) ?? 0)
-        .toList();
-    if (numbers.isEmpty) return 0;
-    final take = numbers.take(4).toList(growable: false);
-    var bonus = 0;
-    for (var i = 0; i < take.length; i++) {
-      final normalized = take[i] > 99 ? 0 : take[i];
-      bonus += normalized * (4 - i);
+  /// The family version encoded in a model id, as a comparable number.
+  ///
+  /// `gpt-5.4` → 5.4, `gpt-4o-mini` → 4, `o3` → 3, `claude-opus-4-6` → 4.6,
+  /// `gemini-2.5-pro` → 2.5, `mistral-large-3` → 3.
+  ///
+  /// Takes the *first* version-shaped token and ignores 4-digit-or-longer runs,
+  /// so date stamps (`grok-4.20-0309`, `-2026-03-01`) and serial suffixes
+  /// (`-001`) do not masquerade as versions.
+  double _modelVersionValue(String id) {
+    final withoutDates = id.replaceAll(RegExp(r'\d{4,}'), '');
+    final match = RegExp(r'(?<![0-9.])(\d{1,3})(?:[.\-](\d{1,2}))?(?![0-9])')
+        .firstMatch(withoutDates);
+    if (match == null) {
+      return 0.0;
     }
-    return bonus;
+    final major = int.tryParse(match.group(1)!) ?? 0;
+    final minor = int.tryParse(match.group(2) ?? '') ?? 0;
+    return major + (minor / 100.0);
+  }
+
+  /// Capability tier from vocabulary every provider reuses across generations.
+  ///
+  /// A model that names no tier is the family's plain flagship and sits in the
+  /// middle, above the cheap variants and below an explicit `pro`.
+  int _modelTierScore(String id) {
+    const topTier = ['-pro', 'large', 'opus', 'ultra', 'max', 'heavy'];
+    const midTier = ['medium', 'sonnet', 'fast', 'turbo'];
+    const lowTier = ['mini', 'small', 'haiku', 'flash'];
+    // `lite` sits here rather than with the low tier so `flash-lite` lands
+    // below plain `flash`, which is what it costs and what it is.
+    const bottomTier = ['nano', 'tiny', 'micro', 'lite'];
+
+    if (bottomTier.any(id.contains)) return 0;
+    if (lowTier.any(id.contains)) return 1;
+    if (topTier.any(id.contains)) return 4;
+    if (midTier.any(id.contains)) return 2;
+    return 3;
   }
 
   bool _looksLikeDatedSnapshot(String id) {
-    return RegExp(r'-\d{4}-\d{2}-\d{2}$').hasMatch(id);
+    return RegExp(r'-\d{4}-\d{2}-\d{2}$').hasMatch(id) ||
+        RegExp(r'-\d{8}$').hasMatch(id);
   }
 
   // ---------------------------------------------------------------------------
@@ -551,24 +600,36 @@ class AiService {
   // ---------------------------------------------------------------------------
 
   /// Analyzes one or more meal images and returns suggested food items.
+  /// [depthMap] is appended after the photos and described by [depthMapLegend];
+  /// both must be given together or not at all, since a false-colour image with
+  /// no scale tells the model nothing.
   Future<AiMealCandidate> analyzeImages(
     List<File> images, {
     String? textHint,
     String? languageCode,
     AiMatchingContext? matchingContext,
+    DepthScaleFacts? depthFacts,
+    File? depthMap,
+    String? depthMapLegend,
   }) async {
     final userContent =
         textHint ?? 'Analyze this meal and identify all food components.';
+    final attachDepthMap = depthMap != null &&
+        depthMapLegend != null &&
+        depthMapLegend.trim().isNotEmpty;
+
     final prompt = _AiPrompts.buildSystemPrompt(
       languageCode: languageCode,
       appLanguage: matchingContext?.appLanguage,
       catalogLanguage: matchingContext?.catalogLanguage,
+      depthFacts: depthFacts,
+      depthMapLegend: attachDepthMap ? depthMapLegend : null,
     );
 
     final raw = await _callSelectedProviderRaw(
       userContent: userContent,
       systemPrompt: prompt,
-      images: images,
+      images: attachDepthMap ? [...images, depthMap] : images,
       temperature: 0.3,
     );
 
@@ -594,6 +655,84 @@ class AiService {
     );
 
     return _parseMealCandidateFromContent(raw);
+  }
+
+  /// Turns a raw dictation transcript into bullets, correcting mishearings.
+  ///
+  /// Returns null when there is nothing to tidy or the provider is unavailable
+  /// — dictation has to keep working without an API key, so every failure here
+  /// falls back to the locally cleaned transcript rather than surfacing.
+  Future<VoiceTranscriptSummary?> tidyVoiceTranscript(String transcript) async {
+    final trimmed = transcript.trim();
+    if (trimmed.isEmpty) return null;
+
+    final stopwatch = Stopwatch()..start();
+    try {
+      // Capped well below the configured request timeout. Tidying is a nicety
+      // on top of a transcript the user can already read and send; holding them
+      // on a spinner for a minute to get it would be a bad trade.
+      final raw = await _callSelectedProviderRaw(
+        userContent: trimmed,
+        systemPrompt: _AiPrompts.buildVoiceTidyPrompt(),
+        temperature: 0.1,
+      ).timeout(const Duration(seconds: 15));
+      stopwatch.stop();
+      final summary = _parseVoiceSummary(raw, stopwatch.elapsed);
+      if (summary == null || summary.isEmpty) return null;
+      return summary;
+    } catch (e) {
+      debugPrint('[AiService] transcript tidy failed: $e');
+      return null;
+    }
+  }
+
+  @visibleForTesting
+  VoiceTranscriptSummary? parseVoiceSummaryForTesting(String content) =>
+      _parseVoiceSummary(content, Duration.zero);
+
+  VoiceTranscriptSummary? _parseVoiceSummary(String content, Duration elapsed) {
+    var cleaned = content.trim();
+    if (cleaned.startsWith('```')) {
+      cleaned = cleaned.replaceFirst(RegExp(r'^```\w*\n?'), '');
+      cleaned = cleaned.replaceFirst(RegExp(r'\n?```$'), '');
+      cleaned = cleaned.trim();
+    }
+    final start = cleaned.indexOf('{');
+    final end = cleaned.lastIndexOf('}');
+    if (start < 0 || end <= start) return null;
+
+    try {
+      final decoded =
+          jsonDecode(cleaned.substring(start, end + 1)) as Map<String, dynamic>;
+      final rawBullets = decoded['bullets'];
+      if (rawBullets is! List) return null;
+
+      final bullets = <VoiceTranscriptBullet>[];
+      for (final entry in rawBullets) {
+        if (entry is! Map) continue;
+        final text = (entry['text'] as String?)?.trim();
+        if (text == null || text.isEmpty) continue;
+        final notes = <String>[];
+        final rawNotes = entry['notes'];
+        if (rawNotes is List) {
+          for (final note in rawNotes) {
+            final value = note?.toString().trim();
+            if (value != null && value.isNotEmpty) notes.add(value);
+          }
+        }
+        bullets.add(VoiceTranscriptBullet(text: text, notes: notes));
+      }
+
+      final context = (decoded['context'] as String?)?.trim();
+      return VoiceTranscriptSummary(
+        bullets: bullets,
+        context: (context == null || context.isEmpty) ? null : context,
+        elapsed: elapsed,
+      );
+    } catch (e) {
+      debugPrint('[AiService] transcript tidy parse failed: $e');
+      return null;
+    }
   }
 
   /// Retries analysis with user feedback to refine the results.
@@ -656,6 +795,7 @@ Please provide an updated analysis incorporating the user's feedback. Return the
     String? languageCode,
     AiMatchingContext? matchingContext,
     AiMealContext? mealContext,
+    DepthScaleFacts? depthFacts,
   }) async {
     final userContent = '''
 Previous meal capture candidate:
@@ -679,10 +819,12 @@ Repair the candidate. When database candidates are listed, pick the EXACT name f
         appLanguage: matchingContext?.appLanguage,
         catalogLanguage: matchingContext?.catalogLanguage,
         mealContext: mealContext,
+        depthFacts: depthFacts,
       ),
       temperature: 0.1,
     );
     final repaired = await _parseItemsFromContent(raw);
+
     return AiMealCandidate(
       items: repaired
           .map(
@@ -725,11 +867,17 @@ Repair the candidate. When database candidates are listed, pick the EXACT name f
       }
       final model = await resolveAndPersistSelectedModel(providerEnum);
 
+      // Scaled before encoding: the raw camera file is 3–8 MB, base64 adds a
+      // third on top, and the models resize to about 1024 px anyway — four
+      // untouched photos meant tens of megabytes uploaded over mobile data for
+      // pixels the provider throws away. The capture screen has usually
+      // prepared these already, so this is a cache hit by the time it runs.
       final imageDataList = <String>[];
       if (images != null) {
         for (final img in images) {
-          final bytes = await img.readAsBytes();
-          imageDataList.add(await compute(base64Encode, bytes));
+          final prepared =
+              await MealImageProcessor.instance.prepareForAnalysis(img);
+          imageDataList.add(prepared.base64);
         }
       }
 

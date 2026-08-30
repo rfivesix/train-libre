@@ -4,10 +4,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../../util/design_constants.dart';
 
-
 import 'package:file_picker/file_picker.dart';
 import 'package:provider/provider.dart';
-import '../../../main.dart' as app_main;
 import '../../../core/infrastructure/backup_manager.dart';
 import '../../../core/infrastructure/basis_data_manager.dart';
 import '../../../data/database_helper.dart';
@@ -55,6 +53,7 @@ import '../../health_export/models/export_models.dart';
 import 'package:uuid/uuid.dart';
 import '../../../services/telemetry/telemetry_service.dart';
 import '../../../widgets/common/app_button.dart';
+import '../../../widgets/common/app_restart.dart';
 
 /// The initial setup flow for new users.
 ///
@@ -123,7 +122,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   bool _isGeneratingOnboardingRecommendation = false;
   bool _isCheckingDatabase = false;
   Future<void>? _onboardingRecommendationFuture;
-
 
   late final AdaptiveNutritionRecommendationService _recommendationService;
   late final DatabaseHelper _databaseHelper;
@@ -268,7 +266,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     _waterController.dispose();
     super.dispose();
   }
-
 
   // --- LOGIC ---
 
@@ -524,9 +521,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
     if (!mounted) return;
 
-
     if (_requiresHardRestart) {
-      app_main.main();
+      restartApp();
       return;
     }
 
@@ -573,9 +569,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         SnackBar(content: Text(l10n.onboardingRestoreICloudSuccess)),
       );
 
-      // The old connection was already closed and cleared by
-      // downloadAndRestore before it swapped the file; these reads open a
-      // fresh connection against the restored database.
+      // The restore copies the backup into the live database rather than
+      // swapping the file underneath it, so the connection every provider
+      // holds is still the right one and the rest of onboarding — region,
+      // catalog download, permissions — carries on against restored data.
       await context.read<UnitService>().reload();
       await _loadAdaptiveGoalSettings();
 
@@ -616,7 +613,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
     final result = await FilePicker.pickFiles(
       type: FileType.custom,
-      allowedExtensions: ['json'],
+      // `json` stays allowed: backups written before the archive format are
+      // still valid and still restore.
+      allowedExtensions: ['zip', 'json'],
     );
     if (result == null || result.files.single.path == null) return;
 
@@ -1054,154 +1053,155 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       _refreshOnboardingRecommendationPreview();
                     }
                   },
-
-                children: [
-                  WelcomeSlide(
-                    isRestoring: _isRestoring,
-                    onContinue: _nextPage,
-                    onRestore: _restoreFromBackup,
-                    onRestoreICloud: _restoreFromICloud,
-                    hasICloudBackup: _hasICloudBackup,
-                  ),
-                  UnitSystemSlide(
-                    selectedSystem: _unitService.unitSystem,
-                    onSelectSystem: (system) async {
-                      await context.read<UnitService>().setUnitSystem(system);
-                      setState(() {});
-                    },
-                  ),
-                  RegionSelectionSlide(
-                    selectedCountry: _selectedOffCountry,
-                    onSelectCountry: (country) {
-                      setState(() {
-                        _selectedOffCountry = country;
-                      });
-                    },
-                  ),
-                  ProfileSlide(
-                    nameController: _nameController,
-                    selectedDate: _selectedDate,
-                    heightController: _heightController,
-                    selectedGender: _selectedGender,
-                    heightError: _heightError,
-                    heightWarning: _heightWarning,
-                    dobError: _dobError,
-                    genderError: _genderError,
-                    onSelectDate: (picked) {
-                      setState(() {
-                        _selectedDate = picked;
-                        _dobError = null;
-                      });
-                      if (_currentPage >= _adaptiveGoalPageIndex) {
-                        _refreshOnboardingRecommendationPreview();
-                      }
-                    },
-                    onSelectGender: (val) {
-                      setState(() {
-                        _selectedGender = val;
-                        _genderError = null;
-                      });
-                    },
-                  ),
-                  _OnboardingMeasurementsStep(
-                    weightController: _weightController,
-                    bodyFatPercentController: _bodyFatPercentController,
-                    onBodyFatChanged: (_) {
-                      if (_currentPage >= _adaptiveGoalPageIndex) {
-                        _refreshOnboardingRecommendationPreview();
-                      }
-                    },
-                    onOpenBodyFatHelp: _openBodyFatHelperEntryPoint,
-                    weightError: _weightError,
-                    weightWarning: _weightWarning,
-                  ),
-                  AdaptiveGoalSlide(
-                    selectedGoal: _selectedGoal,
-                    selectedPriorActivityLevel: _selectedPriorActivityLevel,
-                    selectedExtraCardioHoursOption:
-                        _selectedExtraCardioHoursOption,
-                    selectedTargetRateKgPerWeek: _selectedTargetRateKgPerWeek,
-                    onGoalChanged: (goal) {
-                      setState(() {
-                        _selectedGoal = goal;
-                        _selectedTargetRateKgPerWeek =
-                            WeeklyTargetRateCatalog.defaultForGoal(
-                                    goal, _unitService)
-                                .kgPerWeek;
-                      });
-                      _refreshOnboardingRecommendationPreview();
-                    },
-                    onPriorActivityLevelChanged: (level) {
-                      setState(() {
-                        _selectedPriorActivityLevel = level;
-                      });
-                      _refreshOnboardingRecommendationPreview();
-                    },
-                    onExtraCardioHoursOptionChanged: (option) {
-                      setState(() {
-                        _selectedExtraCardioHoursOption = option;
-                      });
-                      _refreshOnboardingRecommendationPreview();
-                    },
-                    onTargetRateKgPerWeekChanged: (rate) {
-                      setState(() {
-                        _selectedTargetRateKgPerWeek = rate;
-                      });
-                      _refreshOnboardingRecommendationPreview();
-                    },
-                  ),
-                  _OnboardingNutritionStep(
-                    calController: _calController,
-                    protController: _protController,
-                    carbController: _carbController,
-                    fatController: _fatController,
-                    waterController: _waterController,
-                  ),
-                  _OnboardingAiHealthStep(
-                    onOpenAiSettings: _openAiSettings,
-                    onOpenStepsSettings: _openStepsSettings,
-                    onOpenSleepSettings: _openSleepSettings,
-                    onOpenPulseSettings: _openPulseSettings,
-                  ),
-                ],
-              ),
-            ),
-            // Hide bottom nav on the welcome page (page 0) — it has its own buttons.
-            if (_currentPage > 0)
-              Padding(
-                padding: const EdgeInsets.all(DesignConstants.spacingXL),
-                child: Row(
                   children: [
-                    IconButton.filledTonal(
-                      tooltip: MaterialLocalizations.of(context).previousPageTooltip,
-                      onPressed: _isCheckingDatabase ? null : _prevPage,
-                      icon: const Icon(LucideIcons.arrow_left),
+                    WelcomeSlide(
+                      isRestoring: _isRestoring,
+                      onContinue: _nextPage,
+                      onRestore: _restoreFromBackup,
+                      onRestoreICloud: _restoreFromICloud,
+                      hasICloudBackup: _hasICloudBackup,
                     ),
-                    const Spacer(),
-                    AppButton.primary(
-                      key: const Key('onboarding_bottom_next_button'),
-                      onPressed: _isGeneratingOnboardingRecommendation || _isCheckingDatabase
-                          ? null
-                          : _nextPage,
-                      label: _currentPage == _lastPageIndex
-                          ? l10n.onboardingFinish.toUpperCase()
-                          : l10n.onboardingNext.toUpperCase(),
-                      tooltip: _currentPage == _lastPageIndex
-                          ? l10n.onboardingFinish.toUpperCase()
-                          : l10n.onboardingNext.toUpperCase(),
-                      isLoading: (_isGeneratingOnboardingRecommendation &&
-                              _currentPage == _adaptiveGoalPageIndex) ||
-                          _isCheckingDatabase,
+                    UnitSystemSlide(
+                      selectedSystem: _unitService.unitSystem,
+                      onSelectSystem: (system) async {
+                        await context.read<UnitService>().setUnitSystem(system);
+                        setState(() {});
+                      },
+                    ),
+                    RegionSelectionSlide(
+                      selectedCountry: _selectedOffCountry,
+                      onSelectCountry: (country) {
+                        setState(() {
+                          _selectedOffCountry = country;
+                        });
+                      },
+                    ),
+                    ProfileSlide(
+                      nameController: _nameController,
+                      selectedDate: _selectedDate,
+                      heightController: _heightController,
+                      selectedGender: _selectedGender,
+                      heightError: _heightError,
+                      heightWarning: _heightWarning,
+                      dobError: _dobError,
+                      genderError: _genderError,
+                      onSelectDate: (picked) {
+                        setState(() {
+                          _selectedDate = picked;
+                          _dobError = null;
+                        });
+                        if (_currentPage >= _adaptiveGoalPageIndex) {
+                          _refreshOnboardingRecommendationPreview();
+                        }
+                      },
+                      onSelectGender: (val) {
+                        setState(() {
+                          _selectedGender = val;
+                          _genderError = null;
+                        });
+                      },
+                    ),
+                    _OnboardingMeasurementsStep(
+                      weightController: _weightController,
+                      bodyFatPercentController: _bodyFatPercentController,
+                      onBodyFatChanged: (_) {
+                        if (_currentPage >= _adaptiveGoalPageIndex) {
+                          _refreshOnboardingRecommendationPreview();
+                        }
+                      },
+                      onOpenBodyFatHelp: _openBodyFatHelperEntryPoint,
+                      weightError: _weightError,
+                      weightWarning: _weightWarning,
+                    ),
+                    AdaptiveGoalSlide(
+                      selectedGoal: _selectedGoal,
+                      selectedPriorActivityLevel: _selectedPriorActivityLevel,
+                      selectedExtraCardioHoursOption:
+                          _selectedExtraCardioHoursOption,
+                      selectedTargetRateKgPerWeek: _selectedTargetRateKgPerWeek,
+                      onGoalChanged: (goal) {
+                        setState(() {
+                          _selectedGoal = goal;
+                          _selectedTargetRateKgPerWeek =
+                              WeeklyTargetRateCatalog.defaultForGoal(
+                                      goal, _unitService)
+                                  .kgPerWeek;
+                        });
+                        _refreshOnboardingRecommendationPreview();
+                      },
+                      onPriorActivityLevelChanged: (level) {
+                        setState(() {
+                          _selectedPriorActivityLevel = level;
+                        });
+                        _refreshOnboardingRecommendationPreview();
+                      },
+                      onExtraCardioHoursOptionChanged: (option) {
+                        setState(() {
+                          _selectedExtraCardioHoursOption = option;
+                        });
+                        _refreshOnboardingRecommendationPreview();
+                      },
+                      onTargetRateKgPerWeekChanged: (rate) {
+                        setState(() {
+                          _selectedTargetRateKgPerWeek = rate;
+                        });
+                        _refreshOnboardingRecommendationPreview();
+                      },
+                    ),
+                    _OnboardingNutritionStep(
+                      calController: _calController,
+                      protController: _protController,
+                      carbController: _carbController,
+                      fatController: _fatController,
+                      waterController: _waterController,
+                    ),
+                    _OnboardingAiHealthStep(
+                      onOpenAiSettings: _openAiSettings,
+                      onOpenStepsSettings: _openStepsSettings,
+                      onOpenSleepSettings: _openSleepSettings,
+                      onOpenPulseSettings: _openPulseSettings,
                     ),
                   ],
                 ),
               ),
-          ],
+              // Hide bottom nav on the welcome page (page 0) — it has its own buttons.
+              if (_currentPage > 0)
+                Padding(
+                  padding: const EdgeInsets.all(DesignConstants.spacingXL),
+                  child: Row(
+                    children: [
+                      IconButton.filledTonal(
+                        tooltip: MaterialLocalizations.of(context)
+                            .previousPageTooltip,
+                        onPressed: _isCheckingDatabase ? null : _prevPage,
+                        icon: const Icon(LucideIcons.arrow_left),
+                      ),
+                      const Spacer(),
+                      AppButton.primary(
+                        key: const Key('onboarding_bottom_next_button'),
+                        onPressed: _isGeneratingOnboardingRecommendation ||
+                                _isCheckingDatabase
+                            ? null
+                            : _nextPage,
+                        label: _currentPage == _lastPageIndex
+                            ? l10n.onboardingFinish.toUpperCase()
+                            : l10n.onboardingNext.toUpperCase(),
+                        tooltip: _currentPage == _lastPageIndex
+                            ? l10n.onboardingFinish.toUpperCase()
+                            : l10n.onboardingNext.toUpperCase(),
+                        isLoading: (_isGeneratingOnboardingRecommendation &&
+                                _currentPage == _adaptiveGoalPageIndex) ||
+                            _isCheckingDatabase,
+                      ),
+                    ],
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   Future<void> _openBodyFatHelperEntryPoint() async {
     await showBodyFatGuidanceSheet(context);

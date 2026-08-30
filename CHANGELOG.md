@@ -4,8 +4,69 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## [1.1.1] - 2026-08-12
+## [1.2.0] - 2026-08-30
 
+### Added
+- **AI Meal & Nutrition Capture (`AiMealCaptureScreen`, `AiMealReviewScreen`, `AiService`, `DepthScanPlugin.swift`):** A meal can now be logged directly from photos or live camera capture instead of searching for individual ingredients manually:
+  - **Multi-Photo & Gallery Import:** Capture up to 4 photos per meal with native camera capture or select existing photos from the device library.
+  - **Unified Camera for Photo, Barcode and LiDAR Depth (iOS):** Single `AVCaptureSession` drives live camera preview, passive barcode recognition (`AVCaptureMetadataOutput`) for packaged products, and still captures with hardware depth maps. Includes a live barcode toggle and a hardware flashlight/torch switch (`LucideIcons.zap` / `LucideIcons.zap_off`, `DepthScanController`) on iOS and Android (`QRViewController.toggleFlash`).
+  - **LiDAR Scale & Distance Calibration (`depth_scale_hint.md`):** On devices with `builtInLiDARDepthCamera`, hardware depth maps and camera intrinsics compute real subject distance and physical dimensions to measure portion volumes rather than guess them, with automated distance guidance.
+  - **Voice Dictation & Text Hints:** Hold-to-talk dictation via speech recognition (`speech_to_text`) with real-time waveform level, editable live transcripts, and automatic on-device recognition fallback. Dictation can log spoken meals standalone or attach preparation notes/hidden ingredients alongside photos.
+  - **Dynamic AI Model Discovery & Error Surfacing (`AiSettingsScreen`):** Live fetching and filtering of available OpenAI and compatible provider chat models with error diagnostics (401, 429, timeouts) and automated temperature compatibility for reasoning models (`o1`, `o3`, `o4`).
+  - **Hierarchical Meal Structure (`MealEntries`, schema 25):** Grouping table with `mealEntryId` foreign key on `NutritionLogs` so scanned meals remain unified diary entries while sub-ingredients stay individually editable.
+  - **Interactive First-Time Onboarding Tour (`AiMealCaptureTourOverlay`):** Step-by-step introduction over a 10-tier progressive Gaussian blur backdrop explaining multi-photo capture, barcodes, gallery import, and voice dictation.
+- **Editable Meal Date & Time (`AiMealReviewScreen`, `MealEntryScreen`, `IDiaryRepository.moveMealEntryTo`):** Modify dates and timestamps of AI-captured and manually saved meals during the review step or retroactively in meal details, seamlessly transferring all associated food items, hydration logs, and supplements across calendar days with automatic nutritional recalculations.
+- **Workout Photos (`WorkoutPhotoCard`, `WorkoutPhotoStore`):** Workouts now support capturing and attaching up to 4 photos via camera or library in `WorkoutSummaryScreen` and `WorkoutLogDetailScreen`. Includes full-width squircle photo carousel with delete controls and localized pagination indicators, storing 320 px thumbnails in durable app support storage and iCloud backups.
+- **Minimized Running Workout Bar & Morph Transitions (`RunningWorkoutOverlay`, `WorkoutMorphRoute`):**
+  - **Contextual Workout Overlay Bar:** Three-zone floating bar above bottom navigation displaying elapsed workout duration, rest timer countdown, and current/next upcoming exercise.
+  - **Fluid Container Morph Animation:** Seamlessly grows the live workout screen out of the floating pill and shrinks back upon minimizing, scaling and transforming the container without frame relayouts.
+- **Universal Liquid Glass Motion & Morph Transitions (`CardMorphRoute`):** Expanded fluid container-morph transitions and motion polish app-wide:
+  - **Expanded Morph Surfaces:** Extended `CardMorphRoute` across the Live Workout "+ Übung hinzufügen" Glass FAB, Routine Editor FAB, Workout Log History cards, Exercise Catalog detail views, Diary Steps summary card, and Nutrition Hub modules (Supplement Hub, Food Explorer, Meal Creator).
+  - **Fluid Transitions & Number Counting:** Animated exercise removals (`AnimatedSize`, `AnimatedOpacity`), rest bar transitions, rolling number metric counters in `WorkoutSummaryBar`, and smooth accordion dropdown expansions in `LegalScreen` and `MealEntryCard`.
+  - **Tactile Haptic Feedback (`ReorderHapticFeedback`, `HapticFeedbackService`):** Continuous tactile feedback throughout exercise card drag & drop reordering, from initial lift impact to sub-millimeter slot-crossing selection ticks and drop settle confirmations.
+- **Performance Log & Diagnostics (`JankRecorder`, `PerformanceDiagnosticsScreen`):**
+  - **On-Device Real-Time Frame Profiling:** Release-mode frame timing aggregation via `SchedulerBinding.addTimingsCallback`, measuring UI thread build time vs GPU raster time against display refresh rate (60 Hz / 120 Hz ProMotion).
+  - **Freeze Detection & Screen Attribution:** 500 ms watchdog detecting UI isolate blocks >= 1.2 s, with automated route attribution across all screens via `NavigatorObserver`.
+  - **Diagnostics UI & Telemetry:** Dedicated Settings → Performance Log table with text export/sharing and opt-in, zero-PII `performance_stall` telemetry events.
+- **Media Store & iCloud Photo Sync Architecture (`AppMediaStore`, `ICloudBackupArchive`):**
+  - Unified media storage under `media/<feature>/` and `thumbs/<feature>/`.
+  - Automatic iCloud backup now packages database snapshots and photo previews inside `icloud_backup.zip`.
+  - Retains backup generations (`icloud_backup.previous.zip`) and performs automated orphaned photo cleanup.
+
+### Changed
+- **Diary Water & Drinks Card Unification (`FluidEntryTile`, `DiaryFoodRow`, `DiaryScreen`):** Unified the "Water & Drinks" section with meal cards:
+  - Migrated `FluidEntryTile` to `DiaryFoodRow` so liquid volumes and calories align in the exact same vertical columns as food items.
+  - Dynamic sugar and caffeine columns appear alongside liquid volumes without vertical clutter.
+  - Sorted fluids by energy descending (largest kcal first) inside expanded cards.
+- **Diary Layout & Food Rows (`DiaryFoodRow`, `MealEntryCard`):**
+  - All diary rows share standardized columns, with entries ordered by energy descending.
+  - Meal photos display as centered translucent backdrop artwork behind rows rather than squished leading thumbnails.
+- **Live In-Place iCloud Database Restore:** Snapshot data is copied table-by-table directly into the active database connection without requiring an app restart.
+- **Settings Screen & App Tour Replay:**
+  - Added "App-Tour ansehen" in Settings under Support & About to repeat the onboarding walkthrough without resetting user data.
+  - Dynamic nutrient icons in the "Additional Nutrient in Overview" settings tile (`LucideIcons.wheat`, `LucideIcons.candy`, `LucideIcons.cooking_pot`).
+- **Performance & Database Optimizations:**
+  - Replaced linear scans with $O(1)$ set lookups in `SupplementsViewModel`, `SleepPipelineService`, `SleepDayRepository`, and `PulseAnalysisEngine`.
+  - Single-pass catalog imports in `BasisDataManager`, fast `SELECT 1 ... LIMIT 1` catalog presence checks, and parallelized boot steps in `AppInitializerScreen`.
+  - Replaced `map().fold()` iterable allocations in `ConsistencyTrackerScreen` and `AnalyticsCardBase`.
+  - Throttled background iCloud sync with re-entrancy locks to prevent disk thrashing.
+- **Accessibility, Semantics & Tokens:**
+  - Added localized semantic announcements for workout set types (`SetTypeChip`), date navigation chevrons (`TimeRangeFilter`), and speed dial buttons.
+  - Unified floating bottom bar geometry, insets, and styling tokens in `DesignConstants`.
+  - Standardized iOS scroll physics (`BouncingScrollPhysics` wrapping `RangeMaintainingScrollPhysics`).
+  - Added iOS usage descriptions and localized `InfoPlist.strings` keys for microphone and speech recognition.
+  - Extended opt-in telemetry schema for dictation, multi-modal capture, and LiDAR depth without capturing PII or user text.
+
+### Fixed
+- **Live Workout Data Loss on App Kill (`LiveWorkoutViewModel`, `SetLogs`):** Fixed an issue where terminating the app during a workout caused missing/reordered exercises, blanked set values, or lost pauses upon restart. Every set now records its persistent position (`log_order`) and explicit parent block (`exercise_block`), with structural updates rewritten on set addition/removal.
+- **Hevy-Style Drag & Drop Reordering Overhaul (`LiveWorkoutScreen`, `EditRoutineScreen`, `WorkoutLogDetailScreen`, `ReorderScrollAnchor`):** Overhauled drag & drop reordering to prevent unwanted card collapses in non-edit mode, locking held cards under the fingertip with dynamic headroom calculations and precise 60px slot allocations.
+- **Meal Editing Persistence & Auto-Save (`MealEntryScreen`, `DiaryScreen`, `MealScreen`):** Fixed an issue where meal ingredient deletions and edits were not reliably persisted to the database upon pop navigation, properly awaiting lifecycle saves and refreshing diary data.
+- **Text Field Floating Label Clipping (`MeasurementFormSheet`, `_GlassBottomMenuSheet`):** Fixed top label clipping on input focus in bottom sheets by adding headroom padding and unclipped scrolling.
+- **Startup & Resume Phase Tracing (`StartupTrace`):** Resolved resume latency reporting artifacts by measuring to the engine's raster finish wall-clock stamp rather than batch delivery callback times.
+- **iCloud Restore Table Validation (`ICloudSyncService`):** Strictly validate table names from untrusted backup snapshots using alphanumeric patterns before executing SQL statements.
+
+
+## [1.1.1] - 2026-08-12
 ### Added
 - **Android Home Screen Widgets:** The iOS widget suite ported to Android with Jetpack Glance, on top of the snapshot pipeline that already existed: `HomeWidgetSyncService` writes one JSON payload over the `trainlibre.widgets/home_screen` MethodChannel and the widgets only render it, so no Dart logic is duplicated per platform. Opening `lib/features/home_widgets/` needed a single line of change — the `Platform.isIOS` gate in `HomeWidgetChannel.isSupported`.
   - **Today's Glance (4x2, configurable):** The diary's six-tile grid, with a configurable day mode — follow the app's 03:00 rollover, or the calendar day.

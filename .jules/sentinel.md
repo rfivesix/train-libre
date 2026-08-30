@@ -7,3 +7,8 @@
 **Vulnerability:** The `_fetchTable` function dynamically interpolated the `tableName` parameter directly into a raw SQL query (`SELECT * FROM $tableName`) without validation.
 **Learning:** Even internal functions used for exporting data can be vulnerable to SQL injection if they accept string parameters that are directly interpolated into SQL statements, especially for identifiers like table names which cannot be parameterized safely.
 **Prevention:** Always sanitize dynamic table names using a strict regex (`^[a-zA-Z0-9_]+$`) before interpolating them into a SQL statement, even if the caller is expected to be safe.
+
+## 2026-08-28 - Fix SQL injection in the iCloud restore table copy
+**Vulnerability:** `_copySnapshotIntoLiveDatabase` in `lib/core/infrastructure/icloud_sync_service.dart` read table names from the attached snapshot's `restore.sqlite_master` and interpolated them into `DELETE FROM main."$table"`, `INSERT INTO main."$table"` and `PRAGMA $schema.table_info("$table")`. The snapshot is a file from the iCloud container, so a tampered database could carry a crafted table name.
+**Learning:** `sqlite_master` is only as trustworthy as the file it belongs to. At an import/restore boundary the attached database is external input, not internal state.
+**Prevention:** Validate every dynamically resolved identifier against `^[A-Za-z0-9_]+$` before interpolation and skip the table otherwise; the app's own tables are all snake_case, so nothing legitimate is lost.

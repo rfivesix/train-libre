@@ -7,6 +7,13 @@ import WidgetKit
 enum TGTheme {
   /// `DesignConstants.spacingS`
   static let gridSpacing: CGFloat = 8
+  /// Outer inset between the widget's rounded edge and the tile grid.
+  /// Matched to Apple's own Shortcuts widget, which keeps the outer margin the
+  /// same as the gap between tiles rather than doubling it.
+  static let containerPadding: CGFloat = 8
+  /// Concentric with the widget's own corner (~26pt on current iPhones) minus
+  /// `containerPadding`, which is how Apple's Shortcuts tiles are rounded.
+  static let tileRadius: CGFloat = 20
   /// `DesignConstants.borderRadiusL`
   static let barRadius: CGFloat = 19
   /// `DesignConstants.spacingM` / `spacingXS`
@@ -228,7 +235,7 @@ struct TodayGlanceWidgetWrapperView: View {
         .containerBackground(.clear, for: .widget)
     default:
       TodayGlanceGrid(snapshot: snapshot)
-        .padding(12)
+        .padding(TGTheme.containerPadding)
         .containerBackground(.fill.tertiary, for: .widget)
     }
   }

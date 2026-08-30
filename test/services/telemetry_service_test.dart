@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:train_libre/core/infrastructure/icloud_sync_service.dart';
 import 'package:train_libre/services/telemetry/telemetry_service.dart';
+import 'package:train_libre/services/telemetry/telemetry_buckets.dart';
 import 'package:train_libre/services/telemetry/telemetry_service_noop.dart';
 import 'package:train_libre/services/telemetry/telemetry_service_posthog.dart';
 
@@ -298,6 +299,61 @@ void main() {
       for (final source in FoodLogSource.all) {
         expect(identifierPattern.hasMatch(source), isTrue, reason: source);
       }
+    });
+
+    test('TelemetryBuckets handles voice durations and item counts accurately', () {
+      expect(TelemetryBuckets.getVoiceDurationBucket(const Duration(seconds: 2)), '<5s');
+      expect(TelemetryBuckets.getVoiceDurationBucket(const Duration(seconds: 10)), '5-15s');
+      expect(TelemetryBuckets.getVoiceDurationBucket(const Duration(seconds: 20)), '15-30s');
+      expect(TelemetryBuckets.getVoiceDurationBucket(const Duration(seconds: 45)), '>30s');
+
+      expect(TelemetryBuckets.getItemCountBucket(0), '0');
+      expect(TelemetryBuckets.getItemCountBucket(2), '1-2');
+      expect(TelemetryBuckets.getItemCountBucket(4), '3-5');
+      expect(TelemetryBuckets.getItemCountBucket(8), '6+');
+    });
+
+    test('PostHogTelemetryService tracks AI meal scan, voice dictation, and corrections', () async {
+      await postHogService.optIn();
+
+      await postHogService.trackAiMealScanRequested(
+        requestId: 'scan-req-123',
+        provider: 'gemini',
+        inputMode: 'multimodal',
+        photoCount: 2,
+        hasLidar: true,
+        hasVoiceInput: true,
+        hasTextInput: true,
+      );
+
+      await postHogService.trackAiMealScanCompleted(
+        requestId: 'scan-req-123',
+        provider: 'gemini',
+        latencyBucket: '2-5s',
+        success: true,
+        inputMode: 'multimodal',
+        photoCount: 2,
+        hasLidar: true,
+        hasVoiceInput: true,
+        hasTextInput: true,
+        validationPassed: true,
+        repairAttemptsCount: 0,
+        suggestedItemsCountBucket: '3-5',
+      );
+
+      await postHogService.trackVoiceDictationCompleted(
+        durationBucket: '5-15s',
+        aiTidyUpEnabled: true,
+        surface: 'ai_meal_capture',
+        success: true,
+      );
+
+      await postHogService.trackAiMealCorrectionCompleted(
+        hasImages: true,
+        latencyBucket: '2-5s',
+        success: true,
+        repairAttemptsCount: 1,
+      );
     });
 
     test('ICloudSyncService.setSyncEnabled tracks setting_toggled and feature_used on toggle', () async {

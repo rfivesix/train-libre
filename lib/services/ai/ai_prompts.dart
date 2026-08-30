@@ -6,6 +6,8 @@ abstract class _AiPrompts {
     String? languageCode,
     String? appLanguage,
     String? catalogLanguage,
+    DepthScaleFacts? depthFacts,
+    String? depthMapLegend,
   }) {
     final effectiveAppLang = appLanguage ?? languageCode;
     final effectiveCatalogLang = catalogLanguage;
@@ -28,10 +30,41 @@ abstract class _AiPrompts {
       );
     }
 
+    final depthBlockBuffer = StringBuffer();
+    if (depthFacts != null && depthFacts.isValid) {
+      depthBlockBuffer.write('''
+
+LIDAR SCALE MEASUREMENT (measured, not estimated — trust these numbers over your visual impression):
+- Distance from camera to the food: ${depthFacts.subjectDistanceCm.toStringAsFixed(0)} cm
+- The visible frame covers ${depthFacts.frameWidthCm.toStringAsFixed(0)} cm x ${depthFacts.frameHeightCm.toStringAsFixed(0)} cm at that distance
+- Nearest surface: ${depthFacts.nearCm.toStringAsFixed(0)} cm, farthest: ${depthFacts.farCm.toStringAsFixed(0)} cm
+
+Use this to calibrate the absolute size of everything in the image. Do NOT rely on assumed plate or cutlery sizes when this measurement is present — derive plate diameter and portion dimensions from the frame size above.
+''');
+    }
+
+    if (depthMapLegend != null && depthMapLegend.trim().isNotEmpty) {
+      depthBlockBuffer.write('''
+
+DEPTH MAP IMAGE:
+The LAST attached image is not a photo. It is a false-colour depth map of the
+same scene, captured at the same instant through the same lens, framed
+identically to the photo.
+$depthMapLegend
+
+Read it as a relief of the meal: it shows which parts stand higher and by how
+much, which a photo alone cannot tell you. Use it to judge volume rather than
+outline — a heaped portion and a flat one cover the same area but differ here.
+Weigh it against the photo; where the two disagree, the photo identifies the
+food and the depth map gives its shape.
+''');
+    }
+
     final langRule = langRuleBuffer.toString();
+    final depthBlock = depthBlockBuffer.toString();
 
     return '''
-You are a nutrition analysis assistant. Analyze the provided meal image(s) or description.
+You are a nutrition analysis assistant. Analyze the provided meal image(s) or description.$depthBlock
 
 CRITICAL RULES:
 1. Establish a holistic meal context anchor *before* decomposing. Identify the dish and its overall cooking method, expected calories, and macro percentage ranges based on culinary knowledge.
@@ -50,7 +83,7 @@ The JSON object must have exactly these two fields:
 1. "mealContext": An object containing:
    - "dishType": string (the name of the dish/meal)
    - "expectedKcalRange": array of two integers [low, high]
-   - "expectedMacroProfile": an object with keys "proteinPercent", "carbsPercent", "fatPercent", each being an array of two integers [low, high] (representing the range of percentage of calories, e.g. [20, 30])
+   - "expectedMacroProfile": an object with keys "proteinPercent", "carbsPercent", "fatPercent", each being an array of two integers [low, high]
    - "cookingMethod": string (overall cooking method)
    - "contextNotes": string (contextual culinary details)
 2. "items": An array where each element has:
@@ -81,11 +114,46 @@ Example response:
 ''';
   }
 
+  /// Prompt for turning a raw dictation transcript into bullets.
+  ///
+  /// The interesting failure of speech recognition here is not filler words —
+  /// a local rule can strip those. It is misheard food names: "Sriracha" comes
+  /// back as "Sir Ratscher", and no rule engine can know that. Correcting them
+  /// needs a model that knows what food is called.
+  static String buildVoiceTidyPrompt() {
+    return '''
+You clean up a spoken meal description that has been through speech recognition.
+
+Return ONLY JSON in this exact shape:
+{
+  "bullets": [
+    {"text": "<food with its amount>", "notes": ["<what the user said about this food>"]}
+  ],
+  "context": "<anything about the meal as a whole, or omit>"
+}
+
+Rules:
+- One bullet per food. Put the amount in "text" when the user gave one
+  ("500 g Hähnchen"). When they gave none, just name the food.
+- Everything the user said ABOUT a food goes into that food's "notes", in their
+  own words: preparation, weighing basis, brand, "not much", "with the skin".
+  Never fold a qualifier into "text" and never drop one.
+- Speech recognition mangles food names. Correct obvious mishearings to the food
+  that was clearly meant ("Sir Ratscher" -> "Sriracha"). Fix casing and joined
+  or split compound words. If you cannot tell what was meant, keep it verbatim
+  rather than guessing at a different food.
+- Drop filler words and false starts. Keep everything else.
+- Invent nothing: no foods, no amounts, no preparation the user did not say.
+- Answer in the language the transcript is in.
+- No commentary, no code fences, JSON only.''';
+  }
+
   static String buildRepairPrompt({
     String? languageCode,
     String? appLanguage,
     String? catalogLanguage,
     AiMealContext? mealContext,
+    DepthScaleFacts? depthFacts,
   }) {
     final effectiveLang = appLanguage ?? languageCode;
     final langRule = (effectiveLang != null && effectiveLang.isNotEmpty)
@@ -103,6 +171,10 @@ Example response:
             'Adjust gram amounts so the total aligns with this anchor.'
         : '';
 
+    final depthBlock = (depthFacts != null && depthFacts.isValid)
+        ? '\n\nLIDAR SCALE MEASUREMENT: ${depthFacts.subjectDistanceCm.toStringAsFixed(0)} cm distance, visible frame ${depthFacts.frameWidthCm.toStringAsFixed(0)}x${depthFacts.frameHeightCm.toStringAsFixed(0)} cm. Trust this measurement over assumed portion sizes.'
+        : '';
+
     return '''
 You are repairing an AI meal candidate after deterministic local validation.
 
@@ -113,7 +185,7 @@ Rules:
 - Correct unrealistic quantities.
 - Do not invent or return nutrition values.
 - Respect strict target macros when provided; local code will verify kcal/protein/carbs/fat again.
-- Use low creativity and keep the output deterministic.$langRule$anchorBlock
+- Use low creativity and keep the output deterministic.$langRule$anchorBlock$depthBlock
 
 Return ONLY a valid JSON array:
 [{"name":"Food name","estimatedGrams":100,"confidence":0.8}]

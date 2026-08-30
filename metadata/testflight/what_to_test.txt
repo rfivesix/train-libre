@@ -1,0 +1,49 @@
+Train Libre 1.2.0 — please focus on the following.
+
+1. AI MEAL CAPTURE (Nutrition tab -> AI capture)
+Needs your own API key: Settings -> AI Meal Capture -> provider -> paste key.
+- Take one to four photos of a plate and check the recognised foods, amounts
+  and macros on the review screen. Correct, swap and remove items before saving.
+- Hold the camera on a packaged product: a barcode chip should appear in the
+  same screen, without switching modes. Try the barcode toggle next to the
+  shutter as well.
+- Import photos from the library instead of taking them.
+- Leave the analysis screen while it is running: the late result must be
+  discarded, not pushed at you afterwards.
+
+2. VOICE DICTATION
+Hold the microphone button and describe a meal — on its own and in addition to
+a photo. Check that the transcript is editable before sending, and whether the
+sheet tells you when recognition falls back to the network recogniser.
+
+3. LiDAR SCALE (iPhone Pro models only)
+Photograph the same meal once with and once without "Send LiDAR scale" in the
+AI settings, and compare the estimated portion sizes. Also try clearly too
+close (< 15 cm) and too far (> 120 cm) — you should get distance guidance only
+in those cases.
+
+4. WORKOUT PHOTOS
+Add up to 4 photos to a workout, both in the summary right after training and
+later in the workout history. Delete single photos, page through the carousel,
+and confirm the photos survive a backup and restore.
+
+5. iCLOUD BACKUP AND RESTORE
+Let the automatic backup run, then restore on a device that already has data.
+Expected: no restart needed, meal and workout photos come back with their
+entries, the diary, profile and supplements keep working right after the
+restore, and onboarding still asks for region, catalogs and permissions.
+
+6. DIARY LAYOUT
+A scanned meal stays one entry with its photo and unfolds into its ingredients.
+Entries are sorted by calories, largest first, and amounts and calories should
+line up in the same columns on every row.
+
+7. RUNNING WORKOUT BAR
+Start a workout, leave the screen and watch the bar above the tab bar: status
+dot, elapsed time, and the switch to rest with the remaining pause, plus the
+exercise of the next open set. Tapping it should morph the workout screen out
+of the bar; the chevron in the header collapses it back. Watch for flicker of
+the bar at the start and end of the animation, and check the discard button
+still asks for confirmation.
+
+Thanks for testing!

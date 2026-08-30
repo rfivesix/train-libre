@@ -1,6 +1,8 @@
 "NSCameraUsageDescription" = "Train Libre utilise l'appareil photo pour scanner les codes-barres et pour l'analyse facultative des repas par IA.";
 "NSHealthShareUsageDescription" = "Train Libre lit les pas, le sommeil et la fréquence cardiaque depuis Apple Santé pour afficher les vues de santé et de récupération que tu actives.";
 "NSHealthUpdateUsageDescription" = "Train Libre écrit les mesures, la nutrition, l'hydratation et les entraînements dans Apple Santé lorsque tu actives l'export unidirectionnel.";
+"NSMicrophoneUsageDescription" = "Train Libre utilise le microphone uniquement pendant que tu maintiens le bouton de dictée pour décrire un repas.";
 "NSPhotoLibraryUsageDescription" = "Train Libre accède à la photothèque pour l'analyse facultative des repas par IA et les photos de profil.";
+"NSSpeechRecognitionUsageDescription" = "Train Libre convertit ta description vocale de repas en texte. La reconnaissance se fait sur l'appareil lorsque celui-ci le permet.";
 "shortcut.addFood" = "Ajouter un aliment";
 "shortcut.startWorkout" = "Commencer l'entraînement";

@@ -46,8 +46,12 @@
 	<string>Train Libre reads steps, sleep, and heart-rate data from Apple Health to show health and recovery views you enable.</string>
 	<key>NSHealthUpdateUsageDescription</key>
 	<string>Train Libre writes measurements, nutrition, hydration, and workouts to Apple Health when you enable one-way health export.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Train Libre uses the microphone only while you hold the dictation button to describe a meal.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Train Libre uses photo library access for optional AI meal analysis and profile images.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>Train Libre converts your spoken meal description into text. On-device recognition is used whenever your device supports it.</string>
 	<key>UIApplicationShortcutItems</key>
 	<array>
 		<dict>

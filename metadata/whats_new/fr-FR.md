@@ -6,6 +6,18 @@
   récente en premier. Ensuite : python3 script/build_whats_new.py --write --sync-store
 -->
 
+## 1.2.0 (2026-08-30)
+
+{camera} Enregistrer un repas à partir d'une photo : vise ton assiette et l'IA en fait des aliments distincts, avec quantités, calories et macros - tout reste corrigeable avant l'enregistrement. Les produits emballés sont reconnus par leur code-barres dans la même vue, les iPhone équipés du LiDAR mesurent la portion au lieu de la deviner, et le bouton micro permet d'ajouter ce qu'une photo ne montre pas.
+
+{utensils} Un journal plus lisible : un repas scanné reste une seule entrée avec sa photo et se déplie sur ses ingrédients. Les entrées sont triées par calories, les plus élevées d'abord.
+
+{dumbbell} Plus de tes entraînements : garde jusqu'à 4 photos par séance, et la barre au-dessus de la navigation indique en permanence si tu travailles ou récupères et quel exercice arrive ensuite. Un appui fait grandir l'entraînement depuis la barre.
+
+{cloud} Tes photos dans la sauvegarde iCloud : la sauvegarde automatique emporte désormais les photos de tes repas et de tes entraînements. La restauration ne demande plus de redémarrage et conserve la sauvegarde précédente comme copie de secours.
+
+{sparkles} Une utilisation plus fluide : les cartes s'agrandissent en plein écran au lieu de basculer d'un coup, les chiffres défilent jusqu'à leur valeur, et les exercices supprimés se replient en douceur au lieu de disparaître brusquement.
+
 ## 1.1.1 (2026-08-12)
 
 {layout_grid} Widgets d'écran d'accueil sur Android : la famille de widgets arrive sur Android - ta dernière séance avec sa carte musculaire, la récupération musculaire, tes pas des 7 derniers jours, tes mensurations, la nutrition du jour et les actions rapides. Ajoute-les depuis le sélecteur de widgets de ton lanceur ; nutrition, mensurations et actions rapides se reconfigurent à tout moment.

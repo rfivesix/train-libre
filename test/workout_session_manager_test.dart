@@ -130,6 +130,65 @@ void main() {
       expect(manager.setLogs[1002]!.reps, isNull);
     });
 
+    test('currentExerciseNameFor names the exercise of the next open set',
+        () async {
+      final log = await workoutDb.startWorkout(routineName: 'Session');
+      final first = RoutineExercise(
+        id: 300,
+        exercise: const model.Exercise(
+          id: 1,
+          nameDe: 'Kniebeuge',
+          nameEn: 'Squat',
+          descriptionDe: '',
+          descriptionEn: '',
+          categoryName: 'Strength',
+          primaryMuscles: ['quads'],
+          secondaryMuscles: [],
+        ),
+        pauseSeconds: 60,
+        setTemplates: [SetTemplate(id: 3001, setType: 'normal')],
+      );
+      final second = RoutineExercise(
+        id: 301,
+        exercise: const model.Exercise(
+          id: 2,
+          nameDe: 'Latzug',
+          nameEn: 'Lat Pulldown',
+          descriptionDe: '',
+          descriptionEn: '',
+          categoryName: 'Strength',
+          primaryMuscles: ['back'],
+          secondaryMuscles: [],
+        ),
+        pauseSeconds: 60,
+        setTemplates: [SetTemplate(id: 3002, setType: 'normal')],
+      );
+
+      await manager.startWorkout(log, [first, second]);
+      await _waitFor(() => manager.setLogs.length == 2);
+
+      expect(manager.currentExerciseNameFor('en'), 'Squat');
+      expect(manager.currentExerciseNameFor('de'), 'Kniebeuge');
+
+      // First exercise done -> the bar moves on to the next open one.
+      await manager.updateSet(3001, weight: 100, reps: 5, isCompleted: true);
+      expect(manager.currentExerciseNameFor('en'), 'Lat Pulldown');
+
+      // Everything ticked off -> it keeps naming the last exercise worked
+      // rather than falling back to nothing.
+      await manager.updateSet(3002, weight: 60, reps: 10, isCompleted: true);
+      expect(manager.currentExerciseNameFor('en'), 'Lat Pulldown');
+    });
+
+    test('currentExerciseNameFor stays null while the workout has no exercises',
+        () async {
+      final log = await workoutDb.startWorkout(routineName: 'Session');
+      await manager.startWorkout(log, []);
+
+      expect(manager.exercises, isEmpty);
+      expect(manager.currentExerciseNameFor('en'), isNull);
+    });
+
     test('addSetToExercise keeps previous-set defaults and ordering', () async {
       final log = await workoutDb.startWorkout(routineName: 'Session');
       final exercise = const model.Exercise(
@@ -552,7 +611,8 @@ void main() {
       expect(manager.exercises.first.setTemplates.length, 3); // Default 3 sets
     });
 
-    test('addExercise inserts after lowest exercise with completed set', () async {
+    test('addExercise inserts after lowest exercise with completed set',
+        () async {
       final log = await workoutDb.startWorkout(routineName: 'Session');
       final exA = const model.Exercise(
         id: 1,

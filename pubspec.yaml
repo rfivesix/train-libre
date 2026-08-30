@@ -2,7 +2,7 @@ name: train_libre
 description: "Train Libre is a modern, privacy-first fitness and nutrition
   tracking app. Offline-first, no cloud dependency, built with Flutter."
 publish_to: "none"
-version: 1.1.1+1001006
+version: 1.2.0+1002017
 environment:
   sdk: ">=3.0.0 <4.0.0" # Adjusted for modern SDKs
 
@@ -34,6 +34,9 @@ dependencies:
   provider: ^6.1.5+1
   google_fonts: ^8.2.1
   package_info_plus: ^10.2.1 # or the latest version
+  # Device model for the performance section of the feedback report: "9.7% jank"
+  # is far less useful without knowing which iPhone produced it.
+  device_info_plus: ^13.2.0
   image_picker: ^1.2.2
   cryptography: ^2.7.0
   table_calendar: ^3.2.0
@@ -80,6 +83,7 @@ dependencies:
   workmanager: ^0.10.7
   posthog_flutter: ^5.36.0
   audioplayers: ^6.1.0
+  speech_to_text: ^7.4.0
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -87,6 +91,10 @@ dev_dependencies:
   flutter_launcher_icons: ^0.14.4
   build_runner: ^2.15.1
   drift_dev: ^2.34.4
+  # Imported directly by the camera/permission widget tests, which mock the
+  # platform interfaces rather than the plugin facades.
+  permission_handler_platform_interface: ^4.4.0
+  plugin_platform_interface: ^2.1.8
 # dependency_overrides:
 
 flutter_launcher_icons:

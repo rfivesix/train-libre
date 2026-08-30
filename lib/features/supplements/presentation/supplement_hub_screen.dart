@@ -10,6 +10,7 @@ import '../../../util/design_constants.dart';
 import '../../../util/supplement_l10n.dart';
 import '../../app/presentation/widgets/glass_bottom_menu.dart';
 import '../../../widgets/common/glass_fab.dart';
+import '../../../widgets/common/card_morph_route.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/seamless_loading_overlay.dart';
 import '../../../widgets/common/summary_card.dart';
@@ -35,6 +36,7 @@ class _SupplementHubScreenState extends State<SupplementHubScreen> {
         localDataSource: SupplementLocalDataSource.instance,
       );
   bool _isLoading = true;
+  bool _isFabHidden = false;
   List<Supplement> _supplements = const [];
 
   @override
@@ -64,9 +66,10 @@ class _SupplementHubScreenState extends State<SupplementHubScreen> {
     });
   }
 
-  Future<void> _navigateToEdit(Supplement s) async {
+  Future<void> _navigateToEdit(Supplement s, {BuildContext? sourceContext}) async {
     final changed = await Navigator.of(context).push<bool>(
-      MaterialPageRoute(
+      CardMorphRoute(
+        sourceContext: sourceContext,
         builder: (_) => CreateSupplementScreen(
             supplementToEdit: s, repository: _repository),
       ),
@@ -144,39 +147,43 @@ class _SupplementHubScreenState extends State<SupplementHubScreen> {
         s.name.toLowerCase() == 'caffeine';
     final title = localizeSupplementName(s, l10n);
 
-    final content = SummaryCard(
-      child: ListTile(
-        leading: SizedBox(
-          height: double.infinity,
-          child: Icon(
-            s.isTracked ? LucideIcons.circle_check : LucideIcons.circle,
-            color: s.isTracked ? Colors.green : Colors.grey,
+    return Builder(
+      builder: (cardCtx) {
+        final content = SummaryCard(
+          child: ListTile(
+            leading: SizedBox(
+              height: double.infinity,
+              child: Icon(
+                s.isTracked ? LucideIcons.circle_check : LucideIcons.circle,
+                color: s.isTracked ? Colors.green : Colors.grey,
+              ),
+            ),
+            title: Text(title),
+            subtitle: (s.dailyGoal != null || s.dailyLimit != null)
+                ? Text(
+                    [
+                      if (s.dailyGoal != null)
+                        '${l10n.dailyGoalLabel}: ${s.dailyGoal} ${s.unit}',
+                      if (s.dailyLimit != null)
+                        '${l10n.dailyLimitLabel}: ${s.dailyLimit} ${s.unit}',
+                    ].join('  •  '),
+                  )
+                : null,
+            trailing: isBuiltin ? null : const Icon(LucideIcons.chevron_right),
+            onTap: () => _navigateToEdit(s, sourceContext: cardCtx),
           ),
-        ),
-        title: Text(title),
-        subtitle: (s.dailyGoal != null || s.dailyLimit != null)
-            ? Text(
-                [
-                  if (s.dailyGoal != null)
-                    '${l10n.dailyGoalLabel}: ${s.dailyGoal} ${s.unit}',
-                  if (s.dailyLimit != null)
-                    '${l10n.dailyLimitLabel}: ${s.dailyLimit} ${s.unit}',
-                ].join('  •  '),
-              )
-            : null,
-        trailing: isBuiltin ? null : const Icon(LucideIcons.chevron_right),
-        onTap: () => _navigateToEdit(s),
-      ),
-    );
+        );
 
-    if (isBuiltin) return content;
+        if (isBuiltin) return content;
 
-    return GlassActionableCard(
-      dismissibleKey: Key('supp_${s.id}'),
-      onEdit: () => _navigateToEdit(s),
-      onDelete: () => _delete(s),
-      confirmDelete: () async => false,
-      child: content,
+        return GlassActionableCard(
+          dismissibleKey: Key('supp_${s.id}'),
+          onEdit: () => _navigateToEdit(s, sourceContext: cardCtx),
+          onDelete: () => _delete(s),
+          confirmDelete: () async => false,
+          child: content,
+        );
+      },
     );
   }
 
@@ -234,17 +241,38 @@ class _SupplementHubScreenState extends State<SupplementHubScreen> {
           ),
         ],
       ),
-      floatingActionButton: GlassFab(
-        label: l10n.createSupplementTitle,
-        onPressed: () async {
-          final created = await Navigator.of(context).push<bool>(
-            MaterialPageRoute(
-              builder: (context) =>
-                  CreateSupplementScreen(repository: _repository),
-            ),
-          );
-          if (created == true) _load();
-        },
+      floatingActionButton: Opacity(
+        opacity: _isFabHidden ? 0.0 : 1.0,
+        child: IgnorePointer(
+          ignoring: _isFabHidden,
+          child: Builder(
+            builder: (fabCtx) {
+              Widget buildFab({VoidCallback? onPressed}) => GlassFab(
+                    label: l10n.createSupplementTitle,
+                    onPressed: onPressed ?? () {},
+                  );
+
+              return GlassFab(
+                label: l10n.createSupplementTitle,
+                onPressed: () async {
+                  final created = await Navigator.of(context).push<bool>(
+                    CardMorphRoute(
+                      sourceContext: fabCtx,
+                      sourceBorderRadius: 28.0,
+                      sourceBuilder: (_) => buildFab(),
+                      onSourceVisibilityChanged: (hidden) {
+                        if (mounted) setState(() => _isFabHidden = hidden);
+                      },
+                      builder: (context) =>
+                          CreateSupplementScreen(repository: _repository),
+                    ),
+                  );
+                  if (created == true) _load();
+                },
+              );
+            },
+          ),
+        ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );

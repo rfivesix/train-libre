@@ -214,8 +214,49 @@ class _LegalAccordion extends StatefulWidget {
   State<_LegalAccordion> createState() => _LegalAccordionState();
 }
 
-class _LegalAccordionState extends State<_LegalAccordion> {
+class _LegalAccordionState extends State<_LegalAccordion>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<double> _expandAnimation;
+  late final Animation<double> _rotateAnimation;
+  late final Animation<double> _fadeAnimation;
   bool _isExpanded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 280),
+    );
+    _expandAnimation = CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeInOutCubic,
+    );
+    _rotateAnimation =
+        Tween<double>(begin: 0.0, end: 0.5).animate(_expandAnimation);
+    _fadeAnimation = CurvedAnimation(
+      parent: _controller,
+      curve: const Interval(0.15, 1.0, curve: Curves.easeIn),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _toggle() {
+    setState(() {
+      _isExpanded = !_isExpanded;
+      if (_isExpanded) {
+        _controller.forward();
+      } else {
+        _controller.reverse();
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -235,7 +276,7 @@ class _LegalAccordionState extends State<_LegalAccordion> {
             InkWell(
               borderRadius:
                   BorderRadius.circular(DesignConstants.borderRadiusL),
-              onTap: () => setState(() => _isExpanded = !_isExpanded),
+              onTap: _toggle,
               child: Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: DesignConstants.spacingL,
@@ -254,27 +295,35 @@ class _LegalAccordionState extends State<_LegalAccordion> {
                       ),
                     ),
                     const SizedBox(width: DesignConstants.spacingM),
-                    Icon(
-                      _isExpanded
-                          ? LucideIcons.chevron_up
-                          : LucideIcons.chevron_down,
-                      color: theme.colorScheme.primary,
-                      size: DesignConstants.iconSizeL,
+                    RotationTransition(
+                      turns: _rotateAnimation,
+                      child: Icon(
+                        LucideIcons.chevron_down,
+                        color: theme.colorScheme.primary,
+                        size: DesignConstants.iconSizeL,
+                      ),
                     ),
                   ],
                 ),
               ),
             ),
-            if (_isExpanded)
-              Padding(
-                padding: const EdgeInsets.fromLTRB(
-                  DesignConstants.spacingL,
-                  0,
-                  DesignConstants.spacingL,
-                  DesignConstants.spacingL,
+            SizeTransition(
+              axis: Axis.vertical,
+              alignment: Alignment.topCenter,
+              sizeFactor: _expandAnimation,
+              child: FadeTransition(
+                opacity: _fadeAnimation,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    DesignConstants.spacingL,
+                    0,
+                    DesignConstants.spacingL,
+                    DesignConstants.spacingL,
+                  ),
+                  child: _LegalText(data: widget.section.content),
                 ),
-                child: _LegalText(data: widget.section.content),
               ),
+            ),
           ],
         ),
       ),

@@ -1,6 +1,5 @@
-// lib/screens/workout_summary_screen.dart
-
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'widgets/exercise_record_data.dart';
 import 'package:provider/provider.dart';
 import '../../../widgets/common/algorithm_info_sheet.dart';
@@ -27,6 +26,7 @@ import '../../../widgets/common/dual_body_highlighter.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/app_section_header.dart';
 import '../../../widgets/common/summary_card.dart';
+import 'widgets/workout_photo_card.dart';
 import 'widgets/workout_summary_bar.dart';
 import 'widgets/muscle_color_helper.dart';
 import '../../exercise_catalog/domain/body_slug_mapper.dart';
@@ -385,7 +385,7 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
                       Expanded(
                         child: ListView(
                           children: [
-                            // Overall statistics
+                            // Overall statistics (very top, under the app bar)
                             WorkoutSummaryBar(
                               duration:
                                   _log!.endTime?.difference(_log!.startTime),
@@ -395,20 +395,29 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
                             ),
                             const SizedBox(height: DesignConstants.spacingL),
 
-                            // Routine Title & Notes (Hero Section FIRST)
-                            if (_log!.routineName != null &&
-                                _log!.routineName!.isNotEmpty) ...[
-                              Text(
-                                _log!.routineName!,
-                                style: textTheme.headlineMedium?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                                textAlign: TextAlign.left,
+                            // Routine Title, Date/Time & Notes
+                            Text(
+                              _log!.routineName != null &&
+                                      _log!.routineName!.isNotEmpty
+                                  ? _log!.routineName!
+                                  : l10n.freeWorkoutTitle,
+                              style: textTheme.headlineMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
                               ),
-                              const SizedBox(height: DesignConstants.spacingXS),
-                            ],
+                              textAlign: TextAlign.left,
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              DateFormat.yMMMMd(
+                                Localizations.localeOf(context).toString(),
+                              ).add_Hm().format(_log!.startTime),
+                              style: textTheme.bodyMedium?.copyWith(
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                            ),
                             if (_log!.notes != null &&
                                 _log!.notes!.isNotEmpty) ...[
+                              const SizedBox(height: DesignConstants.spacingXS),
                               Text(
                                 _log!.notes!,
                                 style: textTheme.bodyMedium?.copyWith(
@@ -417,14 +426,24 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
                                 ),
                                 textAlign: TextAlign.left,
                               ),
-                              const SizedBox(height: DesignConstants.spacingM),
                             ],
+                            const SizedBox(height: DesignConstants.spacingM),
 
-                            if (_showSyncBanner &&
-                                _associatedRoutine != null) ...[
-                              _buildSyncBanner(colorScheme, textTheme),
-                              const SizedBox(height: DesignConstants.spacingL),
-                            ],
+                            // Photos (under Title, Date, Time and Stats)
+                            WorkoutPhotoCard(
+                              workoutLogId: _log!.id,
+                              photoPaths: _log!.photoPaths,
+                              isEditable: true,
+                              onPhotosChanged: (updatedPaths) {
+                                setState(() {
+                                  _log = _log!.copyWith(
+                                    photoPaths: updatedPaths,
+                                  );
+                                });
+                              },
+                            ),
+                            const SizedBox(height: DesignConstants.spacingL),
+
                             if (_exerciseDetails.isNotEmpty) ...[
                               _buildMuscleHeatmap(l10n),
                               const SizedBox(height: DesignConstants.spacingL),
@@ -511,6 +530,13 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
                                 ),
                               );
                             }),
+
+                            // Update Routine Banner at the very bottom of the screen
+                            if (_showSyncBanner &&
+                                _associatedRoutine != null) ...[
+                              const SizedBox(height: DesignConstants.spacingL),
+                              _buildSyncBanner(colorScheme, textTheme),
+                            ],
                           ],
                         ),
                       ),

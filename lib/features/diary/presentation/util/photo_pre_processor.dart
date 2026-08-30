@@ -1,7 +1,8 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
+
+import '../../../../core/media/meal_image_processor.dart';
 
 enum PreProcessStatus {
   idle,
@@ -72,6 +73,7 @@ class PhotoPreProcessor {
   void cancelAndRemove(File file) {
     final key = file.path;
     _cancelTokens[key] = true;
+    MealImageProcessor.instance.evict(file);
     final notifier = _notifiers[key];
     if (notifier != null) {
       notifier.value = notifier.value.copyWith(
@@ -145,19 +147,21 @@ class PhotoPreProcessor {
     try {
       if (_cancelTokens[key] == true) return;
 
-      // Read & encode image
-      final bytes = await file.readAsBytes();
-      if (_cancelTokens[key] == true) return;
-
       notifier.value = notifier.value.copyWith(progress: 0.5);
 
-      final encoded = base64Encode(bytes);
+      // Scale and encode through the shared processor rather than encoding the
+      // raw file here. This used to produce a base64 string nobody read —
+      // `AiService` encoded the original a second time when the request went
+      // out — so the work was done twice and the larger of the two payloads
+      // was the one actually uploaded. Now both sides share one cached result.
+      final prepared =
+          await MealImageProcessor.instance.prepareForAnalysis(file);
       if (_cancelTokens[key] == true) return;
 
       notifier.value = notifier.value.copyWith(
         status: PreProcessStatus.completed,
         progress: 1.0,
-        base64Data: encoded,
+        base64Data: prepared.base64,
       );
     } catch (e) {
       if (_cancelTokens[key] == true) return;

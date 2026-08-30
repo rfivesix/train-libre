@@ -11,12 +11,18 @@ import 'package:flutter/services.dart';
 import 'features/sleep/presentation/sleep_navigation.dart';
 import 'generated/app_localizations.dart';
 import 'navigation/app_route_observer.dart';
+import 'core/performance/device_label.dart';
+import 'core/performance/jank_recorder.dart';
+import 'core/performance/performance_telemetry.dart';
+import 'core/performance/jank_route_observer.dart';
+import 'core/performance/startup_trace.dart';
 // App startup routing is delegated to the dedicated initializer screen.
 import 'features/app/presentation/app_initializer_screen.dart';
 import 'services/profile_service.dart';
 import 'services/unit_service.dart';
 import 'features/workout/presentation/live_workout_view_model.dart';
 import 'features/workout/presentation/live_workout_screen.dart';
+import 'features/workout/presentation/workout_morph_route.dart';
 import 'package:provider/provider.dart';
 import 'services/theme_service.dart';
 import 'theme/app_colors.dart';
@@ -30,6 +36,7 @@ import 'features/whats_new/data/whats_new_service.dart';
 import 'features/app/presentation/legal_screen.dart';
 import 'core/infrastructure/icloud_sync_service.dart';
 
+import 'features/diary/data/meal_photo_store.dart';
 import 'features/diary/domain/repositories/diary_repository.dart';
 import 'features/diary/data/nutrition_repository.dart';
 import 'features/workout/domain/repositories/workout_repository.dart';
@@ -90,11 +97,45 @@ void callbackDispatcher() {
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Opened before anything else runs, so the phases below are measured against
+  // the earliest point this code can observe. Closed by the first frame that
+  // actually reaches the screen.
+  StartupTrace.instance.beginColdStart();
+  unawaited(StartupTrace.instance.attach());
+
+  // Frame timings are the only way to see jank on the devices it actually
+  // happens on; a development machine renders these screens well inside budget.
+  final stallReporter = StallTelemetryReporter(
+    recorder: JankRecorder.instance,
+    deviceLabelResolver: DeviceLabel.load,
+    sender: (properties) =>
+        TelemetryService.instance.trackPerformanceStall(properties: properties),
+  );
+  // The send is a no-op while the user is opted out — `track` drops everything
+  // before it reaches PostHog — so no consent check is needed here.
+  JankRecorder.instance.onStall = (stall) => unawaited(
+        stallReporter.report(stall),
+      );
+  unawaited(JankRecorder.instance.start());
+
   // Initialize Liquid Glass shaders and pipeline
-  await LiquidGlassWidgets.initialize();
+  await StartupTrace.instance.measure(
+    'glass_init',
+    LiquidGlassWidgets.initialize,
+  );
 
   // FIX: Ensures DateFormat does not throw LocaleDataException on non-en_US locales.
-  await initializeDateFormatting();
+  await StartupTrace.instance.measure(
+    'date_formatting',
+    () => initializeDateFormatting(),
+  );
+
+  // Meal photos are stored as paths relative to the support directory; caching
+  // it once here lets widgets resolve them synchronously while building.
+  await StartupTrace.instance.measure(
+    'meal_photo_store',
+    MealPhotoStore.instance.ensureInitialized,
+  );
 
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
@@ -103,9 +144,15 @@ void main() async {
 
   // Move any keychain items still stored with backup-eligible accessibility
   // onto the device-only class before anything reads them.
-  await AiService.migrateSecureStorageToDeviceOnly();
+  await StartupTrace.instance.measure(
+    'keychain_migration',
+    AiService.migrateSecureStorageToDeviceOnly,
+  );
 
-  final prefs = await SharedPreferences.getInstance();
+  final prefs = await StartupTrace.instance.measure(
+    'prefs',
+    SharedPreferences.getInstance,
+  );
   final hasAcceptedConsent = prefs.getBool('hasAcceptedConsent') ?? false;
   final acceptedLegalVersion = prefs.getString('acceptedLegalVersion');
 
@@ -889,7 +936,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
 
         return MaterialApp(
           navigatorKey: _navigatorKey,
-          navigatorObservers: [appRouteObserver],
+          navigatorObservers: [appRouteObserver, jankRouteObserver],
           debugShowCheckedModeBanner: false,
           scrollBehavior: NoGlowScrollBehavior(),
           onGenerateTitle: (context) => AppLocalizations.of(context)!.appTitle,
@@ -908,7 +955,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
                 (settings.name?.contains('workout/live') ?? false)) {
               final Uri? uri = Uri.tryParse(settings.name ?? '');
               final action = uri?.queryParameters['action'];
-              return MaterialPageRoute(
+              return WorkoutMorphRoute<void>(
                 settings: settings,
                 builder: (context) {
                   final wsm =
@@ -929,7 +976,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
           onUnknownRoute: (settings) {
             final Uri? uri = Uri.tryParse(settings.name ?? '');
             final action = uri?.queryParameters['action'];
-            return MaterialPageRoute(
+            return WorkoutMorphRoute<void>(
               settings: settings,
               builder: (context) {
                 final wsm =
@@ -972,7 +1019,18 @@ class NoGlowScrollBehavior extends ScrollBehavior {
 
   @override
   ScrollPhysics getScrollPhysics(BuildContext context) {
-    // iOS-Style: Bouncing
-    return const BouncingScrollPhysics();
+    // iOS-Style: Bouncing, on every platform.
+    //
+    // This is UIScrollView's own feel, not an approximation of it:
+    // [BouncingScrollPhysics] defaults to `ScrollDecelerationRate.normal`,
+    // which is the same 0.998 as `UIScrollViewDecelerationRateNormal`.
+    //
+    // The [RangeMaintainingScrollPhysics] parent is what Flutter's own iOS
+    // default wraps, and it is not optional: without it a list jumps when
+    // something above the viewport changes size — a chart finishing its load,
+    // an expanding card — instead of holding the reader's place.
+    return const BouncingScrollPhysics(
+      parent: RangeMaintainingScrollPhysics(),
+    );
   }
 }

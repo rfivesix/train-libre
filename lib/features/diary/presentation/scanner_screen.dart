@@ -1,4 +1,4 @@
-// lib/screens/scanner_screen.dart
+// lib/features/diary/presentation/scanner_screen.dart
 
 import 'dart:async';
 import 'dart:io';
@@ -11,6 +11,7 @@ import 'dart:developer' as developer;
 import '../../../services/haptic_feedback_service.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../core/infrastructure/basis_data_manager.dart';
+import '../../../navigation/app_route_observer.dart';
 import '../../../widgets/common/database_placeholder_widget.dart';
 import '../../../util/design_constants.dart';
 import '../../../widgets/common/app_button.dart';
@@ -18,8 +19,10 @@ import '../../../services/telemetry/telemetry_service.dart';
 
 /// A screen that utilizes the device camera to scan barcodes for product identification.
 ///
-/// Uses the `flutter_zxing` package (FLOSS-compatible) to detect barcodes and
-/// returns the first successfully scanned code to the calling screen.
+/// Uses the `qr_code_scanner_plus` package (FLOSS-compatible) to detect
+/// barcodes and returns the first successfully scanned code to the calling
+/// screen. This is the standalone barcode entrance; `AiMealCaptureScreen`
+/// additionally detects barcodes passively on its unified camera session.
 class ScannerScreen extends StatefulWidget {
   const ScannerScreen({super.key});
 
@@ -28,11 +31,14 @@ class ScannerScreen extends StatefulWidget {
 }
 
 class _ScannerScreenState extends State<ScannerScreen>
-    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver, RouteAware {
   bool _isDone = false;
+  bool _isFlashOn = false;
   PermissionStatus _cameraPermissionStatus = PermissionStatus.denied;
   bool _isCheckingPermission = true;
   bool _isRequestingPermission = false;
+  bool _isRouteObserverAttached = false;
+  bool _isTopRoute = true;
   late final AnimationController _animationController;
   late final Animation<double> _animation;
 
@@ -45,7 +51,9 @@ class _ScannerScreenState extends State<ScannerScreen>
     if (Platform.isAndroid) {
       controller?.pauseCamera();
     } else if (Platform.isIOS) {
-      controller?.resumeCamera();
+      if (_isTopRoute) {
+        controller?.resumeCamera();
+      }
     }
   }
 
@@ -90,7 +98,51 @@ class _ScannerScreenState extends State<ScannerScreen>
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final route = ModalRoute.of(context);
+    if (!_isRouteObserverAttached && route is PageRoute<dynamic>) {
+      appRouteObserver.subscribe(this, route);
+      _isRouteObserverAttached = true;
+    }
+  }
+
+  @override
+  void didPush() {
+    _isTopRoute = true;
+  }
+
+  @override
+  void didPushNext() {
+    _isTopRoute = false;
+    controller?.pauseCamera();
+    if (_isFlashOn && mounted) {
+      setState(() => _isFlashOn = false);
+    }
+  }
+
+  @override
+  void didPopNext() {
+    _isTopRoute = true;
+    controller?.resumeCamera();
+  }
+
+  @override
+  void didPop() {
+    _isTopRoute = false;
+    controller?.pauseCamera();
+    if (_isFlashOn && mounted) {
+      setState(() => _isFlashOn = false);
+    }
+  }
+
+  @override
   void dispose() {
+    if (_isRouteObserverAttached) {
+      appRouteObserver.unsubscribe(this);
+    }
+    // The QR controller self-disposes when the QRView is unmounted; disposing
+    // it here as well is deprecated.
     _animationController.dispose();
     WidgetsBinding.instance.removeObserver(this);
     // Restore default app orientations
@@ -103,6 +155,11 @@ class _ScannerScreenState extends State<ScannerScreen>
 
   void _onQRViewCreated(QRViewController controller) {
     this.controller = controller;
+    controller.getFlashStatus().then((status) {
+      if (mounted && status != null) {
+        setState(() => _isFlashOn = status);
+      }
+    }).catchError((_) {});
     controller.scannedDataStream.listen((scanData) {
       if (scanData.code != null && !_isDone) {
         developer
@@ -118,11 +175,36 @@ class _ScannerScreenState extends State<ScannerScreen>
     });
   }
 
+  Future<void> _toggleFlash() async {
+    if (controller == null) return;
+    HapticFeedbackService.instance.selectionFeedback();
+    try {
+      await controller?.toggleFlash();
+      final status = await controller?.getFlashStatus();
+      if (mounted) {
+        setState(() {
+          _isFlashOn = status ?? !_isFlashOn;
+        });
+      }
+    } catch (e) {
+      debugPrint('[ScannerScreen] toggleFlash error: $e');
+    }
+  }
+
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       // Re-check permission if returning from settings or another app
       _checkPermission();
+      if (_isTopRoute) {
+        controller?.resumeCamera();
+      }
+    } else if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive) {
+      controller?.pauseCamera();
+      if (_isFlashOn && mounted) {
+        setState(() => _isFlashOn = false);
+      }
     }
   }
 
@@ -199,6 +281,8 @@ class _ScannerScreenState extends State<ScannerScreen>
       );
     }
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return PopScope(
       canPop: true,
       child: Scaffold(
@@ -216,6 +300,22 @@ class _ScannerScreenState extends State<ScannerScreen>
               context,
             ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900),
           ),
+          actions: [
+            if (_cameraPermissionStatus.isGranted)
+              IconButton(
+                icon: Icon(
+                  _isFlashOn ? LucideIcons.zap : LucideIcons.zap_off,
+                  size: 20,
+                  color: _isFlashOn
+                      ? (isDark
+                          ? const Color(0xFFC9EF00)
+                          : Theme.of(context).colorScheme.primary)
+                      : null,
+                ),
+                tooltip: l10n.scannerToggleFlash,
+                onPressed: _toggleFlash,
+              ),
+          ],
         ),
         body: _buildBody(l10n),
       ),

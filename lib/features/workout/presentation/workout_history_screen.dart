@@ -12,6 +12,7 @@ import '../../../util/design_constants.dart';
 import '../../../util/time_util.dart';
 import '../../app/presentation/widgets/glass_bottom_menu.dart';
 import '../../../widgets/common/global_app_bar.dart';
+import '../../../widgets/common/card_morph_route.dart';
 import '../../../widgets/common/summary_card.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../widgets/common/common.dart';
@@ -107,29 +108,31 @@ class _WorkoutHistoryScreenState extends State<WorkoutHistoryScreen> {
                 (sum, set) => sum + (set.weightKg ?? 0) * (set.reps ?? 0),
               );
 
-              return GlassActionableCard(
-                dismissibleKey: Key('log_${log.id}'),
-                confirmDelete: () async {
-                  return await showDeleteConfirmation(
-                    context,
-                    content: l10n.deleteWorkoutConfirmContent,
-                  );
-                },
-                onDelete: () => _deleteLog(log.id!),
-                onTap: () => Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) =>
-                        WorkoutLogDetailScreen(logId: log.id!),
-                  ),
-                ),
-                child: SummaryCard(
-                  child: ListTile(
-                    title: Text(
-                      log.routineName ?? l10n.freeWorkoutTitle,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontWeight: FontWeight.bold),
+              return Builder(
+                builder: (cardCtx) => GlassActionableCard(
+                  dismissibleKey: Key('log_${log.id}'),
+                  confirmDelete: () async {
+                    return await showDeleteConfirmation(
+                      context,
+                      content: l10n.deleteWorkoutConfirmContent,
+                    );
+                  },
+                  onDelete: () => _deleteLog(log.id!),
+                  onTap: () => Navigator.of(context).push(
+                    CardMorphRoute(
+                      sourceContext: cardCtx,
+                      builder: (context) =>
+                          WorkoutLogDetailScreen(logId: log.id!),
                     ),
+                  ),
+                  child: SummaryCard(
+                    child: ListTile(
+                      title: Text(
+                        log.routineName ?? l10n.freeWorkoutTitle,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
                     // FIX: Subtitle is now a Column with more information.
                     subtitle: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -195,8 +198,9 @@ class _WorkoutHistoryScreenState extends State<WorkoutHistoryScreen> {
                         : null,
                   ),
                 ),
-              );
-            },
+              ),
+            );
+          },
           );
         },
       ),

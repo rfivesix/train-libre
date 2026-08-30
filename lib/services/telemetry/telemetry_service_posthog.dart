@@ -629,10 +629,20 @@ class PostHogTelemetryService implements TelemetryService {
   Future<void> trackAiMealScanRequested({
     required String requestId,
     required String provider,
+    String? inputMode,
+    int? photoCount,
+    bool? hasLidar,
+    bool? hasVoiceInput,
+    bool? hasTextInput,
   }) async {
     await track('ai_meal_scan_requested', properties: {
       'request_id': requestId,
       'provider': provider,
+      if (inputMode != null) 'input_mode': inputMode,
+      if (photoCount != null) 'photo_count': photoCount,
+      if (hasLidar != null) 'has_lidar': hasLidar,
+      if (hasVoiceInput != null) 'has_voice_input': hasVoiceInput,
+      if (hasTextInput != null) 'has_text_input': hasTextInput,
     });
   }
 
@@ -643,12 +653,65 @@ class PostHogTelemetryService implements TelemetryService {
     required String latencyBucket,
     required bool success,
     String? errorCode,
+    String? inputMode,
+    int? photoCount,
+    bool? hasLidar,
+    bool? hasVoiceInput,
+    bool? hasTextInput,
+    bool? validationPassed,
+    int? repairAttemptsCount,
+    String? suggestedItemsCountBucket,
   }) async {
     await track('ai_meal_scan_completed', properties: {
       'request_id': requestId,
       'provider': provider,
       'latency_bucket': latencyBucket,
       'success': success,
+      if (errorCode != null) 'error_code': errorCode,
+      if (inputMode != null) 'input_mode': inputMode,
+      if (photoCount != null) 'photo_count': photoCount,
+      if (hasLidar != null) 'has_lidar': hasLidar,
+      if (hasVoiceInput != null) 'has_voice_input': hasVoiceInput,
+      if (hasTextInput != null) 'has_text_input': hasTextInput,
+      if (validationPassed != null) 'validation_passed': validationPassed,
+      if (repairAttemptsCount != null)
+        'repair_attempts_count': repairAttemptsCount,
+      if (suggestedItemsCountBucket != null)
+        'suggested_items_count_bucket': suggestedItemsCountBucket,
+    });
+  }
+
+  @override
+  Future<void> trackVoiceDictationCompleted({
+    required String durationBucket,
+    required bool aiTidyUpEnabled,
+    required String surface,
+    required bool success,
+    String? errorCode,
+  }) async {
+    await track('voice_dictation_completed', properties: {
+      'duration_bucket': durationBucket,
+      'ai_tidy_up_enabled': aiTidyUpEnabled,
+      'surface': surface,
+      'success': success,
+      if (errorCode != null) 'error_code': errorCode,
+    });
+  }
+
+  @override
+  Future<void> trackAiMealCorrectionCompleted({
+    required bool hasImages,
+    required String latencyBucket,
+    required bool success,
+    int? repairAttemptsCount,
+    String? errorCode,
+  }) async {
+    await track('ai_meal_correction_completed', properties: {
+      'has_images': hasImages,
+      'latency_bucket': latencyBucket,
+      'success': success,
+      if (repairAttemptsCount != null)
+        'repair_attempts_count': repairAttemptsCount,
       if (errorCode != null) 'error_code': errorCode,
     });
   }
@@ -711,5 +774,12 @@ class PostHogTelemetryService implements TelemetryService {
       'submission_method': submissionMethod,
       if (diagnosticsSummary != null) ...diagnosticsSummary,
     });
+  }
+
+  @override
+  Future<void> trackPerformanceStall({
+    required Map<String, dynamic> properties,
+  }) async {
+    await track('performance_stall', properties: properties);
   }
 }

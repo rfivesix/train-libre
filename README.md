@@ -126,7 +126,9 @@ Train Libre is built with Flutter and supports:
 - **Calorie & Macro Tracker:** Track nutrition, hydration, and supplements with adaptive weekly guidance.
 - **Bodyweight & Recovery Analytics:** Deep insights into muscle readiness, volume trends, and body measurements.
 - **Sleep & Vitals:** Sleep Health Score across five domains, plus steps and heart-rate aggregates imported from Apple Health or Health Connect.
-- **Next-Gen AI Meal Capture:** Capture meals from photos or text via BYOK (Bring Your Own Key) setup. Fully integrated with a holistic culinary anchor (`mealContext`) and a state-aware "Top-N Fuzzy Alternatives" SQLite matching system that prevents hallucinations. Always reviewable and self-repairing before saving.
+- **Meal Logging, Four Ways:** Barcode, catalog search, saved templates, or the camera — barcodes are detected passively while the meal camera is open, so there is no mode to pick in advance.
+- **Next-Gen AI Meal Capture:** Capture meals from photos, dictated speech or text via BYOK (Bring Your Own Key) setup. Fully integrated with a holistic culinary anchor (`mealContext`) and a state-aware "Top-N Fuzzy Alternatives" SQLite matching system that prevents hallucinations. Always reviewable and self-repairing before saving. Self-hosted Ollama and any OpenAI-compatible endpoint are supported alongside the commercial providers.
+- **LiDAR Scale Hint:** On supported iPhones, a measured scale of the scene is handed to the model instead of a guessed plate size — the largest single source of error in estimating a portion from a photo. Switchable, and silently skipped everywhere else.
 - **Privacy & Local-First:** Data stays on device. Optional one-way health export to Apple Health and Google Health Connect.
 
 ## Privacy & Philosophy
@@ -150,10 +152,14 @@ This project features a comprehensive, modular documentation suite split by targ
 *   [Smart Features Overview](documentation/features/overview.md): Overview of algorithmic features and architectural privacy invariants.
 *   [Bayesian TDEE Estimator](documentation/features/bayesian_tdee_estimator.md): Comprehensive mathematical and statistical formulation of the Kalman filter-based adaptive energy expenditure engine.
 *   [BYOK AI Meal Validation](documentation/features/byok_ai_validation.md): AI meal capture pipeline details, fuzzy validation scoring, and the 3-pass self-repair verification loop.
+*   [Meal Capture Pipeline](documentation/features/meal_capture_pipeline.md): Unified camera and passive barcode detection, voice dictation, meals as logged events, photo storage, and what leaves the device on each capture path.
+*   [Depth Scale Hint (LiDAR)](documentation/features/depth_scale_hint.md): Measured scale facts and the optional depth image, the quality gate that discards untrustworthy measurements, and the explicit non-goals.
 *   [**Native Health Sync & Export**](documentation/features/health_sync_export.md): Bidirectional vital synchronization (Steps, Sleep), outbound manual log export pipelines, SQLite-backed idempotency tracking, and fault-tolerance patterns.
 *   [Sleep Health Score Engine](documentation/features/sleep_scoring_engine.md): The five scoring domains, their curve shapes, and the soft-cap penalty logic.
 *   [Muscle Recovery & Fatigue Model](documentation/features/muscle_recovery_model.md): Volume-based recovery windows and intensity-driven fatigue extension per muscle.
 *   [Estimated 1-Rep Max Heuristic](documentation/features/intelligent_workouts.md): The Epley-based submaximal strength model behind PRs and progression.
+*   [Live Activity & Workout Session](documentation/features/live_activity_workout.md): The iOS Live Activity and Dynamic Island surface for a running workout.
+*   [iOS Home Screen Widgets](documentation/features/ios_home_screen_widgets.md): The widget family, their configuration, and the data they read.
 *   [Telemetry & Privacy Architecture](TELEMETRY.md): The complete opt-in telemetry event catalog and the anti-profiling safeguards around it.
 
 For the full interlinked documentation map, see the main [Documentation Entry Point](documentation/README.md).

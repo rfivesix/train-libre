@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 70;
+	objectVersion = 54;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -26,6 +26,9 @@
 		3EFAF4803028BE0D002B89E7 /* TrainLibreAppShortcuts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3EFAF47F3028BE0D002B89E7 /* TrainLibreAppShortcuts.swift */; };
 		4B2C70002F9A000100000001 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 4B2C70012F9A000100000001 /* InfoPlist.strings */; };
 		4B2C71002F9A000100000002 /* TrainLibreSceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B2C71012F9A000100000002 /* TrainLibreSceneDelegate.swift */; };
+		4B2C71022F9A000100000003 /* DepthScanPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B2C71032F9A000100000003 /* DepthScanPlugin.swift */; };
+		4B2C71052F9A000100000005 /* SpeechCapabilityPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B2C71042F9A000100000004 /* SpeechCapabilityPlugin.swift */; };
+		4B2C71072F9A000100000007 /* TLExceptionCatcher.m in Sources */ = {isa = PBXBuildFile; fileRef = 4B2C71062F9A000100000006 /* TLExceptionCatcher.m */; };
 		74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74858FAE1ED2DC5600515810 /* AppDelegate.swift */; };
 		78A318202AECB46A00862997 /* FlutterGeneratedPluginSwiftPackage in Frameworks */ = {isa = PBXBuildFile; productRef = 78A3181F2AECB46A00862997 /* FlutterGeneratedPluginSwiftPackage */; };
 		97C146FC1CF9000F007C117D /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FA1CF9000F007C117D /* Main.storyboard */; };
@@ -99,6 +102,10 @@
 		4B2C70052F9A000100000001 /* it */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = it; path = it.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		4B2C70062F9A000100000001 /* ja */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ja; path = ja.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		4B2C71012F9A000100000002 /* TrainLibreSceneDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TrainLibreSceneDelegate.swift; sourceTree = "<group>"; };
+		4B2C71032F9A000100000003 /* DepthScanPlugin.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DepthScanPlugin.swift; sourceTree = "<group>"; };
+		4B2C71042F9A000100000004 /* SpeechCapabilityPlugin.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SpeechCapabilityPlugin.swift; sourceTree = "<group>"; };
+		4B2C71062F9A000100000006 /* TLExceptionCatcher.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TLExceptionCatcher.m; sourceTree = "<group>"; };
+		4B2C71082F9A000100000008 /* TLExceptionCatcher.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TLExceptionCatcher.h; sourceTree = "<group>"; };
 		686FCBAFEAECC386A279E638 /* Pods-Runner.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.profile.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.profile.xcconfig"; sourceTree = "<group>"; };
 		6C085F5964F5D65202219610 /* Pods-RunnerTests.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.profile.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.profile.xcconfig"; sourceTree = "<group>"; };
 		70D5F3EFAC3DA38F90DDC540 /* Pods-Runner.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.debug.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.debug.xcconfig"; sourceTree = "<group>"; };
@@ -122,14 +129,14 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		3EFAF4333028BE78002B89E7 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+		3EFAF4333028BE78002B89E7 /* Exceptions for "TrainLibreLiveActivity" folder in "TrainLibreLiveActivityExtension" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
 			);
 			target = 3EFAF41E3028BE77002B89E7 /* TrainLibreLiveActivityExtension */;
 		};
-		3EFAF4343028BE78002B89E8 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+		3EFAF4343028BE78002B89E8 /* Exceptions for "TrainLibreLiveActivity" folder in "Runner" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Assets.xcassets,
@@ -151,7 +158,19 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		3EFAF4243028BE77002B89E7 /* TrainLibreLiveActivity */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (3EFAF4343028BE78002B89E8 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, 3EFAF4333028BE78002B89E7 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = TrainLibreLiveActivity; sourceTree = "<group>"; };
+		3EFAF4243028BE77002B89E7 /* TrainLibreLiveActivity */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				3EFAF4343028BE78002B89E8 /* Exceptions for "TrainLibreLiveActivity" folder in "Runner" target */,
+				3EFAF4333028BE78002B89E7 /* Exceptions for "TrainLibreLiveActivity" folder in "TrainLibreLiveActivityExtension" target */,
+			);
+			explicitFileTypes = {
+			};
+			explicitFolders = (
+			);
+			path = TrainLibreLiveActivity;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -279,6 +298,10 @@
 				74858FAE1ED2DC5600515810 /* AppDelegate.swift */,
 				3EFAF47F3028BE0D002B89E7 /* TrainLibreAppShortcuts.swift */,
 				4B2C71012F9A000100000002 /* TrainLibreSceneDelegate.swift */,
+				4B2C71032F9A000100000003 /* DepthScanPlugin.swift */,
+				4B2C71042F9A000100000004 /* SpeechCapabilityPlugin.swift */,
+				4B2C71082F9A000100000008 /* TLExceptionCatcher.h */,
+				4B2C71062F9A000100000006 /* TLExceptionCatcher.m */,
 				74858FAD1ED2DC5600515810 /* Runner-Bridging-Header.h */,
 				3E64C4AB2F8EF3E3004782FB /* trainlibre_icon_v2.icon */,
 			);
@@ -395,7 +418,7 @@
 			);
 			mainGroup = 97C146E51CF9000F007C117D;
 			packageReferences = (
-				781AD8BC2B33823900A9FFBB /* XCLocalSwiftPackageReference "Flutter/ephemeral/Packages/FlutterGeneratedPluginSwiftPackage" */,
+				781AD8BC2B33823900A9FFBB /* XCLocalSwiftPackageReference "FlutterGeneratedPluginSwiftPackage" */,
 			);
 			productRefGroup = 97C146EF1CF9000F007C117D /* Products */;
 			projectDirPath = "";
@@ -522,13 +545,9 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-frameworks-${CONFIGURATION}-input-files.xcfilelist",
 			);
-			inputPaths = (
-			);
 			name = "[CP] Embed Pods Frameworks";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-frameworks-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -569,6 +588,9 @@
 				74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */,
 				3EFAF4803028BE0D002B89E7 /* TrainLibreAppShortcuts.swift in Sources */,
 				4B2C71002F9A000100000002 /* TrainLibreSceneDelegate.swift in Sources */,
+				4B2C71022F9A000100000003 /* DepthScanPlugin.swift in Sources */,
+				4B2C71052F9A000100000005 /* SpeechCapabilityPlugin.swift in Sources */,
+				4B2C71072F9A000100000007 /* TLExceptionCatcher.m in Sources */,
 				1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1129,7 +1151,7 @@
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
-		781AD8BC2B33823900A9FFBB /* XCLocalSwiftPackageReference "Flutter/ephemeral/Packages/FlutterGeneratedPluginSwiftPackage" */ = {
+		781AD8BC2B33823900A9FFBB /* XCLocalSwiftPackageReference "FlutterGeneratedPluginSwiftPackage" */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = Flutter/ephemeral/Packages/FlutterGeneratedPluginSwiftPackage;
 		};
