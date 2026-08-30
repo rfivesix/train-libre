@@ -295,6 +295,120 @@ function shade(hex: string, percent: number) {
   return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, "0")}`;
 }
 
+// ---------- Deck-wide panorama background ----------
+//
+// The per-screen SlideBackground below lives inside an overflow:hidden screen
+// box, so every screen repeats the same blobs. In connected mode we instead
+// paint ONE background across the whole deck: glow fields and an aurora
+// horizon straddle the screen seams, so the exported screens read as slices of
+// a single scene while each still stands on its own in App Store search.
+
+function hexToRgb(hex: string) {
+  const c = hex.replace("#", "");
+  const full = c.length === 3 ? c.split("").map((x) => x + x).join("") : c;
+  const num = parseInt(full, 16);
+  return { r: (num >> 16) & 0xff, g: (num >> 8) & 0xff, b: num & 0xff };
+}
+
+// Smooth wave sampled across the full deck width. `waves` is the number of
+// complete cycles over the deck, so the curve reads as continuous motion no
+// matter how many screens the deck has.
+function wavePath(totalW: number, cH: number, baseline: number, amp: number, waves: number, phase: number) {
+  const steps = 240;
+  const pts: string[] = [];
+  for (let i = 0; i <= steps; i++) {
+    const t = i / steps;
+    const x = t * totalW;
+    const y =
+      cH * baseline +
+      Math.sin(t * Math.PI * 2 * waves + phase) * cH * amp * 0.6 +
+      Math.sin(t * Math.PI * 2 * waves * 0.5 + phase * 1.7) * cH * amp * 0.4;
+    pts.push(`${i === 0 ? "M" : "L"}${x.toFixed(1)},${y.toFixed(1)}`);
+  }
+  return pts.join(" ");
+}
+
+function DeckBackground({
+  totalW,
+  cH,
+  theme,
+}: {
+  totalW: number;
+  cH: number;
+  theme: Theme;
+}) {
+  const { r, g, b } = hexToRgb(theme.accent);
+  const a = (o: number) => `rgba(${r}, ${g}, ${b}, ${o})`;
+  const cool = (o: number) => `rgba(64, 132, 255, ${o})`;
+
+  // Glow fields, positioned as fractions of the whole deck so they cross seams.
+  const glows: Array<[number, number, number, number, string]> = [
+    // [xFrac, yFrac, wFrac-of-totalW, hFrac-of-cH, color]
+    [0.045, 0.08, 0.115, 0.85, a(0.3)],
+    [0.235, 0.96, 0.16, 0.8, a(0.16)],
+    [0.42, 0.02, 0.13, 0.7, a(0.22)],
+    [0.6, 0.9, 0.175, 0.85, cool(0.14)],
+    [0.79, 0.06, 0.14, 0.75, a(0.2)],
+    [0.96, 0.88, 0.13, 0.7, a(0.15)],
+    [0.5, 0.5, 0.55, 1.5, cool(0.05)],
+  ];
+
+  const layers = glows
+    .map(
+      ([x, y, w, h, color]) =>
+        `radial-gradient(${(w * totalW).toFixed(0)}px ${(h * cH).toFixed(0)}px at ${(x * 100).toFixed(
+          2,
+        )}% ${(y * 100).toFixed(2)}%, ${color} 0%, transparent 68%)`,
+    )
+    .join(", ");
+
+  const horizon = wavePath(totalW, cH, 0.62, 0.2, 1.6, 0.4);
+  const horizonFill = `${horizon} L${totalW},${cH} L0,${cH} Z`;
+  const echo = wavePath(totalW, cH, 0.3, 0.14, 1.1, 2.6);
+
+  return (
+    <div
+      aria-hidden
+      style={{
+        position: "absolute",
+        left: 0,
+        top: 0,
+        width: totalW,
+        height: cH,
+        overflow: "hidden",
+        pointerEvents: "none",
+        background: `${layers}, linear-gradient(180deg, ${shade(theme.bg, 4)} 0%, ${theme.bg} 48%, ${shade(
+          theme.bg,
+          -3,
+        )} 100%)`,
+      }}
+    >
+      <svg
+        width={totalW}
+        height={cH}
+        viewBox={`0 0 ${totalW} ${cH}`}
+        style={{ position: "absolute", left: 0, top: 0, display: "block" }}
+      >
+        <defs>
+          <linearGradient id="tl-horizon-fill" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={a(0.14)} />
+            <stop offset="45%" stopColor={a(0.03)} />
+            <stop offset="100%" stopColor={a(0)} />
+          </linearGradient>
+        </defs>
+        <path d={horizonFill} fill="url(#tl-horizon-fill)" />
+        {/* Layered strokes fake a glow without a filter, which keeps
+            html-to-image exports pixel-identical to the on-screen preview. */}
+        <path d={horizon} fill="none" stroke={a(0.05)} strokeWidth={cH * 0.02} />
+        <path d={horizon} fill="none" stroke={a(0.1)} strokeWidth={cH * 0.007} />
+        <path d={horizon} fill="none" stroke={a(0.42)} strokeWidth={cH * 0.0016} />
+        <path d={echo} fill="none" stroke={a(0.05)} strokeWidth={cH * 0.012} />
+        <path d={echo} fill="none" stroke={a(0.16)} strokeWidth={cH * 0.0011} />
+      </svg>
+    </div>
+  );
+}
+
 // ---------- Decorative blob ----------
 
 function Blob({
@@ -582,6 +696,9 @@ export function DeckCanvas({
 }: DeckCanvasProps) {
   const { cW, cH } = getCanvas(device, orientation);
   const totalW = Math.max(1, slides.length) * cW;
+  // One scene behind the whole deck instead of the same blobs repeated per
+  // screen. Feature graphics paint their own background.
+  const panorama = connectedCanvas && device !== "feature-graphic";
 
   return (
     <div
@@ -592,6 +709,7 @@ export function DeckCanvas({
         overflow: "hidden",
       }}
     >
+      {panorama && <DeckBackground totalW={totalW} cH={cH} theme={theme} />}
       {slides.map((slide, index) => {
         const screenX = index * cW;
         const active = activeSlideId === slide.id;
@@ -646,7 +764,7 @@ export function DeckCanvas({
               overflow: "hidden",
             }}
           >
-            <SlideBackground slide={slide} cW={cW} cH={cH} theme={theme} />
+            {!panorama && <SlideBackground slide={slide} cW={cW} cH={cH} theme={theme} />}
             {showGuides && <ScreenGuide cW={cW} cH={cH} index={index} active={active} />}
           </div>
         );
@@ -972,6 +1090,11 @@ function SlideElements({
     const saved = slide.transforms?.[id];
     const rotation = saved?.rotation ?? 0;
     const zIndex = saved?.zIndex ?? (id === "deviceSecondary" ? 2 : 3);
+    // Shadow scales with the frame so preview and full-res export match.
+    // drop-shadow (not box-shadow) so it follows the mockup PNG's alpha.
+    const shadow = `drop-shadow(0 ${(rect.width * 0.035).toFixed(1)}px ${(
+      rect.width * 0.075
+    ).toFixed(1)}px rgba(0,0,0,0.7))`;
     return (
       <Movable
         rect={toGlobal(rect)}
@@ -999,7 +1122,7 @@ function SlideElements({
         <Frame
           src={src}
           hideEmpty={hideEmpty}
-          style={{ width: "100%", height: "100%", ...extraStyle }}
+          style={{ width: "100%", height: "100%", filter: shadow, ...extraStyle }}
         />
       </Movable>
     );
