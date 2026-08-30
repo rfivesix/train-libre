@@ -69,3 +69,6 @@
 ## 2025-02-15 - Fast Paths in ViewModels loops
 **Learning:** `_updateCalculatedState` loops over maps and lists inside `SupplementsViewModel`. Calling `.any()` on a list inside a loop creates an O(N^2) complexity bottleneck. Additionally, `doses.update(ifAbsent:)` creates closure allocations that slow down frequent re-evaluations.
 **Action:** When checking for existence inside a loop, maintain a `Set` of IDs/keys and use `.contains()` for O(1) lookups. When updating frequency or counter maps in reactive classes, replace `.update` with a direct lookup, null-check, and assignment to avoid closure allocations.
+## 2024-08-30 - Lazy Iterable Pitfalls in Dart Hot Loops
+**Learning:** In Dart, replacing `.where().toList()` with lazy operations like `.takeWhile()` on pre-sorted data can accidentally degrade performance if the resulting `Iterable` is passed to downstream functions that evaluate it multiple times (e.g., calling `.length` or iterating again). It also causes type errors if the downstream function strictly requires a `List`.
+**Action:** Always append `.toList(growable: false)` when short-circuiting iteration using `.takeWhile()` unless you are absolutely certain the downstream consumer only requires a single-pass `Iterable` and won't trigger repeated lazy evaluation overhead.
