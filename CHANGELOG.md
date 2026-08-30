@@ -34,6 +34,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   - Retains backup generations (`icloud_backup.previous.zip`) and performs automated orphaned photo cleanup.
 
 ### Changed
+- **Repository Branding & Documentation Header (`README.md`, `assets/icon/`):** Added a prominent, centered app icon header at the top of the README above the title and badges, utilizing a crisp, rounded squircle asset (`train-libre_app_icon.png`) and updated launcher icon assets.
 - **Diary Water & Drinks Card Unification (`FluidEntryTile`, `DiaryFoodRow`, `DiaryScreen`):** Unified the "Water & Drinks" section with meal cards:
   - Migrated `FluidEntryTile` to `DiaryFoodRow` so liquid volumes and calories align in the exact same vertical columns as food items.
   - Dynamic sugar and caffeine columns appear alongside liquid volumes without vertical clutter.
