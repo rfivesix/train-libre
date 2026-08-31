@@ -12,3 +12,8 @@
 **Vulnerability:** `_copySnapshotIntoLiveDatabase` in `lib/core/infrastructure/icloud_sync_service.dart` read table names from the attached snapshot's `restore.sqlite_master` and interpolated them into `DELETE FROM main."$table"`, `INSERT INTO main."$table"` and `PRAGMA $schema.table_info("$table")`. The snapshot is a file from the iCloud container, so a tampered database could carry a crafted table name.
 **Learning:** `sqlite_master` is only as trustworthy as the file it belongs to. At an import/restore boundary the attached database is external input, not internal state.
 **Prevention:** Validate every dynamically resolved identifier against `^[A-Za-z0-9_]+$` before interpolation and skip the table otherwise; the app's own tables are all snake_case, so nothing legitimate is lost.
+
+## 2026-08-28 - Fix SQL injection in drift_database schema utility functions
+**Vulnerability:** The `_columnsOf` utility function dynamically interpolated the `table` parameter into `PRAGMA table_info($table);` without validation. `_columnsOf` is indirectly used by public utility functions like `_tableExists` and `_columnExists`.
+**Learning:** Even internal utility functions used for schema migrations or validation can be vulnerable to SQL injection if they accept string parameters that are directly interpolated into raw SQL statements (`customSelect`, `customStatement`).
+**Prevention:** Always sanitize dynamic table names using a strict regex (`^[a-zA-Z0-9_]+$`) before interpolating them into a raw query or PRAGMA statement, ensuring defense in depth even if callers are currently safe.
