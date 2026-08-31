@@ -1234,6 +1234,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                                   key: _keyGallery,
                                   icon: LucideIcons.image,
                                   onTap: _pickFromGallery,
+                                  tooltip: l10n.aiCaptureTourStepGalleryTitle,
                                 ),
 
                                 // Barcode detection toggle
@@ -1241,6 +1242,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                                   key: _keyBarcode,
                                   icon: LucideIcons.scan_barcode,
                                   isActive: _barcodeDetectionEnabled,
+                                  tooltip: l10n.aiCaptureTourStepBarcodeTitle,
                                   onTap: () {
                                     setState(() {
                                       _barcodeDetectionEnabled =
@@ -1295,6 +1297,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                                   icon: LucideIcons.mic,
                                   isActive: _isDictating,
                                   onTap: _openVoiceDictationModal,
+                                  tooltip: l10n.aiCaptureTourStepVoiceTitle,
                                 ),
 
                                 // Text Note Toggle Button
@@ -1303,6 +1306,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                                   icon: LucideIcons.pencil,
                                   isActive: _showTextInput ||
                                       _textController.text.isNotEmpty,
+                                  tooltip: l10n.aiCaptureTabText,
                                   onTap: () {
                                     setState(() {
                                       _showTextInput = !_showTextInput;
@@ -1763,6 +1767,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
     required IconData icon,
     required VoidCallback onTap,
     bool isActive = false,
+    String? tooltip,
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final primaryAccent = isDark
@@ -1771,31 +1776,35 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
     return GestureDetector(
       key: key,
       onTap: onTap,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          width: 48,
-          height: 48,
-          decoration: BoxDecoration(
-            color: isActive
-                ? primaryAccent.withValues(alpha: isDark ? 0.3 : 0.15)
-                : (isDark
-                    ? Colors.white.withValues(alpha: 0.14)
-                    : Colors.black.withValues(alpha: 0.08)),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
+      child: Tooltip(
+        message: tooltip ?? '',
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: isActive
+                  ? primaryAccent.withValues(alpha: isDark ? 0.3 : 0.15)
+                  : (isDark
+                      ? Colors.white.withValues(alpha: 0.14)
+                      : Colors.black.withValues(alpha: 0.08)),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: isActive
+                    ? primaryAccent
+                    : (isDark ? Colors.white24 : Colors.black12),
+                width: 1,
+              ),
+            ),
+            child: Icon(
+              icon,
+              semanticLabel: tooltip,
               color: isActive
                   ? primaryAccent
-                  : (isDark ? Colors.white24 : Colors.black12),
-              width: 1,
+                  : (isDark ? Colors.white : const Color(0xFF12120F)),
+              size: 20,
             ),
-          ),
-          child: Icon(
-            icon,
-            color: isActive
-                ? primaryAccent
-                : (isDark ? Colors.white : const Color(0xFF12120F)),
-            size: 20,
           ),
         ),
       ),
