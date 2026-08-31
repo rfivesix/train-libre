@@ -69,3 +69,6 @@
 ## 2025-02-15 - Fast Paths in ViewModels loops
 **Learning:** `_updateCalculatedState` loops over maps and lists inside `SupplementsViewModel`. Calling `.any()` on a list inside a loop creates an O(N^2) complexity bottleneck. Additionally, `doses.update(ifAbsent:)` creates closure allocations that slow down frequent re-evaluations.
 **Action:** When checking for existence inside a loop, maintain a `Set` of IDs/keys and use `.contains()` for O(1) lookups. When updating frequency or counter maps in reactive classes, replace `.update` with a direct lookup, null-check, and assignment to avoid closure allocations.
+## 2025-02-16 - Replace map.reduce with single-pass loops
+**Learning:** Chaining `.map().reduce()` creates intermediate iterables and closures, causing unnecessary heap allocation and garbage collection overhead, particularly in frequently called UI build paths.
+**Action:** Replace `.map().reduce()` pipelines with standard single-pass `for` loops for boundary finding (min/max) and aggregations to improve memory efficiency and performance.

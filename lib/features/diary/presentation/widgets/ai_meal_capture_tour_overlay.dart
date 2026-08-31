@@ -213,8 +213,11 @@ class AiMealCaptureTourOverlay extends StatelessWidget {
                 );
 
                 if (targetRects.isNotEmpty) {
-                  final topmostTargetTop =
-                      targetRects.map((r) => r.top).reduce(min);
+                  // BOLT OPTIMIZATION: Replaced chained .map().reduce() with single-pass loop
+                  double topmostTargetTop = targetRects.first.top;
+                  for (final r in targetRects.skip(1)) {
+                    if (r.top < topmostTargetTop) topmostTargetTop = r.top;
+                  }
                   final isLowerHalf =
                       topmostTargetTop > constraints.maxHeight * 0.35;
 
@@ -243,9 +246,14 @@ class AiMealCaptureTourOverlay extends StatelessWidget {
                     safeTop,
                     (constraints.maxHeight - safeBottom - 220)
                         .clamp(safeTop, double.infinity));
-                final lowestTargetBottom = targetRects.isNotEmpty
-                    ? targetRects.map((r) => r.bottom).reduce(max)
-                    : null;
+                // BOLT OPTIMIZATION: Replaced chained .map().reduce() with single-pass loop
+                double? lowestTargetBottom;
+                if (targetRects.isNotEmpty) {
+                  lowestTargetBottom = targetRects.first.bottom;
+                  for (final r in targetRects.skip(1)) {
+                    if (r.bottom > lowestTargetBottom!) lowestTargetBottom = r.bottom;
+                  }
+                }
                 final topPos = (lowestTargetBottom != null
                         ? lowestTargetBottom + spotlightGap
                         : defaultTop)

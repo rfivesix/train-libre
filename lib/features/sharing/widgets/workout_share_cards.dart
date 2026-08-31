@@ -81,8 +81,17 @@ class _WorkoutMuscleFocusCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final maxVolume =
-        muscles.isEmpty ? 0.0 : muscles.map((m) => m.volume).reduce(math.max);
+    // BOLT OPTIMIZATION: Replaced chained .map().reduce() with a single-pass loop
+    // to avoid intermediate iterable allocations and reduce GC pressure.
+    double maxVolume = 0.0;
+    if (muscles.isNotEmpty) {
+      maxVolume = muscles.first.volume;
+      for (final m in muscles) {
+        if (m.volume > maxVolume) {
+          maxVolume = m.volume;
+        }
+      }
+    }
     final showRadar = muscles.length >= 3 && maxVolume > 0;
     final visibleMuscles = muscles.take(showRadar ? 3 : 4);
     final workload = <String, double>{};

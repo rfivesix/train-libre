@@ -30,10 +30,19 @@ class ConsistencyDomainService {
       weeklyMetrics.length - 8,
       weeklyMetrics.length - 4,
     );
-    final recentAvg =
-        recent.map((e) => e.count.toDouble()).reduce((a, b) => a + b) / 4.0;
-    final priorAvg =
-        prior.map((e) => e.count.toDouble()).reduce((a, b) => a + b) / 4.0;
+    // BOLT OPTIMIZATION: Replaced chained .map().reduce() with single-pass loops
+    double recentSum = 0.0;
+    for (final e in recent) {
+      recentSum += e.count.toDouble();
+    }
+    final recentAvg = recentSum / 4.0;
+
+    double priorSum = 0.0;
+    for (final e in prior) {
+      priorSum += e.count.toDouble();
+    }
+    final priorAvg = priorSum / 4.0;
+
     return recentAvg - priorAvg;
   }
 

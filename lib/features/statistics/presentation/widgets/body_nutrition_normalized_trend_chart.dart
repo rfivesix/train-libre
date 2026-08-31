@@ -451,7 +451,11 @@ class _BodyNutritionNormalizedTrendChartState
     final deduplicatedByX = <int, _ChartPoint>{};
     groupedByX.forEach((xIndex, points) {
       final day = points.first.day;
-      final sum = points.map((p) => p.value).reduce((a, b) => a + b);
+      // BOLT OPTIMIZATION: Replaced chained .map().reduce() with single-pass loop
+      double sum = 0.0;
+      for (final p in points) {
+        sum += p.value;
+      }
       final accumulatedValue = (aggregationMethod == AggregationMethod.sum)
           ? sum
           : sum / points.length;
