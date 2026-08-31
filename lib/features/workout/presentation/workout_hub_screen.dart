@@ -74,7 +74,9 @@ class _WorkoutHubScreenState extends State<WorkoutHubScreen> {
   }
 
   void _startEmptyWorkout(
-      {BuildContext? sourceContext, WidgetBuilder? sourceBuilder}) async {
+      {BuildContext? sourceContext,
+      WidgetBuilder? sourceBuilder,
+      MorphSourceVisibilityCallback? onSourceVisibilityChanged}) async {
     final sourceRect = CardMorphRoute.measureRect(sourceContext);
     final canProceed = await _checkAndHandleOngoingWorkout();
     if (!canProceed) return;
@@ -89,6 +91,7 @@ class _WorkoutHubScreenState extends State<WorkoutHubScreen> {
         CardMorphRoute(
           sourceRect: sourceRect,
           sourceBuilder: sourceBuilder,
+          onSourceVisibilityChanged: onSourceVisibilityChanged,
           builder: (context) => LiveWorkoutScreen(workoutLog: newLog),
         ),
       );
@@ -96,7 +99,9 @@ class _WorkoutHubScreenState extends State<WorkoutHubScreen> {
   }
 
   void _startRoutine(Routine routine,
-      {BuildContext? sourceContext, WidgetBuilder? sourceBuilder}) async {
+      {BuildContext? sourceContext,
+      WidgetBuilder? sourceBuilder,
+      MorphSourceVisibilityCallback? onSourceVisibilityChanged}) async {
     final sourceRect = CardMorphRoute.measureRect(sourceContext);
     final canProceed = await _checkAndHandleOngoingWorkout();
     if (!canProceed) return;
@@ -120,6 +125,7 @@ class _WorkoutHubScreenState extends State<WorkoutHubScreen> {
         CardMorphRoute(
           sourceRect: sourceRect,
           sourceBuilder: sourceBuilder,
+          onSourceVisibilityChanged: onSourceVisibilityChanged,
           builder: (context) => LiveWorkoutScreen(
             routine: detailedRoutine,
             workoutLog: newLog,
@@ -130,12 +136,15 @@ class _WorkoutHubScreenState extends State<WorkoutHubScreen> {
   }
 
   Future<void> _createNewRoutine(
-      {BuildContext? sourceContext, WidgetBuilder? sourceBuilder}) async {
+      {BuildContext? sourceContext,
+      WidgetBuilder? sourceBuilder,
+      MorphSourceVisibilityCallback? onSourceVisibilityChanged}) async {
     // Navigates to the editor for a new routine.
     final created = await Navigator.of(context).push(
       CardMorphRoute(
         sourceContext: sourceContext,
         sourceBuilder: sourceBuilder,
+        onSourceVisibilityChanged: onSourceVisibilityChanged,
         builder: (context) => const EditRoutineScreen(),
       ),
     );
@@ -165,9 +174,36 @@ class _WorkoutHubScreenState extends State<WorkoutHubScreen> {
       padding: finalPadding,
       children: [
         AppSectionHeader(title: l10n.workoutSectionStart),
-        Builder(
-          builder: (cardCtx) {
-            Widget buildEmptyCard() => SummaryCard(
+        MorphSourceScope(
+          builder: (context, setHidden) => Builder(
+            builder: (cardCtx) {
+              Widget buildEmptyCard() => SummaryCard(
+                    child: Padding(
+                      padding: const EdgeInsets.all(20.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(LucideIcons.circle_plus, size: 28),
+                          const SizedBox(width: DesignConstants.spacingM),
+                          Text(
+                            l10n.startEmptyWorkoutButton,
+                            style: Theme.of(context).textTheme.titleLarge,
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+
+              return SummaryCard(
+                child: InkWell(
+                  onTap: () => _startEmptyWorkout(
+                    sourceContext: cardCtx,
+                    sourceBuilder: (_) => buildEmptyCard(),
+                    onSourceVisibilityChanged: setHidden,
+                  ),
+                  borderRadius: BorderRadius.circular(
+                    DesignConstants.borderRadiusM,
+                  ),
                   child: Padding(
                     padding: const EdgeInsets.all(20.0),
                     child: Row(
@@ -182,34 +218,10 @@ class _WorkoutHubScreenState extends State<WorkoutHubScreen> {
                       ],
                     ),
                   ),
-                );
-
-            return SummaryCard(
-              child: InkWell(
-                onTap: () => _startEmptyWorkout(
-                  sourceContext: cardCtx,
-                  sourceBuilder: (_) => buildEmptyCard(),
                 ),
-                borderRadius: BorderRadius.circular(
-                  DesignConstants.borderRadiusM,
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(20.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(LucideIcons.circle_plus, size: 28),
-                      const SizedBox(width: DesignConstants.spacingM),
-                      Text(
-                        l10n.startEmptyWorkoutButton,
-                        style: Theme.of(context).textTheme.titleLarge,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            );
-          },
+              );
+            },
+          ),
         ),
         const SizedBox(height: DesignConstants.spacingXL),
         AppSectionHeader(title: l10n.workoutSectionMyPlans),
@@ -333,28 +345,31 @@ class _WorkoutHubScreenState extends State<WorkoutHubScreen> {
       width: cardWidth,
       child: Padding(
         padding: const EdgeInsets.only(right: DesignConstants.spacingM),
-        child: Builder(
-          builder: (cardCtx) => SummaryCard(
-            child: InkWell(
-              onTap: () => _createNewRoutine(
-                sourceContext: cardCtx,
-                sourceBuilder: (_) => buildCreateCardContent(),
-              ),
-              borderRadius:
-                  BorderRadius.circular(DesignConstants.borderRadiusM),
-              child: Padding(
-                padding: DesignConstants.cardPadding,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      LucideIcons.circle_plus,
-                      size: 40,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                    const SizedBox(height: DesignConstants.spacingS),
-                    Text(l10n.addRoutineButton, textAlign: TextAlign.center),
-                  ],
+        child: MorphSourceScope(
+          builder: (context, setHidden) => Builder(
+            builder: (cardCtx) => SummaryCard(
+              child: InkWell(
+                onTap: () => _createNewRoutine(
+                  sourceContext: cardCtx,
+                  sourceBuilder: (_) => buildCreateCardContent(),
+                  onSourceVisibilityChanged: setHidden,
+                ),
+                borderRadius:
+                    BorderRadius.circular(DesignConstants.borderRadiusM),
+                child: Padding(
+                  padding: DesignConstants.cardPadding,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        LucideIcons.circle_plus,
+                        size: 40,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                      const SizedBox(height: DesignConstants.spacingS),
+                      Text(l10n.addRoutineButton, textAlign: TextAlign.center),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -398,45 +413,49 @@ class _WorkoutHubScreenState extends State<WorkoutHubScreen> {
       width: cardWidth,
       child: Padding(
         padding: const EdgeInsets.only(right: DesignConstants.spacingM),
-        child: Builder(
-          builder: (cardCtx) => SummaryCard(
-            child: InkWell(
-              onTap: () {
-                Navigator.of(context).push(
-                  CardMorphRoute(
-                    sourceContext: cardCtx,
-                    sourceBuilder: (_) => buildRoutineCardContent(),
-                    builder: (_) => EditRoutineScreen(routine: routine),
-                  ),
-                );
-              },
-              borderRadius:
-                  BorderRadius.circular(DesignConstants.borderRadiusM),
-              child: Padding(
-                padding: DesignConstants.cardPadding,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      routine.name,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
+        child: MorphSourceScope(
+          builder: (context, setHidden) => Builder(
+            builder: (cardCtx) => SummaryCard(
+              child: InkWell(
+                onTap: () {
+                  Navigator.of(context).push(
+                    CardMorphRoute(
+                      sourceContext: cardCtx,
+                      sourceBuilder: (_) => buildRoutineCardContent(),
+                      onSourceVisibilityChanged: setHidden,
+                      builder: (_) => EditRoutineScreen(routine: routine),
                     ),
-                    AppButton.primary(
-                      onPressed: () => _startRoutine(
-                        routine,
-                        sourceContext: cardCtx,
-                        sourceBuilder: (_) => buildRoutineCardContent(),
+                  );
+                },
+                borderRadius:
+                    BorderRadius.circular(DesignConstants.borderRadiusM),
+                child: Padding(
+                  padding: DesignConstants.cardPadding,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        routine.name,
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      label: l10n.start_button,
-                      tooltip: l10n.start_button,
-                      size: AppButtonSize.medium,
-                    ),
-                  ],
+                      AppButton.primary(
+                        onPressed: () => _startRoutine(
+                          routine,
+                          sourceContext: cardCtx,
+                          sourceBuilder: (_) => buildRoutineCardContent(),
+                          onSourceVisibilityChanged: setHidden,
+                        ),
+                        label: l10n.start_button,
+                        tooltip: l10n.start_button,
+                        size: AppButtonSize.medium,
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -465,22 +484,26 @@ class _WorkoutHubScreenState extends State<WorkoutHubScreen> {
           ),
         );
 
-    return Builder(
-      builder: (cardCtx) => SummaryCard(
-        child: ListTile(
-          leading: Icon(icon, color: Theme.of(context).colorScheme.primary),
-          title:
-              Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
-          trailing: const Icon(LucideIcons.chevron_right),
-          onTap: () => Navigator.of(context).push(
-            CardMorphRoute(
-              sourceContext: cardCtx,
-              sourceBuilder: (_) => buildTileContent(),
-              builder: (_) => destination(),
+    return MorphSourceScope(
+      builder: (context, setHidden) => Builder(
+        builder: (cardCtx) => SummaryCard(
+          child: ListTile(
+            leading: Icon(icon, color: Theme.of(context).colorScheme.primary),
+            title: Text(title,
+                style: const TextStyle(fontWeight: FontWeight.bold)),
+            trailing: const Icon(LucideIcons.chevron_right),
+            onTap: () => Navigator.of(context).push(
+              CardMorphRoute(
+                sourceContext: cardCtx,
+                sourceBuilder: (_) => buildTileContent(),
+                onSourceVisibilityChanged: setHidden,
+                builder: (_) => destination(),
+              ),
             ),
-          ),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
+            shape: RoundedRectangleBorder(
+              borderRadius:
+                  BorderRadius.circular(DesignConstants.borderRadiusM),
+            ),
           ),
         ),
       ),

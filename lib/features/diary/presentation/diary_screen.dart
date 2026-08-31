@@ -1064,17 +1064,23 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
                                             ),
                                           );
 
-                                      return buildSummaryCard(
-                                        onTap: () {
-                                          Navigator.of(context).push(
-                                            CardMorphRoute(
-                                              sourceContext: cardCtx,
-                                              sourceBuilder: (_) => buildSummaryCard(),
-                                              builder: (context) =>
-                                                  const WorkoutHistoryScreen(),
-                                            ),
-                                          );
-                                        },
+                                      return MorphSourceScope(
+                                        builder: (context, setHidden) =>
+                                            buildSummaryCard(
+                                          onTap: () {
+                                            Navigator.of(context).push(
+                                              CardMorphRoute(
+                                                sourceContext: cardCtx,
+                                                sourceBuilder: (_) =>
+                                                    buildSummaryCard(),
+                                                onSourceVisibilityChanged:
+                                                    setHidden,
+                                                builder: (context) =>
+                                                    const WorkoutHistoryScreen(),
+                                              ),
+                                            );
+                                          },
+                                        ),
                                       );
                                     },
                                   ),
@@ -1477,6 +1483,11 @@ class _MealCard extends StatefulWidget {
 class _MealCardState extends State<_MealCard> {
   bool _isOpen = false;
 
+  /// The meal entry a morph route is currently flying a copy of, if any. The
+  /// card itself is hidden by its [MorphSourceScope]; this only tells it to
+  /// fold its sub-item list away while it is off screen.
+  String? _morphingMealEntryId;
+
   bool _listEquals(List<TrackedFoodItem> a, List<TrackedFoodItem> b) {
     if (identical(a, b)) return true;
     if (a.length != b.length) return false;
@@ -1653,9 +1664,13 @@ class _MealCardState extends State<_MealCard> {
                             hasPhoto: entryHasPhoto(mealEntriesById[entryId]),
                             widget: Builder(
                               builder: (cardCtx) {
-                                Widget buildMealCard({VoidCallback? onTapDetail}) =>
+                                Widget buildMealCard({
+                                  VoidCallback? onTapDetail,
+                                  bool collapsed = false,
+                                }) =>
                                     MealEntryCard(
                                       key: ValueKey(entryId),
+                                      collapsed: collapsed,
                                       mealEntry: mealEntriesById[entryId]!,
                                       items: groupedByMealEntry[entryId]!,
                                       onTapDetail: onTapDetail,
@@ -1693,29 +1708,46 @@ class _MealCardState extends State<_MealCard> {
                                       onDeleteItem: widget.onDeleteFood,
                                     );
 
-                                return buildMealCard(
-                                  onTapDetail: () async {
-                                    await Navigator.of(context).push<bool>(
-                                      CardMorphRoute(
-                                        sourceContext: cardCtx,
-                                        sourceBuilder: (_) => buildMealCard(),
-                                        builder: (_) => MealEntryScreen(
-                                          mealEntry: mealEntriesById[entryId]!,
-                                          initialItems:
-                                              groupedByMealEntry[entryId]!,
+                                return MorphSourceScope(
+                                  builder: (context, setHidden) =>
+                                      buildMealCard(
+                                    // The flying copy is a fresh card and
+                                    // therefore collapsed. Folding the
+                                    // original away for the flight keeps the
+                                    // two identical, so nothing flashes in the
+                                    // frames where they overlap.
+                                    collapsed: _morphingMealEntryId == entryId,
+                                    onTapDetail: () async {
+                                      await Navigator.of(context).push<bool>(
+                                        CardMorphRoute(
+                                          sourceContext: cardCtx,
+                                          sourceBuilder: (_) => buildMealCard(),
+                                          onSourceVisibilityChanged: (hidden) {
+                                            setHidden(hidden);
+                                            if (mounted) {
+                                              setState(() =>
+                                                  _morphingMealEntryId =
+                                                      hidden ? entryId : null);
+                                            }
+                                          },
+                                          builder: (_) => MealEntryScreen(
+                                            mealEntry: mealEntriesById[entryId]!,
+                                            initialItems:
+                                                groupedByMealEntry[entryId]!,
+                                          ),
                                         ),
-                                      ),
-                                    );
-                                    if (context.mounted) {
-                                      context
-                                          .read<DiaryViewModel>()
-                                          .loadDataForDate(
-                                            context
-                                                .read<DiaryViewModel>()
-                                                .selectedDate,
-                                          );
-                                    }
-                                  },
+                                      );
+                                      if (context.mounted) {
+                                        context
+                                            .read<DiaryViewModel>()
+                                            .loadDataForDate(
+                                              context
+                                                  .read<DiaryViewModel>()
+                                                  .selectedDate,
+                                            );
+                                      }
+                                    },
+                                  ),
                                 );
                               },
                             ),

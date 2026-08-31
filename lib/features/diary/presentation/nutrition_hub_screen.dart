@@ -126,7 +126,10 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
     await _refreshData();
   }
 
-  Future<void> _createMealAndOpenEditor([BuildContext? sourceContext]) async {
+  Future<void> _createMealAndOpenEditor([
+    BuildContext? sourceContext,
+    MorphSourceVisibilityCallback? onSourceVisibilityChanged,
+  ]) async {
     final l10n = AppLocalizations.of(context)!;
     final defaultName = l10n.mealNameLabel;
     final newMealId = await DatabaseHelper.instance.insertMeal(
@@ -142,6 +145,7 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
           sourceContext: sourceContext,
           sourceBuilder: (_) => _buildCreateMealCard(context, l10n),
           sourceBorderRadius: DesignConstants.borderRadiusM,
+          onSourceVisibilityChanged: onSourceVisibilityChanged,
           builder: (_) => MealScreen(meal: meal, startInEdit: true),
         ),
       );
@@ -192,7 +196,14 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
       body: FutureBuilder<Map<String, dynamic>>(
         future: _hubDataFuture,
         builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
+          // Only on the very first load. A reload keeps the data it already
+          // has — `AsyncSnapshot.inState` carries it across the new future —
+          // so the cards stay put instead of being replaced by a spinner. The
+          // reload runs while a morph back into one of those cards is still in
+          // flight, and swapping the whole subtree out mid-flight both breaks
+          // the animation and deactivates the card the route is drawing.
+          if (snapshot.connectionState == ConnectionState.waiting &&
+              !snapshot.hasData) {
             return const Center(child: CircularProgressIndicator());
           }
 
@@ -278,53 +289,59 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
                 AppSectionHeader(title: l10n.nutritionSectionToolsAndLibrary),
                 RepaintBoundary(
                   child: Builder(
-                    builder: (sourceCtx) => _buildNavigationCard(
-                      context: context,
-                      icon: LucideIcons.pill,
-                      title: l10n.supplementTrackerTitle,
-                      subtitle: l10n.supplementTrackerDescription,
-                      onTap: () {
-                        Navigator.of(context).push(
-                          CardMorphRoute(
-                            sourceContext: sourceCtx,
-                            sourceBuilder: (_) => _buildNavigationCard(
-                              context: context,
-                              icon: LucideIcons.pill,
-                              title: l10n.supplementTrackerTitle,
-                              subtitle: l10n.supplementTrackerDescription,
-                              onTap: () {},
+                    builder: (sourceCtx) => MorphSourceScope(
+                      builder: (context, setHidden) => _buildNavigationCard(
+                        context: context,
+                        icon: LucideIcons.pill,
+                        title: l10n.supplementTrackerTitle,
+                        subtitle: l10n.supplementTrackerDescription,
+                        onTap: () {
+                          Navigator.of(context).push(
+                            CardMorphRoute(
+                              sourceContext: sourceCtx,
+                              sourceBuilder: (_) => _buildNavigationCard(
+                                context: context,
+                                icon: LucideIcons.pill,
+                                title: l10n.supplementTrackerTitle,
+                                subtitle: l10n.supplementTrackerDescription,
+                                onTap: () {},
+                              ),
+                              sourceBorderRadius: DesignConstants.borderRadiusM,
+                              onSourceVisibilityChanged: setHidden,
+                              builder: (_) => const SupplementHubScreen(),
                             ),
-                            sourceBorderRadius: DesignConstants.borderRadiusM,
-                            builder: (_) => const SupplementHubScreen(),
-                          ),
-                        );
-                      },
+                          );
+                        },
+                      ),
                     ),
                   ),
                 ),
                 RepaintBoundary(
                   child: Builder(
-                    builder: (sourceCtx) => _buildNavigationCard(
-                      context: context,
-                      icon: LucideIcons.search,
-                      title: l10n.drawerFoodExplorer,
-                      subtitle: l10n.data_from_off_and_wger,
-                      onTap: () {
-                        Navigator.of(context).push(
-                          CardMorphRoute(
-                            sourceContext: sourceCtx,
-                            sourceBuilder: (_) => _buildNavigationCard(
-                              context: context,
-                              icon: LucideIcons.search,
-                              title: l10n.drawerFoodExplorer,
-                              subtitle: l10n.data_from_off_and_wger,
-                              onTap: () {},
+                    builder: (sourceCtx) => MorphSourceScope(
+                      builder: (context, setHidden) => _buildNavigationCard(
+                        context: context,
+                        icon: LucideIcons.search,
+                        title: l10n.drawerFoodExplorer,
+                        subtitle: l10n.data_from_off_and_wger,
+                        onTap: () {
+                          Navigator.of(context).push(
+                            CardMorphRoute(
+                              sourceContext: sourceCtx,
+                              sourceBuilder: (_) => _buildNavigationCard(
+                                context: context,
+                                icon: LucideIcons.search,
+                                title: l10n.drawerFoodExplorer,
+                                subtitle: l10n.data_from_off_and_wger,
+                                onTap: () {},
+                              ),
+                              sourceBorderRadius: DesignConstants.borderRadiusM,
+                              onSourceVisibilityChanged: setHidden,
+                              builder: (_) => const AddFoodScreen(),
                             ),
-                            sourceBorderRadius: DesignConstants.borderRadiusM,
-                            builder: (_) => const AddFoodScreen(),
-                          ),
-                        );
-                      },
+                          );
+                        },
+                      ),
                     ),
                   ),
                 ),
@@ -383,33 +400,36 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
       width: cardWidth,
       child: Padding(
         padding: const EdgeInsets.only(right: DesignConstants.spacingM),
-        child: Builder(
-          builder: (sourceCtx) {
-            Widget cardWidget() => SummaryCard(
-                  child: InkWell(
-                    onTap: () => _createMealAndOpenEditor(sourceCtx),
-                    borderRadius:
-                        BorderRadius.circular(DesignConstants.borderRadiusM),
-                    child: Padding(
-                      padding: DesignConstants.cardPadding,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            LucideIcons.circle_plus,
-                            size: 40,
-                            color: Theme.of(context).colorScheme.primary,
-                          ),
-                          const SizedBox(height: DesignConstants.spacingS),
-                          Text(l10n.mealsCreate, textAlign: TextAlign.center),
-                        ],
+        child: MorphSourceScope(
+          builder: (context, setHidden) => Builder(
+            builder: (sourceCtx) {
+              Widget cardWidget() => SummaryCard(
+                    child: InkWell(
+                      onTap: () =>
+                          _createMealAndOpenEditor(sourceCtx, setHidden),
+                      borderRadius:
+                          BorderRadius.circular(DesignConstants.borderRadiusM),
+                      child: Padding(
+                        padding: DesignConstants.cardPadding,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              LucideIcons.circle_plus,
+                              size: 40,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                            const SizedBox(height: DesignConstants.spacingS),
+                            Text(l10n.mealsCreate, textAlign: TextAlign.center),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                );
+                  );
 
-            return cardWidget();
-          },
+              return cardWidget();
+            },
+          ),
         ),
       ),
     );
@@ -424,9 +444,56 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
       width: cardWidth,
       child: Padding(
         padding: const EdgeInsets.only(right: DesignConstants.spacingM),
-        child: Builder(
-          builder: (sourceCtx) {
-            Widget buildCardBody({bool showButton = true}) => SummaryCard(
+        child: MorphSourceScope(
+          builder: (context, setHidden) => Builder(
+            builder: (sourceCtx) {
+              Widget buildCardBody({bool showButton = true}) => SummaryCard(
+                    child: Padding(
+                      padding: DesignConstants.cardPadding,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            meal['name'] as String,
+                            style:
+                                Theme.of(context).textTheme.titleMedium?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          if (showButton)
+                            AppButton.primary(
+                              onPressed: () {},
+                              label: l10n.edit,
+                              tooltip: l10n.edit,
+                              size: AppButtonSize.medium,
+                            ),
+                        ],
+                      ),
+                    ),
+                  );
+
+              void openEditor() {
+                Navigator.of(context)
+                    .push(
+                      CardMorphRoute(
+                        sourceContext: sourceCtx,
+                        sourceBuilder: (_) => buildCardBody(showButton: true),
+                        sourceBorderRadius: DesignConstants.borderRadiusM,
+                        onSourceVisibilityChanged: setHidden,
+                        builder: (_) => MealScreen(meal: meal),
+                      ),
+                    )
+                    .then((_) => _refreshData());
+              }
+
+              return SummaryCard(
+                child: InkWell(
+                  onTap: openEditor,
+                  borderRadius:
+                      BorderRadius.circular(DesignConstants.borderRadiusM),
                   child: Padding(
                     padding: DesignConstants.cardPadding,
                     child: Column(
@@ -442,63 +509,19 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
-                        if (showButton)
-                          AppButton.primary(
-                            onPressed: () {},
-                            label: l10n.edit,
-                            tooltip: l10n.edit,
-                            size: AppButtonSize.medium,
-                          ),
+                        AppButton.primary(
+                          onPressed: openEditor,
+                          label: l10n.edit,
+                          tooltip: l10n.edit,
+                          size: AppButtonSize.medium,
+                        ),
                       ],
                     ),
                   ),
-                );
-
-            void openEditor() {
-              Navigator.of(context)
-                  .push(
-                    CardMorphRoute(
-                      sourceContext: sourceCtx,
-                      sourceBuilder: (_) => buildCardBody(showButton: true),
-                      sourceBorderRadius: DesignConstants.borderRadiusM,
-                      builder: (_) => MealScreen(meal: meal),
-                    ),
-                  )
-                  .then((_) => _refreshData());
-            }
-
-            return SummaryCard(
-              child: InkWell(
-                onTap: openEditor,
-                borderRadius:
-                    BorderRadius.circular(DesignConstants.borderRadiusM),
-                child: Padding(
-                  padding: DesignConstants.cardPadding,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        meal['name'] as String,
-                        style:
-                            Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      AppButton.primary(
-                        onPressed: openEditor,
-                        label: l10n.edit,
-                        tooltip: l10n.edit,
-                        size: AppButtonSize.medium,
-                      ),
-                    ],
-                  ),
                 ),
-              ),
-            );
-          },
+              );
+            },
+          ),
         ),
       ),
     );

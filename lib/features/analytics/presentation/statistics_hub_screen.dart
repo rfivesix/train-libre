@@ -417,31 +417,34 @@ class _StatisticsHubScreenView extends StatelessWidget {
       stepsSubtitle = l10n.statisticsTotalSteps;
     }
 
-    Widget cardChild = Builder(
-      builder: (cardCtx) => StatisticsStepsCard(
-        onTap: () {
-          Navigator.of(context).push(
-            CardMorphRoute(
-              sourceContext: cardCtx,
-              sourceBuilder: (_) => StatisticsStepsCard(
-                onTap: () {},
-                title: stepsTitle,
-                chipText: subtitleRange,
-                currentSteps: currentSteps,
-                currentStepsSubtitle: stepsSubtitle,
-                dailyTotals: displayRange.dailyTotals,
-                dailyGoal: viewModel.targetSteps,
+    Widget cardChild = MorphSourceScope(
+      builder: (context, setHidden) => Builder(
+        builder: (cardCtx) => StatisticsStepsCard(
+          onTap: () {
+            Navigator.of(context).push(
+              CardMorphRoute(
+                sourceContext: cardCtx,
+                sourceBuilder: (_) => StatisticsStepsCard(
+                  onTap: () {},
+                  title: stepsTitle,
+                  chipText: subtitleRange,
+                  currentSteps: currentSteps,
+                  currentStepsSubtitle: stepsSubtitle,
+                  dailyTotals: displayRange.dailyTotals,
+                  dailyGoal: viewModel.targetSteps,
+                ),
+                onSourceVisibilityChanged: setHidden,
+                builder: (_) => const StepsModuleScreen(),
               ),
-              builder: (_) => const StepsModuleScreen(),
-            ),
-          );
-        },
-        title: stepsTitle,
-        chipText: subtitleRange,
-        currentSteps: currentSteps,
-        currentStepsSubtitle: stepsSubtitle,
-        dailyTotals: displayRange.dailyTotals,
-        dailyGoal: viewModel.targetSteps,
+            );
+          },
+          title: stepsTitle,
+          chipText: subtitleRange,
+          currentSteps: currentSteps,
+          currentStepsSubtitle: stepsSubtitle,
+          dailyTotals: displayRange.dailyTotals,
+          dailyGoal: viewModel.targetSteps,
+        ),
       ),
     );
 
@@ -483,25 +486,28 @@ class _StatisticsHubScreenView extends StatelessWidget {
     StatisticsHubViewModel viewModel,
     AppLocalizations l10n,
   ) {
-    final card = Builder(
-      builder: (cardCtx) => RecoverySectionCard(
-        state: viewModel.recoveryState,
-        chipText: null, // As requested, no pill for Recovery
-        onRetry: () => viewModel.loadHubAnalytics(),
-        onTap: () {
-          Navigator.of(context).push(
-            CardMorphRoute(
-              sourceContext: cardCtx,
-              sourceBuilder: (_) => RecoverySectionCard(
-                state: viewModel.recoveryState,
-                chipText: null,
-                onRetry: () {},
-                onTap: () {},
+    final card = MorphSourceScope(
+      builder: (context, setHidden) => Builder(
+        builder: (cardCtx) => RecoverySectionCard(
+          state: viewModel.recoveryState,
+          chipText: null, // As requested, no pill for Recovery
+          onRetry: () => viewModel.loadHubAnalytics(),
+          onTap: () {
+            Navigator.of(context).push(
+              CardMorphRoute(
+                sourceContext: cardCtx,
+                sourceBuilder: (_) => RecoverySectionCard(
+                  state: viewModel.recoveryState,
+                  chipText: null,
+                  onRetry: () {},
+                  onTap: () {},
+                ),
+                onSourceVisibilityChanged: setHidden,
+                builder: (_) => const RecoveryTrackerScreen(),
               ),
-              builder: (_) => const RecoveryTrackerScreen(),
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
     final hasData = viewModel.recoveryState.data?.hasData ?? false;
@@ -518,27 +524,30 @@ class _StatisticsHubScreenView extends StatelessWidget {
     StatisticsHubViewModel viewModel,
     AppLocalizations l10n,
   ) {
-    final card = Builder(
-      builder: (cardCtx) => SleepSectionCard(
-        state: viewModel.sleepState,
-        rangeLabel: _unifiedRangeLabel(viewModel, l10n),
-        onRetry: () => viewModel.loadHubAnalytics(),
-        onTap: () {
-          Navigator.of(context).push(
-            CardMorphRoute(
-              sourceContext: cardCtx,
-              sourceBuilder: (_) => SleepSectionCard(
-                state: viewModel.sleepState,
-                rangeLabel: _unifiedRangeLabel(viewModel, l10n),
-                onRetry: () {},
-                onTap: () {},
+    final card = MorphSourceScope(
+      builder: (context, setHidden) => Builder(
+        builder: (cardCtx) => SleepSectionCard(
+          state: viewModel.sleepState,
+          rangeLabel: _unifiedRangeLabel(viewModel, l10n),
+          onRetry: () => viewModel.loadHubAnalytics(),
+          onTap: () {
+            Navigator.of(context).push(
+              CardMorphRoute(
+                sourceContext: cardCtx,
+                sourceBuilder: (_) => SleepSectionCard(
+                  state: viewModel.sleepState,
+                  rangeLabel: _unifiedRangeLabel(viewModel, l10n),
+                  onRetry: () {},
+                  onTap: () {},
+                ),
+                onSourceVisibilityChanged: setHidden,
+                builder: (_) => SleepDayOverviewPage(
+                  selectedDay: DateTime.now(),
+                ),
               ),
-              builder: (_) => SleepDayOverviewPage(
-                selectedDay: DateTime.now(),
-              ),
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
     // Only show overlay when tracking IS enabled but no data
@@ -557,25 +566,28 @@ class _StatisticsHubScreenView extends StatelessWidget {
     AppLocalizations l10n,
   ) {
     final rangeLabel = _unifiedRangeLabel(viewModel, l10n);
-    final card = Builder(
-      builder: (cardCtx) => PulseSectionCard(
-        state: viewModel.pulseState,
-        fallbackRangeLabel: rangeLabel ?? '',
-        onRetry: () => viewModel.loadHubAnalytics(),
-        onTap: () {
-          Navigator.of(context).push(
-            CardMorphRoute(
-              sourceContext: cardCtx,
-              sourceBuilder: (_) => PulseSectionCard(
-                state: viewModel.pulseState,
-                fallbackRangeLabel: rangeLabel ?? '',
-                onRetry: () {},
-                onTap: () {},
+    final card = MorphSourceScope(
+      builder: (context, setHidden) => Builder(
+        builder: (cardCtx) => PulseSectionCard(
+          state: viewModel.pulseState,
+          fallbackRangeLabel: rangeLabel ?? '',
+          onRetry: () => viewModel.loadHubAnalytics(),
+          onTap: () {
+            Navigator.of(context).push(
+              CardMorphRoute(
+                sourceContext: cardCtx,
+                sourceBuilder: (_) => PulseSectionCard(
+                  state: viewModel.pulseState,
+                  fallbackRangeLabel: rangeLabel ?? '',
+                  onRetry: () {},
+                  onTap: () {},
+                ),
+                onSourceVisibilityChanged: setHidden,
+                builder: (_) => const PulseAnalysisScreen(),
               ),
-              builder: (_) => const PulseAnalysisScreen(),
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
     // Only show overlay when tracking IS enabled but no data
@@ -593,25 +605,28 @@ class _StatisticsHubScreenView extends StatelessWidget {
     StatisticsHubViewModel viewModel,
     AppLocalizations l10n,
   ) {
-    final card = Builder(
-      builder: (cardCtx) => ConsistencySectionCard(
-        state: viewModel.consistencyState,
-        chipText: _unifiedRangeLabel(viewModel, l10n),
-        onRetry: () => viewModel.loadHubAnalytics(),
-        onTap: () {
-          Navigator.of(context).push(
-            CardMorphRoute(
-              sourceContext: cardCtx,
-              sourceBuilder: (_) => ConsistencySectionCard(
-                state: viewModel.consistencyState,
-                chipText: _unifiedRangeLabel(viewModel, l10n),
-                onRetry: () {},
-                onTap: () {},
+    final card = MorphSourceScope(
+      builder: (context, setHidden) => Builder(
+        builder: (cardCtx) => ConsistencySectionCard(
+          state: viewModel.consistencyState,
+          chipText: _unifiedRangeLabel(viewModel, l10n),
+          onRetry: () => viewModel.loadHubAnalytics(),
+          onTap: () {
+            Navigator.of(context).push(
+              CardMorphRoute(
+                sourceContext: cardCtx,
+                sourceBuilder: (_) => ConsistencySectionCard(
+                  state: viewModel.consistencyState,
+                  chipText: _unifiedRangeLabel(viewModel, l10n),
+                  onRetry: () {},
+                  onTap: () {},
+                ),
+                onSourceVisibilityChanged: setHidden,
+                builder: (_) => const ConsistencyTrackerScreen(),
               ),
-              builder: (_) => const ConsistencyTrackerScreen(),
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
     final totalWorkouts =
@@ -629,25 +644,28 @@ class _StatisticsHubScreenView extends StatelessWidget {
     StatisticsHubViewModel viewModel,
     AppLocalizations l10n,
   ) {
-    final card = Builder(
-      builder: (cardCtx) => PerformanceSectionCard(
-        state: viewModel.performanceState,
-        chipText: _unifiedRangeLabel(viewModel, l10n),
-        onRetry: () => viewModel.loadHubAnalytics(),
-        onTap: () {
-          Navigator.of(context).push(
-            CardMorphRoute(
-              sourceContext: cardCtx,
-              sourceBuilder: (_) => PerformanceSectionCard(
-                state: viewModel.performanceState,
-                chipText: _unifiedRangeLabel(viewModel, l10n),
-                onRetry: () {},
-                onTap: () {},
+    final card = MorphSourceScope(
+      builder: (context, setHidden) => Builder(
+        builder: (cardCtx) => PerformanceSectionCard(
+          state: viewModel.performanceState,
+          chipText: _unifiedRangeLabel(viewModel, l10n),
+          onRetry: () => viewModel.loadHubAnalytics(),
+          onTap: () {
+            Navigator.of(context).push(
+              CardMorphRoute(
+                sourceContext: cardCtx,
+                sourceBuilder: (_) => PerformanceSectionCard(
+                  state: viewModel.performanceState,
+                  chipText: _unifiedRangeLabel(viewModel, l10n),
+                  onRetry: () {},
+                  onTap: () {},
+                ),
+                onSourceVisibilityChanged: setHidden,
+                builder: (_) => const PRDashboardScreen(),
               ),
-              builder: (_) => const PRDashboardScreen(),
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
     final hasRecords =
@@ -666,25 +684,28 @@ class _StatisticsHubScreenView extends StatelessWidget {
     StatisticsHubViewModel viewModel,
     AppLocalizations l10n,
   ) {
-    final card = Builder(
-      builder: (cardCtx) => MuscleVolumeSectionCard(
-        state: viewModel.volumeMusclesState,
-        rangeLabel: _unifiedRangeLabel(viewModel, l10n),
-        onRetry: () => viewModel.loadHubAnalytics(),
-        onTap: () {
-          Navigator.of(context).push(
-            CardMorphRoute(
-              sourceContext: cardCtx,
-              sourceBuilder: (_) => MuscleVolumeSectionCard(
-                state: viewModel.volumeMusclesState,
-                rangeLabel: _unifiedRangeLabel(viewModel, l10n),
-                onRetry: () {},
-                onTap: () {},
+    final card = MorphSourceScope(
+      builder: (context, setHidden) => Builder(
+        builder: (cardCtx) => MuscleVolumeSectionCard(
+          state: viewModel.volumeMusclesState,
+          rangeLabel: _unifiedRangeLabel(viewModel, l10n),
+          onRetry: () => viewModel.loadHubAnalytics(),
+          onTap: () {
+            Navigator.of(context).push(
+              CardMorphRoute(
+                sourceContext: cardCtx,
+                sourceBuilder: (_) => MuscleVolumeSectionCard(
+                  state: viewModel.volumeMusclesState,
+                  rangeLabel: _unifiedRangeLabel(viewModel, l10n),
+                  onRetry: () {},
+                  onTap: () {},
+                ),
+                onSourceVisibilityChanged: setHidden,
+                builder: (_) => const MuscleGroupAnalyticsScreen(),
               ),
-              builder: (_) => const MuscleGroupAnalyticsScreen(),
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
     final hasVolumeData =
@@ -702,27 +723,30 @@ class _StatisticsHubScreenView extends StatelessWidget {
     StatisticsHubViewModel viewModel,
     AppLocalizations l10n,
   ) {
-    final card = Builder(
-      builder: (cardCtx) => BodyMetricsSectionCard(
-        state: viewModel.bodyNutritionState,
-        rangeLabel: _unifiedRangeLabel(viewModel, l10n),
-        onRetry: () => viewModel.loadHubAnalytics(),
-        onTap: () {
-          Navigator.of(context).push(
-            CardMorphRoute(
-              sourceContext: cardCtx,
-              sourceBuilder: (_) => BodyMetricsSectionCard(
-                state: viewModel.bodyNutritionState,
-                rangeLabel: _unifiedRangeLabel(viewModel, l10n),
-                onRetry: () {},
-                onTap: () {},
+    final card = MorphSourceScope(
+      builder: (context, setHidden) => Builder(
+        builder: (cardCtx) => BodyMetricsSectionCard(
+          state: viewModel.bodyNutritionState,
+          rangeLabel: _unifiedRangeLabel(viewModel, l10n),
+          onRetry: () => viewModel.loadHubAnalytics(),
+          onTap: () {
+            Navigator.of(context).push(
+              CardMorphRoute(
+                sourceContext: cardCtx,
+                sourceBuilder: (_) => BodyMetricsSectionCard(
+                  state: viewModel.bodyNutritionState,
+                  rangeLabel: _unifiedRangeLabel(viewModel, l10n),
+                  onRetry: () {},
+                  onTap: () {},
+                ),
+                onSourceVisibilityChanged: setHidden,
+                builder: (_) => BodyNutritionCorrelationScreen(
+                  initialRangeIndex: viewModel.activeBlockType.index,
+                ),
               ),
-              builder: (_) => BodyNutritionCorrelationScreen(
-                initialRangeIndex: viewModel.activeBlockType.index,
-              ),
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
     final bodyNutrition = viewModel.bodyNutritionState.data;
@@ -771,19 +795,22 @@ class _StatisticsHubScreenView extends StatelessWidget {
       ),
     );
 
-    return Builder(
-      builder: (cardCtx) => SummaryCard(
-        key: const Key('statistics_measurements_link_card'),
-        onTap: () {
-          Navigator.of(context).push(
-            CardMorphRoute(
-              sourceContext: cardCtx,
-              sourceBuilder: (_) => SummaryCard(child: buildShortcutContent()),
-              builder: (_) => const MeasurementsScreen(),
-            ),
-          );
-        },
-        child: buildShortcutContent(),
+    return MorphSourceScope(
+      builder: (context, setHidden) => Builder(
+        builder: (cardCtx) => SummaryCard(
+          key: const Key('statistics_measurements_link_card'),
+          onTap: () {
+            Navigator.of(context).push(
+              CardMorphRoute(
+                sourceContext: cardCtx,
+                sourceBuilder: (_) => SummaryCard(child: buildShortcutContent()),
+                onSourceVisibilityChanged: setHidden,
+                builder: (_) => const MeasurementsScreen(),
+              ),
+            );
+          },
+          child: buildShortcutContent(),
+        ),
       ),
     );
   }

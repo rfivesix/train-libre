@@ -7,6 +7,7 @@ import '../../domain/models/routine_exercise.dart';
 import '../../domain/models/set_template.dart';
 import '../../../exercise_catalog/presentation/exercise_detail_screen.dart';
 import '../../../../widgets/common/card_morph_route.dart';
+import '../../../../widgets/common/morph_source.dart';
 import 'workout_card.dart';
 import 'routine_set_row_widget.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
@@ -352,21 +353,24 @@ class EditRoutineExerciseCard extends StatelessWidget {
       ),
     );
 
-    return Builder(
-      builder: (titleCtx) => InkWell(
-        onTap: () => Navigator.of(context).push(
-          CardMorphRoute(
-            sourceContext: titleCtx,
-            sourceBorderRadius: 12.0,
-            // Flies inside the container so the detail screen dissolves out
-            // of the title rather than appearing over it right away.
-            sourceBuilder: (_) => title,
-            builder: (context) => ExerciseDetailScreen(
-              exercise: routineExercise.exercise,
+    return MorphSourceScope(
+      builder: (context, setHidden) => Builder(
+        builder: (titleCtx) => InkWell(
+          onTap: () => Navigator.of(context).push(
+            CardMorphRoute(
+              sourceContext: titleCtx,
+              sourceBorderRadius: 12.0,
+              // Flies inside the container so the detail screen dissolves out
+              // of the title rather than appearing over it right away.
+              sourceBuilder: (_) => title,
+              onSourceVisibilityChanged: setHidden,
+              builder: (context) => ExerciseDetailScreen(
+                exercise: routineExercise.exercise,
+              ),
             ),
           ),
+          child: title,
         ),
-        child: title,
       ),
     );
   }

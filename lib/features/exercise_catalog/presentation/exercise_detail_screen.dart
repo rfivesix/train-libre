@@ -363,38 +363,41 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
               icon: const Icon(LucideIcons.trash_2),
               onPressed: () => _showDeleteConfirmMenu(context),
             ),
-          Builder(
-            builder: (iconCtx) {
-              // The button is the morph's source, so it also has to be the
-              // copy that flies with the growing container.
-              late final Widget editButton;
-              editButton = IconButton(
-                tooltip: l10n.edit,
-                icon: const Icon(LucideIcons.pencil),
-                onPressed: () {
-                  if (_currentExercise.source == 'user') {
-                    Navigator.of(context).push(
-                      CardMorphRoute(
-                        sourceContext: iconCtx,
-                        sourceBorderRadius: 20.0,
-                        sourceBuilder: (_) => editButton,
-                        builder: (context) => CreateExerciseScreen(
-                          repository: _repository,
-                          exerciseToEdit: _currentExercise,
+          MorphSourceScope(
+            builder: (context, setHidden) => Builder(
+              builder: (iconCtx) {
+                // The button is the morph's source, so it also has to be the
+                // copy that flies with the growing container.
+                late final Widget editButton;
+                editButton = IconButton(
+                  tooltip: l10n.edit,
+                  icon: const Icon(LucideIcons.pencil),
+                  onPressed: () {
+                    if (_currentExercise.source == 'user') {
+                      Navigator.of(context).push(
+                        CardMorphRoute(
+                          sourceContext: iconCtx,
+                          sourceBorderRadius: 20.0,
+                          sourceBuilder: (_) => editButton,
+                          onSourceVisibilityChanged: setHidden,
+                          builder: (context) => CreateExerciseScreen(
+                            repository: _repository,
+                            exerciseToEdit: _currentExercise,
+                          ),
                         ),
-                      ),
-                    ).then((wasSaved) {
-                      if (wasSaved == true) {
-                        _loadData();
-                      }
-                    });
-                  } else {
-                    _showSystemEditMenu(context);
-                  }
-                },
-              );
-              return editButton;
-            },
+                      ).then((wasSaved) {
+                        if (wasSaved == true) {
+                          _loadData();
+                        }
+                      });
+                    } else {
+                      _showSystemEditMenu(context);
+                    }
+                  },
+                );
+                return editButton;
+              },
+            ),
           ),
           Padding(
             padding: const EdgeInsets.only(right: DesignConstants.spacingM),

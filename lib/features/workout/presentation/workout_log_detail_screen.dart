@@ -1467,66 +1467,69 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                             Padding(
                               padding: const EdgeInsets.all(
                                   DesignConstants.spacingL),
-                              child: Builder(
-                                builder: (btnCtx) {
-                                  // Flies with the container, so the catalog
-                                  // dissolves out of the button instead of
-                                  // being there from the first frame.
-                                  late final Widget addButton;
-                                  addButton = TextButton.icon(
-                                    onPressed: () async {
-                                      final selectedExercise =
-                                          await Navigator.of(context)
-                                              .push<Exercise>(
-                                        CardMorphRoute(
-                                          sourceContext: btnCtx,
-                                          sourceBorderRadius: 14.0,
-                                          sourceBuilder: (_) => addButton,
-                                          builder: (context) =>
-                                              const ExerciseCatalogScreen(
-                                                  isSelectionMode: true),
-                                        ),
-                                      );
-                                    if (selectedExercise != null) {
-                                      setState(() {
-                                        // Store exercise details locally so _isCardio and name work.
-                                        _exerciseDetails[selectedExercise
-                                                .getLocalizedName(context)] =
-                                            selectedExercise;
-
-                                        final newSet = SetLog(
-                                          id: -DateTime.now()
-                                              .millisecondsSinceEpoch,
-                                          workoutLogId: _log!.id!,
-                                          exerciseName: selectedExercise
-                                              .getLocalizedName(context),
-                                          setType: 'normal',
-                                          isCompleted: true,
-                                          // Set default values
-                                          weightKg: 0,
-                                          reps: 0,
-                                          distanceKm: 0,
-                                          durationSeconds: 0,
+                              child: MorphSourceScope(
+                                builder: (context, setHidden) => Builder(
+                                  builder: (btnCtx) {
+                                    // Flies with the container, so the catalog
+                                    // dissolves out of the button instead of
+                                    // being there from the first frame.
+                                    late final Widget addButton;
+                                    addButton = TextButton.icon(
+                                      onPressed: () async {
+                                        final selectedExercise =
+                                            await Navigator.of(context)
+                                                .push<Exercise>(
+                                          CardMorphRoute(
+                                            sourceContext: btnCtx,
+                                            sourceBorderRadius: 14.0,
+                                            sourceBuilder: (_) => addButton,
+                                            onSourceVisibilityChanged: setHidden,
+                                            builder: (context) =>
+                                                const ExerciseCatalogScreen(
+                                                    isSelectionMode: true),
+                                          ),
                                         );
-                                        _groupedSets[selectedExercise
-                                            .getLocalizedName(context)] = [
-                                          newSet,
-                                        ];
+                                      if (selectedExercise != null) {
+                                        setState(() {
+                                          // Store exercise details locally so _isCardio and name work.
+                                          _exerciseDetails[selectedExercise
+                                                  .getLocalizedName(context)] =
+                                              selectedExercise;
 
-                                        _weightControllers[newSet.id!] =
-                                            TextEditingController();
-                                        _repsControllers[newSet.id!] =
-                                            TextEditingController();
-                                        _rirControllers[newSet.id!] =
-                                            TextEditingController();
-                                      });
-                                    }
+                                          final newSet = SetLog(
+                                            id: -DateTime.now()
+                                                .millisecondsSinceEpoch,
+                                            workoutLogId: _log!.id!,
+                                            exerciseName: selectedExercise
+                                                .getLocalizedName(context),
+                                            setType: 'normal',
+                                            isCompleted: true,
+                                            // Set default values
+                                            weightKg: 0,
+                                            reps: 0,
+                                            distanceKm: 0,
+                                            durationSeconds: 0,
+                                          );
+                                          _groupedSets[selectedExercise
+                                              .getLocalizedName(context)] = [
+                                            newSet,
+                                          ];
+
+                                          _weightControllers[newSet.id!] =
+                                              TextEditingController();
+                                          _repsControllers[newSet.id!] =
+                                              TextEditingController();
+                                          _rirControllers[newSet.id!] =
+                                              TextEditingController();
+                                        });
+                                      }
+                                    },
+                                    icon: const Icon(LucideIcons.plus),
+                                    label: Text(l10n.addExerciseToWorkoutButton),
+                                    );
+                                    return addButton;
                                   },
-                                  icon: const Icon(LucideIcons.plus),
-                                  label: Text(l10n.addExerciseToWorkoutButton),
-                                  );
-                                  return addButton;
-                                },
+                                ),
                               ),
                             ),
                         ],

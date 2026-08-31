@@ -6,6 +6,7 @@ import '../../domain/models/set_log.dart';
 import '../../../exercise_catalog/domain/models/exercise.dart';
 import '../../../exercise_catalog/presentation/exercise_detail_screen.dart';
 import '../../../../widgets/common/card_morph_route.dart';
+import '../../../../widgets/common/morph_source.dart';
 import 'workout_card.dart';
 import 'workout_log_set_row.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
@@ -81,13 +82,17 @@ class WorkoutExerciseLogCard extends StatelessWidget {
       ),
     );
 
-    void openDetail(BuildContext titleCtx) {
+    void openDetail(
+      BuildContext titleCtx,
+      MorphSourceVisibilityCallback setHidden,
+    ) {
       if (exercise == null) return;
       Navigator.of(titleCtx).push(
         CardMorphRoute(
           sourceContext: titleCtx,
           sourceBorderRadius: 12.0,
           sourceBuilder: (_) => title,
+          onSourceVisibilityChanged: setHidden,
           builder: (context) => ExerciseDetailScreen(exercise: exercise!),
         ),
       );
@@ -112,18 +117,22 @@ class WorkoutExerciseLogCard extends StatelessWidget {
                     onPointerCancel: onPointerCancel,
                     child: ReorderableDelayedDragStartListener(
                       index: index,
-                      child: Builder(
-                        builder: (titleCtx) => InkWell(
-                          onTap: () => openDetail(titleCtx),
-                          child: title,
+                      child: MorphSourceScope(
+                        builder: (context, setHidden) => Builder(
+                          builder: (titleCtx) => InkWell(
+                            onTap: () => openDetail(titleCtx, setHidden),
+                            child: title,
+                          ),
                         ),
                       ),
                     ),
                   )
-                : Builder(
-                    builder: (titleCtx) => InkWell(
-                      onTap: () => openDetail(titleCtx),
-                      child: title,
+                : MorphSourceScope(
+                    builder: (context, setHidden) => Builder(
+                      builder: (titleCtx) => InkWell(
+                        onTap: () => openDetail(titleCtx, setHidden),
+                        child: title,
+                      ),
                     ),
                   ),
             trailing: Row(
