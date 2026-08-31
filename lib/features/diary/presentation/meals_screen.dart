@@ -356,32 +356,42 @@ class _MealsScreenState extends State<MealsScreen> {
                           final mealId = meal['id'] as int;
 
                           return Builder(
-                            builder: (cardCtx) => MealItemCard(
-                              meal: meal,
-                              mealTotalsFuture: _getMealTotals(mealId),
-                              ingredientCount: _mealItemsCache[mealId]?.length ?? 0,
-                              onAdd: () => _confirmAndLogMeal(meal, l10n),
-                              onEdit: () async {
-                                await Navigator.of(context).push(
-                                  CardMorphRoute(
-                                    sourceContext: cardCtx,
-                                    builder: (_) =>
-                                        MealScreen(meal: meal, startInEdit: true),
-                                  ),
-                                );
-                                await _reloadMeals();
-                              },
-                              onDelete: () => _deleteMeal(meal, l10n),
-                              onTap: () async {
-                                await Navigator.of(context).push(
-                                  CardMorphRoute(
-                                    sourceContext: cardCtx,
-                                    builder: (_) => MealScreen(meal: meal),
-                                  ),
-                                );
-                                await _reloadMeals();
-                              },
-                            ),
+                            builder: (cardCtx) {
+                              // The card is what the container grows out of, so
+                              // it also has to be the copy drawn inside it while
+                              // the meal screen dissolves in over the top.
+                              late final Widget card;
+                              card = MealItemCard(
+                                meal: meal,
+                                mealTotalsFuture: _getMealTotals(mealId),
+                                ingredientCount:
+                                    _mealItemsCache[mealId]?.length ?? 0,
+                                onAdd: () => _confirmAndLogMeal(meal, l10n),
+                                onEdit: () async {
+                                  await Navigator.of(context).push(
+                                    CardMorphRoute(
+                                      sourceContext: cardCtx,
+                                      sourceBuilder: (_) => card,
+                                      builder: (_) => MealScreen(
+                                          meal: meal, startInEdit: true),
+                                    ),
+                                  );
+                                  await _reloadMeals();
+                                },
+                                onDelete: () => _deleteMeal(meal, l10n),
+                                onTap: () async {
+                                  await Navigator.of(context).push(
+                                    CardMorphRoute(
+                                      sourceContext: cardCtx,
+                                      sourceBuilder: (_) => card,
+                                      builder: (_) => MealScreen(meal: meal),
+                                    ),
+                                  );
+                                  await _reloadMeals();
+                                },
+                              );
+                              return card;
+                            },
                           );
                         },
                       ),

@@ -227,67 +227,75 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
                             itemBuilder: (context, index) {
                               final exercise = _foundExercises[index];
                               return Builder(
-                                builder: (cardCtx) => SummaryCard(
-                                  child: ListTile(
-                                    title: Row(
-                                      children: [
-                                        Expanded(
-                                          child: Text(
-                                            exercise.getLocalizedName(context),
-                                            style: const TextStyle(
-                                                fontWeight: FontWeight.bold),
-                                          ),
-                                        ),
-                                        if (exercise.source == 'user') ...[
-                                          const SizedBox(
-                                              width: DesignConstants.spacingS),
-                                          _buildSourceBadge(
-                                              context, exercise.source),
-                                        ],
-                                      ],
-                                    ),
-                                    subtitle: Text(
-                                      BodySlugMapper.localize(
-                                        context,
-                                        exercise.categoryName,
-                                      ),
-                                    ),
-                                    trailing: widget.isSelectionMode
-                                        ? IconButton(
-                                            tooltip: l10n.add_button,
-                                            icon: Icon(
-                                              LucideIcons.circle_plus,
-                                              color: colorScheme.primary,
+                                builder: (cardCtx) {
+                                  // Handed to the morph route as the copy that flies with
+                                  // the container, so the card dissolves into the detail
+                                  // screen instead of the screen simply growing.
+                                  late final Widget card;
+                                  card = SummaryCard(
+                                    child: ListTile(
+                                      title: Row(
+                                        children: [
+                                          Expanded(
+                                            child: Text(
+                                              exercise.getLocalizedName(context),
+                                              style: const TextStyle(
+                                                  fontWeight: FontWeight.bold),
                                             ),
-                                            onPressed: () => Navigator.of(context)
-                                                .pop(exercise),
-                                          )
-                                        : const Icon(
-                                            LucideIcons.chevron_right,
                                           ),
-                                    onTap: () {
-                                      if (widget.onExerciseSelected != null) {
-                                        widget.onExerciseSelected!(exercise);
-                                      } else if (widget.isSelectionMode) {
-                                        Navigator.of(context).pop(exercise);
-                                      } else {
-                                        Navigator.of(context).push(
-                                          CardMorphRoute(
-                                            sourceContext: cardCtx,
-                                            builder: (context) =>
-                                                ExerciseDetailScreen(
-                                                    exercise: exercise,
-                                                    repository: _repository),
-                                          ),
-                                        ).then((result) {
-                                          if (result == 'deleted') {
-                                            _runFilter(_searchController.text);
-                                          }
-                                        });
-                                      }
-                                    },
-                                  ),
-                                ),
+                                          if (exercise.source == 'user') ...[
+                                            const SizedBox(
+                                                width: DesignConstants.spacingS),
+                                            _buildSourceBadge(
+                                                context, exercise.source),
+                                          ],
+                                        ],
+                                      ),
+                                      subtitle: Text(
+                                        BodySlugMapper.localize(
+                                          context,
+                                          exercise.categoryName,
+                                        ),
+                                      ),
+                                      trailing: widget.isSelectionMode
+                                          ? IconButton(
+                                              tooltip: l10n.add_button,
+                                              icon: Icon(
+                                                LucideIcons.circle_plus,
+                                                color: colorScheme.primary,
+                                              ),
+                                              onPressed: () => Navigator.of(context)
+                                                  .pop(exercise),
+                                            )
+                                          : const Icon(
+                                              LucideIcons.chevron_right,
+                                            ),
+                                      onTap: () {
+                                        if (widget.onExerciseSelected != null) {
+                                          widget.onExerciseSelected!(exercise);
+                                        } else if (widget.isSelectionMode) {
+                                          Navigator.of(context).pop(exercise);
+                                        } else {
+                                          Navigator.of(context).push(
+                                            CardMorphRoute(
+                                              sourceContext: cardCtx,
+                                              sourceBuilder: (_) => card,
+                                              builder: (context) =>
+                                                  ExerciseDetailScreen(
+                                                      exercise: exercise,
+                                                      repository: _repository),
+                                            ),
+                                          ).then((result) {
+                                            if (result == 'deleted') {
+                                              _runFilter(_searchController.text);
+                                            }
+                                          });
+                                        }
+                                      },
+                                    ),
+                                  );
+                                  return card;
+                                },
                               );
                             },
                           ),

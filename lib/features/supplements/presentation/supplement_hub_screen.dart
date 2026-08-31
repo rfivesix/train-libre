@@ -66,10 +66,15 @@ class _SupplementHubScreenState extends State<SupplementHubScreen> {
     });
   }
 
-  Future<void> _navigateToEdit(Supplement s, {BuildContext? sourceContext}) async {
+  Future<void> _navigateToEdit(
+    Supplement s, {
+    BuildContext? sourceContext,
+    WidgetBuilder? sourceBuilder,
+  }) async {
     final changed = await Navigator.of(context).push<bool>(
       CardMorphRoute(
         sourceContext: sourceContext,
+        sourceBuilder: sourceBuilder,
         builder: (_) => CreateSupplementScreen(
             supplementToEdit: s, repository: _repository),
       ),
@@ -147,7 +152,10 @@ class _SupplementHubScreenState extends State<SupplementHubScreen> {
 
     return Builder(
       builder: (cardCtx) {
-        final content = SummaryCard(
+        // `late` because the tile's own onTap hands this widget back to the
+        // morph route as the source copy to fly with.
+        late final Widget content;
+        content = SummaryCard(
           child: ListTile(
             leading: SizedBox(
               height: double.infinity,
@@ -168,7 +176,11 @@ class _SupplementHubScreenState extends State<SupplementHubScreen> {
                   )
                 : null,
             trailing: isBuiltin ? null : const Icon(LucideIcons.chevron_right),
-            onTap: () => _navigateToEdit(s, sourceContext: cardCtx),
+            onTap: () => _navigateToEdit(
+              s,
+              sourceContext: cardCtx,
+              sourceBuilder: (_) => content,
+            ),
           ),
         );
 
@@ -176,7 +188,11 @@ class _SupplementHubScreenState extends State<SupplementHubScreen> {
 
         return GlassActionableCard(
           dismissibleKey: Key('supp_${s.id}'),
-          onEdit: () => _navigateToEdit(s, sourceContext: cardCtx),
+          onEdit: () => _navigateToEdit(
+            s,
+            sourceContext: cardCtx,
+            sourceBuilder: (_) => content,
+          ),
           onDelete: () => _delete(s),
           confirmDelete: () async => false,
           child: content,

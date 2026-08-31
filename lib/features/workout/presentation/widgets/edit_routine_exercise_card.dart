@@ -339,29 +339,34 @@ class EditRoutineExerciseCard extends StatelessWidget {
     TextTheme textTheme,
     ColorScheme colorScheme,
   ) {
+    final title = Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Text(
+        routineExercise.exercise.getLocalizedName(context),
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+        style: textTheme.titleLarge?.copyWith(
+          fontWeight: FontWeight.bold,
+          color: isDraggedItem ? colorScheme.primary : null,
+        ),
+      ),
+    );
+
     return Builder(
       builder: (titleCtx) => InkWell(
         onTap: () => Navigator.of(context).push(
           CardMorphRoute(
             sourceContext: titleCtx,
             sourceBorderRadius: 12.0,
+            // Flies inside the container so the detail screen dissolves out
+            // of the title rather than appearing over it right away.
+            sourceBuilder: (_) => title,
             builder: (context) => ExerciseDetailScreen(
               exercise: routineExercise.exercise,
             ),
           ),
         ),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 4.0),
-          child: Text(
-            routineExercise.exercise.getLocalizedName(context),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: isDraggedItem ? colorScheme.primary : null,
-            ),
-          ),
-        ),
+        child: title,
       ),
     );
   }

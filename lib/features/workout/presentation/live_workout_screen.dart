@@ -464,6 +464,10 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                       CardMorphRoute(
                         sourceContext: titleCtx,
                         sourceBorderRadius: 12.0,
+                        // The title flies inside the container, so the detail
+                        // screen dissolves out of it instead of being the only
+                        // thing drawn while the container grows.
+                        sourceBuilder: (_) => titleContent,
                         builder: (context) => ExerciseDetailScreen(
                           exercise: routineExercise.exercise,
                         ),
