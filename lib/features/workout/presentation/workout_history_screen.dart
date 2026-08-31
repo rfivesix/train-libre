@@ -81,7 +81,7 @@ class _WorkoutHistoryScreenState extends State<WorkoutHistoryScreen> {
                   top: DesignConstants.cardPadding.top + topPadding,
                 ),
                 child: ColdStartEmptyState(
-                  icon: LucideIcons.history,
+                  icon: LucideIcons.rotate_ccw_clock,
                   title: l10n.workoutHistoryEmptyTitle,
                   subtitle: l10n.emptyHistory,
                   callToAction: '',

@@ -13,7 +13,7 @@ dependencies:
   # DOC: Added for localization (multilingual support)
   flutter_localizations:
     sdk: flutter
-  intl: 0.20.2 # Always check the latest version with `flutter pub outdated`
+  intl: 0.20.2 # Pinned to 0.20.2 by flutter_localizations from the Flutter SDK.
 
   # DOC: Added for the SQLite database
   sqflite: ^2.4.3
@@ -22,10 +22,12 @@ dependencies:
   # cupertino_icons: ^1.0.8
   flutter_gen: ^5.14.1
   shared_preferences: ^2.2.3
-  dynamic_color: ^1.7.0
+  dynamic_color: ^1.9.0 # 2.x switches to package:material_ui, whose ColorScheme/MaterialApp
+  # are distinct types from package:flutter/material.dart. Moving up means
+  # migrating every material.dart import in the app first.
   url_launcher: ^6.2.6
   path_provider: ^2.1.6
-  file_picker: ^12.0.0-beta.5
+  file_picker: ^12.1.2 # 12.1 returns List<PlatformFile> from pickFiles, not FilePickerResult?
   share_plus: ^13.2.1
   fl_chart: ^1.1.0
   flutter_svg: ^2.3.0
@@ -43,8 +45,7 @@ dependencies:
 
   mime: ^2.0.0
   archive: ^4.0.9
-  excel_community: ^1.0.10
-  rename_app: ^1.6.6
+  excel_community: ^2.3.0
   soft_edge_blur: ^0.1.3
 
   # AI Meal Capture (#81)
@@ -75,8 +76,8 @@ dependencies:
     git:
       url: https://github.com/rfivesix/flutter_body_highlighter
       ref: main
-  liquid_glass_widgets: ^0.24.1
-  flutter_lucide: ^1.11.0
+  liquid_glass_widgets: ^1.2.2
+  flutter_lucide: ^1.38.0 # 1.38 renamed LucideIcons.history to rotate_ccw_clock
   in_app_review: ^2.0.12
   icloud_storage: ^2.0.3
   skeletonizer: ^2.1.3
@@ -89,7 +90,7 @@ dev_dependencies:
     sdk: flutter
   flutter_lints: ^6.0.0
   flutter_launcher_icons: ^0.14.4
-  build_runner: ^2.15.1
+  build_runner: ^2.15.1 # 2.16.0 needs meta 1.18.3; flutter_test pins meta 1.18.0.
   drift_dev: ^2.34.4
   # Imported directly by the camera/permission widget tests, which mock the
   # platform interfaces rather than the plugin facades.

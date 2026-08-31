@@ -292,7 +292,7 @@ class _WorkoutHubScreenState extends State<WorkoutHubScreen> {
         AppSectionHeader(title: l10n.workoutSectionHistoryLibrary),
         _buildNavigationTile(
           context: context,
-          icon: LucideIcons.history,
+          icon: LucideIcons.rotate_ccw_clock,
           title: l10n.workoutEntryWorkouts,
           destination: () => const WorkoutHistoryScreen(),
         ),

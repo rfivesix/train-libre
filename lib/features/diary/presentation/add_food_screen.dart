@@ -656,7 +656,7 @@ class _AddFoodScreenState extends State<AddFoodScreen>
     }
     if (_recentFoodItems.isEmpty) {
       return ColdStartEmptyState(
-        icon: LucideIcons.history,
+        icon: LucideIcons.rotate_ccw_clock,
         title: l10n.nothingTrackedYet,
         subtitle: l10n.recentEmptyState,
         callToAction: '',

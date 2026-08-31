@@ -257,7 +257,7 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(LucideIcons.history,
+                      Icon(LucideIcons.rotate_ccw_clock,
                           size: 16, color: colorScheme.error),
                       const SizedBox(width: DesignConstants.spacingS),
                       Expanded(

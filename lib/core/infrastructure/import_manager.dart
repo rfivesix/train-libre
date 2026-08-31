@@ -64,10 +64,10 @@ class ImportManager {
         allowedExtensions: ['csv', 'xlsx'],
       );
 
-      if (result == null || result.files.single.path == null) return 0;
+      if (result.isEmpty || result.single.path == null) return 0;
 
-      final filePath = result.files.single.path!;
-      final extension = result.files.single.extension?.toLowerCase() ?? '';
+      final filePath = result.single.path!;
+      final extension = result.single.extension?.toLowerCase() ?? '';
       final fileBytes = await File(filePath).readAsBytes();
 
       // 2. Offload decoding and grouping to background isolate
