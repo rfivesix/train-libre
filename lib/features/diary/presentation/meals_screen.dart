@@ -167,7 +167,7 @@ class _MealsScreenState extends State<MealsScreen> {
 
     final supplements = await DatabaseHelper.instance.getAllSupplements();
     final caffeine = supplements.firstWhere(
-      (s) => (s.code == 'caffeine') || s.name.toLowerCase() == 'caffeine',
+      (s) => s.isCaffeine,
       orElse: () => Supplement(
         name: 'Caffeine',
         defaultDose: 100,

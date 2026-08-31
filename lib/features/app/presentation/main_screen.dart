@@ -973,7 +973,7 @@ class _MainScreenState extends State<MainScreen>
     final supplements = await DatabaseHelper.instance.getAllSupplements();
     Supplement? caffeineSupplement;
     for (final s in supplements) {
-      if ((s.code == 'caffeine') || s.name.toLowerCase() == 'caffeine') {
+      if (s.isCaffeine) {
         caffeineSupplement = s;
         break;
       }

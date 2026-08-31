@@ -142,9 +142,7 @@ class _SupplementHubScreenState extends State<SupplementHubScreen> {
   }
 
   Widget _tile(Supplement s, AppLocalizations l10n) {
-    final isBuiltin = s.isBuiltin ||
-        s.code == 'caffeine' ||
-        s.name.toLowerCase() == 'caffeine';
+    final isBuiltin = s.isBuiltin || s.isCaffeine;
     final title = localizeSupplementName(s, l10n);
 
     return Builder(

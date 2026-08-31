@@ -177,9 +177,7 @@ class CalculateDailyNutritionUseCase {
       final hasLog = todaysDoses.containsKey(s.id);
       if (s.isTracked || hasLog) {
         var supplementToUse = s;
-        if ((s.code == 'caffeine' || s.name.toLowerCase() == 'caffeine') &&
-            s.dailyGoal == null &&
-            s.dailyLimit == null) {
+        if (s.isCaffeine && s.dailyGoal == null && s.dailyLimit == null) {
           supplementToUse = Supplement(
             id: s.id,
             code: s.code,
@@ -217,7 +215,7 @@ class CalculateDailyNutritionUseCase {
         break;
       }
 
-      final isCaffeine = (s.code == 'caffeine') || s.name.toLowerCase() == 'caffeine';
+      final isCaffeine = s.isCaffeine;
 
       if (caffeineSupplement == null && isCaffeine) {
         caffeineSupplement = s;
