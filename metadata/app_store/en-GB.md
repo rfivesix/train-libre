@@ -56,15 +56,9 @@ OPEN SOURCE & OPEN DATA:
 Built transparently on trusted community catalogues from Open Food Facts and the wger exercise database. The full source code is publicly accessible, so our privacy claims can be verified rather than just believed.
 
 ## Release Notes (What's New / Release Notes in this version)
-Log a meal from a photo: Point the camera at your plate and the AI turns it into individual foods with amounts, calories and macros - all correctable before you save. Packaged products are recognised by barcode in the very same view, iPhones with LiDAR measure the portion instead of guessing it, and the microphone button lets you add what a photo cannot show.
+Improved macronutrient recommendations: The adaptive nutrition calculation now distributes fats and carbohydrates in a more balanced way based on your body weight and goal.
 
-A clearer diary: A scanned meal stays one entry with its photo and unfolds into its ingredients. Entries are sorted by calories, largest first.
-
-More from your training: Keep up to 4 photos per workout, and the bar above the tab bar always shows whether you are working or resting and which exercise comes next. Tapping it grows the workout out of the bar.
-
-Your photos in the iCloud backup: The automatic backup now carries the photos of your meals and workouts. Restoring no longer needs a restart and keeps the previous backup as a spare copy.
-
-Smoother to use: Cards grow into full screen instead of switching abruptly, numbers count themselves up, and removed exercises fold away gently instead of popping out.
+Bug fixes: Fixed minor issues with caffeine logging in the diary and resolved visual glitches during card transitions and animations.
 
 ## Support URL (Support Web Page URL)
 https://rfivesix.github.io/train-libre/support.html

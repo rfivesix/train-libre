@@ -6,6 +6,12 @@
   Poi esegui: python3 script/build_whats_new.py --write --sync-store
 -->
 
+## 1.2.1 (2026-09-01)
+
+{utensils} Raccomandazioni dei macronutrienti migliorate: il calcolo adattivo distribuisce ora grassi e carboidrati in modo più bilanciato in base al peso corporeo e all'obiettivo.
+
+{bug} Correzione di bug: risolti piccoli problemi con la registrazione della caffeina nel diario e migliorate le transizioni e le animazioni delle schede.
+
 ## 1.2.0 (2026-08-30)
 
 {camera} Registra un pasto da una foto: inquadra il piatto e l'IA lo trasforma in singoli alimenti con quantità, calorie e macro, tutto correggibile prima di salvare. I prodotti confezionati vengono riconosciuti dal codice a barre nella stessa schermata, gli iPhone con LiDAR misurano la porzione invece di stimarla e il pulsante del microfono ti fa aggiungere ciò che una foto non mostra.

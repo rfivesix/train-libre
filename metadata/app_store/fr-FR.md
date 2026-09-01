@@ -56,15 +56,9 @@ OPEN SOURCE & DONNÉES OUVERTES :
 Développé de manière transparente à partir des catalogues communautaires de confiance Open Food Facts et de la base d'exercices wger. Le code source complet est accessible publiquement : nos promesses de confidentialité se vérifient au lieu de se croire.
 
 ## Release Notes (What's New / Release Notes in this version)
-Enregistrer un repas à partir d'une photo: vise ton assiette et l'IA en fait des aliments distincts, avec quantités, calories et macros - tout reste corrigeable avant l'enregistrement. Les produits emballés sont reconnus par leur code-barres dans la même vue, les iPhone équipés du LiDAR mesurent la portion au lieu de la deviner, et le bouton micro permet d'ajouter ce qu'une photo ne montre pas.
+Recommandations de macronutriments améliorées: le calcul adaptatif répartit désormais les lipides et les glucides de manière plus équilibrée selon ton poids corporel et ton objectif.
 
-Un journal plus lisible: un repas scanné reste une seule entrée avec sa photo et se déplie sur ses ingrédients. Les entrées sont triées par calories, les plus élevées d'abord.
-
-Plus de tes entraînements: garde jusqu'à 4 photos par séance, et la barre au-dessus de la navigation indique en permanence si tu travailles ou récupères et quel exercice arrive ensuite. Un appui fait grandir l'entraînement depuis la barre.
-
-Tes photos dans la sauvegarde iCloud: la sauvegarde automatique emporte désormais les photos de tes repas et de tes entraînements. La restauration ne demande plus de redémarrage et conserve la sauvegarde précédente comme copie de secours.
-
-Une utilisation plus fluide: les cartes s'agrandissent en plein écran au lieu de basculer d'un coup, les chiffres défilent jusqu'à leur valeur, et les exercices supprimés se replient en douceur au lieu de disparaître brusquement.
+Corrections d'erreurs: correction de légers soucis liés au suivi de la caféine dans le journal et amélioration des transitions et animations de cartes.
 
 ## Support URL (Support Web Page URL)
 https://rfivesix.github.io/train-libre/support.html
