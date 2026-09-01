@@ -96,14 +96,30 @@ class AdaptiveNutritionRecommendationEngine {
   }) {
     final normalizedWeight = currentWeightKg <= 0 ? 75.0 : currentWeightKg;
     var proteinGrams = (normalizedWeight * _proteinPerKg(goal)).round();
-    final fatFloor = (normalizedWeight * 0.60).round().clamp(35, 130);
 
-    var fatGrams = fatFloor;
+    // Fat is targeted per kilogram like protein is, and only falls back to the
+    // floor when the calorie budget cannot carry the target. Carbohydrates
+    // take whatever is left.
+    final fatFloor = (normalizedWeight * _kFatFloorPerKg).round().clamp(35, 130);
+    var fatGrams =
+        (normalizedWeight * _fatPerKg(goal)).round().clamp(fatFloor, 250);
+
     var carbsGrams =
         ((recommendedCalories - (proteinGrams * 4) - (fatGrams * 9)) / 4)
             .round();
 
     final warningReasons = <String>[];
+
+    // Not enough calories left for any carbohydrates: give the target back
+    // down towards the floor before touching protein.
+    if (carbsGrams < 0 && fatGrams > fatFloor) {
+      final affordableFat =
+          ((recommendedCalories - (proteinGrams * 4)) / 9).floor();
+      fatGrams = affordableFat.clamp(fatFloor, fatGrams);
+      carbsGrams =
+          ((recommendedCalories - (proteinGrams * 4) - (fatGrams * 9)) / 4)
+              .round();
+    }
 
     if (carbsGrams < 0) {
       carbsGrams = 0;
@@ -137,6 +153,30 @@ class AdaptiveNutritionRecommendationEngine {
         return 1.8;
     }
   }
+
+  /// Target fat intake in grams per kilogram of body weight.
+  ///
+  /// Sits inside the evidence-based ranges — roughly 0.5–1.0 g/kg on a deficit
+  /// and 0.8–1.2 g/kg at or above maintenance — rather than at the bottom of
+  /// them. A cut is held slightly lower than maintenance so the deficit costs
+  /// carbohydrates last: training quality suffers from an empty carbohydrate
+  /// budget long before it suffers from fat at 0.9 g/kg.
+  static double _fatPerKg(BodyweightGoal goal) {
+    switch (goal) {
+      case BodyweightGoal.loseWeight:
+        return 0.9;
+      case BodyweightGoal.maintainWeight:
+      case BodyweightGoal.gainWeight:
+        return 1.0;
+    }
+  }
+
+  /// Lowest fat intake the distribution will settle on, in grams per kilogram,
+  /// before it starts taking calories out of carbohydrates and then protein.
+  ///
+  /// The bottom of the cutting range: below this, hormonal and fat-soluble
+  /// vitamin support is no longer a given.
+  static const double _kFatFloorPerKg = 0.60;
 
   static RecommendationWarningState _buildWarningState({
     required int? baselineCalories,
