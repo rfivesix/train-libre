@@ -9093,7 +9093,7 @@ abstract class AppLocalizations {
   /// No description provided for @i_agree_to_optional_telemetry.
   ///
   /// In en, this message translates to:
-  /// **'(Optional) I want to share anonymous usage statistics to help improve app stability and features (zero personal data).'**
+  /// **'(Optional) I want to share pseudonymised usage statistics to help improve app stability and features (zero personal or health data).'**
   String get i_agree_to_optional_telemetry;
 
   /// No description provided for @welcome_back_updated_legal_title.
@@ -10356,6 +10356,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Delete data now'**
   String get telemetryDeleteConfirmButton;
+
+  /// No description provided for @telemetryConsentTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Help improve Train Libre?'**
+  String get telemetryConsentTitle;
+
+  /// No description provided for @telemetryConsentBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Train Libre is built independently by a single developer, without accounts and without ads. If you like, you can share pseudonymised usage statistics. They help me understand which features are used and where the app can be improved.'**
+  String get telemetryConsentBody;
+
+  /// No description provided for @telemetryConsentPointAnonymous.
+  ///
+  /// In en, this message translates to:
+  /// **'Pseudonymised: No name, no email, no workout, diary, weight, nutrition, or health data. Only screen views, feature usage, and error reports are transmitted.'**
+  String get telemetryConsentPointAnonymous;
+
+  /// No description provided for @telemetryConsentPointNotSold.
+  ///
+  /// In en, this message translates to:
+  /// **'Not for advertising: Data is never sold and never used for marketing or advertising. Processed on servers in the EU.'**
+  String get telemetryConsentPointNotSold;
+
+  /// No description provided for @telemetryConsentPointRevocable.
+  ///
+  /// In en, this message translates to:
+  /// **'Voluntary: Can be disabled in Settings at any time. Stored telemetry data can also be deleted there.'**
+  String get telemetryConsentPointRevocable;
+
+  /// No description provided for @telemetryConsentAccept.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes, share usage data'**
+  String get telemetryConsentAccept;
+
+  /// No description provided for @telemetryConsentDecline.
+  ///
+  /// In en, this message translates to:
+  /// **'No, thanks'**
+  String get telemetryConsentDecline;
+
+  /// No description provided for @settingsTelemetryToggleTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Share pseudonymised usage statistics'**
+  String get settingsTelemetryToggleTitle;
+
+  /// No description provided for @settingsTelemetryToggleSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Helps improve the app. Pseudonymised, without personal or health data.'**
+  String get settingsTelemetryToggleSubtitle;
+
+  /// No description provided for @settingsTelemetryDeleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete telemetry data'**
+  String get settingsTelemetryDeleteTitle;
+
+  /// No description provided for @settingsTelemetryDeleteSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Deletes all stored IDs locally and on the PostHog server'**
+  String get settingsTelemetryDeleteSubtitle;
 
   /// No description provided for @liveActivitySetPosition.
   ///

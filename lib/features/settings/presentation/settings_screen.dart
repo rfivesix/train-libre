@@ -639,13 +639,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     size: 36,
                     color: Theme.of(context).colorScheme.primary,
                   ),
-                  title: const Text(
-                    'Anonyme Nutzungsstatistiken teilen',
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                  title: Text(
+                    l10n.settingsTelemetryToggleTitle,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
-                  subtitle: const Text(
-                    'Hilft bei der Verbesserung der App. Vollständig anonymisiert, ohne personenbezogene Daten.',
-                  ),
+                  subtitle: Text(l10n.settingsTelemetryToggleSubtitle),
                   value: _isTelemetryOptedIn,
                   onChanged: (value) async {
                     if (value) {
@@ -667,9 +665,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           const SizedBox(height: DesignConstants.spacingS),
           AppLinkRow(
             key: const Key('settings_reset_telemetry_data'),
-            title: 'Telemetrie-Daten löschen',
-            subtitle:
-                'Löscht alle gespeicherten IDs lokal und auf dem PostHog-Server',
+            title: l10n.settingsTelemetryDeleteTitle,
+            subtitle: l10n.settingsTelemetryDeleteSubtitle,
             trailingIcon: LucideIcons.trash_2,
             onTap: () async {
               final confirmed = await _showTelemetryDeletionConfirmation();

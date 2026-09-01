@@ -5258,7 +5258,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get i_agree_to_optional_telemetry =>
-      '(Optionnel) Je souhaite partager des statistiques d\'utilisation anonymes pour améliorer la stabilité et les fonctionnalités (aucune donnée personnelle).';
+      '(Optionnel) Je souhaite partager des statistiques d\'utilisation pseudonymisées pour améliorer la stabilité et les fonctionnalités (aucune donnée personnelle ou de santé).';
 
   @override
   String get welcome_back_updated_legal_title =>
@@ -6015,6 +6015,47 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get telemetryDeleteConfirmButton => 'Supprimer les données maintenant';
+
+  @override
+  String get telemetryConsentTitle => 'Aider à améliorer Train Libre ?';
+
+  @override
+  String get telemetryConsentBody =>
+      'Train Libre est développé de manière indépendante par une seule personne, sans comptes ni publicité. Si vous le souhaitez, vous pouvez partager des statistiques d\'utilisation pseudonymisées. Elles m\'aident à comprendre quelles fonctions sont utilisées et où l\'application peut être améliorée.';
+
+  @override
+  String get telemetryConsentPointAnonymous =>
+      'Pseudonymisé : aucun nom, aucune adresse e-mail, aucune donnée de journal, d\'entraînement, de poids, de nutrition ou de santé. Seuls l\'affichage des écrans, l\'utilisation des fonctionnalités et les rapports d\'erreurs sont transmis.';
+
+  @override
+  String get telemetryConsentPointNotSold =>
+      'Pas de publicité : Les données ne sont jamais vendues et ne sont jamais utilisées à des fins marketing ou publicitaires. Le traitement est effectué sur des serveurs situés dans l\'UE.';
+
+  @override
+  String get telemetryConsentPointRevocable =>
+      'Facultatif : Désactivable à tout moment dans les réglages. Les données de télémétrie enregistrées peuvent également y être supprimées.';
+
+  @override
+  String get telemetryConsentAccept => 'Oui, partager les données d\'usage';
+
+  @override
+  String get telemetryConsentDecline => 'Non, merci';
+
+  @override
+  String get settingsTelemetryToggleTitle =>
+      'Partager des statistiques d\'usage pseudonymisées';
+
+  @override
+  String get settingsTelemetryToggleSubtitle =>
+      'Aide à améliorer l\'application. Pseudonymisé, sans données personnelles ni données de santé.';
+
+  @override
+  String get settingsTelemetryDeleteTitle =>
+      'Supprimer les données de télémétrie';
+
+  @override
+  String get settingsTelemetryDeleteSubtitle =>
+      'Supprime tous les identifiants stockés localement et sur le serveur PostHog';
 
   @override
   String liveActivitySetPosition(int index, int total) {

@@ -2335,7 +2335,7 @@
   "welcome_privacy_title": "ようこそとプライバシー",
   "welcome_privacy_body": "ワークアウトの記録や分析機能を提供するために、当社のプライバシーポリシーに記載されているとおり、お客様のフィットネスおよびアクティビティデータを処理します。",
   "i_agree_to_privacy_policy": "ワークアウトの記録および分析のために、私のフィットネスおよび健康データが処理されることに明示的に同意します。同意は設定からいつでも撤回できます。",
-  "i_agree_to_optional_telemetry": "(任意) アプリの安定性と機能向上のため、匿用の利用統計を共有します（個人データは送信されません）。",
+  "i_agree_to_optional_telemetry": "(任意) アプリの安定性と機能向上のため、仮名化された利用統計を共有します（個人データや健康データは含まれません）。",
   "welcome_back_updated_legal_title": "おかえりなさい & 利用規約改定のお知らせ",
   "legal_update_body": "プライバシーポリシーおよび利用規約を更新しました（バージョン {version}）。Train Libre を引き続き利用するには、新しい利用規約に同意してください。既存のデータはデバイス内にそのまま保存されます。",
   "@legal_update_body": {
@@ -2664,6 +2664,17 @@
   "telemetryDeleteDialogTitle": "テレメトリデータを削除しますか？",
   "telemetryDeleteDialogBody": "過去のテレメトリデータを本当に削除しますか？\n\n以下の処理が行われます：\n• このデバイスに保存されているすべてのデバイスUUID、セッションID、ローカルカウンターがリセットされます。\n• EUのPostHogサーバーに削除リクエスト（$delete_person）が送信され、そこからデータが削除されます。\n• テレメトリSDKが完全にリセットされます。",
   "telemetryDeleteConfirmButton": "今すぐデータを削除",
+  "telemetryConsentTitle": "Train Libre の改善に協力しますか？",
+  "telemetryConsentBody": "Train Libre は個人開発者によって独立して作られており、ユーザーアカウントも広告もありません。よろしければ、仮名化された利用統計を共有してください。どの機能が使われ、どこを改善できるかを把握するのに役立ちます。",
+  "telemetryConsentPointAnonymous": "仮名化：氏名、メールアドレス、日記、運動、体重、栄養、健康データは一切送信されません。画面の表示、機能の利用状況、エラー発生の有無のみが送信されます。",
+  "telemetryConsentPointNotSold": "広告目的での利用なし：データが販売されたり、マーケティングや広告に使用されることは決してありません。処理はEU域内のサーバーで行われます。",
+  "telemetryConsentPointRevocable": "任意：設定からいつでもオフにできます。保存されたテレメトリデータは設定画面から削除することも可能です。",
+  "telemetryConsentAccept": "はい、利用データを共有する",
+  "telemetryConsentDecline": "いいえ",
+  "settingsTelemetryToggleTitle": "仮名化された利用統計を共有",
+  "settingsTelemetryToggleSubtitle": "アプリの改善に役立ちます。仮名化され、個人データや健康データは含まれません。",
+  "settingsTelemetryDeleteTitle": "テレメトリーデータを削除",
+  "settingsTelemetryDeleteSubtitle": "ローカルおよびPostHogサーバー上の保存済みIDをすべて削除します",
   "liveActivitySetPosition": "{total} セット中 {index}",
   "@liveActivitySetPosition": {
     "placeholders": {

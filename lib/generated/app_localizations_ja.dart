@@ -4998,7 +4998,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get i_agree_to_optional_telemetry =>
-      '(任意) アプリの安定性と機能向上のため、匿用の利用統計を共有します（個人データは送信されません）。';
+      '(任意) アプリの安定性と機能向上のため、仮名化された利用統計を共有します（個人データや健康データは含まれません）。';
 
   @override
   String get welcome_back_updated_legal_title => 'おかえりなさい & 利用規約改定のお知らせ';
@@ -5720,6 +5720,45 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get telemetryDeleteConfirmButton => '今すぐデータを削除';
+
+  @override
+  String get telemetryConsentTitle => 'Train Libre の改善に協力しますか？';
+
+  @override
+  String get telemetryConsentBody =>
+      'Train Libre は個人開発者によって独立して作られており、ユーザーアカウントも広告もありません。よろしければ、仮名化された利用統計を共有してください。どの機能が使われ、どこを改善できるかを把握するのに役立ちます。';
+
+  @override
+  String get telemetryConsentPointAnonymous =>
+      '仮名化：氏名、メールアドレス、日記、運動、体重、栄養、健康データは一切送信されません。画面の表示、機能の利用状況、エラー発生の有無のみが送信されます。';
+
+  @override
+  String get telemetryConsentPointNotSold =>
+      '広告目的での利用なし：データが販売されたり、マーケティングや広告に使用されることは決してありません。処理はEU域内のサーバーで行われます。';
+
+  @override
+  String get telemetryConsentPointRevocable =>
+      '任意：設定からいつでもオフにできます。保存されたテレメトリデータは設定画面から削除することも可能です。';
+
+  @override
+  String get telemetryConsentAccept => 'はい、利用データを共有する';
+
+  @override
+  String get telemetryConsentDecline => 'いいえ';
+
+  @override
+  String get settingsTelemetryToggleTitle => '仮名化された利用統計を共有';
+
+  @override
+  String get settingsTelemetryToggleSubtitle =>
+      'アプリの改善に役立ちます。仮名化され、個人データや健康データは含まれません。';
+
+  @override
+  String get settingsTelemetryDeleteTitle => 'テレメトリーデータを削除';
+
+  @override
+  String get settingsTelemetryDeleteSubtitle =>
+      'ローカルおよびPostHogサーバー上の保存済みIDをすべて削除します';
 
   @override
   String liveActivitySetPosition(int index, int total) {

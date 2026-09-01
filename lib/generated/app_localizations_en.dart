@@ -5166,7 +5166,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get i_agree_to_optional_telemetry =>
-      '(Optional) I want to share anonymous usage statistics to help improve app stability and features (zero personal data).';
+      '(Optional) I want to share pseudonymised usage statistics to help improve app stability and features (zero personal or health data).';
 
   @override
   String get welcome_back_updated_legal_title =>
@@ -5912,6 +5912,46 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get telemetryDeleteConfirmButton => 'Delete data now';
+
+  @override
+  String get telemetryConsentTitle => 'Help improve Train Libre?';
+
+  @override
+  String get telemetryConsentBody =>
+      'Train Libre is built independently by a single developer, without accounts and without ads. If you like, you can share pseudonymised usage statistics. They help me understand which features are used and where the app can be improved.';
+
+  @override
+  String get telemetryConsentPointAnonymous =>
+      'Pseudonymised: No name, no email, no workout, diary, weight, nutrition, or health data. Only screen views, feature usage, and error reports are transmitted.';
+
+  @override
+  String get telemetryConsentPointNotSold =>
+      'Not for advertising: Data is never sold and never used for marketing or advertising. Processed on servers in the EU.';
+
+  @override
+  String get telemetryConsentPointRevocable =>
+      'Voluntary: Can be disabled in Settings at any time. Stored telemetry data can also be deleted there.';
+
+  @override
+  String get telemetryConsentAccept => 'Yes, share usage data';
+
+  @override
+  String get telemetryConsentDecline => 'No, thanks';
+
+  @override
+  String get settingsTelemetryToggleTitle =>
+      'Share pseudonymised usage statistics';
+
+  @override
+  String get settingsTelemetryToggleSubtitle =>
+      'Helps improve the app. Pseudonymised, without personal or health data.';
+
+  @override
+  String get settingsTelemetryDeleteTitle => 'Delete telemetry data';
+
+  @override
+  String get settingsTelemetryDeleteSubtitle =>
+      'Deletes all stored IDs locally and on the PostHog server';
 
   @override
   String liveActivitySetPosition(int index, int total) {
