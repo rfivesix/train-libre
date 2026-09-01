@@ -38,6 +38,68 @@ class Supplement {
   /// Whether the supplement is currently actively tracked by the user.
   final bool isTracked;
 
+  /// Canonical code of the built-in caffeine row.
+  ///
+  /// Everything that has to recognise caffeine — the fluid and food logging
+  /// paths, the daily summary, the hub — must go through [isCaffeine] rather
+  /// than comparing names, or it breaks the moment the row carries a
+  /// localized name.
+  static const String caffeineCode = 'caffeine';
+
+  /// Canonical code of the built-in creatine row.
+  static const String creatineCode = 'creatine_monohydrate';
+
+  /// Names the caffeine row can carry: the shipped translations of
+  /// `supplement_caffeine`, plus the spellings a user is likely to type.
+  ///
+  /// Only consulted for rows without a code. Rows seeded before the `code`
+  /// column existed have none, and their name is whatever locale the user
+  /// was in at the time.
+  static const Set<String> _caffeineNames = {
+    'caffeine',
+    'koffein',
+    'caféine',
+    'cafeine',
+    'caffeina',
+    'カフェイン',
+  };
+
+  /// Names the creatine row can carry. See [_caffeineNames].
+  static const Set<String> _creatineNames = {
+    'creatine',
+    'creatine monohydrate',
+    'kreatin',
+    'kreatin monohydrat',
+    'créatine monohydrate',
+    'creatine monohydrat',
+    'creatina monoidrato',
+    'クレアチン一水和物',
+  };
+
+  /// Whether this row is the built-in caffeine supplement.
+  ///
+  /// A row that carries an explicit, different code is never caffeine — only
+  /// a code-less row falls back to its name.
+  bool get isCaffeine => matchesCaffeine(code: code, name: name);
+
+  /// Whether this row is the built-in creatine supplement. See [isCaffeine].
+  bool get isCreatine => matchesCreatine(code: code, name: name);
+
+  /// [isCaffeine] for callers that hold raw columns rather than a [Supplement],
+  /// such as the seeding path in the local data source.
+  static bool matchesCaffeine({String? code, required String name}) {
+    if (code != null && code.isNotEmpty) return code == caffeineCode;
+    return _caffeineNames.contains(name.trim().toLowerCase());
+  }
+
+  /// [isCreatine] for callers that hold raw columns. See [matchesCaffeine].
+  static bool matchesCreatine({String? code, required String name}) {
+    if (code != null && code.isNotEmpty) {
+      return code == creatineCode || code == 'creatine';
+    }
+    return _creatineNames.contains(name.trim().toLowerCase());
+  }
+
   /// Creates a new [Supplement] instance.
   Supplement({
     this.id,

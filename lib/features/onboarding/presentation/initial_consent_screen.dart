@@ -12,6 +12,8 @@ import '../../app/presentation/legal_screen.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../widgets/common/app_button.dart';
 import '../../../services/telemetry/telemetry_service.dart';
+import '../data/telemetry_consent_prompt.dart';
+import 'telemetry_consent_sheet.dart';
 
 class InitialConsentScreen extends StatefulWidget {
   final Widget nextScreen;
@@ -24,7 +26,6 @@ class InitialConsentScreen extends StatefulWidget {
 
 class _InitialConsentScreenState extends State<InitialConsentScreen> {
   bool _healthDataAccepted = false;
-  bool _telemetryAccepted = false;
   late TapGestureRecognizer _termsRecognizer;
   late TapGestureRecognizer _legalRecognizer;
 
@@ -52,11 +53,23 @@ class _InitialConsentScreenState extends State<InitialConsentScreen> {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('hasAcceptedConsent', true);
     await prefs.setString('acceptedLegalVersion', kCurrentLegalVersion);
-    if (_telemetryAccepted) {
-      await TelemetryService.instance.optIn();
-    } else {
-      await TelemetryService.instance.optOut();
+
+    // Off unless the user says otherwise in the sheet below. Written before
+    // asking so that a force-quit mid-question leaves telemetry disabled.
+    await TelemetryService.instance.optOut();
+
+    // Asked separately from the consent above, and only once the obligatory
+    // part is settled: an optional choice bundled into a form the user has to
+    // accept to use the app at all is hard to call freely given.
+    if (mounted) {
+      final optedIn = await showTelemetryConsentSheet(context) ?? false;
+      if (optedIn) {
+        await TelemetryService.instance.optIn();
+      }
+      await TelemetryConsentPrompt.instance
+          .recordOnboardingAnswer(optedIn: optedIn);
     }
+
     if (mounted) {
       Navigator.of(context).pushReplacement(
         PageRouteBuilder(
@@ -139,15 +152,6 @@ class _InitialConsentScreenState extends State<InitialConsentScreen> {
                       onChanged: (val) =>
                           setState(() => _healthDataAccepted = val),
                       text: l10n.i_agree_to_privacy_policy,
-                      theme: theme,
-                    ),
-                    const SizedBox(height: DesignConstants.spacingS),
-                    // Optional anonymous telemetry tile
-                    _buildConsentTile(
-                      value: _telemetryAccepted,
-                      onChanged: (val) =>
-                          setState(() => _telemetryAccepted = val),
-                      text: l10n.i_agree_to_optional_telemetry,
                       theme: theme,
                     ),
                     const SizedBox(height: DesignConstants.spacingL),

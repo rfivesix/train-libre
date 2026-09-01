@@ -2334,7 +2334,7 @@
   "welcome_privacy_title": "Willkommen & Datenschutz",
   "welcome_privacy_body": "Um Workout-Tracking und Trainingsanalysen bereitzustellen, verarbeiten wir deine Fitness- und Aktivitätsdaten wie in unserer Datenschutzerklärung beschrieben.",
   "i_agree_to_privacy_policy": "Ich willige ausdrücklich in die Verarbeitung meiner Fitness- und Gesundheitsdaten für Workout-Tracking und Trainingsanalysen ein. Ich kann meine Einwilligung jederzeit in den Einstellungen widerrufen.",
-  "i_agree_to_optional_telemetry": "(Optional) Ich möchte anonyme Nutzungsstatistiken teilen, um die App-Stabilität und Features zu verbessern (keine persönlichen Daten).",
+  "i_agree_to_optional_telemetry": "(Optional) Ich möchte pseudonymisierte Nutzungsstatistiken teilen, um die App-Stabilität und Features zu verbessern (keine persönlichen Daten oder Gesundheitsdaten).",
   "welcome_back_updated_legal_title": "Willkommen zurück & Aktualisierte Richtlinien",
   "legal_update_body": "Wir haben unsere Datenschutzerklärung und Nutzungsbedingungen aktualisiert (Version {version}). Um Train Libre weiterhin zu nutzen, bestätige bitte die aktualisierten Datenschutz-Bestimmungen. Deine bisherigen Daten bleiben vollständig auf deinem Gerät erhalten.",
   "@legal_update_body": {
@@ -2663,6 +2663,17 @@
   "telemetryDeleteDialogTitle": "Telemetrie-Daten löschen?",
   "telemetryDeleteDialogBody": "Möchtest du deine bisherigen Telemetrie-Daten wirklich löschen?\n\nFolgendes passiert dabei:\n• Alle auf diesem Gerät gespeicherten Geräte-UUIDs, Session-IDs und lokalen Zähler werden zurückgesetzt.\n• Es wird ein Löschauftrag ($delete_person) an die PostHog-Server in der EU gesendet, um deine bisherigen Daten dort zu entfernen.\n• Das Telemetrie-SDK wird vollständig zurückgesetzt.",
   "telemetryDeleteConfirmButton": "Daten jetzt löschen",
+  "telemetryConsentTitle": "Train Libre verbessern?",
+  "telemetryConsentBody": "Train Libre wird von einem einzelnen Entwickler unabhängig gebaut, ohne Benutzerkonten und ohne Werbung. Wenn du möchtest, kannst du pseudonymisierte Nutzungsstatistiken teilen. Sie helfen mir zu verstehen, welche Funktionen genutzt werden und wo die App verbessert werden kann.",
+  "telemetryConsentPointAnonymous": "Pseudonymisiert: Kein Name, keine E-Mail, keine Trainings-, Tagebuch-, Gewichts-, Ernährungs- oder Gesundheitsdaten. Übermittelt wird nur, welche Screens und Funktionen genutzt werden und ob Fehler auftreten.",
+  "telemetryConsentPointNotSold": "Nicht für Werbung: Die Daten werden niemals verkauft und nicht für Marketing oder Werbung verwendet. Die Verarbeitung erfolgt auf Servern in der EU.",
+  "telemetryConsentPointRevocable": "Freiwillig: Jederzeit in den Einstellungen deaktivierbar. Gespeicherte Daten können dort auch gelöscht werden.",
+  "telemetryConsentAccept": "Ja, Nutzungsdaten teilen",
+  "telemetryConsentDecline": "Nein, danke",
+  "settingsTelemetryToggleTitle": "Pseudonymisierte Nutzungsstatistiken teilen",
+  "settingsTelemetryToggleSubtitle": "Hilft bei der Verbesserung der App. Pseudonymisiert, ohne persönliche Daten oder Gesundheitsdaten.",
+  "settingsTelemetryDeleteTitle": "Telemetrie-Daten löschen",
+  "settingsTelemetryDeleteSubtitle": "Löscht alle gespeicherten IDs lokal und auf dem PostHog-Server",
   "liveActivitySetPosition": "Satz {index} von {total}",
   "@liveActivitySetPosition": {
     "placeholders": {

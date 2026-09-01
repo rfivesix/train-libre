@@ -6,6 +6,12 @@
   Danach ausführen: python3 script/build_whats_new.py --write --sync-store
 -->
 
+## 1.2.1 (2026-09-01)
+
+{utensils} Verbesserte Makronährstoff-Empfehlungen: Die adaptive Berechnung verteilt Fett und Kohlenhydrate jetzt noch ausgewogener basierend auf deinem Körpergewicht und Ziel.
+
+{bug} Fehlerbehebungen: Kleinere Fehler bei der Erfassung von Koffein im Tagebuch sowie Darstellungsfehler bei Animationen und Kartenübergängen behoben.
+
 ## 1.2.0 (2026-08-30)
 
 {camera} Mahlzeiten per Foto erfassen: Richte die Kamera auf deinen Teller, und die KI macht daraus einzelne Lebensmittel mit Menge, Kalorien und Makros - vor dem Speichern alles korrigierbar. Verpackte Produkte erkennt dieselbe Ansicht am Barcode, iPhones mit LiDAR messen die Portion statt zu schätzen, und per Mikrofontaste ergänzt du, was das Foto nicht zeigt.

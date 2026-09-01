@@ -16,6 +16,22 @@ import 'whats_new_release.dart';
 const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
   'en': <WhatsNewRelease>[
     WhatsNewRelease(
+      version: '1.2.1',
+      releasedOn: '2026-09-01',
+      entries: <WhatsNewEntry>[
+        WhatsNewEntry(
+          icon: LucideIcons.utensils,
+          title: 'Improved macronutrient recommendations',
+          body: 'The adaptive nutrition calculation now distributes fats and carbohydrates in a more balanced way based on your body weight and goal.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.bug,
+          title: 'Bug fixes',
+          body: 'Fixed minor issues with caffeine logging in the diary and resolved visual glitches during card transitions and animations.',
+        ),
+      ],
+    ),
+    WhatsNewRelease(
       version: '1.2.0',
       releasedOn: '2026-08-30',
       entries: <WhatsNewEntry>[
@@ -100,6 +116,22 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
     ),
   ],
   'de': <WhatsNewRelease>[
+    WhatsNewRelease(
+      version: '1.2.1',
+      releasedOn: '2026-09-01',
+      entries: <WhatsNewEntry>[
+        WhatsNewEntry(
+          icon: LucideIcons.utensils,
+          title: 'Verbesserte Makronährstoff-Empfehlungen',
+          body: 'Die adaptive Berechnung verteilt Fett und Kohlenhydrate jetzt noch ausgewogener basierend auf deinem Körpergewicht und Ziel.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.bug,
+          title: 'Fehlerbehebungen',
+          body: 'Kleinere Fehler bei der Erfassung von Koffein im Tagebuch sowie Darstellungsfehler bei Animationen und Kartenübergängen behoben.',
+        ),
+      ],
+    ),
     WhatsNewRelease(
       version: '1.2.0',
       releasedOn: '2026-08-30',
@@ -186,6 +218,22 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
   ],
   'fr': <WhatsNewRelease>[
     WhatsNewRelease(
+      version: '1.2.1',
+      releasedOn: '2026-09-01',
+      entries: <WhatsNewEntry>[
+        WhatsNewEntry(
+          icon: LucideIcons.utensils,
+          title: 'Recommandations de macronutriments améliorées',
+          body: 'le calcul adaptatif répartit désormais les lipides et les glucides de manière plus équilibrée selon ton poids corporel et ton objectif.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.bug,
+          title: 'Corrections d\'erreurs',
+          body: 'correction de légers soucis liés au suivi de la caféine dans le journal et amélioration des transitions et animations de cartes.',
+        ),
+      ],
+    ),
+    WhatsNewRelease(
       version: '1.2.0',
       releasedOn: '2026-08-30',
       entries: <WhatsNewEntry>[
@@ -271,6 +319,22 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
   ],
   'it': <WhatsNewRelease>[
     WhatsNewRelease(
+      version: '1.2.1',
+      releasedOn: '2026-09-01',
+      entries: <WhatsNewEntry>[
+        WhatsNewEntry(
+          icon: LucideIcons.utensils,
+          title: 'Raccomandazioni dei macronutrienti migliorate',
+          body: 'il calcolo adattivo distribuisce ora grassi e carboidrati in modo più bilanciato in base al peso corporeo e all\'obiettivo.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.bug,
+          title: 'Correzione di bug',
+          body: 'risolti piccoli problemi con la registrazione della caffeina nel diario e migliorate le transizioni e le animazioni delle schede.',
+        ),
+      ],
+    ),
+    WhatsNewRelease(
       version: '1.2.0',
       releasedOn: '2026-08-30',
       entries: <WhatsNewEntry>[
@@ -355,6 +419,22 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
     ),
   ],
   'ja': <WhatsNewRelease>[
+    WhatsNewRelease(
+      version: '1.2.1',
+      releasedOn: '2026-09-01',
+      entries: <WhatsNewEntry>[
+        WhatsNewEntry(
+          icon: LucideIcons.utensils,
+          title: 'PFCバランスの推奨値を改善',
+          body: '体重と目標に基づき、脂質と炭水化物の適応計算をよりバランスの良い配分に改善しました。',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.bug,
+          title: 'バグ修正',
+          body: '日記でのカフェイン記録に関する軽微な不具合の修正と、カードの切り替えアニメーションの表示を改善しました。',
+        ),
+      ],
+    ),
     WhatsNewRelease(
       version: '1.2.0',
       releasedOn: '2026-08-30',
@@ -445,4 +525,4 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
 const String kWhatsNewFallbackLanguage = 'en';
 
 /// The version this catalog was generated for, taken from pubspec.yaml.
-const String kWhatsNewGeneratedForVersion = '1.2.0';
+const String kWhatsNewGeneratedForVersion = '1.2.1';

@@ -18,6 +18,7 @@ import 'package:flutter_lucide/flutter_lucide.dart';
 import 'dart:io';
 import 'package:package_info_plus/package_info_plus.dart';
 import '../../../services/telemetry/telemetry_service.dart';
+import '../../onboarding/data/telemetry_consent_prompt.dart';
 
 /// A splash screen responsible for app-wide initialization.
 ///
@@ -165,6 +166,17 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
           )
           .catchError((e) {
         debugPrint("Standard supplement setup failed: $e");
+      }),
+      // Counts this launch towards the telemetry follow-up's threshold, and
+      // anchors installations that predate the prompt. Swallows its own
+      // errors; it must never hold up a launch.
+      () async {
+        final isOptedIn = await TelemetryService.instance.isOptedIn();
+        await TelemetryConsentPrompt.instance
+            .registerLaunch(isOptedIn: isOptedIn);
+      }()
+          .catchError((e) {
+        debugPrint("Telemetry follow-up launch registration failed: $e");
       }),
       StartupTrace.instance.measure(
         'notifications_init',

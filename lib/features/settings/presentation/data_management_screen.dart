@@ -139,7 +139,7 @@ class _DataManagementScreenState extends State<DataManagementScreen> {
       // still valid and still restore.
       allowedExtensions: ['zip', 'json'],
     );
-    if (result == null || result.files.single.path == null) return;
+    if (result.isEmpty || result.single.path == null) return;
     if (!mounted) return;
 
     final l10n = AppLocalizations.of(context)!;
@@ -154,7 +154,7 @@ class _DataManagementScreenState extends State<DataManagementScreen> {
       return;
     }
 
-    final filePath = result.files.single.path!;
+    final filePath = result.single.path!;
     final confirmed = await showDeleteConfirmation(
       context,
       title: l10n.dialogConfirmTitle,

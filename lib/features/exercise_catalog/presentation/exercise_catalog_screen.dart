@@ -13,6 +13,7 @@ import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/summary_card.dart';
 import 'create_exercise_screen.dart';
 import '../../../widgets/common/card_morph_route.dart';
+import '../../../widgets/common/morph_source.dart';
 import '../../../widgets/common/glass_fab.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../core/infrastructure/basis_data_manager.dart';
@@ -226,67 +227,79 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
                             itemCount: _foundExercises.length,
                             itemBuilder: (context, index) {
                               final exercise = _foundExercises[index];
-                              return Builder(
-                                builder: (cardCtx) => SummaryCard(
-                                  child: ListTile(
-                                    title: Row(
-                                      children: [
-                                        Expanded(
-                                          child: Text(
-                                            exercise.getLocalizedName(context),
-                                            style: const TextStyle(
-                                                fontWeight: FontWeight.bold),
+                              return MorphSourceScope(
+                                builder: (context, setHidden) => Builder(
+                                    builder: (cardCtx) {
+                                    // Handed to the morph route as the copy that flies with
+                                    // the container, so the card dissolves into the detail
+                                    // screen instead of the screen simply growing.
+                                    late final Widget card;
+                                    card = SummaryCard(
+                                      child: ListTile(
+                                        title: Row(
+                                          children: [
+                                            Expanded(
+                                              child: Text(
+                                                exercise.getLocalizedName(context),
+                                                style: const TextStyle(
+                                                    fontWeight: FontWeight.bold),
+                                              ),
+                                            ),
+                                            if (exercise.source == 'user') ...[
+                                              const SizedBox(
+                                                  width: DesignConstants.spacingS),
+                                              _buildSourceBadge(
+                                                  context, exercise.source),
+                                            ],
+                                          ],
+                                        ),
+                                        subtitle: Text(
+                                          BodySlugMapper.localize(
+                                            context,
+                                            exercise.categoryName,
                                           ),
                                         ),
-                                        if (exercise.source == 'user') ...[
-                                          const SizedBox(
-                                              width: DesignConstants.spacingS),
-                                          _buildSourceBadge(
-                                              context, exercise.source),
-                                        ],
-                                      ],
-                                    ),
-                                    subtitle: Text(
-                                      BodySlugMapper.localize(
-                                        context,
-                                        exercise.categoryName,
-                                      ),
-                                    ),
-                                    trailing: widget.isSelectionMode
-                                        ? IconButton(
-                                            tooltip: l10n.add_button,
-                                            icon: Icon(
-                                              LucideIcons.circle_plus,
-                                              color: colorScheme.primary,
-                                            ),
-                                            onPressed: () => Navigator.of(context)
-                                                .pop(exercise),
-                                          )
-                                        : const Icon(
-                                            LucideIcons.chevron_right,
-                                          ),
-                                    onTap: () {
-                                      if (widget.onExerciseSelected != null) {
-                                        widget.onExerciseSelected!(exercise);
-                                      } else if (widget.isSelectionMode) {
-                                        Navigator.of(context).pop(exercise);
-                                      } else {
-                                        Navigator.of(context).push(
-                                          CardMorphRoute(
-                                            sourceContext: cardCtx,
-                                            builder: (context) =>
-                                                ExerciseDetailScreen(
-                                                    exercise: exercise,
-                                                    repository: _repository),
-                                          ),
-                                        ).then((result) {
-                                          if (result == 'deleted') {
-                                            _runFilter(_searchController.text);
+                                        trailing: widget.isSelectionMode
+                                            ? IconButton(
+                                                tooltip: l10n.add_button,
+                                                icon: Icon(
+                                                  LucideIcons.circle_plus,
+                                                  color: colorScheme.primary,
+                                                ),
+                                                onPressed: () => Navigator.of(context)
+                                                    .pop(exercise),
+                                              )
+                                            : const Icon(
+                                                LucideIcons.chevron_right,
+                                              ),
+                                        onTap: () {
+                                          if (widget.onExerciseSelected != null) {
+                                            widget.onExerciseSelected!(exercise);
+                                          } else if (widget.isSelectionMode) {
+                                            Navigator.of(context).pop(exercise);
+                                          } else {
+                                            Navigator.of(context).push(
+                                              CardMorphRoute(
+                                                sourceContext: cardCtx,
+                                                sourceBuilder: (_) => card,
+                                                onSourceVisibilityChanged:
+                                                    setHidden,
+                                                builder: (context) =>
+                                                    ExerciseDetailScreen(
+                                                        exercise: exercise,
+                                                        repository: _repository),
+                                              ),
+                                            ).then((result) {
+                                              if (result == 'deleted') {
+                                                _runFilter(_searchController.text);
+                                              }
+                                            });
                                           }
-                                        });
-                                      }
-                                    },
-                                  ),
+                                        },
+                                      ),
+                                    );
+                                    return card;
+                                  },
                                 ),
                               );
                             },

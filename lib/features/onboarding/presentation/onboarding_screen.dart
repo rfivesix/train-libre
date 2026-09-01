@@ -617,10 +617,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       // still valid and still restore.
       allowedExtensions: ['zip', 'json'],
     );
-    if (result == null || result.files.single.path == null) return;
+    if (result.isEmpty || result.single.path == null) return;
 
     setState(() => _isRestoring = true);
-    final filePath = result.files.single.path!;
+    final filePath = result.single.path!;
 
     bool success = false;
     try {

@@ -27,6 +27,15 @@ class MealEntryCard extends StatefulWidget {
   final ValueChanged<TrackedFoodItem>? onEditItem;
   final Future<void> Function(int)? onDeleteItem;
 
+  /// Folds the sub-item list away when it flips to true, and leaves it folded.
+  ///
+  /// Set while a morph route is flying a copy of this card: the copy is a
+  /// fresh widget and therefore always collapsed, so an expanded original
+  /// would flash its list for the few frames the two overlap at the end of
+  /// the collapse. The card is off screen while this is set, so the fold
+  /// animation is never seen.
+  final bool collapsed;
+
   const MealEntryCard({
     super.key,
     required this.mealEntry,
@@ -36,6 +45,7 @@ class MealEntryCard extends StatefulWidget {
     this.onDeleteMeal,
     this.onEditItem,
     this.onDeleteItem,
+    this.collapsed = false,
   });
 
   @override
@@ -45,6 +55,14 @@ class MealEntryCard extends StatefulWidget {
 class _MealEntryCardState extends State<MealEntryCard> {
   bool _isExpanded = false;
   DeleteMealChoice? _pendingDeleteChoice;
+
+  @override
+  void didUpdateWidget(MealEntryCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.collapsed && !oldWidget.collapsed && _isExpanded) {
+      setState(() => _isExpanded = false);
+    }
+  }
 
   /// First of [paths] that actually resolves to a file on disk.
   File? _firstExisting(List<String?> paths) {

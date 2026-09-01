@@ -42,8 +42,14 @@ class AdaptiveNutritionRecommendationState {
 }
 
 class AdaptiveNutritionRecommendationService {
+  /// Bumped whenever the numbers this service produces change, so that stored
+  /// recommendations from an older model are treated as stale and recomputed
+  /// rather than shown alongside new ones (see
+  /// `AdaptiveRecommendationSnapshot.isFreshFor`).
+  ///
+  /// `1_1` moved fat off its floor onto a goal-dependent g/kg target.
   static const String algorithmVersion =
-      'tdee_adaptive_recommendation_1_0_bayesian_recursive';
+      'tdee_adaptive_recommendation_1_1_bayesian_recursive';
   static const int _phaseChangeConfirmationWindowDays = 7;
 
   final RecommendationRepository _repository;

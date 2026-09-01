@@ -656,7 +656,7 @@ class _AddFoodScreenState extends State<AddFoodScreen>
     }
     if (_recentFoodItems.isEmpty) {
       return ColdStartEmptyState(
-        icon: LucideIcons.history,
+        icon: LucideIcons.rotate_ccw_clock,
         title: l10n.nothingTrackedYet,
         subtitle: l10n.recentEmptyState,
         callToAction: '',
@@ -1215,7 +1215,7 @@ class _AddFoodScreenState extends State<AddFoodScreen>
     // Search/create caffeine supplement
     final supplements = await DatabaseHelper.instance.getAllSupplements();
     final caffeine = supplements.firstWhere(
-      (s) => (s.code == 'caffeine') || s.name.toLowerCase() == 'caffeine',
+      (s) => s.isCaffeine,
       orElse: () => Supplement(
         name: 'Caffeine',
         defaultDose: 100,

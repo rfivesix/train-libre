@@ -42,6 +42,8 @@ import '../../../services/base_food_language_service.dart';
 import '../../workout/presentation/live_workout_view_model.dart';
 import '../../whats_new/data/whats_new_service.dart';
 import '../../whats_new/presentation/whats_new_sheet.dart';
+import '../../onboarding/data/telemetry_consent_prompt.dart';
+import '../../onboarding/presentation/telemetry_consent_sheet.dart';
 import '../../../util/date_util.dart';
 import '../../../util/design_constants.dart';
 import 'widgets/glass_bottom_menu.dart';
@@ -973,7 +975,7 @@ class _MainScreenState extends State<MainScreen>
     final supplements = await DatabaseHelper.instance.getAllSupplements();
     Supplement? caffeineSupplement;
     for (final s in supplements) {
-      if ((s.code == 'caffeine') || s.name.toLowerCase() == 'caffeine') {
+      if (s.isCaffeine) {
         caffeineSupplement = s;
         break;
       }
@@ -1299,8 +1301,8 @@ class _MainScreenState extends State<MainScreen>
     return rect;
   }
 
-  /// Runs the three things that can greet the user on a cold start, one after
-  /// the other and at most one per launch.
+  /// Runs the things that can greet the user on a cold start, one after the
+  /// other and at most one per launch.
   ///
   /// They used to be fired side by side from the post-frame callback, which was
   /// harmless only because the app tour and the review prompt rarely became due
@@ -1315,6 +1317,29 @@ class _MainScreenState extends State<MainScreen>
     if (!mounted) return;
 
     await AppReviewService.instance.checkAndRequestReview(context);
+    if (!mounted) return;
+
+    await _showTelemetryFollowUpIfDue();
+  }
+
+  /// The single follow-up to a telemetry question declined during onboarding.
+  ///
+  /// Last in the chain and behind its own two-week wait, so it can never be
+  /// the second thing a user is asked in one launch. Whether it was answered,
+  /// declined or dismissed, it is marked as shown and never returns.
+  Future<void> _showTelemetryFollowUpIfDue() async {
+    final isOptedIn = await TelemetryService.instance.isOptedIn();
+    if (!await TelemetryConsentPrompt.instance
+        .isFollowUpDue(isOptedIn: isOptedIn)) {
+      return;
+    }
+    if (!mounted) return;
+
+    final optedIn = await showTelemetryConsentSheet(context) ?? false;
+    await TelemetryConsentPrompt.instance.markFollowUpShown();
+    if (optedIn) {
+      await TelemetryService.instance.optIn();
+    }
   }
 
   /// Returns `true` when the release notes were shown, so the caller can hold

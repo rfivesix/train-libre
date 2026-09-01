@@ -81,7 +81,7 @@ class _WorkoutHistoryScreenState extends State<WorkoutHistoryScreen> {
                   top: DesignConstants.cardPadding.top + topPadding,
                 ),
                 child: ColdStartEmptyState(
-                  icon: LucideIcons.history,
+                  icon: LucideIcons.rotate_ccw_clock,
                   title: l10n.workoutHistoryEmptyTitle,
                   subtitle: l10n.emptyHistory,
                   callToAction: '',
@@ -108,98 +108,109 @@ class _WorkoutHistoryScreenState extends State<WorkoutHistoryScreen> {
                 (sum, set) => sum + (set.weightKg ?? 0) * (set.reps ?? 0),
               );
 
-              return Builder(
-                builder: (cardCtx) => GlassActionableCard(
-                  dismissibleKey: Key('log_${log.id}'),
-                  confirmDelete: () async {
-                    return await showDeleteConfirmation(
-                      context,
-                      content: l10n.deleteWorkoutConfirmContent,
-                    );
-                  },
-                  onDelete: () => _deleteLog(log.id!),
-                  onTap: () => Navigator.of(context).push(
-                    CardMorphRoute(
-                      sourceContext: cardCtx,
-                      builder: (context) =>
-                          WorkoutLogDetailScreen(logId: log.id!),
-                    ),
-                  ),
-                  child: SummaryCard(
-                    child: ListTile(
-                      title: Text(
-                        log.routineName ?? l10n.freeWorkoutTitle,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                    // FIX: Subtitle is now a Column with more information.
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const SizedBox(height: 4),
-                        Text(
-                          DateFormat.yMMMMd(
-                            locale,
-                          ).add_Hm().format(log.startTime),
+              return MorphSourceScope(
+                builder: (context, setHidden) => Builder(
+                  builder: (cardCtx) {
+                    // The card the container grows out of has to be drawn
+                    // inside it as well, or the detail screen is all there
+                    // is to see from the first frame of the morph.
+                    late final Widget card;
+                    card = GlassActionableCard(
+                      dismissibleKey: Key('log_${log.id}'),
+                      confirmDelete: () async {
+                        return await showDeleteConfirmation(
+                          context,
+                          content: l10n.deleteWorkoutConfirmContent,
+                        );
+                      },
+                      onDelete: () => _deleteLog(log.id!),
+                      onTap: () => Navigator.of(context).push(
+                        CardMorphRoute(
+                          sourceContext: cardCtx,
+                          sourceBuilder: (_) => card,
+                          onSourceVisibilityChanged: setHidden,
+                          builder: (context) =>
+                              WorkoutLogDetailScreen(logId: log.id!),
                         ),
-                        const SizedBox(height: 8),
-                        Row(
+                      ),
+                      child: SummaryCard(
+                        child: ListTile(
+                          title: Text(
+                            log.routineName ?? l10n.freeWorkoutTitle,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                        // FIX: Subtitle is now a Column with more information.
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Icon(
-                              LucideIcons.scale,
-                              size: 14,
-                              color: Colors.grey[600],
+                            const SizedBox(height: 4),
+                            Text(
+                              DateFormat.yMMMMd(
+                                locale,
+                              ).add_Hm().format(log.startTime),
                             ),
-                            const SizedBox(width: 4),
-                            Flexible(
-                              child: Text(
-                                '${context.read<UnitService>().convertDisplayValue(totalVolume, UnitDimension.weight).toStringAsFixed(0)} ${context.read<UnitService>().suffixFor(UnitDimension.weight)}',
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
+                            const SizedBox(height: 8),
+                            Row(
+                              children: [
+                                Icon(
+                                  LucideIcons.scale,
+                                  size: 14,
                                   color: Colors.grey[600],
-                                  fontSize: 12,
                                 ),
-                              ),
-                            ),
-                            const SizedBox(width: DesignConstants.spacingM),
-                            Icon(
-                              LucideIcons.rotate_ccw,
-                              size: 14,
-                              color: Colors.grey[600],
-                            ),
-                            const SizedBox(width: 4),
-                            Flexible(
-                              child: Text(
-                                l10n.setCount(
-                                  totalSets,
-                                ), // Uses the plural function
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
+                                const SizedBox(width: 4),
+                                Flexible(
+                                  child: Text(
+                                    '${context.read<UnitService>().convertDisplayValue(totalVolume, UnitDimension.weight).toStringAsFixed(0)} ${context.read<UnitService>().suffixFor(UnitDimension.weight)}',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      color: Colors.grey[600],
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: DesignConstants.spacingM),
+                                Icon(
+                                  LucideIcons.rotate_ccw,
+                                  size: 14,
                                   color: Colors.grey[600],
-                                  fontSize: 12,
                                 ),
-                              ),
+                                const SizedBox(width: 4),
+                                Flexible(
+                                  child: Text(
+                                    l10n.setCount(
+                                      totalSets,
+                                    ), // Uses the plural function
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      color: Colors.grey[600],
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         ),
-                      ],
+                        trailing: duration != null
+                            ? Text(
+                                formatDuration(duration),
+                                style: TextStyle(
+                                  color: colorScheme.primary,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              )
+                            : null,
+                      ),
                     ),
-                    trailing: duration != null
-                        ? Text(
-                            formatDuration(duration),
-                            style: TextStyle(
-                              color: colorScheme.primary,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          )
-                        : null,
-                  ),
+                    );
+                    return card;
+                  },
                 ),
-              ),
-            );
+              );
           },
           );
         },

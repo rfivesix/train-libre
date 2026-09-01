@@ -153,6 +153,112 @@ void main() {
       );
     });
   });
+
+  // Fat used to be pinned to its 0.6 g/kg floor whatever the goal and whatever
+  // the calorie budget, with every remaining calorie going to carbohydrates —
+  // which is at the very bottom of the evidence-based range on a cut and below
+  // it at maintenance. It is now targeted per kilogram like protein is.
+  group('AdaptiveNutritionRecommendationEngine macro distribution', () {
+    NutritionRecommendation generate({
+      required BodyweightGoal goal,
+      double weightKg = 80,
+      int maintenanceCalories = 2600,
+      double rateKgPerWeek = 0,
+    }) {
+      return AdaptiveNutritionRecommendationEngine
+          .generateFromMaintenanceEstimate(
+        input: _input(currentWeightKg: weightKg),
+        goal: goal,
+        targetRateKgPerWeek: rateKgPerWeek,
+        generatedAt: DateTime(2026, 4, 5),
+        algorithmVersion: 'test',
+        estimatedMaintenanceCalories: maintenanceCalories,
+        confidence: RecommendationConfidence.medium,
+      );
+    }
+
+    test('targets 0.9 g fat per kg while cutting', () {
+      final recommendation = generate(
+        goal: BodyweightGoal.loseWeight,
+        rateKgPerWeek: -0.5,
+      );
+
+      expect(recommendation.recommendedFatGrams, 72); // 80 kg * 0.9
+      expect(recommendation.recommendedProteinGrams, 160); // 80 kg * 2.0
+    });
+
+    test('targets 1.0 g fat per kg at maintenance and on a bulk', () {
+      expect(
+        generate(goal: BodyweightGoal.maintainWeight).recommendedFatGrams,
+        80,
+      );
+      expect(
+        generate(goal: BodyweightGoal.gainWeight, rateKgPerWeek: 0.25)
+            .recommendedFatGrams,
+        80,
+      );
+    });
+
+    test('leaves the remaining calories to carbohydrates', () {
+      final recommendation = generate(goal: BodyweightGoal.maintainWeight);
+
+      final macroCalories = recommendation.recommendedProteinGrams * 4 +
+          recommendation.recommendedCarbsGrams * 4 +
+          recommendation.recommendedFatGrams * 9;
+
+      expect(
+        (macroCalories - recommendation.recommendedCalories).abs(),
+        lessThanOrEqualTo(4), // one carbohydrate gram of rounding
+      );
+      expect(recommendation.recommendedCarbsGrams, greaterThan(0));
+      expect(
+        recommendation.warningState.warningReasons,
+        isNot(contains('macro_distribution_constrained')),
+      );
+    });
+
+    test('gives fat back towards the floor before starving carbohydrates', () {
+      // 110 kg on 1500 kcal: protein alone is 220 g, and fat at target would
+      // leave nothing for carbohydrates.
+      final recommendation = generate(
+        goal: BodyweightGoal.loseWeight,
+        weightKg: 110,
+        maintenanceCalories: 1500,
+      );
+
+      final floor = (110 * 0.60).round();
+      expect(recommendation.recommendedFatGrams, greaterThanOrEqualTo(floor));
+      expect(recommendation.recommendedFatGrams, lessThan((110 * 0.9).round()));
+      expect(recommendation.recommendedCarbsGrams, greaterThanOrEqualTo(0));
+    });
+
+    test('flags a distribution it cannot satisfy at all', () {
+      // Nothing fits here: the calorie floor is 1200 and protein alone claims
+      // more than that.
+      final recommendation = generate(
+        goal: BodyweightGoal.loseWeight,
+        weightKg: 160,
+        maintenanceCalories: 1200,
+        rateKgPerWeek: -1.0,
+      );
+
+      expect(
+        recommendation.warningState.warningReasons,
+        contains('macro_distribution_constrained'),
+      );
+      expect(recommendation.recommendedFatGrams, greaterThanOrEqualTo(25));
+      expect(recommendation.recommendedCarbsGrams, 0);
+    });
+
+    test('falls back to a default body weight when none is known', () {
+      final recommendation = generate(
+        goal: BodyweightGoal.maintainWeight,
+        weightKg: 0,
+      );
+
+      expect(recommendation.recommendedFatGrams, 75); // 75 kg * 1.0
+    });
+  });
 }
 
 RecommendationGenerationInput _input({

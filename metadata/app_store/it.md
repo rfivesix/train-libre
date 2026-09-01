@@ -56,15 +56,9 @@ OPEN SOURCE E DATI APERTI:
 Sviluppato in modo trasparente sui database aperti e affidabili di Open Food Facts e wger. Il codice sorgente completo è pubblicamente accessibile: le nostre promesse sulla privacy si verificano, non si prendono per buone.
 
 ## Release Notes (What's New / Release Notes in this version)
-Registra un pasto da una foto: inquadra il piatto e l'IA lo trasforma in singoli alimenti con quantità, calorie e macro, tutto correggibile prima di salvare. I prodotti confezionati vengono riconosciuti dal codice a barre nella stessa schermata, gli iPhone con LiDAR misurano la porzione invece di stimarla e il pulsante del microfono ti fa aggiungere ciò che una foto non mostra.
+Raccomandazioni dei macronutrienti migliorate: il calcolo adattivo distribuisce ora grassi e carboidrati in modo più bilanciato in base al peso corporeo e all'obiettivo.
 
-Un diario più chiaro: un pasto scansionato resta una sola voce con la sua foto e si espande sui suoi ingredienti. Le voci sono ordinate per calorie, dalle più alte.
-
-Di più dai tuoi allenamenti: conserva fino a 4 foto per sessione e la barra sopra la navigazione mostra sempre se stai lavorando o recuperando e quale esercizio viene dopo. Un tocco fa crescere l'allenamento dalla barra.
-
-Le tue foto nel backup iCloud: il backup automatico porta con sé anche le foto dei tuoi pasti e dei tuoi allenamenti. Il ripristino non richiede più un riavvio e conserva il backup precedente come copia di riserva.
-
-Uso più fluido: le schede si aprono a schermo intero invece di cambiare di scatto, i numeri si contano da soli e gli esercizi rimossi si richiudono con delicatezza invece di sparire di colpo.
+Correzione di bug: risolti piccoli problemi con la registrazione della caffeina nel diario e migliorate le transizioni e le animazioni delle schede.
 
 ## Support URL (Support Web Page URL)
 https://rfivesix.github.io/train-libre/support.html

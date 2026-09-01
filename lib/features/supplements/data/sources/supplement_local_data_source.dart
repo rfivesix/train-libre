@@ -398,28 +398,73 @@ class SupplementLocalDataSource {
         .go();
   }
 
+  /// Makes sure the built-in supplements exist and carry their canonical code.
+  ///
+  /// Deliberately per-code rather than "seed once if the table is empty": a
+  /// user who created a single supplement of their own would otherwise never
+  /// receive the caffeine row, and everything that logs caffeine looks that
+  /// row up by code. Rows seeded before the `code` column existed are
+  /// back-filled instead of duplicated — `code` is unique, and their dose,
+  /// goal and limit may have been edited by the user.
   Future<void> ensureStandardSupplements() async {
     final rows = await dbInstance.select(dbInstance.supplements).get();
-    if (rows.isEmpty) {
-      final now = DateTime.now();
-      await dbInstance.batch((batch) {
-        batch.insertAll(dbInstance.supplements, [
-          db.SupplementsCompanion.insert(
-              name: 'Creatine',
-              dose: 5.0,
-              unit: 'g',
+    final now = DateTime.now();
+
+    Future<void> ensure({
+      required String code,
+      required bool Function(String? code, String name) matches,
+      required String name,
+      required double dose,
+      required String unit,
+    }) async {
+      if (rows.any((r) => r.code == code)) return;
+
+      db.Supplement? legacy;
+      for (final r in rows) {
+        if (r.code == null && matches(r.code, r.name)) {
+          legacy = r;
+          break;
+        }
+      }
+
+      if (legacy != null) {
+        await (dbInstance.update(dbInstance.supplements)
+              ..where((tbl) => tbl.localId.equals(legacy!.localId)))
+            .write(db.SupplementsCompanion(
+          code: drift.Value(code),
+          updatedAt: drift.Value(now),
+        ));
+        return;
+      }
+
+      await dbInstance.into(dbInstance.supplements).insert(
+            db.SupplementsCompanion.insert(
+              name: name,
+              dose: dose,
+              unit: unit,
+              code: drift.Value(code),
               createdAt: drift.Value(now),
-              updatedAt: drift.Value(now)),
-          db.SupplementsCompanion.insert(
-              name: 'Caffeine',
-              dose: 100.0,
-              unit: 'mg',
-              code: const drift.Value('caffeine'),
-              createdAt: drift.Value(now),
-              updatedAt: drift.Value(now)),
-        ]);
-      });
+              updatedAt: drift.Value(now),
+            ),
+          );
     }
+
+    await ensure(
+      code: Supplement.creatineCode,
+      matches: (code, name) =>
+          Supplement.matchesCreatine(code: code, name: name),
+      name: 'Creatine',
+      dose: 5.0,
+      unit: 'g',
+    );
+    await ensure(
+      code: Supplement.caffeineCode,
+      matches: (code, name) =>
+          Supplement.matchesCaffeine(code: code, name: name),
+      name: 'Caffeine',
+      dose: 100.0,
+      unit: 'mg',
+    );
   }
 
   Future<List<SupplementLog>> getAllSupplementLogsForBackup() async {

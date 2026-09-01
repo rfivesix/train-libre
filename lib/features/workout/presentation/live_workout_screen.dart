@@ -9,6 +9,7 @@ import '../../../util/design_constants.dart';
 import '../../app/presentation/widgets/glass_bottom_menu.dart';
 import '../../../widgets/common/glass_fab.dart';
 import '../../../widgets/common/card_morph_route.dart';
+import '../../../widgets/common/morph_source.dart';
 import '../data/sources/workout_local_data_source.dart';
 import '../../../generated/app_localizations.dart';
 import '../../exercise_catalog/domain/models/exercise.dart';
@@ -458,18 +459,25 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
               onPointerCancel: _onDragPointerCancel,
               child: ReorderableDelayedDragStartListener(
                 index: index,
-                child: Builder(
-                  builder: (titleCtx) => InkWell(
-                    onTap: () => Navigator.of(context).push(
-                      CardMorphRoute(
-                        sourceContext: titleCtx,
-                        sourceBorderRadius: 12.0,
-                        builder: (context) => ExerciseDetailScreen(
-                          exercise: routineExercise.exercise,
+                child: MorphSourceScope(
+                  builder: (context, setHidden) => Builder(
+                    builder: (titleCtx) => InkWell(
+                      onTap: () => Navigator.of(context).push(
+                        CardMorphRoute(
+                          sourceContext: titleCtx,
+                          sourceBorderRadius: 12.0,
+                          // The title flies inside the container, so the
+                          // detail screen dissolves out of it instead of being
+                          // the only thing drawn while the container grows.
+                          sourceBuilder: (_) => titleContent,
+                          onSourceVisibilityChanged: setHidden,
+                          builder: (context) => ExerciseDetailScreen(
+                            exercise: routineExercise.exercise,
+                          ),
                         ),
                       ),
+                      child: titleContent,
                     ),
-                    child: titleContent,
                   ),
                 ),
               ),

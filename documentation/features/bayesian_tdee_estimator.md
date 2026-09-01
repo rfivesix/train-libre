@@ -102,6 +102,9 @@ Posterior variance is kept above a floor of 1.0:
 
 $$\text{clamp}(P_t, \, 1.0, \, V_{\text{cap}})$$
 
+### Step 3.4: Handover to the Macronutrient Distribution
+The clamped posterior is the end of this document's scope. The calorie target derived from it — the posterior plus the goal's rate adjustment — is handed to a separate, deterministic stage that resolves it into protein, carbohydrate, and fat. That stage observes no logging history and holds no state; it is a pure function of the calorie target, body weight, and goal. See the [**Macronutrient Distribution Documentation**](macro_distribution.md).
+
 ---
 
 ## 4. History-Based Adaptive Calibration

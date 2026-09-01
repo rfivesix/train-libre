@@ -300,6 +300,26 @@ class _CardMorphTransition extends StatefulWidget {
 class _CardMorphTransitionState extends State<_CardMorphTransition> {
   bool _isDragging = false;
 
+  /// The copy of the source, built exactly once.
+  ///
+  /// A [CardMorphRoute.sourceBuilder] closes over the screen it came from, and
+  /// that screen is free to rebuild while the morph is still in flight — or to
+  /// replace its whole subtree with a spinner, which is what a screen holding
+  /// its content in a `FutureBuilder` does when it reloads. Several reload on
+  /// the push future, and that future completes the moment the pop starts, not
+  /// the moment the collapse lands: the source's elements are then deactivated
+  /// for the rest of the collapse, and calling the builder again would look up
+  /// a deactivated widget's ancestor on every frame.
+  ///
+  /// The widget the builder returned the first time is an immutable
+  /// description and stays valid however the screen below changes, so it is
+  /// built once — on the frame after the push, while the source is
+  /// unquestionably alive — and reused for the whole flight. That is also what
+  /// the copy should be: the card as it looked when it was left, not as the
+  /// screen underneath has since rebuilt it.
+  Widget? _sourceCopy;
+  bool _sourceCopyBuilt = false;
+
   void _handleDragStart(DragStartDetails details) {
     if (details.globalPosition.dx <= 40.0 && widget.animation.isCompleted) {
       _isDragging = true;
@@ -327,12 +347,17 @@ class _CardMorphTransitionState extends State<_CardMorphTransition> {
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
 
-    final Widget? source = widget.sourceBuilder != null
-        ? Material(
-            type: MaterialType.transparency,
-            child: widget.sourceBuilder!(context),
-          )
-        : null;
+    if (!_sourceCopyBuilt) {
+      _sourceCopyBuilt = true;
+      final WidgetBuilder? builder = widget.sourceBuilder;
+      _sourceCopy = builder == null
+          ? null
+          : Material(
+              type: MaterialType.transparency,
+              child: builder(context),
+            );
+    }
+    final Widget? source = _sourceCopy;
 
     return GestureDetector(
       behavior: HitTestBehavior.translucent,

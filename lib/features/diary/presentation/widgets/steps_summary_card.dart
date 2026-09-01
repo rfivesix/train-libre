@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../../../generated/app_localizations.dart';
 import '../../../../util/design_constants.dart';
 import '../../../../widgets/common/card_morph_route.dart';
+import '../../../../widgets/common/morph_source.dart';
 import '../../../../widgets/common/glass_progress_bar.dart';
 import '../../../../widgets/common/summary_card.dart';
 import '../../../steps/presentation/steps_module_screen.dart';
@@ -81,35 +82,38 @@ class StepsSummaryCard extends StatelessWidget {
           child: Padding(
             padding:
                 const EdgeInsets.symmetric(vertical: DesignConstants.spacingXS),
-            child: Builder(
-              builder: (sourceCtx) {
-                Widget buildBar() => GlassProgressBar(
-                      label: l10n.steps,
-                      unit: 'steps',
-                      value: (data.stepsForSelectedDay ?? 0).toDouble(),
-                      target: target,
-                      color: theme.colorScheme.primary,
-                      height: 54,
-                      borderRadius: DesignConstants.borderRadiusL,
-                    );
+            child: MorphSourceScope(
+              builder: (context, setHidden) => Builder(
+                builder: (sourceCtx) {
+                  Widget buildBar() => GlassProgressBar(
+                        label: l10n.steps,
+                        unit: 'steps',
+                        value: (data.stepsForSelectedDay ?? 0).toDouble(),
+                        target: target,
+                        color: theme.colorScheme.primary,
+                        height: 54,
+                        borderRadius: DesignConstants.borderRadiusL,
+                      );
 
-                return GestureDetector(
-                  onTap: () {
-                    Navigator.of(context).push(
-                      CardMorphRoute(
-                        sourceContext: sourceCtx,
-                        sourceBuilder: (_) => buildBar(),
-                        sourceBorderRadius: DesignConstants.borderRadiusL,
-                        builder: (_) => StepsModuleScreen(
-                          initialScope: StepsScope.day,
-                          initialDate: data.selectedDate,
+                  return GestureDetector(
+                    onTap: () {
+                      Navigator.of(context).push(
+                        CardMorphRoute(
+                          sourceContext: sourceCtx,
+                          sourceBuilder: (_) => buildBar(),
+                          sourceBorderRadius: DesignConstants.borderRadiusL,
+                          onSourceVisibilityChanged: setHidden,
+                          builder: (_) => StepsModuleScreen(
+                            initialScope: StepsScope.day,
+                            initialDate: data.selectedDate,
+                          ),
                         ),
-                      ),
-                    );
-                  },
-                  child: buildBar(),
-                );
-              },
+                      );
+                    },
+                    child: buildBar(),
+                  );
+                },
+              ),
             ),
           ),
         );

@@ -6,6 +6,7 @@ import '../../domain/models/set_log.dart';
 import '../../../exercise_catalog/domain/models/exercise.dart';
 import '../../../exercise_catalog/presentation/exercise_detail_screen.dart';
 import '../../../../widgets/common/card_morph_route.dart';
+import '../../../../widgets/common/morph_source.dart';
 import 'workout_card.dart';
 import 'workout_log_set_row.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
@@ -66,6 +67,37 @@ class WorkoutExerciseLogCard extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final textTheme = Theme.of(context).textTheme;
 
+    // Shared by the edit and the read-only branch below, and handed to the
+    // morph route as the copy that flies inside the growing container — the
+    // detail screen then dissolves out of the title instead of being drawn
+    // over it from the first frame.
+    final title = Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Text(
+        exercise?.getLocalizedName(context) ?? exerciseName,
+        style: textTheme.titleLarge?.copyWith(
+          fontWeight: FontWeight.bold,
+          color: isDraggedItem ? Theme.of(context).colorScheme.primary : null,
+        ),
+      ),
+    );
+
+    void openDetail(
+      BuildContext titleCtx,
+      MorphSourceVisibilityCallback setHidden,
+    ) {
+      if (exercise == null) return;
+      Navigator.of(titleCtx).push(
+        CardMorphRoute(
+          sourceContext: titleCtx,
+          sourceBorderRadius: 12.0,
+          sourceBuilder: (_) => title,
+          onSourceVisibilityChanged: setHidden,
+          builder: (context) => ExerciseDetailScreen(exercise: exercise!),
+        ),
+      );
+    }
+
     return WorkoutCard(
       key: isEditMode ? ValueKey(exerciseName) : null,
       child: Column(
@@ -85,61 +117,21 @@ class WorkoutExerciseLogCard extends StatelessWidget {
                     onPointerCancel: onPointerCancel,
                     child: ReorderableDelayedDragStartListener(
                       index: index,
-                      child: Builder(
-                        builder: (titleCtx) => InkWell(
-                          onTap: () {
-                            if (exercise != null) {
-                              Navigator.of(context).push(
-                                CardMorphRoute(
-                                  sourceContext: titleCtx,
-                                  sourceBorderRadius: 12.0,
-                                  builder: (context) =>
-                                      ExerciseDetailScreen(exercise: exercise!),
-                                ),
-                              );
-                            }
-                          },
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 4.0),
-                            child: Text(
-                              exercise?.getLocalizedName(context) ?? exerciseName,
-                              style: textTheme.titleLarge?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: isDraggedItem
-                                    ? Theme.of(context).colorScheme.primary
-                                    : null,
-                              ),
-                            ),
+                      child: MorphSourceScope(
+                        builder: (context, setHidden) => Builder(
+                          builder: (titleCtx) => InkWell(
+                            onTap: () => openDetail(titleCtx, setHidden),
+                            child: title,
                           ),
                         ),
                       ),
                     ),
                   )
-                : Builder(
-                    builder: (titleCtx) => InkWell(
-                      onTap: () {
-                        if (exercise != null) {
-                          Navigator.of(context).push(
-                            CardMorphRoute(
-                              sourceContext: titleCtx,
-                              sourceBorderRadius: 12.0,
-                              builder: (context) =>
-                                  ExerciseDetailScreen(exercise: exercise!),
-                            ),
-                          );
-                        }
-                      },
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 4.0),
-                        child: Text(
-                          exercise?.getLocalizedName(context) ?? exerciseName,
-                          style: textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: isDraggedItem
-                                ? Theme.of(context).colorScheme.primary
-                                : null,
-                          ),
-                        ),
+                : MorphSourceScope(
+                    builder: (context, setHidden) => Builder(
+                      builder: (titleCtx) => InkWell(
+                        onTap: () => openDetail(titleCtx, setHidden),
+                        child: title,
                       ),
                     ),
                   ),

@@ -6,6 +6,12 @@
   Newest version first. Regenerate with: python3 script/build_whats_new.py
 -->
 
+## 1.2.1 (2026-09-01)
+
+{utensils} Improved macronutrient recommendations: The adaptive nutrition calculation now distributes fats and carbohydrates in a more balanced way based on your body weight and goal.
+
+{bug} Bug fixes: Fixed minor issues with caffeine logging in the diary and resolved visual glitches during card transitions and animations.
+
 ## 1.2.0 (2026-08-30)
 
 {camera} Log a meal from a photo: Point the camera at your plate and the AI turns it into individual foods with amounts, calories and macros - all correctable before you save. Packaged products are recognised by barcode in the very same view, iPhones with LiDAR measure the portion instead of guessing it, and the microphone button lets you add what a photo cannot show.

@@ -142,6 +142,10 @@ class _PerformanceDiagnosticsScreenState
     if (confirmed != true) return;
 
     await _recorder.reset();
+    // The startup section renders from a separate, separately persisted
+    // source, so resetting the jank recorder alone leaves the cold-start and
+    // resume runs standing after the user has cleared the log.
+    await StartupTrace.instance.reset();
     if (!mounted) return;
     setState(() => _snapshot = _recorder.snapshot());
     ScaffoldMessenger.of(context).showSnackBar(

@@ -460,7 +460,7 @@ class DiaryViewModel extends ChangeNotifier {
     final supplements = await _supplementRepo.getAllSupplements();
     Supplement? caffeineSupplement;
     for (final s in supplements) {
-      if ((s.code == 'caffeine') || s.name.toLowerCase() == 'caffeine') {
+      if (s.isCaffeine) {
         caffeineSupplement = s;
         break;
       }

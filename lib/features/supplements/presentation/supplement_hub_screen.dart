@@ -17,6 +17,7 @@ import '../../../widgets/common/summary_card.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../widgets/common/app_button.dart';
 import '../../../widgets/common/glass_actionable_card.dart';
+import '../../../widgets/common/morph_source.dart';
 import 'dart:async';
 import '../../../services/telemetry/telemetry_service.dart';
 
@@ -66,10 +67,17 @@ class _SupplementHubScreenState extends State<SupplementHubScreen> {
     });
   }
 
-  Future<void> _navigateToEdit(Supplement s, {BuildContext? sourceContext}) async {
+  Future<void> _navigateToEdit(
+    Supplement s, {
+    BuildContext? sourceContext,
+    WidgetBuilder? sourceBuilder,
+    MorphSourceVisibilityCallback? onSourceVisibilityChanged,
+  }) async {
     final changed = await Navigator.of(context).push<bool>(
       CardMorphRoute(
         sourceContext: sourceContext,
+        sourceBuilder: sourceBuilder,
+        onSourceVisibilityChanged: onSourceVisibilityChanged,
         builder: (_) => CreateSupplementScreen(
             supplementToEdit: s, repository: _repository),
       ),
@@ -142,48 +150,61 @@ class _SupplementHubScreenState extends State<SupplementHubScreen> {
   }
 
   Widget _tile(Supplement s, AppLocalizations l10n) {
-    final isBuiltin = s.isBuiltin ||
-        s.code == 'caffeine' ||
-        s.name.toLowerCase() == 'caffeine';
+    final isBuiltin = s.isBuiltin || s.isCaffeine;
     final title = localizeSupplementName(s, l10n);
 
-    return Builder(
-      builder: (cardCtx) {
-        final content = SummaryCard(
-          child: ListTile(
-            leading: SizedBox(
-              height: double.infinity,
-              child: Icon(
-                s.isTracked ? LucideIcons.circle_check : LucideIcons.circle,
-                color: s.isTracked ? Colors.green : Colors.grey,
+    return MorphSourceScope(
+      builder: (context, setHidden) => Builder(
+        builder: (cardCtx) {
+          // `late` because the tile's own onTap hands this widget back to the
+          // morph route as the source copy to fly with.
+          late final Widget content;
+          content = SummaryCard(
+            child: ListTile(
+              leading: SizedBox(
+                height: double.infinity,
+                child: Icon(
+                  s.isTracked ? LucideIcons.circle_check : LucideIcons.circle,
+                  color: s.isTracked ? Colors.green : Colors.grey,
+                ),
+              ),
+              title: Text(title),
+              subtitle: (s.dailyGoal != null || s.dailyLimit != null)
+                  ? Text(
+                      [
+                        if (s.dailyGoal != null)
+                          '${l10n.dailyGoalLabel}: ${s.dailyGoal} ${s.unit}',
+                        if (s.dailyLimit != null)
+                          '${l10n.dailyLimitLabel}: ${s.dailyLimit} ${s.unit}',
+                      ].join('  •  '),
+                    )
+                  : null,
+              trailing: isBuiltin ? null : const Icon(LucideIcons.chevron_right),
+              onTap: () => _navigateToEdit(
+                s,
+                sourceContext: cardCtx,
+                sourceBuilder: (_) => content,
+                onSourceVisibilityChanged: setHidden,
               ),
             ),
-            title: Text(title),
-            subtitle: (s.dailyGoal != null || s.dailyLimit != null)
-                ? Text(
-                    [
-                      if (s.dailyGoal != null)
-                        '${l10n.dailyGoalLabel}: ${s.dailyGoal} ${s.unit}',
-                      if (s.dailyLimit != null)
-                        '${l10n.dailyLimitLabel}: ${s.dailyLimit} ${s.unit}',
-                    ].join('  •  '),
-                  )
-                : null,
-            trailing: isBuiltin ? null : const Icon(LucideIcons.chevron_right),
-            onTap: () => _navigateToEdit(s, sourceContext: cardCtx),
-          ),
-        );
+          );
 
-        if (isBuiltin) return content;
+          if (isBuiltin) return content;
 
-        return GlassActionableCard(
-          dismissibleKey: Key('supp_${s.id}'),
-          onEdit: () => _navigateToEdit(s, sourceContext: cardCtx),
-          onDelete: () => _delete(s),
-          confirmDelete: () async => false,
-          child: content,
-        );
-      },
+          return GlassActionableCard(
+            dismissibleKey: Key('supp_${s.id}'),
+            onEdit: () => _navigateToEdit(
+              s,
+              sourceContext: cardCtx,
+              sourceBuilder: (_) => content,
+              onSourceVisibilityChanged: setHidden,
+            ),
+            onDelete: () => _delete(s),
+            confirmDelete: () async => false,
+            child: content,
+          );
+        },
+      ),
     );
   }
 
