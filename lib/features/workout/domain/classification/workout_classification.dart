@@ -94,8 +94,12 @@ class WorkoutClassification {
     required String? categoryName,
     required String? exerciseNameSnapshot,
     required int reps,
+    int durationSeconds = 0,
   }) {
-    if (reps <= 0) return false;
+    // A set counts as performed if it recorded either. Reps alone was fine
+    // while every exercise was logged in reps; a plank logged in seconds is
+    // still a set.
+    if (reps <= 0 && durationSeconds <= 0) return false;
     if (looksLikeCardioToken(setType)) return false;
 
     final normalizedModality = normalizeAnalyticsToken(modality);
@@ -116,8 +120,9 @@ class WorkoutClassification {
     required String? nameEn,
     required String? exerciseNameSnapshot,
     required int reps,
+    int durationSeconds = 0,
   }) {
-    if (reps <= 0) return false;
+    if (reps <= 0 && durationSeconds <= 0) return false;
 
     if (looksLikeCardioToken(setType)) return false;
 

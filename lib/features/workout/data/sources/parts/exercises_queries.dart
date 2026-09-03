@@ -677,6 +677,9 @@ $_kBestTranslationJoinSql
           WorkoutLocalDataSource._parseMuscleList(rawExercise.musclesPrimary),
       secondaryMuscles:
           WorkoutLocalDataSource._parseMuscleList(rawExercise.musclesSecondary),
+      trackingType: rawExercise.trackingType,
+      loadMode: rawExercise.loadMode,
+      supportsAddedWeight: rawExercise.supportsAddedWeight,
     );
   }
 
@@ -729,6 +732,9 @@ $_kBestTranslationJoinSql
         for (final m in muscleRows)
           if (m.role != 'primary') m.muscleId,
       ],
+      trackingType: row.trackingType,
+      loadMode: row.loadMode,
+      supportsAddedWeight: row.supportsAddedWeight,
     );
   }
 }

@@ -303,7 +303,7 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
   }
 
   bool _isCardio(RoutineExercise re) {
-    return re.exercise.categoryName.toLowerCase() == 'cardio';
+    return re.exercise.isCardio;
   }
 
   /// Expands the cards once the drop animation and the reorder have finished.
@@ -405,7 +405,7 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
 
     if (selectedExercise != null && _routineId != null) {
       // FIX: Check cardio before adding.
-      final isCardio = selectedExercise.categoryName.toLowerCase() == 'cardio';
+      final isCardio = selectedExercise.isCardio;
       final initialSetCount = isCardio ? 1 : 3;
 
       final newRoutineExercise =
@@ -508,7 +508,7 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                     final unitService = context.read<UnitService>();
                     return unitService.convertToMetric(
                         raw,
-                        re.exercise.categoryName.toLowerCase() == 'cardio'
+                        re.exercise.isCardio
                             ? UnitDimension.distance
                             : UnitDimension.weight);
                   })(),

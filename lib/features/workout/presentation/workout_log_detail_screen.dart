@@ -271,7 +271,7 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
 
   bool _isCardio(String exerciseName) {
     final ex = _exerciseDetails[exerciseName];
-    return ex?.categoryName.toLowerCase() == 'cardio';
+    return ex?.isCardio ?? false;
   }
 
   /// Expands the cards once the drop animation and the reorder have finished.
@@ -347,8 +347,7 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
     _clearControllers();
     for (final setLog in data.sets) {
       // Distinguish cardio vs strength for initial values
-      final isCardio =
-          details[setLog.exerciseName]?.categoryName.toLowerCase() == 'cardio';
+      final isCardio = details[setLog.exerciseName]?.isCardio ?? false;
 
       String val1, val2;
 

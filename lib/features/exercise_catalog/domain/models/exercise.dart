@@ -56,8 +56,112 @@ class Exercise {
   final List<String> primaryMuscleIds;
   final List<String> secondaryMuscleIds;
 
+  /// Shape of the log mask: weight_reps, bodyweight_reps, time, time_weight,
+  /// distance_time, distance_only. Null before schema v2 and for user-created
+  /// exercises, where [categoryName] still decides.
+  final String? trackingType;
+
+  /// What the logged number means: external, bodyweight, assisted, variable.
+  ///
+  /// `assisted` is the one that matters: on an assistance machine the number
+  /// is a *reduction* of resistance, so more kilos is easier. Read as load, an
+  /// e1RM curve runs exactly backwards and nothing looks wrong.
+  final String? loadMode;
+
+  /// Whether a belt or a dumbbell between the feet is a real option here.
+  final bool supportsAddedWeight;
+
   /// Whether this exercise is categorized as Cardio.
-  bool get isCardio => categoryName.trim().toLowerCase() == 'cardio';
+  ///
+  /// Kept as a name because a lot of call sites ask this question, but it is
+  /// now answered by [trackingType] where the catalog has one: `category_name`
+  /// conflates body region with training type, which is why a rowing machine
+  /// and a rowing barbell movement were the same word.
+  bool get isCardio {
+    switch (trackingType) {
+      case 'distance_time':
+      case 'distance_only':
+        return true;
+      case 'weight_reps':
+      case 'bodyweight_reps':
+      case 'time_weight':
+        return false;
+      case 'time':
+        // A plank and a treadmill both log a duration. Only the category can
+        // still tell them apart, and for `time` it is not misleading.
+        return categoryName.trim().toLowerCase() == 'cardio';
+    }
+    return categoryName.trim().toLowerCase() == 'cardio';
+  }
+
+  /// Whether the log mask offers a weight field.
+  ///
+  /// `bodyweight_reps` gets one only when the exercise supports added weight —
+  /// a weighted pull-up is a real thing, a weighted push-up mostly is not.
+  bool get logsWeight {
+    switch (trackingType) {
+      case 'weight_reps':
+      case 'time_weight':
+        return true;
+      case 'bodyweight_reps':
+        return supportsAddedWeight;
+      case 'time':
+      case 'distance_time':
+      case 'distance_only':
+        return false;
+    }
+    return !isCardio;
+  }
+
+  bool get logsReps {
+    switch (trackingType) {
+      case 'weight_reps':
+      case 'bodyweight_reps':
+        return true;
+      case 'time':
+      case 'time_weight':
+      case 'distance_time':
+      case 'distance_only':
+        return false;
+    }
+    return !isCardio;
+  }
+
+  bool get logsDuration {
+    switch (trackingType) {
+      case 'time':
+      case 'time_weight':
+      case 'distance_time':
+        return true;
+      case 'weight_reps':
+      case 'bodyweight_reps':
+      case 'distance_only':
+        return false;
+    }
+    return isCardio;
+  }
+
+  bool get logsDistance {
+    switch (trackingType) {
+      case 'distance_time':
+      case 'distance_only':
+        return true;
+      case 'weight_reps':
+      case 'bodyweight_reps':
+      case 'time':
+      case 'time_weight':
+        return false;
+    }
+    return isCardio;
+  }
+
+  /// Whether a bigger logged number means a harder set.
+  ///
+  /// False on an assistance machine, where it means the opposite. Progression
+  /// and e1RM must not be computed from a number whose direction they have
+  /// backwards; refusing to compute is the honest answer, and a wrong curve
+  /// nobody can see is the alternative.
+  bool get weightMeansResistance => loadMode != 'assisted';
 
   /// Creates a new [Exercise] instance.
   const Exercise({
@@ -71,6 +175,9 @@ class Exercise {
     required this.secondaryMuscles,
     this.primaryMuscleIds = const [],
     this.secondaryMuscleIds = const [],
+    this.trackingType,
+    this.loadMode,
+    this.supportsAddedWeight = false,
     this.imagePath,
   });
 
@@ -90,6 +197,9 @@ class Exercise {
     required this.secondaryMuscles,
     this.primaryMuscleIds = const [],
     this.secondaryMuscleIds = const [],
+    this.trackingType,
+    this.loadMode,
+    this.supportsAddedWeight = false,
     this.imagePath,
   }) : texts = {
           languageCode: ExerciseText(name: name, description: description),
@@ -221,6 +331,9 @@ class Exercise {
     List<String>? secondaryMuscles,
     List<String>? primaryMuscleIds,
     List<String>? secondaryMuscleIds,
+    String? trackingType,
+    String? loadMode,
+    bool? supportsAddedWeight,
   }) {
     return Exercise(
       id: id ?? this.id,
@@ -234,6 +347,9 @@ class Exercise {
       secondaryMuscles: secondaryMuscles ?? this.secondaryMuscles,
       primaryMuscleIds: primaryMuscleIds ?? this.primaryMuscleIds,
       secondaryMuscleIds: secondaryMuscleIds ?? this.secondaryMuscleIds,
+      trackingType: trackingType ?? this.trackingType,
+      loadMode: loadMode ?? this.loadMode,
+      supportsAddedWeight: supportsAddedWeight ?? this.supportsAddedWeight,
     );
   }
 
@@ -256,6 +372,9 @@ class Exercise {
       secondaryMuscles: List.from(original.secondaryMuscles),
       primaryMuscleIds: List.from(original.primaryMuscleIds),
       secondaryMuscleIds: List.from(original.secondaryMuscleIds),
+      trackingType: original.trackingType,
+      loadMode: original.loadMode,
+      supportsAddedWeight: original.supportsAddedWeight,
     );
   }
 

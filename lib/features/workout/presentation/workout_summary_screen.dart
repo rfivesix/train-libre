@@ -110,7 +110,7 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
           detailsMap[name] = exercise;
         }
 
-        final isCardio = exercise?.categoryName.toLowerCase() == 'cardio';
+        final isCardio = exercise?.isCardio ?? false;
 
         if (isCardio) {
           double totalDist = 0;

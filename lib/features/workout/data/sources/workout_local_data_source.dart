@@ -50,6 +50,7 @@ class MuscleContributionRawData {
   final String? setType;
   final String? exerciseNameSnapshot;
   final int reps;
+  final int durationSeconds;
 
   MuscleContributionRawData({
     required this.startTime,
@@ -60,6 +61,7 @@ class MuscleContributionRawData {
     this.setType,
     this.exerciseNameSnapshot,
     this.reps = 0,
+    this.durationSeconds = 0,
   });
 }
 
@@ -124,6 +126,7 @@ class WorkoutLocalDataSource {
       nameEn: null,
       exerciseNameSnapshot: setRow.exerciseNameSnapshot,
       reps: setRow.reps ?? 0,
+      durationSeconds: setRow.durationSeconds ?? 0,
     );
   }
 

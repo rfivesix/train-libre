@@ -418,7 +418,7 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
 
   // --- Cardio check helper ---
   bool _isCardio(RoutineExercise re) {
-    return re.exercise.categoryName.toLowerCase() == 'cardio';
+    return re.exercise.isCardio;
   }
 
   Widget _buildExerciseCardHeader(

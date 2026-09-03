@@ -599,7 +599,10 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
         (re) => re.setTemplates.any((t) => t.id == templateId),
         orElse: () => _exercises.first,
       );
-      final isCardio = exercise.exercise.categoryName.toLowerCase() == 'cardio';
+      // Was a direct category_name comparison, which is a body region as
+      // often as it is a training type. Exercise.isCardio now answers from
+      // tracking_type where the catalog has one.
+      final isCardio = exercise.exercise.isCardio;
 
       if (!weightControllers.containsKey(templateId)) {
         String initText;
@@ -907,7 +910,7 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
 
   Future<void> addExercise(Exercise exercise) async {
     final tempReId = _nextSyntheticId(_allRoutineExerciseIds());
-    final isCardio = exercise.categoryName.toLowerCase() == 'cardio';
+    final isCardio = exercise.isCardio;
     final initialSetCount = isCardio ? 1 : 3;
     final initialReps = isCardio ? '' : '10';
 

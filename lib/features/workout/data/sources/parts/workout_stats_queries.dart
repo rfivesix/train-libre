@@ -763,8 +763,15 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
       ..where(
         dbInstance.setLogs.isCompleted.equals(true) &
             dbInstance.setLogs.setType.isNotIn(['warmup']) &
-            dbInstance.setLogs.weight.isBiggerThanValue(0) &
-            dbInstance.setLogs.reps.isBiggerThanValue(0) &
+            // Was `weight > 0 AND reps > 0`. That held only as long as every
+            // exercise was logged with weight and reps; once tracking_type
+            // drives the mask, 253 bodyweight exercises have no weight field
+            // and 154 have no reps field, and this predicate would delete
+            // every pull-up and every plank from the muscle statistics without
+            // a trace. What makes a set count is now the exercise's modality,
+            // checked below — this only asks whether anything was performed.
+            (dbInstance.setLogs.reps.isBiggerThanValue(0) |
+                dbInstance.setLogs.durationSeconds.isBiggerThanValue(0)) &
             dbInstance.workoutLogs.status.equals('completed') &
             dbInstance.workoutLogs.startTime.isBetweenValues(
               since,
@@ -795,6 +802,7 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
         setType: setRow.setType,
         exerciseNameSnapshot: setRow.exerciseNameSnapshot,
         reps: setRow.reps ?? 0,
+        durationSeconds: setRow.durationSeconds ?? 0,
       );
     }).toList(growable: false);
 
@@ -836,6 +844,7 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
         categoryName: row.categoryName,
         exerciseNameSnapshot: row.exerciseNameSnapshot,
         reps: row.reps,
+        durationSeconds: row.durationSeconds,
       )) {
         continue;
       }
@@ -901,7 +910,9 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
       ..where(
         dbInstance.setLogs.isCompleted.equals(true) &
             dbInstance.setLogs.setType.isNotIn(['warmup']) &
-            dbInstance.setLogs.reps.isBiggerThanValue(0) &
+            // Same reasoning as the volume query: a plank is a set.
+            (dbInstance.setLogs.reps.isBiggerThanValue(0) |
+                dbInstance.setLogs.durationSeconds.isBiggerThanValue(0)) &
             dbInstance.workoutLogs.status.equals('completed') &
             dbInstance.workoutLogs.startTime.isBetweenValues(
               since,
@@ -1791,6 +1802,13 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
                 dbInstance.exercises.categoryName
                     .lower()
                     .isNotValue('cardio')) &
+            // On an assistance machine the logged number is a reduction of
+            // resistance: more kilos is easier. An e1RM computed from it reads
+            // every improvement as a decline and every decline as progress,
+            // and nothing about the output looks wrong. Excluded until the
+            // number is stored with its meaning attached.
+            (dbInstance.exercises.loadMode.isNull() |
+                dbInstance.exercises.loadMode.isNotValue('assisted')) &
             dbInstance.setLogs.isCompleted.equals(true) &
             dbInstance.setLogs.setType.isNotIn(['warmup']) &
             dbInstance.setLogs.weight.isBiggerThanValue(0) &
