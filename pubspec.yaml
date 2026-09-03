@@ -96,6 +96,10 @@ dev_dependencies:
   # platform interfaces rather than the plugin facades.
   permission_handler_platform_interface: ^4.4.0
   plugin_platform_interface: ^2.1.8
+  # Real SQLite for the catalog contract test. The importer opens its source
+  # through sqflite, so a fixture run needs a host factory rather than the
+  # mocked platform channel the other tests use.
+  sqflite_common_ffi: ^2.3.7
 # dependency_overrides:
 
 flutter_launcher_icons:
