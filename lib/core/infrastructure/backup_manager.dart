@@ -20,6 +20,7 @@ import '../media/app_media_store.dart';
 import 'catalog_state_prefs.dart';
 import '../../data/database_helper.dart';
 import '../../data/drift_database.dart' as db;
+import '../../features/exercise_catalog/domain/exercise_alias_migration.dart';
 import '../../features/diary/data/sources/diary_local_data_source.dart';
 import '../../features/diary/data/meal_photo_store.dart';
 import '../../features/diary/data/sources/meal_local_data_source.dart';
@@ -570,7 +571,8 @@ class BackupManager {
             domain: MediaDomain.meals,
           );
           if (mealWritten > 0) {
-            debugPrint('Restored $mealWritten meal preview(s) from the backup.');
+            debugPrint(
+                'Restored $mealWritten meal preview(s) from the backup.');
           }
 
           final workoutPlacement = await AppMediaStore.instance
@@ -1171,6 +1173,7 @@ class BackupManager {
     }
 
     if (success) {
+      await _reapplyExerciseAliases();
       if (restorePhotos != null) {
         try {
           await restorePhotos();
@@ -1188,6 +1191,30 @@ class BackupManager {
     return true;
   }
 
+  /// Points restored routines and logs back at the surviving exercises.
+  ///
+  /// A backup taken before a catalog merge and restored afterwards carries the
+  /// retired ids back in. The catalog import will not fix that on its own: it
+  /// only runs when the catalog is missing or an update is forced, and after a
+  /// restore the tables are full, so the register is never replayed and those
+  /// rows point at hidden exercises forever.
+  ///
+  /// Cheap when there is nothing to do, and idempotent, so running it after
+  /// every restore costs nothing.
+  Future<void> _reapplyExerciseAliases() async {
+    try {
+      final db = await DatabaseHelper.instance.database;
+      final result = await const ExerciseAliasMigration().run(db);
+      if (result.changedSomething) {
+        debugPrint('Re-applied exercise aliases after restore: $result');
+      }
+    } catch (e) {
+      // The restore itself succeeded. A stale exercise pointer is a statistic
+      // that is missing an entry, not a broken database.
+      debugPrint('Re-applying exercise aliases after restore failed: $e');
+    }
+  }
+
   /// Removes media files the restored database no longer refers to.
   ///
   /// A restore replaces the rows but not the files: without this the photos of
@@ -1199,7 +1226,8 @@ class BackupManager {
       final removedMeals =
           await MealPhotoStore.instance.pruneOrphans(referencedMeals);
       if (removedMeals > 0) {
-        debugPrint('Pruned $removedMeals orphaned meal photo(s) after restore.');
+        debugPrint(
+            'Pruned $removedMeals orphaned meal photo(s) after restore.');
       }
     } catch (e) {
       debugPrint('Pruning orphaned meal photos failed: $e');

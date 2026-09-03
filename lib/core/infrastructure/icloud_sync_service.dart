@@ -153,7 +153,8 @@ class ICloudSyncService {
       // block to allow the UI to catch and inspect PlatformExceptions.
       final archive = await _buildArchive(db);
       await _keepPreviousRemoteBackup();
-      await _uploadWithProgress(archive.path, _kICloudBackupFileName, onProgress);
+      await _uploadWithProgress(
+          archive.path, _kICloudBackupFileName, onProgress);
       await _dropLegacyRemoteBackup();
 
       await _setLastSyncTimestamp(DateTime.now());

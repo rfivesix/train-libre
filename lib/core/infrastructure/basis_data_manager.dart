@@ -22,6 +22,7 @@ import '../../services/telemetry/telemetry_service.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import '../../generated/app_localizations.dart';
 import '../../features/diary/domain/use_cases/retain_historical_off_products_use_case.dart';
+import '../../features/exercise_catalog/domain/exercise_alias_migration.dart';
 import '../../features/app/presentation/widgets/glass_bottom_menu.dart'; // Added
 import '../../features/app/presentation/app_initializer_screen.dart'; // Added
 import '../../util/design_constants.dart'; // Added
@@ -1487,6 +1488,13 @@ class BasisDataManager {
             mainDb: mainDb,
             taskLabel: taskLabel,
           );
+
+          // Order matters: the exercises are upserted above, the register is
+          // imported by the pass right before this, and only then does user
+          // data get pointed at the survivors. The whole register is replayed
+          // every import, which is what covers a device that skipped a
+          // release — the pass is idempotent by construction.
+          await const ExerciseAliasMigration().run(mainDb);
         }
       });
 

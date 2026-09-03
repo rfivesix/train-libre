@@ -85,8 +85,7 @@ class ICloudBackupArchive {
         try {
           final bytes = await thumb.readAsBytes();
           encoder.addArchiveFile(
-            ArchiveFile.bytes('$folder/$name', bytes)
-              ..compression = _storeOnly,
+            ArchiveFile.bytes('$folder/$name', bytes)..compression = _storeOnly,
           );
         } catch (e) {
           debugPrint('[ICloudBackupArchive] skipping ${thumb.path}: $e');
