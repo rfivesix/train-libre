@@ -269,7 +269,8 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
                             ),
                             title: Text(
                               routine.name,
-                              style: const TextStyle(fontWeight: FontWeight.bold),
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.bold),
                             ),
                             subtitle: Text(l10n.editRoutineSubtitle),
                             trailing: interactive
@@ -329,7 +330,8 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
                       confirmDelete: () async {
                         return await showDeleteConfirmation(
                           context,
-                          content: l10n.deleteRoutineConfirmContent(routine.name),
+                          content:
+                              l10n.deleteRoutineConfirmContent(routine.name),
                         );
                       },
                       onDelete: () {

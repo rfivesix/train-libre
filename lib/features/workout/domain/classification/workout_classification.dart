@@ -53,7 +53,63 @@ class WorkoutClassification {
         normalized.contains('stair climber');
   }
 
+  /// Modalities whose sets are work on the annotated muscle.
+  ///
+  /// `strength` needs no argument. `plyometric` is in because a box jump is
+  /// concentric work on the quads — the user expects leg fatigue and gets it —
+  /// and because those 21 exercises already count today: the name heuristic
+  /// never caught them, so dropping them would be a fresh regression in
+  /// existing statistics rather than a fix.
+  ///
+  /// Out, and why each:
+  ///
+  /// * `stretch` and `mobility` — 122 of 868 active exercises. SCHEMA §5 puts
+  ///   `role: primary` on the muscle being *stretched*, not the one
+  ///   contracting. Adding that to the same sum is not imprecise, it is
+  ///   backwards. It barely showed before because most of these had no muscle
+  ///   annotation at all; in v2 every one of them does.
+  /// * `cardio` — replaces a name heuristic with a data field. Strictly
+  ///   better: looksLikeCardioToken catches "Treadmill" and misses "Assault
+  ///   Bike Sprints".
+  /// * `balance` — three rows, where the primary muscle is the stabiliser.
+  ///   The amount is noise; the rule is what matters: what counts is what puts
+  ///   a target muscle under load.
+  static const Set<String> muscleLoadBearingModalities = {
+    'strength',
+    'plyometric',
+  };
+
+  /// Whether a logged set counts towards volume and recovery.
+  ///
+  /// [modality] decides when the catalog has an opinion. It is null for rows
+  /// written before schema v2 and for every user-created exercise, and those
+  /// fall back to the old category/name heuristic — which is why that heuristic
+  /// stays rather than being replaced.
+  ///
+  /// Note what this does *not* look at: whether a weight was entered. A
+  /// bodyweight exercise is still work.
+  static bool countsTowardsMuscleLoad({
+    required String? modality,
+    required String? setType,
+    required String? categoryName,
+    required String? exerciseNameSnapshot,
+    required int reps,
+  }) {
+    if (reps <= 0) return false;
+    if (looksLikeCardioToken(setType)) return false;
+
+    final normalizedModality = normalizeAnalyticsToken(modality);
+    if (normalizedModality.isNotEmpty) {
+      return muscleLoadBearingModalities.contains(normalizedModality);
+    }
+
+    if (looksLikeCardioToken(categoryName)) return false;
+    if (looksLikeCardioToken(exerciseNameSnapshot)) return false;
+    return true;
+  }
+
   static bool isRecoveryStrengthWorkSet({
+    required String? modality,
     required String? setType,
     required String? categoryName,
     required String? nameDe,
@@ -64,6 +120,12 @@ class WorkoutClassification {
     if (reps <= 0) return false;
 
     if (looksLikeCardioToken(setType)) return false;
+
+    final normalizedModality = normalizeAnalyticsToken(modality);
+    if (normalizedModality.isNotEmpty) {
+      return muscleLoadBearingModalities.contains(normalizedModality);
+    }
+
     if (looksLikeCardioToken(categoryName)) return false;
     if (looksLikeCardioToken(nameDe) ||
         looksLikeCardioToken(nameEn) ||

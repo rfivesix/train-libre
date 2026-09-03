@@ -1018,7 +1018,7 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                               context,
                             )
                                 .colorScheme
-.onSurfaceVariant
+                                .onSurfaceVariant
                                 .withValues(alpha: 0.1),
                           ),
                           Expanded(
@@ -1039,7 +1039,8 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                       scrollController: _scrollController,
                                       buildDefaultDragHandles: false,
                                       scrollCacheExtent:
-                                          const ScrollCacheExtent.pixels(1500.0),
+                                          const ScrollCacheExtent.pixels(
+                                              1500.0),
                                       header: ReorderHeadroom(
                                         height: _isDragging
                                             ? _dynamicHeadroom
@@ -1050,11 +1051,13 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                                 ? 220.0
                                                 : DesignConstants
                                                     .bottomContentSpacer) +
-                                            MediaQuery.paddingOf(context).bottom,
+                                            MediaQuery.paddingOf(context)
+                                                .bottom,
                                       ),
                                       onReorderStart: (index) {
                                         _isDragActive = true;
-                                        ReorderHapticFeedback.onDragStart(index);
+                                        ReorderHapticFeedback.onDragStart(
+                                            index);
                                         _scrollAnchor.discard();
                                         _collapseTimer?.cancel();
                                         _expandTimer?.cancel();
@@ -1069,273 +1072,263 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                         ReorderHapticFeedback.onDragEnd();
                                         _scheduleExpandAfterDrop();
                                       },
-                                    proxyDecorator: (Widget child, int index,
-                                        Animation<double> animation) {
-                                      final l10n =
-                                          AppLocalizations.of(context)!;
-                                      final theme = Theme.of(context);
-                                      if (index >= 0 &&
-                                          index < exercises.length) {
+                                      proxyDecorator: (Widget child, int index,
+                                          Animation<double> animation) {
+                                        final l10n =
+                                            AppLocalizations.of(context)!;
+                                        final theme = Theme.of(context);
+                                        if (index >= 0 &&
+                                            index < exercises.length) {
+                                          final routineExercise =
+                                              exercises[index];
+                                          final proxyChild = WorkoutCard(
+                                            child: _buildExerciseCardHeader(
+                                              context,
+                                              routineExercise,
+                                              index,
+                                              l10n,
+                                              theme.textTheme,
+                                              theme.colorScheme,
+                                              onEditPauseTime: null,
+                                              isProxy: true,
+                                            ),
+                                          );
+                                          return buildReorderDragProxy(
+                                              context, proxyChild, animation);
+                                        }
+                                        return buildReorderDragProxy(
+                                            context, child, animation);
+                                      },
+                                      onReorderItem: _onReorderItem,
+                                      itemCount: exercises.length,
+                                      itemBuilder: (context, index) {
                                         final routineExercise =
                                             exercises[index];
-                                        final proxyChild = WorkoutCard(
-                                          child: _buildExerciseCardHeader(
-                                            context,
-                                            routineExercise,
-                                            index,
-                                            l10n,
-                                            theme.textTheme,
-                                            theme.colorScheme,
-                                            onEditPauseTime: null,
-                                            isProxy: true,
+                                        final showE1rmSummary =
+                                            !_isCardio(routineExercise);
+
+                                        final isDeleting = _deletingExerciseIds
+                                            .contains(routineExercise.id);
+
+                                        return KeyedSubtree(
+                                          key: _scrollAnchor.keyFor(
+                                            routineExercise.id ?? index,
                                           ),
-                                        );
-                                        return buildReorderDragProxy(
-                                            context, proxyChild, animation);
-                                      }
-                                      return buildReorderDragProxy(
-                                          context, child, animation);
-                                    },
-                                    onReorderItem: _onReorderItem,
-                                    itemCount: exercises.length,
-                                    itemBuilder: (context, index) {
-                                      final routineExercise = exercises[index];
-                                      final showE1rmSummary =
-                                          !_isCardio(routineExercise);
-
-                                      final isDeleting = _deletingExerciseIds
-                                          .contains(routineExercise.id);
-
-                                      return KeyedSubtree(
-                                        key: _scrollAnchor.keyFor(
-                                          routineExercise.id ?? index,
-                                        ),
-                                        child: AnimatedSize(
-                                          duration: kReorderCardResizeDuration,
-                                          curve: Curves.easeInOutCubic,
-                                          alignment: Alignment.topCenter,
-                                          child: isDeleting
-                                              ? const SizedBox(
-                                                  width: double.infinity,
-                                                  height: 0)
-                                              : AnimatedOpacity(
-                                                  duration: const Duration(
-                                                      milliseconds: 180),
-                                                  curve: Curves.easeOut,
-                                                  opacity:
-                                                      isDeleting ? 0.0 : 1.0,
-                                                  child: RepaintBoundary(
-                                                    key: ValueKey(
-                                                        routineExercise.id),
-                                                    child: WorkoutCard(
-                                                      child: Column(
-                                                        crossAxisAlignment:
-                                                            CrossAxisAlignment
-                                                                .start,
-                                                        children: [
-                                                          _buildExerciseCardHeader(
-                                                            context,
-                                                            routineExercise,
-                                                            index,
-                                                            l10n,
-                                                            textTheme,
-                                                            colorScheme,
-                                                            onEditPauseTime:
-                                                                editPauseTime,
-                                                          ),
-                                                          _isDragging
-                                                              ? const SizedBox
-                                                                  .shrink()
-                                                              : AnimatedSize(
-                                                                  duration: const Duration(
-                                                                      milliseconds:
-                                                                          250),
-                                                                  curve: Curves
-                                                                      .easeInOut,
-                                                                  alignment:
-                                                                      Alignment
-                                                                          .topCenter,
-                                                                  child: Column(
-                                                                    crossAxisAlignment:
-                                                                        CrossAxisAlignment
-                                                                            .start,
-                                                                    children: [
-                                                                      if (routineExercise.notes !=
-                                                                              null &&
-                                                                          routineExercise
-                                                                              .notes!
-                                                                              .isNotEmpty)
-                                                                        Padding(
-                                                                          padding:
-                                                                              const EdgeInsets.only(
-                                                                            left:
-                                                                                16.0,
-                                                                            right:
-                                                                                16.0,
-                                                                            bottom:
-                                                                                12.0,
-                                                                          ),
-                                                                          child:
-                                                                              InkWell(
-                                                                            onTap: () =>
-                                                                                _editExerciseNotes(context, routineExercise),
-                                                                            borderRadius:
-                                                                                BorderRadius.circular(8),
+                                          child: AnimatedSize(
+                                            duration:
+                                                kReorderCardResizeDuration,
+                                            curve: Curves.easeInOutCubic,
+                                            alignment: Alignment.topCenter,
+                                            child: isDeleting
+                                                ? const SizedBox(
+                                                    width: double.infinity,
+                                                    height: 0)
+                                                : AnimatedOpacity(
+                                                    duration: const Duration(
+                                                        milliseconds: 180),
+                                                    curve: Curves.easeOut,
+                                                    opacity:
+                                                        isDeleting ? 0.0 : 1.0,
+                                                    child: RepaintBoundary(
+                                                      key: ValueKey(
+                                                          routineExercise.id),
+                                                      child: WorkoutCard(
+                                                        child: Column(
+                                                          crossAxisAlignment:
+                                                              CrossAxisAlignment
+                                                                  .start,
+                                                          children: [
+                                                            _buildExerciseCardHeader(
+                                                              context,
+                                                              routineExercise,
+                                                              index,
+                                                              l10n,
+                                                              textTheme,
+                                                              colorScheme,
+                                                              onEditPauseTime:
+                                                                  editPauseTime,
+                                                            ),
+                                                            _isDragging
+                                                                ? const SizedBox
+                                                                    .shrink()
+                                                                : AnimatedSize(
+                                                                    duration: const Duration(
+                                                                        milliseconds:
+                                                                            250),
+                                                                    curve: Curves
+                                                                        .easeInOut,
+                                                                    alignment:
+                                                                        Alignment
+                                                                            .topCenter,
+                                                                    child:
+                                                                        Column(
+                                                                      crossAxisAlignment:
+                                                                          CrossAxisAlignment
+                                                                              .start,
+                                                                      children: [
+                                                                        if (routineExercise.notes !=
+                                                                                null &&
+                                                                            routineExercise.notes!.isNotEmpty)
+                                                                          Padding(
+                                                                            padding:
+                                                                                const EdgeInsets.only(
+                                                                              left: 16.0,
+                                                                              right: 16.0,
+                                                                              bottom: 12.0,
+                                                                            ),
                                                                             child:
-                                                                                Container(
-                                                                              width: double.infinity,
-                                                                              padding: const EdgeInsets.all(12),
-                                                                              decoration: BoxDecoration(
-                                                                                color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-                                                                                borderRadius: BorderRadius.circular(8),
-                                                                                border: Border.all(
-                                                                                  color: colorScheme.onSurfaceVariant.withValues(alpha: 0.1),
-                                                                                ),
-                                                                              ),
-                                                                              child: Row(
-                                                                                crossAxisAlignment: CrossAxisAlignment.start,
-                                                                                children: [
-                                                                                  Icon(
-                                                                                    Icons.description_outlined,
-                                                                                    size: 16,
-                                                                                    color: colorScheme.onSurfaceVariant,
+                                                                                InkWell(
+                                                                              onTap: () => _editExerciseNotes(context, routineExercise),
+                                                                              borderRadius: BorderRadius.circular(8),
+                                                                              child: Container(
+                                                                                width: double.infinity,
+                                                                                padding: const EdgeInsets.all(12),
+                                                                                decoration: BoxDecoration(
+                                                                                  color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                                                                                  borderRadius: BorderRadius.circular(8),
+                                                                                  border: Border.all(
+                                                                                    color: colorScheme.onSurfaceVariant.withValues(alpha: 0.1),
                                                                                   ),
-                                                                                  const SizedBox(width: 8),
-                                                                                  Expanded(
-                                                                                    child: Text(
-                                                                                      routineExercise.notes!,
-                                                                                      style: textTheme.bodyMedium?.copyWith(
-                                                                                        color: colorScheme.onSurfaceVariant,
+                                                                                ),
+                                                                                child: Row(
+                                                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                                                  children: [
+                                                                                    Icon(
+                                                                                      Icons.description_outlined,
+                                                                                      size: 16,
+                                                                                      color: colorScheme.onSurfaceVariant,
+                                                                                    ),
+                                                                                    const SizedBox(width: 8),
+                                                                                    Expanded(
+                                                                                      child: Text(
+                                                                                        routineExercise.notes!,
+                                                                                        style: textTheme.bodyMedium?.copyWith(
+                                                                                          color: colorScheme.onSurfaceVariant,
+                                                                                        ),
                                                                                       ),
                                                                                     ),
-                                                                                  ),
-                                                                                ],
+                                                                                  ],
+                                                                                ),
                                                                               ),
                                                                             ),
                                                                           ),
-                                                                        ),
-                                                                      if (showE1rmSummary)
-                                                                        ExerciseE1rmSummary(
-                                                                          routineExercise:
-                                                                              routineExercise,
-                                                                          manager:
-                                                                              manager,
-                                                                        ),
-                                                                      Padding(
-                                                                        padding:
-                                                                            const EdgeInsets.symmetric(
-                                                                          horizontal:
-                                                                              0.0,
-                                                                        ),
-                                                                        child: Selector<
-                                                                            LiveWorkoutViewModel,
-                                                                            Map<int,
-                                                                                SetLog>>(
-                                                                          selector:
-                                                                              (context, vm) {
-                                                                            final map =
-                                                                                <int, SetLog>{};
-                                                                            for (final template
-                                                                                in routineExercise.setTemplates) {
-                                                                              final log = vm.setLogs[template.id];
-                                                                              if (log != null) {
-                                                                                map[template.id!] = log;
+                                                                        if (showE1rmSummary)
+                                                                          ExerciseE1rmSummary(
+                                                                            routineExercise:
+                                                                                routineExercise,
+                                                                            manager:
+                                                                                manager,
+                                                                          ),
+                                                                        Padding(
+                                                                          padding:
+                                                                              const EdgeInsets.symmetric(
+                                                                            horizontal:
+                                                                                0.0,
+                                                                          ),
+                                                                          child: Selector<
+                                                                              LiveWorkoutViewModel,
+                                                                              Map<int, SetLog>>(
+                                                                            selector:
+                                                                                (context, vm) {
+                                                                              final map = <int, SetLog>{};
+                                                                              for (final template in routineExercise.setTemplates) {
+                                                                                final log = vm.setLogs[template.id];
+                                                                                if (log != null) {
+                                                                                  map[template.id!] = log;
+                                                                                }
                                                                               }
-                                                                            }
-                                                                            return map;
-                                                                          },
-                                                                          shouldRebuild:
-                                                                              (prev, next) {
-                                                                            if (prev.length !=
-                                                                                next.length) {
-                                                                              return true;
-                                                                            }
-                                                                            for (final key
-                                                                                in prev.keys) {
-                                                                              final prevLog = prev[key];
-                                                                              final nextLog = next[key];
-                                                                              if (prevLog == null || nextLog == null) {
+                                                                              return map;
+                                                                            },
+                                                                            shouldRebuild:
+                                                                                (prev, next) {
+                                                                              if (prev.length != next.length) {
                                                                                 return true;
                                                                               }
-                                                                              if (prevLog.setType != nextLog.setType || prevLog.isCompleted != nextLog.isCompleted) {
-                                                                                return true;
+                                                                              for (final key in prev.keys) {
+                                                                                final prevLog = prev[key];
+                                                                                final nextLog = next[key];
+                                                                                if (prevLog == null || nextLog == null) {
+                                                                                  return true;
+                                                                                }
+                                                                                if (prevLog.setType != nextLog.setType || prevLog.isCompleted != nextLog.isCompleted) {
+                                                                                  return true;
+                                                                                }
                                                                               }
-                                                                            }
-                                                                            return false;
-                                                                          },
-                                                                          builder: (context,
-                                                                              exerciseSetLogs,
-                                                                              child) {
-                                                                            return AnimatedSize(
-                                                                              duration: const Duration(milliseconds: 260),
-                                                                              curve: Curves.easeInOutCubic,
-                                                                              alignment: Alignment.topCenter,
-                                                                              child: Column(
-                                                                                crossAxisAlignment: CrossAxisAlignment.start,
-                                                                                children: [
-                                                                                  // FIX: Insert header row dynamically.
-                                                                                  _buildHeaderRow(
-                                                                                    routineExercise,
-                                                                                    l10n,
-                                                                                  ),
+                                                                              return false;
+                                                                            },
+                                                                            builder: (context,
+                                                                                exerciseSetLogs,
+                                                                                child) {
+                                                                              return AnimatedSize(
+                                                                                duration: const Duration(milliseconds: 260),
+                                                                                curve: Curves.easeInOutCubic,
+                                                                                alignment: Alignment.topCenter,
+                                                                                child: Column(
+                                                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                                                  children: [
+                                                                                    // FIX: Insert header row dynamically.
+                                                                                    _buildHeaderRow(
+                                                                                      routineExercise,
+                                                                                      l10n,
+                                                                                    ),
 
-                                                                                  // Set Rows
-                                                                                  ...routineExercise.setTemplates.asMap().entries.map((setEntry) {
-                                                                                    final templateId = setEntry.value.id!;
-                                                                                    final template = setEntry.value; // <--- Template
-                                                                                    final setLog = exerciseSetLogs[templateId];
+                                                                                    // Set Rows
+                                                                                    ...routineExercise.setTemplates.asMap().entries.map((setEntry) {
+                                                                                      final templateId = setEntry.value.id!;
+                                                                                      final template = setEntry.value; // <--- Template
+                                                                                      final setLog = exerciseSetLogs[templateId];
 
-                                                                                    if (setLog == null) {
-                                                                                      return const SizedBox.shrink();
-                                                                                    }
-                                                                                    int workingSetIndex = 0;
-                                                                                    for (int i = 0; i <= setEntry.key; i++) {
-                                                                                      final currentTemplateId = routineExercise.setTemplates[i].id!;
-                                                                                      if (exerciseSetLogs[currentTemplateId]?.setType != 'warmup') {
-                                                                                        workingSetIndex++;
+                                                                                      if (setLog == null) {
+                                                                                        return const SizedBox.shrink();
                                                                                       }
-                                                                                    }
+                                                                                      int workingSetIndex = 0;
+                                                                                      for (int i = 0; i <= setEntry.key; i++) {
+                                                                                        final currentTemplateId = routineExercise.setTemplates[i].id!;
+                                                                                        if (exerciseSetLogs[currentTemplateId]?.setType != 'warmup') {
+                                                                                          workingSetIndex++;
+                                                                                        }
+                                                                                      }
 
-                                                                                    return LiveWorkoutSetRow(
-                                                                                      setIndex: workingSetIndex,
-                                                                                      rowIndex: setEntry.key,
-                                                                                      templateId: templateId,
-                                                                                      setLog: setLog,
-                                                                                      lastPerfSets: manager.lastPerformances[routineExercise.exercise.nameEn] ?? [],
-                                                                                      template: template,
-                                                                                      manager: manager,
-                                                                                      isCardio: _isCardio(routineExercise),
-                                                                                    );
-                                                                                  }),
-                                                                                  Padding(
-                                                                                    padding: const EdgeInsets.symmetric(
-                                                                                      horizontal: 16.0,
+                                                                                      return LiveWorkoutSetRow(
+                                                                                        setIndex: workingSetIndex,
+                                                                                        rowIndex: setEntry.key,
+                                                                                        templateId: templateId,
+                                                                                        setLog: setLog,
+                                                                                        lastPerfSets: manager.lastPerformances[routineExercise.exercise.nameEn] ?? [],
+                                                                                        template: template,
+                                                                                        manager: manager,
+                                                                                        isCardio: _isCardio(routineExercise),
+                                                                                      );
+                                                                                    }),
+                                                                                    Padding(
+                                                                                      padding: const EdgeInsets.symmetric(
+                                                                                        horizontal: 16.0,
+                                                                                      ),
+                                                                                      child: TextButton.icon(
+                                                                                        onPressed: () => _addSet(routineExercise),
+                                                                                        icon: const Icon(LucideIcons.plus),
+                                                                                        label: Text(l10n.addSetButton),
+                                                                                      ),
                                                                                     ),
-                                                                                    child: TextButton.icon(
-                                                                                      onPressed: () => _addSet(routineExercise),
-                                                                                      icon: const Icon(LucideIcons.plus),
-                                                                                      label: Text(l10n.addSetButton),
-                                                                                    ),
-                                                                                  ),
-                                                                                ],
-                                                                              ),
-                                                                            );
-                                                                          },
+                                                                                  ],
+                                                                                ),
+                                                                              );
+                                                                            },
+                                                                          ),
                                                                         ),
-                                                                      ),
-                                                                    ],
+                                                                      ],
+                                                                    ),
                                                                   ),
-                                                                ),
-                                                        ],
+                                                          ],
+                                                        ),
                                                       ),
                                                     ),
                                                   ),
-                                                ),
-                                        ),
-                                      );
-                                    },
+                                          ),
+                                        );
+                                      },
+                                    ),
                                   ),
-                                ),
                           ),
                         ],
                       ),

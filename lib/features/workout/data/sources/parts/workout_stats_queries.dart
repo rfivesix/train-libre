@@ -733,6 +733,11 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
         musclesSecondary: profile == null
             ? exRow?.musclesSecondary
             : jsonEncode(profile.secondary),
+        modality: exRow?.modality,
+        categoryName: exRow?.categoryName,
+        setType: setRow.setType,
+        exerciseNameSnapshot: setRow.exerciseNameSnapshot,
+        reps: setRow.reps ?? 0,
       );
     }).toList(growable: false);
 
@@ -764,6 +769,20 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
     final contributions = <Map<String, dynamic>>[];
 
     for (final row in params.rows) {
+      // Volume had no such filter at all until now. With v2 that stops being
+      // survivable: every one of the 122 stretch and mobility exercises now
+      // carries a muscle annotation, and 120 of them wear a body region as
+      // their category_name, so the old cardio heuristic never saw one.
+      if (!WorkoutClassification.countsTowardsMuscleLoad(
+        modality: row.modality,
+        setType: row.setType,
+        categoryName: row.categoryName,
+        exerciseNameSnapshot: row.exerciseNameSnapshot,
+        reps: row.reps,
+      )) {
+        continue;
+      }
+
       final primary = <String>{
         ...WorkoutLocalDataSource._parseMuscleList(
           row.musclesPrimary,

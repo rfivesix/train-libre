@@ -40,10 +40,24 @@ class MuscleContributionRawData {
   final String? musclesPrimary;
   final String? musclesSecondary;
 
+  /// Carried into the isolate so volume can drop the sets that are not work on
+  /// the annotated muscle. Null for pre-v2 rows and user exercises, where the
+  /// old category/name heuristic still decides.
+  final String? modality;
+  final String? categoryName;
+  final String? setType;
+  final String? exerciseNameSnapshot;
+  final int reps;
+
   MuscleContributionRawData({
     required this.startTime,
     this.musclesPrimary,
     this.musclesSecondary,
+    this.modality,
+    this.categoryName,
+    this.setType,
+    this.exerciseNameSnapshot,
+    this.reps = 0,
   });
 }
 
@@ -101,6 +115,7 @@ class WorkoutLocalDataSource {
     // nameDe/nameEn are no longer flat columns on exercises — use the snapshot
     // for cardio classification. categoryName is still available.
     return WorkoutClassification.isRecoveryStrengthWorkSet(
+      modality: exerciseRow?.modality,
       setType: setRow.setType,
       categoryName: exerciseRow?.categoryName,
       nameDe: null,

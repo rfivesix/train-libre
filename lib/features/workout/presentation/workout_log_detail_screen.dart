@@ -1308,9 +1308,57 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                                   ReorderHapticFeedback.onDragEnd();
                                   _scheduleExpandAfterDrop();
                                 },
-                              proxyDecorator: (Widget child, int index,
-                                  Animation<double> animation) {
-                                if (index >= 0 && index < _groupedSets.length) {
+                                proxyDecorator: (Widget child, int index,
+                                    Animation<double> animation) {
+                                  if (index >= 0 &&
+                                      index < _groupedSets.length) {
+                                    final entry =
+                                        _groupedSets.entries.elementAt(index);
+                                    final String exerciseName = entry.key;
+                                    final Exercise? exercise =
+                                        _exerciseDetails[exerciseName];
+                                    final List<SetLog> sets = entry.value;
+                                    final isCardio = _isCardio(exerciseName);
+
+                                    final proxyChild = WorkoutExerciseLogCard(
+                                      exerciseName: exerciseName,
+                                      exercise: exercise,
+                                      sets: sets,
+                                      isEditMode: true,
+                                      isCardio: isCardio,
+                                      isDragging: true,
+                                      weightControllers: _weightControllers,
+                                      repsControllers: _repsControllers,
+                                      rirControllers: _rirControllers,
+                                      exerciseNote:
+                                          _exerciseNotes[exerciseName],
+                                      onEditNotes: (_) {},
+                                      onDeleteExercise: (_) {},
+                                      onAddSet: () {},
+                                      onDeleteSet: (_) {},
+                                      onSetTypeTap: (_) {},
+                                      index: index,
+                                    );
+                                    return buildReorderDragProxy(
+                                        context, proxyChild, animation);
+                                  }
+                                  return buildReorderDragProxy(
+                                      context, child, animation);
+                                },
+                                onReorderItem: (int oldIndex, int newIndex) {
+                                  setState(() {
+                                    final entries =
+                                        _groupedSets.entries.toList();
+                                    final item = entries.removeAt(oldIndex);
+                                    entries.insert(newIndex, item);
+                                    _groupedSets.clear();
+                                    for (var entry in entries) {
+                                      _groupedSets[entry.key] = entry.value;
+                                    }
+                                  });
+                                },
+                                itemCount: _groupedSets.length,
+                                itemBuilder: (context, index) {
                                   final entry =
                                       _groupedSets.entries.elementAt(index);
                                   final String exerciseName = entry.key;
@@ -1319,147 +1367,103 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                                   final List<SetLog> sets = entry.value;
                                   final isCardio = _isCardio(exerciseName);
 
-                                  final proxyChild = WorkoutExerciseLogCard(
-                                    exerciseName: exerciseName,
-                                    exercise: exercise,
-                                    sets: sets,
-                                    isEditMode: true,
-                                    isCardio: isCardio,
-                                    isDragging: true,
-                                    weightControllers: _weightControllers,
-                                    repsControllers: _repsControllers,
-                                    rirControllers: _rirControllers,
-                                    exerciseNote: _exerciseNotes[exerciseName],
-                                    onEditNotes: (_) {},
-                                    onDeleteExercise: (_) {},
-                                    onAddSet: () {},
-                                    onDeleteSet: (_) {},
-                                    onSetTypeTap: (_) {},
-                                    index: index,
-                                  );
-                                  return buildReorderDragProxy(
-                                      context, proxyChild, animation);
-                                }
-                                return buildReorderDragProxy(
-                                    context, child, animation);
-                              },
-                              onReorderItem: (int oldIndex, int newIndex) {
-                                setState(() {
-                                  final entries = _groupedSets.entries.toList();
-                                  final item = entries.removeAt(oldIndex);
-                                  entries.insert(newIndex, item);
-                                  _groupedSets.clear();
-                                  for (var entry in entries) {
-                                    _groupedSets[entry.key] = entry.value;
-                                  }
-                                });
-                              },
-                              itemCount: _groupedSets.length,
-                              itemBuilder: (context, index) {
-                                final entry =
-                                    _groupedSets.entries.elementAt(index);
-                                final String exerciseName = entry.key;
-                                final Exercise? exercise =
-                                    _exerciseDetails[exerciseName];
-                                final List<SetLog> sets = entry.value;
-                                final isCardio = _isCardio(exerciseName);
+                                  final isDeleting = _deletingExerciseNames
+                                      .contains(exerciseName);
 
-                                final isDeleting = _deletingExerciseNames
-                                    .contains(exerciseName);
-
-                                return KeyedSubtree(
-                                  key: _scrollAnchor.keyFor(exerciseName),
-                                  child: AnimatedSize(
-                                    duration: kReorderCardResizeDuration,
-                                    curve: Curves.easeInOutCubic,
-                                    alignment: Alignment.topCenter,
-                                    child: isDeleting
-                                        ? const SizedBox(
-                                            width: double.infinity, height: 0)
-                                        : AnimatedOpacity(
-                                            duration: const Duration(
-                                                milliseconds: 180),
-                                            curve: Curves.easeOut,
-                                            opacity: isDeleting ? 0.0 : 1.0,
-                                            child: RepaintBoundary(
-                                              key: ValueKey(exerciseName),
-                                              child: WorkoutExerciseLogCard(
-                                                exerciseName: exerciseName,
-                                                exercise: exercise,
-                                                sets: sets,
-                                                isEditMode: true,
-                                                isCardio: isCardio,
-                                                isDragging: _isDragging,
-                                                onPointerDown: (e) =>
-                                                    _onDragPointerDown(
-                                                        e, exerciseName, index),
-                                                onPointerMove:
-                                                    _onDragPointerMove,
-                                                onPointerUp: _onDragPointerUp,
-                                                onPointerCancel:
-                                                    _onDragPointerCancel,
-                                                weightControllers:
-                                                    _weightControllers,
-                                                repsControllers:
-                                                    _repsControllers,
-                                                rirControllers:
-                                                    _rirControllers,
-                                                exerciseNote: _exerciseNotes[
-                                                    exerciseName],
-                                                onEditNotes: (exName) =>
-                                                    _editExerciseNotes(
-                                                        context, exName),
-                                                onDeleteExercise: (exName) =>
-                                                    _onDeleteExercise(
-                                                        exName, sets),
-                                                onAddSet: () {
-                                                  final newSet = SetLog(
-                                                    id: -DateTime.now()
-                                                        .millisecondsSinceEpoch,
-                                                    workoutLogId: _log!.id!,
-                                                    exerciseName: exerciseName,
-                                                    setType: 'normal',
-                                                    isCompleted: true,
-                                                  );
-                                                  setState(() {
-                                                    sets.add(newSet);
-                                                    _weightControllers[
-                                                            newSet.id!] =
-                                                        TextEditingController();
-                                                    _repsControllers[
-                                                            newSet.id!] =
-                                                        TextEditingController();
-                                                    _rirControllers[
-                                                            newSet.id!] =
-                                                        TextEditingController();
-                                                  });
-                                                },
-                                                onDeleteSet: (setId) {
-                                                  setState(() {
-                                                    sets.removeWhere(
-                                                        (s) => s.id == setId);
-                                                    _weightControllers
-                                                        .remove(setId)
-                                                        ?.dispose();
-                                                    _repsControllers
-                                                        .remove(setId)
-                                                        ?.dispose();
-                                                    _rirControllers
-                                                        .remove(setId)
-                                                        ?.dispose();
-                                                  });
-                                                },
-                                                onSetTypeTap: (setId) =>
-                                                    _showSetTypePicker(setId),
-                                                index: index,
+                                  return KeyedSubtree(
+                                    key: _scrollAnchor.keyFor(exerciseName),
+                                    child: AnimatedSize(
+                                      duration: kReorderCardResizeDuration,
+                                      curve: Curves.easeInOutCubic,
+                                      alignment: Alignment.topCenter,
+                                      child: isDeleting
+                                          ? const SizedBox(
+                                              width: double.infinity, height: 0)
+                                          : AnimatedOpacity(
+                                              duration: const Duration(
+                                                  milliseconds: 180),
+                                              curve: Curves.easeOut,
+                                              opacity: isDeleting ? 0.0 : 1.0,
+                                              child: RepaintBoundary(
+                                                key: ValueKey(exerciseName),
+                                                child: WorkoutExerciseLogCard(
+                                                  exerciseName: exerciseName,
+                                                  exercise: exercise,
+                                                  sets: sets,
+                                                  isEditMode: true,
+                                                  isCardio: isCardio,
+                                                  isDragging: _isDragging,
+                                                  onPointerDown: (e) =>
+                                                      _onDragPointerDown(e,
+                                                          exerciseName, index),
+                                                  onPointerMove:
+                                                      _onDragPointerMove,
+                                                  onPointerUp: _onDragPointerUp,
+                                                  onPointerCancel:
+                                                      _onDragPointerCancel,
+                                                  weightControllers:
+                                                      _weightControllers,
+                                                  repsControllers:
+                                                      _repsControllers,
+                                                  rirControllers:
+                                                      _rirControllers,
+                                                  exerciseNote: _exerciseNotes[
+                                                      exerciseName],
+                                                  onEditNotes: (exName) =>
+                                                      _editExerciseNotes(
+                                                          context, exName),
+                                                  onDeleteExercise: (exName) =>
+                                                      _onDeleteExercise(
+                                                          exName, sets),
+                                                  onAddSet: () {
+                                                    final newSet = SetLog(
+                                                      id: -DateTime.now()
+                                                          .millisecondsSinceEpoch,
+                                                      workoutLogId: _log!.id!,
+                                                      exerciseName:
+                                                          exerciseName,
+                                                      setType: 'normal',
+                                                      isCompleted: true,
+                                                    );
+                                                    setState(() {
+                                                      sets.add(newSet);
+                                                      _weightControllers[
+                                                              newSet.id!] =
+                                                          TextEditingController();
+                                                      _repsControllers[
+                                                              newSet.id!] =
+                                                          TextEditingController();
+                                                      _rirControllers[
+                                                              newSet.id!] =
+                                                          TextEditingController();
+                                                    });
+                                                  },
+                                                  onDeleteSet: (setId) {
+                                                    setState(() {
+                                                      sets.removeWhere(
+                                                          (s) => s.id == setId);
+                                                      _weightControllers
+                                                          .remove(setId)
+                                                          ?.dispose();
+                                                      _repsControllers
+                                                          .remove(setId)
+                                                          ?.dispose();
+                                                      _rirControllers
+                                                          .remove(setId)
+                                                          ?.dispose();
+                                                    });
+                                                  },
+                                                  onSetTypeTap: (setId) =>
+                                                      _showSetTypePicker(setId),
+                                                  index: index,
+                                                ),
                                               ),
                                             ),
-                                          ),
-                                  ),
-                                );
-                              },
+                                    ),
+                                  );
+                                },
+                              ),
                             ),
-                          ),
                           ],
 
                           // Add Exercise (Edit Mode)
@@ -1483,49 +1487,52 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                                             sourceContext: btnCtx,
                                             sourceBorderRadius: 14.0,
                                             sourceBuilder: (_) => addButton,
-                                            onSourceVisibilityChanged: setHidden,
+                                            onSourceVisibilityChanged:
+                                                setHidden,
                                             builder: (context) =>
                                                 const ExerciseCatalogScreen(
                                                     isSelectionMode: true),
                                           ),
                                         );
-                                      if (selectedExercise != null) {
-                                        setState(() {
-                                          // Store exercise details locally so _isCardio and name work.
-                                          _exerciseDetails[selectedExercise
-                                                  .getLocalizedName(context)] =
-                                              selectedExercise;
+                                        if (selectedExercise != null) {
+                                          setState(() {
+                                            // Store exercise details locally so _isCardio and name work.
+                                            _exerciseDetails[selectedExercise
+                                                    .getLocalizedName(
+                                                        context)] =
+                                                selectedExercise;
 
-                                          final newSet = SetLog(
-                                            id: -DateTime.now()
-                                                .millisecondsSinceEpoch,
-                                            workoutLogId: _log!.id!,
-                                            exerciseName: selectedExercise
-                                                .getLocalizedName(context),
-                                            setType: 'normal',
-                                            isCompleted: true,
-                                            // Set default values
-                                            weightKg: 0,
-                                            reps: 0,
-                                            distanceKm: 0,
-                                            durationSeconds: 0,
-                                          );
-                                          _groupedSets[selectedExercise
-                                              .getLocalizedName(context)] = [
-                                            newSet,
-                                          ];
+                                            final newSet = SetLog(
+                                              id: -DateTime.now()
+                                                  .millisecondsSinceEpoch,
+                                              workoutLogId: _log!.id!,
+                                              exerciseName: selectedExercise
+                                                  .getLocalizedName(context),
+                                              setType: 'normal',
+                                              isCompleted: true,
+                                              // Set default values
+                                              weightKg: 0,
+                                              reps: 0,
+                                              distanceKm: 0,
+                                              durationSeconds: 0,
+                                            );
+                                            _groupedSets[selectedExercise
+                                                .getLocalizedName(context)] = [
+                                              newSet,
+                                            ];
 
-                                          _weightControllers[newSet.id!] =
-                                              TextEditingController();
-                                          _repsControllers[newSet.id!] =
-                                              TextEditingController();
-                                          _rirControllers[newSet.id!] =
-                                              TextEditingController();
-                                        });
-                                      }
-                                    },
-                                    icon: const Icon(LucideIcons.plus),
-                                    label: Text(l10n.addExerciseToWorkoutButton),
+                                            _weightControllers[newSet.id!] =
+                                                TextEditingController();
+                                            _repsControllers[newSet.id!] =
+                                                TextEditingController();
+                                            _rirControllers[newSet.id!] =
+                                                TextEditingController();
+                                          });
+                                        }
+                                      },
+                                      icon: const Icon(LucideIcons.plus),
+                                      label:
+                                          Text(l10n.addExerciseToWorkoutButton),
                                     );
                                     return addButton;
                                   },
