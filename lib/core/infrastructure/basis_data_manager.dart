@@ -580,9 +580,11 @@ class BasisDataManager {
           .customSelect('SELECT 1 FROM exercise_translations LIMIT 1')
           .getSingleOrNull();
       if (postExRow == null || postTrRow == null) {
-        debugPrint('[ExerciseCatalog] ❌ exercises or translations still EMPTY after import!');
+        debugPrint(
+            '[ExerciseCatalog] ❌ exercises or translations still EMPTY after import!');
       } else {
-        debugPrint('[ExerciseCatalog] ✅ Exercise catalog successfully imported and ready.');
+        debugPrint(
+            '[ExerciseCatalog] ✅ Exercise catalog successfully imported and ready.');
       }
     }
 
@@ -1036,7 +1038,8 @@ class BasisDataManager {
             storedVersionAfterImport(assetVersion: assetVersion);
         await prefs.setString(prefKey, storedVersion);
 
-        if (prefKey.startsWith(OffCatalogCountryService.installedVersionKeyPrefix)) {
+        if (prefKey
+            .startsWith(OffCatalogCountryService.installedVersionKeyPrefix)) {
           if (installedVersion == '0') {
             unawaited(TelemetryService.instance.trackFeatureUsed(
               featureKey: FeatureKey.offCatalogInstalled,
@@ -1295,6 +1298,24 @@ class BasisDataManager {
                     isCustom: const drift.Value(false),
                     createdBy: const drift.Value('system'),
                     source: const drift.Value('wger'),
+                    // Absent() rather than Value(null) where the asset does not
+                    // carry the column: on a v1 asset this must leave whatever
+                    // a previous v2 import wrote alone instead of erasing it.
+                    status: _optionalText(fields, 'status'),
+                    mergedInto: _optionalText(fields, 'merged_into'),
+                    modality: _optionalText(fields, 'modality'),
+                    mechanic: _optionalText(fields, 'mechanic'),
+                    forceVector: _optionalText(fields, 'force_vector'),
+                    movementPattern: _optionalText(fields, 'movement_pattern'),
+                    laterality: _optionalText(fields, 'laterality'),
+                    difficulty: _optionalText(fields, 'difficulty'),
+                    trackingType: _optionalText(fields, 'tracking_type'),
+                    loadMode: _optionalText(fields, 'load_mode'),
+                    supportsAddedWeight:
+                        _optionalBool(fields, 'supports_added_weight'),
+                    primaryEquipment:
+                        _optionalText(fields, 'primary_equipment'),
+                    bodyRegion: _optionalText(fields, 'body_region'),
                   );
                   batch.insert(
                     mainDb.exercises,
@@ -1460,6 +1481,12 @@ class BasisDataManager {
               '$relationalTrInserted / $trTotal rows written',
             );
           }
+
+          await _importCatalogSideTables(
+            assetDb: assetDb,
+            mainDb: mainDb,
+            taskLabel: taskLabel,
+          );
         }
       });
 
@@ -1503,10 +1530,382 @@ class BasisDataManager {
     return importedProductBarcodes;
   }
 
+  /// Copies the catalog's v2 side tables into the app database.
+  ///
+  /// Two different policies, on purpose:
+  ///
+  /// * The vocabularies (`muscles`, `equipment`, `languages` and their
+  ///   translations) are *replaced*. They are closed sets owned by the data
+  ///   repo with no user data hanging off them, so an upsert-only import would
+  ///   leave a retired muscle in the app forever.
+  /// * `exercises` and everything keyed by an exercise id stay upsert-only.
+  ///   Exercise ids are a contract with the user's workout logs; nothing keyed
+  ///   by one is ever deleted here.
+  ///
+  /// A missing source table is not an error. A v1 asset has none of these, and
+  /// the app has to keep running on one — the bundled asset is what every
+  /// remote failure falls back to.
+  Future<void> _importCatalogSideTables({
+    required sqflite.Database assetDb,
+    required AppDatabase mainDb,
+    required String taskLabel,
+  }) async {
+    final available = (await assetDb.query(
+      'sqlite_master',
+      columns: ['name'],
+      where: "type = 'table'",
+    ))
+        .map((row) => row['name']?.toString())
+        .whereType<String>()
+        .toSet();
+
+    Future<void> copy({
+      required String source,
+      required bool replace,
+      required Future<int> Function(List<Map<String, Object?>> rows) write,
+    }) async {
+      if (!available.contains(source)) {
+        debugPrint(
+          '[ExerciseCatalog]   [$taskLabel] $source: not in this asset, skipped',
+        );
+        return;
+      }
+      var offset = 0;
+      var written = 0;
+      var firstBatch = true;
+      while (true) {
+        final rows = await assetDb.query(source, limit: 5000, offset: offset);
+        if (rows.isEmpty) break;
+        if (firstBatch && replace) {
+          // Only once the source has proved it has rows. Clearing a vocabulary
+          // and then finding the asset empty would leave the app with neither.
+          await _clearCatalogVocabularyTable(mainDb, source);
+          firstBatch = false;
+        }
+        written += await write(rows);
+        offset += rows.length;
+        await Future.delayed(const Duration(milliseconds: 1));
+      }
+      debugPrint('[ExerciseCatalog]   [$taskLabel] $source: $written rows');
+    }
+
+    await copy(
+      source: 'muscles',
+      replace: true,
+      write: (rows) async {
+        var n = 0;
+        await mainDb.batch((batch) {
+          for (final row in rows) {
+            final id = _parseString(row['id']);
+            final groupId = _parseString(row['group_id']);
+            if (id.isEmpty || groupId.isEmpty) continue;
+            batch.insert(
+              mainDb.muscles,
+              MusclesCompanion.insert(
+                id: id,
+                parentId: drift.Value(_nullableString(row['parent_id'])),
+                level: _parseString(row['level']),
+                groupId: groupId,
+                legacyGroup: drift.Value(_nullableString(row['legacy_group'])),
+                bodySlugs: drift.Value(_nullableString(row['body_slugs'])),
+              ),
+              mode: drift.InsertMode.insertOrReplace,
+            );
+            n++;
+          }
+        });
+        return n;
+      },
+    );
+
+    await copy(
+      source: 'muscle_translations',
+      replace: true,
+      write: (rows) async {
+        var n = 0;
+        await mainDb.batch((batch) {
+          for (final row in rows) {
+            final muscleId = _parseString(row['muscle_id']);
+            final lang = _parseString(row['language_code']);
+            final name = _parseString(row['name']);
+            if (muscleId.isEmpty || lang.isEmpty || name.isEmpty) continue;
+            batch.insert(
+              mainDb.muscleTranslations,
+              MuscleTranslationsCompanion.insert(
+                muscleId: muscleId,
+                languageCode: lang,
+                name: name,
+              ),
+              mode: drift.InsertMode.insertOrReplace,
+            );
+            n++;
+          }
+        });
+        return n;
+      },
+    );
+
+    await copy(
+      source: 'equipment',
+      replace: true,
+      write: (rows) async {
+        var n = 0;
+        await mainDb.batch((batch) {
+          for (final row in rows) {
+            final id = _parseString(row['id']);
+            if (id.isEmpty) continue;
+            batch.insert(
+              mainDb.equipment,
+              EquipmentCompanion.insert(
+                id: id,
+                kind: _parseString(row['kind']),
+              ),
+              mode: drift.InsertMode.insertOrReplace,
+            );
+            n++;
+          }
+        });
+        return n;
+      },
+    );
+
+    await copy(
+      source: 'equipment_translations',
+      replace: true,
+      write: (rows) async {
+        var n = 0;
+        await mainDb.batch((batch) {
+          for (final row in rows) {
+            final equipmentId = _parseString(row['equipment_id']);
+            final lang = _parseString(row['language_code']);
+            final name = _parseString(row['name']);
+            if (equipmentId.isEmpty || lang.isEmpty || name.isEmpty) continue;
+            batch.insert(
+              mainDb.equipmentTranslations,
+              EquipmentTranslationsCompanion.insert(
+                equipmentId: equipmentId,
+                languageCode: lang,
+                name: name,
+              ),
+              mode: drift.InsertMode.insertOrReplace,
+            );
+            n++;
+          }
+        });
+        return n;
+      },
+    );
+
+    await copy(
+      source: 'languages',
+      replace: true,
+      write: (rows) async {
+        var n = 0;
+        await mainDb.batch((batch) {
+          for (final row in rows) {
+            final code = _parseString(row['code']);
+            if (code.isEmpty) continue;
+            batch.insert(
+              mainDb.catalogLanguages,
+              CatalogLanguagesCompanion.insert(
+                code: code,
+                tier: _parseString(row['tier']),
+                completeness:
+                    drift.Value(_parseNullableDouble(row['completeness']) ?? 0),
+                // The data repo decides which languages are fit to show. The
+                // app reads that decision rather than re-deriving one from
+                // `completeness`, which would rebuild exactly the coupling
+                // that moving the vocabulary into the data removes.
+                displayable: drift.Value(_parseBool(row['displayable'])),
+              ),
+              mode: drift.InsertMode.insertOrReplace,
+            );
+            n++;
+          }
+        });
+        return n;
+      },
+    );
+
+    await copy(
+      source: 'exercise_muscles',
+      replace: false,
+      write: (rows) async {
+        var n = 0;
+        await mainDb.batch((batch) {
+          for (final row in rows) {
+            final exerciseId = _parseString(row['exercise_id']);
+            final muscleId = _parseString(row['muscle_id']);
+            if (exerciseId.isEmpty || muscleId.isEmpty) continue;
+            batch.insert(
+              mainDb.exerciseMuscles,
+              ExerciseMusclesCompanion.insert(
+                exerciseId: exerciseId,
+                muscleId: muscleId,
+                role: _parseString(row['role']),
+                contribution:
+                    drift.Value(_parseNullableDouble(row['contribution'])),
+              ),
+              mode: drift.InsertMode.insertOrReplace,
+            );
+            n++;
+          }
+        });
+        return n;
+      },
+    );
+
+    await copy(
+      source: 'exercise_equipment',
+      replace: false,
+      write: (rows) async {
+        var n = 0;
+        await mainDb.batch((batch) {
+          for (final row in rows) {
+            final exerciseId = _parseString(row['exercise_id']);
+            final equipmentId = _parseString(row['equipment_id']);
+            if (exerciseId.isEmpty || equipmentId.isEmpty) continue;
+            batch.insert(
+              mainDb.exerciseEquipment,
+              ExerciseEquipmentCompanion.insert(
+                exerciseId: exerciseId,
+                equipmentId: equipmentId,
+                kind: _parseString(row['kind']),
+              ),
+              mode: drift.InsertMode.insertOrReplace,
+            );
+            n++;
+          }
+        });
+        return n;
+      },
+    );
+
+    await copy(
+      source: 'exercise_tags',
+      replace: false,
+      write: (rows) async {
+        var n = 0;
+        await mainDb.batch((batch) {
+          for (final row in rows) {
+            final exerciseId = _parseString(row['exercise_id']);
+            final tag = _parseString(row['tag']);
+            if (exerciseId.isEmpty || tag.isEmpty) continue;
+            batch.insert(
+              mainDb.exerciseTags,
+              ExerciseTagsCompanion.insert(exerciseId: exerciseId, tag: tag),
+              mode: drift.InsertMode.insertOrReplace,
+            );
+            n++;
+          }
+        });
+        return n;
+      },
+    );
+
+    await copy(
+      source: 'exercise_aliases',
+      replace: false,
+      write: (rows) async {
+        var n = 0;
+        await mainDb.batch((batch) {
+          for (final row in rows) {
+            final oldId = _parseString(row['old_id']);
+            final newId = _parseString(row['new_id']);
+            if (oldId.isEmpty || newId.isEmpty || oldId == newId) continue;
+            batch.insert(
+              mainDb.exerciseAliases,
+              ExerciseAliasesCompanion.insert(
+                oldId: oldId,
+                newId: newId,
+                reason: drift.Value(_nullableString(row['reason'])),
+                sinceVersion:
+                    drift.Value(_nullableString(row['since_version'])),
+              ),
+              mode: drift.InsertMode.insertOrReplace,
+            );
+            n++;
+          }
+        });
+        return n;
+      },
+    );
+  }
+
+  Future<void> _clearCatalogVocabularyTable(
+    AppDatabase mainDb,
+    String source,
+  ) async {
+    switch (source) {
+      case 'muscles':
+        await mainDb.delete(mainDb.muscles).go();
+      case 'muscle_translations':
+        await mainDb.delete(mainDb.muscleTranslations).go();
+      case 'equipment':
+        await mainDb.delete(mainDb.equipment).go();
+      case 'equipment_translations':
+        await mainDb.delete(mainDb.equipmentTranslations).go();
+      case 'languages':
+        await mainDb.delete(mainDb.catalogLanguages).go();
+    }
+  }
+
+  static String? _nullableString(Object? raw) {
+    if (raw == null) return null;
+    final text = raw.toString().trim();
+    return text.isEmpty ? null : text;
+  }
+
+  /// Nullable sibling of [_parseDouble].
+  ///
+  /// `exercise_muscles.contribution` is deliberately shipped unset, and the
+  /// existing helper would turn that into a real 0.0 — a weight of zero rather
+  /// than an absent weight.
+  static double? _parseNullableDouble(Object? raw) {
+    if (raw == null) return null;
+    if (raw is num) return raw.toDouble();
+    return double.tryParse(raw.toString().trim());
+  }
+
+  static bool _parseBool(Object? raw) {
+    if (raw == null) return false;
+    if (raw is bool) return raw;
+    if (raw is num) return raw != 0;
+    final text = raw.toString().trim().toLowerCase();
+    return text == '1' || text == 'true';
+  }
+
   /// Applies OFF replacement semantics with historical retention:
   /// - Keep imported barcodes active (`source='off'` via import mapping)
   /// - Demote historically protected, no-longer-imported rows to `off_retained`
   /// - Delete no-longer-imported rows that are not historically referenced
+  /// Runs the real exercise-catalog import against an arbitrary source file.
+  ///
+  /// Exists so the contract test can drive the actual import path — the same
+  /// batching, mapping and side-table passes the app runs — rather than a
+  /// reimplementation of it that would agree with itself by construction.
+  ///
+  /// Expects [DatabaseHelper.setDriftDb] to have been pointed at a test
+  /// database, and a real sqflite factory to be installed.
+  @visibleForTesting
+  Future<void> importExerciseCatalogFromFileForTesting(
+      String sourcePath) async {
+    final assetDb = await sqflite.openDatabase(sourcePath, readOnly: true);
+    try {
+      await _performBatchImport(
+        assetDb,
+        'exercises',
+        BatchImportType.exercises,
+        null,
+        null,
+        'Übungen',
+        collectProductBarcodes: false,
+      );
+    } finally {
+      await assetDb.close();
+    }
+  }
+
   @visibleForTesting
   Future<void> retainHistoricallyNeededOffProducts({
     required Set<String> importedOffBarcodes,
@@ -1870,6 +2269,58 @@ class BasisDataManager {
     );
   }
 
+  /// Catalog schema v2 columns on `exercises`, copied straight through.
+  ///
+  /// `image_path` is deliberately absent: it exists in both the asset and the
+  /// Drift table, has never been read by this importer, and the catalog ships
+  /// it empty. Adding it here would only make a dead contract look alive.
+  /// Reads an optional text column out of a mapped asset row.
+  ///
+  /// Returns `Absent` when the asset has no such column at all, and a real
+  /// null when the asset carries the column but leaves it empty. Collapsing
+  /// the two would let a v1 asset wipe classification a v2 import had already
+  /// written — the catalog falls back to the bundled asset on every remote
+  /// failure, so that is a normal Tuesday, not a corner case.
+  static drift.Value<String?> _optionalText(
+    Map<String, dynamic> fields,
+    String column,
+  ) {
+    if (!fields.containsKey(column)) return const drift.Value.absent();
+    final raw = fields[column];
+    if (raw == null) return const drift.Value(null);
+    final text = raw.toString().trim();
+    return drift.Value(text.isEmpty ? null : text);
+  }
+
+  static drift.Value<bool> _optionalBool(
+    Map<String, dynamic> fields,
+    String column,
+  ) {
+    if (!fields.containsKey(column)) return const drift.Value.absent();
+    final raw = fields[column];
+    if (raw == null) return const drift.Value(false);
+    if (raw is bool) return drift.Value(raw);
+    if (raw is num) return drift.Value(raw != 0);
+    final text = raw.toString().trim().toLowerCase();
+    return drift.Value(text == '1' || text == 'true');
+  }
+
+  static const List<String> _v2ExerciseColumns = [
+    'status',
+    'merged_into',
+    'modality',
+    'mechanic',
+    'force_vector',
+    'movement_pattern',
+    'laterality',
+    'difficulty',
+    'tracking_type',
+    'load_mode',
+    'supports_added_weight',
+    'primary_equipment',
+    'body_region',
+  ];
+
   /// Maps a flat exercise asset row to an [_ExerciseBundle] containing
   /// the structural exercise fields and derived translation rows.
   ///
@@ -1880,9 +2331,16 @@ class BasisDataManager {
 
     final exerciseFields = <String, dynamic>{
       'id': id,
+      // v1 compatibility columns. Still the only muscle source until the app
+      // reads exercise_muscles, so they keep being written even on a v2 asset.
       'category_name': _parseString(row['category_name']),
       'muscles_primary': _parseString(row['muscles_primary']),
       'muscles_secondary': _parseString(row['muscles_secondary']),
+      // v2 classification. Absent on a v1 asset — `containsKey` rather than a
+      // default, so "the asset has no opinion" stays distinguishable from "the
+      // asset says null".
+      for (final column in _v2ExerciseColumns)
+        if (row.containsKey(column)) column: row[column],
     };
 
     // Build translation rows. Support both flat (legacy) and
