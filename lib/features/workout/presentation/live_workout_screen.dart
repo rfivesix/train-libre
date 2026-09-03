@@ -712,7 +712,7 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
     );
 
     if (result != null) {
-      await manager.updateExerciseNotes(re.exercise.nameEn, result);
+      await manager.updateExerciseNotes(re.exercise.canonicalName, result);
     }
   }
 
@@ -735,10 +735,10 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
 
     if (selectedExercise != null) {
       final lastSets = await WorkoutLocalDataSource.instance
-          .getLastSetsForExercise(selectedExercise.nameEn);
+          .getLastSetsForExercise(selectedExercise.canonicalName);
       if (mounted) {
         setState(() {
-          manager.lastPerformances[selectedExercise.nameEn] = lastSets;
+          manager.lastPerformances[selectedExercise.canonicalName] = lastSets;
         });
       }
       await manager.addExercise(selectedExercise);
@@ -1294,7 +1294,7 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                                                                         rowIndex: setEntry.key,
                                                                                         templateId: templateId,
                                                                                         setLog: setLog,
-                                                                                        lastPerfSets: manager.lastPerformances[routineExercise.exercise.nameEn] ?? [],
+                                                                                        lastPerfSets: manager.lastPerformances[routineExercise.exercise.canonicalName] ?? [],
                                                                                         template: template,
                                                                                         manager: manager,
                                                                                         isCardio: _isCardio(routineExercise),

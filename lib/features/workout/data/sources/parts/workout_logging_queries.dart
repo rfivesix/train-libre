@@ -500,8 +500,13 @@ extension WorkoutLoggingQueries on WorkoutLocalDataSource {
           // Check exercise mapping (name -> UUID).
           // Search for the exercise in the DB. If custom and present in the backup, it should already be imported.
           final exModel = re.exercise;
-          final exercise = await getExerciseByName(exModel.nameEn) ??
-              await getExerciseByName(exModel.nameDe);
+          // Any name the shared routine carries, in any language it was
+          // written in.
+          Exercise? exercise;
+          for (final name in exModel.allNames) {
+            exercise = await getExerciseByName(name);
+            if (exercise != null) break;
+          }
 
           if (exercise == null) continue;
 

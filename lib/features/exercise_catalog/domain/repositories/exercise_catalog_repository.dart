@@ -4,11 +4,15 @@ import '../models/exercise.dart';
 
 /// Abstract contract for Exercise Catalog data persistence and operations.
 abstract class IExerciseCatalogRepository {
+  /// [languageCode] picks which of the catalog's languages the results are
+  /// named in. Callers inside the widget tree pass the UI locale; the default
+  /// exists for the ones that only need a name to key by.
   Future<List<Exercise>> searchExercises({
     String query = '',
     List<String> categories = const [],
     List<String> forceLevels = const [],
     String sortOrder = 'alphabetical',
+    String languageCode = 'en',
   });
   Future<Exercise?> getExerciseByName(String name);
   Future<Exercise?> getExerciseByUuid(String exerciseUuid);

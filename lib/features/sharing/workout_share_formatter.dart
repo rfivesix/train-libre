@@ -22,10 +22,10 @@ class WorkoutShareFormatter {
   String _exerciseName(String rawName) {
     final exercise = exerciseDetails[rawName];
     if (exercise == null) return rawName;
-    final preferGerman = locale?.toLowerCase().startsWith('de') == true;
-    final primary = preferGerman ? exercise.nameDe : exercise.nameEn;
-    final fallback = preferGerman ? exercise.nameEn : exercise.nameDe;
-    return primary.trim().isNotEmpty ? primary : fallback;
+    final name = exercise.localizedNameFor(
+      (locale ?? 'en').toLowerCase().split(RegExp('[-_]')).first,
+    );
+    return name.trim().isNotEmpty ? name : rawName;
   }
 
   String format(WorkoutLog workout) {

@@ -49,10 +49,10 @@ class RoutineShareFormatter {
 
   String _exerciseName(RoutineExercise routineExercise) {
     final exercise = routineExercise.exercise;
-    final preferGerman = locale?.toLowerCase().startsWith('de') == true;
-    final primary = preferGerman ? exercise.nameDe : exercise.nameEn;
-    final fallback = preferGerman ? exercise.nameEn : exercise.nameDe;
-    return primary.trim().isNotEmpty ? primary : fallback;
+    final name = exercise.localizedNameFor(
+      (locale ?? 'en').toLowerCase().split(RegExp('[-_]')).first,
+    );
+    return name.trim().isNotEmpty ? name : '?';
   }
 
   String imageSummaryLine(Routine routine) {

@@ -53,6 +53,9 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
   Map<String, SetLog?> _prMap = {};
   List<Map<String, dynamic>> _timeSeriesData = [];
 
+  /// The UI language, read once per load rather than per row.
+  String get _languageCode => Localizations.localeOf(context).languageCode;
+
   int? get _selectedRangeDays {
     if (_selectedRange == '30D') return 30;
     if (_selectedRange == '90D') return 90;
@@ -94,20 +97,23 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
         ? await _repository.getExerciseUuidByLocalId(exercise.id!)
         : null;
 
+    // Statistics are keyed by the name that was logged, which may be in any
+    // language the user has run the app in — so the primary key is the name
+    // they see now and the alternate is the stable English one.
+    final displayName = exercise.localizedNameFor(_languageCode);
+    final canonical = exercise.canonicalName;
     final altName =
-        exercise.nameEn.isNotEmpty && exercise.nameEn != exercise.nameDe
-            ? exercise.nameEn
-            : null;
+        canonical.isNotEmpty && canonical != displayName ? canonical : null;
 
     final prs = await _repository.getExercisePRs(
-      exercise.nameDe,
+      displayName,
       altName: altName,
       exerciseUuid: exerciseUuid,
       isCardio: exercise.isCardio,
     );
 
     final timeSeries = await _repository.getExerciseTimeSeriesData(
-      exercise.nameDe,
+      displayName,
       altName: altName,
       exerciseUuid: exerciseUuid,
       isCardio: exercise.isCardio,
@@ -263,8 +269,8 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
                       Expanded(
                         child: Text(
                           l10n.deleteCustomExerciseWithLogsWarning,
-                          style: textTheme.bodySmall?.copyWith(
-                              color: colorScheme.onErrorContainer),
+                          style: textTheme.bodySmall
+                              ?.copyWith(color: colorScheme.onErrorContainer),
                         ),
                       ),
                     ],
@@ -279,8 +285,8 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
                       Expanded(
                         child: Text(
                           l10n.deleteCustomExerciseWithRoutinesWarning,
-                          style: textTheme.bodySmall?.copyWith(
-                              color: colorScheme.onErrorContainer),
+                          style: textTheme.bodySmall
+                              ?.copyWith(color: colorScheme.onErrorContainer),
                         ),
                       ),
                     ],
@@ -374,7 +380,8 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
                   icon: const Icon(LucideIcons.pencil),
                   onPressed: () {
                     if (_currentExercise.source == 'user') {
-                      Navigator.of(context).push(
+                      Navigator.of(context)
+                          .push(
                         CardMorphRoute(
                           sourceContext: iconCtx,
                           sourceBorderRadius: 20.0,
@@ -385,7 +392,8 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
                             exerciseToEdit: _currentExercise,
                           ),
                         ),
-                      ).then((wasSaved) {
+                      )
+                          .then((wasSaved) {
                         if (wasSaved == true) {
                           _loadData();
                         }

@@ -38,10 +38,15 @@ class _ExerciseMappingScreenState extends State<ExerciseMappingScreen> {
     _loadSuggestions();
   }
 
+  /// Read once: this runs in a loop over every unknown name.
+  late final String _languageCode =
+      Localizations.localeOf(context).languageCode;
+
   Future<void> _loadSuggestions() async {
     for (final name in widget.unknownNames) {
       final matches = await _repository.searchExercises(
         query: name,
+        languageCode: _languageCode,
       );
       if (matches.isNotEmpty && mounted) {
         setState(() {
@@ -75,7 +80,8 @@ class _ExerciseMappingScreenState extends State<ExerciseMappingScreen> {
     setState(() => _applying = true);
     final mapping = <String, String>{
       for (final e in _selection.entries)
-        e.key: e.value.nameDe.isNotEmpty ? e.value.nameDe : e.value.nameEn,
+        e.key: e.value
+            .localizedNameFor(Localizations.localeOf(context).languageCode),
     };
     await _repository.applyExerciseNameMapping(mapping);
     if (mounted) {
@@ -183,7 +189,8 @@ class _ExerciseMappingScreenState extends State<ExerciseMappingScreen> {
                                     ],
                                     Text(
                                       s.getLocalizedName(context),
-                                      style: theme.textTheme.bodySmall?.copyWith(
+                                      style:
+                                          theme.textTheme.bodySmall?.copyWith(
                                         color: isSelected
                                             ? colorScheme.primary
                                             : null,

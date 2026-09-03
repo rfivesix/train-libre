@@ -18,10 +18,12 @@ class ExerciseCatalogRepository implements IExerciseCatalogRepository {
     List<String> categories = const [],
     List<String> forceLevels = const [],
     String sortOrder = 'alphabetical',
+    String languageCode = 'en',
   }) {
     return _localDataSource.searchExercises(
       query: query,
       selectedCategories: categories,
+      languageCode: languageCode,
     );
   }
 

@@ -61,7 +61,7 @@ class ExerciseE1rmSummary extends StatelessWidget {
         if (sessionBest == null) return const SizedBox.shrink();
 
         final lastSessionBest = _getLastSessionBestE1rm(
-          routineExercise.exercise.nameEn,
+          routineExercise.exercise.canonicalName,
         );
         final hasDelta = lastSessionBest != null;
         final delta = hasDelta ? sessionBest - lastSessionBest : null;

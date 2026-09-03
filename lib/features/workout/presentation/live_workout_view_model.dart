@@ -131,7 +131,7 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
 
   String _displayNameOf(RoutineExercise exercise, String languageCode) {
     final localized = exercise.exercise.localizedNameFor(languageCode);
-    return localized.isNotEmpty ? localized : exercise.exercise.nameEn;
+    return localized.isNotEmpty ? localized : exercise.exercise.canonicalName;
   }
 
   // ---------------------------------------------------------------------------
@@ -353,7 +353,7 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
       if (re.notes != null && re.notes!.isNotEmpty) {
         await _repository.saveWorkoutExerciseNote(
           workoutLogId: log.id!,
-          exerciseName: re.exercise.nameEn,
+          exerciseName: re.exercise.canonicalName,
           notes: re.notes,
         );
       }
@@ -380,7 +380,7 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
 
         final newSetLog = SetLog(
           workoutLogId: _workoutLog!.id!,
-          exerciseName: re.exercise.nameEn,
+          exerciseName: re.exercise.canonicalName,
           setType: template.setType,
           weightKg: null,
           reps: null,
@@ -458,10 +458,7 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
       final exName = firstSet.exerciseName;
       final exercise = await _repository.resolveExerciseForSetLog(firstSet) ??
           Exercise(
-            nameDe: exName,
-            nameEn: exName,
-            descriptionDe: '',
-            descriptionEn: '',
+            texts: {'en': ExerciseText(name: exName)},
             categoryName: 'Unknown',
             primaryMuscles: const [],
             secondaryMuscles: const [],
@@ -502,8 +499,10 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
         _totalSets++;
       }
 
-      final savedNote = savedExerciseNotes[exercise.nameEn] ??
-          savedExerciseNotes[exercise.nameDe];
+      final savedNote = savedExerciseNotes[exercise.canonicalName] ??
+          exercise.allNames
+              .map((name) => savedExerciseNotes[name])
+              .firstWhere((note) => note != null, orElse: () => null);
       final re = RoutineExercise(
         id: syntheticReId,
         exercise: exercise,
@@ -585,8 +584,8 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
 
     for (var re in exercisesToInit) {
       final lastSets =
-          await _repository.getLastSetsForExercise(re.exercise.nameEn);
-      lastPerformances[re.exercise.nameEn] = lastSets;
+          await _repository.getLastSetsForExercise(re.exercise.canonicalName);
+      lastPerformances[re.exercise.canonicalName] = lastSets;
     }
 
     syncControllers();
@@ -782,7 +781,8 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
 
     if (!_exerciseBests.containsKey(exName)) {
       final exercise = await _repository.getExerciseByName(exName);
-      final altName = exercise?.nameEn != exName ? exercise?.nameEn : null;
+      final altName =
+          exercise?.canonicalName != exName ? exercise?.canonicalName : null;
       final exerciseUuid = exercise?.id != null
           ? await _repository.getExerciseUuidByLocalId(exercise!.id!)
           : null;
@@ -837,12 +837,12 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
     _exercises = newExercises;
 
     final prevSet = _setLogs.values
-        .where((s) => s.exerciseName == re.exercise.nameEn)
+        .where((s) => s.exerciseName == re.exercise.canonicalName)
         .lastOrNull;
 
     final newSetLog = SetLog(
       workoutLogId: _workoutLog!.id!,
-      exerciseName: re.exercise.nameEn,
+      exerciseName: re.exercise.canonicalName,
       setType: 'normal',
       weightKg: prevSet?.weightKg,
       reps: prevSet?.reps,
@@ -954,7 +954,7 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
     for (var t in templates) {
       final newSetLog = SetLog(
         workoutLogId: _workoutLog!.id!,
-        exerciseName: exercise.nameEn,
+        exerciseName: exercise.canonicalName,
         setType: 'normal',
         weightKg: null,
         reps: null,
@@ -1080,8 +1080,7 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
   Future<void> updateExerciseNotes(String exerciseName, String? notes) async {
     final newExercises = List<RoutineExercise>.from(_exercises);
     for (int i = 0; i < newExercises.length; i++) {
-      if (newExercises[i].exercise.nameEn == exerciseName ||
-          newExercises[i].exercise.nameDe == exerciseName) {
+      if (newExercises[i].exercise.allNames.contains(exerciseName)) {
         newExercises[i] = newExercises[i].copyWith(
           notes: notes,
           clearNotes: notes == null || notes.isEmpty,

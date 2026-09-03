@@ -17,10 +17,12 @@ class ExerciseCatalogLocalDataSource {
   Future<List<Exercise>> searchExercises({
     String query = '',
     List<String> selectedCategories = const [],
+    String languageCode = 'en',
   }) async {
     final list = await _workoutDbHelper.searchExercises(
       query: query,
       selectedCategories: selectedCategories,
+      languageCode: languageCode,
     );
     return list.cast<Exercise>();
   }

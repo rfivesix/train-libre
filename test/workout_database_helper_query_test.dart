@@ -170,10 +170,10 @@ void main() {
       // Create an exercise with muscles
       await helper.insertExercise(
         const model.Exercise(
-          nameDe: 'Bankdruecken',
-          nameEn: 'Bench Press',
-          descriptionDe: '',
-          descriptionEn: '',
+          texts: {
+            'de': model.ExerciseText(name: 'Bankdruecken', description: ''),
+            'en': model.ExerciseText(name: 'Bench Press', description: ''),
+          },
           categoryName: 'Strength',
           primaryMuscles: ['chest'],
           secondaryMuscles: ['triceps'],
@@ -218,10 +218,10 @@ void main() {
         () async {
       await helper.insertExercise(
         const model.Exercise(
-          nameDe: 'Biceps Curl',
-          nameEn: 'Biceps Curl',
-          descriptionDe: '',
-          descriptionEn: '',
+          texts: {
+            'de': model.ExerciseText(name: 'Biceps Curl', description: ''),
+            'en': model.ExerciseText(name: 'Biceps Curl', description: ''),
+          },
           categoryName: 'Strength',
           primaryMuscles: ['biceps'],
           secondaryMuscles: [],
@@ -229,10 +229,10 @@ void main() {
       );
       await helper.insertExercise(
         const model.Exercise(
-          nameDe: 'Bench Press',
-          nameEn: 'Bench Press',
-          descriptionDe: '',
-          descriptionEn: '',
+          texts: {
+            'de': model.ExerciseText(name: 'Bench Press', description: ''),
+            'en': model.ExerciseText(name: 'Bench Press', description: ''),
+          },
           categoryName: 'Strength',
           primaryMuscles: ['chest'],
           secondaryMuscles: ['triceps'],
@@ -240,10 +240,10 @@ void main() {
       );
       await helper.insertExercise(
         const model.Exercise(
-          nameDe: 'Burpee',
-          nameEn: 'Burpee',
-          descriptionDe: '',
-          descriptionEn: '',
+          texts: {
+            'de': model.ExerciseText(name: 'Burpee', description: ''),
+            'en': model.ExerciseText(name: 'Burpee', description: ''),
+          },
           categoryName: 'Cardio',
           primaryMuscles: ['legs'],
           secondaryMuscles: [],
@@ -255,7 +255,7 @@ void main() {
         selectedCategories: const ['Strength'],
       );
 
-      expect(strengthB.map((e) => e.nameDe).toList(), [
+      expect(strengthB.map((e) => e.localizedNameFor('de')).toList(), [
         'Bench Press',
         'Biceps Curl',
       ]);
@@ -375,7 +375,7 @@ void main() {
 
       final refreshed = await helper.getExerciseByUuid('catalog-1');
       expect(refreshed, isNotNull);
-      expect(refreshed!.nameEn, 'Bench Press New');
+      expect(refreshed!.canonicalName, 'Bench Press New');
       expect(refreshed.secondaryMuscles, contains('front_delts'));
     });
 
@@ -474,7 +474,7 @@ void main() {
 
       final names = (await helper
               .searchExercises(query: '', selectedCategories: const []))
-          .map((e) => e.nameEn)
+          .map((e) => e.canonicalName)
           .toList();
       expect(names, containsAll(['Historical Exercise', 'Row New']));
     });
@@ -485,10 +485,10 @@ void main() {
           id: 42,
           uuid: 'orig-uuid',
           source: 'wger',
-          nameDe: 'Kniebeuge',
-          nameEn: 'Squat',
-          descriptionDe: 'Desc DE',
-          descriptionEn: 'Desc EN',
+          texts: {
+            'de': model.ExerciseText(name: 'Kniebeuge', description: 'Desc DE'),
+            'en': model.ExerciseText(name: 'Squat', description: 'Desc EN'),
+          },
           categoryName: 'Strength',
           primaryMuscles: const ['Quadriceps'],
           secondaryMuscles: const ['Glutes'],
@@ -501,10 +501,10 @@ void main() {
         expect(duplicate.uuid, 'new-uuid');
         expect(duplicate.source, 'user');
         expect(duplicate.replacesExerciseId, 'orig-uuid');
-        expect(duplicate.nameDe, 'Kniebeuge');
-        expect(duplicate.nameEn, 'Squat');
-        expect(duplicate.descriptionDe, 'Desc DE');
-        expect(duplicate.descriptionEn, 'Desc EN');
+        expect(duplicate.localizedNameFor('de'), 'Kniebeuge');
+        expect(duplicate.canonicalName, 'Squat');
+        expect(duplicate.localizedDescriptionFor('de'), 'Desc DE');
+        expect(duplicate.localizedDescriptionFor('en'), 'Desc EN');
         expect(duplicate.categoryName, 'Strength');
         expect(duplicate.primaryMuscles, const ['Quadriceps']);
         expect(duplicate.secondaryMuscles, const ['Glutes']);
@@ -761,8 +761,8 @@ void main() {
         });
 
         // 1. Try to update wger exercise - should fail
-        final updatedSystemModel =
-            systemModel.copyWith(nameEn: 'Pullup (Updated)');
+        final updatedSystemModel = systemModel.withText(
+            'en', const model.ExerciseText(name: 'Pullup (Updated)'));
         expect(
           () => helper.updateCustomExercise(updatedSystemModel),
           throwsA(isA<Exception>()),
@@ -770,15 +770,16 @@ void main() {
 
         // Verify name not changed
         final verifySystem = await helper.getExerciseByUuid('system-5');
-        expect(verifySystem?.nameEn, 'Pullup');
+        expect(verifySystem?.canonicalName, 'Pullup');
 
         // 2. Try to update user exercise - should succeed
-        final updatedUserModel = userModel.copyWith(nameEn: 'Chinup (Updated)');
+        final updatedUserModel = userModel.withText(
+            'en', const model.ExerciseText(name: 'Chinup (Updated)'));
         await helper.updateCustomExercise(updatedUserModel);
 
         // Verify name changed
         final verifyUser = await helper.getExerciseByUuid('custom-5');
-        expect(verifyUser?.nameEn, 'Chinup (Updated)');
+        expect(verifyUser?.canonicalName, 'Chinup (Updated)');
       });
     });
 
@@ -788,10 +789,12 @@ void main() {
           () async {
         await helper.insertExercise(
           const model.Exercise(
-            nameDe: 'Barbell Bench Press',
-            nameEn: 'Barbell Bench Press',
-            descriptionDe: '',
-            descriptionEn: '',
+            texts: {
+              'de': model.ExerciseText(
+                  name: 'Barbell Bench Press', description: ''),
+              'en': model.ExerciseText(
+                  name: 'Barbell Bench Press', description: ''),
+            },
             categoryName: 'Strength',
             primaryMuscles: [],
             secondaryMuscles: [],
@@ -799,10 +802,12 @@ void main() {
         );
         await helper.insertExercise(
           const model.Exercise(
-            nameDe: 'Incline Bench Press',
-            nameEn: 'Incline Bench Press',
-            descriptionDe: '',
-            descriptionEn: '',
+            texts: {
+              'de': model.ExerciseText(
+                  name: 'Incline Bench Press', description: ''),
+              'en': model.ExerciseText(
+                  name: 'Incline Bench Press', description: ''),
+            },
             categoryName: 'Strength',
             primaryMuscles: [],
             secondaryMuscles: [],
@@ -814,7 +819,7 @@ void main() {
             await helper.searchExercises(query: 'Press Bench Barbell');
 
         expect(results.length, 1);
-        expect(results.first.nameEn, 'Barbell Bench Press');
+        expect(results.first.canonicalName, 'Barbell Bench Press');
       });
 
       test(
@@ -1161,10 +1166,10 @@ void main() {
       final routine = await helper.createRoutine('Sync Routine');
       final exercise = await helper.insertExercise(
         const model.Exercise(
-          nameDe: 'Bench Press',
-          nameEn: 'Bench Press',
-          descriptionDe: '',
-          descriptionEn: '',
+          texts: {
+            'de': model.ExerciseText(name: 'Bench Press', description: ''),
+            'en': model.ExerciseText(name: 'Bench Press', description: ''),
+          },
           categoryName: 'Strength',
           primaryMuscles: ['chest'],
           secondaryMuscles: [],

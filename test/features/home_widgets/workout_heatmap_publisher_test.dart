@@ -16,10 +16,10 @@ void main() {
     String category = 'Strength',
   }) =>
       Exercise(
-        nameDe: name,
-        nameEn: name,
-        descriptionDe: '',
-        descriptionEn: '',
+        texts: {
+          'de': ExerciseText(name: name, description: ''),
+          'en': ExerciseText(name: name, description: ''),
+        },
         categoryName: category,
         primaryMuscles: muscles,
         secondaryMuscles: const [],
@@ -34,7 +34,8 @@ void main() {
       gender: BodyGender.male,
     );
 
-    expect(bytes, isNotNull, reason: 'the offscreen pipeline must produce an image');
+    expect(bytes, isNotNull,
+        reason: 'the offscreen pipeline must produce an image');
     expect(
       bytes!.sublist(0, 8),
       [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A],
@@ -50,7 +51,9 @@ void main() {
     // first one's global key or a still-dirty element.
     for (var i = 0; i < 3; i++) {
       final bytes = await const WorkoutHeatmapPublisher().renderPng(
-        exercises: [exercise('Deadlift', ['hamstrings', 'lower back'])],
+        exercises: [
+          exercise('Deadlift', ['hamstrings', 'lower back'])
+        ],
         gender: BodyGender.female,
       );
       expect(bytes, isNotNull, reason: 'render $i failed');
@@ -59,7 +62,9 @@ void main() {
 
   test('draws nothing for a session with no muscles to shade', () async {
     final bytes = await const WorkoutHeatmapPublisher().renderPng(
-      exercises: [exercise('Treadmill', ['cardio'], category: 'Cardio')],
+      exercises: [
+        exercise('Treadmill', ['cardio'], category: 'Cardio')
+      ],
       gender: BodyGender.male,
     );
 

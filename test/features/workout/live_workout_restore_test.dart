@@ -55,10 +55,10 @@ void main() {
 
   model.Exercise exerciseNamed(String name, int id) => model.Exercise(
         id: id,
-        nameDe: name,
-        nameEn: name,
-        descriptionDe: '',
-        descriptionEn: '',
+        texts: {
+          'de': model.ExerciseText(name: name, description: ''),
+          'en': model.ExerciseText(name: name, description: ''),
+        },
         categoryName: 'Strength',
         primaryMuscles: const ['chest'],
         secondaryMuscles: const [],
@@ -122,7 +122,7 @@ void main() {
     final restored = await restartApp();
 
     expect(
-      [for (final e in restored.exercises) e.exercise.nameEn],
+      [for (final e in restored.exercises) e.exercise.canonicalName],
       ['Bench Press', 'Squat', 'Barbell Row'],
     );
     expect(
@@ -179,7 +179,7 @@ void main() {
     final restored = await restartApp();
 
     expect(
-      [for (final e in restored.exercises) e.exercise.nameEn],
+      [for (final e in restored.exercises) e.exercise.canonicalName],
       ['Bench Press', 'Squat', 'Barbell Row'],
     );
     expect(
@@ -193,7 +193,7 @@ void main() {
     final restored = await restartApp();
 
     expect(
-      [for (final e in restored.exercises) e.exercise.nameEn],
+      [for (final e in restored.exercises) e.exercise.canonicalName],
       ['Barbell Row', 'Bench Press', 'Squat'],
     );
     expect(
@@ -256,7 +256,7 @@ void main() {
     final restored = await restartApp();
 
     expect(
-      [for (final e in restored.exercises) e.exercise.nameEn],
+      [for (final e in restored.exercises) e.exercise.canonicalName],
       ['Barbell Row', 'Bench Press', 'Squat'],
     );
     expect(
@@ -280,13 +280,13 @@ void main() {
     final first = await restartApp();
     final firstShape = [
       for (final e in first.exercises)
-        '${e.exercise.nameEn}:${e.setTemplates.length}:${e.pauseSeconds}',
+        '${e.exercise.canonicalName}:${e.setTemplates.length}:${e.pauseSeconds}',
     ];
 
     final second = await restartApp();
     final secondShape = [
       for (final e in second.exercises)
-        '${e.exercise.nameEn}:${e.setTemplates.length}:${e.pauseSeconds}',
+        '${e.exercise.canonicalName}:${e.setTemplates.length}:${e.pauseSeconds}',
     ];
 
     expect(secondShape, firstShape);
@@ -310,7 +310,7 @@ void main() {
       final restored = await restartApp();
 
       expect(
-        [for (final e in restored.exercises) e.exercise.nameEn],
+        [for (final e in restored.exercises) e.exercise.canonicalName],
         ['Bench Press', 'Squat', 'Barbell Row'],
       );
       expect([for (final e in restored.exercises) e.setTemplates.length],
@@ -401,12 +401,13 @@ void main() {
     await manager.addExercise(exerciseNamed('Overhead Press', 4));
 
     final beforeKill = [
-      for (final e in manager.exercises) e.exercise.nameEn,
+      for (final e in manager.exercises) e.exercise.canonicalName,
     ];
 
     final restored = await restartApp();
 
-    expect([for (final e in restored.exercises) e.exercise.nameEn], beforeKill);
+    expect([for (final e in restored.exercises) e.exercise.canonicalName],
+        beforeKill);
     expect(restored.exercises.length, 4);
   });
 
@@ -417,7 +418,7 @@ void main() {
     final restored = await restartApp();
 
     expect(
-      [for (final e in restored.exercises) e.exercise.nameEn],
+      [for (final e in restored.exercises) e.exercise.canonicalName],
       ['Bench Press', 'Barbell Row'],
     );
     expect([for (final e in restored.exercises) e.pauseSeconds], [60, 120]);

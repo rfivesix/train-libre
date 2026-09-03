@@ -108,6 +108,7 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
     final results = await _repository.searchExercises(
       query: enteredKeyword,
       categories: _selectedCategories,
+      languageCode: Localizations.localeOf(context).languageCode,
     );
     if (mounted) {
       setState(() {
@@ -115,8 +116,6 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
       });
     }
   }
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -229,7 +228,7 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
                               final exercise = _foundExercises[index];
                               return MorphSourceScope(
                                 builder: (context, setHidden) => Builder(
-                                    builder: (cardCtx) {
+                                  builder: (cardCtx) {
                                     // Handed to the morph route as the copy that flies with
                                     // the container, so the card dissolves into the detail
                                     // screen instead of the screen simply growing.
@@ -240,14 +239,17 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
                                           children: [
                                             Expanded(
                                               child: Text(
-                                                exercise.getLocalizedName(context),
+                                                exercise
+                                                    .getLocalizedName(context),
                                                 style: const TextStyle(
-                                                    fontWeight: FontWeight.bold),
+                                                    fontWeight:
+                                                        FontWeight.bold),
                                               ),
                                             ),
                                             if (exercise.source == 'user') ...[
                                               const SizedBox(
-                                                  width: DesignConstants.spacingS),
+                                                  width:
+                                                      DesignConstants.spacingS),
                                               _buildSourceBadge(
                                                   context, exercise.source),
                                             ],
@@ -266,19 +268,23 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
                                                   LucideIcons.circle_plus,
                                                   color: colorScheme.primary,
                                                 ),
-                                                onPressed: () => Navigator.of(context)
-                                                    .pop(exercise),
+                                                onPressed: () =>
+                                                    Navigator.of(context)
+                                                        .pop(exercise),
                                               )
                                             : const Icon(
                                                 LucideIcons.chevron_right,
                                               ),
                                         onTap: () {
-                                          if (widget.onExerciseSelected != null) {
-                                            widget.onExerciseSelected!(exercise);
+                                          if (widget.onExerciseSelected !=
+                                              null) {
+                                            widget
+                                                .onExerciseSelected!(exercise);
                                           } else if (widget.isSelectionMode) {
                                             Navigator.of(context).pop(exercise);
                                           } else {
-                                            Navigator.of(context).push(
+                                            Navigator.of(context)
+                                                .push(
                                               CardMorphRoute(
                                                 sourceContext: cardCtx,
                                                 sourceBuilder: (_) => card,
@@ -287,11 +293,14 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
                                                 builder: (context) =>
                                                     ExerciseDetailScreen(
                                                         exercise: exercise,
-                                                        repository: _repository),
+                                                        repository:
+                                                            _repository),
                                               ),
-                                            ).then((result) {
+                                            )
+                                                .then((result) {
                                               if (result == 'deleted') {
-                                                _runFilter(_searchController.text);
+                                                _runFilter(
+                                                    _searchController.text);
                                               }
                                             });
                                           }
