@@ -17,15 +17,25 @@ class ExerciseCatalogLocalDataSource {
   Future<List<Exercise>> searchExercises({
     String query = '',
     List<String> selectedCategories = const [],
+    List<String> equipmentIds = const [],
+    List<String> usageTags = const [],
     String languageCode = 'en',
   }) async {
     final list = await _workoutDbHelper.searchExercises(
       query: query,
       selectedCategories: selectedCategories,
+      equipmentIds: equipmentIds,
+      usageTags: usageTags,
       languageCode: languageCode,
     );
     return list.cast<Exercise>();
   }
+
+  Future<List<({String id, String name})>> getPrimaryEquipment(
+          String languageCode) =>
+      _workoutDbHelper.getPrimaryEquipment(languageCode);
+
+  Future<List<String>> getUsageTags() => _workoutDbHelper.getUsageTags();
 
   Future<Exercise?> getExerciseById(String id) {
     return _workoutDbHelper.getExerciseByUuid(id);

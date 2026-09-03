@@ -18,14 +18,26 @@ class ExerciseCatalogRepository implements IExerciseCatalogRepository {
     List<String> categories = const [],
     List<String> forceLevels = const [],
     String sortOrder = 'alphabetical',
+    List<String> equipmentIds = const [],
+    List<String> usageTags = const [],
     String languageCode = 'en',
   }) {
     return _localDataSource.searchExercises(
       query: query,
       selectedCategories: categories,
+      equipmentIds: equipmentIds,
+      usageTags: usageTags,
       languageCode: languageCode,
     );
   }
+
+  @override
+  Future<List<({String id, String name})>> getPrimaryEquipment(
+          String languageCode) =>
+      _localDataSource.getPrimaryEquipment(languageCode);
+
+  @override
+  Future<List<String>> getUsageTags() => _localDataSource.getUsageTags();
 
   @override
   Future<Exercise?> getExerciseByName(String name) {

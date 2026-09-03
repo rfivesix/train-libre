@@ -12,8 +12,18 @@ abstract class IExerciseCatalogRepository {
     List<String> categories = const [],
     List<String> forceLevels = const [],
     String sortOrder = 'alphabetical',
+    List<String> equipmentIds = const [],
+    List<String> usageTags = const [],
     String languageCode = 'en',
   });
+
+  /// Equipment that is the load-bearing implement of at least one live
+  /// exercise, named in [languageCode].
+  Future<List<({String id, String name})>> getPrimaryEquipment(
+      String languageCode);
+
+  /// The usage tags in use: warmup, accessory, main_lift, and so on.
+  Future<List<String>> getUsageTags();
   Future<Exercise?> getExerciseByName(String name);
   Future<Exercise?> getExerciseByUuid(String exerciseUuid);
   Future<Exercise> insertExercise(Exercise exercise);

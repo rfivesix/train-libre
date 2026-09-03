@@ -70,6 +70,67 @@ extension ExercisesQueries on WorkoutLocalDataSource {
     return categories..sort();
   }
 
+  /// Equipment that at least one live exercise actually uses as its primary
+  /// implement, with names in [languageCode].
+  ///
+  /// Restricted to equipment in use so the filter cannot offer a chip that
+  /// selects nothing — the catalog carries 42 pieces, not all of which are the
+  /// load-bearing one anywhere.
+  Future<List<({String id, String name})>> getPrimaryEquipment(
+    String languageCode,
+  ) async {
+    final dbInstance = await database;
+    final chain = await ExerciseLocaleChain.resolve(dbInstance, languageCode);
+
+    final rows = await dbInstance.customSelect(
+      '''
+      SELECT q.id AS id,
+             COALESCE(t_pref.name, t_en.name, q.id) AS name
+      FROM equipment q
+      LEFT JOIN equipment_translations t_pref
+        ON t_pref.equipment_id = q.id AND t_pref.language_code = ?
+      LEFT JOIN equipment_translations t_en
+        ON t_en.equipment_id = q.id AND t_en.language_code = 'en'
+      WHERE EXISTS (
+        SELECT 1 FROM exercise_equipment ee
+        JOIN exercises e ON e.id = ee.exercise_id
+        WHERE ee.equipment_id = q.id AND ee.kind = 'primary'
+          AND (e.status IS NULL OR e.status = 'active')
+      )
+      ORDER BY name ASC
+      ''',
+      variables: [drift.Variable.withString(chain.first)],
+      readsFrom: {
+        dbInstance.equipment,
+        dbInstance.equipmentTranslations,
+        dbInstance.exerciseEquipment,
+        dbInstance.exercises,
+      },
+    ).get();
+
+    return rows
+        .map((row) =>
+            (id: row.read<String>('id'), name: row.read<String>('name')))
+        .toList(growable: false);
+  }
+
+  /// The `usage_tags` in use on live exercises: warmup, activation, main_lift,
+  /// accessory, conditioning, finisher, cooldown, prehab.
+  Future<List<String>> getUsageTags() async {
+    final dbInstance = await database;
+    final rows = await dbInstance.customSelect(
+      '''
+      SELECT DISTINCT et.tag AS tag
+      FROM exercise_tags et
+      JOIN exercises e ON e.id = et.exercise_id
+      WHERE (e.status IS NULL OR e.status = 'active')
+      ORDER BY tag ASC
+      ''',
+      readsFrom: {dbInstance.exerciseTags, dbInstance.exercises},
+    ).get();
+    return rows.map((row) => row.read<String>('tag')).toList(growable: false);
+  }
+
   Future<List<String>> getAllMuscleGroups() async {
     final dbInstance = await database;
     final exercises = await (dbInstance.select(dbInstance.exercises)
@@ -140,6 +201,8 @@ extension ExercisesQueries on WorkoutLocalDataSource {
   Future<List<Exercise>> searchExercises({
     String query = '',
     List<String> selectedCategories = const [],
+    List<String> equipmentIds = const [],
+    List<String> usageTags = const [],
     String languageCode = 'en',
   }) async {
     final dbInstance = await database;
@@ -151,6 +214,8 @@ extension ExercisesQueries on WorkoutLocalDataSource {
         tokens: const [],
         isOrSearch: false,
         selectedCategories: selectedCategories,
+        equipmentIds: equipmentIds,
+        usageTags: usageTags,
         chain: chain,
       );
     }
@@ -162,6 +227,8 @@ extension ExercisesQueries on WorkoutLocalDataSource {
       tokens: pass1Tokens,
       isOrSearch: false,
       selectedCategories: selectedCategories,
+      equipmentIds: equipmentIds,
+      usageTags: usageTags,
       chain: chain,
     );
 
@@ -176,6 +243,8 @@ extension ExercisesQueries on WorkoutLocalDataSource {
         tokens: pass2Tokens,
         isOrSearch: false,
         selectedCategories: selectedCategories,
+        equipmentIds: equipmentIds,
+        usageTags: usageTags,
         chain: chain,
       );
 
@@ -189,6 +258,8 @@ extension ExercisesQueries on WorkoutLocalDataSource {
       tokens: pass3Tokens,
       isOrSearch: true,
       selectedCategories: selectedCategories,
+      equipmentIds: equipmentIds,
+      usageTags: usageTags,
       chain: chain,
     );
 
@@ -201,6 +272,8 @@ extension ExercisesQueries on WorkoutLocalDataSource {
     required bool isOrSearch,
     required List<String> selectedCategories,
     required List<String> chain,
+    List<String> equipmentIds = const [],
+    List<String> usageTags = const [],
   }) async {
     final dbInstance = await database;
     final rawSearchLower = rawSearchQuery.toLowerCase();
@@ -254,6 +327,26 @@ extension ExercisesQueries on WorkoutLocalDataSource {
       whereClauses.add('e.category_name IN ($placeholders)');
     }
 
+    // The load-bearing implement only. `setup` is furniture — a bench, a mat —
+    // and filtering on it would answer a different question than the one the
+    // user is asking when they pick "dumbbell".
+    if (equipmentIds.isNotEmpty) {
+      final placeholders = List.filled(equipmentIds.length, '?').join(', ');
+      whereClauses.add(
+        'EXISTS (SELECT 1 FROM exercise_equipment ee '
+        "WHERE ee.exercise_id = e.id AND ee.kind = 'primary' "
+        'AND ee.equipment_id IN ($placeholders))',
+      );
+    }
+
+    if (usageTags.isNotEmpty) {
+      final placeholders = List.filled(usageTags.length, '?').join(', ');
+      whereClauses.add(
+        'EXISTS (SELECT 1 FROM exercise_tags et '
+        'WHERE et.exercise_id = e.id AND et.tag IN ($placeholders))',
+      );
+    }
+
     final whereSection = whereClauses.join(' AND ');
     final vars = <drift.Variable>[];
 
@@ -284,6 +377,14 @@ extension ExercisesQueries on WorkoutLocalDataSource {
     // 6. WHERE category IN placeholders
     for (final cat in selectedCategories) {
       vars.add(drift.Variable.withString(cat));
+    }
+
+    // 7. equipment, then 8. usage tags — same order as the clauses above.
+    for (final id in equipmentIds) {
+      vars.add(drift.Variable.withString(id));
+    }
+    for (final tag in usageTags) {
+      vars.add(drift.Variable.withString(tag));
     }
 
     final sql = '''
@@ -320,6 +421,8 @@ $_kBestTranslationJoinSql
       readsFrom: {
         dbInstance.exercises,
         dbInstance.exerciseTranslations,
+        dbInstance.exerciseEquipment,
+        dbInstance.exerciseTags,
         dbInstance.setLogs,
         dbInstance.workoutLogs,
       },

@@ -50,6 +50,16 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
   final _searchController = TextEditingController();
   List<String> _allCategories = [];
   final List<String> _selectedCategories = [];
+
+  /// The load-bearing implement per exercise, from the catalog. Empty until a
+  /// v2 catalog has been imported, which is what hides the filter entirely on
+  /// an older one rather than showing an empty menu.
+  List<({String id, String name})> _allEquipment = [];
+  final List<String> _selectedEquipment = [];
+
+  List<String> _allUsageTags = [];
+  final List<String> _selectedUsageTags = [];
+
   Timer? _searchDebounce;
 
   bool _isWgerDbInitialized = false;
@@ -96,9 +106,15 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
   }
 
   Future<void> _loadCategories() async {
+    final languageCode = Localizations.localeOf(context).languageCode;
     final categories = await _repository.getAllCategories();
+    final equipment = await _repository.getPrimaryEquipment(languageCode);
+    final usageTags = await _repository.getUsageTags();
+    if (!mounted) return;
     setState(() {
       _allCategories = categories;
+      _allEquipment = equipment;
+      _allUsageTags = usageTags;
       _isLoading = false;
     });
     _runFilter(_searchController.text);
@@ -108,6 +124,8 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
     final results = await _repository.searchExercises(
       query: enteredKeyword,
       categories: _selectedCategories,
+      equipmentIds: _selectedEquipment,
+      usageTags: _selectedUsageTags,
       languageCode: Localizations.localeOf(context).languageCode,
     );
     if (mounted) {
@@ -378,7 +396,9 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
   Widget _buildFilterButton(BuildContext context, AppLocalizations l10n) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final hasFilter = _selectedCategories.isNotEmpty;
+    final hasFilter = _selectedCategories.isNotEmpty ||
+        _selectedEquipment.isNotEmpty ||
+        _selectedUsageTags.isNotEmpty;
 
     final fillColor = hasFilter
         ? colorScheme.primary
@@ -406,25 +426,64 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
           ),
         ),
       ),
-      items: _allCategories.map((category) {
-        final isSelected = _selectedCategories.contains(category);
-        return PlatformAdaptivePopupMenuItem<String>(
-          value: category,
-          label: BodySlugMapper.localize(context, category),
-          icon: isSelected ? LucideIcons.check : null,
-        );
-      }).toList(),
+      // One menu, three groups. The values are prefixed so the handler can
+      // tell a body region from a dumbbell without three separate menus in a
+      // toolbar that has room for one.
+      items: [
+        for (final category in _allCategories)
+          PlatformAdaptivePopupMenuItem<String>(
+            value: 'category:$category',
+            label: BodySlugMapper.localize(context, category),
+            icon: _selectedCategories.contains(category)
+                ? LucideIcons.check
+                : null,
+          ),
+        for (final equipment in _allEquipment)
+          PlatformAdaptivePopupMenuItem<String>(
+            value: 'equipment:${equipment.id}',
+            label: equipment.name,
+            icon: _selectedEquipment.contains(equipment.id)
+                ? LucideIcons.check
+                : null,
+          ),
+        for (final tag in _allUsageTags)
+          PlatformAdaptivePopupMenuItem<String>(
+            value: 'tag:$tag',
+            label: _usageTagLabel(tag),
+            icon: _selectedUsageTags.contains(tag) ? LucideIcons.check : null,
+          ),
+      ],
       onSelected: (value) {
+        final separator = value.indexOf(':');
+        if (separator < 0) return;
+        final kind = value.substring(0, separator);
+        final id = value.substring(separator + 1);
+
         setState(() {
-          if (_selectedCategories.contains(value)) {
-            _selectedCategories.remove(value);
+          final target = switch (kind) {
+            'equipment' => _selectedEquipment,
+            'tag' => _selectedUsageTags,
+            _ => _selectedCategories,
+          };
+          if (target.contains(id)) {
+            target.remove(id);
           } else {
-            _selectedCategories.add(value);
+            target.add(id);
           }
         });
         _runFilter(_searchController.text);
       },
     );
+  }
+
+  /// A readable label for a usage tag.
+  ///
+  /// The catalog ships these as identifiers, not as prose, and there is no
+  /// translation table for them the way there is for muscles and equipment —
+  /// so this is a presentation concern until there is.
+  String _usageTagLabel(String tag) {
+    final words = tag.split('_').where((w) => w.isNotEmpty);
+    return words.map((w) => w[0].toUpperCase() + w.substring(1)).join(' ');
   }
 
   Widget _buildSourceBadge(BuildContext context, String source) {
