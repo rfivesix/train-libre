@@ -1,11 +1,26 @@
 part of '../workout_local_data_source.dart';
 
+/// Rows the catalog still stands behind.
+///
+/// `status` is NULL for exercises written before schema v2 and for everything
+/// the user created, and both of those are active as far as the app is
+/// concerned — so the NULL branch is the common case, not a fallback.
+///
+/// Applied to discovery (search, filter chips), never to resolution: a merged
+/// or deprecated exercise must stay reachable by id so that a workout logged
+/// two years ago still opens. It just must not be offered again.
+const String _kActiveExerciseSql = "(e.status IS NULL OR e.status = 'active')";
+
 extension ExercisesQueries on WorkoutLocalDataSource {
   /// Retrieves all unique exercise categories present in the database.
   Future<List<String>> getAllCategories() async {
     final dbInstance = await database;
     final query = dbInstance.selectOnly(dbInstance.exercises, distinct: true)
-      ..addColumns([dbInstance.exercises.categoryName]);
+      ..addColumns([dbInstance.exercises.categoryName])
+      // A category that only exists on retired rows is a filter chip that
+      // selects nothing.
+      ..where(dbInstance.exercises.status.isNull() |
+          dbInstance.exercises.status.equals('active'));
 
     final rows = await query.get();
     final categories = rows
@@ -19,7 +34,9 @@ extension ExercisesQueries on WorkoutLocalDataSource {
 
   Future<List<String>> getAllMuscleGroups() async {
     final dbInstance = await database;
-    final exercises = await dbInstance.select(dbInstance.exercises).get();
+    final exercises = await (dbInstance.select(dbInstance.exercises)
+          ..where((tbl) => tbl.status.isNull() | tbl.status.equals('active')))
+        .get();
     final Set<String> muscles = {};
 
     for (var ex in exercises) {
@@ -159,6 +176,10 @@ extension ExercisesQueries on WorkoutLocalDataSource {
       "NOT (e.source = 'wger' AND "
           "EXISTS (SELECT 1 FROM exercises other_exercises "
           "WHERE other_exercises.replaces_exercise_id = e.id))",
+      // Without this the v2 catalog puts 41 rows back into search: 15 merged
+      // ones sitting next to the twin they were merged into, and 26 the data
+      // repo has retired.
+      _kActiveExerciseSql,
     ];
 
     if (tokens.isNotEmpty) {
@@ -315,6 +336,14 @@ extension ExercisesQueries on WorkoutLocalDataSource {
         GROUP BY exercise_id
       ) t_any ON e.id = t_any.exercise_id
       WHERE LOWER(t_de.name) = LOWER(?) OR LOWER(t_en.name) = LOWER(?) OR LOWER(t_any.name) = LOWER(?)
+      -- Resolution, not discovery: a retired exercise must stay findable so a
+      -- workout logged years ago still opens. But after a merge the same name
+      -- exists twice ("Leg Extension" is both 851, merged, and 369, active),
+      -- and rows.first would pick whichever the planner happened to emit —
+      -- so the survivor is ordered first rather than the retired row filtered
+      -- out.
+      ORDER BY (CASE WHEN e.status IS NULL OR e.status = 'active'
+                     THEN 0 ELSE 1 END) ASC
     ''';
 
     final rows = await dbInstance.customSelect(
@@ -378,6 +407,14 @@ extension ExercisesQueries on WorkoutLocalDataSource {
       ) t_any ON e.id = t_any.exercise_id
       WHERE LOWER(t_de.name) = LOWER(?) OR LOWER(t_en.name) = LOWER(?) OR LOWER(t_any.name) = LOWER(?)
          OR LOWER(t_de.name) = LOWER(?) OR LOWER(t_en.name) = LOWER(?) OR LOWER(t_any.name) = LOWER(?)
+      -- Resolution, not discovery: a retired exercise must stay findable so a
+      -- workout logged years ago still opens. But after a merge the same name
+      -- exists twice ("Leg Extension" is both 851, merged, and 369, active),
+      -- and rows.first would pick whichever the planner happened to emit —
+      -- so the survivor is ordered first rather than the retired row filtered
+      -- out.
+      ORDER BY (CASE WHEN e.status IS NULL OR e.status = 'active'
+                     THEN 0 ELSE 1 END) ASC
     ''';
 
     final rows = await dbInstance.customSelect(
