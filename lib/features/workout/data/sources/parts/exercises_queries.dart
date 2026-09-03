@@ -690,6 +690,13 @@ $_kBestTranslationJoinSql
               ..where((t) => t.exerciseId.equals(row.id)))
             .get();
 
+    // Precise muscle ids, when the catalog has them. Loaded only on this
+    // path — a single exercise — because it is the only place the extra
+    // precision is rendered.
+    final muscleRows = await (dbInstance.select(dbInstance.exerciseMuscles)
+          ..where((m) => m.exerciseId.equals(row.id)))
+        .get();
+
     // Every language this exercise has. This path returns a single exercise —
     // a detail screen, a resolved set log — where the cost is one query and
     // the payoff is that the fallback chain has something to fall back to.
@@ -714,6 +721,14 @@ $_kBestTranslationJoinSql
           WorkoutLocalDataSource._parseMuscleList(row.musclesPrimary),
       secondaryMuscles:
           WorkoutLocalDataSource._parseMuscleList(row.musclesSecondary),
+      primaryMuscleIds: [
+        for (final m in muscleRows)
+          if (m.role == 'primary') m.muscleId,
+      ],
+      secondaryMuscleIds: [
+        for (final m in muscleRows)
+          if (m.role != 'primary') m.muscleId,
+      ],
     );
   }
 }

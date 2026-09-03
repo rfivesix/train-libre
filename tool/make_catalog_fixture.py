@@ -42,6 +42,8 @@ SELECTION = {
     "1793": "merged, shares a target with 1800",
     "1800": "merged, shares a target with 1793 — the duplicate-row case",
     "1778": "the target both 1793 and 1800 collapse into",
+    "301": "precise muscle (erector_spinae), no legacy name — one of the 38",
+    "12": "hip_adductors, another the legacy vocabulary cannot say",
 }
 
 # Copied in full: small, and each of them *is* the contract.

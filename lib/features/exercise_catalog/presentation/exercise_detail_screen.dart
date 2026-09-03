@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_body_highlighter/flutter_body_highlighter.dart';
 import '../../../generated/app_localizations.dart';
 import '../../../widgets/common/algorithm_info_sheet.dart';
+import '../../../data/database_helper.dart';
 import '../domain/body_slug_mapper.dart';
+import '../domain/muscle_vocabulary.dart';
 import '../domain/models/exercise.dart';
 import '../../workout/domain/models/set_log.dart';
 import '../../analytics/domain/models/chart_data_point.dart';
@@ -50,6 +52,10 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
   String _selectedRange = '30D';
 
   late Exercise _currentExercise = widget.exercise;
+
+  /// The catalog's muscle vocabulary, when it has one. Loaded alongside the
+  /// rest of the screen's data rather than per rebuild.
+  MuscleVocabulary _muscleVocabulary = MuscleVocabulary.empty;
   Map<String, SetLog?> _prMap = {};
   List<Map<String, dynamic>> _timeSeriesData = [];
 
@@ -80,6 +86,9 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
 
   Future<void> _loadData() async {
     setState(() => _isLoading = true);
+
+    _muscleVocabulary =
+        await MuscleVocabulary.load(await DatabaseHelper.instance.database);
 
     Exercise exercise = widget.exercise;
     if (widget.exercise.id != null) {
@@ -458,7 +467,10 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
             if (!_currentExercise.isCardio) ...[
               AppSectionHeader(title: l10n.involvedMuscles),
               RepaintBoundary(
-                child: _ExerciseMuscleBodyView(exercise: _currentExercise),
+                child: _ExerciseMuscleBodyView(
+                  exercise: _currentExercise,
+                  vocabulary: _muscleVocabulary,
+                ),
               ),
               const SizedBox(height: DesignConstants.spacingXL),
             ],
@@ -839,8 +851,12 @@ class _CategoryBadge extends StatelessWidget {
 /// chip legend listing primary and secondary muscle names.
 class _ExerciseMuscleBodyView extends StatelessWidget {
   final Exercise exercise;
+  final MuscleVocabulary vocabulary;
 
-  const _ExerciseMuscleBodyView({required this.exercise});
+  const _ExerciseMuscleBodyView({
+    required this.exercise,
+    required this.vocabulary,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -850,8 +866,15 @@ class _ExerciseMuscleBodyView extends StatelessWidget {
 
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
-    final hasMuscles = exercise.primaryMuscles.isNotEmpty ||
-        exercise.secondaryMuscles.isNotEmpty;
+    // Muscle ids are the precise annotation; the legacy name columns are what
+    // the fifteen-name vocabulary could still express. 38 active exercises
+    // have the former and nothing in the latter.
+    final useIds = !vocabulary.isEmpty && exercise.primaryMuscleIds.isNotEmpty;
+    final primaryLabels =
+        useIds ? exercise.primaryMuscleIds : exercise.primaryMuscles;
+    final secondaryLabels =
+        useIds ? exercise.secondaryMuscleIds : exercise.secondaryMuscles;
+    final hasMuscles = primaryLabels.isNotEmpty || secondaryLabels.isNotEmpty;
 
     if (!hasMuscles) {
       return Padding(
@@ -865,10 +888,16 @@ class _ExerciseMuscleBodyView extends StatelessWidget {
       );
     }
 
-    final allHighlights = BodySlugMapper.mergedHighlights(
-      primaryMuscles: exercise.primaryMuscles,
-      secondaryMuscles: exercise.secondaryMuscles,
-    );
+    final allHighlights = useIds
+        ? BodySlugMapper.mergedHighlightsFromIds(
+            primaryMuscleIds: exercise.primaryMuscleIds,
+            secondaryMuscleIds: exercise.secondaryMuscleIds,
+            vocabulary: vocabulary,
+          )
+        : BodySlugMapper.mergedHighlights(
+            primaryMuscles: exercise.primaryMuscles,
+            secondaryMuscles: exercise.secondaryMuscles,
+          );
 
     final frontHighlights =
         BodySlugMapper.forSide(allHighlights, BodySide.front);
@@ -887,15 +916,17 @@ class _ExerciseMuscleBodyView extends StatelessWidget {
         const SizedBox(height: DesignConstants.spacingL),
         _MuscleChipRow(
           label: l10n.primaryLabel,
-          muscles: exercise.primaryMuscles,
+          muscles: primaryLabels,
           color: theme.colorScheme.primary,
+          vocabulary: useIds ? vocabulary : null,
         ),
-        if (exercise.secondaryMuscles.isNotEmpty) ...[
+        if (secondaryLabels.isNotEmpty) ...[
           const SizedBox(height: 6),
           _MuscleChipRow(
             label: l10n.secondaryLabel,
-            muscles: exercise.secondaryMuscles,
+            muscles: secondaryLabels,
             color: theme.colorScheme.primary.withValues(alpha: 0.45),
+            vocabulary: useIds ? vocabulary : null,
           ),
         ],
       ],
@@ -908,11 +939,13 @@ class _MuscleChipRow extends StatelessWidget {
   final String label;
   final List<String> muscles;
   final Color color;
+  final MuscleVocabulary? vocabulary;
 
   const _MuscleChipRow({
     required this.label,
     required this.muscles,
     required this.color,
+    this.vocabulary,
   });
 
   @override
@@ -939,7 +972,7 @@ class _MuscleChipRow extends StatelessWidget {
               runSpacing: 4,
               children: muscles.map((m) {
                 return Text(
-                  BodySlugMapper.localize(context, m),
+                  BodySlugMapper.localize(context, m, vocabulary: vocabulary),
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: color,
                     fontWeight: FontWeight.w600,

@@ -4,6 +4,7 @@ import 'package:drift/drift.dart' as drift;
 import '../../../../data/database_helper.dart';
 import '../../../../data/drift_database.dart' as db;
 import '../../../exercise_catalog/domain/exercise_locale_chain.dart';
+import '../../../exercise_catalog/domain/muscle_vocabulary.dart';
 import '../../../exercise_catalog/domain/models/exercise.dart';
 import '../../domain/models/routine.dart';
 import '../../domain/models/routine_exercise.dart';

@@ -11,20 +11,72 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
     return row?.id;
   }
 
+  /// Builds, for every exercise, the set of tracked muscle groups it loads.
+  ///
+  /// Two sources, in order of trust:
+  ///
+  /// 1. `exercise_muscles` — muscle ids, resolved through the catalog's own
+  ///    vocabulary. This is what the v2 catalog actually knows, and it is the
+  ///    only path that covers the 38 active exercises whose precision the
+  ///    fifteen-name legacy vocabulary cannot express: wrist curls, hip
+  ///    adduction, hyperextensions, everything with a neck.
+  /// 2. The legacy `muscles_primary` / `muscles_secondary` columns, resolved
+  ///    through the hard-coded alias map. Still needed for user-created
+  ///    exercises and for rows written before v2.
+  ///
+  /// Resolution to groups happens here rather than in the analytics loops, so
+  /// both paths hand the same thing downstream and the isolate does not need
+  /// the vocabulary shipped across to it.
+  ///
+  /// Groups are a set: an exercise annotated on two heads of the same muscle
+  /// must credit that group once, not twice.
   Future<_ExerciseMuscleLookup> _loadExerciseMuscleLookup(
     db.AppDatabase dbInstance,
   ) async {
     final exerciseRows = await dbInstance.select(dbInstance.exercises).get();
     final translationRows =
         await dbInstance.select(dbInstance.exerciseTranslations).get();
+    final vocabulary = await MuscleVocabulary.load(dbInstance);
 
-    final byId = <String, _ExerciseMuscleProfile>{
-      for (final exerciseRow in exerciseRows)
-        exerciseRow.id: _ExerciseMuscleProfile(
-          primary: _parseMuscles(exerciseRow.musclesPrimary),
-          secondary: _parseMuscles(exerciseRow.musclesSecondary),
-        ),
-    };
+    final catalogGroups =
+        <String, ({Set<String> primary, Set<String> secondary})>{};
+    if (!vocabulary.isEmpty) {
+      for (final row
+          in await dbInstance.select(dbInstance.exerciseMuscles).get()) {
+        final rawGroup = vocabulary.rawGroupFor(row.muscleId);
+        if (rawGroup == null) continue;
+        final group = RecoveryDomainService.majorMuscleGroupFor(rawGroup);
+        if (group == null) continue;
+
+        final entry = catalogGroups.putIfAbsent(
+          row.exerciseId,
+          () => (primary: <String>{}, secondary: <String>{}),
+        );
+        (row.role == 'primary' ? entry.primary : entry.secondary).add(group);
+      }
+    }
+
+    Set<String> legacyGroups(String? rawMuscles) => _parseMuscles(rawMuscles)
+        .map(RecoveryDomainService.majorMuscleGroupFor)
+        .whereType<String>()
+        .toSet();
+
+    final byId = <String, _ExerciseMuscleProfile>{};
+    for (final exerciseRow in exerciseRows) {
+      final fromCatalog = catalogGroups[exerciseRow.id];
+      final primary = fromCatalog?.primary ?? const <String>{};
+      byId[exerciseRow.id] = primary.isNotEmpty
+          ? _ExerciseMuscleProfile(
+              primary: primary.toList(growable: false),
+              secondary: fromCatalog!.secondary
+                  .difference(primary)
+                  .toList(growable: false),
+            )
+          : _profileFromLegacy(
+              legacyGroups(exerciseRow.musclesPrimary),
+              legacyGroups(exerciseRow.musclesSecondary),
+            );
+    }
 
     final byName = <String, _ExerciseMuscleProfile>{};
     for (final translationRow in translationRows) {
@@ -50,15 +102,22 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
         return profile;
       }
 
-      return _ExerciseMuscleProfile(
-        primary: _parseMuscles(exerciseRow.musclesPrimary),
-        secondary: _parseMuscles(exerciseRow.musclesSecondary),
-      );
+      return null;
     }
 
     final normalizedSnapshot = _normalizeExerciseName(exerciseNameSnapshot);
     if (normalizedSnapshot.isEmpty) return null;
     return lookup.byName[normalizedSnapshot];
+  }
+
+  static _ExerciseMuscleProfile _profileFromLegacy(
+    Set<String> primary,
+    Set<String> secondary,
+  ) {
+    return _ExerciseMuscleProfile(
+      primary: primary.toList(growable: false),
+      secondary: secondary.difference(primary).toList(growable: false),
+    );
   }
 
   static List<String> _parseMuscles(String? rawMuscles) {
@@ -727,12 +786,10 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
       );
       return MuscleContributionRawData(
         startTime: logRow.startTime,
-        musclesPrimary: profile == null
-            ? exRow?.musclesPrimary
-            : jsonEncode(profile.primary),
-        musclesSecondary: profile == null
-            ? exRow?.musclesSecondary
-            : jsonEncode(profile.secondary),
+        // Already resolved to tracked groups by _loadExerciseMuscleLookup, so
+        // the isolate does not need the catalog vocabulary shipped to it.
+        musclesPrimary: jsonEncode(profile?.primary ?? const <String>[]),
+        musclesSecondary: jsonEncode(profile?.secondary ?? const <String>[]),
         modality: exRow?.modality,
         categoryName: exRow?.categoryName,
         setType: setRow.setType,
@@ -794,32 +851,21 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
         ).map((m) => m.trim()).where((m) => m.isNotEmpty),
       }..removeAll(primary);
 
-      // Map each raw muscle name to a canonical major group.
-      bool anyMapped = false;
-      for (final muscle in primary) {
-        final majorGroup = RecoveryDomainService.majorMuscleGroupFor(muscle);
-        if (majorGroup == null) continue;
+      for (final group in primary) {
         contributions.add({
           'day': row.startTime,
-          'muscleGroup': majorGroup,
+          'muscleGroup': group,
           'equivalentSets': 1.0,
         });
-        anyMapped = true;
       }
 
-      for (final muscle in secondary) {
-        final majorGroup = RecoveryDomainService.majorMuscleGroupFor(muscle);
-        if (majorGroup == null) continue;
+      for (final group in secondary) {
         contributions.add({
           'day': row.startTime,
-          'muscleGroup': majorGroup,
+          'muscleGroup': group,
           'equivalentSets': 0.3,
         });
-        anyMapped = true;
       }
-
-      // If no muscles mapped (e.g. exercise has no tagged muscles), skip.
-      if (!anyMapped) continue;
     } // end for (final row in params.rows)
 
     return MuscleAnalyticsUtils.buildSummary(
@@ -926,26 +972,22 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
       final secondary = profile == null ? <String>{} : profile.secondary.toSet()
         ..removeAll(primary);
 
-      for (final muscle in primary) {
-        final majorGroup = RecoveryDomainService.majorMuscleGroupFor(muscle);
-        if (majorGroup == null) continue;
+      for (final group in primary) {
         addMuscleContribution(
           workoutLogId: logRow.id,
           startTime: logRow.startTime,
-          muscle: majorGroup,
+          muscle: group,
           equivalentSets: 1.0,
           rir: setRow.rir,
           rpe: setRow.rpe,
         );
       }
 
-      for (final muscle in secondary) {
-        final majorGroup = RecoveryDomainService.majorMuscleGroupFor(muscle);
-        if (majorGroup == null) continue;
+      for (final group in secondary) {
         addMuscleContribution(
           workoutLogId: logRow.id,
           startTime: logRow.startTime,
-          muscle: majorGroup,
+          muscle: group,
           equivalentSets: 0.3,
           rir: setRow.rir,
           rpe: setRow.rpe,
@@ -982,11 +1024,12 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
         continue;
       }
 
-      final rawMuscle = session['muscleGroup'] as String;
-      final majorGroup = RecoveryDomainService.majorMuscleGroupFor(rawMuscle);
-      if (majorGroup == null) continue; // discard unmapped muscle
-
-      significantByMuscle.putIfAbsent(majorGroup, () => []).add(session);
+      // Already a tracked group — _loadExerciseMuscleLookup resolved it, from
+      // the catalog vocabulary or the legacy alias map. Re-resolving here used
+      // to be the second half of the same lookup; now it would just be a
+      // no-op on its own output.
+      final group = session['muscleGroup'] as String;
+      significantByMuscle.putIfAbsent(group, () => []).add(session);
     }
 
     final List<Map<String, dynamic>> muscles = [];

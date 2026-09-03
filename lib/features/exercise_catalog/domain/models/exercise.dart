@@ -47,6 +47,15 @@ class Exercise {
   /// A list of secondary muscles targeted by this exercise.
   final List<String> secondaryMuscles;
 
+  /// Catalog muscle ids, when the exercise has them.
+  ///
+  /// The precise annotation, as opposed to the fifteen legacy names above.
+  /// Empty for user-created exercises and for rows written before schema v2,
+  /// and empty on list rows — only the paths that load one exercise fill
+  /// these, because that is the only place the precision is rendered.
+  final List<String> primaryMuscleIds;
+  final List<String> secondaryMuscleIds;
+
   /// Whether this exercise is categorized as Cardio.
   bool get isCardio => categoryName.trim().toLowerCase() == 'cardio';
 
@@ -60,6 +69,8 @@ class Exercise {
     required this.categoryName,
     required this.primaryMuscles,
     required this.secondaryMuscles,
+    this.primaryMuscleIds = const [],
+    this.secondaryMuscleIds = const [],
     this.imagePath,
   });
 
@@ -77,6 +88,8 @@ class Exercise {
     required this.categoryName,
     required this.primaryMuscles,
     required this.secondaryMuscles,
+    this.primaryMuscleIds = const [],
+    this.secondaryMuscleIds = const [],
     this.imagePath,
   }) : texts = {
           languageCode: ExerciseText(name: name, description: description),
@@ -206,6 +219,8 @@ class Exercise {
     String? imagePath,
     List<String>? primaryMuscles,
     List<String>? secondaryMuscles,
+    List<String>? primaryMuscleIds,
+    List<String>? secondaryMuscleIds,
   }) {
     return Exercise(
       id: id ?? this.id,
@@ -217,6 +232,8 @@ class Exercise {
       imagePath: imagePath ?? this.imagePath,
       primaryMuscles: primaryMuscles ?? this.primaryMuscles,
       secondaryMuscles: secondaryMuscles ?? this.secondaryMuscles,
+      primaryMuscleIds: primaryMuscleIds ?? this.primaryMuscleIds,
+      secondaryMuscleIds: secondaryMuscleIds ?? this.secondaryMuscleIds,
     );
   }
 
@@ -237,6 +254,8 @@ class Exercise {
       imagePath: original.imagePath,
       primaryMuscles: List.from(original.primaryMuscles),
       secondaryMuscles: List.from(original.secondaryMuscles),
+      primaryMuscleIds: List.from(original.primaryMuscleIds),
+      secondaryMuscleIds: List.from(original.secondaryMuscleIds),
     );
   }
 
