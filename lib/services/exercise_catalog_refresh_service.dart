@@ -14,6 +14,22 @@ import 'catalog_file_migration.dart';
 
 class ExerciseCatalogManifest {
   final String version;
+
+  /// Structure version of the artefact this manifest describes.
+  ///
+  /// Independent of [version], which only tracks content. Absent on manifests
+  /// written before the version contract existed; those are read as 1.
+  final int schemaVersion;
+
+  /// Oldest consumer that can still read this release.
+  ///
+  /// A release stays readable by older apps as long as it keeps the v1
+  /// compatibility columns filled — that is what this number declares. When a
+  /// manifest names a [schemaVersion] but no floor, the floor is taken to be
+  /// that same schema version rather than 1: a release that forgot to declare
+  /// its floor must not be assumed compatible.
+  final int minAppSchemaVersion;
+
   final Uri dbUri;
   final Uri? buildReportUri;
   final String sourceId;
@@ -25,6 +41,8 @@ class ExerciseCatalogManifest {
 
   const ExerciseCatalogManifest({
     required this.version,
+    required this.schemaVersion,
+    required this.minAppSchemaVersion,
     required this.dbUri,
     required this.buildReportUri,
     required this.sourceId,
@@ -476,6 +494,8 @@ class ExerciseCatalogRefreshService {
       'source_id': manifest.sourceId,
       'channel': manifest.channel,
       'version': manifest.version,
+      'schema_version': manifest.schemaVersion,
+      'min_app_schema_version': manifest.minAppSchemaVersion,
       'generated_at': manifest.generatedAt?.toIso8601String(),
       'db_url': manifest.dbUri.toString(),
       'db_sha256': manifest.dbSha256,
@@ -535,6 +555,34 @@ class ExerciseCatalogRefreshService {
 
     final dbSha256 = _firstNonBlankString([json['db_sha256']]);
     if (dbSha256 == null || !_isValidSha256(dbSha256)) {
+      return null;
+    }
+
+    // Schema contract. `schema_version` says what the artefact is,
+    // `min_app_schema_version` says which consumers may read it. Rejecting on
+    // the floor rather than on the schema itself is what keeps the data repo's
+    // compatibility-column promise worth anything: a v2 catalog that still
+    // fills the v1 columns declares floor 1 and is deliberately accepted here.
+    //
+    // A manifest that names a schema but no floor is treated as requiring that
+    // schema. Silently reading a missing floor as 1 would let exactly the
+    // release this guard exists for slip through.
+    final schemaVersion =
+        _parseInt(json['schema_version']) ?? _parseInt(build['schema_version']);
+    final minAppSchemaVersion = _parseInt(json['min_app_schema_version']) ??
+        _parseInt(build['min_app_schema_version']) ??
+        schemaVersion ??
+        1;
+    final effectiveSchemaVersion = schemaVersion ?? 1;
+    if (effectiveSchemaVersion < 1 || minAppSchemaVersion < 1) {
+      return null;
+    }
+    if (minAppSchemaVersion > config.supportedSchemaVersion) {
+      debugPrint(
+        '[ExerciseCatalog] Rejecting catalog release $version: it requires app '
+        'schema $minAppSchemaVersion, this build supports '
+        '${config.supportedSchemaVersion}.',
+      );
       return null;
     }
 
@@ -617,6 +665,8 @@ class ExerciseCatalogRefreshService {
 
     return ExerciseCatalogManifest(
       version: version,
+      schemaVersion: effectiveSchemaVersion,
+      minAppSchemaVersion: minAppSchemaVersion,
       dbUri: dbUri,
       buildReportUri: buildReportUri,
       sourceId: sourceId,
@@ -748,6 +798,31 @@ class ExerciseCatalogRefreshService {
           isValid: false,
           error:
               'Catalog DB version mismatch. expected=$expectedVersion actual=$version',
+        );
+      }
+
+      // Second reading of the same contract, this time off the artefact.
+      // The cached-catalog path re-uses a downloaded DB without ever looking at
+      // a manifest again, so a manifest-only guard would not cover it.
+      final schemaRows = await db.query(
+        'metadata',
+        where: 'key IN (?, ?)',
+        whereArgs: ['schema_version', 'min_app_schema_version'],
+      );
+      final schemaMeta = <String, String>{
+        for (final row in schemaRows)
+          row['key']?.toString() ?? '': row['value']?.toString().trim() ?? '',
+      };
+      final dbSchemaVersion = _parseInt(schemaMeta['schema_version']);
+      final dbMinAppSchemaVersion =
+          _parseInt(schemaMeta['min_app_schema_version']) ??
+              dbSchemaVersion ??
+              1;
+      if (dbMinAppSchemaVersion > _config.supportedSchemaVersion) {
+        return _CatalogDbValidationResult(
+          isValid: false,
+          error: 'Catalog DB requires app schema $dbMinAppSchemaVersion, '
+              'this build supports ${_config.supportedSchemaVersion}.',
         );
       }
 

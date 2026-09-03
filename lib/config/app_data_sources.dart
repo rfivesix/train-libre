@@ -24,6 +24,20 @@ class AppDataSources {
   static const String legacyFoodCategoriesAssetDbPath =
       'assets/db/$legacyBaseFoodsDbFileName';
 
+  /// The catalog schema version this build of the app can consume.
+  ///
+  /// The data repo declares two numbers per release: `schema_version` (what
+  /// the artefact *is*) and `min_app_schema_version` (the oldest consumer that
+  /// can still read it). A release is rejected when its floor is higher than
+  /// this number — so a v2 catalog that keeps the v1 compatibility columns
+  /// filled, and therefore declares `min_app_schema_version: 1`, is still
+  /// accepted here.
+  ///
+  /// Raise this only together with an importer that understands the new
+  /// schema, and only once that release is broadly installed. A device that
+  /// raises it early accepts a catalog it then fails to read.
+  static const int supportedCatalogSchemaVersion = 1;
+
   // Remote training-catalog source (wger-based build output channel).
   static const exerciseCatalog = ExerciseCatalogRemoteSourceConfig(
     enabled: true,
@@ -43,6 +57,7 @@ class AppDataSources {
     downloadTimeoutSeconds: 30,
     minCheckIntervalHours: 12,
     minimumExerciseRows: 50,
+    supportedSchemaVersion: supportedCatalogSchemaVersion,
   );
 
   static const OffCatalogCountry defaultOffCatalogCountry =
@@ -280,6 +295,10 @@ class ExerciseCatalogRemoteSourceConfig {
   final int minCheckIntervalHours;
   final int minimumExerciseRows;
 
+  /// Highest catalog schema version this app can read. See
+  /// [AppDataSources.supportedCatalogSchemaVersion].
+  final int supportedSchemaVersion;
+
   const ExerciseCatalogRemoteSourceConfig({
     required this.enabled,
     required this.sourceId,
@@ -297,6 +316,7 @@ class ExerciseCatalogRemoteSourceConfig {
     required this.downloadTimeoutSeconds,
     required this.minCheckIntervalHours,
     required this.minimumExerciseRows,
+    this.supportedSchemaVersion = 1,
   });
 
   Duration get manifestTimeout => Duration(seconds: manifestTimeoutSeconds);

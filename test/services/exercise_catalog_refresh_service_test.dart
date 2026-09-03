@@ -22,6 +22,139 @@ void main() {
     minimumExerciseRows: 50,
   );
 
+  group('ExerciseCatalogRefreshService schema contract', () {
+    Map<String, dynamic> manifestJson(Map<String, dynamic> extra) => {
+          'source_id': 'wger_catalog',
+          'channel': 'stable',
+          'version': '202609032119',
+          'db_url': 'https://example.com/root/train_libre_training.db',
+          'db_sha256':
+              'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+          ...extra,
+        };
+
+    test('accepts a manifest without any schema fields as version 1', () {
+      final manifest = ExerciseCatalogRefreshService.parseManifest(
+        manifestJson(const {}),
+        config,
+      );
+
+      expect(manifest, isNotNull);
+      expect(manifest!.schemaVersion, 1);
+      expect(manifest.minAppSchemaVersion, 1);
+    });
+
+    test('accepts a newer schema that still declares an old floor', () {
+      // This is the real v2 release: the artefact is schema 2, but it keeps
+      // the v1 compatibility columns filled and therefore stays readable.
+      final manifest = ExerciseCatalogRefreshService.parseManifest(
+        manifestJson(const {
+          'schema_version': 2,
+          'min_app_schema_version': 1,
+        }),
+        config,
+      );
+
+      expect(manifest, isNotNull);
+      expect(manifest!.schemaVersion, 2);
+      expect(manifest.minAppSchemaVersion, 1);
+    });
+
+    test('rejects a release whose floor is above what this build supports', () {
+      final manifest = ExerciseCatalogRefreshService.parseManifest(
+        manifestJson(const {
+          'schema_version': 3,
+          'min_app_schema_version': 2,
+        }),
+        config,
+      );
+
+      expect(manifest, isNull);
+    });
+
+    test('rejects a schema bump that forgot to declare its floor', () {
+      // The floor defaults to the schema version, not to 1 — otherwise the
+      // one manifest this guard exists for would be the one that slips past.
+      final manifest = ExerciseCatalogRefreshService.parseManifest(
+        manifestJson(const {'schema_version': 4}),
+        config,
+      );
+
+      expect(manifest, isNull);
+    });
+
+    test('reads the schema fields from the build block as well', () {
+      final manifest = ExerciseCatalogRefreshService.parseManifest(
+        manifestJson(const {
+          'build': {'schema_version': 5, 'min_app_schema_version': 5},
+        }),
+        config,
+      );
+
+      expect(manifest, isNull);
+    });
+
+    test('accepts the same release once the build supports that schema', () {
+      const upgraded = ExerciseCatalogRemoteSourceConfig(
+        enabled: true,
+        sourceId: 'wger_catalog',
+        channel: 'stable',
+        baseUrl: 'https://example.com/root/',
+        manifestPath: 'manifest.json',
+        defaultDbPath: 'db/train_libre_training.db',
+        legacyDefaultDbPath: 'db/hypertrack_training.db',
+        defaultBuildReportPath: 'reports/wger_build_report.json',
+        localCacheDirectoryName: 'catalog_refresh',
+        localCacheDbFileName: 'train_libre_training_remote.db',
+        legacyLocalCacheDbFileName: 'hypertrack_training_remote.db',
+        localManifestFileName: 'wger_manifest_cached.json',
+        manifestTimeoutSeconds: 5,
+        downloadTimeoutSeconds: 15,
+        minCheckIntervalHours: 6,
+        minimumExerciseRows: 50,
+        supportedSchemaVersion: 2,
+      );
+
+      final manifest = ExerciseCatalogRefreshService.parseManifest(
+        manifestJson(const {
+          'schema_version': 2,
+          'min_app_schema_version': 2,
+        }),
+        upgraded,
+      );
+
+      expect(manifest, isNotNull);
+      expect(manifest!.minAppSchemaVersion, 2);
+    });
+
+    test('rejects a nonsensical zero or negative schema version', () {
+      expect(
+        ExerciseCatalogRefreshService.parseManifest(
+          manifestJson(const {'schema_version': 0}),
+          config,
+        ),
+        isNull,
+      );
+      expect(
+        ExerciseCatalogRefreshService.parseManifest(
+          manifestJson(const {
+            'schema_version': 1,
+            'min_app_schema_version': 0,
+          }),
+          config,
+        ),
+        isNull,
+      );
+    });
+
+    test('the shipped config still supports schema 1 only', () {
+      // Guards the release order: the manifest URL may only be switched once
+      // this number and the importer move together.
+      expect(AppDataSources.supportedCatalogSchemaVersion, 1);
+      expect(AppDataSources.exerciseCatalog.supportedSchemaVersion, 1);
+    });
+  });
+
   group('ExerciseCatalogRefreshService.parseManifest', () {
     test('parses relative db/report paths against base url', () {
       final manifest = ExerciseCatalogRefreshService.parseManifest({
