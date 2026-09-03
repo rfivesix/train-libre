@@ -30,6 +30,7 @@ import 'workout_summary_screen.dart';
 import 'widgets/workout_card.dart';
 import 'widgets/reorder_drag_proxy.dart';
 import 'widgets/pr_celebration_banner.dart';
+import '../domain/classification/exercise_log_mask.dart';
 import 'widgets/exercise_e1rm_summary.dart';
 import 'widgets/live_workout_set_row.dart';
 import 'widgets/exercise_notes_dialog.dart';
@@ -1297,7 +1298,7 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                                                                         lastPerfSets: manager.lastPerformances[routineExercise.exercise.canonicalName] ?? [],
                                                                                         template: template,
                                                                                         manager: manager,
-                                                                                        isCardio: _isCardio(routineExercise),
+                                                                                        mask: ExerciseLogMask.forExercise(routineExercise.exercise),
                                                                                       );
                                                                                     }),
                                                                                     Padding(

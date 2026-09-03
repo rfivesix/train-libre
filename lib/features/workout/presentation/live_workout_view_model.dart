@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../exercise_catalog/domain/models/exercise.dart';
 import '../domain/models/routine_exercise.dart';
+import '../domain/classification/exercise_log_mask.dart';
 import '../domain/models/set_log.dart';
 import '../domain/models/set_template.dart';
 import '../domain/models/workout_log.dart';
@@ -289,9 +290,18 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
         final log = _setLogs[templateId];
         if (log == null || log.isCompleted == true) continue;
 
-        if (exercise.exercise.isCardio &&
+        // A set counts as filled in when the fields its mask actually shows
+        // have values. Asking a plank for reps would block the finish button
+        // on a number the row never offered.
+        final mask = ExerciseLogMask.forExercise(exercise.exercise);
+        if (mask.logsDistance &&
             log.durationSeconds == null &&
             log.distanceKm == null) {
+          return;
+        }
+        if (mask.logsDuration &&
+            !mask.logsDistance &&
+            log.durationSeconds == null) {
           return;
         }
 
@@ -599,14 +609,11 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
         (re) => re.setTemplates.any((t) => t.id == templateId),
         orElse: () => _exercises.first,
       );
-      // Was a direct category_name comparison, which is a body region as
-      // often as it is a training type. Exercise.isCardio now answers from
-      // tracking_type where the catalog has one.
-      final isCardio = exercise.exercise.isCardio;
+      final mask = ExerciseLogMask.forExercise(exercise.exercise);
 
       if (!weightControllers.containsKey(templateId)) {
         String initText;
-        if (isCardio) {
+        if (mask.logsDistance) {
           initText = setLog.distanceKm == null
               ? ''
               : setLog.distanceKm!
@@ -614,6 +621,9 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
                   .replaceAll(RegExp(r'0*$'), '')
                   .replaceAll(RegExp(r'\.$'), '');
         } else {
+          // Left blank when nothing was entered — including for an added-weight
+          // column, where blank is a meaningful answer rather than a missing
+          // one: it means the set was done with body weight alone.
           initText = setLog.weightKg == null
               ? ''
               : unitService.formatDisplayWeight(setLog.weightKg!,
@@ -624,7 +634,7 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
 
       if (!repsControllers.containsKey(templateId)) {
         String initText;
-        if (isCardio) {
+        if (mask.logsDuration) {
           initText = formatPauseDuration(setLog.durationSeconds);
         } else {
           initText = setLog.reps?.toString() ?? '';
@@ -652,25 +662,27 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
       orElse: () => _exercises.first,
     );
 
-    if (exercise.exercise.isCardio) {
+    final mask = ExerciseLogMask.forExercise(exercise.exercise);
+
+    if (mask.logsDistance) {
       if (setLog.distanceKm != null) {
         weightControllers[templateId]?.text = setLog.distanceKm!
             .toStringAsFixed(3)
             .replaceAll(RegExp(r'0*$'), '')
             .replaceAll(RegExp(r'\.$'), '');
       }
+    } else if (setLog.weightKg != null) {
+      weightControllers[templateId]?.text =
+          unitService.formatDisplayWeight(setLog.weightKg!, fractionDigits: 2);
+    }
+
+    if (mask.logsDuration) {
       if (setLog.durationSeconds != null) {
         repsControllers[templateId]?.text =
             formatPauseDuration(setLog.durationSeconds);
       }
-    } else {
-      if (setLog.weightKg != null) {
-        weightControllers[templateId]?.text = unitService
-            .formatDisplayWeight(setLog.weightKg!, fractionDigits: 2);
-      }
-      if (setLog.reps != null) {
-        repsControllers[templateId]?.text = setLog.reps!.toString();
-      }
+    } else if (setLog.reps != null) {
+      repsControllers[templateId]?.text = setLog.reps!.toString();
     }
     rirControllers[templateId]?.text = setLog.rir?.toString() ?? '';
   }

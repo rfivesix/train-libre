@@ -31,6 +31,7 @@ import '../../../widgets/common/common.dart';
 import 'widgets/workout_photo_card.dart';
 import 'widgets/workout_summary_bar.dart';
 import 'widgets/workout_heart_rate_section.dart';
+import '../domain/classification/exercise_log_mask.dart';
 import 'widgets/workout_exercise_log_card.dart';
 import 'widgets/muscle_color_helper.dart';
 import '../../app/presentation/widgets/glass_bottom_menu.dart';
@@ -273,6 +274,9 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
     final ex = _exerciseDetails[exerciseName];
     return ex?.isCardio ?? false;
   }
+
+  ExerciseLogMask _maskFor(String exerciseName) =>
+      ExerciseLogMask.forExercise(_exerciseDetails[exerciseName]);
 
   /// Expands the cards once the drop animation and the reorder have finished.
   void _scheduleExpandAfterDrop() {
@@ -1248,6 +1252,7 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                                 sets: sets,
                                 isEditMode: false,
                                 isCardio: isCardio,
+                                mask: _maskFor(exerciseName),
                                 weightControllers: _weightControllers,
                                 repsControllers: _repsControllers,
                                 rirControllers: _rirControllers,
@@ -1325,6 +1330,7 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                                       sets: sets,
                                       isEditMode: true,
                                       isCardio: isCardio,
+                                      mask: _maskFor(exerciseName),
                                       isDragging: true,
                                       weightControllers: _weightControllers,
                                       repsControllers: _repsControllers,
@@ -1391,6 +1397,7 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                                                   sets: sets,
                                                   isEditMode: true,
                                                   isCardio: isCardio,
+                                                  mask: _maskFor(exerciseName),
                                                   isDragging: _isDragging,
                                                   onPointerDown: (e) =>
                                                       _onDragPointerDown(e,

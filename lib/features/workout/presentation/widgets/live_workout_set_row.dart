@@ -7,6 +7,7 @@ import '../../../../generated/app_localizations.dart';
 import '../../../../services/haptic_feedback_service.dart';
 import '../../../../services/unit_service.dart';
 import '../../../app/presentation/widgets/glass_bottom_menu.dart';
+import '../../domain/classification/exercise_log_mask.dart';
 import '../../domain/models/set_log.dart';
 import '../../domain/models/set_template.dart';
 import '../live_workout_view_model.dart';
@@ -26,7 +27,11 @@ class LiveWorkoutSetRow extends StatelessWidget {
   final List<SetLog> lastPerfSets;
   final SetTemplate template;
   final LiveWorkoutViewModel manager;
-  final bool isCardio;
+
+  /// Which two inputs this row shows, and what they mean. Replaces the single
+  /// `isCardio` flag, which could only say "distance and time" or "weight and
+  /// reps" and had no way to express a plank or a pull-up.
+  final ExerciseLogMask mask;
 
   const LiveWorkoutSetRow({
     super.key,
@@ -37,8 +42,11 @@ class LiveWorkoutSetRow extends StatelessWidget {
     required this.lastPerfSets,
     required this.template,
     required this.manager,
-    required this.isCardio,
+    required this.mask,
   });
+
+  /// True where the old flag was: the row logs a distance and a duration.
+  bool get isCardio => mask.logsDistance && mask.logsDuration;
 
   void _removeSet(int templateId) {
     manager.removeSet(templateId);
@@ -233,21 +241,26 @@ class LiveWorkoutSetRow extends StatelessWidget {
         ? '-'
         : (template.targetRir != null ? template.targetRir.toString() : '-');
 
-    if (isCardio) {
-      weightHint = "-"; // Distance Hint
-      repHint = "00:00"; // Time Hint
-    } else {
-      final double tWeight = template.targetWeight ?? 0.0;
-      weightHint = tWeight > 0
+    final double tWeight = template.targetWeight ?? 0.0;
+    weightHint = switch (mask.primary) {
+      LogField.distance => '-',
+      // An added-weight column starts empty, not at zero: empty means "just
+      // me", and the set still counts with the user's full body weight. A
+      // zero would claim the pull-up moved nothing.
+      LogField.addedWeight => '+0',
+      LogField.assistance => '-0',
+      _ => tWeight > 0
           ? unitService
               .convertDisplayValue(tWeight, UnitDimension.weight)
               .toStringAsFixed(1)
               .replaceAll('.0', '')
-          : '0';
-      repHint = (template.targetReps?.isNotEmpty == true)
-          ? template.targetReps!
-          : '0';
-    }
+          : '0',
+    };
+    repHint = mask.logsDuration
+        ? '00:00'
+        : ((template.targetReps?.isNotEmpty == true)
+            ? template.targetReps!
+            : '0');
 
     final rowContent = Row(
       children: [
@@ -332,170 +345,183 @@ class LiveWorkoutSetRow extends StatelessWidget {
                 ),
         ),
 
-        // 3. INPUT 1: WEIGHT / DISTANCE
+        // 3. INPUT 1: WEIGHT / ADDED WEIGHT / ASSISTANCE / DISTANCE
         Expanded(
           flex: isCardio ? 4 : 2,
-          child: TextFormField(
-            controller: manager.weightControllers[templateId],
-            textAlign: TextAlign.center,
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            textInputAction: TextInputAction.next,
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: textColor,
-            ),
-            decoration: InputDecoration(
-              border: InputBorder.none,
-              isDense: true,
-              fillColor: Colors.transparent,
-              hintText: weightHint,
-              hintStyle: TextStyle(
-                color: Colors.grey.withValues(alpha: 0.5),
-                fontSize: 18,
-              ),
-            ),
-            enabled: !isCompleted,
-            onChanged: (text) {
-              final String sanitized = text.replaceAll(',', '.');
-              final double? val;
-              if (sanitized.contains('-')) {
-                final parts = sanitized.split('-');
-                if (parts.length == 2) {
-                  final min = double.tryParse(parts[0].trim());
-                  final max = double.tryParse(parts[1].trim());
-                  if (min != null && max != null) {
-                    val = (min + max) / 2;
-                  } else {
-                    val = null;
-                  }
-                } else {
-                  val = null;
-                }
-              } else {
-                val = double.tryParse(sanitized);
-              }
-              final clearValue = val == null && text.isEmpty;
+          child: !mask.showsPrimary
+              // A plank has nothing to put here. An empty box invites a
+              // number that would mean nothing.
+              ? const SizedBox.shrink()
+              : TextFormField(
+                  controller: manager.weightControllers[templateId],
+                  textAlign: TextAlign.center,
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
+                  textInputAction: TextInputAction.next,
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: textColor,
+                  ),
+                  decoration: InputDecoration(
+                    border: InputBorder.none,
+                    isDense: true,
+                    fillColor: Colors.transparent,
+                    hintText: weightHint,
+                    hintStyle: TextStyle(
+                      color: Colors.grey.withValues(alpha: 0.5),
+                      fontSize: 18,
+                    ),
+                  ),
+                  enabled: !isCompleted,
+                  onChanged: (text) {
+                    final String sanitized = text.replaceAll(',', '.');
+                    final double? val;
+                    if (sanitized.contains('-')) {
+                      final parts = sanitized.split('-');
+                      if (parts.length == 2) {
+                        final min = double.tryParse(parts[0].trim());
+                        final max = double.tryParse(parts[1].trim());
+                        if (min != null && max != null) {
+                          val = (min + max) / 2;
+                        } else {
+                          val = null;
+                        }
+                      } else {
+                        val = null;
+                      }
+                    } else {
+                      val = double.tryParse(sanitized);
+                    }
+                    final clearValue = val == null && text.isEmpty;
 
-              if (isCardio) {
-                if (val != manager.setLogs[templateId]?.distanceKm ||
-                    clearValue) {
-                  manager.updateSet(
-                    templateId,
-                    distance: val,
-                    clearDistance: clearValue,
-                  );
-                }
-              } else {
-                final metricValue = val == null
-                    ? null
-                    : unitService.convertToMetric(val, UnitDimension.weight);
-                if (metricValue != manager.setLogs[templateId]?.weightKg ||
-                    clearValue) {
-                  manager.updateSet(
-                    templateId,
-                    weight: metricValue,
-                    clearWeight: clearValue,
-                  );
-                }
-              }
-            },
-          ),
+                    if (mask.logsDistance) {
+                      if (val != manager.setLogs[templateId]?.distanceKm ||
+                          clearValue) {
+                        manager.updateSet(
+                          templateId,
+                          distance: val,
+                          clearDistance: clearValue,
+                        );
+                      }
+                    } else {
+                      final metricValue = val == null
+                          ? null
+                          : unitService.convertToMetric(
+                              val, UnitDimension.weight);
+                      if (metricValue !=
+                              manager.setLogs[templateId]?.weightKg ||
+                          clearValue) {
+                        manager.updateSet(
+                          templateId,
+                          weight: metricValue,
+                          clearWeight: clearValue,
+                        );
+                      }
+                    }
+                  },
+                ),
         ),
 
         // 4. INPUT 2: REPS / TIME
         Expanded(
           flex: isCardio ? 4 : 2,
-          child: TextFormField(
-            controller: manager.repsControllers[templateId],
-            readOnly: isCardio,
-            textAlign: TextAlign.center,
-            keyboardType: TextInputType.number,
-            inputFormatters: isCardio ? [TimerInputFormatter()] : null,
-            textInputAction: TextInputAction.next,
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: textColor,
-            ),
-            decoration: InputDecoration(
-              border: InputBorder.none,
-              isDense: true,
-              fillColor: Colors.transparent,
-              hintText: repHint,
-              hintStyle: TextStyle(
-                color: Colors.grey.withValues(alpha: 0.5),
-                fontSize: 18,
-              ),
-            ),
-            enabled: !isCompleted,
-            onTap: (isCardio && !isCompleted)
-                ? () async {
-                    final currentSeconds =
-                        manager.setLogs[templateId]?.durationSeconds ?? 0;
-                    final newDuration =
-                        await adaptive_pickers.showAdaptiveDurationPicker(
-                      context: context,
-                      initialDuration: Duration(seconds: currentSeconds),
-                    );
-                    if (newDuration != null) {
-                      final seconds = newDuration.inSeconds;
-                      final clearDuration = seconds == 0;
+          child: !mask.showsSecondary
+              ? const SizedBox.shrink()
+              : TextFormField(
+                  controller: manager.repsControllers[templateId],
+                  readOnly: mask.logsDuration,
+                  textAlign: TextAlign.center,
+                  keyboardType: TextInputType.number,
+                  inputFormatters:
+                      mask.logsDuration ? [TimerInputFormatter()] : null,
+                  textInputAction: TextInputAction.next,
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: textColor,
+                  ),
+                  decoration: InputDecoration(
+                    border: InputBorder.none,
+                    isDense: true,
+                    fillColor: Colors.transparent,
+                    hintText: repHint,
+                    hintStyle: TextStyle(
+                      color: Colors.grey.withValues(alpha: 0.5),
+                      fontSize: 18,
+                    ),
+                  ),
+                  enabled: !isCompleted,
+                  onTap: (mask.logsDuration && !isCompleted)
+                      ? () async {
+                          final currentSeconds =
+                              manager.setLogs[templateId]?.durationSeconds ?? 0;
+                          final newDuration =
+                              await adaptive_pickers.showAdaptiveDurationPicker(
+                            context: context,
+                            initialDuration: Duration(seconds: currentSeconds),
+                          );
+                          if (newDuration != null) {
+                            final seconds = newDuration.inSeconds;
+                            final clearDuration = seconds == 0;
+                            if (seconds !=
+                                    manager
+                                        .setLogs[templateId]?.durationSeconds ||
+                                clearDuration) {
+                              manager.repsControllers[templateId]?.text =
+                                  formatPauseDuration(seconds);
+                              manager.updateSet(
+                                templateId,
+                                duration: seconds,
+                                clearDuration: clearDuration,
+                              );
+                            }
+                          }
+                        }
+                      : null,
+                  onChanged: (text) {
+                    if (mask.logsDuration) {
+                      final seconds = parsePauseDuration(text);
+                      final clearDuration = seconds == null && text.isEmpty;
                       if (seconds !=
                               manager.setLogs[templateId]?.durationSeconds ||
                           clearDuration) {
-                        manager.repsControllers[templateId]?.text =
-                            formatPauseDuration(seconds);
                         manager.updateSet(
                           templateId,
                           duration: seconds,
                           clearDuration: clearDuration,
                         );
                       }
-                    }
-                  }
-                : null,
-            onChanged: (text) {
-              if (isCardio) {
-                final seconds = parsePauseDuration(text);
-                final clearDuration = seconds == null && text.isEmpty;
-                if (seconds != manager.setLogs[templateId]?.durationSeconds ||
-                    clearDuration) {
-                  manager.updateSet(
-                    templateId,
-                    duration: seconds,
-                    clearDuration: clearDuration,
-                  );
-                }
-              } else {
-                final int? val;
-                if (text.contains('-')) {
-                  final parts = text.split('-');
-                  if (parts.length == 2) {
-                    final min = int.tryParse(parts[0].trim());
-                    final max = int.tryParse(parts[1].trim());
-                    if (min != null && max != null) {
-                      val = ((min + max) / 2).round();
                     } else {
-                      val = null;
+                      final int? val;
+                      if (text.contains('-')) {
+                        final parts = text.split('-');
+                        if (parts.length == 2) {
+                          final min = int.tryParse(parts[0].trim());
+                          final max = int.tryParse(parts[1].trim());
+                          if (min != null && max != null) {
+                            val = ((min + max) / 2).round();
+                          } else {
+                            val = null;
+                          }
+                        } else {
+                          val = null;
+                        }
+                      } else {
+                        val = int.tryParse(text);
+                      }
+                      final clearValue = val == null && text.isEmpty;
+                      if (val != manager.setLogs[templateId]?.reps ||
+                          clearValue) {
+                        manager.updateSet(
+                          templateId,
+                          reps: val,
+                          clearReps: clearValue,
+                        );
+                      }
                     }
-                  } else {
-                    val = null;
-                  }
-                } else {
-                  val = int.tryParse(text);
-                }
-                final clearValue = val == null && text.isEmpty;
-                if (val != manager.setLogs[templateId]?.reps || clearValue) {
-                  manager.updateSet(
-                    templateId,
-                    reps: val,
-                    clearReps: clearValue,
-                  );
-                }
-              }
-            },
-          ),
+                  },
+                ),
         ),
 
         // 5. INPUT 3: RIR / INTENSITY

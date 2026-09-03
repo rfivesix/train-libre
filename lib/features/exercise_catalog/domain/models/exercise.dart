@@ -96,15 +96,17 @@ class Exercise {
 
   /// Whether the log mask offers a weight field.
   ///
-  /// `bodyweight_reps` gets one only when the exercise supports added weight —
-  /// a weighted pull-up is a real thing, a weighted push-up mostly is not.
+  /// `bodyweight_reps` gets one too, labelled as *added* weight and left empty
+  /// rather than zeroed: an empty field means "just me", and the set still
+  /// counts with the user's full body weight. [supportsAddedWeight] is a
+  /// statement about whether a belt is the usual way to load the movement, not
+  /// about whether anyone may ever type a number.
   bool get logsWeight {
     switch (trackingType) {
       case 'weight_reps':
       case 'time_weight':
-        return true;
       case 'bodyweight_reps':
-        return supportsAddedWeight;
+        return true;
       case 'time':
       case 'distance_time':
       case 'distance_only':

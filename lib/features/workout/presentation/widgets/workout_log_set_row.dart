@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../../../generated/app_localizations.dart';
 import '../../../../services/unit_service.dart';
+import '../../domain/classification/exercise_log_mask.dart';
 import '../../domain/models/set_log.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../../util/time_util.dart';
@@ -18,7 +19,7 @@ class WorkoutLogSetRow extends StatelessWidget {
   final int workingSetIndex;
   final String exerciseName;
   final bool isEditMode;
-  final bool isCardio;
+  final ExerciseLogMask mask;
   final TextEditingController? weightController;
   final TextEditingController? repsController;
   final TextEditingController? rirController;
@@ -32,13 +33,16 @@ class WorkoutLogSetRow extends StatelessWidget {
     required this.workingSetIndex,
     required this.exerciseName,
     required this.isEditMode,
-    required this.isCardio,
+    required this.mask,
     this.weightController,
     this.repsController,
     this.rirController,
     required this.onDelete,
     required this.onSetTypeTap,
   });
+
+  /// True where the old flag was: distance in one column, duration in the other.
+  bool get isCardio => mask.logsDistance && mask.logsDuration;
 
   @override
   Widget build(BuildContext context) {
@@ -54,24 +58,33 @@ class WorkoutLogSetRow extends StatelessWidget {
 
     // View Values
     String val1Display, val2Display;
-    if (isCardio) {
+    if (mask.logsDistance) {
       val1Display = setLog.distanceKm == null
           ? '-'
           : setLog.distanceKm!
               .toStringAsFixed(3)
               .replaceAll(RegExp(r'0*$'), '')
               .replaceAll(RegExp(r'\.$'), '');
-      final sec = setLog.durationSeconds ?? 0;
-      val2Display = sec > 0 ? formatPauseDuration(sec) : '-';
-    } else {
+    } else if (mask.showsPrimary) {
       val1Display = setLog.weightKg == null
           ? '-'
           : unitService.formatDisplayWeight(setLog.weightKg!);
+    } else {
+      val1Display = '';
+    }
+
+    if (mask.logsDuration) {
+      final sec = setLog.durationSeconds ?? 0;
+      val2Display = sec > 0 ? formatPauseDuration(sec) : '-';
+    } else if (mask.showsSecondary) {
       val2Display = setLog.reps?.toString() ?? '-';
+    } else {
+      val2Display = '';
     }
 
     final currentSetE1rm = _calculateBrzyckiE1rm(setLog);
-    final showCurrentSetE1rm = !isCardio && currentSetE1rm != null;
+    final showCurrentSetE1rm =
+        mask.logsWeight && mask.logsReps && currentSetE1rm != null;
     final bool hasPR = setLog.isMaxWeightPR ||
         setLog.isMaxVolumePR ||
         setLog.isMaxEst1RMPR ||
@@ -101,88 +114,95 @@ class WorkoutLogSetRow extends StatelessWidget {
           ),
         ),
 
-        // 2. INPUT 1: WEIGHT / DISTANCE
+        // 2. INPUT 1: WEIGHT / ADDED WEIGHT / ASSISTANCE / DISTANCE
         Expanded(
           flex: isCardio ? 4 : 2,
-          child: isEditMode
-              ? TextFormField(
-                  key: ValueKey('weight_input_${setLog.id}'),
-                  controller: weightController,
-                  textAlign: TextAlign.center,
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
-                  textInputAction: TextInputAction.next,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  decoration: const InputDecoration(
-                    border: InputBorder.none,
-                    isDense: true,
-                    fillColor: Colors.transparent,
-                    hintText: "-",
-                    contentPadding: EdgeInsets.zero,
-                  ),
-                )
-              : Text(
-                  val1Display,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+          child: !mask.showsPrimary
+              ? const SizedBox.shrink()
+              : isEditMode
+                  ? TextFormField(
+                      key: ValueKey('weight_input_${setLog.id}'),
+                      controller: weightController,
+                      textAlign: TextAlign.center,
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
+                      textInputAction: TextInputAction.next,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      decoration: const InputDecoration(
+                        border: InputBorder.none,
+                        isDense: true,
+                        fillColor: Colors.transparent,
+                        hintText: "-",
+                        contentPadding: EdgeInsets.zero,
+                      ),
+                    )
+                  : Text(
+                      val1Display,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
         ),
         const SizedBox(width: 8),
 
         // 3. INPUT 2: REPS / TIME
         Expanded(
           flex: isCardio ? 4 : 2,
-          child: isEditMode
-              ? TextFormField(
-                  controller: repsController,
-                  readOnly: isCardio,
-                  textAlign: TextAlign.center,
-                  keyboardType: TextInputType.number,
-                  inputFormatters: isCardio ? [TimerInputFormatter()] : null,
-                  textInputAction: TextInputAction.next,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  decoration: InputDecoration(
-                    border: InputBorder.none,
-                    isDense: true,
-                    fillColor: Colors.transparent,
-                    hintText: isCardio ? "00:00" : "-",
-                  ),
-                  onTap: isCardio
-                      ? () async {
-                          final currentSeconds =
-                              parsePauseDuration(repsController?.text ?? "") ??
+          child: !mask.showsSecondary
+              ? const SizedBox.shrink()
+              : isEditMode
+                  ? TextFormField(
+                      controller: repsController,
+                      readOnly: mask.logsDuration,
+                      textAlign: TextAlign.center,
+                      keyboardType: TextInputType.number,
+                      inputFormatters:
+                          mask.logsDuration ? [TimerInputFormatter()] : null,
+                      textInputAction: TextInputAction.next,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      decoration: InputDecoration(
+                        border: InputBorder.none,
+                        isDense: true,
+                        fillColor: Colors.transparent,
+                        hintText: mask.logsDuration ? "00:00" : "-",
+                      ),
+                      onTap: mask.logsDuration
+                          ? () async {
+                              final currentSeconds = parsePauseDuration(
+                                      repsController?.text ?? "") ??
                                   0;
-                          final newDuration =
-                              await adaptive_pickers.showAdaptiveDurationPicker(
-                            context: context,
-                            initialDuration: Duration(seconds: currentSeconds),
-                          );
-                          if (newDuration != null) {
-                            final seconds = newDuration.inSeconds;
-                            repsController?.text =
-                                seconds > 0 ? formatPauseDuration(seconds) : "";
-                          }
-                        }
-                      : null,
-                )
-              : Text(
-                  val2Display,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+                              final newDuration = await adaptive_pickers
+                                  .showAdaptiveDurationPicker(
+                                context: context,
+                                initialDuration:
+                                    Duration(seconds: currentSeconds),
+                              );
+                              if (newDuration != null) {
+                                final seconds = newDuration.inSeconds;
+                                repsController?.text = seconds > 0
+                                    ? formatPauseDuration(seconds)
+                                    : "";
+                              }
+                            }
+                          : null,
+                    )
+                  : Text(
+                      val2Display,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
         ),
         const SizedBox(width: 8),
 

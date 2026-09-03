@@ -11,6 +11,7 @@ import '../../domain/models/routine_exercise.dart';
 import '../../domain/models/set_log.dart';
 import '../../domain/models/set_template.dart';
 import '../../domain/models/workout_log.dart';
+import '../../domain/classification/set_load.dart';
 import '../../domain/classification/workout_classification.dart';
 import '../../../statistics/domain/recovery_domain_service.dart';
 import '../../../../core/media/app_media_store.dart';

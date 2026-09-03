@@ -8,6 +8,7 @@ import '../../../exercise_catalog/presentation/exercise_detail_screen.dart';
 import '../../../../widgets/common/card_morph_route.dart';
 import '../../../../widgets/common/morph_source.dart';
 import 'workout_card.dart';
+import '../../domain/classification/exercise_log_mask.dart';
 import 'workout_log_set_row.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../../util/design_constants.dart';
@@ -20,6 +21,10 @@ class WorkoutExerciseLogCard extends StatelessWidget {
   final List<SetLog> sets;
   final bool isEditMode;
   final bool isCardio;
+
+  /// Which inputs each set row shows. Derived from the exercise by the caller,
+  /// which is the only place that has it.
+  final ExerciseLogMask mask;
   final Map<int, TextEditingController> weightControllers;
   final Map<int, TextEditingController> repsControllers;
   final Map<int, TextEditingController> rirControllers;
@@ -44,6 +49,7 @@ class WorkoutExerciseLogCard extends StatelessWidget {
     required this.sets,
     required this.isEditMode,
     required this.isCardio,
+    required this.mask,
     required this.weightControllers,
     required this.repsControllers,
     required this.rirControllers,
@@ -283,7 +289,7 @@ class WorkoutExerciseLogCard extends StatelessWidget {
                                   workingSetIndex: workingSetIndex,
                                   exerciseName: exerciseName,
                                   isEditMode: isEditMode,
-                                  isCardio: isCardio,
+                                  mask: mask,
                                   weightController:
                                       weightControllers[setLog.id],
                                   repsController: repsControllers[setLog.id],

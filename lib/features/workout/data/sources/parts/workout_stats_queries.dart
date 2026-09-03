@@ -120,6 +120,50 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
     );
   }
 
+  /// Body weight over time, for valuing body-weight and assisted sets.
+  ///
+  /// Loaded once per query rather than per row. See [BodyweightHistory] for
+  /// why historical sets are valued at the weight of their own day.
+  Future<BodyweightHistory> _loadBodyweightHistory(
+    db.AppDatabase dbInstance,
+  ) async {
+    try {
+      final rows = await (dbInstance.select(dbInstance.measurements)
+            ..where((m) => m.type.equals('weight'))
+            ..orderBy([(m) => drift.OrderingTerm.asc(m.date)]))
+          .get();
+      return BodyweightHistory.fromRows(
+        rows.map((row) => (date: row.date, kg: row.value)),
+      );
+    } catch (e) {
+      debugPrint('[WorkoutStats] bodyweight history unavailable: $e');
+      return BodyweightHistory.empty;
+    }
+  }
+
+  /// Tonnage for one joined set row, in kilograms.
+  ///
+  /// Routes every "weight times reps" in this file through one place, so that
+  /// a pull-up counts as the user's body weight rather than as nothing, and an
+  /// assisted dip counts as body weight minus the assistance rather than as
+  /// the assistance itself.
+  double _rowTonnage(
+    db.AppDatabase dbInstance,
+    drift.TypedResult row,
+    BodyweightHistory bodyweights,
+    DateTime performedAt,
+  ) {
+    final setRow = row.readTable(dbInstance.setLogs);
+    final exRow = row.readTableOrNull(dbInstance.exercises);
+    return setTonnageKg(
+      trackingType: exRow?.trackingType,
+      loadMode: exRow?.loadMode,
+      loggedWeightKg: setRow.weight,
+      reps: setRow.reps,
+      bodyweightKg: bodyweights.at(performedAt),
+    );
+  }
+
   static List<String> _parseMuscles(String? rawMuscles) {
     return WorkoutLocalDataSource._parseMuscleList(rawMuscles)
         .map((muscle) => muscle.trim())
@@ -599,7 +643,9 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
                     .isNotValue('cardio')) &
             dbInstance.setLogs.isCompleted.equals(true) &
             dbInstance.setLogs.setType.isNotIn(['warmup']) &
-            dbInstance.setLogs.weight.isBiggerThanValue(0) &
+            // A body-weight set has no weight to be greater than zero. Which
+            // sets carry load is decided when the tonnage is computed, not by
+            // a predicate that cannot see the exercise.
             dbInstance.setLogs.reps.isBiggerThanValue(0) &
             dbInstance.workoutLogs.status.equals('completed') &
             dbInstance.workoutLogs.startTime.isBetweenValues(
@@ -636,8 +682,9 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
       ensureWeek(now.subtract(Duration(days: w * 7)));
     }
 
+    final bodyweights = await _loadBodyweightHistory(dbInstance);
+
     for (final r in rows) {
-      final setRow = r.readTable(dbInstance.setLogs);
       final logRow = r.readTable(dbInstance.workoutLogs);
       final date = logRow.startTime;
       final monday = date.subtract(Duration(days: date.weekday - 1));
@@ -647,10 +694,8 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
 
       ensureWeek(date);
 
-      final weight = setRow.weight ?? 0.0;
-      final reps = setRow.reps ?? 0;
-      weekMap[key]!['tonnage'] =
-          (weekMap[key]!['tonnage'] as double) + weight * reps;
+      weekMap[key]!['tonnage'] = (weekMap[key]!['tonnage'] as double) +
+          _rowTonnage(dbInstance, r, bodyweights, date);
       weekMap[key]!['setCount'] = (weekMap[key]!['setCount'] as int) + 1;
     }
 
@@ -693,7 +738,9 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
       ..where(
         dbInstance.setLogs.isCompleted.equals(true) &
             dbInstance.setLogs.setType.isNotIn(['warmup']) &
-            dbInstance.setLogs.weight.isBiggerThanValue(0) &
+            // A body-weight set has no weight to be greater than zero. Which
+            // sets carry load is decided when the tonnage is computed, not by
+            // a predicate that cannot see the exercise.
             dbInstance.setLogs.reps.isBiggerThanValue(0) &
             dbInstance.workoutLogs.status.equals('completed') &
             dbInstance.workoutLogs.startTime.isBetweenValues(
@@ -703,18 +750,21 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
       );
 
     final rows = await query.get();
+    final bodyweights = await _loadBodyweightHistory(dbInstance);
     final tonnageByMuscle = <String, double>{};
 
     for (final row in rows) {
       final setRow = row.readTable(dbInstance.setLogs);
       final exRow = row.readTableOrNull(dbInstance.exercises);
+      final logRow = row.readTable(dbInstance.workoutLogs);
       final profile = _resolveExerciseMuscleProfile(
         lookup: muscleLookup,
         exerciseRow: exRow,
         exerciseNameSnapshot: setRow.exerciseNameSnapshot,
       );
 
-      final tonnage = (setRow.weight ?? 0.0) * (setRow.reps ?? 0);
+      final tonnage =
+          _rowTonnage(dbInstance, row, bodyweights, logRow.startTime);
       final muscles = profile?.primary ?? const <String>[];
 
       if (muscles.isEmpty) {
@@ -1220,11 +1270,18 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
           dbInstance.setLogs.workoutLogId,
         ),
       ),
+      // Joined only so the tonnage can tell a pull-up from a curl.
+      drift.leftOuterJoin(
+        dbInstance.exercises,
+        dbInstance.exercises.id.equalsExp(dbInstance.setLogs.exerciseId),
+      ),
     ])
       ..where(
         dbInstance.setLogs.isCompleted.equals(true) &
             dbInstance.setLogs.setType.isNotIn(['warmup']) &
-            dbInstance.setLogs.weight.isBiggerThanValue(0) &
+            // A body-weight set has no weight to be greater than zero. Which
+            // sets carry load is decided when the tonnage is computed, not by
+            // a predicate that cannot see the exercise.
             dbInstance.setLogs.reps.isBiggerThanValue(0) &
             dbInstance.workoutLogs.status.equals('completed') &
             dbInstance.workoutLogs.startTime.isBetweenValues(
@@ -1234,13 +1291,15 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
       );
 
     final rows = await query.get();
+    final bodyweights = await _loadBodyweightHistory(dbInstance);
     final Map<String, double> exVolume = {};
 
     for (final r in rows) {
       final setRow = r.readTable(dbInstance.setLogs);
+      final logRow = r.readTable(dbInstance.workoutLogs);
       final name = setRow.exerciseNameSnapshot ?? 'Unknown';
-      exVolume[name] =
-          (exVolume[name] ?? 0.0) + (setRow.weight ?? 0.0) * (setRow.reps ?? 0);
+      exVolume[name] = (exVolume[name] ?? 0.0) +
+          _rowTonnage(dbInstance, r, bodyweights, logRow.startTime);
     }
 
     return (exVolume.entries.toList()
@@ -1689,7 +1748,9 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
                     .isNotValue('cardio')) &
             dbInstance.setLogs.isCompleted.equals(true) &
             dbInstance.setLogs.setType.isNotIn(['warmup']) &
-            dbInstance.setLogs.weight.isBiggerThanValue(0) &
+            // A body-weight set has no weight to be greater than zero. Which
+            // sets carry load is decided when the tonnage is computed, not by
+            // a predicate that cannot see the exercise.
             dbInstance.setLogs.reps.isBiggerThanValue(0) &
             dbInstance.workoutLogs.status.equals('completed') &
             dbInstance.workoutLogs.startTime.isBetweenValues(
@@ -1703,6 +1764,7 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
 
     final rows = await query.get();
 
+    final bodyweights = await _loadBodyweightHistory(dbInstance);
     final Map<String, Map<String, dynamic>> monthMap = {};
 
     void ensureMonth(DateTime date) {
@@ -1726,7 +1788,6 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
     }
 
     for (final r in rows) {
-      final setRow = r.readTable(dbInstance.setLogs);
       final logRow = r.readTable(dbInstance.workoutLogs);
       final monthStart = DateTime(
         logRow.startTime.year,
@@ -1738,10 +1799,8 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
 
       ensureMonth(logRow.startTime);
 
-      final weight = setRow.weight ?? 0.0;
-      final reps = setRow.reps ?? 0;
-      monthMap[key]!['tonnage'] =
-          (monthMap[key]!['tonnage'] as double) + weight * reps;
+      monthMap[key]!['tonnage'] = (monthMap[key]!['tonnage'] as double) +
+          _rowTonnage(dbInstance, r, bodyweights, logRow.startTime);
       monthMap[key]!['setCount'] = (monthMap[key]!['setCount'] as int) + 1;
     }
 
@@ -1802,16 +1861,12 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
                 dbInstance.exercises.categoryName
                     .lower()
                     .isNotValue('cardio')) &
-            // On an assistance machine the logged number is a reduction of
-            // resistance: more kilos is easier. An e1RM computed from it reads
-            // every improvement as a decline and every decline as progress,
-            // and nothing about the output looks wrong. Excluded until the
-            // number is stored with its meaning attached.
-            (dbInstance.exercises.loadMode.isNull() |
-                dbInstance.exercises.loadMode.isNotValue('assisted')) &
             dbInstance.setLogs.isCompleted.equals(true) &
             dbInstance.setLogs.setType.isNotIn(['warmup']) &
-            dbInstance.setLogs.weight.isBiggerThanValue(0) &
+            // No weight filter: a pull-up carries the user's body weight and a
+            // set on an assistance machine carries body weight minus the
+            // number entered. Both are resolved below, where the exercise is
+            // in hand.
             dbInstance.setLogs.reps.isBiggerThanValue(0) &
             dbInstance.workoutLogs.status.equals('completed') &
             dbInstance.workoutLogs.startTime.isBetweenValues(
@@ -1822,6 +1877,8 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
 
     final rows = await query.get();
 
+    final bodyweights = await _loadBodyweightHistory(dbInstance);
+
     final Map<String, double> previousBest = {};
     final Map<String, double> recentBest = {};
 
@@ -1829,11 +1886,25 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
 
     for (final r in rows) {
       final setRow = r.readTable(dbInstance.setLogs);
+      final exRow = r.readTableOrNull(dbInstance.exercises);
       final logRow = r.readTable(dbInstance.workoutLogs);
       final name = (setRow.exerciseNameSnapshot ?? '').trim();
       if (name.isEmpty) continue;
 
-      final value = e1rm(setRow.weight ?? 0.0, setRow.reps ?? 0);
+      // The load the set actually represented, which for a body-weight or
+      // assisted movement is not the number in the weight column. Null means
+      // there is nothing to estimate from — a body-weight set from before the
+      // user ever recorded a weight — and those are skipped rather than
+      // counted as zero.
+      final load = effectiveSetLoadKg(
+        trackingType: exRow?.trackingType,
+        loadMode: exRow?.loadMode,
+        loggedWeightKg: setRow.weight,
+        bodyweightKg: bodyweights.at(logRow.startTime),
+      );
+      if (load == null) continue;
+
+      final value = e1rm(load, setRow.reps ?? 0);
       if (value <= 0) continue;
 
       final isRecent = !logRow.startTime.isBefore(recentStart);

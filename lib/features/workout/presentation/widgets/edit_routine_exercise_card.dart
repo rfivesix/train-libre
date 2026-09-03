@@ -9,6 +9,7 @@ import '../../../exercise_catalog/presentation/exercise_detail_screen.dart';
 import '../../../../widgets/common/card_morph_route.dart';
 import '../../../../widgets/common/morph_source.dart';
 import 'workout_card.dart';
+import '../../domain/classification/exercise_log_mask.dart';
 import 'routine_set_row_widget.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 
@@ -244,7 +245,8 @@ class EditRoutineExerciseCard extends StatelessWidget {
                                   routineExercise: routineExercise,
                                   template: setTemplate,
                                   listIndex: setIndex,
-                                  isCardio: isCardio,
+                                  mask: ExerciseLogMask.forExercise(
+                                      routineExercise.exercise),
                                   repsController:
                                       repsControllers[setTemplate.id!]!,
                                   weightController:

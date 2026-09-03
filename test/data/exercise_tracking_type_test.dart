@@ -60,16 +60,17 @@ void main() {
       expect(e.isCardio, isFalse);
     });
 
-    test('bodyweight_reps asks for reps, and weight only when it makes sense',
-        () {
+    test('bodyweight_reps asks for reps and an added-weight field', () {
+      // The field is offered either way and starts empty. Empty means "just
+      // me", and the set counts with the user's full body weight; a zero would
+      // claim a pull-up moved nothing.
       final plain = _exercise(trackingType: 'bodyweight_reps');
       expect(plain.logsReps, isTrue);
-      expect(plain.logsWeight, isFalse,
-          reason: 'a weighted push-up is mostly not a thing');
+      expect(plain.logsWeight, isTrue);
 
       final weighted =
           _exercise(trackingType: 'bodyweight_reps', supportsAddedWeight: true);
-      expect(weighted.logsWeight, isTrue, reason: 'a weighted pull-up is');
+      expect(weighted.logsWeight, isTrue);
     });
 
     test('time asks for a duration', () {
@@ -205,14 +206,24 @@ void main() {
       expect(await volume(), 0);
     });
 
-    test('progression skips assistance machines', () async {
-      // Two sessions where the logged number went up. On an assistance
-      // machine that is the user getting *more* help, so it must not surface
-      // as an improvement.
+    test('progression reads an assistance machine the right way round',
+        () async {
+      // Two sessions where the entered number went up. On an assistance
+      // machine that is more help, not more strength, so it must register as
+      // a decline. Before load_mode, this surfaced as an improvement.
+      await db.into(db.measurements).insert(
+            MeasurementsCompanion.insert(
+              type: 'weight',
+              value: 80,
+              unit: 'kg',
+              date: DateTime.now().subtract(const Duration(days: 200)),
+            ),
+          );
+
       final assisted = await source.getExerciseByUuid(kAssisted);
       final name = assisted!.canonicalName;
 
-      Future<void> session(String id, DateTime when, double weight) async {
+      Future<void> session(String id, DateTime when, double assistance) async {
         await db.into(db.workoutLogs).insert(
               WorkoutLogsCompanion.insert(
                 id: Value(id),
@@ -225,7 +236,7 @@ void main() {
                 workoutLogId: id,
                 exerciseId: Value(kAssisted),
                 exerciseNameSnapshot: Value(name),
-                weight: Value(weight),
+                weight: Value(assistance),
                 reps: const Value(10),
                 isCompleted: const Value(true),
               ),
@@ -242,6 +253,80 @@ void main() {
         isNot(contains(name)),
         reason: 'more assistance was reported as more strength',
       );
+    });
+
+    test('a body-weight set produces an e1RM at all', () async {
+      // It could not before: the query required a weight greater than zero,
+      // and a pull-up has none.
+      await db.into(db.measurements).insert(
+            MeasurementsCompanion.insert(
+              type: 'weight',
+              value: 80,
+              unit: 'kg',
+              date: DateTime.now().subtract(const Duration(days: 200)),
+            ),
+          );
+
+      final exercise = await source.getExerciseByUuid(kBodyweightReps);
+      final name = exercise!.canonicalName;
+
+      Future<void> session(String id, DateTime when, int reps) async {
+        await db.into(db.workoutLogs).insert(
+              WorkoutLogsCompanion.insert(
+                id: Value(id),
+                startTime: when,
+                status: const Value('completed'),
+              ),
+            );
+        await db.into(db.setLogs).insert(
+              SetLogsCompanion.insert(
+                workoutLogId: id,
+                exerciseId: Value(kBodyweightReps),
+                exerciseNameSnapshot: Value(name),
+                reps: Value(reps),
+                isCompleted: const Value(true),
+              ),
+            );
+      }
+
+      final now = DateTime.now();
+      await session('bw-old', now.subtract(const Duration(days: 40)), 8);
+      await session('bw-new', now.subtract(const Duration(days: 2)), 15);
+
+      final improvements = await source.getNotablePrImprovements();
+      expect(improvements.map((m) => m['exerciseName']), contains(name),
+          reason: 'going from 8 to 15 pull-ups is progress and used to '
+              'register as nothing at all');
+    });
+
+    test('a body-weight session counts towards tonnage', () async {
+      await db.into(db.measurements).insert(
+            MeasurementsCompanion.insert(
+              type: 'weight',
+              value: 80,
+              unit: 'kg',
+              date: DateTime.now().subtract(const Duration(days: 200)),
+            ),
+          );
+      await logSets(kBodyweightReps, logId: 'bw-tonnage', reps: 10);
+
+      final byMuscle = await source.getVolumeByMuscleGroup();
+      final total = byMuscle.fold<double>(
+          0, (sum, row) => sum + (row['tonnage'] as double));
+      // Three sets of ten at 80 kg.
+      expect(total, greaterThan(0));
+    });
+
+    test('without a recorded body weight tonnage falls back to what was typed',
+        () async {
+      await logSets(kBodyweightReps, logId: 'bw-none', reps: 10, weight: 15);
+
+      final byMuscle = await source.getVolumeByMuscleGroup();
+      final total = byMuscle.fold<double>(
+          0, (sum, row) => sum + (row['tonnage'] as double));
+      expect(total, greaterThan(0),
+          reason: 'the added weight is real even when the body weight is '
+              'unknown');
     });
   });
 }
