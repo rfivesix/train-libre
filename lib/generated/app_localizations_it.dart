@@ -6484,4 +6484,23 @@ class AppLocalizationsIt extends AppLocalizations {
   String workoutPhotoPagination(int current, int total) {
     return '$current di $total';
   }
+
+  @override
+  String get catalogFilterTitle => 'Filtro';
+
+  @override
+  String get catalogFilterBodyRegion => 'Regione del corpo';
+
+  @override
+  String get catalogFilterEquipment => 'Attrezzatura';
+
+  @override
+  String get catalogFilterUsage => 'Utilizzo';
+
+  @override
+  String get catalogFilterReset => 'Reimposta';
+
+  @override
+  String get catalogFilterCombineHint =>
+      'Più scelte in una sezione ampliano i risultati; scelte in sezioni diverse li restringono.';
 }

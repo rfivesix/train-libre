@@ -2828,5 +2828,11 @@
         "type": "int"
       }
     }
-  }
+  },
+  "catalogFilterTitle": "フィルター",
+  "catalogFilterBodyRegion": "部位",
+  "catalogFilterEquipment": "器具",
+  "catalogFilterUsage": "用途",
+  "catalogFilterReset": "リセット",
+  "catalogFilterCombineHint": "同じセクション内で複数選ぶと結果が広がり、別のセクションで選ぶと絞り込まれます。"
 }

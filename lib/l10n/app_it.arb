@@ -2828,5 +2828,11 @@
         "type": "int"
       }
     }
-  }
+  },
+  "catalogFilterTitle": "Filtro",
+  "catalogFilterBodyRegion": "Regione del corpo",
+  "catalogFilterEquipment": "Attrezzatura",
+  "catalogFilterUsage": "Utilizzo",
+  "catalogFilterReset": "Reimposta",
+  "catalogFilterCombineHint": "Più scelte in una sezione ampliano i risultati; scelte in sezioni diverse li restringono."
 }

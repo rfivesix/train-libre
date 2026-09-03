@@ -11166,6 +11166,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{current} of {total}'**
   String workoutPhotoPagination(int current, int total);
+
+  /// No description provided for @catalogFilterTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter'**
+  String get catalogFilterTitle;
+
+  /// No description provided for @catalogFilterBodyRegion.
+  ///
+  /// In en, this message translates to:
+  /// **'Body region'**
+  String get catalogFilterBodyRegion;
+
+  /// No description provided for @catalogFilterEquipment.
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment'**
+  String get catalogFilterEquipment;
+
+  /// No description provided for @catalogFilterUsage.
+  ///
+  /// In en, this message translates to:
+  /// **'Purpose'**
+  String get catalogFilterUsage;
+
+  /// No description provided for @catalogFilterReset.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset'**
+  String get catalogFilterReset;
+
+  /// No description provided for @catalogFilterCombineHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Several picks in one section widen the results; picks across sections narrow them.'**
+  String get catalogFilterCombineHint;
 }
 
 class _AppLocalizationsDelegate

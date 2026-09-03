@@ -2826,5 +2826,11 @@
         "type": "int"
       }
     }
-  }
+  },
+  "catalogFilterTitle": "Filter",
+  "catalogFilterBodyRegion": "Körperregion",
+  "catalogFilterEquipment": "Gerät",
+  "catalogFilterUsage": "Einsatzzweck",
+  "catalogFilterReset": "Zurücksetzen",
+  "catalogFilterCombineHint": "Mehrere Angaben in einem Abschnitt erweitern die Treffer, Angaben in mehreren Abschnitten grenzen sie ein."
 }

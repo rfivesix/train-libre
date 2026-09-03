@@ -8,7 +8,6 @@ import '../../../generated/app_localizations.dart';
 import '../domain/models/exercise.dart';
 import 'exercise_detail_screen.dart';
 import '../../../util/design_constants.dart';
-import '../../../widgets/common/platform_adaptive_dropdown.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/summary_card.dart';
 import 'create_exercise_screen.dart';
@@ -18,7 +17,9 @@ import '../../../widgets/common/glass_fab.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../core/infrastructure/basis_data_manager.dart';
 import '../../../widgets/common/database_placeholder_widget.dart';
+import '../../app/presentation/widgets/glass_bottom_menu.dart';
 import '../domain/body_slug_mapper.dart';
+import 'widgets/exercise_filter_sheet.dart';
 import '../../../services/telemetry/telemetry_service.dart';
 
 /// A searchable list of all available exercises in the database.
@@ -396,9 +397,10 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
   Widget _buildFilterButton(BuildContext context, AppLocalizations l10n) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final hasFilter = _selectedCategories.isNotEmpty ||
-        _selectedEquipment.isNotEmpty ||
-        _selectedUsageTags.isNotEmpty;
+    final activeCount = _selectedCategories.length +
+        _selectedEquipment.length +
+        _selectedUsageTags.length;
+    final hasFilter = activeCount > 0;
 
     final fillColor = hasFilter
         ? colorScheme.primary
@@ -410,8 +412,10 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
     final iconColor =
         hasFilter ? colorScheme.onPrimary : colorScheme.onSurfaceVariant;
 
-    return PlatformAdaptivePopupMenu<String>(
-      icon: Container(
+    return GestureDetector(
+      onTap: () => _showFilterSheet(context, l10n),
+      behavior: HitTestBehavior.opaque,
+      child: Container(
         height: 48,
         width: 48,
         decoration: BoxDecoration(
@@ -419,68 +423,75 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
           borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
         ),
         child: Center(
-          child: Icon(
-            LucideIcons.list_filter,
-            color: iconColor,
-            size: 22,
-          ),
+          child: hasFilter
+              ? Text(
+                  '$activeCount',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    color: iconColor,
+                    fontWeight: FontWeight.bold,
+                  ),
+                )
+              : Icon(LucideIcons.list_filter, color: iconColor, size: 22),
         ),
       ),
-      // One menu, three groups. The values are prefixed so the handler can
-      // tell a body region from a dumbbell without three separate menus in a
-      // toolbar that has room for one.
-      items: [
-        for (final category in _allCategories)
-          PlatformAdaptivePopupMenuItem<String>(
-            value: 'category:$category',
-            label: BodySlugMapper.localize(context, category),
-            icon: _selectedCategories.contains(category)
-                ? LucideIcons.check
-                : null,
-          ),
-        for (final equipment in _allEquipment)
-          PlatformAdaptivePopupMenuItem<String>(
-            value: 'equipment:${equipment.id}',
-            label: equipment.name,
-            icon: _selectedEquipment.contains(equipment.id)
-                ? LucideIcons.check
-                : null,
-          ),
-        for (final tag in _allUsageTags)
-          PlatformAdaptivePopupMenuItem<String>(
-            value: 'tag:$tag',
-            label: _usageTagLabel(tag),
-            icon: _selectedUsageTags.contains(tag) ? LucideIcons.check : null,
-          ),
-      ],
-      onSelected: (value) {
-        final separator = value.indexOf(':');
-        if (separator < 0) return;
-        final kind = value.substring(0, separator);
-        final id = value.substring(separator + 1);
+    );
+  }
 
-        setState(() {
-          final target = switch (kind) {
-            'equipment' => _selectedEquipment,
-            'tag' => _selectedUsageTags,
-            _ => _selectedCategories,
-          };
-          if (target.contains(id)) {
-            target.remove(id);
-          } else {
-            target.add(id);
-          }
-        });
-        _runFilter(_searchController.text);
-      },
+  Future<void> _showFilterSheet(
+    BuildContext context,
+    AppLocalizations l10n,
+  ) async {
+    await showGlassBottomMenu<void>(
+      context: context,
+      title: l10n.catalogFilterTitle,
+      contentBuilder: (sheetContext, close) => ExerciseFilterSheet(
+        sections: [
+          ExerciseFilterSection(
+            title: l10n.catalogFilterBodyRegion,
+            selection: _selectedCategories,
+            options: [
+              for (final category in _allCategories)
+                ExerciseFilterOption(
+                  value: category,
+                  label: BodySlugMapper.localize(sheetContext, category),
+                ),
+            ],
+          ),
+          ExerciseFilterSection(
+            title: l10n.catalogFilterEquipment,
+            selection: _selectedEquipment,
+            options: [
+              for (final equipment in _allEquipment)
+                ExerciseFilterOption(
+                  value: equipment.id,
+                  label: equipment.name,
+                ),
+            ],
+          ),
+          ExerciseFilterSection(
+            title: l10n.catalogFilterUsage,
+            selection: _selectedUsageTags,
+            options: [
+              for (final tag in _allUsageTags)
+                ExerciseFilterOption(value: tag, label: _usageTagLabel(tag)),
+            ],
+          ),
+        ],
+        onChanged: () {
+          // The chip count on the toolbar button lives in this state, and the
+          // list behind the sheet has to follow the selection immediately.
+          setState(() {});
+          _runFilter(_searchController.text);
+        },
+      ),
     );
   }
 
   /// A readable label for a usage tag.
   ///
-  /// The catalog ships these as identifiers, not as prose, and there is no
-  /// translation table for them the way there is for muscles and equipment —
-  /// so this is a presentation concern until there is.
+  /// The catalog ships these as identifiers and has no translation table for
+  /// them the way it does for muscles and equipment, so this is a presentation
+  /// concern until there is one.
   String _usageTagLabel(String tag) {
     final words = tag.split('_').where((w) => w.isNotEmpty);
     return words.map((w) => w[0].toUpperCase() + w.substring(1)).join(' ');
