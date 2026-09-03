@@ -1377,6 +1377,87 @@ class $ExercisesTable extends Exercises
           requiredDuringInsert: false,
           defaultConstraints:
               GeneratedColumn.constraintIsAlways('REFERENCES exercises (id)'));
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<String> status = GeneratedColumn<String>(
+      'status', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _mergedIntoMeta =
+      const VerificationMeta('mergedInto');
+  @override
+  late final GeneratedColumn<String> mergedInto = GeneratedColumn<String>(
+      'merged_into', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _modalityMeta =
+      const VerificationMeta('modality');
+  @override
+  late final GeneratedColumn<String> modality = GeneratedColumn<String>(
+      'modality', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _mechanicMeta =
+      const VerificationMeta('mechanic');
+  @override
+  late final GeneratedColumn<String> mechanic = GeneratedColumn<String>(
+      'mechanic', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _forceVectorMeta =
+      const VerificationMeta('forceVector');
+  @override
+  late final GeneratedColumn<String> forceVector = GeneratedColumn<String>(
+      'force_vector', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _movementPatternMeta =
+      const VerificationMeta('movementPattern');
+  @override
+  late final GeneratedColumn<String> movementPattern = GeneratedColumn<String>(
+      'movement_pattern', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _lateralityMeta =
+      const VerificationMeta('laterality');
+  @override
+  late final GeneratedColumn<String> laterality = GeneratedColumn<String>(
+      'laterality', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _difficultyMeta =
+      const VerificationMeta('difficulty');
+  @override
+  late final GeneratedColumn<String> difficulty = GeneratedColumn<String>(
+      'difficulty', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _trackingTypeMeta =
+      const VerificationMeta('trackingType');
+  @override
+  late final GeneratedColumn<String> trackingType = GeneratedColumn<String>(
+      'tracking_type', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _loadModeMeta =
+      const VerificationMeta('loadMode');
+  @override
+  late final GeneratedColumn<String> loadMode = GeneratedColumn<String>(
+      'load_mode', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _supportsAddedWeightMeta =
+      const VerificationMeta('supportsAddedWeight');
+  @override
+  late final GeneratedColumn<bool> supportsAddedWeight = GeneratedColumn<bool>(
+      'supports_added_weight', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'CHECK ("supports_added_weight" IN (0, 1))'),
+      defaultValue: const Constant(false));
+  static const VerificationMeta _primaryEquipmentMeta =
+      const VerificationMeta('primaryEquipment');
+  @override
+  late final GeneratedColumn<String> primaryEquipment = GeneratedColumn<String>(
+      'primary_equipment', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _bodyRegionMeta =
+      const VerificationMeta('bodyRegion');
+  @override
+  late final GeneratedColumn<String> bodyRegion = GeneratedColumn<String>(
+      'body_region', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns => [
         localId,
@@ -1392,7 +1473,20 @@ class $ExercisesTable extends Exercises
         isCustom,
         source,
         usageCount,
-        replacesExerciseId
+        replacesExerciseId,
+        status,
+        mergedInto,
+        modality,
+        mechanic,
+        forceVector,
+        movementPattern,
+        laterality,
+        difficulty,
+        trackingType,
+        loadMode,
+        supportsAddedWeight,
+        primaryEquipment,
+        bodyRegion
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -1469,6 +1563,76 @@ class $ExercisesTable extends Exercises
           replacesExerciseId.isAcceptableOrUnknown(
               data['replaces_exercise_id']!, _replacesExerciseIdMeta));
     }
+    if (data.containsKey('status')) {
+      context.handle(_statusMeta,
+          status.isAcceptableOrUnknown(data['status']!, _statusMeta));
+    }
+    if (data.containsKey('merged_into')) {
+      context.handle(
+          _mergedIntoMeta,
+          mergedInto.isAcceptableOrUnknown(
+              data['merged_into']!, _mergedIntoMeta));
+    }
+    if (data.containsKey('modality')) {
+      context.handle(_modalityMeta,
+          modality.isAcceptableOrUnknown(data['modality']!, _modalityMeta));
+    }
+    if (data.containsKey('mechanic')) {
+      context.handle(_mechanicMeta,
+          mechanic.isAcceptableOrUnknown(data['mechanic']!, _mechanicMeta));
+    }
+    if (data.containsKey('force_vector')) {
+      context.handle(
+          _forceVectorMeta,
+          forceVector.isAcceptableOrUnknown(
+              data['force_vector']!, _forceVectorMeta));
+    }
+    if (data.containsKey('movement_pattern')) {
+      context.handle(
+          _movementPatternMeta,
+          movementPattern.isAcceptableOrUnknown(
+              data['movement_pattern']!, _movementPatternMeta));
+    }
+    if (data.containsKey('laterality')) {
+      context.handle(
+          _lateralityMeta,
+          laterality.isAcceptableOrUnknown(
+              data['laterality']!, _lateralityMeta));
+    }
+    if (data.containsKey('difficulty')) {
+      context.handle(
+          _difficultyMeta,
+          difficulty.isAcceptableOrUnknown(
+              data['difficulty']!, _difficultyMeta));
+    }
+    if (data.containsKey('tracking_type')) {
+      context.handle(
+          _trackingTypeMeta,
+          trackingType.isAcceptableOrUnknown(
+              data['tracking_type']!, _trackingTypeMeta));
+    }
+    if (data.containsKey('load_mode')) {
+      context.handle(_loadModeMeta,
+          loadMode.isAcceptableOrUnknown(data['load_mode']!, _loadModeMeta));
+    }
+    if (data.containsKey('supports_added_weight')) {
+      context.handle(
+          _supportsAddedWeightMeta,
+          supportsAddedWeight.isAcceptableOrUnknown(
+              data['supports_added_weight']!, _supportsAddedWeightMeta));
+    }
+    if (data.containsKey('primary_equipment')) {
+      context.handle(
+          _primaryEquipmentMeta,
+          primaryEquipment.isAcceptableOrUnknown(
+              data['primary_equipment']!, _primaryEquipmentMeta));
+    }
+    if (data.containsKey('body_region')) {
+      context.handle(
+          _bodyRegionMeta,
+          bodyRegion.isAcceptableOrUnknown(
+              data['body_region']!, _bodyRegionMeta));
+    }
     return context;
   }
 
@@ -1506,6 +1670,32 @@ class $ExercisesTable extends Exercises
           .read(DriftSqlType.int, data['${effectivePrefix}usage_count'])!,
       replacesExerciseId: attachedDatabase.typeMapping.read(
           DriftSqlType.string, data['${effectivePrefix}replaces_exercise_id']),
+      status: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}status']),
+      mergedInto: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}merged_into']),
+      modality: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}modality']),
+      mechanic: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}mechanic']),
+      forceVector: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}force_vector']),
+      movementPattern: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}movement_pattern']),
+      laterality: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}laterality']),
+      difficulty: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}difficulty']),
+      trackingType: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}tracking_type']),
+      loadMode: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}load_mode']),
+      supportsAddedWeight: attachedDatabase.typeMapping.read(
+          DriftSqlType.bool, data['${effectivePrefix}supports_added_weight'])!,
+      primaryEquipment: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}primary_equipment']),
+      bodyRegion: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}body_region']),
     );
   }
 
@@ -1530,6 +1720,47 @@ class Exercise extends DataClass implements Insertable<Exercise> {
   final String source;
   final int usageCount;
   final String? replacesExerciseId;
+
+  /// `active` | `deprecated` | `merged`. NULL on rows written before v2 and on
+  /// user-created exercises; both are treated as active.
+  final String? status;
+
+  /// Target of a merge. The user-data rewrite lives in the importer, not here.
+  final String? mergedInto;
+
+  /// What the exercise *is*: strength, cardio, plyometric, mobility, stretch,
+  /// balance. Drives which sets count towards volume and recovery.
+  final String? modality;
+
+  /// compound | isolation.
+  final String? mechanic;
+
+  /// push | pull | static. Derived upstream from [movementPattern]; NULL for
+  /// the eight patterns that are honestly neither.
+  final String? forceVector;
+  final String? movementPattern;
+
+  /// bilateral | unilateral | alternating.
+  final String? laterality;
+
+  /// beginner | intermediate | advanced.
+  final String? difficulty;
+
+  /// Shape of the log mask: weight_reps, bodyweight_reps, time, time_weight,
+  /// distance_time, distance_only.
+  final String? trackingType;
+
+  /// What the logged number *means*: external, bodyweight, assisted, variable.
+  /// `assisted` inverts progression — more kilos is easier.
+  final String? loadMode;
+  final bool supportsAddedWeight;
+
+  /// The load-bearing implement, as opposed to the furniture in [setup].
+  final String? primaryEquipment;
+
+  /// Derived upstream from the primary muscles. Currently NULL for every row
+  /// the build produces; nothing in the app may depend on it.
+  final String? bodyRegion;
   const Exercise(
       {required this.localId,
       required this.id,
@@ -1544,7 +1775,20 @@ class Exercise extends DataClass implements Insertable<Exercise> {
       required this.isCustom,
       required this.source,
       required this.usageCount,
-      this.replacesExerciseId});
+      this.replacesExerciseId,
+      this.status,
+      this.mergedInto,
+      this.modality,
+      this.mechanic,
+      this.forceVector,
+      this.movementPattern,
+      this.laterality,
+      this.difficulty,
+      this.trackingType,
+      this.loadMode,
+      required this.supportsAddedWeight,
+      this.primaryEquipment,
+      this.bodyRegion});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -1575,6 +1819,43 @@ class Exercise extends DataClass implements Insertable<Exercise> {
     map['usage_count'] = Variable<int>(usageCount);
     if (!nullToAbsent || replacesExerciseId != null) {
       map['replaces_exercise_id'] = Variable<String>(replacesExerciseId);
+    }
+    if (!nullToAbsent || status != null) {
+      map['status'] = Variable<String>(status);
+    }
+    if (!nullToAbsent || mergedInto != null) {
+      map['merged_into'] = Variable<String>(mergedInto);
+    }
+    if (!nullToAbsent || modality != null) {
+      map['modality'] = Variable<String>(modality);
+    }
+    if (!nullToAbsent || mechanic != null) {
+      map['mechanic'] = Variable<String>(mechanic);
+    }
+    if (!nullToAbsent || forceVector != null) {
+      map['force_vector'] = Variable<String>(forceVector);
+    }
+    if (!nullToAbsent || movementPattern != null) {
+      map['movement_pattern'] = Variable<String>(movementPattern);
+    }
+    if (!nullToAbsent || laterality != null) {
+      map['laterality'] = Variable<String>(laterality);
+    }
+    if (!nullToAbsent || difficulty != null) {
+      map['difficulty'] = Variable<String>(difficulty);
+    }
+    if (!nullToAbsent || trackingType != null) {
+      map['tracking_type'] = Variable<String>(trackingType);
+    }
+    if (!nullToAbsent || loadMode != null) {
+      map['load_mode'] = Variable<String>(loadMode);
+    }
+    map['supports_added_weight'] = Variable<bool>(supportsAddedWeight);
+    if (!nullToAbsent || primaryEquipment != null) {
+      map['primary_equipment'] = Variable<String>(primaryEquipment);
+    }
+    if (!nullToAbsent || bodyRegion != null) {
+      map['body_region'] = Variable<String>(bodyRegion);
     }
     return map;
   }
@@ -1609,6 +1890,42 @@ class Exercise extends DataClass implements Insertable<Exercise> {
       replacesExerciseId: replacesExerciseId == null && nullToAbsent
           ? const Value.absent()
           : Value(replacesExerciseId),
+      status:
+          status == null && nullToAbsent ? const Value.absent() : Value(status),
+      mergedInto: mergedInto == null && nullToAbsent
+          ? const Value.absent()
+          : Value(mergedInto),
+      modality: modality == null && nullToAbsent
+          ? const Value.absent()
+          : Value(modality),
+      mechanic: mechanic == null && nullToAbsent
+          ? const Value.absent()
+          : Value(mechanic),
+      forceVector: forceVector == null && nullToAbsent
+          ? const Value.absent()
+          : Value(forceVector),
+      movementPattern: movementPattern == null && nullToAbsent
+          ? const Value.absent()
+          : Value(movementPattern),
+      laterality: laterality == null && nullToAbsent
+          ? const Value.absent()
+          : Value(laterality),
+      difficulty: difficulty == null && nullToAbsent
+          ? const Value.absent()
+          : Value(difficulty),
+      trackingType: trackingType == null && nullToAbsent
+          ? const Value.absent()
+          : Value(trackingType),
+      loadMode: loadMode == null && nullToAbsent
+          ? const Value.absent()
+          : Value(loadMode),
+      supportsAddedWeight: Value(supportsAddedWeight),
+      primaryEquipment: primaryEquipment == null && nullToAbsent
+          ? const Value.absent()
+          : Value(primaryEquipment),
+      bodyRegion: bodyRegion == null && nullToAbsent
+          ? const Value.absent()
+          : Value(bodyRegion),
     );
   }
 
@@ -1631,6 +1948,20 @@ class Exercise extends DataClass implements Insertable<Exercise> {
       usageCount: serializer.fromJson<int>(json['usageCount']),
       replacesExerciseId:
           serializer.fromJson<String?>(json['replacesExerciseId']),
+      status: serializer.fromJson<String?>(json['status']),
+      mergedInto: serializer.fromJson<String?>(json['mergedInto']),
+      modality: serializer.fromJson<String?>(json['modality']),
+      mechanic: serializer.fromJson<String?>(json['mechanic']),
+      forceVector: serializer.fromJson<String?>(json['forceVector']),
+      movementPattern: serializer.fromJson<String?>(json['movementPattern']),
+      laterality: serializer.fromJson<String?>(json['laterality']),
+      difficulty: serializer.fromJson<String?>(json['difficulty']),
+      trackingType: serializer.fromJson<String?>(json['trackingType']),
+      loadMode: serializer.fromJson<String?>(json['loadMode']),
+      supportsAddedWeight:
+          serializer.fromJson<bool>(json['supportsAddedWeight']),
+      primaryEquipment: serializer.fromJson<String?>(json['primaryEquipment']),
+      bodyRegion: serializer.fromJson<String?>(json['bodyRegion']),
     );
   }
   @override
@@ -1651,6 +1982,19 @@ class Exercise extends DataClass implements Insertable<Exercise> {
       'source': serializer.toJson<String>(source),
       'usageCount': serializer.toJson<int>(usageCount),
       'replacesExerciseId': serializer.toJson<String?>(replacesExerciseId),
+      'status': serializer.toJson<String?>(status),
+      'mergedInto': serializer.toJson<String?>(mergedInto),
+      'modality': serializer.toJson<String?>(modality),
+      'mechanic': serializer.toJson<String?>(mechanic),
+      'forceVector': serializer.toJson<String?>(forceVector),
+      'movementPattern': serializer.toJson<String?>(movementPattern),
+      'laterality': serializer.toJson<String?>(laterality),
+      'difficulty': serializer.toJson<String?>(difficulty),
+      'trackingType': serializer.toJson<String?>(trackingType),
+      'loadMode': serializer.toJson<String?>(loadMode),
+      'supportsAddedWeight': serializer.toJson<bool>(supportsAddedWeight),
+      'primaryEquipment': serializer.toJson<String?>(primaryEquipment),
+      'bodyRegion': serializer.toJson<String?>(bodyRegion),
     };
   }
 
@@ -1668,7 +2012,20 @@ class Exercise extends DataClass implements Insertable<Exercise> {
           bool? isCustom,
           String? source,
           int? usageCount,
-          Value<String?> replacesExerciseId = const Value.absent()}) =>
+          Value<String?> replacesExerciseId = const Value.absent(),
+          Value<String?> status = const Value.absent(),
+          Value<String?> mergedInto = const Value.absent(),
+          Value<String?> modality = const Value.absent(),
+          Value<String?> mechanic = const Value.absent(),
+          Value<String?> forceVector = const Value.absent(),
+          Value<String?> movementPattern = const Value.absent(),
+          Value<String?> laterality = const Value.absent(),
+          Value<String?> difficulty = const Value.absent(),
+          Value<String?> trackingType = const Value.absent(),
+          Value<String?> loadMode = const Value.absent(),
+          bool? supportsAddedWeight,
+          Value<String?> primaryEquipment = const Value.absent(),
+          Value<String?> bodyRegion = const Value.absent()}) =>
       Exercise(
         localId: localId ?? this.localId,
         id: id ?? this.id,
@@ -1690,6 +2047,24 @@ class Exercise extends DataClass implements Insertable<Exercise> {
         replacesExerciseId: replacesExerciseId.present
             ? replacesExerciseId.value
             : this.replacesExerciseId,
+        status: status.present ? status.value : this.status,
+        mergedInto: mergedInto.present ? mergedInto.value : this.mergedInto,
+        modality: modality.present ? modality.value : this.modality,
+        mechanic: mechanic.present ? mechanic.value : this.mechanic,
+        forceVector: forceVector.present ? forceVector.value : this.forceVector,
+        movementPattern: movementPattern.present
+            ? movementPattern.value
+            : this.movementPattern,
+        laterality: laterality.present ? laterality.value : this.laterality,
+        difficulty: difficulty.present ? difficulty.value : this.difficulty,
+        trackingType:
+            trackingType.present ? trackingType.value : this.trackingType,
+        loadMode: loadMode.present ? loadMode.value : this.loadMode,
+        supportsAddedWeight: supportsAddedWeight ?? this.supportsAddedWeight,
+        primaryEquipment: primaryEquipment.present
+            ? primaryEquipment.value
+            : this.primaryEquipment,
+        bodyRegion: bodyRegion.present ? bodyRegion.value : this.bodyRegion,
       );
   Exercise copyWithCompanion(ExercisesCompanion data) {
     return Exercise(
@@ -1716,6 +2091,32 @@ class Exercise extends DataClass implements Insertable<Exercise> {
       replacesExerciseId: data.replacesExerciseId.present
           ? data.replacesExerciseId.value
           : this.replacesExerciseId,
+      status: data.status.present ? data.status.value : this.status,
+      mergedInto:
+          data.mergedInto.present ? data.mergedInto.value : this.mergedInto,
+      modality: data.modality.present ? data.modality.value : this.modality,
+      mechanic: data.mechanic.present ? data.mechanic.value : this.mechanic,
+      forceVector:
+          data.forceVector.present ? data.forceVector.value : this.forceVector,
+      movementPattern: data.movementPattern.present
+          ? data.movementPattern.value
+          : this.movementPattern,
+      laterality:
+          data.laterality.present ? data.laterality.value : this.laterality,
+      difficulty:
+          data.difficulty.present ? data.difficulty.value : this.difficulty,
+      trackingType: data.trackingType.present
+          ? data.trackingType.value
+          : this.trackingType,
+      loadMode: data.loadMode.present ? data.loadMode.value : this.loadMode,
+      supportsAddedWeight: data.supportsAddedWeight.present
+          ? data.supportsAddedWeight.value
+          : this.supportsAddedWeight,
+      primaryEquipment: data.primaryEquipment.present
+          ? data.primaryEquipment.value
+          : this.primaryEquipment,
+      bodyRegion:
+          data.bodyRegion.present ? data.bodyRegion.value : this.bodyRegion,
     );
   }
 
@@ -1735,27 +2136,54 @@ class Exercise extends DataClass implements Insertable<Exercise> {
           ..write('isCustom: $isCustom, ')
           ..write('source: $source, ')
           ..write('usageCount: $usageCount, ')
-          ..write('replacesExerciseId: $replacesExerciseId')
+          ..write('replacesExerciseId: $replacesExerciseId, ')
+          ..write('status: $status, ')
+          ..write('mergedInto: $mergedInto, ')
+          ..write('modality: $modality, ')
+          ..write('mechanic: $mechanic, ')
+          ..write('forceVector: $forceVector, ')
+          ..write('movementPattern: $movementPattern, ')
+          ..write('laterality: $laterality, ')
+          ..write('difficulty: $difficulty, ')
+          ..write('trackingType: $trackingType, ')
+          ..write('loadMode: $loadMode, ')
+          ..write('supportsAddedWeight: $supportsAddedWeight, ')
+          ..write('primaryEquipment: $primaryEquipment, ')
+          ..write('bodyRegion: $bodyRegion')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(
-      localId,
-      id,
-      createdAt,
-      updatedAt,
-      deletedAt,
-      createdBy,
-      categoryName,
-      imagePath,
-      musclesPrimary,
-      musclesSecondary,
-      isCustom,
-      source,
-      usageCount,
-      replacesExerciseId);
+  int get hashCode => Object.hashAll([
+        localId,
+        id,
+        createdAt,
+        updatedAt,
+        deletedAt,
+        createdBy,
+        categoryName,
+        imagePath,
+        musclesPrimary,
+        musclesSecondary,
+        isCustom,
+        source,
+        usageCount,
+        replacesExerciseId,
+        status,
+        mergedInto,
+        modality,
+        mechanic,
+        forceVector,
+        movementPattern,
+        laterality,
+        difficulty,
+        trackingType,
+        loadMode,
+        supportsAddedWeight,
+        primaryEquipment,
+        bodyRegion
+      ]);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -1773,7 +2201,20 @@ class Exercise extends DataClass implements Insertable<Exercise> {
           other.isCustom == this.isCustom &&
           other.source == this.source &&
           other.usageCount == this.usageCount &&
-          other.replacesExerciseId == this.replacesExerciseId);
+          other.replacesExerciseId == this.replacesExerciseId &&
+          other.status == this.status &&
+          other.mergedInto == this.mergedInto &&
+          other.modality == this.modality &&
+          other.mechanic == this.mechanic &&
+          other.forceVector == this.forceVector &&
+          other.movementPattern == this.movementPattern &&
+          other.laterality == this.laterality &&
+          other.difficulty == this.difficulty &&
+          other.trackingType == this.trackingType &&
+          other.loadMode == this.loadMode &&
+          other.supportsAddedWeight == this.supportsAddedWeight &&
+          other.primaryEquipment == this.primaryEquipment &&
+          other.bodyRegion == this.bodyRegion);
 }
 
 class ExercisesCompanion extends UpdateCompanion<Exercise> {
@@ -1791,6 +2232,19 @@ class ExercisesCompanion extends UpdateCompanion<Exercise> {
   final Value<String> source;
   final Value<int> usageCount;
   final Value<String?> replacesExerciseId;
+  final Value<String?> status;
+  final Value<String?> mergedInto;
+  final Value<String?> modality;
+  final Value<String?> mechanic;
+  final Value<String?> forceVector;
+  final Value<String?> movementPattern;
+  final Value<String?> laterality;
+  final Value<String?> difficulty;
+  final Value<String?> trackingType;
+  final Value<String?> loadMode;
+  final Value<bool> supportsAddedWeight;
+  final Value<String?> primaryEquipment;
+  final Value<String?> bodyRegion;
   const ExercisesCompanion({
     this.localId = const Value.absent(),
     this.id = const Value.absent(),
@@ -1806,6 +2260,19 @@ class ExercisesCompanion extends UpdateCompanion<Exercise> {
     this.source = const Value.absent(),
     this.usageCount = const Value.absent(),
     this.replacesExerciseId = const Value.absent(),
+    this.status = const Value.absent(),
+    this.mergedInto = const Value.absent(),
+    this.modality = const Value.absent(),
+    this.mechanic = const Value.absent(),
+    this.forceVector = const Value.absent(),
+    this.movementPattern = const Value.absent(),
+    this.laterality = const Value.absent(),
+    this.difficulty = const Value.absent(),
+    this.trackingType = const Value.absent(),
+    this.loadMode = const Value.absent(),
+    this.supportsAddedWeight = const Value.absent(),
+    this.primaryEquipment = const Value.absent(),
+    this.bodyRegion = const Value.absent(),
   });
   ExercisesCompanion.insert({
     this.localId = const Value.absent(),
@@ -1822,6 +2289,19 @@ class ExercisesCompanion extends UpdateCompanion<Exercise> {
     this.source = const Value.absent(),
     this.usageCount = const Value.absent(),
     this.replacesExerciseId = const Value.absent(),
+    this.status = const Value.absent(),
+    this.mergedInto = const Value.absent(),
+    this.modality = const Value.absent(),
+    this.mechanic = const Value.absent(),
+    this.forceVector = const Value.absent(),
+    this.movementPattern = const Value.absent(),
+    this.laterality = const Value.absent(),
+    this.difficulty = const Value.absent(),
+    this.trackingType = const Value.absent(),
+    this.loadMode = const Value.absent(),
+    this.supportsAddedWeight = const Value.absent(),
+    this.primaryEquipment = const Value.absent(),
+    this.bodyRegion = const Value.absent(),
   });
   static Insertable<Exercise> custom({
     Expression<int>? localId,
@@ -1838,6 +2318,19 @@ class ExercisesCompanion extends UpdateCompanion<Exercise> {
     Expression<String>? source,
     Expression<int>? usageCount,
     Expression<String>? replacesExerciseId,
+    Expression<String>? status,
+    Expression<String>? mergedInto,
+    Expression<String>? modality,
+    Expression<String>? mechanic,
+    Expression<String>? forceVector,
+    Expression<String>? movementPattern,
+    Expression<String>? laterality,
+    Expression<String>? difficulty,
+    Expression<String>? trackingType,
+    Expression<String>? loadMode,
+    Expression<bool>? supportsAddedWeight,
+    Expression<String>? primaryEquipment,
+    Expression<String>? bodyRegion,
   }) {
     return RawValuesInsertable({
       if (localId != null) 'local_id': localId,
@@ -1855,6 +2348,20 @@ class ExercisesCompanion extends UpdateCompanion<Exercise> {
       if (usageCount != null) 'usage_count': usageCount,
       if (replacesExerciseId != null)
         'replaces_exercise_id': replacesExerciseId,
+      if (status != null) 'status': status,
+      if (mergedInto != null) 'merged_into': mergedInto,
+      if (modality != null) 'modality': modality,
+      if (mechanic != null) 'mechanic': mechanic,
+      if (forceVector != null) 'force_vector': forceVector,
+      if (movementPattern != null) 'movement_pattern': movementPattern,
+      if (laterality != null) 'laterality': laterality,
+      if (difficulty != null) 'difficulty': difficulty,
+      if (trackingType != null) 'tracking_type': trackingType,
+      if (loadMode != null) 'load_mode': loadMode,
+      if (supportsAddedWeight != null)
+        'supports_added_weight': supportsAddedWeight,
+      if (primaryEquipment != null) 'primary_equipment': primaryEquipment,
+      if (bodyRegion != null) 'body_region': bodyRegion,
     });
   }
 
@@ -1872,7 +2379,20 @@ class ExercisesCompanion extends UpdateCompanion<Exercise> {
       Value<bool>? isCustom,
       Value<String>? source,
       Value<int>? usageCount,
-      Value<String?>? replacesExerciseId}) {
+      Value<String?>? replacesExerciseId,
+      Value<String?>? status,
+      Value<String?>? mergedInto,
+      Value<String?>? modality,
+      Value<String?>? mechanic,
+      Value<String?>? forceVector,
+      Value<String?>? movementPattern,
+      Value<String?>? laterality,
+      Value<String?>? difficulty,
+      Value<String?>? trackingType,
+      Value<String?>? loadMode,
+      Value<bool>? supportsAddedWeight,
+      Value<String?>? primaryEquipment,
+      Value<String?>? bodyRegion}) {
     return ExercisesCompanion(
       localId: localId ?? this.localId,
       id: id ?? this.id,
@@ -1888,6 +2408,19 @@ class ExercisesCompanion extends UpdateCompanion<Exercise> {
       source: source ?? this.source,
       usageCount: usageCount ?? this.usageCount,
       replacesExerciseId: replacesExerciseId ?? this.replacesExerciseId,
+      status: status ?? this.status,
+      mergedInto: mergedInto ?? this.mergedInto,
+      modality: modality ?? this.modality,
+      mechanic: mechanic ?? this.mechanic,
+      forceVector: forceVector ?? this.forceVector,
+      movementPattern: movementPattern ?? this.movementPattern,
+      laterality: laterality ?? this.laterality,
+      difficulty: difficulty ?? this.difficulty,
+      trackingType: trackingType ?? this.trackingType,
+      loadMode: loadMode ?? this.loadMode,
+      supportsAddedWeight: supportsAddedWeight ?? this.supportsAddedWeight,
+      primaryEquipment: primaryEquipment ?? this.primaryEquipment,
+      bodyRegion: bodyRegion ?? this.bodyRegion,
     );
   }
 
@@ -1936,6 +2469,45 @@ class ExercisesCompanion extends UpdateCompanion<Exercise> {
     if (replacesExerciseId.present) {
       map['replaces_exercise_id'] = Variable<String>(replacesExerciseId.value);
     }
+    if (status.present) {
+      map['status'] = Variable<String>(status.value);
+    }
+    if (mergedInto.present) {
+      map['merged_into'] = Variable<String>(mergedInto.value);
+    }
+    if (modality.present) {
+      map['modality'] = Variable<String>(modality.value);
+    }
+    if (mechanic.present) {
+      map['mechanic'] = Variable<String>(mechanic.value);
+    }
+    if (forceVector.present) {
+      map['force_vector'] = Variable<String>(forceVector.value);
+    }
+    if (movementPattern.present) {
+      map['movement_pattern'] = Variable<String>(movementPattern.value);
+    }
+    if (laterality.present) {
+      map['laterality'] = Variable<String>(laterality.value);
+    }
+    if (difficulty.present) {
+      map['difficulty'] = Variable<String>(difficulty.value);
+    }
+    if (trackingType.present) {
+      map['tracking_type'] = Variable<String>(trackingType.value);
+    }
+    if (loadMode.present) {
+      map['load_mode'] = Variable<String>(loadMode.value);
+    }
+    if (supportsAddedWeight.present) {
+      map['supports_added_weight'] = Variable<bool>(supportsAddedWeight.value);
+    }
+    if (primaryEquipment.present) {
+      map['primary_equipment'] = Variable<String>(primaryEquipment.value);
+    }
+    if (bodyRegion.present) {
+      map['body_region'] = Variable<String>(bodyRegion.value);
+    }
     return map;
   }
 
@@ -1955,7 +2527,20 @@ class ExercisesCompanion extends UpdateCompanion<Exercise> {
           ..write('isCustom: $isCustom, ')
           ..write('source: $source, ')
           ..write('usageCount: $usageCount, ')
-          ..write('replacesExerciseId: $replacesExerciseId')
+          ..write('replacesExerciseId: $replacesExerciseId, ')
+          ..write('status: $status, ')
+          ..write('mergedInto: $mergedInto, ')
+          ..write('modality: $modality, ')
+          ..write('mechanic: $mechanic, ')
+          ..write('forceVector: $forceVector, ')
+          ..write('movementPattern: $movementPattern, ')
+          ..write('laterality: $laterality, ')
+          ..write('difficulty: $difficulty, ')
+          ..write('trackingType: $trackingType, ')
+          ..write('loadMode: $loadMode, ')
+          ..write('supportsAddedWeight: $supportsAddedWeight, ')
+          ..write('primaryEquipment: $primaryEquipment, ')
+          ..write('bodyRegion: $bodyRegion')
           ..write(')'))
         .toString();
   }
@@ -18175,6 +18760,53 @@ class $ExerciseTranslationsTable extends ExerciseTranslations
   late final GeneratedColumn<String> description = GeneratedColumn<String>(
       'description', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _instructionsMeta =
+      const VerificationMeta('instructions');
+  @override
+  late final GeneratedColumn<String> instructions = GeneratedColumn<String>(
+      'instructions', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _cuesMeta = const VerificationMeta('cues');
+  @override
+  late final GeneratedColumn<String> cues = GeneratedColumn<String>(
+      'cues', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _commonMistakesMeta =
+      const VerificationMeta('commonMistakes');
+  @override
+  late final GeneratedColumn<String> commonMistakes = GeneratedColumn<String>(
+      'common_mistakes', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _searchTermsMeta =
+      const VerificationMeta('searchTerms');
+  @override
+  late final GeneratedColumn<String> searchTerms = GeneratedColumn<String>(
+      'search_terms', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _translationStatusMeta =
+      const VerificationMeta('translationStatus');
+  @override
+  late final GeneratedColumn<String> translationStatus =
+      GeneratedColumn<String>('translation_status', aliasedName, true,
+          type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _sourceLangMeta =
+      const VerificationMeta('sourceLang');
+  @override
+  late final GeneratedColumn<String> sourceLang = GeneratedColumn<String>(
+      'source_lang', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _licenseMeta =
+      const VerificationMeta('license');
+  @override
+  late final GeneratedColumn<String> license = GeneratedColumn<String>(
+      'license', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _licenseAuthorMeta =
+      const VerificationMeta('licenseAuthor');
+  @override
+  late final GeneratedColumn<String> licenseAuthor = GeneratedColumn<String>(
+      'license_author', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns => [
         localId,
@@ -18185,7 +18817,15 @@ class $ExerciseTranslationsTable extends ExerciseTranslations
         exerciseId,
         languageCode,
         name,
-        description
+        description,
+        instructions,
+        cues,
+        commonMistakes,
+        searchTerms,
+        translationStatus,
+        sourceLang,
+        license,
+        licenseAuthor
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -18245,6 +18885,50 @@ class $ExerciseTranslationsTable extends ExerciseTranslations
           description.isAcceptableOrUnknown(
               data['description']!, _descriptionMeta));
     }
+    if (data.containsKey('instructions')) {
+      context.handle(
+          _instructionsMeta,
+          instructions.isAcceptableOrUnknown(
+              data['instructions']!, _instructionsMeta));
+    }
+    if (data.containsKey('cues')) {
+      context.handle(
+          _cuesMeta, cues.isAcceptableOrUnknown(data['cues']!, _cuesMeta));
+    }
+    if (data.containsKey('common_mistakes')) {
+      context.handle(
+          _commonMistakesMeta,
+          commonMistakes.isAcceptableOrUnknown(
+              data['common_mistakes']!, _commonMistakesMeta));
+    }
+    if (data.containsKey('search_terms')) {
+      context.handle(
+          _searchTermsMeta,
+          searchTerms.isAcceptableOrUnknown(
+              data['search_terms']!, _searchTermsMeta));
+    }
+    if (data.containsKey('translation_status')) {
+      context.handle(
+          _translationStatusMeta,
+          translationStatus.isAcceptableOrUnknown(
+              data['translation_status']!, _translationStatusMeta));
+    }
+    if (data.containsKey('source_lang')) {
+      context.handle(
+          _sourceLangMeta,
+          sourceLang.isAcceptableOrUnknown(
+              data['source_lang']!, _sourceLangMeta));
+    }
+    if (data.containsKey('license')) {
+      context.handle(_licenseMeta,
+          license.isAcceptableOrUnknown(data['license']!, _licenseMeta));
+    }
+    if (data.containsKey('license_author')) {
+      context.handle(
+          _licenseAuthorMeta,
+          licenseAuthor.isAcceptableOrUnknown(
+              data['license_author']!, _licenseAuthorMeta));
+    }
     return context;
   }
 
@@ -18276,6 +18960,22 @@ class $ExerciseTranslationsTable extends ExerciseTranslations
           .read(DriftSqlType.string, data['${effectivePrefix}name'])!,
       description: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}description']),
+      instructions: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}instructions']),
+      cues: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}cues']),
+      commonMistakes: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}common_mistakes']),
+      searchTerms: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}search_terms']),
+      translationStatus: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}translation_status']),
+      sourceLang: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}source_lang']),
+      license: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}license']),
+      licenseAuthor: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}license_author']),
     );
   }
 
@@ -18293,9 +18993,29 @@ class ExerciseTranslation extends DataClass
   final DateTime updatedAt;
   final DateTime? deletedAt;
   final String exerciseId;
+
+  /// Any code the catalog ships. The catalog carries 22 languages; which of
+  /// them are shown is decided by [CatalogLanguages.displayable].
   final String languageCode;
   final String name;
   final String? description;
+
+  /// JSON array. A step list rather than prose, so it can be rendered as steps.
+  final String? instructions;
+  final String? cues;
+  final String? commonMistakes;
+
+  /// JSON array of synonyms and common misspellings. Searched, never shown.
+  final String? searchTerms;
+
+  /// human | ai_reviewed | ai_raw | upstream_unreviewed.
+  final String? translationStatus;
+  final String? sourceLang;
+
+  /// Per-translation licence provenance. wger licenses per translation, not
+  /// per repo, so this cannot live on the exercise.
+  final String? license;
+  final String? licenseAuthor;
   const ExerciseTranslation(
       {required this.localId,
       required this.id,
@@ -18305,7 +19025,15 @@ class ExerciseTranslation extends DataClass
       required this.exerciseId,
       required this.languageCode,
       required this.name,
-      this.description});
+      this.description,
+      this.instructions,
+      this.cues,
+      this.commonMistakes,
+      this.searchTerms,
+      this.translationStatus,
+      this.sourceLang,
+      this.license,
+      this.licenseAuthor});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -18321,6 +19049,30 @@ class ExerciseTranslation extends DataClass
     map['name'] = Variable<String>(name);
     if (!nullToAbsent || description != null) {
       map['description'] = Variable<String>(description);
+    }
+    if (!nullToAbsent || instructions != null) {
+      map['instructions'] = Variable<String>(instructions);
+    }
+    if (!nullToAbsent || cues != null) {
+      map['cues'] = Variable<String>(cues);
+    }
+    if (!nullToAbsent || commonMistakes != null) {
+      map['common_mistakes'] = Variable<String>(commonMistakes);
+    }
+    if (!nullToAbsent || searchTerms != null) {
+      map['search_terms'] = Variable<String>(searchTerms);
+    }
+    if (!nullToAbsent || translationStatus != null) {
+      map['translation_status'] = Variable<String>(translationStatus);
+    }
+    if (!nullToAbsent || sourceLang != null) {
+      map['source_lang'] = Variable<String>(sourceLang);
+    }
+    if (!nullToAbsent || license != null) {
+      map['license'] = Variable<String>(license);
+    }
+    if (!nullToAbsent || licenseAuthor != null) {
+      map['license_author'] = Variable<String>(licenseAuthor);
     }
     return map;
   }
@@ -18340,6 +19092,28 @@ class ExerciseTranslation extends DataClass
       description: description == null && nullToAbsent
           ? const Value.absent()
           : Value(description),
+      instructions: instructions == null && nullToAbsent
+          ? const Value.absent()
+          : Value(instructions),
+      cues: cues == null && nullToAbsent ? const Value.absent() : Value(cues),
+      commonMistakes: commonMistakes == null && nullToAbsent
+          ? const Value.absent()
+          : Value(commonMistakes),
+      searchTerms: searchTerms == null && nullToAbsent
+          ? const Value.absent()
+          : Value(searchTerms),
+      translationStatus: translationStatus == null && nullToAbsent
+          ? const Value.absent()
+          : Value(translationStatus),
+      sourceLang: sourceLang == null && nullToAbsent
+          ? const Value.absent()
+          : Value(sourceLang),
+      license: license == null && nullToAbsent
+          ? const Value.absent()
+          : Value(license),
+      licenseAuthor: licenseAuthor == null && nullToAbsent
+          ? const Value.absent()
+          : Value(licenseAuthor),
     );
   }
 
@@ -18356,6 +19130,15 @@ class ExerciseTranslation extends DataClass
       languageCode: serializer.fromJson<String>(json['languageCode']),
       name: serializer.fromJson<String>(json['name']),
       description: serializer.fromJson<String?>(json['description']),
+      instructions: serializer.fromJson<String?>(json['instructions']),
+      cues: serializer.fromJson<String?>(json['cues']),
+      commonMistakes: serializer.fromJson<String?>(json['commonMistakes']),
+      searchTerms: serializer.fromJson<String?>(json['searchTerms']),
+      translationStatus:
+          serializer.fromJson<String?>(json['translationStatus']),
+      sourceLang: serializer.fromJson<String?>(json['sourceLang']),
+      license: serializer.fromJson<String?>(json['license']),
+      licenseAuthor: serializer.fromJson<String?>(json['licenseAuthor']),
     );
   }
   @override
@@ -18371,6 +19154,14 @@ class ExerciseTranslation extends DataClass
       'languageCode': serializer.toJson<String>(languageCode),
       'name': serializer.toJson<String>(name),
       'description': serializer.toJson<String?>(description),
+      'instructions': serializer.toJson<String?>(instructions),
+      'cues': serializer.toJson<String?>(cues),
+      'commonMistakes': serializer.toJson<String?>(commonMistakes),
+      'searchTerms': serializer.toJson<String?>(searchTerms),
+      'translationStatus': serializer.toJson<String?>(translationStatus),
+      'sourceLang': serializer.toJson<String?>(sourceLang),
+      'license': serializer.toJson<String?>(license),
+      'licenseAuthor': serializer.toJson<String?>(licenseAuthor),
     };
   }
 
@@ -18383,7 +19174,15 @@ class ExerciseTranslation extends DataClass
           String? exerciseId,
           String? languageCode,
           String? name,
-          Value<String?> description = const Value.absent()}) =>
+          Value<String?> description = const Value.absent(),
+          Value<String?> instructions = const Value.absent(),
+          Value<String?> cues = const Value.absent(),
+          Value<String?> commonMistakes = const Value.absent(),
+          Value<String?> searchTerms = const Value.absent(),
+          Value<String?> translationStatus = const Value.absent(),
+          Value<String?> sourceLang = const Value.absent(),
+          Value<String?> license = const Value.absent(),
+          Value<String?> licenseAuthor = const Value.absent()}) =>
       ExerciseTranslation(
         localId: localId ?? this.localId,
         id: id ?? this.id,
@@ -18394,6 +19193,19 @@ class ExerciseTranslation extends DataClass
         languageCode: languageCode ?? this.languageCode,
         name: name ?? this.name,
         description: description.present ? description.value : this.description,
+        instructions:
+            instructions.present ? instructions.value : this.instructions,
+        cues: cues.present ? cues.value : this.cues,
+        commonMistakes:
+            commonMistakes.present ? commonMistakes.value : this.commonMistakes,
+        searchTerms: searchTerms.present ? searchTerms.value : this.searchTerms,
+        translationStatus: translationStatus.present
+            ? translationStatus.value
+            : this.translationStatus,
+        sourceLang: sourceLang.present ? sourceLang.value : this.sourceLang,
+        license: license.present ? license.value : this.license,
+        licenseAuthor:
+            licenseAuthor.present ? licenseAuthor.value : this.licenseAuthor,
       );
   ExerciseTranslation copyWithCompanion(ExerciseTranslationsCompanion data) {
     return ExerciseTranslation(
@@ -18410,6 +19222,24 @@ class ExerciseTranslation extends DataClass
       name: data.name.present ? data.name.value : this.name,
       description:
           data.description.present ? data.description.value : this.description,
+      instructions: data.instructions.present
+          ? data.instructions.value
+          : this.instructions,
+      cues: data.cues.present ? data.cues.value : this.cues,
+      commonMistakes: data.commonMistakes.present
+          ? data.commonMistakes.value
+          : this.commonMistakes,
+      searchTerms:
+          data.searchTerms.present ? data.searchTerms.value : this.searchTerms,
+      translationStatus: data.translationStatus.present
+          ? data.translationStatus.value
+          : this.translationStatus,
+      sourceLang:
+          data.sourceLang.present ? data.sourceLang.value : this.sourceLang,
+      license: data.license.present ? data.license.value : this.license,
+      licenseAuthor: data.licenseAuthor.present
+          ? data.licenseAuthor.value
+          : this.licenseAuthor,
     );
   }
 
@@ -18424,14 +19254,38 @@ class ExerciseTranslation extends DataClass
           ..write('exerciseId: $exerciseId, ')
           ..write('languageCode: $languageCode, ')
           ..write('name: $name, ')
-          ..write('description: $description')
+          ..write('description: $description, ')
+          ..write('instructions: $instructions, ')
+          ..write('cues: $cues, ')
+          ..write('commonMistakes: $commonMistakes, ')
+          ..write('searchTerms: $searchTerms, ')
+          ..write('translationStatus: $translationStatus, ')
+          ..write('sourceLang: $sourceLang, ')
+          ..write('license: $license, ')
+          ..write('licenseAuthor: $licenseAuthor')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(localId, id, createdAt, updatedAt, deletedAt,
-      exerciseId, languageCode, name, description);
+  int get hashCode => Object.hash(
+      localId,
+      id,
+      createdAt,
+      updatedAt,
+      deletedAt,
+      exerciseId,
+      languageCode,
+      name,
+      description,
+      instructions,
+      cues,
+      commonMistakes,
+      searchTerms,
+      translationStatus,
+      sourceLang,
+      license,
+      licenseAuthor);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -18444,7 +19298,15 @@ class ExerciseTranslation extends DataClass
           other.exerciseId == this.exerciseId &&
           other.languageCode == this.languageCode &&
           other.name == this.name &&
-          other.description == this.description);
+          other.description == this.description &&
+          other.instructions == this.instructions &&
+          other.cues == this.cues &&
+          other.commonMistakes == this.commonMistakes &&
+          other.searchTerms == this.searchTerms &&
+          other.translationStatus == this.translationStatus &&
+          other.sourceLang == this.sourceLang &&
+          other.license == this.license &&
+          other.licenseAuthor == this.licenseAuthor);
 }
 
 class ExerciseTranslationsCompanion
@@ -18458,6 +19320,14 @@ class ExerciseTranslationsCompanion
   final Value<String> languageCode;
   final Value<String> name;
   final Value<String?> description;
+  final Value<String?> instructions;
+  final Value<String?> cues;
+  final Value<String?> commonMistakes;
+  final Value<String?> searchTerms;
+  final Value<String?> translationStatus;
+  final Value<String?> sourceLang;
+  final Value<String?> license;
+  final Value<String?> licenseAuthor;
   const ExerciseTranslationsCompanion({
     this.localId = const Value.absent(),
     this.id = const Value.absent(),
@@ -18468,6 +19338,14 @@ class ExerciseTranslationsCompanion
     this.languageCode = const Value.absent(),
     this.name = const Value.absent(),
     this.description = const Value.absent(),
+    this.instructions = const Value.absent(),
+    this.cues = const Value.absent(),
+    this.commonMistakes = const Value.absent(),
+    this.searchTerms = const Value.absent(),
+    this.translationStatus = const Value.absent(),
+    this.sourceLang = const Value.absent(),
+    this.license = const Value.absent(),
+    this.licenseAuthor = const Value.absent(),
   });
   ExerciseTranslationsCompanion.insert({
     this.localId = const Value.absent(),
@@ -18479,6 +19357,14 @@ class ExerciseTranslationsCompanion
     required String languageCode,
     required String name,
     this.description = const Value.absent(),
+    this.instructions = const Value.absent(),
+    this.cues = const Value.absent(),
+    this.commonMistakes = const Value.absent(),
+    this.searchTerms = const Value.absent(),
+    this.translationStatus = const Value.absent(),
+    this.sourceLang = const Value.absent(),
+    this.license = const Value.absent(),
+    this.licenseAuthor = const Value.absent(),
   })  : exerciseId = Value(exerciseId),
         languageCode = Value(languageCode),
         name = Value(name);
@@ -18492,6 +19378,14 @@ class ExerciseTranslationsCompanion
     Expression<String>? languageCode,
     Expression<String>? name,
     Expression<String>? description,
+    Expression<String>? instructions,
+    Expression<String>? cues,
+    Expression<String>? commonMistakes,
+    Expression<String>? searchTerms,
+    Expression<String>? translationStatus,
+    Expression<String>? sourceLang,
+    Expression<String>? license,
+    Expression<String>? licenseAuthor,
   }) {
     return RawValuesInsertable({
       if (localId != null) 'local_id': localId,
@@ -18503,6 +19397,14 @@ class ExerciseTranslationsCompanion
       if (languageCode != null) 'language_code': languageCode,
       if (name != null) 'name': name,
       if (description != null) 'description': description,
+      if (instructions != null) 'instructions': instructions,
+      if (cues != null) 'cues': cues,
+      if (commonMistakes != null) 'common_mistakes': commonMistakes,
+      if (searchTerms != null) 'search_terms': searchTerms,
+      if (translationStatus != null) 'translation_status': translationStatus,
+      if (sourceLang != null) 'source_lang': sourceLang,
+      if (license != null) 'license': license,
+      if (licenseAuthor != null) 'license_author': licenseAuthor,
     });
   }
 
@@ -18515,7 +19417,15 @@ class ExerciseTranslationsCompanion
       Value<String>? exerciseId,
       Value<String>? languageCode,
       Value<String>? name,
-      Value<String?>? description}) {
+      Value<String?>? description,
+      Value<String?>? instructions,
+      Value<String?>? cues,
+      Value<String?>? commonMistakes,
+      Value<String?>? searchTerms,
+      Value<String?>? translationStatus,
+      Value<String?>? sourceLang,
+      Value<String?>? license,
+      Value<String?>? licenseAuthor}) {
     return ExerciseTranslationsCompanion(
       localId: localId ?? this.localId,
       id: id ?? this.id,
@@ -18526,6 +19436,14 @@ class ExerciseTranslationsCompanion
       languageCode: languageCode ?? this.languageCode,
       name: name ?? this.name,
       description: description ?? this.description,
+      instructions: instructions ?? this.instructions,
+      cues: cues ?? this.cues,
+      commonMistakes: commonMistakes ?? this.commonMistakes,
+      searchTerms: searchTerms ?? this.searchTerms,
+      translationStatus: translationStatus ?? this.translationStatus,
+      sourceLang: sourceLang ?? this.sourceLang,
+      license: license ?? this.license,
+      licenseAuthor: licenseAuthor ?? this.licenseAuthor,
     );
   }
 
@@ -18559,6 +19477,30 @@ class ExerciseTranslationsCompanion
     if (description.present) {
       map['description'] = Variable<String>(description.value);
     }
+    if (instructions.present) {
+      map['instructions'] = Variable<String>(instructions.value);
+    }
+    if (cues.present) {
+      map['cues'] = Variable<String>(cues.value);
+    }
+    if (commonMistakes.present) {
+      map['common_mistakes'] = Variable<String>(commonMistakes.value);
+    }
+    if (searchTerms.present) {
+      map['search_terms'] = Variable<String>(searchTerms.value);
+    }
+    if (translationStatus.present) {
+      map['translation_status'] = Variable<String>(translationStatus.value);
+    }
+    if (sourceLang.present) {
+      map['source_lang'] = Variable<String>(sourceLang.value);
+    }
+    if (license.present) {
+      map['license'] = Variable<String>(license.value);
+    }
+    if (licenseAuthor.present) {
+      map['license_author'] = Variable<String>(licenseAuthor.value);
+    }
     return map;
   }
 
@@ -18573,7 +19515,2329 @@ class ExerciseTranslationsCompanion
           ..write('exerciseId: $exerciseId, ')
           ..write('languageCode: $languageCode, ')
           ..write('name: $name, ')
-          ..write('description: $description')
+          ..write('description: $description, ')
+          ..write('instructions: $instructions, ')
+          ..write('cues: $cues, ')
+          ..write('commonMistakes: $commonMistakes, ')
+          ..write('searchTerms: $searchTerms, ')
+          ..write('translationStatus: $translationStatus, ')
+          ..write('sourceLang: $sourceLang, ')
+          ..write('license: $license, ')
+          ..write('licenseAuthor: $licenseAuthor')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $MusclesTable extends Muscles with TableInfo<$MusclesTable, Muscle> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $MusclesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+      'id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _parentIdMeta =
+      const VerificationMeta('parentId');
+  @override
+  late final GeneratedColumn<String> parentId = GeneratedColumn<String>(
+      'parent_id', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _levelMeta = const VerificationMeta('level');
+  @override
+  late final GeneratedColumn<String> level = GeneratedColumn<String>(
+      'level', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _groupIdMeta =
+      const VerificationMeta('groupId');
+  @override
+  late final GeneratedColumn<String> groupId = GeneratedColumn<String>(
+      'group_id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _legacyGroupMeta =
+      const VerificationMeta('legacyGroup');
+  @override
+  late final GeneratedColumn<String> legacyGroup = GeneratedColumn<String>(
+      'legacy_group', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _bodySlugsMeta =
+      const VerificationMeta('bodySlugs');
+  @override
+  late final GeneratedColumn<String> bodySlugs = GeneratedColumn<String>(
+      'body_slugs', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  @override
+  List<GeneratedColumn> get $columns =>
+      [id, parentId, level, groupId, legacyGroup, bodySlugs];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'muscles';
+  @override
+  VerificationContext validateIntegrity(Insertable<Muscle> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('parent_id')) {
+      context.handle(_parentIdMeta,
+          parentId.isAcceptableOrUnknown(data['parent_id']!, _parentIdMeta));
+    }
+    if (data.containsKey('level')) {
+      context.handle(
+          _levelMeta, level.isAcceptableOrUnknown(data['level']!, _levelMeta));
+    } else if (isInserting) {
+      context.missing(_levelMeta);
+    }
+    if (data.containsKey('group_id')) {
+      context.handle(_groupIdMeta,
+          groupId.isAcceptableOrUnknown(data['group_id']!, _groupIdMeta));
+    } else if (isInserting) {
+      context.missing(_groupIdMeta);
+    }
+    if (data.containsKey('legacy_group')) {
+      context.handle(
+          _legacyGroupMeta,
+          legacyGroup.isAcceptableOrUnknown(
+              data['legacy_group']!, _legacyGroupMeta));
+    }
+    if (data.containsKey('body_slugs')) {
+      context.handle(_bodySlugsMeta,
+          bodySlugs.isAcceptableOrUnknown(data['body_slugs']!, _bodySlugsMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  Muscle map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return Muscle(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
+      parentId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}parent_id']),
+      level: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}level'])!,
+      groupId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}group_id'])!,
+      legacyGroup: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}legacy_group']),
+      bodySlugs: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}body_slugs']),
+    );
+  }
+
+  @override
+  $MusclesTable createAlias(String alias) {
+    return $MusclesTable(attachedDatabase, alias);
+  }
+}
+
+class Muscle extends DataClass implements Insertable<Muscle> {
+  final String id;
+  final String? parentId;
+
+  /// group | muscle | head.
+  final String level;
+
+  /// The group this node resolves to. Statistics and recovery compute on this.
+  final String groupId;
+
+  /// The group the pre-v2 app would have assigned. Differs deliberately for
+  /// `serratus_anterior` and `hip_flexors`.
+  final String? legacyGroup;
+
+  /// JSON array of body-highlighter slugs. May be empty.
+  final String? bodySlugs;
+  const Muscle(
+      {required this.id,
+      this.parentId,
+      required this.level,
+      required this.groupId,
+      this.legacyGroup,
+      this.bodySlugs});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    if (!nullToAbsent || parentId != null) {
+      map['parent_id'] = Variable<String>(parentId);
+    }
+    map['level'] = Variable<String>(level);
+    map['group_id'] = Variable<String>(groupId);
+    if (!nullToAbsent || legacyGroup != null) {
+      map['legacy_group'] = Variable<String>(legacyGroup);
+    }
+    if (!nullToAbsent || bodySlugs != null) {
+      map['body_slugs'] = Variable<String>(bodySlugs);
+    }
+    return map;
+  }
+
+  MusclesCompanion toCompanion(bool nullToAbsent) {
+    return MusclesCompanion(
+      id: Value(id),
+      parentId: parentId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(parentId),
+      level: Value(level),
+      groupId: Value(groupId),
+      legacyGroup: legacyGroup == null && nullToAbsent
+          ? const Value.absent()
+          : Value(legacyGroup),
+      bodySlugs: bodySlugs == null && nullToAbsent
+          ? const Value.absent()
+          : Value(bodySlugs),
+    );
+  }
+
+  factory Muscle.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return Muscle(
+      id: serializer.fromJson<String>(json['id']),
+      parentId: serializer.fromJson<String?>(json['parentId']),
+      level: serializer.fromJson<String>(json['level']),
+      groupId: serializer.fromJson<String>(json['groupId']),
+      legacyGroup: serializer.fromJson<String?>(json['legacyGroup']),
+      bodySlugs: serializer.fromJson<String?>(json['bodySlugs']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'parentId': serializer.toJson<String?>(parentId),
+      'level': serializer.toJson<String>(level),
+      'groupId': serializer.toJson<String>(groupId),
+      'legacyGroup': serializer.toJson<String?>(legacyGroup),
+      'bodySlugs': serializer.toJson<String?>(bodySlugs),
+    };
+  }
+
+  Muscle copyWith(
+          {String? id,
+          Value<String?> parentId = const Value.absent(),
+          String? level,
+          String? groupId,
+          Value<String?> legacyGroup = const Value.absent(),
+          Value<String?> bodySlugs = const Value.absent()}) =>
+      Muscle(
+        id: id ?? this.id,
+        parentId: parentId.present ? parentId.value : this.parentId,
+        level: level ?? this.level,
+        groupId: groupId ?? this.groupId,
+        legacyGroup: legacyGroup.present ? legacyGroup.value : this.legacyGroup,
+        bodySlugs: bodySlugs.present ? bodySlugs.value : this.bodySlugs,
+      );
+  Muscle copyWithCompanion(MusclesCompanion data) {
+    return Muscle(
+      id: data.id.present ? data.id.value : this.id,
+      parentId: data.parentId.present ? data.parentId.value : this.parentId,
+      level: data.level.present ? data.level.value : this.level,
+      groupId: data.groupId.present ? data.groupId.value : this.groupId,
+      legacyGroup:
+          data.legacyGroup.present ? data.legacyGroup.value : this.legacyGroup,
+      bodySlugs: data.bodySlugs.present ? data.bodySlugs.value : this.bodySlugs,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('Muscle(')
+          ..write('id: $id, ')
+          ..write('parentId: $parentId, ')
+          ..write('level: $level, ')
+          ..write('groupId: $groupId, ')
+          ..write('legacyGroup: $legacyGroup, ')
+          ..write('bodySlugs: $bodySlugs')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, parentId, level, groupId, legacyGroup, bodySlugs);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is Muscle &&
+          other.id == this.id &&
+          other.parentId == this.parentId &&
+          other.level == this.level &&
+          other.groupId == this.groupId &&
+          other.legacyGroup == this.legacyGroup &&
+          other.bodySlugs == this.bodySlugs);
+}
+
+class MusclesCompanion extends UpdateCompanion<Muscle> {
+  final Value<String> id;
+  final Value<String?> parentId;
+  final Value<String> level;
+  final Value<String> groupId;
+  final Value<String?> legacyGroup;
+  final Value<String?> bodySlugs;
+  final Value<int> rowid;
+  const MusclesCompanion({
+    this.id = const Value.absent(),
+    this.parentId = const Value.absent(),
+    this.level = const Value.absent(),
+    this.groupId = const Value.absent(),
+    this.legacyGroup = const Value.absent(),
+    this.bodySlugs = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  MusclesCompanion.insert({
+    required String id,
+    this.parentId = const Value.absent(),
+    required String level,
+    required String groupId,
+    this.legacyGroup = const Value.absent(),
+    this.bodySlugs = const Value.absent(),
+    this.rowid = const Value.absent(),
+  })  : id = Value(id),
+        level = Value(level),
+        groupId = Value(groupId);
+  static Insertable<Muscle> custom({
+    Expression<String>? id,
+    Expression<String>? parentId,
+    Expression<String>? level,
+    Expression<String>? groupId,
+    Expression<String>? legacyGroup,
+    Expression<String>? bodySlugs,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (parentId != null) 'parent_id': parentId,
+      if (level != null) 'level': level,
+      if (groupId != null) 'group_id': groupId,
+      if (legacyGroup != null) 'legacy_group': legacyGroup,
+      if (bodySlugs != null) 'body_slugs': bodySlugs,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  MusclesCompanion copyWith(
+      {Value<String>? id,
+      Value<String?>? parentId,
+      Value<String>? level,
+      Value<String>? groupId,
+      Value<String?>? legacyGroup,
+      Value<String?>? bodySlugs,
+      Value<int>? rowid}) {
+    return MusclesCompanion(
+      id: id ?? this.id,
+      parentId: parentId ?? this.parentId,
+      level: level ?? this.level,
+      groupId: groupId ?? this.groupId,
+      legacyGroup: legacyGroup ?? this.legacyGroup,
+      bodySlugs: bodySlugs ?? this.bodySlugs,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (parentId.present) {
+      map['parent_id'] = Variable<String>(parentId.value);
+    }
+    if (level.present) {
+      map['level'] = Variable<String>(level.value);
+    }
+    if (groupId.present) {
+      map['group_id'] = Variable<String>(groupId.value);
+    }
+    if (legacyGroup.present) {
+      map['legacy_group'] = Variable<String>(legacyGroup.value);
+    }
+    if (bodySlugs.present) {
+      map['body_slugs'] = Variable<String>(bodySlugs.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MusclesCompanion(')
+          ..write('id: $id, ')
+          ..write('parentId: $parentId, ')
+          ..write('level: $level, ')
+          ..write('groupId: $groupId, ')
+          ..write('legacyGroup: $legacyGroup, ')
+          ..write('bodySlugs: $bodySlugs, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $MuscleTranslationsTable extends MuscleTranslations
+    with TableInfo<$MuscleTranslationsTable, MuscleTranslation> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $MuscleTranslationsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _muscleIdMeta =
+      const VerificationMeta('muscleId');
+  @override
+  late final GeneratedColumn<String> muscleId = GeneratedColumn<String>(
+      'muscle_id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _languageCodeMeta =
+      const VerificationMeta('languageCode');
+  @override
+  late final GeneratedColumn<String> languageCode = GeneratedColumn<String>(
+      'language_code', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+      'name', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  @override
+  List<GeneratedColumn> get $columns => [muscleId, languageCode, name];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'muscle_translations';
+  @override
+  VerificationContext validateIntegrity(Insertable<MuscleTranslation> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('muscle_id')) {
+      context.handle(_muscleIdMeta,
+          muscleId.isAcceptableOrUnknown(data['muscle_id']!, _muscleIdMeta));
+    } else if (isInserting) {
+      context.missing(_muscleIdMeta);
+    }
+    if (data.containsKey('language_code')) {
+      context.handle(
+          _languageCodeMeta,
+          languageCode.isAcceptableOrUnknown(
+              data['language_code']!, _languageCodeMeta));
+    } else if (isInserting) {
+      context.missing(_languageCodeMeta);
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+          _nameMeta, name.isAcceptableOrUnknown(data['name']!, _nameMeta));
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {muscleId, languageCode};
+  @override
+  MuscleTranslation map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return MuscleTranslation(
+      muscleId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}muscle_id'])!,
+      languageCode: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}language_code'])!,
+      name: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}name'])!,
+    );
+  }
+
+  @override
+  $MuscleTranslationsTable createAlias(String alias) {
+    return $MuscleTranslationsTable(attachedDatabase, alias);
+  }
+}
+
+class MuscleTranslation extends DataClass
+    implements Insertable<MuscleTranslation> {
+  final String muscleId;
+  final String languageCode;
+  final String name;
+  const MuscleTranslation(
+      {required this.muscleId, required this.languageCode, required this.name});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['muscle_id'] = Variable<String>(muscleId);
+    map['language_code'] = Variable<String>(languageCode);
+    map['name'] = Variable<String>(name);
+    return map;
+  }
+
+  MuscleTranslationsCompanion toCompanion(bool nullToAbsent) {
+    return MuscleTranslationsCompanion(
+      muscleId: Value(muscleId),
+      languageCode: Value(languageCode),
+      name: Value(name),
+    );
+  }
+
+  factory MuscleTranslation.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return MuscleTranslation(
+      muscleId: serializer.fromJson<String>(json['muscleId']),
+      languageCode: serializer.fromJson<String>(json['languageCode']),
+      name: serializer.fromJson<String>(json['name']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'muscleId': serializer.toJson<String>(muscleId),
+      'languageCode': serializer.toJson<String>(languageCode),
+      'name': serializer.toJson<String>(name),
+    };
+  }
+
+  MuscleTranslation copyWith(
+          {String? muscleId, String? languageCode, String? name}) =>
+      MuscleTranslation(
+        muscleId: muscleId ?? this.muscleId,
+        languageCode: languageCode ?? this.languageCode,
+        name: name ?? this.name,
+      );
+  MuscleTranslation copyWithCompanion(MuscleTranslationsCompanion data) {
+    return MuscleTranslation(
+      muscleId: data.muscleId.present ? data.muscleId.value : this.muscleId,
+      languageCode: data.languageCode.present
+          ? data.languageCode.value
+          : this.languageCode,
+      name: data.name.present ? data.name.value : this.name,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MuscleTranslation(')
+          ..write('muscleId: $muscleId, ')
+          ..write('languageCode: $languageCode, ')
+          ..write('name: $name')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(muscleId, languageCode, name);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is MuscleTranslation &&
+          other.muscleId == this.muscleId &&
+          other.languageCode == this.languageCode &&
+          other.name == this.name);
+}
+
+class MuscleTranslationsCompanion extends UpdateCompanion<MuscleTranslation> {
+  final Value<String> muscleId;
+  final Value<String> languageCode;
+  final Value<String> name;
+  final Value<int> rowid;
+  const MuscleTranslationsCompanion({
+    this.muscleId = const Value.absent(),
+    this.languageCode = const Value.absent(),
+    this.name = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  MuscleTranslationsCompanion.insert({
+    required String muscleId,
+    required String languageCode,
+    required String name,
+    this.rowid = const Value.absent(),
+  })  : muscleId = Value(muscleId),
+        languageCode = Value(languageCode),
+        name = Value(name);
+  static Insertable<MuscleTranslation> custom({
+    Expression<String>? muscleId,
+    Expression<String>? languageCode,
+    Expression<String>? name,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (muscleId != null) 'muscle_id': muscleId,
+      if (languageCode != null) 'language_code': languageCode,
+      if (name != null) 'name': name,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  MuscleTranslationsCompanion copyWith(
+      {Value<String>? muscleId,
+      Value<String>? languageCode,
+      Value<String>? name,
+      Value<int>? rowid}) {
+    return MuscleTranslationsCompanion(
+      muscleId: muscleId ?? this.muscleId,
+      languageCode: languageCode ?? this.languageCode,
+      name: name ?? this.name,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (muscleId.present) {
+      map['muscle_id'] = Variable<String>(muscleId.value);
+    }
+    if (languageCode.present) {
+      map['language_code'] = Variable<String>(languageCode.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MuscleTranslationsCompanion(')
+          ..write('muscleId: $muscleId, ')
+          ..write('languageCode: $languageCode, ')
+          ..write('name: $name, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $EquipmentTable extends Equipment
+    with TableInfo<$EquipmentTable, EquipmentEntry> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $EquipmentTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+      'id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _kindMeta = const VerificationMeta('kind');
+  @override
+  late final GeneratedColumn<String> kind = GeneratedColumn<String>(
+      'kind', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  @override
+  List<GeneratedColumn> get $columns => [id, kind];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'equipment';
+  @override
+  VerificationContext validateIntegrity(Insertable<EquipmentEntry> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('kind')) {
+      context.handle(
+          _kindMeta, kind.isAcceptableOrUnknown(data['kind']!, _kindMeta));
+    } else if (isInserting) {
+      context.missing(_kindMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  EquipmentEntry map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return EquipmentEntry(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
+      kind: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}kind'])!,
+    );
+  }
+
+  @override
+  $EquipmentTable createAlias(String alias) {
+    return $EquipmentTable(attachedDatabase, alias);
+  }
+}
+
+class EquipmentEntry extends DataClass implements Insertable<EquipmentEntry> {
+  final String id;
+  final String kind;
+  const EquipmentEntry({required this.id, required this.kind});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['kind'] = Variable<String>(kind);
+    return map;
+  }
+
+  EquipmentCompanion toCompanion(bool nullToAbsent) {
+    return EquipmentCompanion(
+      id: Value(id),
+      kind: Value(kind),
+    );
+  }
+
+  factory EquipmentEntry.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return EquipmentEntry(
+      id: serializer.fromJson<String>(json['id']),
+      kind: serializer.fromJson<String>(json['kind']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'kind': serializer.toJson<String>(kind),
+    };
+  }
+
+  EquipmentEntry copyWith({String? id, String? kind}) => EquipmentEntry(
+        id: id ?? this.id,
+        kind: kind ?? this.kind,
+      );
+  EquipmentEntry copyWithCompanion(EquipmentCompanion data) {
+    return EquipmentEntry(
+      id: data.id.present ? data.id.value : this.id,
+      kind: data.kind.present ? data.kind.value : this.kind,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('EquipmentEntry(')
+          ..write('id: $id, ')
+          ..write('kind: $kind')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, kind);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is EquipmentEntry &&
+          other.id == this.id &&
+          other.kind == this.kind);
+}
+
+class EquipmentCompanion extends UpdateCompanion<EquipmentEntry> {
+  final Value<String> id;
+  final Value<String> kind;
+  final Value<int> rowid;
+  const EquipmentCompanion({
+    this.id = const Value.absent(),
+    this.kind = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  EquipmentCompanion.insert({
+    required String id,
+    required String kind,
+    this.rowid = const Value.absent(),
+  })  : id = Value(id),
+        kind = Value(kind);
+  static Insertable<EquipmentEntry> custom({
+    Expression<String>? id,
+    Expression<String>? kind,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (kind != null) 'kind': kind,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  EquipmentCompanion copyWith(
+      {Value<String>? id, Value<String>? kind, Value<int>? rowid}) {
+    return EquipmentCompanion(
+      id: id ?? this.id,
+      kind: kind ?? this.kind,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (kind.present) {
+      map['kind'] = Variable<String>(kind.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('EquipmentCompanion(')
+          ..write('id: $id, ')
+          ..write('kind: $kind, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $EquipmentTranslationsTable extends EquipmentTranslations
+    with TableInfo<$EquipmentTranslationsTable, EquipmentTranslation> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $EquipmentTranslationsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _equipmentIdMeta =
+      const VerificationMeta('equipmentId');
+  @override
+  late final GeneratedColumn<String> equipmentId = GeneratedColumn<String>(
+      'equipment_id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _languageCodeMeta =
+      const VerificationMeta('languageCode');
+  @override
+  late final GeneratedColumn<String> languageCode = GeneratedColumn<String>(
+      'language_code', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+      'name', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  @override
+  List<GeneratedColumn> get $columns => [equipmentId, languageCode, name];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'equipment_translations';
+  @override
+  VerificationContext validateIntegrity(
+      Insertable<EquipmentTranslation> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('equipment_id')) {
+      context.handle(
+          _equipmentIdMeta,
+          equipmentId.isAcceptableOrUnknown(
+              data['equipment_id']!, _equipmentIdMeta));
+    } else if (isInserting) {
+      context.missing(_equipmentIdMeta);
+    }
+    if (data.containsKey('language_code')) {
+      context.handle(
+          _languageCodeMeta,
+          languageCode.isAcceptableOrUnknown(
+              data['language_code']!, _languageCodeMeta));
+    } else if (isInserting) {
+      context.missing(_languageCodeMeta);
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+          _nameMeta, name.isAcceptableOrUnknown(data['name']!, _nameMeta));
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {equipmentId, languageCode};
+  @override
+  EquipmentTranslation map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return EquipmentTranslation(
+      equipmentId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}equipment_id'])!,
+      languageCode: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}language_code'])!,
+      name: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}name'])!,
+    );
+  }
+
+  @override
+  $EquipmentTranslationsTable createAlias(String alias) {
+    return $EquipmentTranslationsTable(attachedDatabase, alias);
+  }
+}
+
+class EquipmentTranslation extends DataClass
+    implements Insertable<EquipmentTranslation> {
+  final String equipmentId;
+  final String languageCode;
+  final String name;
+  const EquipmentTranslation(
+      {required this.equipmentId,
+      required this.languageCode,
+      required this.name});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['equipment_id'] = Variable<String>(equipmentId);
+    map['language_code'] = Variable<String>(languageCode);
+    map['name'] = Variable<String>(name);
+    return map;
+  }
+
+  EquipmentTranslationsCompanion toCompanion(bool nullToAbsent) {
+    return EquipmentTranslationsCompanion(
+      equipmentId: Value(equipmentId),
+      languageCode: Value(languageCode),
+      name: Value(name),
+    );
+  }
+
+  factory EquipmentTranslation.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return EquipmentTranslation(
+      equipmentId: serializer.fromJson<String>(json['equipmentId']),
+      languageCode: serializer.fromJson<String>(json['languageCode']),
+      name: serializer.fromJson<String>(json['name']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'equipmentId': serializer.toJson<String>(equipmentId),
+      'languageCode': serializer.toJson<String>(languageCode),
+      'name': serializer.toJson<String>(name),
+    };
+  }
+
+  EquipmentTranslation copyWith(
+          {String? equipmentId, String? languageCode, String? name}) =>
+      EquipmentTranslation(
+        equipmentId: equipmentId ?? this.equipmentId,
+        languageCode: languageCode ?? this.languageCode,
+        name: name ?? this.name,
+      );
+  EquipmentTranslation copyWithCompanion(EquipmentTranslationsCompanion data) {
+    return EquipmentTranslation(
+      equipmentId:
+          data.equipmentId.present ? data.equipmentId.value : this.equipmentId,
+      languageCode: data.languageCode.present
+          ? data.languageCode.value
+          : this.languageCode,
+      name: data.name.present ? data.name.value : this.name,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('EquipmentTranslation(')
+          ..write('equipmentId: $equipmentId, ')
+          ..write('languageCode: $languageCode, ')
+          ..write('name: $name')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(equipmentId, languageCode, name);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is EquipmentTranslation &&
+          other.equipmentId == this.equipmentId &&
+          other.languageCode == this.languageCode &&
+          other.name == this.name);
+}
+
+class EquipmentTranslationsCompanion
+    extends UpdateCompanion<EquipmentTranslation> {
+  final Value<String> equipmentId;
+  final Value<String> languageCode;
+  final Value<String> name;
+  final Value<int> rowid;
+  const EquipmentTranslationsCompanion({
+    this.equipmentId = const Value.absent(),
+    this.languageCode = const Value.absent(),
+    this.name = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  EquipmentTranslationsCompanion.insert({
+    required String equipmentId,
+    required String languageCode,
+    required String name,
+    this.rowid = const Value.absent(),
+  })  : equipmentId = Value(equipmentId),
+        languageCode = Value(languageCode),
+        name = Value(name);
+  static Insertable<EquipmentTranslation> custom({
+    Expression<String>? equipmentId,
+    Expression<String>? languageCode,
+    Expression<String>? name,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (equipmentId != null) 'equipment_id': equipmentId,
+      if (languageCode != null) 'language_code': languageCode,
+      if (name != null) 'name': name,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  EquipmentTranslationsCompanion copyWith(
+      {Value<String>? equipmentId,
+      Value<String>? languageCode,
+      Value<String>? name,
+      Value<int>? rowid}) {
+    return EquipmentTranslationsCompanion(
+      equipmentId: equipmentId ?? this.equipmentId,
+      languageCode: languageCode ?? this.languageCode,
+      name: name ?? this.name,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (equipmentId.present) {
+      map['equipment_id'] = Variable<String>(equipmentId.value);
+    }
+    if (languageCode.present) {
+      map['language_code'] = Variable<String>(languageCode.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('EquipmentTranslationsCompanion(')
+          ..write('equipmentId: $equipmentId, ')
+          ..write('languageCode: $languageCode, ')
+          ..write('name: $name, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $ExerciseMusclesTable extends ExerciseMuscles
+    with TableInfo<$ExerciseMusclesTable, ExerciseMuscle> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ExerciseMusclesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _exerciseIdMeta =
+      const VerificationMeta('exerciseId');
+  @override
+  late final GeneratedColumn<String> exerciseId = GeneratedColumn<String>(
+      'exercise_id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _muscleIdMeta =
+      const VerificationMeta('muscleId');
+  @override
+  late final GeneratedColumn<String> muscleId = GeneratedColumn<String>(
+      'muscle_id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _roleMeta = const VerificationMeta('role');
+  @override
+  late final GeneratedColumn<String> role = GeneratedColumn<String>(
+      'role', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _contributionMeta =
+      const VerificationMeta('contribution');
+  @override
+  late final GeneratedColumn<double> contribution = GeneratedColumn<double>(
+      'contribution', aliasedName, true,
+      type: DriftSqlType.double, requiredDuringInsert: false);
+  @override
+  List<GeneratedColumn> get $columns =>
+      [exerciseId, muscleId, role, contribution];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'exercise_muscles';
+  @override
+  VerificationContext validateIntegrity(Insertable<ExerciseMuscle> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('exercise_id')) {
+      context.handle(
+          _exerciseIdMeta,
+          exerciseId.isAcceptableOrUnknown(
+              data['exercise_id']!, _exerciseIdMeta));
+    } else if (isInserting) {
+      context.missing(_exerciseIdMeta);
+    }
+    if (data.containsKey('muscle_id')) {
+      context.handle(_muscleIdMeta,
+          muscleId.isAcceptableOrUnknown(data['muscle_id']!, _muscleIdMeta));
+    } else if (isInserting) {
+      context.missing(_muscleIdMeta);
+    }
+    if (data.containsKey('role')) {
+      context.handle(
+          _roleMeta, role.isAcceptableOrUnknown(data['role']!, _roleMeta));
+    } else if (isInserting) {
+      context.missing(_roleMeta);
+    }
+    if (data.containsKey('contribution')) {
+      context.handle(
+          _contributionMeta,
+          contribution.isAcceptableOrUnknown(
+              data['contribution']!, _contributionMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {exerciseId, muscleId};
+  @override
+  ExerciseMuscle map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ExerciseMuscle(
+      exerciseId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}exercise_id'])!,
+      muscleId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}muscle_id'])!,
+      role: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}role'])!,
+      contribution: attachedDatabase.typeMapping
+          .read(DriftSqlType.double, data['${effectivePrefix}contribution']),
+    );
+  }
+
+  @override
+  $ExerciseMusclesTable createAlias(String alias) {
+    return $ExerciseMusclesTable(attachedDatabase, alias);
+  }
+}
+
+class ExerciseMuscle extends DataClass implements Insertable<ExerciseMuscle> {
+  final String exerciseId;
+  final String muscleId;
+
+  /// primary | secondary.
+  final String role;
+
+  /// Reserved; the catalog deliberately ships this unset.
+  final double? contribution;
+  const ExerciseMuscle(
+      {required this.exerciseId,
+      required this.muscleId,
+      required this.role,
+      this.contribution});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['exercise_id'] = Variable<String>(exerciseId);
+    map['muscle_id'] = Variable<String>(muscleId);
+    map['role'] = Variable<String>(role);
+    if (!nullToAbsent || contribution != null) {
+      map['contribution'] = Variable<double>(contribution);
+    }
+    return map;
+  }
+
+  ExerciseMusclesCompanion toCompanion(bool nullToAbsent) {
+    return ExerciseMusclesCompanion(
+      exerciseId: Value(exerciseId),
+      muscleId: Value(muscleId),
+      role: Value(role),
+      contribution: contribution == null && nullToAbsent
+          ? const Value.absent()
+          : Value(contribution),
+    );
+  }
+
+  factory ExerciseMuscle.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ExerciseMuscle(
+      exerciseId: serializer.fromJson<String>(json['exerciseId']),
+      muscleId: serializer.fromJson<String>(json['muscleId']),
+      role: serializer.fromJson<String>(json['role']),
+      contribution: serializer.fromJson<double?>(json['contribution']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'exerciseId': serializer.toJson<String>(exerciseId),
+      'muscleId': serializer.toJson<String>(muscleId),
+      'role': serializer.toJson<String>(role),
+      'contribution': serializer.toJson<double?>(contribution),
+    };
+  }
+
+  ExerciseMuscle copyWith(
+          {String? exerciseId,
+          String? muscleId,
+          String? role,
+          Value<double?> contribution = const Value.absent()}) =>
+      ExerciseMuscle(
+        exerciseId: exerciseId ?? this.exerciseId,
+        muscleId: muscleId ?? this.muscleId,
+        role: role ?? this.role,
+        contribution:
+            contribution.present ? contribution.value : this.contribution,
+      );
+  ExerciseMuscle copyWithCompanion(ExerciseMusclesCompanion data) {
+    return ExerciseMuscle(
+      exerciseId:
+          data.exerciseId.present ? data.exerciseId.value : this.exerciseId,
+      muscleId: data.muscleId.present ? data.muscleId.value : this.muscleId,
+      role: data.role.present ? data.role.value : this.role,
+      contribution: data.contribution.present
+          ? data.contribution.value
+          : this.contribution,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ExerciseMuscle(')
+          ..write('exerciseId: $exerciseId, ')
+          ..write('muscleId: $muscleId, ')
+          ..write('role: $role, ')
+          ..write('contribution: $contribution')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(exerciseId, muscleId, role, contribution);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ExerciseMuscle &&
+          other.exerciseId == this.exerciseId &&
+          other.muscleId == this.muscleId &&
+          other.role == this.role &&
+          other.contribution == this.contribution);
+}
+
+class ExerciseMusclesCompanion extends UpdateCompanion<ExerciseMuscle> {
+  final Value<String> exerciseId;
+  final Value<String> muscleId;
+  final Value<String> role;
+  final Value<double?> contribution;
+  final Value<int> rowid;
+  const ExerciseMusclesCompanion({
+    this.exerciseId = const Value.absent(),
+    this.muscleId = const Value.absent(),
+    this.role = const Value.absent(),
+    this.contribution = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  ExerciseMusclesCompanion.insert({
+    required String exerciseId,
+    required String muscleId,
+    required String role,
+    this.contribution = const Value.absent(),
+    this.rowid = const Value.absent(),
+  })  : exerciseId = Value(exerciseId),
+        muscleId = Value(muscleId),
+        role = Value(role);
+  static Insertable<ExerciseMuscle> custom({
+    Expression<String>? exerciseId,
+    Expression<String>? muscleId,
+    Expression<String>? role,
+    Expression<double>? contribution,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (exerciseId != null) 'exercise_id': exerciseId,
+      if (muscleId != null) 'muscle_id': muscleId,
+      if (role != null) 'role': role,
+      if (contribution != null) 'contribution': contribution,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  ExerciseMusclesCompanion copyWith(
+      {Value<String>? exerciseId,
+      Value<String>? muscleId,
+      Value<String>? role,
+      Value<double?>? contribution,
+      Value<int>? rowid}) {
+    return ExerciseMusclesCompanion(
+      exerciseId: exerciseId ?? this.exerciseId,
+      muscleId: muscleId ?? this.muscleId,
+      role: role ?? this.role,
+      contribution: contribution ?? this.contribution,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (exerciseId.present) {
+      map['exercise_id'] = Variable<String>(exerciseId.value);
+    }
+    if (muscleId.present) {
+      map['muscle_id'] = Variable<String>(muscleId.value);
+    }
+    if (role.present) {
+      map['role'] = Variable<String>(role.value);
+    }
+    if (contribution.present) {
+      map['contribution'] = Variable<double>(contribution.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ExerciseMusclesCompanion(')
+          ..write('exerciseId: $exerciseId, ')
+          ..write('muscleId: $muscleId, ')
+          ..write('role: $role, ')
+          ..write('contribution: $contribution, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $ExerciseEquipmentTable extends ExerciseEquipment
+    with TableInfo<$ExerciseEquipmentTable, ExerciseEquipmentEntry> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ExerciseEquipmentTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _exerciseIdMeta =
+      const VerificationMeta('exerciseId');
+  @override
+  late final GeneratedColumn<String> exerciseId = GeneratedColumn<String>(
+      'exercise_id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _equipmentIdMeta =
+      const VerificationMeta('equipmentId');
+  @override
+  late final GeneratedColumn<String> equipmentId = GeneratedColumn<String>(
+      'equipment_id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _kindMeta = const VerificationMeta('kind');
+  @override
+  late final GeneratedColumn<String> kind = GeneratedColumn<String>(
+      'kind', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  @override
+  List<GeneratedColumn> get $columns => [exerciseId, equipmentId, kind];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'exercise_equipment';
+  @override
+  VerificationContext validateIntegrity(
+      Insertable<ExerciseEquipmentEntry> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('exercise_id')) {
+      context.handle(
+          _exerciseIdMeta,
+          exerciseId.isAcceptableOrUnknown(
+              data['exercise_id']!, _exerciseIdMeta));
+    } else if (isInserting) {
+      context.missing(_exerciseIdMeta);
+    }
+    if (data.containsKey('equipment_id')) {
+      context.handle(
+          _equipmentIdMeta,
+          equipmentId.isAcceptableOrUnknown(
+              data['equipment_id']!, _equipmentIdMeta));
+    } else if (isInserting) {
+      context.missing(_equipmentIdMeta);
+    }
+    if (data.containsKey('kind')) {
+      context.handle(
+          _kindMeta, kind.isAcceptableOrUnknown(data['kind']!, _kindMeta));
+    } else if (isInserting) {
+      context.missing(_kindMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {exerciseId, equipmentId, kind};
+  @override
+  ExerciseEquipmentEntry map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ExerciseEquipmentEntry(
+      exerciseId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}exercise_id'])!,
+      equipmentId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}equipment_id'])!,
+      kind: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}kind'])!,
+    );
+  }
+
+  @override
+  $ExerciseEquipmentTable createAlias(String alias) {
+    return $ExerciseEquipmentTable(attachedDatabase, alias);
+  }
+}
+
+class ExerciseEquipmentEntry extends DataClass
+    implements Insertable<ExerciseEquipmentEntry> {
+  final String exerciseId;
+  final String equipmentId;
+
+  /// primary | setup. The split is what makes "what can I do in a hotel room"
+  /// a query rather than a guess.
+  final String kind;
+  const ExerciseEquipmentEntry(
+      {required this.exerciseId,
+      required this.equipmentId,
+      required this.kind});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['exercise_id'] = Variable<String>(exerciseId);
+    map['equipment_id'] = Variable<String>(equipmentId);
+    map['kind'] = Variable<String>(kind);
+    return map;
+  }
+
+  ExerciseEquipmentCompanion toCompanion(bool nullToAbsent) {
+    return ExerciseEquipmentCompanion(
+      exerciseId: Value(exerciseId),
+      equipmentId: Value(equipmentId),
+      kind: Value(kind),
+    );
+  }
+
+  factory ExerciseEquipmentEntry.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ExerciseEquipmentEntry(
+      exerciseId: serializer.fromJson<String>(json['exerciseId']),
+      equipmentId: serializer.fromJson<String>(json['equipmentId']),
+      kind: serializer.fromJson<String>(json['kind']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'exerciseId': serializer.toJson<String>(exerciseId),
+      'equipmentId': serializer.toJson<String>(equipmentId),
+      'kind': serializer.toJson<String>(kind),
+    };
+  }
+
+  ExerciseEquipmentEntry copyWith(
+          {String? exerciseId, String? equipmentId, String? kind}) =>
+      ExerciseEquipmentEntry(
+        exerciseId: exerciseId ?? this.exerciseId,
+        equipmentId: equipmentId ?? this.equipmentId,
+        kind: kind ?? this.kind,
+      );
+  ExerciseEquipmentEntry copyWithCompanion(ExerciseEquipmentCompanion data) {
+    return ExerciseEquipmentEntry(
+      exerciseId:
+          data.exerciseId.present ? data.exerciseId.value : this.exerciseId,
+      equipmentId:
+          data.equipmentId.present ? data.equipmentId.value : this.equipmentId,
+      kind: data.kind.present ? data.kind.value : this.kind,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ExerciseEquipmentEntry(')
+          ..write('exerciseId: $exerciseId, ')
+          ..write('equipmentId: $equipmentId, ')
+          ..write('kind: $kind')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(exerciseId, equipmentId, kind);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ExerciseEquipmentEntry &&
+          other.exerciseId == this.exerciseId &&
+          other.equipmentId == this.equipmentId &&
+          other.kind == this.kind);
+}
+
+class ExerciseEquipmentCompanion
+    extends UpdateCompanion<ExerciseEquipmentEntry> {
+  final Value<String> exerciseId;
+  final Value<String> equipmentId;
+  final Value<String> kind;
+  final Value<int> rowid;
+  const ExerciseEquipmentCompanion({
+    this.exerciseId = const Value.absent(),
+    this.equipmentId = const Value.absent(),
+    this.kind = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  ExerciseEquipmentCompanion.insert({
+    required String exerciseId,
+    required String equipmentId,
+    required String kind,
+    this.rowid = const Value.absent(),
+  })  : exerciseId = Value(exerciseId),
+        equipmentId = Value(equipmentId),
+        kind = Value(kind);
+  static Insertable<ExerciseEquipmentEntry> custom({
+    Expression<String>? exerciseId,
+    Expression<String>? equipmentId,
+    Expression<String>? kind,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (exerciseId != null) 'exercise_id': exerciseId,
+      if (equipmentId != null) 'equipment_id': equipmentId,
+      if (kind != null) 'kind': kind,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  ExerciseEquipmentCompanion copyWith(
+      {Value<String>? exerciseId,
+      Value<String>? equipmentId,
+      Value<String>? kind,
+      Value<int>? rowid}) {
+    return ExerciseEquipmentCompanion(
+      exerciseId: exerciseId ?? this.exerciseId,
+      equipmentId: equipmentId ?? this.equipmentId,
+      kind: kind ?? this.kind,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (exerciseId.present) {
+      map['exercise_id'] = Variable<String>(exerciseId.value);
+    }
+    if (equipmentId.present) {
+      map['equipment_id'] = Variable<String>(equipmentId.value);
+    }
+    if (kind.present) {
+      map['kind'] = Variable<String>(kind.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ExerciseEquipmentCompanion(')
+          ..write('exerciseId: $exerciseId, ')
+          ..write('equipmentId: $equipmentId, ')
+          ..write('kind: $kind, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $ExerciseTagsTable extends ExerciseTags
+    with TableInfo<$ExerciseTagsTable, ExerciseTag> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ExerciseTagsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _exerciseIdMeta =
+      const VerificationMeta('exerciseId');
+  @override
+  late final GeneratedColumn<String> exerciseId = GeneratedColumn<String>(
+      'exercise_id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _tagMeta = const VerificationMeta('tag');
+  @override
+  late final GeneratedColumn<String> tag = GeneratedColumn<String>(
+      'tag', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  @override
+  List<GeneratedColumn> get $columns => [exerciseId, tag];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'exercise_tags';
+  @override
+  VerificationContext validateIntegrity(Insertable<ExerciseTag> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('exercise_id')) {
+      context.handle(
+          _exerciseIdMeta,
+          exerciseId.isAcceptableOrUnknown(
+              data['exercise_id']!, _exerciseIdMeta));
+    } else if (isInserting) {
+      context.missing(_exerciseIdMeta);
+    }
+    if (data.containsKey('tag')) {
+      context.handle(
+          _tagMeta, tag.isAcceptableOrUnknown(data['tag']!, _tagMeta));
+    } else if (isInserting) {
+      context.missing(_tagMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {exerciseId, tag};
+  @override
+  ExerciseTag map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ExerciseTag(
+      exerciseId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}exercise_id'])!,
+      tag: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}tag'])!,
+    );
+  }
+
+  @override
+  $ExerciseTagsTable createAlias(String alias) {
+    return $ExerciseTagsTable(attachedDatabase, alias);
+  }
+}
+
+class ExerciseTag extends DataClass implements Insertable<ExerciseTag> {
+  final String exerciseId;
+  final String tag;
+  const ExerciseTag({required this.exerciseId, required this.tag});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['exercise_id'] = Variable<String>(exerciseId);
+    map['tag'] = Variable<String>(tag);
+    return map;
+  }
+
+  ExerciseTagsCompanion toCompanion(bool nullToAbsent) {
+    return ExerciseTagsCompanion(
+      exerciseId: Value(exerciseId),
+      tag: Value(tag),
+    );
+  }
+
+  factory ExerciseTag.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ExerciseTag(
+      exerciseId: serializer.fromJson<String>(json['exerciseId']),
+      tag: serializer.fromJson<String>(json['tag']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'exerciseId': serializer.toJson<String>(exerciseId),
+      'tag': serializer.toJson<String>(tag),
+    };
+  }
+
+  ExerciseTag copyWith({String? exerciseId, String? tag}) => ExerciseTag(
+        exerciseId: exerciseId ?? this.exerciseId,
+        tag: tag ?? this.tag,
+      );
+  ExerciseTag copyWithCompanion(ExerciseTagsCompanion data) {
+    return ExerciseTag(
+      exerciseId:
+          data.exerciseId.present ? data.exerciseId.value : this.exerciseId,
+      tag: data.tag.present ? data.tag.value : this.tag,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ExerciseTag(')
+          ..write('exerciseId: $exerciseId, ')
+          ..write('tag: $tag')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(exerciseId, tag);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ExerciseTag &&
+          other.exerciseId == this.exerciseId &&
+          other.tag == this.tag);
+}
+
+class ExerciseTagsCompanion extends UpdateCompanion<ExerciseTag> {
+  final Value<String> exerciseId;
+  final Value<String> tag;
+  final Value<int> rowid;
+  const ExerciseTagsCompanion({
+    this.exerciseId = const Value.absent(),
+    this.tag = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  ExerciseTagsCompanion.insert({
+    required String exerciseId,
+    required String tag,
+    this.rowid = const Value.absent(),
+  })  : exerciseId = Value(exerciseId),
+        tag = Value(tag);
+  static Insertable<ExerciseTag> custom({
+    Expression<String>? exerciseId,
+    Expression<String>? tag,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (exerciseId != null) 'exercise_id': exerciseId,
+      if (tag != null) 'tag': tag,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  ExerciseTagsCompanion copyWith(
+      {Value<String>? exerciseId, Value<String>? tag, Value<int>? rowid}) {
+    return ExerciseTagsCompanion(
+      exerciseId: exerciseId ?? this.exerciseId,
+      tag: tag ?? this.tag,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (exerciseId.present) {
+      map['exercise_id'] = Variable<String>(exerciseId.value);
+    }
+    if (tag.present) {
+      map['tag'] = Variable<String>(tag.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ExerciseTagsCompanion(')
+          ..write('exerciseId: $exerciseId, ')
+          ..write('tag: $tag, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $CatalogLanguagesTable extends CatalogLanguages
+    with TableInfo<$CatalogLanguagesTable, CatalogLanguage> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $CatalogLanguagesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _codeMeta = const VerificationMeta('code');
+  @override
+  late final GeneratedColumn<String> code = GeneratedColumn<String>(
+      'code', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _tierMeta = const VerificationMeta('tier');
+  @override
+  late final GeneratedColumn<String> tier = GeneratedColumn<String>(
+      'tier', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _completenessMeta =
+      const VerificationMeta('completeness');
+  @override
+  late final GeneratedColumn<double> completeness = GeneratedColumn<double>(
+      'completeness', aliasedName, false,
+      type: DriftSqlType.double,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0));
+  static const VerificationMeta _displayableMeta =
+      const VerificationMeta('displayable');
+  @override
+  late final GeneratedColumn<bool> displayable = GeneratedColumn<bool>(
+      'displayable', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('CHECK ("displayable" IN (0, 1))'),
+      defaultValue: const Constant(false));
+  @override
+  List<GeneratedColumn> get $columns => [code, tier, completeness, displayable];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'catalog_languages';
+  @override
+  VerificationContext validateIntegrity(Insertable<CatalogLanguage> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('code')) {
+      context.handle(
+          _codeMeta, code.isAcceptableOrUnknown(data['code']!, _codeMeta));
+    } else if (isInserting) {
+      context.missing(_codeMeta);
+    }
+    if (data.containsKey('tier')) {
+      context.handle(
+          _tierMeta, tier.isAcceptableOrUnknown(data['tier']!, _tierMeta));
+    } else if (isInserting) {
+      context.missing(_tierMeta);
+    }
+    if (data.containsKey('completeness')) {
+      context.handle(
+          _completenessMeta,
+          completeness.isAcceptableOrUnknown(
+              data['completeness']!, _completenessMeta));
+    }
+    if (data.containsKey('displayable')) {
+      context.handle(
+          _displayableMeta,
+          displayable.isAcceptableOrUnknown(
+              data['displayable']!, _displayableMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {code};
+  @override
+  CatalogLanguage map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return CatalogLanguage(
+      code: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}code'])!,
+      tier: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}tier'])!,
+      completeness: attachedDatabase.typeMapping
+          .read(DriftSqlType.double, data['${effectivePrefix}completeness'])!,
+      displayable: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}displayable'])!,
+    );
+  }
+
+  @override
+  $CatalogLanguagesTable createAlias(String alias) {
+    return $CatalogLanguagesTable(attachedDatabase, alias);
+  }
+}
+
+class CatalogLanguage extends DataClass implements Insertable<CatalogLanguage> {
+  final String code;
+
+  /// curated | assisted | machine | upstream.
+  final String tier;
+  final double completeness;
+
+  /// Whether the data repo considers this language fit to show. The app reads
+  /// this rather than second-guessing it from [completeness].
+  final bool displayable;
+  const CatalogLanguage(
+      {required this.code,
+      required this.tier,
+      required this.completeness,
+      required this.displayable});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['code'] = Variable<String>(code);
+    map['tier'] = Variable<String>(tier);
+    map['completeness'] = Variable<double>(completeness);
+    map['displayable'] = Variable<bool>(displayable);
+    return map;
+  }
+
+  CatalogLanguagesCompanion toCompanion(bool nullToAbsent) {
+    return CatalogLanguagesCompanion(
+      code: Value(code),
+      tier: Value(tier),
+      completeness: Value(completeness),
+      displayable: Value(displayable),
+    );
+  }
+
+  factory CatalogLanguage.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return CatalogLanguage(
+      code: serializer.fromJson<String>(json['code']),
+      tier: serializer.fromJson<String>(json['tier']),
+      completeness: serializer.fromJson<double>(json['completeness']),
+      displayable: serializer.fromJson<bool>(json['displayable']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'code': serializer.toJson<String>(code),
+      'tier': serializer.toJson<String>(tier),
+      'completeness': serializer.toJson<double>(completeness),
+      'displayable': serializer.toJson<bool>(displayable),
+    };
+  }
+
+  CatalogLanguage copyWith(
+          {String? code,
+          String? tier,
+          double? completeness,
+          bool? displayable}) =>
+      CatalogLanguage(
+        code: code ?? this.code,
+        tier: tier ?? this.tier,
+        completeness: completeness ?? this.completeness,
+        displayable: displayable ?? this.displayable,
+      );
+  CatalogLanguage copyWithCompanion(CatalogLanguagesCompanion data) {
+    return CatalogLanguage(
+      code: data.code.present ? data.code.value : this.code,
+      tier: data.tier.present ? data.tier.value : this.tier,
+      completeness: data.completeness.present
+          ? data.completeness.value
+          : this.completeness,
+      displayable:
+          data.displayable.present ? data.displayable.value : this.displayable,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CatalogLanguage(')
+          ..write('code: $code, ')
+          ..write('tier: $tier, ')
+          ..write('completeness: $completeness, ')
+          ..write('displayable: $displayable')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(code, tier, completeness, displayable);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is CatalogLanguage &&
+          other.code == this.code &&
+          other.tier == this.tier &&
+          other.completeness == this.completeness &&
+          other.displayable == this.displayable);
+}
+
+class CatalogLanguagesCompanion extends UpdateCompanion<CatalogLanguage> {
+  final Value<String> code;
+  final Value<String> tier;
+  final Value<double> completeness;
+  final Value<bool> displayable;
+  final Value<int> rowid;
+  const CatalogLanguagesCompanion({
+    this.code = const Value.absent(),
+    this.tier = const Value.absent(),
+    this.completeness = const Value.absent(),
+    this.displayable = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  CatalogLanguagesCompanion.insert({
+    required String code,
+    required String tier,
+    this.completeness = const Value.absent(),
+    this.displayable = const Value.absent(),
+    this.rowid = const Value.absent(),
+  })  : code = Value(code),
+        tier = Value(tier);
+  static Insertable<CatalogLanguage> custom({
+    Expression<String>? code,
+    Expression<String>? tier,
+    Expression<double>? completeness,
+    Expression<bool>? displayable,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (code != null) 'code': code,
+      if (tier != null) 'tier': tier,
+      if (completeness != null) 'completeness': completeness,
+      if (displayable != null) 'displayable': displayable,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  CatalogLanguagesCompanion copyWith(
+      {Value<String>? code,
+      Value<String>? tier,
+      Value<double>? completeness,
+      Value<bool>? displayable,
+      Value<int>? rowid}) {
+    return CatalogLanguagesCompanion(
+      code: code ?? this.code,
+      tier: tier ?? this.tier,
+      completeness: completeness ?? this.completeness,
+      displayable: displayable ?? this.displayable,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (code.present) {
+      map['code'] = Variable<String>(code.value);
+    }
+    if (tier.present) {
+      map['tier'] = Variable<String>(tier.value);
+    }
+    if (completeness.present) {
+      map['completeness'] = Variable<double>(completeness.value);
+    }
+    if (displayable.present) {
+      map['displayable'] = Variable<bool>(displayable.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CatalogLanguagesCompanion(')
+          ..write('code: $code, ')
+          ..write('tier: $tier, ')
+          ..write('completeness: $completeness, ')
+          ..write('displayable: $displayable, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $ExerciseAliasesTable extends ExerciseAliases
+    with TableInfo<$ExerciseAliasesTable, ExerciseAliase> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ExerciseAliasesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _oldIdMeta = const VerificationMeta('oldId');
+  @override
+  late final GeneratedColumn<String> oldId = GeneratedColumn<String>(
+      'old_id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _newIdMeta = const VerificationMeta('newId');
+  @override
+  late final GeneratedColumn<String> newId = GeneratedColumn<String>(
+      'new_id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _reasonMeta = const VerificationMeta('reason');
+  @override
+  late final GeneratedColumn<String> reason = GeneratedColumn<String>(
+      'reason', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _sinceVersionMeta =
+      const VerificationMeta('sinceVersion');
+  @override
+  late final GeneratedColumn<String> sinceVersion = GeneratedColumn<String>(
+      'since_version', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  @override
+  List<GeneratedColumn> get $columns => [oldId, newId, reason, sinceVersion];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'exercise_aliases';
+  @override
+  VerificationContext validateIntegrity(Insertable<ExerciseAliase> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('old_id')) {
+      context.handle(
+          _oldIdMeta, oldId.isAcceptableOrUnknown(data['old_id']!, _oldIdMeta));
+    } else if (isInserting) {
+      context.missing(_oldIdMeta);
+    }
+    if (data.containsKey('new_id')) {
+      context.handle(
+          _newIdMeta, newId.isAcceptableOrUnknown(data['new_id']!, _newIdMeta));
+    } else if (isInserting) {
+      context.missing(_newIdMeta);
+    }
+    if (data.containsKey('reason')) {
+      context.handle(_reasonMeta,
+          reason.isAcceptableOrUnknown(data['reason']!, _reasonMeta));
+    }
+    if (data.containsKey('since_version')) {
+      context.handle(
+          _sinceVersionMeta,
+          sinceVersion.isAcceptableOrUnknown(
+              data['since_version']!, _sinceVersionMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {oldId};
+  @override
+  ExerciseAliase map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ExerciseAliase(
+      oldId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}old_id'])!,
+      newId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}new_id'])!,
+      reason: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}reason']),
+      sinceVersion: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}since_version']),
+    );
+  }
+
+  @override
+  $ExerciseAliasesTable createAlias(String alias) {
+    return $ExerciseAliasesTable(attachedDatabase, alias);
+  }
+}
+
+class ExerciseAliase extends DataClass implements Insertable<ExerciseAliase> {
+  final String oldId;
+  final String newId;
+
+  /// merged | renamed_id | split.
+  final String? reason;
+  final String? sinceVersion;
+  const ExerciseAliase(
+      {required this.oldId,
+      required this.newId,
+      this.reason,
+      this.sinceVersion});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['old_id'] = Variable<String>(oldId);
+    map['new_id'] = Variable<String>(newId);
+    if (!nullToAbsent || reason != null) {
+      map['reason'] = Variable<String>(reason);
+    }
+    if (!nullToAbsent || sinceVersion != null) {
+      map['since_version'] = Variable<String>(sinceVersion);
+    }
+    return map;
+  }
+
+  ExerciseAliasesCompanion toCompanion(bool nullToAbsent) {
+    return ExerciseAliasesCompanion(
+      oldId: Value(oldId),
+      newId: Value(newId),
+      reason:
+          reason == null && nullToAbsent ? const Value.absent() : Value(reason),
+      sinceVersion: sinceVersion == null && nullToAbsent
+          ? const Value.absent()
+          : Value(sinceVersion),
+    );
+  }
+
+  factory ExerciseAliase.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ExerciseAliase(
+      oldId: serializer.fromJson<String>(json['oldId']),
+      newId: serializer.fromJson<String>(json['newId']),
+      reason: serializer.fromJson<String?>(json['reason']),
+      sinceVersion: serializer.fromJson<String?>(json['sinceVersion']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'oldId': serializer.toJson<String>(oldId),
+      'newId': serializer.toJson<String>(newId),
+      'reason': serializer.toJson<String?>(reason),
+      'sinceVersion': serializer.toJson<String?>(sinceVersion),
+    };
+  }
+
+  ExerciseAliase copyWith(
+          {String? oldId,
+          String? newId,
+          Value<String?> reason = const Value.absent(),
+          Value<String?> sinceVersion = const Value.absent()}) =>
+      ExerciseAliase(
+        oldId: oldId ?? this.oldId,
+        newId: newId ?? this.newId,
+        reason: reason.present ? reason.value : this.reason,
+        sinceVersion:
+            sinceVersion.present ? sinceVersion.value : this.sinceVersion,
+      );
+  ExerciseAliase copyWithCompanion(ExerciseAliasesCompanion data) {
+    return ExerciseAliase(
+      oldId: data.oldId.present ? data.oldId.value : this.oldId,
+      newId: data.newId.present ? data.newId.value : this.newId,
+      reason: data.reason.present ? data.reason.value : this.reason,
+      sinceVersion: data.sinceVersion.present
+          ? data.sinceVersion.value
+          : this.sinceVersion,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ExerciseAliase(')
+          ..write('oldId: $oldId, ')
+          ..write('newId: $newId, ')
+          ..write('reason: $reason, ')
+          ..write('sinceVersion: $sinceVersion')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(oldId, newId, reason, sinceVersion);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ExerciseAliase &&
+          other.oldId == this.oldId &&
+          other.newId == this.newId &&
+          other.reason == this.reason &&
+          other.sinceVersion == this.sinceVersion);
+}
+
+class ExerciseAliasesCompanion extends UpdateCompanion<ExerciseAliase> {
+  final Value<String> oldId;
+  final Value<String> newId;
+  final Value<String?> reason;
+  final Value<String?> sinceVersion;
+  final Value<int> rowid;
+  const ExerciseAliasesCompanion({
+    this.oldId = const Value.absent(),
+    this.newId = const Value.absent(),
+    this.reason = const Value.absent(),
+    this.sinceVersion = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  ExerciseAliasesCompanion.insert({
+    required String oldId,
+    required String newId,
+    this.reason = const Value.absent(),
+    this.sinceVersion = const Value.absent(),
+    this.rowid = const Value.absent(),
+  })  : oldId = Value(oldId),
+        newId = Value(newId);
+  static Insertable<ExerciseAliase> custom({
+    Expression<String>? oldId,
+    Expression<String>? newId,
+    Expression<String>? reason,
+    Expression<String>? sinceVersion,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (oldId != null) 'old_id': oldId,
+      if (newId != null) 'new_id': newId,
+      if (reason != null) 'reason': reason,
+      if (sinceVersion != null) 'since_version': sinceVersion,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  ExerciseAliasesCompanion copyWith(
+      {Value<String>? oldId,
+      Value<String>? newId,
+      Value<String?>? reason,
+      Value<String?>? sinceVersion,
+      Value<int>? rowid}) {
+    return ExerciseAliasesCompanion(
+      oldId: oldId ?? this.oldId,
+      newId: newId ?? this.newId,
+      reason: reason ?? this.reason,
+      sinceVersion: sinceVersion ?? this.sinceVersion,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (oldId.present) {
+      map['old_id'] = Variable<String>(oldId.value);
+    }
+    if (newId.present) {
+      map['new_id'] = Variable<String>(newId.value);
+    }
+    if (reason.present) {
+      map['reason'] = Variable<String>(reason.value);
+    }
+    if (sinceVersion.present) {
+      map['since_version'] = Variable<String>(sinceVersion.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ExerciseAliasesCompanion(')
+          ..write('oldId: $oldId, ')
+          ..write('newId: $newId, ')
+          ..write('reason: $reason, ')
+          ..write('sinceVersion: $sinceVersion, ')
+          ..write('rowid: $rowid')
           ..write(')'))
         .toString();
   }
@@ -19064,6 +22328,21 @@ abstract class _$AppDatabase extends GeneratedDatabase {
       $UserFoodOverridesTable(this);
   late final $ExerciseTranslationsTable exerciseTranslations =
       $ExerciseTranslationsTable(this);
+  late final $MusclesTable muscles = $MusclesTable(this);
+  late final $MuscleTranslationsTable muscleTranslations =
+      $MuscleTranslationsTable(this);
+  late final $EquipmentTable equipment = $EquipmentTable(this);
+  late final $EquipmentTranslationsTable equipmentTranslations =
+      $EquipmentTranslationsTable(this);
+  late final $ExerciseMusclesTable exerciseMuscles =
+      $ExerciseMusclesTable(this);
+  late final $ExerciseEquipmentTable exerciseEquipment =
+      $ExerciseEquipmentTable(this);
+  late final $ExerciseTagsTable exerciseTags = $ExerciseTagsTable(this);
+  late final $CatalogLanguagesTable catalogLanguages =
+      $CatalogLanguagesTable(this);
+  late final $ExerciseAliasesTable exerciseAliases =
+      $ExerciseAliasesTable(this);
   late final $UserFoodOverrideTranslationsTable userFoodOverrideTranslations =
       $UserFoodOverrideTranslationsTable(this);
   late final Index idxNutritionConsumedAt = Index('idx_nutrition_consumed_at',
@@ -19108,6 +22387,15 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         workoutExerciseLogs,
         userFoodOverrides,
         exerciseTranslations,
+        muscles,
+        muscleTranslations,
+        equipment,
+        equipmentTranslations,
+        exerciseMuscles,
+        exerciseEquipment,
+        exerciseTags,
+        catalogLanguages,
+        exerciseAliases,
         userFoodOverrideTranslations,
         idxNutritionConsumedAt,
         idxFluidConsumedAt,
@@ -19999,6 +23287,19 @@ typedef $$ExercisesTableCreateCompanionBuilder = ExercisesCompanion Function({
   Value<String> source,
   Value<int> usageCount,
   Value<String?> replacesExerciseId,
+  Value<String?> status,
+  Value<String?> mergedInto,
+  Value<String?> modality,
+  Value<String?> mechanic,
+  Value<String?> forceVector,
+  Value<String?> movementPattern,
+  Value<String?> laterality,
+  Value<String?> difficulty,
+  Value<String?> trackingType,
+  Value<String?> loadMode,
+  Value<bool> supportsAddedWeight,
+  Value<String?> primaryEquipment,
+  Value<String?> bodyRegion,
 });
 typedef $$ExercisesTableUpdateCompanionBuilder = ExercisesCompanion Function({
   Value<int> localId,
@@ -20015,6 +23316,19 @@ typedef $$ExercisesTableUpdateCompanionBuilder = ExercisesCompanion Function({
   Value<String> source,
   Value<int> usageCount,
   Value<String?> replacesExerciseId,
+  Value<String?> status,
+  Value<String?> mergedInto,
+  Value<String?> modality,
+  Value<String?> mechanic,
+  Value<String?> forceVector,
+  Value<String?> movementPattern,
+  Value<String?> laterality,
+  Value<String?> difficulty,
+  Value<String?> trackingType,
+  Value<String?> loadMode,
+  Value<bool> supportsAddedWeight,
+  Value<String?> primaryEquipment,
+  Value<String?> bodyRegion,
 });
 
 final class $$ExercisesTableReferences
@@ -20151,6 +23465,48 @@ class $$ExercisesTableFilterComposer
 
   ColumnFilters<int> get usageCount => $composableBuilder(
       column: $table.usageCount, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get status => $composableBuilder(
+      column: $table.status, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get mergedInto => $composableBuilder(
+      column: $table.mergedInto, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get modality => $composableBuilder(
+      column: $table.modality, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get mechanic => $composableBuilder(
+      column: $table.mechanic, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get forceVector => $composableBuilder(
+      column: $table.forceVector, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get movementPattern => $composableBuilder(
+      column: $table.movementPattern,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get laterality => $composableBuilder(
+      column: $table.laterality, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get difficulty => $composableBuilder(
+      column: $table.difficulty, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get trackingType => $composableBuilder(
+      column: $table.trackingType, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get loadMode => $composableBuilder(
+      column: $table.loadMode, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get supportsAddedWeight => $composableBuilder(
+      column: $table.supportsAddedWeight,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get primaryEquipment => $composableBuilder(
+      column: $table.primaryEquipment,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get bodyRegion => $composableBuilder(
+      column: $table.bodyRegion, builder: (column) => ColumnFilters(column));
 
   $$ExercisesTableFilterComposer get replacesExerciseId {
     final $$ExercisesTableFilterComposer composer = $composerBuilder(
@@ -20309,6 +23665,49 @@ class $$ExercisesTableOrderingComposer
   ColumnOrderings<int> get usageCount => $composableBuilder(
       column: $table.usageCount, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<String> get status => $composableBuilder(
+      column: $table.status, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get mergedInto => $composableBuilder(
+      column: $table.mergedInto, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get modality => $composableBuilder(
+      column: $table.modality, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get mechanic => $composableBuilder(
+      column: $table.mechanic, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get forceVector => $composableBuilder(
+      column: $table.forceVector, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get movementPattern => $composableBuilder(
+      column: $table.movementPattern,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get laterality => $composableBuilder(
+      column: $table.laterality, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get difficulty => $composableBuilder(
+      column: $table.difficulty, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get trackingType => $composableBuilder(
+      column: $table.trackingType,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get loadMode => $composableBuilder(
+      column: $table.loadMode, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get supportsAddedWeight => $composableBuilder(
+      column: $table.supportsAddedWeight,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get primaryEquipment => $composableBuilder(
+      column: $table.primaryEquipment,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get bodyRegion => $composableBuilder(
+      column: $table.bodyRegion, builder: (column) => ColumnOrderings(column));
+
   $$ExercisesTableOrderingComposer get replacesExerciseId {
     final $$ExercisesTableOrderingComposer composer = $composerBuilder(
         composer: this,
@@ -20377,6 +23776,45 @@ class $$ExercisesTableAnnotationComposer
 
   GeneratedColumn<int> get usageCount => $composableBuilder(
       column: $table.usageCount, builder: (column) => column);
+
+  GeneratedColumn<String> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<String> get mergedInto => $composableBuilder(
+      column: $table.mergedInto, builder: (column) => column);
+
+  GeneratedColumn<String> get modality =>
+      $composableBuilder(column: $table.modality, builder: (column) => column);
+
+  GeneratedColumn<String> get mechanic =>
+      $composableBuilder(column: $table.mechanic, builder: (column) => column);
+
+  GeneratedColumn<String> get forceVector => $composableBuilder(
+      column: $table.forceVector, builder: (column) => column);
+
+  GeneratedColumn<String> get movementPattern => $composableBuilder(
+      column: $table.movementPattern, builder: (column) => column);
+
+  GeneratedColumn<String> get laterality => $composableBuilder(
+      column: $table.laterality, builder: (column) => column);
+
+  GeneratedColumn<String> get difficulty => $composableBuilder(
+      column: $table.difficulty, builder: (column) => column);
+
+  GeneratedColumn<String> get trackingType => $composableBuilder(
+      column: $table.trackingType, builder: (column) => column);
+
+  GeneratedColumn<String> get loadMode =>
+      $composableBuilder(column: $table.loadMode, builder: (column) => column);
+
+  GeneratedColumn<bool> get supportsAddedWeight => $composableBuilder(
+      column: $table.supportsAddedWeight, builder: (column) => column);
+
+  GeneratedColumn<String> get primaryEquipment => $composableBuilder(
+      column: $table.primaryEquipment, builder: (column) => column);
+
+  GeneratedColumn<String> get bodyRegion => $composableBuilder(
+      column: $table.bodyRegion, builder: (column) => column);
 
   $$ExercisesTableAnnotationComposer get replacesExerciseId {
     final $$ExercisesTableAnnotationComposer composer = $composerBuilder(
@@ -20529,6 +23967,19 @@ class $$ExercisesTableTableManager extends RootTableManager<
             Value<String> source = const Value.absent(),
             Value<int> usageCount = const Value.absent(),
             Value<String?> replacesExerciseId = const Value.absent(),
+            Value<String?> status = const Value.absent(),
+            Value<String?> mergedInto = const Value.absent(),
+            Value<String?> modality = const Value.absent(),
+            Value<String?> mechanic = const Value.absent(),
+            Value<String?> forceVector = const Value.absent(),
+            Value<String?> movementPattern = const Value.absent(),
+            Value<String?> laterality = const Value.absent(),
+            Value<String?> difficulty = const Value.absent(),
+            Value<String?> trackingType = const Value.absent(),
+            Value<String?> loadMode = const Value.absent(),
+            Value<bool> supportsAddedWeight = const Value.absent(),
+            Value<String?> primaryEquipment = const Value.absent(),
+            Value<String?> bodyRegion = const Value.absent(),
           }) =>
               ExercisesCompanion(
             localId: localId,
@@ -20545,6 +23996,19 @@ class $$ExercisesTableTableManager extends RootTableManager<
             source: source,
             usageCount: usageCount,
             replacesExerciseId: replacesExerciseId,
+            status: status,
+            mergedInto: mergedInto,
+            modality: modality,
+            mechanic: mechanic,
+            forceVector: forceVector,
+            movementPattern: movementPattern,
+            laterality: laterality,
+            difficulty: difficulty,
+            trackingType: trackingType,
+            loadMode: loadMode,
+            supportsAddedWeight: supportsAddedWeight,
+            primaryEquipment: primaryEquipment,
+            bodyRegion: bodyRegion,
           ),
           createCompanionCallback: ({
             Value<int> localId = const Value.absent(),
@@ -20561,6 +24025,19 @@ class $$ExercisesTableTableManager extends RootTableManager<
             Value<String> source = const Value.absent(),
             Value<int> usageCount = const Value.absent(),
             Value<String?> replacesExerciseId = const Value.absent(),
+            Value<String?> status = const Value.absent(),
+            Value<String?> mergedInto = const Value.absent(),
+            Value<String?> modality = const Value.absent(),
+            Value<String?> mechanic = const Value.absent(),
+            Value<String?> forceVector = const Value.absent(),
+            Value<String?> movementPattern = const Value.absent(),
+            Value<String?> laterality = const Value.absent(),
+            Value<String?> difficulty = const Value.absent(),
+            Value<String?> trackingType = const Value.absent(),
+            Value<String?> loadMode = const Value.absent(),
+            Value<bool> supportsAddedWeight = const Value.absent(),
+            Value<String?> primaryEquipment = const Value.absent(),
+            Value<String?> bodyRegion = const Value.absent(),
           }) =>
               ExercisesCompanion.insert(
             localId: localId,
@@ -20577,6 +24054,19 @@ class $$ExercisesTableTableManager extends RootTableManager<
             source: source,
             usageCount: usageCount,
             replacesExerciseId: replacesExerciseId,
+            status: status,
+            mergedInto: mergedInto,
+            modality: modality,
+            mechanic: mechanic,
+            forceVector: forceVector,
+            movementPattern: movementPattern,
+            laterality: laterality,
+            difficulty: difficulty,
+            trackingType: trackingType,
+            loadMode: loadMode,
+            supportsAddedWeight: supportsAddedWeight,
+            primaryEquipment: primaryEquipment,
+            bodyRegion: bodyRegion,
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (
@@ -31473,6 +34963,14 @@ typedef $$ExerciseTranslationsTableCreateCompanionBuilder
   required String languageCode,
   required String name,
   Value<String?> description,
+  Value<String?> instructions,
+  Value<String?> cues,
+  Value<String?> commonMistakes,
+  Value<String?> searchTerms,
+  Value<String?> translationStatus,
+  Value<String?> sourceLang,
+  Value<String?> license,
+  Value<String?> licenseAuthor,
 });
 typedef $$ExerciseTranslationsTableUpdateCompanionBuilder
     = ExerciseTranslationsCompanion Function({
@@ -31485,6 +34983,14 @@ typedef $$ExerciseTranslationsTableUpdateCompanionBuilder
   Value<String> languageCode,
   Value<String> name,
   Value<String?> description,
+  Value<String?> instructions,
+  Value<String?> cues,
+  Value<String?> commonMistakes,
+  Value<String?> searchTerms,
+  Value<String?> translationStatus,
+  Value<String?> sourceLang,
+  Value<String?> license,
+  Value<String?> licenseAuthor,
 });
 
 final class $$ExerciseTranslationsTableReferences extends BaseReferences<
@@ -31539,6 +35045,32 @@ class $$ExerciseTranslationsTableFilterComposer
 
   ColumnFilters<String> get description => $composableBuilder(
       column: $table.description, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get instructions => $composableBuilder(
+      column: $table.instructions, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get cues => $composableBuilder(
+      column: $table.cues, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get commonMistakes => $composableBuilder(
+      column: $table.commonMistakes,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get searchTerms => $composableBuilder(
+      column: $table.searchTerms, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get translationStatus => $composableBuilder(
+      column: $table.translationStatus,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get sourceLang => $composableBuilder(
+      column: $table.sourceLang, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get license => $composableBuilder(
+      column: $table.license, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get licenseAuthor => $composableBuilder(
+      column: $table.licenseAuthor, builder: (column) => ColumnFilters(column));
 
   $$ExercisesTableFilterComposer get exerciseId {
     final $$ExercisesTableFilterComposer composer = $composerBuilder(
@@ -31595,6 +35127,34 @@ class $$ExerciseTranslationsTableOrderingComposer
   ColumnOrderings<String> get description => $composableBuilder(
       column: $table.description, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<String> get instructions => $composableBuilder(
+      column: $table.instructions,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get cues => $composableBuilder(
+      column: $table.cues, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get commonMistakes => $composableBuilder(
+      column: $table.commonMistakes,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get searchTerms => $composableBuilder(
+      column: $table.searchTerms, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get translationStatus => $composableBuilder(
+      column: $table.translationStatus,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get sourceLang => $composableBuilder(
+      column: $table.sourceLang, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get license => $composableBuilder(
+      column: $table.license, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get licenseAuthor => $composableBuilder(
+      column: $table.licenseAuthor,
+      builder: (column) => ColumnOrderings(column));
+
   $$ExercisesTableOrderingComposer get exerciseId {
     final $$ExercisesTableOrderingComposer composer = $composerBuilder(
         composer: this,
@@ -31648,6 +35208,30 @@ class $$ExerciseTranslationsTableAnnotationComposer
 
   GeneratedColumn<String> get description => $composableBuilder(
       column: $table.description, builder: (column) => column);
+
+  GeneratedColumn<String> get instructions => $composableBuilder(
+      column: $table.instructions, builder: (column) => column);
+
+  GeneratedColumn<String> get cues =>
+      $composableBuilder(column: $table.cues, builder: (column) => column);
+
+  GeneratedColumn<String> get commonMistakes => $composableBuilder(
+      column: $table.commonMistakes, builder: (column) => column);
+
+  GeneratedColumn<String> get searchTerms => $composableBuilder(
+      column: $table.searchTerms, builder: (column) => column);
+
+  GeneratedColumn<String> get translationStatus => $composableBuilder(
+      column: $table.translationStatus, builder: (column) => column);
+
+  GeneratedColumn<String> get sourceLang => $composableBuilder(
+      column: $table.sourceLang, builder: (column) => column);
+
+  GeneratedColumn<String> get license =>
+      $composableBuilder(column: $table.license, builder: (column) => column);
+
+  GeneratedColumn<String> get licenseAuthor => $composableBuilder(
+      column: $table.licenseAuthor, builder: (column) => column);
 
   $$ExercisesTableAnnotationComposer get exerciseId {
     final $$ExercisesTableAnnotationComposer composer = $composerBuilder(
@@ -31705,6 +35289,14 @@ class $$ExerciseTranslationsTableTableManager extends RootTableManager<
             Value<String> languageCode = const Value.absent(),
             Value<String> name = const Value.absent(),
             Value<String?> description = const Value.absent(),
+            Value<String?> instructions = const Value.absent(),
+            Value<String?> cues = const Value.absent(),
+            Value<String?> commonMistakes = const Value.absent(),
+            Value<String?> searchTerms = const Value.absent(),
+            Value<String?> translationStatus = const Value.absent(),
+            Value<String?> sourceLang = const Value.absent(),
+            Value<String?> license = const Value.absent(),
+            Value<String?> licenseAuthor = const Value.absent(),
           }) =>
               ExerciseTranslationsCompanion(
             localId: localId,
@@ -31716,6 +35308,14 @@ class $$ExerciseTranslationsTableTableManager extends RootTableManager<
             languageCode: languageCode,
             name: name,
             description: description,
+            instructions: instructions,
+            cues: cues,
+            commonMistakes: commonMistakes,
+            searchTerms: searchTerms,
+            translationStatus: translationStatus,
+            sourceLang: sourceLang,
+            license: license,
+            licenseAuthor: licenseAuthor,
           ),
           createCompanionCallback: ({
             Value<int> localId = const Value.absent(),
@@ -31727,6 +35327,14 @@ class $$ExerciseTranslationsTableTableManager extends RootTableManager<
             required String languageCode,
             required String name,
             Value<String?> description = const Value.absent(),
+            Value<String?> instructions = const Value.absent(),
+            Value<String?> cues = const Value.absent(),
+            Value<String?> commonMistakes = const Value.absent(),
+            Value<String?> searchTerms = const Value.absent(),
+            Value<String?> translationStatus = const Value.absent(),
+            Value<String?> sourceLang = const Value.absent(),
+            Value<String?> license = const Value.absent(),
+            Value<String?> licenseAuthor = const Value.absent(),
           }) =>
               ExerciseTranslationsCompanion.insert(
             localId: localId,
@@ -31738,6 +35346,14 @@ class $$ExerciseTranslationsTableTableManager extends RootTableManager<
             languageCode: languageCode,
             name: name,
             description: description,
+            instructions: instructions,
+            cues: cues,
+            commonMistakes: commonMistakes,
+            searchTerms: searchTerms,
+            translationStatus: translationStatus,
+            sourceLang: sourceLang,
+            license: license,
+            licenseAuthor: licenseAuthor,
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (
@@ -31797,6 +35413,1364 @@ typedef $$ExerciseTranslationsTableProcessedTableManager
         (ExerciseTranslation, $$ExerciseTranslationsTableReferences),
         ExerciseTranslation,
         PrefetchHooks Function({bool exerciseId})>;
+typedef $$MusclesTableCreateCompanionBuilder = MusclesCompanion Function({
+  required String id,
+  Value<String?> parentId,
+  required String level,
+  required String groupId,
+  Value<String?> legacyGroup,
+  Value<String?> bodySlugs,
+  Value<int> rowid,
+});
+typedef $$MusclesTableUpdateCompanionBuilder = MusclesCompanion Function({
+  Value<String> id,
+  Value<String?> parentId,
+  Value<String> level,
+  Value<String> groupId,
+  Value<String?> legacyGroup,
+  Value<String?> bodySlugs,
+  Value<int> rowid,
+});
+
+class $$MusclesTableFilterComposer
+    extends Composer<_$AppDatabase, $MusclesTable> {
+  $$MusclesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get parentId => $composableBuilder(
+      column: $table.parentId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get level => $composableBuilder(
+      column: $table.level, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get groupId => $composableBuilder(
+      column: $table.groupId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get legacyGroup => $composableBuilder(
+      column: $table.legacyGroup, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get bodySlugs => $composableBuilder(
+      column: $table.bodySlugs, builder: (column) => ColumnFilters(column));
+}
+
+class $$MusclesTableOrderingComposer
+    extends Composer<_$AppDatabase, $MusclesTable> {
+  $$MusclesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get parentId => $composableBuilder(
+      column: $table.parentId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get level => $composableBuilder(
+      column: $table.level, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get groupId => $composableBuilder(
+      column: $table.groupId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get legacyGroup => $composableBuilder(
+      column: $table.legacyGroup, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get bodySlugs => $composableBuilder(
+      column: $table.bodySlugs, builder: (column) => ColumnOrderings(column));
+}
+
+class $$MusclesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $MusclesTable> {
+  $$MusclesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get parentId =>
+      $composableBuilder(column: $table.parentId, builder: (column) => column);
+
+  GeneratedColumn<String> get level =>
+      $composableBuilder(column: $table.level, builder: (column) => column);
+
+  GeneratedColumn<String> get groupId =>
+      $composableBuilder(column: $table.groupId, builder: (column) => column);
+
+  GeneratedColumn<String> get legacyGroup => $composableBuilder(
+      column: $table.legacyGroup, builder: (column) => column);
+
+  GeneratedColumn<String> get bodySlugs =>
+      $composableBuilder(column: $table.bodySlugs, builder: (column) => column);
+}
+
+class $$MusclesTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $MusclesTable,
+    Muscle,
+    $$MusclesTableFilterComposer,
+    $$MusclesTableOrderingComposer,
+    $$MusclesTableAnnotationComposer,
+    $$MusclesTableCreateCompanionBuilder,
+    $$MusclesTableUpdateCompanionBuilder,
+    (Muscle, BaseReferences<_$AppDatabase, $MusclesTable, Muscle>),
+    Muscle,
+    PrefetchHooks Function()> {
+  $$MusclesTableTableManager(_$AppDatabase db, $MusclesTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$MusclesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$MusclesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$MusclesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<String> id = const Value.absent(),
+            Value<String?> parentId = const Value.absent(),
+            Value<String> level = const Value.absent(),
+            Value<String> groupId = const Value.absent(),
+            Value<String?> legacyGroup = const Value.absent(),
+            Value<String?> bodySlugs = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              MusclesCompanion(
+            id: id,
+            parentId: parentId,
+            level: level,
+            groupId: groupId,
+            legacyGroup: legacyGroup,
+            bodySlugs: bodySlugs,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String id,
+            Value<String?> parentId = const Value.absent(),
+            required String level,
+            required String groupId,
+            Value<String?> legacyGroup = const Value.absent(),
+            Value<String?> bodySlugs = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              MusclesCompanion.insert(
+            id: id,
+            parentId: parentId,
+            level: level,
+            groupId: groupId,
+            legacyGroup: legacyGroup,
+            bodySlugs: bodySlugs,
+            rowid: rowid,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$MusclesTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $MusclesTable,
+    Muscle,
+    $$MusclesTableFilterComposer,
+    $$MusclesTableOrderingComposer,
+    $$MusclesTableAnnotationComposer,
+    $$MusclesTableCreateCompanionBuilder,
+    $$MusclesTableUpdateCompanionBuilder,
+    (Muscle, BaseReferences<_$AppDatabase, $MusclesTable, Muscle>),
+    Muscle,
+    PrefetchHooks Function()>;
+typedef $$MuscleTranslationsTableCreateCompanionBuilder
+    = MuscleTranslationsCompanion Function({
+  required String muscleId,
+  required String languageCode,
+  required String name,
+  Value<int> rowid,
+});
+typedef $$MuscleTranslationsTableUpdateCompanionBuilder
+    = MuscleTranslationsCompanion Function({
+  Value<String> muscleId,
+  Value<String> languageCode,
+  Value<String> name,
+  Value<int> rowid,
+});
+
+class $$MuscleTranslationsTableFilterComposer
+    extends Composer<_$AppDatabase, $MuscleTranslationsTable> {
+  $$MuscleTranslationsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get muscleId => $composableBuilder(
+      column: $table.muscleId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get languageCode => $composableBuilder(
+      column: $table.languageCode, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get name => $composableBuilder(
+      column: $table.name, builder: (column) => ColumnFilters(column));
+}
+
+class $$MuscleTranslationsTableOrderingComposer
+    extends Composer<_$AppDatabase, $MuscleTranslationsTable> {
+  $$MuscleTranslationsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get muscleId => $composableBuilder(
+      column: $table.muscleId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get languageCode => $composableBuilder(
+      column: $table.languageCode,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get name => $composableBuilder(
+      column: $table.name, builder: (column) => ColumnOrderings(column));
+}
+
+class $$MuscleTranslationsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $MuscleTranslationsTable> {
+  $$MuscleTranslationsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get muscleId =>
+      $composableBuilder(column: $table.muscleId, builder: (column) => column);
+
+  GeneratedColumn<String> get languageCode => $composableBuilder(
+      column: $table.languageCode, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+}
+
+class $$MuscleTranslationsTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $MuscleTranslationsTable,
+    MuscleTranslation,
+    $$MuscleTranslationsTableFilterComposer,
+    $$MuscleTranslationsTableOrderingComposer,
+    $$MuscleTranslationsTableAnnotationComposer,
+    $$MuscleTranslationsTableCreateCompanionBuilder,
+    $$MuscleTranslationsTableUpdateCompanionBuilder,
+    (
+      MuscleTranslation,
+      BaseReferences<_$AppDatabase, $MuscleTranslationsTable, MuscleTranslation>
+    ),
+    MuscleTranslation,
+    PrefetchHooks Function()> {
+  $$MuscleTranslationsTableTableManager(
+      _$AppDatabase db, $MuscleTranslationsTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$MuscleTranslationsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$MuscleTranslationsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$MuscleTranslationsTableAnnotationComposer(
+                  $db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<String> muscleId = const Value.absent(),
+            Value<String> languageCode = const Value.absent(),
+            Value<String> name = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              MuscleTranslationsCompanion(
+            muscleId: muscleId,
+            languageCode: languageCode,
+            name: name,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String muscleId,
+            required String languageCode,
+            required String name,
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              MuscleTranslationsCompanion.insert(
+            muscleId: muscleId,
+            languageCode: languageCode,
+            name: name,
+            rowid: rowid,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$MuscleTranslationsTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $MuscleTranslationsTable,
+    MuscleTranslation,
+    $$MuscleTranslationsTableFilterComposer,
+    $$MuscleTranslationsTableOrderingComposer,
+    $$MuscleTranslationsTableAnnotationComposer,
+    $$MuscleTranslationsTableCreateCompanionBuilder,
+    $$MuscleTranslationsTableUpdateCompanionBuilder,
+    (
+      MuscleTranslation,
+      BaseReferences<_$AppDatabase, $MuscleTranslationsTable, MuscleTranslation>
+    ),
+    MuscleTranslation,
+    PrefetchHooks Function()>;
+typedef $$EquipmentTableCreateCompanionBuilder = EquipmentCompanion Function({
+  required String id,
+  required String kind,
+  Value<int> rowid,
+});
+typedef $$EquipmentTableUpdateCompanionBuilder = EquipmentCompanion Function({
+  Value<String> id,
+  Value<String> kind,
+  Value<int> rowid,
+});
+
+class $$EquipmentTableFilterComposer
+    extends Composer<_$AppDatabase, $EquipmentTable> {
+  $$EquipmentTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get kind => $composableBuilder(
+      column: $table.kind, builder: (column) => ColumnFilters(column));
+}
+
+class $$EquipmentTableOrderingComposer
+    extends Composer<_$AppDatabase, $EquipmentTable> {
+  $$EquipmentTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get kind => $composableBuilder(
+      column: $table.kind, builder: (column) => ColumnOrderings(column));
+}
+
+class $$EquipmentTableAnnotationComposer
+    extends Composer<_$AppDatabase, $EquipmentTable> {
+  $$EquipmentTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get kind =>
+      $composableBuilder(column: $table.kind, builder: (column) => column);
+}
+
+class $$EquipmentTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $EquipmentTable,
+    EquipmentEntry,
+    $$EquipmentTableFilterComposer,
+    $$EquipmentTableOrderingComposer,
+    $$EquipmentTableAnnotationComposer,
+    $$EquipmentTableCreateCompanionBuilder,
+    $$EquipmentTableUpdateCompanionBuilder,
+    (
+      EquipmentEntry,
+      BaseReferences<_$AppDatabase, $EquipmentTable, EquipmentEntry>
+    ),
+    EquipmentEntry,
+    PrefetchHooks Function()> {
+  $$EquipmentTableTableManager(_$AppDatabase db, $EquipmentTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$EquipmentTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$EquipmentTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$EquipmentTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<String> id = const Value.absent(),
+            Value<String> kind = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              EquipmentCompanion(
+            id: id,
+            kind: kind,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String id,
+            required String kind,
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              EquipmentCompanion.insert(
+            id: id,
+            kind: kind,
+            rowid: rowid,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$EquipmentTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $EquipmentTable,
+    EquipmentEntry,
+    $$EquipmentTableFilterComposer,
+    $$EquipmentTableOrderingComposer,
+    $$EquipmentTableAnnotationComposer,
+    $$EquipmentTableCreateCompanionBuilder,
+    $$EquipmentTableUpdateCompanionBuilder,
+    (
+      EquipmentEntry,
+      BaseReferences<_$AppDatabase, $EquipmentTable, EquipmentEntry>
+    ),
+    EquipmentEntry,
+    PrefetchHooks Function()>;
+typedef $$EquipmentTranslationsTableCreateCompanionBuilder
+    = EquipmentTranslationsCompanion Function({
+  required String equipmentId,
+  required String languageCode,
+  required String name,
+  Value<int> rowid,
+});
+typedef $$EquipmentTranslationsTableUpdateCompanionBuilder
+    = EquipmentTranslationsCompanion Function({
+  Value<String> equipmentId,
+  Value<String> languageCode,
+  Value<String> name,
+  Value<int> rowid,
+});
+
+class $$EquipmentTranslationsTableFilterComposer
+    extends Composer<_$AppDatabase, $EquipmentTranslationsTable> {
+  $$EquipmentTranslationsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get equipmentId => $composableBuilder(
+      column: $table.equipmentId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get languageCode => $composableBuilder(
+      column: $table.languageCode, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get name => $composableBuilder(
+      column: $table.name, builder: (column) => ColumnFilters(column));
+}
+
+class $$EquipmentTranslationsTableOrderingComposer
+    extends Composer<_$AppDatabase, $EquipmentTranslationsTable> {
+  $$EquipmentTranslationsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get equipmentId => $composableBuilder(
+      column: $table.equipmentId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get languageCode => $composableBuilder(
+      column: $table.languageCode,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get name => $composableBuilder(
+      column: $table.name, builder: (column) => ColumnOrderings(column));
+}
+
+class $$EquipmentTranslationsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $EquipmentTranslationsTable> {
+  $$EquipmentTranslationsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get equipmentId => $composableBuilder(
+      column: $table.equipmentId, builder: (column) => column);
+
+  GeneratedColumn<String> get languageCode => $composableBuilder(
+      column: $table.languageCode, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+}
+
+class $$EquipmentTranslationsTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $EquipmentTranslationsTable,
+    EquipmentTranslation,
+    $$EquipmentTranslationsTableFilterComposer,
+    $$EquipmentTranslationsTableOrderingComposer,
+    $$EquipmentTranslationsTableAnnotationComposer,
+    $$EquipmentTranslationsTableCreateCompanionBuilder,
+    $$EquipmentTranslationsTableUpdateCompanionBuilder,
+    (
+      EquipmentTranslation,
+      BaseReferences<_$AppDatabase, $EquipmentTranslationsTable,
+          EquipmentTranslation>
+    ),
+    EquipmentTranslation,
+    PrefetchHooks Function()> {
+  $$EquipmentTranslationsTableTableManager(
+      _$AppDatabase db, $EquipmentTranslationsTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$EquipmentTranslationsTableFilterComposer(
+                  $db: db, $table: table),
+          createOrderingComposer: () =>
+              $$EquipmentTranslationsTableOrderingComposer(
+                  $db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$EquipmentTranslationsTableAnnotationComposer(
+                  $db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<String> equipmentId = const Value.absent(),
+            Value<String> languageCode = const Value.absent(),
+            Value<String> name = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              EquipmentTranslationsCompanion(
+            equipmentId: equipmentId,
+            languageCode: languageCode,
+            name: name,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String equipmentId,
+            required String languageCode,
+            required String name,
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              EquipmentTranslationsCompanion.insert(
+            equipmentId: equipmentId,
+            languageCode: languageCode,
+            name: name,
+            rowid: rowid,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$EquipmentTranslationsTableProcessedTableManager
+    = ProcessedTableManager<
+        _$AppDatabase,
+        $EquipmentTranslationsTable,
+        EquipmentTranslation,
+        $$EquipmentTranslationsTableFilterComposer,
+        $$EquipmentTranslationsTableOrderingComposer,
+        $$EquipmentTranslationsTableAnnotationComposer,
+        $$EquipmentTranslationsTableCreateCompanionBuilder,
+        $$EquipmentTranslationsTableUpdateCompanionBuilder,
+        (
+          EquipmentTranslation,
+          BaseReferences<_$AppDatabase, $EquipmentTranslationsTable,
+              EquipmentTranslation>
+        ),
+        EquipmentTranslation,
+        PrefetchHooks Function()>;
+typedef $$ExerciseMusclesTableCreateCompanionBuilder = ExerciseMusclesCompanion
+    Function({
+  required String exerciseId,
+  required String muscleId,
+  required String role,
+  Value<double?> contribution,
+  Value<int> rowid,
+});
+typedef $$ExerciseMusclesTableUpdateCompanionBuilder = ExerciseMusclesCompanion
+    Function({
+  Value<String> exerciseId,
+  Value<String> muscleId,
+  Value<String> role,
+  Value<double?> contribution,
+  Value<int> rowid,
+});
+
+class $$ExerciseMusclesTableFilterComposer
+    extends Composer<_$AppDatabase, $ExerciseMusclesTable> {
+  $$ExerciseMusclesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get exerciseId => $composableBuilder(
+      column: $table.exerciseId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get muscleId => $composableBuilder(
+      column: $table.muscleId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get role => $composableBuilder(
+      column: $table.role, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<double> get contribution => $composableBuilder(
+      column: $table.contribution, builder: (column) => ColumnFilters(column));
+}
+
+class $$ExerciseMusclesTableOrderingComposer
+    extends Composer<_$AppDatabase, $ExerciseMusclesTable> {
+  $$ExerciseMusclesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get exerciseId => $composableBuilder(
+      column: $table.exerciseId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get muscleId => $composableBuilder(
+      column: $table.muscleId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get role => $composableBuilder(
+      column: $table.role, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<double> get contribution => $composableBuilder(
+      column: $table.contribution,
+      builder: (column) => ColumnOrderings(column));
+}
+
+class $$ExerciseMusclesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $ExerciseMusclesTable> {
+  $$ExerciseMusclesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get exerciseId => $composableBuilder(
+      column: $table.exerciseId, builder: (column) => column);
+
+  GeneratedColumn<String> get muscleId =>
+      $composableBuilder(column: $table.muscleId, builder: (column) => column);
+
+  GeneratedColumn<String> get role =>
+      $composableBuilder(column: $table.role, builder: (column) => column);
+
+  GeneratedColumn<double> get contribution => $composableBuilder(
+      column: $table.contribution, builder: (column) => column);
+}
+
+class $$ExerciseMusclesTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $ExerciseMusclesTable,
+    ExerciseMuscle,
+    $$ExerciseMusclesTableFilterComposer,
+    $$ExerciseMusclesTableOrderingComposer,
+    $$ExerciseMusclesTableAnnotationComposer,
+    $$ExerciseMusclesTableCreateCompanionBuilder,
+    $$ExerciseMusclesTableUpdateCompanionBuilder,
+    (
+      ExerciseMuscle,
+      BaseReferences<_$AppDatabase, $ExerciseMusclesTable, ExerciseMuscle>
+    ),
+    ExerciseMuscle,
+    PrefetchHooks Function()> {
+  $$ExerciseMusclesTableTableManager(
+      _$AppDatabase db, $ExerciseMusclesTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$ExerciseMusclesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$ExerciseMusclesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$ExerciseMusclesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<String> exerciseId = const Value.absent(),
+            Value<String> muscleId = const Value.absent(),
+            Value<String> role = const Value.absent(),
+            Value<double?> contribution = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              ExerciseMusclesCompanion(
+            exerciseId: exerciseId,
+            muscleId: muscleId,
+            role: role,
+            contribution: contribution,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String exerciseId,
+            required String muscleId,
+            required String role,
+            Value<double?> contribution = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              ExerciseMusclesCompanion.insert(
+            exerciseId: exerciseId,
+            muscleId: muscleId,
+            role: role,
+            contribution: contribution,
+            rowid: rowid,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$ExerciseMusclesTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $ExerciseMusclesTable,
+    ExerciseMuscle,
+    $$ExerciseMusclesTableFilterComposer,
+    $$ExerciseMusclesTableOrderingComposer,
+    $$ExerciseMusclesTableAnnotationComposer,
+    $$ExerciseMusclesTableCreateCompanionBuilder,
+    $$ExerciseMusclesTableUpdateCompanionBuilder,
+    (
+      ExerciseMuscle,
+      BaseReferences<_$AppDatabase, $ExerciseMusclesTable, ExerciseMuscle>
+    ),
+    ExerciseMuscle,
+    PrefetchHooks Function()>;
+typedef $$ExerciseEquipmentTableCreateCompanionBuilder
+    = ExerciseEquipmentCompanion Function({
+  required String exerciseId,
+  required String equipmentId,
+  required String kind,
+  Value<int> rowid,
+});
+typedef $$ExerciseEquipmentTableUpdateCompanionBuilder
+    = ExerciseEquipmentCompanion Function({
+  Value<String> exerciseId,
+  Value<String> equipmentId,
+  Value<String> kind,
+  Value<int> rowid,
+});
+
+class $$ExerciseEquipmentTableFilterComposer
+    extends Composer<_$AppDatabase, $ExerciseEquipmentTable> {
+  $$ExerciseEquipmentTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get exerciseId => $composableBuilder(
+      column: $table.exerciseId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get equipmentId => $composableBuilder(
+      column: $table.equipmentId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get kind => $composableBuilder(
+      column: $table.kind, builder: (column) => ColumnFilters(column));
+}
+
+class $$ExerciseEquipmentTableOrderingComposer
+    extends Composer<_$AppDatabase, $ExerciseEquipmentTable> {
+  $$ExerciseEquipmentTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get exerciseId => $composableBuilder(
+      column: $table.exerciseId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get equipmentId => $composableBuilder(
+      column: $table.equipmentId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get kind => $composableBuilder(
+      column: $table.kind, builder: (column) => ColumnOrderings(column));
+}
+
+class $$ExerciseEquipmentTableAnnotationComposer
+    extends Composer<_$AppDatabase, $ExerciseEquipmentTable> {
+  $$ExerciseEquipmentTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get exerciseId => $composableBuilder(
+      column: $table.exerciseId, builder: (column) => column);
+
+  GeneratedColumn<String> get equipmentId => $composableBuilder(
+      column: $table.equipmentId, builder: (column) => column);
+
+  GeneratedColumn<String> get kind =>
+      $composableBuilder(column: $table.kind, builder: (column) => column);
+}
+
+class $$ExerciseEquipmentTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $ExerciseEquipmentTable,
+    ExerciseEquipmentEntry,
+    $$ExerciseEquipmentTableFilterComposer,
+    $$ExerciseEquipmentTableOrderingComposer,
+    $$ExerciseEquipmentTableAnnotationComposer,
+    $$ExerciseEquipmentTableCreateCompanionBuilder,
+    $$ExerciseEquipmentTableUpdateCompanionBuilder,
+    (
+      ExerciseEquipmentEntry,
+      BaseReferences<_$AppDatabase, $ExerciseEquipmentTable,
+          ExerciseEquipmentEntry>
+    ),
+    ExerciseEquipmentEntry,
+    PrefetchHooks Function()> {
+  $$ExerciseEquipmentTableTableManager(
+      _$AppDatabase db, $ExerciseEquipmentTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$ExerciseEquipmentTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$ExerciseEquipmentTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$ExerciseEquipmentTableAnnotationComposer(
+                  $db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<String> exerciseId = const Value.absent(),
+            Value<String> equipmentId = const Value.absent(),
+            Value<String> kind = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              ExerciseEquipmentCompanion(
+            exerciseId: exerciseId,
+            equipmentId: equipmentId,
+            kind: kind,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String exerciseId,
+            required String equipmentId,
+            required String kind,
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              ExerciseEquipmentCompanion.insert(
+            exerciseId: exerciseId,
+            equipmentId: equipmentId,
+            kind: kind,
+            rowid: rowid,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$ExerciseEquipmentTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $ExerciseEquipmentTable,
+    ExerciseEquipmentEntry,
+    $$ExerciseEquipmentTableFilterComposer,
+    $$ExerciseEquipmentTableOrderingComposer,
+    $$ExerciseEquipmentTableAnnotationComposer,
+    $$ExerciseEquipmentTableCreateCompanionBuilder,
+    $$ExerciseEquipmentTableUpdateCompanionBuilder,
+    (
+      ExerciseEquipmentEntry,
+      BaseReferences<_$AppDatabase, $ExerciseEquipmentTable,
+          ExerciseEquipmentEntry>
+    ),
+    ExerciseEquipmentEntry,
+    PrefetchHooks Function()>;
+typedef $$ExerciseTagsTableCreateCompanionBuilder = ExerciseTagsCompanion
+    Function({
+  required String exerciseId,
+  required String tag,
+  Value<int> rowid,
+});
+typedef $$ExerciseTagsTableUpdateCompanionBuilder = ExerciseTagsCompanion
+    Function({
+  Value<String> exerciseId,
+  Value<String> tag,
+  Value<int> rowid,
+});
+
+class $$ExerciseTagsTableFilterComposer
+    extends Composer<_$AppDatabase, $ExerciseTagsTable> {
+  $$ExerciseTagsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get exerciseId => $composableBuilder(
+      column: $table.exerciseId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get tag => $composableBuilder(
+      column: $table.tag, builder: (column) => ColumnFilters(column));
+}
+
+class $$ExerciseTagsTableOrderingComposer
+    extends Composer<_$AppDatabase, $ExerciseTagsTable> {
+  $$ExerciseTagsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get exerciseId => $composableBuilder(
+      column: $table.exerciseId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get tag => $composableBuilder(
+      column: $table.tag, builder: (column) => ColumnOrderings(column));
+}
+
+class $$ExerciseTagsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $ExerciseTagsTable> {
+  $$ExerciseTagsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get exerciseId => $composableBuilder(
+      column: $table.exerciseId, builder: (column) => column);
+
+  GeneratedColumn<String> get tag =>
+      $composableBuilder(column: $table.tag, builder: (column) => column);
+}
+
+class $$ExerciseTagsTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $ExerciseTagsTable,
+    ExerciseTag,
+    $$ExerciseTagsTableFilterComposer,
+    $$ExerciseTagsTableOrderingComposer,
+    $$ExerciseTagsTableAnnotationComposer,
+    $$ExerciseTagsTableCreateCompanionBuilder,
+    $$ExerciseTagsTableUpdateCompanionBuilder,
+    (
+      ExerciseTag,
+      BaseReferences<_$AppDatabase, $ExerciseTagsTable, ExerciseTag>
+    ),
+    ExerciseTag,
+    PrefetchHooks Function()> {
+  $$ExerciseTagsTableTableManager(_$AppDatabase db, $ExerciseTagsTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$ExerciseTagsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$ExerciseTagsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$ExerciseTagsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<String> exerciseId = const Value.absent(),
+            Value<String> tag = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              ExerciseTagsCompanion(
+            exerciseId: exerciseId,
+            tag: tag,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String exerciseId,
+            required String tag,
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              ExerciseTagsCompanion.insert(
+            exerciseId: exerciseId,
+            tag: tag,
+            rowid: rowid,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$ExerciseTagsTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $ExerciseTagsTable,
+    ExerciseTag,
+    $$ExerciseTagsTableFilterComposer,
+    $$ExerciseTagsTableOrderingComposer,
+    $$ExerciseTagsTableAnnotationComposer,
+    $$ExerciseTagsTableCreateCompanionBuilder,
+    $$ExerciseTagsTableUpdateCompanionBuilder,
+    (
+      ExerciseTag,
+      BaseReferences<_$AppDatabase, $ExerciseTagsTable, ExerciseTag>
+    ),
+    ExerciseTag,
+    PrefetchHooks Function()>;
+typedef $$CatalogLanguagesTableCreateCompanionBuilder
+    = CatalogLanguagesCompanion Function({
+  required String code,
+  required String tier,
+  Value<double> completeness,
+  Value<bool> displayable,
+  Value<int> rowid,
+});
+typedef $$CatalogLanguagesTableUpdateCompanionBuilder
+    = CatalogLanguagesCompanion Function({
+  Value<String> code,
+  Value<String> tier,
+  Value<double> completeness,
+  Value<bool> displayable,
+  Value<int> rowid,
+});
+
+class $$CatalogLanguagesTableFilterComposer
+    extends Composer<_$AppDatabase, $CatalogLanguagesTable> {
+  $$CatalogLanguagesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get code => $composableBuilder(
+      column: $table.code, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get tier => $composableBuilder(
+      column: $table.tier, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<double> get completeness => $composableBuilder(
+      column: $table.completeness, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get displayable => $composableBuilder(
+      column: $table.displayable, builder: (column) => ColumnFilters(column));
+}
+
+class $$CatalogLanguagesTableOrderingComposer
+    extends Composer<_$AppDatabase, $CatalogLanguagesTable> {
+  $$CatalogLanguagesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get code => $composableBuilder(
+      column: $table.code, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get tier => $composableBuilder(
+      column: $table.tier, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<double> get completeness => $composableBuilder(
+      column: $table.completeness,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get displayable => $composableBuilder(
+      column: $table.displayable, builder: (column) => ColumnOrderings(column));
+}
+
+class $$CatalogLanguagesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $CatalogLanguagesTable> {
+  $$CatalogLanguagesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get code =>
+      $composableBuilder(column: $table.code, builder: (column) => column);
+
+  GeneratedColumn<String> get tier =>
+      $composableBuilder(column: $table.tier, builder: (column) => column);
+
+  GeneratedColumn<double> get completeness => $composableBuilder(
+      column: $table.completeness, builder: (column) => column);
+
+  GeneratedColumn<bool> get displayable => $composableBuilder(
+      column: $table.displayable, builder: (column) => column);
+}
+
+class $$CatalogLanguagesTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $CatalogLanguagesTable,
+    CatalogLanguage,
+    $$CatalogLanguagesTableFilterComposer,
+    $$CatalogLanguagesTableOrderingComposer,
+    $$CatalogLanguagesTableAnnotationComposer,
+    $$CatalogLanguagesTableCreateCompanionBuilder,
+    $$CatalogLanguagesTableUpdateCompanionBuilder,
+    (
+      CatalogLanguage,
+      BaseReferences<_$AppDatabase, $CatalogLanguagesTable, CatalogLanguage>
+    ),
+    CatalogLanguage,
+    PrefetchHooks Function()> {
+  $$CatalogLanguagesTableTableManager(
+      _$AppDatabase db, $CatalogLanguagesTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$CatalogLanguagesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$CatalogLanguagesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$CatalogLanguagesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<String> code = const Value.absent(),
+            Value<String> tier = const Value.absent(),
+            Value<double> completeness = const Value.absent(),
+            Value<bool> displayable = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              CatalogLanguagesCompanion(
+            code: code,
+            tier: tier,
+            completeness: completeness,
+            displayable: displayable,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String code,
+            required String tier,
+            Value<double> completeness = const Value.absent(),
+            Value<bool> displayable = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              CatalogLanguagesCompanion.insert(
+            code: code,
+            tier: tier,
+            completeness: completeness,
+            displayable: displayable,
+            rowid: rowid,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$CatalogLanguagesTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $CatalogLanguagesTable,
+    CatalogLanguage,
+    $$CatalogLanguagesTableFilterComposer,
+    $$CatalogLanguagesTableOrderingComposer,
+    $$CatalogLanguagesTableAnnotationComposer,
+    $$CatalogLanguagesTableCreateCompanionBuilder,
+    $$CatalogLanguagesTableUpdateCompanionBuilder,
+    (
+      CatalogLanguage,
+      BaseReferences<_$AppDatabase, $CatalogLanguagesTable, CatalogLanguage>
+    ),
+    CatalogLanguage,
+    PrefetchHooks Function()>;
+typedef $$ExerciseAliasesTableCreateCompanionBuilder = ExerciseAliasesCompanion
+    Function({
+  required String oldId,
+  required String newId,
+  Value<String?> reason,
+  Value<String?> sinceVersion,
+  Value<int> rowid,
+});
+typedef $$ExerciseAliasesTableUpdateCompanionBuilder = ExerciseAliasesCompanion
+    Function({
+  Value<String> oldId,
+  Value<String> newId,
+  Value<String?> reason,
+  Value<String?> sinceVersion,
+  Value<int> rowid,
+});
+
+class $$ExerciseAliasesTableFilterComposer
+    extends Composer<_$AppDatabase, $ExerciseAliasesTable> {
+  $$ExerciseAliasesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get oldId => $composableBuilder(
+      column: $table.oldId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get newId => $composableBuilder(
+      column: $table.newId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get reason => $composableBuilder(
+      column: $table.reason, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get sinceVersion => $composableBuilder(
+      column: $table.sinceVersion, builder: (column) => ColumnFilters(column));
+}
+
+class $$ExerciseAliasesTableOrderingComposer
+    extends Composer<_$AppDatabase, $ExerciseAliasesTable> {
+  $$ExerciseAliasesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get oldId => $composableBuilder(
+      column: $table.oldId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get newId => $composableBuilder(
+      column: $table.newId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get reason => $composableBuilder(
+      column: $table.reason, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get sinceVersion => $composableBuilder(
+      column: $table.sinceVersion,
+      builder: (column) => ColumnOrderings(column));
+}
+
+class $$ExerciseAliasesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $ExerciseAliasesTable> {
+  $$ExerciseAliasesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get oldId =>
+      $composableBuilder(column: $table.oldId, builder: (column) => column);
+
+  GeneratedColumn<String> get newId =>
+      $composableBuilder(column: $table.newId, builder: (column) => column);
+
+  GeneratedColumn<String> get reason =>
+      $composableBuilder(column: $table.reason, builder: (column) => column);
+
+  GeneratedColumn<String> get sinceVersion => $composableBuilder(
+      column: $table.sinceVersion, builder: (column) => column);
+}
+
+class $$ExerciseAliasesTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $ExerciseAliasesTable,
+    ExerciseAliase,
+    $$ExerciseAliasesTableFilterComposer,
+    $$ExerciseAliasesTableOrderingComposer,
+    $$ExerciseAliasesTableAnnotationComposer,
+    $$ExerciseAliasesTableCreateCompanionBuilder,
+    $$ExerciseAliasesTableUpdateCompanionBuilder,
+    (
+      ExerciseAliase,
+      BaseReferences<_$AppDatabase, $ExerciseAliasesTable, ExerciseAliase>
+    ),
+    ExerciseAliase,
+    PrefetchHooks Function()> {
+  $$ExerciseAliasesTableTableManager(
+      _$AppDatabase db, $ExerciseAliasesTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$ExerciseAliasesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$ExerciseAliasesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$ExerciseAliasesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<String> oldId = const Value.absent(),
+            Value<String> newId = const Value.absent(),
+            Value<String?> reason = const Value.absent(),
+            Value<String?> sinceVersion = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              ExerciseAliasesCompanion(
+            oldId: oldId,
+            newId: newId,
+            reason: reason,
+            sinceVersion: sinceVersion,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String oldId,
+            required String newId,
+            Value<String?> reason = const Value.absent(),
+            Value<String?> sinceVersion = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              ExerciseAliasesCompanion.insert(
+            oldId: oldId,
+            newId: newId,
+            reason: reason,
+            sinceVersion: sinceVersion,
+            rowid: rowid,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$ExerciseAliasesTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $ExerciseAliasesTable,
+    ExerciseAliase,
+    $$ExerciseAliasesTableFilterComposer,
+    $$ExerciseAliasesTableOrderingComposer,
+    $$ExerciseAliasesTableAnnotationComposer,
+    $$ExerciseAliasesTableCreateCompanionBuilder,
+    $$ExerciseAliasesTableUpdateCompanionBuilder,
+    (
+      ExerciseAliase,
+      BaseReferences<_$AppDatabase, $ExerciseAliasesTable, ExerciseAliase>
+    ),
+    ExerciseAliase,
+    PrefetchHooks Function()>;
 typedef $$UserFoodOverrideTranslationsTableCreateCompanionBuilder
     = UserFoodOverrideTranslationsCompanion Function({
   Value<int> localId,
@@ -32195,6 +37169,24 @@ class $AppDatabaseManager {
       $$UserFoodOverridesTableTableManager(_db, _db.userFoodOverrides);
   $$ExerciseTranslationsTableTableManager get exerciseTranslations =>
       $$ExerciseTranslationsTableTableManager(_db, _db.exerciseTranslations);
+  $$MusclesTableTableManager get muscles =>
+      $$MusclesTableTableManager(_db, _db.muscles);
+  $$MuscleTranslationsTableTableManager get muscleTranslations =>
+      $$MuscleTranslationsTableTableManager(_db, _db.muscleTranslations);
+  $$EquipmentTableTableManager get equipment =>
+      $$EquipmentTableTableManager(_db, _db.equipment);
+  $$EquipmentTranslationsTableTableManager get equipmentTranslations =>
+      $$EquipmentTranslationsTableTableManager(_db, _db.equipmentTranslations);
+  $$ExerciseMusclesTableTableManager get exerciseMuscles =>
+      $$ExerciseMusclesTableTableManager(_db, _db.exerciseMuscles);
+  $$ExerciseEquipmentTableTableManager get exerciseEquipment =>
+      $$ExerciseEquipmentTableTableManager(_db, _db.exerciseEquipment);
+  $$ExerciseTagsTableTableManager get exerciseTags =>
+      $$ExerciseTagsTableTableManager(_db, _db.exerciseTags);
+  $$CatalogLanguagesTableTableManager get catalogLanguages =>
+      $$CatalogLanguagesTableTableManager(_db, _db.catalogLanguages);
+  $$ExerciseAliasesTableTableManager get exerciseAliases =>
+      $$ExerciseAliasesTableTableManager(_db, _db.exerciseAliases);
   $$UserFoodOverrideTranslationsTableTableManager
       get userFoodOverrideTranslations =>
           $$UserFoodOverrideTranslationsTableTableManager(

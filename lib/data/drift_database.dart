@@ -81,14 +81,222 @@ class Exercises extends Table with HybridId, MetaColumns {
 
   TextColumn get replacesExerciseId =>
       text().nullable().references(Exercises, #id)();
+
+  // --- Catalog schema v2 -----------------------------------------------
+  //
+  // Every one of these is nullable on purpose. `reconcileSchema` can repair a
+  // missing nullable or defaulted column on a device that skipped a version,
+  // and cannot repair a NOT NULL column with no default. The catalog itself
+  // still carries NULLs here (metadata.nullable_columns lists seven), and
+  // user-created exercises carry NULLs permanently — so "unset" has to be a
+  // representable state anyway.
+
+  /// `active` | `deprecated` | `merged`. NULL on rows written before v2 and on
+  /// user-created exercises; both are treated as active.
+  TextColumn get status => text().nullable()();
+
+  /// Target of a merge. The user-data rewrite lives in the importer, not here.
+  TextColumn get mergedInto => text().nullable()();
+
+  /// What the exercise *is*: strength, cardio, plyometric, mobility, stretch,
+  /// balance. Drives which sets count towards volume and recovery.
+  TextColumn get modality => text().nullable()();
+
+  /// compound | isolation.
+  TextColumn get mechanic => text().nullable()();
+
+  /// push | pull | static. Derived upstream from [movementPattern]; NULL for
+  /// the eight patterns that are honestly neither.
+  TextColumn get forceVector => text().nullable()();
+
+  TextColumn get movementPattern => text().nullable()();
+
+  /// bilateral | unilateral | alternating.
+  TextColumn get laterality => text().nullable()();
+
+  /// beginner | intermediate | advanced.
+  TextColumn get difficulty => text().nullable()();
+
+  /// Shape of the log mask: weight_reps, bodyweight_reps, time, time_weight,
+  /// distance_time, distance_only.
+  TextColumn get trackingType => text().nullable()();
+
+  /// What the logged number *means*: external, bodyweight, assisted, variable.
+  /// `assisted` inverts progression — more kilos is easier.
+  TextColumn get loadMode => text().nullable()();
+
+  BoolColumn get supportsAddedWeight =>
+      boolean().withDefault(const Constant(false))();
+
+  /// The load-bearing implement, as opposed to the furniture in [setup].
+  TextColumn get primaryEquipment => text().nullable()();
+
+  /// Derived upstream from the primary muscles. Currently NULL for every row
+  /// the build produces; nothing in the app may depend on it.
+  TextColumn get bodyRegion => text().nullable()();
+}
+
+/// Muscle vocabulary shipped with the catalog: group -> muscle -> head.
+///
+/// This is the table that lets the anatomy live in the data repo instead of in
+/// Dart. A vocabulary change used to be an app release; with this it is a data
+/// release.
+class Muscles extends Table {
+  TextColumn get id => text()();
+  TextColumn get parentId => text().nullable()();
+
+  /// group | muscle | head.
+  TextColumn get level => text()();
+
+  /// The group this node resolves to. Statistics and recovery compute on this.
+  TextColumn get groupId => text()();
+
+  /// The group the pre-v2 app would have assigned. Differs deliberately for
+  /// `serratus_anterior` and `hip_flexors`.
+  TextColumn get legacyGroup => text().nullable()();
+
+  /// JSON array of body-highlighter slugs. May be empty.
+  TextColumn get bodySlugs => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+class MuscleTranslations extends Table {
+  TextColumn get muscleId => text()();
+  TextColumn get languageCode => text()();
+  TextColumn get name => text()();
+
+  @override
+  Set<Column> get primaryKey => {muscleId, languageCode};
+}
+
+@DataClassName('EquipmentEntry')
+class Equipment extends Table {
+  TextColumn get id => text()();
+  TextColumn get kind => text()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+class EquipmentTranslations extends Table {
+  TextColumn get equipmentId => text()();
+  TextColumn get languageCode => text()();
+  TextColumn get name => text()();
+
+  @override
+  Set<Column> get primaryKey => {equipmentId, languageCode};
+}
+
+/// Muscle assignments at whatever depth the annotation was confident about.
+///
+/// For `modality: stretch` rows, `primary` names the muscle being *stretched*,
+/// not the one contracting — which is why stretches must not contribute to
+/// volume or recovery.
+class ExerciseMuscles extends Table {
+  TextColumn get exerciseId => text()();
+  TextColumn get muscleId => text()();
+
+  /// primary | secondary.
+  TextColumn get role => text()();
+
+  /// Reserved; the catalog deliberately ships this unset.
+  RealColumn get contribution => real().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {exerciseId, muscleId};
+}
+
+@DataClassName('ExerciseEquipmentEntry')
+class ExerciseEquipment extends Table {
+  TextColumn get exerciseId => text()();
+  TextColumn get equipmentId => text()();
+
+  /// primary | setup. The split is what makes "what can I do in a hotel room"
+  /// a query rather than a guess.
+  TextColumn get kind => text()();
+
+  @override
+  Set<Column> get primaryKey => {exerciseId, equipmentId, kind};
+}
+
+/// `usage_tags`: warmup, activation, main_lift, accessory, conditioning,
+/// finisher, cooldown, prehab. Multi-valued on purpose.
+class ExerciseTags extends Table {
+  TextColumn get exerciseId => text()();
+  TextColumn get tag => text()();
+
+  @override
+  Set<Column> get primaryKey => {exerciseId, tag};
+}
+
+/// Language registry shipped with the catalog.
+///
+/// Named `CatalogLanguages` rather than `Languages` to keep it distinct from
+/// the app's own UI locales, which are a different and smaller set.
+class CatalogLanguages extends Table {
+  TextColumn get code => text()();
+
+  /// curated | assisted | machine | upstream.
+  TextColumn get tier => text()();
+
+  RealColumn get completeness => real().withDefault(const Constant(0))();
+
+  /// Whether the data repo considers this language fit to show. The app reads
+  /// this rather than second-guessing it from [completeness].
+  BoolColumn get displayable => boolean().withDefault(const Constant(false))();
+
+  @override
+  Set<Column> get primaryKey => {code};
+}
+
+/// The migration path for user data: old exercise id -> surviving id.
+///
+/// Deliberately carries no foreign keys. It is a historical register that may
+/// name ids a partial catalog does not contain, and a failed foreign key here
+/// would abort the whole import batch on a device. Referential integrity is
+/// asserted in the contract test instead, where it is actionable.
+class ExerciseAliases extends Table {
+  TextColumn get oldId => text()();
+  TextColumn get newId => text()();
+
+  /// merged | renamed_id | split.
+  TextColumn get reason => text().nullable()();
+  TextColumn get sinceVersion => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {oldId};
 }
 
 class ExerciseTranslations extends Table with HybridId, MetaColumns {
   TextColumn get exerciseId =>
       text().references(Exercises, #id, onDelete: KeyAction.cascade)();
-  TextColumn get languageCode => text()(); // 'en', 'de', 'ja', 'fr', 'it'
+
+  /// Any code the catalog ships. The catalog carries 22 languages; which of
+  /// them are shown is decided by [CatalogLanguages.displayable].
+  TextColumn get languageCode => text()();
   TextColumn get name => text()();
   TextColumn get description => text().nullable()();
+
+  // --- Catalog schema v2, all nullable ---------------------------------
+
+  /// JSON array. A step list rather than prose, so it can be rendered as steps.
+  TextColumn get instructions => text().nullable()();
+  TextColumn get cues => text().nullable()();
+  TextColumn get commonMistakes => text().nullable()();
+
+  /// JSON array of synonyms and common misspellings. Searched, never shown.
+  TextColumn get searchTerms => text().nullable()();
+
+  /// human | ai_reviewed | ai_raw | upstream_unreviewed.
+  TextColumn get translationStatus => text().nullable()();
+  TextColumn get sourceLang => text().nullable()();
+
+  /// Per-translation licence provenance. wger licenses per translation, not
+  /// per repo, so this cannot live on the exercise.
+  TextColumn get license => text().nullable()();
+  TextColumn get licenseAuthor => text().nullable()();
 
   @override
   List<Set<Column>> get uniqueKeys => [
@@ -555,6 +763,15 @@ class UserFoodOverrideTranslations extends Table with HybridId, MetaColumns {
     WorkoutExerciseLogs,
     UserFoodOverrides,
     ExerciseTranslations,
+    Muscles,
+    MuscleTranslations,
+    Equipment,
+    EquipmentTranslations,
+    ExerciseMuscles,
+    ExerciseEquipment,
+    ExerciseTags,
+    CatalogLanguages,
+    ExerciseAliases,
     UserFoodOverrideTranslations,
     OffProductsArchive, // Added
     MealEntries, // Added
@@ -566,7 +783,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
-  int get schemaVersion => 27;
+  int get schemaVersion => 28;
 
   /// Adds whatever the file is missing compared to the generated tables.
   ///
@@ -1109,6 +1326,50 @@ class AppDatabase extends _$AppDatabase {
               await m.addColumn(workoutLogs, workoutLogs.photoPath);
               await m.addColumn(workoutLogs, workoutLogs.photoThumbPath);
               await m.addColumn(workoutLogs, workoutLogs.photoExtraPaths);
+            }
+            if (from < 28) {
+              // Catalog schema v2. Written out rather than left to
+              // reconcileSchema so the upgrade is explicit and traceable in
+              // telemetry; reconcileSchema still covers devices that recorded
+              // 28 before all of this landed.
+              for (final column in [
+                exercises.status,
+                exercises.mergedInto,
+                exercises.modality,
+                exercises.mechanic,
+                exercises.forceVector,
+                exercises.movementPattern,
+                exercises.laterality,
+                exercises.difficulty,
+                exercises.trackingType,
+                exercises.loadMode,
+                exercises.supportsAddedWeight,
+                exercises.primaryEquipment,
+                exercises.bodyRegion,
+              ]) {
+                await m.addColumn(exercises, column);
+              }
+              for (final column in [
+                exerciseTranslations.instructions,
+                exerciseTranslations.cues,
+                exerciseTranslations.commonMistakes,
+                exerciseTranslations.searchTerms,
+                exerciseTranslations.translationStatus,
+                exerciseTranslations.sourceLang,
+                exerciseTranslations.license,
+                exerciseTranslations.licenseAuthor,
+              ]) {
+                await m.addColumn(exerciseTranslations, column);
+              }
+              await m.createTable(muscles);
+              await m.createTable(muscleTranslations);
+              await m.createTable(equipment);
+              await m.createTable(equipmentTranslations);
+              await m.createTable(exerciseMuscles);
+              await m.createTable(exerciseEquipment);
+              await m.createTable(exerciseTags);
+              await m.createTable(catalogLanguages);
+              await m.createTable(exerciseAliases);
             }
             unawaited(TelemetryService.instance.trackDbMigrationStatus(
               fromVersion: from,
