@@ -985,9 +985,17 @@ class SleepPipelineService {
         .toList()
       ..sort((a, b) => a.day.compareTo(b.day));
     final byNight = <String, SleepRegularityIndexResult>{};
+
+    // BOLT OPTIMIZATION: Used a two-pointer approach to advance an end index
+    // rather than using .where().toList() inside the loop. This reduces time
+    // complexity from O(N*M) to O(N+M) and avoids redundant list allocations.
+    // BOLT OPTIMIZATION: targetNights and dailyStates are strictly sorted above.
+    int endIdx = 0;
     for (final night in targetNights) {
-      final history =
-          dailyStates.where((state) => !state.day.isAfter(night)).toList();
+      while (endIdx < dailyStates.length && !dailyStates[endIdx].day.isAfter(night)) {
+        endIdx++;
+      }
+      final history = dailyStates.sublist(0, endIdx);
       final sri = calculateSleepRegularityIndex(dailyStates: history);
       byNight[_nightKey(night)] = sri;
     }
