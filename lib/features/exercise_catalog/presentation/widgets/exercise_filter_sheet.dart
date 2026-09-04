@@ -32,6 +32,55 @@ class ExerciseFilterSection {
   });
 }
 
+/// A filter chip whose width does not depend on whether it is selected.
+///
+/// A Material [FilterChip] adds a checkmark when selected, which makes it
+/// wider, which re-wraps the row, which makes the menu jump under the finger
+/// that just tapped it. Selection here is a background colour and nothing
+/// else — the same thing the statistics time-range switcher does.
+class ExerciseFilterChip extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final ValueChanged<bool> onSelected;
+
+  const ExerciseFilterChip({
+    super.key,
+    required this.label,
+    required this.selected,
+    required this.onSelected,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    // Identical geometry in both states. Only the two colours below may
+    // differ, or the width follows the selection again.
+    return Material(
+      color: selected
+          ? theme.colorScheme.primary
+          : theme.colorScheme.surfaceContainerHighest,
+      borderRadius: BorderRadius.circular(100),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: () => onSelected(!selected),
+        child: Container(
+          height: 32,
+          padding: const EdgeInsets.symmetric(horizontal: 14),
+          alignment: Alignment.center,
+          child: Text(
+            label,
+            style: theme.textTheme.labelLarge?.copyWith(
+              color: selected
+                  ? theme.colorScheme.onPrimary
+                  : theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 /// The catalog filter, as named sections of chips.
 ///
 /// It used to be one flat popup that listed body regions and then equipment
@@ -39,9 +88,8 @@ class ExerciseFilterSection {
 /// apart meaning different things, and nothing said whether picking one of
 /// each narrowed the results or replaced the other.
 ///
-/// Sections make the axes visible. The pattern — [AppSectionHeader] over a
-/// [Wrap] of [FilterChip]s — is the one the create-exercise screen already
-/// uses for muscle selection, so this is not a second way of doing it.
+/// Sections make the axes visible, under [AppSectionHeader] headings — the
+/// same structure the create-exercise screen uses for muscle selection.
 ///
 /// A separate widget rather than a closure inside the screen because the
 /// screen cannot be built without a seeded catalog, and a filter nobody can
@@ -88,8 +136,8 @@ class _ExerciseFilterSheetState extends State<ExerciseFilterSheet> {
             spacing: 8.0,
             runSpacing: 4.0,
             children: section.options.map((option) {
-              return FilterChip(
-                label: Text(option.label),
+              return ExerciseFilterChip(
+                label: option.label,
                 selected: section.selection.contains(option.value),
                 onSelected: (selected) => _apply(() {
                   if (selected) {
@@ -98,7 +146,6 @@ class _ExerciseFilterSheetState extends State<ExerciseFilterSheet> {
                     section.selection.remove(option.value);
                   }
                 }),
-                checkmarkColor: theme.colorScheme.onPrimaryContainer,
               );
             }).toList(),
           ),
@@ -110,20 +157,23 @@ class _ExerciseFilterSheetState extends State<ExerciseFilterSheet> {
             color: theme.colorScheme.outline,
           ),
         ),
-        if (_hasSelection) ...[
-          const SizedBox(height: DesignConstants.spacingS),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: TextButton(
-              onPressed: () => _apply(() {
-                for (final section in widget.sections) {
-                  section.selection.clear();
-                }
-              }),
-              child: Text(l10n.catalogFilterReset),
-            ),
+        const SizedBox(height: DesignConstants.spacingS),
+        Align(
+          alignment: Alignment.centerLeft,
+          // Always present, disabled when there is nothing to reset. Appearing
+          // on first selection moved everything above it, so the menu shifted
+          // under the finger that had just tapped a chip.
+          child: TextButton(
+            onPressed: _hasSelection
+                ? () => _apply(() {
+                      for (final section in widget.sections) {
+                        section.selection.clear();
+                      }
+                    })
+                : null,
+            child: Text(l10n.catalogFilterReset),
           ),
-        ],
+        ),
       ],
     );
   }

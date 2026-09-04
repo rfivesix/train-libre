@@ -102,9 +102,9 @@ void main() {
   testWidgets('a pick in one section leaves the others alone', (tester) async {
     await pump(tester);
 
-    await tester.tap(find.widgetWithText(FilterChip, 'Chest'));
+    await tester.tap(find.widgetWithText(ExerciseFilterChip, 'Chest'));
     await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(FilterChip, 'Barbell'));
+    await tester.tap(find.widgetWithText(ExerciseFilterChip, 'Barbell'));
     await tester.pumpAndSettle();
 
     expect(regions, ['Chest']);
@@ -117,9 +117,9 @@ void main() {
   testWidgets('several picks within one section accumulate', (tester) async {
     await pump(tester);
 
-    await tester.tap(find.widgetWithText(FilterChip, 'Chest'));
+    await tester.tap(find.widgetWithText(ExerciseFilterChip, 'Chest'));
     await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(FilterChip, 'Cardio'));
+    await tester.tap(find.widgetWithText(ExerciseFilterChip, 'Cardio'));
     await tester.pumpAndSettle();
 
     expect(regions, ['Chest', 'Cardio']);
@@ -128,31 +128,78 @@ void main() {
   testWidgets('tapping a selected chip clears it', (tester) async {
     await pump(tester);
 
-    await tester.tap(find.widgetWithText(FilterChip, 'Chest'));
+    await tester.tap(find.widgetWithText(ExerciseFilterChip, 'Chest'));
     await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(FilterChip, 'Chest'));
+    await tester.tap(find.widgetWithText(ExerciseFilterChip, 'Chest'));
     await tester.pumpAndSettle();
 
     expect(regions, isEmpty);
   });
 
-  testWidgets('reset appears only with a selection, and clears every axis',
+  testWidgets('reset is always present, disabled while nothing is selected',
       (tester) async {
+    // It used to appear on first selection and push everything above it down,
+    // so the menu shifted under the finger that had just tapped a chip.
     await pump(tester);
-    expect(find.text('Reset'), findsNothing);
-
-    await tester.tap(find.widgetWithText(FilterChip, 'Chest'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(FilterChip, 'Barbell'));
-    await tester.pumpAndSettle();
     expect(find.text('Reset'), findsOneWidget);
+    expect(
+      tester
+          .widget<TextButton>(find.ancestor(
+            of: find.text('Reset'),
+            matching: find.byType(TextButton),
+          ))
+          .onPressed,
+      isNull,
+      reason: 'nothing to reset, so the button must be inert',
+    );
+
+    await tester.tap(find.widgetWithText(ExerciseFilterChip, 'Chest'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(ExerciseFilterChip, 'Barbell'));
+    await tester.pumpAndSettle();
+    expect(
+      tester
+          .widget<TextButton>(find.ancestor(
+            of: find.text('Reset'),
+            matching: find.byType(TextButton),
+          ))
+          .onPressed,
+      isNotNull,
+    );
 
     await tester.tap(find.text('Reset'));
     await tester.pumpAndSettle();
 
     expect(regions, isEmpty);
     expect(equipment, isEmpty);
-    expect(find.text('Reset'), findsNothing);
+    expect(find.text('Reset'), findsOneWidget);
+  });
+
+  testWidgets('selecting a chip does not change its width', (tester) async {
+    // A checkmark on selection made the chip wider, re-wrapped the row and
+    // made the whole menu jump.
+    await pump(tester);
+
+    final chip = find.widgetWithText(ExerciseFilterChip, 'Cardio machine');
+    final before = tester.getSize(chip);
+
+    await tester.tap(chip);
+    await tester.pumpAndSettle();
+
+    expect(tester.getSize(chip), before);
+  });
+
+  testWidgets('nothing above a chip moves when it is tapped', (tester) async {
+    await pump(tester);
+
+    final heading = find.text('EQUIPMENT');
+    final before = tester.getTopLeft(heading);
+
+    await tester.tap(find.widgetWithText(ExerciseFilterChip, 'Barbell'));
+    await tester.pumpAndSettle();
+
+    expect(tester.getTopLeft(heading), before,
+        reason: 'the menu shifted while being operated');
   });
 
   testWidgets('an empty section is left out entirely', (tester) async {
