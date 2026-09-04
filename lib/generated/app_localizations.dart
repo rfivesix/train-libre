@@ -1853,8 +1853,20 @@ abstract class AppLocalizations {
   /// No description provided for @exerciseDataAttribution.
   ///
   /// In en, this message translates to:
-  /// **'Exercise data from wger'**
+  /// **'Exercise data from OpenExerciseDB'**
   String get exerciseDataAttribution;
+
+  /// No description provided for @exerciseDataLicense.
+  ///
+  /// In en, this message translates to:
+  /// **'Exercise data licence'**
+  String get exerciseDataLicense;
+
+  /// No description provided for @exerciseDataUpstream.
+  ///
+  /// In en, this message translates to:
+  /// **'Derived in part from wger'**
+  String get exerciseDataUpstream;
 
   /// No description provided for @duplicate.
   ///
@@ -3605,7 +3617,7 @@ abstract class AppLocalizations {
   /// No description provided for @attributionText.
   ///
   /// In en, this message translates to:
-  /// **'This app uses data from external sources:\n\n● Exercise data and images from wger (wger.de), licensed under CC-BY-SA 4.0.\n\n● Food database from Open Food Facts (openfoodfacts.org), available under the Open Database License (ODbL).'**
+  /// **'This app uses data from external sources:\n\n● Exercise data from OpenExerciseDB (github.com/rfivesix/OpenExerciseDB), licensed under CC BY-SA 4.0, derived in part from the wger project (wger.de).\n\n● Food database from Open Food Facts (openfoodfacts.org), available under the Open Database License (ODbL).'**
   String get attributionText;
 
   /// No description provided for @errorRoutineNotFound.
@@ -10324,7 +10336,7 @@ abstract class AppLocalizations {
   /// No description provided for @exerciseCatalogWger.
   ///
   /// In en, this message translates to:
-  /// **'Exercise Catalog (wger)'**
+  /// **'Exercise Catalog (OpenExerciseDB)'**
   String get exerciseCatalogWger;
 
   /// No description provided for @nutritionCatalogOff.

@@ -1041,7 +1041,13 @@ class AppLocalizationsJa extends AppLocalizations {
   String get showSummary => '概要を表示';
 
   @override
-  String get exerciseDataAttribution => 'wger からの運動データ';
+  String get exerciseDataAttribution => 'OpenExerciseDB からの運動データ';
+
+  @override
+  String get exerciseDataLicense => '運動データのライセンス';
+
+  @override
+  String get exerciseDataUpstream => '一部は wger に由来';
 
   @override
   String get duplicate => '重複';
@@ -1960,7 +1966,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get attributionText =>
-      'このアプリは外部ソースからのデータを使用します。\n\n● CC-BY-SA 4.0 に基づいてライセンス供与された wger (wger.de) からのエクササイズ データと画像。\n\n● Open Food Facts (openfoodfacts.org) の食品データベース。Open Database License (ODbL) に基づいて利用できます。';
+      'このアプリは外部ソースのデータを使用しています:\n\n● OpenExerciseDB (github.com/rfivesix/OpenExerciseDB) の運動データ。CC BY-SA 4.0 ライセンス。一部は wger プロジェクト (wger.de) に由来します。\n\n● Open Food Facts (openfoodfacts.org) の食品データベース。Open Database License (ODbL) のもとで利用可能です。';
 
   @override
   String get errorRoutineNotFound => 'ルーチンが見つかりません';
@@ -5703,7 +5709,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get updatesAvailableBody => 'ローカルカタログの新しいアップデートが利用可能です。今すぐアップデートしますか？';
 
   @override
-  String get exerciseCatalogWger => 'エクササイズカタログ (wger)';
+  String get exerciseCatalogWger => '運動カタログ (OpenExerciseDB)';
 
   @override
   String get nutritionCatalogOff => '栄養カタログ (OFF)';

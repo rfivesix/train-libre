@@ -1054,7 +1054,13 @@ class AppLocalizationsIt extends AppLocalizations {
   String get showSummary => 'Mostra riepilogo';
 
   @override
-  String get exerciseDataAttribution => 'Dati dell\'esercizio da wger';
+  String get exerciseDataAttribution => 'Dati degli esercizi da OpenExerciseDB';
+
+  @override
+  String get exerciseDataLicense => 'Licenza dei dati degli esercizi';
+
+  @override
+  String get exerciseDataUpstream => 'Derivato in parte da wger';
 
   @override
   String get duplicate => 'Duplicato';
@@ -2016,7 +2022,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get attributionText =>
-      'Questa app utilizza dati provenienti da fonti esterne:\n\n● Dati e immagini degli esercizi da wger (wger.de), concesso in licenza con CC-BY-SA 4.0.\n\n● Database alimentare di Open Food Facts (openfoodfacts.org), disponibile sotto la licenza Open Database License (ODbL).';
+      'Questa app utilizza dati provenienti da fonti esterne:\n\n● Dati degli esercizi da OpenExerciseDB (github.com/rfivesix/OpenExerciseDB), concessi in licenza CC BY-SA 4.0, derivati in parte dal progetto wger (wger.de).\n\n● Database alimentare di Open Food Facts (openfoodfacts.org), disponibile sotto la licenza Open Database License (ODbL).';
 
   @override
   String get errorRoutineNotFound => 'Routine non trovata';
@@ -5982,7 +5988,7 @@ class AppLocalizationsIt extends AppLocalizations {
       'Sono disponibili nuovi aggiornamenti per i tuoi cataloghi locali. Vuoi aggiornare ora?';
 
   @override
-  String get exerciseCatalogWger => 'Catalogo esercizi (wger)';
+  String get exerciseCatalogWger => 'Catalogo esercizi (OpenExerciseDB)';
 
   @override
   String get nutritionCatalogOff => 'Catalogo nutrizionale (OFF)';

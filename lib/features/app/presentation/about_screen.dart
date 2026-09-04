@@ -126,9 +126,30 @@ class _AboutScreenState extends State<AboutScreen> {
 
                   Column(
                     children: [
+                      // CC BY-SA 4.0 asks for three things by name: credit
+                      // the source with a link back to it, name the licence
+                      // with a link to it, and keep the upstream derivation
+                      // visible. Hence three rows rather than one — the
+                      // wording follows ATTRIBUTION.md in the data repository.
                       AppLinkRow(
                         title: l10n.exerciseDataAttribution,
-                        subtitle: 'wger.de (CC-BY-SA)',
+                        subtitle: 'github.com/rfivesix/OpenExerciseDB',
+                        trailingIcon: LucideIcons.external_link,
+                        onTap: () => _launchURL(
+                          'https://github.com/rfivesix/OpenExerciseDB',
+                        ),
+                      ),
+                      AppLinkRow(
+                        title: l10n.exerciseDataLicense,
+                        subtitle: 'CC BY-SA 4.0',
+                        trailingIcon: LucideIcons.external_link,
+                        onTap: () => _launchURL(
+                          'https://creativecommons.org/licenses/by-sa/4.0/',
+                        ),
+                      ),
+                      AppLinkRow(
+                        title: l10n.exerciseDataUpstream,
+                        subtitle: 'wger.de',
                         trailingIcon: LucideIcons.external_link,
                         onTap: () => _launchURL('https://wger.de/'),
                       ),
