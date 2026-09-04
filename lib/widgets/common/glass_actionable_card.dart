@@ -102,7 +102,7 @@ class _GlassActionableCardState extends State<GlassActionableCard> {
       actions.add(
         GlassContextAction(
           label: widget.deleteLabel ?? l10n?.delete ?? 'Löschen',
-          icon: LucideIcons.trash_2,
+          icon: LucideIcons.trash,
           isDestructive: true,
           onTap: () async {
             final confirmed = widget.confirmDelete != null
@@ -139,7 +139,8 @@ class _GlassActionableCardState extends State<GlassActionableCard> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final effectiveKey = widget.dismissibleKey ?? widget.key ?? ValueKey(_cardKey.hashCode);
+    final effectiveKey =
+        widget.dismissibleKey ?? widget.key ?? ValueKey(_cardKey.hashCode);
 
     Widget content = KeyedSubtree(
       key: _cardKey,
@@ -147,7 +148,9 @@ class _GlassActionableCardState extends State<GlassActionableCard> {
     );
 
     // Add GestureDetector for tap and long-press
-    final bool hasActions = widget.onEdit != null || widget.onDelete != null || widget.additionalActions.isNotEmpty;
+    final bool hasActions = widget.onEdit != null ||
+        widget.onDelete != null ||
+        widget.additionalActions.isNotEmpty;
     if (widget.onTap != null || (widget.enableContextMenu && hasActions)) {
       content = GestureDetector(
         onTap: widget.onTap,
@@ -160,9 +163,10 @@ class _GlassActionableCardState extends State<GlassActionableCard> {
     }
 
     // Add Dismissible for swipe actions if enabled
-    if (widget.enableSwipe && (widget.onEdit != null || widget.onDelete != null)) {
-      final effectiveRadius =
-          widget.borderRadius ?? BorderRadius.circular(DesignConstants.borderRadiusL);
+    if (widget.enableSwipe &&
+        (widget.onEdit != null || widget.onDelete != null)) {
+      final effectiveRadius = widget.borderRadius ??
+          BorderRadius.circular(DesignConstants.borderRadiusL);
 
       final bool isOpaqueCard = widget.child is SummaryCard;
 
@@ -187,7 +191,8 @@ class _GlassActionableCardState extends State<GlassActionableCard> {
       }
 
       void handleOnDismissed(DismissDirection direction) {
-        if (direction == DismissDirection.endToStart && widget.onDelete != null) {
+        if (direction == DismissDirection.endToStart &&
+            widget.onDelete != null) {
           widget.onDelete!();
         }
       }
@@ -215,7 +220,7 @@ class _GlassActionableCardState extends State<GlassActionableCard> {
         secondaryBackground: widget.onDelete != null
             ? SwipeActionBackground(
                 color: DesignConstants.brandRedColor,
-                icon: LucideIcons.trash_2,
+                icon: LucideIcons.trash,
                 alignment: Alignment.centerRight,
                 borderRadius: effectiveRadius,
                 margin: effectiveMargin,
@@ -230,10 +235,13 @@ class _GlassActionableCardState extends State<GlassActionableCard> {
     // Wrap with Accessibility Semantics
     final customSemanticsActions = <CustomSemanticsAction, VoidCallback>{};
     if (widget.onEdit != null) {
-      customSemanticsActions[CustomSemanticsAction(label: widget.editLabel ?? l10n?.edit ?? 'Bearbeiten')] = widget.onEdit!;
+      customSemanticsActions[CustomSemanticsAction(
+              label: widget.editLabel ?? l10n?.edit ?? 'Bearbeiten')] =
+          widget.onEdit!;
     }
     if (widget.onDelete != null) {
-      customSemanticsActions[CustomSemanticsAction(label: widget.deleteLabel ?? l10n?.delete ?? 'Löschen')] = () async {
+      customSemanticsActions[CustomSemanticsAction(
+          label: widget.deleteLabel ?? l10n?.delete ?? 'Löschen')] = () async {
         final confirmed = widget.confirmDelete != null
             ? await widget.confirmDelete!()
             : await showDeleteConfirmation(context);

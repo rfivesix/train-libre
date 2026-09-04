@@ -276,10 +276,18 @@ class _MealScreenState extends State<MealScreen> {
                       child: Skeletonizer(
                         enabled: _editMode && _items.isEmpty,
                         child: MacroBadgeRow(
-                          kcal: (_editMode && _items.isEmpty) ? 0 : (_items.isEmpty ? null : _totalKcal.round()),
-                          protein: (_editMode && _items.isEmpty) ? 0.0 : (_items.isEmpty ? null : _totalP),
-                          carbs: (_editMode && _items.isEmpty) ? 0.0 : (_items.isEmpty ? null : _totalC),
-                          fat: (_editMode && _items.isEmpty) ? 0.0 : (_items.isEmpty ? null : _totalF),
+                          kcal: (_editMode && _items.isEmpty)
+                              ? 0
+                              : (_items.isEmpty ? null : _totalKcal.round()),
+                          protein: (_editMode && _items.isEmpty)
+                              ? 0.0
+                              : (_items.isEmpty ? null : _totalP),
+                          carbs: (_editMode && _items.isEmpty)
+                              ? 0.0
+                              : (_items.isEmpty ? null : _totalC),
+                          fat: (_editMode && _items.isEmpty)
+                              ? 0.0
+                              : (_items.isEmpty ? null : _totalF),
                           useBadges: Provider.of<ThemeService>(context)
                               .useColorfulMacroBadges,
                           style: theme.textTheme.headlineSmall?.copyWith(
@@ -899,7 +907,7 @@ class _IngredientCard extends StatelessWidget {
       background: const SizedBox.shrink(),
       secondaryBackground: const SwipeActionBackground(
         color: DesignConstants.brandRedColor,
-        icon: LucideIcons.trash_2,
+        icon: LucideIcons.trash,
         alignment: Alignment.centerRight,
       ),
       confirmDismiss: (direction) async {

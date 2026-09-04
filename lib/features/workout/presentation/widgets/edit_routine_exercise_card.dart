@@ -127,7 +127,7 @@ class EditRoutineExerciseCard extends StatelessWidget {
                         ),
                       IconButton(
                         icon: const Icon(
-                          LucideIcons.trash_2,
+                          LucideIcons.trash,
                           color: DesignConstants.brandRedColor,
                         ),
                         tooltip: l10n.removeExercise,

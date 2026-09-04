@@ -703,7 +703,7 @@ class LiveWorkoutSetRow extends StatelessWidget {
         color: DesignConstants.brandRedColor,
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.symmetric(horizontal: 20),
-        child: const Icon(LucideIcons.trash_2, color: Colors.white),
+        child: const Icon(LucideIcons.trash, color: Colors.white),
       ),
       child: Stack(
         children: [

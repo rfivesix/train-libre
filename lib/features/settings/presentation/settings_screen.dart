@@ -667,7 +667,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             key: const Key('settings_reset_telemetry_data'),
             title: l10n.settingsTelemetryDeleteTitle,
             subtitle: l10n.settingsTelemetryDeleteSubtitle,
-            trailingIcon: LucideIcons.trash_2,
+            trailingIcon: LucideIcons.trash,
             onTap: () async {
               final confirmed = await _showTelemetryDeletionConfirmation();
               if (!confirmed) return;
@@ -726,7 +726,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           : _confirmAndDeleteLocalData,
                       label: l10n.deleteAllLocalAppData,
                       tooltip: l10n.deleteAllLocalAppData,
-                      icon: LucideIcons.trash_2,
+                      icon: LucideIcons.trash,
                       isLoading: _isLocalResetRunning,
                     ),
                   ),

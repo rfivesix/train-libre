@@ -45,7 +45,7 @@ class LocalDataDeletionCard extends StatelessWidget {
                 onPressed: isLocalResetRunning ? null : onDeletePressed,
                 label: l10n.deleteAllLocalAppData,
                 tooltip: l10n.deleteAllLocalAppData,
-                icon: LucideIcons.trash_2,
+                icon: LucideIcons.trash,
                 isLoading: isLocalResetRunning,
               ),
             ),

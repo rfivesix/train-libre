@@ -213,7 +213,7 @@ class _RunningWorkoutRow extends StatelessWidget {
               behavior: HitTestBehavior.opaque,
               onTap: onDiscard,
               child: _CircleAffordance(
-                icon: LucideIcons.trash_2,
+                icon: LucideIcons.trash,
                 iconColor: colorScheme.error,
                 backgroundColor: pillColor,
               ),

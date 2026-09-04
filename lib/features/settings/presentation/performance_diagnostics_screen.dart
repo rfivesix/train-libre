@@ -324,7 +324,7 @@ class _PerformanceDiagnosticsScreenState
                 const Divider(height: 1),
                 ListTile(
                   key: const Key('performance_diagnostics_reset_tile'),
-                  leading: const Icon(LucideIcons.trash_2),
+                  leading: const Icon(LucideIcons.trash),
                   title: Text(l10n.performanceLogResetTitle),
                   onTap: _confirmReset,
                 ),

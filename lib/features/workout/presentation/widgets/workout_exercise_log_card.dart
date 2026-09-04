@@ -159,7 +159,7 @@ class WorkoutExerciseLogCard extends StatelessWidget {
                 if (isEditMode)
                   IconButton(
                     icon: const Icon(
-                      LucideIcons.trash_2,
+                      LucideIcons.trash,
                       color: DesignConstants.brandRedColor,
                     ),
                     tooltip: l10n.removeExercise,

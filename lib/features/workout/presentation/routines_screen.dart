@@ -302,7 +302,7 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
                                       PlatformAdaptivePopupMenuItem<String>(
                                         value: 'delete',
                                         label: l10n.delete,
-                                        icon: LucideIcons.trash_2,
+                                        icon: LucideIcons.trash,
                                         isDestructive: true,
                                       ),
                                     ],

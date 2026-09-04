@@ -394,7 +394,7 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
           if (_currentExercise.source == 'user')
             IconButton(
               tooltip: l10n.delete,
-              icon: const Icon(LucideIcons.trash_2),
+              icon: const Icon(LucideIcons.trash),
               onPressed: () => _showDeleteConfirmMenu(context),
             ),
           MorphSourceScope(

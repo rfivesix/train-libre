@@ -238,7 +238,7 @@ class RoutineSetRowWidget extends StatelessWidget {
                     ? IconButton(
                         tooltip: AppLocalizations.of(context)!.delete,
                         icon: const Icon(
-                          LucideIcons.trash_2,
+                          LucideIcons.trash,
                           color: DesignConstants.brandRedColor,
                         ),
                         onPressed: onRemoveSet,

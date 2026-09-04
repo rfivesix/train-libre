@@ -324,9 +324,10 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
 
   Future<void> _saveAsTemplate() async {
     final l10n = AppLocalizations.of(context)!;
-    final title = (_mealEntry.title != null && _mealEntry.title!.trim().isNotEmpty)
-        ? _mealEntry.title!.trim()
-        : _getLocalizedMealName(context, _mealEntry.mealType);
+    final title =
+        (_mealEntry.title != null && _mealEntry.title!.trim().isNotEmpty)
+            ? _mealEntry.title!.trim()
+            : _getLocalizedMealName(context, _mealEntry.mealType);
 
     final mealId = await DatabaseHelper.instance.insertMeal(
       name: title,
@@ -402,7 +403,8 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
     if (result != null && mounted) {
       final trimmed = result.trim();
       setState(() {
-        _mealEntry = _mealEntry.copyWith(title: trimmed.isEmpty ? null : trimmed);
+        _mealEntry =
+            _mealEntry.copyWith(title: trimmed.isEmpty ? null : trimmed);
       });
     }
   }
@@ -507,7 +509,7 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
           },
         ),
         GlassMenuAction(
-          icon: LucideIcons.trash_2,
+          icon: LucideIcons.trash,
           label: l10n.delete,
           onTap: () async {
             final choice = await DeleteMealEntryBottomSheet.show(
