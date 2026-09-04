@@ -157,10 +157,6 @@ class ExerciseCatalogRefreshService {
   static const Set<String> _requiredTables = {'exercises', 'metadata'};
   static const Set<String> _requiredExerciseColumns = {
     'id',
-    'name_de',
-    'name_en',
-    'description_de',
-    'description_en',
     'category_name',
     'muscles_primary',
     'muscles_secondary',
@@ -191,7 +187,9 @@ class ExerciseCatalogRefreshService {
       _config.manifestPath,
     );
 
-    // If a valid cached catalog exists and is newer than installed, use it.
+    // Keep a valid newer cache as an offline fallback. A due or forced check
+    // must still fetch the manifest before deciding which version to import.
+    ExerciseCatalogUpdateCandidate? cachedCandidate;
     final cachedVersion = prefs.getString(_keyCachedCatalogVersion);
     if (cachedVersion != null &&
         isRemoteVersionNewer(
@@ -204,7 +202,7 @@ class ExerciseCatalogRefreshService {
         minimumRows: _config.minimumExerciseRows,
       );
       if (cachedValidation.isValid) {
-        return ExerciseCatalogUpdateCandidate(
+        cachedCandidate = ExerciseCatalogUpdateCandidate(
           version: cachedVersion,
           localDbPath: cachePath,
           manifestUri: manifestUri,
@@ -224,7 +222,7 @@ class ExerciseCatalogRefreshService {
           lastCheckedEpochMs: lastCheckedMs,
           minCheckInterval: _config.minCheckInterval,
         )) {
-      return null;
+      return cachedCandidate;
     }
     await prefs.setInt(_keyLastCheckedAtMs, now.millisecondsSinceEpoch);
 
@@ -234,7 +232,7 @@ class ExerciseCatalogRefreshService {
           _keyLastError,
           'Remote exercise catalog update skipped by user.',
         );
-        return null;
+        return cachedCandidate;
       }
       onProgress?.call(
         'Prüfe Übungen...',
@@ -248,16 +246,15 @@ class ExerciseCatalogRefreshService {
           _keyLastError,
           'Manifest fetch failed or invalid payload.',
         );
-        return null;
+        return cachedCandidate;
       }
 
       await prefs.setString(_keyLastRemoteVersion, manifest.version);
 
-      final shouldDownload = force ||
-          isRemoteVersionNewer(
-            remoteVersion: manifest.version,
-            installedVersion: installedVersion,
-          );
+      final shouldDownload = isRemoteVersionNewer(
+        remoteVersion: manifest.version,
+        installedVersion: installedVersion,
+      );
       if (!shouldDownload) {
         await prefs.remove(_keyLastError);
         onProgress?.call(
@@ -266,7 +263,16 @@ class ExerciseCatalogRefreshService {
           1.0,
           canSkip: false,
         );
-        return null;
+        return cachedCandidate;
+      }
+
+      if (cachedCandidate != null &&
+          !isRemoteVersionNewer(
+            remoteVersion: manifest.version,
+            installedVersion: cachedCandidate.version,
+          )) {
+        await prefs.remove(_keyLastError);
+        return cachedCandidate;
       }
 
       if (isSkipRequested?.call() ?? false) {
@@ -274,7 +280,7 @@ class ExerciseCatalogRefreshService {
           _keyLastError,
           'Remote exercise catalog download skipped by user.',
         );
-        return null;
+        return cachedCandidate;
       }
 
       final tempDir = await _tempDirectoryProvider();
@@ -304,7 +310,7 @@ class ExerciseCatalogRefreshService {
               ? 'Remote exercise catalog download skipped by user.'
               : 'Download failed for ${manifest.dbUri}',
         );
-        return null;
+        return cachedCandidate;
       }
 
       onProgress?.call(
@@ -320,7 +326,7 @@ class ExerciseCatalogRefreshService {
           'Downloaded DB checksum mismatch. expected=${manifest.dbSha256} actual=$actualDbSha256',
         );
         await _deleteIfExists(tempDbPath);
-        return null;
+        return cachedCandidate;
       }
 
       if (await _usesWalJournalMode(tempDbPath)) {
@@ -339,7 +345,7 @@ class ExerciseCatalogRefreshService {
             'Downloaded catalog DB was modified unexpectedly during WAL normalization. before=$beforeSize after=$afterSize',
           );
           await _deleteIfExists(tempDbPath);
-          return null;
+          return cachedCandidate;
         }
       }
 
@@ -355,9 +361,12 @@ class ExerciseCatalogRefreshService {
           validated.error ?? 'Downloaded DB validation failed.',
         );
         await _deleteIfExists(tempDbPath);
-        return null;
+        return cachedCandidate;
       }
 
+      // From here on the old cache may be replaced; do not return its old
+      // version/path pair if publishing the new cache fails.
+      cachedCandidate = null;
       await File(cachePath).parent.create(recursive: true);
       await _deleteIfExists(cachePath);
       await File(tempDbPath).copy(cachePath);
@@ -388,7 +397,7 @@ class ExerciseCatalogRefreshService {
     } catch (e) {
       await prefs.setString(_keyLastError, e.toString());
       debugPrint('Exercise catalog refresh skipped (safe fallback): $e');
-      return null;
+      return cachedCandidate;
     }
   }
 
@@ -777,6 +786,29 @@ class ExerciseCatalogRefreshService {
           isValid: false,
           error: 'Catalog DB missing required exercise columns.',
         );
+      }
+
+      // Both formats are understood by the importer: older catalogs embed
+      // German/English text, OpenExerciseDB uses exercise_translations.
+      const inlineTextColumns = {
+        'name_de',
+        'name_en',
+        'description_de',
+        'description_en',
+      };
+      if (!inlineTextColumns.every(columns.contains)) {
+        final translationColumns = tables.contains('exercise_translations')
+            ? (await db.rawQuery('PRAGMA table_info(exercise_translations)'))
+                .map((row) => row['name']?.toString())
+                .toSet()
+            : <String?>{};
+        if (!{'exercise_id', 'language_code', 'name', 'description'}
+            .every(translationColumns.contains)) {
+          return const _CatalogDbValidationResult(
+            isValid: false,
+            error: 'Catalog DB missing required exercise translations.',
+          );
+        }
       }
 
       final versionRows = await db.query(

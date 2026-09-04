@@ -6,6 +6,8 @@ class AppDataSources {
   const AppDataSources._();
 
   // Bundled assets
+  static const String trainingAssetManifestPath =
+      'assets/db/catalog_manifest.json';
   static const String trainingDbFileName = 'train_libre_training.db';
   static const String legacyTrainingDbFileName = 'hypertrack_training.db';
   static const String trainingAssetDbPath = 'assets/db/$trainingDbFileName';

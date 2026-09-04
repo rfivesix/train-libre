@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
@@ -453,71 +454,99 @@ class BasisDataManager {
     }
   }
 
-  /// Public method to trigger the exercise catalog check and update process.
+  /// Installs a newer bundled catalog offline, then optionally checks remote.
+  /// [force] bypasses the remote check interval, never the downgrade guard.
   Future<void> importExerciseCatalog({
     bool force = false,
     bool checkRemote = false,
     ProgressCallback? onProgress,
     RemoteCatalogProgressCallback? onRemoteProgress,
     RemoteCatalogSkipRequested? isRemoteSkipRequested,
+    ExerciseCatalogRefreshService? catalogRefreshService,
   }) async {
     final prefs = await SharedPreferences.getInstance();
-    if (force) {
-      await prefs.remove(_keyVersionTraining);
+    final mainDb = await DatabaseHelper.instance.database;
+    Future<bool> hasCatalog() async {
+      final exercises = await mainDb
+          .customSelect('SELECT 1 FROM exercises LIMIT 1')
+          .getSingleOrNull();
+      final translations = await mainDb
+          .customSelect('SELECT 1 FROM exercise_translations LIMIT 1')
+          .getSingleOrNull();
+      return exercises != null && translations != null;
     }
 
-    String? remoteTrainingDbPath;
-    final installedTrainingVersion =
-        prefs.getString(_keyVersionTraining) ?? '0';
+    final healthy = await hasCatalog();
+    if (!healthy) {
+      // A restore can carry a version preference without the actual rows.
+      await prefs.remove(_keyVersionTraining);
+      await prefs.setBool('is_exercise_catalog_initialized', false);
+      _exerciseRowsVerified = false;
+    }
+
+    Future<void> importSource([String? path]) => _updateDatabaseFromSource(
+          assetPath: AppDataSources.trainingAssetDbPath,
+          sourceFilePath: path,
+          prefKey: _keyVersionTraining,
+          prefs: prefs,
+          tableName: 'exercises',
+          driftTableName: null,
+          legacyAssetPath: AppDataSources.legacyTrainingAssetDbPath,
+          importType: BatchImportType.exercises,
+          preferredLanguage: null,
+          taskLabel: 'Übungen',
+          onProgress: onProgress,
+          forceImport: false,
+          enableOffReplacementRetention: false,
+        );
+
+    // The small manifest avoids copying/opening the bundled SQLite file on
+    // every launch. The importer still checks the database's own version.
+    var checkBundle = true;
+    if (healthy) {
+      try {
+        final manifest = jsonDecode(await rootBundle.loadString(
+          AppDataSources.trainingAssetManifestPath,
+        )) as Map<String, dynamic>;
+        final version = manifest['version']?.toString().trim() ?? '';
+        if (version.isNotEmpty) {
+          checkBundle = ExerciseCatalogRefreshService.isRemoteVersionNewer(
+            remoteVersion: version,
+            installedVersion: prefs.getString(_keyVersionTraining) ?? '0',
+          );
+        }
+      } catch (e) {
+        debugPrint('[ExerciseCatalog] Bundle manifest unavailable: $e');
+      }
+    }
+    if (checkBundle) await importSource();
+
     if (force || checkRemote) {
       try {
-        onProgress?.call(
-          "Prüfe Übungen...",
-          "Suche nach Remote-Katalog-Updates...",
-          0.0,
-        );
-        final remoteCandidate =
-            await ExerciseCatalogRefreshService.instance.prepareUpdateCandidate(
-          installedVersion: installedTrainingVersion,
+        // Read AFTER the bundled import: remote and cached data must be newer
+        // than both the previously installed catalog and the bundled one.
+        final candidate = await (catalogRefreshService ??
+                ExerciseCatalogRefreshService.instance)
+            .prepareUpdateCandidate(
+          installedVersion: prefs.getString(_keyVersionTraining) ?? '0',
           force: force,
           onProgress: onRemoteProgress,
           isSkipRequested: isRemoteSkipRequested,
         );
-        if (remoteCandidate != null) {
-          remoteTrainingDbPath = remoteCandidate.localDbPath;
-          debugPrint(
-              '[ExerciseCatalog] Remote update available: v${remoteCandidate.version}');
-          onProgress?.call(
-            "Update Übungen",
-            "Remote-Katalog ${remoteCandidate.version} gefunden.",
-            0.02,
-          );
-        }
+        if (candidate != null) await importSource(candidate.localDbPath);
       } catch (e) {
-        debugPrint('[ExerciseCatalog] Remote check failed (non-fatal): $e');
+        debugPrint('[ExerciseCatalog] Remote update failed (non-fatal): $e');
       }
     }
 
-    await _updateDatabaseFromSource(
-      assetPath: AppDataSources.trainingAssetDbPath,
-      sourceFilePath: remoteTrainingDbPath,
-      prefKey: _keyVersionTraining,
-      prefs: prefs,
-      tableName: 'exercises',
-      driftTableName: null,
-      legacyAssetPath: AppDataSources.legacyTrainingAssetDbPath,
-      importType: BatchImportType.exercises,
-      preferredLanguage: null,
-      taskLabel: 'Übungen',
-      onProgress: onProgress,
-      forceImport: force,
-      enableOffReplacementRetention: false,
-    );
+    _exerciseRowsVerified = await hasCatalog();
+    await prefs.setBool(
+        'is_exercise_catalog_initialized', _exerciseRowsVerified);
   }
 
   /// Checks for updates to the basis data and performs an import if necessary.
   ///
-  /// The [force] parameter triggers a re-import regardless of version mismatch.
+  /// [force] checks remote catalogs immediately. Exercise catalogs never downgrade.
   /// The [onProgress] callback reports the ongoing task, details, and percentage.
   Future<void> checkForBasisDataUpdate({
     bool force = false,
@@ -534,60 +563,15 @@ class BasisDataManager {
       await prefs.remove(_keyVersionCats);
     }
 
-    final isExerciseInitialized =
-        prefs.getBool('is_exercise_catalog_initialized') ?? false;
     final mainDb = await DatabaseHelper.instance.database;
-
-    bool exerciseCatalogUnhealthy = false;
-    if (!isExerciseInitialized || force) {
-      exerciseCatalogUnhealthy = true;
-    } else {
-      // Fast existence check (O(1) LIMIT 1) rather than scanning all rows with COUNT(*)
-      final exRow = await mainDb
-          .customSelect('SELECT 1 FROM exercises LIMIT 1')
-          .getSingleOrNull();
-      final trRow = await mainDb
-          .customSelect('SELECT 1 FROM exercise_translations LIMIT 1')
-          .getSingleOrNull();
-
-      if (exRow == null || trRow == null) {
-        // Tables are empty (e.g. fresh install, sandbox wipe or empty restored DB)
-        exerciseCatalogUnhealthy = true;
-        await prefs.remove(_keyVersionTraining);
-        _exerciseRowsVerified = false;
-        debugPrint(
-          '[ExerciseCatalog] ⚠️  exercises or translations missing → forcing re-seed.',
-        );
-      } else {
-        _exerciseRowsVerified = true;
-      }
-    }
-
-    if (exerciseCatalogUnhealthy || force) {
-      await importExerciseCatalog(
-        force: force,
-        checkRemote: force,
-        onProgress: force ? onProgress : null,
-        onRemoteProgress: force ? onRemoteProgress : null,
-        isRemoteSkipRequested: force ? isRemoteSkipRequested : null,
-      );
-      await prefs.setBool('is_exercise_catalog_initialized', true);
-
-      // Post-import sanity check
-      final postExRow = await mainDb
-          .customSelect('SELECT 1 FROM exercises LIMIT 1')
-          .getSingleOrNull();
-      final postTrRow = await mainDb
-          .customSelect('SELECT 1 FROM exercise_translations LIMIT 1')
-          .getSingleOrNull();
-      if (postExRow == null || postTrRow == null) {
-        debugPrint(
-            '[ExerciseCatalog] ❌ exercises or translations still EMPTY after import!');
-      } else {
-        debugPrint(
-            '[ExerciseCatalog] ✅ Exercise catalog successfully imported and ready.');
-      }
-    }
+    // App updates carry catalog updates too, even when the existing catalog
+    // has rows. Routine startup remains entirely offline.
+    await importExerciseCatalog(
+      force: force,
+      onProgress: onProgress,
+      onRemoteProgress: onRemoteProgress,
+      isRemoteSkipRequested: isRemoteSkipRequested,
+    );
 
     final activeOffSource = OffCatalogCountryService.activeSourceFromPrefs(
       prefs,
