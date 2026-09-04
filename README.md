@@ -2,6 +2,46 @@
 
 This directory contains the technical documentation for the Train Libre architecture, modules, and processes.
 
+## Website and F-Droid publishing
+
+The public website is hosted at `https://trainlibre.com/`. GitHub Pages serves
+the root of `gh-pages`; `docs/CNAME` preserves the custom domain when the website
+is deployed. The F-Droid repository is at `https://trainlibre.com/fdroid/repo`.
+
+- `deploy-docs.yml` publishes changes to `docs/` on `main`, changes to that
+  workflow itself, or a manual dispatch.
+- `fdroid-repo.yml` runs once on release publication, or on manual dispatch.
+  A manual dispatch resolves the latest release once and uses its tag for APKs,
+  version information, store metadata, screenshots, and release notes. The
+  workflow and F-Droid configuration still come from the selected workflow ref.
+- F-Droid uses the App Store marketing screenshots from
+  `ios/fastlane/screenshots` at that release tag, not the raw iOS screenshots.
+  Only the `1320x2868` set is copied, in numbered order, for `en-US` and `de-DE`.
+  Other resolutions and the duplicate `en-GB` set are excluded. English is
+  required; if German is absent, only the English default is published. Old
+  phone screenshots are removed from the generated metadata before copying.
+- Both workflows share the `gh-pages-publish` concurrency group to prevent
+  competing pushes. Keep the group identical and do not cancel active publishes.
+  `queue: max` lets multiple pending publishes wait without replacing each other.
+- Keep the existing F-Droid signing secrets and repository fingerprint unchanged.
+  Regenerate indexes with `fdroid update`; never edit the published JSON by hand,
+  because the signed entry contains the index hash and size.
+
+For a repository/domain hotfix, first put the workflow changes on `main`, then
+manually dispatch **Update F-Droid Repository** with `main` selected. Rerunning an
+old release job uses its old workflow, not the corrected one. Confirm that both
+the docs and F-Droid publishes finish successfully, then check the live repository
+address, signed indexes, APK downloads, and adding/updating the repo in F-Droid.
+
+Offline regression checks (requires Python, PyYAML, bash, and jq):
+
+```sh
+python3 .github/scripts/test_fdroid_workflows.py
+```
+
+These tests use fixtures and do not validate live TLS, real signatures, or Android
+client behavior. The F-Droid workflow also runs them before generating the index.
+
 ## Architecture & System
 - **[System Architecture](../documentation/architecture.md)**
   Details the high-level layering, clean architecture boundaries, and execution flows within the app. Consult this when extending or adding a new feature module.
