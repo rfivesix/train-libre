@@ -32,6 +32,7 @@ import 'widgets/reorder_drag_proxy.dart';
 import 'widgets/pr_celebration_banner.dart';
 import '../domain/classification/exercise_log_mask.dart';
 import 'widgets/exercise_e1rm_summary.dart';
+import 'widgets/log_mask_labels.dart';
 import 'widgets/live_workout_set_row.dart';
 import 'widgets/exercise_notes_dialog.dart';
 import 'widgets/routine_pause_time_dialog.dart';
@@ -755,35 +756,33 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
 
   // --- HEADER HELPER ---
   Widget _buildHeaderRow(RoutineExercise re, AppLocalizations l10n) {
-    // Important: cardio check here.
-    final bool isCardio = _isCardio(re);
+    // Follows the same mask as the input fields below it. It used to branch on
+    // a cardio flag alone, so a timed exercise got a column headed "Reps" over
+    // a duration picker.
+    final mask = ExerciseLogMask.forExercise(re.exercise);
     final unitService = context.read<UnitService>();
 
-    if (isCardio) {
-      return Row(
-        children: [
-          _buildHeader(l10n.setLabel, flex: 2), // Set Nr.
-          _buildHeader(l10n.lastTimeLabel, flex: 3), // History/Last
-          _buildHeader(
-              l10n.cardioDistanceLabel(
-                  unitService.suffixFor(UnitDimension.distance)),
-              flex: 4),
-          _buildHeader(l10n.cardioTimeLabel, flex: 4),
-          _buildHeader(l10n.cardioIntensityLabel, flex: 2),
-          const SizedBox(
-              width: 56), // Space for checkbox (48 width + 8 padding)
-        ],
-      );
-    }
-    // Standard Strength Header
+    final primary = LogMaskLabels.primaryHeader(mask, l10n, unitService);
+    final secondary = LogMaskLabels.secondaryHeader(mask, l10n);
+    final wide = mask.logsDistance || mask.logsDuration;
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        _buildHeader(l10n.setLabel, flex: 1),
-        _buildHeader(l10n.lastTimeLabel, flex: 2),
-        _buildHeader(unitService.suffixFor(UnitDimension.weight), flex: 2),
-        _buildHeader(l10n.repsLabel, flex: 2),
-        _buildHeader("RIR", flex: 1),
+        _buildHeader(l10n.setLabel, flex: wide ? 2 : 1),
+        _buildHeader(l10n.lastTimeLabel, flex: wide ? 3 : 2),
+        if (primary != null)
+          _buildHeader(primary, flex: wide ? 4 : 2)
+        else
+          Expanded(flex: wide ? 4 : 2, child: const SizedBox.shrink()),
+        if (secondary != null)
+          _buildHeader(secondary, flex: wide ? 4 : 2)
+        else
+          Expanded(flex: wide ? 4 : 2, child: const SizedBox.shrink()),
+        _buildHeader(
+          mask.logsDistance ? l10n.cardioIntensityLabel : 'RIR',
+          flex: wide ? 2 : 1,
+        ),
         const SizedBox(width: 56), // Space for checkbox (48 width + 8 padding)
       ],
     );

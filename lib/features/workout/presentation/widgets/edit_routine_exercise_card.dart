@@ -10,6 +10,7 @@ import '../../../../widgets/common/card_morph_route.dart';
 import '../../../../widgets/common/morph_source.dart';
 import 'workout_card.dart';
 import '../../domain/classification/exercise_log_mask.dart';
+import 'log_mask_labels.dart';
 import 'routine_set_row_widget.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 
@@ -290,34 +291,31 @@ class EditRoutineExerciseCard extends StatelessWidget {
     RoutineExercise re,
     AppLocalizations l10n,
   ) {
-    if (isCardio) {
-      return Row(
-        children: [
-          _buildHeader(l10n.setLabel, flex: 2),
-          _buildHeader(
-              l10n.cardioDistanceLabel(context
-                  .read<UnitService>()
-                  .suffixFor(UnitDimension.distance)),
-              flex: 4),
-          const SizedBox(width: 8),
-          _buildHeader(l10n.cardioTimeLabel, flex: 4),
-          const SizedBox(width: 8),
-          _buildHeader(l10n.cardioIntensityLabel, flex: 2),
-          const SizedBox(width: 48),
-        ],
-      );
-    }
+    // Same mask as the rows beneath it, so a timed exercise is not headed
+    // "Reps" over a duration picker.
+    final mask = ExerciseLogMask.forExercise(re.exercise);
+    final unitService = context.read<UnitService>();
+    final primary = LogMaskLabels.primaryHeader(mask, l10n, unitService);
+    final secondary = LogMaskLabels.secondaryHeader(mask, l10n);
+    final wide = mask.logsDistance || mask.logsDuration;
+
     return Row(
       children: [
         _buildHeader(l10n.setLabel, flex: 2),
+        if (primary != null)
+          _buildHeader(primary, flex: wide ? 4 : 2)
+        else
+          Expanded(flex: wide ? 4 : 2, child: const SizedBox.shrink()),
+        const SizedBox(width: 8),
+        if (secondary != null)
+          _buildHeader(secondary, flex: wide ? 4 : 2)
+        else
+          Expanded(flex: wide ? 4 : 2, child: const SizedBox.shrink()),
+        const SizedBox(width: 8),
         _buildHeader(
-          context.read<UnitService>().suffixFor(UnitDimension.weight),
+          mask.logsDistance ? l10n.cardioIntensityLabel : 'RIR',
           flex: 2,
         ),
-        const SizedBox(width: 8),
-        _buildHeader(l10n.repsLabel, flex: 2),
-        const SizedBox(width: 8),
-        _buildHeader("RIR", flex: 2),
         const SizedBox(width: 48),
       ],
     );

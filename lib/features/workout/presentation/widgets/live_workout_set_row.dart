@@ -8,6 +8,7 @@ import '../../../../services/haptic_feedback_service.dart';
 import '../../../../services/unit_service.dart';
 import '../../../app/presentation/widgets/glass_bottom_menu.dart';
 import '../../domain/classification/exercise_log_mask.dart';
+import 'log_mask_labels.dart';
 import '../../domain/models/set_log.dart';
 import '../../domain/models/set_template.dart';
 import '../live_workout_view_model.dart';
@@ -300,59 +301,82 @@ class LiveWorkoutSetRow extends StatelessWidget {
         // 2. LAST PERFORMANCE (tap to apply)
         Expanded(
           flex: isCardio ? 3 : 2,
-          child: isCardio
-              ? const SizedBox.shrink()
-              : GestureDetector(
-                  onTap: (!isCompleted && rowIndex < lastPerfSets.length)
-                      ? () {
-                          final lastSet = lastPerfSets[rowIndex];
-                          double? metricWeight;
-                          int? reps;
+          child: GestureDetector(
+            onTap: (!isCompleted && rowIndex < lastPerfSets.length)
+                ? () {
+                    final lastSet = lastPerfSets[rowIndex];
+                    double? metricWeight;
+                    double? distance;
+                    int? reps;
+                    int? duration;
 
-                          // Apply weight
-                          if (lastSet.weightKg != null) {
-                            final displayWeight = unitService
-                                .convertDisplayValue(
-                                  lastSet.weightKg!,
-                                  UnitDimension.weight,
-                                )
-                                .toStringAsFixed(1)
-                                .replaceAll('.0', '');
-                            manager.weightControllers[templateId]?.text =
-                                displayWeight;
-                            metricWeight = lastSet.weightKg;
-                          }
-                          // Apply reps
-                          if (lastSet.reps != null) {
-                            manager.repsControllers[templateId]?.text =
-                                lastSet.reps.toString();
-                            reps = lastSet.reps;
-                          }
+                    // Copies whatever this exercise actually logs. The
+                    // cell now shows a duration for a plank, so tapping
+                    // it has to apply one rather than a weight the row
+                    // never had.
+                    if (mask.logsDistance) {
+                      if (lastSet.distanceKm != null) {
+                        distance = lastSet.distanceKm;
+                        manager.weightControllers[templateId]?.text = lastSet
+                            .distanceKm!
+                            .toStringAsFixed(3)
+                            .replaceAll(RegExp(r'0*$'), '')
+                            .replaceAll(RegExp(r'\.$'), '');
+                      }
+                    } else if (mask.showsPrimary && lastSet.weightKg != null) {
+                      final displayWeight = unitService
+                          .convertDisplayValue(
+                            lastSet.weightKg!,
+                            UnitDimension.weight,
+                          )
+                          .toStringAsFixed(1)
+                          .replaceAll('.0', '');
+                      manager.weightControllers[templateId]?.text =
+                          displayWeight;
+                      metricWeight = lastSet.weightKg;
+                    }
 
-                          // Explicitly propagate and bind to the underlying state model
-                          manager.updateSet(
-                            templateId,
-                            weight: metricWeight,
-                            reps: reps,
-                          );
+                    if (mask.logsDuration) {
+                      if (lastSet.durationSeconds != null) {
+                        duration = lastSet.durationSeconds;
+                        manager.repsControllers[templateId]?.text =
+                            formatPauseDuration(duration);
+                      }
+                    } else if (mask.logsReps && lastSet.reps != null) {
+                      manager.repsControllers[templateId]?.text =
+                          lastSet.reps.toString();
+                      reps = lastSet.reps;
+                    }
 
-                          HapticFeedbackService.instance.selectionFeedback();
-                        }
-                      : null,
-                  child: Text(
-                    (rowIndex < lastPerfSets.length)
-                        ? "${unitService.convertDisplayValue(lastPerfSets[rowIndex].weightKg ?? 0, UnitDimension.weight).toStringAsFixed(1).replaceAll('.0', '')}${unitService.suffixFor(UnitDimension.weight)} × ${lastPerfSets[rowIndex].reps}"
-                        : "-",
-                    textAlign: TextAlign.center,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      color: Colors.grey[500],
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
+                    // Explicitly propagate and bind to the underlying state model
+                    manager.updateSet(
+                      templateId,
+                      weight: metricWeight,
+                      reps: reps,
+                      distance: distance,
+                      duration: duration,
+                    );
+
+                    HapticFeedbackService.instance.selectionFeedback();
+                  }
+                : null,
+            child: Text(
+              LogMaskLabels.lastPerformance(
+                mask,
+                rowIndex < lastPerfSets.length ? lastPerfSets[rowIndex] : null,
+                AppLocalizations.of(context)!,
+                unitService,
+              ),
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: Colors.grey[500],
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
         ),
 
         // 3. INPUT 1: WEIGHT / ADDED WEIGHT / ASSISTANCE / DISTANCE
