@@ -1,6 +1,8 @@
 import "../../../services/unit_service.dart";
 
 import 'models/set_log.dart';
+import 'classification/exercise_log_mask.dart';
+import 'classification/set_load.dart';
 
 class PRDetectionResult {
   final SetLog updatedSetLog;
@@ -28,15 +30,30 @@ class DetectPersonalRecordUseCase {
     required SetLog currentSet,
     required Map<String, double> historicalBests,
     required UnitService unitService,
+    ExerciseLogMask? mask,
+    double? bodyweightKg,
   }) {
     final currentWeight = currentSet.weightKg ?? 0.0;
-    final currentReps = currentSet.reps ?? 0;
-    final currentVolume = currentWeight * currentReps;
 
-    double currentEst1rm = 0.0;
-    if (currentReps > 0 && currentReps <= 10) {
-      currentEst1rm = currentWeight * (36 / (37 - currentReps));
-    }
+    // The historical bests this is compared against are computed from the
+    // effective load, so this side has to be too — otherwise a body-weight
+    // exercise reads as a permanent personal record and an assisted one never
+    // reaches its own history.
+    final effectiveMask = mask ?? ExerciseLogMask.weightAndReps;
+    final currentVolume = setTonnageKg(
+      trackingType: effectiveMask.trackingType,
+      loadMode: effectiveMask.loadMode,
+      loggedWeightKg: currentSet.weightKg,
+      reps: currentSet.reps,
+      bodyweightKg: bodyweightKg,
+    );
+
+    final currentEst1rm = effectiveMask.estimatedOneRepMax(
+          loggedWeightKg: currentSet.weightKg,
+          reps: currentSet.reps,
+          bodyweightKg: bodyweightKg,
+        ) ??
+        0.0;
 
     final currentDistance = currentSet.distanceKm ?? 0.0;
     final currentDuration = currentSet.durationSeconds ?? 0;

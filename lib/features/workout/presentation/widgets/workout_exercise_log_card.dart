@@ -25,6 +25,9 @@ class WorkoutExerciseLogCard extends StatelessWidget {
   /// Which inputs each set row shows. Derived from the exercise by the caller,
   /// which is the only place that has it.
   final ExerciseLogMask mask;
+
+  /// Body weight on the day of this workout, when recorded.
+  final double? bodyweightKg;
   final Map<int, TextEditingController> weightControllers;
   final Map<int, TextEditingController> repsControllers;
   final Map<int, TextEditingController> rirControllers;
@@ -50,6 +53,7 @@ class WorkoutExerciseLogCard extends StatelessWidget {
     required this.isEditMode,
     required this.isCardio,
     required this.mask,
+    this.bodyweightKg,
     required this.weightControllers,
     required this.repsControllers,
     required this.rirControllers,
@@ -290,6 +294,7 @@ class WorkoutExerciseLogCard extends StatelessWidget {
                                   exerciseName: exerciseName,
                                   isEditMode: isEditMode,
                                   mask: mask,
+                                  bodyweightKg: bodyweightKg,
                                   weightController:
                                       weightControllers[setLog.id],
                                   repsController: repsControllers[setLog.id],

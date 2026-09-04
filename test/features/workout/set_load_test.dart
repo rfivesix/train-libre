@@ -291,4 +291,108 @@ void main() {
       );
     });
   });
+
+  group('estimated one-rep max', () {
+    test('an ordinary lift estimates from the number entered', () {
+      final e1rm = estimatedOneRepMaxKg(
+        trackingType: 'weight_reps',
+        loadMode: 'external',
+        loggedWeightKg: 100,
+        reps: 5,
+        bodyweightKg: 80,
+      );
+      expect(e1rm, closeTo(112.5, 0.01));
+    });
+
+    test('rising assistance means a FALLING e1RM', () {
+      // The finding this exists for. More help from the machine is less work
+      // by the user, and the curve has to go down.
+      double e1rm(double assistance) => estimatedOneRepMaxKg(
+            trackingType: 'bodyweight_reps',
+            loadMode: 'assisted',
+            loggedWeightKg: assistance,
+            reps: 5,
+            bodyweightKg: 80,
+          )!;
+
+      final early = e1rm(20);
+      final later = e1rm(40);
+      expect(later, lessThan(early),
+          reason: 'more assistance was read as more strength');
+    });
+
+    test('falling assistance means a RISING e1RM', () {
+      double e1rm(double assistance) => estimatedOneRepMaxKg(
+            trackingType: 'bodyweight_reps',
+            loadMode: 'assisted',
+            loggedWeightKg: assistance,
+            reps: 5,
+            bodyweightKg: 80,
+          )!;
+
+      expect(e1rm(20), greaterThan(e1rm(40)));
+    });
+
+    test('an assisted set with no recorded body weight shows nothing', () {
+      // A missing number is honest. An inverted one is a claim about the
+      // user's progress that happens to be backwards.
+      expect(
+        estimatedOneRepMaxKg(
+          trackingType: 'bodyweight_reps',
+          loadMode: 'assisted',
+          loggedWeightKg: 30,
+          reps: 5,
+          bodyweightKg: null,
+        ),
+        isNull,
+      );
+    });
+
+    test('a body-weight set gets an e1RM at all', () {
+      expect(
+        estimatedOneRepMaxKg(
+          trackingType: 'bodyweight_reps',
+          loadMode: 'bodyweight',
+          loggedWeightKg: null,
+          reps: 5,
+          bodyweightKg: 80,
+        ),
+        closeTo(90, 0.01),
+      );
+    });
+
+    test('a weighted pull-up estimates higher than an unweighted one', () {
+      final plain = estimatedOneRepMaxKg(
+        trackingType: 'bodyweight_reps',
+        loadMode: 'bodyweight',
+        loggedWeightKg: null,
+        reps: 5,
+        bodyweightKg: 80,
+      )!;
+      final weighted = estimatedOneRepMaxKg(
+        trackingType: 'bodyweight_reps',
+        loadMode: 'bodyweight',
+        loggedWeightKg: 20,
+        reps: 5,
+        bodyweightKg: 80,
+      )!;
+      expect(weighted, greaterThan(plain));
+    });
+
+    test('nothing is estimated outside the range the formula holds for', () {
+      for (final reps in [null, 0, 13, 30]) {
+        expect(
+          estimatedOneRepMaxKg(
+            trackingType: 'weight_reps',
+            loadMode: 'external',
+            loggedWeightKg: 100,
+            reps: reps,
+            bodyweightKg: 80,
+          ),
+          isNull,
+          reason: 'reps = $reps',
+        );
+      }
+    });
+  });
 }

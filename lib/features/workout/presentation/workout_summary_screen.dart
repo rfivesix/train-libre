@@ -34,6 +34,8 @@ import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../widgets/common/app_button.dart';
 import 'dart:async';
 import '../../../services/telemetry/telemetry_service.dart';
+import '../domain/classification/exercise_log_mask.dart';
+import '../domain/classification/set_load.dart';
 
 /// A screen providing a summary of a recently finished workout session.
 ///
@@ -94,6 +96,9 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
       final Map<String, _ExerciseSummaryData> summaryMap = {};
       final Map<String, List<ExerciseRecordData>> newRecordsMap = {};
       final Map<String, Exercise> detailsMap = {};
+
+      // Body weight on the day of this session, not today's.
+      final bodyweightKg = (await db.getBodyweightHistory()).at(data.startTime);
 
       final groupedSets = <String, List<SetLog>>{};
       for (var set in data.sets) {
@@ -217,18 +222,31 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
           double sessionMaxVolume = 0;
           double sessionMaxEst1rm = 0;
 
+          final summaryMask = ExerciseLogMask.forExercise(exercise);
+
           for (var s in sets) {
             final w = s.weightKg ?? 0.0;
-            final r = s.reps ?? 0;
-            totalVol += w * r;
+            final vol = setTonnageKg(
+              trackingType: summaryMask.trackingType,
+              loadMode: summaryMask.loadMode,
+              loggedWeightKg: s.weightKg,
+              reps: s.reps,
+              bodyweightKg: bodyweightKg,
+            );
+            totalVol += vol;
 
             if (s.isCompleted == true && s.setType != 'warmup') {
               if (w > sessionMaxWeight) sessionMaxWeight = w;
-              final vol = w * r;
               if (vol > sessionMaxVolume) sessionMaxVolume = vol;
-              if (r > 0 && r <= 10) {
-                final e1rm = w * (36 / (37 - r));
-                if (e1rm > sessionMaxEst1rm) sessionMaxEst1rm = e1rm;
+              // Through the mask: an assistance machine's number is help, not
+              // load, and reading it as load inverts the session best.
+              final e1rm = summaryMask.estimatedOneRepMax(
+                loggedWeightKg: s.weightKg,
+                reps: s.reps,
+                bodyweightKg: bodyweightKg,
+              );
+              if (e1rm != null && e1rm > sessionMaxEst1rm) {
+                sessionMaxEst1rm = e1rm;
               }
             }
           }

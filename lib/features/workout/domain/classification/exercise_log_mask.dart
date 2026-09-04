@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import '../../../exercise_catalog/domain/models/exercise.dart';
+import 'set_load.dart';
 
 /// What a single input column of a set row collects.
 enum LogField {
@@ -38,7 +39,18 @@ class ExerciseLogMask {
   /// The right input column: reps or duration.
   final LogField secondary;
 
-  const ExerciseLogMask({required this.primary, required this.secondary});
+  /// Carried so the mask can answer what a logged number is *worth*, not only
+  /// which box it goes in. Both are null for pre-v2 rows and user-created
+  /// exercises.
+  final String? trackingType;
+  final String? loadMode;
+
+  const ExerciseLogMask({
+    required this.primary,
+    required this.secondary,
+    this.trackingType,
+    this.loadMode,
+  });
 
   /// The shape everything used before `tracking_type` existed.
   static const ExerciseLogMask weightAndReps =
@@ -59,6 +71,8 @@ class ExerciseLogMask {
               ? LogField.weight
               : LogField.assistance,
           secondary: LogField.reps,
+          trackingType: exercise.trackingType,
+          loadMode: exercise.loadMode,
         );
       case 'bodyweight_reps':
         return ExerciseLogMask(
@@ -66,23 +80,36 @@ class ExerciseLogMask {
               ? LogField.addedWeight
               : LogField.assistance,
           secondary: LogField.reps,
+          trackingType: exercise.trackingType,
+          loadMode: exercise.loadMode,
         );
       case 'time':
-        return const ExerciseLogMask(
+        return ExerciseLogMask(
           primary: LogField.none,
           secondary: LogField.duration,
+          trackingType: exercise!.trackingType,
+          loadMode: exercise.loadMode,
         );
       case 'time_weight':
-        return const ExerciseLogMask(
+        return ExerciseLogMask(
           primary: LogField.weight,
           secondary: LogField.duration,
+          trackingType: exercise!.trackingType,
+          loadMode: exercise.loadMode,
         );
       case 'distance_time':
-        return distanceAndDuration;
+        return ExerciseLogMask(
+          primary: LogField.distance,
+          secondary: LogField.duration,
+          trackingType: exercise!.trackingType,
+          loadMode: exercise.loadMode,
+        );
       case 'distance_only':
-        return const ExerciseLogMask(
+        return ExerciseLogMask(
           primary: LogField.distance,
           secondary: LogField.none,
+          trackingType: exercise!.trackingType,
+          loadMode: exercise.loadMode,
         );
     }
 
@@ -90,6 +117,32 @@ class ExerciseLogMask {
     // category is still the only signal there is.
     return (exercise?.isCardio ?? false) ? distanceAndDuration : weightAndReps;
   }
+
+  /// What a logged number was actually worth, in kilograms.
+  ///
+  /// Delegates rather than reimplementing: the sign error this guards against
+  /// is exactly the kind that a second copy of the rule reintroduces.
+  double? effectiveLoadKg(double? loggedWeightKg, double? bodyweightKg) =>
+      effectiveSetLoadKg(
+        trackingType: trackingType,
+        loadMode: loadMode,
+        loggedWeightKg: loggedWeightKg,
+        bodyweightKg: bodyweightKg,
+      );
+
+  /// Estimated one-rep max, or null when there is nothing honest to show.
+  double? estimatedOneRepMax({
+    required double? loggedWeightKg,
+    required int? reps,
+    required double? bodyweightKg,
+  }) =>
+      estimatedOneRepMaxKg(
+        trackingType: trackingType,
+        loadMode: loadMode,
+        loggedWeightKg: loggedWeightKg,
+        reps: reps,
+        bodyweightKg: bodyweightKg,
+      );
 
   bool get showsPrimary => primary != LogField.none;
   bool get showsSecondary => secondary != LogField.none;
@@ -110,10 +163,12 @@ class ExerciseLogMask {
   bool operator ==(Object other) =>
       other is ExerciseLogMask &&
       other.primary == primary &&
-      other.secondary == secondary;
+      other.secondary == secondary &&
+      other.trackingType == trackingType &&
+      other.loadMode == loadMode;
 
   @override
-  int get hashCode => Object.hash(primary, secondary);
+  int get hashCode => Object.hash(primary, secondary, trackingType, loadMode);
 
   @override
   String toString() => 'ExerciseLogMask($primary, $secondary)';

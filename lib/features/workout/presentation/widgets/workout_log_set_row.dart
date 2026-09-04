@@ -20,6 +20,11 @@ class WorkoutLogSetRow extends StatelessWidget {
   final String exerciseName;
   final bool isEditMode;
   final ExerciseLogMask mask;
+
+  /// The user's body weight on the day of this workout, when recorded. Only
+  /// used to value body-weight and assisted sets; null shows no e1RM for
+  /// those rather than a wrong one.
+  final double? bodyweightKg;
   final TextEditingController? weightController;
   final TextEditingController? repsController;
   final TextEditingController? rirController;
@@ -34,6 +39,7 @@ class WorkoutLogSetRow extends StatelessWidget {
     required this.exerciseName,
     required this.isEditMode,
     required this.mask,
+    this.bodyweightKg,
     this.weightController,
     this.repsController,
     this.rirController,
@@ -329,7 +335,10 @@ class WorkoutLogSetRow extends StatelessWidget {
 
     if (isWarmup) return false;
     if (!isCompleted) return false;
-    if (weight == null || weight <= 0) return false;
+    // A positive *effective* load, not a positive typed number: a pull-up
+    // has no weight in the column and still lifts the user.
+    final load = mask.effectiveLoadKg(weight, bodyweightKg);
+    if (load == null || load <= 0) return false;
     if (reps == null || reps <= 0 || reps > 10) return false;
 
     return true;
@@ -340,9 +349,15 @@ class WorkoutLogSetRow extends StatelessWidget {
       return null;
     }
 
-    final reps = setLog.reps!;
-    final weight = setLog.weightKg!;
-    return weight * (36 / (37 - reps));
+    // Through the mask, so an assistance machine is read as body weight minus
+    // the number entered rather than as the number itself. Null when there is
+    // no body weight to work back from, which shows nothing instead of a
+    // figure that moves the wrong way.
+    return mask.estimatedOneRepMax(
+      loggedWeightKg: setLog.weightKg,
+      reps: setLog.reps,
+      bodyweightKg: bodyweightKg,
+    );
   }
 
   Widget _buildPRBadge(BuildContext context, SetLog setLog) {

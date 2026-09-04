@@ -32,6 +32,7 @@ import 'widgets/workout_photo_card.dart';
 import 'widgets/workout_summary_bar.dart';
 import 'widgets/workout_heart_rate_section.dart';
 import '../domain/classification/exercise_log_mask.dart';
+import '../domain/classification/set_load.dart';
 import 'widgets/workout_exercise_log_card.dart';
 import 'widgets/muscle_color_helper.dart';
 import '../../app/presentation/widgets/glass_bottom_menu.dart';
@@ -66,6 +67,13 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
   WorkoutHeartRateSummary? _heartRateSummary;
   Map<String, List<SetLog>> _groupedSets = {};
   Map<String, Exercise> _exerciseDetails = {};
+
+  /// The user's body weight on the day of this workout, when recorded.
+  ///
+  /// Dated rather than current, for the same reason tonnage is: a workout from
+  /// last spring was performed at last spring's weight, and re-valuing it at
+  /// today's would move a past number for a present reason.
+  double? _bodyweightKg;
   final Map<String, List<ExerciseRecordData>> _newRecordsPerExercise = {};
   Map<String, String> _exerciseNotes = {};
   bool _isEditMode = false;
@@ -246,12 +254,16 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
       }
     }
 
+    final bodyweights = await repo.getBodyweightHistory();
+    final bodyweightKg = bodyweights.at(_log!.startTime);
+
     if (!mounted || _isEditMode) return;
 
     setState(() {
       _log = _log!.copyWith(sets: mutableSets);
       _groupedSets = updatedGroups;
       _exerciseDetails = updatedDetails;
+      _bodyweightKg = bodyweightKg;
     });
   }
 
@@ -430,12 +442,22 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
 
       final bests = historicalBests[exName]!;
       final currentWeight = setLog.weightKg ?? 0.0;
-      final currentReps = setLog.reps ?? 0;
-      final currentVolume = currentWeight * currentReps;
-      double currentEst1rm = 0.0;
-      if (currentReps > 0 && currentReps <= 10) {
-        currentEst1rm = currentWeight * (36 / (37 - currentReps));
-      }
+      // Valued the same way getExerciseBests values the history it is being
+      // compared against; otherwise a body-weight set is a record every time.
+      final setMask = _maskFor(exName);
+      final currentVolume = setTonnageKg(
+        trackingType: setMask.trackingType,
+        loadMode: setMask.loadMode,
+        loggedWeightKg: setLog.weightKg,
+        reps: setLog.reps,
+        bodyweightKg: _bodyweightKg,
+      );
+      final currentEst1rm = setMask.estimatedOneRepMax(
+            loggedWeightKg: setLog.weightKg,
+            reps: setLog.reps,
+            bodyweightKg: _bodyweightKg,
+          ) ??
+          0.0;
 
       bool isMaxWeightPR = false;
       bool isMaxVolumePR = false;
@@ -1253,6 +1275,7 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                                 isEditMode: false,
                                 isCardio: isCardio,
                                 mask: _maskFor(exerciseName),
+                                bodyweightKg: _bodyweightKg,
                                 weightControllers: _weightControllers,
                                 repsControllers: _repsControllers,
                                 rirControllers: _rirControllers,
@@ -1331,6 +1354,7 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                                       isEditMode: true,
                                       isCardio: isCardio,
                                       mask: _maskFor(exerciseName),
+                                      bodyweightKg: _bodyweightKg,
                                       isDragging: true,
                                       weightControllers: _weightControllers,
                                       repsControllers: _repsControllers,
@@ -1398,6 +1422,7 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                                                   isEditMode: true,
                                                   isCardio: isCardio,
                                                   mask: _maskFor(exerciseName),
+                                                  bodyweightKg: _bodyweightKg,
                                                   isDragging: _isDragging,
                                                   onPointerDown: (e) =>
                                                       _onDragPointerDown(e,

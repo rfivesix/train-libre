@@ -598,9 +598,25 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
       lastPerformances[re.exercise.canonicalName] = lastSets;
     }
 
+    await loadBodyweight();
     syncControllers();
     isLoading = false;
     notifyListeners();
+  }
+
+  /// The user's most recently recorded body weight, or null when they have
+  /// never weighed themselves. Only used to value body-weight and assisted
+  /// sets; a null shows no e1RM for those rather than an inverted one.
+  double? bodyweightKg;
+
+  Future<void> loadBodyweight() async {
+    try {
+      final history = await _repository.getBodyweightHistory();
+      bodyweightKg = history.at(DateTime.now());
+      notifyListeners();
+    } catch (e) {
+      debugPrint('[LiveWorkout] body weight unavailable: $e');
+    }
   }
 
   void syncControllers() {
@@ -810,10 +826,19 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
       _exerciseBests[exName] = bests;
     }
 
+    // The same mask the row was rendered with, so the current set is valued
+    // the way its own history was.
+    final exerciseForMask = _exercises
+        .map((re) => re.exercise)
+        .where((e) => e.allNames.contains(exName))
+        .firstOrNull;
+
     final prResult = _detectPRUseCase.execute(
       unitService: unitService,
       currentSet: setLog,
       historicalBests: _exerciseBests[exName]!,
+      mask: ExerciseLogMask.forExercise(exerciseForMask),
+      bodyweightKg: bodyweightKg,
     );
 
     _setLogs[templateId] = prResult.updatedSetLog;

@@ -1299,6 +1299,7 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                                                                         template: template,
                                                                                         manager: manager,
                                                                                         mask: ExerciseLogMask.forExercise(routineExercise.exercise),
+                                                                                        bodyweightKg: manager.bodyweightKg,
                                                                                       );
                                                                                     }),
                                                                                     Padding(

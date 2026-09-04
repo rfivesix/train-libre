@@ -33,6 +33,10 @@ class LiveWorkoutSetRow extends StatelessWidget {
   /// reps" and had no way to express a plank or a pull-up.
   final ExerciseLogMask mask;
 
+  /// The user's current body weight, when recorded. See
+  /// [WorkoutLogSetRow.bodyweightKg].
+  final double? bodyweightKg;
+
   const LiveWorkoutSetRow({
     super.key,
     required this.setIndex,
@@ -43,6 +47,7 @@ class LiveWorkoutSetRow extends StatelessWidget {
     required this.template,
     required this.manager,
     required this.mask,
+    this.bodyweightKg,
   });
 
   /// True where the old flag was: the row logs a distance and a duration.
@@ -143,7 +148,10 @@ class LiveWorkoutSetRow extends StatelessWidget {
 
     if (isWarmup) return false;
     if (requireCompleted && !isCompleted) return false;
-    if (weight == null || weight <= 0) return false;
+    // A positive *effective* load, not a positive typed number: a pull-up
+    // has no weight in the column and still lifts the user.
+    final load = mask.effectiveLoadKg(weight, bodyweightKg);
+    if (load == null || load <= 0) return false;
     if (reps == null || reps <= 0 || reps > 10) return false;
 
     return true;
@@ -157,9 +165,11 @@ class LiveWorkoutSetRow extends StatelessWidget {
       return null;
     }
 
-    final reps = setLog.reps!;
-    final weight = setLog.weightKg!;
-    return weight * (36 / (37 - reps));
+    return mask.estimatedOneRepMax(
+      loggedWeightKg: setLog.weightKg,
+      reps: setLog.reps,
+      bodyweightKg: bodyweightKg,
+    );
   }
 
   Widget _buildPRBadge(SetLog setLog, BuildContext context) {

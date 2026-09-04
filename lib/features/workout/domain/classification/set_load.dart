@@ -119,3 +119,36 @@ double setTonnageKg({
   );
   return load == null ? 0 : load * reps;
 }
+
+/// Estimated one-rep max for a set, in kilograms (Brzycki).
+///
+/// Returns null when there is nothing honest to estimate from:
+///
+/// * an assisted set with no recorded body weight — the entered number is
+///   assistance, so without a body weight there is no load to work back to,
+///   and showing the assistance itself would invert the whole curve;
+/// * a set with no load figure at all, or outside the range the formula holds
+///   for.
+///
+/// A missing number is a missing number. An inverted one is a claim about the
+/// user's progress that happens to be backwards, and nothing about it looks
+/// wrong on screen.
+double? estimatedOneRepMaxKg({
+  required String? trackingType,
+  required String? loadMode,
+  required double? loggedWeightKg,
+  required int? reps,
+  required double? bodyweightKg,
+}) {
+  if (reps == null || reps <= 0 || reps > 12) return null;
+
+  final load = effectiveSetLoadKg(
+    trackingType: trackingType,
+    loadMode: loadMode,
+    loggedWeightKg: loggedWeightKg,
+    bodyweightKg: bodyweightKg,
+  );
+  if (load == null || load <= 0) return null;
+
+  return load * (36 / (37 - reps));
+}

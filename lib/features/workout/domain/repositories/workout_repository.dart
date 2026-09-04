@@ -3,9 +3,16 @@ import '../../../exercise_catalog/domain/models/exercise.dart';
 import '../models/routine.dart';
 import '../models/set_log.dart';
 import '../models/workout_log.dart';
+import '../classification/set_load.dart';
 
 /// Abstract contract for Workout data persistence and operations.
 abstract class IWorkoutRepository {
+  /// The user's recorded body weight over time.
+  ///
+  /// Needed wherever a set's worth depends on it: a pull-up lifts the user,
+  /// and an assistance machine subtracts from them.
+  Future<BodyweightHistory> getBodyweightHistory();
+
   Future<WorkoutLog?> getOngoingWorkout();
   Future<int> insertSetLog(SetLog log);
   Future<List<SetLog>> getSetLogsForWorkout(int workoutLogId);

@@ -120,6 +120,31 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
     );
   }
 
+  /// The classification of one exercise, for valuing its sets.
+  ///
+  /// These per-exercise queries match by name or uuid and never joined
+  /// `exercises`, so they had no way to know that the number in the weight
+  /// column was assistance rather than load. Empty when there is no uuid to
+  /// look up, which falls back to reading the number as load — the pre-v2
+  /// behaviour.
+  Future<({String? trackingType, String? loadMode})> _loadClassification(
+    db.AppDatabase dbInstance,
+    String? exerciseUuid,
+  ) async {
+    if (exerciseUuid == null || exerciseUuid.isEmpty) {
+      return (trackingType: null, loadMode: null);
+    }
+    final row = await (dbInstance.select(dbInstance.exercises)
+          ..where((e) => e.id.equals(exerciseUuid))
+          ..limit(1))
+        .getSingleOrNull();
+    return (trackingType: row?.trackingType, loadMode: row?.loadMode);
+  }
+
+  /// Body weight over time, for callers outside this file.
+  Future<BodyweightHistory> getBodyweightHistory() async =>
+      _loadBodyweightHistory(await database);
+
   /// Body weight over time, for valuing body-weight and assisted sets.
   ///
   /// Loaded once per query rather than per row. See [BodyweightHistory] for
@@ -207,6 +232,8 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
     bool isCardio = false,
   }) async {
     final dbInstance = await database;
+    final classification = await _loadClassification(dbInstance, exerciseUuid);
+    final bodyweights = await _loadBodyweightHistory(dbInstance);
 
     final exerciseMatch = _buildExerciseMatchCondition(
       dbInstance,
@@ -325,12 +352,19 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
 
         if (reps <= 0 || weight <= 0) continue;
 
-        if (reps <= 10) {
-          final est1rm = weight * (36 / (37 - reps));
-          if (est1rm > bestEst1rmValue) {
-            bestEst1rmValue = est1rm;
-            bestEst1rmSet = setLog;
-          }
+        // Not `weight`: on an assistance machine that number is how much help
+        // the user got, and feeding it to the formula turns every improvement
+        // into a decline. Null means there is nothing honest to estimate.
+        final est1rm = estimatedOneRepMaxKg(
+          trackingType: classification.trackingType,
+          loadMode: classification.loadMode,
+          loggedWeightKg: setLog.weightKg,
+          reps: reps,
+          bodyweightKg: bodyweights.at(logRow.startTime),
+        );
+        if (est1rm != null && est1rm > bestEst1rmValue) {
+          bestEst1rmValue = est1rm;
+          bestEst1rmSet = setLog;
         }
 
         final bracket = getBracket(reps);
@@ -364,6 +398,8 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
     bool isCardio = false,
   }) async {
     final dbInstance = await database;
+    final classification = await _loadClassification(dbInstance, exerciseUuid);
+    final bodyweights = await _loadBodyweightHistory(dbInstance);
 
     final exerciseMatch = _buildExerciseMatchCondition(
       dbInstance,
@@ -422,18 +458,33 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
 
     for (final r in rows) {
       final setRow = r.readTable(dbInstance.setLogs);
+      final logRow = r.readTable(dbInstance.workoutLogs);
       final weight = setRow.weight ?? 0.0;
       final reps = setRow.reps ?? 0;
+      final performedAt = logRow.startTime;
 
+      // "Max weight" stays the number the user typed — it is the one they see
+      // in the weight column, and quietly redefining it would be its own
+      // surprise. Volume and e1RM are what the set was worth.
       if (weight > maxWeight) maxWeight = weight;
 
-      final volume = weight * reps;
+      final volume = setTonnageKg(
+        trackingType: classification.trackingType,
+        loadMode: classification.loadMode,
+        loggedWeightKg: setRow.weight,
+        reps: setRow.reps,
+        bodyweightKg: bodyweights.at(performedAt),
+      );
       if (volume > maxVolume) maxVolume = volume;
 
-      if (reps > 0 && reps <= 10) {
-        final est1rm = weight * (36 / (37 - reps));
-        if (est1rm > maxEst1rm) maxEst1rm = est1rm;
-      }
+      final est1rm = estimatedOneRepMaxKg(
+        trackingType: classification.trackingType,
+        loadMode: classification.loadMode,
+        loggedWeightKg: setRow.weight,
+        reps: reps,
+        bodyweightKg: bodyweights.at(performedAt),
+      );
+      if (est1rm != null && est1rm > maxEst1rm) maxEst1rm = est1rm;
     }
 
     return {
@@ -452,6 +503,8 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
     bool isCardio = false,
   }) async {
     final dbInstance = await database;
+    final classification = await _loadClassification(dbInstance, exerciseUuid);
+    final bodyweights = await _loadBodyweightHistory(dbInstance);
 
     final exerciseMatch = _buildExerciseMatchCondition(
       dbInstance,
@@ -516,14 +569,24 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
       }
 
       // Update Volume
-      agg['totalVolume'] += (weight * reps);
+      agg['totalVolume'] += setTonnageKg(
+        trackingType: classification.trackingType,
+        loadMode: classification.loadMode,
+        loggedWeightKg: setRow.weight,
+        reps: setRow.reps,
+        bodyweightKg: bodyweights.at(logRow.startTime),
+      );
 
-      // Update Max Est. 1RM (Brzycki formula)
-      if (reps > 0 && reps <= 10) {
-        final est1rm = weight * (36 / (37 - reps));
-        if (est1rm > (agg['maxEst1rm'] as double)) {
-          agg['maxEst1rm'] = est1rm;
-        }
+      // Update Max Est. 1RM
+      final est1rm = estimatedOneRepMaxKg(
+        trackingType: classification.trackingType,
+        loadMode: classification.loadMode,
+        loggedWeightKg: setRow.weight,
+        reps: reps,
+        bodyweightKg: bodyweights.at(logRow.startTime),
+      );
+      if (est1rm != null && est1rm > (agg['maxEst1rm'] as double)) {
+        agg['maxEst1rm'] = est1rm;
       }
 
       // Cardio
