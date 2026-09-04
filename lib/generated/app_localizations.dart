@@ -11328,6 +11328,204 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Prehab'**
   String get exerciseUsagePrehab;
+
+  /// No description provided for @exerciseForcePush.
+  ///
+  /// In en, this message translates to:
+  /// **'Push'**
+  String get exerciseForcePush;
+
+  /// No description provided for @exerciseForcePull.
+  ///
+  /// In en, this message translates to:
+  /// **'Pull'**
+  String get exerciseForcePull;
+
+  /// No description provided for @exerciseForceStatic.
+  ///
+  /// In en, this message translates to:
+  /// **'Static'**
+  String get exerciseForceStatic;
+
+  /// No description provided for @exercisePatternHorizontalPush.
+  ///
+  /// In en, this message translates to:
+  /// **'Horizontal push'**
+  String get exercisePatternHorizontalPush;
+
+  /// No description provided for @exercisePatternHorizontalPull.
+  ///
+  /// In en, this message translates to:
+  /// **'Horizontal pull'**
+  String get exercisePatternHorizontalPull;
+
+  /// No description provided for @exercisePatternVerticalPush.
+  ///
+  /// In en, this message translates to:
+  /// **'Vertical push'**
+  String get exercisePatternVerticalPush;
+
+  /// No description provided for @exercisePatternVerticalPull.
+  ///
+  /// In en, this message translates to:
+  /// **'Vertical pull'**
+  String get exercisePatternVerticalPull;
+
+  /// No description provided for @exercisePatternSquat.
+  ///
+  /// In en, this message translates to:
+  /// **'Squat'**
+  String get exercisePatternSquat;
+
+  /// No description provided for @exercisePatternHinge.
+  ///
+  /// In en, this message translates to:
+  /// **'Hip hinge'**
+  String get exercisePatternHinge;
+
+  /// No description provided for @exercisePatternLunge.
+  ///
+  /// In en, this message translates to:
+  /// **'Lunge'**
+  String get exercisePatternLunge;
+
+  /// No description provided for @exercisePatternGait.
+  ///
+  /// In en, this message translates to:
+  /// **'Gait'**
+  String get exercisePatternGait;
+
+  /// No description provided for @exercisePatternCarry.
+  ///
+  /// In en, this message translates to:
+  /// **'Carry'**
+  String get exercisePatternCarry;
+
+  /// No description provided for @exercisePatternRotation.
+  ///
+  /// In en, this message translates to:
+  /// **'Rotation'**
+  String get exercisePatternRotation;
+
+  /// No description provided for @exercisePatternAntiRotation.
+  ///
+  /// In en, this message translates to:
+  /// **'Anti-rotation'**
+  String get exercisePatternAntiRotation;
+
+  /// No description provided for @exercisePatternAntiExtension.
+  ///
+  /// In en, this message translates to:
+  /// **'Anti-extension'**
+  String get exercisePatternAntiExtension;
+
+  /// No description provided for @exercisePatternAntiFlexion.
+  ///
+  /// In en, this message translates to:
+  /// **'Anti-flexion'**
+  String get exercisePatternAntiFlexion;
+
+  /// No description provided for @exercisePatternAntiLateralFlexion.
+  ///
+  /// In en, this message translates to:
+  /// **'Anti-lateral flexion'**
+  String get exercisePatternAntiLateralFlexion;
+
+  /// No description provided for @exercisePatternSpinalFlexion.
+  ///
+  /// In en, this message translates to:
+  /// **'Spinal flexion'**
+  String get exercisePatternSpinalFlexion;
+
+  /// No description provided for @exercisePatternSpinalExtension.
+  ///
+  /// In en, this message translates to:
+  /// **'Spinal extension'**
+  String get exercisePatternSpinalExtension;
+
+  /// No description provided for @exercisePatternElbowFlexion.
+  ///
+  /// In en, this message translates to:
+  /// **'Elbow flexion'**
+  String get exercisePatternElbowFlexion;
+
+  /// No description provided for @exercisePatternElbowExtension.
+  ///
+  /// In en, this message translates to:
+  /// **'Elbow extension'**
+  String get exercisePatternElbowExtension;
+
+  /// No description provided for @exercisePatternShoulderFlexion.
+  ///
+  /// In en, this message translates to:
+  /// **'Shoulder flexion'**
+  String get exercisePatternShoulderFlexion;
+
+  /// No description provided for @exercisePatternShoulderAbduction.
+  ///
+  /// In en, this message translates to:
+  /// **'Shoulder abduction'**
+  String get exercisePatternShoulderAbduction;
+
+  /// No description provided for @exercisePatternScapularElevation.
+  ///
+  /// In en, this message translates to:
+  /// **'Scapular elevation'**
+  String get exercisePatternScapularElevation;
+
+  /// No description provided for @exercisePatternHipExtension.
+  ///
+  /// In en, this message translates to:
+  /// **'Hip extension'**
+  String get exercisePatternHipExtension;
+
+  /// No description provided for @exercisePatternHipAbduction.
+  ///
+  /// In en, this message translates to:
+  /// **'Hip abduction'**
+  String get exercisePatternHipAbduction;
+
+  /// No description provided for @exercisePatternHipAdduction.
+  ///
+  /// In en, this message translates to:
+  /// **'Hip adduction'**
+  String get exercisePatternHipAdduction;
+
+  /// No description provided for @exercisePatternKneeFlexion.
+  ///
+  /// In en, this message translates to:
+  /// **'Knee flexion'**
+  String get exercisePatternKneeFlexion;
+
+  /// No description provided for @exercisePatternKneeExtension.
+  ///
+  /// In en, this message translates to:
+  /// **'Knee extension'**
+  String get exercisePatternKneeExtension;
+
+  /// No description provided for @exercisePatternPlantarFlexion.
+  ///
+  /// In en, this message translates to:
+  /// **'Plantar flexion'**
+  String get exercisePatternPlantarFlexion;
+
+  /// No description provided for @exercisePatternDorsiflexion.
+  ///
+  /// In en, this message translates to:
+  /// **'Dorsiflexion'**
+  String get exercisePatternDorsiflexion;
+
+  /// No description provided for @exercisePatternWristFlexion.
+  ///
+  /// In en, this message translates to:
+  /// **'Wrist flexion'**
+  String get exercisePatternWristFlexion;
+
+  /// No description provided for @exercisePatternWristExtension.
+  ///
+  /// In en, this message translates to:
+  /// **'Wrist extension'**
+  String get exercisePatternWristExtension;
 }
 
 class _AppLocalizationsDelegate

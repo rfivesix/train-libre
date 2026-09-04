@@ -6525,4 +6525,103 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get exerciseUsagePrehab => 'Prävention';
+
+  @override
+  String get exerciseForcePush => 'Drücken';
+
+  @override
+  String get exerciseForcePull => 'Ziehen';
+
+  @override
+  String get exerciseForceStatic => 'Statisch';
+
+  @override
+  String get exercisePatternHorizontalPush => 'Horizontales Drücken';
+
+  @override
+  String get exercisePatternHorizontalPull => 'Horizontales Ziehen';
+
+  @override
+  String get exercisePatternVerticalPush => 'Vertikales Drücken';
+
+  @override
+  String get exercisePatternVerticalPull => 'Vertikales Ziehen';
+
+  @override
+  String get exercisePatternSquat => 'Kniebeuge';
+
+  @override
+  String get exercisePatternHinge => 'Hüftbeuge';
+
+  @override
+  String get exercisePatternLunge => 'Ausfallschritt';
+
+  @override
+  String get exercisePatternGait => 'Gehen und Laufen';
+
+  @override
+  String get exercisePatternCarry => 'Tragen';
+
+  @override
+  String get exercisePatternRotation => 'Rotation';
+
+  @override
+  String get exercisePatternAntiRotation => 'Anti-Rotation';
+
+  @override
+  String get exercisePatternAntiExtension => 'Anti-Extension';
+
+  @override
+  String get exercisePatternAntiFlexion => 'Anti-Flexion';
+
+  @override
+  String get exercisePatternAntiLateralFlexion => 'Anti-Seitneigung';
+
+  @override
+  String get exercisePatternSpinalFlexion => 'Rumpfbeugung';
+
+  @override
+  String get exercisePatternSpinalExtension => 'Rumpfstreckung';
+
+  @override
+  String get exercisePatternElbowFlexion => 'Ellbogenbeugung';
+
+  @override
+  String get exercisePatternElbowExtension => 'Ellbogenstreckung';
+
+  @override
+  String get exercisePatternShoulderFlexion => 'Schulterbeugung';
+
+  @override
+  String get exercisePatternShoulderAbduction => 'Schulterabduktion';
+
+  @override
+  String get exercisePatternScapularElevation => 'Schulterblattheben';
+
+  @override
+  String get exercisePatternHipExtension => 'Hüftstreckung';
+
+  @override
+  String get exercisePatternHipAbduction => 'Hüftabduktion';
+
+  @override
+  String get exercisePatternHipAdduction => 'Hüftadduktion';
+
+  @override
+  String get exercisePatternKneeFlexion => 'Kniebeugung';
+
+  @override
+  String get exercisePatternKneeExtension => 'Kniestreckung';
+
+  @override
+  String get exercisePatternPlantarFlexion => 'Plantarflexion';
+
+  @override
+  String get exercisePatternDorsiflexion => 'Dorsalextension';
+
+  @override
+  String get exercisePatternWristFlexion => 'Handgelenkbeugung';
+
+  @override
+  String get exercisePatternWristExtension => 'Handgelenkstreckung';
 }

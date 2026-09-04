@@ -849,12 +849,18 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
 
 /// What the catalog knows about the movement, as a row of chips.
 ///
-/// Mechanic, sides and difficulty: three axes the data repo annotates on 877
-/// of 909 exercises and that nothing in the app read until now. Deliberately
-/// not `movement_pattern`, which is 31 identifiers and would need 31 terms in
-/// every UI language before it could be shown honestly.
+/// Five axes the data repo annotates on 877 of 909 exercises. This screen is
+/// the only place any of them is read: they are description, not machinery,
+/// and nothing filters, groups or computes on the two added last.
 ///
-/// Renders nothing at all when none of the three is set — a user-created
+/// [ExerciseClassificationLabels.forceVector] is derived upstream from
+/// [ExerciseClassificationLabels.movementPattern], so where both exist the
+/// pair reads a little doubled — "Ziehen · Vertikales Ziehen". Kept because
+/// the force vector survives 62 static exercises that have no pattern anyone
+/// would call a direction, and because the shorter word is the one a reader
+/// scanning the row actually takes in.
+///
+/// Renders nothing at all when none of the five is set — a user-created
 /// exercise, or one of the 32 unclassified catalog rows — rather than drawing
 /// an empty strip above the description.
 class _ClassificationChips extends StatelessWidget {
@@ -867,6 +873,11 @@ class _ClassificationChips extends StatelessWidget {
     final labels = <String>[
       for (final label in [
         ExerciseClassificationLabels.mechanic(context, exercise.mechanic),
+        ExerciseClassificationLabels.forceVector(context, exercise.forceVector),
+        ExerciseClassificationLabels.movementPattern(
+          context,
+          exercise.movementPattern,
+        ),
         ExerciseClassificationLabels.laterality(context, exercise.laterality),
         ExerciseClassificationLabels.difficulty(context, exercise.difficulty),
       ])

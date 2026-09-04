@@ -14,6 +14,43 @@ import 'package:train_libre/generated/app_localizations.dart';
 const _mechanics = ['compound', 'isolation'];
 const _lateralities = ['bilateral', 'unilateral', 'alternating'];
 const _difficulties = ['beginner', 'intermediate', 'advanced'];
+const _forceVectors = ['push', 'pull', 'static'];
+
+/// Every pattern the shipped catalog carries, minus `other` — which is the
+/// vocabulary admitting it has no answer, and draws no chip.
+const _movementPatterns = [
+  'anti_extension',
+  'anti_flexion',
+  'anti_lateral_flexion',
+  'anti_rotation',
+  'carry',
+  'dorsiflexion',
+  'elbow_extension',
+  'elbow_flexion',
+  'gait',
+  'hinge',
+  'hip_abduction',
+  'hip_adduction',
+  'hip_extension',
+  'horizontal_pull',
+  'horizontal_push',
+  'knee_extension',
+  'knee_flexion',
+  'lunge',
+  'plantar_flexion',
+  'rotation',
+  'scapular_elevation',
+  'shoulder_abduction',
+  'shoulder_flexion',
+  'spinal_extension',
+  'spinal_flexion',
+  'squat',
+  'vertical_pull',
+  'vertical_push',
+  'wrist_extension',
+  'wrist_flexion',
+];
+
 const _usageTags = [
   'warmup',
   'activation',
@@ -67,6 +104,17 @@ void main() {
         expect(label, isNotNull, reason: 'usage tag $value in $locale');
         labels.add(label!);
       }
+      for (final value in _forceVectors) {
+        final label = ExerciseClassificationLabels.forceVector(context, value);
+        expect(label, isNotNull, reason: 'force vector $value in $locale');
+        expect(label!.trim(), isNotEmpty);
+      }
+      for (final value in _movementPatterns) {
+        final label =
+            ExerciseClassificationLabels.movementPattern(context, value);
+        expect(label, isNotNull, reason: 'movement pattern $value in $locale');
+        expect(label!.trim(), isNotEmpty);
+      }
 
       for (final label in labels) {
         expect(label.trim(), isNotEmpty);
@@ -85,6 +133,21 @@ void main() {
       expect(ExerciseClassificationLabels.laterality(context, value), isNull);
       expect(ExerciseClassificationLabels.difficulty(context, value), isNull);
       expect(ExerciseClassificationLabels.usageTag(context, value), isNull);
+      expect(ExerciseClassificationLabels.forceVector(context, value), isNull);
+      expect(
+        ExerciseClassificationLabels.movementPattern(context, value),
+        isNull,
+      );
     }
+  });
+
+  testWidgets('"other" is not a chip', (tester) async {
+    // 76 catalog rows carry it. It is the vocabulary saying it has no better
+    // answer, and printing "Other" would tell the reader nothing.
+    final context = await contextFor(tester, 'de');
+    expect(
+      ExerciseClassificationLabels.movementPattern(context, 'other'),
+      isNull,
+    );
   });
 }

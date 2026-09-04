@@ -886,6 +886,8 @@ $_kBestTranslationJoinSql
       mechanic: rawExercise.mechanic,
       laterality: rawExercise.laterality,
       difficulty: rawExercise.difficulty,
+      movementPattern: rawExercise.movementPattern,
+      forceVector: rawExercise.forceVector,
     );
   }
 
@@ -944,6 +946,8 @@ $_kBestTranslationJoinSql
       mechanic: row.mechanic,
       laterality: row.laterality,
       difficulty: row.difficulty,
+      movementPattern: row.movementPattern,
+      forceVector: row.forceVector,
     );
   }
 }

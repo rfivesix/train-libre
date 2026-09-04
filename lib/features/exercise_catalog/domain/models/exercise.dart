@@ -78,6 +78,19 @@ class Exercise {
   /// `bilateral` | `unilateral` | `alternating`.
   final String? laterality;
 
+  /// What the movement *does*: `horizontal_push`, `hinge`, `anti_rotation`,
+  /// and 28 more. `other` where the vocabulary has no better answer.
+  ///
+  /// Shown on the detail screen and nowhere else. Nothing filters, groups or
+  /// computes on it — a 31-value vocabulary is a poor axis for either.
+  final String? movementPattern;
+
+  /// `push` | `pull` | `static`, derived upstream from [movementPattern].
+  ///
+  /// Null for the patterns that are honestly neither, which is 266 of the 909
+  /// catalog rows — so its absence is ordinary, not a gap.
+  final String? forceVector;
+
   /// `beginner` | `intermediate` | `advanced`.
   ///
   /// The catalog's own judgement, not the user's — which is why nothing in the
@@ -196,6 +209,8 @@ class Exercise {
     this.mechanic,
     this.laterality,
     this.difficulty,
+    this.movementPattern,
+    this.forceVector,
     this.imagePath,
   });
 
@@ -221,6 +236,8 @@ class Exercise {
     this.mechanic,
     this.laterality,
     this.difficulty,
+    this.movementPattern,
+    this.forceVector,
     this.imagePath,
   }) : texts = {
           languageCode: ExerciseText(name: name, description: description),
@@ -358,6 +375,8 @@ class Exercise {
     String? mechanic,
     String? laterality,
     String? difficulty,
+    String? movementPattern,
+    String? forceVector,
   }) {
     return Exercise(
       id: id ?? this.id,
@@ -377,6 +396,8 @@ class Exercise {
       mechanic: mechanic ?? this.mechanic,
       laterality: laterality ?? this.laterality,
       difficulty: difficulty ?? this.difficulty,
+      movementPattern: movementPattern ?? this.movementPattern,
+      forceVector: forceVector ?? this.forceVector,
     );
   }
 
@@ -405,6 +426,8 @@ class Exercise {
       mechanic: original.mechanic,
       laterality: original.laterality,
       difficulty: original.difficulty,
+      movementPattern: original.movementPattern,
+      forceVector: original.forceVector,
     );
   }
 

@@ -41,6 +41,95 @@ abstract final class ExerciseClassificationLabels {
     return null;
   }
 
+  /// `push` | `pull` | `static`.
+  ///
+  /// Derived upstream from [movementPattern], and null for the patterns that
+  /// are honestly neither — 266 of the catalog's 909 rows.
+  static String? forceVector(BuildContext context, String? value) {
+    final l10n = AppLocalizations.of(context)!;
+    switch (value) {
+      case 'push':
+        return l10n.exerciseForcePush;
+      case 'pull':
+        return l10n.exerciseForcePull;
+      case 'static':
+        return l10n.exerciseForceStatic;
+    }
+    return null;
+  }
+
+  /// One of the catalog's 31 movement patterns.
+  ///
+  /// `other` returns null on purpose. It is the vocabulary's own admission
+  /// that it has no better answer for 76 exercises, and a chip reading
+  /// "Other" tells the reader nothing they did not already know.
+  static String? movementPattern(BuildContext context, String? value) {
+    final l10n = AppLocalizations.of(context)!;
+    switch (value) {
+      case 'horizontal_push':
+        return l10n.exercisePatternHorizontalPush;
+      case 'horizontal_pull':
+        return l10n.exercisePatternHorizontalPull;
+      case 'vertical_push':
+        return l10n.exercisePatternVerticalPush;
+      case 'vertical_pull':
+        return l10n.exercisePatternVerticalPull;
+      case 'squat':
+        return l10n.exercisePatternSquat;
+      case 'hinge':
+        return l10n.exercisePatternHinge;
+      case 'lunge':
+        return l10n.exercisePatternLunge;
+      case 'gait':
+        return l10n.exercisePatternGait;
+      case 'carry':
+        return l10n.exercisePatternCarry;
+      case 'rotation':
+        return l10n.exercisePatternRotation;
+      case 'anti_rotation':
+        return l10n.exercisePatternAntiRotation;
+      case 'anti_extension':
+        return l10n.exercisePatternAntiExtension;
+      case 'anti_flexion':
+        return l10n.exercisePatternAntiFlexion;
+      case 'anti_lateral_flexion':
+        return l10n.exercisePatternAntiLateralFlexion;
+      case 'spinal_flexion':
+        return l10n.exercisePatternSpinalFlexion;
+      case 'spinal_extension':
+        return l10n.exercisePatternSpinalExtension;
+      case 'elbow_flexion':
+        return l10n.exercisePatternElbowFlexion;
+      case 'elbow_extension':
+        return l10n.exercisePatternElbowExtension;
+      case 'shoulder_flexion':
+        return l10n.exercisePatternShoulderFlexion;
+      case 'shoulder_abduction':
+        return l10n.exercisePatternShoulderAbduction;
+      case 'scapular_elevation':
+        return l10n.exercisePatternScapularElevation;
+      case 'hip_extension':
+        return l10n.exercisePatternHipExtension;
+      case 'hip_abduction':
+        return l10n.exercisePatternHipAbduction;
+      case 'hip_adduction':
+        return l10n.exercisePatternHipAdduction;
+      case 'knee_flexion':
+        return l10n.exercisePatternKneeFlexion;
+      case 'knee_extension':
+        return l10n.exercisePatternKneeExtension;
+      case 'plantar_flexion':
+        return l10n.exercisePatternPlantarFlexion;
+      case 'dorsiflexion':
+        return l10n.exercisePatternDorsiflexion;
+      case 'wrist_flexion':
+        return l10n.exercisePatternWristFlexion;
+      case 'wrist_extension':
+        return l10n.exercisePatternWristExtension;
+    }
+    return null;
+  }
+
   /// `warmup` | `activation` | `main_lift` | `accessory` | `conditioning` |
   /// `finisher` | `cooldown` | `prehab`.
   ///

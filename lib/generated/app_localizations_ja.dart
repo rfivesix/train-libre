@@ -6264,4 +6264,103 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get exerciseUsagePrehab => '予防トレーニング';
+
+  @override
+  String get exerciseForcePush => 'プッシュ';
+
+  @override
+  String get exerciseForcePull => 'プル';
+
+  @override
+  String get exerciseForceStatic => '静的';
+
+  @override
+  String get exercisePatternHorizontalPush => '水平プッシュ';
+
+  @override
+  String get exercisePatternHorizontalPull => '水平プル';
+
+  @override
+  String get exercisePatternVerticalPush => '垂直プッシュ';
+
+  @override
+  String get exercisePatternVerticalPull => '垂直プル';
+
+  @override
+  String get exercisePatternSquat => 'スクワット';
+
+  @override
+  String get exercisePatternHinge => 'ヒップヒンジ';
+
+  @override
+  String get exercisePatternLunge => 'ランジ';
+
+  @override
+  String get exercisePatternGait => '歩行・走行';
+
+  @override
+  String get exercisePatternCarry => 'キャリー';
+
+  @override
+  String get exercisePatternRotation => '回旋';
+
+  @override
+  String get exercisePatternAntiRotation => '抗回旋';
+
+  @override
+  String get exercisePatternAntiExtension => '抗伸展';
+
+  @override
+  String get exercisePatternAntiFlexion => '抗屈曲';
+
+  @override
+  String get exercisePatternAntiLateralFlexion => '抗側屈';
+
+  @override
+  String get exercisePatternSpinalFlexion => '体幹屈曲';
+
+  @override
+  String get exercisePatternSpinalExtension => '体幹伸展';
+
+  @override
+  String get exercisePatternElbowFlexion => '肘屈曲';
+
+  @override
+  String get exercisePatternElbowExtension => '肘伸展';
+
+  @override
+  String get exercisePatternShoulderFlexion => '肩屈曲';
+
+  @override
+  String get exercisePatternShoulderAbduction => '肩外転';
+
+  @override
+  String get exercisePatternScapularElevation => '肩甲骨挙上';
+
+  @override
+  String get exercisePatternHipExtension => '股関節伸展';
+
+  @override
+  String get exercisePatternHipAbduction => '股関節外転';
+
+  @override
+  String get exercisePatternHipAdduction => '股関節内転';
+
+  @override
+  String get exercisePatternKneeFlexion => '膝屈曲';
+
+  @override
+  String get exercisePatternKneeExtension => '膝伸展';
+
+  @override
+  String get exercisePatternPlantarFlexion => '底屈';
+
+  @override
+  String get exercisePatternDorsiflexion => '背屈';
+
+  @override
+  String get exercisePatternWristFlexion => '手首屈曲';
+
+  @override
+  String get exercisePatternWristExtension => '手首伸展';
 }

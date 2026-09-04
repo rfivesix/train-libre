@@ -196,6 +196,20 @@ void main() {
       expect(results.where((e) => e.laterality != null), isNotEmpty);
     });
 
+    test('the two display-only axes travel with the rest', () async {
+      // Nothing filters or computes on movement pattern or force vector — the
+      // detail screen is their only reader — but they ride the same two
+      // mappers, which is where a newly added field silently gets dropped.
+      final results = await source.searchExercises();
+      expect(results.where((e) => e.movementPattern != null), isNotEmpty);
+      expect(results.where((e) => e.forceVector != null), isNotEmpty);
+
+      final loaded = await source.getExerciseByUuid(
+        results.firstWhere((e) => e.movementPattern != null).uuid!,
+      );
+      expect(loaded!.movementPattern, isNotNull);
+    });
+
     test('the single-exercise path carries them too', () async {
       final fromSearch =
           (await source.searchExercises(mechanics: ['isolation'])).first;

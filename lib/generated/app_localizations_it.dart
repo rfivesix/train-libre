@@ -6566,4 +6566,103 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get exerciseUsagePrehab => 'Prevenzione';
+
+  @override
+  String get exerciseForcePush => 'Spinta';
+
+  @override
+  String get exerciseForcePull => 'Trazione';
+
+  @override
+  String get exerciseForceStatic => 'Statico';
+
+  @override
+  String get exercisePatternHorizontalPush => 'Spinta orizzontale';
+
+  @override
+  String get exercisePatternHorizontalPull => 'Trazione orizzontale';
+
+  @override
+  String get exercisePatternVerticalPush => 'Spinta verticale';
+
+  @override
+  String get exercisePatternVerticalPull => 'Trazione verticale';
+
+  @override
+  String get exercisePatternSquat => 'Squat';
+
+  @override
+  String get exercisePatternHinge => 'Hip hinge';
+
+  @override
+  String get exercisePatternLunge => 'Affondo';
+
+  @override
+  String get exercisePatternGait => 'Cammino e corsa';
+
+  @override
+  String get exercisePatternCarry => 'Trasporto';
+
+  @override
+  String get exercisePatternRotation => 'Rotazione';
+
+  @override
+  String get exercisePatternAntiRotation => 'Anti-rotazione';
+
+  @override
+  String get exercisePatternAntiExtension => 'Anti-estensione';
+
+  @override
+  String get exercisePatternAntiFlexion => 'Anti-flessione';
+
+  @override
+  String get exercisePatternAntiLateralFlexion => 'Anti-flessione laterale';
+
+  @override
+  String get exercisePatternSpinalFlexion => 'Flessione del tronco';
+
+  @override
+  String get exercisePatternSpinalExtension => 'Estensione del tronco';
+
+  @override
+  String get exercisePatternElbowFlexion => 'Flessione del gomito';
+
+  @override
+  String get exercisePatternElbowExtension => 'Estensione del gomito';
+
+  @override
+  String get exercisePatternShoulderFlexion => 'Flessione della spalla';
+
+  @override
+  String get exercisePatternShoulderAbduction => 'Abduzione della spalla';
+
+  @override
+  String get exercisePatternScapularElevation => 'Elevazione scapolare';
+
+  @override
+  String get exercisePatternHipExtension => 'Estensione dell\'anca';
+
+  @override
+  String get exercisePatternHipAbduction => 'Abduzione dell\'anca';
+
+  @override
+  String get exercisePatternHipAdduction => 'Adduzione dell\'anca';
+
+  @override
+  String get exercisePatternKneeFlexion => 'Flessione del ginocchio';
+
+  @override
+  String get exercisePatternKneeExtension => 'Estensione del ginocchio';
+
+  @override
+  String get exercisePatternPlantarFlexion => 'Flessione plantare';
+
+  @override
+  String get exercisePatternDorsiflexion => 'Dorsiflessione';
+
+  @override
+  String get exercisePatternWristFlexion => 'Flessione del polso';
+
+  @override
+  String get exercisePatternWristExtension => 'Estensione del polso';
 }
