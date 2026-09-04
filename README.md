@@ -104,7 +104,7 @@ Designed for people who want serious tracking without social feeds, gamification
     </td>
     <td width="30"></td>
     <td align="center" valign="middle" width="250">
-      <a href="https://rfivesix.github.io/train-libre/fdroid/repo?fingerprint=759124FF05FDCFA070EB2475D86D79614AE4F58779E391C8AE44C4EDC7A2CFB8">
+      <a href="https://trainlibre.com/fdroid/repo?fingerprint=759124FF05FDCFA070EB2475D86D79614AE4F58779E391C8AE44C4EDC7A2CFB8">
         <img
           src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png"
           alt="Get it on F-Droid"

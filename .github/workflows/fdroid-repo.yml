@@ -2,8 +2,14 @@ name: Update F-Droid Repository
 
 on:
   release:
-    types: [published, released]
+    types: [published]
   workflow_dispatch:
+
+# Shared with deploy-docs.yml: both workflows push to the same branch.
+concurrency:
+  group: gh-pages-publish
+  queue: max
+  cancel-in-progress: false
 
 permissions:
   contents: write
@@ -16,6 +22,30 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
+
+      - name: Resolve release
+        id: release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          if [ -n "$RELEASE_TAG" ]; then
+            gh release view "$RELEASE_TAG" --json tagName,body > "$RUNNER_TEMP/fdroid-release.json"
+          else
+            echo "Manual trigger detected. Resolving the latest release..."
+            gh release view --json tagName,body > "$RUNNER_TEMP/fdroid-release.json"
+          fi
+          TAG_NAME=$(jq -er '.tagName | select(length > 0)' "$RUNNER_TEMP/fdroid-release.json")
+          echo "tag=$TAG_NAME" >> "$GITHUB_OUTPUT"
+
+      # Keep the workflow/config from the selected branch, but use the same
+      # release tag for APKs, pubspec, store metadata, and screenshots.
+      - name: Checkout release metadata
+        uses: actions/checkout@v7
+        with:
+          ref: refs/tags/${{ steps.release.outputs.tag }}
+          path: release-source
+          persist-credentials: false
 
       - name: Setup Python
         uses: actions/setup-python@v7
@@ -34,6 +64,9 @@ jobs:
           sudo apt-get install -y apksigner xmlsec1
           pip install fdroidserver
 
+      - name: Test repository workflow configuration
+        run: python3 .github/scripts/test_fdroid_workflows.py
+
       - name: Initialize F-Droid Repository Structure
         run: |
           mkdir -p fdroid/repo
@@ -44,15 +77,9 @@ jobs:
       - name: Download Release APKs
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG_NAME: ${{ steps.release.outputs.tag }}
         run: |
-          TAG_NAME="${{ github.event.release.tag_name }}"
-          if [ -z "$TAG_NAME" ]; then
-            echo "Manual trigger detected. Fetching assets from the latest release..."
-            gh release download --pattern "*.apk" --dir fdroid/repo --skip-existing
-          else
-            echo "Release trigger detected for tag: $TAG_NAME"
-            gh release download "$TAG_NAME" --pattern "*.apk" --dir fdroid/repo --skip-existing
-          fi
+          gh release download "$TAG_NAME" --pattern "*.apk" --dir fdroid/repo
 
       - name: Decode F-Droid Keystore
         env:
@@ -70,7 +97,7 @@ jobs:
           KEY_PASSWORD: ${{ secrets.FDROID_KEY_PASSWORD }}
         run: |
           REPO_NAME="${{ github.event.repository.name }}"
-          REPO_URL="https://${{ github.repository_owner }}.github.io/$REPO_NAME/fdroid/repo"
+          REPO_URL="https://trainlibre.com/fdroid/repo"
           REPO_DISPLAY_NAME="$REPO_NAME F-Droid Repo"
           REPO_DESC="Automated F-Droid repository for $REPO_NAME"
 
@@ -83,13 +110,11 @@ jobs:
           python3 -c "import os; c = open('config.yml').read(); c = c.replace('KEYSTORE_PASS_PLACEHOLDER', os.environ['KEYSTORE_PASSWORD']); c = c.replace('KEY_PASS_PLACEHOLDER', os.environ['KEY_PASSWORD']); open('config.yml', 'w').write(c)"
 
       - name: Dynamic Changelog Injection & Fastlane Metadata Bridge
-        env:
-          RELEASE_BODY: ${{ github.event.release.body }}
         run: |
-          # 1. Parse build number from pubspec.yaml, update F-Droid metadata, and dump release body into changelogs
+          # 1. Use the resolved release, not the workflow branch, for version and changelogs.
           python3 -c '
-          import os, re
-          with open("pubspec.yaml", "r") as f:
+          import json, os, re
+          with open("release-source/pubspec.yaml", "r") as f:
               pubspec = f.read()
           match = re.search(r"^version:\s*([^\n\+]+)\+(\d+)", pubspec, re.M)
           if not match:
@@ -120,11 +145,12 @@ jobs:
           else:
               print(f"Warning: F-Droid metadata file not found at {metadata_path}")
           
-          release_body = os.environ.get("RELEASE_BODY", "")
+          with open(os.path.join(os.environ["RUNNER_TEMP"], "fdroid-release.json")) as f:
+              release_body = json.load(f).get("body", "")
           if not release_body:
               release_body = "Automated release update. Please check CHANGELOG.md for details."
           
-          metadata_dir = "fastlane/metadata/android"
+          metadata_dir = "release-source/fastlane/metadata/android"
           if os.path.exists(metadata_dir):
               for locale in os.listdir(metadata_dir):
                   changelog_dir = os.path.join(metadata_dir, locale, "changelogs")
@@ -140,53 +166,56 @@ jobs:
           echo "Bridging Fastlane metadata into F-Droid repo structure..."
           # Copy to root level of F-Droid (fdroid/fastlane/metadata/android)
           mkdir -p fdroid/fastlane
-          cp -r fastlane/metadata fdroid/fastlane/
+          cp -r release-source/fastlane/metadata fdroid/fastlane/
           
           # Also copy to package level under fdroid/metadata/com.rfivesix.trainlibre/
           mkdir -p fdroid/metadata/com.rfivesix.trainlibre
-          cp -r fastlane/metadata fdroid/metadata/com.rfivesix.trainlibre/
+          cp -r release-source/fastlane/metadata fdroid/metadata/com.rfivesix.trainlibre/
 
-          # 3. Copy iOS screenshots into F-Droid metadata locations instead of Android screenshots
-          python3 -c '
-          import os, shutil
-          ios_root = "assets/screenshots/iOS"
-          keys = ["diary", "nutrition", "data", "measurements", "recovery", "ai", "running_workout"]
-          if os.path.exists(ios_root):
-              for locale in os.listdir(ios_root):
-                  locale_path = os.path.join(ios_root, locale)
-                  if not os.path.isdir(locale_path):
-                      continue
-                  theme = "light"
-                  theme_path = os.path.join(locale_path, theme)
-                  if not os.path.exists(theme_path):
-                      theme = "dark"
-                      theme_path = os.path.join(locale_path, theme)
-                  if not os.path.exists(theme_path):
-                      continue
-                  print(f"Copying iOS screenshots ({theme}) for locale {locale}...")
-                  dest1 = f"fdroid/fastlane/metadata/android/{locale}/images/phoneScreenshots"
-                  dest2 = f"fdroid/metadata/com.rfivesix.trainlibre/metadata/android/{locale}/images/phoneScreenshots"
-                  os.makedirs(dest1, exist_ok=True)
-                  os.makedirs(dest2, exist_ok=True)
-                  
-                  # Clean existing png files in destination
-                  for d in [dest1, dest2]:
-                      for f in os.listdir(d):
-                          if f.lower().endswith(".png"):
-                              os.remove(os.path.join(d, f))
-                              
-                  for idx, key in enumerate(keys):
-                      src_file = os.path.join(theme_path, f"iOS_{theme}_{key}.png")
-                      if os.path.exists(src_file):
-                          filename = f"{idx+1:02d}.png"
-                          shutil.copy(src_file, os.path.join(dest1, filename))
-                          shutil.copy(src_file, os.path.join(dest2, filename))
-                          print(f"  Mapped {src_file} -> {filename}")
-                      else:
-                          print(f"  Warning: Expected file not found: {src_file}")
-          else:
-              print("Warning: assets/screenshots/iOS directory not found.")
-          '
+      - name: Copy App Store marketing screenshots
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          import shutil
+
+          source = Path("release-source/ios/fastlane/screenshots")
+          resolution = "1320x2868"
+          selected = {}
+          for locale in ("en-US", "de-DE"):
+              files = sorted((source / locale).glob(f"{resolution}_*.png"))
+              if not files:
+                  if locale == "en-US":
+                      raise ValueError("Required English App Store marketing screenshots are missing")
+                  print("No German marketing screenshots; using the English default.")
+                  continue
+              numbers = []
+              for file in files:
+                  match = re.fullmatch(rf"{resolution}_(\d+)-.+\.png", file.name)
+                  if not match:
+                      raise ValueError(f"Unexpected screenshot filename: {file}")
+                  numbers.append(int(match.group(1)))
+              if numbers != list(range(1, 8)):
+                  raise ValueError(f"Expected screenshots 1-7 for {locale}, got: {numbers}")
+              selected[locale] = files
+
+          destinations = (
+              Path("fdroid/fastlane/metadata/android"),
+              Path("fdroid/metadata/com.rfivesix.trainlibre/metadata/android"),
+          )
+          for destination in destinations:
+              # Remove only copied phone screenshots in the generated workspace.
+              # Never retain old raw screenshots when a locale has no marketing set.
+              for old in destination.glob("*/images/phoneScreenshots/*"):
+                  if old.is_file() and old.suffix.lower() in (".png", ".jpg", ".jpeg", ".webp"):
+                      old.unlink()
+              for locale, files in selected.items():
+                  target = destination / locale / "images/phoneScreenshots"
+                  target.mkdir(parents=True, exist_ok=True)
+                  for number, file in enumerate(files, 1):
+                      shutil.copyfile(file, target / f"{number:02d}.png")
+                  print(f"Copied {len(files)} App Store marketing screenshots ({resolution}, {locale}) to {target}")
+          PY
 
       - name: Update F-Droid Repository Metadata
         env:
@@ -195,6 +224,28 @@ jobs:
         run: |
           cd fdroid
           fdroid update --create-metadata -v
+
+      - name: Validate generated repository
+        run: |
+          python3 - <<'PY'
+          import hashlib
+          import json
+          from pathlib import Path
+          import zipfile
+
+          repo = Path("fdroid/repo")
+          index_bytes = (repo / "index-v2.json").read_bytes()
+          index = json.loads(index_bytes)
+          assert index["repo"]["address"] == "https://trainlibre.com/fdroid/repo", "Unexpected repository address"
+          assert "com.rfivesix.trainlibre" in index["packages"], "Train Libre is missing from the index"
+          with zipfile.ZipFile(repo / "entry.jar") as archive:
+              entry = json.loads(archive.read("entry.json"))
+          assert entry["index"]["name"] == "/index-v2.json", "Unexpected index path"
+          assert entry["index"]["sha256"] == hashlib.sha256(index_bytes).hexdigest(), "Index hash mismatch"
+          assert entry["index"]["size"] == len(index_bytes), "Index size mismatch"
+          assert (repo / "index-v1.jar").is_file(), "Legacy signed index is missing"
+          print("Canonical repository address and entry/index consistency verified.")
+          PY
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4

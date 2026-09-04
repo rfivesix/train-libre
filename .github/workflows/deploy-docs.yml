@@ -5,7 +5,14 @@ on:
     branches: [main]
     paths:
       - 'docs/**'
+      - '.github/workflows/deploy-docs.yml'
   workflow_dispatch:
+
+# Shared with fdroid-repo.yml: serialize all writes to gh-pages.
+concurrency:
+  group: gh-pages-publish
+  queue: max
+  cancel-in-progress: false
 
 permissions:
   contents: write

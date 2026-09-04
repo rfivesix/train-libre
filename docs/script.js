@@ -4,7 +4,7 @@
     appstore: "https://apps.apple.com/de/app/train-libre/id6767055511",
     obtainium: "http://apps.obtainium.imranr.dev/redirect.html?r=obtainium://add/https://github.com/rfivesix/train-libre/releases",
     android_release: "https://github.com/rfivesix/train-libre/releases",
-    fdroid: "https://rfivesix.github.io/train-libre/fdroid/repo?fingerprint=759124FF05FDCFA070EB2475D86D79614AE4F58779E391C8AE44C4EDC7A2CFB8"
+    fdroid: "https://trainlibre.com/fdroid/repo?fingerprint=759124FF05FDCFA070EB2475D86D79614AE4F58779E391C8AE44C4EDC7A2CFB8"
   };
 
   const TRANSLATIONS = {
