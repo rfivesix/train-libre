@@ -3388,6 +3388,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get analyticsNoRecordYet => 'Noch kein Rekord';
 
   @override
+  String get analyticsNoRecordsInPeriod =>
+      'Keine Bestleistungen in diesem Zeitraum';
+
+  @override
   String get analyticsNotableImprovements => 'Bemerkenswerte Verbesserungen';
 
   @override
@@ -6624,4 +6628,49 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get exercisePatternWristExtension => 'Handgelenkstreckung';
+
+  @override
+  String get settingsDeveloperTitle => 'Developer';
+
+  @override
+  String get settingsDeveloperSubtitle =>
+      'Diagnose und experimentelle Optionen';
+
+  @override
+  String get developerLabTitle => 'Developer Lab';
+
+  @override
+  String get developerLabSubtitle =>
+      'Funktionen ausprobieren, bevor sie ausgeliefert werden';
+
+  @override
+  String get developerLabExperienceSection => 'Erfahrungsstufe';
+
+  @override
+  String get developerLabExperienceLabel => 'Erfahrungsstufe';
+
+  @override
+  String get developerLabExperienceHint =>
+      'Nur zum Testen — die Stufe wird im Onboarding noch nicht abgefragt.';
+
+  @override
+  String get experienceLevelBeginner => 'Anfänger';
+
+  @override
+  String get experienceLevelAdvanced => 'Fortgeschritten';
+
+  @override
+  String get experienceLevelPro => 'Profi';
+
+  @override
+  String get experienceLevelBeginnerDescription =>
+      'Kein RIR und keine Cardio-Intensität. Muskeln werden nach Region benannt, z. B. „Schulter“ statt vorderer, seitlicher und hinterer Deltamuskel.';
+
+  @override
+  String get experienceLevelAdvancedDescription =>
+      'Kein RIR und keine Cardio-Intensität. Muskeln werden nach Region benannt, z. B. „Schulter“ statt vorderer, seitlicher und hinterer Deltamuskel.';
+
+  @override
+  String get experienceLevelProDescription =>
+      'RIR und Cardio-Intensität werden angezeigt, Muskeln behalten ihre genauen anatomischen Bezeichnungen.';
 }

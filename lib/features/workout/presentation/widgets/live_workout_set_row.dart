@@ -237,6 +237,7 @@ class LiveWorkoutSetRow extends StatelessWidget {
         setLog;
     final bool isCompleted = log.isCompleted ?? false;
     final unitService = context.read<UnitService>();
+    final showsIntensity = showsIntensityColumn(context, mask);
 
     final isLightMode = Theme.of(context).brightness == Brightness.light;
     final Color? textColor =
@@ -573,45 +574,49 @@ class LiveWorkoutSetRow extends StatelessWidget {
         //
         // Absent where there are no reps to hold in reserve — a plank, a dead
         // hang. The Expanded stays so the checkbox does not shift left on
-        // those rows while every other exercise keeps its column.
-        Expanded(
-          flex: flex.intensity,
-          child: !mask.showsIntensity
-              ? const SizedBox.shrink()
-              : TextFormField(
-                  controller: manager.rirControllers[templateId],
-                  textAlign: TextAlign.center,
-                  keyboardType: TextInputType.number,
-                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                  textInputAction: TextInputAction.done,
-                  onFieldSubmitted: (_) =>
-                      FocusManager.instance.primaryFocus?.unfocus(),
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: textColor,
-                  ),
-                  decoration: InputDecoration(
-                    border: InputBorder.none,
-                    isDense: true,
-                    fillColor: Colors.transparent,
-                    hintText: rirHint,
-                    hintStyle: TextStyle(
-                      color: Colors.grey.withValues(alpha: 0.5),
+        // those rows while every other exercise keeps its column. Below "pro"
+        // the column is gone from every card at once, so there it is dropped
+        // outright and the fields beside it widen.
+        if (showsIntensity || !mask.showsIntensity)
+          Expanded(
+            flex: flex.intensity,
+            child: !showsIntensity
+                ? const SizedBox.shrink()
+                : TextFormField(
+                    controller: manager.rirControllers[templateId],
+                    textAlign: TextAlign.center,
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                    textInputAction: TextInputAction.done,
+                    onFieldSubmitted: (_) =>
+                        FocusManager.instance.primaryFocus?.unfocus(),
+                    style: TextStyle(
                       fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: textColor,
                     ),
+                    decoration: InputDecoration(
+                      border: InputBorder.none,
+                      isDense: true,
+                      fillColor: Colors.transparent,
+                      hintText: rirHint,
+                      hintStyle: TextStyle(
+                        color: Colors.grey.withValues(alpha: 0.5),
+                        fontSize: 18,
+                      ),
+                    ),
+                    enabled: !isCompleted,
+                    onChanged: (text) {
+                      final val = int.tryParse(text);
+                      final clearValue = val == null && text.isEmpty;
+                      if (val != manager.setLogs[templateId]?.rir ||
+                          clearValue) {
+                        manager.updateSet(templateId,
+                            rir: val, clearRir: clearValue);
+                      }
+                    },
                   ),
-                  enabled: !isCompleted,
-                  onChanged: (text) {
-                    final val = int.tryParse(text);
-                    final clearValue = val == null && text.isEmpty;
-                    if (val != manager.setLogs[templateId]?.rir || clearValue) {
-                      manager.updateSet(templateId,
-                          rir: val, clearRir: clearValue);
-                    }
-                  },
-                ),
-        ),
+          ),
 
         // 6. CHECKBOX
         Padding(

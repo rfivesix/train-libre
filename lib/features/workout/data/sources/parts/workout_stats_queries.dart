@@ -713,53 +713,134 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
     return resultList;
   }
 
-  /// Returns the most recently updated all-time weight PRs across all exercises.
+  /// Every completed rep-based set, valued by what it actually loaded.
   ///
-  /// For each exercise, the set with the highest recorded weight is returned.
-  /// Results are sorted by the workout date of the latest session in which
-  /// that PR weight was achieved, so recently active exercises appear first.
+  /// The three record queries below each used to ask raw SQL for
+  /// `MAX(set_logs.weight)`. That column holds the number the user typed, not
+  /// the load: it is empty for the 254 body-weight exercises in the catalog,
+  /// and on the 4 assistance machines it counts the wrong way round — so a
+  /// pull-up could hold no record at all, while on an assistance machine the
+  /// easiest set of the session ranked highest. Neither failure looked like
+  /// one on screen.
   ///
-  /// Each entry contains: 'exerciseName' (String), 'weight' (double), 'reps' (int).
+  /// Ranking therefore happens on [effectiveSetLoadKg], which needs the
+  /// exercise row and the body weight of the day. SQL had neither in hand,
+  /// which is why this is a Dart pass over the rows rather than a smarter
+  /// query.
+  Future<List<({String name, double load, int reps, DateTime achievedAt})>>
+      _qualifyingRepSets(db.AppDatabase dbInstance) async {
+    final query = dbInstance.select(dbInstance.setLogs).join([
+      drift.innerJoin(
+        dbInstance.workoutLogs,
+        dbInstance.workoutLogs.id.equalsExp(
+          dbInstance.setLogs.workoutLogId,
+        ),
+      ),
+      drift.leftOuterJoin(
+        dbInstance.exercises,
+        dbInstance.exercises.id.equalsExp(dbInstance.setLogs.exerciseId),
+      ),
+    ])
+      ..where(
+        dbInstance.setLogs.isCompleted.equals(true) &
+            dbInstance.setLogs.setType.isNotIn(['warmup']) &
+            // Deliberately no `weight > 0`. Whether a set carried load is a
+            // question about the exercise, and this predicate cannot see one.
+            dbInstance.setLogs.reps.isBiggerThanValue(0) &
+            dbInstance.workoutLogs.status.equals('completed'),
+      );
+
+    final rows = await query.get();
+    final bodyweights = await _loadBodyweightHistory(dbInstance);
+    final sets =
+        <({String name, double load, int reps, DateTime achievedAt})>[];
+
+    for (final row in rows) {
+      final setRow = row.readTable(dbInstance.setLogs);
+      final exRow = row.readTableOrNull(dbInstance.exercises);
+      final logRow = row.readTable(dbInstance.workoutLogs);
+
+      final name = (setRow.exerciseNameSnapshot ?? '').trim();
+      if (name.isEmpty) continue;
+
+      // A run and a plank hold records too, but of a different shape. They are
+      // excluded here by what they are, not by a category name that only ever
+      // knew the word "cardio".
+      final shape = _PrShape.of(
+        exRow?.trackingType,
+        (exRow?.categoryName ?? '').toLowerCase() == 'cardio',
+      );
+      if (shape != _PrShape.reps) continue;
+
+      final load = effectiveSetLoadKg(
+        trackingType: exRow?.trackingType,
+        loadMode: exRow?.loadMode,
+        loggedWeightKg: setRow.weight,
+        bodyweightKg: bodyweights.at(logRow.startTime),
+      );
+      // Null is not zero: a body-weight set from before the user ever weighed
+      // themselves has no honest load, so it is skipped rather than counted.
+      if (load == null || load <= 0) continue;
+
+      sets.add((
+        name: name,
+        load: load,
+        reps: setRow.reps ?? 0,
+        achievedAt: logRow.startTime,
+      ));
+    }
+
+    return sets;
+  }
+
+  /// The single heaviest rep-based set per exercise.
+  ///
+  /// Ties go to the later date. A record matched again is still the same
+  /// record, but it is one the user touched today, and "recent records" is a
+  /// question about when an exercise last mattered.
+  Future<List<({String name, double load, int reps, DateTime achievedAt})>>
+      _bestRepSetPerExercise(db.AppDatabase dbInstance) async {
+    final best =
+        <String, ({String name, double load, int reps, DateTime achievedAt})>{};
+
+    for (final set in await _qualifyingRepSets(dbInstance)) {
+      final current = best[set.name];
+      if (current == null || set.load > current.load) {
+        best[set.name] = set;
+      } else if (set.load == current.load &&
+          set.achievedAt.isAfter(current.achievedAt)) {
+        best[set.name] = (
+          name: current.name,
+          load: current.load,
+          reps: current.reps,
+          achievedAt: set.achievedAt,
+        );
+      }
+    }
+
+    return best.values.toList();
+  }
+
+  /// The best set per exercise, most recently achieved first.
+  ///
+  /// Each entry contains 'exerciseName' (String), 'weight' (double) and 'reps'
+  /// (int). 'weight' is the *effective* load — body weight for a pull-up, body
+  /// weight minus the assistance for an assisted dip — which is the only way
+  /// records from different exercises can share one ranking.
   Future<List<Map<String, dynamic>>> getRecentGlobalPRs({int limit = 3}) async {
     final stopwatch = Stopwatch()..start();
     final dbInstance = await database;
 
-    final rows = await dbInstance.customSelect(
-      '''
-      SELECT
-        s1.exercise_name_snapshot AS exerciseName,
-        s1.weight                 AS weight,
-        s1.reps                   AS reps
-      FROM set_logs s1
-      JOIN workout_logs wl ON wl.id = s1.workout_log_id
-      LEFT JOIN exercises e ON e.id = s1.exercise_id
-      WHERE s1.is_completed = 1
-        AND s1.set_type != 'warmup'
-        AND s1.weight > 0
-        AND s1.reps  > 0
-        AND wl.status = 'completed'
-        AND (e.category_name IS NULL OR e.category_name COLLATE NOCASE != 'cardio')
-        AND s1.weight = (
-          SELECT MAX(s2.weight)
-          FROM set_logs s2
-          WHERE s2.exercise_name_snapshot = s1.exercise_name_snapshot
-            AND s2.is_completed = 1
-            AND s2.set_type != 'warmup'
-            AND s2.weight > 0
-        )
-      GROUP BY s1.exercise_name_snapshot
-      ORDER BY MAX(wl.start_time) DESC
-      LIMIT ?
-      ''',
-      variables: [drift.Variable.withInt(limit)],
-    ).get();
+    final best = await _bestRepSetPerExercise(dbInstance);
+    best.sort((a, b) => b.achievedAt.compareTo(a.achievedAt));
 
-    final result = rows
+    final result = best
+        .take(limit)
         .map(
-          (row) => {
-            'exerciseName': row.read<String>('exerciseName'),
-            'weight': row.read<double>('weight'),
-            'reps': row.read<int>('reps'),
+          (e) => {
+            'exerciseName': e.name,
+            'weight': e.load,
+            'reps': e.reps,
           },
         )
         .toList();
@@ -767,7 +848,7 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
       area: 'db',
       label: 'getRecentGlobalPRs',
       elapsed: stopwatch.elapsed,
-      fields: {'rows': rows.length, 'resultRows': result.length},
+      fields: {'exercises': best.length, 'resultRows': result.length},
     );
     return result;
   }
@@ -1604,11 +1685,16 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
           dbInstance.setLogs.workoutLogId,
         ),
       ),
+      // Joined only so the tonnage can tell a pull-up from a curl.
+      drift.leftOuterJoin(
+        dbInstance.exercises,
+        dbInstance.exercises.id.equalsExp(dbInstance.setLogs.exerciseId),
+      ),
     ])
           ..where(
             dbInstance.setLogs.isCompleted.equals(true) &
                 dbInstance.setLogs.setType.isNotIn(['warmup']) &
-                dbInstance.setLogs.weight.isBiggerThanValue(0) &
+                // A body-weight set has no weight to be greater than zero.
                 dbInstance.setLogs.reps.isBiggerThanValue(0) &
                 dbInstance.workoutLogs.status.equals('completed') &
                 dbInstance.workoutLogs.startTime.isBetweenValues(
@@ -1618,8 +1704,9 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
           ))
         .get();
 
+    final bodyweights = await _loadBodyweightHistory(dbInstance);
+
     for (final row in tonnageRows) {
-      final setRow = row.readTable(dbInstance.setLogs);
       final logRow = row.readTable(dbInstance.workoutLogs);
       final start = logRow.startTime;
       ensureWeek(start);
@@ -1629,7 +1716,10 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
       final key =
           '${mondayNorm.year}-${mondayNorm.month.toString().padLeft(2, '0')}-${mondayNorm.day.toString().padLeft(2, '0')}';
 
-      final tonnage = (setRow.weight ?? 0.0) * (setRow.reps ?? 0);
+      // This was the last hand-rolled `weight * reps` in the file, and it made
+      // the consistency tracker disagree with the volume chart about the same
+      // week of pull-ups.
+      final tonnage = _rowTonnage(dbInstance, row, bodyweights, start);
       weekMap[key]!['tonnage'] = (weekMap[key]!['tonnage'] as double) + tonnage;
     }
 
@@ -1767,59 +1857,39 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
     return counts;
   }
 
-  /// Returns the all-time best set for each rep bracket across all exercises.
+  /// The all-time best set for each rep bracket, across all exercises.
+  ///
+  /// Ranked on effective load, so a set of weighted dips can win a bracket and
+  /// a set on the assisted pull-up machine cannot win one by being easy.
   Future<Map<String, Map<String, dynamic>?>> getAllTimePRsByRepBracket() async {
     final dbInstance = await database;
 
-    final query = dbInstance.select(dbInstance.setLogs).join([
-      drift.innerJoin(
-        dbInstance.workoutLogs,
-        dbInstance.workoutLogs.id.equalsExp(
-          dbInstance.setLogs.workoutLogId,
-        ),
-      ),
-    ])
-      ..where(
-        dbInstance.setLogs.isCompleted.equals(true) &
-            dbInstance.setLogs.setType.isNotIn(['warmup']) &
-            dbInstance.setLogs.weight.isBiggerThanValue(0) &
-            dbInstance.setLogs.reps.isBiggerThanValue(0) &
-            dbInstance.workoutLogs.status.equals('completed'),
-      );
-
-    final rows = await query.get();
-
     String bracket(int reps) {
       if (reps == 1) return '1 RM';
-      if (reps <= 3) return '2–3 RM';
-      if (reps <= 6) return '4–6 RM';
-      if (reps <= 10) return '7–10 RM';
-      if (reps <= 15) return '11–15 RM';
+      if (reps <= 3) return '2\u20133 RM';
+      if (reps <= 6) return '4\u20136 RM';
+      if (reps <= 10) return '7\u201310 RM';
+      if (reps <= 15) return '11\u201315 RM';
       return '15+ RM';
     }
 
     final result = <String, Map<String, dynamic>?>{
       '1 RM': null,
-      '2–3 RM': null,
-      '4–6 RM': null,
-      '7–10 RM': null,
-      '11–15 RM': null,
+      '2\u20133 RM': null,
+      '4\u20136 RM': null,
+      '7\u201310 RM': null,
+      '11\u201315 RM': null,
       '15+ RM': null,
     };
 
-    for (final r in rows) {
-      final setRow = r.readTable(dbInstance.setLogs);
-      final reps = setRow.reps ?? 0;
-      final weight = setRow.weight ?? 0.0;
-      if (reps <= 0 || weight <= 0) continue;
-
-      final b = bracket(reps);
+    for (final set in await _qualifyingRepSets(dbInstance)) {
+      final b = bracket(set.reps);
       final current = result[b];
-      if (current == null || weight > (current['weight'] as double)) {
+      if (current == null || set.load > (current['weight'] as double)) {
         result[b] = {
-          'exerciseName': setRow.exerciseNameSnapshot ?? '',
-          'weight': weight,
-          'reps': reps,
+          'exerciseName': set.name,
+          'weight': set.load,
+          'reps': set.reps,
         };
       }
     }
@@ -1827,48 +1897,27 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
     return result;
   }
 
-  /// Returns top all-time PR entries across exercises, sorted by weight desc.
+  /// The best set per exercise, heaviest first.
+  ///
+  /// 'weight' is the effective load, for the reason given on
+  /// [_qualifyingRepSets]: ranking exercises against each other by the number
+  /// in the weight column put an assistance machine among the heavy lifts and
+  /// left every pull-up out of the list entirely.
   Future<List<Map<String, dynamic>>> getAllTimeGlobalPRs({
     int limit = 10,
   }) async {
     final dbInstance = await database;
 
-    final rows = await dbInstance.customSelect(
-      '''
-      SELECT
-        s1.exercise_name_snapshot AS exerciseName,
-        s1.weight                 AS weight,
-        s1.reps                   AS reps
-      FROM set_logs s1
-      JOIN workout_logs wl ON wl.id = s1.workout_log_id
-      LEFT JOIN exercises e ON e.id = s1.exercise_id
-      WHERE s1.is_completed = 1
-        AND s1.set_type != 'warmup'
-        AND s1.weight > 0
-        AND s1.reps  > 0
-        AND wl.status = 'completed'
-        AND (e.category_name IS NULL OR e.category_name COLLATE NOCASE != 'cardio')
-        AND s1.weight = (
-          SELECT MAX(s2.weight)
-          FROM set_logs s2
-          WHERE s2.exercise_name_snapshot = s1.exercise_name_snapshot
-            AND s2.is_completed = 1
-            AND s2.set_type != 'warmup'
-            AND s2.weight > 0
-        )
-      GROUP BY s1.exercise_name_snapshot
-      ORDER BY s1.weight DESC
-      LIMIT ?
-      ''',
-      variables: [drift.Variable.withInt(limit)],
-    ).get();
+    final best = await _bestRepSetPerExercise(dbInstance);
+    best.sort((a, b) => b.load.compareTo(a.load));
 
-    return rows
+    return best
+        .take(limit)
         .map(
-          (row) => {
-            'exerciseName': row.read<String>('exerciseName'),
-            'weight': row.read<double>('weight'),
-            'reps': row.read<int>('reps'),
+          (e) => {
+            'exerciseName': e.name,
+            'weight': e.load,
+            'reps': e.reps,
           },
         )
         .toList();
@@ -2040,8 +2089,6 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
     final Map<String, double> previousBest = {};
     final Map<String, double> recentBest = {};
 
-    double e1rm(double weight, int reps) => weight * (1 + (reps / 30.0));
-
     for (final r in rows) {
       final setRow = r.readTable(dbInstance.setLogs);
       final exRow = r.readTableOrNull(dbInstance.exercises);
@@ -2049,21 +2096,25 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
       final name = (setRow.exerciseNameSnapshot ?? '').trim();
       if (name.isEmpty) continue;
 
-      // The load the set actually represented, which for a body-weight or
-      // assisted movement is not the number in the weight column. Null means
-      // there is nothing to estimate from — a body-weight set from before the
-      // user ever recorded a weight — and those are skipped rather than
-      // counted as zero.
-      final load = effectiveSetLoadKg(
+      // This used to run a private Epley formula over the effective load,
+      // while the rest of the app estimates with Brzycki through the shared
+      // helper. The same set therefore carried one number on the detail screen
+      // and a different one in this list, and a 20-rep set — which Brzycki
+      // declines to extrapolate from at all — produced an improvement here out
+      // of nothing.
+      //
+      // Null means there is nothing honest to estimate from: a body-weight set
+      // from before the user ever recorded a weight, or a rep count outside
+      // the range the formula holds for. Those are skipped, not counted as
+      // zero.
+      final value = estimatedOneRepMaxKg(
         trackingType: exRow?.trackingType,
         loadMode: exRow?.loadMode,
         loggedWeightKg: setRow.weight,
+        reps: setRow.reps,
         bodyweightKg: bodyweights.at(logRow.startTime),
       );
-      if (load == null) continue;
-
-      final value = e1rm(load, setRow.reps ?? 0);
-      if (value <= 0) continue;
+      if (value == null || value <= 0) continue;
 
       final isRecent = !logRow.startTime.isBefore(recentStart);
       if (isRecent) {

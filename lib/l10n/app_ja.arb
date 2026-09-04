@@ -1446,6 +1446,7 @@
   "analyticsViewDetails": "詳細を見る",
   "analyticsRepRangeSuffix": "担当者",
   "analyticsNoRecordYet": "まだ記録がありません",
+  "analyticsNoRecordsInPeriod": "この期間に自己ベストはありません",
   "analyticsNotableImprovements": "注目すべき改善点",
   "analyticsNoPrTrendInWindow": "この分野ではまだ明確な PR 傾向はありません。",
   "analyticsE1rmProgress": "e1RM {previous} -> {recent} {unit}",
@@ -2888,5 +2889,18 @@
   "exercisePatternPlantarFlexion": "底屈",
   "exercisePatternDorsiflexion": "背屈",
   "exercisePatternWristFlexion": "手首屈曲",
-  "exercisePatternWristExtension": "手首伸展"
+  "exercisePatternWristExtension": "手首伸展",
+  "settingsDeveloperTitle": "開発者",
+  "settingsDeveloperSubtitle": "診断と実験的なオプション",
+  "developerLabTitle": "開発者ラボ",
+  "developerLabSubtitle": "リリース前の機能を試す",
+  "developerLabExperienceSection": "経験レベル",
+  "developerLabExperienceLabel": "経験レベル",
+  "developerLabExperienceHint": "テスト用です — レベルはまだ初期設定では尋ねられません。",
+  "experienceLevelBeginner": "初心者",
+  "experienceLevelAdvanced": "上級者",
+  "experienceLevelPro": "プロ",
+  "experienceLevelBeginnerDescription": "RIR とカーディオ強度は表示されません。筋肉は部位単位で表示され、例えば三角筋前部・中部・後部の代わりに「肩」となります。",
+  "experienceLevelAdvancedDescription": "RIR とカーディオ強度は表示されません。筋肉は部位単位で表示され、例えば三角筋前部・中部・後部の代わりに「肩」となります。",
+  "experienceLevelProDescription": "RIR とカーディオ強度を表示し、筋肉は正確な解剖学的名称のままになります。"
 }

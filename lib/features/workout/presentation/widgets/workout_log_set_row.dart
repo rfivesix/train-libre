@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../../../generated/app_localizations.dart';
+import '../../../../services/experience_level_service.dart';
 import '../../../../services/unit_service.dart';
 import '../../domain/classification/exercise_log_mask.dart';
 import '../../domain/models/set_log.dart';
@@ -61,6 +62,8 @@ class WorkoutLogSetRow extends StatelessWidget {
             : Colors.white.withValues(alpha: 0.1))
         : Colors.transparent;
     final unitService = context.read<UnitService>();
+    final showsIntensity =
+        context.watch<ExperienceLevelService>().showsIntensity;
 
     // View Values
     String val1Display, val2Display;
@@ -210,41 +213,46 @@ class WorkoutLogSetRow extends StatelessWidget {
                       ),
                     ),
         ),
-        const SizedBox(width: 8),
 
         // 4. INPUT 3: RIR / INTENSITY
-        Expanded(
-          flex: 2,
-          child: isEditMode
-              ? TextFormField(
-                  controller: rirController,
-                  textAlign: TextAlign.center,
-                  keyboardType: TextInputType.number,
-                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                  textInputAction: TextInputAction.done,
-                  onFieldSubmitted: (_) =>
-                      FocusManager.instance.primaryFocus?.unfocus(),
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+        //
+        // Below "pro" the whole column goes, header included. A value logged
+        // earlier stays in the row's data and reappears with the column.
+        if (showsIntensity) ...[
+          const SizedBox(width: 8),
+          Expanded(
+            flex: 2,
+            child: isEditMode
+                ? TextFormField(
+                    controller: rirController,
+                    textAlign: TextAlign.center,
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                    textInputAction: TextInputAction.done,
+                    onFieldSubmitted: (_) =>
+                        FocusManager.instance.primaryFocus?.unfocus(),
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    decoration: const InputDecoration(
+                      border: InputBorder.none,
+                      isDense: true,
+                      fillColor: Colors.transparent,
+                      hintText: "-",
+                    ),
+                  )
+                : Text(
+                    setLog.rir?.toString() ?? '-',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey,
+                    ),
                   ),
-                  decoration: const InputDecoration(
-                    border: InputBorder.none,
-                    isDense: true,
-                    fillColor: Colors.transparent,
-                    hintText: "-",
-                  ),
-                )
-              : Text(
-                  setLog.rir?.toString() ?? '-',
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.grey,
-                  ),
-                ),
-        ),
+          ),
+        ],
 
         // 5. CHECKBOX / DELETE
         Padding(

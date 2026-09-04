@@ -1446,6 +1446,7 @@
   "analyticsViewDetails": "Visualizza i dettagli",
   "analyticsRepRangeSuffix": "ripetizioni",
   "analyticsNoRecordYet": "Nessun record ancora",
+  "analyticsNoRecordsInPeriod": "Nessun record in questo periodo",
   "analyticsNotableImprovements": "Miglioramenti notevoli",
   "analyticsNoPrTrendInWindow": "Non esiste ancora una chiara tendenza delle PR in questa finestra.",
   "analyticsE1rmProgress": "e1RM {previous} -> {recent} {unit}",
@@ -2888,5 +2889,18 @@
   "exercisePatternPlantarFlexion": "Flessione plantare",
   "exercisePatternDorsiflexion": "Dorsiflessione",
   "exercisePatternWristFlexion": "Flessione del polso",
-  "exercisePatternWristExtension": "Estensione del polso"
+  "exercisePatternWristExtension": "Estensione del polso",
+  "settingsDeveloperTitle": "Sviluppatore",
+  "settingsDeveloperSubtitle": "Diagnostica e opzioni sperimentali",
+  "developerLabTitle": "Laboratorio sviluppatore",
+  "developerLabSubtitle": "Prova le funzioni prima del rilascio",
+  "developerLabExperienceSection": "Livello di esperienza",
+  "developerLabExperienceLabel": "Livello di esperienza",
+  "developerLabExperienceHint": "Solo per i test — il livello non viene ancora chiesto durante l’onboarding.",
+  "experienceLevelBeginner": "Principiante",
+  "experienceLevelAdvanced": "Avanzato",
+  "experienceLevelPro": "Pro",
+  "experienceLevelBeginnerDescription": "Nessun RIR e nessuna intensità cardio. I muscoli sono indicati per regione, ad es. «Spalle» invece di deltoide anteriore, laterale e posteriore.",
+  "experienceLevelAdvancedDescription": "Nessun RIR e nessuna intensità cardio. I muscoli sono indicati per regione, ad es. «Spalle» invece di deltoide anteriore, laterale e posteriore.",
+  "experienceLevelProDescription": "RIR e intensità cardio sono visibili e i muscoli mantengono i nomi anatomici precisi."
 }

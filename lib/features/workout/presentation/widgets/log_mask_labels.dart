@@ -1,4 +1,8 @@
+import 'package:flutter/widgets.dart';
+import 'package:provider/provider.dart';
+
 import '../../../../generated/app_localizations.dart';
+import '../../../../services/experience_level_service.dart';
 import '../../../../services/unit_service.dart';
 import '../../../../util/time_util.dart';
 import '../../domain/classification/exercise_log_mask.dart';
@@ -65,6 +69,23 @@ class SetRowFlex {
           );
   }
 }
+
+/// Whether the third column — RIR, or intensity on a cardio row — is on screen.
+///
+/// Two conditions, and both have to be read in the same place: the mask says
+/// whether the column could mean anything for this exercise, the experience
+/// level whether the user asked to see it at all. Reading one of them in the
+/// heading and the other in the row is exactly the drift [SetRowFlex] was
+/// written to end.
+///
+/// Note what the caller does with a `false`: where the *mask* hides the column
+/// the layout keeps an empty [Expanded] in its place, because the exercise
+/// beside it may still have one and the checkboxes have to line up. Where the
+/// *level* hides it, every card loses it at once, so the column goes away
+/// entirely and the ones beside it take the room.
+bool showsIntensityColumn(BuildContext context, ExerciseLogMask mask) =>
+    mask.showsIntensity &&
+    context.watch<ExperienceLevelService>().showsIntensity;
 
 /// Column headings and the "last time" cell, following the same mask as the
 /// input fields.

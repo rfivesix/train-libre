@@ -6029,6 +6029,12 @@ abstract class AppLocalizations {
   /// **'No record yet'**
   String get analyticsNoRecordYet;
 
+  /// No description provided for @analyticsNoRecordsInPeriod.
+  ///
+  /// In en, this message translates to:
+  /// **'No personal bests in this period'**
+  String get analyticsNoRecordsInPeriod;
+
   /// No description provided for @analyticsNotableImprovements.
   ///
   /// In en, this message translates to:
@@ -11526,6 +11532,84 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Wrist extension'**
   String get exercisePatternWristExtension;
+
+  /// No description provided for @settingsDeveloperTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Developer'**
+  String get settingsDeveloperTitle;
+
+  /// No description provided for @settingsDeveloperSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Diagnostics and experimental options'**
+  String get settingsDeveloperSubtitle;
+
+  /// No description provided for @developerLabTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Developer Lab'**
+  String get developerLabTitle;
+
+  /// No description provided for @developerLabSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Try out features before they ship'**
+  String get developerLabSubtitle;
+
+  /// No description provided for @developerLabExperienceSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Experience level'**
+  String get developerLabExperienceSection;
+
+  /// No description provided for @developerLabExperienceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Experience level'**
+  String get developerLabExperienceLabel;
+
+  /// No description provided for @developerLabExperienceHint.
+  ///
+  /// In en, this message translates to:
+  /// **'For testing only — the level is not asked during onboarding yet.'**
+  String get developerLabExperienceHint;
+
+  /// No description provided for @experienceLevelBeginner.
+  ///
+  /// In en, this message translates to:
+  /// **'Beginner'**
+  String get experienceLevelBeginner;
+
+  /// No description provided for @experienceLevelAdvanced.
+  ///
+  /// In en, this message translates to:
+  /// **'Advanced'**
+  String get experienceLevelAdvanced;
+
+  /// No description provided for @experienceLevelPro.
+  ///
+  /// In en, this message translates to:
+  /// **'Pro'**
+  String get experienceLevelPro;
+
+  /// No description provided for @experienceLevelBeginnerDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'No RIR and no cardio intensity. Muscles are named by region, e.g. “Shoulders” instead of front, lateral and rear deltoid.'**
+  String get experienceLevelBeginnerDescription;
+
+  /// No description provided for @experienceLevelAdvancedDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'No RIR and no cardio intensity. Muscles are named by region, e.g. “Shoulders” instead of front, lateral and rear deltoid.'**
+  String get experienceLevelAdvancedDescription;
+
+  /// No description provided for @experienceLevelProDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'RIR and cardio intensity are shown, and muscles keep their precise anatomical names.'**
+  String get experienceLevelProDescription;
 }
 
 class _AppLocalizationsDelegate

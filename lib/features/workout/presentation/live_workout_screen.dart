@@ -172,27 +172,30 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
   }
 
   /// How many frames the scroll may spend hunting for its target before it
-  /// gives up. Each attempt either waits for data or advances one viewport.
+  /// gives up. Each attempt advances one viewport.
   static const int _maxScrollAttempts = 24;
+  int _scrollRequest = 0;
 
   /// Brings the exercise holding the next open set to the top of the list.
   ///
-  /// Two things make this less trivial than an `ensureVisible` call. The
-  /// exercises load asynchronously, so the first frames have nothing to scroll
-  /// to; and the list is lazy, so a card further down has no context to align
-  /// against until it has been built. The method therefore retries across
-  /// frames, stepping the viewport towards the target until the card exists,
-  /// then aligns it exactly.
-  void _scrollToActiveExercise({bool animated = true, int attempt = 0}) {
+  /// Called after loading the exercises. The list is lazy, so an offscreen
+  /// card has no context until it has been built. Step towards it across
+  /// frames, but give control back immediately when the user touches the list.
+  void _scrollToActiveExercise({
+    int attempt = 0,
+    int? request,
+  }) {
+    final currentRequest = request ?? ++_scrollRequest;
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted || !_scrollController.hasClients) return;
+      if (!mounted ||
+          currentRequest != _scrollRequest ||
+          !_scrollController.hasClients) {
+        return;
+      }
 
       final manager = Provider.of<LiveWorkoutViewModel>(context, listen: false);
       final exercises = manager.exercises;
-      if (exercises.isEmpty) {
-        _retryScroll(animated: animated, attempt: attempt);
-        return;
-      }
+      if (exercises.isEmpty) return;
 
       int activeIndex = 0;
       for (int i = 0; i < exercises.length; i++) {
@@ -211,15 +214,29 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
           _scrollAnchor.keyFor(targetExercise.id ?? activeIndex).currentContext;
 
       if (targetContext == null) {
-        // Not built yet — walk down a viewport at a time so the list
-        // materializes the cards in between, then look again.
+        // The target can be above us when the user inspected a later exercise.
+        // Walk towards it, materializing one viewport at a time.
         final position = _scrollController.position;
-        if (position.pixels >= position.maxScrollExtent) return;
-        _scrollController.jumpTo(
-          (position.pixels + position.viewportDimension)
-              .clamp(position.minScrollExtent, position.maxScrollExtent),
+        int firstMountedIndex = -1;
+        for (var i = 0; i < exercises.length; i++) {
+          if (_scrollAnchor.keyFor(exercises[i].id ?? i).currentContext !=
+              null) {
+            firstMountedIndex = i;
+            break;
+          }
+        }
+        final direction = firstMountedIndex > activeIndex ? -1 : 1;
+        final nextOffset =
+            (position.pixels + direction * position.viewportDimension).clamp(
+          position.minScrollExtent,
+          position.maxScrollExtent,
         );
-        _retryScroll(animated: animated, attempt: attempt);
+        if (nextOffset == position.pixels) return;
+        _scrollController.jumpTo(nextOffset);
+        _retryScroll(
+          attempt: attempt,
+          request: currentRequest,
+        );
         return;
       }
 
@@ -229,15 +246,23 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
       Scrollable.ensureVisible(
         targetContext,
         alignment: 0.0,
-        duration: animated ? const Duration(milliseconds: 350) : Duration.zero,
-        curve: Curves.easeOutCubic,
+        duration: Duration.zero,
       );
     });
+    // A post-frame callback does not request a frame on its own. On resume,
+    // retries must not wait for the next one-second workout timer tick.
+    WidgetsBinding.instance.ensureVisualUpdate();
   }
 
-  void _retryScroll({required bool animated, required int attempt}) {
+  void _retryScroll({
+    required int attempt,
+    required int request,
+  }) {
     if (attempt >= _maxScrollAttempts) return;
-    _scrollToActiveExercise(animated: animated, attempt: attempt + 1);
+    _scrollToActiveExercise(
+      attempt: attempt + 1,
+      request: request,
+    );
   }
 
   void _handleBack() {
@@ -310,7 +335,7 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
       await manager.applyPendingLiveActivityCommands();
       if (!mounted) return;
 
-      _scrollToActiveExercise(animated: false);
+      _scrollToActiveExercise();
 
       if (widget.initialAction == 'add_exercise') {
         _addExercise();
@@ -765,6 +790,7 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
     final primary = LogMaskLabels.primaryHeader(mask, l10n, unitService);
     final secondary = LogMaskLabels.secondaryHeader(mask, l10n);
     final flex = SetRowFlex.forMask(mask);
+    final showsIntensity = showsIntensityColumn(context, mask);
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -779,12 +805,15 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
           _buildHeader(secondary, flex: flex.secondary)
         else
           Expanded(flex: flex.secondary, child: const SizedBox.shrink()),
-        if (mask.showsIntensity)
+        if (showsIntensity)
           _buildHeader(
             mask.logsDistance ? l10n.cardioIntensityLabel : 'RIR',
             flex: flex.intensity,
           )
-        else
+        // Hidden by the mask, the column still holds its place so the
+        // checkboxes line up with the cards around it. Hidden by the level, it
+        // is gone from every card at once and leaves the room behind.
+        else if (!mask.showsIntensity)
           Expanded(flex: flex.intensity, child: const SizedBox.shrink()),
         const SizedBox(width: 56), // Space for checkbox (48 width + 8 padding)
       ],
@@ -1035,6 +1064,9 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                             child: exercises.isEmpty
                                 ? _buildEmptyState(context, l10n)
                                 : Listener(
+                                    // A pending auto-scroll must never cancel
+                                    // the user's tap or fight their drag.
+                                    onPointerDown: (_) => _scrollRequest++,
                                     onPointerMove: (e) {
                                       if (_isDragActive) {
                                         final manager =

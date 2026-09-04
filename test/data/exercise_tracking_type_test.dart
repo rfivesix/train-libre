@@ -258,6 +258,12 @@ void main() {
     test('a body-weight set produces an e1RM at all', () async {
       // It could not before: the query required a weight greater than zero,
       // and a pull-up has none.
+      //
+      // The rep counts here used to be 8 and 15. They are 6 and 11 now,
+      // because this list stopped estimating with its own uncapped Epley
+      // formula and started asking the same shared helper as the rest of the
+      // app — and Brzycki declines to extrapolate a 1RM past 12 reps. See the
+      // test below, which pins that limit deliberately.
       await db.into(db.measurements).insert(
             MeasurementsCompanion.insert(
               type: 'weight',
@@ -290,13 +296,61 @@ void main() {
       }
 
       final now = DateTime.now();
-      await session('bw-old', now.subtract(const Duration(days: 40)), 8);
-      await session('bw-new', now.subtract(const Duration(days: 2)), 15);
+      await session('bw-old', now.subtract(const Duration(days: 40)), 6);
+      await session('bw-new', now.subtract(const Duration(days: 2)), 11);
 
       final improvements = await source.getNotablePrImprovements();
       expect(improvements.map((m) => m['exerciseName']), contains(name),
-          reason: 'going from 8 to 15 pull-ups is progress and used to '
+          reason: 'going from 6 to 11 pull-ups is progress and used to '
               'register as nothing at all');
+    });
+
+    test('a set past 12 reps yields no estimate, in this list as everywhere',
+        () async {
+      // Not a gap left by accident. Brzycki holds up to about a dozen reps and
+      // the shared helper returns null beyond that, so a 15-rep set carries no
+      // e1RM on the detail screen, sets off no PR alert, and must not quietly
+      // grow one here. The cost is real and is the reason this is written
+      // down: a pull-up progression that lives above 12 reps shows no
+      // improvement in this list. Raising the limit is a decision about the
+      // formula and belongs in set_load.dart, applied everywhere at once.
+      await db.into(db.measurements).insert(
+            MeasurementsCompanion.insert(
+              type: 'weight',
+              value: 80,
+              unit: 'kg',
+              date: DateTime.now().subtract(const Duration(days: 200)),
+            ),
+          );
+
+      final exercise = await source.getExerciseByUuid(kBodyweightReps);
+      final name = exercise!.canonicalName;
+
+      Future<void> session(String id, DateTime when, int reps) async {
+        await db.into(db.workoutLogs).insert(
+              WorkoutLogsCompanion.insert(
+                id: Value(id),
+                startTime: when,
+                status: const Value('completed'),
+              ),
+            );
+        await db.into(db.setLogs).insert(
+              SetLogsCompanion.insert(
+                workoutLogId: id,
+                exerciseId: Value(kBodyweightReps),
+                exerciseNameSnapshot: Value(name),
+                reps: Value(reps),
+                isCompleted: const Value(true),
+              ),
+            );
+      }
+
+      final now = DateTime.now();
+      await session('hr-old', now.subtract(const Duration(days: 40)), 15);
+      await session('hr-new', now.subtract(const Duration(days: 2)), 20);
+
+      final improvements = await source.getNotablePrImprovements();
+      expect(improvements.map((m) => m['exerciseName']), isNot(contains(name)));
     });
 
     test('a body-weight session counts towards tonnage', () async {

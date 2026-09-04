@@ -1452,6 +1452,7 @@
   "analyticsViewDetails": "View details",
   "analyticsRepRangeSuffix": " reps",
   "analyticsNoRecordYet": "No record yet",
+  "analyticsNoRecordsInPeriod": "No personal bests in this period",
   "analyticsNotableImprovements": "Notable Improvements",
   "analyticsNoPrTrendInWindow": "There is no clear PR trend in this window yet.",
   "analyticsE1rmProgress": "e1RM {previous} -> {recent} {unit}",
@@ -3080,5 +3081,18 @@
   "exercisePatternPlantarFlexion": "Plantar flexion",
   "exercisePatternDorsiflexion": "Dorsiflexion",
   "exercisePatternWristFlexion": "Wrist flexion",
-  "exercisePatternWristExtension": "Wrist extension"
+  "exercisePatternWristExtension": "Wrist extension",
+  "settingsDeveloperTitle": "Developer",
+  "settingsDeveloperSubtitle": "Diagnostics and experimental options",
+  "developerLabTitle": "Developer Lab",
+  "developerLabSubtitle": "Try out features before they ship",
+  "developerLabExperienceSection": "Experience level",
+  "developerLabExperienceLabel": "Experience level",
+  "developerLabExperienceHint": "For testing only — the level is not asked during onboarding yet.",
+  "experienceLevelBeginner": "Beginner",
+  "experienceLevelAdvanced": "Advanced",
+  "experienceLevelPro": "Pro",
+  "experienceLevelBeginnerDescription": "No RIR and no cardio intensity. Muscles are named by region, e.g. “Shoulders” instead of front, lateral and rear deltoid.",
+  "experienceLevelAdvancedDescription": "No RIR and no cardio intensity. Muscles are named by region, e.g. “Shoulders” instead of front, lateral and rear deltoid.",
+  "experienceLevelProDescription": "RIR and cardio intensity are shown, and muscles keep their precise anatomical names."
 }

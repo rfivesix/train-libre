@@ -6,6 +6,7 @@ import 'package:train_libre/features/workout/domain/classification/exercise_log_
 import 'package:train_libre/features/workout/domain/models/set_log.dart';
 import 'package:train_libre/features/workout/presentation/widgets/workout_log_set_row.dart';
 import 'package:train_libre/generated/app_localizations.dart';
+import 'package:train_libre/services/experience_level_service.dart';
 import 'package:train_libre/services/unit_service.dart';
 
 /// What each exercise actually renders.
@@ -41,8 +42,15 @@ Future<void> _pumpRow(WidgetTester tester, ExerciseLogMask mask) async {
     MaterialApp(
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
-      home: ChangeNotifierProvider<UnitService>(
-        create: (_) => UnitService(),
+      home: MultiProvider(
+        providers: [
+          ChangeNotifierProvider<UnitService>(create: (_) => UnitService()),
+          // Defaults to pro, which is what these expectations describe: the
+          // RIR column present wherever the mask allows it.
+          ChangeNotifierProvider<ExperienceLevelService>(
+            create: (_) => ExperienceLevelService(),
+          ),
+        ],
         child: Scaffold(
           body: WorkoutLogSetRow(
             setLog: _setLog(),

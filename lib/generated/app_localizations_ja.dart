@@ -3275,6 +3275,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get analyticsNoRecordYet => 'まだ記録がありません';
 
   @override
+  String get analyticsNoRecordsInPeriod => 'この期間に自己ベストはありません';
+
+  @override
   String get analyticsNotableImprovements => '注目すべき改善点';
 
   @override
@@ -6363,4 +6366,46 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get exercisePatternWristExtension => '手首伸展';
+
+  @override
+  String get settingsDeveloperTitle => '開発者';
+
+  @override
+  String get settingsDeveloperSubtitle => '診断と実験的なオプション';
+
+  @override
+  String get developerLabTitle => '開発者ラボ';
+
+  @override
+  String get developerLabSubtitle => 'リリース前の機能を試す';
+
+  @override
+  String get developerLabExperienceSection => '経験レベル';
+
+  @override
+  String get developerLabExperienceLabel => '経験レベル';
+
+  @override
+  String get developerLabExperienceHint => 'テスト用です — レベルはまだ初期設定では尋ねられません。';
+
+  @override
+  String get experienceLevelBeginner => '初心者';
+
+  @override
+  String get experienceLevelAdvanced => '上級者';
+
+  @override
+  String get experienceLevelPro => 'プロ';
+
+  @override
+  String get experienceLevelBeginnerDescription =>
+      'RIR とカーディオ強度は表示されません。筋肉は部位単位で表示され、例えば三角筋前部・中部・後部の代わりに「肩」となります。';
+
+  @override
+  String get experienceLevelAdvancedDescription =>
+      'RIR とカーディオ強度は表示されません。筋肉は部位単位で表示され、例えば三角筋前部・中部・後部の代わりに「肩」となります。';
+
+  @override
+  String get experienceLevelProDescription =>
+      'RIR とカーディオ強度を表示し、筋肉は正確な解剖学的名称のままになります。';
 }

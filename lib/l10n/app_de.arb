@@ -1446,6 +1446,7 @@
   "analyticsViewDetails": "Details ansehen",
   "analyticsRepRangeSuffix": " Wdh.",
   "analyticsNoRecordYet": "Noch kein Rekord",
+  "analyticsNoRecordsInPeriod": "Keine Bestleistungen in diesem Zeitraum",
   "analyticsNotableImprovements": "Bemerkenswerte Verbesserungen",
   "analyticsNoPrTrendInWindow": "In diesem Zeitraum gibt es noch keinen klaren Rekordtrend.",
   "analyticsE1rmProgress": "e1RM {previous} -> {recent} {unit}",
@@ -2886,5 +2887,18 @@
   "exercisePatternPlantarFlexion": "Plantarflexion",
   "exercisePatternDorsiflexion": "Dorsalextension",
   "exercisePatternWristFlexion": "Handgelenkbeugung",
-  "exercisePatternWristExtension": "Handgelenkstreckung"
+  "exercisePatternWristExtension": "Handgelenkstreckung",
+  "settingsDeveloperTitle": "Developer",
+  "settingsDeveloperSubtitle": "Diagnose und experimentelle Optionen",
+  "developerLabTitle": "Developer Lab",
+  "developerLabSubtitle": "Funktionen ausprobieren, bevor sie ausgeliefert werden",
+  "developerLabExperienceSection": "Erfahrungsstufe",
+  "developerLabExperienceLabel": "Erfahrungsstufe",
+  "developerLabExperienceHint": "Nur zum Testen — die Stufe wird im Onboarding noch nicht abgefragt.",
+  "experienceLevelBeginner": "Anfänger",
+  "experienceLevelAdvanced": "Fortgeschritten",
+  "experienceLevelPro": "Profi",
+  "experienceLevelBeginnerDescription": "Kein RIR und keine Cardio-Intensität. Muskeln werden nach Region benannt, z. B. „Schulter“ statt vorderer, seitlicher und hinterer Deltamuskel.",
+  "experienceLevelAdvancedDescription": "Kein RIR und keine Cardio-Intensität. Muskeln werden nach Region benannt, z. B. „Schulter“ statt vorderer, seitlicher und hinterer Deltamuskel.",
+  "experienceLevelProDescription": "RIR und Cardio-Intensität werden angezeigt, Muskeln behalten ihre genauen anatomischen Bezeichnungen."
 }

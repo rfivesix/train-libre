@@ -62,9 +62,13 @@ class WorkoutMorphRoute<T> extends PageRouteBuilder<T> {
   WorkoutMorphRoute({
     required WidgetBuilder builder,
     this.sourceBuilder,
+    bool animateEntrance = true,
     super.settings,
   }) : super(
-          transitionDuration: _kExpandDuration * _timeScale,
+          // iOS already animates opening the app from a Live Activity.
+          // The destination must accept input as soon as that handoff ends.
+          transitionDuration:
+              animateEntrance ? _kExpandDuration * _timeScale : Duration.zero,
           reverseTransitionDuration: _kCollapseDuration * _timeScale,
           pageBuilder: (context, animation, secondaryAnimation) =>
               builder(context),

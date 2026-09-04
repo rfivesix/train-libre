@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../../generated/app_localizations.dart';
+import '../../../../services/experience_level_service.dart';
 import '../../../../services/unit_service.dart';
 import '../../domain/models/set_log.dart';
 import '../../../exercise_catalog/domain/models/exercise.dart';
@@ -269,13 +270,19 @@ class WorkoutExerciseLogCard extends StatelessWidget {
                                       Expanded(
                                           flex: wide ? 4 : 2,
                                           child: const SizedBox.shrink()),
-                                    const SizedBox(width: 8),
-                                    _buildHeader(
-                                      mask.logsDistance
-                                          ? l10n.cardioIntensityShortLabel
-                                          : 'RIR',
-                                      flex: 2,
-                                    ),
+                                    // Same level as the rows below, so the
+                                    // column is present or absent as a whole.
+                                    if (context
+                                        .watch<ExperienceLevelService>()
+                                        .showsIntensity) ...[
+                                      const SizedBox(width: 8),
+                                      _buildHeader(
+                                        mask.logsDistance
+                                            ? l10n.cardioIntensityShortLabel
+                                            : 'RIR',
+                                        flex: 2,
+                                      ),
+                                    ],
                                     const SizedBox(width: 48),
                                   ],
                                 );

@@ -12,6 +12,7 @@ import 'package:train_libre/features/workout/presentation/workout_log_detail_scr
 import 'package:train_libre/generated/app_localizations.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 
+import 'package:train_libre/services/experience_level_service.dart';
 import 'package:train_libre/services/theme_service.dart';
 import 'package:train_libre/services/unit_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -22,6 +23,7 @@ Widget _wrap(Widget child, IWorkoutRepository repo) {
       Provider<IWorkoutRepository>.value(value: repo),
       ChangeNotifierProvider(create: (_) => ThemeService()),
       ChangeNotifierProvider(create: (_) => UnitService()),
+      ChangeNotifierProvider(create: (_) => ExperienceLevelService()),
     ],
     child: MaterialApp(
       locale: const Locale('en'),
@@ -119,7 +121,8 @@ void main() {
     await tester.pumpAndSettle();
 
     // The weight input field is keyed by set localId
-    final weightFieldFinder = find.byKey(ValueKey('weight_input_${setRow.localId}'));
+    final weightFieldFinder =
+        find.byKey(ValueKey('weight_input_${setRow.localId}'));
 
     // Verify the field is in the tree and shows the initial weight
     expect(weightFieldFinder, findsOneWidget);

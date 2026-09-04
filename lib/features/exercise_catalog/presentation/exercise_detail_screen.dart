@@ -18,6 +18,7 @@ import '../../../widgets/common/dual_body_highlighter.dart';
 import '../../../widgets/common/global_app_bar.dart';
 
 import '../../../widgets/common/common.dart';
+import '../../../services/experience_level_service.dart';
 import '../../../services/unit_service.dart';
 import '../../profile/presentation/widgets/measurement_chart_widget.dart';
 import 'package:provider/provider.dart';
@@ -1015,6 +1016,26 @@ class _ExerciseMuscleBodyView extends StatelessWidget {
         BodySlugMapper.forSide(allHighlights, BodySide.front);
     final backHighlights = BodySlugMapper.forSide(allHighlights, BodySide.back);
 
+    // The names are coarsened, the highlights above are not: a beginner reads
+    // "shoulders" while the body map still paints the single head that works.
+    final coarse =
+        context.watch<ExperienceLevelService>().usesCoarseMuscleNames;
+    final resolvedVocabulary = useIds ? vocabulary : null;
+    final primaryNames = BodySlugMapper.localizeAll(
+      context,
+      primaryLabels,
+      vocabulary: resolvedVocabulary,
+      coarse: coarse,
+    );
+    // A secondary muscle that coarsens into a primary region says nothing —
+    // "shoulders" cannot be both the point of the exercise and an aside.
+    final secondaryNames = BodySlugMapper.localizeAll(
+      context,
+      secondaryLabels,
+      vocabulary: resolvedVocabulary,
+      coarse: coarse,
+    ).where((name) => !primaryNames.contains(name)).toList(growable: false);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1028,17 +1049,15 @@ class _ExerciseMuscleBodyView extends StatelessWidget {
         const SizedBox(height: DesignConstants.spacingL),
         _MuscleChipRow(
           label: l10n.primaryLabel,
-          muscles: primaryLabels,
+          names: primaryNames,
           color: theme.colorScheme.primary,
-          vocabulary: useIds ? vocabulary : null,
         ),
-        if (secondaryLabels.isNotEmpty) ...[
+        if (secondaryNames.isNotEmpty) ...[
           const SizedBox(height: 6),
           _MuscleChipRow(
             label: l10n.secondaryLabel,
-            muscles: secondaryLabels,
+            names: secondaryNames,
             color: theme.colorScheme.primary.withValues(alpha: 0.45),
-            vocabulary: useIds ? vocabulary : null,
           ),
         ],
       ],
@@ -1047,17 +1066,19 @@ class _ExerciseMuscleBodyView extends StatelessWidget {
 }
 
 /// A labelled row of muscle names used as a text legend.
+///
+/// Takes names, not ids: which name a muscle gets — the head or its region —
+/// is decided by the caller, together with the de-duplication that decision
+/// makes necessary.
 class _MuscleChipRow extends StatelessWidget {
   final String label;
-  final List<String> muscles;
+  final List<String> names;
   final Color color;
-  final MuscleVocabulary? vocabulary;
 
   const _MuscleChipRow({
     required this.label,
-    required this.muscles,
+    required this.names,
     required this.color,
-    this.vocabulary,
   });
 
   @override
@@ -1082,9 +1103,9 @@ class _MuscleChipRow extends StatelessWidget {
             child: Wrap(
               spacing: 8,
               runSpacing: 4,
-              children: muscles.map((m) {
+              children: names.map((name) {
                 return Text(
-                  BodySlugMapper.localize(context, m, vocabulary: vocabulary),
+                  name,
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: color,
                     fontWeight: FontWeight.w600,

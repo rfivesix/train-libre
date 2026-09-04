@@ -307,16 +307,31 @@ class BodySlugMapper {
   /// muscle arrive with its name in 22 languages without an app release. The
   /// hard-coded switch below stays for legacy names and group keys, which the
   /// vocabulary does not contain.
+  ///
+  /// With [coarse], the muscle is named by the region it belongs to — the
+  /// experience level below "pro" asks for "shoulders" rather than "front
+  /// deltoid". Only the words change: the body map is drawn from the ids and
+  /// stays as precise as ever.
   static String localize(
     BuildContext context,
     String rawName, {
     MuscleVocabulary? vocabulary,
+    bool coarse = false,
   }) {
     final l10n = AppLocalizations.of(context)!;
 
+    // Coarse mode resolves the group node rather than the muscle itself; the
+    // group carries its own translations, so "Schulter" comes from the same
+    // catalog the fine name would have come from. Where no group translation
+    // ships, the group *key* still falls through to the switch below, which
+    // understands it — the head's id would not have.
+    var name = rawName;
     if (vocabulary != null && !vocabulary.isEmpty) {
+      if (coarse) {
+        name = vocabulary.rawGroupFor(rawName) ?? rawName;
+      }
       final fromCatalog = vocabulary.nameFor(
-        rawName,
+        name,
         Localizations.localeOf(context).languageCode,
       );
       if (fromCatalog != null && fromCatalog.trim().isNotEmpty) {
@@ -325,7 +340,7 @@ class BodySlugMapper {
     }
 
     final cleaned =
-        rawName.trim().toLowerCase().replaceAll('_', ' ').replaceAll('-', ' ');
+        name.trim().toLowerCase().replaceAll('_', ' ').replaceAll('-', ' ');
 
     final canonical =
         RecoveryDomainService.majorMuscleGroupFor(cleaned) ?? cleaned;
@@ -366,8 +381,35 @@ class BodySlugMapper {
       case 'obliques':
         return l10n.muscleObliques;
       default:
-        if (rawName.isEmpty) return '';
-        return rawName[0].toUpperCase() + rawName.substring(1).toLowerCase();
+        if (name.isEmpty) return '';
+        return name[0].toUpperCase() + name.substring(1).toLowerCase();
     }
+  }
+
+  /// Display names for a whole muscle list, with duplicates folded away.
+  ///
+  /// Folding is the point of the list form: coarsening front and rear deltoid
+  /// separately would print "Shoulders, Shoulders". Insertion order survives,
+  /// so the most important muscle stays first.
+  static List<String> localizeAll(
+    BuildContext context,
+    List<String> rawNames, {
+    MuscleVocabulary? vocabulary,
+    bool coarse = false,
+  }) {
+    final seen = <String>{};
+    final names = <String>[];
+    for (final rawName in rawNames) {
+      final name = localize(
+        context,
+        rawName,
+        vocabulary: vocabulary,
+        coarse: coarse,
+      );
+      if (name.trim().isEmpty) continue;
+      if (!seen.add(name)) continue;
+      names.add(name);
+    }
+    return names;
   }
 }

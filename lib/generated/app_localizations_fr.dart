@@ -3418,6 +3418,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get analyticsNoRecordYet => 'Pas encore d\'enregistrement';
 
   @override
+  String get analyticsNoRecordsInPeriod => 'Aucun record sur cette période';
+
+  @override
   String get analyticsNotableImprovements => 'Améliorations notables';
 
   @override
@@ -6682,4 +6685,49 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get exercisePatternWristExtension => 'Extension du poignet';
+
+  @override
+  String get settingsDeveloperTitle => 'Développeur';
+
+  @override
+  String get settingsDeveloperSubtitle =>
+      'Diagnostics et options expérimentales';
+
+  @override
+  String get developerLabTitle => 'Labo développeur';
+
+  @override
+  String get developerLabSubtitle =>
+      'Essayer des fonctionnalités avant leur sortie';
+
+  @override
+  String get developerLabExperienceSection => 'Niveau d’expérience';
+
+  @override
+  String get developerLabExperienceLabel => 'Niveau d’expérience';
+
+  @override
+  String get developerLabExperienceHint =>
+      'Uniquement pour les tests — le niveau n’est pas encore demandé lors de l’intégration.';
+
+  @override
+  String get experienceLevelBeginner => 'Débutant';
+
+  @override
+  String get experienceLevelAdvanced => 'Confirmé';
+
+  @override
+  String get experienceLevelPro => 'Pro';
+
+  @override
+  String get experienceLevelBeginnerDescription =>
+      'Pas de RIR ni d’intensité cardio. Les muscles sont nommés par région, p. ex. « Épaules » au lieu des deltoïdes antérieur, latéral et postérieur.';
+
+  @override
+  String get experienceLevelAdvancedDescription =>
+      'Pas de RIR ni d’intensité cardio. Les muscles sont nommés par région, p. ex. « Épaules » au lieu des deltoïdes antérieur, latéral et postérieur.';
+
+  @override
+  String get experienceLevelProDescription =>
+      'Le RIR et l’intensité cardio sont affichés, et les muscles conservent leurs noms anatomiques précis.';
 }

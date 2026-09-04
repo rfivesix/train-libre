@@ -3407,6 +3407,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get analyticsNoRecordYet => 'Nessun record ancora';
 
   @override
+  String get analyticsNoRecordsInPeriod => 'Nessun record in questo periodo';
+
+  @override
   String get analyticsNotableImprovements => 'Miglioramenti notevoli';
 
   @override
@@ -6665,4 +6668,47 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get exercisePatternWristExtension => 'Estensione del polso';
+
+  @override
+  String get settingsDeveloperTitle => 'Sviluppatore';
+
+  @override
+  String get settingsDeveloperSubtitle => 'Diagnostica e opzioni sperimentali';
+
+  @override
+  String get developerLabTitle => 'Laboratorio sviluppatore';
+
+  @override
+  String get developerLabSubtitle => 'Prova le funzioni prima del rilascio';
+
+  @override
+  String get developerLabExperienceSection => 'Livello di esperienza';
+
+  @override
+  String get developerLabExperienceLabel => 'Livello di esperienza';
+
+  @override
+  String get developerLabExperienceHint =>
+      'Solo per i test — il livello non viene ancora chiesto durante l’onboarding.';
+
+  @override
+  String get experienceLevelBeginner => 'Principiante';
+
+  @override
+  String get experienceLevelAdvanced => 'Avanzato';
+
+  @override
+  String get experienceLevelPro => 'Pro';
+
+  @override
+  String get experienceLevelBeginnerDescription =>
+      'Nessun RIR e nessuna intensità cardio. I muscoli sono indicati per regione, ad es. «Spalle» invece di deltoide anteriore, laterale e posteriore.';
+
+  @override
+  String get experienceLevelAdvancedDescription =>
+      'Nessun RIR e nessuna intensità cardio. I muscoli sono indicati per regione, ad es. «Spalle» invece di deltoide anteriore, laterale e posteriore.';
+
+  @override
+  String get experienceLevelProDescription =>
+      'RIR e intensità cardio sono visibili e i muscoli mantengono i nomi anatomici precisi.';
 }

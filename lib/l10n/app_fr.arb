@@ -1446,6 +1446,7 @@
   "analyticsViewDetails": "Afficher les détails",
   "analyticsRepRangeSuffix": "représentants",
   "analyticsNoRecordYet": "Pas encore d'enregistrement",
+  "analyticsNoRecordsInPeriod": "Aucun record sur cette période",
   "analyticsNotableImprovements": "Améliorations notables",
   "analyticsNoPrTrendInWindow": "Il n’y a pas encore de tendance claire en matière de relations publiques dans cette fenêtre.",
   "analyticsE1rmProgress": "e1RM {previous} -> {recent} {unit}",
@@ -2888,5 +2889,18 @@
   "exercisePatternPlantarFlexion": "Flexion plantaire",
   "exercisePatternDorsiflexion": "Flexion dorsale",
   "exercisePatternWristFlexion": "Flexion du poignet",
-  "exercisePatternWristExtension": "Extension du poignet"
+  "exercisePatternWristExtension": "Extension du poignet",
+  "settingsDeveloperTitle": "Développeur",
+  "settingsDeveloperSubtitle": "Diagnostics et options expérimentales",
+  "developerLabTitle": "Labo développeur",
+  "developerLabSubtitle": "Essayer des fonctionnalités avant leur sortie",
+  "developerLabExperienceSection": "Niveau d’expérience",
+  "developerLabExperienceLabel": "Niveau d’expérience",
+  "developerLabExperienceHint": "Uniquement pour les tests — le niveau n’est pas encore demandé lors de l’intégration.",
+  "experienceLevelBeginner": "Débutant",
+  "experienceLevelAdvanced": "Confirmé",
+  "experienceLevelPro": "Pro",
+  "experienceLevelBeginnerDescription": "Pas de RIR ni d’intensité cardio. Les muscles sont nommés par région, p. ex. « Épaules » au lieu des deltoïdes antérieur, latéral et postérieur.",
+  "experienceLevelAdvancedDescription": "Pas de RIR ni d’intensité cardio. Les muscles sont nommés par région, p. ex. « Épaules » au lieu des deltoïdes antérieur, latéral et postérieur.",
+  "experienceLevelProDescription": "Le RIR et l’intensité cardio sont affichés, et les muscles conservent leurs noms anatomiques précis."
 }

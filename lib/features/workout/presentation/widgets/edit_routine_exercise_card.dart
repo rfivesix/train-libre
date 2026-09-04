@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../../generated/app_localizations.dart';
 import '../../../../util/design_constants.dart';
+import '../../../../services/experience_level_service.dart';
 import '../../../../services/unit_service.dart';
 import '../../domain/models/routine_exercise.dart';
 import '../../domain/models/set_template.dart';
@@ -311,11 +312,15 @@ class EditRoutineExerciseCard extends StatelessWidget {
           _buildHeader(secondary, flex: wide ? 4 : 2)
         else
           Expanded(flex: wide ? 4 : 2, child: const SizedBox.shrink()),
-        const SizedBox(width: 8),
-        _buildHeader(
-          mask.logsDistance ? l10n.cardioIntensityLabel : 'RIR',
-          flex: 2,
-        ),
+        // The rows below it read the same level, so the column appears and
+        // disappears in one piece.
+        if (context.watch<ExperienceLevelService>().showsIntensity) ...[
+          const SizedBox(width: 8),
+          _buildHeader(
+            mask.logsDistance ? l10n.cardioIntensityLabel : 'RIR',
+            flex: 2,
+          ),
+        ],
         const SizedBox(width: 48),
       ],
     );
