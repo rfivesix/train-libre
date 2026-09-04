@@ -6,6 +6,18 @@
   Newest version first. Regenerate with: python3 script/build_whats_new.py
 -->
 
+## 1.3.0-alpha.1 (2026-09-05)
+
+{dumbbell} Updated exercise catalog: The catalog now uses OpenExerciseDB, with more detailed information about muscles and movements. Exercise names and descriptions appear in your app language when a translation is available.
+
+{layout_grid} Find the right exercises: Filter by equipment, difficulty and other exercise details. Compact selection menus also help you choose exercises when building your routines.
+
+{timer} The right fields for every exercise: Log hold time for planks, reps and optional added weight for pull-ups, and assistance for assisted exercises. Previous workout values and charts adapt to the exercise too.
+
+{chart_line} A clearer picture of your progress: Training volume and strength records for bodyweight exercises now account for your logged body weight. Added weight increases the load; assistance reduces it. Past workouts use your latest recorded body weight at the time.
+
+{activity} More accurate muscle statistics: Bodyweight exercises and static holds are included more reliably. Stretching and mobility exercises no longer count as strength sets or trigger muscle recovery periods.
+
 ## 1.2.1 (2026-09-01)
 
 {utensils} Improved macronutrient recommendations: The adaptive nutrition calculation now distributes fats and carbohydrates in a more balanced way based on your body weight and goal.

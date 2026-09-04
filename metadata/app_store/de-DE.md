@@ -56,9 +56,15 @@ OPEN SOURCE & OFFENE DATEN:
 Transparent aufgebaut auf den vertrauenswürdigen Community-Katalogen von Open Food Facts und der wger-Übungsdatenbank. Der vollständige Quellcode ist öffentlich einsehbar – unsere Datenschutzversprechen kann man also nachprüfen, statt sie nur zu glauben.
 
 ## Release Notes (What's New / Release Notes in this version)
-Verbesserte Makronährstoff-Empfehlungen: Die adaptive Berechnung verteilt Fett und Kohlenhydrate jetzt noch ausgewogener basierend auf deinem Körpergewicht und Ziel.
+Überarbeiteter Übungskatalog: Der Katalog basiert jetzt auf OpenExerciseDB und bietet genauere Angaben zu Muskeln und Bewegungen. Übungsnamen und Beschreibungen erscheinen in deiner App-Sprache, sofern eine Übersetzung verfügbar ist.
 
-Fehlerbehebungen: Kleinere Fehler bei der Erfassung von Koffein im Tagebuch sowie Darstellungsfehler bei Animationen und Kartenübergängen behoben.
+Passende Übungen leichter finden: Filtere nach Geräten, Schwierigkeitsgrad und weiteren Übungsmerkmalen. Die übersichtlichen Auswahlfelder helfen dir auch beim Zusammenstellen deiner Trainingspläne.
+
+Für jede Übung die passenden Felder: Bei Planks erfasst du die Haltezeit, bei Klimmzügen Wiederholungen und optionales Zusatzgewicht, bei unterstützten Übungen die Unterstützung. Auch die Werte vom letzten Training und die Diagramme passen sich der Übung an.
+
+Fortschritte richtig einordnen: Bei Eigengewichtsübungen berücksichtigen Trainingsvolumen und Kraftrekorde jetzt dein erfasstes Körpergewicht. Zusatzgewicht zählt dazu, Unterstützung wird abgezogen. Frühere Trainings werden mit dem damals zuletzt erfassten Körpergewicht berechnet.
+
+Genauere Muskelstatistiken: Eigengewichtsübungen und Halteübungen werden zuverlässiger berücksichtigt. Dehnen und Mobilitätsübungen zählen nicht mehr als Kraftsätze und lösen keine Muskelregeneration aus.
 
 ## Support URL (Support Web Page URL)
 https://rfivesix.github.io/train-libre/

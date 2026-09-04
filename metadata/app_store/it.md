@@ -56,9 +56,15 @@ OPEN SOURCE E DATI APERTI:
 Sviluppato in modo trasparente sui database aperti e affidabili di Open Food Facts e wger. Il codice sorgente completo è pubblicamente accessibile: le nostre promesse sulla privacy si verificano, non si prendono per buone.
 
 ## Release Notes (What's New / Release Notes in this version)
-Raccomandazioni dei macronutrienti migliorate: il calcolo adattivo distribuisce ora grassi e carboidrati in modo più bilanciato in base al peso corporeo e all'obiettivo.
+Catalogo degli esercizi aggiornato: il catalogo ora utilizza OpenExerciseDB, con informazioni più precise su muscoli e movimenti. Nomi e descrizioni degli esercizi appaiono nella lingua dell'app quando è disponibile una traduzione.
 
-Correzione di bug: risolti piccoli problemi con la registrazione della caffeina nel diario e migliorate le transizioni e le animazioni delle schede.
+Trova gli esercizi adatti a te: filtra per attrezzatura, difficoltà e altre caratteristiche. I menu di selezione compatti ti aiutano a scegliere gli esercizi anche quando crei le tue schede.
+
+I campi giusti per ogni esercizio: registra il tempo di tenuta per i plank, le ripetizioni e l'eventuale peso aggiuntivo per le trazioni, oppure l'assistenza per gli esercizi assistiti. Anche i valori dell'ultimo allenamento e i grafici si adattano all'esercizio.
+
+Progressi rappresentati meglio: per gli esercizi a corpo libero, il volume di allenamento e i record di forza tengono ora conto del peso corporeo registrato. Il peso aggiuntivo aumenta il carico, l'assistenza lo riduce. Gli allenamenti passati usano l'ultimo peso registrato alla data della sessione.
+
+Statistiche muscolari più precise: gli esercizi a corpo libero e le tenute statiche vengono conteggiati in modo più affidabile. Lo stretching e gli esercizi di mobilità non contano più come serie di forza e non avviano un periodo di recupero muscolare.
 
 ## Support URL (Support Web Page URL)
 https://rfivesix.github.io/train-libre/support.html

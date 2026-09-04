@@ -56,9 +56,15 @@ OPEN SOURCE & DONNÉES OUVERTES :
 Développé de manière transparente à partir des catalogues communautaires de confiance Open Food Facts et de la base d'exercices wger. Le code source complet est accessible publiquement : nos promesses de confidentialité se vérifient au lieu de se croire.
 
 ## Release Notes (What's New / Release Notes in this version)
-Recommandations de macronutriments améliorées: le calcul adaptatif répartit désormais les lipides et les glucides de manière plus équilibrée selon ton poids corporel et ton objectif.
+Catalogue d'exercices enrichi: le catalogue utilise désormais OpenExerciseDB, avec des informations plus précises sur les muscles et les mouvements. Les noms et descriptions s'affichent dans la langue de ton app lorsqu'une traduction est disponible.
 
-Corrections d'erreurs: correction de légers soucis liés au suivi de la caféine dans le journal et amélioration des transitions et animations de cartes.
+Trouve les exercices qui te conviennent: filtre par matériel, difficulté et autres caractéristiques. Les menus de sélection compacts t'aident aussi à choisir tes exercices lorsque tu crées tes programmes.
+
+Les bons champs pour chaque exercice: note la durée d'une planche, les répétitions et le lest éventuel des tractions, ou l'assistance des exercices assistés. Les valeurs de la dernière séance et les graphiques s'adaptent aussi à l'exercice.
+
+Une progression mieux représentée: pour les exercices au poids du corps, le volume d'entraînement et les records de force tiennent désormais compte de ton poids enregistré. Le lest s'ajoute à la charge, l'assistance s'en déduit. Les anciennes séances utilisent le dernier poids enregistré à leur date.
+
+Des statistiques musculaires plus précises: les exercices au poids du corps et les positions maintenues sont mieux pris en compte. Les étirements et les exercices de mobilité ne comptent plus comme des séries de musculation et ne déclenchent plus de période de récupération musculaire.
 
 ## Support URL (Support Web Page URL)
 https://rfivesix.github.io/train-libre/support.html

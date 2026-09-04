@@ -56,9 +56,15 @@ OPEN SOURCE & OPEN DATA:
 Built transparently on trusted community catalogs from Open Food Facts and the wger exercise database. The full source code is publicly accessible, so our privacy claims can be verified rather than just believed.
 
 ## Release Notes (What's New / Release Notes in this version)
-Improved macronutrient recommendations: The adaptive nutrition calculation now distributes fats and carbohydrates in a more balanced way based on your body weight and goal.
+Updated exercise catalog: The catalog now uses OpenExerciseDB, with more detailed information about muscles and movements. Exercise names and descriptions appear in your app language when a translation is available.
 
-Bug fixes: Fixed minor issues with caffeine logging in the diary and resolved visual glitches during card transitions and animations.
+Find the right exercises: Filter by equipment, difficulty and other exercise details. Compact selection menus also help you choose exercises when building your routines.
+
+The right fields for every exercise: Log hold time for planks, reps and optional added weight for pull-ups, and assistance for assisted exercises. Previous workout values and charts adapt to the exercise too.
+
+A clearer picture of your progress: Training volume and strength records for bodyweight exercises now account for your logged body weight. Added weight increases the load; assistance reduces it. Past workouts use your latest recorded body weight at the time.
+
+More accurate muscle statistics: Bodyweight exercises and static holds are included more reliably. Stretching and mobility exercises no longer count as strength sets or trigger muscle recovery periods.
 
 ## Support URL (Support Web Page URL)
 https://rfivesix.github.io/train-libre/support.html

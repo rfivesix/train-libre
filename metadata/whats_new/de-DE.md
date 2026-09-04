@@ -6,6 +6,18 @@
   Danach ausführen: python3 script/build_whats_new.py --write --sync-store
 -->
 
+## 1.3.0-alpha.1 (2026-09-05)
+
+{dumbbell} Überarbeiteter Übungskatalog: Der Katalog basiert jetzt auf OpenExerciseDB und bietet genauere Angaben zu Muskeln und Bewegungen. Übungsnamen und Beschreibungen erscheinen in deiner App-Sprache, sofern eine Übersetzung verfügbar ist.
+
+{layout_grid} Passende Übungen leichter finden: Filtere nach Geräten, Schwierigkeitsgrad und weiteren Übungsmerkmalen. Die übersichtlichen Auswahlfelder helfen dir auch beim Zusammenstellen deiner Trainingspläne.
+
+{timer} Für jede Übung die passenden Felder: Bei Planks erfasst du die Haltezeit, bei Klimmzügen Wiederholungen und optionales Zusatzgewicht, bei unterstützten Übungen die Unterstützung. Auch die Werte vom letzten Training und die Diagramme passen sich der Übung an.
+
+{chart_line} Fortschritte richtig einordnen: Bei Eigengewichtsübungen berücksichtigen Trainingsvolumen und Kraftrekorde jetzt dein erfasstes Körpergewicht. Zusatzgewicht zählt dazu, Unterstützung wird abgezogen. Frühere Trainings werden mit dem damals zuletzt erfassten Körpergewicht berechnet.
+
+{activity} Genauere Muskelstatistiken: Eigengewichtsübungen und Halteübungen werden zuverlässiger berücksichtigt. Dehnen und Mobilitätsübungen zählen nicht mehr als Kraftsätze und lösen keine Muskelregeneration aus.
+
 ## 1.2.1 (2026-09-01)
 
 {utensils} Verbesserte Makronährstoff-Empfehlungen: Die adaptive Berechnung verteilt Fett und Kohlenhydrate jetzt noch ausgewogener basierend auf deinem Körpergewicht und Ziel.

@@ -6,6 +6,18 @@
   récente en premier. Ensuite : python3 script/build_whats_new.py --write --sync-store
 -->
 
+## 1.3.0-alpha.1 (2026-09-05)
+
+{dumbbell} Catalogue d'exercices enrichi : le catalogue utilise désormais OpenExerciseDB, avec des informations plus précises sur les muscles et les mouvements. Les noms et descriptions s'affichent dans la langue de ton app lorsqu'une traduction est disponible.
+
+{layout_grid} Trouve les exercices qui te conviennent : filtre par matériel, difficulté et autres caractéristiques. Les menus de sélection compacts t'aident aussi à choisir tes exercices lorsque tu crées tes programmes.
+
+{timer} Les bons champs pour chaque exercice : note la durée d'une planche, les répétitions et le lest éventuel des tractions, ou l'assistance des exercices assistés. Les valeurs de la dernière séance et les graphiques s'adaptent aussi à l'exercice.
+
+{chart_line} Une progression mieux représentée : pour les exercices au poids du corps, le volume d'entraînement et les records de force tiennent désormais compte de ton poids enregistré. Le lest s'ajoute à la charge, l'assistance s'en déduit. Les anciennes séances utilisent le dernier poids enregistré à leur date.
+
+{activity} Des statistiques musculaires plus précises : les exercices au poids du corps et les positions maintenues sont mieux pris en compte. Les étirements et les exercices de mobilité ne comptent plus comme des séries de musculation et ne déclenchent plus de période de récupération musculaire.
+
 ## 1.2.1 (2026-09-01)
 
 {utensils} Recommandations de macronutriments améliorées : le calcul adaptatif répartit désormais les lipides et les glucides de manière plus équilibrée selon ton poids corporel et ton objectif.
