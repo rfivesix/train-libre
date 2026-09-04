@@ -195,8 +195,8 @@ jobs:
                   if not match:
                       raise ValueError(f"Unexpected screenshot filename: {file}")
                   numbers.append(int(match.group(1)))
-              if numbers != list(range(1, len(files) + 1)):
-                  raise ValueError(f"Screenshot order has gaps or duplicates for {locale}: {numbers}")
+              if numbers != list(range(1, 8)):
+                  raise ValueError(f"Expected screenshots 1-7 for {locale}, got: {numbers}")
               selected[locale] = files
 
           destinations = (
