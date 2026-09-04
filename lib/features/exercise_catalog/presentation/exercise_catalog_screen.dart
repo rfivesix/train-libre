@@ -19,6 +19,7 @@ import '../../../core/infrastructure/basis_data_manager.dart';
 import '../../../widgets/common/database_placeholder_widget.dart';
 import '../../app/presentation/widgets/glass_bottom_menu.dart';
 import '../domain/body_slug_mapper.dart';
+import '../domain/exercise_classification_labels.dart';
 import 'widgets/exercise_filter_sheet.dart';
 import '../../../services/telemetry/telemetry_service.dart';
 
@@ -60,6 +61,16 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
 
   List<String> _allUsageTags = [];
   final List<String> _selectedUsageTags = [];
+
+  /// The three annotation axes, in vocabulary order rather than alphabetical.
+  /// Empty on a pre-v2 catalog, which hides the sections rather than showing
+  /// three empty menus.
+  List<String> _allDifficulties = [];
+  final List<String> _selectedDifficulties = [];
+  List<String> _allMechanics = [];
+  final List<String> _selectedMechanics = [];
+  List<String> _allLateralities = [];
+  final List<String> _selectedLateralities = [];
 
   Timer? _searchDebounce;
 
@@ -111,11 +122,15 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
     final categories = await _repository.getAllCategories();
     final equipment = await _repository.getPrimaryEquipment(languageCode);
     final usageTags = await _repository.getUsageTags();
+    final axes = await _repository.getClassificationAxes();
     if (!mounted) return;
     setState(() {
       _allCategories = categories;
       _allEquipment = equipment;
       _allUsageTags = usageTags;
+      _allDifficulties = axes.difficulties;
+      _allMechanics = axes.mechanics;
+      _allLateralities = axes.lateralities;
       _isLoading = false;
     });
     _runFilter(_searchController.text);
@@ -127,6 +142,9 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
       categories: _selectedCategories,
       equipmentIds: _selectedEquipment,
       usageTags: _selectedUsageTags,
+      difficulties: _selectedDifficulties,
+      mechanics: _selectedMechanics,
+      lateralities: _selectedLateralities,
       languageCode: Localizations.localeOf(context).languageCode,
     );
     if (mounted) {
@@ -399,7 +417,10 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
     final colorScheme = theme.colorScheme;
     final activeCount = _selectedCategories.length +
         _selectedEquipment.length +
-        _selectedUsageTags.length;
+        _selectedUsageTags.length +
+        _selectedDifficulties.length +
+        _selectedMechanics.length +
+        _selectedLateralities.length;
     final hasFilter = activeCount > 0;
 
     final fillColor = hasFilter
@@ -473,7 +494,58 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
             selection: _selectedUsageTags,
             options: [
               for (final tag in _allUsageTags)
-                ExerciseFilterOption(value: tag, label: _usageTagLabel(tag)),
+                if (ExerciseClassificationLabels.usageTag(sheetContext, tag) !=
+                    null)
+                  ExerciseFilterOption(
+                    value: tag,
+                    label: ExerciseClassificationLabels.usageTag(
+                        sheetContext, tag)!,
+                  ),
+            ],
+          ),
+          ExerciseFilterSection(
+            title: l10n.catalogFilterMechanic,
+            selection: _selectedMechanics,
+            options: [
+              for (final value in _allMechanics)
+                if (ExerciseClassificationLabels.mechanic(
+                        sheetContext, value) !=
+                    null)
+                  ExerciseFilterOption(
+                    value: value,
+                    label: ExerciseClassificationLabels.mechanic(
+                        sheetContext, value)!,
+                  ),
+            ],
+          ),
+          ExerciseFilterSection(
+            title: l10n.catalogFilterLaterality,
+            selection: _selectedLateralities,
+            options: [
+              for (final value in _allLateralities)
+                if (ExerciseClassificationLabels.laterality(
+                        sheetContext, value) !=
+                    null)
+                  ExerciseFilterOption(
+                    value: value,
+                    label: ExerciseClassificationLabels.laterality(
+                        sheetContext, value)!,
+                  ),
+            ],
+          ),
+          ExerciseFilterSection(
+            title: l10n.catalogFilterDifficulty,
+            selection: _selectedDifficulties,
+            options: [
+              for (final value in _allDifficulties)
+                if (ExerciseClassificationLabels.difficulty(
+                        sheetContext, value) !=
+                    null)
+                  ExerciseFilterOption(
+                    value: value,
+                    label: ExerciseClassificationLabels.difficulty(
+                        sheetContext, value)!,
+                  ),
             ],
           ),
         ],
@@ -485,16 +557,6 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
         },
       ),
     );
-  }
-
-  /// A readable label for a usage tag.
-  ///
-  /// The catalog ships these as identifiers and has no translation table for
-  /// them the way it does for muscles and equipment, so this is a presentation
-  /// concern until there is one.
-  String _usageTagLabel(String tag) {
-    final words = tag.split('_').where((w) => w.isNotEmpty);
-    return words.map((w) => w[0].toUpperCase() + w.substring(1)).join(' ');
   }
 
   Widget _buildSourceBadge(BuildContext context, String source) {

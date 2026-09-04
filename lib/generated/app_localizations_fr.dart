@@ -6526,4 +6526,61 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get catalogFilterCombineHint =>
       'Plusieurs choix dans une section élargissent les résultats ; des choix dans plusieurs sections les restreignent.';
+
+  @override
+  String get catalogFilterDifficulty => 'Difficulté';
+
+  @override
+  String get catalogFilterMechanic => 'Mécanique';
+
+  @override
+  String get catalogFilterLaterality => 'Côtés';
+
+  @override
+  String get exerciseDifficultyBeginner => 'Débutant';
+
+  @override
+  String get exerciseDifficultyIntermediate => 'Intermédiaire';
+
+  @override
+  String get exerciseDifficultyAdvanced => 'Avancé';
+
+  @override
+  String get exerciseMechanicCompound => 'Polyarticulaire';
+
+  @override
+  String get exerciseMechanicIsolation => 'Isolation';
+
+  @override
+  String get exerciseLateralityBilateral => 'Deux côtés';
+
+  @override
+  String get exerciseLateralityUnilateral => 'Un côté';
+
+  @override
+  String get exerciseLateralityAlternating => 'En alternance';
+
+  @override
+  String get exerciseUsageWarmup => 'Échauffement';
+
+  @override
+  String get exerciseUsageActivation => 'Activation';
+
+  @override
+  String get exerciseUsageMainLift => 'Exercice principal';
+
+  @override
+  String get exerciseUsageAccessory => 'Exercice accessoire';
+
+  @override
+  String get exerciseUsageConditioning => 'Condition physique';
+
+  @override
+  String get exerciseUsageFinisher => 'Finisher';
+
+  @override
+  String get exerciseUsageCooldown => 'Retour au calme';
+
+  @override
+  String get exerciseUsagePrehab => 'Prévention';
 }

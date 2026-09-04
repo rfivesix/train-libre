@@ -764,25 +764,28 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
 
     final primary = LogMaskLabels.primaryHeader(mask, l10n, unitService);
     final secondary = LogMaskLabels.secondaryHeader(mask, l10n);
-    final wide = mask.logsDistance || mask.logsDuration;
+    final flex = SetRowFlex.forMask(mask);
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        _buildHeader(l10n.setLabel, flex: wide ? 2 : 1),
-        _buildHeader(l10n.lastTimeLabel, flex: wide ? 3 : 2),
+        _buildHeader(l10n.setLabel, flex: flex.index),
+        _buildHeader(l10n.lastTimeLabel, flex: flex.lastTime),
         if (primary != null)
-          _buildHeader(primary, flex: wide ? 4 : 2)
+          _buildHeader(primary, flex: flex.primary)
         else
-          Expanded(flex: wide ? 4 : 2, child: const SizedBox.shrink()),
+          Expanded(flex: flex.primary, child: const SizedBox.shrink()),
         if (secondary != null)
-          _buildHeader(secondary, flex: wide ? 4 : 2)
+          _buildHeader(secondary, flex: flex.secondary)
         else
-          Expanded(flex: wide ? 4 : 2, child: const SizedBox.shrink()),
-        _buildHeader(
-          mask.logsDistance ? l10n.cardioIntensityLabel : 'RIR',
-          flex: wide ? 2 : 1,
-        ),
+          Expanded(flex: flex.secondary, child: const SizedBox.shrink()),
+        if (mask.showsIntensity)
+          _buildHeader(
+            mask.logsDistance ? l10n.cardioIntensityLabel : 'RIR',
+            flex: flex.intensity,
+          )
+        else
+          Expanded(flex: flex.intensity, child: const SizedBox.shrink()),
         const SizedBox(width: 56), // Space for checkbox (48 width + 8 padding)
       ],
     );
@@ -792,13 +795,20 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
     return Expanded(
       flex: flex,
       child: Center(
-        child: Text(
-          text,
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            color: Colors.grey[600],
-            fontSize: 12,
-            fontWeight: FontWeight.bold,
+        // Same treatment as the cell below it: a heading that has to name a
+        // unit — "Distanz (km)" — is the widest thing in its column, and it
+        // should shrink rather than lose its second half.
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            text,
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            style: TextStyle(
+              color: Colors.grey[600],
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ),
       ),

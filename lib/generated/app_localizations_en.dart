@@ -6417,4 +6417,61 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get catalogFilterCombineHint =>
       'Several picks in one section widen the results; picks across sections narrow them.';
+
+  @override
+  String get catalogFilterDifficulty => 'Difficulty';
+
+  @override
+  String get catalogFilterMechanic => 'Mechanic';
+
+  @override
+  String get catalogFilterLaterality => 'Sides';
+
+  @override
+  String get exerciseDifficultyBeginner => 'Beginner';
+
+  @override
+  String get exerciseDifficultyIntermediate => 'Intermediate';
+
+  @override
+  String get exerciseDifficultyAdvanced => 'Advanced';
+
+  @override
+  String get exerciseMechanicCompound => 'Compound';
+
+  @override
+  String get exerciseMechanicIsolation => 'Isolation';
+
+  @override
+  String get exerciseLateralityBilateral => 'Both sides';
+
+  @override
+  String get exerciseLateralityUnilateral => 'One side';
+
+  @override
+  String get exerciseLateralityAlternating => 'Alternating';
+
+  @override
+  String get exerciseUsageWarmup => 'Warm-up';
+
+  @override
+  String get exerciseUsageActivation => 'Activation';
+
+  @override
+  String get exerciseUsageMainLift => 'Main lift';
+
+  @override
+  String get exerciseUsageAccessory => 'Accessory';
+
+  @override
+  String get exerciseUsageConditioning => 'Conditioning';
+
+  @override
+  String get exerciseUsageFinisher => 'Finisher';
+
+  @override
+  String get exerciseUsageCooldown => 'Cool-down';
+
+  @override
+  String get exerciseUsagePrehab => 'Prehab';
 }

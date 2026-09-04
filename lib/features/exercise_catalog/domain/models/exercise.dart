@@ -71,6 +71,19 @@ class Exercise {
   /// Whether a belt or a dumbbell between the feet is a real option here.
   final bool supportsAddedWeight;
 
+  /// `compound` | `isolation`. Null for pre-v2 rows and user-created
+  /// exercises, and for the 32 catalog rows that carry no classification.
+  final String? mechanic;
+
+  /// `bilateral` | `unilateral` | `alternating`.
+  final String? laterality;
+
+  /// `beginner` | `intermediate` | `advanced`.
+  ///
+  /// The catalog's own judgement, not the user's — which is why nothing in the
+  /// app filters or hides on it by default.
+  final String? difficulty;
+
   /// Whether this exercise is categorized as Cardio.
   ///
   /// Kept as a name because a lot of call sites ask this question, but it is
@@ -180,6 +193,9 @@ class Exercise {
     this.trackingType,
     this.loadMode,
     this.supportsAddedWeight = false,
+    this.mechanic,
+    this.laterality,
+    this.difficulty,
     this.imagePath,
   });
 
@@ -202,6 +218,9 @@ class Exercise {
     this.trackingType,
     this.loadMode,
     this.supportsAddedWeight = false,
+    this.mechanic,
+    this.laterality,
+    this.difficulty,
     this.imagePath,
   }) : texts = {
           languageCode: ExerciseText(name: name, description: description),
@@ -336,6 +355,9 @@ class Exercise {
     String? trackingType,
     String? loadMode,
     bool? supportsAddedWeight,
+    String? mechanic,
+    String? laterality,
+    String? difficulty,
   }) {
     return Exercise(
       id: id ?? this.id,
@@ -352,6 +374,9 @@ class Exercise {
       trackingType: trackingType ?? this.trackingType,
       loadMode: loadMode ?? this.loadMode,
       supportsAddedWeight: supportsAddedWeight ?? this.supportsAddedWeight,
+      mechanic: mechanic ?? this.mechanic,
+      laterality: laterality ?? this.laterality,
+      difficulty: difficulty ?? this.difficulty,
     );
   }
 
@@ -377,6 +402,9 @@ class Exercise {
       trackingType: original.trackingType,
       loadMode: original.loadMode,
       supportsAddedWeight: original.supportsAddedWeight,
+      mechanic: original.mechanic,
+      laterality: original.laterality,
+      difficulty: original.difficulty,
     );
   }
 

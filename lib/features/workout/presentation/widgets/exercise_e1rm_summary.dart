@@ -4,6 +4,7 @@ import '../../../../util/design_constants.dart';
 import 'package:provider/provider.dart';
 import '../../../../generated/app_localizations.dart';
 import '../../../../services/unit_service.dart';
+import '../../domain/classification/exercise_log_mask.dart';
 import '../../domain/models/routine_exercise.dart';
 import '../../domain/models/set_log.dart';
 import '../live_workout_view_model.dart';
@@ -51,7 +52,7 @@ class ExerciseE1rmSummary extends StatelessWidget {
 
         double? sessionBest;
         for (final log in sessionSetLogs) {
-          final value = _calculateBrzyckiE1rm(log, requireCompleted: true);
+          final value = _e1rm(log, requireCompleted: true);
           if (value == null) continue;
           if (sessionBest == null || value > sessionBest) {
             sessionBest = value;
@@ -110,34 +111,24 @@ class ExerciseE1rmSummary extends StatelessWidget {
 
   // --- e1RM Calculation Helpers ---
 
-  bool _isQualifyingSetForE1rm(
-    SetLog setLog, {
-    required bool requireCompleted,
-  }) {
-    final reps = setLog.reps;
-    final weight = setLog.weightKg;
-    final isWarmup = setLog.setType == 'warmup';
-    final isCompleted = setLog.isCompleted == true;
+  /// The estimated 1RM of one set, or null when the set does not qualify.
+  ///
+  /// This line used to run the Brzycki formula on `setLog.weightKg` directly,
+  /// which is the one thing the shared helper exists to prevent. On an
+  /// assisted pull-up the logged number is a *reduction* of resistance, so the
+  /// header read "best e1RM this session: 13.3 kg" while the badge on the very
+  /// set it came from read 105.7 kg — the same set, two formulas, one of them
+  /// reading assistance as load.
+  double? _e1rm(SetLog setLog, {required bool requireCompleted}) {
+    if (setLog.setType == 'warmup') return null;
+    if (requireCompleted && setLog.isCompleted != true) return null;
 
-    if (isWarmup) return false;
-    if (requireCompleted && !isCompleted) return false;
-    if (weight == null || weight <= 0) return false;
-    if (reps == null || reps <= 0 || reps > 10) return false;
-
-    return true;
-  }
-
-  double? _calculateBrzyckiE1rm(
-    SetLog setLog, {
-    required bool requireCompleted,
-  }) {
-    if (!_isQualifyingSetForE1rm(setLog, requireCompleted: requireCompleted)) {
-      return null;
-    }
-
-    final reps = setLog.reps!;
-    final weight = setLog.weightKg!;
-    return weight * (36 / (37 - reps));
+    return ExerciseLogMask.forExercise(routineExercise.exercise)
+        .estimatedOneRepMax(
+      loggedWeightKg: setLog.weightKg,
+      reps: setLog.reps,
+      bodyweightKg: manager.bodyweightKg,
+    );
   }
 
   double? _getLastSessionBestE1rm(String exerciseName) {
@@ -145,7 +136,7 @@ class ExerciseE1rmSummary extends StatelessWidget {
     double? best;
 
     for (final setLog in lastSets) {
-      final value = _calculateBrzyckiE1rm(setLog, requireCompleted: true);
+      final value = _e1rm(setLog, requireCompleted: true);
       if (value == null) continue;
 
       if (best == null || value > best) {

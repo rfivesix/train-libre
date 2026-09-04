@@ -131,6 +131,67 @@ extension ExercisesQueries on WorkoutLocalDataSource {
     return rows.map((row) => row.read<String>('tag')).toList(growable: false);
   }
 
+  /// The classification axes the catalog annotates, restricted to the values
+  /// that actually occur on live exercises.
+  ///
+  /// One query rather than three because the three lists are always wanted
+  /// together, by the one caller that builds the filter sheet. The `rank`
+  /// column is what keeps `beginner` in front of `advanced`: these are ordered
+  /// vocabularies, and sorting them alphabetically would put "advanced" first
+  /// and read like a mistake.
+  Future<
+      ({
+        List<String> difficulties,
+        List<String> mechanics,
+        List<String> lateralities,
+      })> getClassificationAxes() async {
+    final dbInstance = await database;
+    final rows = await dbInstance.customSelect(
+      '''
+      SELECT 'difficulty' AS axis, e.difficulty AS value,
+             CASE e.difficulty
+               WHEN 'beginner' THEN 0
+               WHEN 'intermediate' THEN 1
+               WHEN 'advanced' THEN 2
+               ELSE 3 END AS rank
+      FROM exercises e
+      WHERE $_kActiveExerciseSql AND e.difficulty IS NOT NULL
+      UNION
+      SELECT 'mechanic', e.mechanic,
+             CASE e.mechanic
+               WHEN 'compound' THEN 0
+               WHEN 'isolation' THEN 1
+               ELSE 2 END
+      FROM exercises e
+      WHERE $_kActiveExerciseSql AND e.mechanic IS NOT NULL
+      UNION
+      SELECT 'laterality', e.laterality,
+             CASE e.laterality
+               WHEN 'bilateral' THEN 0
+               WHEN 'unilateral' THEN 1
+               WHEN 'alternating' THEN 2
+               ELSE 3 END
+      FROM exercises e
+      WHERE $_kActiveExerciseSql AND e.laterality IS NOT NULL
+      ORDER BY axis ASC, rank ASC
+      ''',
+      readsFrom: {dbInstance.exercises},
+    ).get();
+
+    final grouped = <String, List<String>>{};
+    for (final row in rows) {
+      final value = row.read<String>('value');
+      if (value.isEmpty) continue;
+      grouped.putIfAbsent(row.read<String>('axis'), () => []).add(value);
+    }
+
+    return (
+      difficulties: grouped['difficulty'] ?? const <String>[],
+      mechanics: grouped['mechanic'] ?? const <String>[],
+      lateralities: grouped['laterality'] ?? const <String>[],
+    );
+  }
+
   Future<List<String>> getAllMuscleGroups() async {
     final dbInstance = await database;
     final exercises = await (dbInstance.select(dbInstance.exercises)
@@ -203,6 +264,9 @@ extension ExercisesQueries on WorkoutLocalDataSource {
     List<String> selectedCategories = const [],
     List<String> equipmentIds = const [],
     List<String> usageTags = const [],
+    List<String> difficulties = const [],
+    List<String> mechanics = const [],
+    List<String> lateralities = const [],
     String languageCode = 'en',
   }) async {
     final dbInstance = await database;
@@ -216,6 +280,9 @@ extension ExercisesQueries on WorkoutLocalDataSource {
         selectedCategories: selectedCategories,
         equipmentIds: equipmentIds,
         usageTags: usageTags,
+        difficulties: difficulties,
+        mechanics: mechanics,
+        lateralities: lateralities,
         chain: chain,
       );
     }
@@ -229,6 +296,9 @@ extension ExercisesQueries on WorkoutLocalDataSource {
       selectedCategories: selectedCategories,
       equipmentIds: equipmentIds,
       usageTags: usageTags,
+      difficulties: difficulties,
+      mechanics: mechanics,
+      lateralities: lateralities,
       chain: chain,
     );
 
@@ -245,6 +315,9 @@ extension ExercisesQueries on WorkoutLocalDataSource {
         selectedCategories: selectedCategories,
         equipmentIds: equipmentIds,
         usageTags: usageTags,
+        difficulties: difficulties,
+        mechanics: mechanics,
+        lateralities: lateralities,
         chain: chain,
       );
 
@@ -260,6 +333,9 @@ extension ExercisesQueries on WorkoutLocalDataSource {
       selectedCategories: selectedCategories,
       equipmentIds: equipmentIds,
       usageTags: usageTags,
+      difficulties: difficulties,
+      mechanics: mechanics,
+      lateralities: lateralities,
       chain: chain,
     );
 
@@ -274,6 +350,9 @@ extension ExercisesQueries on WorkoutLocalDataSource {
     required List<String> chain,
     List<String> equipmentIds = const [],
     List<String> usageTags = const [],
+    List<String> difficulties = const [],
+    List<String> mechanics = const [],
+    List<String> lateralities = const [],
   }) async {
     final dbInstance = await database;
     final rawSearchLower = rawSearchQuery.toLowerCase();
@@ -347,6 +426,22 @@ extension ExercisesQueries on WorkoutLocalDataSource {
       );
     }
 
+    // The three annotation axes. Plain columns on `exercises`, so unlike
+    // equipment and tags these need no EXISTS — but they are nullable for the
+    // 32 rows the catalog leaves unclassified and for everything the user
+    // created, and `IN` never matches NULL. Picking a difficulty therefore
+    // hides user-created exercises, which is the honest answer: the app does
+    // not know how hard they are.
+    for (final axis in [
+      (column: 'difficulty', values: difficulties),
+      (column: 'mechanic', values: mechanics),
+      (column: 'laterality', values: lateralities),
+    ]) {
+      if (axis.values.isEmpty) continue;
+      final placeholders = List.filled(axis.values.length, '?').join(', ');
+      whereClauses.add('e.${axis.column} IN ($placeholders)');
+    }
+
     final whereSection = whereClauses.join(' AND ');
     final vars = <drift.Variable>[];
 
@@ -385,6 +480,11 @@ extension ExercisesQueries on WorkoutLocalDataSource {
     }
     for (final tag in usageTags) {
       vars.add(drift.Variable.withString(tag));
+    }
+
+    // 9. the annotation axes, in the same order the clauses were appended.
+    for (final value in [...difficulties, ...mechanics, ...lateralities]) {
+      vars.add(drift.Variable.withString(value));
     }
 
     final sql = '''
@@ -783,6 +883,9 @@ $_kBestTranslationJoinSql
       trackingType: rawExercise.trackingType,
       loadMode: rawExercise.loadMode,
       supportsAddedWeight: rawExercise.supportsAddedWeight,
+      mechanic: rawExercise.mechanic,
+      laterality: rawExercise.laterality,
+      difficulty: rawExercise.difficulty,
     );
   }
 
@@ -838,6 +941,9 @@ $_kBestTranslationJoinSql
       trackingType: row.trackingType,
       loadMode: row.loadMode,
       supportsAddedWeight: row.supportsAddedWeight,
+      mechanic: row.mechanic,
+      laterality: row.laterality,
+      difficulty: row.difficulty,
     );
   }
 }

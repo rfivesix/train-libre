@@ -54,6 +54,9 @@ class LiveWorkoutSetRow extends StatelessWidget {
   /// True where the old flag was: the row logs a distance and a duration.
   bool get isCardio => mask.logsDistance && mask.logsDuration;
 
+  /// Column widths, shared with the heading above the row.
+  SetRowFlex get flex => SetRowFlex.forMask(mask);
+
   void _removeSet(int templateId) {
     manager.removeSet(templateId);
   }
@@ -277,7 +280,7 @@ class LiveWorkoutSetRow extends StatelessWidget {
       children: [
         // 1. SET NUMBER
         Expanded(
-          flex: isCardio ? 2 : 1,
+          flex: flex.index,
           child: Center(
             child: GestureDetector(
               onTap: () =>
@@ -300,7 +303,7 @@ class LiveWorkoutSetRow extends StatelessWidget {
 
         // 2. LAST PERFORMANCE (tap to apply)
         Expanded(
-          flex: isCardio ? 3 : 2,
+          flex: flex.lastTime,
           child: GestureDetector(
             onTap: (!isCompleted && rowIndex < lastPerfSets.length)
                 ? () {
@@ -360,20 +363,28 @@ class LiveWorkoutSetRow extends StatelessWidget {
                     HapticFeedbackService.instance.selectionFeedback();
                   }
                 : null,
-            child: Text(
-              LogMaskLabels.lastPerformance(
-                mask,
-                rowIndex < lastPerfSets.length ? lastPerfSets[rowIndex] : null,
-                AppLocalizations.of(context)!,
-                unitService,
-              ),
-              textAlign: TextAlign.center,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                color: Colors.grey[500],
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
+            // Shrinks rather than truncates. Widening the column covers the
+            // ordinary cardio row, but "12.5 km · 1:02:33" in an imperial
+            // locale will outgrow any fixed width, and half a value with an
+            // ellipsis after it is worse than the whole value set smaller.
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                LogMaskLabels.lastPerformance(
+                  mask,
+                  rowIndex < lastPerfSets.length
+                      ? lastPerfSets[rowIndex]
+                      : null,
+                  AppLocalizations.of(context)!,
+                  unitService,
+                ),
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                style: TextStyle(
+                  color: Colors.grey[500],
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ),
@@ -381,7 +392,7 @@ class LiveWorkoutSetRow extends StatelessWidget {
 
         // 3. INPUT 1: WEIGHT / ADDED WEIGHT / ASSISTANCE / DISTANCE
         Expanded(
-          flex: isCardio ? 4 : 2,
+          flex: flex.primary,
           child: !mask.showsPrimary
               // A plank has nothing to put here. An empty box invites a
               // number that would mean nothing.
@@ -459,7 +470,7 @@ class LiveWorkoutSetRow extends StatelessWidget {
 
         // 4. INPUT 2: REPS / TIME
         Expanded(
-          flex: isCardio ? 4 : 2,
+          flex: flex.secondary,
           child: !mask.showsSecondary
               ? const SizedBox.shrink()
               : TextFormField(
@@ -559,40 +570,47 @@ class LiveWorkoutSetRow extends StatelessWidget {
         ),
 
         // 5. INPUT 3: RIR / INTENSITY
+        //
+        // Absent where there are no reps to hold in reserve — a plank, a dead
+        // hang. The Expanded stays so the checkbox does not shift left on
+        // those rows while every other exercise keeps its column.
         Expanded(
-          flex: isCardio ? 2 : 1,
-          child: TextFormField(
-            controller: manager.rirControllers[templateId],
-            textAlign: TextAlign.center,
-            keyboardType: TextInputType.number,
-            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-            textInputAction: TextInputAction.done,
-            onFieldSubmitted: (_) =>
-                FocusManager.instance.primaryFocus?.unfocus(),
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: textColor,
-            ),
-            decoration: InputDecoration(
-              border: InputBorder.none,
-              isDense: true,
-              fillColor: Colors.transparent,
-              hintText: rirHint,
-              hintStyle: TextStyle(
-                color: Colors.grey.withValues(alpha: 0.5),
-                fontSize: 18,
-              ),
-            ),
-            enabled: !isCompleted,
-            onChanged: (text) {
-              final val = int.tryParse(text);
-              final clearValue = val == null && text.isEmpty;
-              if (val != manager.setLogs[templateId]?.rir || clearValue) {
-                manager.updateSet(templateId, rir: val, clearRir: clearValue);
-              }
-            },
-          ),
+          flex: flex.intensity,
+          child: !mask.showsIntensity
+              ? const SizedBox.shrink()
+              : TextFormField(
+                  controller: manager.rirControllers[templateId],
+                  textAlign: TextAlign.center,
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  textInputAction: TextInputAction.done,
+                  onFieldSubmitted: (_) =>
+                      FocusManager.instance.primaryFocus?.unfocus(),
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: textColor,
+                  ),
+                  decoration: InputDecoration(
+                    border: InputBorder.none,
+                    isDense: true,
+                    fillColor: Colors.transparent,
+                    hintText: rirHint,
+                    hintStyle: TextStyle(
+                      color: Colors.grey.withValues(alpha: 0.5),
+                      fontSize: 18,
+                    ),
+                  ),
+                  enabled: !isCompleted,
+                  onChanged: (text) {
+                    final val = int.tryParse(text);
+                    final clearValue = val == null && text.isEmpty;
+                    if (val != manager.setLogs[templateId]?.rir || clearValue) {
+                      manager.updateSet(templateId,
+                          rir: val, clearRir: clearValue);
+                    }
+                  },
+                ),
         ),
 
         // 6. CHECKBOX

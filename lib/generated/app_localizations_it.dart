@@ -457,7 +457,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String cardioDistanceLabel(String unit) {
-    return 'Distance ($unit)';
+    return 'Distanza ($unit)';
   }
 
   @override
@@ -6509,4 +6509,61 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get catalogFilterCombineHint =>
       'Più scelte in una sezione ampliano i risultati; scelte in sezioni diverse li restringono.';
+
+  @override
+  String get catalogFilterDifficulty => 'Difficoltà';
+
+  @override
+  String get catalogFilterMechanic => 'Meccanica';
+
+  @override
+  String get catalogFilterLaterality => 'Lati';
+
+  @override
+  String get exerciseDifficultyBeginner => 'Principiante';
+
+  @override
+  String get exerciseDifficultyIntermediate => 'Intermedio';
+
+  @override
+  String get exerciseDifficultyAdvanced => 'Avanzato';
+
+  @override
+  String get exerciseMechanicCompound => 'Multiarticolare';
+
+  @override
+  String get exerciseMechanicIsolation => 'Isolamento';
+
+  @override
+  String get exerciseLateralityBilateral => 'Entrambi i lati';
+
+  @override
+  String get exerciseLateralityUnilateral => 'Un lato';
+
+  @override
+  String get exerciseLateralityAlternating => 'Alternato';
+
+  @override
+  String get exerciseUsageWarmup => 'Riscaldamento';
+
+  @override
+  String get exerciseUsageActivation => 'Attivazione';
+
+  @override
+  String get exerciseUsageMainLift => 'Esercizio principale';
+
+  @override
+  String get exerciseUsageAccessory => 'Esercizio complementare';
+
+  @override
+  String get exerciseUsageConditioning => 'Condizionamento';
+
+  @override
+  String get exerciseUsageFinisher => 'Finisher';
+
+  @override
+  String get exerciseUsageCooldown => 'Defaticamento';
+
+  @override
+  String get exerciseUsagePrehab => 'Prevenzione';
 }

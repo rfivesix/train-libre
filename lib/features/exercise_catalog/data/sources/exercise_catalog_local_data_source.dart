@@ -19,6 +19,9 @@ class ExerciseCatalogLocalDataSource {
     List<String> selectedCategories = const [],
     List<String> equipmentIds = const [],
     List<String> usageTags = const [],
+    List<String> difficulties = const [],
+    List<String> mechanics = const [],
+    List<String> lateralities = const [],
     String languageCode = 'en',
   }) async {
     final list = await _workoutDbHelper.searchExercises(
@@ -26,6 +29,9 @@ class ExerciseCatalogLocalDataSource {
       selectedCategories: selectedCategories,
       equipmentIds: equipmentIds,
       usageTags: usageTags,
+      difficulties: difficulties,
+      mechanics: mechanics,
+      lateralities: lateralities,
       languageCode: languageCode,
     );
     return list.cast<Exercise>();
@@ -36,6 +42,13 @@ class ExerciseCatalogLocalDataSource {
       _workoutDbHelper.getPrimaryEquipment(languageCode);
 
   Future<List<String>> getUsageTags() => _workoutDbHelper.getUsageTags();
+
+  Future<
+      ({
+        List<String> difficulties,
+        List<String> mechanics,
+        List<String> lateralities,
+      })> getClassificationAxes() => _workoutDbHelper.getClassificationAxes();
 
   Future<Exercise?> getExerciseById(String id) {
     return _workoutDbHelper.getExerciseByUuid(id);

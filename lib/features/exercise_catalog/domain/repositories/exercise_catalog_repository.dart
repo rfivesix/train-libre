@@ -14,6 +14,9 @@ abstract class IExerciseCatalogRepository {
     String sortOrder = 'alphabetical',
     List<String> equipmentIds = const [],
     List<String> usageTags = const [],
+    List<String> difficulties = const [],
+    List<String> mechanics = const [],
+    List<String> lateralities = const [],
     String languageCode = 'en',
   });
 
@@ -24,6 +27,15 @@ abstract class IExerciseCatalogRepository {
 
   /// The usage tags in use: warmup, accessory, main_lift, and so on.
   Future<List<String>> getUsageTags();
+
+  /// The values each classification axis actually takes on live exercises,
+  /// each in its own vocabulary order rather than alphabetically.
+  Future<
+      ({
+        List<String> difficulties,
+        List<String> mechanics,
+        List<String> lateralities,
+      })> getClassificationAxes();
   Future<Exercise?> getExerciseByName(String name);
   Future<Exercise?> getExerciseByUuid(String exerciseUuid);
   Future<Exercise> insertExercise(Exercise exercise);

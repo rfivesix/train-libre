@@ -11214,6 +11214,120 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Several picks in one section widen the results; picks across sections narrow them.'**
   String get catalogFilterCombineHint;
+
+  /// No description provided for @catalogFilterDifficulty.
+  ///
+  /// In en, this message translates to:
+  /// **'Difficulty'**
+  String get catalogFilterDifficulty;
+
+  /// No description provided for @catalogFilterMechanic.
+  ///
+  /// In en, this message translates to:
+  /// **'Mechanic'**
+  String get catalogFilterMechanic;
+
+  /// No description provided for @catalogFilterLaterality.
+  ///
+  /// In en, this message translates to:
+  /// **'Sides'**
+  String get catalogFilterLaterality;
+
+  /// No description provided for @exerciseDifficultyBeginner.
+  ///
+  /// In en, this message translates to:
+  /// **'Beginner'**
+  String get exerciseDifficultyBeginner;
+
+  /// No description provided for @exerciseDifficultyIntermediate.
+  ///
+  /// In en, this message translates to:
+  /// **'Intermediate'**
+  String get exerciseDifficultyIntermediate;
+
+  /// No description provided for @exerciseDifficultyAdvanced.
+  ///
+  /// In en, this message translates to:
+  /// **'Advanced'**
+  String get exerciseDifficultyAdvanced;
+
+  /// No description provided for @exerciseMechanicCompound.
+  ///
+  /// In en, this message translates to:
+  /// **'Compound'**
+  String get exerciseMechanicCompound;
+
+  /// No description provided for @exerciseMechanicIsolation.
+  ///
+  /// In en, this message translates to:
+  /// **'Isolation'**
+  String get exerciseMechanicIsolation;
+
+  /// No description provided for @exerciseLateralityBilateral.
+  ///
+  /// In en, this message translates to:
+  /// **'Both sides'**
+  String get exerciseLateralityBilateral;
+
+  /// No description provided for @exerciseLateralityUnilateral.
+  ///
+  /// In en, this message translates to:
+  /// **'One side'**
+  String get exerciseLateralityUnilateral;
+
+  /// No description provided for @exerciseLateralityAlternating.
+  ///
+  /// In en, this message translates to:
+  /// **'Alternating'**
+  String get exerciseLateralityAlternating;
+
+  /// No description provided for @exerciseUsageWarmup.
+  ///
+  /// In en, this message translates to:
+  /// **'Warm-up'**
+  String get exerciseUsageWarmup;
+
+  /// No description provided for @exerciseUsageActivation.
+  ///
+  /// In en, this message translates to:
+  /// **'Activation'**
+  String get exerciseUsageActivation;
+
+  /// No description provided for @exerciseUsageMainLift.
+  ///
+  /// In en, this message translates to:
+  /// **'Main lift'**
+  String get exerciseUsageMainLift;
+
+  /// No description provided for @exerciseUsageAccessory.
+  ///
+  /// In en, this message translates to:
+  /// **'Accessory'**
+  String get exerciseUsageAccessory;
+
+  /// No description provided for @exerciseUsageConditioning.
+  ///
+  /// In en, this message translates to:
+  /// **'Conditioning'**
+  String get exerciseUsageConditioning;
+
+  /// No description provided for @exerciseUsageFinisher.
+  ///
+  /// In en, this message translates to:
+  /// **'Finisher'**
+  String get exerciseUsageFinisher;
+
+  /// No description provided for @exerciseUsageCooldown.
+  ///
+  /// In en, this message translates to:
+  /// **'Cool-down'**
+  String get exerciseUsageCooldown;
+
+  /// No description provided for @exerciseUsagePrehab.
+  ///
+  /// In en, this message translates to:
+  /// **'Prehab'**
+  String get exerciseUsagePrehab;
 }
 
 class _AppLocalizationsDelegate

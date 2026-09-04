@@ -4,6 +4,68 @@ import '../../../../util/time_util.dart';
 import '../../domain/classification/exercise_log_mask.dart';
 import '../../domain/models/set_log.dart';
 
+/// How wide each of a set row's six columns is.
+///
+/// The row and the heading above it used to compute this separately, from two
+/// different conditions: the heading widened on `logsDistance || logsDuration`
+/// and the row on `logsDistance && logsDuration`. A plank satisfies the first
+/// and not the second, so its heading was laid out to one set of proportions
+/// and its inputs to another, and the words sat slightly beside the numbers
+/// they named. One definition, read by both.
+class SetRowFlex {
+  /// Set number.
+  final int index;
+
+  /// "Last time".
+  final int lastTime;
+
+  /// Weight, added weight, assistance, or distance.
+  final int primary;
+
+  /// Reps or duration.
+  final int secondary;
+
+  /// RIR, or intensity on a cardio row.
+  final int intensity;
+
+  const SetRowFlex._({
+    required this.index,
+    required this.lastTime,
+    required this.primary,
+    required this.secondary,
+    required this.intensity,
+  });
+
+  /// A cardio row carries two units in one cell — "5.0 km · 28:14" — where a
+  /// lift carries "70 kg × 6". It is the longest string in the table and it
+  /// used to get less room than the two input fields beside it. The total is
+  /// unchanged, so only the split between the columns moves.
+  ///
+  /// The room comes from the set number, which holds one digit and had two
+  /// shares of it, and from the distance field, which holds "0.5". Not from
+  /// the duration beside it: that one is a text field rather than a label, so
+  /// it cannot scale itself down the way the cells around it do — it just
+  /// clips, and "02:0" is not a time.
+  factory SetRowFlex.forMask(ExerciseLogMask mask) {
+    final isCardio = mask.logsDistance && mask.logsDuration;
+    return isCardio
+        ? const SetRowFlex._(
+            index: 1,
+            lastTime: 5,
+            primary: 3,
+            secondary: 4,
+            intensity: 2,
+          )
+        : const SetRowFlex._(
+            index: 1,
+            lastTime: 2,
+            primary: 2,
+            secondary: 2,
+            intensity: 1,
+          );
+  }
+}
+
 /// Column headings and the "last time" cell, following the same mask as the
 /// input fields.
 ///

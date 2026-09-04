@@ -450,7 +450,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String cardioDistanceLabel(String unit) {
-    return 'Distance ($unit)';
+    return '距離 ($unit)';
   }
 
   @override
@@ -6207,4 +6207,61 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String get catalogFilterCombineHint =>
       '同じセクション内で複数選ぶと結果が広がり、別のセクションで選ぶと絞り込まれます。';
+
+  @override
+  String get catalogFilterDifficulty => '難易度';
+
+  @override
+  String get catalogFilterMechanic => '動作の種類';
+
+  @override
+  String get catalogFilterLaterality => '左右';
+
+  @override
+  String get exerciseDifficultyBeginner => '初級';
+
+  @override
+  String get exerciseDifficultyIntermediate => '中級';
+
+  @override
+  String get exerciseDifficultyAdvanced => '上級';
+
+  @override
+  String get exerciseMechanicCompound => 'コンパウンド';
+
+  @override
+  String get exerciseMechanicIsolation => 'アイソレーション';
+
+  @override
+  String get exerciseLateralityBilateral => '両側';
+
+  @override
+  String get exerciseLateralityUnilateral => '片側';
+
+  @override
+  String get exerciseLateralityAlternating => '交互';
+
+  @override
+  String get exerciseUsageWarmup => 'ウォームアップ';
+
+  @override
+  String get exerciseUsageActivation => 'アクティベーション';
+
+  @override
+  String get exerciseUsageMainLift => 'メイン種目';
+
+  @override
+  String get exerciseUsageAccessory => '補助種目';
+
+  @override
+  String get exerciseUsageConditioning => 'コンディショニング';
+
+  @override
+  String get exerciseUsageFinisher => 'フィニッシャー';
+
+  @override
+  String get exerciseUsageCooldown => 'クールダウン';
+
+  @override
+  String get exerciseUsagePrehab => '予防トレーニング';
 }

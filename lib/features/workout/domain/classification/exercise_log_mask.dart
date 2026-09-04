@@ -45,11 +45,20 @@ class ExerciseLogMask {
   final String? trackingType;
   final String? loadMode;
 
+  /// `compound` | `isolation`, when the catalog has an opinion.
+  ///
+  /// Not part of the mask's shape — it changes no input column — but carried
+  /// here because this is already the channel by which a set row learns what
+  /// the catalog says about its exercise, and adding a second one would mean
+  /// two places that can disagree.
+  final String? mechanic;
+
   const ExerciseLogMask({
     required this.primary,
     required this.secondary,
     this.trackingType,
     this.loadMode,
+    this.mechanic,
   });
 
   /// The shape everything used before `tracking_type` existed.
@@ -73,6 +82,7 @@ class ExerciseLogMask {
           secondary: LogField.reps,
           trackingType: exercise.trackingType,
           loadMode: exercise.loadMode,
+          mechanic: exercise.mechanic,
         );
       case 'bodyweight_reps':
         return ExerciseLogMask(
@@ -82,6 +92,7 @@ class ExerciseLogMask {
           secondary: LogField.reps,
           trackingType: exercise.trackingType,
           loadMode: exercise.loadMode,
+          mechanic: exercise.mechanic,
         );
       case 'time':
         return ExerciseLogMask(
@@ -89,6 +100,7 @@ class ExerciseLogMask {
           secondary: LogField.duration,
           trackingType: exercise!.trackingType,
           loadMode: exercise.loadMode,
+          mechanic: exercise.mechanic,
         );
       case 'time_weight':
         return ExerciseLogMask(
@@ -96,6 +108,7 @@ class ExerciseLogMask {
           secondary: LogField.duration,
           trackingType: exercise!.trackingType,
           loadMode: exercise.loadMode,
+          mechanic: exercise.mechanic,
         );
       case 'distance_time':
         return ExerciseLogMask(
@@ -103,6 +116,7 @@ class ExerciseLogMask {
           secondary: LogField.duration,
           trackingType: exercise!.trackingType,
           loadMode: exercise.loadMode,
+          mechanic: exercise.mechanic,
         );
       case 'distance_only':
         return ExerciseLogMask(
@@ -110,6 +124,7 @@ class ExerciseLogMask {
           secondary: LogField.none,
           trackingType: exercise!.trackingType,
           loadMode: exercise.loadMode,
+          mechanic: exercise.mechanic,
         );
     }
 
@@ -130,6 +145,12 @@ class ExerciseLogMask {
         bodyweightKg: bodyweightKg,
       );
 
+  /// Whether a bigger logged number means a harder set.
+  ///
+  /// False on an assistance machine, where it means the opposite: a record for
+  /// "most kilos" there would celebrate the easiest set of the session.
+  bool get weightMeansResistance => loadMode != 'assisted';
+
   /// Estimated one-rep max, or null when there is nothing honest to show.
   double? estimatedOneRepMax({
     required double? loggedWeightKg,
@@ -146,6 +167,15 @@ class ExerciseLogMask {
 
   bool get showsPrimary => primary != LogField.none;
   bool get showsSecondary => secondary != LogField.none;
+
+  /// Whether the third column — RIR, or intensity on a cardio row — is worth
+  /// offering.
+  ///
+  /// RIR is *reps in reserve*, so it needs reps to be in reserve of. A plank
+  /// has none, and the column sat there over a duration picker inviting a
+  /// number that could not mean anything. Cardio keeps it because the same
+  /// column is labelled intensity there, which a run does have.
+  bool get showsIntensity => logsReps || logsDistance;
 
   bool get logsWeight =>
       primary == LogField.weight ||

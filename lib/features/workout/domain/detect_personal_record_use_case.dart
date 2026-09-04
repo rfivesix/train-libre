@@ -78,7 +78,19 @@ class DetectPersonalRecordUseCase {
     int? durationDiff;
     double? paceDiff;
 
-    if (currentWeight > 0) {
+    // Weight, volume and estimated 1RM are three different questions, and each
+    // has to be asked on its own terms.
+    //
+    // All three used to sit behind `currentWeight > 0` — did the user type a
+    // number into the weight column. That is the wrong gate twice over. A
+    // pull-up at body weight leaves the column empty, so it could never set a
+    // record of any kind however many reps it gained; and on an assistance
+    // machine the number *is* there but means its opposite, so the easiest set
+    // of the session read as a weight record.
+    //
+    // Volume and e1RM already know what a set was worth, because they are
+    // computed from the effective load. They only needed to be let out.
+    if (currentWeight > 0 && effectiveMask.weightMeansResistance) {
       final oldMaxWeight = historicalBests['maxWeight'] ?? 0.0;
       if (currentWeight > oldMaxWeight) {
         if (oldMaxWeight > 0) {
@@ -87,7 +99,9 @@ class DetectPersonalRecordUseCase {
         }
         historicalBests['maxWeight'] = currentWeight; // Updating local map
       }
+    }
 
+    if (currentVolume > 0) {
       final oldMaxVolume = historicalBests['maxVolume'] ?? 0.0;
       if (currentVolume > oldMaxVolume) {
         if (oldMaxVolume > 0) {
@@ -96,7 +110,9 @@ class DetectPersonalRecordUseCase {
         }
         historicalBests['maxVolume'] = currentVolume;
       }
+    }
 
+    if (currentEst1rm > 0) {
       final oldMaxEst1rm = historicalBests['maxEst1rm'] ?? 0.0;
       if (currentEst1rm > oldMaxEst1rm) {
         if (oldMaxEst1rm > 0) {

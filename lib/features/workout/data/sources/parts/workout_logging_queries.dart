@@ -691,6 +691,13 @@ extension WorkoutLoggingQueries on WorkoutLocalDataSource {
             setType: r.setType,
             weightKg: r.weight,
             reps: r.reps,
+            // Duration and distance were missing here, so "last time" was
+            // blank for every exercise that logs neither a weight nor reps: a
+            // plank held for a minute last week, and every run ever recorded.
+            // The column itself renders them correctly — it was never given
+            // them.
+            durationSeconds: r.durationSeconds,
+            distanceKm: r.distance,
             isCompleted: r.isCompleted,
             rir: r.rir, // Use directly
           ),

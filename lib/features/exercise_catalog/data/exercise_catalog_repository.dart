@@ -20,6 +20,9 @@ class ExerciseCatalogRepository implements IExerciseCatalogRepository {
     String sortOrder = 'alphabetical',
     List<String> equipmentIds = const [],
     List<String> usageTags = const [],
+    List<String> difficulties = const [],
+    List<String> mechanics = const [],
+    List<String> lateralities = const [],
     String languageCode = 'en',
   }) {
     return _localDataSource.searchExercises(
@@ -27,6 +30,9 @@ class ExerciseCatalogRepository implements IExerciseCatalogRepository {
       selectedCategories: categories,
       equipmentIds: equipmentIds,
       usageTags: usageTags,
+      difficulties: difficulties,
+      mechanics: mechanics,
+      lateralities: lateralities,
       languageCode: languageCode,
     );
   }
@@ -38,6 +44,14 @@ class ExerciseCatalogRepository implements IExerciseCatalogRepository {
 
   @override
   Future<List<String>> getUsageTags() => _localDataSource.getUsageTags();
+
+  @override
+  Future<
+      ({
+        List<String> difficulties,
+        List<String> mechanics,
+        List<String> lateralities,
+      })> getClassificationAxes() => _localDataSource.getClassificationAxes();
 
   @override
   Future<Exercise?> getExerciseByName(String name) {

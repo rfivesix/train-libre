@@ -1,5 +1,40 @@
 part of '../workout_local_data_source.dart';
 
+/// Which set of personal records an exercise can hold.
+///
+/// The three stats queries asked one question — cardio or not — and got two
+/// answers out of a catalog that distinguishes six shapes. A plank fell
+/// between them: not cardio, so it was sent down the rep-bracket branch, where
+/// it has no reps and therefore never held a record of any kind.
+enum _PrShape {
+  /// Distance and duration: a run, a row, a ride.
+  distance,
+
+  /// A duration and nothing to count: a plank, a dead hang, a timed carry.
+  duration,
+
+  /// Reps, with or without a number in the weight column.
+  reps;
+
+  /// [isCardio] is what the caller believed before asking. It still decides
+  /// for rows the catalog has not classified — pre-v2 exercises and everything
+  /// the user created — where the category name is the only signal there is.
+  static _PrShape of(String? trackingType, bool isCardio) {
+    switch (trackingType) {
+      case 'distance_time':
+      case 'distance_only':
+        return _PrShape.distance;
+      case 'time':
+      case 'time_weight':
+        return _PrShape.duration;
+      case 'weight_reps':
+      case 'bodyweight_reps':
+        return _PrShape.reps;
+    }
+    return isCardio ? _PrShape.distance : _PrShape.reps;
+  }
+}
+
 extension WorkoutStatsQueries on WorkoutLocalDataSource {
   /// Retrieves the UUID (string) for an exercise given its local integer ID.
   Future<String?> getExerciseUuidByLocalId(int localId) async {
@@ -234,6 +269,7 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
     final dbInstance = await database;
     final classification = await _loadClassification(dbInstance, exerciseUuid);
     final bodyweights = await _loadBodyweightHistory(dbInstance);
+    final shape = _PrShape.of(classification.trackingType, isCardio);
 
     final exerciseMatch = _buildExerciseMatchCondition(
       dbInstance,
@@ -256,18 +292,48 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
         exerciseMatch &
             dbInstance.setLogs.isCompleted.equals(true) &
             dbInstance.setLogs.setType.isNotIn(['warmup']) &
-            (isCardio
-                ? (dbInstance.setLogs.distance.isBiggerThanValue(0.0) |
-                    dbInstance.setLogs.durationSeconds.isBiggerThanValue(0))
-                : (dbInstance.setLogs.weight.isBiggerThanValue(0.0) &
-                    dbInstance.setLogs.reps.isBiggerThanValue(0))),
+            // Reps, not reps *and* a typed weight. A pull-up at body weight
+            // leaves the weight column empty and a set on an assistance
+            // machine may legitimately log 0, so requiring a number here
+            // meant neither exercise had a personal record of any kind — the
+            // sets never even reached the aggregation.
+            switch (shape) {
+              _PrShape.distance =>
+                dbInstance.setLogs.distance.isBiggerThanValue(0.0) |
+                    dbInstance.setLogs.durationSeconds.isBiggerThanValue(0),
+              _PrShape.duration =>
+                dbInstance.setLogs.durationSeconds.isBiggerThanValue(0),
+              _PrShape.reps => dbInstance.setLogs.reps.isBiggerThanValue(0),
+            },
       );
 
     final rows = await query.get();
 
     final prMap = <String, SetLog?>{};
 
-    if (isCardio) {
+    if (shape == _PrShape.duration) {
+      // One record, and it is the only one a held position can have.
+      prMap['Longest Duration'] = null;
+      int longest = 0;
+
+      for (final r in rows) {
+        final setRow = r.readTable(dbInstance.setLogs);
+        final logRow = r.readTable(dbInstance.workoutLogs);
+        final dur = setRow.durationSeconds ?? 0;
+        if (dur <= longest) continue;
+
+        longest = dur;
+        prMap['Longest Duration'] = SetLog(
+          id: setRow.localId,
+          workoutLogId: logRow.localId,
+          exerciseName: setRow.exerciseNameSnapshot ?? exerciseName,
+          setType: setRow.setType,
+          weightKg: setRow.weight,
+          durationSeconds: dur,
+          isCompleted: setRow.isCompleted,
+        );
+      }
+    } else if (shape == _PrShape.distance) {
       prMap['Best Distance'] = null;
       prMap['Longest Duration'] = null;
       prMap['Fastest Pace'] = null;
@@ -324,6 +390,10 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
       double bestEst1rmValue = 0.0;
       SetLog? bestEst1rmSet;
 
+      /// The effective load behind each bracket's current holder, so the
+      /// comparison does not have to reconstruct it from the [SetLog].
+      final bracketLoads = <String, double>{};
+
       String? getBracket(int reps) {
         if (reps == 1) return '1 RM';
         if (reps >= 2 && reps <= 3) return '2-3 RM';
@@ -348,9 +418,21 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
         );
 
         final reps = setLog.reps ?? 0;
-        final weight = setLog.weightKg ?? 0.0;
+        if (reps <= 0) continue;
 
-        if (reps <= 0 || weight <= 0) continue;
+        // What the set was actually worth: body weight for a pull-up, body
+        // weight minus the stack for an assisted one, the plates for a
+        // barbell. The rep brackets are ranked on this rather than on the
+        // typed number, which was 0 for every body-weight set and ran
+        // backwards for every assisted one.
+        final effectiveLoad = effectiveSetLoadKg(
+              trackingType: classification.trackingType,
+              loadMode: classification.loadMode,
+              loggedWeightKg: setLog.weightKg,
+              bodyweightKg: bodyweights.at(logRow.startTime),
+            ) ??
+            0.0;
+        if (effectiveLoad <= 0) continue;
 
         // Not `weight`: on an assistance machine that number is how much help
         // the user got, and feeding it to the formula turns every improvement
@@ -369,11 +451,12 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
 
         final bracket = getBracket(reps);
         if (bracket != null) {
-          final currentPr = prMap[bracket];
-          if (currentPr == null || weight > (currentPr.weightKg ?? 0.0)) {
+          final currentBest = bracketLoads[bracket];
+          if (currentBest == null || effectiveLoad > currentBest) {
+            bracketLoads[bracket] = effectiveLoad;
             prMap[bracket] = setLog;
-          } else if (weight == currentPr.weightKg &&
-              reps > (currentPr.reps ?? 0)) {
+          } else if (effectiveLoad == currentBest &&
+              reps > (prMap[bracket]?.reps ?? 0)) {
             prMap[bracket] = setLog;
           }
         }
@@ -431,11 +514,15 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
         exerciseMatch &
             dbInstance.setLogs.isCompleted.equals(true) &
             dbInstance.setLogs.setType.isNotIn(['warmup']) &
+            // Reps, not reps *and* a typed weight. A pull-up at body weight
+            // leaves the weight column empty and a set on an assistance
+            // machine may legitimately log 0, so requiring a number here
+            // meant neither exercise had a personal record of any kind — the
+            // sets never even reached the aggregation.
             (isCardio
                 ? (dbInstance.setLogs.distance.isBiggerThanValue(0.0) |
                     dbInstance.setLogs.durationSeconds.isBiggerThanValue(0))
-                : (dbInstance.setLogs.weight.isBiggerThanValue(0.0) &
-                    dbInstance.setLogs.reps.isBiggerThanValue(0))) &
+                : dbInstance.setLogs.reps.isBiggerThanValue(0)) &
             dbInstance.workoutLogs.status.equals('completed'),
       );
 
@@ -466,7 +553,13 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
       // "Max weight" stays the number the user typed — it is the one they see
       // in the weight column, and quietly redefining it would be its own
       // surprise. Volume and e1RM are what the set was worth.
-      if (weight > maxWeight) maxWeight = weight;
+      //
+      // Except on an assistance machine, where the typed number is a
+      // reduction: there is no honest "most kilos" record to keep, so none is
+      // kept and the set still competes on volume and e1RM.
+      if (classification.loadMode != 'assisted' && weight > maxWeight) {
+        maxWeight = weight;
+      }
 
       final volume = setTonnageKg(
         trackingType: classification.trackingType,
@@ -563,8 +656,10 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
       final dist = setRow.distance ?? 0.0;
       final dur = setRow.durationSeconds ?? 0;
 
-      // Update Max Weight
-      if (weight > agg['maxWeight']) {
+      // Update Max Weight. Not on an assistance machine: there the number is
+      // how much help the user took, so a rising line would mean the opposite
+      // of progress.
+      if (classification.loadMode != 'assisted' && weight > agg['maxWeight']) {
         agg['maxWeight'] = weight;
       }
 
