@@ -3084,8 +3084,6 @@
   "exercisePatternWristExtension": "Wrist extension",
   "settingsDeveloperTitle": "Developer",
   "settingsDeveloperSubtitle": "Diagnostics and experimental options",
-  "developerLabTitle": "Developer Lab",
-  "developerLabSubtitle": "Try out features before they ship",
   "developerLabExperienceSection": "Experience level",
   "developerLabExperienceLabel": "Experience level",
   "developerLabExperienceHint": "For testing only — the level is not asked during onboarding yet.",

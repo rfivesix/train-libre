@@ -6585,12 +6585,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'Diagnostics and experimental options';
 
   @override
-  String get developerLabTitle => 'Developer Lab';
-
-  @override
-  String get developerLabSubtitle => 'Try out features before they ship';
-
-  @override
   String get developerLabExperienceSection => 'Experience level';
 
   @override

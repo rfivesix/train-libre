@@ -2892,8 +2892,6 @@
   "exercisePatternWristExtension": "手首伸展",
   "settingsDeveloperTitle": "開発者",
   "settingsDeveloperSubtitle": "診断と実験的なオプション",
-  "developerLabTitle": "開発者ラボ",
-  "developerLabSubtitle": "リリース前の機能を試す",
   "developerLabExperienceSection": "経験レベル",
   "developerLabExperienceLabel": "経験レベル",
   "developerLabExperienceHint": "テスト用です — レベルはまだ初期設定では尋ねられません。",

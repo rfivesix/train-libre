@@ -573,11 +573,10 @@ class LiveWorkoutSetRow extends StatelessWidget {
         // 5. INPUT 3: RIR / INTENSITY
         //
         // Absent where there are no reps to hold in reserve — a plank, a dead
-        // hang. The Expanded stays so the checkbox does not shift left on
-        // those rows while every other exercise keeps its column. Below "pro"
-        // the column is gone from every card at once, so there it is dropped
-        // outright and the fields beside it widen.
-        if (showsIntensity || !mask.showsIntensity)
+        // hang — where the column holds its place for the checkbox below it.
+        // Below "pro" it is gone from every card at once, placeholder
+        // included, and the fields beside it widen.
+        if (showsIntensity || keepsIntensityPlaceholder(context, mask))
           Expanded(
             flex: flex.intensity,
             child: !showsIntensity

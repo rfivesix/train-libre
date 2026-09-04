@@ -810,10 +810,7 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
             mask.logsDistance ? l10n.cardioIntensityLabel : 'RIR',
             flex: flex.intensity,
           )
-        // Hidden by the mask, the column still holds its place so the
-        // checkboxes line up with the cards around it. Hidden by the level, it
-        // is gone from every card at once and leaves the room behind.
-        else if (!mask.showsIntensity)
+        else if (keepsIntensityPlaceholder(context, mask))
           Expanded(flex: flex.intensity, child: const SizedBox.shrink()),
         const SizedBox(width: 56), // Space for checkbox (48 width + 8 padding)
       ],

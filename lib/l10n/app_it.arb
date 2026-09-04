@@ -2892,8 +2892,6 @@
   "exercisePatternWristExtension": "Estensione del polso",
   "settingsDeveloperTitle": "Sviluppatore",
   "settingsDeveloperSubtitle": "Diagnostica e opzioni sperimentali",
-  "developerLabTitle": "Laboratorio sviluppatore",
-  "developerLabSubtitle": "Prova le funzioni prima del rilascio",
   "developerLabExperienceSection": "Livello di esperienza",
   "developerLabExperienceLabel": "Livello di esperienza",
   "developerLabExperienceHint": "Solo per i test — il livello non viene ancora chiesto durante l’onboarding.",

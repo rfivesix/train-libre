@@ -11545,18 +11545,6 @@ abstract class AppLocalizations {
   /// **'Diagnostics and experimental options'**
   String get settingsDeveloperSubtitle;
 
-  /// No description provided for @developerLabTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Developer Lab'**
-  String get developerLabTitle;
-
-  /// No description provided for @developerLabSubtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Try out features before they ship'**
-  String get developerLabSubtitle;
-
   /// No description provided for @developerLabExperienceSection.
   ///
   /// In en, this message translates to:

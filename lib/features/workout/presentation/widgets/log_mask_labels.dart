@@ -78,13 +78,21 @@ class SetRowFlex {
 /// heading and the other in the row is exactly the drift [SetRowFlex] was
 /// written to end.
 ///
-/// Note what the caller does with a `false`: where the *mask* hides the column
-/// the layout keeps an empty [Expanded] in its place, because the exercise
-/// beside it may still have one and the checkboxes have to line up. Where the
-/// *level* hides it, every card loses it at once, so the column goes away
-/// entirely and the ones beside it take the room.
+/// A `false` here does not always mean the column is gone — see
+/// [keepsIntensityPlaceholder].
 bool showsIntensityColumn(BuildContext context, ExerciseLogMask mask) =>
     mask.showsIntensity &&
+    context.watch<ExperienceLevelService>().showsIntensity;
+
+/// Whether the column still takes up room on an exercise that has no use for
+/// it — a plank between two exercises that do.
+///
+/// The placeholder is there so the checkboxes line up down the screen, which
+/// only holds while the cards around it have the column. Below "pro" none of
+/// them do, and an empty column then just pushes the plank's time out of line
+/// with every other row.
+bool keepsIntensityPlaceholder(BuildContext context, ExerciseLogMask mask) =>
+    !mask.showsIntensity &&
     context.watch<ExperienceLevelService>().showsIntensity;
 
 /// Column headings and the "last time" cell, following the same mask as the

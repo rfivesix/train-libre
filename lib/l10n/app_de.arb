@@ -2890,8 +2890,6 @@
   "exercisePatternWristExtension": "Handgelenkstreckung",
   "settingsDeveloperTitle": "Developer",
   "settingsDeveloperSubtitle": "Diagnose und experimentelle Optionen",
-  "developerLabTitle": "Developer Lab",
-  "developerLabSubtitle": "Funktionen ausprobieren, bevor sie ausgeliefert werden",
   "developerLabExperienceSection": "Erfahrungsstufe",
   "developerLabExperienceLabel": "Erfahrungsstufe",
   "developerLabExperienceHint": "Nur zum Testen — die Stufe wird im Onboarding noch nicht abgefragt.",

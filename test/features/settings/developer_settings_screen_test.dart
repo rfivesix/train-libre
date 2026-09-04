@@ -6,9 +6,9 @@ import 'package:train_libre/features/settings/presentation/developer_settings_sc
 import 'package:train_libre/generated/app_localizations.dart';
 import 'package:train_libre/services/experience_level_service.dart';
 
-/// Settings used to link straight to the performance log. Both tools now sit
-/// behind one "Developer" entry, and the lab is the only place the experience
-/// level can be changed at all — so the route to it is worth asserting.
+/// Settings used to link straight to the performance log. It now sits behind a
+/// "Developer" entry, together with the experience level — which this screen is
+/// the only way to change at all, so it is worth asserting.
 Future<void> _pumpDeveloperScreen(
   WidgetTester tester,
   ExperienceLevelService service,
@@ -32,20 +32,17 @@ Future<void> _pumpDeveloperScreen(
 void main() {
   setUp(() => SharedPreferences.setMockInitialValues({}));
 
-  testWidgets('lists the lab and the performance log', (tester) async {
+  testWidgets('keeps the performance log and adds the level', (tester) async {
     await _pumpDeveloperScreen(tester, ExperienceLevelService());
 
-    expect(find.byKey(const Key('developer_lab')), findsOneWidget);
     expect(find.byKey(const Key('developer_performance_log')), findsOneWidget);
+    expect(find.text('Pro'), findsOneWidget);
   });
 
-  testWidgets('the lab opens on the level the service holds', (tester) async {
+  testWidgets('opens on the level the service holds', (tester) async {
     final service = ExperienceLevelService();
     await service.setLevel(ExperienceLevel.beginner);
     await _pumpDeveloperScreen(tester, service);
-
-    await tester.tap(find.byKey(const Key('developer_lab')));
-    await tester.pumpAndSettle();
 
     expect(find.text('Beginner'), findsOneWidget);
     // The description tells the tester what the level actually changes.
@@ -55,9 +52,6 @@ void main() {
   testWidgets('choosing a level writes it through', (tester) async {
     final service = ExperienceLevelService();
     await _pumpDeveloperScreen(tester, service);
-
-    await tester.tap(find.byKey(const Key('developer_lab')));
-    await tester.pumpAndSettle();
 
     await tester.tap(find.text('Pro').last);
     await tester.pumpAndSettle();
