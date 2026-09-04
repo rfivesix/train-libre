@@ -4,7 +4,27 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## [1.3.0] - 2026-09-05
+## [1.3.0-alpha.1] - 2026-09-05
+
+### Added
+- **Extended Exercise Filters (`ExerciseCatalogScreen`, `ExerciseFilterSheet`):** Filter exercises by primary equipment, usage, mechanics, laterality and difficulty alongside body region. Each section uses a compact multi-select dropdown with localized labels and a shared reset action. Filters also apply when selecting exercises for routines or a running workout.
+- **Exercise Classification Details (`ExerciseClassificationLabels`):** Exercise details now display readable labels for mechanics, laterality, difficulty, usage, movement pattern and force vector, translated into English, German, French, Italian and Japanese.
+- **Experimental Experience Levels (`ExperienceLevelService`, `DeveloperSettingsScreen`):** Added Beginner, Advanced and Pro presentation modes, selectable under Developer Settings. Beginner and Advanced use broader muscle names and hide the RIR/intensity column; Pro retains the detailed presentation and remains the default. The choice persists across launches. Performance diagnostics now live in the same Developer Settings screen; onboarding for experience levels is not part of this alpha.
+
+### Changed
+- **OpenExerciseDB Catalog (`AppDataSources`, `BasisDataManager`):** Switched the bundled exercise database and remote update channel to OpenExerciseDB's stable catalog. The bundled manifest contains 909 exercise records. Added OpenExerciseDB attribution and its CC BY-SA 4.0 license terms in the app and README.
+- **Catalog v2 Import & Storage (`AppDatabase`, schema 28):** Added exercise classification, tracking and load metadata, muscle and equipment vocabularies, language availability and exercise aliases to the local database and importer. Legacy catalog data and user-created exercises retain fallback behavior.
+- **Localized Exercise Content (`ExerciseLocaleChain`, `ExerciseText`):** Exercise names and descriptions now resolve through the catalog's language registry instead of fixed German/English fields. The app uses the requested language when marked displayable, with English and German fallbacks. Catalog lists, exercise details, workout screens and sharing use the localized names.
+- **Exercise-Specific Logging (`ExerciseLogMask`, `LogMaskLabels`):** Live workouts, routine templates and workout history now show fields appropriate to each exercise: weight and reps, body weight with optional added load, assistance, duration, weighted duration, distance and time, or distance alone. Column headings and previous-performance values follow the same rules, including `+kg` for added load and `−kg` for assistance. Copying the previous performance restores the relevant fields, and timed sets can be completed without entering repetitions.
+- **Relevant Exercise Charts (`exerciseMetricsFor`):** Chart choices now follow the exercise's tracking type. Timed holds open on duration, distance exercises offer distance and applicable time/pace metrics, and body-weight or assisted exercises use volume and estimated 1RM instead of an irrelevant raw-weight chart.
+- **Muscle Volume & Recovery Classification (`WorkoutClassification`):** Strength and plyometric sets contribute to muscle training volume and recovery. Cardio, stretching, mobility and balance no longer count as strength work merely because the catalog assigns them a body region. Performed body-weight and timed strength sets are included even without an entered weight or repetition count.
+
+### Fixed
+- **Body-Weight Volume & Assisted Personal Records (`BodyweightHistory`, `setTonnageKg`, `estimatedOneRepMaxKg`):** Training tonnage, estimated 1RM and personal-record comparisons now use effective load: body weight plus added load, or body weight minus assistance. More assistance no longer appears as a strength improvement. Historical calculations use the latest body-weight measurement at or before the workout, so later weight changes do not rewrite past training volume. Missing measurements are not replaced with guessed weights; assisted load estimates remain unavailable without a recorded body weight.
+- **Merged & Retired Exercise References (`ExerciseAliasMigration`):** Catalog imports and backup restores redirect routine entries, set logs and custom exercise replacements to the surviving exercise after a catalog merge. Historical name snapshots and configured routine slots are preserved. Retired catalog exercises are hidden from search but remain retrievable by ID for existing references.
+- **Missing Muscle Statistics & Body Highlights (`MuscleVocabulary`, `BodySlugMapper`):** Muscle grouping, labels and body highlights now resolve from catalog muscle IDs and translations. This restores coverage for muscles missing from the legacy name map, normalizes catalog body-slug spellings and prevents multiple heads of the same muscle from counting the group twice.
+- **Catalog Filter Menu Jumping (`ExerciseFilterSheet`):** Kept the reset action in place while selections change, preventing the menu from shifting underneath the user's finger.
+- **Incompatible Catalog Updates (`ExerciseCatalogRefreshService`, `BasisDataManager`):** Check the minimum supported app catalog schema before downloading a release and again against database metadata during import, including cached databases. Incompatible catalogs are rejected before they can be imported.
 
 ## [1.2.1] - 2026-09-01
 
