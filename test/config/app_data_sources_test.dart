@@ -10,8 +10,9 @@ void main() {
       'assets/db/train_libre_training.db',
     );
     expect(AppDataSources.baseFoodsDbFileName, 'train_libre_base_foods.db');
-    expect(AppDataSources.exerciseCatalog.defaultDbPath,
-        'train_libre_training.db');
+    // The remote asset is named by the data repository, the local cache file
+    // by this app. Only the first of the two moved when the catalog did.
+    expect(AppDataSources.exerciseCatalog.defaultDbPath, 'openexercisedb.db');
     expect(AppDataSources.exerciseCatalog.localCacheDbFileName,
         'train_libre_training_remote.db');
 
@@ -32,10 +33,10 @@ void main() {
       AppDataSources.legacyBaseFoodsDbFileName,
       'hypertrack_base_foods.db',
     );
-    expect(
-      AppDataSources.exerciseCatalog.legacyDefaultDbPath,
-      'hypertrack_training.db',
-    );
+    // The catalog release has no legacy asset name to fall back to: the new
+    // repository publishes one database under one name. The constant stays,
+    // because db_service still uses it to find a pre-rename file on device.
+    expect(AppDataSources.exerciseCatalog.legacyDefaultDbPath, isNull);
 
     final de = AppDataSources.offCatalogForCountry(OffCatalogCountry.de);
     expect(de.legacyDefaultDbPath, 'hypertrack_off_de.db');

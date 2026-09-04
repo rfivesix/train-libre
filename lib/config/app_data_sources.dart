@@ -38,17 +38,30 @@ class AppDataSources {
   /// raises it early accepts a catalog it then fails to read.
   static const int supportedCatalogSchemaVersion = 1;
 
-  // Remote training-catalog source (wger-based build output channel).
+  // Remote training-catalog source: the OpenExerciseDB stable channel.
+  //
+  // The catalog used to be built inside this repository from the wger API and
+  // published on its own release tag. It now lives in its own repository, with
+  // its own schema, licence and release cadence — see the About screen and the
+  // README for the attribution that move obliges.
+  //
+  // `sourceId` deliberately keeps the old value: `parseManifest` rejects any
+  // manifest whose `source_id` does not match this string, and the published
+  // manifest still declares `wger_catalog`. Renaming it here without renaming
+  // it there would reject every release rather than accept a new one.
   static const exerciseCatalog = ExerciseCatalogRemoteSourceConfig(
     enabled: true,
     sourceId: 'wger_catalog',
     channel: 'stable',
     baseUrl:
-        'https://github.com/rfivesix/train-libre/releases/download/wger-catalog-stable/',
-    manifestPath: 'wger_catalog_manifest.json',
-    defaultDbPath: trainingDbFileName,
-    legacyDefaultDbPath: legacyTrainingDbFileName,
-    defaultBuildReportPath: 'wger_build_report.json',
+        'https://github.com/rfivesix/OpenExerciseDB/releases/download/catalog-stable/',
+    manifestPath: 'catalog_manifest.json',
+    defaultDbPath: 'openexercisedb.db',
+    // The new release publishes one database under one name. These paths are
+    // only fallbacks for a manifest that omits `db_file`/`db_url`; there is no
+    // second, older asset name to fall back to.
+    legacyDefaultDbPath: null,
+    defaultBuildReportPath: 'build_report.json',
     localCacheDirectoryName: 'catalog_refresh',
     localCacheDbFileName: 'train_libre_training_remote.db',
     legacyLocalCacheDbFileName: 'hypertrack_training_remote.db',
