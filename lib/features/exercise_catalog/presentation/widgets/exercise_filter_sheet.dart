@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../generated/app_localizations.dart';
 import '../../../../util/design_constants.dart';
-import '../../../../widgets/common/app_section_header.dart';
+import '../../../../widgets/common/platform_adaptive_dropdown.dart';
 
 /// One selectable option in a filter section.
 @immutable
@@ -32,64 +32,20 @@ class ExerciseFilterSection {
   });
 }
 
-/// A filter chip whose width does not depend on whether it is selected.
+/// The catalog filter: one collapsed field per axis.
 ///
-/// A Material [FilterChip] adds a checkmark when selected, which makes it
-/// wider, which re-wraps the row, which makes the menu jump under the finger
-/// that just tapped it. Selection here is a background colour and nothing
-/// else — the same thing the statistics time-range switcher does.
-class ExerciseFilterChip extends StatelessWidget {
-  final String label;
-  final bool selected;
-  final ValueChanged<bool> onSelected;
-
-  const ExerciseFilterChip({
-    super.key,
-    required this.label,
-    required this.selected,
-    required this.onSelected,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    // Identical geometry in both states. Only the two colours below may
-    // differ, or the width follows the selection again.
-    return Material(
-      color: selected
-          ? theme.colorScheme.primary
-          : theme.colorScheme.surfaceContainerHighest,
-      borderRadius: BorderRadius.circular(100),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: () => onSelected(!selected),
-        child: Container(
-          height: 32,
-          padding: const EdgeInsets.symmetric(horizontal: 14),
-          alignment: Alignment.center,
-          child: Text(
-            label,
-            style: theme.textTheme.labelLarge?.copyWith(
-              color: selected
-                  ? theme.colorScheme.onPrimary
-                  : theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// The catalog filter, as named sections of chips.
+/// It began as one flat popup that listed body regions and then equipment with
+/// nothing in between, so "Cardio" and "Cardio machine" sat six rows apart
+/// meaning different things. Naming the sections fixed that but not the
+/// length — eight body regions and fourteen implements as open lists is a
+/// sheet you scroll past rather than read.
 ///
-/// It used to be one flat popup that listed body regions and then equipment
-/// with nothing in between, so "Cardio" and "Cardio machine" sat six rows
-/// apart meaning different things, and nothing said whether picking one of
-/// each narrowed the results or replaced the other.
-///
-/// Sections make the axes visible, under [AppSectionHeader] headings — the
-/// same structure the create-exercise screen uses for muscle selection.
+/// Each axis is now a [PlatformAdaptiveMultiSelectField]: collapsed to a
+/// single line showing what is picked, expanding into the same glass menu the
+/// rest of the app's dropdowns use. Multi-select rather than the plain
+/// dropdown beside it, because "chest or back" is a legitimate filter — at the
+/// cost of one reopen per extra pick, since that menu closes itself on every
+/// tap and cannot be told not to.
 ///
 /// A separate widget rather than a closure inside the screen because the
 /// screen cannot be built without a seeded catalog, and a filter nobody can
@@ -130,25 +86,25 @@ class _ExerciseFilterSheetState extends State<ExerciseFilterSheet> {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        for (final (index, section) in visible.indexed) ...[
-          AppSectionHeader(title: section.title, isFirst: index == 0),
-          Wrap(
-            spacing: 8.0,
-            runSpacing: 4.0,
-            children: section.options.map((option) {
-              return ExerciseFilterChip(
-                label: option.label,
-                selected: section.selection.contains(option.value),
-                onSelected: (selected) => _apply(() {
-                  if (selected) {
-                    section.selection.add(option.value);
-                  } else {
-                    section.selection.remove(option.value);
-                  }
-                }),
-              );
-            }).toList(),
+        for (final section in visible) ...[
+          PlatformAdaptiveMultiSelectField<String>(
+            label: section.title,
+            selected: section.selection,
+            items: section.options
+                .map((option) => PlatformAdaptivePopupMenuItem<String>(
+                      value: option.value,
+                      label: option.label,
+                    ))
+                .toList(),
+            onToggled: (value) => _apply(() {
+              if (section.selection.contains(value)) {
+                section.selection.remove(value);
+              } else {
+                section.selection.add(value);
+              }
+            }),
           ),
+          const SizedBox(height: DesignConstants.spacingS),
         ],
         const SizedBox(height: DesignConstants.spacingM),
         Text(

@@ -2,13 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:train_libre/features/exercise_catalog/presentation/widgets/exercise_filter_sheet.dart';
 import 'package:train_libre/generated/app_localizations.dart';
+import 'package:train_libre/widgets/common/platform_adaptive_dropdown.dart';
 
-/// The filter asks two questions, and has to look like two questions.
+/// The filter asks three questions, and each is its own collapsed field.
 ///
-/// It was one flat list: body regions, then equipment, with nothing between
+/// It began as one flat list — body regions, then equipment, nothing between
 /// them — so "Cardio" and "Cardio machine" sat six rows apart meaning
-/// different things, and nothing on screen said whether picking one of each
-/// narrowed the results or replaced the other.
+/// different things. Naming the sections fixed the ambiguity but not the
+/// length; eight regions and two implements as open lists is a sheet you
+/// scroll past rather than read.
 void main() {
   late List<String> regions;
   late List<String> equipment;
@@ -69,145 +71,173 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets('every axis gets its own heading', (tester) async {
-    await pump(tester);
+  /// Opens the collapsed field carrying [label].
+  ///
+  /// Taps the field, not its label: the label is the InputDecorator's floating
+  /// text and sits outside the tap target.
+  Future<void> open(WidgetTester tester, String label) async {
+    await tester.tap(
+      find.ancestor(
+        of: find.text(label),
+        matching: find.byType(PlatformAdaptiveMultiSelectField<String>),
+      ),
+      warnIfMissed: false,
+    );
+    await tester.pumpAndSettle();
+  }
 
-    // AppSectionHeader upper-cases its title.
-    expect(find.text('BODY REGION'), findsOneWidget);
-    expect(find.text('EQUIPMENT'), findsOneWidget);
-    expect(find.text('PURPOSE'), findsOneWidget);
+  Future<void> pick(WidgetTester tester, String option) async {
+    await tester.tap(find.text(option).last);
+    await tester.pumpAndSettle();
+  }
+
+  group('structure', () {
+    testWidgets('each axis is its own collapsed field', (tester) async {
+      expect(
+          find.byType(PlatformAdaptiveMultiSelectField<String>), findsNothing);
+      await pump(tester);
+
+      expect(
+        find.byType(PlatformAdaptiveMultiSelectField<String>),
+        findsNWidgets(3),
+      );
+      expect(find.text('Body region'), findsOneWidget);
+      expect(find.text('Equipment'), findsOneWidget);
+      expect(find.text('Purpose'), findsOneWidget);
+    });
+
+    testWidgets('the options are not on screen until a field is opened',
+        (tester) async {
+      // The point of collapsing: fourteen implements do not sit between the
+      // user and the rest of the sheet.
+      await pump(tester);
+
+      expect(find.text('Cardio machine'), findsNothing);
+      expect(find.text('Barbell'), findsNothing);
+    });
+
+    testWidgets('the two "cardio" entries never appear in one list',
+        (tester) async {
+      await pump(tester);
+
+      await open(tester, 'Body region');
+      expect(find.text('Cardio'), findsWidgets);
+      expect(find.text('Cardio machine'), findsNothing,
+          reason: 'the equipment belongs to a different question');
+    });
+
+    testWidgets('how the sections combine is stated, not implied',
+        (tester) async {
+      await pump(tester);
+
+      expect(find.textContaining('widen'), findsOneWidget);
+      expect(find.textContaining('narrow'), findsOneWidget);
+    });
+
+    testWidgets('an empty section is left out entirely', (tester) async {
+      // A pre-v2 catalog has no usage tags. An empty field would be worse
+      // than no field.
+      await pump(tester, usageOptions: const []);
+
+      expect(find.text('Purpose'), findsNothing);
+      expect(find.text('Body region'), findsOneWidget);
+      expect(
+        find.byType(PlatformAdaptiveMultiSelectField<String>),
+        findsNWidgets(2),
+      );
+    });
   });
 
-  testWidgets('the two "cardio" entries are not adjacent in one list',
-      (tester) async {
-    await pump(tester);
+  group('selecting', () {
+    testWidgets('a pick in one field leaves the others alone', (tester) async {
+      await pump(tester);
 
-    final region = tester.getTopLeft(find.text('Cardio'));
-    final machine = tester.getTopLeft(find.text('Cardio machine'));
-    final heading = tester.getTopLeft(find.text('EQUIPMENT'));
+      await open(tester, 'Body region');
+      await pick(tester, 'Chest');
+      await open(tester, 'Equipment');
+      await pick(tester, 'Barbell');
 
-    // The equipment heading sits between them, which is the whole point.
-    expect(heading.dy, greaterThan(region.dy));
-    expect(machine.dy, greaterThan(heading.dy));
+      expect(regions, ['Chest']);
+      expect(equipment, ['barbell'],
+          reason: 'picking equipment cleared the body region');
+      expect(tags, isEmpty);
+      expect(changeCount, 2);
+    });
+
+    testWidgets('several picks in one field accumulate', (tester) async {
+      // The reason this is a multi-select field and not the plain dropdown
+      // beside it: "chest or back" is a legitimate filter.
+      //
+      // Reopened between picks because GlassMenu closes itself after every
+      // item tap and offers no way to stay up — the one cost of using the
+      // app's existing menu instead of building a second one.
+      await pump(tester);
+
+      await open(tester, 'Body region');
+      await pick(tester, 'Chest');
+      await open(tester, 'Body region');
+      await pick(tester, 'Cardio');
+
+      expect(regions, ['Chest', 'Cardio']);
+    });
+
+    testWidgets('picking a selected option clears it', (tester) async {
+      await pump(tester);
+
+      await open(tester, 'Body region');
+      await pick(tester, 'Chest');
+      await open(tester, 'Body region');
+      await pick(tester, 'Chest');
+
+      expect(regions, isEmpty);
+    });
+
+    testWidgets('the collapsed field says what is picked', (tester) async {
+      await pump(tester);
+
+      await open(tester, 'Body region');
+      await pick(tester, 'Chest');
+
+      expect(find.text('Chest'), findsWidgets,
+          reason: 'the collapsed field should name the selection');
+    });
   });
 
-  testWidgets('how the sections combine is stated, not implied',
-      (tester) async {
-    await pump(tester);
+  group('reset', () {
+    testWidgets('is always present, and inert while nothing is selected',
+        (tester) async {
+      // It used to appear on first selection and push everything above it
+      // down, so the sheet shifted under the finger that had just tapped.
+      await pump(tester);
 
-    expect(find.textContaining('widen'), findsOneWidget);
-    expect(find.textContaining('narrow'), findsOneWidget);
-  });
-
-  testWidgets('a pick in one section leaves the others alone', (tester) async {
-    await pump(tester);
-
-    await tester.tap(find.widgetWithText(ExerciseFilterChip, 'Chest'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(ExerciseFilterChip, 'Barbell'));
-    await tester.pumpAndSettle();
-
-    expect(regions, ['Chest']);
-    expect(equipment, ['barbell'],
-        reason: 'picking equipment cleared the body region');
-    expect(tags, isEmpty);
-    expect(changeCount, 2);
-  });
-
-  testWidgets('several picks within one section accumulate', (tester) async {
-    await pump(tester);
-
-    await tester.tap(find.widgetWithText(ExerciseFilterChip, 'Chest'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(ExerciseFilterChip, 'Cardio'));
-    await tester.pumpAndSettle();
-
-    expect(regions, ['Chest', 'Cardio']);
-  });
-
-  testWidgets('tapping a selected chip clears it', (tester) async {
-    await pump(tester);
-
-    await tester.tap(find.widgetWithText(ExerciseFilterChip, 'Chest'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(ExerciseFilterChip, 'Chest'));
-    await tester.pumpAndSettle();
-
-    expect(regions, isEmpty);
-  });
-
-  testWidgets('reset is always present, disabled while nothing is selected',
-      (tester) async {
-    // It used to appear on first selection and push everything above it down,
-    // so the menu shifted under the finger that had just tapped a chip.
-    await pump(tester);
-    expect(find.text('Reset'), findsOneWidget);
-    expect(
-      tester
-          .widget<TextButton>(find.ancestor(
+      TextButton resetButton() => tester.widget<TextButton>(find.ancestor(
             of: find.text('Reset'),
             matching: find.byType(TextButton),
-          ))
-          .onPressed,
-      isNull,
-      reason: 'nothing to reset, so the button must be inert',
-    );
+          ));
 
-    await tester.tap(find.widgetWithText(ExerciseFilterChip, 'Chest'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(ExerciseFilterChip, 'Barbell'));
-    await tester.pumpAndSettle();
-    expect(
-      tester
-          .widget<TextButton>(find.ancestor(
-            of: find.text('Reset'),
-            matching: find.byType(TextButton),
-          ))
-          .onPressed,
-      isNotNull,
-    );
+      expect(find.text('Reset'), findsOneWidget);
+      expect(resetButton().onPressed, isNull);
 
-    await tester.tap(find.text('Reset'));
-    await tester.pumpAndSettle();
+      await open(tester, 'Body region');
+      await pick(tester, 'Chest');
 
-    expect(regions, isEmpty);
-    expect(equipment, isEmpty);
-    expect(find.text('Reset'), findsOneWidget);
-  });
+      expect(resetButton().onPressed, isNotNull);
+    });
 
-  testWidgets('selecting a chip does not change its width', (tester) async {
-    // A checkmark on selection made the chip wider, re-wrapped the row and
-    // made the whole menu jump.
-    await pump(tester);
+    testWidgets('clears every axis at once', (tester) async {
+      await pump(tester);
 
-    final chip = find.widgetWithText(ExerciseFilterChip, 'Cardio machine');
-    final before = tester.getSize(chip);
+      await open(tester, 'Body region');
+      await pick(tester, 'Chest');
+      await open(tester, 'Equipment');
+      await pick(tester, 'Barbell');
 
-    await tester.tap(chip);
-    await tester.pumpAndSettle();
+      await tester.tap(find.text('Reset'));
+      await tester.pumpAndSettle();
 
-    expect(tester.getSize(chip), before);
-  });
-
-  testWidgets('nothing above a chip moves when it is tapped', (tester) async {
-    await pump(tester);
-
-    final heading = find.text('EQUIPMENT');
-    final before = tester.getTopLeft(heading);
-
-    await tester.tap(find.widgetWithText(ExerciseFilterChip, 'Barbell'));
-    await tester.pumpAndSettle();
-
-    expect(tester.getTopLeft(heading), before,
-        reason: 'the menu shifted while being operated');
-  });
-
-  testWidgets('an empty section is left out entirely', (tester) async {
-    // A pre-v2 catalog has no usage tags. An empty heading would be worse
-    // than no heading.
-    await pump(tester, usageOptions: const []);
-
-    expect(find.text('PURPOSE'), findsNothing);
-    expect(find.text('BODY REGION'), findsOneWidget);
+      expect(regions, isEmpty);
+      expect(equipment, isEmpty);
+      expect(find.text('Reset'), findsOneWidget);
+    });
   });
 }
