@@ -303,6 +303,43 @@ class ProfileLocalDataSource {
         );
   }
 
+  /// Latest weight up to the selected calendar day, including reactive edits
+  /// made from the measurements screen. Future measurements are excluded.
+  Stream<db.Measurement?> watchLatestWeightBefore(DateTime before) {
+    return (dbInstance.select(dbInstance.measurements)
+          ..where((t) =>
+              t.type.equals('weight') & t.date.isSmallerThanValue(before))
+          ..orderBy([
+            (t) => drift.OrderingTerm.desc(t.date),
+            (t) => drift.OrderingTerm.desc(t.localId),
+          ])
+          ..limit(1))
+        .watchSingleOrNull();
+  }
+
+  /// Keep separate weigh-ins throughout a day; analytics uses the latest one.
+  /// SQLite timestamps have second precision, so a correction in the exact
+  /// same second replaces that weight to avoid ambiguous analytics ordering.
+  Future<void> saveWeightKg(double weightKg, {required DateTime date}) async {
+    if (!weightKg.isFinite || weightKg <= 0) {
+      throw ArgumentError.value(weightKg, 'weightKg');
+    }
+    await dbInstance.transaction(() async {
+      await (dbInstance.delete(dbInstance.measurements)
+            ..where((t) => t.type.equals('weight') & t.date.equals(date)))
+          .go();
+      await dbInstance.into(dbInstance.measurements).insert(
+            db.MeasurementsCompanion.insert(
+              type: 'weight',
+              value: weightKg,
+              unit: 'kg',
+              date: date,
+              legacySessionId: drift.Value(date.millisecondsSinceEpoch),
+            ),
+          );
+    });
+  }
+
   Future<void> saveInitialBodyFatPercentage(double bodyFat) async {
     final now = DateTime.now();
     await dbInstance.into(dbInstance.measurements).insert(
