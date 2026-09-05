@@ -1126,10 +1126,35 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                                                                     ?.label,
                                                             supersetColor:
                                                                 supersetColor,
+                                                            continuesSupersetAbove:
+                                                                !(membership
+                                                                        ?.isFirst ??
+                                                                    true),
                                                             continuesSupersetBelow:
                                                                 !(membership
                                                                         ?.isLast ??
                                                                     true),
+                                                            onToggleSupersetBelow: index +
+                                                                        1 <
+                                                                    _routineExercises
+                                                                        .length
+                                                                ? () =>
+                                                                    _toggleSupersetAfter(
+                                                                        index)
+                                                                : null,
+                                                            isConnectedBelow: index +
+                                                                        1 <
+                                                                    _routineExercises
+                                                                        .length &&
+                                                                routineExercise
+                                                                        .supersetGroup !=
+                                                                    null &&
+                                                                routineExercise
+                                                                        .supersetGroup ==
+                                                                    _routineExercises[
+                                                                            index +
+                                                                                1]
+                                                                        .supersetGroup,
                                                             onPointerDown: (e) =>
                                                                 _onDragPointerDown(
                                                                     e,
@@ -1174,51 +1199,6 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                                                         ),
                                                       ),
                                               ),
-                                              if (_isEditMode &&
-                                                  index + 1 <
-                                                      _routineExercises.length)
-                                                SizedBox(
-                                                  height: 36,
-                                                  child: Center(
-                                                    child: IconButton(
-                                                      key: ValueKey(
-                                                        'superset_connector_$index',
-                                                      ),
-                                                      visualDensity:
-                                                          VisualDensity.compact,
-                                                      tooltip: routineExercise
-                                                                      .supersetGroup !=
-                                                                  null &&
-                                                              routineExercise
-                                                                      .supersetGroup ==
-                                                                  _routineExercises[
-                                                                          index +
-                                                                              1]
-                                                                      .supersetGroup
-                                                          ? l10n
-                                                              .disconnectSuperset
-                                                          : l10n
-                                                              .connectSuperset,
-                                                      icon: Icon(
-                                                        routineExercise.supersetGroup !=
-                                                                    null &&
-                                                                routineExercise
-                                                                        .supersetGroup ==
-                                                                    _routineExercises[
-                                                                            index +
-                                                                                1]
-                                                                        .supersetGroup
-                                                            ? Icons.link_off
-                                                            : Icons.link,
-                                                        size: 20,
-                                                      ),
-                                                      onPressed: () =>
-                                                          _toggleSupersetAfter(
-                                                        index,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ),
                                             ],
                                           ),
                                         );

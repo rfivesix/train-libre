@@ -8,6 +8,7 @@ import '../../../exercise_catalog/domain/models/exercise.dart';
 import '../../../exercise_catalog/presentation/exercise_detail_screen.dart';
 import '../../../../widgets/common/card_morph_route.dart';
 import '../../../../widgets/common/morph_source.dart';
+import 'superset_connector_button.dart';
 import 'workout_card.dart';
 import '../../domain/classification/exercise_log_mask.dart';
 import 'log_mask_labels.dart';
@@ -44,7 +45,15 @@ class WorkoutExerciseLogCard extends StatelessWidget {
   final bool isDraggedItem;
   final String? supersetLabel;
   final Color? supersetColor;
+  final bool continuesSupersetAbove;
   final bool continuesSupersetBelow;
+
+  /// Connects or disconnects this exercise and the one below it. Null when
+  /// there is no exercise below.
+  final VoidCallback? onToggleSupersetBelow;
+
+  /// Whether this exercise already shares a superset with the one below.
+  final bool isConnectedBelow;
   final void Function(PointerDownEvent)? onPointerDown;
   final void Function(PointerMoveEvent)? onPointerMove;
   final void Function(PointerUpEvent)? onPointerUp;
@@ -73,7 +82,10 @@ class WorkoutExerciseLogCard extends StatelessWidget {
     this.isDraggedItem = false,
     this.supersetLabel,
     this.supersetColor,
+    this.continuesSupersetAbove = false,
     this.continuesSupersetBelow = false,
+    this.onToggleSupersetBelow,
+    this.isConnectedBelow = false,
     this.onPointerDown,
     this.onPointerMove,
     this.onPointerUp,
@@ -145,6 +157,7 @@ class WorkoutExerciseLogCard extends StatelessWidget {
     return WorkoutCard(
       key: isEditMode ? ValueKey(exerciseName) : null,
       accentColor: supersetColor,
+      continuesSupersetAbove: continuesSupersetAbove,
       continuesSupersetBelow: continuesSupersetBelow,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -354,10 +367,26 @@ class WorkoutExerciseLogCard extends StatelessWidget {
                                 Padding(
                                   padding: const EdgeInsets.symmetric(
                                       horizontal: 16.0),
-                                  child: TextButton.icon(
-                                    onPressed: onAddSet,
-                                    icon: const Icon(LucideIcons.plus),
-                                    label: Text(l10n.addSetButton),
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      TextButton.icon(
+                                        onPressed: onAddSet,
+                                        icon: const Icon(LucideIcons.plus),
+                                        label: Text(l10n.addSetButton),
+                                      ),
+                                      if (onToggleSupersetBelow != null)
+                                        Flexible(
+                                          child: SupersetConnectorButton(
+                                            key: ValueKey(
+                                              'history_superset_connector_$index',
+                                            ),
+                                            isConnected: isConnectedBelow,
+                                            onPressed: onToggleSupersetBelow!,
+                                          ),
+                                        ),
+                                    ],
                                   ),
                                 ),
                             ],

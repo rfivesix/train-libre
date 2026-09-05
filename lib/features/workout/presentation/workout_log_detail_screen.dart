@@ -300,8 +300,8 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
     return next;
   }
 
-  ({String label, Color color, bool continuesBelow})? _historySupersetStyleAt(
-      int index) {
+  ({String label, Color color, bool continuesAbove, bool continuesBelow})?
+      _historySupersetStyleAt(int index) {
     final groups = [
       for (final sets in _groupedSets.values)
         sets.isEmpty ? null : sets.first.supersetGroup,
@@ -327,6 +327,7 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
       label: '${_supersetLetter(groupIndex)}${memberIndex + 1}',
       color: DesignConstants
           .supersetColors[groupIndex % DesignConstants.supersetColors.length],
+      continuesAbove: memberIndex > 0,
       continuesBelow: memberIndex < indices.length - 1,
     );
   }
@@ -1433,6 +1434,8 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                                 index: -1,
                                 supersetLabel: supersetStyle?.label,
                                 supersetColor: supersetStyle?.color,
+                                continuesSupersetAbove:
+                                    supersetStyle?.continuesAbove ?? false,
                                 continuesSupersetBelow:
                                     supersetStyle?.continuesBelow ?? false,
                               );
@@ -1643,67 +1646,39 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                                                           supersetStyle?.label,
                                                       supersetColor:
                                                           supersetStyle?.color,
+                                                      continuesSupersetAbove:
+                                                          supersetStyle
+                                                                  ?.continuesAbove ??
+                                                              false,
                                                       continuesSupersetBelow:
                                                           supersetStyle
                                                                   ?.continuesBelow ??
                                                               false,
+                                                      onToggleSupersetBelow:
+                                                          index + 1 <
+                                                                  _groupedSets
+                                                                      .length
+                                                              ? () =>
+                                                                  _toggleSupersetAfter(
+                                                                      index)
+                                                              : null,
+                                                      isConnectedBelow: index +
+                                                                  1 <
+                                                              _groupedSets
+                                                                  .length &&
+                                                          entry.value.first
+                                                                  .supersetGroup !=
+                                                              null &&
+                                                          entry.value.first
+                                                                  .supersetGroup ==
+                                                              _groupedSets
+                                                                  .entries
+                                                                  .elementAt(
+                                                                      index + 1)
+                                                                  .value
+                                                                  .first
+                                                                  .supersetGroup,
                                                     ),
-                                                    if (index + 1 <
-                                                        _groupedSets.length)
-                                                      SizedBox(
-                                                        height: 36,
-                                                        child: Center(
-                                                          child: IconButton(
-                                                            key: ValueKey(
-                                                              'history_superset_connector_$index',
-                                                            ),
-                                                            visualDensity:
-                                                                VisualDensity
-                                                                    .compact,
-                                                            tooltip: supersetStyle !=
-                                                                        null &&
-                                                                    entry
-                                                                            .value
-                                                                            .first
-                                                                            .supersetGroup ==
-                                                                        _groupedSets
-                                                                            .entries
-                                                                            .elementAt(index +
-                                                                                1)
-                                                                            .value
-                                                                            .first
-                                                                            .supersetGroup
-                                                                ? AppLocalizations.of(
-                                                                        context)!
-                                                                    .disconnectSuperset
-                                                                : AppLocalizations.of(
-                                                                        context)!
-                                                                    .connectSuperset,
-                                                            icon: Icon(
-                                                              supersetStyle !=
-                                                                          null &&
-                                                                      entry.value.first
-                                                                              .supersetGroup ==
-                                                                          _groupedSets
-                                                                              .entries
-                                                                              .elementAt(
-                                                                                index + 1,
-                                                                              )
-                                                                              .value
-                                                                              .first
-                                                                              .supersetGroup
-                                                                  ? LucideIcons
-                                                                      .unlink
-                                                                  : LucideIcons
-                                                                      .link,
-                                                            ),
-                                                            onPressed: () =>
-                                                                _toggleSupersetAfter(
-                                                              index,
-                                                            ),
-                                                          ),
-                                                        ),
-                                                      ),
                                                   ],
                                                 ),
                                               ),

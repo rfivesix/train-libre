@@ -35,6 +35,12 @@ class AppLocalizationsFr extends AppLocalizations {
   String get disconnectSuperset => 'Dissoudre le superset';
 
   @override
+  String get connectSupersetShort => 'Superset';
+
+  @override
+  String get disconnectSupersetShort => 'Dissocier';
+
+  @override
   String get noTimerLabel => 'Aucun minuteur';
 
   @override

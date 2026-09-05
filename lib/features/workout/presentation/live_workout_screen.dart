@@ -27,6 +27,7 @@ import '../../exercise_catalog/presentation/exercise_catalog_screen.dart';
 import '../../exercise_catalog/presentation/exercise_detail_screen.dart';
 import 'package:provider/provider.dart';
 import 'workout_summary_screen.dart';
+import 'widgets/superset_connector_button.dart';
 import 'widgets/workout_card.dart';
 import 'widgets/reorder_drag_proxy.dart';
 import 'widgets/pr_celebration_banner.dart';
@@ -1231,6 +1232,10 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                                       child: WorkoutCard(
                                                         accentColor:
                                                             supersetColor,
+                                                        continuesSupersetAbove:
+                                                            !(membership
+                                                                    ?.isFirst ??
+                                                                true),
                                                         continuesSupersetBelow:
                                                             !(membership
                                                                     ?.isLast ??
@@ -1407,10 +1412,25 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                                                                       padding: const EdgeInsets.symmetric(
                                                                                         horizontal: 16.0,
                                                                                       ),
-                                                                                      child: TextButton.icon(
-                                                                                        onPressed: () => _addSet(routineExercise),
-                                                                                        icon: const Icon(LucideIcons.plus),
-                                                                                        label: Text(l10n.addSetButton),
+                                                                                      child: Row(
+                                                                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                                                        children: [
+                                                                                          TextButton.icon(
+                                                                                            onPressed: () => _addSet(routineExercise),
+                                                                                            icon: const Icon(LucideIcons.plus),
+                                                                                            label: Text(l10n.addSetButton),
+                                                                                          ),
+                                                                                          if (index + 1 < exercises.length)
+                                                                                            Flexible(
+                                                                                              child: SupersetConnectorButton(
+                                                                                                key: ValueKey(
+                                                                                                  'live_superset_connector_$index',
+                                                                                                ),
+                                                                                                isConnected: routineExercise.supersetGroup != null && routineExercise.supersetGroup == exercises[index + 1].supersetGroup,
+                                                                                                onPressed: () => manager.toggleSupersetAfter(index),
+                                                                                              ),
+                                                                                            ),
+                                                                                        ],
                                                                                       ),
                                                                                     ),
                                                                                   ],
@@ -1422,42 +1442,6 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                                                       ],
                                                                     ),
                                                                   ),
-                                                            if (index + 1 <
-                                                                exercises
-                                                                    .length)
-                                                              SizedBox(
-                                                                height: 36,
-                                                                child: Center(
-                                                                  child:
-                                                                      IconButton(
-                                                                    key:
-                                                                        ValueKey(
-                                                                      'live_superset_connector_$index',
-                                                                    ),
-                                                                    visualDensity:
-                                                                        VisualDensity
-                                                                            .compact,
-                                                                    tooltip: routineExercise.supersetGroup !=
-                                                                                null &&
-                                                                            routineExercise.supersetGroup ==
-                                                                                exercises[index + 1].supersetGroup
-                                                                        ? l10n.disconnectSuperset
-                                                                        : l10n.connectSuperset,
-                                                                    icon: Icon(
-                                                                      routineExercise.supersetGroup != null && routineExercise.supersetGroup == exercises[index + 1].supersetGroup
-                                                                          ? LucideIcons
-                                                                              .unlink
-                                                                          : LucideIcons
-                                                                              .link,
-                                                                    ),
-                                                                    onPressed: () =>
-                                                                        manager
-                                                                            .toggleSupersetAfter(
-                                                                      index,
-                                                                    ),
-                                                                  ),
-                                                                ),
-                                                              ),
                                                           ],
                                                         ),
                                                       ),

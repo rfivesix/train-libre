@@ -35,6 +35,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get disconnectSuperset => 'スーパーセットを解除';
 
   @override
+  String get connectSupersetShort => 'スーパーセット';
+
+  @override
+  String get disconnectSupersetShort => '連結解除';
+
+  @override
   String get noTimerLabel => 'タイマーなし';
 
   @override

@@ -15,6 +15,8 @@
   "removeTimer": "Remove Timer",
   "connectSuperset": "Connect as superset",
   "disconnectSuperset": "Dissolve superset",
+  "connectSupersetShort": "Superset",
+  "disconnectSupersetShort": "Unlink",
   "noTimerLabel": "No Timer",
   "appTitle": "Train Libre",
   "bannerText": "Recommendation / Current Workout",

@@ -35,6 +35,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get disconnectSuperset => 'Dissolve superset';
 
   @override
+  String get connectSupersetShort => 'Superset';
+
+  @override
+  String get disconnectSupersetShort => 'Unlink';
+
+  @override
   String get noTimerLabel => 'No Timer';
 
   @override

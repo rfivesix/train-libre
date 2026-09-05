@@ -11,6 +11,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Fixed
 - **Superset Editing & Group Rails:** Superset boundaries can now be connected or separated directly during a live workout and while editing workout history. Separating a connection inside a larger group retains the two remaining supersets instead of dissolving the entire group. The coloured rail now continues uninterrupted between every member card.
+- **Superset Bracket and Link Action:** The coloured bracket is now drawn once around a whole superset: only its outer ends are rounded, and the tint and rail run unbroken between the member cards. The link/unlink action moved out of the gap between cards into the trailing end of the “Add set” row, with a label next to its icon.
 - **Workout Exercise Blocks in History and Backups:** Repeated occurrences of the same exercise remain separate cards by using their stored exercise block. Backup restore now preserves both exercise blocks and superset snapshots while legacy logs without block metadata retain name-based grouping.
 
 ## [1.3.0-alpha.2] - 2026-09-05
