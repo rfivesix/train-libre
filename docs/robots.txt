@@ -1,0 +1,10 @@
+# https://trainlibre.com/robots.txt
+# Train Libre — static GitHub Pages site. Everything here is public.
+
+User-agent: *
+Allow: /
+
+# /privacy-policy/ duplicates /privacy.html for legacy app-store links.
+# It is intentionally left crawlable so bots can read its rel="canonical".
+
+Sitemap: https://trainlibre.com/sitemap.xml

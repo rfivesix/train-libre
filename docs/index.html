@@ -6,15 +6,34 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description"
     content="Private workout and nutrition tracking. No ads. No accounts. Serious analytics. Train Libre is an open-source, offline-first app for logging workouts, calories, macros, bodyweight, and recovery.">
-  <meta name="theme-color" content="#000000">
-  <meta property="og:title" content="Train Libre">
-  <meta property="og:description"
-    content="Private workout and nutrition tracking. No ads. No accounts. Serious analytics. Open-source and offline-first.">
+
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+  <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+  <link rel="canonical" href="https://trainlibre.com/">
+
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon.png?v=2">
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
+
+  <meta property="og:site_name" content="Train Libre">
+  <meta property="og:locale" content="en">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://trainlibre.com/">
-  <link rel="canonical" href="https://trainlibre.com/">
+  <meta property="og:title" content="Train Libre — Private, offline-first fitness tracking">
+  <meta property="og:description" content="Private workout and nutrition tracking. No ads. No accounts. Serious analytics. Open-source and offline-first.">
+  <meta property="og:image" content="https://trainlibre.com/assets/og-image.png">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Train Libre — private workout and nutrition tracking">
+
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Train Libre — Private, offline-first fitness tracking">
+  <meta name="twitter:description" content="Private workout and nutrition tracking. No ads. No accounts. Serious analytics. Open-source and offline-first.">
+  <meta name="twitter:image" content="https://trainlibre.com/assets/og-image.png">
+  <meta name="twitter:image:alt" content="Train Libre — private workout and nutrition tracking">
+
   <title>Train Libre | Offline-first fitness tracking</title>
-  <link rel="icon" type="image/png" sizes="32x32" href="favicon.png?v=2">
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="katex.min.css">
   <script>
@@ -22,6 +41,45 @@
       const theme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: light)').matches ? "light" : "dark");
       document.documentElement.setAttribute("data-theme", theme);
     })();
+  </script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebSite",
+        "@id": "https://trainlibre.com/#website",
+        "url": "https://trainlibre.com/",
+        "name": "Train Libre",
+        "description": "Private, offline-first workout and nutrition tracking. No ads, no accounts.",
+        "inLanguage": "en"
+      },
+      {
+        "@type": "SoftwareApplication",
+        "@id": "https://trainlibre.com/#app",
+        "name": "Train Libre",
+        "url": "https://trainlibre.com/",
+        "image": "https://trainlibre.com/assets/og-image.png",
+        "applicationCategory": "HealthApplication",
+        "operatingSystem": "iOS, Android",
+        "description": "Open-source, offline-first app for logging workouts, calories, macros, bodyweight, sleep, and recovery. No ads, no accounts, no cloud dependency.",
+        "isAccessibleForFree": true,
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "EUR"
+        },
+        "downloadUrl": [
+          "https://apps.apple.com/de/app/train-libre/id6767055511",
+          "https://github.com/rfivesix/train-libre/releases"
+        ],
+        "sameAs": [
+          "https://github.com/rfivesix/train-libre"
+        ]
+      }
+    ]
+  }
   </script>
 </head>
 
@@ -112,18 +170,15 @@
     <section class="hero" id="top" aria-labelledby="hero-title">
       <div class="hero-stage" aria-hidden="true">
         <div class="device device-home">
-          <img src="../assets/screenshots/iOS/en-US/dark/iOS_dark_diary.png"
-            data-fallback-src="https://raw.githubusercontent.com/rfivesix/train-libre/main/assets/screenshots/iOS/en-US/dark/iOS_dark_diary.png"
+          <img width="828" height="1800" decoding="async" src="assets/screenshots/iOS/en-US/dark/iOS_dark_diary.webp"
             alt="">
         </div>
         <div class="device device-workout">
-          <img src="../assets/screenshots/iOS/en-US/dark/iOS_dark_running_workout.png"
-            data-fallback-src="https://raw.githubusercontent.com/rfivesix/train-libre/main/assets/screenshots/iOS/en-US/dark/iOS_dark_running_workout.png"
+          <img width="828" height="1800" decoding="async" src="assets/screenshots/iOS/en-US/dark/iOS_dark_running_workout.webp"
             alt="">
         </div>
         <div class="device device-goals">
-          <img src="../assets/screenshots/iOS/en-US/dark/iOS_dark_ai.png"
-            data-fallback-src="https://raw.githubusercontent.com/rfivesix/train-libre/main/assets/screenshots/iOS/en-US/dark/iOS_dark_ai.png"
+          <img width="828" height="1800" decoding="async" src="assets/screenshots/iOS/en-US/dark/iOS_dark_ai.webp"
             alt="">
         </div>
       </div>
@@ -1221,8 +1276,7 @@
             </div>
             <div class="ai-phone-preview">
               <div class="screen">
-                <img src="../assets/screenshots/iOS/en-US/dark/iOS_dark_ai.png"
-                  data-fallback-src="https://raw.githubusercontent.com/rfivesix/train-libre/main/assets/screenshots/iOS/en-US/dark/iOS_dark_ai.png"
+                <img width="828" height="1800" decoding="async" loading="lazy" src="assets/screenshots/iOS/en-US/dark/iOS_dark_ai.webp"
                   alt="Train Libre AI Meal Capture screen with meal photos, text input, and an Analyze button.">
               </div>
             </div>
@@ -1417,8 +1471,7 @@
         <div class="phone-row reveal delay-1">
           <figure class="showcase-phone">
             <div class="screen">
-              <img src="../assets/screenshots/iOS/en-US/dark/iOS_dark_diary.png"
-                data-fallback-src="https://raw.githubusercontent.com/rfivesix/train-libre/main/assets/screenshots/iOS/en-US/dark/iOS_dark_diary.png"
+              <img width="828" height="1800" decoding="async" loading="lazy" src="assets/screenshots/iOS/en-US/dark/iOS_dark_diary.webp"
                 alt="Train Libre dark-mode diary dashboard with nutrition, hydration, supplements, steps, and meals.">
             </div>
             <figcaption class="phone-caption">
@@ -1430,8 +1483,7 @@
 
           <figure class="showcase-phone">
             <div class="screen">
-              <img src="../assets/screenshots/iOS/en-US/dark/iOS_dark_running_workout.png"
-                data-fallback-src="https://raw.githubusercontent.com/rfivesix/train-libre/main/assets/screenshots/iOS/en-US/dark/iOS_dark_running_workout.png"
+              <img width="828" height="1800" decoding="async" loading="lazy" src="assets/screenshots/iOS/en-US/dark/iOS_dark_running_workout.webp"
                 alt="Train Libre live workout screen showing lower body training, duration, volume, sets, RIR, and rest timing.">
             </div>
             <figcaption class="phone-caption">
@@ -1442,8 +1494,7 @@
 
           <figure class="showcase-phone">
             <div class="screen">
-              <img src="../assets/screenshots/iOS/en-US/dark/iOS_dark_ai.png"
-                data-fallback-src="https://raw.githubusercontent.com/rfivesix/train-libre/main/assets/screenshots/iOS/en-US/dark/iOS_dark_ai.png"
+              <img width="828" height="1800" decoding="async" loading="lazy" src="assets/screenshots/iOS/en-US/dark/iOS_dark_ai.webp"
                 alt="Train Libre AI Meal Capture screen showing meal photos, text input, and an Analyze action.">
             </div>
             <figcaption class="phone-caption">

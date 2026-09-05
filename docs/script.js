@@ -2181,12 +2181,8 @@
       if (img.src.includes("assets/screenshots/iOS/")) {
         const filenameMatch = img.src.match(/iOS_(dark|light)_(.+)$/);
         if (filenameMatch) {
-          const baseName = filenameMatch[2]; // e.g. "diary.png"
-          img.src = `../assets/screenshots/iOS/${langFolder}/${currentTheme}/iOS_${currentTheme}_${baseName}`;
-
-          if (img.dataset.fallbackSrc) {
-            img.dataset.fallbackSrc = `https://raw.githubusercontent.com/rfivesix/train-libre/main/assets/screenshots/iOS/${langFolder}/${currentTheme}/iOS_${currentTheme}_${baseName}`;
-          }
+          const baseName = filenameMatch[2]; // e.g. "diary.webp"
+          img.src = `assets/screenshots/iOS/${langFolder}/${currentTheme}/iOS_${currentTheme}_${baseName}`;
         }
       }
     });
@@ -2326,24 +2322,12 @@
     });
   };
 
-  // Fallback images
-  const initImages = () => {
-    document.querySelectorAll("img[data-fallback-src]").forEach((image) => {
-      image.addEventListener("error", () => {
-        if (image.dataset.fallbackLoaded === "true") return;
-        image.dataset.fallbackLoaded = "true";
-        image.src = image.dataset.fallbackSrc;
-      });
-    });
-  };
-
   // Execution
   document.addEventListener("DOMContentLoaded", () => {
     initTheme();
     initLang();
     initReveal();
     initParallax();
-    initImages();
     initLinks();
   });
 

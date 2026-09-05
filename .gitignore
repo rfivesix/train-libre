@@ -73,3 +73,5 @@ ios/fastlane/.env
 # stays tracked; its source of truth is metadata/app_store/*.md, regenerated
 # locally by script/sync_store_metadata.sh.
 ios/fastlane/metadata/review_information/
+# Local planning notes (not public)
+/planning/
