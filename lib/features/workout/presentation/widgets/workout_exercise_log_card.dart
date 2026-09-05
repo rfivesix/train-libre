@@ -42,6 +42,8 @@ class WorkoutExerciseLogCard extends StatelessWidget {
   final int index;
   final bool isDragging;
   final bool isDraggedItem;
+  final String? supersetLabel;
+  final Color? supersetColor;
   final void Function(PointerDownEvent)? onPointerDown;
   final void Function(PointerMoveEvent)? onPointerMove;
   final void Function(PointerUpEvent)? onPointerUp;
@@ -68,6 +70,8 @@ class WorkoutExerciseLogCard extends StatelessWidget {
     required this.index,
     this.isDragging = false,
     this.isDraggedItem = false,
+    this.supersetLabel,
+    this.supersetColor,
     this.onPointerDown,
     this.onPointerMove,
     this.onPointerUp,
@@ -83,7 +87,7 @@ class WorkoutExerciseLogCard extends StatelessWidget {
     // morph route as the copy that flies inside the growing container — the
     // detail screen then dissolves out of the title instead of being drawn
     // over it from the first frame.
-    final title = Padding(
+    final exerciseTitle = Padding(
       padding: const EdgeInsets.symmetric(vertical: 4.0),
       child: Text(
         exercise?.getLocalizedName(context) ?? exerciseName,
@@ -93,6 +97,32 @@ class WorkoutExerciseLogCard extends StatelessWidget {
         ),
       ),
     );
+    final title = supersetLabel == null || supersetColor == null
+        ? exerciseTitle
+        : Row(
+            children: [
+              Container(
+                key: ValueKey('history_superset_badge_$supersetLabel'),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: supersetColor!.withValues(alpha: 0.18),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: supersetColor!.withValues(alpha: 0.7),
+                  ),
+                ),
+                child: Text(
+                  supersetLabel!,
+                  style: textTheme.labelLarge?.copyWith(
+                    color: supersetColor,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(child: exerciseTitle),
+            ],
+          );
 
     void openDetail(
       BuildContext titleCtx,
@@ -112,6 +142,7 @@ class WorkoutExerciseLogCard extends StatelessWidget {
 
     return WorkoutCard(
       key: isEditMode ? ValueKey(exerciseName) : null,
+      accentColor: supersetColor,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

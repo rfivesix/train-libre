@@ -170,6 +170,7 @@ void main() {
               isCompleted: const drift.Value(true),
               logOrder: drift.Value(block),
               exerciseBlock: drift.Value(block),
+              supersetGroup: const drift.Value(5),
             ),
           );
     }
@@ -184,6 +185,8 @@ void main() {
     );
     expect(cards.length, 2);
     expect(cards.map((card) => card.sets.single.exerciseBlock), [0, 2]);
+    expect(cards.map((card) => card.supersetLabel), ['A1', 'A2']);
+    expect(cards.map((card) => card.supersetColor), everyElement(isNotNull));
 
     await tester.pumpWidget(Container());
     await tester.pumpAndSettle();

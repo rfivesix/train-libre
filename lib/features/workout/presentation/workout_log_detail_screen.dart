@@ -300,6 +300,46 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
     return next;
   }
 
+  ({String label, Color color})? _historySupersetStyleAt(int index) {
+    final groups = [
+      for (final sets in _groupedSets.values)
+        sets.isEmpty ? null : sets.first.supersetGroup,
+    ];
+    if (index < 0 || index >= groups.length) return null;
+    final group = groups[index];
+    if (group == null) return null;
+    final indices = <int>[
+      for (var i = 0; i < groups.length; i++)
+        if (groups[i] == group) i,
+    ];
+    if (indices.length < 2 ||
+        indices.last - indices.first + 1 != indices.length) {
+      return null;
+    }
+    final validGroups = <int>[];
+    for (final candidate in groups.whereType<int>()) {
+      if (!validGroups.contains(candidate)) validGroups.add(candidate);
+    }
+    final groupIndex = validGroups.indexOf(group);
+    final memberIndex = index - indices.first;
+    return (
+      label: '${_supersetLetter(groupIndex)}${memberIndex + 1}',
+      color: DesignConstants
+          .supersetColors[groupIndex % DesignConstants.supersetColors.length],
+    );
+  }
+
+  String _supersetLetter(int index) {
+    var value = index + 1;
+    final codes = <int>[];
+    while (value > 0) {
+      value--;
+      codes.add(65 + value % 26);
+      value ~/= 26;
+    }
+    return String.fromCharCodes(codes.reversed);
+  }
+
   /// Expands the cards once the drop animation and the reorder have finished.
   void _scheduleExpandAfterDrop() {
     _expandTimer?.cancel();
@@ -1271,12 +1311,20 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
 
                           // Sets
                           if (!_isEditMode)
-                            ..._groupedSets.entries.map((entry) {
+                            ..._groupedSets.entries
+                                .toList()
+                                .asMap()
+                                .entries
+                                .map((indexedEntry) {
+                              final index = indexedEntry.key;
+                              final entry = indexedEntry.value;
                               final key = entry.key;
                               final exerciseName = key.exerciseName;
                               final Exercise? exercise = _exerciseDetails[key];
                               final List<SetLog> sets = entry.value;
                               final isCardio = _isCardio(key);
+                              final supersetStyle =
+                                  _historySupersetStyleAt(index);
 
                               return WorkoutExerciseLogCard(
                                 exerciseName: exerciseName,
@@ -1313,6 +1361,8 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                                 onDeleteSet: (setId) {},
                                 onSetTypeTap: (setId) {},
                                 index: -1,
+                                supersetLabel: supersetStyle?.label,
+                                supersetColor: supersetStyle?.color,
                               );
                             })
                           else ...[
@@ -1357,6 +1407,8 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                                         _exerciseDetails[key];
                                     final List<SetLog> sets = entry.value;
                                     final isCardio = _isCardio(key);
+                                    final supersetStyle =
+                                        _historySupersetStyleAt(index);
 
                                     final proxyChild = WorkoutExerciseLogCard(
                                       exerciseName: exerciseName,
@@ -1377,6 +1429,8 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                                       onDeleteSet: (_) {},
                                       onSetTypeTap: (_) {},
                                       index: index,
+                                      supersetLabel: supersetStyle?.label,
+                                      supersetColor: supersetStyle?.color,
                                     );
                                     return buildReorderDragProxy(
                                         context, proxyChild, animation);
@@ -1406,6 +1460,8 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                                       _exerciseDetails[key];
                                   final List<SetLog> sets = entry.value;
                                   final isCardio = _isCardio(key);
+                                  final supersetStyle =
+                                      _historySupersetStyleAt(index);
 
                                   final isDeleting =
                                       _deletingExercises.contains(key);
@@ -1500,6 +1556,10 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                                                   onSetTypeTap: (setId) =>
                                                       _showSetTypePicker(setId),
                                                   index: index,
+                                                  supersetLabel:
+                                                      supersetStyle?.label,
+                                                  supersetColor:
+                                                      supersetStyle?.color,
                                                 ),
                                               ),
                                             ),
