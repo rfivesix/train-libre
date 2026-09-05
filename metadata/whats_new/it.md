@@ -6,23 +6,17 @@
   Poi esegui: python3 script/build_whats_new.py --write --sync-store
 -->
 
-## 1.3.0-alpha.2 (2026-09-05)
+## 1.3.0-beta.1 (2026-09-05)
 
-{activity} Registra il peso dal diario: annota il peso nella nuova scheda sotto Integratori e apri da lì anche la cronologia delle misurazioni.
+{dumbbell} Superserie: unisci gli esercizi delle tue schede in superserie, triset o gruppi più ampi. Durante l'allenamento li alterni giro dopo giro e il recupero parte solo dopo l'ultimo esercizio del giro.
 
-{zap} Un righello del peso fluido: scorri liberamente tra le tacche e controlla il valore prima di salvarlo. Chilogrammi o libbre seguono l'unità scelta.
+{timer} I campi giusti per ogni esercizio: registra il tempo di tenuta per i plank, le ripetizioni e l'eventuale peso aggiuntivo per le trazioni, oppure l'assistenza per gli esercizi assistiti. Anche i valori dell'ultimo allenamento e i grafici si adattano.
 
-{layout_grid} La giornata di oggi è sempre pronta: anche prima di registrare qualcosa, si apre il diario completo con l'ultimo peso e la possibilità di aggiungere una nuova misurazione.
+{layout_grid} Catalogo degli esercizi rinnovato: il catalogo ora utilizza OpenExerciseDB, con informazioni più precise su muscoli e movimenti e nomi nella lingua dell'app. Filtra per attrezzatura, difficoltà e altre caratteristiche, anche mentre crei le tue schede.
 
-{dumbbell} Catalogo degli esercizi aggiornato: il catalogo ora utilizza OpenExerciseDB, con informazioni più precise su muscoli e movimenti. Nomi e descrizioni degli esercizi appaiono nella lingua dell'app quando è disponibile una traduzione.
+{activity} Registra il peso dal diario: annota il peso nella nuova scheda sotto Integratori, con un righello fluido in chilogrammi o libbre. Da lì apri anche la cronologia delle misurazioni.
 
-{layout_grid} Trova gli esercizi adatti a te: filtra per attrezzatura, difficoltà e altre caratteristiche. I menu di selezione compatti ti aiutano a scegliere gli esercizi anche quando crei le tue schede.
-
-{timer} I campi giusti per ogni esercizio: registra il tempo di tenuta per i plank, le ripetizioni e l'eventuale peso aggiuntivo per le trazioni, oppure l'assistenza per gli esercizi assistiti. Anche i valori dell'ultimo allenamento e i grafici si adattano all'esercizio.
-
-{chart_line} Progressi rappresentati meglio: per gli esercizi a corpo libero, il volume di allenamento e i record di forza tengono ora conto del peso corporeo registrato. Il peso aggiuntivo aumenta il carico, l'assistenza lo riduce. Gli allenamenti passati usano l'ultimo peso registrato alla data della sessione.
-
-{activity} Statistiche muscolari più precise: gli esercizi a corpo libero e le tenute statiche vengono conteggiati in modo più affidabile. Lo stretching e gli esercizi di mobilità non contano più come serie di forza e non avviano un periodo di recupero muscolare.
+{chart_line} Progressi rappresentati meglio: per gli esercizi a corpo libero, il volume di allenamento e i record di forza tengono conto del peso corporeo registrato, il peso aggiuntivo aumenta il carico e l'assistenza lo riduce. Stretching e mobilità non contano più come serie di forza.
 
 ## 1.2.1 (2026-09-01)
 

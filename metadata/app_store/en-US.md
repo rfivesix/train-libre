@@ -56,21 +56,15 @@ OPEN SOURCE & OPEN DATA:
 Built transparently on trusted community catalogs from Open Food Facts and OpenExerciseDB. The full source code is publicly accessible, so our privacy claims can be verified rather than just believed.
 
 ## Release Notes (What's New / Release Notes in this version)
-Log weight from your diary: Record your weight from the new card below Supplements and open your measurement history from the same place.
+Supersets: Join exercises in your routines into supersets, trisets or larger groups. During a workout you alternate between them round by round, and the rest timer only starts after the last exercise of a round.
 
-A smooth weight ruler: Move freely between the ruler marks and review the value before saving. Kilograms or pounds follow your preferred unit.
+The right fields for every exercise: Log hold time for planks, reps and optional added weight for pull-ups, and assistance for assisted exercises. Previous workout values and charts adapt too.
 
-Today is always ready: Even before you log anything today, the full diary opens with your latest weight and the option to record a new measurement.
+A reworked exercise catalog: The catalog now uses OpenExerciseDB, with more detailed information about muscles and movements and names in your app language. Filter by equipment, difficulty and other details, including while building your routines.
 
-Updated exercise catalog: The catalog now uses OpenExerciseDB, with more detailed information about muscles and movements. Exercise names and descriptions appear in your app language when a translation is available.
+Log weight from your diary: Record your weight in the new card below Supplements, with a smooth ruler in kilograms or pounds. Your measurement history opens from the same place.
 
-Find the right exercises: Filter by equipment, difficulty and other exercise details. Compact selection menus also help you choose exercises when building your routines.
-
-The right fields for every exercise: Log hold time for planks, reps and optional added weight for pull-ups, and assistance for assisted exercises. Previous workout values and charts adapt to the exercise too.
-
-A clearer picture of your progress: Training volume and strength records for bodyweight exercises now account for your logged body weight. Added weight increases the load; assistance reduces it. Past workouts use your latest recorded body weight at the time.
-
-More accurate muscle statistics: Bodyweight exercises and static holds are included more reliably. Stretching and mobility exercises no longer count as strength sets or trigger muscle recovery periods.
+A clearer picture of your progress: Training volume and strength records for bodyweight exercises now account for your logged body weight, added weight increases the load and assistance reduces it. Stretching and mobility exercises no longer count as strength sets.
 
 ## Support URL (Support Web Page URL)
 https://rfivesix.github.io/train-libre/support.html

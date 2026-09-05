@@ -6,23 +6,17 @@
   Newest version first. Regenerate with: python3 script/build_whats_new.py
 -->
 
-## 1.3.0-alpha.2 (2026-09-05)
+## 1.3.0-beta.1 (2026-09-05)
 
-{activity} Log weight from your diary: Record your weight from the new card below Supplements and open your measurement history from the same place.
+{dumbbell} Supersets: Join exercises in your routines into supersets, trisets or larger groups. During a workout you alternate between them round by round, and the rest timer only starts after the last exercise of a round.
 
-{zap} A smooth weight ruler: Move freely between the ruler marks and review the value before saving. Kilograms or pounds follow your preferred unit.
+{timer} The right fields for every exercise: Log hold time for planks, reps and optional added weight for pull-ups, and assistance for assisted exercises. Previous workout values and charts adapt too.
 
-{layout_grid} Today is always ready: Even before you log anything today, the full diary opens with your latest weight and the option to record a new measurement.
+{layout_grid} A reworked exercise catalog: The catalog now uses OpenExerciseDB, with more detailed information about muscles and movements and names in your app language. Filter by equipment, difficulty and other details, including while building your routines.
 
-{dumbbell} Updated exercise catalog: The catalog now uses OpenExerciseDB, with more detailed information about muscles and movements. Exercise names and descriptions appear in your app language when a translation is available.
+{activity} Log weight from your diary: Record your weight in the new card below Supplements, with a smooth ruler in kilograms or pounds. Your measurement history opens from the same place.
 
-{layout_grid} Find the right exercises: Filter by equipment, difficulty and other exercise details. Compact selection menus also help you choose exercises when building your routines.
-
-{timer} The right fields for every exercise: Log hold time for planks, reps and optional added weight for pull-ups, and assistance for assisted exercises. Previous workout values and charts adapt to the exercise too.
-
-{chart_line} A clearer picture of your progress: Training volume and strength records for bodyweight exercises now account for your logged body weight. Added weight increases the load; assistance reduces it. Past workouts use your latest recorded body weight at the time.
-
-{activity} More accurate muscle statistics: Bodyweight exercises and static holds are included more reliably. Stretching and mobility exercises no longer count as strength sets or trigger muscle recovery periods.
+{chart_line} A clearer picture of your progress: Training volume and strength records for bodyweight exercises now account for your logged body weight, added weight increases the load and assistance reduces it. Stretching and mobility exercises no longer count as strength sets.
 
 ## 1.2.1 (2026-09-01)
 
