@@ -38,7 +38,7 @@ import '../../../services/theme_service.dart';
 import '../../../services/base_food_language_service.dart';
 import '../../workout/presentation/workout_history_screen.dart';
 import '../../workout/presentation/widgets/todays_workout_summary_card.dart';
-import 'widgets/weight_chart_card.dart';
+import 'widgets/weight_card.dart';
 import 'widgets/steps_summary_card.dart';
 import 'widgets/sleep_summary_card.dart';
 import 'widgets/pulse_summary_card.dart';
@@ -924,15 +924,29 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
       (vm) => vm.hasDataForSelectedDate,
     );
 
+    final selectedDate = context.select<DiaryViewModel, DateTime>(
+      (vm) => vm.selectedDate,
+    );
+    Widget weightCard() => WeightCard(date: selectedDate);
+
     if (hasEverLoggedData == false) {
-      return Padding(
-        padding: EdgeInsets.only(top: appBarHeight + basePadding.top),
-        child: ColdStartEmptyState(
-          icon: LucideIcons.notebook_pen,
-          title: l10n.emptyStateDiaryColdStartTitle,
-          subtitle: l10n.emptyStateDiaryColdStartSubtitle,
-          callToAction: l10n.emptyStateDiaryColdStartCallToAction,
-        ),
+      return Column(
+        children: [
+          Padding(
+            padding: finalPadding.copyWith(bottom: 0),
+            child: weightCard(),
+          ),
+          Expanded(
+              child: Padding(
+            padding: EdgeInsets.only(top: appBarHeight + basePadding.top),
+            child: ColdStartEmptyState(
+              icon: LucideIcons.notebook_pen,
+              title: l10n.emptyStateDiaryColdStartTitle,
+              subtitle: l10n.emptyStateDiaryColdStartSubtitle,
+              callToAction: l10n.emptyStateDiaryColdStartCallToAction,
+            ),
+          )),
+        ],
       );
     }
 
@@ -1028,6 +1042,8 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
                       );
                     },
                   ),
+                  if (hasDataForSelectedDate)
+                    Skeletonizer(enabled: false, child: weightCard()),
                   if (stepsEnabled) const StepsSummaryCard(),
                   if (sleepEnabled) const SleepSummaryCard(),
                   if (pulseEnabled) const PulseSummaryCard(),
@@ -1049,17 +1065,25 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
                           child: AnimatedSwitcher(
                             duration: const Duration(milliseconds: 250),
                             child: workoutSummary == null
-                                ? const SizedBox.shrink(key: ValueKey('no_summary'))
+                                ? const SizedBox.shrink(
+                                    key: ValueKey('no_summary'))
                                 : Builder(
                                     key: const ValueKey('has_summary'),
                                     builder: (cardCtx) {
-                                      Widget buildSummaryCard({VoidCallback? onTap}) =>
+                                      Widget buildSummaryCard(
+                                              {VoidCallback? onTap}) =>
                                           RepaintBoundary(
                                             child: TodaysWorkoutSummaryCard(
-                                              duration: workoutSummary['duration'] as Duration,
-                                              volume: workoutSummary['volume'] as double,
-                                              sets: workoutSummary['sets'] as int,
-                                              workoutCount: workoutSummary['count'] as int,
+                                              duration:
+                                                  workoutSummary['duration']
+                                                      as Duration,
+                                              volume: workoutSummary['volume']
+                                                  as double,
+                                              sets:
+                                                  workoutSummary['sets'] as int,
+                                              workoutCount:
+                                                  workoutSummary['count']
+                                                      as int,
                                               onTap: onTap ?? () {},
                                             ),
                                           );
@@ -1117,9 +1141,6 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const SizedBox(height: DesignConstants.spacingXL),
-                  AppSectionHeader(title: l10n.measurementWeightCapslock),
-                  const WeightChartCard(),
                   const BottomContentSpacer(),
                 ],
               ),
@@ -1130,9 +1151,19 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
     );
 
     if (showSkeleton && !hasDataForSelectedDate) {
-      content = ActiveGapOverlay(
-        message: l10n.emptyStateActiveGapOverlay,
-        background: content,
+      content = Column(
+        children: [
+          Padding(
+            padding: finalPadding.copyWith(bottom: 0),
+            child: weightCard(),
+          ),
+          Expanded(
+            child: ActiveGapOverlay(
+              message: l10n.emptyStateActiveGapOverlay,
+              background: content,
+            ),
+          ),
+        ],
       );
     }
 
@@ -1683,7 +1714,8 @@ class _MealCardState extends State<_MealCard> {
                                           final factor =
                                               it.entry.quantityInGrams / 100.0;
                                           mealKcal +=
-                                              (it.item.calories * factor).round();
+                                              (it.item.calories * factor)
+                                                  .round();
                                         }
                                         return await DeleteMealEntryBottomSheet
                                             .show(
@@ -1731,7 +1763,8 @@ class _MealCardState extends State<_MealCard> {
                                             }
                                           },
                                           builder: (_) => MealEntryScreen(
-                                            mealEntry: mealEntriesById[entryId]!,
+                                            mealEntry:
+                                                mealEntriesById[entryId]!,
                                             initialItems:
                                                 groupedByMealEntry[entryId]!,
                                           ),
@@ -1768,7 +1801,6 @@ class _MealCardState extends State<_MealCard> {
                         children: [
                           if (items.isNotEmpty)
                             const SizedBox(height: DesignConstants.spacingS),
-
                           for (int i = 0; i < sectionItems.length; i++) ...[
                             if (i > 0 &&
                                 !sectionItems[i - 1].hasPhoto &&
@@ -1776,7 +1808,6 @@ class _MealCardState extends State<_MealCard> {
                               const Divider(height: 1),
                             sectionItems[i].widget,
                           ],
-
                           if (solidItems.isNotEmpty) ...[
                             const SizedBox(height: DesignConstants.spacingXS),
                             TextButton(
