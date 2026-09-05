@@ -2900,5 +2900,22 @@
   "experienceLevelPro": "Pro",
   "experienceLevelBeginnerDescription": "Nessun RIR e nessuna intensità cardio. I muscoli sono indicati per regione, ad es. «Spalle» invece di deltoide anteriore, laterale e posteriore.",
   "experienceLevelAdvancedDescription": "Nessun RIR e nessuna intensità cardio. I muscoli sono indicati per regione, ad es. «Spalle» invece di deltoide anteriore, laterale e posteriore.",
-  "experienceLevelProDescription": "RIR e intensità cardio sono visibili e i muscoli mantengono i nomi anatomici precisi."
+  "experienceLevelProDescription": "RIR e intensità cardio sono visibili e i muscoli mantengono i nomi anatomici precisi.",
+  "diaryWeightLabel": "Peso",
+  "diaryWeightPitch": "Lo storico del peso rende più precisa la raccomandazione calorica",
+  "diaryWeightLog": "Aggiungi",
+  "diaryWeightLogLong": "Registra il peso",
+  "diaryWeightDaysAgo": "{days, plural, =1{1 giorno fa} other{{days} giorni fa}}",
+  "diaryWeightToday": "oggi",
+  "diaryWeightRange": "Valore fuori dall’intervallo abituale",
+  "diaryWeightLoadError": "Impossibile caricare il peso.",
+  "diaryWeightSaveError": "Impossibile salvare il peso. Riprova.",
+  "diaryWeightRetry": "Riprova",
+  "@diaryWeightDaysAgo": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  }
 }

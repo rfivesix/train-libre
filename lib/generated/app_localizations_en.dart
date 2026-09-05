@@ -6614,4 +6614,43 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get experienceLevelProDescription =>
       'RIR and cardio intensity are shown, and muscles keep their precise anatomical names.';
+
+  @override
+  String get diaryWeightLabel => 'Weight';
+
+  @override
+  String get diaryWeightPitch =>
+      'Your calorie target gets more accurate with a weight history';
+
+  @override
+  String get diaryWeightLog => 'Log';
+
+  @override
+  String get diaryWeightLogLong => 'Log weight';
+
+  @override
+  String diaryWeightDaysAgo(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days days ago',
+      one: '1 day ago',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diaryWeightToday => 'today';
+
+  @override
+  String get diaryWeightRange => 'Outside the usual range';
+
+  @override
+  String get diaryWeightLoadError => 'Could not load weight.';
+
+  @override
+  String get diaryWeightSaveError => 'Could not save weight. Please try again.';
+
+  @override
+  String get diaryWeightRetry => 'Try again';
 }

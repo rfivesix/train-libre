@@ -6666,4 +6666,44 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get experienceLevelProDescription =>
       'RIR und Cardio-Intensität werden angezeigt, Muskeln behalten ihre genauen anatomischen Bezeichnungen.';
+
+  @override
+  String get diaryWeightLabel => 'Gewicht';
+
+  @override
+  String get diaryWeightPitch =>
+      'Mit deinem Gewichtsverlauf wird deine Kalorienempfehlung genauer';
+
+  @override
+  String get diaryWeightLog => 'Eintragen';
+
+  @override
+  String get diaryWeightLogLong => 'Gewicht eintragen';
+
+  @override
+  String diaryWeightDaysAgo(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'vor $days Tagen',
+      one: 'vor 1 Tag',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diaryWeightToday => 'heute';
+
+  @override
+  String get diaryWeightRange => 'Wert außerhalb des üblichen Bereichs';
+
+  @override
+  String get diaryWeightLoadError => 'Gewicht konnte nicht geladen werden.';
+
+  @override
+  String get diaryWeightSaveError =>
+      'Gewicht konnte nicht gespeichert werden. Bitte versuche es erneut.';
+
+  @override
+  String get diaryWeightRetry => 'Erneut versuchen';
 }

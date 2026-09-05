@@ -2898,5 +2898,22 @@
   "experienceLevelPro": "Profi",
   "experienceLevelBeginnerDescription": "Kein RIR und keine Cardio-Intensität. Muskeln werden nach Region benannt, z. B. „Schulter“ statt vorderer, seitlicher und hinterer Deltamuskel.",
   "experienceLevelAdvancedDescription": "Kein RIR und keine Cardio-Intensität. Muskeln werden nach Region benannt, z. B. „Schulter“ statt vorderer, seitlicher und hinterer Deltamuskel.",
-  "experienceLevelProDescription": "RIR und Cardio-Intensität werden angezeigt, Muskeln behalten ihre genauen anatomischen Bezeichnungen."
+  "experienceLevelProDescription": "RIR und Cardio-Intensität werden angezeigt, Muskeln behalten ihre genauen anatomischen Bezeichnungen.",
+  "diaryWeightLabel": "Gewicht",
+  "diaryWeightPitch": "Mit deinem Gewichtsverlauf wird deine Kalorienempfehlung genauer",
+  "diaryWeightLog": "Eintragen",
+  "diaryWeightLogLong": "Gewicht eintragen",
+  "diaryWeightDaysAgo": "{days, plural, =1{vor 1 Tag} other{vor {days} Tagen}}",
+  "diaryWeightToday": "heute",
+  "diaryWeightRange": "Wert außerhalb des üblichen Bereichs",
+  "diaryWeightLoadError": "Gewicht konnte nicht geladen werden.",
+  "diaryWeightSaveError": "Gewicht konnte nicht gespeichert werden. Bitte versuche es erneut.",
+  "diaryWeightRetry": "Erneut versuchen",
+  "@diaryWeightDaysAgo": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  }
 }

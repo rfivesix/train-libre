@@ -3092,5 +3092,22 @@
   "experienceLevelPro": "Pro",
   "experienceLevelBeginnerDescription": "No RIR and no cardio intensity. Muscles are named by region, e.g. “Shoulders” instead of front, lateral and rear deltoid.",
   "experienceLevelAdvancedDescription": "No RIR and no cardio intensity. Muscles are named by region, e.g. “Shoulders” instead of front, lateral and rear deltoid.",
-  "experienceLevelProDescription": "RIR and cardio intensity are shown, and muscles keep their precise anatomical names."
+  "experienceLevelProDescription": "RIR and cardio intensity are shown, and muscles keep their precise anatomical names.",
+  "diaryWeightLabel": "Weight",
+  "diaryWeightPitch": "Your calorie target gets more accurate with a weight history",
+  "diaryWeightLog": "Log",
+  "diaryWeightLogLong": "Log weight",
+  "diaryWeightDaysAgo": "{days, plural, =1{1 day ago} other{{days} days ago}}",
+  "diaryWeightToday": "today",
+  "diaryWeightRange": "Outside the usual range",
+  "diaryWeightLoadError": "Could not load weight.",
+  "diaryWeightSaveError": "Could not save weight. Please try again.",
+  "diaryWeightRetry": "Try again",
+  "@diaryWeightDaysAgo": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  }
 }

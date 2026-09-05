@@ -2900,5 +2900,22 @@
   "experienceLevelPro": "プロ",
   "experienceLevelBeginnerDescription": "RIR とカーディオ強度は表示されません。筋肉は部位単位で表示され、例えば三角筋前部・中部・後部の代わりに「肩」となります。",
   "experienceLevelAdvancedDescription": "RIR とカーディオ強度は表示されません。筋肉は部位単位で表示され、例えば三角筋前部・中部・後部の代わりに「肩」となります。",
-  "experienceLevelProDescription": "RIR とカーディオ強度を表示し、筋肉は正確な解剖学的名称のままになります。"
+  "experienceLevelProDescription": "RIR とカーディオ強度を表示し、筋肉は正確な解剖学的名称のままになります。",
+  "diaryWeightLabel": "体重",
+  "diaryWeightPitch": "体重の記録を続けると推奨カロリーがより正確になります",
+  "diaryWeightLog": "記録",
+  "diaryWeightLogLong": "体重を記録",
+  "diaryWeightDaysAgo": "{days}日前",
+  "diaryWeightToday": "今日",
+  "diaryWeightRange": "通常の範囲外の値です",
+  "diaryWeightLoadError": "体重を読み込めませんでした。",
+  "diaryWeightSaveError": "体重を保存できませんでした。もう一度お試しください。",
+  "diaryWeightRetry": "再試行",
+  "@diaryWeightDaysAgo": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  }
 }

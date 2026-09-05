@@ -11598,6 +11598,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'RIR and cardio intensity are shown, and muscles keep their precise anatomical names.'**
   String get experienceLevelProDescription;
+
+  /// No description provided for @diaryWeightLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight'**
+  String get diaryWeightLabel;
+
+  /// No description provided for @diaryWeightPitch.
+  ///
+  /// In en, this message translates to:
+  /// **'Your calorie target gets more accurate with a weight history'**
+  String get diaryWeightPitch;
+
+  /// No description provided for @diaryWeightLog.
+  ///
+  /// In en, this message translates to:
+  /// **'Log'**
+  String get diaryWeightLog;
+
+  /// No description provided for @diaryWeightLogLong.
+  ///
+  /// In en, this message translates to:
+  /// **'Log weight'**
+  String get diaryWeightLogLong;
+
+  /// No description provided for @diaryWeightDaysAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{days, plural, =1{1 day ago} other{{days} days ago}}'**
+  String diaryWeightDaysAgo(int days);
+
+  /// No description provided for @diaryWeightToday.
+  ///
+  /// In en, this message translates to:
+  /// **'today'**
+  String get diaryWeightToday;
+
+  /// No description provided for @diaryWeightRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Outside the usual range'**
+  String get diaryWeightRange;
+
+  /// No description provided for @diaryWeightLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load weight.'**
+  String get diaryWeightLoadError;
+
+  /// No description provided for @diaryWeightSaveError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save weight. Please try again.'**
+  String get diaryWeightSaveError;
+
+  /// No description provided for @diaryWeightRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get diaryWeightRetry;
 }
 
 class _AppLocalizationsDelegate

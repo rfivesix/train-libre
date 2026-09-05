@@ -2900,5 +2900,22 @@
   "experienceLevelPro": "Pro",
   "experienceLevelBeginnerDescription": "Pas de RIR ni d’intensité cardio. Les muscles sont nommés par région, p. ex. « Épaules » au lieu des deltoïdes antérieur, latéral et postérieur.",
   "experienceLevelAdvancedDescription": "Pas de RIR ni d’intensité cardio. Les muscles sont nommés par région, p. ex. « Épaules » au lieu des deltoïdes antérieur, latéral et postérieur.",
-  "experienceLevelProDescription": "Le RIR et l’intensité cardio sont affichés, et les muscles conservent leurs noms anatomiques précis."
+  "experienceLevelProDescription": "Le RIR et l’intensité cardio sont affichés, et les muscles conservent leurs noms anatomiques précis.",
+  "diaryWeightLabel": "Poids",
+  "diaryWeightPitch": "Votre historique de poids rend votre recommandation calorique plus précise",
+  "diaryWeightLog": "Ajouter",
+  "diaryWeightLogLong": "Ajouter un poids",
+  "diaryWeightDaysAgo": "{days, plural, =1{il y a 1 jour} other{il y a {days} jours}}",
+  "diaryWeightToday": "aujourd’hui",
+  "diaryWeightRange": "Valeur hors de la plage habituelle",
+  "diaryWeightLoadError": "Impossible de charger le poids.",
+  "diaryWeightSaveError": "Impossible d’enregistrer le poids. Veuillez réessayer.",
+  "diaryWeightRetry": "Réessayer",
+  "@diaryWeightDaysAgo": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  }
 }

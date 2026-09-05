@@ -6402,4 +6402,36 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String get experienceLevelProDescription =>
       'RIR とカーディオ強度を表示し、筋肉は正確な解剖学的名称のままになります。';
+
+  @override
+  String get diaryWeightLabel => '体重';
+
+  @override
+  String get diaryWeightPitch => '体重の記録を続けると推奨カロリーがより正確になります';
+
+  @override
+  String get diaryWeightLog => '記録';
+
+  @override
+  String get diaryWeightLogLong => '体重を記録';
+
+  @override
+  String diaryWeightDaysAgo(int days) {
+    return '$days日前';
+  }
+
+  @override
+  String get diaryWeightToday => '今日';
+
+  @override
+  String get diaryWeightRange => '通常の範囲外の値です';
+
+  @override
+  String get diaryWeightLoadError => '体重を読み込めませんでした。';
+
+  @override
+  String get diaryWeightSaveError => '体重を保存できませんでした。もう一度お試しください。';
+
+  @override
+  String get diaryWeightRetry => '再試行';
 }
