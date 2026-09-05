@@ -154,31 +154,115 @@ SupersetMembership? supersetMembershipAt(
   );
 }
 
-List<RoutineExercise> moveRoutineExerciseGroup(
+/// Reorders a single item from [oldIndex] to [newIndex] within a list that may
+/// contain contiguous superset groups.
+///
+/// Rules:
+/// 1. If the item stays adjacent to any member of its original superset group,
+///    it retains that group (e.g. swapping positions within the superset).
+/// 2. If the item is dropped strictly between two members of another superset
+///    group, it joins that superset group (e.g. turning a pair into a triset).
+/// 3. In all other cases (e.g. moved away from its superset, moved to workout
+///    edges, or placed adjacent to the outer border of another superset), its
+///    superset group is cleared.
+/// 4. Finally, normalization is applied to dissolve any singletons (groups with
+///    fewer than 2 members) and resolve broken non-contiguous runs.
+List<T> reorderWithSupersets<T>({
+  required List<T> items,
+  required int oldIndex,
+  required int newIndex,
+  required int? Function(T item) getGroup,
+  required T Function(T item, int? group) withGroup,
+}) {
+  if (oldIndex < 0 || oldIndex >= items.length || items.isEmpty) {
+    return List.of(items);
+  }
+  final remaining = List<T>.of(items);
+  final moving = remaining.removeAt(oldIndex);
+  final targetIndex = newIndex.clamp(0, remaining.length);
+
+  final oldGroup = getGroup(moving);
+  final prevNeighbor = targetIndex > 0 ? remaining[targetIndex - 1] : null;
+  final nextNeighbor =
+      targetIndex < remaining.length ? remaining[targetIndex] : null;
+  final prevGroup = prevNeighbor != null ? getGroup(prevNeighbor) : null;
+  final nextGroup = nextNeighbor != null ? getGroup(nextNeighbor) : null;
+
+  int? newGroup;
+  if (oldGroup != null && (prevGroup == oldGroup || nextGroup == oldGroup)) {
+    newGroup = oldGroup;
+  } else if (prevGroup != null && prevGroup == nextGroup) {
+    newGroup = prevGroup;
+  } else {
+    newGroup = null;
+  }
+
+  remaining.insert(targetIndex, withGroup(moving, newGroup));
+
+  return normalizeListWithSupersets(
+    remaining,
+    getGroup: getGroup,
+    withGroup: withGroup,
+  );
+}
+
+/// Generic normalization of superset groups in a list of items.
+List<T> normalizeListWithSupersets<T>(
+  List<T> items, {
+  required int? Function(T item) getGroup,
+  required T Function(T item, int? group) withGroup,
+}) {
+  final runCountByGroup = <int, int>{};
+  int? previousGroup;
+  for (final item in items) {
+    final group = getGroup(item);
+    if (group != null && group != previousGroup) {
+      runCountByGroup[group] = (runCountByGroup[group] ?? 0) + 1;
+    }
+    previousGroup = group;
+  }
+
+  final memberCountByGroup = <int, int>{};
+  for (final item in items) {
+    final group = getGroup(item);
+    if (group != null) {
+      memberCountByGroup[group] = (memberCountByGroup[group] ?? 0) + 1;
+    }
+  }
+
+  return items.map((item) {
+    final group = getGroup(item);
+    final valid = group == null ||
+        (runCountByGroup[group] == 1 && (memberCountByGroup[group] ?? 0) >= 2);
+    return valid ? item : withGroup(item, null);
+  }).toList();
+}
+
+/// Reorders a single exercise from [oldIndex] to [newIndex], handling superset
+/// preservation, insertion, and cleanup.
+List<RoutineExercise> reorderRoutineExercise(
   List<RoutineExercise> exercises,
   int oldIndex,
   int newIndex,
 ) {
-  if (oldIndex < 0 || oldIndex >= exercises.length || exercises.isEmpty) {
-    return List.of(exercises);
-  }
-  final targetIndex = newIndex.clamp(0, exercises.length - 1);
-  final sourceRange = _groupRangeAt(exercises, oldIndex);
-  if (targetIndex >= sourceRange.$1 && targetIndex <= sourceRange.$2) {
-    return List.of(exercises);
-  }
-  final targetRange = _groupRangeAt(exercises, targetIndex);
-  final moving = exercises.sublist(sourceRange.$1, sourceRange.$2 + 1);
-  final result = List<RoutineExercise>.of(exercises)
-    ..removeRange(sourceRange.$1, sourceRange.$2 + 1);
-
-  final sourceLength = sourceRange.$2 - sourceRange.$1 + 1;
-  final insertionIndex = oldIndex < targetIndex
-      ? targetRange.$2 - sourceLength + 1
-      : targetRange.$1;
-  result.insertAll(insertionIndex.clamp(0, result.length), moving);
-  return normalizeSupersetGroups(result);
+  return reorderWithSupersets<RoutineExercise>(
+    items: exercises,
+    oldIndex: oldIndex,
+    newIndex: newIndex,
+    getGroup: (e) => e.supersetGroup,
+    withGroup: (e, group) => group == null
+        ? e.copyWith(clearSupersetGroup: true)
+        : e.copyWith(supersetGroup: group),
+  );
 }
+
+/// Backwards compatibility alias for [reorderRoutineExercise].
+List<RoutineExercise> moveRoutineExerciseGroup(
+  List<RoutineExercise> exercises,
+  int oldIndex,
+  int newIndex,
+) =>
+    reorderRoutineExercise(exercises, oldIndex, newIndex);
 
 /// Toggles the connection between two adjacent exercises.
 ///

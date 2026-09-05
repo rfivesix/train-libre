@@ -794,7 +794,7 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
 
   void _onReorderItem(int oldIndex, int newIndex) {
     setState(() {
-      _routineExercises = moveRoutineExerciseGroup(
+      _routineExercises = reorderRoutineExercise(
         _routineExercises,
         oldIndex,
         newIndex,
@@ -1007,8 +1007,7 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                                                 _isCardio(routineExercise),
                                             isDragging: true,
                                             isEditMode: _isEditMode,
-                                            canDrag:
-                                                membership?.isFirst ?? true,
+                                            canDrag: true,
                                             showPauseAction:
                                                 membership?.isLast ?? true,
                                             supersetLabel: membership?.label,
@@ -1114,9 +1113,7 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                                                                 _isDragging,
                                                             isEditMode:
                                                                 _isEditMode,
-                                                            canDrag: membership
-                                                                    ?.isFirst ??
-                                                                true,
+                                                            canDrag: true,
                                                             showPauseAction:
                                                                 membership
                                                                         ?.isLast ??

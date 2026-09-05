@@ -502,7 +502,7 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
         vertical: 8.0,
       ),
       leading: null,
-      title: isProxy || (membership != null && !membership.isFirst)
+      title: isProxy
           ? titleContent
           : Listener(
               onPointerDown: (e) =>

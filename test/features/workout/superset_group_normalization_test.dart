@@ -50,17 +50,82 @@ void main() {
     expect(normalized.map((e) => e.supersetGroup), everyElement(isNull));
   });
 
-  test('moves an entire group without splitting the target group', () {
-    final moved = moveRoutineExerciseGroup([
+  test('swaps exercises within a superset and preserves the group', () {
+    final moved = reorderRoutineExercise([
+      exercise(1, 1),
+      exercise(2, 1),
+    ], 0, 1);
+
+    expect(moved.map((e) => e.id), [2, 1]);
+    expect(moved.map((e) => e.supersetGroup), [1, 1]);
+  });
+
+  test('reorders exercises within a triset and preserves the group', () {
+    final moved = reorderRoutineExercise([
+      exercise(1, 1),
+      exercise(2, 1),
+      exercise(3, 1),
+    ], 2, 0);
+
+    expect(moved.map((e) => e.id), [3, 1, 2]);
+    expect(moved.map((e) => e.supersetGroup), [1, 1, 1]);
+  });
+
+  test('moving one exercise out of a 2-exercise superset dissolves it into standalone exercises', () {
+    final moved = reorderRoutineExercise([
       exercise(1, 1),
       exercise(2, 1),
       exercise(3, null),
-      exercise(4, 2),
-      exercise(5, 2),
-    ], 0, 4);
+    ], 0, 2);
 
-    expect(moved.map((e) => e.id), [3, 4, 5, 1, 2]);
-    expect(moved.map((e) => e.supersetGroup), [null, 2, 2, 1, 1]);
+    expect(moved.map((e) => e.id), [2, 3, 1]);
+    expect(moved.map((e) => e.supersetGroup), [null, null, null]);
+  });
+
+  test('moving one exercise out of a triset leaves the remaining pair as a superset', () {
+    final moved = reorderRoutineExercise([
+      exercise(1, 1),
+      exercise(2, 1),
+      exercise(3, 1),
+      exercise(4, null),
+    ], 0, 3);
+
+    expect(moved.map((e) => e.id), [2, 3, 4, 1]);
+    expect(moved.map((e) => e.supersetGroup), [1, 1, null, null]);
+  });
+
+  test('dragging top exercise from first superset to bottom in 4-exercise 2-superset setup', () {
+    final moved = reorderRoutineExercise([
+      exercise(1, 1),
+      exercise(2, 1),
+      exercise(3, 2),
+      exercise(4, 2),
+    ], 0, 3);
+
+    expect(moved.map((e) => e.id), [2, 3, 4, 1]);
+    expect(moved.map((e) => e.supersetGroup), [null, 2, 2, null]);
+  });
+
+  test('inserting an exercise strictly between members of a superset joins that superset', () {
+    final moved = reorderRoutineExercise([
+      exercise(1, null),
+      exercise(2, 5),
+      exercise(3, 5),
+    ], 0, 1);
+
+    expect(moved.map((e) => e.id), [2, 1, 3]);
+    expect(moved.map((e) => e.supersetGroup), [5, 5, 5]);
+  });
+
+  test('dropping an exercise at the outer boundary of a superset does not join it', () {
+    final moved = reorderRoutineExercise([
+      exercise(1, null),
+      exercise(2, 5),
+      exercise(3, 5),
+    ], 0, 2);
+
+    expect(moved.map((e) => e.id), [2, 3, 1]);
+    expect(moved.map((e) => e.supersetGroup), [5, 5, null]);
   });
 
   test('membership labels support trisets', () {

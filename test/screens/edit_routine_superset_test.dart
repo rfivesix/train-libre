@@ -83,7 +83,7 @@ void main() {
     );
     expect(cards.map((card) => card.supersetLabel), ['A1', 'A2', null]);
     expect(cards.map((card) => card.showPauseAction), [false, true, true]);
-    expect(cards.map((card) => card.canDrag), [true, false, true]);
+    expect(cards.map((card) => card.canDrag), [true, true, true]);
 
     await tester.tap(find.byKey(const ValueKey('superset_connector_1')));
     await tester.pumpAndSettle();
@@ -92,6 +92,7 @@ void main() {
     );
     expect(cards.map((card) => card.supersetLabel), ['A1', 'A2', 'A3']);
     expect(cards.map((card) => card.showPauseAction), [false, false, true]);
+    expect(cards.map((card) => card.canDrag), [true, true, true]);
 
     final persisted = await source.getRoutineById(routine.id!);
     expect(persisted!.exercises.map((exercise) => exercise.supersetGroup),

@@ -1163,7 +1163,7 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
   /// `onReorderItem` callback of ReorderableListView (which already accounts
   /// for the removed item — unlike the obsolete `onReorder`).
   Future<void> reorderExercise(int oldIndex, int newIndex) async {
-    _exercises = moveRoutineExerciseGroup(_exercises, oldIndex, newIndex);
+    _exercises = reorderRoutineExercise(_exercises, oldIndex, newIndex);
     await _updateLogOrdersInDatabase();
     notifyListeners();
     // Reordering can change which set is "next" without touching any set.

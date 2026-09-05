@@ -17,6 +17,7 @@ import '../../exercise_catalog/domain/models/exercise.dart';
 import '../domain/models/set_log.dart';
 import '../domain/models/exercise_block_key.dart';
 import '../domain/models/workout_log.dart';
+import '../domain/models/routine_exercise.dart';
 import '../../../services/profile_service.dart';
 import '../../../services/health/workout_heart_rate_models.dart';
 import '../../../services/health/workout_heart_rate_service.dart';
@@ -1515,10 +1516,27 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                                 },
                                 onReorderItem: (int oldIndex, int newIndex) {
                                   setState(() {
-                                    final entries =
-                                        _groupedSets.entries.toList();
-                                    final item = entries.removeAt(oldIndex);
-                                    entries.insert(newIndex, item);
+                                    final entries = reorderWithSupersets<
+                                        MapEntry<ExerciseBlockKey,
+                                            List<SetLog>>>(
+                                      items: _groupedSets.entries.toList(),
+                                      oldIndex: oldIndex,
+                                      newIndex: newIndex,
+                                      getGroup: (entry) => entry.value.isEmpty
+                                          ? null
+                                          : entry.value.first.supersetGroup,
+                                      withGroup: (entry, group) => MapEntry(
+                                        entry.key,
+                                        [
+                                          for (final set in entry.value)
+                                            group == null
+                                                ? set.copyWith(
+                                                    clearSupersetGroup: true)
+                                                : set.copyWith(
+                                                    supersetGroup: group),
+                                        ],
+                                      ),
+                                    );
                                     _groupedSets.clear();
                                     for (var entry in entries) {
                                       _groupedSets[entry.key] = entry.value;
