@@ -103,3 +103,105 @@ List<RoutineExercise> normalizeSupersetGroups(
     return valid ? exercise : exercise.copyWith(clearSupersetGroup: true);
   }).toList();
 }
+
+class SupersetMembership {
+  final int group;
+  final int groupIndex;
+  final int memberIndex;
+  final int memberCount;
+
+  const SupersetMembership({
+    required this.group,
+    required this.groupIndex,
+    required this.memberIndex,
+    required this.memberCount,
+  });
+
+  bool get isFirst => memberIndex == 0;
+  bool get isLast => memberIndex == memberCount - 1;
+  String get label => '${_alphabeticLabel(groupIndex)}${memberIndex + 1}';
+}
+
+SupersetMembership? supersetMembershipAt(
+  List<RoutineExercise> exercises,
+  int index,
+) {
+  if (index < 0 || index >= exercises.length) return null;
+  final group = exercises[index].supersetGroup;
+  if (group == null) return null;
+
+  final groups = <int>[];
+  for (final exercise in exercises) {
+    final current = exercise.supersetGroup;
+    if (current != null && !groups.contains(current)) groups.add(current);
+  }
+
+  var start = index;
+  while (start > 0 && exercises[start - 1].supersetGroup == group) {
+    start--;
+  }
+  var end = index;
+  while (
+      end + 1 < exercises.length && exercises[end + 1].supersetGroup == group) {
+    end++;
+  }
+
+  return SupersetMembership(
+    group: group,
+    groupIndex: groups.indexOf(group),
+    memberIndex: index - start,
+    memberCount: end - start + 1,
+  );
+}
+
+List<RoutineExercise> moveRoutineExerciseGroup(
+  List<RoutineExercise> exercises,
+  int oldIndex,
+  int newIndex,
+) {
+  if (oldIndex < 0 || oldIndex >= exercises.length || exercises.isEmpty) {
+    return List.of(exercises);
+  }
+  final targetIndex = newIndex.clamp(0, exercises.length - 1);
+  final sourceRange = _groupRangeAt(exercises, oldIndex);
+  if (targetIndex >= sourceRange.$1 && targetIndex <= sourceRange.$2) {
+    return List.of(exercises);
+  }
+  final targetRange = _groupRangeAt(exercises, targetIndex);
+  final moving = exercises.sublist(sourceRange.$1, sourceRange.$2 + 1);
+  final result = List<RoutineExercise>.of(exercises)
+    ..removeRange(sourceRange.$1, sourceRange.$2 + 1);
+
+  final sourceLength = sourceRange.$2 - sourceRange.$1 + 1;
+  final insertionIndex = oldIndex < targetIndex
+      ? targetRange.$2 - sourceLength + 1
+      : targetRange.$1;
+  result.insertAll(insertionIndex.clamp(0, result.length), moving);
+  return normalizeSupersetGroups(result);
+}
+
+(int, int) _groupRangeAt(List<RoutineExercise> exercises, int index) {
+  final group = exercises[index].supersetGroup;
+  if (group == null) return (index, index);
+  var start = index;
+  var end = index;
+  while (start > 0 && exercises[start - 1].supersetGroup == group) {
+    start--;
+  }
+  while (
+      end + 1 < exercises.length && exercises[end + 1].supersetGroup == group) {
+    end++;
+  }
+  return (start, end);
+}
+
+String _alphabeticLabel(int index) {
+  var value = index + 1;
+  final buffer = StringBuffer();
+  while (value > 0) {
+    value--;
+    buffer.writeCharCode(65 + value % 26);
+    value ~/= 26;
+  }
+  return buffer.toString().split('').reversed.join();
+}

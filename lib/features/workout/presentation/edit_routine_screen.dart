@@ -152,7 +152,10 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
     sb.write(_nameController.text.trim());
     sb.write('|');
     for (var re in _routineExercises) {
-      sb.write('${re.id}:${re.notes ?? ''}:${re.pauseSeconds ?? ''};');
+      sb.write(
+        '${re.id}:${re.notes ?? ''}:${re.pauseSeconds ?? ''}:'
+        '${re.supersetGroup ?? ''};',
+      );
       for (var st in re.setTemplates) {
         final reps = _repsControllers[st.id]?.text ?? '';
         final weight = _weightControllers[st.id]?.text ?? '';
@@ -559,6 +562,8 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
         exercise: routineExercise.exercise,
         setTemplates: updatedTemplates,
         pauseSeconds: routineExercise.pauseSeconds,
+        supersetGroup: routineExercise.supersetGroup,
+        notes: routineExercise.notes,
       );
       _routineExercises[exerciseIndex] = updatedExercise;
 
@@ -643,12 +648,8 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
       final updatedTemplates = [...routineExercise.setTemplates];
       updatedTemplates[setIndex] = setTemplate.copyWith(setType: newType);
 
-      _routineExercises[reIndex] = RoutineExercise(
-        id: routineExercise.id,
-        exercise: routineExercise.exercise,
-        setTemplates: updatedTemplates,
-        pauseSeconds: routineExercise.pauseSeconds,
-      );
+      _routineExercises[reIndex] =
+          routineExercise.copyWith(setTemplates: updatedTemplates);
     });
   }
 
@@ -793,11 +794,68 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
 
   void _onReorderItem(int oldIndex, int newIndex) {
     setState(() {
-      final RoutineExercise item = _routineExercises.removeAt(oldIndex);
-      _routineExercises.insert(newIndex, item);
+      _routineExercises = moveRoutineExerciseGroup(
+        _routineExercises,
+        oldIndex,
+        newIndex,
+      );
     });
     if (_routineId != null) {
       WorkoutLocalDataSource.instance.updateExerciseOrder(
+        _routineId!,
+        _routineExercises,
+      );
+    }
+    _originalState = _serializeState();
+  }
+
+  Future<void> _toggleSupersetAfter(int upperIndex) async {
+    if (upperIndex < 0 || upperIndex + 1 >= _routineExercises.length) return;
+    // The action writes immediately. Preserve any controller-only edits in the
+    // same transaction boundary before changing the group state.
+    final persisted = await _persistRoutineState();
+    if (!persisted || !mounted) return;
+    final upper = _routineExercises[upperIndex];
+    final lower = _routineExercises[upperIndex + 1];
+    final upperGroup = upper.supersetGroup;
+    final lowerGroup = lower.supersetGroup;
+
+    setState(() {
+      if (upperGroup != null && upperGroup == lowerGroup) {
+        _routineExercises = [
+          for (final exercise in _routineExercises)
+            exercise.supersetGroup == upperGroup
+                ? exercise.copyWith(clearSupersetGroup: true)
+                : exercise,
+        ];
+      } else {
+        final group = upperGroup ??
+            lowerGroup ??
+            (_routineExercises
+                    .map((exercise) => exercise.supersetGroup ?? 0)
+                    .fold<int>(0, (max, value) => value > max ? value : max) +
+                1);
+        final groupsToMerge = <int>{
+          if (upperGroup != null) upperGroup,
+          if (lowerGroup != null) lowerGroup,
+        };
+        _routineExercises = [
+          for (int index = 0; index < _routineExercises.length; index++)
+            if (index == upperIndex || index == upperIndex + 1)
+              _routineExercises[index].copyWith(supersetGroup: group)
+            else if (groupsToMerge.contains(
+              _routineExercises[index].supersetGroup,
+            ))
+              _routineExercises[index].copyWith(supersetGroup: group)
+            else
+              _routineExercises[index],
+        ];
+      }
+      _routineExercises = normalizeSupersetGroups(_routineExercises);
+    });
+
+    if (_routineId != null) {
+      await WorkoutLocalDataSource.instance.updateExerciseOrder(
         _routineId!,
         _routineExercises,
       );
@@ -960,6 +1018,19 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                                             index < _routineExercises.length) {
                                           final routineExercise =
                                               _routineExercises[index];
+                                          final membership =
+                                              supersetMembershipAt(
+                                            _routineExercises,
+                                            index,
+                                          );
+                                          final supersetColor = membership ==
+                                                  null
+                                              ? null
+                                              : DesignConstants.supersetColors[
+                                                  membership.groupIndex %
+                                                      DesignConstants
+                                                          .supersetColors
+                                                          .length];
                                           final proxyChild =
                                               EditRoutineExerciseCard(
                                             routineExercise: routineExercise,
@@ -968,6 +1039,12 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                                                 _isCardio(routineExercise),
                                             isDragging: true,
                                             isEditMode: _isEditMode,
+                                            canDrag:
+                                                membership?.isFirst ?? true,
+                                            showPauseAction:
+                                                membership?.isLast ?? true,
+                                            supersetLabel: membership?.label,
+                                            supersetColor: supersetColor,
                                             repsControllers: _repsControllers,
                                             weightControllers:
                                                 _weightControllers,
@@ -1017,6 +1094,16 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                                             _routineExercises[index];
                                         final bool isCardio =
                                             _isCardio(routineExercise);
+                                        final membership = supersetMembershipAt(
+                                          _routineExercises,
+                                          index,
+                                        );
+                                        final supersetColor = membership == null
+                                            ? null
+                                            : DesignConstants.supersetColors[
+                                                membership.groupIndex %
+                                                    DesignConstants
+                                                        .supersetColors.length];
 
                                         final isDeleting = _deletingExerciseIds
                                             .contains(routineExercise.id);
@@ -1025,74 +1112,142 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                                           key: _scrollAnchor.keyFor(
                                             routineExercise.id ?? index,
                                           ),
-                                          child: AnimatedSize(
-                                            duration:
-                                                kReorderCardResizeDuration,
-                                            curve: Curves.easeInOutCubic,
-                                            alignment: Alignment.topCenter,
-                                            child: isDeleting
-                                                ? const SizedBox(
-                                                    width: double.infinity,
-                                                    height: 0)
-                                                : AnimatedOpacity(
-                                                    duration: const Duration(
-                                                        milliseconds: 180),
-                                                    curve: Curves.easeOut,
-                                                    opacity:
-                                                        isDeleting ? 0.0 : 1.0,
-                                                    child: RepaintBoundary(
-                                                      key: ValueKey(
-                                                          routineExercise.id),
-                                                      child:
-                                                          EditRoutineExerciseCard(
-                                                        routineExercise:
-                                                            routineExercise,
-                                                        index: index,
-                                                        isCardio: isCardio,
-                                                        isDragging: _isDragging,
-                                                        isEditMode: _isEditMode,
-                                                        onPointerDown: (e) =>
-                                                            _onDragPointerDown(
-                                                                e,
-                                                                routineExercise
-                                                                        .id ??
-                                                                    index,
-                                                                index),
-                                                        onPointerMove:
-                                                            _onDragPointerMove,
-                                                        onPointerUp:
-                                                            _onDragPointerUp,
-                                                        onPointerCancel:
-                                                            _onDragPointerCancel,
-                                                        repsControllers:
-                                                            _repsControllers,
-                                                        weightControllers:
-                                                            _weightControllers,
-                                                        rirControllers:
-                                                            _rirControllers,
-                                                        onEditNotes: () =>
-                                                            _editExerciseNotes(
-                                                                context,
-                                                                routineExercise),
-                                                        onEditPauseTime: () =>
-                                                            _editPauseTime(
-                                                                routineExercise),
-                                                        onDeleteExercise: () =>
-                                                            _deleteSingleExercise(
-                                                                routineExercise),
-                                                        onAddSet: () => _addSet(
-                                                            routineExercise),
-                                                        onShowSetTypePicker:
-                                                            _showSetTypePicker,
-                                                        onRemoveSet: (template,
-                                                                listIndex) =>
-                                                            _removeSet(
+                                          child: Column(
+                                            children: [
+                                              AnimatedSize(
+                                                duration:
+                                                    kReorderCardResizeDuration,
+                                                curve: Curves.easeInOutCubic,
+                                                alignment: Alignment.topCenter,
+                                                child: isDeleting
+                                                    ? const SizedBox(
+                                                        width: double.infinity,
+                                                        height: 0)
+                                                    : AnimatedOpacity(
+                                                        duration:
+                                                            const Duration(
+                                                                milliseconds:
+                                                                    180),
+                                                        curve: Curves.easeOut,
+                                                        opacity: isDeleting
+                                                            ? 0.0
+                                                            : 1.0,
+                                                        child: RepaintBoundary(
+                                                          key: ValueKey(
+                                                              routineExercise
+                                                                  .id),
+                                                          child:
+                                                              EditRoutineExerciseCard(
+                                                            routineExercise:
                                                                 routineExercise,
-                                                                template.id!,
-                                                                listIndex),
+                                                            index: index,
+                                                            isCardio: isCardio,
+                                                            isDragging:
+                                                                _isDragging,
+                                                            isEditMode:
+                                                                _isEditMode,
+                                                            canDrag: membership
+                                                                    ?.isFirst ??
+                                                                true,
+                                                            showPauseAction:
+                                                                membership
+                                                                        ?.isLast ??
+                                                                    true,
+                                                            supersetLabel:
+                                                                membership
+                                                                    ?.label,
+                                                            supersetColor:
+                                                                supersetColor,
+                                                            onPointerDown: (e) =>
+                                                                _onDragPointerDown(
+                                                                    e,
+                                                                    routineExercise
+                                                                            .id ??
+                                                                        index,
+                                                                    index),
+                                                            onPointerMove:
+                                                                _onDragPointerMove,
+                                                            onPointerUp:
+                                                                _onDragPointerUp,
+                                                            onPointerCancel:
+                                                                _onDragPointerCancel,
+                                                            repsControllers:
+                                                                _repsControllers,
+                                                            weightControllers:
+                                                                _weightControllers,
+                                                            rirControllers:
+                                                                _rirControllers,
+                                                            onEditNotes: () =>
+                                                                _editExerciseNotes(
+                                                                    context,
+                                                                    routineExercise),
+                                                            onEditPauseTime: () =>
+                                                                _editPauseTime(
+                                                                    routineExercise),
+                                                            onDeleteExercise: () =>
+                                                                _deleteSingleExercise(
+                                                                    routineExercise),
+                                                            onAddSet: () => _addSet(
+                                                                routineExercise),
+                                                            onShowSetTypePicker:
+                                                                _showSetTypePicker,
+                                                            onRemoveSet: (template,
+                                                                    listIndex) =>
+                                                                _removeSet(
+                                                                    routineExercise,
+                                                                    template
+                                                                        .id!,
+                                                                    listIndex),
+                                                          ),
+                                                        ),
+                                                      ),
+                                              ),
+                                              if (_isEditMode &&
+                                                  index + 1 <
+                                                      _routineExercises.length)
+                                                SizedBox(
+                                                  height: 36,
+                                                  child: Center(
+                                                    child: IconButton(
+                                                      key: ValueKey(
+                                                        'superset_connector_$index',
+                                                      ),
+                                                      visualDensity:
+                                                          VisualDensity.compact,
+                                                      tooltip: routineExercise
+                                                                      .supersetGroup !=
+                                                                  null &&
+                                                              routineExercise
+                                                                      .supersetGroup ==
+                                                                  _routineExercises[
+                                                                          index +
+                                                                              1]
+                                                                      .supersetGroup
+                                                          ? l10n
+                                                              .disconnectSuperset
+                                                          : l10n
+                                                              .connectSuperset,
+                                                      icon: Icon(
+                                                        routineExercise.supersetGroup !=
+                                                                    null &&
+                                                                routineExercise
+                                                                        .supersetGroup ==
+                                                                    _routineExercises[
+                                                                            index +
+                                                                                1]
+                                                                        .supersetGroup
+                                                            ? Icons.link_off
+                                                            : Icons.link,
+                                                        size: 20,
+                                                      ),
+                                                      onPressed: () =>
+                                                          _toggleSupersetAfter(
+                                                        index,
                                                       ),
                                                     ),
                                                   ),
+                                                ),
+                                            ],
                                           ),
                                         );
                                       },

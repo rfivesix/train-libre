@@ -29,6 +29,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get removeTimer => 'タイマーを削除';
 
   @override
+  String get connectSuperset => 'スーパーセットとして連結';
+
+  @override
+  String get disconnectSuperset => 'スーパーセットを解除';
+
+  @override
   String get noTimerLabel => 'タイマーなし';
 
   @override

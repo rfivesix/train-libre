@@ -29,6 +29,12 @@ class AppLocalizationsDe extends AppLocalizations {
   String get removeTimer => 'Timer entfernen';
 
   @override
+  String get connectSuperset => 'Als Supersatz verbinden';
+
+  @override
+  String get disconnectSuperset => 'Supersatz auflösen';
+
+  @override
   String get noTimerLabel => 'Kein Timer';
 
   @override

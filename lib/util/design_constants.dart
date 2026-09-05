@@ -299,6 +299,15 @@ class DesignConstants {
   /// Chosen for maximum visual impact: vivid, warm, and unmistakably urgent.
   static const Color brandRedColor = Color(0xFFE5253A);
 
+  /// Repeating accents used to visually bracket superset exercise cards.
+  static const List<Color> supersetColors = [
+    Color(0xFF6DC8D9),
+    Color(0xFFE88DCC),
+    Color(0xFFF4A77A),
+    Color(0xFF7DDEAE),
+    Color(0xFFF7D06B),
+  ];
+
   /// The standard colors used for AI-related gradients and accents.
   static const List<Color> aiGradientColors = [
     Color(0xFFE88DCC),

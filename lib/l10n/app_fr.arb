@@ -13,6 +13,8 @@
     }
   },
   "removeTimer": "Supprimer le minuteur",
+  "connectSuperset": "Relier en superset",
+  "disconnectSuperset": "Dissoudre le superset",
   "noTimerLabel": "Aucun minuteur",
   "appTitle": "Train Libre",
   "bannerText": "Recommandation / Entraînement actuel",

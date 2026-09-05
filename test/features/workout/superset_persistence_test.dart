@@ -51,6 +51,27 @@ void main() {
     expect(duplicate!.exercises.map((e) => e.supersetGroup), [1, 1]);
   });
 
+  test('deleting from a pair dissolves the remaining singleton', () async {
+    final database = db.AppDatabase(NativeDatabase.memory());
+    addTearDown(database.close);
+    final source = WorkoutLocalDataSource.forTesting(database);
+    await insertExercise(database, 'exercise-a', 'Exercise A');
+    await insertExercise(database, 'exercise-b', 'Exercise B');
+
+    final routine = await source.createRoutine('Pair');
+    final a = await source.addExerciseToRoutine(routine.id!, 1);
+    final b = await source.addExerciseToRoutine(routine.id!, 2);
+    await source.updateExerciseOrder(routine.id!, [
+      a!.copyWith(supersetGroup: 1),
+      b!.copyWith(supersetGroup: 1),
+    ]);
+
+    await source.removeExerciseFromRoutine(a.id!);
+
+    final loaded = await source.getRoutineById(routine.id!);
+    expect(loaded!.exercises.single.supersetGroup, isNull);
+  });
+
   test('migration 28 to 29 retains rows and initializes groups to null',
       () async {
     final dir = await Directory.systemTemp.createTemp('superset_migration');

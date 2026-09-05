@@ -49,4 +49,30 @@ void main() {
 
     expect(normalized.map((e) => e.supersetGroup), everyElement(isNull));
   });
+
+  test('moves an entire group without splitting the target group', () {
+    final moved = moveRoutineExerciseGroup([
+      exercise(1, 1),
+      exercise(2, 1),
+      exercise(3, null),
+      exercise(4, 2),
+      exercise(5, 2),
+    ], 0, 4);
+
+    expect(moved.map((e) => e.id), [3, 4, 5, 1, 2]);
+    expect(moved.map((e) => e.supersetGroup), [null, 2, 2, 1, 1]);
+  });
+
+  test('membership labels support trisets', () {
+    final exercises = [
+      exercise(1, 3),
+      exercise(2, 3),
+      exercise(3, 3),
+    ];
+
+    expect(supersetMembershipAt(exercises, 0)!.label, 'A1');
+    expect(supersetMembershipAt(exercises, 1)!.label, 'A2');
+    expect(supersetMembershipAt(exercises, 2)!.label, 'A3');
+    expect(supersetMembershipAt(exercises, 2)!.isLast, isTrue);
+  });
 }

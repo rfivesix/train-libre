@@ -13,6 +13,8 @@
     }
   },
   "removeTimer": "Timer entfernen",
+  "connectSuperset": "Als Supersatz verbinden",
+  "disconnectSuperset": "Supersatz auflösen",
   "noTimerLabel": "Kein Timer",
   "appTitle": "Train Libre",
   "bannerText": "Empfehlung / Aktuelles Workout",
