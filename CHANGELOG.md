@@ -4,10 +4,13 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.3.0-alpha.2] - 2026-09-05
+### Added
+- **Diary Weight Entry (`WeightCard`, `WeightRuler`):** Add weight directly below supplements with an animated inline ruler, explicit save/cancel, metric or imperial display, and kilogram-only persistence. Empty diaries retain access to weight entry. The latest daily measurement links to the existing measurements history; all new text is available in German, English, French, Italian and Japanese.
+- 
 ## [1.3.0-alpha.1] - 2026-09-05
 
 ### Added
-- **Diary Weight Entry (`WeightCard`, `WeightRuler`):** Add weight directly below supplements with an animated inline ruler, explicit save/cancel, metric or imperial display, and kilogram-only persistence. Empty diaries retain access to weight entry. The latest daily measurement links to the existing measurements history; all new text is available in German, English, French, Italian and Japanese.
 - **Extended Exercise Filters (`ExerciseCatalogScreen`, `ExerciseFilterSheet`):** Filter exercises by primary equipment, usage, mechanics, laterality and difficulty alongside body region. Each section uses a compact multi-select dropdown with localized labels and a shared reset action. Filters also apply when selecting exercises for routines or a running workout.
 - **Exercise Classification Details (`ExerciseClassificationLabels`):** Exercise details now display readable labels for mechanics, laterality, difficulty, usage, movement pattern and force vector, translated into English, German, French, Italian and Japanese.
 - **Experimental Experience Levels (`ExperienceLevelService`, `DeveloperSettingsScreen`):** Added Beginner, Advanced and Pro presentation modes, selectable under Developer Settings. Beginner and Advanced use broader muscle names and hide the RIR/intensity column; Pro retains the detailed presentation and remains the default. The choice persists across launches. Performance diagnostics now live in the same Developer Settings screen; onboarding for experience levels is not part of this alpha.
