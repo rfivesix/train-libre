@@ -40,6 +40,12 @@ class _WeightCardState extends State<WeightCard>
   bool _saving = false;
   bool _saveFailed = false;
 
+  /// Days without a weigh-in after which the card nudges again. Kept well
+  /// below the recommendation engine's `sparse_weight_logs` threshold (fewer
+  /// than 3 entries in 21 days), so following the nudge keeps the estimate out
+  /// of the sparse bucket with room to spare.
+  static const int _staleNudgeAfterDays = 5;
+
   ProfileLocalDataSource get _source =>
       widget.dataSource ?? ProfileLocalDataSource.instance;
 
@@ -192,18 +198,24 @@ class _WeightCardState extends State<WeightCard>
         : rounded >= 35 && rounded <= 250;
     final number = NumberFormat('0.0', locale).format(rounded);
     final unit = units.suffixFor(UnitDimension.weight);
+    final daysSinceLatest = latest == null
+        ? null
+        : DateTime.utc(_day.year, _day.month, _day.day)
+            .difference(DateTime.utc(
+                latest.date.year, latest.date.month, latest.date.day))
+            .inDays;
     final age = latest == null
         ? ''
         : logged
             ? (DateUtils.isSameDay(_day, DateTime.now())
                 ? l10n.diaryWeightToday
                 : DateFormat.MMMd(locale).format(_day))
-            : l10n.diaryWeightDaysAgo(
-                DateTime.utc(_day.year, _day.month, _day.day)
-                    .difference(DateTime.utc(
-                        latest.date.year, latest.date.month, latest.date.day))
-                    .inDays,
-              );
+            : l10n.diaryWeightDaysAgo(daysSinceLatest!);
+    // The onboarding weigh-in alone would silence the pitch forever, so keep
+    // nudging once the trend data goes stale.
+    final isStale = !open &&
+        daysSinceLatest != null &&
+        daysSinceLatest >= _staleNudgeAfterDays;
     final secondaryTextColor = cs.onSurface.withValues(alpha: .64);
     final label = Text(
       l10n.diaryWeightLabel,
@@ -352,6 +364,15 @@ class _WeightCardState extends State<WeightCard>
                       else if (triggerP > 0)
                         trigger(false),
                     ]),
+                    if (isStale) ...[
+                      const SizedBox(height: DesignConstants.spacingS),
+                      Text(
+                        l10n.diaryWeightStaleNudge,
+                        key: const ValueKey('weight-stale-nudge'),
+                        style: theme.textTheme.bodySmall
+                            ?.copyWith(height: 1.35, color: secondaryTextColor),
+                      ),
+                    ],
                     if (open && stackActions) ...[
                       const SizedBox(height: DesignConstants.spacingS),
                       Align(alignment: Alignment.centerRight, child: actions),

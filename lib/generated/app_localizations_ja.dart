@@ -6410,6 +6410,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get diaryWeightPitch => '体重の記録を続けると推奨カロリーがより正確になります';
 
   @override
+  String get diaryWeightStaleNudge => 'しばらく記録がありません。定期的な記録で推奨カロリーの精度を保てます';
+
+  @override
   String get diaryWeightLog => '記録';
 
   @override

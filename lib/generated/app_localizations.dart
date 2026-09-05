@@ -11611,6 +11611,12 @@ abstract class AppLocalizations {
   /// **'Your calorie target gets more accurate with a weight history'**
   String get diaryWeightPitch;
 
+  /// No description provided for @diaryWeightStaleNudge.
+  ///
+  /// In en, this message translates to:
+  /// **'It has been a while – regular entries keep your calorie target accurate'**
+  String get diaryWeightStaleNudge;
+
   /// No description provided for @diaryWeightLog.
   ///
   /// In en, this message translates to:

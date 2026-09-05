@@ -2903,6 +2903,7 @@
   "experienceLevelProDescription": "RIR とカーディオ強度を表示し、筋肉は正確な解剖学的名称のままになります。",
   "diaryWeightLabel": "体重",
   "diaryWeightPitch": "体重の記録を続けると推奨カロリーがより正確になります",
+  "diaryWeightStaleNudge": "しばらく記録がありません。定期的な記録で推奨カロリーの精度を保てます",
   "diaryWeightLog": "記録",
   "diaryWeightLogLong": "体重を記録",
   "diaryWeightDaysAgo": "{days}日前",

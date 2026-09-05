@@ -2901,6 +2901,7 @@
   "experienceLevelProDescription": "RIR und Cardio-Intensität werden angezeigt, Muskeln behalten ihre genauen anatomischen Bezeichnungen.",
   "diaryWeightLabel": "Gewicht",
   "diaryWeightPitch": "Mit deinem Gewichtsverlauf wird deine Kalorienempfehlung genauer",
+  "diaryWeightStaleNudge": "Länger nicht gewogen – regelmäßige Einträge halten deine Kalorienempfehlung genau",
   "diaryWeightLog": "Eintragen",
   "diaryWeightLogLong": "Gewicht eintragen",
   "diaryWeightDaysAgo": "{days, plural, =1{vor 1 Tag} other{vor {days} Tagen}}",

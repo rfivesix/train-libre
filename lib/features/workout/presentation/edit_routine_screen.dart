@@ -771,6 +771,12 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
     );
 
     if (confirmed && _routineId != null) {
+      // Deleting reloads the routine from the DB, so any edits that only live
+      // in the text controllers (or freshly added sets) would be thrown away.
+      // Persist them first and abort the delete if that fails.
+      final persisted = await _persistRoutineState();
+      if (!persisted || !mounted) return;
+
       final id = ex.id;
       if (id != null) {
         HapticFeedbackService.instance.selectionFeedback();

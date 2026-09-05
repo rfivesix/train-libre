@@ -3095,6 +3095,7 @@
   "experienceLevelProDescription": "RIR and cardio intensity are shown, and muscles keep their precise anatomical names.",
   "diaryWeightLabel": "Weight",
   "diaryWeightPitch": "Your calorie target gets more accurate with a weight history",
+  "diaryWeightStaleNudge": "It has been a while – regular entries keep your calorie target accurate",
   "diaryWeightLog": "Log",
   "diaryWeightLogLong": "Log weight",
   "diaryWeightDaysAgo": "{days, plural, =1{1 day ago} other{{days} days ago}}",

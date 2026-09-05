@@ -6675,6 +6675,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Mit deinem Gewichtsverlauf wird deine Kalorienempfehlung genauer';
 
   @override
+  String get diaryWeightStaleNudge =>
+      'Länger nicht gewogen – regelmäßige Einträge halten deine Kalorienempfehlung genau';
+
+  @override
   String get diaryWeightLog => 'Eintragen';
 
   @override

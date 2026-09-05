@@ -6732,6 +6732,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Votre historique de poids rend votre recommandation calorique plus précise';
 
   @override
+  String get diaryWeightStaleNudge =>
+      'Cela fait un moment – des saisies régulières gardent votre recommandation calorique précise';
+
+  @override
   String get diaryWeightLog => 'Ajouter';
 
   @override

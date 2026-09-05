@@ -419,6 +419,46 @@ void main() {
     semantics.dispose();
   });
 
+  cardTest('a recent weigh-in keeps the stale nudge hidden', (tester) async {
+    await seed(tester, 84.2, today.subtract(const Duration(days: 4)));
+    await mount(tester);
+    expect(find.byKey(const ValueKey('weight-value')), findsOneWidget);
+    expect(find.byKey(const ValueKey('weight-stale-nudge')), findsNothing);
+  });
+
+  cardTest('five days without a weigh-in nudges next to the value',
+      (tester) async {
+    await seed(tester, 84.2, today.subtract(const Duration(days: 5)));
+    await mount(tester);
+    // The nudge is additive: the last known weight stays visible.
+    expect(find.byKey(const ValueKey('weight-value')), findsOneWidget);
+    expect(find.text('vor 5 Tagen'), findsOneWidget);
+    expect(find.byKey(const ValueKey('weight-stale-nudge')), findsOneWidget);
+    await capture(tester, 'stale');
+  });
+
+  cardTest('logging today clears the stale nudge', (tester) async {
+    await seed(tester, 84.2, today.subtract(const Duration(days: 9)));
+    await mount(tester);
+    expect(find.byKey(const ValueKey('weight-stale-nudge')), findsOneWidget);
+    await tester.tap(find.text('Eintragen'));
+    await tester.pumpAndSettle();
+    // The ruler replaces the nudge while the editor is open.
+    expect(find.byKey(const ValueKey('weight-stale-nudge')), findsNothing);
+    await save(tester);
+    expect(find.byKey(const ValueKey('weight-stale-nudge')), findsNothing);
+    expect(find.text('heute'), findsOneWidget);
+  });
+
+  for (final language in ['de', 'en', 'fr', 'it', 'ja']) {
+    cardTest('$language narrow stale nudge has no overflow', (tester) async {
+      await seed(tester, 84.2, today.subtract(const Duration(days: 7)));
+      await mount(tester, width: 320, textScale: 1.5, language: language);
+      expect(find.byKey(const ValueKey('weight-stale-nudge')), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+  }
+
   for (final language in ['de', 'en', 'fr', 'it', 'ja']) {
     for (final brightness in Brightness.values) {
       cardTest('$language $brightness narrow imperial layout has no overflow',

@@ -6623,6 +6623,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Your calorie target gets more accurate with a weight history';
 
   @override
+  String get diaryWeightStaleNudge =>
+      'It has been a while – regular entries keep your calorie target accurate';
+
+  @override
   String get diaryWeightLog => 'Log';
 
   @override

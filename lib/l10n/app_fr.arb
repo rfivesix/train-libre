@@ -2903,6 +2903,7 @@
   "experienceLevelProDescription": "Le RIR et l’intensité cardio sont affichés, et les muscles conservent leurs noms anatomiques précis.",
   "diaryWeightLabel": "Poids",
   "diaryWeightPitch": "Votre historique de poids rend votre recommandation calorique plus précise",
+  "diaryWeightStaleNudge": "Cela fait un moment – des saisies régulières gardent votre recommandation calorique précise",
   "diaryWeightLog": "Ajouter",
   "diaryWeightLogLong": "Ajouter un poids",
   "diaryWeightDaysAgo": "{days, plural, =1{il y a 1 jour} other{il y a {days} jours}}",
