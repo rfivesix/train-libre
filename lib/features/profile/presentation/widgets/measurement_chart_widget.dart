@@ -327,6 +327,31 @@ class _MeasurementChartWidgetState extends State<MeasurementChartWidget> {
     final double yMin = minVal - yPadding;
     final double yMax = maxVal + yPadding;
 
+    final List<FlSpot> spots = _dataPoints
+        .map((point) => FlSpot(xForPoint(point), _displayValue(point.value)))
+        .toList();
+    // Resolved once per build: `bar.spots.indexOf(spot)` inside `checkToShowDot`
+    // is called for every spot on every frame, so it turns a drag along the
+    // chart into O(n^2) work.
+    final FlSpot? touchedSpot = (_touchedIndex != null &&
+            _touchedIndex! >= 0 &&
+            _touchedIndex! < spots.length)
+        ? spots[_touchedIndex!]
+        : null;
+
+    // Built once instead of per axis label: 24 Shadow objects per title add up
+    // fast on a long axis.
+    final Color axisLabelBackground = Theme.of(context).scaffoldBackgroundColor;
+    final List<Shadow> hardShadows = [
+      for (final dx in <double>[-2, -1, 0, 1, 2])
+        for (final dy in <double>[-2, -1, 0, 1, 2])
+          if (dx != 0 || dy != 0)
+            Shadow(
+                color: axisLabelBackground,
+                offset: Offset(dx, dy),
+                blurRadius: 0),
+    ];
+
     final chartWidget = SizedBox(
       height: 250,
       child: Column(
@@ -407,17 +432,6 @@ class _MeasurementChartWidgetState extends State<MeasurementChartWidget> {
                       showTitles: true,
                       reservedSize: widget.edgeToEdge ? 40 : 56,
                       getTitlesWidget: (value, meta) {
-                        final bgColor =
-                            Theme.of(context).scaffoldBackgroundColor;
-                        final hardShadows = [
-                          for (final dx in <double>[-2, -1, 0, 1, 2])
-                            for (final dy in <double>[-2, -1, 0, 1, 2])
-                              if (dx != 0 || dy != 0)
-                                Shadow(
-                                    color: bgColor,
-                                    offset: Offset(dx, dy),
-                                    blurRadius: 0),
-                        ];
                         final textWidget = Text(
                           value.toStringAsFixed(0),
                           style:
@@ -447,7 +461,14 @@ class _MeasurementChartWidgetState extends State<MeasurementChartWidget> {
                     sideTitles: SideTitles(
                       showTitles: true,
                       reservedSize: 42,
-                      interval: 1,
+                      // fl_chart materialises one widget per axis step between
+                      // minX and maxX. With `interval: 1` a chart in `time`
+                      // mode asks for a widget per minute — tens of thousands
+                      // of them for a month-wide range, which blocks the UI
+                      // isolate for seconds. Stepping by the interval that is
+                      // actually labelled yields the same labels (fl_chart adds
+                      // minX and maxX itself) for a handful of widgets.
+                      interval: labelEvery.toDouble(),
                       getTitlesWidget: (value, meta) {
                         final int v = value.round();
                         if (v < 0 || v > spanUnits) {
@@ -485,14 +506,7 @@ class _MeasurementChartWidgetState extends State<MeasurementChartWidget> {
                 ),
                 lineBarsData: [
                   LineChartBarData(
-                    spots: _dataPoints
-                        .map(
-                          (point) => FlSpot(
-                            xForPoint(point),
-                            _displayValue(point.value),
-                          ),
-                        )
-                        .toList(),
+                    spots: spots,
                     isCurved: true,
                     curveSmoothness: 0.05,
                     color: Theme.of(context).colorScheme.primary,
@@ -500,11 +514,8 @@ class _MeasurementChartWidgetState extends State<MeasurementChartWidget> {
                     isStrokeCapRound: true,
                     dotData: FlDotData(
                       show: true,
-                      checkToShowDot: (spot, bar) {
-                        if (_touchedIndex == null) return false;
-                        final idx = bar.spots.indexOf(spot);
-                        return idx == _touchedIndex;
-                      },
+                      checkToShowDot: (spot, bar) =>
+                          touchedSpot != null && spot == touchedSpot,
                       getDotPainter: (spot, percent, bar, index) =>
                           FlDotCirclePainter(
                         radius: 6,
