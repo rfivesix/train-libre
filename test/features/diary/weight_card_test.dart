@@ -199,8 +199,9 @@ void main() {
         label.style?.fontSize,
         Theme.of(tester.element(find.byType(WeightCard)))
             .textTheme
-            .bodyMedium
+            .titleMedium
             ?.fontSize);
+    expect(label.style?.color, colorScheme.onSurface);
     expect(
         value.style?.fontSize,
         Theme.of(tester.element(find.byType(WeightCard)))
@@ -208,7 +209,9 @@ void main() {
             .titleLarge
             ?.fontSize);
     expect(value.style?.color, colorScheme.onSurface);
-    expect(unit.style?.color, colorScheme.onSurface.withValues(alpha: .64));
+    expect(unit.style?.fontSize, value.style?.fontSize);
+    expect(unit.style?.fontWeight, value.style?.fontWeight);
+    expect(unit.style?.color, value.style?.color);
     final chevron = tester.widget<Icon>(find.byIcon(LucideIcons.chevron_right));
     expect(chevron.size, isNull);
     expect(chevron.color, colorScheme.onSurface);

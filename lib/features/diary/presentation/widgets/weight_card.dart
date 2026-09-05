@@ -207,10 +207,14 @@ class _WeightCardState extends State<WeightCard>
     final secondaryTextColor = cs.onSurface.withValues(alpha: .64);
     final label = Text(
       l10n.diaryWeightLabel,
-      style: theme.textTheme.bodyMedium?.copyWith(
-        color: secondaryTextColor,
-        fontWeight: FontWeight.w500,
+      style: theme.textTheme.titleMedium?.copyWith(
+        color: cs.onSurface,
       ),
+    );
+    final valueStyle = theme.textTheme.titleLarge?.copyWith(
+      fontWeight: FontWeight.bold,
+      color: cs.onSurface,
+      fontFeatures: const [FontFeature.tabularFigures()],
     );
     Widget valueColumn = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -222,17 +226,8 @@ class _WeightCardState extends State<WeightCard>
           crossAxisAlignment: WrapCrossAlignment.center,
           children: [
             Text(number,
-                key: const ValueKey('weight-value'),
-                style: theme.textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: cs.onSurface,
-                  fontFeatures: const [FontFeature.tabularFigures()],
-                )),
-            Text(unit,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: secondaryTextColor,
-                  fontWeight: FontWeight.w600,
-                )),
+                key: const ValueKey('weight-value'), style: valueStyle),
+            Text(unit, style: valueStyle),
             if (!open)
               Text(age,
                   style: theme.textTheme.bodySmall

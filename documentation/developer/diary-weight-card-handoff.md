@@ -57,8 +57,11 @@ und `weight_ruler.dart` lautet:
 - Die Gewichtsnummer verwendet exakt `textTheme.titleLarge` mit fetter Schrift
   und `colorScheme.onSurface`, so wie der Schlaf-Score im Diary. Sie bleibt in
   allen Zuständen gleich groß.
-- Das Label verwendet `bodyMedium` mit mittlerer Stärke.
-- Sekundäre Texte (Einheit, Alter, Beschreibung, Abbrechen) verwenden
+- Das Label verwendet wie die übrigen Diary-Kartentitel `titleMedium` in
+  `colorScheme.onSurface`.
+- Die Einheit verwendet denselben `titleLarge`-Stil, dieselbe Stärke und Farbe
+  wie die Gewichtszahl.
+- Sekundäre Texte (Alter, Beschreibung, Abbrechen) verwenden
   ein einheitliches `onSurface` mit 64 % Deckkraft.
 - Der Chevron übernimmt die Standardgröße und harte `onSurface`-Farbe der
   bestehenden Workout-Karte.
