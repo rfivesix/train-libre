@@ -601,6 +601,8 @@ void main() {
                 restTimeSeconds: 180,
                 isCompleted: false,
                 logOrder: 2,
+                exerciseBlock: 4,
+                supersetGroup: 3,
                 notes: 'paused reps',
                 distanceKm: 0.1,
                 durationSeconds: 75,
@@ -618,11 +620,54 @@ void main() {
       expect(set.restTimeSeconds, 180);
       expect(set.isCompleted, isFalse);
       expect(set.logOrder, 2);
+      expect(set.exerciseBlock, 4);
+      expect(set.supersetGroup, 3);
       expect(set.notes, 'paused reps');
       expect(set.distance, closeTo(0.1, 0.0001));
       expect(set.durationSeconds, 75);
       expect(set.rpe, 9);
       expect(set.rir, 1);
+    });
+
+    test('backup round-trip preserves exercise blocks and superset snapshots',
+        () async {
+      await workoutDb.importWorkoutData(
+        routines: const [],
+        workoutLogs: [
+          WorkoutLog(
+            routineName: 'Upper',
+            startTime: DateTime(2026, 4, 3, 8),
+            endTime: DateTime(2026, 4, 3, 9),
+            sets: [
+              SetLog(
+                workoutLogId: 1,
+                exerciseName: 'Bench Press',
+                setType: 'normal',
+                exerciseBlock: 0,
+                supersetGroup: 9,
+                logOrder: 0,
+              ),
+              SetLog(
+                workoutLogId: 1,
+                exerciseName: 'Row',
+                setType: 'normal',
+                exerciseBlock: 1,
+                supersetGroup: 9,
+                logOrder: 1,
+              ),
+            ],
+          ),
+        ],
+      );
+
+      final payload = await backupManager.generateBackupPayloadForTesting();
+      final imported =
+          await backupManager.importBackupPayloadForTesting(payload);
+
+      expect(imported, isTrue);
+      final restored = await db.select(db.setLogs).get();
+      expect(restored.map((set) => set.exerciseBlock), [0, 1]);
+      expect(restored.map((set) => set.supersetGroup), [9, 9]);
     });
 
     test(

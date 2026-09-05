@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 
 import '../exercise_catalog/domain/models/exercise.dart';
 import '../workout/domain/models/set_log.dart';
+import '../workout/domain/models/exercise_block_key.dart';
 import '../workout/domain/models/workout_log.dart';
 import 'share_labels.dart';
 import 'share_set_type.dart';
@@ -52,8 +53,12 @@ class WorkoutShareFormatter {
     }
     buffer.writeln();
 
-    for (final entry in exerciseGroups.entries) {
-      buffer.writeln(_exerciseName(entry.key));
+    final entries = exerciseGroups.entries.toList();
+    for (var entryIndex = 0; entryIndex < entries.length; entryIndex++) {
+      final entry = entries[entryIndex];
+      final label = _supersetLabelAt(entries, entryIndex);
+      final prefix = label == null ? '' : '$label · ';
+      buffer.writeln('$prefix${_exerciseName(entry.key.exerciseName)}');
       for (var index = 0; index < entry.value.length; index += 1) {
         buffer.writeln(
           '${labels.setNumber(index + 1)}: ${_formatSetLine(entry.value[index])}',
@@ -88,7 +93,7 @@ class WorkoutShareFormatter {
     final groups = _groupByExercise(_completedSets(workout));
     return groups.entries.take(visibleExerciseLimit).map((entry) {
       return WorkoutShareExerciseSummary(
-        name: _exerciseName(entry.key),
+        name: _exerciseName(entry.key.exerciseName),
         detail: '${entry.value.length}x',
       );
     }).toList(growable: false);
@@ -105,7 +110,7 @@ class WorkoutShareFormatter {
         (sum, set) => sum + ((set.weightKg ?? 0) * (set.reps ?? 0)),
       );
       return WorkoutShareExerciseSummary(
-        name: _exerciseName(entry.key),
+        name: _exerciseName(entry.key.exerciseName),
         detail: volume > 0 ? _formatWeight(volume) : '${entry.value.length}x',
       );
     }).toList()
@@ -210,8 +215,8 @@ class WorkoutShareFormatter {
     return _formatMinutes(duration);
   }
 
-  Map<String, List<SetLog>> _groupByExercise(List<SetLog> sets) {
-    final groups = <String, List<SetLog>>{};
+  Map<ExerciseBlockKey, List<SetLog>> _groupByExercise(List<SetLog> sets) {
+    final groups = <ExerciseBlockKey, List<SetLog>>{};
     final sorted = [...sets]..sort((a, b) {
         final order = (a.logOrder ?? 0).compareTo(b.logOrder ?? 0);
         return order != 0 ? order : a.exerciseName.compareTo(b.exerciseName);
@@ -219,9 +224,49 @@ class WorkoutShareFormatter {
     for (final set in sorted) {
       final exerciseName = set.exerciseName.trim();
       if (exerciseName.isEmpty) continue;
-      groups.putIfAbsent(exerciseName, () => <SetLog>[]).add(set);
+      final key = ExerciseBlockKey(
+        exerciseBlock: set.exerciseBlock,
+        exerciseName: exerciseName,
+      );
+      groups.putIfAbsent(key, () => <SetLog>[]).add(set);
     }
     return groups;
+  }
+
+  String? _supersetLabelAt(
+    List<MapEntry<ExerciseBlockKey, List<SetLog>>> entries,
+    int index,
+  ) {
+    final groups = [
+      for (final entry in entries) entry.value.first.supersetGroup
+    ];
+    final group = groups[index];
+    if (group == null) return null;
+    final memberIndices = <int>[
+      for (var i = 0; i < groups.length; i++)
+        if (groups[i] == group) i,
+    ];
+    if (memberIndices.length < 2 ||
+        memberIndices.last - memberIndices.first + 1 != memberIndices.length) {
+      return null;
+    }
+    final groupOrder = <int>[];
+    for (final value in groups.whereType<int>()) {
+      if (!groupOrder.contains(value)) groupOrder.add(value);
+    }
+    final groupIndex = groupOrder.indexOf(group);
+    return '${_supersetLetter(groupIndex)}${index - memberIndices.first + 1}';
+  }
+
+  String _supersetLetter(int index) {
+    var value = index + 1;
+    final codes = <int>[];
+    while (value > 0) {
+      value--;
+      codes.add(65 + value % 26);
+      value ~/= 26;
+    }
+    return String.fromCharCodes(codes.reversed);
   }
 
   String _formatSetLine(SetLog set) {

@@ -70,11 +70,13 @@ void main() {
     required int exerciseId,
     required int pauseSeconds,
     required List<int> templateIds,
+    int? supersetGroup,
   }) =>
       RoutineExercise(
         id: id,
         exercise: exerciseNamed(name, exerciseId),
         pauseSeconds: pauseSeconds,
+        supersetGroup: supersetGroup,
         setTemplates: [
           for (final templateId in templateIds)
             SetTemplate(id: templateId, setType: 'normal', targetReps: '8'),
@@ -127,6 +129,33 @@ void main() {
     );
     expect(
         [for (final e in restored.exercises) e.setTemplates.length], [3, 3, 3]);
+  });
+
+  test('a killed session restores its superset snapshot exactly', () async {
+    final log = await workoutDb.startWorkout(routineName: 'Superset');
+    await manager.startWorkout(log, [
+      routineExercise(
+        id: 100,
+        name: 'Bench Press',
+        exerciseId: 1,
+        pauseSeconds: 60,
+        templateIds: [1001, 1002],
+        supersetGroup: 4,
+      ),
+      routineExercise(
+        id: 200,
+        name: 'Squat',
+        exerciseId: 2,
+        pauseSeconds: 90,
+        templateIds: [2001, 2002],
+        supersetGroup: 4,
+      ),
+    ]);
+
+    final restored = await restartApp();
+
+    expect(restored.exercises.map((e) => e.supersetGroup), [4, 4]);
+    expect(restored.setLogs.values.map((s) => s.supersetGroup).toSet(), {4});
   });
 
   test('values typed but never ticked off survive the kill', () async {

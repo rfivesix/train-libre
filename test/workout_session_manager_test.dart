@@ -189,6 +189,106 @@ void main() {
       expect(manager.currentExerciseNameFor('en'), isNull);
     });
 
+    test('superset completion alternates exercises and rests after rounds',
+        () async {
+      final log = await workoutDb.startWorkout(routineName: 'Superset');
+      model.Exercise exercise(int id, String name) => model.Exercise(
+            id: id,
+            texts: {'en': model.ExerciseText(name: name, description: '')},
+            categoryName: 'Strength',
+            primaryMuscles: const [],
+            secondaryMuscles: const [],
+          );
+      await manager.startWorkout(log, [
+        RoutineExercise(
+          id: 500,
+          exercise: exercise(1, 'A'),
+          pauseSeconds: 60,
+          supersetGroup: 1,
+          setTemplates: [
+            for (var id = 5001; id <= 5004; id++)
+              SetTemplate(id: id, setType: 'normal'),
+          ],
+        ),
+        RoutineExercise(
+          id: 600,
+          exercise: exercise(2, 'B'),
+          pauseSeconds: 90,
+          supersetGroup: 1,
+          setTemplates: [
+            for (var id = 6001; id <= 6003; id++)
+              SetTemplate(id: id, setType: 'normal'),
+          ],
+        ),
+      ]);
+      await _waitFor(() => manager.setLogs.length == 7);
+
+      expect(
+          manager.setLogs.values.map((set) => set.supersetGroup).toSet(), {1});
+      await manager.updateSet(5001, isCompleted: true);
+      expect(manager.remainingRestSeconds, 0);
+      expect(manager.currentExerciseNameFor('en'), 'B');
+      expect(manager.autoAdvanceExerciseIndex, 1);
+
+      await manager.updateSet(6001, isCompleted: true);
+      expect(manager.remainingRestSeconds, 90);
+      expect(manager.currentExerciseNameFor('en'), 'A');
+      manager.cancelRest();
+
+      await manager.updateSet(5002, isCompleted: true);
+      await manager.updateSet(6002, isCompleted: true);
+      manager.cancelRest();
+      await manager.updateSet(5003, isCompleted: true);
+      await manager.updateSet(6003, isCompleted: true);
+      expect(manager.remainingRestSeconds, 90,
+          reason: 'the group has an uneven trailing round');
+      manager.cancelRest();
+
+      await manager.updateSet(5004, isCompleted: true);
+      expect(manager.remainingRestSeconds, 0,
+          reason: 'the final unmatched set behaves like a standalone last set');
+    });
+
+    test('last member of the final equal round starts no timer', () async {
+      final log = await workoutDb.startWorkout(routineName: 'Superset');
+      const exerciseA = model.Exercise(
+        id: 1,
+        texts: {'en': model.ExerciseText(name: 'A', description: '')},
+        categoryName: 'Strength',
+        primaryMuscles: [],
+        secondaryMuscles: [],
+      );
+      const exerciseB = model.Exercise(
+        id: 2,
+        texts: {'en': model.ExerciseText(name: 'B', description: '')},
+        categoryName: 'Strength',
+        primaryMuscles: [],
+        secondaryMuscles: [],
+      );
+      await manager.startWorkout(log, [
+        RoutineExercise(
+          id: 700,
+          exercise: exerciseA,
+          pauseSeconds: 60,
+          supersetGroup: 2,
+          setTemplates: [SetTemplate(id: 7001, setType: 'normal')],
+        ),
+        RoutineExercise(
+          id: 800,
+          exercise: exerciseB,
+          pauseSeconds: 75,
+          supersetGroup: 2,
+          setTemplates: [SetTemplate(id: 8001, setType: 'normal')],
+        ),
+      ]);
+      await _waitFor(() => manager.setLogs.length == 2);
+
+      await manager.updateSet(7001, isCompleted: true);
+      await manager.updateSet(8001, isCompleted: true);
+
+      expect(manager.remainingRestSeconds, 0);
+    });
+
     test('addSetToExercise keeps previous-set defaults and ordering', () async {
       final log = await workoutDb.startWorkout(routineName: 'Session');
       final exercise = const model.Exercise(

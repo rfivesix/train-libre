@@ -29,6 +29,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get removeTimer => 'Remove Timer';
 
   @override
+  String get connectSuperset => 'Connect as superset';
+
+  @override
+  String get disconnectSuperset => 'Dissolve superset';
+
+  @override
+  String get connectSupersetShort => 'Superset';
+
+  @override
+  String get disconnectSupersetShort => 'Unlink';
+
+  @override
   String get noTimerLabel => 'No Timer';
 
   @override

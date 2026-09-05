@@ -13,6 +13,10 @@
     }
   },
   "removeTimer": "タイマーを削除",
+  "connectSuperset": "スーパーセットとして連結",
+  "disconnectSuperset": "スーパーセットを解除",
+  "connectSupersetShort": "スーパーセット",
+  "disconnectSupersetShort": "連結解除",
   "noTimerLabel": "タイマーなし",
   "appTitle": "Train Libre",
   "bannerText": "推奨事項 / 現在のトレーニング",

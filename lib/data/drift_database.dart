@@ -319,6 +319,7 @@ class RoutineExercises extends Table with HybridId, MetaColumns {
   TextColumn get exerciseId => text().references(Exercises, #id)();
   IntColumn get orderIndex => integer()();
   IntColumn get pauseSeconds => integer().nullable()();
+  IntColumn get supersetGroup => integer().nullable()();
   TextColumn get notes => text().nullable()();
 }
 
@@ -392,6 +393,7 @@ class SetLogs extends Table with HybridId, MetaColumns {
   /// Null on rows written before this column existed; the restore falls back
   /// to the old name-based grouping for those.
   IntColumn get exerciseBlock => integer().nullable()();
+  IntColumn get supersetGroup => integer().nullable()();
   RealColumn get distance => real().nullable()(); // For cardio in the set
   IntColumn get durationSeconds => integer().nullable()(); // For cardio/static
   TextColumn get notes => text().nullable()();
@@ -783,7 +785,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
-  int get schemaVersion => 28;
+  int get schemaVersion => 29;
 
   /// Adds whatever the file is missing compared to the generated tables.
   ///
@@ -1370,6 +1372,13 @@ class AppDatabase extends _$AppDatabase {
               await m.createTable(exerciseTags);
               await m.createTable(catalogLanguages);
               await m.createTable(exerciseAliases);
+            }
+            if (from < 29) {
+              await m.addColumn(
+                routineExercises,
+                routineExercises.supersetGroup,
+              );
+              await m.addColumn(setLogs, setLogs.supersetGroup);
             }
             unawaited(TelemetryService.instance.trackDbMigrationStatus(
               fromVersion: from,

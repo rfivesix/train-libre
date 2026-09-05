@@ -143,6 +143,7 @@ class WorkoutLocalDataSource {
       isCompleted: row.isCompleted,
       logOrder: row.logOrder,
       exerciseBlock: row.exerciseBlock,
+      supersetGroup: row.supersetGroup,
       notes: row.notes,
       distanceKm: row.distance,
       durationSeconds: row.durationSeconds,

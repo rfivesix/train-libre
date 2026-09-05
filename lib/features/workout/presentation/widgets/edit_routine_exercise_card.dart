@@ -9,6 +9,7 @@ import '../../domain/models/set_template.dart';
 import '../../../exercise_catalog/presentation/exercise_detail_screen.dart';
 import '../../../../widgets/common/card_morph_route.dart';
 import '../../../../widgets/common/morph_source.dart';
+import 'superset_connector_button.dart';
 import 'workout_card.dart';
 import '../../domain/classification/exercise_log_mask.dart';
 import 'log_mask_labels.dart';
@@ -35,6 +36,19 @@ class EditRoutineExerciseCard extends StatelessWidget {
   final bool isDragging;
   final bool isDraggedItem;
   final bool isEditMode;
+  final bool canDrag;
+  final bool showPauseAction;
+  final String? supersetLabel;
+  final Color? supersetColor;
+  final bool continuesSupersetAbove;
+  final bool continuesSupersetBelow;
+
+  /// Connects or disconnects this exercise and the one below it. Null when
+  /// there is no exercise below.
+  final VoidCallback? onToggleSupersetBelow;
+
+  /// Whether this exercise already shares a superset with the one below.
+  final bool isConnectedBelow;
   final void Function(PointerDownEvent)? onPointerDown;
   final void Function(PointerMoveEvent)? onPointerMove;
   final void Function(PointerUpEvent)? onPointerUp;
@@ -57,6 +71,14 @@ class EditRoutineExerciseCard extends StatelessWidget {
     this.isDragging = false,
     this.isDraggedItem = false,
     this.isEditMode = true,
+    this.canDrag = true,
+    this.showPauseAction = true,
+    this.supersetLabel,
+    this.supersetColor,
+    this.continuesSupersetAbove = false,
+    this.continuesSupersetBelow = false,
+    this.onToggleSupersetBelow,
+    this.isConnectedBelow = false,
     this.onPointerDown,
     this.onPointerMove,
     this.onPointerUp,
@@ -70,6 +92,9 @@ class EditRoutineExerciseCard extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
 
     return WorkoutCard(
+      continuesSupersetAbove: continuesSupersetAbove,
+      continuesSupersetBelow: continuesSupersetBelow,
+      accentColor: supersetColor,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -78,7 +103,7 @@ class EditRoutineExerciseCard extends StatelessWidget {
               horizontal: 16.0,
               vertical: 8.0,
             ),
-            title: isEditMode
+            title: isEditMode && canDrag
                 ? Listener(
                     onPointerDown: onPointerDown,
                     onPointerMove: onPointerMove,
@@ -102,7 +127,8 @@ class EditRoutineExerciseCard extends StatelessWidget {
                         tooltip: l10n.exerciseNoteTitle,
                         onPressed: onEditNotes,
                       ),
-                      if (routineExercise.pauseSeconds != null &&
+                      if (showPauseAction &&
+                          routineExercise.pauseSeconds != null &&
                           routineExercise.pauseSeconds! > 0)
                         TextButton(
                           style: TextButton.styleFrom(
@@ -119,7 +145,7 @@ class EditRoutineExerciseCard extends StatelessWidget {
                             ),
                           ),
                         )
-                      else
+                      else if (showPauseAction)
                         IconButton(
                           icon: const Icon(LucideIcons.timer),
                           tooltip: l10n.editPauseTime,
@@ -268,10 +294,26 @@ class EditRoutineExerciseCard extends StatelessWidget {
                                 Padding(
                                   padding: const EdgeInsets.symmetric(
                                       horizontal: 16.0),
-                                  child: TextButton.icon(
-                                    onPressed: onAddSet,
-                                    icon: const Icon(LucideIcons.plus),
-                                    label: Text(l10n.addSetButton),
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      TextButton.icon(
+                                        onPressed: onAddSet,
+                                        icon: const Icon(LucideIcons.plus),
+                                        label: Text(l10n.addSetButton),
+                                      ),
+                                      if (onToggleSupersetBelow != null)
+                                        Flexible(
+                                          child: SupersetConnectorButton(
+                                            key: ValueKey(
+                                              'superset_connector_$index',
+                                            ),
+                                            isConnected: isConnectedBelow,
+                                            onPressed: onToggleSupersetBelow!,
+                                          ),
+                                        ),
+                                    ],
                                   ),
                                 ),
                               ],
@@ -358,7 +400,7 @@ class EditRoutineExerciseCard extends StatelessWidget {
       ),
     );
 
-    return MorphSourceScope(
+    final linkedTitle = MorphSourceScope(
       builder: (context, setHidden) => Builder(
         builder: (titleCtx) => InkWell(
           onTap: () => Navigator.of(context).push(
@@ -377,6 +419,30 @@ class EditRoutineExerciseCard extends StatelessWidget {
           child: title,
         ),
       ),
+    );
+
+    if (supersetLabel == null || supersetColor == null) return linkedTitle;
+    return Row(
+      children: [
+        Container(
+          key: ValueKey('superset_badge_$supersetLabel'),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          decoration: BoxDecoration(
+            color: supersetColor!.withValues(alpha: 0.18),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: supersetColor!.withValues(alpha: 0.7)),
+          ),
+          child: Text(
+            supersetLabel!,
+            style: textTheme.labelLarge?.copyWith(
+              color: supersetColor,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(child: linkedTitle),
+      ],
     );
   }
 }

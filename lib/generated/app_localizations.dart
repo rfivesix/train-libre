@@ -140,6 +140,30 @@ abstract class AppLocalizations {
   /// **'Remove Timer'**
   String get removeTimer;
 
+  /// No description provided for @connectSuperset.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect as superset'**
+  String get connectSuperset;
+
+  /// No description provided for @disconnectSuperset.
+  ///
+  /// In en, this message translates to:
+  /// **'Dissolve superset'**
+  String get disconnectSuperset;
+
+  /// No description provided for @connectSupersetShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Superset'**
+  String get connectSupersetShort;
+
+  /// No description provided for @disconnectSupersetShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlink'**
+  String get disconnectSupersetShort;
+
   /// No description provided for @noTimerLabel.
   ///
   /// In en, this message translates to:
