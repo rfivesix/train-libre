@@ -61,6 +61,34 @@ void main() {
       );
     });
 
+    test('restores both superset columns at schema version 29', () async {
+      await database.customStatement(
+        'ALTER TABLE routine_exercises DROP COLUMN superset_group;',
+      );
+      await database.customStatement(
+        'ALTER TABLE set_logs DROP COLUMN superset_group;',
+      );
+      await database.customStatement('PRAGMA user_version = 29;');
+
+      final repaired = await database.reconcileSchema();
+
+      expect(
+        repaired,
+        containsAll([
+          'routine_exercises.superset_group',
+          'set_logs.superset_group',
+        ]),
+      );
+      expect(
+        await _columnsOf(database, 'routine_exercises'),
+        contains('superset_group'),
+      );
+      expect(
+        await _columnsOf(database, 'set_logs'),
+        contains('superset_group'),
+      );
+    });
+
     test('the repaired column makes the failing query work again', () async {
       await _dropMealEntryIdColumn(database);
 

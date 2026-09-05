@@ -39,6 +39,9 @@ class SetLog {
   /// [exerciseName]. Null for rows written before this existed.
   final int? exerciseBlock;
 
+  /// Snapshot of the routine's contiguous superset group.
+  final int? supersetGroup;
+
   /// Optional notes about the set.
   final String? notes;
 
@@ -105,6 +108,7 @@ class SetLog {
     this.isCompleted,
     this.logOrder,
     this.exerciseBlock,
+    this.supersetGroup,
     this.notes,
     this.distanceKm,
     this.durationSeconds,
@@ -139,6 +143,7 @@ class SetLog {
       isCompleted: map['is_completed'] == 1,
       logOrder: map['log_order'],
       exerciseBlock: map['exercise_block'],
+      supersetGroup: map['superset_group'],
       notes: map['notes'],
       distanceKm: map['distance_km'],
       durationSeconds: map['duration_seconds'],
@@ -163,6 +168,7 @@ class SetLog {
       'is_completed': isCompleted == true ? 1 : 0,
       'log_order': logOrder,
       'exercise_block': exerciseBlock,
+      'superset_group': supersetGroup,
       'notes': notes,
       'distance_km': distanceKm,
       'duration_seconds': durationSeconds,
@@ -187,6 +193,7 @@ class SetLog {
     bool? isCompleted,
     int? logOrder,
     int? exerciseBlock,
+    int? supersetGroup,
     String? notes,
     double? distanceKm,
     int? durationSeconds,
@@ -210,6 +217,7 @@ class SetLog {
     bool clearRir = false,
     bool clearDistance = false,
     bool clearDuration = false,
+    bool clearSupersetGroup = false,
   }) {
     return SetLog(
       id: id ?? this.id,
@@ -222,6 +230,8 @@ class SetLog {
       isCompleted: isCompleted ?? this.isCompleted,
       logOrder: logOrder ?? this.logOrder,
       exerciseBlock: exerciseBlock ?? this.exerciseBlock,
+      supersetGroup:
+          clearSupersetGroup ? null : (supersetGroup ?? this.supersetGroup),
       notes: notes ?? this.notes,
       distanceKm: clearDistance ? null : (distanceKm ?? this.distanceKm),
       durationSeconds:

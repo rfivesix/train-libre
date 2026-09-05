@@ -3030,6 +3030,12 @@ class $RoutineExercisesTable extends RoutineExercises
   late final GeneratedColumn<int> pauseSeconds = GeneratedColumn<int>(
       'pause_seconds', aliasedName, true,
       type: DriftSqlType.int, requiredDuringInsert: false);
+  static const VerificationMeta _supersetGroupMeta =
+      const VerificationMeta('supersetGroup');
+  @override
+  late final GeneratedColumn<int> supersetGroup = GeneratedColumn<int>(
+      'superset_group', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
   static const VerificationMeta _notesMeta = const VerificationMeta('notes');
   @override
   late final GeneratedColumn<String> notes = GeneratedColumn<String>(
@@ -3046,6 +3052,7 @@ class $RoutineExercisesTable extends RoutineExercises
         exerciseId,
         orderIndex,
         pauseSeconds,
+        supersetGroup,
         notes
       ];
   @override
@@ -3105,6 +3112,12 @@ class $RoutineExercisesTable extends RoutineExercises
           pauseSeconds.isAcceptableOrUnknown(
               data['pause_seconds']!, _pauseSecondsMeta));
     }
+    if (data.containsKey('superset_group')) {
+      context.handle(
+          _supersetGroupMeta,
+          supersetGroup.isAcceptableOrUnknown(
+              data['superset_group']!, _supersetGroupMeta));
+    }
     if (data.containsKey('notes')) {
       context.handle(
           _notesMeta, notes.isAcceptableOrUnknown(data['notes']!, _notesMeta));
@@ -3136,6 +3149,8 @@ class $RoutineExercisesTable extends RoutineExercises
           .read(DriftSqlType.int, data['${effectivePrefix}order_index'])!,
       pauseSeconds: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}pause_seconds']),
+      supersetGroup: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}superset_group']),
       notes: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}notes']),
     );
@@ -3157,6 +3172,7 @@ class RoutineExercise extends DataClass implements Insertable<RoutineExercise> {
   final String exerciseId;
   final int orderIndex;
   final int? pauseSeconds;
+  final int? supersetGroup;
   final String? notes;
   const RoutineExercise(
       {required this.localId,
@@ -3168,6 +3184,7 @@ class RoutineExercise extends DataClass implements Insertable<RoutineExercise> {
       required this.exerciseId,
       required this.orderIndex,
       this.pauseSeconds,
+      this.supersetGroup,
       this.notes});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -3184,6 +3201,9 @@ class RoutineExercise extends DataClass implements Insertable<RoutineExercise> {
     map['order_index'] = Variable<int>(orderIndex);
     if (!nullToAbsent || pauseSeconds != null) {
       map['pause_seconds'] = Variable<int>(pauseSeconds);
+    }
+    if (!nullToAbsent || supersetGroup != null) {
+      map['superset_group'] = Variable<int>(supersetGroup);
     }
     if (!nullToAbsent || notes != null) {
       map['notes'] = Variable<String>(notes);
@@ -3206,6 +3226,9 @@ class RoutineExercise extends DataClass implements Insertable<RoutineExercise> {
       pauseSeconds: pauseSeconds == null && nullToAbsent
           ? const Value.absent()
           : Value(pauseSeconds),
+      supersetGroup: supersetGroup == null && nullToAbsent
+          ? const Value.absent()
+          : Value(supersetGroup),
       notes:
           notes == null && nullToAbsent ? const Value.absent() : Value(notes),
     );
@@ -3224,6 +3247,7 @@ class RoutineExercise extends DataClass implements Insertable<RoutineExercise> {
       exerciseId: serializer.fromJson<String>(json['exerciseId']),
       orderIndex: serializer.fromJson<int>(json['orderIndex']),
       pauseSeconds: serializer.fromJson<int?>(json['pauseSeconds']),
+      supersetGroup: serializer.fromJson<int?>(json['supersetGroup']),
       notes: serializer.fromJson<String?>(json['notes']),
     );
   }
@@ -3240,6 +3264,7 @@ class RoutineExercise extends DataClass implements Insertable<RoutineExercise> {
       'exerciseId': serializer.toJson<String>(exerciseId),
       'orderIndex': serializer.toJson<int>(orderIndex),
       'pauseSeconds': serializer.toJson<int?>(pauseSeconds),
+      'supersetGroup': serializer.toJson<int?>(supersetGroup),
       'notes': serializer.toJson<String?>(notes),
     };
   }
@@ -3254,6 +3279,7 @@ class RoutineExercise extends DataClass implements Insertable<RoutineExercise> {
           String? exerciseId,
           int? orderIndex,
           Value<int?> pauseSeconds = const Value.absent(),
+          Value<int?> supersetGroup = const Value.absent(),
           Value<String?> notes = const Value.absent()}) =>
       RoutineExercise(
         localId: localId ?? this.localId,
@@ -3266,6 +3292,8 @@ class RoutineExercise extends DataClass implements Insertable<RoutineExercise> {
         orderIndex: orderIndex ?? this.orderIndex,
         pauseSeconds:
             pauseSeconds.present ? pauseSeconds.value : this.pauseSeconds,
+        supersetGroup:
+            supersetGroup.present ? supersetGroup.value : this.supersetGroup,
         notes: notes.present ? notes.value : this.notes,
       );
   RoutineExercise copyWithCompanion(RoutineExercisesCompanion data) {
@@ -3283,6 +3311,9 @@ class RoutineExercise extends DataClass implements Insertable<RoutineExercise> {
       pauseSeconds: data.pauseSeconds.present
           ? data.pauseSeconds.value
           : this.pauseSeconds,
+      supersetGroup: data.supersetGroup.present
+          ? data.supersetGroup.value
+          : this.supersetGroup,
       notes: data.notes.present ? data.notes.value : this.notes,
     );
   }
@@ -3299,6 +3330,7 @@ class RoutineExercise extends DataClass implements Insertable<RoutineExercise> {
           ..write('exerciseId: $exerciseId, ')
           ..write('orderIndex: $orderIndex, ')
           ..write('pauseSeconds: $pauseSeconds, ')
+          ..write('supersetGroup: $supersetGroup, ')
           ..write('notes: $notes')
           ..write(')'))
         .toString();
@@ -3306,7 +3338,7 @@ class RoutineExercise extends DataClass implements Insertable<RoutineExercise> {
 
   @override
   int get hashCode => Object.hash(localId, id, createdAt, updatedAt, deletedAt,
-      routineId, exerciseId, orderIndex, pauseSeconds, notes);
+      routineId, exerciseId, orderIndex, pauseSeconds, supersetGroup, notes);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -3320,6 +3352,7 @@ class RoutineExercise extends DataClass implements Insertable<RoutineExercise> {
           other.exerciseId == this.exerciseId &&
           other.orderIndex == this.orderIndex &&
           other.pauseSeconds == this.pauseSeconds &&
+          other.supersetGroup == this.supersetGroup &&
           other.notes == this.notes);
 }
 
@@ -3333,6 +3366,7 @@ class RoutineExercisesCompanion extends UpdateCompanion<RoutineExercise> {
   final Value<String> exerciseId;
   final Value<int> orderIndex;
   final Value<int?> pauseSeconds;
+  final Value<int?> supersetGroup;
   final Value<String?> notes;
   const RoutineExercisesCompanion({
     this.localId = const Value.absent(),
@@ -3344,6 +3378,7 @@ class RoutineExercisesCompanion extends UpdateCompanion<RoutineExercise> {
     this.exerciseId = const Value.absent(),
     this.orderIndex = const Value.absent(),
     this.pauseSeconds = const Value.absent(),
+    this.supersetGroup = const Value.absent(),
     this.notes = const Value.absent(),
   });
   RoutineExercisesCompanion.insert({
@@ -3356,6 +3391,7 @@ class RoutineExercisesCompanion extends UpdateCompanion<RoutineExercise> {
     required String exerciseId,
     required int orderIndex,
     this.pauseSeconds = const Value.absent(),
+    this.supersetGroup = const Value.absent(),
     this.notes = const Value.absent(),
   })  : routineId = Value(routineId),
         exerciseId = Value(exerciseId),
@@ -3370,6 +3406,7 @@ class RoutineExercisesCompanion extends UpdateCompanion<RoutineExercise> {
     Expression<String>? exerciseId,
     Expression<int>? orderIndex,
     Expression<int>? pauseSeconds,
+    Expression<int>? supersetGroup,
     Expression<String>? notes,
   }) {
     return RawValuesInsertable({
@@ -3382,6 +3419,7 @@ class RoutineExercisesCompanion extends UpdateCompanion<RoutineExercise> {
       if (exerciseId != null) 'exercise_id': exerciseId,
       if (orderIndex != null) 'order_index': orderIndex,
       if (pauseSeconds != null) 'pause_seconds': pauseSeconds,
+      if (supersetGroup != null) 'superset_group': supersetGroup,
       if (notes != null) 'notes': notes,
     });
   }
@@ -3396,6 +3434,7 @@ class RoutineExercisesCompanion extends UpdateCompanion<RoutineExercise> {
       Value<String>? exerciseId,
       Value<int>? orderIndex,
       Value<int?>? pauseSeconds,
+      Value<int?>? supersetGroup,
       Value<String?>? notes}) {
     return RoutineExercisesCompanion(
       localId: localId ?? this.localId,
@@ -3407,6 +3446,7 @@ class RoutineExercisesCompanion extends UpdateCompanion<RoutineExercise> {
       exerciseId: exerciseId ?? this.exerciseId,
       orderIndex: orderIndex ?? this.orderIndex,
       pauseSeconds: pauseSeconds ?? this.pauseSeconds,
+      supersetGroup: supersetGroup ?? this.supersetGroup,
       notes: notes ?? this.notes,
     );
   }
@@ -3441,6 +3481,9 @@ class RoutineExercisesCompanion extends UpdateCompanion<RoutineExercise> {
     if (pauseSeconds.present) {
       map['pause_seconds'] = Variable<int>(pauseSeconds.value);
     }
+    if (supersetGroup.present) {
+      map['superset_group'] = Variable<int>(supersetGroup.value);
+    }
     if (notes.present) {
       map['notes'] = Variable<String>(notes.value);
     }
@@ -3459,6 +3502,7 @@ class RoutineExercisesCompanion extends UpdateCompanion<RoutineExercise> {
           ..write('exerciseId: $exerciseId, ')
           ..write('orderIndex: $orderIndex, ')
           ..write('pauseSeconds: $pauseSeconds, ')
+          ..write('supersetGroup: $supersetGroup, ')
           ..write('notes: $notes')
           ..write(')'))
         .toString();
@@ -4877,6 +4921,12 @@ class $SetLogsTable extends SetLogs with TableInfo<$SetLogsTable, SetLog> {
   late final GeneratedColumn<int> exerciseBlock = GeneratedColumn<int>(
       'exercise_block', aliasedName, true,
       type: DriftSqlType.int, requiredDuringInsert: false);
+  static const VerificationMeta _supersetGroupMeta =
+      const VerificationMeta('supersetGroup');
+  @override
+  late final GeneratedColumn<int> supersetGroup = GeneratedColumn<int>(
+      'superset_group', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
   static const VerificationMeta _distanceMeta =
       const VerificationMeta('distance');
   @override
@@ -4913,6 +4963,7 @@ class $SetLogsTable extends SetLogs with TableInfo<$SetLogsTable, SetLog> {
         isCompleted,
         logOrder,
         exerciseBlock,
+        supersetGroup,
         distance,
         durationSeconds,
         notes
@@ -5008,6 +5059,12 @@ class $SetLogsTable extends SetLogs with TableInfo<$SetLogsTable, SetLog> {
           exerciseBlock.isAcceptableOrUnknown(
               data['exercise_block']!, _exerciseBlockMeta));
     }
+    if (data.containsKey('superset_group')) {
+      context.handle(
+          _supersetGroupMeta,
+          supersetGroup.isAcceptableOrUnknown(
+              data['superset_group']!, _supersetGroupMeta));
+    }
     if (data.containsKey('distance')) {
       context.handle(_distanceMeta,
           distance.isAcceptableOrUnknown(data['distance']!, _distanceMeta));
@@ -5066,6 +5123,8 @@ class $SetLogsTable extends SetLogs with TableInfo<$SetLogsTable, SetLog> {
           .read(DriftSqlType.int, data['${effectivePrefix}log_order'])!,
       exerciseBlock: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}exercise_block']),
+      supersetGroup: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}superset_group']),
       distance: attachedDatabase.typeMapping
           .read(DriftSqlType.double, data['${effectivePrefix}distance']),
       durationSeconds: attachedDatabase.typeMapping
@@ -5108,6 +5167,7 @@ class SetLog extends DataClass implements Insertable<SetLog> {
   /// Null on rows written before this column existed; the restore falls back
   /// to the old name-based grouping for those.
   final int? exerciseBlock;
+  final int? supersetGroup;
   final double? distance;
   final int? durationSeconds;
   final String? notes;
@@ -5129,6 +5189,7 @@ class SetLog extends DataClass implements Insertable<SetLog> {
       required this.isCompleted,
       required this.logOrder,
       this.exerciseBlock,
+      this.supersetGroup,
       this.distance,
       this.durationSeconds,
       this.notes});
@@ -5169,6 +5230,9 @@ class SetLog extends DataClass implements Insertable<SetLog> {
     map['log_order'] = Variable<int>(logOrder);
     if (!nullToAbsent || exerciseBlock != null) {
       map['exercise_block'] = Variable<int>(exerciseBlock);
+    }
+    if (!nullToAbsent || supersetGroup != null) {
+      map['superset_group'] = Variable<int>(supersetGroup);
     }
     if (!nullToAbsent || distance != null) {
       map['distance'] = Variable<double>(distance);
@@ -5212,6 +5276,9 @@ class SetLog extends DataClass implements Insertable<SetLog> {
       exerciseBlock: exerciseBlock == null && nullToAbsent
           ? const Value.absent()
           : Value(exerciseBlock),
+      supersetGroup: supersetGroup == null && nullToAbsent
+          ? const Value.absent()
+          : Value(supersetGroup),
       distance: distance == null && nullToAbsent
           ? const Value.absent()
           : Value(distance),
@@ -5245,6 +5312,7 @@ class SetLog extends DataClass implements Insertable<SetLog> {
       isCompleted: serializer.fromJson<bool>(json['isCompleted']),
       logOrder: serializer.fromJson<int>(json['logOrder']),
       exerciseBlock: serializer.fromJson<int?>(json['exerciseBlock']),
+      supersetGroup: serializer.fromJson<int?>(json['supersetGroup']),
       distance: serializer.fromJson<double?>(json['distance']),
       durationSeconds: serializer.fromJson<int?>(json['durationSeconds']),
       notes: serializer.fromJson<String?>(json['notes']),
@@ -5271,6 +5339,7 @@ class SetLog extends DataClass implements Insertable<SetLog> {
       'isCompleted': serializer.toJson<bool>(isCompleted),
       'logOrder': serializer.toJson<int>(logOrder),
       'exerciseBlock': serializer.toJson<int?>(exerciseBlock),
+      'supersetGroup': serializer.toJson<int?>(supersetGroup),
       'distance': serializer.toJson<double?>(distance),
       'durationSeconds': serializer.toJson<int?>(durationSeconds),
       'notes': serializer.toJson<String?>(notes),
@@ -5295,6 +5364,7 @@ class SetLog extends DataClass implements Insertable<SetLog> {
           bool? isCompleted,
           int? logOrder,
           Value<int?> exerciseBlock = const Value.absent(),
+          Value<int?> supersetGroup = const Value.absent(),
           Value<double?> distance = const Value.absent(),
           Value<int?> durationSeconds = const Value.absent(),
           Value<String?> notes = const Value.absent()}) =>
@@ -5321,6 +5391,8 @@ class SetLog extends DataClass implements Insertable<SetLog> {
         logOrder: logOrder ?? this.logOrder,
         exerciseBlock:
             exerciseBlock.present ? exerciseBlock.value : this.exerciseBlock,
+        supersetGroup:
+            supersetGroup.present ? supersetGroup.value : this.supersetGroup,
         distance: distance.present ? distance.value : this.distance,
         durationSeconds: durationSeconds.present
             ? durationSeconds.value
@@ -5356,6 +5428,9 @@ class SetLog extends DataClass implements Insertable<SetLog> {
       exerciseBlock: data.exerciseBlock.present
           ? data.exerciseBlock.value
           : this.exerciseBlock,
+      supersetGroup: data.supersetGroup.present
+          ? data.supersetGroup.value
+          : this.supersetGroup,
       distance: data.distance.present ? data.distance.value : this.distance,
       durationSeconds: data.durationSeconds.present
           ? data.durationSeconds.value
@@ -5384,6 +5459,7 @@ class SetLog extends DataClass implements Insertable<SetLog> {
           ..write('isCompleted: $isCompleted, ')
           ..write('logOrder: $logOrder, ')
           ..write('exerciseBlock: $exerciseBlock, ')
+          ..write('supersetGroup: $supersetGroup, ')
           ..write('distance: $distance, ')
           ..write('durationSeconds: $durationSeconds, ')
           ..write('notes: $notes')
@@ -5392,27 +5468,29 @@ class SetLog extends DataClass implements Insertable<SetLog> {
   }
 
   @override
-  int get hashCode => Object.hash(
-      localId,
-      id,
-      createdAt,
-      updatedAt,
-      deletedAt,
-      workoutLogId,
-      exerciseId,
-      exerciseNameSnapshot,
-      weight,
-      reps,
-      rpe,
-      rir,
-      setType,
-      restTimeSeconds,
-      isCompleted,
-      logOrder,
-      exerciseBlock,
-      distance,
-      durationSeconds,
-      notes);
+  int get hashCode => Object.hashAll([
+        localId,
+        id,
+        createdAt,
+        updatedAt,
+        deletedAt,
+        workoutLogId,
+        exerciseId,
+        exerciseNameSnapshot,
+        weight,
+        reps,
+        rpe,
+        rir,
+        setType,
+        restTimeSeconds,
+        isCompleted,
+        logOrder,
+        exerciseBlock,
+        supersetGroup,
+        distance,
+        durationSeconds,
+        notes
+      ]);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -5434,6 +5512,7 @@ class SetLog extends DataClass implements Insertable<SetLog> {
           other.isCompleted == this.isCompleted &&
           other.logOrder == this.logOrder &&
           other.exerciseBlock == this.exerciseBlock &&
+          other.supersetGroup == this.supersetGroup &&
           other.distance == this.distance &&
           other.durationSeconds == this.durationSeconds &&
           other.notes == this.notes);
@@ -5457,6 +5536,7 @@ class SetLogsCompanion extends UpdateCompanion<SetLog> {
   final Value<bool> isCompleted;
   final Value<int> logOrder;
   final Value<int?> exerciseBlock;
+  final Value<int?> supersetGroup;
   final Value<double?> distance;
   final Value<int?> durationSeconds;
   final Value<String?> notes;
@@ -5478,6 +5558,7 @@ class SetLogsCompanion extends UpdateCompanion<SetLog> {
     this.isCompleted = const Value.absent(),
     this.logOrder = const Value.absent(),
     this.exerciseBlock = const Value.absent(),
+    this.supersetGroup = const Value.absent(),
     this.distance = const Value.absent(),
     this.durationSeconds = const Value.absent(),
     this.notes = const Value.absent(),
@@ -5500,6 +5581,7 @@ class SetLogsCompanion extends UpdateCompanion<SetLog> {
     this.isCompleted = const Value.absent(),
     this.logOrder = const Value.absent(),
     this.exerciseBlock = const Value.absent(),
+    this.supersetGroup = const Value.absent(),
     this.distance = const Value.absent(),
     this.durationSeconds = const Value.absent(),
     this.notes = const Value.absent(),
@@ -5522,6 +5604,7 @@ class SetLogsCompanion extends UpdateCompanion<SetLog> {
     Expression<bool>? isCompleted,
     Expression<int>? logOrder,
     Expression<int>? exerciseBlock,
+    Expression<int>? supersetGroup,
     Expression<double>? distance,
     Expression<int>? durationSeconds,
     Expression<String>? notes,
@@ -5545,6 +5628,7 @@ class SetLogsCompanion extends UpdateCompanion<SetLog> {
       if (isCompleted != null) 'is_completed': isCompleted,
       if (logOrder != null) 'log_order': logOrder,
       if (exerciseBlock != null) 'exercise_block': exerciseBlock,
+      if (supersetGroup != null) 'superset_group': supersetGroup,
       if (distance != null) 'distance': distance,
       if (durationSeconds != null) 'duration_seconds': durationSeconds,
       if (notes != null) 'notes': notes,
@@ -5569,6 +5653,7 @@ class SetLogsCompanion extends UpdateCompanion<SetLog> {
       Value<bool>? isCompleted,
       Value<int>? logOrder,
       Value<int?>? exerciseBlock,
+      Value<int?>? supersetGroup,
       Value<double?>? distance,
       Value<int?>? durationSeconds,
       Value<String?>? notes}) {
@@ -5590,6 +5675,7 @@ class SetLogsCompanion extends UpdateCompanion<SetLog> {
       isCompleted: isCompleted ?? this.isCompleted,
       logOrder: logOrder ?? this.logOrder,
       exerciseBlock: exerciseBlock ?? this.exerciseBlock,
+      supersetGroup: supersetGroup ?? this.supersetGroup,
       distance: distance ?? this.distance,
       durationSeconds: durationSeconds ?? this.durationSeconds,
       notes: notes ?? this.notes,
@@ -5651,6 +5737,9 @@ class SetLogsCompanion extends UpdateCompanion<SetLog> {
     if (exerciseBlock.present) {
       map['exercise_block'] = Variable<int>(exerciseBlock.value);
     }
+    if (supersetGroup.present) {
+      map['superset_group'] = Variable<int>(supersetGroup.value);
+    }
     if (distance.present) {
       map['distance'] = Variable<double>(distance.value);
     }
@@ -5683,6 +5772,7 @@ class SetLogsCompanion extends UpdateCompanion<SetLog> {
           ..write('isCompleted: $isCompleted, ')
           ..write('logOrder: $logOrder, ')
           ..write('exerciseBlock: $exerciseBlock, ')
+          ..write('supersetGroup: $supersetGroup, ')
           ..write('distance: $distance, ')
           ..write('durationSeconds: $durationSeconds, ')
           ..write('notes: $notes')
@@ -22824,8 +22914,10 @@ class $$ProfilesTableTableManager extends RootTableManager<
             profileImagePath: profileImagePath,
           ),
           withReferenceMapper: (p0) => p0
-              .map((e) =>
-                  (e.readTable(table), $$ProfilesTableReferences(db, table, e)))
+              .map((e) => (
+                    e.readTable<$ProfilesTable, Profile>(table),
+                    $$ProfilesTableReferences(db, table, e)
+                  ))
               .toList(),
           prefetchHooksCallback: ({appSettingsRefs = false}) {
             return PrefetchHooks(
@@ -23218,7 +23310,7 @@ class $$AppSettingsTableTableManager extends RootTableManager<
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (
-                    e.readTable(table),
+                    e.readTable<$AppSettingsTable, AppSetting>(table),
                     $$AppSettingsTableReferences(db, table, e)
                   ))
               .toList(),
@@ -24070,7 +24162,7 @@ class $$ExercisesTableTableManager extends RootTableManager<
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (
-                    e.readTable(table),
+                    e.readTable<$ExercisesTable, Exercise>(table),
                     $$ExercisesTableReferences(db, table, e)
                   ))
               .toList(),
@@ -24498,8 +24590,10 @@ class $$RoutinesTableTableManager extends RootTableManager<
             isPublic: isPublic,
           ),
           withReferenceMapper: (p0) => p0
-              .map((e) =>
-                  (e.readTable(table), $$RoutinesTableReferences(db, table, e)))
+              .map((e) => (
+                    e.readTable<$RoutinesTable, Routine>(table),
+                    $$RoutinesTableReferences(db, table, e)
+                  ))
               .toList(),
           prefetchHooksCallback: (
               {routineExercisesRefs = false, workoutLogsRefs = false}) {
@@ -24568,6 +24662,7 @@ typedef $$RoutineExercisesTableCreateCompanionBuilder
   required String exerciseId,
   required int orderIndex,
   Value<int?> pauseSeconds,
+  Value<int?> supersetGroup,
   Value<String?> notes,
 });
 typedef $$RoutineExercisesTableUpdateCompanionBuilder
@@ -24581,6 +24676,7 @@ typedef $$RoutineExercisesTableUpdateCompanionBuilder
   Value<String> exerciseId,
   Value<int> orderIndex,
   Value<int?> pauseSeconds,
+  Value<int?> supersetGroup,
   Value<String?> notes,
 });
 
@@ -24666,6 +24762,9 @@ class $$RoutineExercisesTableFilterComposer
 
   ColumnFilters<int> get pauseSeconds => $composableBuilder(
       column: $table.pauseSeconds, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get supersetGroup => $composableBuilder(
+      column: $table.supersetGroup, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get notes => $composableBuilder(
       column: $table.notes, builder: (column) => ColumnFilters(column));
@@ -24763,6 +24862,10 @@ class $$RoutineExercisesTableOrderingComposer
       column: $table.pauseSeconds,
       builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<int> get supersetGroup => $composableBuilder(
+      column: $table.supersetGroup,
+      builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<String> get notes => $composableBuilder(
       column: $table.notes, builder: (column) => ColumnOrderings(column));
 
@@ -24836,6 +24939,9 @@ class $$RoutineExercisesTableAnnotationComposer
 
   GeneratedColumn<int> get pauseSeconds => $composableBuilder(
       column: $table.pauseSeconds, builder: (column) => column);
+
+  GeneratedColumn<int> get supersetGroup => $composableBuilder(
+      column: $table.supersetGroup, builder: (column) => column);
 
   GeneratedColumn<String> get notes =>
       $composableBuilder(column: $table.notes, builder: (column) => column);
@@ -24938,6 +25044,7 @@ class $$RoutineExercisesTableTableManager extends RootTableManager<
             Value<String> exerciseId = const Value.absent(),
             Value<int> orderIndex = const Value.absent(),
             Value<int?> pauseSeconds = const Value.absent(),
+            Value<int?> supersetGroup = const Value.absent(),
             Value<String?> notes = const Value.absent(),
           }) =>
               RoutineExercisesCompanion(
@@ -24950,6 +25057,7 @@ class $$RoutineExercisesTableTableManager extends RootTableManager<
             exerciseId: exerciseId,
             orderIndex: orderIndex,
             pauseSeconds: pauseSeconds,
+            supersetGroup: supersetGroup,
             notes: notes,
           ),
           createCompanionCallback: ({
@@ -24962,6 +25070,7 @@ class $$RoutineExercisesTableTableManager extends RootTableManager<
             required String exerciseId,
             required int orderIndex,
             Value<int?> pauseSeconds = const Value.absent(),
+            Value<int?> supersetGroup = const Value.absent(),
             Value<String?> notes = const Value.absent(),
           }) =>
               RoutineExercisesCompanion.insert(
@@ -24974,11 +25083,12 @@ class $$RoutineExercisesTableTableManager extends RootTableManager<
             exerciseId: exerciseId,
             orderIndex: orderIndex,
             pauseSeconds: pauseSeconds,
+            supersetGroup: supersetGroup,
             notes: notes,
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (
-                    e.readTable(table),
+                    e.readTable<$RoutineExercisesTable, RoutineExercise>(table),
                     $$RoutineExercisesTableReferences(db, table, e)
                   ))
               .toList(),
@@ -25360,7 +25470,8 @@ class $$RoutineSetTemplatesTableTableManager extends RootTableManager<
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (
-                    e.readTable(table),
+                    e.readTable<$RoutineSetTemplatesTable, RoutineSetTemplate>(
+                        table),
                     $$RoutineSetTemplatesTableReferences(db, table, e)
                   ))
               .toList(),
@@ -25980,7 +26091,7 @@ class $$WorkoutLogsTableTableManager extends RootTableManager<
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (
-                    e.readTable(table),
+                    e.readTable<$WorkoutLogsTable, WorkoutLog>(table),
                     $$WorkoutLogsTableReferences(db, table, e)
                   ))
               .toList(),
@@ -26103,6 +26214,7 @@ typedef $$SetLogsTableCreateCompanionBuilder = SetLogsCompanion Function({
   Value<bool> isCompleted,
   Value<int> logOrder,
   Value<int?> exerciseBlock,
+  Value<int?> supersetGroup,
   Value<double?> distance,
   Value<int?> durationSeconds,
   Value<String?> notes,
@@ -26125,6 +26237,7 @@ typedef $$SetLogsTableUpdateCompanionBuilder = SetLogsCompanion Function({
   Value<bool> isCompleted,
   Value<int> logOrder,
   Value<int?> exerciseBlock,
+  Value<int?> supersetGroup,
   Value<double?> distance,
   Value<int?> durationSeconds,
   Value<String?> notes,
@@ -26218,6 +26331,9 @@ class $$SetLogsTableFilterComposer
 
   ColumnFilters<int> get exerciseBlock => $composableBuilder(
       column: $table.exerciseBlock, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get supersetGroup => $composableBuilder(
+      column: $table.supersetGroup, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<double> get distance => $composableBuilder(
       column: $table.distance, builder: (column) => ColumnFilters(column));
@@ -26327,6 +26443,10 @@ class $$SetLogsTableOrderingComposer
       column: $table.exerciseBlock,
       builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<int> get supersetGroup => $composableBuilder(
+      column: $table.supersetGroup,
+      builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<double> get distance => $composableBuilder(
       column: $table.distance, builder: (column) => ColumnOrderings(column));
 
@@ -26432,6 +26552,9 @@ class $$SetLogsTableAnnotationComposer
   GeneratedColumn<int> get exerciseBlock => $composableBuilder(
       column: $table.exerciseBlock, builder: (column) => column);
 
+  GeneratedColumn<int> get supersetGroup => $composableBuilder(
+      column: $table.supersetGroup, builder: (column) => column);
+
   GeneratedColumn<double> get distance =>
       $composableBuilder(column: $table.distance, builder: (column) => column);
 
@@ -26522,6 +26645,7 @@ class $$SetLogsTableTableManager extends RootTableManager<
             Value<bool> isCompleted = const Value.absent(),
             Value<int> logOrder = const Value.absent(),
             Value<int?> exerciseBlock = const Value.absent(),
+            Value<int?> supersetGroup = const Value.absent(),
             Value<double?> distance = const Value.absent(),
             Value<int?> durationSeconds = const Value.absent(),
             Value<String?> notes = const Value.absent(),
@@ -26544,6 +26668,7 @@ class $$SetLogsTableTableManager extends RootTableManager<
             isCompleted: isCompleted,
             logOrder: logOrder,
             exerciseBlock: exerciseBlock,
+            supersetGroup: supersetGroup,
             distance: distance,
             durationSeconds: durationSeconds,
             notes: notes,
@@ -26566,6 +26691,7 @@ class $$SetLogsTableTableManager extends RootTableManager<
             Value<bool> isCompleted = const Value.absent(),
             Value<int> logOrder = const Value.absent(),
             Value<int?> exerciseBlock = const Value.absent(),
+            Value<int?> supersetGroup = const Value.absent(),
             Value<double?> distance = const Value.absent(),
             Value<int?> durationSeconds = const Value.absent(),
             Value<String?> notes = const Value.absent(),
@@ -26588,13 +26714,16 @@ class $$SetLogsTableTableManager extends RootTableManager<
             isCompleted: isCompleted,
             logOrder: logOrder,
             exerciseBlock: exerciseBlock,
+            supersetGroup: supersetGroup,
             distance: distance,
             durationSeconds: durationSeconds,
             notes: notes,
           ),
           withReferenceMapper: (p0) => p0
-              .map((e) =>
-                  (e.readTable(table), $$SetLogsTableReferences(db, table, e)))
+              .map((e) => (
+                    e.readTable<$SetLogsTable, SetLog>(table),
+                    $$SetLogsTableReferences(db, table, e)
+                  ))
               .toList(),
           prefetchHooksCallback: ({workoutLogId = false, exerciseId = false}) {
             return PrefetchHooks(
@@ -27023,7 +27152,7 @@ class $$CardioActivitiesTableTableManager extends RootTableManager<
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (
-                    e.readTable(table),
+                    e.readTable<$CardioActivitiesTable, CardioActivity>(table),
                     $$CardioActivitiesTableReferences(db, table, e)
                   ))
               .toList(),
@@ -27357,7 +27486,7 @@ class $$CardioSamplesTableTableManager extends RootTableManager<
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (
-                    e.readTable(table),
+                    e.readTable<$CardioSamplesTable, CardioSample>(table),
                     $$CardioSamplesTableReferences(db, table, e)
                   ))
               .toList(),
@@ -28131,8 +28260,10 @@ class $$ProductsTableTableManager extends RootTableManager<
             categoryJa: categoryJa,
           ),
           withReferenceMapper: (p0) => p0
-              .map((e) =>
-                  (e.readTable(table), $$ProductsTableReferences(db, table, e)))
+              .map((e) => (
+                    e.readTable<$ProductsTable, Product>(table),
+                    $$ProductsTableReferences(db, table, e)
+                  ))
               .toList(),
           prefetchHooksCallback: (
               {nutritionLogsRefs = false, mealItemsRefs = false}) {
@@ -28709,7 +28840,8 @@ class $$OffProductsArchiveTableTableManager extends RootTableManager<
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (
-                    e.readTable(table),
+                    e.readTable<$OffProductsArchiveTable,
+                        OffProductsArchiveData>(table),
                     $$OffProductsArchiveTableReferences(db, table, e)
                   ))
               .toList(),
@@ -29098,7 +29230,7 @@ class $$MealEntriesTableTableManager extends RootTableManager<
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (
-                    e.readTable(table),
+                    e.readTable<$MealEntriesTable, MealEntry>(table),
                     $$MealEntriesTableReferences(db, table, e)
                   ))
               .toList(),
@@ -29733,7 +29865,7 @@ class $$NutritionLogsTableTableManager extends RootTableManager<
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (
-                    e.readTable(table),
+                    e.readTable<$NutritionLogsTable, NutritionLog>(table),
                     $$NutritionLogsTableReferences(db, table, e)
                   ))
               .toList(),
@@ -30258,7 +30390,7 @@ class $$SupplementsTableTableManager extends RootTableManager<
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (
-                    e.readTable(table),
+                    e.readTable<$SupplementsTable, Supplement>(table),
                     $$SupplementsTableReferences(db, table, e)
                   ))
               .toList(),
@@ -30664,7 +30796,7 @@ class $$SupplementLogsTableTableManager extends RootTableManager<
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (
-                    e.readTable(table),
+                    e.readTable<$SupplementLogsTable, SupplementLog>(table),
                     $$SupplementLogsTableReferences(db, table, e)
                   ))
               .toList(),
@@ -31069,7 +31201,7 @@ class $$FluidLogsTableTableManager extends RootTableManager<
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (
-                    e.readTable(table),
+                    e.readTable<$FluidLogsTable, FluidLog>(table),
                     $$FluidLogsTableReferences(db, table, e)
                   ))
               .toList(),
@@ -31362,7 +31494,11 @@ class $$MeasurementsTableTableManager extends RootTableManager<
             legacySessionId: legacySessionId,
           ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map((e) => (
+                    e.readTable<$MeasurementsTable, Measurement>(table),
+                    BaseReferences<_$AppDatabase, $MeasurementsTable,
+                        Measurement>(db, table, e)
+                  ))
               .toList(),
           prefetchHooksCallback: null,
         ));
@@ -31662,8 +31798,10 @@ class $$PostsTableTableManager extends RootTableManager<
             content: content,
           ),
           withReferenceMapper: (p0) => p0
-              .map((e) =>
-                  (e.readTable(table), $$PostsTableReferences(db, table, e)))
+              .map((e) => (
+                    e.readTable<$PostsTable, Post>(table),
+                    $$PostsTableReferences(db, table, e)
+                  ))
               .toList(),
           prefetchHooksCallback: ({socialInteractionsRefs = false}) {
             return PrefetchHooks(
@@ -31983,7 +32121,8 @@ class $$SocialInteractionsTableTableManager extends RootTableManager<
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (
-                    e.readTable(table),
+                    e.readTable<$SocialInteractionsTable, SocialInteraction>(
+                        table),
                     $$SocialInteractionsTableReferences(db, table, e)
                   ))
               .toList(),
@@ -32283,8 +32422,10 @@ class $$MealsTableTableManager extends RootTableManager<
             notes: notes,
           ),
           withReferenceMapper: (p0) => p0
-              .map((e) =>
-                  (e.readTable(table), $$MealsTableReferences(db, table, e)))
+              .map((e) => (
+                    e.readTable<$MealsTable, Meal>(table),
+                    $$MealsTableReferences(db, table, e)
+                  ))
               .toList(),
           prefetchHooksCallback: ({mealItemsRefs = false}) {
             return PrefetchHooks(
@@ -32664,7 +32805,7 @@ class $$MealItemsTableTableManager extends RootTableManager<
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (
-                    e.readTable(table),
+                    e.readTable<$MealItemsTable, MealItem>(table),
                     $$MealItemsTableReferences(db, table, e)
                   ))
               .toList(),
@@ -32911,7 +33052,11 @@ class $$FoodCategoriesTableTableManager extends RootTableManager<
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map((e) => (
+                    e.readTable<$FoodCategoriesTable, FoodCategory>(table),
+                    BaseReferences<_$AppDatabase, $FoodCategoriesTable,
+                        FoodCategory>(db, table, e)
+                  ))
               .toList(),
           prefetchHooksCallback: null,
         ));
@@ -33064,7 +33209,11 @@ class $$FavoritesTableTableManager extends RootTableManager<
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map((e) => (
+                    e.readTable<$FavoritesTable, Favorite>(table),
+                    BaseReferences<_$AppDatabase, $FavoritesTable, Favorite>(
+                        db, table, e)
+                  ))
               .toList(),
           prefetchHooksCallback: null,
         ));
@@ -33324,7 +33473,12 @@ class $$DailyGoalsHistoryTableTableManager extends RootTableManager<
             targetSteps: targetSteps,
           ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map((e) => (
+                    e.readTable<$DailyGoalsHistoryTable, DailyGoalsHistoryData>(
+                        table),
+                    BaseReferences<_$AppDatabase, $DailyGoalsHistoryTable,
+                        DailyGoalsHistoryData>(db, table, e)
+                  ))
               .toList(),
           prefetchHooksCallback: null,
         ));
@@ -33643,7 +33797,8 @@ class $$SupplementSettingsHistoryTableTableManager extends RootTableManager<
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (
-                    e.readTable(table),
+                    e.readTable<$SupplementSettingsHistoryTable,
+                        SupplementSettingsHistoryData>(table),
                     $$SupplementSettingsHistoryTableReferences(db, table, e)
                   ))
               .toList(),
@@ -33940,7 +34095,12 @@ class $$HealthStepSegmentsTableTableManager extends RootTableManager<
             externalKey: externalKey,
           ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map((e) => (
+                    e.readTable<$HealthStepSegmentsTable, HealthStepSegment>(
+                        table),
+                    BaseReferences<_$AppDatabase, $HealthStepSegmentsTable,
+                        HealthStepSegment>(db, table, e)
+                  ))
               .toList(),
           prefetchHooksCallback: null,
         ));
@@ -34307,7 +34467,8 @@ class $$WorkoutExerciseLogsTableTableManager extends RootTableManager<
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (
-                    e.readTable(table),
+                    e.readTable<$WorkoutExerciseLogsTable, WorkoutExerciseLog>(
+                        table),
                     $$WorkoutExerciseLogsTableReferences(db, table, e)
                   ))
               .toList(),
@@ -34904,7 +35065,8 @@ class $$UserFoodOverridesTableTableManager extends RootTableManager<
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (
-                    e.readTable(table),
+                    e.readTable<$UserFoodOverridesTable, UserFoodOverride>(
+                        table),
                     $$UserFoodOverridesTableReferences(db, table, e)
                   ))
               .toList(),
@@ -35357,7 +35519,8 @@ class $$ExerciseTranslationsTableTableManager extends RootTableManager<
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (
-                    e.readTable(table),
+                    e.readTable<$ExerciseTranslationsTable,
+                        ExerciseTranslation>(table),
                     $$ExerciseTranslationsTableReferences(db, table, e)
                   ))
               .toList(),
@@ -35575,7 +35738,11 @@ class $$MusclesTableTableManager extends RootTableManager<
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map((e) => (
+                    e.readTable<$MusclesTable, Muscle>(table),
+                    BaseReferences<_$AppDatabase, $MusclesTable, Muscle>(
+                        db, table, e)
+                  ))
               .toList(),
           prefetchHooksCallback: null,
         ));
@@ -35718,7 +35885,12 @@ class $$MuscleTranslationsTableTableManager extends RootTableManager<
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map((e) => (
+                    e.readTable<$MuscleTranslationsTable, MuscleTranslation>(
+                        table),
+                    BaseReferences<_$AppDatabase, $MuscleTranslationsTable,
+                        MuscleTranslation>(db, table, e)
+                  ))
               .toList(),
           prefetchHooksCallback: null,
         ));
@@ -35844,7 +36016,11 @@ class $$EquipmentTableTableManager extends RootTableManager<
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map((e) => (
+                    e.readTable<$EquipmentTable, EquipmentEntry>(table),
+                    BaseReferences<_$AppDatabase, $EquipmentTable,
+                        EquipmentEntry>(db, table, e)
+                  ))
               .toList(),
           prefetchHooksCallback: null,
         ));
@@ -35993,7 +36169,12 @@ class $$EquipmentTranslationsTableTableManager extends RootTableManager<
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map((e) => (
+                    e.readTable<$EquipmentTranslationsTable,
+                        EquipmentTranslation>(table),
+                    BaseReferences<_$AppDatabase, $EquipmentTranslationsTable,
+                        EquipmentTranslation>(db, table, e)
+                  ))
               .toList(),
           prefetchHooksCallback: null,
         ));
@@ -36155,7 +36336,11 @@ class $$ExerciseMusclesTableTableManager extends RootTableManager<
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map((e) => (
+                    e.readTable<$ExerciseMusclesTable, ExerciseMuscle>(table),
+                    BaseReferences<_$AppDatabase, $ExerciseMusclesTable,
+                        ExerciseMuscle>(db, table, e)
+                  ))
               .toList(),
           prefetchHooksCallback: null,
         ));
@@ -36301,7 +36486,12 @@ class $$ExerciseEquipmentTableTableManager extends RootTableManager<
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map((e) => (
+                    e.readTable<$ExerciseEquipmentTable,
+                        ExerciseEquipmentEntry>(table),
+                    BaseReferences<_$AppDatabase, $ExerciseEquipmentTable,
+                        ExerciseEquipmentEntry>(db, table, e)
+                  ))
               .toList(),
           prefetchHooksCallback: null,
         ));
@@ -36430,7 +36620,11 @@ class $$ExerciseTagsTableTableManager extends RootTableManager<
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map((e) => (
+                    e.readTable<$ExerciseTagsTable, ExerciseTag>(table),
+                    BaseReferences<_$AppDatabase, $ExerciseTagsTable,
+                        ExerciseTag>(db, table, e)
+                  ))
               .toList(),
           prefetchHooksCallback: null,
         ));
@@ -36590,7 +36784,11 @@ class $$CatalogLanguagesTableTableManager extends RootTableManager<
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map((e) => (
+                    e.readTable<$CatalogLanguagesTable, CatalogLanguage>(table),
+                    BaseReferences<_$AppDatabase, $CatalogLanguagesTable,
+                        CatalogLanguage>(db, table, e)
+                  ))
               .toList(),
           prefetchHooksCallback: null,
         ));
@@ -36750,7 +36948,11 @@ class $$ExerciseAliasesTableTableManager extends RootTableManager<
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map((e) => (
+                    e.readTable<$ExerciseAliasesTable, ExerciseAliase>(table),
+                    BaseReferences<_$AppDatabase, $ExerciseAliasesTable,
+                        ExerciseAliase>(db, table, e)
+                  ))
               .toList(),
           prefetchHooksCallback: null,
         ));
@@ -37043,7 +37245,8 @@ class $$UserFoodOverrideTranslationsTableTableManager extends RootTableManager<
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (
-                    e.readTable(table),
+                    e.readTable<$UserFoodOverrideTranslationsTable,
+                        UserFoodOverrideTranslation>(table),
                     $$UserFoodOverrideTranslationsTableReferences(db, table, e)
                   ))
               .toList(),
