@@ -34,8 +34,12 @@ class _WeightRulerState extends State<WeightRuler> {
   double get _pixelsPerUnit => widget.imperial ? 35 : 70;
 
   void _change(double raw) {
-    final value = ((raw * 10).round() / 10)
-        .clamp(widget.imperial ? 55.0 : 25.0, widget.imperial ? 570.0 : 260.0);
+    // Keep the painted ruler continuous under the finger. The card formats the
+    // visible number to one decimal and rounds only when saving.
+    final value = raw.clamp(
+      widget.imperial ? 55.0 : 25.0,
+      widget.imperial ? 570.0 : 260.0,
+    );
     final major = widget.imperial ? 5 : 1;
     if ((value / major).floor() != (widget.value / major).floor()) {
       HapticFeedback.selectionClick();

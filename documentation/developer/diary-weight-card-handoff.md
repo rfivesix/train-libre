@@ -2,7 +2,8 @@
 
 Stand: 5. September 2026  
 Branch: `develop`  
-Aktueller Implementierungscommit: `61536f17 Refine empty diary days and weight card typography`
+Aktueller Implementierungsstand: Änderungen bis einschließlich der
+Schlaf-Score-Typografie und des kontinuierlichen Lineals.
 
 ## Auftrag und aktueller Stand
 
@@ -53,16 +54,20 @@ unpassende Leerzustandsanzeige.
 Die Anpassung in `lib/features/diary/presentation/widgets/weight_card.dart`
 und `weight_ruler.dart` lautet:
 
-- Primäre Texte (Label und Gewichtsnummer) verwenden `colorScheme.onSurface`.
-- Sekundäre Texte (Einheit, Alter, Beschreibung, Chevron, Abbrechen) verwenden
+- Die Gewichtsnummer verwendet exakt `textTheme.titleLarge` mit fetter Schrift
+  und `colorScheme.onSurface`, so wie der Schlaf-Score im Diary. Sie bleibt in
+  allen Zuständen gleich groß.
+- Das Label verwendet `bodyMedium` mit mittlerer Stärke.
+- Sekundäre Texte (Einheit, Alter, Beschreibung, Abbrechen) verwenden
   ein einheitliches `onSurface` mit 64 % Deckkraft.
-- Die Gewichtszahl übernimmt `headlineMedium` der App statt einer eigenen
-  32-pt-Vorgabe; Einheit und Beschriftungen stammen aus bestehenden
-  `bodyMedium`/`labelMedium`/`bodySmall`-Stilen.
+- Der Chevron übernimmt die Standardgröße und harte `onSurface`-Farbe der
+  bestehenden Workout-Karte.
 - Das Lineal nutzt `onSurface` für Striche und denselben neutral gedämpften Ton
   für Beschriftungen.
+- Das Lineal bewegt sich kontinuierlich unter dem Finger. Die Textanzeige hat
+  weiterhin eine Nachkommastelle; gerundet wird erst beim Speichern.
 
-Bewusst nicht geändert wurden Linealgeometrie, 0,1er-Eingabeauflösung,
+Bewusst nicht geändert wurden Linealgeometrie, gespeicherte 0,1er-Auflösung,
 Animation, Kartenabstände und die Lime-Akzentfarbe.
 
 ## Relevante Dateien
@@ -86,7 +91,8 @@ flutter analyze
 flutter test test/features/diary/weight_card_test.dart test/features/diary/weight_data_source_test.dart
 ```
 
-Ergebnis: Analyse ohne Issues, 27 fokussierte Tests grün. Die Tests prüfen
+Ergebnis vor der jüngsten Linealänderung: Analyse ohne Issues. Danach liefen
+28 fokussierte Tests grün. Die Tests prüfen
 unter anderem Zustände, Einheitenumrechnung, Abbrechen, Speichern, Animation,
 Haptik-Semantik, enge Breiten, große Schrift und alle fünf Sprachen.
 
@@ -125,5 +131,4 @@ und die verwendeten Theme-Textstile beibehalten.
 - `6e571818` — Lineal und Haptik
 - `e580e906` — Karte und Tests
 - `e36519a2` — Diary-Platzierung, Diagrammentfernung, Bericht
-- `61536f17` — heutiger leerer Tag und Typografie
-
+- `61536f17` — heutiger leerer Tag und erste Typografieangleichung

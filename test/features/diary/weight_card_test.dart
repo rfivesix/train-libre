@@ -6,6 +6,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:train_libre/data/drift_database.dart';
@@ -182,7 +183,7 @@ void main() {
     expect(await rows(tester), isEmpty);
   });
 
-  cardTest('uses the app text hierarchy instead of a separate grey scale',
+  cardTest('matches the sleep score value and existing chevron styles',
       (tester) async {
     await seed(tester, 84.2, today);
     await mount(tester);
@@ -194,15 +195,46 @@ void main() {
         tester.widget<Text>(find.byKey(const ValueKey('weight-value')));
     final unit = tester.widget<Text>(find.text('kg'));
 
-    expect(label.style?.color, colorScheme.onSurface);
+    expect(
+        label.style?.fontSize,
+        Theme.of(tester.element(find.byType(WeightCard)))
+            .textTheme
+            .bodyMedium
+            ?.fontSize);
     expect(
         value.style?.fontSize,
         Theme.of(tester.element(find.byType(WeightCard)))
             .textTheme
-            .headlineMedium
+            .titleLarge
             ?.fontSize);
     expect(value.style?.color, colorScheme.onSurface);
     expect(unit.style?.color, colorScheme.onSurface.withValues(alpha: .64));
+    final chevron = tester.widget<Icon>(find.byIcon(LucideIcons.chevron_right));
+    expect(chevron.size, isNull);
+    expect(chevron.color, colorScheme.onSurface);
+  });
+
+  cardTest('ruler moves continuously while the displayed value stays decimal',
+      (tester) async {
+    await mount(tester);
+    await tester.tap(find.text('Gewicht eintragen'));
+    await tester.pumpAndSettle();
+
+    final center = tester.getCenter(find.byType(WeightRuler));
+    final gesture = await tester.startGesture(center);
+    await gesture.moveBy(const Offset(-3, 0));
+    await tester.pump();
+
+    final ruler = tester.widget<WeightRuler>(find.byType(WeightRuler));
+    expect(ruler.value, greaterThan(75));
+    expect(ruler.value, lessThan(75.1));
+    expect(find.text('75,0'), findsOneWidget);
+
+    await gesture.moveBy(const Offset(-4, 0));
+    await gesture.up();
+    await tester.pumpAndSettle();
+    expect(find.text('75,1'), findsOneWidget);
+    expect(await rows(tester), isEmpty);
   });
 
   cardTest('stale value shows calendar age and preselects latest weight',

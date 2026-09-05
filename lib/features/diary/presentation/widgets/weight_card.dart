@@ -207,8 +207,9 @@ class _WeightCardState extends State<WeightCard>
     final secondaryTextColor = cs.onSurface.withValues(alpha: .64);
     final label = Text(
       l10n.diaryWeightLabel,
-      style: theme.textTheme.labelMedium?.copyWith(
-        color: cs.onSurface,
+      style: theme.textTheme.bodyMedium?.copyWith(
+        color: secondaryTextColor,
+        fontWeight: FontWeight.w500,
       ),
     );
     Widget valueColumn = Column(
@@ -222,11 +223,8 @@ class _WeightCardState extends State<WeightCard>
           children: [
             Text(number,
                 key: const ValueKey('weight-value'),
-                style: theme.textTheme.headlineMedium?.copyWith(
-                  fontSize: open || logged ? null : 22,
-                  height: 1.05,
-                  fontWeight:
-                      open || logged ? FontWeight.w700 : FontWeight.w600,
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
                   color: cs.onSurface,
                   fontFeatures: const [FontFeature.tabularFigures()],
                 )),
@@ -348,9 +346,7 @@ class _WeightCardState extends State<WeightCard>
                       Expanded(child: valueColumn),
                       const SizedBox(width: DesignConstants.spacingM),
                       if (!open && logged)
-                        Icon(LucideIcons.chevron_right,
-                            size: DesignConstants.iconSizeM,
-                            color: secondaryTextColor)
+                        Icon(LucideIcons.chevron_right, color: cs.onSurface)
                       else if (!open)
                         trigger(false)
                       else if (!stackActions)
@@ -391,7 +387,7 @@ class _WeightCardState extends State<WeightCard>
                             const SizedBox(height: DesignConstants.spacingM),
                             WeightRuler(
                               key: const ValueKey('weight-ruler'),
-                              value: rounded,
+                              value: value,
                               imperial: units.isImperial,
                               enabled: !_saving,
                               label: l10n.diaryWeightLabel,

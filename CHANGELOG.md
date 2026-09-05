@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Changed
 - **Diary Empty Day and Weight Card (`DiaryScreen`, `WeightCard`):** Today now opens as a usable empty diary instead of showing placeholder content and a no-data overlay. The weight card uses the app's standard text hierarchy and a consistent neutral text tone.
+- **Weight Card Visual Rhythm (`WeightCard`, `WeightRuler`):** Match the weight value to the existing sleep-score typography in every state, align the drill-down chevron with workout cards, and let the ruler move continuously between its displayed one-decimal values.
 ## [1.3.0-alpha.1] - 2026-09-05
 
 ### Added
