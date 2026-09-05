@@ -9,6 +9,7 @@ import 'package:train_libre/features/workout/domain/repositories/workout_reposit
 import 'package:train_libre/features/workout/data/workout_repository.dart';
 import 'package:train_libre/features/workout/data/sources/workout_local_data_source.dart';
 import 'package:train_libre/features/workout/presentation/workout_log_detail_screen.dart';
+import 'package:train_libre/features/workout/presentation/widgets/workout_exercise_log_card.dart';
 import 'package:train_libre/generated/app_localizations.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 
@@ -151,6 +152,114 @@ void main() {
           ..where((tbl) => tbl.localId.equals(setRow.localId)))
         .getSingle();
     expect(updatedSetInDb.weight, 105.0);
+
+    await tester.pumpWidget(Container());
+    await tester.pumpAndSettle();
+  });
+
+  testWidgets('same exercise in two blocks renders two independent cards',
+      (tester) async {
+    for (final block in [0, 2]) {
+      await database.into(database.setLogs).insert(
+            db.SetLogsCompanion.insert(
+              workoutLogId: logUuid,
+              exerciseNameSnapshot: const drift.Value('Bench Press'),
+              setType: const drift.Value('normal'),
+              weight: drift.Value(100 + block.toDouble()),
+              reps: const drift.Value(10),
+              isCompleted: const drift.Value(true),
+              logOrder: drift.Value(block),
+              exerciseBlock: drift.Value(block),
+            ),
+          );
+    }
+
+    await tester.binding.setSurfaceSize(const Size(800, 3000));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    await tester.pumpWidget(_wrap(WorkoutLogDetailScreen(logId: logId), repo));
+    await tester.pumpAndSettle();
+
+    final cards = tester.widgetList<WorkoutExerciseLogCard>(
+      find.byType(WorkoutExerciseLogCard),
+    );
+    expect(cards.length, 2);
+    expect(cards.map((card) => card.sets.single.exerciseBlock), [0, 2]);
+
+    await tester.pumpWidget(Container());
+    await tester.pumpAndSettle();
+  });
+
+  testWidgets('legacy rows without blocks still render one name-based card',
+      (tester) async {
+    for (var index = 0; index < 2; index++) {
+      await database.into(database.setLogs).insert(
+            db.SetLogsCompanion.insert(
+              workoutLogId: logUuid,
+              exerciseNameSnapshot: const drift.Value('Bench Press'),
+              setType: const drift.Value('normal'),
+              weight: drift.Value(100 + index.toDouble()),
+              reps: const drift.Value(10),
+              isCompleted: const drift.Value(true),
+              logOrder: drift.Value(index),
+            ),
+          );
+    }
+
+    await tester.binding.setSurfaceSize(const Size(800, 3000));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    await tester.pumpWidget(_wrap(WorkoutLogDetailScreen(logId: logId), repo));
+    await tester.pumpAndSettle();
+
+    final cards = tester.widgetList<WorkoutExerciseLogCard>(
+      find.byType(WorkoutExerciseLogCard),
+    );
+    expect(cards.length, 1);
+    expect(cards.single.sets.length, 2);
+
+    await tester.pumpWidget(Container());
+    await tester.pumpAndSettle();
+  });
+
+  testWidgets('deleting a duplicate exercise removes only its block',
+      (tester) async {
+    for (final block in [0, 2]) {
+      await database.into(database.setLogs).insert(
+            db.SetLogsCompanion.insert(
+              workoutLogId: logUuid,
+              exerciseNameSnapshot: const drift.Value('Bench Press'),
+              setType: const drift.Value('normal'),
+              weight: drift.Value(100 + block.toDouble()),
+              reps: const drift.Value(10),
+              isCompleted: const drift.Value(true),
+              logOrder: drift.Value(block),
+              exerciseBlock: drift.Value(block),
+            ),
+          );
+    }
+
+    await tester.binding.setSurfaceSize(const Size(800, 3000));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    await tester.pumpWidget(_wrap(WorkoutLogDetailScreen(logId: logId), repo));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byIcon(LucideIcons.pencil).first);
+    await tester.pumpAndSettle();
+
+    final firstCard = find.byType(WorkoutExerciseLogCard).first;
+    final removeButton = find
+        .descendant(
+          of: firstCard,
+          matching: find.byIcon(LucideIcons.trash),
+        )
+        .first;
+    await tester.tap(removeButton);
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.tap(find.text('Save').last);
+    await tester.pumpAndSettle();
+
+    final remaining = await (database.select(database.setLogs)
+          ..where((table) => table.workoutLogId.equals(logUuid)))
+        .get();
+    expect(remaining.map((set) => set.exerciseBlock), [2]);
 
     await tester.pumpWidget(Container());
     await tester.pumpAndSettle();
