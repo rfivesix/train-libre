@@ -53,18 +53,14 @@ AVVERTENZA:
 Train Libre non è un'applicazione medica. Le stime sul recupero muscolare, il tracciamento del sonno e i parametri fisici sono destinati esclusivamente al monitoraggio sportivo personale. Non costituiscono e non sostituiscono in alcun modo diagnosi o trattamenti medici professionali.
 
 OPEN SOURCE E DATI APERTI:
-Sviluppato in modo trasparente sui database aperti e affidabili di Open Food Facts e wger. Il codice sorgente completo è pubblicamente accessibile: le nostre promesse sulla privacy si verificano, non si prendono per buone.
+Sviluppato in modo trasparente sui database aperti e affidabili di Open Food Facts e OpenExerciseDB. Il codice sorgente completo è pubblicamente accessibile: le nostre promesse sulla privacy si verificano, non si prendono per buone.
 
 ## Release Notes (What's New / Release Notes in this version)
-Catalogo degli esercizi aggiornato: il catalogo ora utilizza OpenExerciseDB, con informazioni più precise su muscoli e movimenti. Nomi e descrizioni degli esercizi appaiono nella lingua dell'app quando è disponibile una traduzione.
+Registra il peso dal diario: annota il peso nella nuova scheda sotto Integratori e apri da lì anche la cronologia delle misurazioni.
 
-Trova gli esercizi adatti a te: filtra per attrezzatura, difficoltà e altre caratteristiche. I menu di selezione compatti ti aiutano a scegliere gli esercizi anche quando crei le tue schede.
+Un righello del peso fluido: scorri liberamente tra le tacche e controlla il valore prima di salvarlo. Chilogrammi o libbre seguono l'unità scelta.
 
-I campi giusti per ogni esercizio: registra il tempo di tenuta per i plank, le ripetizioni e l'eventuale peso aggiuntivo per le trazioni, oppure l'assistenza per gli esercizi assistiti. Anche i valori dell'ultimo allenamento e i grafici si adattano all'esercizio.
-
-Progressi rappresentati meglio: per gli esercizi a corpo libero, il volume di allenamento e i record di forza tengono ora conto del peso corporeo registrato. Il peso aggiuntivo aumenta il carico, l'assistenza lo riduce. Gli allenamenti passati usano l'ultimo peso registrato alla data della sessione.
-
-Statistiche muscolari più precise: gli esercizi a corpo libero e le tenute statiche vengono conteggiati in modo più affidabile. Lo stretching e gli esercizi di mobilità non contano più come serie di forza e non avviano un periodo di recupero muscolare.
+La giornata di oggi è sempre pronta: anche prima di registrare qualcosa, si apre il diario completo con l'ultimo peso e la possibilità di aggiungere una nuova misurazione.
 
 ## Support URL (Support Web Page URL)
 https://rfivesix.github.io/train-libre/support.html

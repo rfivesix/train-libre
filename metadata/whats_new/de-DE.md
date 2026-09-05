@@ -6,6 +6,14 @@
   Danach ausführen: python3 script/build_whats_new.py --write --sync-store
 -->
 
+## 1.3.0-alpha.2 (2026-09-05)
+
+{activity} Gewicht direkt im Tagebuch erfassen: Trage dein Gewicht jetzt über die neue Karte unter den Supplementen ein und öffne von dort auch deinen Messverlauf.
+
+{zap} Flüssiger Gewichtsregler: Bewege die Skala frei zwischen den Markierungen und kontrolliere den Wert vor dem Speichern. Kilogramm und Pfund richten sich nach deiner gewählten Einheit.
+
+{layout_grid} Der heutige Tag ist immer bereit: Auch wenn du heute noch nichts erfasst hast, öffnet sich das vollständige Tagebuch mit deinem letzten Gewicht und der Möglichkeit, einen neuen Wert einzutragen.
+
 ## 1.3.0-alpha.1 (2026-09-05)
 
 {dumbbell} Überarbeiteter Übungskatalog: Der Katalog basiert jetzt auf OpenExerciseDB und bietet genauere Angaben zu Muskeln und Bewegungen. Übungsnamen und Beschreibungen erscheinen in deiner App-Sprache, sofern eine Übersetzung verfügbar ist.

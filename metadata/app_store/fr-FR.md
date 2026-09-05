@@ -53,18 +53,14 @@ AVERTISSEMENT :
 Train Libre n'est pas une application médicale. Les estimations de récupération, le suivi du sommeil et les constantes physiques sont destinés exclusivement au suivi sportif personnel. Ils ne constituent pas et ne remplacent en aucun cas un diagnostic ou un traitement médical professionnel.
 
 OPEN SOURCE & DONNÉES OUVERTES :
-Développé de manière transparente à partir des catalogues communautaires de confiance Open Food Facts et de la base d'exercices wger. Le code source complet est accessible publiquement : nos promesses de confidentialité se vérifient au lieu de se croire.
+Développé de manière transparente à partir des catalogues communautaires de confiance Open Food Facts et OpenExerciseDB. Le code source complet est accessible publiquement : nos promesses de confidentialité se vérifient au lieu de se croire.
 
 ## Release Notes (What's New / Release Notes in this version)
-Catalogue d'exercices enrichi: le catalogue utilise désormais OpenExerciseDB, avec des informations plus précises sur les muscles et les mouvements. Les noms et descriptions s'affichent dans la langue de ton app lorsqu'une traduction est disponible.
+Enregistre ton poids depuis le journal: note ton poids dans la nouvelle carte sous les compléments et ouvre ton historique de mesures au même endroit.
 
-Trouve les exercices qui te conviennent: filtre par matériel, difficulté et autres caractéristiques. Les menus de sélection compacts t'aident aussi à choisir tes exercices lorsque tu crées tes programmes.
+Une règle fluide pour le poids: déplace-toi librement entre les graduations et vérifie la valeur avant de l'enregistrer. Les kilogrammes ou les livres suivent l'unité choisie.
 
-Les bons champs pour chaque exercice: note la durée d'une planche, les répétitions et le lest éventuel des tractions, ou l'assistance des exercices assistés. Les valeurs de la dernière séance et les graphiques s'adaptent aussi à l'exercice.
-
-Une progression mieux représentée: pour les exercices au poids du corps, le volume d'entraînement et les records de force tiennent désormais compte de ton poids enregistré. Le lest s'ajoute à la charge, l'assistance s'en déduit. Les anciennes séances utilisent le dernier poids enregistré à leur date.
-
-Des statistiques musculaires plus précises: les exercices au poids du corps et les positions maintenues sont mieux pris en compte. Les étirements et les exercices de mobilité ne comptent plus comme des séries de musculation et ne déclenchent plus de période de récupération musculaire.
+La journée d'aujourd'hui est toujours prête: même avant toute saisie, le journal complet s'ouvre avec ton dernier poids et permet d'enregistrer une nouvelle mesure.
 
 ## Support URL (Support Web Page URL)
 https://rfivesix.github.io/train-libre/support.html

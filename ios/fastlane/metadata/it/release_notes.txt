@@ -1,3 +1,5 @@
-Raccomandazioni dei macronutrienti migliorate: il calcolo adattivo distribuisce ora grassi e carboidrati in modo più bilanciato in base al peso corporeo e all'obiettivo.
+Registra il peso dal diario: annota il peso nella nuova scheda sotto Integratori e apri da lì anche la cronologia delle misurazioni.
 
-Correzione di bug: risolti piccoli problemi con la registrazione della caffeina nel diario e migliorate le transizioni e le animazioni delle schede.
+Un righello del peso fluido: scorri liberamente tra le tacche e controlla il valore prima di salvarlo. Chilogrammi o libbre seguono l'unità scelta.
+
+La giornata di oggi è sempre pronta: anche prima di registrare qualcosa, si apre il diario completo con l'ultimo peso e la possibilità di aggiungere una nuova misurazione.

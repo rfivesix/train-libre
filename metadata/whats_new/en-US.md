@@ -6,6 +6,14 @@
   Newest version first. Regenerate with: python3 script/build_whats_new.py
 -->
 
+## 1.3.0-alpha.2 (2026-09-05)
+
+{activity} Log weight from your diary: Record your weight from the new card below Supplements and open your measurement history from the same place.
+
+{zap} A smooth weight ruler: Move freely between the ruler marks and review the value before saving. Kilograms or pounds follow your preferred unit.
+
+{layout_grid} Today is always ready: Even before you log anything today, the full diary opens with your latest weight and the option to record a new measurement.
+
 ## 1.3.0-alpha.1 (2026-09-05)
 
 {dumbbell} Updated exercise catalog: The catalog now uses OpenExerciseDB, with more detailed information about muscles and movements. Exercise names and descriptions appear in your app language when a translation is available.

@@ -16,6 +16,30 @@ import 'whats_new_release.dart';
 const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
   'en': <WhatsNewRelease>[
     WhatsNewRelease(
+      version: '1.3.0-alpha.2',
+      releasedOn: '2026-09-05',
+      entries: <WhatsNewEntry>[
+        WhatsNewEntry(
+          icon: LucideIcons.activity,
+          title: 'Log weight from your diary',
+          body:
+              'Record your weight from the new card below Supplements and open your measurement history from the same place.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.zap,
+          title: 'A smooth weight ruler',
+          body:
+              'Move freely between the ruler marks and review the value before saving. Kilograms or pounds follow your preferred unit.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.layout_grid,
+          title: 'Today is always ready',
+          body:
+              'Even before you log anything today, the full diary opens with your latest weight and the option to record a new measurement.',
+        ),
+      ],
+    ),
+    WhatsNewRelease(
       version: '1.3.0-alpha.1',
       releasedOn: '2026-09-05',
       entries: <WhatsNewEntry>[
@@ -167,6 +191,30 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
     ),
   ],
   'de': <WhatsNewRelease>[
+    WhatsNewRelease(
+      version: '1.3.0-alpha.2',
+      releasedOn: '2026-09-05',
+      entries: <WhatsNewEntry>[
+        WhatsNewEntry(
+          icon: LucideIcons.activity,
+          title: 'Gewicht direkt im Tagebuch erfassen',
+          body:
+              'Trage dein Gewicht jetzt über die neue Karte unter den Supplementen ein und öffne von dort auch deinen Messverlauf.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.zap,
+          title: 'Flüssiger Gewichtsregler',
+          body:
+              'Bewege die Skala frei zwischen den Markierungen und kontrolliere den Wert vor dem Speichern. Kilogramm und Pfund richten sich nach deiner gewählten Einheit.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.layout_grid,
+          title: 'Der heutige Tag ist immer bereit',
+          body:
+              'Auch wenn du heute noch nichts erfasst hast, öffnet sich das vollständige Tagebuch mit deinem letzten Gewicht und der Möglichkeit, einen neuen Wert einzutragen.',
+        ),
+      ],
+    ),
     WhatsNewRelease(
       version: '1.3.0-alpha.1',
       releasedOn: '2026-09-05',
@@ -320,6 +368,30 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
   ],
   'fr': <WhatsNewRelease>[
     WhatsNewRelease(
+      version: '1.3.0-alpha.2',
+      releasedOn: '2026-09-05',
+      entries: <WhatsNewEntry>[
+        WhatsNewEntry(
+          icon: LucideIcons.activity,
+          title: 'Enregistre ton poids depuis le journal',
+          body:
+              'note ton poids dans la nouvelle carte sous les compléments et ouvre ton historique de mesures au même endroit.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.zap,
+          title: 'Une règle fluide pour le poids',
+          body:
+              'déplace-toi librement entre les graduations et vérifie la valeur avant de l\'enregistrer. Les kilogrammes ou les livres suivent l\'unité choisie.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.layout_grid,
+          title: 'La journée d\'aujourd\'hui est toujours prête',
+          body:
+              'même avant toute saisie, le journal complet s\'ouvre avec ton dernier poids et permet d\'enregistrer une nouvelle mesure.',
+        ),
+      ],
+    ),
+    WhatsNewRelease(
       version: '1.3.0-alpha.1',
       releasedOn: '2026-09-05',
       entries: <WhatsNewEntry>[
@@ -471,6 +543,30 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
     ),
   ],
   'it': <WhatsNewRelease>[
+    WhatsNewRelease(
+      version: '1.3.0-alpha.2',
+      releasedOn: '2026-09-05',
+      entries: <WhatsNewEntry>[
+        WhatsNewEntry(
+          icon: LucideIcons.activity,
+          title: 'Registra il peso dal diario',
+          body:
+              'annota il peso nella nuova scheda sotto Integratori e apri da lì anche la cronologia delle misurazioni.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.zap,
+          title: 'Un righello del peso fluido',
+          body:
+              'scorri liberamente tra le tacche e controlla il valore prima di salvarlo. Chilogrammi o libbre seguono l\'unità scelta.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.layout_grid,
+          title: 'La giornata di oggi è sempre pronta',
+          body:
+              'anche prima di registrare qualcosa, si apre il diario completo con l\'ultimo peso e la possibilità di aggiungere una nuova misurazione.',
+        ),
+      ],
+    ),
     WhatsNewRelease(
       version: '1.3.0-alpha.1',
       releasedOn: '2026-09-05',
@@ -624,6 +720,27 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
   ],
   'ja': <WhatsNewRelease>[
     WhatsNewRelease(
+      version: '1.3.0-alpha.2',
+      releasedOn: '2026-09-05',
+      entries: <WhatsNewEntry>[
+        WhatsNewEntry(
+          icon: LucideIcons.activity,
+          title: '日記から体重を記録',
+          body: 'サプリメントの下にある新しいカードから体重を記録し、同じ場所から測定履歴を開けます。',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.zap,
+          title: '滑らかな体重目盛り',
+          body: '目盛りの間を自由に動かし、保存前に値を確認できます。キログラムまたはポンドは選択した単位に従います。',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.layout_grid,
+          title: '今日の日記をいつでも表示',
+          body: '今日の記録がまだなくても、最新の体重と新しい測定値を追加する項目を含む日記全体が開きます。',
+        ),
+      ],
+    ),
+    WhatsNewRelease(
       version: '1.3.0-alpha.1',
       releasedOn: '2026-09-05',
       entries: <WhatsNewEntry>[
@@ -774,4 +891,4 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
 const String kWhatsNewFallbackLanguage = 'en';
 
 /// The version this catalog was generated for, taken from pubspec.yaml.
-const String kWhatsNewGeneratedForVersion = '1.3.0-alpha.1';
+const String kWhatsNewGeneratedForVersion = '1.3.0-alpha.2';

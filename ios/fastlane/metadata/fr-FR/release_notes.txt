@@ -1,3 +1,5 @@
-Recommandations de macronutriments améliorées: le calcul adaptatif répartit désormais les lipides et les glucides de manière plus équilibrée selon ton poids corporel et ton objectif.
+Enregistre ton poids depuis le journal: note ton poids dans la nouvelle carte sous les compléments et ouvre ton historique de mesures au même endroit.
 
-Corrections d'erreurs: correction de légers soucis liés au suivi de la caféine dans le journal et amélioration des transitions et animations de cartes.
+Une règle fluide pour le poids: déplace-toi librement entre les graduations et vérifie la valeur avant de l'enregistrer. Les kilogrammes ou les livres suivent l'unité choisie.
+
+La journée d'aujourd'hui est toujours prête: même avant toute saisie, le journal complet s'ouvre avec ton dernier poids et permet d'enregistrer une nouvelle mesure.

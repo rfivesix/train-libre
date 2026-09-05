@@ -6,6 +6,14 @@
   récente en premier. Ensuite : python3 script/build_whats_new.py --write --sync-store
 -->
 
+## 1.3.0-alpha.2 (2026-09-05)
+
+{activity} Enregistre ton poids depuis le journal : note ton poids dans la nouvelle carte sous les compléments et ouvre ton historique de mesures au même endroit.
+
+{zap} Une règle fluide pour le poids : déplace-toi librement entre les graduations et vérifie la valeur avant de l'enregistrer. Les kilogrammes ou les livres suivent l'unité choisie.
+
+{layout_grid} La journée d'aujourd'hui est toujours prête : même avant toute saisie, le journal complet s'ouvre avec ton dernier poids et permet d'enregistrer une nouvelle mesure.
+
 ## 1.3.0-alpha.1 (2026-09-05)
 
 {dumbbell} Catalogue d'exercices enrichi : le catalogue utilise désormais OpenExerciseDB, avec des informations plus précises sur les muscles et les mouvements. Les noms et descriptions s'affichent dans la langue de ton app lorsqu'une traduction est disponible.

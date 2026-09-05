@@ -1,22 +1,17 @@
-Train Libre 1.2.1 — please focus on testing the following improvements and fixes:
+Train Libre 1.3.0-alpha.2 — please focus on the new diary weight entry:
 
-1. MACRONUTRIENT RECOMMENDATIONS (Adaptive Nutrition)
-- Check your nutrition recommendations in Nutrition -> Goals / Settings: Fat target is now anchored per kilogram (0.9 g/kg on a cut, 1.0 g/kg at maintenance/bulk) rather than a flat 0.6 g/kg minimum, providing a more balanced fat/carb split.
-- Verify that recalculating or applying goals updates your macronutrient targets as expected.
+1. LOG WEIGHT FROM THE DIARY
+- Open today in the Diary and use the Weight card below Supplements.
+- Tap “Log”, move the ruler between values, then save. Confirm that the movement feels smooth and the saved measurement appears immediately.
+- Cancel an edit and confirm that the previous value remains unchanged.
 
-2. CAFFEINE & SUPPLEMENT TRACKING
-- Log caffeine via drinks/fluids or food items and confirm it appears correctly in:
-  • The Diary daily summary and fluids section
-  • The Supplement overview screen
-  • The caffeine progress bar and daily limit
-- Check that existing custom supplements remain intact.
+2. EMPTY AND EXISTING DAYS
+- Open today before adding any diary data. The usable Diary and Weight card should still appear instead of the no-data placeholder.
+- Verify that the card shows the latest earlier measurement and its age until today receives its own measurement.
+- After logging today’s weight, tap the card and confirm that it opens the existing measurements history.
 
-3. CARD MORPHING & TRANSITION ANIMATIONS
-- Tap cards across the app (Workout History logs, Routine exercises, Food Explorer, Supplement Hub, Diary meal cards) to open and close them.
-- Check that the container morph animation opens and collapses smoothly without double-card artifacts, flickering, or flashing lists.
-
-4. TELEMETRY CONSENT SHEET
-- On a fresh install or onboarding reset, verify that optional telemetry consent is asked in a dedicated bottom sheet after the mandatory privacy consent.
-- Check that your choice is properly reflected in Settings -> Privacy & Telemetry.
+3. UNITS AND PRESENTATION
+- Switch between metric and imperial units in Settings. The card and ruler should display kg or lb correctly while preserving the same saved measurement.
+- Check that the Weight title, value, unit, age label, buttons, and chevron match the typography and colours of the surrounding Diary cards.
 
 Thanks for testing Train Libre!

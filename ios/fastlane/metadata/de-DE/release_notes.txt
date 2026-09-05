@@ -1,3 +1,5 @@
-Verbesserte Makronährstoff-Empfehlungen: Die adaptive Berechnung verteilt Fett und Kohlenhydrate jetzt noch ausgewogener basierend auf deinem Körpergewicht und Ziel.
+Gewicht direkt im Tagebuch erfassen: Trage dein Gewicht jetzt über die neue Karte unter den Supplementen ein und öffne von dort auch deinen Messverlauf.
 
-Fehlerbehebungen: Kleinere Fehler bei der Erfassung von Koffein im Tagebuch sowie Darstellungsfehler bei Animationen und Kartenübergängen behoben.
+Flüssiger Gewichtsregler: Bewege die Skala frei zwischen den Markierungen und kontrolliere den Wert vor dem Speichern. Kilogramm und Pfund richten sich nach deiner gewählten Einheit.
+
+Der heutige Tag ist immer bereit: Auch wenn du heute noch nichts erfasst hast, öffnet sich das vollständige Tagebuch mit deinem letzten Gewicht und der Möglichkeit, einen neuen Wert einzutragen.

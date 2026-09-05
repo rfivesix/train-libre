@@ -6,6 +6,14 @@
   Poi esegui: python3 script/build_whats_new.py --write --sync-store
 -->
 
+## 1.3.0-alpha.2 (2026-09-05)
+
+{activity} Registra il peso dal diario: annota il peso nella nuova scheda sotto Integratori e apri da lì anche la cronologia delle misurazioni.
+
+{zap} Un righello del peso fluido: scorri liberamente tra le tacche e controlla il valore prima di salvarlo. Chilogrammi o libbre seguono l'unità scelta.
+
+{layout_grid} La giornata di oggi è sempre pronta: anche prima di registrare qualcosa, si apre il diario completo con l'ultimo peso e la possibilità di aggiungere una nuova misurazione.
+
 ## 1.3.0-alpha.1 (2026-09-05)
 
 {dumbbell} Catalogo degli esercizi aggiornato: il catalogo ora utilizza OpenExerciseDB, con informazioni più precise su muscoli e movimenti. Nomi e descrizioni degli esercizi appaiono nella lingua dell'app quando è disponibile una traduzione.

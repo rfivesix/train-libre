@@ -1,3 +1,5 @@
-Improved macronutrient recommendations: The adaptive nutrition calculation now distributes fats and carbohydrates in a more balanced way based on your body weight and goal.
+Log weight from your diary: Record your weight from the new card below Supplements and open your measurement history from the same place.
 
-Bug fixes: Fixed minor issues with caffeine logging in the diary and resolved visual glitches during card transitions and animations.
+A smooth weight ruler: Move freely between the ruler marks and review the value before saving. Kilograms or pounds follow your preferred unit.
+
+Today is always ready: Even before you log anything today, the full diary opens with your latest weight and the option to record a new measurement.
