@@ -204,12 +204,13 @@ class _WeightCardState extends State<WeightCard>
                         latest.date.year, latest.date.month, latest.date.day))
                     .inDays,
               );
-    final label = Text(l10n.diaryWeightLabel,
-        style: theme.textTheme.labelMedium?.copyWith(
-          fontSize: 13,
-          fontWeight: FontWeight.w600,
-          color: latest == null && !open ? cs.onSurface : cs.onSurfaceVariant,
-        ));
+    final secondaryTextColor = cs.onSurface.withValues(alpha: .64);
+    final label = Text(
+      l10n.diaryWeightLabel,
+      style: theme.textTheme.labelMedium?.copyWith(
+        color: cs.onSurface,
+      ),
+    );
     Widget valueColumn = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -222,22 +223,22 @@ class _WeightCardState extends State<WeightCard>
             Text(number,
                 key: const ValueKey('weight-value'),
                 style: theme.textTheme.headlineMedium?.copyWith(
-                  fontSize: open || logged ? 32 : 22,
+                  fontSize: open || logged ? null : 22,
                   height: 1.05,
-                  letterSpacing: -.6,
                   fontWeight:
                       open || logged ? FontWeight.w700 : FontWeight.w600,
-                  color: open || logged ? cs.onSurface : cs.onSurfaceVariant,
+                  color: cs.onSurface,
                   fontFeatures: const [FontFeature.tabularFigures()],
                 )),
             Text(unit,
-                style: theme.textTheme.labelLarge?.copyWith(
-                    fontSize: open || logged ? 15 : 13,
-                    color: cs.onSurfaceVariant)),
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: secondaryTextColor,
+                  fontWeight: FontWeight.w600,
+                )),
             if (!open)
               Text(age,
                   style: theme.textTheme.bodySmall
-                      ?.copyWith(fontSize: 12, color: cs.onSurfaceVariant)),
+                      ?.copyWith(color: secondaryTextColor)),
           ],
         ),
       ],
@@ -283,7 +284,7 @@ class _WeightCardState extends State<WeightCard>
             children: [
               OutlinedButton(
                 style: buttonStyle.copyWith(
-                  foregroundColor: WidgetStatePropertyAll(cs.onSurfaceVariant),
+                  foregroundColor: WidgetStatePropertyAll(secondaryTextColor),
                 ),
                 onPressed: _saving ? null : _cancel,
                 child: Text(l10n.cancel),
@@ -335,9 +336,7 @@ class _WeightCardState extends State<WeightCard>
                     const SizedBox(height: DesignConstants.spacingXS),
                     Text(l10n.diaryWeightPitch,
                         style: theme.textTheme.bodySmall?.copyWith(
-                            fontSize: 12.5,
-                            height: 1.35,
-                            color: cs.onSurfaceVariant)),
+                            height: 1.35, color: secondaryTextColor)),
                     const SizedBox(height: DesignConstants.spacingM),
                     trigger(true),
                   ],
@@ -351,7 +350,7 @@ class _WeightCardState extends State<WeightCard>
                       if (!open && logged)
                         Icon(LucideIcons.chevron_right,
                             size: DesignConstants.iconSizeM,
-                            color: cs.onSurfaceVariant)
+                            color: secondaryTextColor)
                       else if (!open)
                         trigger(false)
                       else if (!stackActions)
@@ -405,7 +404,7 @@ class _WeightCardState extends State<WeightCard>
                             if (!valid)
                               Text(l10n.diaryWeightRange,
                                   style: theme.textTheme.bodySmall
-                                      ?.copyWith(color: cs.onSurfaceVariant)),
+                                      ?.copyWith(color: secondaryTextColor)),
                           ],
                         ),
                       ),

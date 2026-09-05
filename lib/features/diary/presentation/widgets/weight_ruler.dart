@@ -71,11 +71,11 @@ class _WeightRulerState extends State<WeightRuler> {
             painter: _RulerPainter(
               value: widget.value,
               imperial: widget.imperial,
-              tickColor: cs.onSurfaceVariant,
+              tickColor: cs.onSurface,
               markerColor: cs.primary,
               labelStyle: Theme.of(context).textTheme.labelSmall!.copyWith(
                 fontSize: 11,
-                color: cs.onSurfaceVariant,
+                color: cs.onSurface.withValues(alpha: .64),
                 fontFeatures: const [FontFeature.tabularFigures()],
               ),
               locale: locale,

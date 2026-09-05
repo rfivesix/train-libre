@@ -182,6 +182,29 @@ void main() {
     expect(await rows(tester), isEmpty);
   });
 
+  cardTest('uses the app text hierarchy instead of a separate grey scale',
+      (tester) async {
+    await seed(tester, 84.2, today);
+    await mount(tester);
+
+    final colorScheme =
+        Theme.of(tester.element(find.byType(WeightCard))).colorScheme;
+    final label = tester.widget<Text>(find.text('Gewicht'));
+    final value =
+        tester.widget<Text>(find.byKey(const ValueKey('weight-value')));
+    final unit = tester.widget<Text>(find.text('kg'));
+
+    expect(label.style?.color, colorScheme.onSurface);
+    expect(
+        value.style?.fontSize,
+        Theme.of(tester.element(find.byType(WeightCard)))
+            .textTheme
+            .headlineMedium
+            ?.fontSize);
+    expect(value.style?.color, colorScheme.onSurface);
+    expect(unit.style?.color, colorScheme.onSurface.withValues(alpha: .64));
+  });
+
   cardTest('stale value shows calendar age and preselects latest weight',
       (tester) async {
     await seed(

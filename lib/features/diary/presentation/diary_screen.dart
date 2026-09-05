@@ -927,6 +927,7 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
     final selectedDate = context.select<DiaryViewModel, DateTime>(
       (vm) => vm.selectedDate,
     );
+    final isToday = selectedDate.isSameDate(DateTime.now());
     Widget weightCard() => WeightCard(date: selectedDate);
 
     if (hasEverLoggedData == false) {
@@ -950,8 +951,12 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
       );
     }
 
-    final bool showSkeleton =
-        !hasDataForSelectedDate || isLoading || hasEverLoggedData == null;
+    // Today is a valid, initially empty diary. Showing the loading skeleton and
+    // the "no data" overlay there hides the actions a user needs to begin.
+    // Older empty days remain a gap in the historical record.
+    final bool showSkeleton = (!hasDataForSelectedDate && !isToday) ||
+        isLoading ||
+        hasEverLoggedData == null;
 
     Widget content = Skeletonizer(
       enabled: showSkeleton,
@@ -1042,7 +1047,7 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
                       );
                     },
                   ),
-                  if (hasDataForSelectedDate)
+                  if (hasDataForSelectedDate || isToday)
                     Skeletonizer(enabled: false, child: weightCard()),
                   if (stepsEnabled) const StepsSummaryCard(),
                   if (sleepEnabled) const SleepSummaryCard(),
@@ -1150,7 +1155,7 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
       ),
     );
 
-    if (showSkeleton && !hasDataForSelectedDate) {
+    if (showSkeleton && !hasDataForSelectedDate && !isToday) {
       content = Column(
         children: [
           Padding(
