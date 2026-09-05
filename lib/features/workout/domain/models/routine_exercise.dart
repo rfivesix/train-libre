@@ -180,6 +180,66 @@ List<RoutineExercise> moveRoutineExerciseGroup(
   return normalizeSupersetGroups(result);
 }
 
+/// Toggles the connection between two adjacent exercises.
+///
+/// Connecting merges their complete contiguous groups. Disconnecting preserves
+/// each side of a larger group as its own superset instead of clearing the
+/// entire group. A side with one exercise is intentionally left ungrouped.
+List<RoutineExercise> toggleSupersetConnectionAfter(
+  List<RoutineExercise> exercises,
+  int upperIndex,
+) {
+  if (upperIndex < 0 || upperIndex + 1 >= exercises.length) {
+    return List.of(exercises);
+  }
+
+  final result = List<RoutineExercise>.of(exercises);
+  final upper = result[upperIndex];
+  final lower = result[upperIndex + 1];
+  final upperGroup = upper.supersetGroup;
+  final lowerGroup = lower.supersetGroup;
+
+  if (upperGroup != null && upperGroup == lowerGroup) {
+    final range = _groupRangeAt(result, upperIndex);
+    final leftStart = range.$1;
+    final leftEnd = upperIndex;
+    final rightStart = upperIndex + 1;
+    final rightEnd = range.$2;
+    final nextGroup = _nextSupersetGroup(result);
+
+    for (var index = leftStart; index <= leftEnd; index++) {
+      result[index] = result[index].copyWith(
+        clearSupersetGroup: leftEnd == leftStart,
+        supersetGroup: upperGroup,
+      );
+    }
+    for (var index = rightStart; index <= rightEnd; index++) {
+      result[index] = result[index].copyWith(
+        clearSupersetGroup: rightEnd == rightStart,
+        supersetGroup: nextGroup,
+      );
+    }
+  } else {
+    final upperRange = _groupRangeAt(result, upperIndex);
+    final lowerRange = _groupRangeAt(result, upperIndex + 1);
+    final mergedGroup = upperGroup ?? lowerGroup ?? _nextSupersetGroup(result);
+    for (var index = upperRange.$1; index <= lowerRange.$2; index++) {
+      result[index] = result[index].copyWith(supersetGroup: mergedGroup);
+    }
+  }
+
+  return normalizeSupersetGroups(result);
+}
+
+int _nextSupersetGroup(List<RoutineExercise> exercises) {
+  var maxGroup = 0;
+  for (final exercise in exercises) {
+    final group = exercise.supersetGroup;
+    if (group != null && group > maxGroup) maxGroup = group;
+  }
+  return maxGroup + 1;
+}
+
 (int, int) _groupRangeAt(List<RoutineExercise> exercises, int index) {
   final group = exercises[index].supersetGroup;
   if (group == null) return (index, index);

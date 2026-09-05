@@ -14,6 +14,7 @@ class WorkoutCard extends StatelessWidget {
   /// The content within the card.
   final Widget child;
   final Color? accentColor;
+  final bool continuesSupersetBelow;
 
   const WorkoutCard({
     super.key,
@@ -21,11 +22,12 @@ class WorkoutCard extends StatelessWidget {
     this.padding = EdgeInsets.zero,
     this.margin = EdgeInsets.zero,
     this.accentColor,
+    this.continuesSupersetBelow = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    final card = Container(
       key: key, // Pass key to the container
       margin: margin,
       padding: padding,
@@ -41,6 +43,19 @@ class WorkoutCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         child: child,
       ),
+    );
+    if (!continuesSupersetBelow || accentColor == null) return card;
+
+    // Keep the group rail continuous through the space between two cards.
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        card,
+        SizedBox(
+          height: 14,
+          child: Container(width: 3, color: accentColor),
+        ),
+      ],
     );
   }
 }

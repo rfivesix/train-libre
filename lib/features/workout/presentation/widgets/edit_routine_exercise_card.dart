@@ -39,6 +39,7 @@ class EditRoutineExerciseCard extends StatelessWidget {
   final bool showPauseAction;
   final String? supersetLabel;
   final Color? supersetColor;
+  final bool continuesSupersetBelow;
   final void Function(PointerDownEvent)? onPointerDown;
   final void Function(PointerMoveEvent)? onPointerMove;
   final void Function(PointerUpEvent)? onPointerUp;
@@ -65,6 +66,7 @@ class EditRoutineExerciseCard extends StatelessWidget {
     this.showPauseAction = true,
     this.supersetLabel,
     this.supersetColor,
+    this.continuesSupersetBelow = false,
     this.onPointerDown,
     this.onPointerMove,
     this.onPointerUp,
@@ -77,233 +79,223 @@ class EditRoutineExerciseCard extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    return Container(
-      decoration: supersetColor == null
-          ? null
-          : BoxDecoration(
-              color: supersetColor!.withValues(alpha: 0.06),
-              border: Border(
-                left: BorderSide(color: supersetColor!, width: 3),
-              ),
-              borderRadius: BorderRadius.circular(20),
+    return WorkoutCard(
+      continuesSupersetBelow: continuesSupersetBelow,
+      accentColor: supersetColor,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ListTile(
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16.0,
+              vertical: 8.0,
             ),
-      child: WorkoutCard(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            ListTile(
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 16.0,
-                vertical: 8.0,
-              ),
-              title: isEditMode && canDrag
-                  ? Listener(
-                      onPointerDown: onPointerDown,
-                      onPointerMove: onPointerMove,
-                      onPointerUp: onPointerUp,
-                      onPointerCancel: onPointerCancel,
-                      child: ReorderableDelayedDragStartListener(
-                        index: index,
-                        child: _buildTitleContent(
-                            context, routineExercise, textTheme, colorScheme),
+            title: isEditMode && canDrag
+                ? Listener(
+                    onPointerDown: onPointerDown,
+                    onPointerMove: onPointerMove,
+                    onPointerUp: onPointerUp,
+                    onPointerCancel: onPointerCancel,
+                    child: ReorderableDelayedDragStartListener(
+                      index: index,
+                      child: _buildTitleContent(
+                          context, routineExercise, textTheme, colorScheme),
+                    ),
+                  )
+                : _buildTitleContent(
+                    context, routineExercise, textTheme, colorScheme),
+            leading: null,
+            trailing: isEditMode
+                ? Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: const Icon(LucideIcons.pencil),
+                        tooltip: l10n.exerciseNoteTitle,
+                        onPressed: onEditNotes,
                       ),
-                    )
-                  : _buildTitleContent(
-                      context, routineExercise, textTheme, colorScheme),
-              leading: null,
-              trailing: isEditMode
-                  ? Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        IconButton(
-                          icon: const Icon(LucideIcons.pencil),
-                          tooltip: l10n.exerciseNoteTitle,
-                          onPressed: onEditNotes,
-                        ),
-                        if (showPauseAction &&
-                            routineExercise.pauseSeconds != null &&
-                            routineExercise.pauseSeconds! > 0)
-                          TextButton(
-                            style: TextButton.styleFrom(
-                              minimumSize: const Size(48, 48),
-                              padding: EdgeInsets.zero,
-                            ),
-                            onPressed: onEditPauseTime,
-                            child: Text(
-                              _formatPauseTime(routineExercise.pauseSeconds),
-                              style: textTheme.bodyMedium?.copyWith(
-                                color: colorScheme.primary,
-                                fontWeight: FontWeight.bold,
-                                fontSize: DesignConstants.spacingL,
-                              ),
-                            ),
-                          )
-                        else if (showPauseAction)
-                          IconButton(
-                            icon: const Icon(LucideIcons.timer),
-                            tooltip: l10n.editPauseTime,
-                            onPressed: onEditPauseTime,
-                          ),
-                        IconButton(
-                          icon: const Icon(
-                            LucideIcons.trash,
-                            color: DesignConstants.brandRedColor,
-                          ),
-                          tooltip: l10n.removeExercise,
-                          onPressed: onDeleteExercise,
-                        ),
-                      ],
-                    )
-                  : (routineExercise.pauseSeconds != null &&
+                      if (showPauseAction &&
+                          routineExercise.pauseSeconds != null &&
                           routineExercise.pauseSeconds! > 0)
-                      ? Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              LucideIcons.timer,
-                              size: 16,
-                              color: colorScheme.onSurfaceVariant,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              _formatPauseTime(routineExercise.pauseSeconds),
-                              style: textTheme.bodyMedium?.copyWith(
-                                color: colorScheme.onSurfaceVariant,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        )
-                      : null,
-            ),
-            isDragging
-                ? const SizedBox.shrink()
-                : AnimatedSize(
-                    duration: const Duration(milliseconds: 250),
-                    curve: Curves.easeInOut,
-                    alignment: Alignment.topCenter,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        if (routineExercise.notes != null &&
-                            routineExercise.notes!.isNotEmpty)
-                          Padding(
-                            padding: const EdgeInsets.only(
-                              left: 16.0,
-                              right: 16.0,
-                              bottom: 12.0,
-                            ),
-                            child: InkWell(
-                              onTap: isEditMode ? onEditNotes : null,
-                              borderRadius: BorderRadius.circular(8),
-                              child: Container(
-                                width: double.infinity,
-                                padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                  color: colorScheme.surfaceContainerHighest
-                                      .withValues(
-                                    alpha: 0.5,
-                                  ),
-                                  borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(
-                                    color:
-                                        colorScheme.onSurfaceVariant.withValues(
-                                      alpha: 0.1,
-                                    ),
-                                  ),
-                                ),
-                                child: Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Icon(
-                                      LucideIcons.file_text,
-                                      size: 16,
-                                      color: colorScheme.onSurfaceVariant,
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Expanded(
-                                      child: Text(
-                                        routineExercise.notes!,
-                                        style: textTheme.bodyMedium?.copyWith(
-                                          color: colorScheme.onSurfaceVariant,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
+                        TextButton(
+                          style: TextButton.styleFrom(
+                            minimumSize: const Size(48, 48),
+                            padding: EdgeInsets.zero,
+                          ),
+                          onPressed: onEditPauseTime,
+                          child: Text(
+                            _formatPauseTime(routineExercise.pauseSeconds),
+                            style: textTheme.bodyMedium?.copyWith(
+                              color: colorScheme.primary,
+                              fontWeight: FontWeight.bold,
+                              fontSize: DesignConstants.spacingL,
                             ),
                           ),
+                        )
+                      else if (showPauseAction)
+                        IconButton(
+                          icon: const Icon(LucideIcons.timer),
+                          tooltip: l10n.editPauseTime,
+                          onPressed: onEditPauseTime,
+                        ),
+                      IconButton(
+                        icon: const Icon(
+                          LucideIcons.trash,
+                          color: DesignConstants.brandRedColor,
+                        ),
+                        tooltip: l10n.removeExercise,
+                        onPressed: onDeleteExercise,
+                      ),
+                    ],
+                  )
+                : (routineExercise.pauseSeconds != null &&
+                        routineExercise.pauseSeconds! > 0)
+                    ? Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            LucideIcons.timer,
+                            size: 16,
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            _formatPauseTime(routineExercise.pauseSeconds),
+                            style: textTheme.bodyMedium?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      )
+                    : null,
+          ),
+          isDragging
+              ? const SizedBox.shrink()
+              : AnimatedSize(
+                  duration: const Duration(milliseconds: 250),
+                  curve: Curves.easeInOut,
+                  alignment: Alignment.topCenter,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (routineExercise.notes != null &&
+                          routineExercise.notes!.isNotEmpty)
                         Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 0.0),
-                          child: AnimatedSize(
-                            duration: const Duration(milliseconds: 260),
-                            curve: Curves.easeInOutCubic,
-                            alignment: Alignment.topCenter,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                _buildHeaderRow(context, routineExercise, l10n),
-                                ...routineExercise.setTemplates
-                                    .asMap()
-                                    .entries
-                                    .map((entry) {
-                                  final setIndex = entry.key;
-                                  final setTemplate = entry.value;
-
-                                  int workingSetIndex = 0;
-                                  for (int i = 0; i <= setIndex; i++) {
-                                    if (routineExercise
-                                            .setTemplates[i].setType !=
-                                        'warmup') {
-                                      workingSetIndex++;
-                                    }
-                                  }
-
-                                  return RoutineSetRowWidget(
-                                    key: ValueKey(setTemplate.id),
-                                    setIndex: workingSetIndex,
-                                    rowIndex: setIndex,
-                                    routineExercise: routineExercise,
-                                    template: setTemplate,
-                                    listIndex: setIndex,
-                                    mask: ExerciseLogMask.forExercise(
-                                        routineExercise.exercise),
-                                    repsController:
-                                        repsControllers[setTemplate.id!]!,
-                                    weightController:
-                                        weightControllers[setTemplate.id!]!,
-                                    rirController:
-                                        rirControllers[setTemplate.id!]!,
-                                    onShowSetTypePicker: () =>
-                                        onShowSetTypePicker(setTemplate),
-                                    onRemoveSet: () =>
-                                        onRemoveSet(setTemplate, setIndex),
-                                    isEditMode: isEditMode,
-                                  );
-                                }),
-                                if (isEditMode) ...[
-                                  const SizedBox(
-                                      height: DesignConstants.spacingS),
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 16.0),
-                                    child: TextButton.icon(
-                                      onPressed: onAddSet,
-                                      icon: const Icon(LucideIcons.plus),
-                                      label: Text(l10n.addSetButton),
+                          padding: const EdgeInsets.only(
+                            left: 16.0,
+                            right: 16.0,
+                            bottom: 12.0,
+                          ),
+                          child: InkWell(
+                            onTap: isEditMode ? onEditNotes : null,
+                            borderRadius: BorderRadius.circular(8),
+                            child: Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: colorScheme.surfaceContainerHighest
+                                    .withValues(
+                                  alpha: 0.5,
+                                ),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color:
+                                      colorScheme.onSurfaceVariant.withValues(
+                                    alpha: 0.1,
+                                  ),
+                                ),
+                              ),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Icon(
+                                    LucideIcons.file_text,
+                                    size: 16,
+                                    color: colorScheme.onSurfaceVariant,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      routineExercise.notes!,
+                                      style: textTheme.bodyMedium?.copyWith(
+                                        color: colorScheme.onSurfaceVariant,
+                                      ),
                                     ),
                                   ),
                                 ],
-                              ],
+                              ),
                             ),
                           ),
                         ),
-                      ],
-                    ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 0.0),
+                        child: AnimatedSize(
+                          duration: const Duration(milliseconds: 260),
+                          curve: Curves.easeInOutCubic,
+                          alignment: Alignment.topCenter,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _buildHeaderRow(context, routineExercise, l10n),
+                              ...routineExercise.setTemplates
+                                  .asMap()
+                                  .entries
+                                  .map((entry) {
+                                final setIndex = entry.key;
+                                final setTemplate = entry.value;
+
+                                int workingSetIndex = 0;
+                                for (int i = 0; i <= setIndex; i++) {
+                                  if (routineExercise.setTemplates[i].setType !=
+                                      'warmup') {
+                                    workingSetIndex++;
+                                  }
+                                }
+
+                                return RoutineSetRowWidget(
+                                  key: ValueKey(setTemplate.id),
+                                  setIndex: workingSetIndex,
+                                  rowIndex: setIndex,
+                                  routineExercise: routineExercise,
+                                  template: setTemplate,
+                                  listIndex: setIndex,
+                                  mask: ExerciseLogMask.forExercise(
+                                      routineExercise.exercise),
+                                  repsController:
+                                      repsControllers[setTemplate.id!]!,
+                                  weightController:
+                                      weightControllers[setTemplate.id!]!,
+                                  rirController:
+                                      rirControllers[setTemplate.id!]!,
+                                  onShowSetTypePicker: () =>
+                                      onShowSetTypePicker(setTemplate),
+                                  onRemoveSet: () =>
+                                      onRemoveSet(setTemplate, setIndex),
+                                  isEditMode: isEditMode,
+                                );
+                              }),
+                              if (isEditMode) ...[
+                                const SizedBox(
+                                    height: DesignConstants.spacingS),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 16.0),
+                                  child: TextButton.icon(
+                                    onPressed: onAddSet,
+                                    icon: const Icon(LucideIcons.plus),
+                                    label: Text(l10n.addSetButton),
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-          ],
-        ),
+                ),
+        ],
       ),
     );
   }

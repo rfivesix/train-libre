@@ -300,7 +300,8 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
     return next;
   }
 
-  ({String label, Color color})? _historySupersetStyleAt(int index) {
+  ({String label, Color color, bool continuesBelow})? _historySupersetStyleAt(
+      int index) {
     final groups = [
       for (final sets in _groupedSets.values)
         sets.isEmpty ? null : sets.first.supersetGroup,
@@ -326,7 +327,73 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
       label: '${_supersetLetter(groupIndex)}${memberIndex + 1}',
       color: DesignConstants
           .supersetColors[groupIndex % DesignConstants.supersetColors.length],
+      continuesBelow: memberIndex < indices.length - 1,
     );
+  }
+
+  void _toggleSupersetAfter(int upperIndex) {
+    final entries = _groupedSets.entries.toList();
+    if (upperIndex < 0 || upperIndex + 1 >= entries.length) return;
+
+    final groups = [
+      for (final entry in entries)
+        entry.value.isEmpty ? null : entry.value.first.supersetGroup,
+    ];
+    final upperGroup = groups[upperIndex];
+    final lowerGroup = groups[upperIndex + 1];
+    final maxGroup = groups.whereType<int>().fold<int>(
+          0,
+          (max, group) => group > max ? group : max,
+        );
+
+    void updateGroup(int index, int? group) {
+      final entry = entries[index];
+      _groupedSets[entry.key] = [
+        for (final set in entry.value)
+          group == null
+              ? set.copyWith(clearSupersetGroup: true)
+              : set.copyWith(supersetGroup: group),
+      ];
+    }
+
+    setState(() {
+      if (upperGroup != null && upperGroup == lowerGroup) {
+        var start = upperIndex;
+        while (start > 0 && groups[start - 1] == upperGroup) {
+          start--;
+        }
+        var end = upperIndex + 1;
+        while (end + 1 < groups.length && groups[end + 1] == upperGroup) {
+          end++;
+        }
+        final nextGroup = maxGroup + 1;
+        for (var index = start; index <= upperIndex; index++) {
+          updateGroup(
+              index, index == start && index == upperIndex ? null : upperGroup);
+        }
+        for (var index = upperIndex + 1; index <= end; index++) {
+          updateGroup(index,
+              index == upperIndex + 1 && index == end ? null : nextGroup);
+        }
+      } else {
+        final mergedGroup = upperGroup ?? lowerGroup ?? maxGroup + 1;
+        var start = upperIndex;
+        if (upperGroup != null) {
+          while (start > 0 && groups[start - 1] == upperGroup) {
+            start--;
+          }
+        }
+        var end = upperIndex + 1;
+        if (lowerGroup != null) {
+          while (end + 1 < groups.length && groups[end + 1] == lowerGroup) {
+            end++;
+          }
+        }
+        for (var index = start; index <= end; index++) {
+          updateGroup(index, mergedGroup);
+        }
+      }
+    });
   }
 
   String _supersetLetter(int index) {
@@ -734,55 +801,58 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
 
       int currentOrder = 0;
 
-      for (final setLog in currentSets) {
-        // Distinguish again what the controller values mean.
-        final isCardio = _isCardio(ExerciseBlockKey.fromSet(setLog));
+      for (final blockEntry in _groupedSets.entries) {
+        for (final setLog in blockEntry.value) {
+          // Distinguish again what the controller values mean.
+          final isCardio = _isCardio(ExerciseBlockKey.fromSet(setLog));
 
-        final val1Input = double.tryParse(
-              _weightControllers[setLog.id!]?.text.replaceAll(',', '.') ?? '0',
-            ) ??
-            0.0;
-        final val1 = isCardio
-            ? val1Input
-            : unitService.convertToMetric(val1Input, UnitDimension.weight);
-        final repsText = _repsControllers[setLog.id!]?.text ?? '';
-        final val2 = isCardio
-            ? (parsePauseDuration(repsText) ?? 0).toDouble()
-            : (double.tryParse(repsText.replaceAll(',', '.')) ?? 0.0);
-        final rir = int.tryParse(_rirControllers[setLog.id!]?.text ?? '');
+          final val1Input = double.tryParse(
+                _weightControllers[setLog.id!]?.text.replaceAll(',', '.') ??
+                    '0',
+              ) ??
+              0.0;
+          final val1 = isCardio
+              ? val1Input
+              : unitService.convertToMetric(val1Input, UnitDimension.weight);
+          final repsText = _repsControllers[setLog.id!]?.text ?? '';
+          final val2 = isCardio
+              ? (parsePauseDuration(repsText) ?? 0).toDouble()
+              : (double.tryParse(repsText.replaceAll(',', '.')) ?? 0.0);
+          final rir = int.tryParse(_rirControllers[setLog.id!]?.text ?? '');
 
-        SetLog updatedSet;
+          SetLog updatedSet;
 
-        if (isCardio) {
-          // Val1 = Distance, Val2 = Seconds
-          updatedSet = setLog.copyWith(
-            distanceKm: val1,
-            durationSeconds: val2.round(),
-            rir: rir,
-            clearRir: rir == null,
-            logOrder: currentOrder++,
-            // Set weight/reps to 0/null for cardio to avoid bad data?
-            weightKg: 0,
-            reps: 0,
-          );
-        } else {
-          // Val1 = Weight, Val2 = Reps (int)
-          updatedSet = setLog.copyWith(
-            weightKg: val1,
-            reps: val2.toInt(),
-            rir: rir,
-            clearRir: rir == null,
-            logOrder: currentOrder++,
-            // Cardio Felder nullen
-            distanceKm: null,
-            durationSeconds: null,
-          );
-        }
+          if (isCardio) {
+            // Val1 = Distance, Val2 = Seconds
+            updatedSet = setLog.copyWith(
+              distanceKm: val1,
+              durationSeconds: val2.round(),
+              rir: rir,
+              clearRir: rir == null,
+              logOrder: currentOrder++,
+              // Set weight/reps to 0/null for cardio to avoid bad data?
+              weightKg: 0,
+              reps: 0,
+            );
+          } else {
+            // Val1 = Weight, Val2 = Reps (int)
+            updatedSet = setLog.copyWith(
+              weightKg: val1,
+              reps: val2.toInt(),
+              rir: rir,
+              clearRir: rir == null,
+              logOrder: currentOrder++,
+              // Cardio Felder nullen
+              distanceKm: null,
+              durationSeconds: null,
+            );
+          }
 
-        if (initialSetIds.contains(setLog.id)) {
-          setsToUpdate.add(updatedSet);
-        } else {
-          setsToInsert.add(updatedSet);
+          if (initialSetIds.contains(setLog.id)) {
+            setsToUpdate.add(updatedSet);
+          } else {
+            setsToInsert.add(updatedSet);
+          }
         }
       }
 
@@ -1363,6 +1433,8 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                                 index: -1,
                                 supersetLabel: supersetStyle?.label,
                                 supersetColor: supersetStyle?.color,
+                                continuesSupersetBelow:
+                                    supersetStyle?.continuesBelow ?? false,
                               );
                             })
                           else ...[
@@ -1482,84 +1554,157 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                                               opacity: isDeleting ? 0.0 : 1.0,
                                               child: RepaintBoundary(
                                                 key: ValueKey(key.anchorId),
-                                                child: WorkoutExerciseLogCard(
-                                                  exerciseName: exerciseName,
-                                                  exercise: exercise,
-                                                  sets: sets,
-                                                  isEditMode: true,
-                                                  isCardio: isCardio,
-                                                  mask: _maskFor(key),
-                                                  bodyweightKg: _bodyweightKg,
-                                                  isDragging: _isDragging,
-                                                  onPointerDown: (e) =>
-                                                      _onDragPointerDown(e,
-                                                          key.anchorId, index),
-                                                  onPointerMove:
-                                                      _onDragPointerMove,
-                                                  onPointerUp: _onDragPointerUp,
-                                                  onPointerCancel:
-                                                      _onDragPointerCancel,
-                                                  weightControllers:
-                                                      _weightControllers,
-                                                  repsControllers:
-                                                      _repsControllers,
-                                                  rirControllers:
-                                                      _rirControllers,
-                                                  exerciseNote:
-                                                      _exerciseNotes[key],
-                                                  onEditNotes: (_) =>
-                                                      _editExerciseNotes(
-                                                          context, key),
-                                                  onDeleteExercise: (_) =>
-                                                      _onDeleteExercise(
-                                                          key, sets),
-                                                  onAddSet: () {
-                                                    final newSet = SetLog(
-                                                      id: -DateTime.now()
-                                                          .millisecondsSinceEpoch,
-                                                      workoutLogId: _log!.id!,
+                                                child: Column(
+                                                  children: [
+                                                    WorkoutExerciseLogCard(
                                                       exerciseName:
                                                           exerciseName,
-                                                      setType: 'normal',
-                                                      isCompleted: true,
-                                                      exerciseBlock:
-                                                          key.exerciseBlock,
-                                                    );
-                                                    setState(() {
-                                                      sets.add(newSet);
-                                                      _weightControllers[
-                                                              newSet.id!] =
-                                                          TextEditingController();
-                                                      _repsControllers[
-                                                              newSet.id!] =
-                                                          TextEditingController();
-                                                      _rirControllers[
-                                                              newSet.id!] =
-                                                          TextEditingController();
-                                                    });
-                                                  },
-                                                  onDeleteSet: (setId) {
-                                                    setState(() {
-                                                      sets.removeWhere(
-                                                          (s) => s.id == setId);
-                                                      _weightControllers
-                                                          .remove(setId)
-                                                          ?.dispose();
-                                                      _repsControllers
-                                                          .remove(setId)
-                                                          ?.dispose();
-                                                      _rirControllers
-                                                          .remove(setId)
-                                                          ?.dispose();
-                                                    });
-                                                  },
-                                                  onSetTypeTap: (setId) =>
-                                                      _showSetTypePicker(setId),
-                                                  index: index,
-                                                  supersetLabel:
-                                                      supersetStyle?.label,
-                                                  supersetColor:
-                                                      supersetStyle?.color,
+                                                      exercise: exercise,
+                                                      sets: sets,
+                                                      isEditMode: true,
+                                                      isCardio: isCardio,
+                                                      mask: _maskFor(key),
+                                                      bodyweightKg:
+                                                          _bodyweightKg,
+                                                      isDragging: _isDragging,
+                                                      onPointerDown: (e) =>
+                                                          _onDragPointerDown(
+                                                              e,
+                                                              key.anchorId,
+                                                              index),
+                                                      onPointerMove:
+                                                          _onDragPointerMove,
+                                                      onPointerUp:
+                                                          _onDragPointerUp,
+                                                      onPointerCancel:
+                                                          _onDragPointerCancel,
+                                                      weightControllers:
+                                                          _weightControllers,
+                                                      repsControllers:
+                                                          _repsControllers,
+                                                      rirControllers:
+                                                          _rirControllers,
+                                                      exerciseNote:
+                                                          _exerciseNotes[key],
+                                                      onEditNotes: (_) =>
+                                                          _editExerciseNotes(
+                                                              context, key),
+                                                      onDeleteExercise: (_) =>
+                                                          _onDeleteExercise(
+                                                              key, sets),
+                                                      onAddSet: () {
+                                                        final newSet = SetLog(
+                                                          id: -DateTime.now()
+                                                              .millisecondsSinceEpoch,
+                                                          workoutLogId:
+                                                              _log!.id!,
+                                                          exerciseName:
+                                                              exerciseName,
+                                                          setType: 'normal',
+                                                          isCompleted: true,
+                                                          exerciseBlock:
+                                                              key.exerciseBlock,
+                                                        );
+                                                        setState(() {
+                                                          sets.add(newSet);
+                                                          _weightControllers[
+                                                                  newSet.id!] =
+                                                              TextEditingController();
+                                                          _repsControllers[
+                                                                  newSet.id!] =
+                                                              TextEditingController();
+                                                          _rirControllers[
+                                                                  newSet.id!] =
+                                                              TextEditingController();
+                                                        });
+                                                      },
+                                                      onDeleteSet: (setId) {
+                                                        setState(() {
+                                                          sets.removeWhere(
+                                                              (s) =>
+                                                                  s.id ==
+                                                                  setId);
+                                                          _weightControllers
+                                                              .remove(setId)
+                                                              ?.dispose();
+                                                          _repsControllers
+                                                              .remove(setId)
+                                                              ?.dispose();
+                                                          _rirControllers
+                                                              .remove(setId)
+                                                              ?.dispose();
+                                                        });
+                                                      },
+                                                      onSetTypeTap: (setId) =>
+                                                          _showSetTypePicker(
+                                                              setId),
+                                                      index: index,
+                                                      supersetLabel:
+                                                          supersetStyle?.label,
+                                                      supersetColor:
+                                                          supersetStyle?.color,
+                                                      continuesSupersetBelow:
+                                                          supersetStyle
+                                                                  ?.continuesBelow ??
+                                                              false,
+                                                    ),
+                                                    if (index + 1 <
+                                                        _groupedSets.length)
+                                                      SizedBox(
+                                                        height: 36,
+                                                        child: Center(
+                                                          child: IconButton(
+                                                            key: ValueKey(
+                                                              'history_superset_connector_$index',
+                                                            ),
+                                                            visualDensity:
+                                                                VisualDensity
+                                                                    .compact,
+                                                            tooltip: supersetStyle !=
+                                                                        null &&
+                                                                    entry
+                                                                            .value
+                                                                            .first
+                                                                            .supersetGroup ==
+                                                                        _groupedSets
+                                                                            .entries
+                                                                            .elementAt(index +
+                                                                                1)
+                                                                            .value
+                                                                            .first
+                                                                            .supersetGroup
+                                                                ? AppLocalizations.of(
+                                                                        context)!
+                                                                    .disconnectSuperset
+                                                                : AppLocalizations.of(
+                                                                        context)!
+                                                                    .connectSuperset,
+                                                            icon: Icon(
+                                                              supersetStyle !=
+                                                                          null &&
+                                                                      entry.value.first
+                                                                              .supersetGroup ==
+                                                                          _groupedSets
+                                                                              .entries
+                                                                              .elementAt(
+                                                                                index + 1,
+                                                                              )
+                                                                              .value
+                                                                              .first
+                                                                              .supersetGroup
+                                                                  ? LucideIcons
+                                                                      .unlink
+                                                                  : LucideIcons
+                                                                      .link,
+                                                            ),
+                                                            onPressed: () =>
+                                                                _toggleSupersetAfter(
+                                                              index,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      ),
+                                                  ],
                                                 ),
                                               ),
                                             ),

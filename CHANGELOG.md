@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Supersets:** Routine exercises can be joined into contiguous supersets, trisets, or giant sets. The routine editor, live workout, history detail, backup/restore, and text sharing preserve and display A1/A2-style group membership. Live workouts alternate members by round, skip rest within a round, and use the final member's pause between rounds.
 
 ### Fixed
+- **Superset Editing & Group Rails:** Superset boundaries can now be connected or separated directly during a live workout and while editing workout history. Separating a connection inside a larger group retains the two remaining supersets instead of dissolving the entire group. The coloured rail now continues uninterrupted between every member card.
 - **Workout Exercise Blocks in History and Backups:** Repeated occurrences of the same exercise remain separate cards by using their stored exercise block. Backup restore now preserves both exercise blocks and superset snapshots while legacy logs without block metadata retain name-based grouping.
 
 ## [1.3.0-alpha.2] - 2026-09-05

@@ -44,6 +44,7 @@ class WorkoutExerciseLogCard extends StatelessWidget {
   final bool isDraggedItem;
   final String? supersetLabel;
   final Color? supersetColor;
+  final bool continuesSupersetBelow;
   final void Function(PointerDownEvent)? onPointerDown;
   final void Function(PointerMoveEvent)? onPointerMove;
   final void Function(PointerUpEvent)? onPointerUp;
@@ -72,6 +73,7 @@ class WorkoutExerciseLogCard extends StatelessWidget {
     this.isDraggedItem = false,
     this.supersetLabel,
     this.supersetColor,
+    this.continuesSupersetBelow = false,
     this.onPointerDown,
     this.onPointerMove,
     this.onPointerUp,
@@ -143,6 +145,7 @@ class WorkoutExerciseLogCard extends StatelessWidget {
     return WorkoutCard(
       key: isEditMode ? ValueKey(exerciseName) : null,
       accentColor: supersetColor,
+      continuesSupersetBelow: continuesSupersetBelow,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

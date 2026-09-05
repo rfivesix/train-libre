@@ -267,4 +267,88 @@ void main() {
     await tester.pumpWidget(Container());
     await tester.pumpAndSettle();
   });
+
+  testWidgets('history edit mode persists a new superset connection',
+      (tester) async {
+    for (final entry in [(0, 'Bench Press'), (1, 'Squat')]) {
+      await database.into(database.setLogs).insert(
+            db.SetLogsCompanion.insert(
+              workoutLogId: logUuid,
+              exerciseNameSnapshot: drift.Value(entry.$2),
+              setType: const drift.Value('normal'),
+              weight: const drift.Value(100),
+              reps: const drift.Value(10),
+              isCompleted: const drift.Value(true),
+              logOrder: drift.Value(entry.$1),
+              exerciseBlock: drift.Value(entry.$1),
+            ),
+          );
+    }
+
+    await tester.binding.setSurfaceSize(const Size(800, 3000));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    await tester.pumpWidget(_wrap(WorkoutLogDetailScreen(logId: logId), repo));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byIcon(LucideIcons.pencil).first);
+    await tester.pumpAndSettle();
+
+    await tester.tap(
+      find.byKey(const ValueKey('history_superset_connector_0')),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Save').last);
+    await tester.pumpAndSettle();
+
+    final saved = await (database.select(database.setLogs)
+          ..where((table) => table.workoutLogId.equals(logUuid))
+          ..orderBy([(table) => drift.OrderingTerm.asc(table.logOrder)]))
+        .get();
+    expect(saved.map((set) => set.supersetGroup).toSet().length, 1);
+    expect(saved.first.supersetGroup, isNotNull);
+
+    await tester.pumpWidget(Container());
+    await tester.pumpAndSettle();
+  });
+
+  testWidgets('history split keeps both sides of a larger superset',
+      (tester) async {
+    for (final block in [0, 1, 2, 3]) {
+      await database.into(database.setLogs).insert(
+            db.SetLogsCompanion.insert(
+              workoutLogId: logUuid,
+              exerciseNameSnapshot: drift.Value('Exercise $block'),
+              setType: const drift.Value('normal'),
+              weight: const drift.Value(100),
+              reps: const drift.Value(10),
+              isCompleted: const drift.Value(true),
+              logOrder: drift.Value(block),
+              exerciseBlock: drift.Value(block),
+              supersetGroup: const drift.Value(9),
+            ),
+          );
+    }
+
+    await tester.binding.setSurfaceSize(const Size(800, 3000));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    await tester.pumpWidget(_wrap(WorkoutLogDetailScreen(logId: logId), repo));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byIcon(LucideIcons.pencil).first);
+    await tester.pumpAndSettle();
+
+    await tester.tap(
+      find.byKey(const ValueKey('history_superset_connector_1')),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Save').last);
+    await tester.pumpAndSettle();
+
+    final saved = await (database.select(database.setLogs)
+          ..where((table) => table.workoutLogId.equals(logUuid))
+          ..orderBy([(table) => drift.OrderingTerm.asc(table.logOrder)]))
+        .get();
+    expect(saved.map((set) => set.supersetGroup), [9, 9, 10, 10]);
+
+    await tester.pumpWidget(Container());
+    await tester.pumpAndSettle();
+  });
 }

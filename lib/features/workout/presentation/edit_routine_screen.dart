@@ -815,43 +815,11 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
     // same transaction boundary before changing the group state.
     final persisted = await _persistRoutineState();
     if (!persisted || !mounted) return;
-    final upper = _routineExercises[upperIndex];
-    final lower = _routineExercises[upperIndex + 1];
-    final upperGroup = upper.supersetGroup;
-    final lowerGroup = lower.supersetGroup;
-
     setState(() {
-      if (upperGroup != null && upperGroup == lowerGroup) {
-        _routineExercises = [
-          for (final exercise in _routineExercises)
-            exercise.supersetGroup == upperGroup
-                ? exercise.copyWith(clearSupersetGroup: true)
-                : exercise,
-        ];
-      } else {
-        final group = upperGroup ??
-            lowerGroup ??
-            (_routineExercises
-                    .map((exercise) => exercise.supersetGroup ?? 0)
-                    .fold<int>(0, (max, value) => value > max ? value : max) +
-                1);
-        final groupsToMerge = <int>{
-          if (upperGroup != null) upperGroup,
-          if (lowerGroup != null) lowerGroup,
-        };
-        _routineExercises = [
-          for (int index = 0; index < _routineExercises.length; index++)
-            if (index == upperIndex || index == upperIndex + 1)
-              _routineExercises[index].copyWith(supersetGroup: group)
-            else if (groupsToMerge.contains(
-              _routineExercises[index].supersetGroup,
-            ))
-              _routineExercises[index].copyWith(supersetGroup: group)
-            else
-              _routineExercises[index],
-        ];
-      }
-      _routineExercises = normalizeSupersetGroups(_routineExercises);
+      _routineExercises = toggleSupersetConnectionAfter(
+        _routineExercises,
+        upperIndex,
+      );
     });
 
     if (_routineId != null) {
@@ -1158,6 +1126,10 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                                                                     ?.label,
                                                             supersetColor:
                                                                 supersetColor,
+                                                            continuesSupersetBelow:
+                                                                !(membership
+                                                                        ?.isLast ??
+                                                                    true),
                                                             onPointerDown: (e) =>
                                                                 _onDragPointerDown(
                                                                     e,

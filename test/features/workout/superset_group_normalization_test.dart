@@ -75,4 +75,25 @@ void main() {
     expect(supersetMembershipAt(exercises, 2)!.label, 'A3');
     expect(supersetMembershipAt(exercises, 2)!.isLast, isTrue);
   });
+
+  test('disconnecting a four-exercise group preserves two pair supersets', () {
+    final split = toggleSupersetConnectionAfter([
+      exercise(1, 9),
+      exercise(2, 9),
+      exercise(3, 9),
+      exercise(4, 9),
+    ], 1);
+
+    expect(split.map((e) => e.supersetGroup), [9, 9, 10, 10]);
+  });
+
+  test('disconnecting at an edge leaves the remaining pair connected', () {
+    final split = toggleSupersetConnectionAfter([
+      exercise(1, 9),
+      exercise(2, 9),
+      exercise(3, 9),
+    ], 0);
+
+    expect(split.map((e) => e.supersetGroup), [null, 10, 10]);
+  });
 }

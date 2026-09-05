@@ -1170,6 +1170,17 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
     unawaited(_syncLiveActivity());
   }
 
+  /// Connects or separates the two exercises at a visible card boundary.
+  ///
+  /// The running session owns its own structure, so changing a superset here
+  /// updates the set-log snapshot used for restoring this workout.
+  Future<void> toggleSupersetAfter(int upperIndex) async {
+    _exercises = toggleSupersetConnectionAfter(_exercises, upperIndex);
+    await _updateLogOrdersInDatabase();
+    notifyListeners();
+    unawaited(_syncLiveActivity());
+  }
+
   /// Writes the session's structure — every set's position and the exercise it
   /// belongs to — back to the database.
   ///
