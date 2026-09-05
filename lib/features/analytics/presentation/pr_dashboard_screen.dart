@@ -327,13 +327,13 @@ class _PRDashboardScreenState extends State<PRDashboardScreen> {
   List<Map<String, dynamic>> getMockNotableImprovements() {
     return [
       {
-        'exerciseName': 'Bankdrücken',
+        'exerciseName': 'Bench Press',
         'previousBestE1rm': 80.0,
         'recentBestE1rm': 85.0,
         'improvementPct': 6.25,
       },
       {
-        'exerciseName': 'Kniebeuge',
+        'exerciseName': 'Squat',
         'previousBestE1rm': 100.0,
         'recentBestE1rm': 108.0,
         'improvementPct': 8.0,
@@ -344,13 +344,13 @@ class _PRDashboardScreenState extends State<PRDashboardScreen> {
   List<Map<String, dynamic>> getMockRecentPrs() {
     return [
       {
-        'exerciseName': 'Bankdrücken',
+        'exerciseName': 'Bench Press',
         'weight': 82.5,
         'reps': 5,
         'calculatedE1rm': 92.8,
       },
       {
-        'exerciseName': 'Kniebeuge',
+        'exerciseName': 'Squat',
         'weight': 105.0,
         'reps': 3,
         'calculatedE1rm': 111.3,
@@ -361,13 +361,13 @@ class _PRDashboardScreenState extends State<PRDashboardScreen> {
   List<Map<String, dynamic>> getMockAllTimePrs() {
     return [
       {
-        'exerciseName': 'Bankdrücken',
+        'exerciseName': 'Bench Press',
         'weight': 85.0,
         'reps': 3,
         'calculatedE1rm': 90.1,
       },
       {
-        'exerciseName': 'Kniebeuge',
+        'exerciseName': 'Squat',
         'weight': 110.0,
         'reps': 2,
         'calculatedE1rm': 113.7,
@@ -377,10 +377,10 @@ class _PRDashboardScreenState extends State<PRDashboardScreen> {
 
   Map<String, Map<String, dynamic>?> getMockPrsByRepRange() {
     return {
-      '1 RM': {'exerciseName': 'Kniebeuge', 'weight': 115.0, 'reps': 1},
-      '2–3 RM': {'exerciseName': 'Bankdrücken', 'weight': 85.0, 'reps': 3},
-      '4–6 RM': {'exerciseName': 'Kniebeuge', 'weight': 105.0, 'reps': 5},
-      '7–10 RM': {'exerciseName': 'Kreuzheben', 'weight': 130.0, 'reps': 8},
+      '1 RM': {'exerciseName': 'Squat', 'weight': 115.0, 'reps': 1},
+      '2–3 RM': {'exerciseName': 'Bench Press', 'weight': 85.0, 'reps': 3},
+      '4–6 RM': {'exerciseName': 'Squat', 'weight': 105.0, 'reps': 5},
+      '7–10 RM': {'exerciseName': 'Deadlift', 'weight': 130.0, 'reps': 8},
       '11–15 RM': null,
       '15+ RM': null,
     };

@@ -19,14 +19,14 @@ FULL_VERSION=$(echo "$FULL_VERSION" | xargs)
 VERSION_NUMBER=${FULL_VERSION%+*}
 echo "Active version: $VERSION_NUMBER"
 
-# 2. Branch Check (Nur simulieren!)
+# 2. Branch Check (Dry-run simulation only)
 CURRENT_BRANCH=$(git branch --show-current || git rev-parse --abbrev-ref HEAD)
 echo "Branch: $CURRENT_BRANCH"
 if [ "$CURRENT_BRANCH" != "main" ]; then
   echo "[DRY RUN] Would ensure work is committed and simulate PR creation."
 fi
 
-# 3. Code Generation & Artifact Build (DAS TESTEN WIR ECHT!)
+# 3. Code Generation & Artifact Build (Actual test execution)
 echo "skipping android for this test"
 echo "⚙️ Preparing iOS Workspace & Native Pods..."
 cd ios
@@ -46,12 +46,12 @@ echo "--- Extracted Notes Preview ---"
 cat "$CHANGELOG_TEMP_FILE"
 echo "-------------------------------"
 
-# 5. Git & GitHub Simulation (Kein Live-Push!)
+# 5. Git & GitHub Simulation (No live push)
 echo "🛑 [DRY RUN] Skipping: git commit, git tag, and git push"
 echo "🛑 [DRY RUN] Skipping: gh release create & asset upload"
 
 # ------------------------------------------------------------------------------
-# STEP 7: Trigger Xcode Upload Pipeline via Fastlane (Absolute Pfad-Isolierung)
+# STEP 7: Trigger Xcode Upload Pipeline via Fastlane (Absolute path isolation)
 # ------------------------------------------------------------------------------
 echo "Triggering Fastlane for iOS Deployment..."
 cd ios
@@ -63,11 +63,11 @@ if [ ! -f "Gemfile" ]; then
 fi
 
 echo "Installing bundler dependencies completely standalone..."
-# --path sorgt dafür, dass die ausführbaren Dateien sicher in vendor/bundle landen
+# --path ensures executables land safely in vendor/bundle
 bundle install --path vendor/bundle --binstubs vendor/bundle/bin
 
 echo "Executing Fastlane via explicit local binary path..."
-# Hier umgehen wir Bundlers globale System-Suche vollständig:
+# Completely bypass Bundler's global system search:
 ./vendor/bundle/bin/fastlane test_build
 
 cd ..

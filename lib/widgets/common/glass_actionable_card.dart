@@ -101,7 +101,7 @@ class _GlassActionableCardState extends State<GlassActionableCard> {
     if (widget.onDelete != null) {
       actions.add(
         GlassContextAction(
-          label: widget.deleteLabel ?? l10n?.delete ?? 'Löschen',
+          label: widget.deleteLabel ?? l10n?.delete ?? 'Delete',
           icon: LucideIcons.trash,
           isDestructive: true,
           onTap: () async {
@@ -236,12 +236,12 @@ class _GlassActionableCardState extends State<GlassActionableCard> {
     final customSemanticsActions = <CustomSemanticsAction, VoidCallback>{};
     if (widget.onEdit != null) {
       customSemanticsActions[CustomSemanticsAction(
-              label: widget.editLabel ?? l10n?.edit ?? 'Bearbeiten')] =
+              label: widget.editLabel ?? l10n?.edit ?? 'Edit')] =
           widget.onEdit!;
     }
     if (widget.onDelete != null) {
       customSemanticsActions[CustomSemanticsAction(
-          label: widget.deleteLabel ?? l10n?.delete ?? 'Löschen')] = () async {
+          label: widget.deleteLabel ?? l10n?.delete ?? 'Delete')] = () async {
         final confirmed = widget.confirmDelete != null
             ? await widget.confirmDelete!()
             : await showDeleteConfirmation(context);

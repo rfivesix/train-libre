@@ -413,8 +413,8 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
         rpeLabel: l10n.liveActivityRpeLabel,
         addExercise: l10n.liveActivityAddExercise,
         openApp: l10n.liveActivityOpenApp,
-        // Short form on purpose: the button is 58pt wide, and the full
-        // German "Überspringen" wraps to two lines in it.
+        // Short form on purpose: the button is 58pt wide, and longer translations
+        // (such as German "Überspringen") would wrap to two lines.
         skip: l10n.liveActivitySkipShort,
         overduePrefix: l10n.liveActivityOverdueLabel,
         restDoneTitle: l10n.restTimerNotificationTitle,

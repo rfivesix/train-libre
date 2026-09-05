@@ -9,6 +9,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Added
 - **Supersets:** Routine exercises can be joined into contiguous supersets, trisets, or giant sets. The routine editor, live workout, history detail, backup/restore, and text sharing preserve and display A1/A2-style group membership. Live workouts alternate members by round, skip rest within a round, and use the final member's pause between rounds.
 
+### Changed
+- **Repository Hygiene & Public Open-Source Sanitization:**
+  - Untracked local AI and IDE configurations (`CLAUDE.md`, `.claude/`, `.jules/`, `.vscode/`, `__pycache__/`) and ensured they are excluded in `.gitignore`.
+  - Removed outdated internal development notes (`release_plan_1.2.0.md`, `diary-weight-card-handoff.md`, `diary-weight-card-implementation.md`).
+  - Untracked cached build outputs in `ios/build/`.
+  - Replaced hardcoded Apple ID credentials in `ios/fastlane/Fastfile` with `ENV["FASTLANE_USER"]` / `ENV["APPLE_ID"]` and provided an `ios/fastlane/.env.example` template.
+  - Replaced developer absolute paths in `CHANGELOG.md` with relative repository links.
+  - Translated German inline code comments and deployment script headers to English.
+  - Cleaned up German fallback strings and mock constants in UI widgets (`GlassActionableCard`, `ConsistencyTrackerScreen`, `BodyNutritionCorrelationScreen`, `DepthLegend`, `PrDashboardScreen`, `MuscleGroupAnalyticsScreen`, `ProfileService`).
+
 ### Fixed
 - **Exercise Drag-and-Drop Reordering with Supersets (`reorderRoutineExercise`, `reorderWithSupersets`):** Resolved issues where exercise cards could not be reordered within supersets (which previously reverted immediately) and non-first superset cards (including the final exercise of a routine/workout) could not be dragged at all. Replaced whole-group block moves with per-card reordering semantics across `EditRoutineScreen`, `LiveWorkoutScreen`, and `WorkoutLogDetailScreen`: swapping exercises within a superset preserves the group and re-indexes members (e.g. A1/A2), moving an exercise away from a superset dissolves singletons into standalone exercises while keeping any remaining contiguous pairs/trisets intact, and dropping an exercise strictly between two members of another superset joins it into that superset.
 - **Superset Editing & Group Rails:** Superset boundaries can now be connected or separated directly during a live workout and while editing workout history. Separating a connection inside a larger group retains the two remaining supersets instead of dissolving the entire group. The coloured rail now continues uninterrupted between every member card.
@@ -1224,8 +1234,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   - Implemented strict database write guards to prevent direct modification of read-only wger system catalog entries.
   - Added a comprehensive database integration test suite validating cloning behavior, search exclusion, and priority override resolution.
 
-- **Sleep Day Overview Screen**: Added a new [SleepDayOverviewPage](file:///Users/richardgeorgschotte/Projekte/train-libre/lib/features/sleep/presentation/day/sleep_day_overview_page.dart) screen detailing nocturnal sleep architecture, duration, cycles, efficiency indicators, and scoring, utilizing dynamic translations and localized strings.
-- **Nightly Sleep Analysis Domain**: Added the [NightlySleepAnalysis](file:///Users/richardgeorgschotte/Projekte/train-libre/lib/features/sleep/domain/derived/nightly_sleep_analysis.dart) model to handle high-precision calculations of physiological sleep data.
+- **Sleep Day Overview Screen**: Added a new [SleepDayOverviewPage](lib/features/sleep/presentation/day/sleep_day_overview_page.dart) screen detailing nocturnal sleep architecture, duration, cycles, efficiency indicators, and scoring, utilizing dynamic translations and localized strings.
+- **Nightly Sleep Analysis Domain**: Added the [NightlySleepAnalysis](lib/features/sleep/domain/derived/nightly_sleep_analysis.dart) model to handle high-precision calculations of physiological sleep data.
 - **Isolate Offloaded Excel Export Engine**: Completely refactored the Excel generation pipeline to run inside a background isolate (`compute()`), utilizing fully serialized Dart DTOs (`ExcelExportData`) to decouple database queries from spreadsheet construction, eliminating thread lock and memory sharing failures.
 - **High-Fidelity Sport Science Metrics (Sheet 2: "Workouts & Exercises")**:
   - Implemented strict compliance for reps in reserve (RIR) and rate of perceived exertion (RPE) null-value serialization, writing empty string cells (`""`) instead of defaulting to `0` (which clinically represents muscular failure).

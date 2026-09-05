@@ -18,10 +18,11 @@ migrate_working_dir/
 *.iws
 .idea/
 
-# The .vscode folder contains launch configuration and tasks you configure in
-# VS Code which you may wish to be included in version control, so this line
-# is commented out by default.
-#.vscode/
+.vscode/
+
+# Python Cache
+__pycache__/
+
 
 # Flutter/Dart/Pub related
 **/doc/api/
@@ -57,6 +58,9 @@ docs/node_modules/
 # AI Agents & Preflight Skills
 .agents/
 skills-lock.json
+CLAUDE.md
+.claude/
+.jules/
 
 # Fastlane local standalone bundles
 ios/vendor/bundle/

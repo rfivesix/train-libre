@@ -220,7 +220,7 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
 
     if (hasNoData) {
       bodyContent = ActiveGapOverlay(
-        message: "Keine Trainingskonsistenz für diesen Zeitraum",
+        message: l10n.emptyStateActiveGapOverlay,
         background: Skeletonizer(
           enabled: true,
           child: IgnorePointer(child: bodyContent),

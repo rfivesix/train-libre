@@ -1074,7 +1074,7 @@ class _GlassBadge extends StatelessWidget {
       ),
       child: Text(
         label,
-        //.toUpperCase(), // Optional: Sieht bei Badges oft professioneller aus
+        //.toUpperCase(), // Optional: Often looks cleaner on badges
         style: theme.textTheme.labelSmall?.copyWith(
           color: isDarkMode ? primaryBadgeColor : primaryBadgeColor.shade800,
           fontWeight: FontWeight.bold,

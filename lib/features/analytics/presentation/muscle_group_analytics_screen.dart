@@ -682,14 +682,14 @@ class _MuscleGroupAnalyticsScreenState
     return {
       'daysBack': 7,
       'dataQualityOk': true,
-      'undertrained': ['Brust', 'Rücken'],
+      'undertrained': ['chest', 'back'],
       'muscles': [
-        {'muscleGroup': 'Brust', 'equivalentSets': 12.0, 'workoutCount': 3},
-        {'muscleGroup': 'Rücken', 'equivalentSets': 10.0, 'workoutCount': 2},
-        {'muscleGroup': 'Beine', 'equivalentSets': 8.0, 'workoutCount': 2},
-        {'muscleGroup': 'Schultern', 'equivalentSets': 6.0, 'workoutCount': 1},
-        {'muscleGroup': 'Bizeps', 'equivalentSets': 4.0, 'workoutCount': 2},
-        {'muscleGroup': 'Trizeps', 'equivalentSets': 4.0, 'workoutCount': 2},
+        {'muscleGroup': 'chest', 'equivalentSets': 12.0, 'workoutCount': 3},
+        {'muscleGroup': 'back', 'equivalentSets': 10.0, 'workoutCount': 2},
+        {'muscleGroup': 'quads', 'equivalentSets': 8.0, 'workoutCount': 2},
+        {'muscleGroup': 'shoulders', 'equivalentSets': 6.0, 'workoutCount': 1},
+        {'muscleGroup': 'biceps', 'equivalentSets': 4.0, 'workoutCount': 2},
+        {'muscleGroup': 'triceps', 'equivalentSets': 4.0, 'workoutCount': 2},
       ],
     };
   }
