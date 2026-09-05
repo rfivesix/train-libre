@@ -62,6 +62,16 @@ Flüssiger Gewichtsregler: Bewege die Skala frei zwischen den Markierungen und k
 
 Der heutige Tag ist immer bereit: Auch wenn du heute noch nichts erfasst hast, öffnet sich das vollständige Tagebuch mit deinem letzten Gewicht und der Möglichkeit, einen neuen Wert einzutragen.
 
+Überarbeiteter Übungskatalog: Der Katalog basiert jetzt auf OpenExerciseDB und bietet genauere Angaben zu Muskeln und Bewegungen. Übungsnamen und Beschreibungen erscheinen in deiner App-Sprache, sofern eine Übersetzung verfügbar ist.
+
+Passende Übungen leichter finden: Filtere nach Geräten, Schwierigkeitsgrad und weiteren Übungsmerkmalen. Die übersichtlichen Auswahlfelder helfen dir auch beim Zusammenstellen deiner Trainingspläne.
+
+Für jede Übung die passenden Felder: Bei Planks erfasst du die Haltezeit, bei Klimmzügen Wiederholungen und optionales Zusatzgewicht, bei unterstützten Übungen die Unterstützung. Auch die Werte vom letzten Training und die Diagramme passen sich der Übung an.
+
+Fortschritte richtig einordnen: Bei Eigengewichtsübungen berücksichtigen Trainingsvolumen und Kraftrekorde jetzt dein erfasstes Körpergewicht. Zusatzgewicht zählt dazu, Unterstützung wird abgezogen. Frühere Trainings werden mit dem damals zuletzt erfassten Körpergewicht berechnet.
+
+Genauere Muskelstatistiken: Eigengewichtsübungen und Halteübungen werden zuverlässiger berücksichtigt. Dehnen und Mobilitätsübungen zählen nicht mehr als Kraftsätze und lösen keine Muskelregeneration aus.
+
 ## Support URL (Support Web Page URL)
 https://rfivesix.github.io/train-libre/
 

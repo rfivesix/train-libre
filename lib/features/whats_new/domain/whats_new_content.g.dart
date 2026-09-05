@@ -37,12 +37,6 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
           body:
               'Even before you log anything today, the full diary opens with your latest weight and the option to record a new measurement.',
         ),
-      ],
-    ),
-    WhatsNewRelease(
-      version: '1.3.0-alpha.1',
-      releasedOn: '2026-09-05',
-      entries: <WhatsNewEntry>[
         WhatsNewEntry(
           icon: LucideIcons.dumbbell,
           title: 'Updated exercise catalog',
@@ -213,12 +207,6 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
           body:
               'Auch wenn du heute noch nichts erfasst hast, öffnet sich das vollständige Tagebuch mit deinem letzten Gewicht und der Möglichkeit, einen neuen Wert einzutragen.',
         ),
-      ],
-    ),
-    WhatsNewRelease(
-      version: '1.3.0-alpha.1',
-      releasedOn: '2026-09-05',
-      entries: <WhatsNewEntry>[
         WhatsNewEntry(
           icon: LucideIcons.dumbbell,
           title: 'Überarbeiteter Übungskatalog',
@@ -389,12 +377,6 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
           body:
               'même avant toute saisie, le journal complet s\'ouvre avec ton dernier poids et permet d\'enregistrer une nouvelle mesure.',
         ),
-      ],
-    ),
-    WhatsNewRelease(
-      version: '1.3.0-alpha.1',
-      releasedOn: '2026-09-05',
-      entries: <WhatsNewEntry>[
         WhatsNewEntry(
           icon: LucideIcons.dumbbell,
           title: 'Catalogue d\'exercices enrichi',
@@ -565,12 +547,6 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
           body:
               'anche prima di registrare qualcosa, si apre il diario completo con l\'ultimo peso e la possibilità di aggiungere una nuova misurazione.',
         ),
-      ],
-    ),
-    WhatsNewRelease(
-      version: '1.3.0-alpha.1',
-      releasedOn: '2026-09-05',
-      entries: <WhatsNewEntry>[
         WhatsNewEntry(
           icon: LucideIcons.dumbbell,
           title: 'Catalogo degli esercizi aggiornato',
@@ -738,12 +714,6 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
           title: '今日の日記をいつでも表示',
           body: '今日の記録がまだなくても、最新の体重と新しい測定値を追加する項目を含む日記全体が開きます。',
         ),
-      ],
-    ),
-    WhatsNewRelease(
-      version: '1.3.0-alpha.1',
-      releasedOn: '2026-09-05',
-      entries: <WhatsNewEntry>[
         WhatsNewEntry(
           icon: LucideIcons.dumbbell,
           title: '種目カタログを更新',

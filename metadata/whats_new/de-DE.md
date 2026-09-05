@@ -14,8 +14,6 @@
 
 {layout_grid} Der heutige Tag ist immer bereit: Auch wenn du heute noch nichts erfasst hast, öffnet sich das vollständige Tagebuch mit deinem letzten Gewicht und der Möglichkeit, einen neuen Wert einzutragen.
 
-## 1.3.0-alpha.1 (2026-09-05)
-
 {dumbbell} Überarbeiteter Übungskatalog: Der Katalog basiert jetzt auf OpenExerciseDB und bietet genauere Angaben zu Muskeln und Bewegungen. Übungsnamen und Beschreibungen erscheinen in deiner App-Sprache, sofern eine Übersetzung verfügbar ist.
 
 {layout_grid} Passende Übungen leichter finden: Filtere nach Geräten, Schwierigkeitsgrad und weiteren Übungsmerkmalen. Die übersichtlichen Auswahlfelder helfen dir auch beim Zusammenstellen deiner Trainingspläne.

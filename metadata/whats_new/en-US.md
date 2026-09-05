@@ -14,8 +14,6 @@
 
 {layout_grid} Today is always ready: Even before you log anything today, the full diary opens with your latest weight and the option to record a new measurement.
 
-## 1.3.0-alpha.1 (2026-09-05)
-
 {dumbbell} Updated exercise catalog: The catalog now uses OpenExerciseDB, with more detailed information about muscles and movements. Exercise names and descriptions appear in your app language when a translation is available.
 
 {layout_grid} Find the right exercises: Filter by equipment, difficulty and other exercise details. Compact selection menus also help you choose exercises when building your routines.

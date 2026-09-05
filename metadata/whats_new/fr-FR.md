@@ -14,8 +14,6 @@
 
 {layout_grid} La journée d'aujourd'hui est toujours prête : même avant toute saisie, le journal complet s'ouvre avec ton dernier poids et permet d'enregistrer une nouvelle mesure.
 
-## 1.3.0-alpha.1 (2026-09-05)
-
 {dumbbell} Catalogue d'exercices enrichi : le catalogue utilise désormais OpenExerciseDB, avec des informations plus précises sur les muscles et les mouvements. Les noms et descriptions s'affichent dans la langue de ton app lorsqu'une traduction est disponible.
 
 {layout_grid} Trouve les exercices qui te conviennent : filtre par matériel, difficulté et autres caractéristiques. Les menus de sélection compacts t'aident aussi à choisir tes exercices lorsque tu crées tes programmes.
