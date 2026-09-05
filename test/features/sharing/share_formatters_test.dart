@@ -76,6 +76,18 @@ void main() {
       expect(text, contains('Set 1: 20 kg x 12 [Dropset]'));
     });
 
+    test('prefixes grouped workout blocks with superset member labels', () {
+      final formatter =
+          WorkoutShareFormatter(english, unitService: UnitService());
+      final text = formatter.format(_workout([
+        _set('Bench Press', block: 0, supersetGroup: 7, order: 0),
+        _set('Row', block: 1, supersetGroup: 7, order: 1),
+      ]));
+
+      expect(text, contains('A1 · Bench Press'));
+      expect(text, contains('A2 · Row'));
+    });
+
     test('handles bodyweight/no-weight sets as reps only', () {
       final formatter =
           WorkoutShareFormatter(german, unitService: UnitService());
@@ -206,6 +218,20 @@ void main() {
       expect(summary, isNot(contains('15')));
       expect(summary, isNot(contains('Wdh')));
     });
+
+    test('prefixes grouped routine exercises with member labels', () {
+      final formatter = RoutineShareFormatter(english);
+      final text = formatter.format(Routine(
+        name: 'Upper',
+        exercises: [
+          _routineExercise('Bench Press', [], supersetGroup: 2),
+          _routineExercise('Row', [], supersetGroup: 2),
+        ],
+      ));
+
+      expect(text, contains('A1 · Bench Press'));
+      expect(text, contains('A2 · Row'));
+    });
   });
 }
 
@@ -329,6 +355,8 @@ SetLog _set(
   double? distanceKm,
   int? durationSeconds,
   int order = 1,
+  int? block,
+  int? supersetGroup,
 }) {
   return SetLog(
     id: order,
@@ -341,13 +369,20 @@ SetLog _set(
     durationSeconds: durationSeconds,
     isCompleted: true,
     logOrder: order,
+    exerciseBlock: block,
+    supersetGroup: supersetGroup,
   );
 }
 
-RoutineExercise _routineExercise(String name, List<SetTemplate> templates) {
+RoutineExercise _routineExercise(
+  String name,
+  List<SetTemplate> templates, {
+  int? supersetGroup,
+}) {
   return RoutineExercise(
     exercise: _exercise(name),
     setTemplates: templates,
+    supersetGroup: supersetGroup,
   );
 }
 

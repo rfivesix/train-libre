@@ -520,6 +520,7 @@ extension WorkoutLoggingQueries on WorkoutLocalDataSource {
                   exerciseId: drift.Value(exercise.uuid!),
                   orderIndex: drift.Value(orderIndex),
                   pauseSeconds: drift.Value(re.pauseSeconds),
+                  supersetGroup: drift.Value(re.supersetGroup),
                   notes: drift.Value(re.notes),
                 ),
               );
@@ -576,6 +577,8 @@ extension WorkoutLoggingQueries on WorkoutLocalDataSource {
                   restTimeSeconds: drift.Value(s.restTimeSeconds),
                   isCompleted: drift.Value(s.isCompleted ?? true),
                   logOrder: drift.Value(s.logOrder ?? 0),
+                  exerciseBlock: drift.Value(s.exerciseBlock),
+                  supersetGroup: drift.Value(s.supersetGroup),
                   notes: drift.Value(s.notes),
                   distance: drift.Value(s.distanceKm),
                   durationSeconds: drift.Value(s.durationSeconds),

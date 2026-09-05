@@ -19,8 +19,11 @@ class RoutineShareFormatter {
       buffer.writeln(labels.exercises);
       buffer.writeln();
     } else {
-      for (final routineExercise in routine.exercises) {
-        buffer.writeln(_exerciseName(routineExercise));
+      for (final entry in routine.exercises.asMap().entries) {
+        final routineExercise = entry.value;
+        final membership = supersetMembershipAt(routine.exercises, entry.key);
+        final prefix = membership == null ? '' : '${membership.label} · ';
+        buffer.writeln('$prefix${_exerciseName(routineExercise)}');
         for (final line
             in _formatTemplateGroups(routineExercise.setTemplates)) {
           buffer.writeln('- $line');

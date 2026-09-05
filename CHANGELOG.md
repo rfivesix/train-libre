@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [1.3.0] - 2026-09-05
 
+### Added
+- **Supersets:** Routine exercises can be joined into contiguous supersets, trisets, or giant sets. The routine editor, live workout, history detail, backup/restore, and text sharing preserve and display A1/A2-style group membership. Live workouts alternate members by round, skip rest within a round, and use the final member's pause between rounds.
+
+### Fixed
+- **Workout Exercise Blocks in History and Backups:** Repeated occurrences of the same exercise remain separate cards by using their stored exercise block. Backup restore now preserves both exercise blocks and superset snapshots while legacy logs without block metadata retain name-based grouping.
+
 ## [1.3.0-alpha.2] - 2026-09-05
 ### Added
 - **Diary Weight Entry (`WeightCard`, `WeightRuler`):** Add weight directly below supplements with an animated inline ruler, explicit save/cancel, metric or imperial display, and kilogram-only persistence. Empty diaries retain access to weight entry. The latest daily measurement links to the existing measurements history; all new text is available in German, English, French, Italian and Japanese.
