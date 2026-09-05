@@ -17,6 +17,7 @@ import 'package:train_libre/features/profile/presentation/measurements_screen.da
 import 'package:train_libre/generated/app_localizations.dart';
 import 'package:train_libre/services/unit_service.dart';
 import 'package:train_libre/util/design_constants.dart';
+import 'package:train_libre/widgets/common/card_morph_route.dart';
 
 class _NavigationObserver extends NavigatorObserver {
   Route<dynamic>? lastRoute;
@@ -264,7 +265,7 @@ void main() {
     await capture(tester, 'today');
     expect(find.text('Eintragen'), findsNothing);
     await tester.tap(find.text('84,2'));
-    final route = observer.lastRoute! as MaterialPageRoute<void>;
+    final route = observer.lastRoute! as CardMorphRoute<void>;
     final destination = route.builder(tester.element(find.byType(WeightCard)));
     expect(destination, isA<MeasurementsScreen>());
     expect(

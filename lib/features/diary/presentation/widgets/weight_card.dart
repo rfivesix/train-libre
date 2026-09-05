@@ -8,7 +8,9 @@ import '../../../../generated/app_localizations.dart';
 import '../../../../services/unit_service.dart';
 import '../../../../util/design_constants.dart';
 import '../../../../widgets/common/app_card_container.dart';
+import '../../../../widgets/common/card_morph_route.dart';
 import '../../../../widgets/common/glass_actionable_card.dart';
+import '../../../../widgets/common/morph_source.dart';
 import '../../../profile/data/sources/profile_local_data_source.dart';
 import '../../../profile/presentation/measurements_screen.dart';
 import 'weight_ruler.dart';
@@ -170,16 +172,54 @@ class _WeightCardState extends State<WeightCard>
         }
         final latest = snapshot.data;
         final logged = latest != null && DateUtils.isSameDay(latest.date, _day);
-        return AnimatedBuilder(
-          animation: _phase,
-          builder: (context, _) => _buildCard(units, l10n, latest, logged),
+        // The card's own margin sits outside the morph scope so the measured
+        // source rect is the visible card, not the card plus its gap.
+        return Padding(
+          padding:
+              const EdgeInsets.symmetric(vertical: DesignConstants.spacingXS),
+          child: MorphSourceScope(
+            builder: (context, setHidden) => Builder(
+              builder: (cardCtx) => AnimatedBuilder(
+                animation: _phase,
+                builder: (context, _) {
+                  final open = _phase.value > 0 || _editing;
+                  return _buildCard(
+                    units,
+                    l10n,
+                    latest,
+                    logged,
+                    // Only the collapsed, already-logged card navigates; while
+                    // the ruler is open the card belongs to the inline editor.
+                    onTap: logged && !open
+                        ? () => Navigator.of(context).push(
+                              CardMorphRoute<void>(
+                                sourceContext: cardCtx,
+                                // The flying copy is the same presentation
+                                // call, not a fresh WeightCard: that one would
+                                // resubscribe and take off as a spinner.
+                                sourceBuilder: (_) => _buildCard(
+                                    units, l10n, latest, logged,
+                                    onTap: null),
+                                onSourceVisibilityChanged: setHidden,
+                                builder: (_) => const MeasurementsScreen(
+                                  initialMeasurementType: 'weight',
+                                ),
+                              ),
+                            )
+                        : null,
+                  );
+                },
+              ),
+            ),
+          ),
         );
       },
     );
   }
 
   Widget _buildCard(UnitService units, AppLocalizations l10n,
-      db.Measurement? latest, bool logged) {
+      db.Measurement? latest, bool logged,
+      {required VoidCallback? onTap}) {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
     final p = _phase.value;
@@ -307,16 +347,10 @@ class _WeightCardState extends State<WeightCard>
     return GlassActionableCard(
       enableSwipe: false,
       enableContextMenu: false,
-      onTap: logged && !open
-          ? () => Navigator.of(context).push(MaterialPageRoute<void>(
-                builder: (_) => const MeasurementsScreen(
-                  initialMeasurementType: 'weight',
-                ),
-              ))
-          : null,
+      onTap: onTap,
       child: AppCardContainer(
         padding: DesignConstants.cardPadding,
-        margin: const EdgeInsets.symmetric(vertical: DesignConstants.spacingXS),
+        margin: EdgeInsets.zero,
         child: LayoutBuilder(builder: (context, constraints) {
           // Keep full German labels and three-digit pounds at narrow widths
           // and large text sizes. Only the action row moves below the value.
