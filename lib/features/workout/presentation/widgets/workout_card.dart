@@ -13,12 +13,14 @@ class WorkoutCard extends StatelessWidget {
 
   /// The content within the card.
   final Widget child;
+  final Color? accentColor;
 
   const WorkoutCard({
     super.key,
     required this.child,
     this.padding = EdgeInsets.zero,
     this.margin = EdgeInsets.zero,
+    this.accentColor,
   });
 
   @override
@@ -28,7 +30,10 @@ class WorkoutCard extends StatelessWidget {
       margin: margin,
       padding: padding,
       decoration: BoxDecoration(
-        color: Colors.transparent, // Komplett transparent
+        color: accentColor?.withValues(alpha: 0.06) ?? Colors.transparent,
+        border: accentColor == null
+            ? null
+            : Border(left: BorderSide(color: accentColor!, width: 3)),
         borderRadius: BorderRadius.circular(20),
       ),
       child: ClipRRect(

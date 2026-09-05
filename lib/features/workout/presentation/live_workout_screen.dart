@@ -175,6 +175,7 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
   /// gives up. Each attempt advances one viewport.
   static const int _maxScrollAttempts = 24;
   int _scrollRequest = 0;
+  int _handledAutoAdvanceRevision = 0;
 
   /// Brings the exercise holding the next open set to the top of the list.
   ///
@@ -197,17 +198,7 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
       final exercises = manager.exercises;
       if (exercises.isEmpty) return;
 
-      int activeIndex = 0;
-      for (int i = 0; i < exercises.length; i++) {
-        final hasUncompleted = exercises[i].setTemplates.any((t) {
-          final log = t.id != null ? manager.setLogs[t.id] : null;
-          return log?.isCompleted != true;
-        });
-        if (hasUncompleted) {
-          activeIndex = i;
-          break;
-        }
-      }
+      final activeIndex = manager.nextOpenExerciseIndex ?? 0;
 
       final targetExercise = exercises[activeIndex];
       final targetContext =
@@ -458,7 +449,15 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
     required void Function(RoutineExercise)? onEditPauseTime,
     bool isProxy = false,
   }) {
-    final titleContent = Padding(
+    final membership = supersetMembershipAt(
+      Provider.of<LiveWorkoutViewModel>(context, listen: false).exercises,
+      index,
+    );
+    final supersetColor = membership == null
+        ? null
+        : DesignConstants.supersetColors[
+            membership.groupIndex % DesignConstants.supersetColors.length];
+    final exerciseTitle = Padding(
       padding: const EdgeInsets.symmetric(vertical: 4.0),
       child: Text(
         routineExercise.exercise.getLocalizedName(context),
@@ -469,6 +468,32 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
         ),
       ),
     );
+    final titleContent = membership == null
+        ? exerciseTitle
+        : Row(
+            children: [
+              Container(
+                key: ValueKey('live_superset_badge_${membership.label}'),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: supersetColor!.withValues(alpha: 0.18),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: supersetColor.withValues(alpha: 0.7),
+                  ),
+                ),
+                child: Text(
+                  membership.label,
+                  style: textTheme.labelLarge?.copyWith(
+                    color: supersetColor,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(child: exerciseTitle),
+            ],
+          );
 
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(
@@ -476,7 +501,7 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
         vertical: 8.0,
       ),
       leading: null,
-      title: isProxy
+      title: isProxy || (membership != null && !membership.isFirst)
           ? titleContent
           : Listener(
               onPointerDown: (e) =>
@@ -519,42 +544,43 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                 ? null
                 : () => _editExerciseNotes(context, routineExercise),
           ),
-          Selector<LiveWorkoutViewModel, int?>(
-            selector: (_, vm) => vm.pauseTimes[routineExercise.id!],
-            builder: (context, livePauseVal, child) {
-              final liveHasPause = livePauseVal != null && livePauseVal > 0;
-              if (liveHasPause) {
-                return TextButton(
-                  style: TextButton.styleFrom(
-                    minimumSize: const Size(48, 48),
-                    padding: EdgeInsets.zero,
-                  ),
+          if (membership?.isLast ?? true)
+            Selector<LiveWorkoutViewModel, int?>(
+              selector: (_, vm) => vm.pauseTimes[routineExercise.id!],
+              builder: (context, livePauseVal, child) {
+                final liveHasPause = livePauseVal != null && livePauseVal > 0;
+                if (liveHasPause) {
+                  return TextButton(
+                    style: TextButton.styleFrom(
+                      minimumSize: const Size(48, 48),
+                      padding: EdgeInsets.zero,
+                    ),
+                    onPressed: isProxy
+                        ? null
+                        : (onEditPauseTime != null
+                            ? () => onEditPauseTime(routineExercise)
+                            : null),
+                    child: Text(
+                      _formatPauseTime(livePauseVal),
+                      style: textTheme.bodyMedium?.copyWith(
+                        color: colorScheme.primary,
+                        fontWeight: FontWeight.bold,
+                        fontSize: DesignConstants.spacingL,
+                      ),
+                    ),
+                  );
+                }
+                return IconButton(
+                  icon: const Icon(LucideIcons.timer),
+                  tooltip: l10n.editPauseTime,
                   onPressed: isProxy
                       ? null
                       : (onEditPauseTime != null
                           ? () => onEditPauseTime(routineExercise)
                           : null),
-                  child: Text(
-                    _formatPauseTime(livePauseVal),
-                    style: textTheme.bodyMedium?.copyWith(
-                      color: colorScheme.primary,
-                      fontWeight: FontWeight.bold,
-                      fontSize: DesignConstants.spacingL,
-                    ),
-                  ),
                 );
-              }
-              return IconButton(
-                icon: const Icon(LucideIcons.timer),
-                tooltip: l10n.editPauseTime,
-                onPressed: isProxy
-                    ? null
-                    : (onEditPauseTime != null
-                        ? () => onEditPauseTime(routineExercise)
-                        : null),
-              );
-            },
-          ),
+              },
+            ),
           IconButton(
             icon: const Icon(
               LucideIcons.trash,
@@ -917,6 +943,13 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
             (vm) => vm.exercises);
     final showRestBar = context.select<LiveWorkoutViewModel, bool>(
         (vm) => vm.remainingRestSeconds > 0 || vm.showRestDone);
+    final autoAdvanceRevision = context.select<LiveWorkoutViewModel, int>(
+      (vm) => vm.autoAdvanceRevision,
+    );
+    if (autoAdvanceRevision > _handledAutoAdvanceRevision) {
+      _handledAutoAdvanceRevision = autoAdvanceRevision;
+      _scrollToActiveExercise();
+    }
 
     // If the workout was just finished, the manager state is cleared.
     // We return a blank scaffold to avoid any errors during the Navigator transition.
@@ -1120,7 +1153,21 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                             index < exercises.length) {
                                           final routineExercise =
                                               exercises[index];
+                                          final membership =
+                                              supersetMembershipAt(
+                                            exercises,
+                                            index,
+                                          );
+                                          final supersetColor = membership ==
+                                                  null
+                                              ? null
+                                              : DesignConstants.supersetColors[
+                                                  membership.groupIndex %
+                                                      DesignConstants
+                                                          .supersetColors
+                                                          .length];
                                           final proxyChild = WorkoutCard(
+                                            accentColor: supersetColor,
                                             child: _buildExerciseCardHeader(
                                               context,
                                               routineExercise,
@@ -1145,6 +1192,16 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                             exercises[index];
                                         final showE1rmSummary =
                                             !_isCardio(routineExercise);
+                                        final membership = supersetMembershipAt(
+                                          exercises,
+                                          index,
+                                        );
+                                        final supersetColor = membership == null
+                                            ? null
+                                            : DesignConstants.supersetColors[
+                                                membership.groupIndex %
+                                                    DesignConstants
+                                                        .supersetColors.length];
 
                                         final isDeleting = _deletingExerciseIds
                                             .contains(routineExercise.id);
@@ -1172,6 +1229,8 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                                       key: ValueKey(
                                                           routineExercise.id),
                                                       child: WorkoutCard(
+                                                        accentColor:
+                                                            supersetColor,
                                                         child: Column(
                                                           crossAxisAlignment:
                                                               CrossAxisAlignment
