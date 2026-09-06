@@ -2158,8 +2158,6 @@
     }
   };
 
-  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
   // Theme logic
   const updateScreenshots = () => {
     const currentTheme = document.documentElement.getAttribute("data-theme") || "dark";
@@ -2300,12 +2298,6 @@
     revealTargets.forEach((target) => target.classList.add("is-visible"));
   };
 
-  // Parallax/Scroll logic (Removed for Flutter-like stillness)
-  const initParallax = () => {
-    // Purged to remove scroll-jacking and generic SaaS effects
-  };
-
-
   // Centralized dynamic links routing
   const initLinks = () => {
     document.querySelectorAll("[data-link]").forEach((el) => {
@@ -2322,7 +2314,6 @@
     initTheme();
     initLang();
     initReveal();
-    initParallax();
     initLinks();
   });
 
