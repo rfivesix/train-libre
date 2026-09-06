@@ -53,12 +53,18 @@ DISCLAIMER:
 Train Libre is not a medical application. Algorithmic recovery feedback, sleep tracking, and physical vital metrics are intended strictly for personal athletic tracking and training guidance. They do not constitute, and must not replace, professional medical diagnosis or treatment.
 
 OPEN SOURCE & OPEN DATA:
-Built transparently on trusted community catalogs from Open Food Facts and the wger exercise database. The full source code is publicly accessible, so our privacy claims can be verified rather than just believed.
+Built transparently on trusted community catalogs from Open Food Facts and OpenExerciseDB. The full source code is publicly accessible, so our privacy claims can be verified rather than just believed.
 
 ## Release Notes (What's New / Release Notes in this version)
-Improved macronutrient recommendations: The adaptive nutrition calculation now distributes fats and carbohydrates in a more balanced way based on your body weight and goal.
+Supersets: Join exercises in your routines into supersets, trisets or larger groups. During a workout you alternate between them round by round, and the rest timer only starts after the last exercise of a round.
 
-Bug fixes: Fixed minor issues with caffeine logging in the diary and resolved visual glitches during card transitions and animations.
+The right fields for every exercise: Log hold time for planks, reps and optional added weight for pull-ups, and assistance for assisted exercises. Previous workout values and charts adapt too.
+
+A reworked exercise catalog: The catalog now uses OpenExerciseDB, with more detailed information about muscles and movements and names in your app language. Filter by equipment, difficulty and other details, including while building your routines.
+
+Log weight from your diary: Record your weight in the new card below Supplements, with a smooth ruler in kilograms or pounds. Your measurement history opens from the same place.
+
+A clearer picture of your progress: Training volume and strength records for bodyweight exercises now account for your logged body weight, added weight increases the load and assistance reduces it. Stretching and mobility exercises no longer count as strength sets.
 
 ## Support URL (Support Web Page URL)
 https://rfivesix.github.io/train-libre/support.html

@@ -29,6 +29,18 @@ class AppLocalizationsIt extends AppLocalizations {
   String get removeTimer => 'Rimuovi timer';
 
   @override
+  String get connectSuperset => 'Collega come superset';
+
+  @override
+  String get disconnectSuperset => 'Sciogli superset';
+
+  @override
+  String get connectSupersetShort => 'Superset';
+
+  @override
+  String get disconnectSupersetShort => 'Scollega';
+
+  @override
   String get noTimerLabel => 'Nessun timer';
 
   @override
@@ -457,7 +469,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String cardioDistanceLabel(String unit) {
-    return 'Distance ($unit)';
+    return 'Distanza ($unit)';
   }
 
   @override
@@ -1054,7 +1066,13 @@ class AppLocalizationsIt extends AppLocalizations {
   String get showSummary => 'Mostra riepilogo';
 
   @override
-  String get exerciseDataAttribution => 'Dati dell\'esercizio da wger';
+  String get exerciseDataAttribution => 'Dati degli esercizi da OpenExerciseDB';
+
+  @override
+  String get exerciseDataLicense => 'Licenza dei dati degli esercizi';
+
+  @override
+  String get exerciseDataUpstream => 'Derivato in parte da wger';
 
   @override
   String get duplicate => 'Duplicato';
@@ -2016,7 +2034,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get attributionText =>
-      'Questa app utilizza dati provenienti da fonti esterne:\n\n● Dati e immagini degli esercizi da wger (wger.de), concesso in licenza con CC-BY-SA 4.0.\n\n● Database alimentare di Open Food Facts (openfoodfacts.org), disponibile sotto la licenza Open Database License (ODbL).';
+      'Questa app utilizza dati provenienti da fonti esterne:\n\n● Dati degli esercizi da OpenExerciseDB (github.com/rfivesix/OpenExerciseDB), concessi in licenza CC BY-SA 4.0, derivati in parte dal progetto wger (wger.de).\n\n● Database alimentare di Open Food Facts (openfoodfacts.org), disponibile sotto la licenza Open Database License (ODbL).';
 
   @override
   String get errorRoutineNotFound => 'Routine non trovata';
@@ -3399,6 +3417,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get analyticsNoRecordYet => 'Nessun record ancora';
+
+  @override
+  String get analyticsNoRecordsInPeriod => 'Nessun record in questo periodo';
 
   @override
   String get analyticsNotableImprovements => 'Miglioramenti notevoli';
@@ -5982,7 +6003,7 @@ class AppLocalizationsIt extends AppLocalizations {
       'Sono disponibili nuovi aggiornamenti per i tuoi cataloghi locali. Vuoi aggiornare ora?';
 
   @override
-  String get exerciseCatalogWger => 'Catalogo esercizi (wger)';
+  String get exerciseCatalogWger => 'Catalogo esercizi (OpenExerciseDB)';
 
   @override
   String get nutritionCatalogOff => 'Catalogo nutrizionale (OFF)';
@@ -6484,4 +6505,259 @@ class AppLocalizationsIt extends AppLocalizations {
   String workoutPhotoPagination(int current, int total) {
     return '$current di $total';
   }
+
+  @override
+  String get catalogFilterTitle => 'Filtro';
+
+  @override
+  String get catalogFilterBodyRegion => 'Regione del corpo';
+
+  @override
+  String get catalogFilterEquipment => 'Attrezzatura';
+
+  @override
+  String get catalogFilterUsage => 'Utilizzo';
+
+  @override
+  String get catalogFilterReset => 'Reimposta';
+
+  @override
+  String get catalogFilterCombineHint =>
+      'Più scelte in una sezione ampliano i risultati; scelte in sezioni diverse li restringono.';
+
+  @override
+  String get catalogFilterDifficulty => 'Difficoltà';
+
+  @override
+  String get catalogFilterMechanic => 'Meccanica';
+
+  @override
+  String get catalogFilterLaterality => 'Lati';
+
+  @override
+  String get exerciseDifficultyBeginner => 'Principiante';
+
+  @override
+  String get exerciseDifficultyIntermediate => 'Intermedio';
+
+  @override
+  String get exerciseDifficultyAdvanced => 'Avanzato';
+
+  @override
+  String get exerciseMechanicCompound => 'Multiarticolare';
+
+  @override
+  String get exerciseMechanicIsolation => 'Isolamento';
+
+  @override
+  String get exerciseLateralityBilateral => 'Entrambi i lati';
+
+  @override
+  String get exerciseLateralityUnilateral => 'Un lato';
+
+  @override
+  String get exerciseLateralityAlternating => 'Alternato';
+
+  @override
+  String get exerciseUsageWarmup => 'Riscaldamento';
+
+  @override
+  String get exerciseUsageActivation => 'Attivazione';
+
+  @override
+  String get exerciseUsageMainLift => 'Esercizio principale';
+
+  @override
+  String get exerciseUsageAccessory => 'Esercizio complementare';
+
+  @override
+  String get exerciseUsageConditioning => 'Condizionamento';
+
+  @override
+  String get exerciseUsageFinisher => 'Finisher';
+
+  @override
+  String get exerciseUsageCooldown => 'Defaticamento';
+
+  @override
+  String get exerciseUsagePrehab => 'Prevenzione';
+
+  @override
+  String get exerciseForcePush => 'Spinta';
+
+  @override
+  String get exerciseForcePull => 'Trazione';
+
+  @override
+  String get exerciseForceStatic => 'Statico';
+
+  @override
+  String get exercisePatternHorizontalPush => 'Spinta orizzontale';
+
+  @override
+  String get exercisePatternHorizontalPull => 'Trazione orizzontale';
+
+  @override
+  String get exercisePatternVerticalPush => 'Spinta verticale';
+
+  @override
+  String get exercisePatternVerticalPull => 'Trazione verticale';
+
+  @override
+  String get exercisePatternSquat => 'Squat';
+
+  @override
+  String get exercisePatternHinge => 'Hip hinge';
+
+  @override
+  String get exercisePatternLunge => 'Affondo';
+
+  @override
+  String get exercisePatternGait => 'Cammino e corsa';
+
+  @override
+  String get exercisePatternCarry => 'Trasporto';
+
+  @override
+  String get exercisePatternRotation => 'Rotazione';
+
+  @override
+  String get exercisePatternAntiRotation => 'Anti-rotazione';
+
+  @override
+  String get exercisePatternAntiExtension => 'Anti-estensione';
+
+  @override
+  String get exercisePatternAntiFlexion => 'Anti-flessione';
+
+  @override
+  String get exercisePatternAntiLateralFlexion => 'Anti-flessione laterale';
+
+  @override
+  String get exercisePatternSpinalFlexion => 'Flessione del tronco';
+
+  @override
+  String get exercisePatternSpinalExtension => 'Estensione del tronco';
+
+  @override
+  String get exercisePatternElbowFlexion => 'Flessione del gomito';
+
+  @override
+  String get exercisePatternElbowExtension => 'Estensione del gomito';
+
+  @override
+  String get exercisePatternShoulderFlexion => 'Flessione della spalla';
+
+  @override
+  String get exercisePatternShoulderAbduction => 'Abduzione della spalla';
+
+  @override
+  String get exercisePatternScapularElevation => 'Elevazione scapolare';
+
+  @override
+  String get exercisePatternHipExtension => 'Estensione dell\'anca';
+
+  @override
+  String get exercisePatternHipAbduction => 'Abduzione dell\'anca';
+
+  @override
+  String get exercisePatternHipAdduction => 'Adduzione dell\'anca';
+
+  @override
+  String get exercisePatternKneeFlexion => 'Flessione del ginocchio';
+
+  @override
+  String get exercisePatternKneeExtension => 'Estensione del ginocchio';
+
+  @override
+  String get exercisePatternPlantarFlexion => 'Flessione plantare';
+
+  @override
+  String get exercisePatternDorsiflexion => 'Dorsiflessione';
+
+  @override
+  String get exercisePatternWristFlexion => 'Flessione del polso';
+
+  @override
+  String get exercisePatternWristExtension => 'Estensione del polso';
+
+  @override
+  String get settingsDeveloperTitle => 'Sviluppatore';
+
+  @override
+  String get settingsDeveloperSubtitle => 'Diagnostica e opzioni sperimentali';
+
+  @override
+  String get developerLabExperienceSection => 'Livello di esperienza';
+
+  @override
+  String get developerLabExperienceLabel => 'Livello di esperienza';
+
+  @override
+  String get developerLabExperienceHint =>
+      'Solo per i test — il livello non viene ancora chiesto durante l’onboarding.';
+
+  @override
+  String get experienceLevelBeginner => 'Principiante';
+
+  @override
+  String get experienceLevelAdvanced => 'Avanzato';
+
+  @override
+  String get experienceLevelPro => 'Pro';
+
+  @override
+  String get experienceLevelBeginnerDescription =>
+      'Nessun RIR e nessuna intensità cardio. I muscoli sono indicati per regione, ad es. «Spalle» invece di deltoide anteriore, laterale e posteriore.';
+
+  @override
+  String get experienceLevelAdvancedDescription =>
+      'Nessun RIR e nessuna intensità cardio. I muscoli sono indicati per regione, ad es. «Spalle» invece di deltoide anteriore, laterale e posteriore.';
+
+  @override
+  String get experienceLevelProDescription =>
+      'RIR e intensità cardio sono visibili e i muscoli mantengono i nomi anatomici precisi.';
+
+  @override
+  String get diaryWeightLabel => 'Peso';
+
+  @override
+  String get diaryWeightPitch =>
+      'Lo storico del peso rende più precisa la raccomandazione calorica';
+
+  @override
+  String get diaryWeightStaleNudge =>
+      'È passato un po\' – registrazioni regolari mantengono precisa la raccomandazione calorica';
+
+  @override
+  String get diaryWeightLog => 'Aggiungi';
+
+  @override
+  String get diaryWeightLogLong => 'Registra il peso';
+
+  @override
+  String diaryWeightDaysAgo(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days giorni fa',
+      one: '1 giorno fa',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diaryWeightToday => 'oggi';
+
+  @override
+  String get diaryWeightRange => 'Valore fuori dall’intervallo abituale';
+
+  @override
+  String get diaryWeightLoadError => 'Impossibile caricare il peso.';
+
+  @override
+  String get diaryWeightSaveError => 'Impossibile salvare il peso. Riprova.';
+
+  @override
+  String get diaryWeightRetry => 'Riprova';
 }

@@ -339,7 +339,7 @@ class _WorkoutPhotoCardState extends State<WorkoutPhotoCard> {
                         color: Colors.transparent,
                         child: IconButton(
                           icon: const Icon(
-                            LucideIcons.trash_2,
+                            LucideIcons.trash,
                             size: 16,
                             color: Color(0xFFFF6B6B),
                           ),

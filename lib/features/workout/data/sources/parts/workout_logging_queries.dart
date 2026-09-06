@@ -123,6 +123,7 @@ extension WorkoutLoggingQueries on WorkoutLocalDataSource {
       isCompleted: drift.Value(setLog.isCompleted ?? false),
       logOrder: drift.Value(setLog.logOrder ?? 0),
       exerciseBlock: drift.Value(setLog.exerciseBlock),
+      supersetGroup: drift.Value(setLog.supersetGroup),
       notes: drift.Value(setLog.notes),
       distance: drift.Value(setLog.distanceKm),
       durationSeconds: drift.Value(setLog.durationSeconds),
@@ -199,6 +200,7 @@ extension WorkoutLoggingQueries on WorkoutLocalDataSource {
           setType: drift.Value(s.setType),
           logOrder: drift.Value(s.logOrder ?? 0),
           exerciseBlock: drift.Value(s.exerciseBlock),
+          supersetGroup: drift.Value(s.supersetGroup),
           distance: drift.Value(s.distanceKm),
           durationSeconds: drift.Value(s.durationSeconds),
           restTimeSeconds: drift.Value(s.restTimeSeconds),
@@ -500,8 +502,13 @@ extension WorkoutLoggingQueries on WorkoutLocalDataSource {
           // Check exercise mapping (name -> UUID).
           // Search for the exercise in the DB. If custom and present in the backup, it should already be imported.
           final exModel = re.exercise;
-          final exercise = await getExerciseByName(exModel.nameEn) ??
-              await getExerciseByName(exModel.nameDe);
+          // Any name the shared routine carries, in any language it was
+          // written in.
+          Exercise? exercise;
+          for (final name in exModel.allNames) {
+            exercise = await getExerciseByName(name);
+            if (exercise != null) break;
+          }
 
           if (exercise == null) continue;
 
@@ -513,6 +520,7 @@ extension WorkoutLoggingQueries on WorkoutLocalDataSource {
                   exerciseId: drift.Value(exercise.uuid!),
                   orderIndex: drift.Value(orderIndex),
                   pauseSeconds: drift.Value(re.pauseSeconds),
+                  supersetGroup: drift.Value(re.supersetGroup),
                   notes: drift.Value(re.notes),
                 ),
               );
@@ -569,6 +577,8 @@ extension WorkoutLoggingQueries on WorkoutLocalDataSource {
                   restTimeSeconds: drift.Value(s.restTimeSeconds),
                   isCompleted: drift.Value(s.isCompleted ?? true),
                   logOrder: drift.Value(s.logOrder ?? 0),
+                  exerciseBlock: drift.Value(s.exerciseBlock),
+                  supersetGroup: drift.Value(s.supersetGroup),
                   notes: drift.Value(s.notes),
                   distance: drift.Value(s.distanceKm),
                   durationSeconds: drift.Value(s.durationSeconds),
@@ -686,6 +696,13 @@ extension WorkoutLoggingQueries on WorkoutLocalDataSource {
             setType: r.setType,
             weightKg: r.weight,
             reps: r.reps,
+            // Duration and distance were missing here, so "last time" was
+            // blank for every exercise that logs neither a weight nor reps: a
+            // plank held for a minute last week, and every run ever recorded.
+            // The column itself renders them correctly — it was never given
+            // them.
+            durationSeconds: r.durationSeconds,
+            distanceKm: r.distance,
             isCompleted: r.isCompleted,
             rir: r.rir, // Use directly
           ),

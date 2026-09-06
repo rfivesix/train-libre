@@ -8,7 +8,7 @@ import '../../util/design_constants.dart';
 
 /// Represents a single action item inside a [showGlassContextMenu].
 class GlassContextAction {
-  /// Main label text (e.g., "Bearbeiten" or "Löschen").
+  /// Main label text (e.g., "Edit" or "Delete").
   final String label;
 
   /// Icon representing the action.

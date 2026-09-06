@@ -40,15 +40,23 @@ class PulseSummaryCard extends StatelessWidget {
             margin:
                 const EdgeInsets.symmetric(vertical: DesignConstants.spacingXS),
             child: ListTile(
-              contentPadding: DesignConstants.screenPadding,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: DesignConstants.spacingM,
+                vertical: DesignConstants.screenPaddingVertical,
+              ),
               title: Text(
                 l10n.pulseTitle,
-                style: theme.textTheme.titleMedium,
+                style: theme.textTheme.titleMedium?.copyWith(
+                  color: theme.brightness == Brightness.dark
+                      ? Colors.white
+                      : Colors.black,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               subtitle: Text(
                 l10n.load_dots,
                 style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
+                  color: theme.colorScheme.onSurface,
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -84,15 +92,23 @@ class PulseSummaryCard extends StatelessWidget {
                   ),
                 );
               },
-              contentPadding: DesignConstants.screenPadding,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: DesignConstants.spacingM,
+                vertical: DesignConstants.screenPaddingVertical,
+              ),
               title: Text(
                 l10n.pulseTitle,
-                style: theme.textTheme.titleMedium,
+                style: theme.textTheme.titleMedium?.copyWith(
+                  color: theme.brightness == Brightness.dark
+                      ? Colors.white
+                      : Colors.black,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               subtitle: Text(
                 '${l10n.pulseRangeLabel}: $rangeText',
                 style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
+                  color: theme.colorScheme.onSurface,
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -107,7 +123,7 @@ class PulseSummaryCard extends StatelessWidget {
                       Text(
                         l10n.pulseRestingLabel,
                         style: theme.textTheme.bodyMedium?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
+                          color: theme.colorScheme.onSurface,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -116,7 +132,9 @@ class PulseSummaryCard extends StatelessWidget {
                         restingText,
                         style: theme.textTheme.titleLarge?.copyWith(
                           fontWeight: FontWeight.bold,
-                          color: theme.colorScheme.onSurface,
+                          color: theme.brightness == Brightness.dark
+                              ? Colors.white
+                              : Colors.black,
                         ),
                       ),
                     ],

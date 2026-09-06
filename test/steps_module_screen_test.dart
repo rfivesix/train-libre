@@ -12,8 +12,13 @@ import 'package:train_libre/features/workout/domain/models/routine.dart';
 import 'package:train_libre/features/exercise_catalog/domain/models/exercise.dart';
 import 'package:train_libre/features/steps/presentation/statistics_steps_card.dart';
 import 'package:provider/provider.dart';
+import 'package:train_libre/features/workout/domain/classification/set_load.dart';
 
 class FakeWorkoutRepository implements IWorkoutRepository {
+  @override
+  Future<BodyweightHistory> getBodyweightHistory() async =>
+      BodyweightHistory.empty;
+
   @override
   Future<WorkoutLog?> getOngoingWorkout() async => null;
   @override
@@ -110,7 +115,8 @@ void main() {
   ) async {
     await tester.pumpWidget(
       ChangeNotifierProvider<LiveWorkoutViewModel>.value(
-        value: LiveWorkoutViewModel(repository: FakeWorkoutRepository(), unitService: UnitService()),
+        value: LiveWorkoutViewModel(
+            repository: FakeWorkoutRepository(), unitService: UnitService()),
         child: const MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,

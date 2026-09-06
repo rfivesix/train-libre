@@ -29,6 +29,18 @@ class AppLocalizationsJa extends AppLocalizations {
   String get removeTimer => 'タイマーを削除';
 
   @override
+  String get connectSuperset => 'スーパーセットとして連結';
+
+  @override
+  String get disconnectSuperset => 'スーパーセットを解除';
+
+  @override
+  String get connectSupersetShort => 'スーパーセット';
+
+  @override
+  String get disconnectSupersetShort => '連結解除';
+
+  @override
   String get noTimerLabel => 'タイマーなし';
 
   @override
@@ -450,7 +462,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String cardioDistanceLabel(String unit) {
-    return 'Distance ($unit)';
+    return '距離 ($unit)';
   }
 
   @override
@@ -1041,7 +1053,13 @@ class AppLocalizationsJa extends AppLocalizations {
   String get showSummary => '概要を表示';
 
   @override
-  String get exerciseDataAttribution => 'wger からの運動データ';
+  String get exerciseDataAttribution => 'OpenExerciseDB からの運動データ';
+
+  @override
+  String get exerciseDataLicense => '運動データのライセンス';
+
+  @override
+  String get exerciseDataUpstream => '一部は wger に由来';
 
   @override
   String get duplicate => '重複';
@@ -1960,7 +1978,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get attributionText =>
-      'このアプリは外部ソースからのデータを使用します。\n\n● CC-BY-SA 4.0 に基づいてライセンス供与された wger (wger.de) からのエクササイズ データと画像。\n\n● Open Food Facts (openfoodfacts.org) の食品データベース。Open Database License (ODbL) に基づいて利用できます。';
+      'このアプリは外部ソースのデータを使用しています:\n\n● OpenExerciseDB (github.com/rfivesix/OpenExerciseDB) の運動データ。CC BY-SA 4.0 ライセンス。一部は wger プロジェクト (wger.de) に由来します。\n\n● Open Food Facts (openfoodfacts.org) の食品データベース。Open Database License (ODbL) のもとで利用可能です。';
 
   @override
   String get errorRoutineNotFound => 'ルーチンが見つかりません';
@@ -3267,6 +3285,9 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get analyticsNoRecordYet => 'まだ記録がありません';
+
+  @override
+  String get analyticsNoRecordsInPeriod => 'この期間に自己ベストはありません';
 
   @override
   String get analyticsNotableImprovements => '注目すべき改善点';
@@ -5703,7 +5724,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get updatesAvailableBody => 'ローカルカタログの新しいアップデートが利用可能です。今すぐアップデートしますか？';
 
   @override
-  String get exerciseCatalogWger => 'エクササイズカタログ (wger)';
+  String get exerciseCatalogWger => '運動カタログ (OpenExerciseDB)';
 
   @override
   String get nutritionCatalogOff => '栄養カタログ (OFF)';
@@ -6182,4 +6203,250 @@ class AppLocalizationsJa extends AppLocalizations {
   String workoutPhotoPagination(int current, int total) {
     return '$current / $total';
   }
+
+  @override
+  String get catalogFilterTitle => 'フィルター';
+
+  @override
+  String get catalogFilterBodyRegion => '部位';
+
+  @override
+  String get catalogFilterEquipment => '器具';
+
+  @override
+  String get catalogFilterUsage => '用途';
+
+  @override
+  String get catalogFilterReset => 'リセット';
+
+  @override
+  String get catalogFilterCombineHint =>
+      '同じセクション内で複数選ぶと結果が広がり、別のセクションで選ぶと絞り込まれます。';
+
+  @override
+  String get catalogFilterDifficulty => '難易度';
+
+  @override
+  String get catalogFilterMechanic => '動作の種類';
+
+  @override
+  String get catalogFilterLaterality => '左右';
+
+  @override
+  String get exerciseDifficultyBeginner => '初級';
+
+  @override
+  String get exerciseDifficultyIntermediate => '中級';
+
+  @override
+  String get exerciseDifficultyAdvanced => '上級';
+
+  @override
+  String get exerciseMechanicCompound => 'コンパウンド';
+
+  @override
+  String get exerciseMechanicIsolation => 'アイソレーション';
+
+  @override
+  String get exerciseLateralityBilateral => '両側';
+
+  @override
+  String get exerciseLateralityUnilateral => '片側';
+
+  @override
+  String get exerciseLateralityAlternating => '交互';
+
+  @override
+  String get exerciseUsageWarmup => 'ウォームアップ';
+
+  @override
+  String get exerciseUsageActivation => 'アクティベーション';
+
+  @override
+  String get exerciseUsageMainLift => 'メイン種目';
+
+  @override
+  String get exerciseUsageAccessory => '補助種目';
+
+  @override
+  String get exerciseUsageConditioning => 'コンディショニング';
+
+  @override
+  String get exerciseUsageFinisher => 'フィニッシャー';
+
+  @override
+  String get exerciseUsageCooldown => 'クールダウン';
+
+  @override
+  String get exerciseUsagePrehab => '予防トレーニング';
+
+  @override
+  String get exerciseForcePush => 'プッシュ';
+
+  @override
+  String get exerciseForcePull => 'プル';
+
+  @override
+  String get exerciseForceStatic => '静的';
+
+  @override
+  String get exercisePatternHorizontalPush => '水平プッシュ';
+
+  @override
+  String get exercisePatternHorizontalPull => '水平プル';
+
+  @override
+  String get exercisePatternVerticalPush => '垂直プッシュ';
+
+  @override
+  String get exercisePatternVerticalPull => '垂直プル';
+
+  @override
+  String get exercisePatternSquat => 'スクワット';
+
+  @override
+  String get exercisePatternHinge => 'ヒップヒンジ';
+
+  @override
+  String get exercisePatternLunge => 'ランジ';
+
+  @override
+  String get exercisePatternGait => '歩行・走行';
+
+  @override
+  String get exercisePatternCarry => 'キャリー';
+
+  @override
+  String get exercisePatternRotation => '回旋';
+
+  @override
+  String get exercisePatternAntiRotation => '抗回旋';
+
+  @override
+  String get exercisePatternAntiExtension => '抗伸展';
+
+  @override
+  String get exercisePatternAntiFlexion => '抗屈曲';
+
+  @override
+  String get exercisePatternAntiLateralFlexion => '抗側屈';
+
+  @override
+  String get exercisePatternSpinalFlexion => '体幹屈曲';
+
+  @override
+  String get exercisePatternSpinalExtension => '体幹伸展';
+
+  @override
+  String get exercisePatternElbowFlexion => '肘屈曲';
+
+  @override
+  String get exercisePatternElbowExtension => '肘伸展';
+
+  @override
+  String get exercisePatternShoulderFlexion => '肩屈曲';
+
+  @override
+  String get exercisePatternShoulderAbduction => '肩外転';
+
+  @override
+  String get exercisePatternScapularElevation => '肩甲骨挙上';
+
+  @override
+  String get exercisePatternHipExtension => '股関節伸展';
+
+  @override
+  String get exercisePatternHipAbduction => '股関節外転';
+
+  @override
+  String get exercisePatternHipAdduction => '股関節内転';
+
+  @override
+  String get exercisePatternKneeFlexion => '膝屈曲';
+
+  @override
+  String get exercisePatternKneeExtension => '膝伸展';
+
+  @override
+  String get exercisePatternPlantarFlexion => '底屈';
+
+  @override
+  String get exercisePatternDorsiflexion => '背屈';
+
+  @override
+  String get exercisePatternWristFlexion => '手首屈曲';
+
+  @override
+  String get exercisePatternWristExtension => '手首伸展';
+
+  @override
+  String get settingsDeveloperTitle => '開発者';
+
+  @override
+  String get settingsDeveloperSubtitle => '診断と実験的なオプション';
+
+  @override
+  String get developerLabExperienceSection => '経験レベル';
+
+  @override
+  String get developerLabExperienceLabel => '経験レベル';
+
+  @override
+  String get developerLabExperienceHint => 'テスト用です — レベルはまだ初期設定では尋ねられません。';
+
+  @override
+  String get experienceLevelBeginner => '初心者';
+
+  @override
+  String get experienceLevelAdvanced => '上級者';
+
+  @override
+  String get experienceLevelPro => 'プロ';
+
+  @override
+  String get experienceLevelBeginnerDescription =>
+      'RIR とカーディオ強度は表示されません。筋肉は部位単位で表示され、例えば三角筋前部・中部・後部の代わりに「肩」となります。';
+
+  @override
+  String get experienceLevelAdvancedDescription =>
+      'RIR とカーディオ強度は表示されません。筋肉は部位単位で表示され、例えば三角筋前部・中部・後部の代わりに「肩」となります。';
+
+  @override
+  String get experienceLevelProDescription =>
+      'RIR とカーディオ強度を表示し、筋肉は正確な解剖学的名称のままになります。';
+
+  @override
+  String get diaryWeightLabel => '体重';
+
+  @override
+  String get diaryWeightPitch => '体重の記録を続けると推奨カロリーがより正確になります';
+
+  @override
+  String get diaryWeightStaleNudge => 'しばらく記録がありません。定期的な記録で推奨カロリーの精度を保てます';
+
+  @override
+  String get diaryWeightLog => '記録';
+
+  @override
+  String get diaryWeightLogLong => '体重を記録';
+
+  @override
+  String diaryWeightDaysAgo(int days) {
+    return '$days日前';
+  }
+
+  @override
+  String get diaryWeightToday => '今日';
+
+  @override
+  String get diaryWeightRange => '通常の範囲外の値です';
+
+  @override
+  String get diaryWeightLoadError => '体重を読み込めませんでした。';
+
+  @override
+  String get diaryWeightSaveError => '体重を保存できませんでした。もう一度お試しください。';
+
+  @override
+  String get diaryWeightRetry => '再試行';
 }

@@ -20,7 +20,6 @@
       hero_cta_ios: "App Store",
       hero_cta_android: "Android (Obtainium)",
       hero_cta_android_download: "Android (F-Droid)",
-      nav_android_apk: "Android APK",
       footer_android_release: "Android APK / F-Droid",
       hero_point_1: "AI meal recognition",
       hero_point_2: "Adaptive calorie guidance",
@@ -456,7 +455,6 @@
       hero_cta_ios: "App Store",
       hero_cta_android: "Android (Obtainium)",
       hero_cta_android_download: "Android (F-Droid)",
-      nav_android_apk: "Android-APK",
       footer_android_release: "Android APK / F-Droid",
       hero_point_1: "Präzises Workout- und Nährwert-Tracking",
       hero_point_2: "Maximale Privatsphäre dank Offline-First-Architektur",
@@ -892,7 +890,6 @@
       "hero_cta_ios": "App Store",
       "hero_cta_android": "Android (Obtainium)",
       "hero_cta_android_download": "Android (F-Droid)",
-      "nav_android_apk": "Android APK",
       "footer_android_release": "Android APK / F-Droid",
       "hero_point_1": "Reconnaissance des repas par IA",
       "hero_point_2": "Guidage calorique adaptatif",
@@ -1319,7 +1316,6 @@
       "hero_cta_ios": "App Store",
       "hero_cta_android": "Android (Obtainium)",
       "hero_cta_android_download": "Android (F-Droid)",
-      "nav_android_apk": "Android APK",
       "footer_android_release": "Android APK / F-Droid",
       "hero_point_1": "Riconoscimento pasti tramite IA",
       "hero_point_2": "Guida calorica adattiva",
@@ -1746,7 +1742,6 @@
       "hero_cta_ios": "App Store",
       "hero_cta_android": "Android (Obtainium)",
       "hero_cta_android_download": "Android (F-Droid)",
-      "nav_android_apk": "Android APK",
       "footer_android_release": "Android APK / F-Droid",
       "hero_point_1": "AI食事認識",
       "hero_point_2": "適応型カロリーガイダンス",
@@ -2163,8 +2158,6 @@
     }
   };
 
-  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
   // Theme logic
   const updateScreenshots = () => {
     const currentTheme = document.documentElement.getAttribute("data-theme") || "dark";
@@ -2181,12 +2174,8 @@
       if (img.src.includes("assets/screenshots/iOS/")) {
         const filenameMatch = img.src.match(/iOS_(dark|light)_(.+)$/);
         if (filenameMatch) {
-          const baseName = filenameMatch[2]; // e.g. "diary.png"
-          img.src = `../assets/screenshots/iOS/${langFolder}/${currentTheme}/iOS_${currentTheme}_${baseName}`;
-
-          if (img.dataset.fallbackSrc) {
-            img.dataset.fallbackSrc = `https://raw.githubusercontent.com/rfivesix/train-libre/main/assets/screenshots/iOS/${langFolder}/${currentTheme}/iOS_${currentTheme}_${baseName}`;
-          }
+          const baseName = filenameMatch[2]; // e.g. "diary.webp"
+          img.src = `assets/screenshots/iOS/${langFolder}/${currentTheme}/iOS_${currentTheme}_${baseName}`;
         }
       }
     });
@@ -2309,12 +2298,6 @@
     revealTargets.forEach((target) => target.classList.add("is-visible"));
   };
 
-  // Parallax/Scroll logic (Removed for Flutter-like stillness)
-  const initParallax = () => {
-    // Purged to remove scroll-jacking and generic SaaS effects
-  };
-
-
   // Centralized dynamic links routing
   const initLinks = () => {
     document.querySelectorAll("[data-link]").forEach((el) => {
@@ -2326,24 +2309,11 @@
     });
   };
 
-  // Fallback images
-  const initImages = () => {
-    document.querySelectorAll("img[data-fallback-src]").forEach((image) => {
-      image.addEventListener("error", () => {
-        if (image.dataset.fallbackLoaded === "true") return;
-        image.dataset.fallbackLoaded = "true";
-        image.src = image.dataset.fallbackSrc;
-      });
-    });
-  };
-
   // Execution
   document.addEventListener("DOMContentLoaded", () => {
     initTheme();
     initLang();
     initReveal();
-    initParallax();
-    initImages();
     initLinks();
   });
 

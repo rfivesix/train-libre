@@ -15,6 +15,8 @@ import '../../../app/presentation/widgets/glass_bottom_menu.dart';
 import '../../domain/models/fluid_entry.dart';
 import '../../domain/models/food_entry.dart';
 import '../../domain/models/food_item.dart';
+import '../../../supplements/domain/models/supplement.dart';
+import '../../../supplements/domain/models/supplement_log.dart';
 import 'quantity_dialog_content.dart';
 
 /// What the quantity sheet hands back once the user confirms.
@@ -138,7 +140,7 @@ Future<bool> logFoodItemWithQuantity(
   );
 
   if (selection.isLiquid) {
-    await DatabaseHelper.instance.insertFluidEntry(
+    final fluidEntryId = await DatabaseHelper.instance.insertFluidEntry(
       FluidEntry(
         timestamp: selection.timestamp,
         quantityInMl: selection.quantity,
@@ -150,8 +152,53 @@ Future<bool> logFoodItemWithQuantity(
         linkedFoodEntryId: entryId,
       ),
     );
+
+    final caffeinePer100ml = selection.caffeinePer100ml;
+    if (caffeinePer100ml != null && caffeinePer100ml > 0) {
+      await _logCaffeineDose(
+        doseMg: caffeinePer100ml * selection.quantity / 100,
+        timestamp: selection.timestamp,
+        foodEntryId: entryId,
+        fluidEntryId: fluidEntryId,
+      );
+    }
   }
 
   HapticFeedbackService.instance.confirmationFeedback();
   return true;
+}
+
+/// Records the caffeine represented by a logged liquid and links it to the
+/// food/fluid entries so edits and deletions keep the diary total in sync.
+Future<void> _logCaffeineDose({
+  required double doseMg,
+  required DateTime timestamp,
+  required int foodEntryId,
+  required int fluidEntryId,
+}) async {
+  final supplements = await DatabaseHelper.instance.getAllSupplements();
+  final caffeine = supplements.firstWhere(
+    (supplement) => supplement.isCaffeine,
+    orElse: () => Supplement(
+      name: 'Caffeine',
+      defaultDose: 100,
+      unit: 'mg',
+      dailyLimit: 400,
+      code: 'caffeine',
+      isBuiltin: true,
+    ),
+  );
+  final caffeineId =
+      caffeine.id ?? await DatabaseHelper.instance.insertSupplement(caffeine);
+
+  await DatabaseHelper.instance.insertSupplementLog(
+    SupplementLog(
+      supplementId: caffeineId,
+      dose: doseMg,
+      unit: 'mg',
+      timestamp: timestamp,
+      sourceFoodEntryId: foodEntryId,
+      sourceFluidEntryId: fluidEntryId,
+    ),
+  );
 }

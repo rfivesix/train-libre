@@ -116,11 +116,15 @@ class _PRDashboardScreenState extends State<PRDashboardScreen> {
     final double topPadding =
         MediaQuery.of(context).padding.top + kToolbarHeight;
 
-    final hasNoData = _recentPrs.isEmpty && _allTimePrs.isEmpty && _notableImprovements.isEmpty;
-    final displayNotable = hasNoData ? getMockNotableImprovements() : _notableImprovements;
+    final hasNoData = _recentPrs.isEmpty &&
+        _allTimePrs.isEmpty &&
+        _notableImprovements.isEmpty;
+    final displayNotable =
+        hasNoData ? getMockNotableImprovements() : _notableImprovements;
     final displayRecent = hasNoData ? getMockRecentPrs() : _recentPrs;
     final displayAllTime = hasNoData ? getMockAllTimePrs() : _allTimePrs;
-    final displayByRepRange = hasNoData ? getMockPrsByRepRange() : _prsByRepRange;
+    final displayByRepRange =
+        hasNoData ? getMockPrsByRepRange() : _prsByRepRange;
 
     Widget bodyContent = _buildBodyContent(
       displayNotable,
@@ -131,7 +135,7 @@ class _PRDashboardScreenState extends State<PRDashboardScreen> {
 
     if (hasNoData) {
       bodyContent = ActiveGapOverlay(
-        message: "Keine Bestleistungen in diesem Zeitraum",
+        message: l10n.analyticsNoRecordsInPeriod,
         background: Skeletonizer(
           enabled: true,
           child: IgnorePointer(child: bodyContent),
@@ -323,13 +327,13 @@ class _PRDashboardScreenState extends State<PRDashboardScreen> {
   List<Map<String, dynamic>> getMockNotableImprovements() {
     return [
       {
-        'exerciseName': 'Bankdrücken',
+        'exerciseName': 'Bench Press',
         'previousBestE1rm': 80.0,
         'recentBestE1rm': 85.0,
         'improvementPct': 6.25,
       },
       {
-        'exerciseName': 'Kniebeuge',
+        'exerciseName': 'Squat',
         'previousBestE1rm': 100.0,
         'recentBestE1rm': 108.0,
         'improvementPct': 8.0,
@@ -340,13 +344,13 @@ class _PRDashboardScreenState extends State<PRDashboardScreen> {
   List<Map<String, dynamic>> getMockRecentPrs() {
     return [
       {
-        'exerciseName': 'Bankdrücken',
+        'exerciseName': 'Bench Press',
         'weight': 82.5,
         'reps': 5,
         'calculatedE1rm': 92.8,
       },
       {
-        'exerciseName': 'Kniebeuge',
+        'exerciseName': 'Squat',
         'weight': 105.0,
         'reps': 3,
         'calculatedE1rm': 111.3,
@@ -357,13 +361,13 @@ class _PRDashboardScreenState extends State<PRDashboardScreen> {
   List<Map<String, dynamic>> getMockAllTimePrs() {
     return [
       {
-        'exerciseName': 'Bankdrücken',
+        'exerciseName': 'Bench Press',
         'weight': 85.0,
         'reps': 3,
         'calculatedE1rm': 90.1,
       },
       {
-        'exerciseName': 'Kniebeuge',
+        'exerciseName': 'Squat',
         'weight': 110.0,
         'reps': 2,
         'calculatedE1rm': 113.7,
@@ -373,13 +377,12 @@ class _PRDashboardScreenState extends State<PRDashboardScreen> {
 
   Map<String, Map<String, dynamic>?> getMockPrsByRepRange() {
     return {
-      '1RM': {'exerciseName': 'Kniebeuge', 'weight': 115.0, 'reps': 1},
-      '2RM': {'exerciseName': 'Bankdrücken', 'weight': 85.0, 'reps': 2},
-      '3RM': {'exerciseName': 'Kniebeuge', 'weight': 105.0, 'reps': 3},
-      '5RM': {'exerciseName': 'Kreuzheben', 'weight': 130.0, 'reps': 5},
-      '8RM': null,
-      '10RM': null,
-      '12RM': null,
+      '1 RM': {'exerciseName': 'Squat', 'weight': 115.0, 'reps': 1},
+      '2–3 RM': {'exerciseName': 'Bench Press', 'weight': 85.0, 'reps': 3},
+      '4–6 RM': {'exerciseName': 'Squat', 'weight': 105.0, 'reps': 5},
+      '7–10 RM': {'exerciseName': 'Deadlift', 'weight': 130.0, 'reps': 8},
+      '11–15 RM': null,
+      '15+ RM': null,
     };
   }
 
@@ -405,8 +408,7 @@ class _PRDashboardScreenState extends State<PRDashboardScreen> {
                     final row = entry.value;
                     final previous =
                         (row['previousBestE1rm'] as num).toDouble();
-                    final recent =
-                        (row['recentBestE1rm'] as num).toDouble();
+                    final recent = (row['recentBestE1rm'] as num).toDouble();
                     final improvement =
                         (row['improvementPct'] as num).toDouble();
                     final delta = recent - previous;
@@ -499,8 +501,11 @@ class _PRDashboardScreenState extends State<PRDashboardScreen> {
             final data = entry.value;
             final hasData = data != null;
             return ValueSummaryCard(
+              // The bracket keys read '1 RM', '2–3 RM' and so on, and the
+              // suffix carries its own leading space — replacing bare 'RM'
+              // left "1  Wdh." with a gap in the middle.
               label: entry.key.replaceAll(
-                'RM',
+                ' RM',
                 l10n.analyticsRepRangeSuffix,
               ),
               value: hasData

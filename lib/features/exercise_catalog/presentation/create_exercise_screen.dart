@@ -24,6 +24,10 @@ class CreateExerciseScreen extends StatefulWidget {
 }
 
 class _CreateExerciseScreenState extends State<CreateExerciseScreen> {
+  /// The language the user is typing in. A custom exercise is filed under it,
+  /// not under German — which is what this screen assumed before.
+  String get _languageCode => Localizations.localeOf(context).languageCode;
+
   late final IExerciseCatalogRepository _repository =
       widget.repository ?? context.read<IExerciseCatalogRepository>();
   final _formKey = GlobalKey<FormState>();
@@ -112,8 +116,9 @@ class _CreateExerciseScreenState extends State<CreateExerciseScreen> {
 
           if (widget.exerciseToEdit != null) {
             final toEdit = widget.exerciseToEdit!;
-            _nameController.text = toEdit.nameDe;
-            _descriptionController.text = toEdit.descriptionDe;
+            _nameController.text = toEdit.localizedNameFor(_languageCode);
+            _descriptionController.text =
+                toEdit.localizedDescriptionFor(_languageCode);
             _selectedCategory = toEdit.categoryName;
             _selectedPrimaryMuscles.addAll(toEdit.primaryMuscles);
             _selectedSecondaryMuscles.addAll(toEdit.secondaryMuscles);
@@ -142,15 +147,24 @@ class _CreateExerciseScreenState extends State<CreateExerciseScreen> {
     setState(() => _saving = true);
 
     try {
+      final name = _nameController.text.trim();
+      final description = _descriptionController.text.trim();
+      final text = ExerciseText(name: name, description: description);
+
       final exercise = Exercise(
         id: widget.exerciseToEdit?.id,
         uuid: widget.exerciseToEdit?.uuid,
         source: widget.exerciseToEdit?.source ?? 'user',
         replacesExerciseId: widget.exerciseToEdit?.replacesExerciseId,
-        nameDe: _nameController.text.trim(),
-        nameEn: _nameController.text.trim(),
-        descriptionDe: _descriptionController.text.trim(),
-        descriptionEn: _descriptionController.text.trim(),
+        // The user typed one name. It is filed under their own language and
+        // under English, so that name lookup — which is how a shared routine
+        // and a set-log snapshot find their way back — keeps working the way
+        // it did when this wrote de and en unconditionally.
+        texts: {
+          ...?widget.exerciseToEdit?.texts,
+          _languageCode: text,
+          'en': text,
+        },
         categoryName: _selectedCategory ?? 'Other',
         primaryMuscles: _selectedPrimaryMuscles,
         secondaryMuscles: _selectedSecondaryMuscles,
@@ -167,7 +181,9 @@ class _CreateExerciseScreenState extends State<CreateExerciseScreen> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.snackbarSaveSuccess(exercise.nameDe))),
+          SnackBar(
+              content:
+                  Text(l10n.snackbarSaveSuccess(_nameController.text.trim()))),
         );
         Navigator.of(context).pop(true);
       }

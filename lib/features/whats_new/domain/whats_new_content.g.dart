@@ -16,6 +16,37 @@ import 'whats_new_release.dart';
 const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
   'en': <WhatsNewRelease>[
     WhatsNewRelease(
+      version: '1.3.0',
+      releasedOn: '2026-09-07',
+      entries: <WhatsNewEntry>[
+        WhatsNewEntry(
+          icon: LucideIcons.dumbbell,
+          title: 'Supersets',
+          body: 'Join exercises in your routines into supersets, trisets or larger groups. During a workout you alternate between them round by round, and the rest timer only starts after the last exercise of a round.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.timer,
+          title: 'The right fields for every exercise',
+          body: 'Log hold time for planks, reps and optional added weight for pull-ups, and assistance for assisted exercises. Previous workout values and charts adapt too.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.layout_grid,
+          title: 'A reworked exercise catalog',
+          body: 'The catalog now uses OpenExerciseDB, with more detailed information about muscles and movements and names in your app language. Filter by equipment, difficulty and other details, including while building your routines.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.activity,
+          title: 'Log weight from your diary',
+          body: 'Record your weight in the new card below Supplements, with a smooth ruler in kilograms or pounds. Your measurement history opens from the same place.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.chart_line,
+          title: 'A clearer picture of your progress',
+          body: 'Training volume and strength records for bodyweight exercises now account for your logged body weight, added weight increases the load and assistance reduces it. Stretching and mobility exercises no longer count as strength sets.',
+        ),
+      ],
+    ),
+    WhatsNewRelease(
       version: '1.2.1',
       releasedOn: '2026-09-01',
       entries: <WhatsNewEntry>[
@@ -116,6 +147,37 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
     ),
   ],
   'de': <WhatsNewRelease>[
+    WhatsNewRelease(
+      version: '1.3.0',
+      releasedOn: '2026-09-07',
+      entries: <WhatsNewEntry>[
+        WhatsNewEntry(
+          icon: LucideIcons.dumbbell,
+          title: 'Supersätze',
+          body: 'Verbinde Übungen in deinen Trainingsplänen zu Supersätzen, Trisätzen oder größeren Gruppen. Im Training wechselst du rundenweise zwischen ihnen, und die Pause startet erst nach der letzten Übung einer Runde.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.timer,
+          title: 'Für jede Übung die passenden Felder',
+          body: 'Bei Planks erfasst du die Haltezeit, bei Klimmzügen Wiederholungen und optionales Zusatzgewicht, bei unterstützten Übungen die Unterstützung. Auch die Werte vom letzten Training und die Diagramme passen sich an.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.layout_grid,
+          title: 'Überarbeiteter Übungskatalog',
+          body: 'Der Katalog basiert jetzt auf OpenExerciseDB, mit genaueren Angaben zu Muskeln und Bewegungen und Namen in deiner App-Sprache. Filtere nach Geräten, Schwierigkeitsgrad und weiteren Merkmalen, auch beim Zusammenstellen deiner Trainingspläne.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.activity,
+          title: 'Gewicht direkt im Tagebuch erfassen',
+          body: 'Trage dein Gewicht über die neue Karte unter den Supplementen ein, mit einem flüssigen Regler in Kilogramm oder Pfund. Von dort öffnest du auch deinen Messverlauf.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.chart_line,
+          title: 'Fortschritte richtig einordnen',
+          body: 'Bei Eigengewichtsübungen berücksichtigen Trainingsvolumen und Kraftrekorde jetzt dein erfasstes Körpergewicht, Zusatzgewicht zählt dazu und Unterstützung wird abgezogen. Dehnen und Mobilitätsübungen zählen nicht mehr als Kraftsätze.',
+        ),
+      ],
+    ),
     WhatsNewRelease(
       version: '1.2.1',
       releasedOn: '2026-09-01',
@@ -218,6 +280,37 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
   ],
   'fr': <WhatsNewRelease>[
     WhatsNewRelease(
+      version: '1.3.0',
+      releasedOn: '2026-09-07',
+      entries: <WhatsNewEntry>[
+        WhatsNewEntry(
+          icon: LucideIcons.dumbbell,
+          title: 'Superséries',
+          body: 'regroupe des exercices de tes programmes en superséries, trisets ou groupes plus larges. Pendant la séance, tu alternes entre eux tour après tour, et le temps de repos ne démarre qu\'après le dernier exercice d\'un tour.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.timer,
+          title: 'Les bons champs pour chaque exercice',
+          body: 'note la durée d\'une planche, les répétitions et le lest éventuel des tractions, ou l\'assistance des exercices assistés. Les valeurs de la dernière séance et les graphiques s\'adaptent aussi.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.layout_grid,
+          title: 'Un catalogue d\'exercices enrichi',
+          body: 'le catalogue utilise désormais OpenExerciseDB, avec des informations plus précises sur les muscles et les mouvements et des noms dans la langue de ton app. Filtre par matériel, difficulté et autres caractéristiques, y compris pendant la création de tes programmes.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.activity,
+          title: 'Enregistre ton poids depuis le journal',
+          body: 'note ton poids dans la nouvelle carte sous les compléments, avec une règle fluide en kilogrammes ou en livres. Ton historique de mesures s\'ouvre au même endroit.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.chart_line,
+          title: 'Une progression mieux représentée',
+          body: 'pour les exercices au poids du corps, le volume d\'entraînement et les records de force tiennent compte de ton poids enregistré, le lest s\'ajoute à la charge et l\'assistance s\'en déduit. Les étirements et la mobilité ne comptent plus comme des séries de musculation.',
+        ),
+      ],
+    ),
+    WhatsNewRelease(
       version: '1.2.1',
       releasedOn: '2026-09-01',
       entries: <WhatsNewEntry>[
@@ -319,6 +412,37 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
   ],
   'it': <WhatsNewRelease>[
     WhatsNewRelease(
+      version: '1.3.0',
+      releasedOn: '2026-09-07',
+      entries: <WhatsNewEntry>[
+        WhatsNewEntry(
+          icon: LucideIcons.dumbbell,
+          title: 'Superserie',
+          body: 'unisci gli esercizi delle tue schede in superserie, triset o gruppi più ampi. Durante l\'allenamento li alterni giro dopo giro e il recupero parte solo dopo l\'ultimo esercizio del giro.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.timer,
+          title: 'I campi giusti per ogni esercizio',
+          body: 'registra il tempo di tenuta per i plank, le ripetizioni e l\'eventuale peso aggiuntivo per le trazioni, oppure l\'assistenza per gli esercizi assistiti. Anche i valori dell\'ultimo allenamento e i grafici si adattano.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.layout_grid,
+          title: 'Catalogo degli esercizi rinnovato',
+          body: 'il catalogo ora utilizza OpenExerciseDB, con informazioni più precise su muscoli e movimenti e nomi nella lingua dell\'app. Filtra per attrezzatura, difficoltà e altre caratteristiche, anche mentre crei le tue schede.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.activity,
+          title: 'Registra il peso dal diario',
+          body: 'annota il peso nella nuova scheda sotto Integratori, con un righello fluido in chilogrammi o libbre. Da lì apri anche la cronologia delle misurazioni.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.chart_line,
+          title: 'Progressi rappresentati meglio',
+          body: 'per gli esercizi a corpo libero, il volume di allenamento e i record di forza tengono conto del peso corporeo registrato, il peso aggiuntivo aumenta il carico e l\'assistenza lo riduce. Stretching e mobilità non contano più come serie di forza.',
+        ),
+      ],
+    ),
+    WhatsNewRelease(
       version: '1.2.1',
       releasedOn: '2026-09-01',
       entries: <WhatsNewEntry>[
@@ -419,6 +543,37 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
     ),
   ],
   'ja': <WhatsNewRelease>[
+    WhatsNewRelease(
+      version: '1.3.0',
+      releasedOn: '2026-09-07',
+      entries: <WhatsNewEntry>[
+        WhatsNewEntry(
+          icon: LucideIcons.dumbbell,
+          title: 'スーパーセット',
+          body: 'メニューの種目をスーパーセット、トライセット、さらに大きなグループとしてまとめられます。ワークアウト中はラウンドごとに種目を交互に行い、休憩はラウンド最後の種目を終えてから始まります。',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.timer,
+          title: '種目に合った項目で記録',
+          body: 'プランクは保持時間、懸垂は回数と必要に応じた追加重量、補助付きの種目は補助重量を記録できます。前回の記録やグラフも種目に合わせて表示されます。',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.layout_grid,
+          title: '種目カタログを刷新',
+          body: 'OpenExerciseDBを採用し、筋肉や動作の情報がより詳しくなり、種目名もアプリの言語で表示されます。器具や難易度などの条件で絞り込め、メニューを作成しているときも利用できます。',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.activity,
+          title: '日記から体重を記録',
+          body: 'サプリメントの下にある新しいカードから、キログラムまたはポンドの滑らかな目盛りで体重を記録できます。同じ場所から測定履歴も開けます。',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.chart_line,
+          title: '進歩をより正確に確認',
+          body: '自重種目のトレーニング総負荷量や自己記録に、記録済みの体重を反映します。追加重量は負荷に加え、補助重量は差し引きます。ストレッチやモビリティ種目は筋力トレーニングのセットに数えません。',
+        ),
+      ],
+    ),
     WhatsNewRelease(
       version: '1.2.1',
       releasedOn: '2026-09-01',
@@ -525,4 +680,4 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
 const String kWhatsNewFallbackLanguage = 'en';
 
 /// The version this catalog was generated for, taken from pubspec.yaml.
-const String kWhatsNewGeneratedForVersion = '1.2.1';
+const String kWhatsNewGeneratedForVersion = '1.3.0';

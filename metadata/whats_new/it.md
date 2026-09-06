@@ -6,6 +6,18 @@
   Poi esegui: python3 script/build_whats_new.py --write --sync-store
 -->
 
+## 1.3.0 (2026-09-07)
+
+{dumbbell} Superserie: unisci gli esercizi delle tue schede in superserie, triset o gruppi più ampi. Durante l'allenamento li alterni giro dopo giro e il recupero parte solo dopo l'ultimo esercizio del giro.
+
+{timer} I campi giusti per ogni esercizio: registra il tempo di tenuta per i plank, le ripetizioni e l'eventuale peso aggiuntivo per le trazioni, oppure l'assistenza per gli esercizi assistiti. Anche i valori dell'ultimo allenamento e i grafici si adattano.
+
+{layout_grid} Catalogo degli esercizi rinnovato: il catalogo ora utilizza OpenExerciseDB, con informazioni più precise su muscoli e movimenti e nomi nella lingua dell'app. Filtra per attrezzatura, difficoltà e altre caratteristiche, anche mentre crei le tue schede.
+
+{activity} Registra il peso dal diario: annota il peso nella nuova scheda sotto Integratori, con un righello fluido in chilogrammi o libbre. Da lì apri anche la cronologia delle misurazioni.
+
+{chart_line} Progressi rappresentati meglio: per gli esercizi a corpo libero, il volume di allenamento e i record di forza tengono conto del peso corporeo registrato, il peso aggiuntivo aumenta il carico e l'assistenza lo riduce. Stretching e mobilità non contano più come serie di forza.
+
 ## 1.2.1 (2026-09-01)
 
 {utensils} Raccomandazioni dei macronutrienti migliorate: il calcolo adattivo distribuisce ora grassi e carboidrati in modo più bilanciato in base al peso corporeo e all'obiettivo.

@@ -73,7 +73,7 @@ class _ExerciseNotesDialogState extends State<ExerciseNotesDialog> {
                 widget.initialNotes!.isNotEmpty) ...[
               IconButton(
                 icon: Icon(
-                  LucideIcons.trash_2,
+                  LucideIcons.trash,
                   color: Theme.of(context).colorScheme.error,
                 ),
                 tooltip: l10n.deleteNoteTooltip,

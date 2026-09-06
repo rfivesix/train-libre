@@ -6,6 +6,43 @@ import 'package:train_libre/features/workout/presentation/workout_morph_route.da
 import 'package:train_libre/util/design_constants.dart';
 
 void main() {
+  testWidgets('Live Activity entrance accepts taps on the first frame',
+      (tester) async {
+    final navigatorKey = GlobalKey<NavigatorState>();
+    var taps = 0;
+    await tester.pumpWidget(MaterialApp(
+      navigatorKey: navigatorKey,
+      home: const Scaffold(body: Text('main')),
+    ));
+
+    navigatorKey.currentState!.push(WorkoutMorphRoute<void>(
+      animateEntrance: false,
+      builder: (_) => Scaffold(
+        body: Center(
+          child: TextButton(
+            onPressed: () => taps++,
+            child: const Text('Log set'),
+          ),
+        ),
+      ),
+    ));
+
+    // Do not settle or advance the clock: the OS has already opened the app.
+    await tester.pump();
+    await tester.tap(find.text('Log set'));
+    expect(taps, 1);
+    expect(find.text('main'), findsNothing);
+
+    // Minimizing still uses the existing collapse animation.
+    navigatorKey.currentState!.pop();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(find.text('Log set'), findsOneWidget);
+    await tester.pumpAndSettle();
+    expect(find.text('Log set'), findsNothing);
+    expect(find.text('main'), findsOneWidget);
+  });
+
   testWidgets('morphs a page in and back out without leaving it behind',
       (tester) async {
     final navigatorKey = GlobalKey<NavigatorState>();

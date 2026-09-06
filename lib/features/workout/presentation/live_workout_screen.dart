@@ -27,10 +27,13 @@ import '../../exercise_catalog/presentation/exercise_catalog_screen.dart';
 import '../../exercise_catalog/presentation/exercise_detail_screen.dart';
 import 'package:provider/provider.dart';
 import 'workout_summary_screen.dart';
+import 'widgets/superset_connector_button.dart';
 import 'widgets/workout_card.dart';
 import 'widgets/reorder_drag_proxy.dart';
 import 'widgets/pr_celebration_banner.dart';
+import '../domain/classification/exercise_log_mask.dart';
 import 'widgets/exercise_e1rm_summary.dart';
+import 'widgets/log_mask_labels.dart';
 import 'widgets/live_workout_set_row.dart';
 import 'widgets/exercise_notes_dialog.dart';
 import 'widgets/routine_pause_time_dialog.dart';
@@ -170,54 +173,62 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
   }
 
   /// How many frames the scroll may spend hunting for its target before it
-  /// gives up. Each attempt either waits for data or advances one viewport.
+  /// gives up. Each attempt advances one viewport.
   static const int _maxScrollAttempts = 24;
+  int _scrollRequest = 0;
+  int _handledAutoAdvanceRevision = 0;
 
   /// Brings the exercise holding the next open set to the top of the list.
   ///
-  /// Two things make this less trivial than an `ensureVisible` call. The
-  /// exercises load asynchronously, so the first frames have nothing to scroll
-  /// to; and the list is lazy, so a card further down has no context to align
-  /// against until it has been built. The method therefore retries across
-  /// frames, stepping the viewport towards the target until the card exists,
-  /// then aligns it exactly.
-  void _scrollToActiveExercise({bool animated = true, int attempt = 0}) {
+  /// Called after loading the exercises. The list is lazy, so an offscreen
+  /// card has no context until it has been built. Step towards it across
+  /// frames, but give control back immediately when the user touches the list.
+  void _scrollToActiveExercise({
+    int attempt = 0,
+    int? request,
+  }) {
+    final currentRequest = request ?? ++_scrollRequest;
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted || !_scrollController.hasClients) return;
-
-      final manager = Provider.of<LiveWorkoutViewModel>(context, listen: false);
-      final exercises = manager.exercises;
-      if (exercises.isEmpty) {
-        _retryScroll(animated: animated, attempt: attempt);
+      if (!mounted ||
+          currentRequest != _scrollRequest ||
+          !_scrollController.hasClients) {
         return;
       }
 
-      int activeIndex = 0;
-      for (int i = 0; i < exercises.length; i++) {
-        final hasUncompleted = exercises[i].setTemplates.any((t) {
-          final log = t.id != null ? manager.setLogs[t.id] : null;
-          return log?.isCompleted != true;
-        });
-        if (hasUncompleted) {
-          activeIndex = i;
-          break;
-        }
-      }
+      final manager = Provider.of<LiveWorkoutViewModel>(context, listen: false);
+      final exercises = manager.exercises;
+      if (exercises.isEmpty) return;
+
+      final activeIndex = manager.nextOpenExerciseIndex ?? 0;
 
       final targetExercise = exercises[activeIndex];
       final targetContext =
           _scrollAnchor.keyFor(targetExercise.id ?? activeIndex).currentContext;
 
       if (targetContext == null) {
-        // Not built yet — walk down a viewport at a time so the list
-        // materializes the cards in between, then look again.
+        // The target can be above us when the user inspected a later exercise.
+        // Walk towards it, materializing one viewport at a time.
         final position = _scrollController.position;
-        if (position.pixels >= position.maxScrollExtent) return;
-        _scrollController.jumpTo(
-          (position.pixels + position.viewportDimension)
-              .clamp(position.minScrollExtent, position.maxScrollExtent),
+        int firstMountedIndex = -1;
+        for (var i = 0; i < exercises.length; i++) {
+          if (_scrollAnchor.keyFor(exercises[i].id ?? i).currentContext !=
+              null) {
+            firstMountedIndex = i;
+            break;
+          }
+        }
+        final direction = firstMountedIndex > activeIndex ? -1 : 1;
+        final nextOffset =
+            (position.pixels + direction * position.viewportDimension).clamp(
+          position.minScrollExtent,
+          position.maxScrollExtent,
         );
-        _retryScroll(animated: animated, attempt: attempt);
+        if (nextOffset == position.pixels) return;
+        _scrollController.jumpTo(nextOffset);
+        _retryScroll(
+          attempt: attempt,
+          request: currentRequest,
+        );
         return;
       }
 
@@ -227,15 +238,23 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
       Scrollable.ensureVisible(
         targetContext,
         alignment: 0.0,
-        duration: animated ? const Duration(milliseconds: 350) : Duration.zero,
-        curve: Curves.easeOutCubic,
+        duration: Duration.zero,
       );
     });
+    // A post-frame callback does not request a frame on its own. On resume,
+    // retries must not wait for the next one-second workout timer tick.
+    WidgetsBinding.instance.ensureVisualUpdate();
   }
 
-  void _retryScroll({required bool animated, required int attempt}) {
+  void _retryScroll({
+    required int attempt,
+    required int request,
+  }) {
     if (attempt >= _maxScrollAttempts) return;
-    _scrollToActiveExercise(animated: animated, attempt: attempt + 1);
+    _scrollToActiveExercise(
+      attempt: attempt + 1,
+      request: request,
+    );
   }
 
   void _handleBack() {
@@ -308,7 +327,7 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
       await manager.applyPendingLiveActivityCommands();
       if (!mounted) return;
 
-      _scrollToActiveExercise(animated: false);
+      _scrollToActiveExercise();
 
       if (widget.initialAction == 'add_exercise') {
         _addExercise();
@@ -394,8 +413,8 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
         rpeLabel: l10n.liveActivityRpeLabel,
         addExercise: l10n.liveActivityAddExercise,
         openApp: l10n.liveActivityOpenApp,
-        // Short form on purpose: the button is 58pt wide, and the full
-        // German "Überspringen" wraps to two lines in it.
+        // Short form on purpose: the button is 58pt wide, and longer translations
+        // (such as German "Überspringen") would wrap to two lines.
         skip: l10n.liveActivitySkipShort,
         overduePrefix: l10n.liveActivityOverdueLabel,
         restDoneTitle: l10n.restTimerNotificationTitle,
@@ -418,7 +437,7 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
 
   // --- Cardio check helper ---
   bool _isCardio(RoutineExercise re) {
-    return re.exercise.categoryName.toLowerCase() == 'cardio';
+    return re.exercise.isCardio;
   }
 
   Widget _buildExerciseCardHeader(
@@ -431,7 +450,15 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
     required void Function(RoutineExercise)? onEditPauseTime,
     bool isProxy = false,
   }) {
-    final titleContent = Padding(
+    final membership = supersetMembershipAt(
+      Provider.of<LiveWorkoutViewModel>(context, listen: false).exercises,
+      index,
+    );
+    final supersetColor = membership == null
+        ? null
+        : DesignConstants.supersetColors[
+            membership.groupIndex % DesignConstants.supersetColors.length];
+    final exerciseTitle = Padding(
       padding: const EdgeInsets.symmetric(vertical: 4.0),
       child: Text(
         routineExercise.exercise.getLocalizedName(context),
@@ -442,6 +469,32 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
         ),
       ),
     );
+    final titleContent = membership == null
+        ? exerciseTitle
+        : Row(
+            children: [
+              Container(
+                key: ValueKey('live_superset_badge_${membership.label}'),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: supersetColor!.withValues(alpha: 0.18),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: supersetColor.withValues(alpha: 0.7),
+                  ),
+                ),
+                child: Text(
+                  membership.label,
+                  style: textTheme.labelLarge?.copyWith(
+                    color: supersetColor,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(child: exerciseTitle),
+            ],
+          );
 
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(
@@ -492,45 +545,46 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                 ? null
                 : () => _editExerciseNotes(context, routineExercise),
           ),
-          Selector<LiveWorkoutViewModel, int?>(
-            selector: (_, vm) => vm.pauseTimes[routineExercise.id!],
-            builder: (context, livePauseVal, child) {
-              final liveHasPause = livePauseVal != null && livePauseVal > 0;
-              if (liveHasPause) {
-                return TextButton(
-                  style: TextButton.styleFrom(
-                    minimumSize: const Size(48, 48),
-                    padding: EdgeInsets.zero,
-                  ),
+          if (membership?.isLast ?? true)
+            Selector<LiveWorkoutViewModel, int?>(
+              selector: (_, vm) => vm.pauseTimes[routineExercise.id!],
+              builder: (context, livePauseVal, child) {
+                final liveHasPause = livePauseVal != null && livePauseVal > 0;
+                if (liveHasPause) {
+                  return TextButton(
+                    style: TextButton.styleFrom(
+                      minimumSize: const Size(48, 48),
+                      padding: EdgeInsets.zero,
+                    ),
+                    onPressed: isProxy
+                        ? null
+                        : (onEditPauseTime != null
+                            ? () => onEditPauseTime(routineExercise)
+                            : null),
+                    child: Text(
+                      _formatPauseTime(livePauseVal),
+                      style: textTheme.bodyMedium?.copyWith(
+                        color: colorScheme.primary,
+                        fontWeight: FontWeight.bold,
+                        fontSize: DesignConstants.spacingL,
+                      ),
+                    ),
+                  );
+                }
+                return IconButton(
+                  icon: const Icon(LucideIcons.timer),
+                  tooltip: l10n.editPauseTime,
                   onPressed: isProxy
                       ? null
                       : (onEditPauseTime != null
                           ? () => onEditPauseTime(routineExercise)
                           : null),
-                  child: Text(
-                    _formatPauseTime(livePauseVal),
-                    style: textTheme.bodyMedium?.copyWith(
-                      color: colorScheme.primary,
-                      fontWeight: FontWeight.bold,
-                      fontSize: DesignConstants.spacingL,
-                    ),
-                  ),
                 );
-              }
-              return IconButton(
-                icon: const Icon(LucideIcons.timer),
-                tooltip: l10n.editPauseTime,
-                onPressed: isProxy
-                    ? null
-                    : (onEditPauseTime != null
-                        ? () => onEditPauseTime(routineExercise)
-                        : null),
-              );
-            },
-          ),
+              },
+            ),
           IconButton(
             icon: const Icon(
-              LucideIcons.trash_2,
+              LucideIcons.trash,
               color: DesignConstants.brandRedColor,
             ),
             tooltip: l10n.removeExercise,
@@ -712,7 +766,7 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
     );
 
     if (result != null) {
-      await manager.updateExerciseNotes(re.exercise.nameEn, result);
+      await manager.updateExerciseNotes(re.exercise.canonicalName, result);
     }
   }
 
@@ -735,10 +789,10 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
 
     if (selectedExercise != null) {
       final lastSets = await WorkoutLocalDataSource.instance
-          .getLastSetsForExercise(selectedExercise.nameEn);
+          .getLastSetsForExercise(selectedExercise.canonicalName);
       if (mounted) {
         setState(() {
-          manager.lastPerformances[selectedExercise.nameEn] = lastSets;
+          manager.lastPerformances[selectedExercise.canonicalName] = lastSets;
         });
       }
       await manager.addExercise(selectedExercise);
@@ -754,35 +808,37 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
 
   // --- HEADER HELPER ---
   Widget _buildHeaderRow(RoutineExercise re, AppLocalizations l10n) {
-    // Important: cardio check here.
-    final bool isCardio = _isCardio(re);
+    // Follows the same mask as the input fields below it. It used to branch on
+    // a cardio flag alone, so a timed exercise got a column headed "Reps" over
+    // a duration picker.
+    final mask = ExerciseLogMask.forExercise(re.exercise);
     final unitService = context.read<UnitService>();
 
-    if (isCardio) {
-      return Row(
-        children: [
-          _buildHeader(l10n.setLabel, flex: 2), // Set Nr.
-          _buildHeader(l10n.lastTimeLabel, flex: 3), // History/Last
-          _buildHeader(
-              l10n.cardioDistanceLabel(
-                  unitService.suffixFor(UnitDimension.distance)),
-              flex: 4),
-          _buildHeader(l10n.cardioTimeLabel, flex: 4),
-          _buildHeader(l10n.cardioIntensityLabel, flex: 2),
-          const SizedBox(
-              width: 56), // Space for checkbox (48 width + 8 padding)
-        ],
-      );
-    }
-    // Standard Strength Header
+    final primary = LogMaskLabels.primaryHeader(mask, l10n, unitService);
+    final secondary = LogMaskLabels.secondaryHeader(mask, l10n);
+    final flex = SetRowFlex.forMask(mask);
+    final showsIntensity = showsIntensityColumn(context, mask);
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        _buildHeader(l10n.setLabel, flex: 1),
-        _buildHeader(l10n.lastTimeLabel, flex: 2),
-        _buildHeader(unitService.suffixFor(UnitDimension.weight), flex: 2),
-        _buildHeader(l10n.repsLabel, flex: 2),
-        _buildHeader("RIR", flex: 1),
+        _buildHeader(l10n.setLabel, flex: flex.index),
+        _buildHeader(l10n.lastTimeLabel, flex: flex.lastTime),
+        if (primary != null)
+          _buildHeader(primary, flex: flex.primary)
+        else
+          Expanded(flex: flex.primary, child: const SizedBox.shrink()),
+        if (secondary != null)
+          _buildHeader(secondary, flex: flex.secondary)
+        else
+          Expanded(flex: flex.secondary, child: const SizedBox.shrink()),
+        if (showsIntensity)
+          _buildHeader(
+            mask.logsDistance ? l10n.cardioIntensityLabel : 'RIR',
+            flex: flex.intensity,
+          )
+        else if (keepsIntensityPlaceholder(context, mask))
+          Expanded(flex: flex.intensity, child: const SizedBox.shrink()),
         const SizedBox(width: 56), // Space for checkbox (48 width + 8 padding)
       ],
     );
@@ -792,13 +848,20 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
     return Expanded(
       flex: flex,
       child: Center(
-        child: Text(
-          text,
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            color: Colors.grey[600],
-            fontSize: 12,
-            fontWeight: FontWeight.bold,
+        // Same treatment as the cell below it: a heading that has to name a
+        // unit — "Distanz (km)" — is the widest thing in its column, and it
+        // should shrink rather than lose its second half.
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            text,
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            style: TextStyle(
+              color: Colors.grey[600],
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ),
       ),
@@ -881,6 +944,13 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
             (vm) => vm.exercises);
     final showRestBar = context.select<LiveWorkoutViewModel, bool>(
         (vm) => vm.remainingRestSeconds > 0 || vm.showRestDone);
+    final autoAdvanceRevision = context.select<LiveWorkoutViewModel, int>(
+      (vm) => vm.autoAdvanceRevision,
+    );
+    if (autoAdvanceRevision > _handledAutoAdvanceRevision) {
+      _handledAutoAdvanceRevision = autoAdvanceRevision;
+      _scrollToActiveExercise();
+    }
 
     // If the workout was just finished, the manager state is cleared.
     // We return a blank scaffold to avoid any errors during the Navigator transition.
@@ -1018,13 +1088,16 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                               context,
                             )
                                 .colorScheme
-.onSurfaceVariant
+                                .onSurfaceVariant
                                 .withValues(alpha: 0.1),
                           ),
                           Expanded(
                             child: exercises.isEmpty
                                 ? _buildEmptyState(context, l10n)
                                 : Listener(
+                                    // A pending auto-scroll must never cancel
+                                    // the user's tap or fight their drag.
+                                    onPointerDown: (_) => _scrollRequest++,
                                     onPointerMove: (e) {
                                       if (_isDragActive) {
                                         final manager =
@@ -1039,7 +1112,8 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                       scrollController: _scrollController,
                                       buildDefaultDragHandles: false,
                                       scrollCacheExtent:
-                                          const ScrollCacheExtent.pixels(1500.0),
+                                          const ScrollCacheExtent.pixels(
+                                              1500.0),
                                       header: ReorderHeadroom(
                                         height: _isDragging
                                             ? _dynamicHeadroom
@@ -1050,11 +1124,13 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                                 ? 220.0
                                                 : DesignConstants
                                                     .bottomContentSpacer) +
-                                            MediaQuery.paddingOf(context).bottom,
+                                            MediaQuery.paddingOf(context)
+                                                .bottom,
                                       ),
                                       onReorderStart: (index) {
                                         _isDragActive = true;
-                                        ReorderHapticFeedback.onDragStart(index);
+                                        ReorderHapticFeedback.onDragStart(
+                                            index);
                                         _scrollAnchor.discard();
                                         _collapseTimer?.cancel();
                                         _expandTimer?.cancel();
@@ -1069,273 +1145,313 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                         ReorderHapticFeedback.onDragEnd();
                                         _scheduleExpandAfterDrop();
                                       },
-                                    proxyDecorator: (Widget child, int index,
-                                        Animation<double> animation) {
-                                      final l10n =
-                                          AppLocalizations.of(context)!;
-                                      final theme = Theme.of(context);
-                                      if (index >= 0 &&
-                                          index < exercises.length) {
+                                      proxyDecorator: (Widget child, int index,
+                                          Animation<double> animation) {
+                                        final l10n =
+                                            AppLocalizations.of(context)!;
+                                        final theme = Theme.of(context);
+                                        if (index >= 0 &&
+                                            index < exercises.length) {
+                                          final routineExercise =
+                                              exercises[index];
+                                          final membership =
+                                              supersetMembershipAt(
+                                            exercises,
+                                            index,
+                                          );
+                                          final supersetColor = membership ==
+                                                  null
+                                              ? null
+                                              : DesignConstants.supersetColors[
+                                                  membership.groupIndex %
+                                                      DesignConstants
+                                                          .supersetColors
+                                                          .length];
+                                          final proxyChild = WorkoutCard(
+                                            accentColor: supersetColor,
+                                            child: _buildExerciseCardHeader(
+                                              context,
+                                              routineExercise,
+                                              index,
+                                              l10n,
+                                              theme.textTheme,
+                                              theme.colorScheme,
+                                              onEditPauseTime: null,
+                                              isProxy: true,
+                                            ),
+                                          );
+                                          return buildReorderDragProxy(
+                                              context, proxyChild, animation);
+                                        }
+                                        return buildReorderDragProxy(
+                                            context, child, animation);
+                                      },
+                                      onReorderItem: _onReorderItem,
+                                      itemCount: exercises.length,
+                                      itemBuilder: (context, index) {
                                         final routineExercise =
                                             exercises[index];
-                                        final proxyChild = WorkoutCard(
-                                          child: _buildExerciseCardHeader(
-                                            context,
-                                            routineExercise,
-                                            index,
-                                            l10n,
-                                            theme.textTheme,
-                                            theme.colorScheme,
-                                            onEditPauseTime: null,
-                                            isProxy: true,
-                                          ),
+                                        final showE1rmSummary =
+                                            !_isCardio(routineExercise);
+                                        final membership = supersetMembershipAt(
+                                          exercises,
+                                          index,
                                         );
-                                        return buildReorderDragProxy(
-                                            context, proxyChild, animation);
-                                      }
-                                      return buildReorderDragProxy(
-                                          context, child, animation);
-                                    },
-                                    onReorderItem: _onReorderItem,
-                                    itemCount: exercises.length,
-                                    itemBuilder: (context, index) {
-                                      final routineExercise = exercises[index];
-                                      final showE1rmSummary =
-                                          !_isCardio(routineExercise);
+                                        final supersetColor = membership == null
+                                            ? null
+                                            : DesignConstants.supersetColors[
+                                                membership.groupIndex %
+                                                    DesignConstants
+                                                        .supersetColors.length];
 
-                                      final isDeleting = _deletingExerciseIds
-                                          .contains(routineExercise.id);
+                                        final isDeleting = _deletingExerciseIds
+                                            .contains(routineExercise.id);
 
-                                      return KeyedSubtree(
-                                        key: _scrollAnchor.keyFor(
-                                          routineExercise.id ?? index,
-                                        ),
-                                        child: AnimatedSize(
-                                          duration: kReorderCardResizeDuration,
-                                          curve: Curves.easeInOutCubic,
-                                          alignment: Alignment.topCenter,
-                                          child: isDeleting
-                                              ? const SizedBox(
-                                                  width: double.infinity,
-                                                  height: 0)
-                                              : AnimatedOpacity(
-                                                  duration: const Duration(
-                                                      milliseconds: 180),
-                                                  curve: Curves.easeOut,
-                                                  opacity:
-                                                      isDeleting ? 0.0 : 1.0,
-                                                  child: RepaintBoundary(
-                                                    key: ValueKey(
-                                                        routineExercise.id),
-                                                    child: WorkoutCard(
-                                                      child: Column(
-                                                        crossAxisAlignment:
-                                                            CrossAxisAlignment
-                                                                .start,
-                                                        children: [
-                                                          _buildExerciseCardHeader(
-                                                            context,
-                                                            routineExercise,
-                                                            index,
-                                                            l10n,
-                                                            textTheme,
-                                                            colorScheme,
-                                                            onEditPauseTime:
-                                                                editPauseTime,
-                                                          ),
-                                                          _isDragging
-                                                              ? const SizedBox
-                                                                  .shrink()
-                                                              : AnimatedSize(
-                                                                  duration: const Duration(
-                                                                      milliseconds:
-                                                                          250),
-                                                                  curve: Curves
-                                                                      .easeInOut,
-                                                                  alignment:
-                                                                      Alignment
-                                                                          .topCenter,
-                                                                  child: Column(
-                                                                    crossAxisAlignment:
-                                                                        CrossAxisAlignment
-                                                                            .start,
-                                                                    children: [
-                                                                      if (routineExercise.notes !=
-                                                                              null &&
-                                                                          routineExercise
-                                                                              .notes!
-                                                                              .isNotEmpty)
-                                                                        Padding(
-                                                                          padding:
-                                                                              const EdgeInsets.only(
-                                                                            left:
-                                                                                16.0,
-                                                                            right:
-                                                                                16.0,
-                                                                            bottom:
-                                                                                12.0,
-                                                                          ),
-                                                                          child:
-                                                                              InkWell(
-                                                                            onTap: () =>
-                                                                                _editExerciseNotes(context, routineExercise),
-                                                                            borderRadius:
-                                                                                BorderRadius.circular(8),
+                                        return KeyedSubtree(
+                                          key: _scrollAnchor.keyFor(
+                                            routineExercise.id ?? index,
+                                          ),
+                                          child: AnimatedSize(
+                                            duration:
+                                                kReorderCardResizeDuration,
+                                            curve: Curves.easeInOutCubic,
+                                            alignment: Alignment.topCenter,
+                                            child: isDeleting
+                                                ? const SizedBox(
+                                                    width: double.infinity,
+                                                    height: 0)
+                                                : AnimatedOpacity(
+                                                    duration: const Duration(
+                                                        milliseconds: 180),
+                                                    curve: Curves.easeOut,
+                                                    opacity:
+                                                        isDeleting ? 0.0 : 1.0,
+                                                    child: RepaintBoundary(
+                                                      key: ValueKey(
+                                                          routineExercise.id),
+                                                      child: WorkoutCard(
+                                                        accentColor:
+                                                            supersetColor,
+                                                        continuesSupersetAbove:
+                                                            !(membership
+                                                                    ?.isFirst ??
+                                                                true),
+                                                        continuesSupersetBelow:
+                                                            !(membership
+                                                                    ?.isLast ??
+                                                                true),
+                                                        child: Column(
+                                                          crossAxisAlignment:
+                                                              CrossAxisAlignment
+                                                                  .start,
+                                                          children: [
+                                                            _buildExerciseCardHeader(
+                                                              context,
+                                                              routineExercise,
+                                                              index,
+                                                              l10n,
+                                                              textTheme,
+                                                              colorScheme,
+                                                              onEditPauseTime:
+                                                                  editPauseTime,
+                                                            ),
+                                                            _isDragging
+                                                                ? const SizedBox
+                                                                    .shrink()
+                                                                : AnimatedSize(
+                                                                    duration: const Duration(
+                                                                        milliseconds:
+                                                                            250),
+                                                                    curve: Curves
+                                                                        .easeInOut,
+                                                                    alignment:
+                                                                        Alignment
+                                                                            .topCenter,
+                                                                    child:
+                                                                        Column(
+                                                                      crossAxisAlignment:
+                                                                          CrossAxisAlignment
+                                                                              .start,
+                                                                      children: [
+                                                                        if (routineExercise.notes !=
+                                                                                null &&
+                                                                            routineExercise.notes!.isNotEmpty)
+                                                                          Padding(
+                                                                            padding:
+                                                                                const EdgeInsets.only(
+                                                                              left: 16.0,
+                                                                              right: 16.0,
+                                                                              bottom: 12.0,
+                                                                            ),
                                                                             child:
-                                                                                Container(
-                                                                              width: double.infinity,
-                                                                              padding: const EdgeInsets.all(12),
-                                                                              decoration: BoxDecoration(
-                                                                                color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-                                                                                borderRadius: BorderRadius.circular(8),
-                                                                                border: Border.all(
-                                                                                  color: colorScheme.onSurfaceVariant.withValues(alpha: 0.1),
-                                                                                ),
-                                                                              ),
-                                                                              child: Row(
-                                                                                crossAxisAlignment: CrossAxisAlignment.start,
-                                                                                children: [
-                                                                                  Icon(
-                                                                                    Icons.description_outlined,
-                                                                                    size: 16,
-                                                                                    color: colorScheme.onSurfaceVariant,
+                                                                                InkWell(
+                                                                              onTap: () => _editExerciseNotes(context, routineExercise),
+                                                                              borderRadius: BorderRadius.circular(8),
+                                                                              child: Container(
+                                                                                width: double.infinity,
+                                                                                padding: const EdgeInsets.all(12),
+                                                                                decoration: BoxDecoration(
+                                                                                  color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                                                                                  borderRadius: BorderRadius.circular(8),
+                                                                                  border: Border.all(
+                                                                                    color: colorScheme.onSurfaceVariant.withValues(alpha: 0.1),
                                                                                   ),
-                                                                                  const SizedBox(width: 8),
-                                                                                  Expanded(
-                                                                                    child: Text(
-                                                                                      routineExercise.notes!,
-                                                                                      style: textTheme.bodyMedium?.copyWith(
-                                                                                        color: colorScheme.onSurfaceVariant,
+                                                                                ),
+                                                                                child: Row(
+                                                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                                                  children: [
+                                                                                    Icon(
+                                                                                      Icons.description_outlined,
+                                                                                      size: 16,
+                                                                                      color: colorScheme.onSurfaceVariant,
+                                                                                    ),
+                                                                                    const SizedBox(width: 8),
+                                                                                    Expanded(
+                                                                                      child: Text(
+                                                                                        routineExercise.notes!,
+                                                                                        style: textTheme.bodyMedium?.copyWith(
+                                                                                          color: colorScheme.onSurfaceVariant,
+                                                                                        ),
                                                                                       ),
                                                                                     ),
-                                                                                  ),
-                                                                                ],
+                                                                                  ],
+                                                                                ),
                                                                               ),
                                                                             ),
                                                                           ),
-                                                                        ),
-                                                                      if (showE1rmSummary)
-                                                                        ExerciseE1rmSummary(
-                                                                          routineExercise:
-                                                                              routineExercise,
-                                                                          manager:
-                                                                              manager,
-                                                                        ),
-                                                                      Padding(
-                                                                        padding:
-                                                                            const EdgeInsets.symmetric(
-                                                                          horizontal:
-                                                                              0.0,
-                                                                        ),
-                                                                        child: Selector<
-                                                                            LiveWorkoutViewModel,
-                                                                            Map<int,
-                                                                                SetLog>>(
-                                                                          selector:
-                                                                              (context, vm) {
-                                                                            final map =
-                                                                                <int, SetLog>{};
-                                                                            for (final template
-                                                                                in routineExercise.setTemplates) {
-                                                                              final log = vm.setLogs[template.id];
-                                                                              if (log != null) {
-                                                                                map[template.id!] = log;
+                                                                        if (showE1rmSummary)
+                                                                          ExerciseE1rmSummary(
+                                                                            routineExercise:
+                                                                                routineExercise,
+                                                                            manager:
+                                                                                manager,
+                                                                          ),
+                                                                        Padding(
+                                                                          padding:
+                                                                              const EdgeInsets.symmetric(
+                                                                            horizontal:
+                                                                                0.0,
+                                                                          ),
+                                                                          child: Selector<
+                                                                              LiveWorkoutViewModel,
+                                                                              Map<int, SetLog>>(
+                                                                            selector:
+                                                                                (context, vm) {
+                                                                              final map = <int, SetLog>{};
+                                                                              for (final template in routineExercise.setTemplates) {
+                                                                                final log = vm.setLogs[template.id];
+                                                                                if (log != null) {
+                                                                                  map[template.id!] = log;
+                                                                                }
                                                                               }
-                                                                            }
-                                                                            return map;
-                                                                          },
-                                                                          shouldRebuild:
-                                                                              (prev, next) {
-                                                                            if (prev.length !=
-                                                                                next.length) {
-                                                                              return true;
-                                                                            }
-                                                                            for (final key
-                                                                                in prev.keys) {
-                                                                              final prevLog = prev[key];
-                                                                              final nextLog = next[key];
-                                                                              if (prevLog == null || nextLog == null) {
+                                                                              return map;
+                                                                            },
+                                                                            shouldRebuild:
+                                                                                (prev, next) {
+                                                                              if (prev.length != next.length) {
                                                                                 return true;
                                                                               }
-                                                                              if (prevLog.setType != nextLog.setType || prevLog.isCompleted != nextLog.isCompleted) {
-                                                                                return true;
+                                                                              for (final key in prev.keys) {
+                                                                                final prevLog = prev[key];
+                                                                                final nextLog = next[key];
+                                                                                if (prevLog == null || nextLog == null) {
+                                                                                  return true;
+                                                                                }
+                                                                                if (prevLog.setType != nextLog.setType || prevLog.isCompleted != nextLog.isCompleted) {
+                                                                                  return true;
+                                                                                }
                                                                               }
-                                                                            }
-                                                                            return false;
-                                                                          },
-                                                                          builder: (context,
-                                                                              exerciseSetLogs,
-                                                                              child) {
-                                                                            return AnimatedSize(
-                                                                              duration: const Duration(milliseconds: 260),
-                                                                              curve: Curves.easeInOutCubic,
-                                                                              alignment: Alignment.topCenter,
-                                                                              child: Column(
-                                                                                crossAxisAlignment: CrossAxisAlignment.start,
-                                                                                children: [
-                                                                                  // FIX: Insert header row dynamically.
-                                                                                  _buildHeaderRow(
-                                                                                    routineExercise,
-                                                                                    l10n,
-                                                                                  ),
+                                                                              return false;
+                                                                            },
+                                                                            builder: (context,
+                                                                                exerciseSetLogs,
+                                                                                child) {
+                                                                              return AnimatedSize(
+                                                                                duration: const Duration(milliseconds: 260),
+                                                                                curve: Curves.easeInOutCubic,
+                                                                                alignment: Alignment.topCenter,
+                                                                                child: Column(
+                                                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                                                  children: [
+                                                                                    // FIX: Insert header row dynamically.
+                                                                                    _buildHeaderRow(
+                                                                                      routineExercise,
+                                                                                      l10n,
+                                                                                    ),
 
-                                                                                  // Set Rows
-                                                                                  ...routineExercise.setTemplates.asMap().entries.map((setEntry) {
-                                                                                    final templateId = setEntry.value.id!;
-                                                                                    final template = setEntry.value; // <--- Template
-                                                                                    final setLog = exerciseSetLogs[templateId];
+                                                                                    // Set Rows
+                                                                                    ...routineExercise.setTemplates.asMap().entries.map((setEntry) {
+                                                                                      final templateId = setEntry.value.id!;
+                                                                                      final template = setEntry.value; // <--- Template
+                                                                                      final setLog = exerciseSetLogs[templateId];
 
-                                                                                    if (setLog == null) {
-                                                                                      return const SizedBox.shrink();
-                                                                                    }
-                                                                                    int workingSetIndex = 0;
-                                                                                    for (int i = 0; i <= setEntry.key; i++) {
-                                                                                      final currentTemplateId = routineExercise.setTemplates[i].id!;
-                                                                                      if (exerciseSetLogs[currentTemplateId]?.setType != 'warmup') {
-                                                                                        workingSetIndex++;
+                                                                                      if (setLog == null) {
+                                                                                        return const SizedBox.shrink();
                                                                                       }
-                                                                                    }
+                                                                                      int workingSetIndex = 0;
+                                                                                      for (int i = 0; i <= setEntry.key; i++) {
+                                                                                        final currentTemplateId = routineExercise.setTemplates[i].id!;
+                                                                                        if (exerciseSetLogs[currentTemplateId]?.setType != 'warmup') {
+                                                                                          workingSetIndex++;
+                                                                                        }
+                                                                                      }
 
-                                                                                    return LiveWorkoutSetRow(
-                                                                                      setIndex: workingSetIndex,
-                                                                                      rowIndex: setEntry.key,
-                                                                                      templateId: templateId,
-                                                                                      setLog: setLog,
-                                                                                      lastPerfSets: manager.lastPerformances[routineExercise.exercise.nameEn] ?? [],
-                                                                                      template: template,
-                                                                                      manager: manager,
-                                                                                      isCardio: _isCardio(routineExercise),
-                                                                                    );
-                                                                                  }),
-                                                                                  Padding(
-                                                                                    padding: const EdgeInsets.symmetric(
-                                                                                      horizontal: 16.0,
+                                                                                      return LiveWorkoutSetRow(
+                                                                                        setIndex: workingSetIndex,
+                                                                                        rowIndex: setEntry.key,
+                                                                                        templateId: templateId,
+                                                                                        setLog: setLog,
+                                                                                        lastPerfSets: manager.lastPerformances[routineExercise.exercise.canonicalName] ?? [],
+                                                                                        template: template,
+                                                                                        manager: manager,
+                                                                                        mask: ExerciseLogMask.forExercise(routineExercise.exercise),
+                                                                                        bodyweightKg: manager.bodyweightKg,
+                                                                                      );
+                                                                                    }),
+                                                                                    Padding(
+                                                                                      padding: const EdgeInsets.symmetric(
+                                                                                        horizontal: 16.0,
+                                                                                      ),
+                                                                                      child: Row(
+                                                                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                                                        children: [
+                                                                                          TextButton.icon(
+                                                                                            onPressed: () => _addSet(routineExercise),
+                                                                                            icon: const Icon(LucideIcons.plus),
+                                                                                            label: Text(l10n.addSetButton),
+                                                                                          ),
+                                                                                          if (index + 1 < exercises.length)
+                                                                                            Flexible(
+                                                                                              child: SupersetConnectorButton(
+                                                                                                key: ValueKey(
+                                                                                                  'live_superset_connector_$index',
+                                                                                                ),
+                                                                                                isConnected: routineExercise.supersetGroup != null && routineExercise.supersetGroup == exercises[index + 1].supersetGroup,
+                                                                                                onPressed: () => manager.toggleSupersetAfter(index),
+                                                                                              ),
+                                                                                            ),
+                                                                                        ],
+                                                                                      ),
                                                                                     ),
-                                                                                    child: TextButton.icon(
-                                                                                      onPressed: () => _addSet(routineExercise),
-                                                                                      icon: const Icon(LucideIcons.plus),
-                                                                                      label: Text(l10n.addSetButton),
-                                                                                    ),
-                                                                                  ),
-                                                                                ],
-                                                                              ),
-                                                                            );
-                                                                          },
+                                                                                  ],
+                                                                                ),
+                                                                              );
+                                                                            },
+                                                                          ),
                                                                         ),
-                                                                      ),
-                                                                    ],
+                                                                      ],
+                                                                    ),
                                                                   ),
-                                                                ),
-                                                        ],
+                                                          ],
+                                                        ),
                                                       ),
                                                     ),
                                                   ),
-                                                ),
-                                        ),
-                                      );
-                                    },
+                                          ),
+                                        );
+                                      },
+                                    ),
                                   ),
-                                ),
                           ),
                         ],
                       ),

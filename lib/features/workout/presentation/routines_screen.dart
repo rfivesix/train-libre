@@ -301,7 +301,7 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
                                       PlatformAdaptivePopupMenuItem<String>(
                                         value: 'delete',
                                         label: l10n.delete,
-                                        icon: LucideIcons.trash_2,
+                                        icon: LucideIcons.trash,
                                         isDestructive: true,
                                       ),
                                     ],
@@ -329,7 +329,8 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
                       confirmDelete: () async {
                         return await showDeleteConfirmation(
                           context,
-                          content: l10n.deleteRoutineConfirmContent(routine.name),
+                          content:
+                              l10n.deleteRoutineConfirmContent(routine.name),
                         );
                       },
                       onDelete: () {

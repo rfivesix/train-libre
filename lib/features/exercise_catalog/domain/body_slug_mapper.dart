@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import 'package:flutter_body_highlighter/flutter_body_highlighter.dart';
 import '../../statistics/domain/recovery_domain_service.dart';
+import 'muscle_vocabulary.dart';
 
 /// Maps raw muscle name strings (as stored in the wger exercise database)
 /// to one or more [BodyPartSlug] values suitable for the [BodyHighlighter]
@@ -79,6 +80,83 @@ class BodySlugMapper {
     // BodyPartSlug.triceps → both (lateral head silhouette visible from front)
     // BodyPartSlug.adductors → both (deep inner-thigh visible on front and back)
   };
+
+  /// Resolves a `body_slugs` value from the catalog.
+  ///
+  /// The catalog writes camelCase (`frontDeltoids`, `tibialisAnterior`);
+  /// [BodyPartSlug.fromString] lowercases and rewrites `_` to `-`, which does
+  /// nothing for camelCase because there is no separator to rewrite. Three
+  /// slugs therefore resolved to null and silently painted nothing — and a
+  /// shoulder that does not light up is not something a user reports.
+  ///
+  /// The fork has been fixed to accept these spellings directly. This stays
+  /// because the app must not depend on a pin bump to render correctly, and
+  /// because knowing how *its own data* spells things is the app's job, not
+  /// the widget's. It costs one regex on a cold path.
+  static BodyPartSlug? fromCatalogSlug(String slug) {
+    final direct = BodyPartSlug.fromString(slug);
+    if (direct != null) return direct;
+
+    final separated = slug
+        .trim()
+        .replaceAllMapped(
+            RegExp(r'([a-z0-9])([A-Z])'), (m) => '${m[1]}-${m[2]}')
+        .toLowerCase();
+    return BodyPartSlug.fromString(separated);
+  }
+
+  /// Slugs for a catalog muscle id, straight from the shipped vocabulary.
+  ///
+  /// This is the path that makes a vocabulary change a data release: the
+  /// answer to "where is the latissimus dorsi" now comes from the catalog
+  /// rather than from [_canonicalToSlugs] below.
+  static List<BodyPartSlug> fromMuscleId(
+    String muscleId,
+    MuscleVocabulary vocabulary,
+  ) {
+    final slugs = vocabulary.slugsFor(muscleId);
+    if (slugs.isNotEmpty) {
+      final resolved = slugs
+          .map(fromCatalogSlug)
+          .whereType<BodyPartSlug>()
+          .toList(growable: false);
+      if (resolved.isNotEmpty) return resolved;
+    }
+
+    // The muscle has no surface of its own (diaphragm, hip flexors). Painting
+    // its group is more honest than painting nothing.
+    final group = vocabulary.rawGroupFor(muscleId);
+    return group == null ? const [] : fromRawName(group);
+  }
+
+  /// Merges primary and secondary muscle **ids** into highlight data.
+  ///
+  /// Same precedence rule as [mergedHighlights]: a slug claimed by a primary
+  /// muscle is not dimmed by a secondary one.
+  static List<BodyPartHighlightData> mergedHighlightsFromIds({
+    required List<String> primaryMuscleIds,
+    required List<String> secondaryMuscleIds,
+    required MuscleVocabulary vocabulary,
+    int primaryIntensity = 5,
+    int secondaryIntensity = 2,
+  }) {
+    final seen = <BodyPartSlug>{};
+    final result = <BodyPartHighlightData>[];
+
+    void add(List<String> ids, int intensity) {
+      for (final id in ids) {
+        for (final slug in fromMuscleId(id, vocabulary)) {
+          if (seen.add(slug)) {
+            result.add(BodyPartHighlightData(slug: slug, intensity: intensity));
+          }
+        }
+      }
+    }
+
+    add(primaryMuscleIds, primaryIntensity);
+    add(secondaryMuscleIds, secondaryIntensity);
+    return result;
+  }
 
   /// Maps a single raw muscle name (e.g. `"chest"`, `"front delts"`,
   /// `"latissimus"`) to the corresponding [BodyPartSlug] values.
@@ -223,10 +301,46 @@ class BodySlugMapper {
     }).toList(growable: false);
   }
 
-  static String localize(BuildContext context, String rawName) {
+  /// A muscle's display name.
+  ///
+  /// Prefers the catalog's own `muscle_translations`, which is what lets a new
+  /// muscle arrive with its name in 22 languages without an app release. The
+  /// hard-coded switch below stays for legacy names and group keys, which the
+  /// vocabulary does not contain.
+  ///
+  /// With [coarse], the muscle is named by the region it belongs to — the
+  /// experience level below "pro" asks for "shoulders" rather than "front
+  /// deltoid". Only the words change: the body map is drawn from the ids and
+  /// stays as precise as ever.
+  static String localize(
+    BuildContext context,
+    String rawName, {
+    MuscleVocabulary? vocabulary,
+    bool coarse = false,
+  }) {
     final l10n = AppLocalizations.of(context)!;
+
+    // Coarse mode resolves the group node rather than the muscle itself; the
+    // group carries its own translations, so "Schulter" comes from the same
+    // catalog the fine name would have come from. Where no group translation
+    // ships, the group *key* still falls through to the switch below, which
+    // understands it — the head's id would not have.
+    var name = rawName;
+    if (vocabulary != null && !vocabulary.isEmpty) {
+      if (coarse) {
+        name = vocabulary.rawGroupFor(rawName) ?? rawName;
+      }
+      final fromCatalog = vocabulary.nameFor(
+        name,
+        Localizations.localeOf(context).languageCode,
+      );
+      if (fromCatalog != null && fromCatalog.trim().isNotEmpty) {
+        return fromCatalog;
+      }
+    }
+
     final cleaned =
-        rawName.trim().toLowerCase().replaceAll('_', ' ').replaceAll('-', ' ');
+        name.trim().toLowerCase().replaceAll('_', ' ').replaceAll('-', ' ');
 
     final canonical =
         RecoveryDomainService.majorMuscleGroupFor(cleaned) ?? cleaned;
@@ -267,8 +381,35 @@ class BodySlugMapper {
       case 'obliques':
         return l10n.muscleObliques;
       default:
-        if (rawName.isEmpty) return '';
-        return rawName[0].toUpperCase() + rawName.substring(1).toLowerCase();
+        if (name.isEmpty) return '';
+        return name[0].toUpperCase() + name.substring(1).toLowerCase();
     }
+  }
+
+  /// Display names for a whole muscle list, with duplicates folded away.
+  ///
+  /// Folding is the point of the list form: coarsening front and rear deltoid
+  /// separately would print "Shoulders, Shoulders". Insertion order survives,
+  /// so the most important muscle stays first.
+  static List<String> localizeAll(
+    BuildContext context,
+    List<String> rawNames, {
+    MuscleVocabulary? vocabulary,
+    bool coarse = false,
+  }) {
+    final seen = <String>{};
+    final names = <String>[];
+    for (final rawName in rawNames) {
+      final name = localize(
+        context,
+        rawName,
+        vocabulary: vocabulary,
+        coarse: coarse,
+      );
+      if (name.trim().isEmpty) continue;
+      if (!seen.add(name)) continue;
+      names.add(name);
+    }
+    return names;
   }
 }

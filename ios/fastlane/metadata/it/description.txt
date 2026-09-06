@@ -38,4 +38,4 @@ AVVERTENZA:
 Train Libre non è un'applicazione medica. Le stime sul recupero muscolare, il tracciamento del sonno e i parametri fisici sono destinati esclusivamente al monitoraggio sportivo personale. Non costituiscono e non sostituiscono in alcun modo diagnosi o trattamenti medici professionali.
 
 OPEN SOURCE E DATI APERTI:
-Sviluppato in modo trasparente sui database aperti e affidabili di Open Food Facts e wger. Il codice sorgente completo è pubblicamente accessibile: le nostre promesse sulla privacy si verificano, non si prendono per buone.
+Sviluppato in modo trasparente sui database aperti e affidabili di Open Food Facts e OpenExerciseDB. Il codice sorgente completo è pubblicamente accessibile: le nostre promesse sulla privacy si verificano, non si prendono per buone.

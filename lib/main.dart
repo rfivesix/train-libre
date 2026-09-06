@@ -18,6 +18,7 @@ import 'core/performance/jank_route_observer.dart';
 import 'core/performance/startup_trace.dart';
 // App startup routing is delegated to the dedicated initializer screen.
 import 'features/app/presentation/app_initializer_screen.dart';
+import 'services/experience_level_service.dart';
 import 'services/profile_service.dart';
 import 'services/unit_service.dart';
 import 'features/workout/presentation/live_workout_view_model.dart';
@@ -186,6 +187,7 @@ void main() async {
 
   final themeService = ThemeService(); // Create an instance
   final unitService = UnitService();
+  final experienceLevelService = ExperienceLevelService();
 
   // Create the workout session manager before injecting it. Restoration is
   // handled by AppInitializerScreen after the first frame is visible.
@@ -238,6 +240,7 @@ void main() async {
           ),
           ChangeNotifierProvider.value(value: unitService),
           ChangeNotifierProvider.value(value: themeService),
+          ChangeNotifierProvider.value(value: experienceLevelService),
           Provider<HomeWidgetSyncService>(
             create: (context) => HomeWidgetSyncService(
               diaryRepo: context.read<IDiaryRepository>(),
@@ -956,6 +959,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
               final Uri? uri = Uri.tryParse(settings.name ?? '');
               final action = uri?.queryParameters['action'];
               return WorkoutMorphRoute<void>(
+                animateEntrance: false,
                 settings: settings,
                 builder: (context) {
                   final wsm =
@@ -977,6 +981,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
             final Uri? uri = Uri.tryParse(settings.name ?? '');
             final action = uri?.queryParameters['action'];
             return WorkoutMorphRoute<void>(
+              animateEntrance: false,
               settings: settings,
               builder: (context) {
                 final wsm =

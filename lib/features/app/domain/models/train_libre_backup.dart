@@ -186,6 +186,9 @@ class TrainLibreBackup {
                           [],
                       pauseSeconds: (reMap['pause_seconds'] as num?)?.toInt() ??
                           (reMap['pauseSeconds'] as num?)?.toInt(),
+                      supersetGroup:
+                          (reMap['superset_group'] as num?)?.toInt() ??
+                              (reMap['supersetGroup'] as num?)?.toInt(),
                       notes: reMap['notes'] as String?,
                     );
                   }).toList() ??

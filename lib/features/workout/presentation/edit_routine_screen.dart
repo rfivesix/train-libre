@@ -152,7 +152,10 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
     sb.write(_nameController.text.trim());
     sb.write('|');
     for (var re in _routineExercises) {
-      sb.write('${re.id}:${re.notes ?? ''}:${re.pauseSeconds ?? ''};');
+      sb.write(
+        '${re.id}:${re.notes ?? ''}:${re.pauseSeconds ?? ''}:'
+        '${re.supersetGroup ?? ''};',
+      );
       for (var st in re.setTemplates) {
         final reps = _repsControllers[st.id]?.text ?? '';
         final weight = _weightControllers[st.id]?.text ?? '';
@@ -303,7 +306,7 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
   }
 
   bool _isCardio(RoutineExercise re) {
-    return re.exercise.categoryName.toLowerCase() == 'cardio';
+    return re.exercise.isCardio;
   }
 
   /// Expands the cards once the drop animation and the reorder have finished.
@@ -405,7 +408,7 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
 
     if (selectedExercise != null && _routineId != null) {
       // FIX: Check cardio before adding.
-      final isCardio = selectedExercise.categoryName.toLowerCase() == 'cardio';
+      final isCardio = selectedExercise.isCardio;
       final initialSetCount = isCardio ? 1 : 3;
 
       final newRoutineExercise =
@@ -508,7 +511,7 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                     final unitService = context.read<UnitService>();
                     return unitService.convertToMetric(
                         raw,
-                        re.exercise.categoryName.toLowerCase() == 'cardio'
+                        re.exercise.isCardio
                             ? UnitDimension.distance
                             : UnitDimension.weight);
                   })(),
@@ -559,6 +562,8 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
         exercise: routineExercise.exercise,
         setTemplates: updatedTemplates,
         pauseSeconds: routineExercise.pauseSeconds,
+        supersetGroup: routineExercise.supersetGroup,
+        notes: routineExercise.notes,
       );
       _routineExercises[exerciseIndex] = updatedExercise;
 
@@ -643,12 +648,8 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
       final updatedTemplates = [...routineExercise.setTemplates];
       updatedTemplates[setIndex] = setTemplate.copyWith(setType: newType);
 
-      _routineExercises[reIndex] = RoutineExercise(
-        id: routineExercise.id,
-        exercise: routineExercise.exercise,
-        setTemplates: updatedTemplates,
-        pauseSeconds: routineExercise.pauseSeconds,
-      );
+      _routineExercises[reIndex] =
+          routineExercise.copyWith(setTemplates: updatedTemplates);
     });
   }
 
@@ -771,6 +772,12 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
     );
 
     if (confirmed && _routineId != null) {
+      // Deleting reloads the routine from the DB, so any edits that only live
+      // in the text controllers (or freshly added sets) would be thrown away.
+      // Persist them first and abort the delete if that fails.
+      final persisted = await _persistRoutineState();
+      if (!persisted || !mounted) return;
+
       final id = ex.id;
       if (id != null) {
         HapticFeedbackService.instance.selectionFeedback();
@@ -787,11 +794,36 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
 
   void _onReorderItem(int oldIndex, int newIndex) {
     setState(() {
-      final RoutineExercise item = _routineExercises.removeAt(oldIndex);
-      _routineExercises.insert(newIndex, item);
+      _routineExercises = reorderRoutineExercise(
+        _routineExercises,
+        oldIndex,
+        newIndex,
+      );
     });
     if (_routineId != null) {
       WorkoutLocalDataSource.instance.updateExerciseOrder(
+        _routineId!,
+        _routineExercises,
+      );
+    }
+    _originalState = _serializeState();
+  }
+
+  Future<void> _toggleSupersetAfter(int upperIndex) async {
+    if (upperIndex < 0 || upperIndex + 1 >= _routineExercises.length) return;
+    // The action writes immediately. Preserve any controller-only edits in the
+    // same transaction boundary before changing the group state.
+    final persisted = await _persistRoutineState();
+    if (!persisted || !mounted) return;
+    setState(() {
+      _routineExercises = toggleSupersetConnectionAfter(
+        _routineExercises,
+        upperIndex,
+      );
+    });
+
+    if (_routineId != null) {
+      await WorkoutLocalDataSource.instance.updateExerciseOrder(
         _routineId!,
         _routineExercises,
       );
@@ -925,168 +957,252 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                                   )
                                 : Listener(
                                     onPointerMove: (e) {
-                                       if (_isDragActive) {
-                                         _trackReorderHover(e.position.dy);
-                                       }
-                                     },
-                                     child: ReorderableListView.builder(
-                                       scrollController: _scrollController,
-                                       buildDefaultDragHandles: false,
-                                       scrollCacheExtent:
-                                           const ScrollCacheExtent.pixels(1500.0),
-                                       header: ReorderHeadroom(
-                                         height: _isDragging
-                                             ? _dynamicHeadroom
-                                             : 0.0,
-                                       ),
-                                       itemCount: _routineExercises.length,
-                                       padding: EdgeInsets.only(
-                                         top: _isEditMode ? 0.0 : topPadding,
-                                         bottom: DesignConstants
-                                                 .bottomContentSpacer +
-                                             MediaQuery.paddingOf(context).bottom,
-                                       ),
-                                       proxyDecorator: (Widget child, int index,
-                                           Animation<double> animation) {
-                                         if (index >= 0 &&
-                                             index < _routineExercises.length) {
-                                           final routineExercise =
-                                               _routineExercises[index];
-                                           final proxyChild =
-                                               EditRoutineExerciseCard(
-                                             routineExercise: routineExercise,
-                                             index: index,
-                                             isCardio: _isCardio(routineExercise),
-                                             isDragging: true,
-                                             isEditMode: _isEditMode,
-                                             repsControllers: _repsControllers,
-                                             weightControllers: _weightControllers,
-                                             rirControllers: _rirControllers,
-                                             onEditNotes: () {},
-                                             onEditPauseTime: () {},
-                                             onDeleteExercise: () {},
-                                             onAddSet: () {},
-                                             onShowSetTypePicker: (_) {},
-                                             onRemoveSet: (_, __) {},
-                                           );
-                                           return buildReorderDragProxy(
-                                               context, proxyChild, animation);
-                                         }
-                                         return buildReorderDragProxy(
-                                             context, child, animation);
-                                       },
-                                       onReorderStart: (index) {
-                                         if (!_isEditMode) return;
-                                         _isDragActive = true;
-                                         ReorderHapticFeedback.onDragStart(index);
-                                         _scrollAnchor.discard();
-                                         _collapseTimer?.cancel();
-                                         _expandTimer?.cancel();
-                                         if (!_isDragging) {
-                                           setState(() {
-                                             _isDragging = true;
-                                           });
-                                         }
-                                         WidgetsBinding.instance
-                                             .addPostFrameCallback((_) {
-                                           if (_fabOverlayController.isShowing) {
-                                             _fabOverlayController.hide();
-                                             _fabOverlayController.show();
-                                           }
-                                         });
-                                       },
-                                       onReorderEnd: (index) {
-                                         _isDragActive = false;
-                                         ReorderHapticFeedback.onDragEnd();
-                                         _scheduleExpandAfterDrop();
-                                       },
-                                       onReorderItem: _onReorderItem,
-                                       itemBuilder: (context, index) {
-                                      final routineExercise =
-                                          _routineExercises[index];
-                                      final bool isCardio =
-                                          _isCardio(routineExercise);
-
-                                      final isDeleting = _deletingExerciseIds
-                                          .contains(routineExercise.id);
-
-                                      return KeyedSubtree(
-                                        key: _scrollAnchor.keyFor(
-                                          routineExercise.id ?? index,
-                                        ),
-                                        child: AnimatedSize(
-                                          duration: kReorderCardResizeDuration,
-                                          curve: Curves.easeInOutCubic,
-                                          alignment: Alignment.topCenter,
-                                          child: isDeleting
-                                              ? const SizedBox(
-                                                  width: double.infinity,
-                                                  height: 0)
-                                              : AnimatedOpacity(
-                                                  duration: const Duration(
-                                                      milliseconds: 180),
-                                                  curve: Curves.easeOut,
-                                                  opacity:
-                                                      isDeleting ? 0.0 : 1.0,
-                                                  child: RepaintBoundary(
-                                                    key: ValueKey(
-                                                        routineExercise.id),
-                                                    child:
-                                                        EditRoutineExerciseCard(
-                                                      routineExercise:
-                                                          routineExercise,
-                                                      index: index,
-                                                      isCardio: isCardio,
-                                                      isDragging: _isDragging,
-                                                      isEditMode: _isEditMode,
-                                                      onPointerDown: (e) =>
-                                                          _onDragPointerDown(
-                                                              e,
-                                                              routineExercise
-                                                                      .id ??
-                                                                  index,
-                                                              index),
-                                                      onPointerMove:
-                                                          _onDragPointerMove,
-                                                      onPointerUp:
-                                                          _onDragPointerUp,
-                                                      onPointerCancel:
-                                                          _onDragPointerCancel,
-                                                      repsControllers:
-                                                          _repsControllers,
-                                                      weightControllers:
-                                                          _weightControllers,
-                                                      rirControllers:
-                                                          _rirControllers,
-                                                      onEditNotes: () =>
-                                                          _editExerciseNotes(
-                                                              context,
-                                                              routineExercise),
-                                                      onEditPauseTime: () =>
-                                                          _editPauseTime(
-                                                              routineExercise),
-                                                      onDeleteExercise: () =>
-                                                          _deleteSingleExercise(
-                                                              routineExercise),
-                                                      onAddSet: () => _addSet(
-                                                          routineExercise),
-                                                      onShowSetTypePicker:
-                                                          _showSetTypePicker,
-                                                      onRemoveSet: (template,
-                                                              listIndex) =>
-                                                          _removeSet(
-                                                              routineExercise,
-                                                              template.id!,
-                                                              listIndex),
-                                                    ),
-                                                  ),
-                                                ),
-                                        ),
-                                      );
+                                      if (_isDragActive) {
+                                        _trackReorderHover(e.position.dy);
+                                      }
                                     },
+                                    child: ReorderableListView.builder(
+                                      scrollController: _scrollController,
+                                      buildDefaultDragHandles: false,
+                                      scrollCacheExtent:
+                                          const ScrollCacheExtent.pixels(
+                                              1500.0),
+                                      header: ReorderHeadroom(
+                                        height: _isDragging
+                                            ? _dynamicHeadroom
+                                            : 0.0,
+                                      ),
+                                      itemCount: _routineExercises.length,
+                                      padding: EdgeInsets.only(
+                                        top: _isEditMode ? 0.0 : topPadding,
+                                        bottom: DesignConstants
+                                                .bottomContentSpacer +
+                                            MediaQuery.paddingOf(context)
+                                                .bottom,
+                                      ),
+                                      proxyDecorator: (Widget child, int index,
+                                          Animation<double> animation) {
+                                        if (index >= 0 &&
+                                            index < _routineExercises.length) {
+                                          final routineExercise =
+                                              _routineExercises[index];
+                                          final membership =
+                                              supersetMembershipAt(
+                                            _routineExercises,
+                                            index,
+                                          );
+                                          final supersetColor = membership ==
+                                                  null
+                                              ? null
+                                              : DesignConstants.supersetColors[
+                                                  membership.groupIndex %
+                                                      DesignConstants
+                                                          .supersetColors
+                                                          .length];
+                                          final proxyChild =
+                                              EditRoutineExerciseCard(
+                                            routineExercise: routineExercise,
+                                            index: index,
+                                            isCardio:
+                                                _isCardio(routineExercise),
+                                            isDragging: true,
+                                            isEditMode: _isEditMode,
+                                            canDrag: true,
+                                            showPauseAction:
+                                                membership?.isLast ?? true,
+                                            supersetLabel: membership?.label,
+                                            supersetColor: supersetColor,
+                                            repsControllers: _repsControllers,
+                                            weightControllers:
+                                                _weightControllers,
+                                            rirControllers: _rirControllers,
+                                            onEditNotes: () {},
+                                            onEditPauseTime: () {},
+                                            onDeleteExercise: () {},
+                                            onAddSet: () {},
+                                            onShowSetTypePicker: (_) {},
+                                            onRemoveSet: (_, __) {},
+                                          );
+                                          return buildReorderDragProxy(
+                                              context, proxyChild, animation);
+                                        }
+                                        return buildReorderDragProxy(
+                                            context, child, animation);
+                                      },
+                                      onReorderStart: (index) {
+                                        if (!_isEditMode) return;
+                                        _isDragActive = true;
+                                        ReorderHapticFeedback.onDragStart(
+                                            index);
+                                        _scrollAnchor.discard();
+                                        _collapseTimer?.cancel();
+                                        _expandTimer?.cancel();
+                                        if (!_isDragging) {
+                                          setState(() {
+                                            _isDragging = true;
+                                          });
+                                        }
+                                        WidgetsBinding.instance
+                                            .addPostFrameCallback((_) {
+                                          if (_fabOverlayController.isShowing) {
+                                            _fabOverlayController.hide();
+                                            _fabOverlayController.show();
+                                          }
+                                        });
+                                      },
+                                      onReorderEnd: (index) {
+                                        _isDragActive = false;
+                                        ReorderHapticFeedback.onDragEnd();
+                                        _scheduleExpandAfterDrop();
+                                      },
+                                      onReorderItem: _onReorderItem,
+                                      itemBuilder: (context, index) {
+                                        final routineExercise =
+                                            _routineExercises[index];
+                                        final bool isCardio =
+                                            _isCardio(routineExercise);
+                                        final membership = supersetMembershipAt(
+                                          _routineExercises,
+                                          index,
+                                        );
+                                        final supersetColor = membership == null
+                                            ? null
+                                            : DesignConstants.supersetColors[
+                                                membership.groupIndex %
+                                                    DesignConstants
+                                                        .supersetColors.length];
+
+                                        final isDeleting = _deletingExerciseIds
+                                            .contains(routineExercise.id);
+
+                                        return KeyedSubtree(
+                                          key: _scrollAnchor.keyFor(
+                                            routineExercise.id ?? index,
+                                          ),
+                                          child: Column(
+                                            children: [
+                                              AnimatedSize(
+                                                duration:
+                                                    kReorderCardResizeDuration,
+                                                curve: Curves.easeInOutCubic,
+                                                alignment: Alignment.topCenter,
+                                                child: isDeleting
+                                                    ? const SizedBox(
+                                                        width: double.infinity,
+                                                        height: 0)
+                                                    : AnimatedOpacity(
+                                                        duration:
+                                                            const Duration(
+                                                                milliseconds:
+                                                                    180),
+                                                        curve: Curves.easeOut,
+                                                        opacity: isDeleting
+                                                            ? 0.0
+                                                            : 1.0,
+                                                        child: RepaintBoundary(
+                                                          key: ValueKey(
+                                                              routineExercise
+                                                                  .id),
+                                                          child:
+                                                              EditRoutineExerciseCard(
+                                                            routineExercise:
+                                                                routineExercise,
+                                                            index: index,
+                                                            isCardio: isCardio,
+                                                            isDragging:
+                                                                _isDragging,
+                                                            isEditMode:
+                                                                _isEditMode,
+                                                            canDrag: true,
+                                                            showPauseAction:
+                                                                membership
+                                                                        ?.isLast ??
+                                                                    true,
+                                                            supersetLabel:
+                                                                membership
+                                                                    ?.label,
+                                                            supersetColor:
+                                                                supersetColor,
+                                                            continuesSupersetAbove:
+                                                                !(membership
+                                                                        ?.isFirst ??
+                                                                    true),
+                                                            continuesSupersetBelow:
+                                                                !(membership
+                                                                        ?.isLast ??
+                                                                    true),
+                                                            onToggleSupersetBelow: index +
+                                                                        1 <
+                                                                    _routineExercises
+                                                                        .length
+                                                                ? () =>
+                                                                    _toggleSupersetAfter(
+                                                                        index)
+                                                                : null,
+                                                            isConnectedBelow: index +
+                                                                        1 <
+                                                                    _routineExercises
+                                                                        .length &&
+                                                                routineExercise
+                                                                        .supersetGroup !=
+                                                                    null &&
+                                                                routineExercise
+                                                                        .supersetGroup ==
+                                                                    _routineExercises[
+                                                                            index +
+                                                                                1]
+                                                                        .supersetGroup,
+                                                            onPointerDown: (e) =>
+                                                                _onDragPointerDown(
+                                                                    e,
+                                                                    routineExercise
+                                                                            .id ??
+                                                                        index,
+                                                                    index),
+                                                            onPointerMove:
+                                                                _onDragPointerMove,
+                                                            onPointerUp:
+                                                                _onDragPointerUp,
+                                                            onPointerCancel:
+                                                                _onDragPointerCancel,
+                                                            repsControllers:
+                                                                _repsControllers,
+                                                            weightControllers:
+                                                                _weightControllers,
+                                                            rirControllers:
+                                                                _rirControllers,
+                                                            onEditNotes: () =>
+                                                                _editExerciseNotes(
+                                                                    context,
+                                                                    routineExercise),
+                                                            onEditPauseTime: () =>
+                                                                _editPauseTime(
+                                                                    routineExercise),
+                                                            onDeleteExercise: () =>
+                                                                _deleteSingleExercise(
+                                                                    routineExercise),
+                                                            onAddSet: () => _addSet(
+                                                                routineExercise),
+                                                            onShowSetTypePicker:
+                                                                _showSetTypePicker,
+                                                            onRemoveSet: (template,
+                                                                    listIndex) =>
+                                                                _removeSet(
+                                                                    routineExercise,
+                                                                    template
+                                                                        .id!,
+                                                                    listIndex),
+                                                          ),
+                                                        ),
+                                                      ),
+                                              ),
+                                            ],
+                                          ),
+                                        );
+                                      },
+                                    ),
                                   ),
-                                 ),
-                       ),
+                      ),
                     ],
                   ),
                 ),

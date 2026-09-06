@@ -123,7 +123,7 @@ void main() {
       // Carousel is rendered
       expect(find.byType(PageView), findsOneWidget);
       // Delete button is present in header
-      expect(find.byIcon(LucideIcons.trash_2), findsOneWidget);
+      expect(find.byIcon(LucideIcons.trash), findsOneWidget);
       // Bottom add buttons are hidden because photo count is 4
       expect(find.text('Take photo'), findsNothing);
       expect(find.text('Choose from library'), findsNothing);
@@ -153,8 +153,8 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.byIcon(LucideIcons.trash_2), findsOneWidget);
-      await tester.tap(find.byIcon(LucideIcons.trash_2));
+      expect(find.byIcon(LucideIcons.trash), findsOneWidget);
+      await tester.tap(find.byIcon(LucideIcons.trash));
       await tester.pumpAndSettle();
 
       // Glass bottom menu is shown with title and confirm button
@@ -171,7 +171,8 @@ void main() {
       expect(updatedResult, ['media/workouts/p2.jpg']);
     });
 
-    testWidgets('renders borderless squircle photo without SummaryCard in view mode',
+    testWidgets(
+        'renders borderless squircle photo without SummaryCard in view mode',
         (tester) async {
       write('media/workouts/p1.jpg', [1, 2, 3]);
       write('media/workouts/p2.jpg', [1, 2, 3]);
@@ -191,7 +192,7 @@ void main() {
       // Top-right counter badge is rendered on multi-photo
       expect(find.text('1 of 2'), findsOneWidget);
       // No trash button
-      expect(find.byIcon(LucideIcons.trash_2), findsNothing);
+      expect(find.byIcon(LucideIcons.trash), findsNothing);
     });
   });
 }

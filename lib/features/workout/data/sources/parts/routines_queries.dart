@@ -82,6 +82,7 @@ extension RoutinesQueries on WorkoutLocalDataSource {
                 routineId: drift.Value(routineUuid),
                 exerciseId: drift.Value(exerciseUuid),
                 orderIndex: drift.Value(maxOrder + 1),
+                supersetGroup: const drift.Value(null),
               ),
             );
 
@@ -116,11 +117,31 @@ extension RoutinesQueries on WorkoutLocalDataSource {
 
   Future<void> removeExerciseFromRoutine(int routineExerciseId) async {
     final dbInstance = await database;
-    // OnDelete cascade in the DB definition should delete children.
-    await (dbInstance.delete(
-      dbInstance.routineExercises,
-    )..where((tbl) => tbl.localId.equals(routineExerciseId)))
-        .go();
+    await dbInstance.transaction(() async {
+      final removed = await (dbInstance.select(dbInstance.routineExercises)
+            ..where((tbl) => tbl.localId.equals(routineExerciseId)))
+          .getSingleOrNull();
+
+      // OnDelete cascade in the DB definition deletes child templates.
+      await (dbInstance.delete(dbInstance.routineExercises)
+            ..where((tbl) => tbl.localId.equals(routineExerciseId)))
+          .go();
+
+      final group = removed?.supersetGroup;
+      if (group == null) return;
+      final remaining = await (dbInstance.select(dbInstance.routineExercises)
+            ..where((tbl) =>
+                tbl.routineId.equals(removed!.routineId) &
+                tbl.supersetGroup.equals(group)))
+          .get();
+      if (remaining.length == 1) {
+        await (dbInstance.update(dbInstance.routineExercises)
+              ..where((tbl) => tbl.id.equals(remaining.single.id)))
+            .write(const db.RoutineExercisesCompanion(
+          supersetGroup: drift.Value(null),
+        ));
+      }
+    });
   }
 
   Future<void> updateExerciseOrder(
@@ -128,13 +149,17 @@ extension RoutinesQueries on WorkoutLocalDataSource {
     List<RoutineExercise> orderedExercises,
   ) async {
     final dbInstance = await database;
+    final normalized = normalizeSupersetGroups(orderedExercises);
     await dbInstance.transaction(() async {
-      for (int i = 0; i < orderedExercises.length; i++) {
-        final re = orderedExercises[i];
+      for (int i = 0; i < normalized.length; i++) {
+        final re = normalized[i];
         if (re.id != null) {
           await (dbInstance.update(dbInstance.routineExercises)
                 ..where((tbl) => tbl.localId.equals(re.id!)))
-              .write(db.RoutineExercisesCompanion(orderIndex: drift.Value(i)));
+              .write(db.RoutineExercisesCompanion(
+            orderIndex: drift.Value(i),
+            supersetGroup: drift.Value(re.supersetGroup),
+          ));
         }
       }
     });
@@ -200,6 +225,7 @@ extension RoutinesQueries on WorkoutLocalDataSource {
           exercise: await _mapExerciseRowToModel(dbInstance, exData),
           setTemplates: setTemplates,
           pauseSeconds: reData.pauseSeconds,
+          supersetGroup: reData.supersetGroup,
           notes: reData.notes,
         ),
       );
@@ -208,7 +234,7 @@ extension RoutinesQueries on WorkoutLocalDataSource {
     return Routine(
       id: routineRow.localId,
       name: routineRow.name,
-      exercises: exercisesList,
+      exercises: normalizeSupersetGroups(exercisesList),
     );
   }
 
@@ -286,6 +312,7 @@ extension RoutinesQueries on WorkoutLocalDataSource {
         await replaceSetTemplatesForExercise(newRe.id!, re.setTemplates);
         // Copy rest duration
         await updatePauseTime(newRe.id!, re.pauseSeconds);
+        await updateSupersetGroup(newRe.id!, re.supersetGroup);
         // Copy notes
         await updateRoutineExerciseNotes(newRe.id!, re.notes);
       }
@@ -300,6 +327,18 @@ extension RoutinesQueries on WorkoutLocalDataSource {
         .write(
       db.RoutineExercisesCompanion(pauseSeconds: drift.Value(seconds)),
     );
+  }
+
+  Future<void> updateSupersetGroup(
+    int routineExerciseId,
+    int? supersetGroup,
+  ) async {
+    final dbInstance = await database;
+    await (dbInstance.update(dbInstance.routineExercises)
+          ..where((tbl) => tbl.localId.equals(routineExerciseId)))
+        .write(db.RoutineExercisesCompanion(
+      supersetGroup: drift.Value(supersetGroup),
+    ));
   }
 
   Future<void> updateRoutineExerciseNotes(
@@ -481,7 +520,9 @@ extension RoutinesQueries on WorkoutLocalDataSource {
           await (dbInstance.update(dbInstance.routineExercises)
                 ..where((tbl) => tbl.id.equals(originalRe.id)))
               .write(db.RoutineExercisesCompanion(
-                  orderIndex: drift.Value(orderIndex)));
+            orderIndex: drift.Value(orderIndex),
+            supersetGroup: drift.Value(setsForEx.first.supersetGroup),
+          ));
           routineExerciseUuid = originalRe.id;
         } else {
           // Rule 3: Total Absorption for Novel Entities
@@ -492,6 +533,7 @@ extension RoutinesQueries on WorkoutLocalDataSource {
                   routineId: drift.Value(routineUuid),
                   exerciseId: drift.Value(exerciseUuid),
                   orderIndex: drift.Value(orderIndex),
+                  supersetGroup: drift.Value(setsForEx.first.supersetGroup),
                 ),
               );
           routineExerciseUuid = newReRow.id;
@@ -708,6 +750,7 @@ extension RoutinesQueries on WorkoutLocalDataSource {
                     routineId: drift.Value(routineRow.id),
                     exerciseId: drift.Value(exerciseUuid),
                     orderIndex: drift.Value(orderIndex),
+                    supersetGroup: drift.Value(setsForEx.first.supersetGroup),
                   ),
                 );
 

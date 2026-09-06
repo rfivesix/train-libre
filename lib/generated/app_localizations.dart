@@ -140,6 +140,30 @@ abstract class AppLocalizations {
   /// **'Remove Timer'**
   String get removeTimer;
 
+  /// No description provided for @connectSuperset.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect as superset'**
+  String get connectSuperset;
+
+  /// No description provided for @disconnectSuperset.
+  ///
+  /// In en, this message translates to:
+  /// **'Dissolve superset'**
+  String get disconnectSuperset;
+
+  /// No description provided for @connectSupersetShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Superset'**
+  String get connectSupersetShort;
+
+  /// No description provided for @disconnectSupersetShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlink'**
+  String get disconnectSupersetShort;
+
   /// No description provided for @noTimerLabel.
   ///
   /// In en, this message translates to:
@@ -1853,8 +1877,20 @@ abstract class AppLocalizations {
   /// No description provided for @exerciseDataAttribution.
   ///
   /// In en, this message translates to:
-  /// **'Exercise data from wger'**
+  /// **'Exercise data from OpenExerciseDB'**
   String get exerciseDataAttribution;
+
+  /// No description provided for @exerciseDataLicense.
+  ///
+  /// In en, this message translates to:
+  /// **'Exercise data licence'**
+  String get exerciseDataLicense;
+
+  /// No description provided for @exerciseDataUpstream.
+  ///
+  /// In en, this message translates to:
+  /// **'Derived in part from wger'**
+  String get exerciseDataUpstream;
 
   /// No description provided for @duplicate.
   ///
@@ -3605,7 +3641,7 @@ abstract class AppLocalizations {
   /// No description provided for @attributionText.
   ///
   /// In en, this message translates to:
-  /// **'This app uses data from external sources:\n\n● Exercise data and images from wger (wger.de), licensed under CC-BY-SA 4.0.\n\n● Food database from Open Food Facts (openfoodfacts.org), available under the Open Database License (ODbL).'**
+  /// **'This app uses data from external sources:\n\n● Exercise data from OpenExerciseDB (github.com/rfivesix/OpenExerciseDB), licensed under CC BY-SA 4.0, derived in part from the wger project (wger.de).\n\n● Food database from Open Food Facts (openfoodfacts.org), available under the Open Database License (ODbL).'**
   String get attributionText;
 
   /// No description provided for @errorRoutineNotFound.
@@ -6016,6 +6052,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No record yet'**
   String get analyticsNoRecordYet;
+
+  /// No description provided for @analyticsNoRecordsInPeriod.
+  ///
+  /// In en, this message translates to:
+  /// **'No personal bests in this period'**
+  String get analyticsNoRecordsInPeriod;
 
   /// No description provided for @analyticsNotableImprovements.
   ///
@@ -10324,7 +10366,7 @@ abstract class AppLocalizations {
   /// No description provided for @exerciseCatalogWger.
   ///
   /// In en, this message translates to:
-  /// **'Exercise Catalog (wger)'**
+  /// **'Exercise Catalog (OpenExerciseDB)'**
   String get exerciseCatalogWger;
 
   /// No description provided for @nutritionCatalogOff.
@@ -11166,6 +11208,486 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{current} of {total}'**
   String workoutPhotoPagination(int current, int total);
+
+  /// No description provided for @catalogFilterTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter'**
+  String get catalogFilterTitle;
+
+  /// No description provided for @catalogFilterBodyRegion.
+  ///
+  /// In en, this message translates to:
+  /// **'Body region'**
+  String get catalogFilterBodyRegion;
+
+  /// No description provided for @catalogFilterEquipment.
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment'**
+  String get catalogFilterEquipment;
+
+  /// No description provided for @catalogFilterUsage.
+  ///
+  /// In en, this message translates to:
+  /// **'Purpose'**
+  String get catalogFilterUsage;
+
+  /// No description provided for @catalogFilterReset.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset'**
+  String get catalogFilterReset;
+
+  /// No description provided for @catalogFilterCombineHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Several picks in one section widen the results; picks across sections narrow them.'**
+  String get catalogFilterCombineHint;
+
+  /// No description provided for @catalogFilterDifficulty.
+  ///
+  /// In en, this message translates to:
+  /// **'Difficulty'**
+  String get catalogFilterDifficulty;
+
+  /// No description provided for @catalogFilterMechanic.
+  ///
+  /// In en, this message translates to:
+  /// **'Mechanic'**
+  String get catalogFilterMechanic;
+
+  /// No description provided for @catalogFilterLaterality.
+  ///
+  /// In en, this message translates to:
+  /// **'Sides'**
+  String get catalogFilterLaterality;
+
+  /// No description provided for @exerciseDifficultyBeginner.
+  ///
+  /// In en, this message translates to:
+  /// **'Beginner'**
+  String get exerciseDifficultyBeginner;
+
+  /// No description provided for @exerciseDifficultyIntermediate.
+  ///
+  /// In en, this message translates to:
+  /// **'Intermediate'**
+  String get exerciseDifficultyIntermediate;
+
+  /// No description provided for @exerciseDifficultyAdvanced.
+  ///
+  /// In en, this message translates to:
+  /// **'Advanced'**
+  String get exerciseDifficultyAdvanced;
+
+  /// No description provided for @exerciseMechanicCompound.
+  ///
+  /// In en, this message translates to:
+  /// **'Compound'**
+  String get exerciseMechanicCompound;
+
+  /// No description provided for @exerciseMechanicIsolation.
+  ///
+  /// In en, this message translates to:
+  /// **'Isolation'**
+  String get exerciseMechanicIsolation;
+
+  /// No description provided for @exerciseLateralityBilateral.
+  ///
+  /// In en, this message translates to:
+  /// **'Both sides'**
+  String get exerciseLateralityBilateral;
+
+  /// No description provided for @exerciseLateralityUnilateral.
+  ///
+  /// In en, this message translates to:
+  /// **'One side'**
+  String get exerciseLateralityUnilateral;
+
+  /// No description provided for @exerciseLateralityAlternating.
+  ///
+  /// In en, this message translates to:
+  /// **'Alternating'**
+  String get exerciseLateralityAlternating;
+
+  /// No description provided for @exerciseUsageWarmup.
+  ///
+  /// In en, this message translates to:
+  /// **'Warm-up'**
+  String get exerciseUsageWarmup;
+
+  /// No description provided for @exerciseUsageActivation.
+  ///
+  /// In en, this message translates to:
+  /// **'Activation'**
+  String get exerciseUsageActivation;
+
+  /// No description provided for @exerciseUsageMainLift.
+  ///
+  /// In en, this message translates to:
+  /// **'Main lift'**
+  String get exerciseUsageMainLift;
+
+  /// No description provided for @exerciseUsageAccessory.
+  ///
+  /// In en, this message translates to:
+  /// **'Accessory'**
+  String get exerciseUsageAccessory;
+
+  /// No description provided for @exerciseUsageConditioning.
+  ///
+  /// In en, this message translates to:
+  /// **'Conditioning'**
+  String get exerciseUsageConditioning;
+
+  /// No description provided for @exerciseUsageFinisher.
+  ///
+  /// In en, this message translates to:
+  /// **'Finisher'**
+  String get exerciseUsageFinisher;
+
+  /// No description provided for @exerciseUsageCooldown.
+  ///
+  /// In en, this message translates to:
+  /// **'Cool-down'**
+  String get exerciseUsageCooldown;
+
+  /// No description provided for @exerciseUsagePrehab.
+  ///
+  /// In en, this message translates to:
+  /// **'Prehab'**
+  String get exerciseUsagePrehab;
+
+  /// No description provided for @exerciseForcePush.
+  ///
+  /// In en, this message translates to:
+  /// **'Push'**
+  String get exerciseForcePush;
+
+  /// No description provided for @exerciseForcePull.
+  ///
+  /// In en, this message translates to:
+  /// **'Pull'**
+  String get exerciseForcePull;
+
+  /// No description provided for @exerciseForceStatic.
+  ///
+  /// In en, this message translates to:
+  /// **'Static'**
+  String get exerciseForceStatic;
+
+  /// No description provided for @exercisePatternHorizontalPush.
+  ///
+  /// In en, this message translates to:
+  /// **'Horizontal push'**
+  String get exercisePatternHorizontalPush;
+
+  /// No description provided for @exercisePatternHorizontalPull.
+  ///
+  /// In en, this message translates to:
+  /// **'Horizontal pull'**
+  String get exercisePatternHorizontalPull;
+
+  /// No description provided for @exercisePatternVerticalPush.
+  ///
+  /// In en, this message translates to:
+  /// **'Vertical push'**
+  String get exercisePatternVerticalPush;
+
+  /// No description provided for @exercisePatternVerticalPull.
+  ///
+  /// In en, this message translates to:
+  /// **'Vertical pull'**
+  String get exercisePatternVerticalPull;
+
+  /// No description provided for @exercisePatternSquat.
+  ///
+  /// In en, this message translates to:
+  /// **'Squat'**
+  String get exercisePatternSquat;
+
+  /// No description provided for @exercisePatternHinge.
+  ///
+  /// In en, this message translates to:
+  /// **'Hip hinge'**
+  String get exercisePatternHinge;
+
+  /// No description provided for @exercisePatternLunge.
+  ///
+  /// In en, this message translates to:
+  /// **'Lunge'**
+  String get exercisePatternLunge;
+
+  /// No description provided for @exercisePatternGait.
+  ///
+  /// In en, this message translates to:
+  /// **'Gait'**
+  String get exercisePatternGait;
+
+  /// No description provided for @exercisePatternCarry.
+  ///
+  /// In en, this message translates to:
+  /// **'Carry'**
+  String get exercisePatternCarry;
+
+  /// No description provided for @exercisePatternRotation.
+  ///
+  /// In en, this message translates to:
+  /// **'Rotation'**
+  String get exercisePatternRotation;
+
+  /// No description provided for @exercisePatternAntiRotation.
+  ///
+  /// In en, this message translates to:
+  /// **'Anti-rotation'**
+  String get exercisePatternAntiRotation;
+
+  /// No description provided for @exercisePatternAntiExtension.
+  ///
+  /// In en, this message translates to:
+  /// **'Anti-extension'**
+  String get exercisePatternAntiExtension;
+
+  /// No description provided for @exercisePatternAntiFlexion.
+  ///
+  /// In en, this message translates to:
+  /// **'Anti-flexion'**
+  String get exercisePatternAntiFlexion;
+
+  /// No description provided for @exercisePatternAntiLateralFlexion.
+  ///
+  /// In en, this message translates to:
+  /// **'Anti-lateral flexion'**
+  String get exercisePatternAntiLateralFlexion;
+
+  /// No description provided for @exercisePatternSpinalFlexion.
+  ///
+  /// In en, this message translates to:
+  /// **'Spinal flexion'**
+  String get exercisePatternSpinalFlexion;
+
+  /// No description provided for @exercisePatternSpinalExtension.
+  ///
+  /// In en, this message translates to:
+  /// **'Spinal extension'**
+  String get exercisePatternSpinalExtension;
+
+  /// No description provided for @exercisePatternElbowFlexion.
+  ///
+  /// In en, this message translates to:
+  /// **'Elbow flexion'**
+  String get exercisePatternElbowFlexion;
+
+  /// No description provided for @exercisePatternElbowExtension.
+  ///
+  /// In en, this message translates to:
+  /// **'Elbow extension'**
+  String get exercisePatternElbowExtension;
+
+  /// No description provided for @exercisePatternShoulderFlexion.
+  ///
+  /// In en, this message translates to:
+  /// **'Shoulder flexion'**
+  String get exercisePatternShoulderFlexion;
+
+  /// No description provided for @exercisePatternShoulderAbduction.
+  ///
+  /// In en, this message translates to:
+  /// **'Shoulder abduction'**
+  String get exercisePatternShoulderAbduction;
+
+  /// No description provided for @exercisePatternScapularElevation.
+  ///
+  /// In en, this message translates to:
+  /// **'Scapular elevation'**
+  String get exercisePatternScapularElevation;
+
+  /// No description provided for @exercisePatternHipExtension.
+  ///
+  /// In en, this message translates to:
+  /// **'Hip extension'**
+  String get exercisePatternHipExtension;
+
+  /// No description provided for @exercisePatternHipAbduction.
+  ///
+  /// In en, this message translates to:
+  /// **'Hip abduction'**
+  String get exercisePatternHipAbduction;
+
+  /// No description provided for @exercisePatternHipAdduction.
+  ///
+  /// In en, this message translates to:
+  /// **'Hip adduction'**
+  String get exercisePatternHipAdduction;
+
+  /// No description provided for @exercisePatternKneeFlexion.
+  ///
+  /// In en, this message translates to:
+  /// **'Knee flexion'**
+  String get exercisePatternKneeFlexion;
+
+  /// No description provided for @exercisePatternKneeExtension.
+  ///
+  /// In en, this message translates to:
+  /// **'Knee extension'**
+  String get exercisePatternKneeExtension;
+
+  /// No description provided for @exercisePatternPlantarFlexion.
+  ///
+  /// In en, this message translates to:
+  /// **'Plantar flexion'**
+  String get exercisePatternPlantarFlexion;
+
+  /// No description provided for @exercisePatternDorsiflexion.
+  ///
+  /// In en, this message translates to:
+  /// **'Dorsiflexion'**
+  String get exercisePatternDorsiflexion;
+
+  /// No description provided for @exercisePatternWristFlexion.
+  ///
+  /// In en, this message translates to:
+  /// **'Wrist flexion'**
+  String get exercisePatternWristFlexion;
+
+  /// No description provided for @exercisePatternWristExtension.
+  ///
+  /// In en, this message translates to:
+  /// **'Wrist extension'**
+  String get exercisePatternWristExtension;
+
+  /// No description provided for @settingsDeveloperTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Developer'**
+  String get settingsDeveloperTitle;
+
+  /// No description provided for @settingsDeveloperSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Diagnostics and experimental options'**
+  String get settingsDeveloperSubtitle;
+
+  /// No description provided for @developerLabExperienceSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Experience level'**
+  String get developerLabExperienceSection;
+
+  /// No description provided for @developerLabExperienceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Experience level'**
+  String get developerLabExperienceLabel;
+
+  /// No description provided for @developerLabExperienceHint.
+  ///
+  /// In en, this message translates to:
+  /// **'For testing only — the level is not asked during onboarding yet.'**
+  String get developerLabExperienceHint;
+
+  /// No description provided for @experienceLevelBeginner.
+  ///
+  /// In en, this message translates to:
+  /// **'Beginner'**
+  String get experienceLevelBeginner;
+
+  /// No description provided for @experienceLevelAdvanced.
+  ///
+  /// In en, this message translates to:
+  /// **'Advanced'**
+  String get experienceLevelAdvanced;
+
+  /// No description provided for @experienceLevelPro.
+  ///
+  /// In en, this message translates to:
+  /// **'Pro'**
+  String get experienceLevelPro;
+
+  /// No description provided for @experienceLevelBeginnerDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'No RIR and no cardio intensity. Muscles are named by region, e.g. “Shoulders” instead of front, lateral and rear deltoid.'**
+  String get experienceLevelBeginnerDescription;
+
+  /// No description provided for @experienceLevelAdvancedDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'No RIR and no cardio intensity. Muscles are named by region, e.g. “Shoulders” instead of front, lateral and rear deltoid.'**
+  String get experienceLevelAdvancedDescription;
+
+  /// No description provided for @experienceLevelProDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'RIR and cardio intensity are shown, and muscles keep their precise anatomical names.'**
+  String get experienceLevelProDescription;
+
+  /// No description provided for @diaryWeightLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight'**
+  String get diaryWeightLabel;
+
+  /// No description provided for @diaryWeightPitch.
+  ///
+  /// In en, this message translates to:
+  /// **'Your calorie target gets more accurate with a weight history'**
+  String get diaryWeightPitch;
+
+  /// No description provided for @diaryWeightStaleNudge.
+  ///
+  /// In en, this message translates to:
+  /// **'It has been a while – regular entries keep your calorie target accurate'**
+  String get diaryWeightStaleNudge;
+
+  /// No description provided for @diaryWeightLog.
+  ///
+  /// In en, this message translates to:
+  /// **'Log'**
+  String get diaryWeightLog;
+
+  /// No description provided for @diaryWeightLogLong.
+  ///
+  /// In en, this message translates to:
+  /// **'Log weight'**
+  String get diaryWeightLogLong;
+
+  /// No description provided for @diaryWeightDaysAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{days, plural, =1{1 day ago} other{{days} days ago}}'**
+  String diaryWeightDaysAgo(int days);
+
+  /// No description provided for @diaryWeightToday.
+  ///
+  /// In en, this message translates to:
+  /// **'today'**
+  String get diaryWeightToday;
+
+  /// No description provided for @diaryWeightRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Outside the usual range'**
+  String get diaryWeightRange;
+
+  /// No description provided for @diaryWeightLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load weight.'**
+  String get diaryWeightLoadError;
+
+  /// No description provided for @diaryWeightSaveError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save weight. Please try again.'**
+  String get diaryWeightSaveError;
+
+  /// No description provided for @diaryWeightRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get diaryWeightRetry;
 }
 
 class _AppLocalizationsDelegate

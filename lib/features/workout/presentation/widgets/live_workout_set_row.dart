@@ -7,6 +7,8 @@ import '../../../../generated/app_localizations.dart';
 import '../../../../services/haptic_feedback_service.dart';
 import '../../../../services/unit_service.dart';
 import '../../../app/presentation/widgets/glass_bottom_menu.dart';
+import '../../domain/classification/exercise_log_mask.dart';
+import 'log_mask_labels.dart';
 import '../../domain/models/set_log.dart';
 import '../../domain/models/set_template.dart';
 import '../live_workout_view_model.dart';
@@ -26,7 +28,15 @@ class LiveWorkoutSetRow extends StatelessWidget {
   final List<SetLog> lastPerfSets;
   final SetTemplate template;
   final LiveWorkoutViewModel manager;
-  final bool isCardio;
+
+  /// Which two inputs this row shows, and what they mean. Replaces the single
+  /// `isCardio` flag, which could only say "distance and time" or "weight and
+  /// reps" and had no way to express a plank or a pull-up.
+  final ExerciseLogMask mask;
+
+  /// The user's current body weight, when recorded. See
+  /// [WorkoutLogSetRow.bodyweightKg].
+  final double? bodyweightKg;
 
   const LiveWorkoutSetRow({
     super.key,
@@ -37,8 +47,15 @@ class LiveWorkoutSetRow extends StatelessWidget {
     required this.lastPerfSets,
     required this.template,
     required this.manager,
-    required this.isCardio,
+    required this.mask,
+    this.bodyweightKg,
   });
+
+  /// True where the old flag was: the row logs a distance and a duration.
+  bool get isCardio => mask.logsDistance && mask.logsDuration;
+
+  /// Column widths, shared with the heading above the row.
+  SetRowFlex get flex => SetRowFlex.forMask(mask);
 
   void _removeSet(int templateId) {
     manager.removeSet(templateId);
@@ -135,7 +152,10 @@ class LiveWorkoutSetRow extends StatelessWidget {
 
     if (isWarmup) return false;
     if (requireCompleted && !isCompleted) return false;
-    if (weight == null || weight <= 0) return false;
+    // A positive *effective* load, not a positive typed number: a pull-up
+    // has no weight in the column and still lifts the user.
+    final load = mask.effectiveLoadKg(weight, bodyweightKg);
+    if (load == null || load <= 0) return false;
     if (reps == null || reps <= 0 || reps > 10) return false;
 
     return true;
@@ -149,9 +169,11 @@ class LiveWorkoutSetRow extends StatelessWidget {
       return null;
     }
 
-    final reps = setLog.reps!;
-    final weight = setLog.weightKg!;
-    return weight * (36 / (37 - reps));
+    return mask.estimatedOneRepMax(
+      loggedWeightKg: setLog.weightKg,
+      reps: setLog.reps,
+      bodyweightKg: bodyweightKg,
+    );
   }
 
   Widget _buildPRBadge(SetLog setLog, BuildContext context) {
@@ -215,6 +237,7 @@ class LiveWorkoutSetRow extends StatelessWidget {
         setLog;
     final bool isCompleted = log.isCompleted ?? false;
     final unitService = context.read<UnitService>();
+    final showsIntensity = showsIntensityColumn(context, mask);
 
     final isLightMode = Theme.of(context).brightness == Brightness.light;
     final Color? textColor =
@@ -233,27 +256,32 @@ class LiveWorkoutSetRow extends StatelessWidget {
         ? '-'
         : (template.targetRir != null ? template.targetRir.toString() : '-');
 
-    if (isCardio) {
-      weightHint = "-"; // Distance Hint
-      repHint = "00:00"; // Time Hint
-    } else {
-      final double tWeight = template.targetWeight ?? 0.0;
-      weightHint = tWeight > 0
+    final double tWeight = template.targetWeight ?? 0.0;
+    weightHint = switch (mask.primary) {
+      LogField.distance => '-',
+      // An added-weight column starts empty, not at zero: empty means "just
+      // me", and the set still counts with the user's full body weight. A
+      // zero would claim the pull-up moved nothing.
+      LogField.addedWeight => '+0',
+      LogField.assistance => '-0',
+      _ => tWeight > 0
           ? unitService
               .convertDisplayValue(tWeight, UnitDimension.weight)
               .toStringAsFixed(1)
               .replaceAll('.0', '')
-          : '0';
-      repHint = (template.targetReps?.isNotEmpty == true)
-          ? template.targetReps!
-          : '0';
-    }
+          : '0',
+    };
+    repHint = mask.logsDuration
+        ? '00:00'
+        : ((template.targetReps?.isNotEmpty == true)
+            ? template.targetReps!
+            : '0');
 
     final rowContent = Row(
       children: [
         // 1. SET NUMBER
         Expanded(
-          flex: isCardio ? 2 : 1,
+          flex: flex.index,
           child: Center(
             child: GestureDetector(
               onTap: () =>
@@ -276,264 +304,318 @@ class LiveWorkoutSetRow extends StatelessWidget {
 
         // 2. LAST PERFORMANCE (tap to apply)
         Expanded(
-          flex: isCardio ? 3 : 2,
-          child: isCardio
-              ? const SizedBox.shrink()
-              : GestureDetector(
-                  onTap: (!isCompleted && rowIndex < lastPerfSets.length)
-                      ? () {
-                          final lastSet = lastPerfSets[rowIndex];
-                          double? metricWeight;
-                          int? reps;
+          flex: flex.lastTime,
+          child: GestureDetector(
+            onTap: (!isCompleted && rowIndex < lastPerfSets.length)
+                ? () {
+                    final lastSet = lastPerfSets[rowIndex];
+                    double? metricWeight;
+                    double? distance;
+                    int? reps;
+                    int? duration;
 
-                          // Apply weight
-                          if (lastSet.weightKg != null) {
-                            final displayWeight = unitService
-                                .convertDisplayValue(
-                                  lastSet.weightKg!,
-                                  UnitDimension.weight,
-                                )
-                                .toStringAsFixed(1)
-                                .replaceAll('.0', '');
-                            manager.weightControllers[templateId]?.text =
-                                displayWeight;
-                            metricWeight = lastSet.weightKg;
-                          }
-                          // Apply reps
-                          if (lastSet.reps != null) {
-                            manager.repsControllers[templateId]?.text =
-                                lastSet.reps.toString();
-                            reps = lastSet.reps;
-                          }
+                    // Copies whatever this exercise actually logs. The
+                    // cell now shows a duration for a plank, so tapping
+                    // it has to apply one rather than a weight the row
+                    // never had.
+                    if (mask.logsDistance) {
+                      if (lastSet.distanceKm != null) {
+                        distance = lastSet.distanceKm;
+                        manager.weightControllers[templateId]?.text = lastSet
+                            .distanceKm!
+                            .toStringAsFixed(3)
+                            .replaceAll(RegExp(r'0*$'), '')
+                            .replaceAll(RegExp(r'\.$'), '');
+                      }
+                    } else if (mask.showsPrimary && lastSet.weightKg != null) {
+                      final displayWeight = unitService
+                          .convertDisplayValue(
+                            lastSet.weightKg!,
+                            UnitDimension.weight,
+                          )
+                          .toStringAsFixed(1)
+                          .replaceAll('.0', '');
+                      manager.weightControllers[templateId]?.text =
+                          displayWeight;
+                      metricWeight = lastSet.weightKg;
+                    }
 
-                          // Explicitly propagate and bind to the underlying state model
-                          manager.updateSet(
-                            templateId,
-                            weight: metricWeight,
-                            reps: reps,
-                          );
+                    if (mask.logsDuration) {
+                      if (lastSet.durationSeconds != null) {
+                        duration = lastSet.durationSeconds;
+                        manager.repsControllers[templateId]?.text =
+                            formatPauseDuration(duration);
+                      }
+                    } else if (mask.logsReps && lastSet.reps != null) {
+                      manager.repsControllers[templateId]?.text =
+                          lastSet.reps.toString();
+                      reps = lastSet.reps;
+                    }
 
-                          HapticFeedbackService.instance.selectionFeedback();
-                        }
+                    // Explicitly propagate and bind to the underlying state model
+                    manager.updateSet(
+                      templateId,
+                      weight: metricWeight,
+                      reps: reps,
+                      distance: distance,
+                      duration: duration,
+                    );
+
+                    HapticFeedbackService.instance.selectionFeedback();
+                  }
+                : null,
+            // Shrinks rather than truncates. Widening the column covers the
+            // ordinary cardio row, but "12.5 km · 1:02:33" in an imperial
+            // locale will outgrow any fixed width, and half a value with an
+            // ellipsis after it is worse than the whole value set smaller.
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                LogMaskLabels.lastPerformance(
+                  mask,
+                  rowIndex < lastPerfSets.length
+                      ? lastPerfSets[rowIndex]
                       : null,
-                  child: Text(
-                    (rowIndex < lastPerfSets.length)
-                        ? "${unitService.convertDisplayValue(lastPerfSets[rowIndex].weightKg ?? 0, UnitDimension.weight).toStringAsFixed(1).replaceAll('.0', '')}${unitService.suffixFor(UnitDimension.weight)} × ${lastPerfSets[rowIndex].reps}"
-                        : "-",
-                    textAlign: TextAlign.center,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      color: Colors.grey[500],
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+                  AppLocalizations.of(context)!,
+                  unitService,
                 ),
-        ),
-
-        // 3. INPUT 1: WEIGHT / DISTANCE
-        Expanded(
-          flex: isCardio ? 4 : 2,
-          child: TextFormField(
-            controller: manager.weightControllers[templateId],
-            textAlign: TextAlign.center,
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            textInputAction: TextInputAction.next,
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: textColor,
-            ),
-            decoration: InputDecoration(
-              border: InputBorder.none,
-              isDense: true,
-              fillColor: Colors.transparent,
-              hintText: weightHint,
-              hintStyle: TextStyle(
-                color: Colors.grey.withValues(alpha: 0.5),
-                fontSize: 18,
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                style: TextStyle(
+                  color: Colors.grey[500],
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
-            enabled: !isCompleted,
-            onChanged: (text) {
-              final String sanitized = text.replaceAll(',', '.');
-              final double? val;
-              if (sanitized.contains('-')) {
-                final parts = sanitized.split('-');
-                if (parts.length == 2) {
-                  final min = double.tryParse(parts[0].trim());
-                  final max = double.tryParse(parts[1].trim());
-                  if (min != null && max != null) {
-                    val = (min + max) / 2;
-                  } else {
-                    val = null;
-                  }
-                } else {
-                  val = null;
-                }
-              } else {
-                val = double.tryParse(sanitized);
-              }
-              final clearValue = val == null && text.isEmpty;
-
-              if (isCardio) {
-                if (val != manager.setLogs[templateId]?.distanceKm ||
-                    clearValue) {
-                  manager.updateSet(
-                    templateId,
-                    distance: val,
-                    clearDistance: clearValue,
-                  );
-                }
-              } else {
-                final metricValue = val == null
-                    ? null
-                    : unitService.convertToMetric(val, UnitDimension.weight);
-                if (metricValue != manager.setLogs[templateId]?.weightKg ||
-                    clearValue) {
-                  manager.updateSet(
-                    templateId,
-                    weight: metricValue,
-                    clearWeight: clearValue,
-                  );
-                }
-              }
-            },
           ),
+        ),
+
+        // 3. INPUT 1: WEIGHT / ADDED WEIGHT / ASSISTANCE / DISTANCE
+        Expanded(
+          flex: flex.primary,
+          child: !mask.showsPrimary
+              // A plank has nothing to put here. An empty box invites a
+              // number that would mean nothing.
+              ? const SizedBox.shrink()
+              : TextFormField(
+                  controller: manager.weightControllers[templateId],
+                  textAlign: TextAlign.center,
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
+                  textInputAction: TextInputAction.next,
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: textColor,
+                  ),
+                  decoration: InputDecoration(
+                    border: InputBorder.none,
+                    isDense: true,
+                    fillColor: Colors.transparent,
+                    hintText: weightHint,
+                    hintStyle: TextStyle(
+                      color: Colors.grey.withValues(alpha: 0.5),
+                      fontSize: 18,
+                    ),
+                  ),
+                  enabled: !isCompleted,
+                  onChanged: (text) {
+                    final String sanitized = text.replaceAll(',', '.');
+                    final double? val;
+                    if (sanitized.contains('-')) {
+                      final parts = sanitized.split('-');
+                      if (parts.length == 2) {
+                        final min = double.tryParse(parts[0].trim());
+                        final max = double.tryParse(parts[1].trim());
+                        if (min != null && max != null) {
+                          val = (min + max) / 2;
+                        } else {
+                          val = null;
+                        }
+                      } else {
+                        val = null;
+                      }
+                    } else {
+                      val = double.tryParse(sanitized);
+                    }
+                    final clearValue = val == null && text.isEmpty;
+
+                    if (mask.logsDistance) {
+                      if (val != manager.setLogs[templateId]?.distanceKm ||
+                          clearValue) {
+                        manager.updateSet(
+                          templateId,
+                          distance: val,
+                          clearDistance: clearValue,
+                        );
+                      }
+                    } else {
+                      final metricValue = val == null
+                          ? null
+                          : unitService.convertToMetric(
+                              val, UnitDimension.weight);
+                      if (metricValue !=
+                              manager.setLogs[templateId]?.weightKg ||
+                          clearValue) {
+                        manager.updateSet(
+                          templateId,
+                          weight: metricValue,
+                          clearWeight: clearValue,
+                        );
+                      }
+                    }
+                  },
+                ),
         ),
 
         // 4. INPUT 2: REPS / TIME
         Expanded(
-          flex: isCardio ? 4 : 2,
-          child: TextFormField(
-            controller: manager.repsControllers[templateId],
-            readOnly: isCardio,
-            textAlign: TextAlign.center,
-            keyboardType: TextInputType.number,
-            inputFormatters: isCardio ? [TimerInputFormatter()] : null,
-            textInputAction: TextInputAction.next,
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: textColor,
-            ),
-            decoration: InputDecoration(
-              border: InputBorder.none,
-              isDense: true,
-              fillColor: Colors.transparent,
-              hintText: repHint,
-              hintStyle: TextStyle(
-                color: Colors.grey.withValues(alpha: 0.5),
-                fontSize: 18,
-              ),
-            ),
-            enabled: !isCompleted,
-            onTap: (isCardio && !isCompleted)
-                ? () async {
-                    final currentSeconds =
-                        manager.setLogs[templateId]?.durationSeconds ?? 0;
-                    final newDuration =
-                        await adaptive_pickers.showAdaptiveDurationPicker(
-                      context: context,
-                      initialDuration: Duration(seconds: currentSeconds),
-                    );
-                    if (newDuration != null) {
-                      final seconds = newDuration.inSeconds;
-                      final clearDuration = seconds == 0;
+          flex: flex.secondary,
+          child: !mask.showsSecondary
+              ? const SizedBox.shrink()
+              : TextFormField(
+                  controller: manager.repsControllers[templateId],
+                  readOnly: mask.logsDuration,
+                  textAlign: TextAlign.center,
+                  keyboardType: TextInputType.number,
+                  inputFormatters:
+                      mask.logsDuration ? [TimerInputFormatter()] : null,
+                  textInputAction: TextInputAction.next,
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: textColor,
+                  ),
+                  decoration: InputDecoration(
+                    border: InputBorder.none,
+                    isDense: true,
+                    fillColor: Colors.transparent,
+                    hintText: repHint,
+                    hintStyle: TextStyle(
+                      color: Colors.grey.withValues(alpha: 0.5),
+                      fontSize: 18,
+                    ),
+                  ),
+                  enabled: !isCompleted,
+                  onTap: (mask.logsDuration && !isCompleted)
+                      ? () async {
+                          final currentSeconds =
+                              manager.setLogs[templateId]?.durationSeconds ?? 0;
+                          final newDuration =
+                              await adaptive_pickers.showAdaptiveDurationPicker(
+                            context: context,
+                            initialDuration: Duration(seconds: currentSeconds),
+                          );
+                          if (newDuration != null) {
+                            final seconds = newDuration.inSeconds;
+                            final clearDuration = seconds == 0;
+                            if (seconds !=
+                                    manager
+                                        .setLogs[templateId]?.durationSeconds ||
+                                clearDuration) {
+                              manager.repsControllers[templateId]?.text =
+                                  formatPauseDuration(seconds);
+                              manager.updateSet(
+                                templateId,
+                                duration: seconds,
+                                clearDuration: clearDuration,
+                              );
+                            }
+                          }
+                        }
+                      : null,
+                  onChanged: (text) {
+                    if (mask.logsDuration) {
+                      final seconds = parsePauseDuration(text);
+                      final clearDuration = seconds == null && text.isEmpty;
                       if (seconds !=
                               manager.setLogs[templateId]?.durationSeconds ||
                           clearDuration) {
-                        manager.repsControllers[templateId]?.text =
-                            formatPauseDuration(seconds);
                         manager.updateSet(
                           templateId,
                           duration: seconds,
                           clearDuration: clearDuration,
                         );
                       }
-                    }
-                  }
-                : null,
-            onChanged: (text) {
-              if (isCardio) {
-                final seconds = parsePauseDuration(text);
-                final clearDuration = seconds == null && text.isEmpty;
-                if (seconds != manager.setLogs[templateId]?.durationSeconds ||
-                    clearDuration) {
-                  manager.updateSet(
-                    templateId,
-                    duration: seconds,
-                    clearDuration: clearDuration,
-                  );
-                }
-              } else {
-                final int? val;
-                if (text.contains('-')) {
-                  final parts = text.split('-');
-                  if (parts.length == 2) {
-                    final min = int.tryParse(parts[0].trim());
-                    final max = int.tryParse(parts[1].trim());
-                    if (min != null && max != null) {
-                      val = ((min + max) / 2).round();
                     } else {
-                      val = null;
+                      final int? val;
+                      if (text.contains('-')) {
+                        final parts = text.split('-');
+                        if (parts.length == 2) {
+                          final min = int.tryParse(parts[0].trim());
+                          final max = int.tryParse(parts[1].trim());
+                          if (min != null && max != null) {
+                            val = ((min + max) / 2).round();
+                          } else {
+                            val = null;
+                          }
+                        } else {
+                          val = null;
+                        }
+                      } else {
+                        val = int.tryParse(text);
+                      }
+                      final clearValue = val == null && text.isEmpty;
+                      if (val != manager.setLogs[templateId]?.reps ||
+                          clearValue) {
+                        manager.updateSet(
+                          templateId,
+                          reps: val,
+                          clearReps: clearValue,
+                        );
+                      }
                     }
-                  } else {
-                    val = null;
-                  }
-                } else {
-                  val = int.tryParse(text);
-                }
-                final clearValue = val == null && text.isEmpty;
-                if (val != manager.setLogs[templateId]?.reps || clearValue) {
-                  manager.updateSet(
-                    templateId,
-                    reps: val,
-                    clearReps: clearValue,
-                  );
-                }
-              }
-            },
-          ),
+                  },
+                ),
         ),
 
         // 5. INPUT 3: RIR / INTENSITY
-        Expanded(
-          flex: isCardio ? 2 : 1,
-          child: TextFormField(
-            controller: manager.rirControllers[templateId],
-            textAlign: TextAlign.center,
-            keyboardType: TextInputType.number,
-            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-            textInputAction: TextInputAction.done,
-            onFieldSubmitted: (_) =>
-                FocusManager.instance.primaryFocus?.unfocus(),
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: textColor,
-            ),
-            decoration: InputDecoration(
-              border: InputBorder.none,
-              isDense: true,
-              fillColor: Colors.transparent,
-              hintText: rirHint,
-              hintStyle: TextStyle(
-                color: Colors.grey.withValues(alpha: 0.5),
-                fontSize: 18,
-              ),
-            ),
-            enabled: !isCompleted,
-            onChanged: (text) {
-              final val = int.tryParse(text);
-              final clearValue = val == null && text.isEmpty;
-              if (val != manager.setLogs[templateId]?.rir || clearValue) {
-                manager.updateSet(templateId, rir: val, clearRir: clearValue);
-              }
-            },
+        //
+        // Absent where there are no reps to hold in reserve — a plank, a dead
+        // hang — where the column holds its place for the checkbox below it.
+        // Below "pro" it is gone from every card at once, placeholder
+        // included, and the fields beside it widen.
+        if (showsIntensity || keepsIntensityPlaceholder(context, mask))
+          Expanded(
+            flex: flex.intensity,
+            child: !showsIntensity
+                ? const SizedBox.shrink()
+                : TextFormField(
+                    controller: manager.rirControllers[templateId],
+                    textAlign: TextAlign.center,
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                    textInputAction: TextInputAction.done,
+                    onFieldSubmitted: (_) =>
+                        FocusManager.instance.primaryFocus?.unfocus(),
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: textColor,
+                    ),
+                    decoration: InputDecoration(
+                      border: InputBorder.none,
+                      isDense: true,
+                      fillColor: Colors.transparent,
+                      hintText: rirHint,
+                      hintStyle: TextStyle(
+                        color: Colors.grey.withValues(alpha: 0.5),
+                        fontSize: 18,
+                      ),
+                    ),
+                    enabled: !isCompleted,
+                    onChanged: (text) {
+                      final val = int.tryParse(text);
+                      final clearValue = val == null && text.isEmpty;
+                      if (val != manager.setLogs[templateId]?.rir ||
+                          clearValue) {
+                        manager.updateSet(templateId,
+                            rir: val, clearRir: clearValue);
+                      }
+                    },
+                  ),
           ),
-        ),
 
         // 6. CHECKBOX
         Padding(
@@ -621,7 +703,7 @@ class LiveWorkoutSetRow extends StatelessWidget {
         color: DesignConstants.brandRedColor,
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.symmetric(horizontal: 20),
-        child: const Icon(LucideIcons.trash_2, color: Colors.white),
+        child: const Icon(LucideIcons.trash, color: Colors.white),
       ),
       child: Stack(
         children: [

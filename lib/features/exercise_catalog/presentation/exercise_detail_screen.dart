@@ -3,7 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_body_highlighter/flutter_body_highlighter.dart';
 import '../../../generated/app_localizations.dart';
 import '../../../widgets/common/algorithm_info_sheet.dart';
+import '../../../data/database_helper.dart';
 import '../domain/body_slug_mapper.dart';
+import '../domain/exercise_metrics.dart';
+import '../../workout/domain/classification/exercise_log_mask.dart';
+import '../domain/exercise_classification_labels.dart';
+import '../domain/muscle_vocabulary.dart';
 import '../domain/models/exercise.dart';
 import '../../workout/domain/models/set_log.dart';
 import '../../analytics/domain/models/chart_data_point.dart';
@@ -13,6 +18,7 @@ import '../../../widgets/common/dual_body_highlighter.dart';
 import '../../../widgets/common/global_app_bar.dart';
 
 import '../../../widgets/common/common.dart';
+import '../../../services/experience_level_service.dart';
 import '../../../services/unit_service.dart';
 import '../../profile/presentation/widgets/measurement_chart_widget.dart';
 import 'package:provider/provider.dart';
@@ -25,8 +31,6 @@ import '../../../services/haptic_feedback_service.dart';
 import '../../../widgets/common/app_button.dart';
 import 'dart:async';
 import '../../../services/telemetry/telemetry_service.dart';
-
-enum ExerciseMetric { maxWeight, volume, est1rm, distance, duration, pace }
 
 /// A screen displaying detailed information about a specific [Exercise].
 class ExerciseDetailScreen extends StatefulWidget {
@@ -44,14 +48,29 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
   late final IExerciseCatalogRepository _repository =
       widget.repository ?? context.read<IExerciseCatalogRepository>();
   bool _isLoading = true;
-  late ExerciseMetric _selectedMetric = widget.exercise.isCardio
-      ? ExerciseMetric.distance
-      : ExerciseMetric.maxWeight;
+
+  /// What the chart can be drawn on, and which of those it opens with.
+  late List<ExerciseMetric> _availableMetrics =
+      exerciseMetricsFor(widget.exercise);
+  late ExerciseMetric _selectedMetric = _availableMetrics.first;
   String _selectedRange = '30D';
 
   late Exercise _currentExercise = widget.exercise;
+
+  /// The catalog's muscle vocabulary, when it has one. Loaded alongside the
+  /// rest of the screen's data rather than per rebuild.
+  MuscleVocabulary _muscleVocabulary = MuscleVocabulary.empty;
   Map<String, SetLog?> _prMap = {};
+
+  /// Current body weight, so a pull-up record can be shown as what it was
+  /// worth rather than as the empty weight column it was logged in. Null until
+  /// the first load, and null forever for a user who has never weighed in —
+  /// in which case the body-weight cards read "-" rather than 0 kg.
+  double? _bodyweightKg;
   List<Map<String, dynamic>> _timeSeriesData = [];
+
+  /// The UI language, read once per load rather than per row.
+  String get _languageCode => Localizations.localeOf(context).languageCode;
 
   int? get _selectedRangeDays {
     if (_selectedRange == '30D') return 30;
@@ -78,6 +97,10 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
   Future<void> _loadData() async {
     setState(() => _isLoading = true);
 
+    _muscleVocabulary =
+        await MuscleVocabulary.load(await DatabaseHelper.instance.database);
+    _bodyweightKg = await DatabaseHelper.instance.getLatestWeight();
+
     Exercise exercise = widget.exercise;
     if (widget.exercise.id != null) {
       final String? exerciseUuid = widget.exercise.uuid ??
@@ -94,20 +117,23 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
         ? await _repository.getExerciseUuidByLocalId(exercise.id!)
         : null;
 
+    // Statistics are keyed by the name that was logged, which may be in any
+    // language the user has run the app in — so the primary key is the name
+    // they see now and the alternate is the stable English one.
+    final displayName = exercise.localizedNameFor(_languageCode);
+    final canonical = exercise.canonicalName;
     final altName =
-        exercise.nameEn.isNotEmpty && exercise.nameEn != exercise.nameDe
-            ? exercise.nameEn
-            : null;
+        canonical.isNotEmpty && canonical != displayName ? canonical : null;
 
     final prs = await _repository.getExercisePRs(
-      exercise.nameDe,
+      displayName,
       altName: altName,
       exerciseUuid: exerciseUuid,
       isCardio: exercise.isCardio,
     );
 
     final timeSeries = await _repository.getExerciseTimeSeriesData(
-      exercise.nameDe,
+      displayName,
       altName: altName,
       exerciseUuid: exerciseUuid,
       isCardio: exercise.isCardio,
@@ -116,6 +142,14 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
     if (mounted) {
       setState(() {
         _currentExercise = exercise;
+        // The screen is entered with a list row, which carries no muscle ids
+        // and may carry no classification; the fresh row does. So the metrics
+        // are recomputed here rather than fixed at construction — and the
+        // selection follows, in case it is no longer one of them.
+        _availableMetrics = exerciseMetricsFor(exercise);
+        if (!_availableMetrics.contains(_selectedMetric)) {
+          _selectedMetric = _availableMetrics.first;
+        }
         _prMap = prs;
         _timeSeriesData = timeSeries;
         _isLoading = false;
@@ -263,8 +297,8 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
                       Expanded(
                         child: Text(
                           l10n.deleteCustomExerciseWithLogsWarning,
-                          style: textTheme.bodySmall?.copyWith(
-                              color: colorScheme.onErrorContainer),
+                          style: textTheme.bodySmall
+                              ?.copyWith(color: colorScheme.onErrorContainer),
                         ),
                       ),
                     ],
@@ -279,8 +313,8 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
                       Expanded(
                         child: Text(
                           l10n.deleteCustomExerciseWithRoutinesWarning,
-                          style: textTheme.bodySmall?.copyWith(
-                              color: colorScheme.onErrorContainer),
+                          style: textTheme.bodySmall
+                              ?.copyWith(color: colorScheme.onErrorContainer),
                         ),
                       ),
                     ],
@@ -360,7 +394,7 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
           if (_currentExercise.source == 'user')
             IconButton(
               tooltip: l10n.delete,
-              icon: const Icon(LucideIcons.trash_2),
+              icon: const Icon(LucideIcons.trash),
               onPressed: () => _showDeleteConfirmMenu(context),
             ),
           MorphSourceScope(
@@ -374,7 +408,8 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
                   icon: const Icon(LucideIcons.pencil),
                   onPressed: () {
                     if (_currentExercise.source == 'user') {
-                      Navigator.of(context).push(
+                      Navigator.of(context)
+                          .push(
                         CardMorphRoute(
                           sourceContext: iconCtx,
                           sourceBorderRadius: 20.0,
@@ -385,7 +420,8 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
                             exerciseToEdit: _currentExercise,
                           ),
                         ),
-                      ).then((wasSaved) {
+                      )
+                          .then((wasSaved) {
                         if (wasSaved == true) {
                           _loadData();
                         }
@@ -438,6 +474,7 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
               ),
             if ((_currentExercise.imagePath ?? '').isNotEmpty)
               const SizedBox(height: DesignConstants.spacingXL),
+            _ClassificationChips(exercise: _currentExercise),
             AppInfoRow(
               title: l10n.descriptionLabel,
               subtitle:
@@ -450,7 +487,10 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
             if (!_currentExercise.isCardio) ...[
               AppSectionHeader(title: l10n.involvedMuscles),
               RepaintBoundary(
-                child: _ExerciseMuscleBodyView(exercise: _currentExercise),
+                child: _ExerciseMuscleBodyView(
+                  exercise: _currentExercise,
+                  vocabulary: _muscleVocabulary,
+                ),
               ),
               const SizedBox(height: DesignConstants.spacingXL),
             ],
@@ -516,6 +556,20 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
     return '${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}';
   }
 
+  /// A readable name for a record.
+  ///
+  /// The map keys are English identifiers and were rendered straight onto the
+  /// cards, so a German user read "Best Distance" over their longest row. The
+  /// rep brackets stay as they are: "2-3 RM" is numerals and an abbreviation
+  /// that reads the same in every language the app ships.
+  String _prLabel(String bracket, AppLocalizations l10n) => switch (bracket) {
+        'Best Distance' => l10n.exerciseMetricDistance,
+        'Longest Duration' => l10n.exerciseMetricDuration,
+        'Fastest Pace' => l10n.exerciseMetricPace,
+        'Est. 1RM' => l10n.exerciseMetricEst1RM,
+        _ => bracket,
+      };
+
   Widget _buildPRSummarySection(AppLocalizations l10n) {
     final theme = Theme.of(context);
     final items = _prMap.entries.map((entry) {
@@ -527,36 +581,44 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
       Color? valueColor;
 
       if (prSet != null) {
-        if (_currentExercise.isCardio) {
-          if (bracket == 'Best Distance') {
+        // Formatted by which record it is, not by whether the exercise was
+        // once called cardio. A plank now holds a "Longest Duration" record
+        // like a run does, and it is not cardio — the branch it used to sit in
+        // would have printed a weight for it.
+        final units = context.read<UnitService>();
+        switch (bracket) {
+          case 'Best Distance':
             value = '${prSet.distanceKm?.toStringAsFixed(2) ?? '0.0'} km';
             subtitle = _formatDuration(prSet.durationSeconds ?? 0);
-          } else if (bracket == 'Longest Duration') {
+          case 'Longest Duration':
             value = _formatDuration(prSet.durationSeconds ?? 0);
-            subtitle = '${prSet.distanceKm?.toStringAsFixed(2) ?? '0.0'} km';
-          } else if (bracket == 'Fastest Pace') {
+            final km = prSet.distanceKm ?? 0.0;
+            subtitle = km > 0 ? '${km.toStringAsFixed(2)} km' : '';
+          case 'Fastest Pace':
             final dur = prSet.durationSeconds ?? 0;
             final dist = prSet.distanceKm ?? 0.0;
-            if (dist > 0) {
-              final paceSec = dur / dist;
-              value = '${_formatDuration(paceSec.round())} / km';
-            } else {
-              value = '-';
-            }
+            value = dist > 0
+                ? '${_formatDuration((dur / dist).round())} / km'
+                : '-';
             subtitle = '';
-          } else {
-            value = '-';
-            subtitle = '-';
-          }
-        } else {
-          if (bracket == 'Est. 1RM') {
-            value =
-                '${context.read<UnitService>().convertDisplayValue(prSet.weightKg! * (36 / (37 - prSet.reps!)), UnitDimension.weight).toStringAsFixed(1)} ${context.read<UnitService>().suffixFor(UnitDimension.weight)}';
-          } else {
-            value =
-                '${context.read<UnitService>().convertDisplayValue(prSet.weightKg ?? 0.0, UnitDimension.weight).toStringAsFixed(1)} ${context.read<UnitService>().suffixFor(UnitDimension.weight)}';
-          }
-          subtitle = l10n.repsCount(prSet.reps!);
+          default:
+            // Through the shared helper, not a third copy of Brzycki. The copy
+            // that stood here read `prSet.weightKg!` — which is null on every
+            // body-weight set, so this card crashed rather than showing the
+            // pull-up record it had just been handed.
+            final mask = ExerciseLogMask.forExercise(_currentExercise);
+            final displayKg = bracket == 'Est. 1RM'
+                ? mask.estimatedOneRepMax(
+                    loggedWeightKg: prSet.weightKg,
+                    reps: prSet.reps,
+                    bodyweightKg: _bodyweightKg,
+                  )
+                : mask.effectiveLoadKg(prSet.weightKg, _bodyweightKg);
+            value = displayKg == null
+                ? '-'
+                : '${units.convertDisplayValue(displayKg, UnitDimension.weight).toStringAsFixed(1)} '
+                    '${units.suffixFor(UnitDimension.weight)}';
+            subtitle = l10n.repsCount(prSet.reps ?? 0);
         }
         valueColor = theme.colorScheme.primary;
       } else {
@@ -566,7 +628,7 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
       }
 
       return ValueSummaryCard(
-        label: bracket,
+        label: _prLabel(bracket, l10n),
         value: value,
         subtitle: subtitle,
         valueColor: valueColor,
@@ -688,6 +750,16 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
     );
   }
 
+  String _metricLabel(ExerciseMetric metric, AppLocalizations l10n) =>
+      switch (metric) {
+        ExerciseMetric.maxWeight => l10n.exerciseMetricMaxWeight,
+        ExerciseMetric.volume => l10n.exerciseMetricVolume,
+        ExerciseMetric.est1rm => l10n.exerciseMetricEst1RM,
+        ExerciseMetric.distance => l10n.exerciseMetricDistance,
+        ExerciseMetric.duration => l10n.exerciseMetricDuration,
+        ExerciseMetric.pace => l10n.exerciseMetricPace,
+      };
+
   Widget _buildChartHeader(AppLocalizations l10n) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -702,35 +774,13 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
                 });
               }
             },
-            items: _currentExercise.isCardio
-                ? [
-                    DropdownMenuItem(
-                      value: ExerciseMetric.distance,
-                      child: Text(l10n.exerciseMetricDistance),
-                    ),
-                    DropdownMenuItem(
-                      value: ExerciseMetric.duration,
-                      child: Text(l10n.exerciseMetricDuration),
-                    ),
-                    DropdownMenuItem(
-                      value: ExerciseMetric.pace,
-                      child: Text(l10n.exerciseMetricPace),
-                    ),
-                  ]
-                : [
-                    DropdownMenuItem(
-                      value: ExerciseMetric.maxWeight,
-                      child: Text(l10n.exerciseMetricMaxWeight),
-                    ),
-                    DropdownMenuItem(
-                      value: ExerciseMetric.volume,
-                      child: Text(l10n.exerciseMetricVolume),
-                    ),
-                    DropdownMenuItem(
-                      value: ExerciseMetric.est1rm,
-                      child: Text(l10n.exerciseMetricEst1RM),
-                    ),
-                  ],
+            items: [
+              for (final metric in _availableMetrics)
+                DropdownMenuItem(
+                  value: metric,
+                  child: Text(_metricLabel(metric, l10n)),
+                ),
+            ],
           ),
         ),
         if (_selectedMetric == ExerciseMetric.est1rm) ...[
@@ -798,6 +848,89 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
   }
 }
 
+/// What the catalog knows about the movement, as a row of chips.
+///
+/// Five axes the data repo annotates on 877 of 909 exercises. This screen is
+/// the only place any of them is read: they are description, not machinery,
+/// and nothing filters, groups or computes on the two added last.
+///
+/// [ExerciseClassificationLabels.forceVector] is derived upstream from
+/// [ExerciseClassificationLabels.movementPattern], so where both exist the
+/// pair reads a little doubled — "Ziehen · Vertikales Ziehen". Kept because
+/// the force vector survives 62 static exercises that have no pattern anyone
+/// would call a direction, and because the shorter word is the one a reader
+/// scanning the row actually takes in.
+///
+/// Renders nothing at all when none of the five is set — a user-created
+/// exercise, or one of the 32 unclassified catalog rows — rather than drawing
+/// an empty strip above the description.
+class _ClassificationChips extends StatelessWidget {
+  final Exercise exercise;
+
+  const _ClassificationChips({required this.exercise});
+
+  @override
+  Widget build(BuildContext context) {
+    final labels = <String>[
+      for (final label in [
+        ExerciseClassificationLabels.mechanic(context, exercise.mechanic),
+        ExerciseClassificationLabels.forceVector(context, exercise.forceVector),
+        ExerciseClassificationLabels.movementPattern(
+          context,
+          exercise.movementPattern,
+        ),
+        ExerciseClassificationLabels.laterality(context, exercise.laterality),
+        ExerciseClassificationLabels.difficulty(context, exercise.difficulty),
+      ])
+        if (label != null) label,
+    ];
+    if (labels.isEmpty) return const SizedBox.shrink();
+
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+
+    // Pill, outline and full-strength text. The first cut used
+    // surfaceContainerHighest with onSurfaceVariant on top, which against the
+    // near-black scaffold was an unlit rectangle behind grey text — three
+    // words that read as a leftover rather than as the exercise's own
+    // description of itself.
+    //
+    // Not the category badge's treatment either: that one is filled with the
+    // accent colour and there is exactly one of it per screen, so three more
+    // in the same paint would turn the top of the page into a traffic light.
+    return Padding(
+      padding: const EdgeInsets.only(bottom: DesignConstants.spacingXL),
+      child: Wrap(
+        spacing: DesignConstants.spacingS,
+        runSpacing: DesignConstants.spacingS,
+        children: [
+          for (final label in labels)
+            Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 14,
+                vertical: DesignConstants.spacingS,
+              ),
+              decoration: BoxDecoration(
+                color: scheme.onSurface.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(999),
+                border: Border.all(
+                  color: scheme.outlineVariant.withValues(alpha: 0.8),
+                ),
+              ),
+              child: Text(
+                label,
+                style: theme.textTheme.labelLarge?.copyWith(
+                  color: scheme.onSurface,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
 class _CategoryBadge extends StatelessWidget {
   final String text;
   const _CategoryBadge({required this.text});
@@ -831,8 +964,12 @@ class _CategoryBadge extends StatelessWidget {
 /// chip legend listing primary and secondary muscle names.
 class _ExerciseMuscleBodyView extends StatelessWidget {
   final Exercise exercise;
+  final MuscleVocabulary vocabulary;
 
-  const _ExerciseMuscleBodyView({required this.exercise});
+  const _ExerciseMuscleBodyView({
+    required this.exercise,
+    required this.vocabulary,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -842,8 +979,15 @@ class _ExerciseMuscleBodyView extends StatelessWidget {
 
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
-    final hasMuscles = exercise.primaryMuscles.isNotEmpty ||
-        exercise.secondaryMuscles.isNotEmpty;
+    // Muscle ids are the precise annotation; the legacy name columns are what
+    // the fifteen-name vocabulary could still express. 38 active exercises
+    // have the former and nothing in the latter.
+    final useIds = !vocabulary.isEmpty && exercise.primaryMuscleIds.isNotEmpty;
+    final primaryLabels =
+        useIds ? exercise.primaryMuscleIds : exercise.primaryMuscles;
+    final secondaryLabels =
+        useIds ? exercise.secondaryMuscleIds : exercise.secondaryMuscles;
+    final hasMuscles = primaryLabels.isNotEmpty || secondaryLabels.isNotEmpty;
 
     if (!hasMuscles) {
       return Padding(
@@ -857,14 +1001,40 @@ class _ExerciseMuscleBodyView extends StatelessWidget {
       );
     }
 
-    final allHighlights = BodySlugMapper.mergedHighlights(
-      primaryMuscles: exercise.primaryMuscles,
-      secondaryMuscles: exercise.secondaryMuscles,
-    );
+    final allHighlights = useIds
+        ? BodySlugMapper.mergedHighlightsFromIds(
+            primaryMuscleIds: exercise.primaryMuscleIds,
+            secondaryMuscleIds: exercise.secondaryMuscleIds,
+            vocabulary: vocabulary,
+          )
+        : BodySlugMapper.mergedHighlights(
+            primaryMuscles: exercise.primaryMuscles,
+            secondaryMuscles: exercise.secondaryMuscles,
+          );
 
     final frontHighlights =
         BodySlugMapper.forSide(allHighlights, BodySide.front);
     final backHighlights = BodySlugMapper.forSide(allHighlights, BodySide.back);
+
+    // The names are coarsened, the highlights above are not: a beginner reads
+    // "shoulders" while the body map still paints the single head that works.
+    final coarse =
+        context.watch<ExperienceLevelService>().usesCoarseMuscleNames;
+    final resolvedVocabulary = useIds ? vocabulary : null;
+    final primaryNames = BodySlugMapper.localizeAll(
+      context,
+      primaryLabels,
+      vocabulary: resolvedVocabulary,
+      coarse: coarse,
+    );
+    // A secondary muscle that coarsens into a primary region says nothing —
+    // "shoulders" cannot be both the point of the exercise and an aside.
+    final secondaryNames = BodySlugMapper.localizeAll(
+      context,
+      secondaryLabels,
+      vocabulary: resolvedVocabulary,
+      coarse: coarse,
+    ).where((name) => !primaryNames.contains(name)).toList(growable: false);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -879,14 +1049,14 @@ class _ExerciseMuscleBodyView extends StatelessWidget {
         const SizedBox(height: DesignConstants.spacingL),
         _MuscleChipRow(
           label: l10n.primaryLabel,
-          muscles: exercise.primaryMuscles,
+          names: primaryNames,
           color: theme.colorScheme.primary,
         ),
-        if (exercise.secondaryMuscles.isNotEmpty) ...[
+        if (secondaryNames.isNotEmpty) ...[
           const SizedBox(height: 6),
           _MuscleChipRow(
             label: l10n.secondaryLabel,
-            muscles: exercise.secondaryMuscles,
+            names: secondaryNames,
             color: theme.colorScheme.primary.withValues(alpha: 0.45),
           ),
         ],
@@ -896,14 +1066,18 @@ class _ExerciseMuscleBodyView extends StatelessWidget {
 }
 
 /// A labelled row of muscle names used as a text legend.
+///
+/// Takes names, not ids: which name a muscle gets — the head or its region —
+/// is decided by the caller, together with the de-duplication that decision
+/// makes necessary.
 class _MuscleChipRow extends StatelessWidget {
   final String label;
-  final List<String> muscles;
+  final List<String> names;
   final Color color;
 
   const _MuscleChipRow({
     required this.label,
-    required this.muscles,
+    required this.names,
     required this.color,
   });
 
@@ -929,9 +1103,9 @@ class _MuscleChipRow extends StatelessWidget {
             child: Wrap(
               spacing: 8,
               runSpacing: 4,
-              children: muscles.map((m) {
+              children: names.map((name) {
                 return Text(
-                  BodySlugMapper.localize(context, m),
+                  name,
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: color,
                     fontWeight: FontWeight.w600,

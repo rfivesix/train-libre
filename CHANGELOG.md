@@ -4,6 +4,34 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.3.0] - 2026-09-07
+
+### Added
+- **Supersets:** Routine exercises can be joined into contiguous supersets, trisets, or giant sets. The routine editor, live workout, history detail, backup/restore, and text sharing preserve and display A1/A2-style group membership with seamless visual brackets, uninterrupted color rails, and per-card drag-and-drop reordering. Live workouts alternate members round by round, skip rest within a round, and use the final member's pause between rounds. Repeated occurrences of the same exercise remain separate cards.
+- **Diary Weight Entry (`WeightCard`, `WeightRuler`):** Add weight directly below supplements with an animated inline ruler, explicit save/cancel, metric or imperial display, and kilogram-only persistence. Empty diaries retain access to weight entry, and the latest daily measurement links directly to measurements history. Fully localized in German, English, French, Italian, and Japanese.
+- **Extended Exercise Filters (`ExerciseCatalogScreen`, `ExerciseFilterSheet`):** Filter exercises by primary equipment, usage, mechanics, laterality, and difficulty alongside body region with compact multi-select dropdowns, localized labels, and a shared reset action. Filters apply in the catalog and while selecting exercises for routines or live workouts.
+- **Exercise Classification Details (`ExerciseClassificationLabels`):** Exercise details now display readable labels for mechanics, laterality, difficulty, usage, movement pattern, and force vector across English, German, French, Italian, and Japanese.
+- **Experimental Experience Levels (`ExperienceLevelService`, `DeveloperSettingsScreen`):** Added Beginner, Advanced, and Pro presentation modes selectable under Developer Settings. Beginner and Advanced use broader muscle names and hide the RIR/intensity column; Pro retains the detailed presentation and remains the default. Performance diagnostics now live in the same Developer Settings screen.
+
+### Changed
+- **OpenExerciseDB Catalog (`AppDataSources`, `BasisDataManager`):** Switched the bundled exercise database and remote update channel to OpenExerciseDB's stable catalog (909 exercises) with automatic offline upgrades on startup, schema compatibility checks, and cached download fallbacks. Added OpenExerciseDB attribution and CC BY-SA 4.0 license terms in the app and README.
+- **Catalog v2 Import & Storage (`AppDatabase`, schema 28):** Added exercise classification, tracking and load metadata, muscle and equipment vocabularies, language availability, and exercise aliases to the local database and importer. Catalog imports and backup restores automatically redirect references to surviving exercises after a catalog merge while preserving historical name snapshots.
+- **Localized Exercise Content (`ExerciseLocaleChain`, `ExerciseText`):** Exercise names and descriptions now resolve dynamically through the catalog's language registry in the user's preferred language with fallbacks, used across catalog lists, exercise details, workout screens, and sharing.
+- **Exercise-Specific Logging (`ExerciseLogMask`, `LogMaskLabels`):** Live workouts, routine templates, and workout history now show fields tailored to each exercise: weight and reps, body weight with optional added load, assistance, duration, weighted duration, distance and time, or distance alone. Column headings and previous-performance values match the exercise's tracking type.
+- **Relevant Exercise Charts (`exerciseMetricsFor`):** Chart choices now follow the exercise's tracking type (e.g. duration for timed holds, distance/pace for cardio, volume/estimated 1RM for body-weight or assisted movements).
+- **Muscle Volume & Recovery Classification (`WorkoutClassification`):** Strength and plyometric sets contribute to muscle training volume and recovery, while cardio, stretching, mobility, and balance no longer count as strength volume. Performed body-weight and timed strength sets are included even without an entered weight or repetition count.
+- **Diary Card Visual Alignment & Typography:**
+  - Standardized horizontal content padding to `DesignConstants.spacingM` (12.0) across all summary cards (`WeightCard`, `SleepSummaryCard`, `PulseSummaryCard`, `TodaysWorkoutSummaryCard`), eliminating the previous 4px offset relative to self-care progress bars.
+  - Aligned title colors across summary cards to bold pure white in dark mode and bold pure black in light mode to match `GlassProgressBar`.
+  - Unified subtitle text colors to `colorScheme.onSurface`, ensuring consistent contrast with titles across all overview cards.
+  - Today now opens as an immediately usable empty diary instead of showing placeholder content and a "no data" overlay, with `WeightCard` integrated into the diary skeleton stream on empty historical days.
+- **Repository Hygiene & Public Open-Source Sanitization:** Untracked local AI and IDE configurations (`CLAUDE.md`, `.claude/`, `.jules/`, `.vscode/`, `__pycache__/`), cleaned up outdated development notes, replaced hardcoded Apple ID credentials in Fastlane with environment variables, translated German inline code comments to English, and refined documentation website navigation.
+
+### Fixed
+- **Body-Weight Volume & Assisted Personal Records (`BodyweightHistory`, `setTonnageKg`, `estimatedOneRepMaxKg`):** Training tonnage, estimated 1RM, and personal-record comparisons now use effective load (body weight plus added load, or body weight minus assistance) anchored on the measurement at or before the workout. More assistance no longer appears as a strength improvement.
+- **Missing Muscle Statistics & Body Highlights (`MuscleVocabulary`, `BodySlugMapper`):** Muscle grouping, labels, and body highlights now resolve from catalog muscle IDs and translations, restoring coverage for muscles missing from the legacy name map, normalizing body-slug spellings, and preventing multi-head muscles from counting twice.
+- **Documentation Website (`docs/index.html`):** Removed obsolete SVG CSS properties (`block-progression`) triggering unknown property warnings in editors and validators.
+
 ## [1.2.1] - 2026-09-01
 
 ### Changed
@@ -1181,8 +1209,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   - Implemented strict database write guards to prevent direct modification of read-only wger system catalog entries.
   - Added a comprehensive database integration test suite validating cloning behavior, search exclusion, and priority override resolution.
 
-- **Sleep Day Overview Screen**: Added a new [SleepDayOverviewPage](file:///Users/richardgeorgschotte/Projekte/train-libre/lib/features/sleep/presentation/day/sleep_day_overview_page.dart) screen detailing nocturnal sleep architecture, duration, cycles, efficiency indicators, and scoring, utilizing dynamic translations and localized strings.
-- **Nightly Sleep Analysis Domain**: Added the [NightlySleepAnalysis](file:///Users/richardgeorgschotte/Projekte/train-libre/lib/features/sleep/domain/derived/nightly_sleep_analysis.dart) model to handle high-precision calculations of physiological sleep data.
+- **Sleep Day Overview Screen**: Added a new [SleepDayOverviewPage](lib/features/sleep/presentation/day/sleep_day_overview_page.dart) screen detailing nocturnal sleep architecture, duration, cycles, efficiency indicators, and scoring, utilizing dynamic translations and localized strings.
+- **Nightly Sleep Analysis Domain**: Added the [NightlySleepAnalysis](lib/features/sleep/domain/derived/nightly_sleep_analysis.dart) model to handle high-precision calculations of physiological sleep data.
 - **Isolate Offloaded Excel Export Engine**: Completely refactored the Excel generation pipeline to run inside a background isolate (`compute()`), utilizing fully serialized Dart DTOs (`ExcelExportData`) to decouple database queries from spreadsheet construction, eliminating thread lock and memory sharing failures.
 - **High-Fidelity Sport Science Metrics (Sheet 2: "Workouts & Exercises")**:
   - Implemented strict compliance for reps in reserve (RIR) and rate of perceived exertion (RPE) null-value serialization, writing empty string cells (`""`) instead of defaulting to `0` (which clinically represents muscular failure).

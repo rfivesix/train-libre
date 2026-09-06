@@ -1,0 +1,30 @@
+{
+  "source_id": "wger_catalog",
+  "channel": "stable",
+  "release_tag": "catalog-stable",
+  "release_page_url": "https://github.com/rfivesix/OpenExerciseDB/releases/tag/catalog-stable",
+  "asset_base_url": "https://github.com/rfivesix/OpenExerciseDB/releases/download/catalog-stable/",
+  "version": "202609041121",
+  "schema_version": 2,
+  "min_app_schema_version": 1,
+  "generated_at": "2026-09-04T11:21:54+00:00",
+  "source_repo": "https://github.com/rfivesix/OpenExerciseDB",
+  "source_commit": "0558abff55d10369be58fb26b80bc4a6d3e23530",
+  "db_file": "openexercisedb.db",
+  "db_url": "https://github.com/rfivesix/OpenExerciseDB/releases/download/catalog-stable/openexercisedb.db",
+  "db_sha256": "8228e15de720151c041d573e9075ef9606376b61639fedc50bcf12de9fdd71a9",
+  "build_report_file": "build_report.json",
+  "build_report_url": "https://github.com/rfivesix/OpenExerciseDB/releases/download/catalog-stable/build_report.json",
+  "build_report_sha256": "5a27811fc90bef1c159e1b3dba5f4e69da05783dc8959ac6c97d7effe11c9e39",
+  "diff_report_file": "diff_report.json",
+  "diff_report_url": "https://github.com/rfivesix/OpenExerciseDB/releases/download/catalog-stable/diff_report.json",
+  "diff_report_sha256": "f8799845993c9ca0e2cebb0e69c2363d8891d992f156536ec0b55d2a21cc5d9a",
+  "expected_exercise_count": 909,
+  "min_exercise_count": 772,
+  "safety": {
+    "diff_skipped": false,
+    "diff_removed_count": 0,
+    "diff_added_count": 0,
+    "diff_unmapped_removed_count": 0
+  }
+}

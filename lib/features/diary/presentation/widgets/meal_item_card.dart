@@ -117,7 +117,7 @@ class MealItemCard extends StatelessWidget {
               ),
               IconButton(
                 tooltip: AppLocalizations.of(context)!.mealsDelete,
-                icon: const Icon(LucideIcons.trash_2),
+                icon: const Icon(LucideIcons.trash),
                 onPressed: onDelete,
               ),
             ],

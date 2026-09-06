@@ -141,77 +141,78 @@ class _WorkoutHistoryScreenState extends State<WorkoutHistoryScreen> {
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(fontWeight: FontWeight.bold),
                           ),
-                        // FIX: Subtitle is now a Column with more information.
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const SizedBox(height: 4),
-                            Text(
-                              DateFormat.yMMMMd(
-                                locale,
-                              ).add_Hm().format(log.startTime),
-                            ),
-                            const SizedBox(height: 8),
-                            Row(
-                              children: [
-                                Icon(
-                                  LucideIcons.scale,
-                                  size: 14,
-                                  color: Colors.grey[600],
-                                ),
-                                const SizedBox(width: 4),
-                                Flexible(
-                                  child: Text(
-                                    '${context.read<UnitService>().convertDisplayValue(totalVolume, UnitDimension.weight).toStringAsFixed(0)} ${context.read<UnitService>().suffixFor(UnitDimension.weight)}',
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                      color: Colors.grey[600],
-                                      fontSize: 12,
+                          // FIX: Subtitle is now a Column with more information.
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const SizedBox(height: 4),
+                              Text(
+                                DateFormat.yMMMMd(
+                                  locale,
+                                ).add_Hm().format(log.startTime),
+                              ),
+                              const SizedBox(height: 8),
+                              Row(
+                                children: [
+                                  Icon(
+                                    LucideIcons.scale,
+                                    size: 14,
+                                    color: Colors.grey[600],
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Flexible(
+                                    child: Text(
+                                      '${context.read<UnitService>().convertDisplayValue(totalVolume, UnitDimension.weight).toStringAsFixed(0)} ${context.read<UnitService>().suffixFor(UnitDimension.weight)}',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        color: Colors.grey[600],
+                                        fontSize: 12,
+                                      ),
                                     ),
                                   ),
-                                ),
-                                const SizedBox(width: DesignConstants.spacingM),
-                                Icon(
-                                  LucideIcons.rotate_ccw,
-                                  size: 14,
-                                  color: Colors.grey[600],
-                                ),
-                                const SizedBox(width: 4),
-                                Flexible(
-                                  child: Text(
-                                    l10n.setCount(
-                                      totalSets,
-                                    ), // Uses the plural function
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                      color: Colors.grey[600],
-                                      fontSize: 12,
+                                  const SizedBox(
+                                      width: DesignConstants.spacingM),
+                                  Icon(
+                                    LucideIcons.rotate_ccw,
+                                    size: 14,
+                                    color: Colors.grey[600],
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Flexible(
+                                    child: Text(
+                                      l10n.setCount(
+                                        totalSets,
+                                      ), // Uses the plural function
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        color: Colors.grey[600],
+                                        fontSize: 12,
+                                      ),
                                     ),
                                   ),
-                                ),
-                              ],
-                            ),
-                          ],
+                                ],
+                              ),
+                            ],
+                          ),
+                          trailing: duration != null
+                              ? Text(
+                                  formatDuration(duration),
+                                  style: TextStyle(
+                                    color: colorScheme.primary,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                )
+                              : null,
                         ),
-                        trailing: duration != null
-                            ? Text(
-                                formatDuration(duration),
-                                style: TextStyle(
-                                  color: colorScheme.primary,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              )
-                            : null,
                       ),
-                    ),
                     );
                     return card;
                   },
                 ),
               );
-          },
+            },
           );
         },
       ),

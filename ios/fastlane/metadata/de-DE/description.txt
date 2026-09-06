@@ -38,4 +38,4 @@ RECHTLICHER HINWEIS:
 Train Libre ist keine medizinische Anwendung. Die algorithmische Regenerations-Auswertung, das Schlaf-Tracking und physische Vitalparameter dienen ausschließlich der persönlichen sportlichen Orientierung und Trainingssteuerung. Sie stellen keine medizinische Diagnose oder Behandlung dar und ersetzen diese nicht.
 
 OPEN SOURCE & OFFENE DATEN:
-Transparent aufgebaut auf den vertrauenswürdigen Community-Katalogen von Open Food Facts und der wger-Übungsdatenbank. Der vollständige Quellcode ist öffentlich einsehbar – unsere Datenschutzversprechen kann man also nachprüfen, statt sie nur zu glauben.
+Transparent aufgebaut auf den vertrauenswürdigen Community-Katalogen von Open Food Facts und OpenExerciseDB. Der vollständige Quellcode ist öffentlich einsehbar – unsere Datenschutzversprechen kann man also nachprüfen, statt sie nur zu glauben.

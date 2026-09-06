@@ -279,8 +279,7 @@ double calculateDynamicReorderHeadroom({
 }) {
   double? viewportTop;
   if (scrollController.hasClients) {
-    final renderBox = scrollController
-        .position.context.notificationContext
+    final renderBox = scrollController.position.context.notificationContext
         ?.findRenderObject() as RenderBox?;
     if (renderBox != null && renderBox.hasSize) {
       viewportTop = renderBox.localToGlobal(Offset.zero).dy;
@@ -372,4 +371,3 @@ class ReorderHapticFeedback {
     HapticFeedbackService.instance.lightImpact();
   }
 }
-

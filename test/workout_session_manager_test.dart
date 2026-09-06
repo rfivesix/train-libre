@@ -70,10 +70,10 @@ void main() {
       () async {
         final exercise = await workoutDb.insertExercise(
           const model.Exercise(
-            nameDe: 'Bankdruecken',
-            nameEn: 'Bench Press',
-            descriptionDe: '',
-            descriptionEn: '',
+            texts: {
+              'de': model.ExerciseText(name: 'Bankdruecken', description: ''),
+              'en': model.ExerciseText(name: 'Bench Press', description: ''),
+            },
             categoryName: 'Strength',
             primaryMuscles: ['chest'],
             secondaryMuscles: ['triceps'],
@@ -89,7 +89,7 @@ void main() {
 
         expect(manager.workoutLog?.id, log.id);
         expect(manager.exercises.length, 1);
-        expect(manager.exercises.first.exercise.nameEn, 'Bench Press');
+        expect(manager.exercises.first.exercise.canonicalName, 'Bench Press');
         expect(manager.exercises.first.setTemplates.length, 3);
         expect(manager.pauseTimes[manager.exercises.first.id!], 120);
         expect(manager.setLogs, isEmpty);
@@ -101,10 +101,10 @@ void main() {
       final log = await workoutDb.startWorkout(routineName: 'Session');
       final exercise = const model.Exercise(
         id: 1,
-        nameDe: 'Kniebeuge',
-        nameEn: 'Squat',
-        descriptionDe: '',
-        descriptionEn: '',
+        texts: {
+          'de': model.ExerciseText(name: 'Kniebeuge', description: ''),
+          'en': model.ExerciseText(name: 'Squat', description: ''),
+        },
         categoryName: 'Strength',
         primaryMuscles: ['quads'],
         secondaryMuscles: [],
@@ -137,10 +137,10 @@ void main() {
         id: 300,
         exercise: const model.Exercise(
           id: 1,
-          nameDe: 'Kniebeuge',
-          nameEn: 'Squat',
-          descriptionDe: '',
-          descriptionEn: '',
+          texts: {
+            'de': model.ExerciseText(name: 'Kniebeuge', description: ''),
+            'en': model.ExerciseText(name: 'Squat', description: ''),
+          },
           categoryName: 'Strength',
           primaryMuscles: ['quads'],
           secondaryMuscles: [],
@@ -152,10 +152,10 @@ void main() {
         id: 301,
         exercise: const model.Exercise(
           id: 2,
-          nameDe: 'Latzug',
-          nameEn: 'Lat Pulldown',
-          descriptionDe: '',
-          descriptionEn: '',
+          texts: {
+            'de': model.ExerciseText(name: 'Latzug', description: ''),
+            'en': model.ExerciseText(name: 'Lat Pulldown', description: ''),
+          },
           categoryName: 'Strength',
           primaryMuscles: ['back'],
           secondaryMuscles: [],
@@ -189,14 +189,114 @@ void main() {
       expect(manager.currentExerciseNameFor('en'), isNull);
     });
 
+    test('superset completion alternates exercises and rests after rounds',
+        () async {
+      final log = await workoutDb.startWorkout(routineName: 'Superset');
+      model.Exercise exercise(int id, String name) => model.Exercise(
+            id: id,
+            texts: {'en': model.ExerciseText(name: name, description: '')},
+            categoryName: 'Strength',
+            primaryMuscles: const [],
+            secondaryMuscles: const [],
+          );
+      await manager.startWorkout(log, [
+        RoutineExercise(
+          id: 500,
+          exercise: exercise(1, 'A'),
+          pauseSeconds: 60,
+          supersetGroup: 1,
+          setTemplates: [
+            for (var id = 5001; id <= 5004; id++)
+              SetTemplate(id: id, setType: 'normal'),
+          ],
+        ),
+        RoutineExercise(
+          id: 600,
+          exercise: exercise(2, 'B'),
+          pauseSeconds: 90,
+          supersetGroup: 1,
+          setTemplates: [
+            for (var id = 6001; id <= 6003; id++)
+              SetTemplate(id: id, setType: 'normal'),
+          ],
+        ),
+      ]);
+      await _waitFor(() => manager.setLogs.length == 7);
+
+      expect(
+          manager.setLogs.values.map((set) => set.supersetGroup).toSet(), {1});
+      await manager.updateSet(5001, isCompleted: true);
+      expect(manager.remainingRestSeconds, 0);
+      expect(manager.currentExerciseNameFor('en'), 'B');
+      expect(manager.autoAdvanceExerciseIndex, 1);
+
+      await manager.updateSet(6001, isCompleted: true);
+      expect(manager.remainingRestSeconds, 90);
+      expect(manager.currentExerciseNameFor('en'), 'A');
+      manager.cancelRest();
+
+      await manager.updateSet(5002, isCompleted: true);
+      await manager.updateSet(6002, isCompleted: true);
+      manager.cancelRest();
+      await manager.updateSet(5003, isCompleted: true);
+      await manager.updateSet(6003, isCompleted: true);
+      expect(manager.remainingRestSeconds, 90,
+          reason: 'the group has an uneven trailing round');
+      manager.cancelRest();
+
+      await manager.updateSet(5004, isCompleted: true);
+      expect(manager.remainingRestSeconds, 0,
+          reason: 'the final unmatched set behaves like a standalone last set');
+    });
+
+    test('last member of the final equal round starts no timer', () async {
+      final log = await workoutDb.startWorkout(routineName: 'Superset');
+      const exerciseA = model.Exercise(
+        id: 1,
+        texts: {'en': model.ExerciseText(name: 'A', description: '')},
+        categoryName: 'Strength',
+        primaryMuscles: [],
+        secondaryMuscles: [],
+      );
+      const exerciseB = model.Exercise(
+        id: 2,
+        texts: {'en': model.ExerciseText(name: 'B', description: '')},
+        categoryName: 'Strength',
+        primaryMuscles: [],
+        secondaryMuscles: [],
+      );
+      await manager.startWorkout(log, [
+        RoutineExercise(
+          id: 700,
+          exercise: exerciseA,
+          pauseSeconds: 60,
+          supersetGroup: 2,
+          setTemplates: [SetTemplate(id: 7001, setType: 'normal')],
+        ),
+        RoutineExercise(
+          id: 800,
+          exercise: exerciseB,
+          pauseSeconds: 75,
+          supersetGroup: 2,
+          setTemplates: [SetTemplate(id: 8001, setType: 'normal')],
+        ),
+      ]);
+      await _waitFor(() => manager.setLogs.length == 2);
+
+      await manager.updateSet(7001, isCompleted: true);
+      await manager.updateSet(8001, isCompleted: true);
+
+      expect(manager.remainingRestSeconds, 0);
+    });
+
     test('addSetToExercise keeps previous-set defaults and ordering', () async {
       final log = await workoutDb.startWorkout(routineName: 'Session');
       final exercise = const model.Exercise(
         id: 1,
-        nameDe: 'Bankdruecken',
-        nameEn: 'Bench Press',
-        descriptionDe: '',
-        descriptionEn: '',
+        texts: {
+          'de': model.ExerciseText(name: 'Bankdruecken', description: ''),
+          'en': model.ExerciseText(name: 'Bench Press', description: ''),
+        },
         categoryName: 'Strength',
         primaryMuscles: ['chest'],
         secondaryMuscles: [],
@@ -234,10 +334,10 @@ void main() {
       final log = await workoutDb.startWorkout(routineName: 'Session');
       final exercise = const model.Exercise(
         id: 1,
-        nameDe: 'Bankdruecken',
-        nameEn: 'Bench Press',
-        descriptionDe: '',
-        descriptionEn: '',
+        texts: {
+          'de': model.ExerciseText(name: 'Bankdruecken', description: ''),
+          'en': model.ExerciseText(name: 'Bench Press', description: ''),
+        },
         categoryName: 'Strength',
         primaryMuscles: ['chest'],
         secondaryMuscles: [],
@@ -271,10 +371,10 @@ void main() {
         () async {
       await workoutDb.insertExercise(
         const model.Exercise(
-          nameDe: 'Bankdruecken',
-          nameEn: 'Bench Press',
-          descriptionDe: '',
-          descriptionEn: '',
+          texts: {
+            'de': model.ExerciseText(name: 'Bankdruecken', description: ''),
+            'en': model.ExerciseText(name: 'Bench Press', description: ''),
+          },
           categoryName: 'Strength',
           primaryMuscles: ['chest'],
           secondaryMuscles: [],
@@ -282,10 +382,10 @@ void main() {
       );
       await workoutDb.insertExercise(
         const model.Exercise(
-          nameDe: 'Kniebeuge',
-          nameEn: 'Squat',
-          descriptionDe: '',
-          descriptionEn: '',
+          texts: {
+            'de': model.ExerciseText(name: 'Kniebeuge', description: ''),
+            'en': model.ExerciseText(name: 'Squat', description: ''),
+          },
           categoryName: 'Strength',
           primaryMuscles: ['quads'],
           secondaryMuscles: [],
@@ -333,8 +433,8 @@ void main() {
       await manager.restoreWorkoutSession(log);
 
       expect(manager.exercises.length, 2);
-      expect(manager.exercises[0].exercise.nameEn, 'Bench Press');
-      expect(manager.exercises[1].exercise.nameEn, 'Squat');
+      expect(manager.exercises[0].exercise.canonicalName, 'Bench Press');
+      expect(manager.exercises[1].exercise.canonicalName, 'Squat');
       expect(manager.exercises[0].setTemplates.length, 2);
       expect(manager.exercises[1].setTemplates.length, 1);
       expect(
@@ -430,7 +530,7 @@ void main() {
       await manager.restoreWorkoutSession(log);
 
       expect(manager.exercises.length, 1);
-      expect(manager.exercises.first.exercise.nameEn, 'Bench Press New');
+      expect(manager.exercises.first.exercise.canonicalName, 'Bench Press New');
       expect(manager.setLogs.length, 1);
       expect(manager.totalVolume, 500);
     });
@@ -488,7 +588,8 @@ void main() {
         await manager.restoreWorkoutSession(log);
 
         expect(manager.exercises.length, 1);
-        expect(manager.exercises.first.exercise.nameEn, 'Historical Exercise');
+        expect(manager.exercises.first.exercise.canonicalName,
+            'Historical Exercise');
         expect(manager.exercises.first.exercise.categoryName, 'Unknown');
         expect(manager.setLogs.length, 1);
       },
@@ -499,20 +600,20 @@ void main() {
       final log = await workoutDb.startWorkout(routineName: 'Session');
       final exerciseA = const model.Exercise(
         id: 1,
-        nameDe: 'A',
-        nameEn: 'Exercise A',
-        descriptionDe: '',
-        descriptionEn: '',
+        texts: {
+          'de': model.ExerciseText(name: 'A', description: ''),
+          'en': model.ExerciseText(name: 'Exercise A', description: ''),
+        },
         categoryName: 'Strength',
         primaryMuscles: ['x'],
         secondaryMuscles: [],
       );
       final exerciseB = const model.Exercise(
         id: 2,
-        nameDe: 'B',
-        nameEn: 'Exercise B',
-        descriptionDe: '',
-        descriptionEn: '',
+        texts: {
+          'de': model.ExerciseText(name: 'B', description: ''),
+          'en': model.ExerciseText(name: 'Exercise B', description: ''),
+        },
         categoryName: 'Strength',
         primaryMuscles: ['y'],
         secondaryMuscles: [],
@@ -556,10 +657,10 @@ void main() {
       final log = await workoutDb.startWorkout(routineName: 'Session');
       final exerciseA = const model.Exercise(
         id: 1,
-        nameDe: 'A',
-        nameEn: 'Exercise A',
-        descriptionDe: '',
-        descriptionEn: '',
+        texts: {
+          'de': model.ExerciseText(name: 'A', description: ''),
+          'en': model.ExerciseText(name: 'Exercise A', description: ''),
+        },
         categoryName: 'Strength',
         primaryMuscles: ['x'],
         secondaryMuscles: [],
@@ -595,10 +696,10 @@ void main() {
 
       final newExercise = const model.Exercise(
         id: 1,
-        nameDe: 'New',
-        nameEn: 'New Exercise',
-        descriptionDe: '',
-        descriptionEn: '',
+        texts: {
+          'de': model.ExerciseText(name: 'New', description: ''),
+          'en': model.ExerciseText(name: 'New Exercise', description: ''),
+        },
         categoryName: 'Strength',
         primaryMuscles: ['chest'],
         secondaryMuscles: [],
@@ -607,7 +708,7 @@ void main() {
       await manager.addExercise(newExercise);
 
       expect(manager.exercises.length, 1);
-      expect(manager.exercises.first.exercise.nameEn, 'New Exercise');
+      expect(manager.exercises.first.exercise.canonicalName, 'New Exercise');
       expect(manager.exercises.first.setTemplates.length, 3); // Default 3 sets
     });
 
@@ -616,30 +717,30 @@ void main() {
       final log = await workoutDb.startWorkout(routineName: 'Session');
       final exA = const model.Exercise(
         id: 1,
-        nameDe: 'ExA',
-        nameEn: 'Exercise A',
-        descriptionDe: '',
-        descriptionEn: '',
+        texts: {
+          'de': model.ExerciseText(name: 'ExA', description: ''),
+          'en': model.ExerciseText(name: 'Exercise A', description: ''),
+        },
         categoryName: 'Strength',
         primaryMuscles: [],
         secondaryMuscles: [],
       );
       final exB = const model.Exercise(
         id: 2,
-        nameDe: 'ExB',
-        nameEn: 'Exercise B',
-        descriptionDe: '',
-        descriptionEn: '',
+        texts: {
+          'de': model.ExerciseText(name: 'ExB', description: ''),
+          'en': model.ExerciseText(name: 'Exercise B', description: ''),
+        },
         categoryName: 'Strength',
         primaryMuscles: [],
         secondaryMuscles: [],
       );
       final exC = const model.Exercise(
         id: 3,
-        nameDe: 'ExC',
-        nameEn: 'Exercise C',
-        descriptionDe: '',
-        descriptionEn: '',
+        texts: {
+          'de': model.ExerciseText(name: 'ExC', description: ''),
+          'en': model.ExerciseText(name: 'Exercise C', description: ''),
+        },
         categoryName: 'Strength',
         primaryMuscles: [],
         secondaryMuscles: [],
@@ -665,19 +766,19 @@ void main() {
 
       // Exercise C should be inserted at index 1 (after Exercise A)
       expect(manager.exercises.length, 3);
-      expect(manager.exercises[0].exercise.nameEn, 'Exercise A');
-      expect(manager.exercises[1].exercise.nameEn, 'Exercise C');
-      expect(manager.exercises[2].exercise.nameEn, 'Exercise B');
+      expect(manager.exercises[0].exercise.canonicalName, 'Exercise A');
+      expect(manager.exercises[1].exercise.canonicalName, 'Exercise C');
+      expect(manager.exercises[2].exercise.canonicalName, 'Exercise B');
     });
 
     test('removeExercise removes exercise and its sets', () async {
       final log = await workoutDb.startWorkout(routineName: 'Session');
       final exerciseA = const model.Exercise(
         id: 1,
-        nameDe: 'A',
-        nameEn: 'Exercise A',
-        descriptionDe: '',
-        descriptionEn: '',
+        texts: {
+          'de': model.ExerciseText(name: 'A', description: ''),
+          'en': model.ExerciseText(name: 'Exercise A', description: ''),
+        },
         categoryName: 'Strength',
         primaryMuscles: ['x'],
         secondaryMuscles: [],
@@ -704,20 +805,20 @@ void main() {
       final log = await workoutDb.startWorkout(routineName: 'Session');
       final exerciseA = const model.Exercise(
         id: 1,
-        nameDe: 'A',
-        nameEn: 'Exercise A',
-        descriptionDe: '',
-        descriptionEn: '',
+        texts: {
+          'de': model.ExerciseText(name: 'A', description: ''),
+          'en': model.ExerciseText(name: 'Exercise A', description: ''),
+        },
         categoryName: 'Strength',
         primaryMuscles: ['x'],
         secondaryMuscles: [],
       );
       final exerciseB = const model.Exercise(
         id: 2,
-        nameDe: 'B',
-        nameEn: 'Exercise B',
-        descriptionDe: '',
-        descriptionEn: '',
+        texts: {
+          'de': model.ExerciseText(name: 'B', description: ''),
+          'en': model.ExerciseText(name: 'Exercise B', description: ''),
+        },
         categoryName: 'Strength',
         primaryMuscles: ['y'],
         secondaryMuscles: [],
@@ -752,10 +853,10 @@ void main() {
       final log = await workoutDb.startWorkout(routineName: 'Session');
       model.Exercise makeExercise(int id) => model.Exercise(
             id: id,
-            nameDe: 'E$id',
-            nameEn: 'Exercise $id',
-            descriptionDe: '',
-            descriptionEn: '',
+            texts: {
+              'de': model.ExerciseText(name: 'E$id', description: ''),
+              'en': model.ExerciseText(name: 'Exercise $id', description: ''),
+            },
             categoryName: 'Strength',
             primaryMuscles: ['x'],
             secondaryMuscles: [],
@@ -780,10 +881,10 @@ void main() {
       final log = await workoutDb.startWorkout(routineName: 'Session');
       final exerciseA = const model.Exercise(
         id: 1,
-        nameDe: 'A',
-        nameEn: 'Exercise A',
-        descriptionDe: '',
-        descriptionEn: '',
+        texts: {
+          'de': model.ExerciseText(name: 'A', description: ''),
+          'en': model.ExerciseText(name: 'Exercise A', description: ''),
+        },
         categoryName: 'Strength',
         primaryMuscles: ['x'],
         secondaryMuscles: [],
@@ -807,10 +908,10 @@ void main() {
       final log = await workoutDb.startWorkout(routineName: 'Session');
       final exerciseA = const model.Exercise(
         id: 1,
-        nameDe: 'A',
-        nameEn: 'Exercise A',
-        descriptionDe: '',
-        descriptionEn: '',
+        texts: {
+          'de': model.ExerciseText(name: 'A', description: ''),
+          'en': model.ExerciseText(name: 'Exercise A', description: ''),
+        },
         categoryName: 'Strength',
         primaryMuscles: ['x'],
         secondaryMuscles: [],
@@ -844,10 +945,10 @@ void main() {
       final log = await workoutDb.startWorkout(routineName: 'Session');
       final exerciseA = const model.Exercise(
         id: 1,
-        nameDe: 'A',
-        nameEn: 'Exercise A',
-        descriptionDe: '',
-        descriptionEn: '',
+        texts: {
+          'de': model.ExerciseText(name: 'A', description: ''),
+          'en': model.ExerciseText(name: 'Exercise A', description: ''),
+        },
         categoryName: 'Strength',
         primaryMuscles: ['x'],
         secondaryMuscles: [],

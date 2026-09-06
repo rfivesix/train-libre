@@ -8,7 +8,6 @@ import '../../../generated/app_localizations.dart';
 import '../domain/models/exercise.dart';
 import 'exercise_detail_screen.dart';
 import '../../../util/design_constants.dart';
-import '../../../widgets/common/platform_adaptive_dropdown.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/summary_card.dart';
 import 'create_exercise_screen.dart';
@@ -18,7 +17,10 @@ import '../../../widgets/common/glass_fab.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../core/infrastructure/basis_data_manager.dart';
 import '../../../widgets/common/database_placeholder_widget.dart';
+import '../../app/presentation/widgets/glass_bottom_menu.dart';
 import '../domain/body_slug_mapper.dart';
+import '../domain/exercise_classification_labels.dart';
+import 'widgets/exercise_filter_sheet.dart';
 import '../../../services/telemetry/telemetry_service.dart';
 
 /// A searchable list of all available exercises in the database.
@@ -50,6 +52,26 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
   final _searchController = TextEditingController();
   List<String> _allCategories = [];
   final List<String> _selectedCategories = [];
+
+  /// The load-bearing implement per exercise, from the catalog. Empty until a
+  /// v2 catalog has been imported, which is what hides the filter entirely on
+  /// an older one rather than showing an empty menu.
+  List<({String id, String name})> _allEquipment = [];
+  final List<String> _selectedEquipment = [];
+
+  List<String> _allUsageTags = [];
+  final List<String> _selectedUsageTags = [];
+
+  /// The three annotation axes, in vocabulary order rather than alphabetical.
+  /// Empty on a pre-v2 catalog, which hides the sections rather than showing
+  /// three empty menus.
+  List<String> _allDifficulties = [];
+  final List<String> _selectedDifficulties = [];
+  List<String> _allMechanics = [];
+  final List<String> _selectedMechanics = [];
+  List<String> _allLateralities = [];
+  final List<String> _selectedLateralities = [];
+
   Timer? _searchDebounce;
 
   bool _isWgerDbInitialized = false;
@@ -96,9 +118,19 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
   }
 
   Future<void> _loadCategories() async {
+    final languageCode = Localizations.localeOf(context).languageCode;
     final categories = await _repository.getAllCategories();
+    final equipment = await _repository.getPrimaryEquipment(languageCode);
+    final usageTags = await _repository.getUsageTags();
+    final axes = await _repository.getClassificationAxes();
+    if (!mounted) return;
     setState(() {
       _allCategories = categories;
+      _allEquipment = equipment;
+      _allUsageTags = usageTags;
+      _allDifficulties = axes.difficulties;
+      _allMechanics = axes.mechanics;
+      _allLateralities = axes.lateralities;
       _isLoading = false;
     });
     _runFilter(_searchController.text);
@@ -108,6 +140,12 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
     final results = await _repository.searchExercises(
       query: enteredKeyword,
       categories: _selectedCategories,
+      equipmentIds: _selectedEquipment,
+      usageTags: _selectedUsageTags,
+      difficulties: _selectedDifficulties,
+      mechanics: _selectedMechanics,
+      lateralities: _selectedLateralities,
+      languageCode: Localizations.localeOf(context).languageCode,
     );
     if (mounted) {
       setState(() {
@@ -115,8 +153,6 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
       });
     }
   }
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -229,7 +265,7 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
                               final exercise = _foundExercises[index];
                               return MorphSourceScope(
                                 builder: (context, setHidden) => Builder(
-                                    builder: (cardCtx) {
+                                  builder: (cardCtx) {
                                     // Handed to the morph route as the copy that flies with
                                     // the container, so the card dissolves into the detail
                                     // screen instead of the screen simply growing.
@@ -240,14 +276,17 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
                                           children: [
                                             Expanded(
                                               child: Text(
-                                                exercise.getLocalizedName(context),
+                                                exercise
+                                                    .getLocalizedName(context),
                                                 style: const TextStyle(
-                                                    fontWeight: FontWeight.bold),
+                                                    fontWeight:
+                                                        FontWeight.bold),
                                               ),
                                             ),
                                             if (exercise.source == 'user') ...[
                                               const SizedBox(
-                                                  width: DesignConstants.spacingS),
+                                                  width:
+                                                      DesignConstants.spacingS),
                                               _buildSourceBadge(
                                                   context, exercise.source),
                                             ],
@@ -266,19 +305,23 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
                                                   LucideIcons.circle_plus,
                                                   color: colorScheme.primary,
                                                 ),
-                                                onPressed: () => Navigator.of(context)
-                                                    .pop(exercise),
+                                                onPressed: () =>
+                                                    Navigator.of(context)
+                                                        .pop(exercise),
                                               )
                                             : const Icon(
                                                 LucideIcons.chevron_right,
                                               ),
                                         onTap: () {
-                                          if (widget.onExerciseSelected != null) {
-                                            widget.onExerciseSelected!(exercise);
+                                          if (widget.onExerciseSelected !=
+                                              null) {
+                                            widget
+                                                .onExerciseSelected!(exercise);
                                           } else if (widget.isSelectionMode) {
                                             Navigator.of(context).pop(exercise);
                                           } else {
-                                            Navigator.of(context).push(
+                                            Navigator.of(context)
+                                                .push(
                                               CardMorphRoute(
                                                 sourceContext: cardCtx,
                                                 sourceBuilder: (_) => card,
@@ -287,11 +330,14 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
                                                 builder: (context) =>
                                                     ExerciseDetailScreen(
                                                         exercise: exercise,
-                                                        repository: _repository),
+                                                        repository:
+                                                            _repository),
                                               ),
-                                            ).then((result) {
+                                            )
+                                                .then((result) {
                                               if (result == 'deleted') {
-                                                _runFilter(_searchController.text);
+                                                _runFilter(
+                                                    _searchController.text);
                                               }
                                             });
                                           }
@@ -369,7 +415,13 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
   Widget _buildFilterButton(BuildContext context, AppLocalizations l10n) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final hasFilter = _selectedCategories.isNotEmpty;
+    final activeCount = _selectedCategories.length +
+        _selectedEquipment.length +
+        _selectedUsageTags.length +
+        _selectedDifficulties.length +
+        _selectedMechanics.length +
+        _selectedLateralities.length;
+    final hasFilter = activeCount > 0;
 
     final fillColor = hasFilter
         ? colorScheme.primary
@@ -381,8 +433,10 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
     final iconColor =
         hasFilter ? colorScheme.onPrimary : colorScheme.onSurfaceVariant;
 
-    return PlatformAdaptivePopupMenu<String>(
-      icon: Container(
+    return GestureDetector(
+      onTap: () => _showFilterSheet(context, l10n),
+      behavior: HitTestBehavior.opaque,
+      child: Container(
         height: 48,
         width: 48,
         decoration: BoxDecoration(
@@ -390,31 +444,118 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
           borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
         ),
         child: Center(
-          child: Icon(
-            LucideIcons.list_filter,
-            color: iconColor,
-            size: 22,
-          ),
+          child: hasFilter
+              ? Text(
+                  '$activeCount',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    color: iconColor,
+                    fontWeight: FontWeight.bold,
+                  ),
+                )
+              : Icon(LucideIcons.list_filter, color: iconColor, size: 22),
         ),
       ),
-      items: _allCategories.map((category) {
-        final isSelected = _selectedCategories.contains(category);
-        return PlatformAdaptivePopupMenuItem<String>(
-          value: category,
-          label: BodySlugMapper.localize(context, category),
-          icon: isSelected ? LucideIcons.check : null,
-        );
-      }).toList(),
-      onSelected: (value) {
-        setState(() {
-          if (_selectedCategories.contains(value)) {
-            _selectedCategories.remove(value);
-          } else {
-            _selectedCategories.add(value);
-          }
-        });
-        _runFilter(_searchController.text);
-      },
+    );
+  }
+
+  Future<void> _showFilterSheet(
+    BuildContext context,
+    AppLocalizations l10n,
+  ) async {
+    await showGlassBottomMenu<void>(
+      context: context,
+      title: l10n.catalogFilterTitle,
+      contentBuilder: (sheetContext, close) => ExerciseFilterSheet(
+        sections: [
+          ExerciseFilterSection(
+            title: l10n.catalogFilterBodyRegion,
+            selection: _selectedCategories,
+            options: [
+              for (final category in _allCategories)
+                ExerciseFilterOption(
+                  value: category,
+                  label: BodySlugMapper.localize(sheetContext, category),
+                ),
+            ],
+          ),
+          ExerciseFilterSection(
+            title: l10n.catalogFilterEquipment,
+            selection: _selectedEquipment,
+            options: [
+              for (final equipment in _allEquipment)
+                ExerciseFilterOption(
+                  value: equipment.id,
+                  label: equipment.name,
+                ),
+            ],
+          ),
+          ExerciseFilterSection(
+            title: l10n.catalogFilterUsage,
+            selection: _selectedUsageTags,
+            options: [
+              for (final tag in _allUsageTags)
+                if (ExerciseClassificationLabels.usageTag(sheetContext, tag) !=
+                    null)
+                  ExerciseFilterOption(
+                    value: tag,
+                    label: ExerciseClassificationLabels.usageTag(
+                        sheetContext, tag)!,
+                  ),
+            ],
+          ),
+          ExerciseFilterSection(
+            title: l10n.catalogFilterMechanic,
+            selection: _selectedMechanics,
+            options: [
+              for (final value in _allMechanics)
+                if (ExerciseClassificationLabels.mechanic(
+                        sheetContext, value) !=
+                    null)
+                  ExerciseFilterOption(
+                    value: value,
+                    label: ExerciseClassificationLabels.mechanic(
+                        sheetContext, value)!,
+                  ),
+            ],
+          ),
+          ExerciseFilterSection(
+            title: l10n.catalogFilterLaterality,
+            selection: _selectedLateralities,
+            options: [
+              for (final value in _allLateralities)
+                if (ExerciseClassificationLabels.laterality(
+                        sheetContext, value) !=
+                    null)
+                  ExerciseFilterOption(
+                    value: value,
+                    label: ExerciseClassificationLabels.laterality(
+                        sheetContext, value)!,
+                  ),
+            ],
+          ),
+          ExerciseFilterSection(
+            title: l10n.catalogFilterDifficulty,
+            selection: _selectedDifficulties,
+            options: [
+              for (final value in _allDifficulties)
+                if (ExerciseClassificationLabels.difficulty(
+                        sheetContext, value) !=
+                    null)
+                  ExerciseFilterOption(
+                    value: value,
+                    label: ExerciseClassificationLabels.difficulty(
+                        sheetContext, value)!,
+                  ),
+            ],
+          ),
+        ],
+        onChanged: () {
+          // The chip count on the toolbar button lives in this state, and the
+          // list behind the sheet has to follow the selection immediately.
+          setState(() {});
+          _runFilter(_searchController.text);
+        },
+      ),
     );
   }
 

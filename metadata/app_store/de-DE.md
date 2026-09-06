@@ -53,12 +53,18 @@ RECHTLICHER HINWEIS:
 Train Libre ist keine medizinische Anwendung. Die algorithmische Regenerations-Auswertung, das Schlaf-Tracking und physische Vitalparameter dienen ausschließlich der persönlichen sportlichen Orientierung und Trainingssteuerung. Sie stellen keine medizinische Diagnose oder Behandlung dar und ersetzen diese nicht.
 
 OPEN SOURCE & OFFENE DATEN:
-Transparent aufgebaut auf den vertrauenswürdigen Community-Katalogen von Open Food Facts und der wger-Übungsdatenbank. Der vollständige Quellcode ist öffentlich einsehbar – unsere Datenschutzversprechen kann man also nachprüfen, statt sie nur zu glauben.
+Transparent aufgebaut auf den vertrauenswürdigen Community-Katalogen von Open Food Facts und OpenExerciseDB. Der vollständige Quellcode ist öffentlich einsehbar – unsere Datenschutzversprechen kann man also nachprüfen, statt sie nur zu glauben.
 
 ## Release Notes (What's New / Release Notes in this version)
-Verbesserte Makronährstoff-Empfehlungen: Die adaptive Berechnung verteilt Fett und Kohlenhydrate jetzt noch ausgewogener basierend auf deinem Körpergewicht und Ziel.
+Supersätze: Verbinde Übungen in deinen Trainingsplänen zu Supersätzen, Trisätzen oder größeren Gruppen. Im Training wechselst du rundenweise zwischen ihnen, und die Pause startet erst nach der letzten Übung einer Runde.
 
-Fehlerbehebungen: Kleinere Fehler bei der Erfassung von Koffein im Tagebuch sowie Darstellungsfehler bei Animationen und Kartenübergängen behoben.
+Für jede Übung die passenden Felder: Bei Planks erfasst du die Haltezeit, bei Klimmzügen Wiederholungen und optionales Zusatzgewicht, bei unterstützten Übungen die Unterstützung. Auch die Werte vom letzten Training und die Diagramme passen sich an.
+
+Überarbeiteter Übungskatalog: Der Katalog basiert jetzt auf OpenExerciseDB, mit genaueren Angaben zu Muskeln und Bewegungen und Namen in deiner App-Sprache. Filtere nach Geräten, Schwierigkeitsgrad und weiteren Merkmalen, auch beim Zusammenstellen deiner Trainingspläne.
+
+Gewicht direkt im Tagebuch erfassen: Trage dein Gewicht über die neue Karte unter den Supplementen ein, mit einem flüssigen Regler in Kilogramm oder Pfund. Von dort öffnest du auch deinen Messverlauf.
+
+Fortschritte richtig einordnen: Bei Eigengewichtsübungen berücksichtigen Trainingsvolumen und Kraftrekorde jetzt dein erfasstes Körpergewicht, Zusatzgewicht zählt dazu und Unterstützung wird abgezogen. Dehnen und Mobilitätsübungen zählen nicht mehr als Kraftsätze.
 
 ## Support URL (Support Web Page URL)
 https://rfivesix.github.io/train-libre/

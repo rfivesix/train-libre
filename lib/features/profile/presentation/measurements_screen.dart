@@ -175,7 +175,9 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
     }
     unawaited(TelemetryService.instance
         .trackScreenView(screenName: ScreenName.bodyMeasurements));
-    Future.delayed(const Duration(milliseconds: 300), () {
+    // Loads as soon as the first frame is out, so the push transition still
+    // animates against the skeleton instead of waiting out a fixed delay.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         _loadMeasurements();
       }
@@ -261,7 +263,8 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
         MediaQuery.of(context).padding.top + kToolbarHeight;
 
     final hasNoData = _filteredSessions.isEmpty;
-    final displaySessions = hasNoData ? getMockSessions(_activeDateRange) : _filteredSessions;
+    final displaySessions =
+        hasNoData ? getMockSessions(_activeDateRange) : _filteredSessions;
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -298,7 +301,8 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
                       onPrevious: _activeBlock == TimeframeBlock.maxBlock
                           ? null
                           : () => _shiftTimeframe(true),
-                      onNext: _nextEnabled ? () => _shiftTimeframe(false) : null,
+                      onNext:
+                          _nextEnabled ? () => _shiftTimeframe(false) : null,
                       displayDate: _rangeDisplayLabel(l10n),
                       onTapDateDisplay: _activeBlock == TimeframeBlock.maxBlock
                           ? null
@@ -319,7 +323,8 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
                               }
                             },
                       nextEnabled: _nextEnabled,
-                      showDateNavigation: _activeBlock != TimeframeBlock.maxBlock,
+                      showDateNavigation:
+                          _activeBlock != TimeframeBlock.maxBlock,
                     ),
                     const SizedBox(height: DesignConstants.spacingL),
                     // ── Chart (follows same date range) ──
@@ -345,8 +350,8 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
                     enabled: true,
                     child: Column(
                       children: displaySessions
-                          .map((session) => _buildSessionCard(
-                              l10n, colorScheme, textTheme, unitService, dateFormat, session))
+                          .map((session) => _buildSessionCard(l10n, colorScheme,
+                              textTheme, unitService, dateFormat, session))
                           .toList(),
                     ),
                   ),
@@ -416,6 +421,10 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
         if (hasNoData)
           MeasurementChartWidget.fromData(
             dataPoints: _getMockChartDataPoints(chartType, _activeDateRange),
+            // Same axis as the real chart below: the mock points span days, and
+            // the `time` default would both label them as clock times and blow
+            // the axis up to one step per minute.
+            axisMode: MeasurementChartAxisMode.day,
             unit: _getMeasurementUnit(chartType, unitService),
             edgeToEdge: true,
           )
@@ -573,7 +582,27 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
     }
   }
 
+  DateTimeRange? _mockRange;
+  List<MeasurementSession>? _mockSessions;
+  String? _mockChartKey;
+  List<ChartDataPoint>? _mockChartPoints;
+
   List<MeasurementSession> getMockSessions(DateTimeRange range) {
+    final cached = _mockSessions;
+    final cachedRange = _mockRange;
+    if (cached != null &&
+        cachedRange != null &&
+        cachedRange.start == range.start &&
+        cachedRange.end == range.end) {
+      return cached;
+    }
+    final built = _buildMockSessions(range);
+    _mockRange = range;
+    _mockSessions = built;
+    return built;
+  }
+
+  List<MeasurementSession> _buildMockSessions(DateTimeRange range) {
     final start = range.start;
     final end = range.end;
     final duration = end.difference(start);
@@ -585,25 +614,52 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
         id: i,
         timestamp: date,
         measurements: [
-          Measurement(sessionId: i, type: 'weight', value: 80.0 - i * 0.5, unit: 'kg'),
-          Measurement(sessionId: i, type: 'fat_percent', value: 15.0 - i * 0.1, unit: '%'),
-          Measurement(sessionId: i, type: 'waist', value: 88.0 - i * 0.2, unit: 'cm'),
+          Measurement(
+              sessionId: i, type: 'weight', value: 80.0 - i * 0.5, unit: 'kg'),
+          Measurement(
+              sessionId: i,
+              type: 'fat_percent',
+              value: 15.0 - i * 0.1,
+              unit: '%'),
+          Measurement(
+              sessionId: i, type: 'waist', value: 88.0 - i * 0.2, unit: 'cm'),
         ],
       );
     });
   }
 
-  List<ChartDataPoint> _getMockChartDataPoints(String chartType, DateTimeRange range) {
+  /// Cached by type and range: a fresh list on every build would make
+  /// [MeasurementChartWidget] re-sort and rebuild itself after each parent
+  /// build, because it compares the list by identity.
+  List<ChartDataPoint> _getMockChartDataPoints(
+      String chartType, DateTimeRange range) {
+    final key = '$chartType|${range.start.millisecondsSinceEpoch}'
+        '|${range.end.millisecondsSinceEpoch}';
+    final cached = _mockChartPoints;
+    if (cached != null && _mockChartKey == key) return cached;
+    final built = _buildMockChartDataPoints(chartType, range);
+    _mockChartKey = key;
+    _mockChartPoints = built;
+    return built;
+  }
+
+  List<ChartDataPoint> _buildMockChartDataPoints(
+      String chartType, DateTimeRange range) {
     final start = range.start;
     final end = range.end;
     final duration = end.difference(start);
     final step = duration.inDays ~/ 4;
 
     double baseValue = 75.0;
-    if (chartType == 'fat_percent') { baseValue = 15.0; }
-    else if (chartType == 'waist') { baseValue = 85.0; }
-    else if (chartType == 'neck') { baseValue = 38.0; }
-    else if (chartType == 'chest') { baseValue = 100.0; }
+    if (chartType == 'fat_percent') {
+      baseValue = 15.0;
+    } else if (chartType == 'waist') {
+      baseValue = 85.0;
+    } else if (chartType == 'neck') {
+      baseValue = 38.0;
+    } else if (chartType == 'chest') {
+      baseValue = 100.0;
+    }
 
     return List.generate(4, (i) {
       final date = start.add(Duration(days: (i + 1) * step));
@@ -613,7 +669,9 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
   }
 
   List<String> get _displayMeasurementTypes {
-    if (_availableMeasurementTypes.isNotEmpty) return _availableMeasurementTypes;
+    if (_availableMeasurementTypes.isNotEmpty) {
+      return _availableMeasurementTypes;
+    }
     return ['weight', 'fat_percent', 'waist'];
   }
 

@@ -5,9 +5,14 @@ import '../domain/models/set_log.dart';
 import '../domain/models/workout_log.dart';
 import 'sources/workout_local_data_source.dart';
 import '../domain/repositories/workout_repository.dart';
+import '../domain/classification/set_load.dart';
 
 /// Concrete implementation of [IWorkoutRepository] implementing workout database transactions.
 class WorkoutRepository implements IWorkoutRepository {
+  @override
+  Future<BodyweightHistory> getBodyweightHistory() =>
+      _localDataSource.getBodyweightHistory();
+
   final WorkoutLocalDataSource _localDataSource;
 
   WorkoutRepository({required WorkoutLocalDataSource localDataSource})

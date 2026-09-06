@@ -18,7 +18,7 @@ import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/summary_card.dart';
 import 'ai_settings_screen.dart';
 import 'appearance_settings_screen.dart';
-import 'performance_diagnostics_screen.dart';
+import 'developer_settings_screen.dart';
 import 'data_management_screen.dart';
 import 'health_export_settings_screen.dart';
 import 'pulse_settings_screen.dart';
@@ -667,7 +667,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             key: const Key('settings_reset_telemetry_data'),
             title: l10n.settingsTelemetryDeleteTitle,
             subtitle: l10n.settingsTelemetryDeleteSubtitle,
-            trailingIcon: LucideIcons.trash_2,
+            trailingIcon: LucideIcons.trash,
             onTap: () async {
               final confirmed = await _showTelemetryDeletionConfirmation();
               if (!confirmed) return;
@@ -684,13 +684,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           const SizedBox(height: DesignConstants.spacingS),
           AppLinkRow(
-            key: const Key('settings_performance_log'),
-            title: l10n.settingsPerformanceLogTitle,
-            subtitle: l10n.settingsPerformanceLogSubtitle,
+            key: const Key('settings_developer'),
+            title: l10n.settingsDeveloperTitle,
+            subtitle: l10n.settingsDeveloperSubtitle,
             onTap: () {
               Navigator.of(context).push(
                 MaterialPageRoute(
-                  builder: (context) => const PerformanceDiagnosticsScreen(),
+                  builder: (context) => const DeveloperSettingsScreen(),
                 ),
               );
             },
@@ -726,7 +726,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           : _confirmAndDeleteLocalData,
                       label: l10n.deleteAllLocalAppData,
                       tooltip: l10n.deleteAllLocalAppData,
-                      icon: LucideIcons.trash_2,
+                      icon: LucideIcons.trash,
                       isLoading: _isLocalResetRunning,
                     ),
                   ),

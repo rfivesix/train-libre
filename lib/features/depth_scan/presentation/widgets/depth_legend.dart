@@ -72,18 +72,18 @@ class DepthLegend extends StatelessWidget {
         ),
         const SizedBox(height: 4),
         Text(
-          'Hell = nah an der Kamera, dunkel = weiter weg. '
-          'Grau = kein Messwert.',
+          'Light = close to camera, dark = farther away. '
+          'Gray = no depth.',
           style: TextStyle(fontSize: 11, height: 1.3, color: muted),
         ),
         if (showDiagnostics) ...[
           const SizedBox(height: 4),
           Text(
-            'Gemessen ${render.nearestCm.toStringAsFixed(1)}–'
+            'Measured ${render.nearestCm.toStringAsFixed(1)}–'
             '${render.farthestCm.toStringAsFixed(1)} cm · '
-            '${(render.outsideRangeFraction * 100).toStringAsFixed(0)} % außerhalb · '
-            '${(render.invalidFraction * 100).toStringAsFixed(0)} % ohne Messwert'
-            '${render.autoRanged ? ' · Bereich automatisch' : ''}',
+            '${(render.outsideRangeFraction * 100).toStringAsFixed(0)} % out of range · '
+            '${(render.invalidFraction * 100).toStringAsFixed(0)} % no depth'
+            '${render.autoRanged ? ' · Auto-ranged' : ''}',
             style: TextStyle(fontSize: 11, height: 1.3, color: muted),
           ),
         ],

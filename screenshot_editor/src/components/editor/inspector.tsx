@@ -10,7 +10,7 @@ import {
   ChevronUp,
   Plus,
   RotateCw,
-  Trash2,
+  trash,
   Type,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -440,7 +440,7 @@ function ActiveElementPanel({
             title="Delete text element"
             aria-label="Delete text element"
           >
-            <Trash2 className="h-3.5 w-3.5" />
+            <trash className="h-3.5 w-3.5" />
           </Button>
         ) : !engaged ? (
           <span className="text-[10px] text-muted-foreground">drag to enable</span>

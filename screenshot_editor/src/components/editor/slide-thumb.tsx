@@ -2,7 +2,7 @@
 import * as React from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { Copy, GripVertical, Trash2 } from "lucide-react";
+import { Copy, GripVertical, trash } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { LAYOUT_LABEL } from "@/lib/constants";
 import { pickText } from "@/lib/locale";
@@ -172,7 +172,7 @@ export function SlideThumb({
           aria-label={`Delete screen ${index + 1}`}
           title="Delete screen (undoable)"
         >
-          <Trash2 className="h-3.5 w-3.5" />
+          <trash className="h-3.5 w-3.5" />
         </Button>
       </div>
     </div>

@@ -74,7 +74,7 @@ class MealReviewComparisonCard extends StatelessWidget {
             color: Theme.of(context).colorScheme.error,
             borderRadius: BorderRadius.circular(DesignConstants.borderRadiusL),
           ),
-          child: const Icon(LucideIcons.trash_2, color: Colors.white),
+          child: const Icon(LucideIcons.trash, color: Colors.white),
         ),
         onDismissed: (_) => onDismissed(),
         child: SummaryCard(
@@ -234,7 +234,7 @@ class MealReviewComparisonCard extends StatelessWidget {
                           const SizedBox(width: 2),
                           IconButton(
                             icon: Icon(
-                              LucideIcons.trash_2,
+                              LucideIcons.trash,
                               size: 16,
                               color: theme.colorScheme.error
                                   .withValues(alpha: 0.8),

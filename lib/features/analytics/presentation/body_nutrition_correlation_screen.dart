@@ -107,7 +107,7 @@ class _BodyNutritionCorrelationScreenState
 
     if (hasNoData) {
       bodyContent = ActiveGapOverlay(
-        message: "Nicht genügend Korrelationsdaten vorhanden",
+        message: l10n.emptyStateActiveGapOverlay,
         background: Skeletonizer(
           enabled: true,
           child: IgnorePointer(child: bodyContent),

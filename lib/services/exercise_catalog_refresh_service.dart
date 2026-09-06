@@ -14,6 +14,22 @@ import 'catalog_file_migration.dart';
 
 class ExerciseCatalogManifest {
   final String version;
+
+  /// Structure version of the artefact this manifest describes.
+  ///
+  /// Independent of [version], which only tracks content. Absent on manifests
+  /// written before the version contract existed; those are read as 1.
+  final int schemaVersion;
+
+  /// Oldest consumer that can still read this release.
+  ///
+  /// A release stays readable by older apps as long as it keeps the v1
+  /// compatibility columns filled — that is what this number declares. When a
+  /// manifest names a [schemaVersion] but no floor, the floor is taken to be
+  /// that same schema version rather than 1: a release that forgot to declare
+  /// its floor must not be assumed compatible.
+  final int minAppSchemaVersion;
+
   final Uri dbUri;
   final Uri? buildReportUri;
   final String sourceId;
@@ -25,6 +41,8 @@ class ExerciseCatalogManifest {
 
   const ExerciseCatalogManifest({
     required this.version,
+    required this.schemaVersion,
+    required this.minAppSchemaVersion,
     required this.dbUri,
     required this.buildReportUri,
     required this.sourceId,
@@ -139,10 +157,6 @@ class ExerciseCatalogRefreshService {
   static const Set<String> _requiredTables = {'exercises', 'metadata'};
   static const Set<String> _requiredExerciseColumns = {
     'id',
-    'name_de',
-    'name_en',
-    'description_de',
-    'description_en',
     'category_name',
     'muscles_primary',
     'muscles_secondary',
@@ -173,7 +187,9 @@ class ExerciseCatalogRefreshService {
       _config.manifestPath,
     );
 
-    // If a valid cached catalog exists and is newer than installed, use it.
+    // Keep a valid newer cache as an offline fallback. A due or forced check
+    // must still fetch the manifest before deciding which version to import.
+    ExerciseCatalogUpdateCandidate? cachedCandidate;
     final cachedVersion = prefs.getString(_keyCachedCatalogVersion);
     if (cachedVersion != null &&
         isRemoteVersionNewer(
@@ -186,7 +202,7 @@ class ExerciseCatalogRefreshService {
         minimumRows: _config.minimumExerciseRows,
       );
       if (cachedValidation.isValid) {
-        return ExerciseCatalogUpdateCandidate(
+        cachedCandidate = ExerciseCatalogUpdateCandidate(
           version: cachedVersion,
           localDbPath: cachePath,
           manifestUri: manifestUri,
@@ -206,7 +222,7 @@ class ExerciseCatalogRefreshService {
           lastCheckedEpochMs: lastCheckedMs,
           minCheckInterval: _config.minCheckInterval,
         )) {
-      return null;
+      return cachedCandidate;
     }
     await prefs.setInt(_keyLastCheckedAtMs, now.millisecondsSinceEpoch);
 
@@ -216,7 +232,7 @@ class ExerciseCatalogRefreshService {
           _keyLastError,
           'Remote exercise catalog update skipped by user.',
         );
-        return null;
+        return cachedCandidate;
       }
       onProgress?.call(
         'Prüfe Übungen...',
@@ -230,16 +246,15 @@ class ExerciseCatalogRefreshService {
           _keyLastError,
           'Manifest fetch failed or invalid payload.',
         );
-        return null;
+        return cachedCandidate;
       }
 
       await prefs.setString(_keyLastRemoteVersion, manifest.version);
 
-      final shouldDownload = force ||
-          isRemoteVersionNewer(
-            remoteVersion: manifest.version,
-            installedVersion: installedVersion,
-          );
+      final shouldDownload = isRemoteVersionNewer(
+        remoteVersion: manifest.version,
+        installedVersion: installedVersion,
+      );
       if (!shouldDownload) {
         await prefs.remove(_keyLastError);
         onProgress?.call(
@@ -248,7 +263,16 @@ class ExerciseCatalogRefreshService {
           1.0,
           canSkip: false,
         );
-        return null;
+        return cachedCandidate;
+      }
+
+      if (cachedCandidate != null &&
+          !isRemoteVersionNewer(
+            remoteVersion: manifest.version,
+            installedVersion: cachedCandidate.version,
+          )) {
+        await prefs.remove(_keyLastError);
+        return cachedCandidate;
       }
 
       if (isSkipRequested?.call() ?? false) {
@@ -256,7 +280,7 @@ class ExerciseCatalogRefreshService {
           _keyLastError,
           'Remote exercise catalog download skipped by user.',
         );
-        return null;
+        return cachedCandidate;
       }
 
       final tempDir = await _tempDirectoryProvider();
@@ -286,7 +310,7 @@ class ExerciseCatalogRefreshService {
               ? 'Remote exercise catalog download skipped by user.'
               : 'Download failed for ${manifest.dbUri}',
         );
-        return null;
+        return cachedCandidate;
       }
 
       onProgress?.call(
@@ -302,7 +326,7 @@ class ExerciseCatalogRefreshService {
           'Downloaded DB checksum mismatch. expected=${manifest.dbSha256} actual=$actualDbSha256',
         );
         await _deleteIfExists(tempDbPath);
-        return null;
+        return cachedCandidate;
       }
 
       if (await _usesWalJournalMode(tempDbPath)) {
@@ -321,7 +345,7 @@ class ExerciseCatalogRefreshService {
             'Downloaded catalog DB was modified unexpectedly during WAL normalization. before=$beforeSize after=$afterSize',
           );
           await _deleteIfExists(tempDbPath);
-          return null;
+          return cachedCandidate;
         }
       }
 
@@ -337,9 +361,12 @@ class ExerciseCatalogRefreshService {
           validated.error ?? 'Downloaded DB validation failed.',
         );
         await _deleteIfExists(tempDbPath);
-        return null;
+        return cachedCandidate;
       }
 
+      // From here on the old cache may be replaced; do not return its old
+      // version/path pair if publishing the new cache fails.
+      cachedCandidate = null;
       await File(cachePath).parent.create(recursive: true);
       await _deleteIfExists(cachePath);
       await File(tempDbPath).copy(cachePath);
@@ -370,7 +397,7 @@ class ExerciseCatalogRefreshService {
     } catch (e) {
       await prefs.setString(_keyLastError, e.toString());
       debugPrint('Exercise catalog refresh skipped (safe fallback): $e');
-      return null;
+      return cachedCandidate;
     }
   }
 
@@ -476,6 +503,8 @@ class ExerciseCatalogRefreshService {
       'source_id': manifest.sourceId,
       'channel': manifest.channel,
       'version': manifest.version,
+      'schema_version': manifest.schemaVersion,
+      'min_app_schema_version': manifest.minAppSchemaVersion,
       'generated_at': manifest.generatedAt?.toIso8601String(),
       'db_url': manifest.dbUri.toString(),
       'db_sha256': manifest.dbSha256,
@@ -535,6 +564,34 @@ class ExerciseCatalogRefreshService {
 
     final dbSha256 = _firstNonBlankString([json['db_sha256']]);
     if (dbSha256 == null || !_isValidSha256(dbSha256)) {
+      return null;
+    }
+
+    // Schema contract. `schema_version` says what the artefact is,
+    // `min_app_schema_version` says which consumers may read it. Rejecting on
+    // the floor rather than on the schema itself is what keeps the data repo's
+    // compatibility-column promise worth anything: a v2 catalog that still
+    // fills the v1 columns declares floor 1 and is deliberately accepted here.
+    //
+    // A manifest that names a schema but no floor is treated as requiring that
+    // schema. Silently reading a missing floor as 1 would let exactly the
+    // release this guard exists for slip through.
+    final schemaVersion =
+        _parseInt(json['schema_version']) ?? _parseInt(build['schema_version']);
+    final minAppSchemaVersion = _parseInt(json['min_app_schema_version']) ??
+        _parseInt(build['min_app_schema_version']) ??
+        schemaVersion ??
+        1;
+    final effectiveSchemaVersion = schemaVersion ?? 1;
+    if (effectiveSchemaVersion < 1 || minAppSchemaVersion < 1) {
+      return null;
+    }
+    if (minAppSchemaVersion > config.supportedSchemaVersion) {
+      debugPrint(
+        '[ExerciseCatalog] Rejecting catalog release $version: it requires app '
+        'schema $minAppSchemaVersion, this build supports '
+        '${config.supportedSchemaVersion}.',
+      );
       return null;
     }
 
@@ -617,6 +674,8 @@ class ExerciseCatalogRefreshService {
 
     return ExerciseCatalogManifest(
       version: version,
+      schemaVersion: effectiveSchemaVersion,
+      minAppSchemaVersion: minAppSchemaVersion,
       dbUri: dbUri,
       buildReportUri: buildReportUri,
       sourceId: sourceId,
@@ -729,6 +788,29 @@ class ExerciseCatalogRefreshService {
         );
       }
 
+      // Both formats are understood by the importer: older catalogs embed
+      // German/English text, OpenExerciseDB uses exercise_translations.
+      const inlineTextColumns = {
+        'name_de',
+        'name_en',
+        'description_de',
+        'description_en',
+      };
+      if (!inlineTextColumns.every(columns.contains)) {
+        final translationColumns = tables.contains('exercise_translations')
+            ? (await db.rawQuery('PRAGMA table_info(exercise_translations)'))
+                .map((row) => row['name']?.toString())
+                .toSet()
+            : <String?>{};
+        if (!{'exercise_id', 'language_code', 'name', 'description'}
+            .every(translationColumns.contains)) {
+          return const _CatalogDbValidationResult(
+            isValid: false,
+            error: 'Catalog DB missing required exercise translations.',
+          );
+        }
+      }
+
       final versionRows = await db.query(
         'metadata',
         where: 'key = ?',
@@ -748,6 +830,31 @@ class ExerciseCatalogRefreshService {
           isValid: false,
           error:
               'Catalog DB version mismatch. expected=$expectedVersion actual=$version',
+        );
+      }
+
+      // Second reading of the same contract, this time off the artefact.
+      // The cached-catalog path re-uses a downloaded DB without ever looking at
+      // a manifest again, so a manifest-only guard would not cover it.
+      final schemaRows = await db.query(
+        'metadata',
+        where: 'key IN (?, ?)',
+        whereArgs: ['schema_version', 'min_app_schema_version'],
+      );
+      final schemaMeta = <String, String>{
+        for (final row in schemaRows)
+          row['key']?.toString() ?? '': row['value']?.toString().trim() ?? '',
+      };
+      final dbSchemaVersion = _parseInt(schemaMeta['schema_version']);
+      final dbMinAppSchemaVersion =
+          _parseInt(schemaMeta['min_app_schema_version']) ??
+              dbSchemaVersion ??
+              1;
+      if (dbMinAppSchemaVersion > _config.supportedSchemaVersion) {
+        return _CatalogDbValidationResult(
+          isValid: false,
+          error: 'Catalog DB requires app schema $dbMinAppSchemaVersion, '
+              'this build supports ${_config.supportedSchemaVersion}.',
         );
       }
 

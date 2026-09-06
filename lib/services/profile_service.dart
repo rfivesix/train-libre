@@ -165,7 +165,7 @@ class ProfileService extends ChangeNotifier {
           await imageFile.delete();
         }
       } catch (e) {
-        debugPrint('Fehler beim Löschen der Datei: $e');
+        debugPrint('Error deleting file: $e');
       }
     }
   }

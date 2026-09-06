@@ -29,10 +29,10 @@ String _setPosition(int index, int total) => 'Satz $index von $total';
 Exercise _exercise({required String name, required String category}) =>
     Exercise(
       id: 1,
-      nameDe: name,
-      nameEn: name,
-      descriptionDe: '',
-      descriptionEn: '',
+      texts: {
+        'de': ExerciseText(name: name, description: ''),
+        'en': ExerciseText(name: name, description: ''),
+      },
       categoryName: category,
       primaryMuscles: const [],
       secondaryMuscles: const [],

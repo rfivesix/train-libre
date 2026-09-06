@@ -1,6 +1,8 @@
 import "../../../services/unit_service.dart";
 
 import 'models/set_log.dart';
+import 'classification/exercise_log_mask.dart';
+import 'classification/set_load.dart';
 
 class PRDetectionResult {
   final SetLog updatedSetLog;
@@ -28,15 +30,30 @@ class DetectPersonalRecordUseCase {
     required SetLog currentSet,
     required Map<String, double> historicalBests,
     required UnitService unitService,
+    ExerciseLogMask? mask,
+    double? bodyweightKg,
   }) {
     final currentWeight = currentSet.weightKg ?? 0.0;
-    final currentReps = currentSet.reps ?? 0;
-    final currentVolume = currentWeight * currentReps;
 
-    double currentEst1rm = 0.0;
-    if (currentReps > 0 && currentReps <= 10) {
-      currentEst1rm = currentWeight * (36 / (37 - currentReps));
-    }
+    // The historical bests this is compared against are computed from the
+    // effective load, so this side has to be too — otherwise a body-weight
+    // exercise reads as a permanent personal record and an assisted one never
+    // reaches its own history.
+    final effectiveMask = mask ?? ExerciseLogMask.weightAndReps;
+    final currentVolume = setTonnageKg(
+      trackingType: effectiveMask.trackingType,
+      loadMode: effectiveMask.loadMode,
+      loggedWeightKg: currentSet.weightKg,
+      reps: currentSet.reps,
+      bodyweightKg: bodyweightKg,
+    );
+
+    final currentEst1rm = effectiveMask.estimatedOneRepMax(
+          loggedWeightKg: currentSet.weightKg,
+          reps: currentSet.reps,
+          bodyweightKg: bodyweightKg,
+        ) ??
+        0.0;
 
     final currentDistance = currentSet.distanceKm ?? 0.0;
     final currentDuration = currentSet.durationSeconds ?? 0;
@@ -61,7 +78,19 @@ class DetectPersonalRecordUseCase {
     int? durationDiff;
     double? paceDiff;
 
-    if (currentWeight > 0) {
+    // Weight, volume and estimated 1RM are three different questions, and each
+    // has to be asked on its own terms.
+    //
+    // All three used to sit behind `currentWeight > 0` — did the user type a
+    // number into the weight column. That is the wrong gate twice over. A
+    // pull-up at body weight leaves the column empty, so it could never set a
+    // record of any kind however many reps it gained; and on an assistance
+    // machine the number *is* there but means its opposite, so the easiest set
+    // of the session read as a weight record.
+    //
+    // Volume and e1RM already know what a set was worth, because they are
+    // computed from the effective load. They only needed to be let out.
+    if (currentWeight > 0 && effectiveMask.weightMeansResistance) {
       final oldMaxWeight = historicalBests['maxWeight'] ?? 0.0;
       if (currentWeight > oldMaxWeight) {
         if (oldMaxWeight > 0) {
@@ -70,7 +99,9 @@ class DetectPersonalRecordUseCase {
         }
         historicalBests['maxWeight'] = currentWeight; // Updating local map
       }
+    }
 
+    if (currentVolume > 0) {
       final oldMaxVolume = historicalBests['maxVolume'] ?? 0.0;
       if (currentVolume > oldMaxVolume) {
         if (oldMaxVolume > 0) {
@@ -79,7 +110,9 @@ class DetectPersonalRecordUseCase {
         }
         historicalBests['maxVolume'] = currentVolume;
       }
+    }
 
+    if (currentEst1rm > 0) {
       final oldMaxEst1rm = historicalBests['maxEst1rm'] ?? 0.0;
       if (currentEst1rm > oldMaxEst1rm) {
         if (oldMaxEst1rm > 0) {

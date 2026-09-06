@@ -6,6 +6,18 @@
   Danach ausführen: python3 script/build_whats_new.py --write --sync-store
 -->
 
+## 1.3.0 (2026-09-07)
+
+{dumbbell} Supersätze: Verbinde Übungen in deinen Trainingsplänen zu Supersätzen, Trisätzen oder größeren Gruppen. Im Training wechselst du rundenweise zwischen ihnen, und die Pause startet erst nach der letzten Übung einer Runde.
+
+{timer} Für jede Übung die passenden Felder: Bei Planks erfasst du die Haltezeit, bei Klimmzügen Wiederholungen und optionales Zusatzgewicht, bei unterstützten Übungen die Unterstützung. Auch die Werte vom letzten Training und die Diagramme passen sich an.
+
+{layout_grid} Überarbeiteter Übungskatalog: Der Katalog basiert jetzt auf OpenExerciseDB, mit genaueren Angaben zu Muskeln und Bewegungen und Namen in deiner App-Sprache. Filtere nach Geräten, Schwierigkeitsgrad und weiteren Merkmalen, auch beim Zusammenstellen deiner Trainingspläne.
+
+{activity} Gewicht direkt im Tagebuch erfassen: Trage dein Gewicht über die neue Karte unter den Supplementen ein, mit einem flüssigen Regler in Kilogramm oder Pfund. Von dort öffnest du auch deinen Messverlauf.
+
+{chart_line} Fortschritte richtig einordnen: Bei Eigengewichtsübungen berücksichtigen Trainingsvolumen und Kraftrekorde jetzt dein erfasstes Körpergewicht, Zusatzgewicht zählt dazu und Unterstützung wird abgezogen. Dehnen und Mobilitätsübungen zählen nicht mehr als Kraftsätze.
+
 ## 1.2.1 (2026-09-01)
 
 {utensils} Verbesserte Makronährstoff-Empfehlungen: Die adaptive Berechnung verteilt Fett und Kohlenhydrate jetzt noch ausgewogener basierend auf deinem Körpergewicht und Ziel.

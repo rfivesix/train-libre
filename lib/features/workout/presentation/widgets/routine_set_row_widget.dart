@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../../../generated/app_localizations.dart';
+import '../../../../services/experience_level_service.dart';
 import '../../../../services/unit_service.dart';
 import '../../domain/models/routine_exercise.dart';
 import '../../domain/models/set_template.dart';
+import '../../domain/classification/exercise_log_mask.dart';
 import 'set_type_chip.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../../util/time_util.dart';
@@ -18,7 +20,7 @@ class RoutineSetRowWidget extends StatelessWidget {
   final RoutineExercise routineExercise;
   final SetTemplate template;
   final int listIndex;
-  final bool isCardio;
+  final ExerciseLogMask mask;
   final TextEditingController repsController;
   final TextEditingController weightController;
   final TextEditingController rirController;
@@ -33,7 +35,7 @@ class RoutineSetRowWidget extends StatelessWidget {
     required this.routineExercise,
     required this.template,
     required this.listIndex,
-    required this.isCardio,
+    required this.mask,
     required this.repsController,
     required this.weightController,
     required this.rirController,
@@ -42,9 +44,19 @@ class RoutineSetRowWidget extends StatelessWidget {
     required this.isEditMode,
   });
 
+  /// The layout still has two shapes; which one is now decided by whether the
+  /// second column is a duration or a rep count, rather than by a single
+  /// "is this cardio" flag that could not describe a plank.
+  bool get isCardio => mask.logsDuration;
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    // The header above these rows reads the same level, so the column comes
+    // and goes as a whole. The controller keeps its value either way — an
+    // already-planned target RIR survives a trip through the lower levels.
+    final showsIntensity =
+        context.watch<ExperienceLevelService>().showsIntensity;
     final isLightMode = Theme.of(context).brightness == Brightness.light;
     final bool isColoredRow = rowIndex > 0 && rowIndex.isOdd;
 
@@ -74,34 +86,39 @@ class RoutineSetRowWidget extends StatelessWidget {
               ),
             ),
             if (isCardio) ...[
-              // CARDIO FIELDS
+              // DURATION-BASED FIELDS
               Expanded(
                 flex: 4,
-                child: TextFormField(
-                  controller: weightController,
-                  readOnly: !isEditMode,
-                  textAlign: TextAlign.center,
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
-                  textInputAction: TextInputAction.next,
-                  decoration: const InputDecoration(
-                    border: InputBorder.none,
-                    isDense: true,
-                    fillColor: Colors.transparent,
-                    hintText: "-",
-                  ),
-                ),
+                child: !mask.showsPrimary
+                    // `time`: a duration and nothing else. A plank has no
+                    // distance and no weight to plan.
+                    ? const SizedBox.shrink()
+                    : TextFormField(
+                        controller: weightController,
+                        readOnly: !isEditMode,
+                        textAlign: TextAlign.center,
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                        textInputAction: TextInputAction.next,
+                        decoration: const InputDecoration(
+                          border: InputBorder.none,
+                          isDense: true,
+                          fillColor: Colors.transparent,
+                          hintText: "-",
+                        ),
+                      ),
               ),
               const SizedBox(width: 8),
               Expanded(
                 flex: 4,
                 child: TextFormField(
                   controller: repsController,
-                  readOnly: !isEditMode || isCardio,
+                  readOnly: !isEditMode || mask.logsDuration,
                   textAlign: TextAlign.center,
                   keyboardType: TextInputType.number,
-                  inputFormatters: isCardio ? [TimerInputFormatter()] : null,
+                  inputFormatters:
+                      mask.logsDuration ? [TimerInputFormatter()] : null,
                   textInputAction: TextInputAction.next,
                   decoration: const InputDecoration(
                     border: InputBorder.none,
@@ -109,7 +126,7 @@ class RoutineSetRowWidget extends StatelessWidget {
                     fillColor: Colors.transparent,
                     hintText: "00:00",
                   ),
-                  onTap: (isCardio && isEditMode)
+                  onTap: (mask.logsDuration && isEditMode)
                       ? () async {
                           final currentSeconds =
                               parsePauseDuration(repsController.text) ?? 0;
@@ -127,26 +144,28 @@ class RoutineSetRowWidget extends StatelessWidget {
                       : null,
                 ),
               ),
-              const SizedBox(width: 8),
-              Expanded(
-                flex: 2,
-                child: TextFormField(
-                  controller: rirController,
-                  readOnly: !isEditMode,
-                  textAlign: TextAlign.center,
-                  keyboardType: TextInputType.number,
-                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                  textInputAction: TextInputAction.done,
-                  onFieldSubmitted: (_) =>
-                      FocusManager.instance.primaryFocus?.unfocus(),
-                  decoration: const InputDecoration(
-                    border: InputBorder.none,
-                    isDense: true,
-                    fillColor: Colors.transparent,
-                    hintText: "-",
+              if (showsIntensity) ...[
+                const SizedBox(width: 8),
+                Expanded(
+                  flex: 2,
+                  child: TextFormField(
+                    controller: rirController,
+                    readOnly: !isEditMode,
+                    textAlign: TextAlign.center,
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                    textInputAction: TextInputAction.done,
+                    onFieldSubmitted: (_) =>
+                        FocusManager.instance.primaryFocus?.unfocus(),
+                    decoration: const InputDecoration(
+                      border: InputBorder.none,
+                      isDense: true,
+                      fillColor: Colors.transparent,
+                      hintText: "-",
+                    ),
                   ),
                 ),
-              ),
+              ],
             ] else ...[
               // STRENGTH FIELDS
               Expanded(
@@ -188,26 +207,28 @@ class RoutineSetRowWidget extends StatelessWidget {
                   ),
                 ),
               ),
-              const SizedBox(width: 8),
-              Expanded(
-                flex: 2,
-                child: TextFormField(
-                  controller: rirController,
-                  readOnly: !isEditMode,
-                  textAlign: TextAlign.center,
-                  keyboardType: TextInputType.number,
-                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                  textInputAction: TextInputAction.done,
-                  onFieldSubmitted: (_) =>
-                      FocusManager.instance.primaryFocus?.unfocus(),
-                  decoration: const InputDecoration(
-                    border: InputBorder.none,
-                    isDense: true,
-                    fillColor: Colors.transparent,
-                    hintText: "-",
+              if (showsIntensity) ...[
+                const SizedBox(width: 8),
+                Expanded(
+                  flex: 2,
+                  child: TextFormField(
+                    controller: rirController,
+                    readOnly: !isEditMode,
+                    textAlign: TextAlign.center,
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                    textInputAction: TextInputAction.done,
+                    onFieldSubmitted: (_) =>
+                        FocusManager.instance.primaryFocus?.unfocus(),
+                    decoration: const InputDecoration(
+                      border: InputBorder.none,
+                      isDense: true,
+                      fillColor: Colors.transparent,
+                      hintText: "-",
+                    ),
                   ),
                 ),
-              ),
+              ],
             ],
             Padding(
               padding: const EdgeInsets.only(right: 8.0),
@@ -217,7 +238,7 @@ class RoutineSetRowWidget extends StatelessWidget {
                     ? IconButton(
                         tooltip: AppLocalizations.of(context)!.delete,
                         icon: const Icon(
-                          LucideIcons.trash_2,
+                          LucideIcons.trash,
                           color: DesignConstants.brandRedColor,
                         ),
                         onPressed: onRemoveSet,

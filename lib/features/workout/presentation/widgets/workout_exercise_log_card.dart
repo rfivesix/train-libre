@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../../generated/app_localizations.dart';
+import '../../../../services/experience_level_service.dart';
 import '../../../../services/unit_service.dart';
 import '../../domain/models/set_log.dart';
 import '../../../exercise_catalog/domain/models/exercise.dart';
 import '../../../exercise_catalog/presentation/exercise_detail_screen.dart';
 import '../../../../widgets/common/card_morph_route.dart';
 import '../../../../widgets/common/morph_source.dart';
+import 'superset_connector_button.dart';
 import 'workout_card.dart';
+import '../../domain/classification/exercise_log_mask.dart';
+import 'log_mask_labels.dart';
 import 'workout_log_set_row.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../../util/design_constants.dart';
@@ -20,6 +24,13 @@ class WorkoutExerciseLogCard extends StatelessWidget {
   final List<SetLog> sets;
   final bool isEditMode;
   final bool isCardio;
+
+  /// Which inputs each set row shows. Derived from the exercise by the caller,
+  /// which is the only place that has it.
+  final ExerciseLogMask mask;
+
+  /// Body weight on the day of this workout, when recorded.
+  final double? bodyweightKg;
   final Map<int, TextEditingController> weightControllers;
   final Map<int, TextEditingController> repsControllers;
   final Map<int, TextEditingController> rirControllers;
@@ -32,6 +43,17 @@ class WorkoutExerciseLogCard extends StatelessWidget {
   final int index;
   final bool isDragging;
   final bool isDraggedItem;
+  final String? supersetLabel;
+  final Color? supersetColor;
+  final bool continuesSupersetAbove;
+  final bool continuesSupersetBelow;
+
+  /// Connects or disconnects this exercise and the one below it. Null when
+  /// there is no exercise below.
+  final VoidCallback? onToggleSupersetBelow;
+
+  /// Whether this exercise already shares a superset with the one below.
+  final bool isConnectedBelow;
   final void Function(PointerDownEvent)? onPointerDown;
   final void Function(PointerMoveEvent)? onPointerMove;
   final void Function(PointerUpEvent)? onPointerUp;
@@ -44,6 +66,8 @@ class WorkoutExerciseLogCard extends StatelessWidget {
     required this.sets,
     required this.isEditMode,
     required this.isCardio,
+    required this.mask,
+    this.bodyweightKg,
     required this.weightControllers,
     required this.repsControllers,
     required this.rirControllers,
@@ -56,6 +80,12 @@ class WorkoutExerciseLogCard extends StatelessWidget {
     required this.index,
     this.isDragging = false,
     this.isDraggedItem = false,
+    this.supersetLabel,
+    this.supersetColor,
+    this.continuesSupersetAbove = false,
+    this.continuesSupersetBelow = false,
+    this.onToggleSupersetBelow,
+    this.isConnectedBelow = false,
     this.onPointerDown,
     this.onPointerMove,
     this.onPointerUp,
@@ -71,7 +101,7 @@ class WorkoutExerciseLogCard extends StatelessWidget {
     // morph route as the copy that flies inside the growing container — the
     // detail screen then dissolves out of the title instead of being drawn
     // over it from the first frame.
-    final title = Padding(
+    final exerciseTitle = Padding(
       padding: const EdgeInsets.symmetric(vertical: 4.0),
       child: Text(
         exercise?.getLocalizedName(context) ?? exerciseName,
@@ -81,6 +111,32 @@ class WorkoutExerciseLogCard extends StatelessWidget {
         ),
       ),
     );
+    final title = supersetLabel == null || supersetColor == null
+        ? exerciseTitle
+        : Row(
+            children: [
+              Container(
+                key: ValueKey('history_superset_badge_$supersetLabel'),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: supersetColor!.withValues(alpha: 0.18),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: supersetColor!.withValues(alpha: 0.7),
+                  ),
+                ),
+                child: Text(
+                  supersetLabel!,
+                  style: textTheme.labelLarge?.copyWith(
+                    color: supersetColor,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(child: exerciseTitle),
+            ],
+          );
 
     void openDetail(
       BuildContext titleCtx,
@@ -100,6 +156,9 @@ class WorkoutExerciseLogCard extends StatelessWidget {
 
     return WorkoutCard(
       key: isEditMode ? ValueKey(exerciseName) : null,
+      accentColor: supersetColor,
+      continuesSupersetAbove: continuesSupersetAbove,
+      continuesSupersetBelow: continuesSupersetBelow,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -147,7 +206,7 @@ class WorkoutExerciseLogCard extends StatelessWidget {
                 if (isEditMode)
                   IconButton(
                     icon: const Icon(
-                      LucideIcons.trash_2,
+                      LucideIcons.trash,
                       color: DesignConstants.brandRedColor,
                     ),
                     tooltip: l10n.removeExercise,
@@ -232,39 +291,49 @@ class WorkoutExerciseLogCard extends StatelessWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              if (isCardio)
-                                Row(
+                              // Headed by the same mask the rows use.
+                              Builder(builder: (context) {
+                                final unitService = context.read<UnitService>();
+                                final primary = LogMaskLabels.primaryHeader(
+                                    mask, l10n, unitService);
+                                final secondary =
+                                    LogMaskLabels.secondaryHeader(mask, l10n);
+                                final wide =
+                                    mask.logsDistance || mask.logsDuration;
+                                return Row(
                                   children: [
                                     _buildHeader(l10n.setLabel, flex: 2),
-                                    _buildHeader(
-                                        l10n.cardioDistanceLabel(context
-                                            .read<UnitService>()
-                                            .suffixFor(UnitDimension.distance)),
-                                        flex: 4),
+                                    if (primary != null)
+                                      _buildHeader(primary, flex: wide ? 4 : 2)
+                                    else
+                                      Expanded(
+                                          flex: wide ? 4 : 2,
+                                          child: const SizedBox.shrink()),
                                     const SizedBox(width: 8),
-                                    _buildHeader(l10n.cardioTimeLabel, flex: 4),
-                                    const SizedBox(width: 8),
-                                    _buildHeader(l10n.cardioIntensityShortLabel,
-                                        flex: 2),
-                                    const SizedBox(
-                                        width: 48), // Space for check/delete
-                                  ],
-                                )
-                              else
-                                Row(
-                                  children: [
-                                    _buildHeader(l10n.setLabel, flex: 2),
-                                    _buildHeader(
-                                      context
-                                          .read<UnitService>()
-                                          .suffixFor(UnitDimension.weight),
-                                      flex: 2,
-                                    ),
-                                    _buildHeader(l10n.repsLabel, flex: 2),
-                                    _buildHeader("RIR", flex: 2),
+                                    if (secondary != null)
+                                      _buildHeader(secondary,
+                                          flex: wide ? 4 : 2)
+                                    else
+                                      Expanded(
+                                          flex: wide ? 4 : 2,
+                                          child: const SizedBox.shrink()),
+                                    // Same level as the rows below, so the
+                                    // column is present or absent as a whole.
+                                    if (context
+                                        .watch<ExperienceLevelService>()
+                                        .showsIntensity) ...[
+                                      const SizedBox(width: 8),
+                                      _buildHeader(
+                                        mask.logsDistance
+                                            ? l10n.cardioIntensityShortLabel
+                                            : 'RIR',
+                                        flex: 2,
+                                      ),
+                                    ],
                                     const SizedBox(width: 48),
                                   ],
-                                ),
+                                );
+                              }),
 
                               // Set Rows
                               ...sets.asMap().entries.map((setEntry) {
@@ -283,7 +352,8 @@ class WorkoutExerciseLogCard extends StatelessWidget {
                                   workingSetIndex: workingSetIndex,
                                   exerciseName: exerciseName,
                                   isEditMode: isEditMode,
-                                  isCardio: isCardio,
+                                  mask: mask,
+                                  bodyweightKg: bodyweightKg,
                                   weightController:
                                       weightControllers[setLog.id],
                                   repsController: repsControllers[setLog.id],
@@ -297,10 +367,26 @@ class WorkoutExerciseLogCard extends StatelessWidget {
                                 Padding(
                                   padding: const EdgeInsets.symmetric(
                                       horizontal: 16.0),
-                                  child: TextButton.icon(
-                                    onPressed: onAddSet,
-                                    icon: const Icon(LucideIcons.plus),
-                                    label: Text(l10n.addSetButton),
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      TextButton.icon(
+                                        onPressed: onAddSet,
+                                        icon: const Icon(LucideIcons.plus),
+                                        label: Text(l10n.addSetButton),
+                                      ),
+                                      if (onToggleSupersetBelow != null)
+                                        Flexible(
+                                          child: SupersetConnectorButton(
+                                            key: ValueKey(
+                                              'history_superset_connector_$index',
+                                            ),
+                                            isConnected: isConnectedBelow,
+                                            onPressed: onToggleSupersetBelow!,
+                                          ),
+                                        ),
+                                    ],
                                   ),
                                 ),
                             ],

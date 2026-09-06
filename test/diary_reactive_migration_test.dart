@@ -22,6 +22,7 @@ import 'package:train_libre/features/workout/domain/models/set_log.dart';
 import 'package:train_libre/features/workout/domain/models/routine.dart';
 import 'package:train_libre/features/exercise_catalog/domain/models/exercise.dart';
 import 'package:train_libre/features/workout/data/workout_repository.dart';
+import 'package:train_libre/features/workout/domain/classification/set_load.dart';
 
 class FakeSupplementRepository implements SupplementRepository {
   final supplementsController = StreamController<List<Supplement>>.broadcast();
@@ -64,6 +65,10 @@ class FakeSupplementRepository implements SupplementRepository {
 }
 
 class FakeWorkoutRepository implements IWorkoutRepository {
+  @override
+  Future<BodyweightHistory> getBodyweightHistory() async =>
+      BodyweightHistory.empty;
+
   final workoutLogsController = StreamController<List<WorkoutLog>>.broadcast();
 
   @override

@@ -184,8 +184,21 @@ The long-term vision, future modules, and planned features are maintained in the
 ## Credits
 
 - **[Open Food Facts](https://openfoodfacts.org/)** for food database coverage.
-- **[wger](https://github.com/wger-project/wger)** for the workout database foundation.
+- **[OpenExerciseDB](https://github.com/rfivesix/OpenExerciseDB)** for the exercise catalog.
+- **[wger](https://github.com/wger-project/wger)** for the upstream exercise data OpenExerciseDB was built from.
 
 ## License
 
-[GPL-3.0](LICENSE)
+The application is licensed under [GPL-3.0](LICENSE).
+
+The bundled exercise catalog is not. Exercise data comes from
+[OpenExerciseDB](https://github.com/rfivesix/OpenExerciseDB), licensed under
+[CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/), derived in part
+from the [wger project](https://wger.de). Individual records keep their original
+upstream licence and author, listed in
+[ATTRIBUTION.md](https://github.com/rfivesix/OpenExerciseDB/blob/main/ATTRIBUTION.md).
+
+ShareAlike travels with the data, not with this repository's code: redistributing
+the catalog — or a database derived from it — means passing on the same licence
+and the same credit. Food data from Open Food Facts is separately licensed under
+the [ODbL](https://opendatacommons.org/licenses/odbl/).

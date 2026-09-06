@@ -588,7 +588,7 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
             ),
             IconButton(
               tooltip: l10n.delete,
-              icon: const Icon(LucideIcons.trash_2),
+              icon: const Icon(LucideIcons.trash),
               onPressed: _deleteFoodItem,
             ),
           ] else ...[
@@ -733,7 +733,8 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                             (_displayItem.caffeineMgPer100ml ?? 0) > 0)
                           _buildAnimatedNutrientRow(
                             l10n.caffeine,
-                            _getDisplayValue(_displayItem.caffeineMgPer100g ?? _displayItem.caffeineMgPer100ml!),
+                            _getDisplayValue(_displayItem.caffeineMgPer100g ??
+                                _displayItem.caffeineMgPer100ml!),
                             unit: 'mg',
                             isInt: true,
                           ),
@@ -844,7 +845,6 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
       ),
     );
   }
-
 
   Widget _buildAnimatedNutrientRow(
     String label,
@@ -1074,7 +1074,7 @@ class _GlassBadge extends StatelessWidget {
       ),
       child: Text(
         label,
-        //.toUpperCase(), // Optional: Sieht bei Badges oft professioneller aus
+        //.toUpperCase(), // Optional: Often looks cleaner on badges
         style: theme.textTheme.labelSmall?.copyWith(
           color: isDarkMode ? primaryBadgeColor : primaryBadgeColor.shade800,
           fontWeight: FontWeight.bold,

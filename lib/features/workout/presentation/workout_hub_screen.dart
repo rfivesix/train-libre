@@ -437,9 +437,10 @@ class _WorkoutHubScreenState extends State<WorkoutHubScreen> {
                     children: [
                       Text(
                         routine.name,
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
+                        style:
+                            Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),

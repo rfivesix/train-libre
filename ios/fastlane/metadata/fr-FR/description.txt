@@ -38,4 +38,4 @@ AVERTISSEMENT :
 Train Libre n'est pas une application médicale. Les estimations de récupération, le suivi du sommeil et les constantes physiques sont destinés exclusivement au suivi sportif personnel. Ils ne constituent pas et ne remplacent en aucun cas un diagnostic ou un traitement médical professionnel.
 
 OPEN SOURCE & DONNÉES OUVERTES :
-Développé de manière transparente à partir des catalogues communautaires de confiance Open Food Facts et de la base d'exercices wger. Le code source complet est accessible publiquement : nos promesses de confidentialité se vérifient au lieu de se croire.
+Développé de manière transparente à partir des catalogues communautaires de confiance Open Food Facts et OpenExerciseDB. Le code source complet est accessible publiquement : nos promesses de confidentialité se vérifient au lieu de se croire.

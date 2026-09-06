@@ -42,7 +42,7 @@ void main() {
     expect(find.textContaining('05:23'), findsOneWidget);
     expect(find.text('Lat Pulldown (Cable)'), findsOneWidget);
     expect(find.byIcon(LucideIcons.chevron_up), findsOneWidget);
-    expect(find.byIcon(LucideIcons.trash_2), findsOneWidget);
+    expect(find.byIcon(LucideIcons.trash), findsOneWidget);
   });
 
   testWidgets('switches to the rest countdown while a pause runs',
@@ -71,7 +71,7 @@ void main() {
     await tester.pumpAndSettle();
 
     final bar = tester.getRect(find.byType(RunningWorkoutOverlay));
-    for (final icon in [LucideIcons.chevron_up, LucideIcons.trash_2]) {
+    for (final icon in [LucideIcons.chevron_up, LucideIcons.trash]) {
       final circle = tester.getRect(
         find
             .ancestor(
@@ -103,7 +103,7 @@ void main() {
     expect(expanded, 1);
     expect(discarded, 0);
 
-    await tester.tap(find.byIcon(LucideIcons.trash_2));
+    await tester.tap(find.byIcon(LucideIcons.trash));
     await tester.pump();
     expect(discarded, 1);
     // The discard button must not double as the expand target.

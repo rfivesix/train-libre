@@ -96,7 +96,7 @@ if [ "$CURRENT_BRANCH" != "main" ]; then
   echo "Pushing $CURRENT_BRANCH to origin..."
   git push origin "$CURRENT_BRANCH"
 
-  # PR-Erstellung nur triggern, wenn es sich um ein echtes Stable-Release handelt!
+  # Only trigger PR creation for actual production/stable releases!
   if [ "$IS_PRERELEASE" = "false" ]; then
     echo "Stable version detected. Opening Pull Request into main..."
     gh pr create --base main --title "Merge release $VERSION_NUMBER into main" --body "Automated release synchronization split." || echo "Pull request creation skipped (may already exist)."
@@ -129,8 +129,8 @@ flutter build appbundle --release
 flutter build apk --release --split-per-abi
 flutter build apk --release
 
-# Die l10n und pod-Infrastruktur wird vor dem iOS-Build frisch aufgesetzt.
-# Das neue Podfile zwingt alle Targets (inkl. Swift Packages) auf iOS 14.0.
+# Freshly prepare l10n and CocoaPods infrastructure before building iOS.
+# The updated Podfile enforces iOS 14.0 deployment target across all targets (including Swift packages).
 echo "Regenerating iOS configuration with correct 14.0 deployment target (Version: $IOS_BUILD_NAME)..."
 flutter build ios --config-only --build-name="$IOS_BUILD_NAME" --build-number="$NEW_BUILD_NUMBER"
 

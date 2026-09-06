@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../exercise_catalog/domain/models/exercise.dart';
 import '../domain/models/routine_exercise.dart';
+import '../domain/classification/exercise_log_mask.dart';
 import '../domain/models/set_log.dart';
 import '../domain/models/set_template.dart';
 import '../domain/models/workout_log.dart';
@@ -72,6 +73,8 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
   int _remainingRestSeconds = 0;
   Timer? _restDoneBannerTimer;
   bool _showRestDone = false;
+  int _autoAdvanceRevision = 0;
+  int? _autoAdvanceExerciseIndex;
 
   Timer? _workoutDurationTimer;
   Duration _elapsedDuration = Duration.zero;
@@ -102,6 +105,9 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
   Duration get elapsedDuration => _elapsedDuration;
   Map<int, SetLog> get setLogs => _setLogs;
   bool get isActive => _workoutLog != null && _workoutLog!.endTime == null;
+  int get autoAdvanceRevision => _autoAdvanceRevision;
+  int? get autoAdvanceExerciseIndex => _autoAdvanceExerciseIndex;
+  int? get nextOpenExerciseIndex => _nextOpenSet()?.exerciseIndex;
 
   /// Whether a pause is currently counting down. Flips back to false the
   /// moment the countdown hits zero or is skipped, so the minimized bar can
@@ -114,24 +120,72 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
   /// leave its second row empty instead of inventing a placeholder.
   String? currentExerciseNameFor(String languageCode) {
     if (_exercises.isEmpty) return null;
-    for (final exercise in _exercises) {
-      // An exercise without set templates counts as open — it was just added
-      // and is exactly what the user is about to work on.
-      final hasOpenSet = exercise.setTemplates.isEmpty ||
-          exercise.setTemplates.any((template) {
-            final templateId = template.id;
-            if (templateId == null) return false;
-            final log = _setLogs[templateId];
-            return log == null || log.isCompleted != true;
-          });
-      if (hasOpenSet) return _displayNameOf(exercise, languageCode);
+    final next = _nextOpenSet();
+    if (next != null) {
+      return _displayNameOf(_exercises[next.exerciseIndex], languageCode);
     }
     return _displayNameOf(_exercises.last, languageCode);
   }
 
+  ({int exerciseIndex, int templateIndex, int templateId})? _nextOpenSet() {
+    var exerciseIndex = 0;
+    while (exerciseIndex < _exercises.length) {
+      final exercise = _exercises[exerciseIndex];
+      final group = exercise.supersetGroup;
+      if (group == null) {
+        if (exercise.setTemplates.isEmpty) {
+          return (
+            exerciseIndex: exerciseIndex,
+            templateIndex: 0,
+            templateId: -1
+          );
+        }
+        for (var templateIndex = 0;
+            templateIndex < exercise.setTemplates.length;
+            templateIndex++) {
+          final id = exercise.setTemplates[templateIndex].id;
+          if (id != null && _setLogs[id]?.isCompleted != true) {
+            return (
+              exerciseIndex: exerciseIndex,
+              templateIndex: templateIndex,
+              templateId: id,
+            );
+          }
+        }
+        exerciseIndex++;
+        continue;
+      }
+
+      var groupEnd = exerciseIndex;
+      var rounds = 0;
+      while (groupEnd < _exercises.length &&
+          _exercises[groupEnd].supersetGroup == group) {
+        final count = _exercises[groupEnd].setTemplates.length;
+        if (count > rounds) rounds = count;
+        groupEnd++;
+      }
+      for (var round = 0; round < rounds; round++) {
+        for (var member = exerciseIndex; member < groupEnd; member++) {
+          final templates = _exercises[member].setTemplates;
+          if (round >= templates.length) continue;
+          final id = templates[round].id;
+          if (id != null && _setLogs[id]?.isCompleted != true) {
+            return (
+              exerciseIndex: member,
+              templateIndex: round,
+              templateId: id,
+            );
+          }
+        }
+      }
+      exerciseIndex = groupEnd;
+    }
+    return null;
+  }
+
   String _displayNameOf(RoutineExercise exercise, String languageCode) {
     final localized = exercise.exercise.localizedNameFor(languageCode);
-    return localized.isNotEmpty ? localized : exercise.exercise.nameEn;
+    return localized.isNotEmpty ? localized : exercise.exercise.canonicalName;
   }
 
   // ---------------------------------------------------------------------------
@@ -282,16 +336,25 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
   /// queue written before the values were cleared, and inventing a weight or a
   /// rep count would silently corrupt the log.
   Future<void> _completeNextPlannedSet() async {
-    for (final exercise in _exercises) {
-      for (final template in exercise.setTemplates) {
-        final templateId = template.id;
-        if (templateId == null) continue;
-        final log = _setLogs[templateId];
-        if (log == null || log.isCompleted == true) continue;
-
-        if (exercise.exercise.isCardio &&
+    final next = _nextOpenSet();
+    if (next != null && next.templateId >= 0) {
+      final exercise = _exercises[next.exerciseIndex];
+      final template = exercise.setTemplates[next.templateIndex];
+      final templateId = next.templateId;
+      final log = _setLogs[templateId];
+      if (log != null && log.isCompleted != true) {
+        // A set counts as filled in when the fields its mask actually shows
+        // have values. Asking a plank for reps would block the finish button
+        // on a number the row never offered.
+        final mask = ExerciseLogMask.forExercise(exercise.exercise);
+        if (mask.logsDistance &&
             log.durationSeconds == null &&
             log.distanceKm == null) {
+          return;
+        }
+        if (mask.logsDuration &&
+            !mask.logsDistance &&
+            log.durationSeconds == null) {
           return;
         }
 
@@ -342,7 +405,7 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
     }
 
     _workoutLog = log;
-    _exercises = List.from(routineExercises);
+    _exercises = normalizeSupersetGroups(List.from(routineExercises));
     _setLogs.clear();
     pauseTimes.clear();
 
@@ -353,7 +416,7 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
       if (re.notes != null && re.notes!.isNotEmpty) {
         await _repository.saveWorkoutExerciseNote(
           workoutLogId: log.id!,
-          exerciseName: re.exercise.nameEn,
+          exerciseName: re.exercise.canonicalName,
           notes: re.notes,
         );
       }
@@ -380,7 +443,7 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
 
         final newSetLog = SetLog(
           workoutLogId: _workoutLog!.id!,
-          exerciseName: re.exercise.nameEn,
+          exerciseName: re.exercise.canonicalName,
           setType: template.setType,
           weightKg: null,
           reps: null,
@@ -388,6 +451,7 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
           isCompleted: false,
           logOrder: logOrder,
           exerciseBlock: blockIndex,
+          supersetGroup: re.supersetGroup,
           rir: null,
         );
 
@@ -458,10 +522,7 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
       final exName = firstSet.exerciseName;
       final exercise = await _repository.resolveExerciseForSetLog(firstSet) ??
           Exercise(
-            nameDe: exName,
-            nameEn: exName,
-            descriptionDe: '',
-            descriptionEn: '',
+            texts: {'en': ExerciseText(name: exName)},
             categoryName: 'Unknown',
             primaryMuscles: const [],
             secondaryMuscles: const [],
@@ -502,20 +563,23 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
         _totalSets++;
       }
 
-      final savedNote = savedExerciseNotes[exercise.nameEn] ??
-          savedExerciseNotes[exercise.nameDe];
+      final savedNote = savedExerciseNotes[exercise.canonicalName] ??
+          exercise.allNames
+              .map((name) => savedExerciseNotes[name])
+              .firstWhere((note) => note != null, orElse: () => null);
       final re = RoutineExercise(
         id: syntheticReId,
         exercise: exercise,
         setTemplates: templates,
         pauseSeconds: pauseSec,
+        supersetGroup: isLegacySession ? null : firstSet.supersetGroup,
         notes: savedNote,
       );
 
       restoredExercises.add(re);
       pauseTimes[syntheticReId] = pauseSec;
     }
-    _exercises = restoredExercises;
+    _exercises = normalizeSupersetGroups(restoredExercises);
 
     // A session from before this column existed has just been rebuilt by
     // guesswork. Writing the structure down now means the next kill restores
@@ -585,13 +649,29 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
 
     for (var re in exercisesToInit) {
       final lastSets =
-          await _repository.getLastSetsForExercise(re.exercise.nameEn);
-      lastPerformances[re.exercise.nameEn] = lastSets;
+          await _repository.getLastSetsForExercise(re.exercise.canonicalName);
+      lastPerformances[re.exercise.canonicalName] = lastSets;
     }
 
+    await loadBodyweight();
     syncControllers();
     isLoading = false;
     notifyListeners();
+  }
+
+  /// The user's most recently recorded body weight, or null when they have
+  /// never weighed themselves. Only used to value body-weight and assisted
+  /// sets; a null shows no e1RM for those rather than an inverted one.
+  double? bodyweightKg;
+
+  Future<void> loadBodyweight() async {
+    try {
+      final history = await _repository.getBodyweightHistory();
+      bodyweightKg = history.at(DateTime.now());
+      notifyListeners();
+    } catch (e) {
+      debugPrint('[LiveWorkout] body weight unavailable: $e');
+    }
   }
 
   void syncControllers() {
@@ -600,11 +680,11 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
         (re) => re.setTemplates.any((t) => t.id == templateId),
         orElse: () => _exercises.first,
       );
-      final isCardio = exercise.exercise.categoryName.toLowerCase() == 'cardio';
+      final mask = ExerciseLogMask.forExercise(exercise.exercise);
 
       if (!weightControllers.containsKey(templateId)) {
         String initText;
-        if (isCardio) {
+        if (mask.logsDistance) {
           initText = setLog.distanceKm == null
               ? ''
               : setLog.distanceKm!
@@ -612,6 +692,9 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
                   .replaceAll(RegExp(r'0*$'), '')
                   .replaceAll(RegExp(r'\.$'), '');
         } else {
+          // Left blank when nothing was entered — including for an added-weight
+          // column, where blank is a meaningful answer rather than a missing
+          // one: it means the set was done with body weight alone.
           initText = setLog.weightKg == null
               ? ''
               : unitService.formatDisplayWeight(setLog.weightKg!,
@@ -622,7 +705,7 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
 
       if (!repsControllers.containsKey(templateId)) {
         String initText;
-        if (isCardio) {
+        if (mask.logsDuration) {
           initText = formatPauseDuration(setLog.durationSeconds);
         } else {
           initText = setLog.reps?.toString() ?? '';
@@ -650,25 +733,27 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
       orElse: () => _exercises.first,
     );
 
-    if (exercise.exercise.isCardio) {
+    final mask = ExerciseLogMask.forExercise(exercise.exercise);
+
+    if (mask.logsDistance) {
       if (setLog.distanceKm != null) {
         weightControllers[templateId]?.text = setLog.distanceKm!
             .toStringAsFixed(3)
             .replaceAll(RegExp(r'0*$'), '')
             .replaceAll(RegExp(r'\.$'), '');
       }
+    } else if (setLog.weightKg != null) {
+      weightControllers[templateId]?.text =
+          unitService.formatDisplayWeight(setLog.weightKg!, fractionDigits: 2);
+    }
+
+    if (mask.logsDuration) {
       if (setLog.durationSeconds != null) {
         repsControllers[templateId]?.text =
             formatPauseDuration(setLog.durationSeconds);
       }
-    } else {
-      if (setLog.weightKg != null) {
-        weightControllers[templateId]?.text = unitService
-            .formatDisplayWeight(setLog.weightKg!, fractionDigits: 2);
-      }
-      if (setLog.reps != null) {
-        repsControllers[templateId]?.text = setLog.reps!.toString();
-      }
+    } else if (setLog.reps != null) {
+      repsControllers[templateId]?.text = setLog.reps!.toString();
     }
     rirControllers[templateId]?.text = setLog.rir?.toString() ?? '';
   }
@@ -748,28 +833,10 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
     if (isCompleted == true && oldLog.isCompleted != true) {
       _fillControllersFromSet(templateId, result.updatedSet);
 
-      int? pauseTime;
-      bool isLastSet = false;
-      for (var re in _exercises) {
-        final tIndex = re.setTemplates.indexWhere((t) => t.id == templateId);
-        if (tIndex != -1) {
-          pauseTime = pauseTimes[re.id!];
-          if (tIndex == re.setTemplates.length - 1) {
-            isLastSet = true;
-          }
-          break;
-        }
-      }
-      if (pauseTime != null && pauseTime > 0 && !isLastSet) {
-        _startRestTimer(pauseTime);
-      } else if (_targetRestEndTime != null) {
-        // The set that was just completed defines the pause — if it has none
-        // (or it was the exercise's last set), a pause still running from an
-        // earlier set is stale and must not keep counting. It used to survive,
-        // so ticking off a set of a pause-less exercise left the previous
-        // exercise's timer running.
-        cancelRest();
-      }
+      _applyRestAfterCompletion(templateId);
+      final next = _nextOpenSet();
+      _autoAdvanceExerciseIndex = next?.exerciseIndex;
+      _autoAdvanceRevision++;
     }
 
     notifyListeners();
@@ -777,12 +844,84 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
     unawaited(_syncLiveActivity());
   }
 
+  void _applyRestAfterCompletion(int templateId) {
+    var exerciseIndex = -1;
+    var templateIndex = -1;
+    for (var index = 0; index < _exercises.length; index++) {
+      final found = _exercises[index]
+          .setTemplates
+          .indexWhere((template) => template.id == templateId);
+      if (found != -1) {
+        exerciseIndex = index;
+        templateIndex = found;
+        break;
+      }
+    }
+    if (exerciseIndex == -1) return;
+
+    final exercise = _exercises[exerciseIndex];
+    final group = exercise.supersetGroup;
+    int? pauseTime = pauseTimes[exercise.id!];
+    var shouldRest = templateIndex < exercise.setTemplates.length - 1;
+
+    if (group != null) {
+      var groupStart = exerciseIndex;
+      var groupEnd = exerciseIndex;
+      while (
+          groupStart > 0 && _exercises[groupStart - 1].supersetGroup == group) {
+        groupStart--;
+      }
+      while (groupEnd + 1 < _exercises.length &&
+          _exercises[groupEnd + 1].supersetGroup == group) {
+        groupEnd++;
+      }
+
+      final participants = <int>[];
+      for (var member = groupStart; member <= groupEnd; member++) {
+        if (_exercises[member].setTemplates.length > templateIndex) {
+          participants.add(member);
+        }
+      }
+      final participantPosition = participants.indexOf(exerciseIndex);
+      if (participants.length > 1 &&
+          participantPosition < participants.length - 1) {
+        shouldRest = false;
+      } else if (participants.length > 1) {
+        shouldRest = false;
+        for (var member = groupStart; member <= groupEnd; member++) {
+          final templates = _exercises[member].setTemplates;
+          for (var nextRound = templateIndex + 1;
+              nextRound < templates.length;
+              nextRound++) {
+            final id = templates[nextRound].id;
+            if (id != null && _setLogs[id]?.isCompleted != true) {
+              shouldRest = true;
+              break;
+            }
+          }
+          if (shouldRest) break;
+        }
+        final lastMember = _exercises[groupEnd];
+        pauseTime = pauseTimes[lastMember.id!];
+      }
+      // With only one participant in an uneven trailing round, the set uses
+      // its own pause exactly like a standalone exercise.
+    }
+
+    if (shouldRest && pauseTime != null && pauseTime > 0) {
+      _startRestTimer(pauseTime);
+    } else if (_targetRestEndTime != null) {
+      cancelRest();
+    }
+  }
+
   Future<void> _checkAndApplyPRs(SetLog setLog, int templateId) async {
     final exName = setLog.exerciseName;
 
     if (!_exerciseBests.containsKey(exName)) {
       final exercise = await _repository.getExerciseByName(exName);
-      final altName = exercise?.nameEn != exName ? exercise?.nameEn : null;
+      final altName =
+          exercise?.canonicalName != exName ? exercise?.canonicalName : null;
       final exerciseUuid = exercise?.id != null
           ? await _repository.getExerciseUuidByLocalId(exercise!.id!)
           : null;
@@ -795,10 +934,19 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
       _exerciseBests[exName] = bests;
     }
 
+    // The same mask the row was rendered with, so the current set is valued
+    // the way its own history was.
+    final exerciseForMask = _exercises
+        .map((re) => re.exercise)
+        .where((e) => e.allNames.contains(exName))
+        .firstOrNull;
+
     final prResult = _detectPRUseCase.execute(
       unitService: unitService,
       currentSet: setLog,
       historicalBests: _exerciseBests[exName]!,
+      mask: ExerciseLogMask.forExercise(exerciseForMask),
+      bodyweightKg: bodyweightKg,
     );
 
     _setLogs[templateId] = prResult.updatedSetLog;
@@ -837,12 +985,12 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
     _exercises = newExercises;
 
     final prevSet = _setLogs.values
-        .where((s) => s.exerciseName == re.exercise.nameEn)
+        .where((s) => s.exerciseName == re.exercise.canonicalName)
         .lastOrNull;
 
     final newSetLog = SetLog(
       workoutLogId: _workoutLog!.id!,
-      exerciseName: re.exercise.nameEn,
+      exerciseName: re.exercise.canonicalName,
       setType: 'normal',
       weightKg: prevSet?.weightKg,
       reps: prevSet?.reps,
@@ -854,6 +1002,7 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
       // next restore. _updateLogOrdersInDatabase below assigns the real one.
       logOrder: _setLogs.length,
       exerciseBlock: reIndex,
+      supersetGroup: re.supersetGroup,
       rir: null,
     );
 
@@ -907,7 +1056,7 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
 
   Future<void> addExercise(Exercise exercise) async {
     final tempReId = _nextSyntheticId(_allRoutineExerciseIds());
-    final isCardio = exercise.categoryName.toLowerCase() == 'cardio';
+    final isCardio = exercise.isCardio;
     final initialSetCount = isCardio ? 1 : 3;
     final initialReps = isCardio ? '' : '10';
 
@@ -954,7 +1103,7 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
     for (var t in templates) {
       final newSetLog = SetLog(
         workoutLogId: _workoutLog!.id!,
-        exerciseName: exercise.nameEn,
+        exerciseName: exercise.canonicalName,
         setType: 'normal',
         weightKg: null,
         reps: null,
@@ -998,7 +1147,7 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
     await _repository.deleteSetLogs(idsToDelete);
     final newExercises = List<RoutineExercise>.from(_exercises);
     newExercises.removeAt(reIndex);
-    _exercises = newExercises;
+    _exercises = normalizeSupersetGroups(newExercises);
     pauseTimes.remove(routineExerciseId);
 
     // Every block after the removed one shifted down by one.
@@ -1014,13 +1163,21 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
   /// `onReorderItem` callback of ReorderableListView (which already accounts
   /// for the removed item — unlike the obsolete `onReorder`).
   Future<void> reorderExercise(int oldIndex, int newIndex) async {
-    final newExercises = List<RoutineExercise>.from(_exercises);
-    final item = newExercises.removeAt(oldIndex);
-    newExercises.insert(newIndex, item);
-    _exercises = newExercises;
+    _exercises = reorderRoutineExercise(_exercises, oldIndex, newIndex);
     await _updateLogOrdersInDatabase();
     notifyListeners();
     // Reordering can change which set is "next" without touching any set.
+    unawaited(_syncLiveActivity());
+  }
+
+  /// Connects or separates the two exercises at a visible card boundary.
+  ///
+  /// The running session owns its own structure, so changing a superset here
+  /// updates the set-log snapshot used for restoring this workout.
+  Future<void> toggleSupersetAfter(int upperIndex) async {
+    _exercises = toggleSupersetConnectionAfter(_exercises, upperIndex);
+    await _updateLogOrdersInDatabase();
+    notifyListeners();
     unawaited(_syncLiveActivity());
   }
 
@@ -1043,6 +1200,7 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
           final updatedLog = setLog.copyWith(
             logOrder: globalOrderCounter,
             exerciseBlock: blockIndex,
+            supersetGroup: routineExercise.supersetGroup,
           );
           _setLogs[template.id!] = updatedLog;
           setsToUpdate.add(updatedLog);
@@ -1080,8 +1238,7 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
   Future<void> updateExerciseNotes(String exerciseName, String? notes) async {
     final newExercises = List<RoutineExercise>.from(_exercises);
     for (int i = 0; i < newExercises.length; i++) {
-      if (newExercises[i].exercise.nameEn == exerciseName ||
-          newExercises[i].exercise.nameDe == exerciseName) {
+      if (newExercises[i].exercise.allNames.contains(exerciseName)) {
         newExercises[i] = newExercises[i].copyWith(
           notes: notes,
           clearNotes: notes == null || notes.isEmpty,
@@ -1278,8 +1435,8 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
           if (!hasDropSets && type.contains('drop')) hasDropSets = true;
           if (!hasFailureSets && type.contains('fail')) hasFailureSets = true;
 
-          if (s.supersetId != null) {
-            supersetIds.add(s.supersetId!);
+          if (s.supersetGroup != null) {
+            supersetIds.add(s.supersetGroup!);
           }
         }
       }

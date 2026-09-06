@@ -693,7 +693,7 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                                   IconButton(
                                     tooltip: l10n.delete,
                                     icon: const Icon(
-                                      LucideIcons.trash_2,
+                                      LucideIcons.trash,
                                       color: Colors.red,
                                     ),
                                     onPressed: _deleteApiKey,
@@ -818,7 +818,7 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                       },
                       label: l10n.mealPhotoDeleteAll,
                       tooltip: l10n.mealPhotoDeleteAll,
-                      icon: LucideIcons.trash_2,
+                      icon: LucideIcons.trash,
                     ),
                   ],
                 ),

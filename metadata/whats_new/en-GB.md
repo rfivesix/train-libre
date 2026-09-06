@@ -6,6 +6,18 @@
   Newest version first. Regenerate with: python3 script/build_whats_new.py
 -->
 
+## 1.3.0 (2026-09-07)
+
+{dumbbell} Supersets: Join exercises in your routines into supersets, trisets or larger groups. During a workout you alternate between them round by round, and the rest timer only starts after the last exercise of a round.
+
+{timer} The right fields for every exercise: Log hold time for planks, reps and optional added weight for pull-ups, and assistance for assisted exercises. Previous workout values and charts adapt too.
+
+{layout_grid} A reworked exercise catalogue: The catalogue now uses OpenExerciseDB, with more detailed information about muscles and movements and names in your app language. Filter by equipment, difficulty and other details, including while building your routines.
+
+{activity} Log weight from your diary: Record your weight in the new card below Supplements, with a smooth ruler in kilograms or pounds. Your measurement history opens from the same place.
+
+{chart_line} A clearer picture of your progress: Training volume and strength records for bodyweight exercises now account for your logged body weight, added weight increases the load and assistance reduces it. Stretching and mobility exercises no longer count as strength sets.
+
 ## 1.2.1 (2026-09-01)
 
 {utensils} Improved macronutrient recommendations: The adaptive nutrition calculation now distributes fats and carbohydrates in a more balanced way based on your body weight and goal.

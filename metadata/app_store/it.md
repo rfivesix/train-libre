@@ -53,12 +53,18 @@ AVVERTENZA:
 Train Libre non è un'applicazione medica. Le stime sul recupero muscolare, il tracciamento del sonno e i parametri fisici sono destinati esclusivamente al monitoraggio sportivo personale. Non costituiscono e non sostituiscono in alcun modo diagnosi o trattamenti medici professionali.
 
 OPEN SOURCE E DATI APERTI:
-Sviluppato in modo trasparente sui database aperti e affidabili di Open Food Facts e wger. Il codice sorgente completo è pubblicamente accessibile: le nostre promesse sulla privacy si verificano, non si prendono per buone.
+Sviluppato in modo trasparente sui database aperti e affidabili di Open Food Facts e OpenExerciseDB. Il codice sorgente completo è pubblicamente accessibile: le nostre promesse sulla privacy si verificano, non si prendono per buone.
 
 ## Release Notes (What's New / Release Notes in this version)
-Raccomandazioni dei macronutrienti migliorate: il calcolo adattivo distribuisce ora grassi e carboidrati in modo più bilanciato in base al peso corporeo e all'obiettivo.
+Superserie: unisci gli esercizi delle tue schede in superserie, triset o gruppi più ampi. Durante l'allenamento li alterni giro dopo giro e il recupero parte solo dopo l'ultimo esercizio del giro.
 
-Correzione di bug: risolti piccoli problemi con la registrazione della caffeina nel diario e migliorate le transizioni e le animazioni delle schede.
+I campi giusti per ogni esercizio: registra il tempo di tenuta per i plank, le ripetizioni e l'eventuale peso aggiuntivo per le trazioni, oppure l'assistenza per gli esercizi assistiti. Anche i valori dell'ultimo allenamento e i grafici si adattano.
+
+Catalogo degli esercizi rinnovato: il catalogo ora utilizza OpenExerciseDB, con informazioni più precise su muscoli e movimenti e nomi nella lingua dell'app. Filtra per attrezzatura, difficoltà e altre caratteristiche, anche mentre crei le tue schede.
+
+Registra il peso dal diario: annota il peso nella nuova scheda sotto Integratori, con un righello fluido in chilogrammi o libbre. Da lì apri anche la cronologia delle misurazioni.
+
+Progressi rappresentati meglio: per gli esercizi a corpo libero, il volume di allenamento e i record di forza tengono conto del peso corporeo registrato, il peso aggiuntivo aumenta il carico e l'assistenza lo riduce. Stretching e mobilità non contano più come serie di forza.
 
 ## Support URL (Support Web Page URL)
 https://rfivesix.github.io/train-libre/support.html

@@ -38,4 +38,4 @@ DISCLAIMER:
 Train Libre is not a medical application. Algorithmic recovery feedback, sleep tracking, and physical vital metrics are intended strictly for personal athletic tracking and training guidance. They do not constitute, and must not replace, professional medical diagnosis or treatment.
 
 OPEN SOURCE & OPEN DATA:
-Built transparently on trusted community catalogs from Open Food Facts and the wger exercise database. The full source code is publicly accessible, so our privacy claims can be verified rather than just believed.
+Built transparently on trusted community catalogs from Open Food Facts and OpenExerciseDB. The full source code is publicly accessible, so our privacy claims can be verified rather than just believed.

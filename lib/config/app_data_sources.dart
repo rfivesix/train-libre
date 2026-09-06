@@ -6,6 +6,8 @@ class AppDataSources {
   const AppDataSources._();
 
   // Bundled assets
+  static const String trainingAssetManifestPath =
+      'assets/db/catalog_manifest.json';
   static const String trainingDbFileName = 'train_libre_training.db';
   static const String legacyTrainingDbFileName = 'hypertrack_training.db';
   static const String trainingAssetDbPath = 'assets/db/$trainingDbFileName';
@@ -24,17 +26,44 @@ class AppDataSources {
   static const String legacyFoodCategoriesAssetDbPath =
       'assets/db/$legacyBaseFoodsDbFileName';
 
-  // Remote training-catalog source (wger-based build output channel).
+  /// The catalog schema version this build of the app can consume.
+  ///
+  /// The data repo declares two numbers per release: `schema_version` (what
+  /// the artefact *is*) and `min_app_schema_version` (the oldest consumer that
+  /// can still read it). A release is rejected when its floor is higher than
+  /// this number — so a v2 catalog that keeps the v1 compatibility columns
+  /// filled, and therefore declares `min_app_schema_version: 1`, is still
+  /// accepted here.
+  ///
+  /// Raise this only together with an importer that understands the new
+  /// schema, and only once that release is broadly installed. A device that
+  /// raises it early accepts a catalog it then fails to read.
+  static const int supportedCatalogSchemaVersion = 1;
+
+  // Remote training-catalog source: the OpenExerciseDB stable channel.
+  //
+  // The catalog used to be built inside this repository from the wger API and
+  // published on its own release tag. It now lives in its own repository, with
+  // its own schema, licence and release cadence — see the About screen and the
+  // README for the attribution that move obliges.
+  //
+  // `sourceId` deliberately keeps the old value: `parseManifest` rejects any
+  // manifest whose `source_id` does not match this string, and the published
+  // manifest still declares `wger_catalog`. Renaming it here without renaming
+  // it there would reject every release rather than accept a new one.
   static const exerciseCatalog = ExerciseCatalogRemoteSourceConfig(
     enabled: true,
     sourceId: 'wger_catalog',
     channel: 'stable',
     baseUrl:
-        'https://github.com/rfivesix/train-libre/releases/download/wger-catalog-stable/',
-    manifestPath: 'wger_catalog_manifest.json',
-    defaultDbPath: trainingDbFileName,
-    legacyDefaultDbPath: legacyTrainingDbFileName,
-    defaultBuildReportPath: 'wger_build_report.json',
+        'https://github.com/rfivesix/OpenExerciseDB/releases/download/catalog-stable/',
+    manifestPath: 'catalog_manifest.json',
+    defaultDbPath: 'openexercisedb.db',
+    // The new release publishes one database under one name. These paths are
+    // only fallbacks for a manifest that omits `db_file`/`db_url`; there is no
+    // second, older asset name to fall back to.
+    legacyDefaultDbPath: null,
+    defaultBuildReportPath: 'build_report.json',
     localCacheDirectoryName: 'catalog_refresh',
     localCacheDbFileName: 'train_libre_training_remote.db',
     legacyLocalCacheDbFileName: 'hypertrack_training_remote.db',
@@ -43,6 +72,7 @@ class AppDataSources {
     downloadTimeoutSeconds: 30,
     minCheckIntervalHours: 12,
     minimumExerciseRows: 50,
+    supportedSchemaVersion: supportedCatalogSchemaVersion,
   );
 
   static const OffCatalogCountry defaultOffCatalogCountry =
@@ -280,6 +310,10 @@ class ExerciseCatalogRemoteSourceConfig {
   final int minCheckIntervalHours;
   final int minimumExerciseRows;
 
+  /// Highest catalog schema version this app can read. See
+  /// [AppDataSources.supportedCatalogSchemaVersion].
+  final int supportedSchemaVersion;
+
   const ExerciseCatalogRemoteSourceConfig({
     required this.enabled,
     required this.sourceId,
@@ -297,6 +331,7 @@ class ExerciseCatalogRemoteSourceConfig {
     required this.downloadTimeoutSeconds,
     required this.minCheckIntervalHours,
     required this.minimumExerciseRows,
+    this.supportedSchemaVersion = 1,
   });
 
   Duration get manifestTimeout => Duration(seconds: manifestTimeoutSeconds);
