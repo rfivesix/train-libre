@@ -56,17 +56,25 @@ class TodaysWorkoutSummaryCard extends StatelessWidget {
       margin: const EdgeInsets.symmetric(vertical: DesignConstants.spacingXS),
       child: ListTile(
         onTap: onTap,
-        contentPadding: DesignConstants.screenPadding,
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: DesignConstants.spacingM,
+          vertical: DesignConstants.screenPaddingVertical,
+        ),
         title: Text(
           workoutCount > 1
               ? l10n.workoutsLabel // "Workouts"
               : l10n.workout, // "Workout"
-          style: theme.textTheme.titleMedium,
+          style: theme.textTheme.titleMedium?.copyWith(
+            color: theme.brightness == Brightness.dark
+                ? Colors.white
+                : Colors.black,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         subtitle: Text(
           subtitleText,
           style: theme.textTheme.bodyMedium?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
+            color: theme.colorScheme.onSurface,
             fontWeight: FontWeight.w500,
           ),
         ),

@@ -202,7 +202,8 @@ void main() {
             .textTheme
             .titleMedium
             ?.fontSize);
-    expect(label.style?.color, colorScheme.onSurface);
+    expect(label.style?.color, Colors.black);
+    expect(label.style?.fontWeight, FontWeight.bold);
     expect(
         value.style?.fontSize,
         Theme.of(tester.element(find.byType(WeightCard)))

@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [1.3.0] - 2026-09-07
 
+### Changed
+- **Diary Card Visual Alignment & Typography:**
+  - Aligned title colors across `WeightCard`, `SleepSummaryCard`, `PulseSummaryCard`, and `TodaysWorkoutSummaryCard` to bold pure white in dark mode and bold pure black in light mode, matching `GlassProgressBar` (Caffeine, Water, Steps).
+  - Unified subtitle text colors to `colorScheme.onSurface`, ensuring consistent contrast with titles across all overview cards.
+  - Corrected card indentation by standardizing horizontal content padding to `DesignConstants.spacingM` (12.0) across all summary cards (`WeightCard`, `SleepSummaryCard`, `PulseSummaryCard`, `TodaysWorkoutSummaryCard`), eliminating the previous 4px offset relative to self-care progress bars.
+
 ## [1.3.0-beta.1] - 2026-09-05
 
 ### Added

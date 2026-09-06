@@ -154,7 +154,7 @@ class _WeightCardState extends State<WeightCard>
       builder: (context, snapshot) {
         if (snapshot.hasError) {
           return AppCardContainer(
-            padding: DesignConstants.cardPadding,
+            padding: const EdgeInsets.all(DesignConstants.spacingM),
             child: Column(children: [
               Text(l10n.diaryWeightLoadError),
               TextButton(
@@ -166,7 +166,7 @@ class _WeightCardState extends State<WeightCard>
         }
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const AppCardContainer(
-            padding: DesignConstants.cardPadding,
+            padding: EdgeInsets.all(DesignConstants.spacingM),
             child: Center(child: CircularProgressIndicator()),
           );
         }
@@ -257,10 +257,13 @@ class _WeightCardState extends State<WeightCard>
         daysSinceLatest != null &&
         daysSinceLatest >= _staleNudgeAfterDays;
     final secondaryTextColor = cs.onSurface.withValues(alpha: .64);
+    final titleColor =
+        theme.brightness == Brightness.dark ? Colors.white : Colors.black;
     final label = Text(
       l10n.diaryWeightLabel,
       style: theme.textTheme.titleMedium?.copyWith(
-        color: cs.onSurface,
+        color: titleColor,
+        fontWeight: FontWeight.bold,
       ),
     );
     final valueStyle = theme.textTheme.titleLarge?.copyWith(
@@ -349,7 +352,7 @@ class _WeightCardState extends State<WeightCard>
       enableContextMenu: false,
       onTap: onTap,
       child: AppCardContainer(
-        padding: DesignConstants.cardPadding,
+        padding: const EdgeInsets.all(DesignConstants.spacingM),
         margin: EdgeInsets.zero,
         child: LayoutBuilder(builder: (context, constraints) {
           // Keep full German labels and three-digit pounds at narrow widths

@@ -45,14 +45,23 @@ class SleepSummaryCard extends StatelessWidget {
             margin:
                 const EdgeInsets.symmetric(vertical: DesignConstants.spacingXS),
             child: ListTile(
-              contentPadding: DesignConstants.screenPadding,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: DesignConstants.spacingM,
+                vertical: DesignConstants.screenPaddingVertical,
+              ),
               title: Text(
                 l10n.sleepSectionTitle,
-                style: theme.textTheme.titleMedium,
+                style: theme.textTheme.titleMedium?.copyWith(
+                  color: theme.brightness == Brightness.dark
+                      ? Colors.white
+                      : Colors.black,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               subtitle: Text(
                 l10n.diaryLoadingSleep,
                 style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurface,
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -77,15 +86,23 @@ class SleepSummaryCard extends StatelessWidget {
             child: ListTile(
               onTap: () =>
                   SleepNavigation.openDayForDate(context, data.selectedDate),
-              contentPadding: DesignConstants.screenPadding,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: DesignConstants.spacingM,
+                vertical: DesignConstants.screenPaddingVertical,
+              ),
               title: Text(
                 l10n.sleepSectionTitle,
-                style: theme.textTheme.titleMedium,
+                style: theme.textTheme.titleMedium?.copyWith(
+                  color: theme.brightness == Brightness.dark
+                      ? Colors.white
+                      : Colors.black,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               subtitle: Text(
                 '${l10n.durationLabel}: $durationText',
                 style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
+                  color: theme.colorScheme.onSurface,
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -100,7 +117,7 @@ class SleepSummaryCard extends StatelessWidget {
                       Text(
                         l10n.sleepHubScoreLabel,
                         style: theme.textTheme.bodyMedium?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
+                          color: theme.colorScheme.onSurface,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -109,7 +126,9 @@ class SleepSummaryCard extends StatelessWidget {
                         scoreText,
                         style: theme.textTheme.titleLarge?.copyWith(
                           fontWeight: FontWeight.bold,
-                          color: theme.colorScheme.onSurface,
+                          color: theme.brightness == Brightness.dark
+                              ? Colors.white
+                              : Colors.black,
                         ),
                       ),
                     ],
