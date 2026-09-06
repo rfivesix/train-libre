@@ -18,12 +18,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   - Replaced developer absolute paths in `CHANGELOG.md` with relative repository links.
   - Translated German inline code comments and deployment script headers to English.
   - Cleaned up German fallback strings and mock constants in UI widgets (`GlassActionableCard`, `ConsistencyTrackerScreen`, `BodyNutritionCorrelationScreen`, `DepthLegend`, `PrDashboardScreen`, `MuscleGroupAnalyticsScreen`, `ProfileService`).
+  - **Documentation Website Navigation:** Removed the "Android APK" header navigation link across all documentation pages and cleaned up the corresponding i18n keys.
 
 ### Fixed
 - **Exercise Drag-and-Drop Reordering with Supersets (`reorderRoutineExercise`, `reorderWithSupersets`):** Resolved issues where exercise cards could not be reordered within supersets (which previously reverted immediately) and non-first superset cards (including the final exercise of a routine/workout) could not be dragged at all. Replaced whole-group block moves with per-card reordering semantics across `EditRoutineScreen`, `LiveWorkoutScreen`, and `WorkoutLogDetailScreen`: swapping exercises within a superset preserves the group and re-indexes members (e.g. A1/A2), moving an exercise away from a superset dissolves singletons into standalone exercises while keeping any remaining contiguous pairs/trisets intact, and dropping an exercise strictly between two members of another superset joins it into that superset.
 - **Superset Editing & Group Rails:** Superset boundaries can now be connected or separated directly during a live workout and while editing workout history. Separating a connection inside a larger group retains the two remaining supersets instead of dissolving the entire group. The coloured rail now continues uninterrupted between every member card.
 - **Superset Bracket and Link Action:** The coloured bracket is now drawn once around a whole superset: only its outer ends are rounded, and the tint and rail run unbroken between the member cards. The link/unlink action moved out of the gap between cards into the trailing end of the “Add set” row, with a label next to its icon.
 - **Workout Exercise Blocks in History and Backups:** Repeated occurrences of the same exercise remain separate cards by using their stored exercise block. Backup restore now preserves both exercise blocks and superset snapshots while legacy logs without block metadata retain name-based grouping.
+- **Documentation Website (`docs/index.html`):** Removed obsolete SVG CSS properties (`block-progression`) triggering unknown property warnings in editors and validators.
 
 ## [1.3.0-alpha.2] - 2026-09-05
 ### Added

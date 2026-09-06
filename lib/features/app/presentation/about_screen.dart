@@ -110,7 +110,7 @@ class _AboutScreenState extends State<AboutScreen> {
                       AppLinkRow(
                         title: l10n.project_website,
                         onTap: () => _launchURL(
-                          'https://rfivesix.github.io/train-libre/',
+                          'https://trainlibre.com/',
                         ),
                       ),
                       AppLinkRow(
