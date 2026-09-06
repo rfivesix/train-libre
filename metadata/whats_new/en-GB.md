@@ -6,7 +6,7 @@
   Newest version first. Regenerate with: python3 script/build_whats_new.py
 -->
 
-## 1.3.0-beta.1 (2026-09-05)
+## 1.3.0 (2026-09-07)
 
 {dumbbell} Supersets: Join exercises in your routines into supersets, trisets or larger groups. During a workout you alternate between them round by round, and the rest timer only starts after the last exercise of a round.
 

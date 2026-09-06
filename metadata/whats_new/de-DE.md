@@ -6,7 +6,7 @@
   Danach ausführen: python3 script/build_whats_new.py --write --sync-store
 -->
 
-## 1.3.0-beta.1 (2026-09-05)
+## 1.3.0 (2026-09-07)
 
 {dumbbell} Supersätze: Verbinde Übungen in deinen Trainingsplänen zu Supersätzen, Trisätzen oder größeren Gruppen. Im Training wechselst du rundenweise zwischen ihnen, und die Pause startet erst nach der letzten Übung einer Runde.
 

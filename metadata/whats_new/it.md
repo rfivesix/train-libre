@@ -6,7 +6,7 @@
   Poi esegui: python3 script/build_whats_new.py --write --sync-store
 -->
 
-## 1.3.0-beta.1 (2026-09-05)
+## 1.3.0 (2026-09-07)
 
 {dumbbell} Superserie: unisci gli esercizi delle tue schede in superserie, triset o gruppi più ampi. Durante l'allenamento li alterni giro dopo giro e il recupero parte solo dopo l'ultimo esercizio del giro.
 

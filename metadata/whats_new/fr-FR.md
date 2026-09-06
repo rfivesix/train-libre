@@ -6,7 +6,7 @@
   récente en premier. Ensuite : python3 script/build_whats_new.py --write --sync-store
 -->
 
-## 1.3.0-beta.1 (2026-09-05)
+## 1.3.0 (2026-09-07)
 
 {dumbbell} Superséries : regroupe des exercices de tes programmes en superséries, trisets ou groupes plus larges. Pendant la séance, tu alternes entre eux tour après tour, et le temps de repos ne démarre qu'après le dernier exercice d'un tour.
 

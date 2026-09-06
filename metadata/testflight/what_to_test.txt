@@ -1,29 +1,7 @@
-Train Libre 1.3.0-beta.1 — please focus on supersets:
+Train Libre 1.3.0 — Official Release Candidate
 
-1. BUILD A SUPERSET IN A ROUTINE
-- Open a routine, switch to edit mode and use the link action at the end of an exercise's "Add set" row to join it with the exercise below.
-- Confirm that both cards share one coloured bracket and are labelled A1 and A2.
-- Join a third exercise into the same group, then separate the middle connection. The two remaining pairs should stay supersets instead of the whole group dissolving.
-- Drag a member of a group to another position. The whole group should move together and stay contiguous.
-- Delete one exercise of a two-exercise group and confirm the group is dissolved.
+All major features and workflows for version 1.3.0 (Supersets, OpenExerciseDB catalog migration, exercise-specific logging fields, and Diary body weight entry) have been fully verified during the 1.3.0-beta.1 testing period. Only minor cosmetic refinements, typography alignments, and layout polish have been added since.
 
-2. TRAIN A SUPERSET
-- Start a workout from that routine and tick off a set of A1. No rest timer should start; the next open set of A2 should come into focus.
-- Tick off the matching set of A2. The rest timer should start with the pause configured on the last exercise of the group.
-- Finish the final round and confirm that no rest timer starts.
-- Try a group whose exercises have different set counts. The leftover sets of the longer exercise should behave like a normal single exercise.
-- Force-quit the app mid-workout and reopen it. The session should come back with its groups intact.
+No specific testing focus is required for this build. Please verify general stability and smooth day-to-day operation.
 
-3. HISTORY AND EXISTING DATA
-- Open a finished superset workout in the history. Members should be bracketed together and labelled A1/A2, and connections should be editable there as well.
-- Log the same exercise twice in one workout as two separate blocks. The history should show two separate cards, not one merged card.
-- Open older workouts recorded before this build. They should look and behave exactly as before.
-
-4. BACKUP ROUND TRIP
-- Create a backup, restore it, and confirm that supersets and repeated exercise blocks survive both in routines and in workout history.
-- Share a workout as text and check that group members are marked A1/A2.
-
-5. REGRESSION CHECK
-- Confirm that training volume, estimated 1RM and personal records are unchanged for workouts that contain no supersets.
-
-Thanks for testing Train Libre!
+Thank you for testing Train Libre!

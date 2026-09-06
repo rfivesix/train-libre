@@ -1,15 +1,9 @@
-Enregistre ton poids depuis le journal: note ton poids dans la nouvelle carte sous les compléments et ouvre ton historique de mesures au même endroit.
+Superséries: regroupe des exercices de tes programmes en superséries, trisets ou groupes plus larges. Pendant la séance, tu alternes entre eux tour après tour, et le temps de repos ne démarre qu'après le dernier exercice d'un tour.
 
-Une règle fluide pour le poids: déplace-toi librement entre les graduations et vérifie la valeur avant de l'enregistrer. Les kilogrammes ou les livres suivent l'unité choisie.
+Les bons champs pour chaque exercice: note la durée d'une planche, les répétitions et le lest éventuel des tractions, ou l'assistance des exercices assistés. Les valeurs de la dernière séance et les graphiques s'adaptent aussi.
 
-La journée d'aujourd'hui est toujours prête: même avant toute saisie, le journal complet s'ouvre avec ton dernier poids et permet d'enregistrer une nouvelle mesure.
+Un catalogue d'exercices enrichi: le catalogue utilise désormais OpenExerciseDB, avec des informations plus précises sur les muscles et les mouvements et des noms dans la langue de ton app. Filtre par matériel, difficulté et autres caractéristiques, y compris pendant la création de tes programmes.
 
-Catalogue d'exercices enrichi: le catalogue utilise désormais OpenExerciseDB, avec des informations plus précises sur les muscles et les mouvements. Les noms et descriptions s'affichent dans la langue de ton app lorsqu'une traduction est disponible.
+Enregistre ton poids depuis le journal: note ton poids dans la nouvelle carte sous les compléments, avec une règle fluide en kilogrammes ou en livres. Ton historique de mesures s'ouvre au même endroit.
 
-Trouve les exercices qui te conviennent: filtre par matériel, difficulté et autres caractéristiques. Les menus de sélection compacts t'aident aussi à choisir tes exercices lorsque tu crées tes programmes.
-
-Les bons champs pour chaque exercice: note la durée d'une planche, les répétitions et le lest éventuel des tractions, ou l'assistance des exercices assistés. Les valeurs de la dernière séance et les graphiques s'adaptent aussi à l'exercice.
-
-Une progression mieux représentée: pour les exercices au poids du corps, le volume d'entraînement et les records de force tiennent désormais compte de ton poids enregistré. Le lest s'ajoute à la charge, l'assistance s'en déduit. Les anciennes séances utilisent le dernier poids enregistré à leur date.
-
-Des statistiques musculaires plus précises: les exercices au poids du corps et les positions maintenues sont mieux pris en compte. Les étirements et les exercices de mobilité ne comptent plus comme des séries de musculation et ne déclenchent plus de période de récupération musculaire.
+Une progression mieux représentée: pour les exercices au poids du corps, le volume d'entraînement et les records de force tiennent compte de ton poids enregistré, le lest s'ajoute à la charge et l'assistance s'en déduit. Les étirements et la mobilité ne comptent plus comme des séries de musculation.
