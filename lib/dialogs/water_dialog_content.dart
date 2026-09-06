@@ -199,29 +199,37 @@ class WaterDialogContentState extends State<WaterDialogContent> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              InkWell(
-                onTap: _selectDate,
-                child: Padding(
-                  padding: DesignConstants.cardMargin,
-                  child: Row(
-                    children: [
-                      const Icon(LucideIcons.calendar, size: 20),
-                      const SizedBox(width: DesignConstants.spacingS),
-                      Text(formattedDate, style: const TextStyle(fontSize: 16)),
-                    ],
+              Semantics(
+                button: true,
+                label: '${l10n.selectDateTitle} $formattedDate',
+                child: InkWell(
+                  onTap: _selectDate,
+                  child: Padding(
+                    padding: DesignConstants.cardMargin,
+                    child: Row(
+                      children: [
+                        const Icon(LucideIcons.calendar, size: 20),
+                        const SizedBox(width: DesignConstants.spacingS),
+                        Text(formattedDate, style: const TextStyle(fontSize: 16)),
+                      ],
+                    ),
                   ),
                 ),
               ),
-              InkWell(
-                onTap: _selectTime,
-                child: Padding(
-                  padding: DesignConstants.cardMargin,
-                  child: Row(
-                    children: [
-                      const Icon(LucideIcons.clock, size: 20),
-                      const SizedBox(width: DesignConstants.spacingS),
-                      Text(formattedTime, style: const TextStyle(fontSize: 16)),
-                    ],
+              Semantics(
+                button: true,
+                label: '${l10n.selectTimeTitle} $formattedTime',
+                child: InkWell(
+                  onTap: _selectTime,
+                  child: Padding(
+                    padding: DesignConstants.cardMargin,
+                    child: Row(
+                      children: [
+                        const Icon(LucideIcons.clock, size: 20),
+                        const SizedBox(width: DesignConstants.spacingS),
+                        Text(formattedTime, style: const TextStyle(fontSize: 16)),
+                      ],
+                    ),
                   ),
                 ),
               ),
