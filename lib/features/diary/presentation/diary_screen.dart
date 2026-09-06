@@ -930,7 +930,7 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
     final isToday = selectedDate.isSameDate(DateTime.now());
     Widget weightCard() => WeightCard(date: selectedDate);
 
-    if (hasEverLoggedData == false) {
+    if (hasEverLoggedData == false && isToday) {
       return Column(
         children: [
           Padding(
@@ -1047,8 +1047,8 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
                       );
                     },
                   ),
-                  if (hasDataForSelectedDate || isToday)
-                    Skeletonizer(enabled: false, child: weightCard()),
+                  if (hasDataForSelectedDate || isToday || showSkeleton)
+                    weightCard(),
                   if (stepsEnabled) const StepsSummaryCard(),
                   if (sleepEnabled) const SleepSummaryCard(),
                   if (pulseEnabled) const PulseSummaryCard(),
@@ -1156,19 +1156,9 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
     );
 
     if (showSkeleton && !hasDataForSelectedDate && !isToday) {
-      content = Column(
-        children: [
-          Padding(
-            padding: finalPadding.copyWith(bottom: 0),
-            child: weightCard(),
-          ),
-          Expanded(
-            child: ActiveGapOverlay(
-              message: l10n.emptyStateActiveGapOverlay,
-              background: content,
-            ),
-          ),
-        ],
+      content = ActiveGapOverlay(
+        message: l10n.emptyStateActiveGapOverlay,
+        background: content,
       );
     }
 

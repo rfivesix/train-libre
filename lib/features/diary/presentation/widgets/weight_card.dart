@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 
 import '../../../../data/drift_database.dart' as db;
 import '../../../../generated/app_localizations.dart';
@@ -152,7 +153,8 @@ class _WeightCardState extends State<WeightCard>
     return StreamBuilder<db.Measurement?>(
       stream: _weight,
       builder: (context, snapshot) {
-        if (snapshot.hasError) {
+        final isSkeleton = Skeletonizer.maybeOf(context)?.enabled ?? false;
+        if (snapshot.hasError && !isSkeleton) {
           return AppCardContainer(
             padding: const EdgeInsets.all(DesignConstants.spacingM),
             child: Column(children: [
@@ -164,13 +166,25 @@ class _WeightCardState extends State<WeightCard>
             ]),
           );
         }
-        if (snapshot.connectionState == ConnectionState.waiting) {
+        if (snapshot.connectionState == ConnectionState.waiting && !isSkeleton) {
           return const AppCardContainer(
             padding: EdgeInsets.all(DesignConstants.spacingM),
             child: Center(child: CircularProgressIndicator()),
           );
         }
-        final latest = snapshot.data;
+        final latest = snapshot.data ??
+            (isSkeleton
+                ? db.Measurement(
+                    localId: -1,
+                    id: 'mock-skeleton',
+                    createdAt: _day,
+                    updatedAt: _day,
+                    type: 'weight',
+                    value: 75.0,
+                    date: _day,
+                    unit: 'kg',
+                  )
+                : null);
         final logged = latest != null && DateUtils.isSameDay(latest.date, _day);
         // The card's own margin sits outside the morph scope so the measured
         // source rect is the visible card, not the card plus its gap.
@@ -190,7 +204,7 @@ class _WeightCardState extends State<WeightCard>
                     logged,
                     // Only the collapsed, already-logged card navigates; while
                     // the ruler is open the card belongs to the inline editor.
-                    onTap: logged && !open
+                    onTap: logged && !open && !isSkeleton
                         ? () => Navigator.of(context).push(
                               CardMorphRoute<void>(
                                 sourceContext: cardCtx,
