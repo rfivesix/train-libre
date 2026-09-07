@@ -39,6 +39,20 @@ fi
 IOS_BUILD_NAME="${VERSION_NUMBER%%-*}"
 echo "iOS build version (cleaned): $IOS_BUILD_NAME"
 
+# Apple rejects a submission after upload when a privacy manifest contains an
+# unknown Required Reason API code. Build 1003004 exposed the easy-to-miss
+# C61E.1/C617.1 typo, so fail locally before spending time on release artifacts.
+echo "Validating Apple privacy manifests..."
+for PRIVACY_MANIFEST in \
+  ios/Runner/PrivacyInfo.xcprivacy \
+  macos/Runner/PrivacyInfo.xcprivacy; do
+  plutil -lint "$PRIVACY_MANIFEST"
+  if grep -q '<string>C61E\.1</string>' "$PRIVACY_MANIFEST"; then
+    echo "Error: $PRIVACY_MANIFEST contains invalid reason code C61E.1; use C617.1."
+    exit 1
+  fi
+done
+
 # ------------------------------------------------------------------------------
 # STEP 1b: User-Facing Release Notes Preflight
 # ------------------------------------------------------------------------------
