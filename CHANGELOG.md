@@ -7,6 +7,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [1.4.0-alpha.1] - Unreleased
 
 ### Added
+- **Double-Progression Engine (`DoubleProgressionEngine`, `nextPrescription`):** Pure domain function deriving next load and repetition prescriptions from past working sets against routine target rep ranges without IO or database dependencies. Supports equipment load increments, reverse progression for assisted exercises, inactivity hold after a 3-week gap, failure sets, and reason tracking for future plateau diagnostics.
+- **Progression Domain Models (`ProgressionOutcome`, `LoadMode`, `ProgressionReason`, `LoadIncrement`, `RepRange`, `ExerciseProgressionHistory`):** Domain structures representing progression outcomes (`raise`, `hold`, `noSuggestion`), load modes, equipment step tables, and machine-readable justification keys.
 - **Prescription-Capture (`SetLog`):** Target values from routine templates (reps, min/max target reps, weight, RIR) are recorded as immutable snapshots on each set log with origin tracking (`none`, `routine`, `engine`) to compare prescribed vs. completed performance.
 - **Rep-Range-Parser (`parseRepRange`):** Parses routine template repetition strings (supporting single values, hyphen and en-dash ranges, whitespace, and rejecting open-ended formats) into structured min/max bounds.
 - **Autonomy & Origin Enums (`AutonomyLevel`, `PrescriptionOrigin`):** Added domain enums representing autonomy levels (`off`, `suggest`, `automatic`) and prescription provenance (`none`, `routine`, `engine`).
