@@ -100,6 +100,36 @@ class SetLog {
   /// Temporary value: Difference to previous Pace PR (Cardio).
   final double? pacePRDiff;
 
+  /// Prescription origin ('none', 'routine', 'engine').
+  final String prescriptionOrigin;
+
+  /// Prescribed minimum repetitions.
+  final int? prescribedRepMin;
+
+  /// Prescribed maximum repetitions.
+  final int? prescribedRepMax;
+
+  /// Prescribed target weight in kg.
+  final double? prescribedWeight;
+
+  /// Prescribed Reps in Reserve.
+  final int? prescribedRir;
+
+  /// Whether the prescription was overridden by the user.
+  final bool prescriptionOverridden;
+
+  /// Whether values were auto-filled from target template upon completion.
+  final bool valuesAutoFilled;
+
+  /// ID of the exercise for which this exercise was substituted, if any.
+  final String? substitutedForExerciseId;
+
+  /// Human-readable explanation of the progression rationale.
+  final String? progressionReason;
+
+  /// Version of the algorithm that produced the prescription.
+  final String? progressionAlgorithmVersion;
+
   /// Creates a new [SetLog] instance.
   SetLog({
     this.id,
@@ -132,30 +162,61 @@ class SetLog {
     this.distancePRDiff,
     this.durationPRDiff,
     this.pacePRDiff,
+    this.prescriptionOrigin = 'none',
+    this.prescribedRepMin,
+    this.prescribedRepMax,
+    this.prescribedWeight,
+    this.prescribedRir,
+    this.prescriptionOverridden = false,
+    this.valuesAutoFilled = false,
+    this.substitutedForExerciseId,
+    this.progressionReason,
+    this.progressionAlgorithmVersion,
   });
 
   /// Creates a [SetLog] instance from a Map, typically from a database row.
   factory SetLog.fromMap(Map<String, dynamic> map) {
     return SetLog(
       id: map['id'],
-      workoutLogId: map['workout_log_id'],
+      workoutLogId: map['workout_log_id'] ?? map['workoutLogId'],
       exerciseId: map['exercise_id'] as String? ?? map['exerciseId'] as String?,
-      exerciseName: map['exercise_name'],
-      setType: map['set_type'],
-      weightKg: map['weight_kg'],
+      exerciseName: map['exercise_name'] ?? map['exerciseName'] ?? '',
+      setType: map['set_type'] ?? map['setType'] ?? 'normal',
+      weightKg: (map['weight_kg'] as num?)?.toDouble() ??
+          (map['weightKg'] as num?)?.toDouble(),
       reps: map['reps'],
-      restTimeSeconds: map['rest_time_seconds'],
-      // MODIFICATION: isCompleted can be null; map 1 to true and everything else (0, null) to false.
-      isCompleted: map['is_completed'] == 1,
-      logOrder: map['log_order'],
-      exerciseBlock: map['exercise_block'],
-      supersetGroup: map['superset_group'],
+      restTimeSeconds: map['rest_time_seconds'] ?? map['restTimeSeconds'],
+      // MODIFICATION: isCompleted can be null; map 1 or true to true and everything else to false.
+      isCompleted: map['is_completed'] == 1 || map['isCompleted'] == true,
+      logOrder: map['log_order'] ?? map['logOrder'],
+      exerciseBlock: map['exercise_block'] ?? map['exerciseBlock'],
+      supersetGroup: map['superset_group'] ?? map['supersetGroup'],
       notes: map['notes'],
-      distanceKm: map['distance_km'],
-      durationSeconds: map['duration_seconds'],
+      distanceKm: (map['distance_km'] as num?)?.toDouble() ??
+          (map['distanceKm'] as num?)?.toDouble(),
+      durationSeconds: map['duration_seconds'] ?? map['durationSeconds'],
       rpe: map['rpe'],
       rir: map['rir'],
-      supersetId: map['superset_id'],
+      supersetId: map['superset_id'] ?? map['supersetId'],
+      prescriptionOrigin: map['prescription_origin'] as String? ??
+          map['prescriptionOrigin'] as String? ??
+          'none',
+      prescribedRepMin: map['prescribed_rep_min'] ?? map['prescribedRepMin'],
+      prescribedRepMax: map['prescribed_rep_max'] ?? map['prescribedRepMax'],
+      prescribedWeight: (map['prescribed_weight'] as num?)?.toDouble() ??
+          (map['prescribedWeight'] as num?)?.toDouble(),
+      prescribedRir: map['prescribed_rir'] ?? map['prescribedRir'],
+      prescriptionOverridden: map['prescription_overridden'] == 1 ||
+          map['prescriptionOverridden'] == true,
+      valuesAutoFilled:
+          map['values_auto_filled'] == 1 || map['valuesAutoFilled'] == true,
+      substitutedForExerciseId: map['substituted_for_exercise_id'] as String? ??
+          map['substitutedForExerciseId'] as String?,
+      progressionReason: map['progression_reason'] as String? ??
+          map['progressionReason'] as String?,
+      progressionAlgorithmVersion:
+          map['progression_algorithm_version'] as String? ??
+              map['progressionAlgorithmVersion'] as String?,
       // Note: PR flags are not stored in the database.
     );
   }
@@ -182,6 +243,16 @@ class SetLog {
       'rpe': rpe,
       'rir': rir,
       'superset_id': supersetId,
+      'prescription_origin': prescriptionOrigin,
+      'prescribed_rep_min': prescribedRepMin,
+      'prescribed_rep_max': prescribedRepMax,
+      'prescribed_weight': prescribedWeight,
+      'prescribed_rir': prescribedRir,
+      'prescription_overridden': prescriptionOverridden ? 1 : 0,
+      'values_auto_filled': valuesAutoFilled ? 1 : 0,
+      'substituted_for_exercise_id': substitutedForExerciseId,
+      'progression_reason': progressionReason,
+      'progression_algorithm_version': progressionAlgorithmVersion,
     };
   }
 
@@ -220,6 +291,16 @@ class SetLog {
     double? distancePRDiff,
     int? durationPRDiff,
     double? pacePRDiff,
+    String? prescriptionOrigin,
+    int? prescribedRepMin,
+    int? prescribedRepMax,
+    double? prescribedWeight,
+    int? prescribedRir,
+    bool? prescriptionOverridden,
+    bool? valuesAutoFilled,
+    String? substitutedForExerciseId,
+    String? progressionReason,
+    String? progressionAlgorithmVersion,
     bool clearWeight = false,
     bool clearReps = false,
     bool clearRir = false,
@@ -227,6 +308,10 @@ class SetLog {
     bool clearDuration = false,
     bool clearSupersetGroup = false,
     bool clearExerciseId = false,
+    bool clearPrescribedWeight = false,
+    bool clearPrescribedRir = false,
+    bool clearPrescribedRepMin = false,
+    bool clearPrescribedRepMax = false,
   }) {
     return SetLog(
       id: id ?? this.id,
@@ -261,6 +346,26 @@ class SetLog {
       distancePRDiff: distancePRDiff ?? this.distancePRDiff,
       durationPRDiff: durationPRDiff ?? this.durationPRDiff,
       pacePRDiff: pacePRDiff ?? this.pacePRDiff,
+      prescriptionOrigin: prescriptionOrigin ?? this.prescriptionOrigin,
+      prescribedRepMin: clearPrescribedRepMin
+          ? null
+          : (prescribedRepMin ?? this.prescribedRepMin),
+      prescribedRepMax: clearPrescribedRepMax
+          ? null
+          : (prescribedRepMax ?? this.prescribedRepMax),
+      prescribedWeight: clearPrescribedWeight
+          ? null
+          : (prescribedWeight ?? this.prescribedWeight),
+      prescribedRir:
+          clearPrescribedRir ? null : (prescribedRir ?? this.prescribedRir),
+      prescriptionOverridden:
+          prescriptionOverridden ?? this.prescriptionOverridden,
+      valuesAutoFilled: valuesAutoFilled ?? this.valuesAutoFilled,
+      substitutedForExerciseId:
+          substitutedForExerciseId ?? this.substitutedForExerciseId,
+      progressionReason: progressionReason ?? this.progressionReason,
+      progressionAlgorithmVersion:
+          progressionAlgorithmVersion ?? this.progressionAlgorithmVersion,
     );
   }
 }

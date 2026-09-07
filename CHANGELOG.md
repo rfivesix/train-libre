@@ -6,8 +6,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [1.4.0-alpha.1] - Unreleased
 
+### Added
+- **Prescription-Capture (`SetLog`):** Target values from routine templates (reps, min/max target reps, weight, RIR) are recorded as immutable snapshots on each set log with origin tracking (`none`, `routine`, `engine`) to compare prescribed vs. completed performance.
+- **Rep-Range-Parser (`parseRepRange`):** Parses routine template repetition strings (supporting single values, hyphen and en-dash ranges, whitespace, and rejecting open-ended formats) into structured min/max bounds.
+- **Autonomy & Origin Enums (`AutonomyLevel`, `PrescriptionOrigin`):** Added domain enums representing autonomy levels (`off`, `suggest`, `automatic`) and prescription provenance (`none`, `routine`, `engine`).
+- **Database Schema 30 (`AppDatabase`):** Added 10 prescription snapshot and override tracking columns to `SetLogs`, `targetRepMin` and `targetRepMax` to `RoutineSetTemplates`, and `trainingAutonomyLevel`, `nutritionAutonomyLevel`, and `experienceLevel` to `AppSettings`.
+
 ### Changed
 - **Exercise History by UUID (`getLastSetsForExercise`, `SetLog.exerciseId`):** Switched exercise history queries from display name matching to stable exercise UUIDs with fallback for legacy rows without an exercise ID. Renaming or catalog merges no longer compromise exercise history.
+- **ExperienceLevel Persistence (`ExperienceLevelService`, `AppSettings`):** Experience level preference moved from `SharedPreferences` to SQLite `AppSettings.experienceLevel` with automatic one-time migration and backup/restore support.
+
+### Removed
+- **Obsolete Performance Query:** Removed deprecated `getLastPerformance` method from `WorkoutLoggingQueries`.
 
 ## [1.3.0] - 2026-09-07
 

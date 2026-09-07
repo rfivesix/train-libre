@@ -29,14 +29,19 @@ class LogWorkoutSetUseCase {
     double? finalWeight = weight;
     int? finalReps = reps;
     int? finalRir = rir;
+    bool valuesAutoFilled = oldLog.valuesAutoFilled;
 
     if (newlyCompleted) {
       final currentWeight = weight ?? oldLog.weightKg;
       final currentReps = reps ?? oldLog.reps;
 
       if (template != null) {
+        bool autoFilledNow = false;
         if (currentWeight == null && !clearWeight) {
           finalWeight = template.targetWeight ?? 0.0;
+          if (template.targetWeight != null) {
+            autoFilledNow = true;
+          }
         }
         if (currentReps == null && !clearReps) {
           if (template.targetReps != null && template.targetReps!.isNotEmpty) {
@@ -48,9 +53,13 @@ class LogWorkoutSetUseCase {
             } else {
               finalReps = int.tryParse(template.targetReps!.trim()) ?? 0;
             }
+            autoFilledNow = true;
           } else {
             finalReps = 0;
           }
+        }
+        if (autoFilledNow) {
+          valuesAutoFilled = true;
         }
       }
     }
@@ -77,6 +86,7 @@ class LogWorkoutSetUseCase {
       clearDistance: clearDistance,
       durationSeconds: duration,
       clearDuration: clearDuration,
+      valuesAutoFilled: valuesAutoFilled,
     );
 
     return LogSetResult(newLog, volumeDelta);

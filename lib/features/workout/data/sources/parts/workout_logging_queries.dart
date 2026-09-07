@@ -131,6 +131,17 @@ extension WorkoutLoggingQueries on WorkoutLocalDataSource {
       durationSeconds: drift.Value(setLog.durationSeconds),
       rpe: drift.Value(setLog.rpe),
       rir: drift.Value(setLog.rir), // Direct int now, perfect.
+      prescriptionOrigin: drift.Value(setLog.prescriptionOrigin),
+      prescribedRepMin: drift.Value(setLog.prescribedRepMin),
+      prescribedRepMax: drift.Value(setLog.prescribedRepMax),
+      prescribedWeight: drift.Value(setLog.prescribedWeight),
+      prescribedRir: drift.Value(setLog.prescribedRir),
+      prescriptionOverridden: drift.Value(setLog.prescriptionOverridden),
+      valuesAutoFilled: drift.Value(setLog.valuesAutoFilled),
+      substitutedForExerciseId: drift.Value(setLog.substitutedForExerciseId),
+      progressionReason: drift.Value(setLog.progressionReason),
+      progressionAlgorithmVersion:
+          drift.Value(setLog.progressionAlgorithmVersion),
     );
 
     if (setLog.id != null && setLog.id! > 0) {
@@ -153,9 +164,7 @@ extension WorkoutLoggingQueries on WorkoutLocalDataSource {
             variables: [drift.Variable.withString(exerciseUuid)],
             updates: {dbInstance.exercises},
           );
-        } catch (_) {
-          // Non-critical
-        }
+        } catch (_) {}
       }
 
       return row.localId;
@@ -206,48 +215,11 @@ extension WorkoutLoggingQueries on WorkoutLocalDataSource {
           distance: drift.Value(s.distanceKm),
           durationSeconds: drift.Value(s.durationSeconds),
           restTimeSeconds: drift.Value(s.restTimeSeconds),
+          valuesAutoFilled: drift.Value(s.valuesAutoFilled),
+          prescriptionOverridden: drift.Value(s.prescriptionOverridden),
         ));
       }
     }
-  }
-
-  Future<SetLog?> getLastPerformance(String exerciseName) async {
-    final dbInstance = await database;
-    final query = dbInstance.select(dbInstance.setLogs)
-      ..where(
-        (tbl) =>
-            tbl.exerciseNameSnapshot.equals(exerciseName) &
-            tbl.setType.isNotValue('warmup') &
-            tbl.weight.isNotNull() &
-            tbl.reps.isNotNull(),
-      )
-      ..orderBy([
-        (t) => drift.OrderingTerm(
-              expression: t.localId,
-              mode: drift.OrderingMode.desc,
-            ),
-      ])
-      ..limit(1);
-
-    final row = await query.getSingleOrNull();
-    if (row == null) return null;
-
-    final wLogId = await _getLocalIdFromUuid(
-      dbInstance.workoutLogs,
-      row.workoutLogId,
-    );
-
-    return SetLog(
-      id: row.localId,
-      workoutLogId: wLogId ?? 0,
-      exerciseId: row.exerciseId,
-      exerciseName: row.exerciseNameSnapshot ?? 'Unknown',
-      setType: row.setType,
-      weightKg: row.weight,
-      reps: row.reps,
-      isCompleted: row.isCompleted,
-      rir: row.rir, // Use directly
-    );
   }
 
   Future<void> deleteWorkoutLog(int logId) async {
@@ -537,6 +509,8 @@ extension WorkoutLoggingQueries on WorkoutLocalDataSource {
                     targetReps: drift.Value(t.targetReps),
                     targetWeight: drift.Value(t.targetWeight),
                     targetRir: drift.Value(t.targetRir),
+                    targetRepMin: drift.Value(t.targetRepMin),
+                    targetRepMax: drift.Value(t.targetRepMax),
                   ),
                 );
           }
@@ -587,6 +561,18 @@ extension WorkoutLoggingQueries on WorkoutLocalDataSource {
                   durationSeconds: drift.Value(s.durationSeconds),
                   rpe: drift.Value(s.rpe),
                   rir: drift.Value(s.rir),
+                  prescriptionOrigin: drift.Value(s.prescriptionOrigin),
+                  prescribedRepMin: drift.Value(s.prescribedRepMin),
+                  prescribedRepMax: drift.Value(s.prescribedRepMax),
+                  prescribedWeight: drift.Value(s.prescribedWeight),
+                  prescribedRir: drift.Value(s.prescribedRir),
+                  prescriptionOverridden: drift.Value(s.prescriptionOverridden),
+                  valuesAutoFilled: drift.Value(s.valuesAutoFilled),
+                  substitutedForExerciseId:
+                      drift.Value(s.substitutedForExerciseId),
+                  progressionReason: drift.Value(s.progressionReason),
+                  progressionAlgorithmVersion:
+                      drift.Value(s.progressionAlgorithmVersion),
                 ),
               );
         }
@@ -741,6 +727,16 @@ extension WorkoutLoggingQueries on WorkoutLocalDataSource {
             notes: r.notes,
             rpe: r.rpe,
             logOrder: r.logOrder,
+            prescriptionOrigin: r.prescriptionOrigin,
+            prescribedRepMin: r.prescribedRepMin,
+            prescribedRepMax: r.prescribedRepMax,
+            prescribedWeight: r.prescribedWeight,
+            prescribedRir: r.prescribedRir,
+            prescriptionOverridden: r.prescriptionOverridden,
+            valuesAutoFilled: r.valuesAutoFilled,
+            substitutedForExerciseId: r.substitutedForExerciseId,
+            progressionReason: r.progressionReason,
+            progressionAlgorithmVersion: r.progressionAlgorithmVersion,
           ),
         )
         .toList();

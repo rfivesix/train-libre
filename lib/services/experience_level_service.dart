@@ -1,5 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:drift/drift.dart' as drift;
+import '../data/database_helper.dart';
+import '../data/drift_database.dart' as db;
 
 /// How much of the training vocabulary the app puts in front of the user.
 ///
@@ -12,10 +15,10 @@ enum ExperienceLevel { beginner, advanced, pro }
 
 /// Centralizes the user's experience level.
 ///
-/// Lives in the developer lab for now; the real entry point (an onboarding
-/// question, a visible setting) follows in a later update. The default is
-/// [ExperienceLevel.pro], so an app that never touches this behaves exactly as
-/// it did before the level existed.
+/// Backed by SQLite `AppSettings.experienceLevel`, with an automatic one-time
+/// migration from SharedPreferences if existing.
+/// The default is [ExperienceLevel.pro], so an app that never touches this
+/// behaves exactly as it did before the level existed.
 class ExperienceLevelService extends ChangeNotifier {
   static const String _experienceLevelKey = 'experience_level';
 
@@ -42,17 +45,83 @@ class ExperienceLevelService extends ChangeNotifier {
 
   Future<void> _loadLevel() async {
     final prefs = await SharedPreferences.getInstance();
-    final loaded = _parse(prefs.getString(_experienceLevelKey));
-    if (_level == loaded) return;
-    _level = loaded;
+    final legacyPrefVal = prefs.getString(_experienceLevelKey);
+
+    final dbInst = DatabaseHelper.driftDb;
+    if (dbInst != null) {
+      try {
+        final settingsRows = await (dbInst.select(dbInst.appSettings)
+              ..orderBy([
+                (t) => drift.OrderingTerm(
+                    expression: t.localId, mode: drift.OrderingMode.desc)
+              ])
+              ..limit(1))
+            .get();
+
+        if (settingsRows.isNotEmpty) {
+          final settingsRow = settingsRows.first;
+          // If SharedPreferences has a legacy value and DB still has default or null, migrate it.
+          if (legacyPrefVal != null &&
+              settingsRow.experienceLevel == 'pro' &&
+              legacyPrefVal != 'pro') {
+            await (dbInst.update(dbInst.appSettings)
+                  ..where((t) => t.id.equals(settingsRow.id)))
+                .write(db.AppSettingsCompanion(
+              experienceLevel: drift.Value(legacyPrefVal),
+            ));
+            _updateLevel(_parse(legacyPrefVal));
+            return;
+          }
+
+          final loadedFromDb = _parse(settingsRow.experienceLevel);
+          _updateLevel(loadedFromDb);
+          return;
+        }
+      } catch (_) {
+        // Fall back to SharedPreferences if DB not yet initialized or table unready
+      }
+    }
+
+    final loaded = _parse(legacyPrefVal);
+    _updateLevel(loaded);
+  }
+
+  void _updateLevel(ExperienceLevel newLevel) {
+    if (_level == newLevel) return;
+    _level = newLevel;
     notifyListeners();
   }
 
   Future<void> setLevel(ExperienceLevel value) async {
     final bool isChanged = value != _level;
     _level = value;
+
+    // Keep SharedPreferences in sync for backup / fallback
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_experienceLevelKey, value.name);
+
+    // Save to AppSettings in Drift
+    final dbInst = DatabaseHelper.driftDb;
+    if (dbInst != null) {
+      try {
+        final settingsRows = await (dbInst.select(dbInst.appSettings)
+              ..orderBy([
+                (t) => drift.OrderingTerm(
+                    expression: t.localId, mode: drift.OrderingMode.desc)
+              ])
+              ..limit(1))
+            .get();
+
+        if (settingsRows.isNotEmpty) {
+          await (dbInst.update(dbInst.appSettings)
+                ..where((t) => t.id.equals(settingsRows.first.id)))
+              .write(db.AppSettingsCompanion(
+            experienceLevel: drift.Value(value.name),
+          ));
+        }
+      } catch (_) {}
+    }
+
     if (isChanged) {
       notifyListeners();
     }

@@ -9,6 +9,7 @@ import 'package:drift/native.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import 'package:uuid/uuid.dart';
+import '../features/workout/domain/parsers/rep_range_parser.dart';
 import '../services/telemetry/telemetry_service.dart';
 
 part 'drift_database.g.dart';
@@ -60,6 +61,17 @@ class AppSettings extends Table with HybridId, MetaColumns {
   IntColumn get targetFat => integer().withDefault(const Constant(80))();
   IntColumn get targetWater => integer().withDefault(const Constant(3000))();
   IntColumn get targetSteps => integer().withDefault(const Constant(8000))();
+
+  /// Autonomy level for training ('off', 'suggest', 'automatic').
+  TextColumn get trainingAutonomyLevel =>
+      text().withDefault(const Constant('off'))();
+
+  /// Autonomy level for nutrition ('off', 'suggest', 'automatic').
+  TextColumn get nutritionAutonomyLevel =>
+      text().withDefault(const Constant('suggest'))();
+
+  /// User experience level ('beginner', 'intermediate', 'pro').
+  TextColumn get experienceLevel => text().withDefault(const Constant('pro'))();
 }
 
 // 3. Exercises
@@ -334,6 +346,8 @@ class RoutineSetTemplates extends Table with HybridId, MetaColumns {
       text().nullable()(); // String because values like "8-12" are possible
   RealColumn get targetWeight => real().nullable()();
   IntColumn get targetRir => integer().nullable()();
+  IntColumn get targetRepMin => integer().nullable()();
+  IntColumn get targetRepMax => integer().nullable()();
 }
 
 // 7. WorkoutLogs
@@ -397,6 +411,39 @@ class SetLogs extends Table with HybridId, MetaColumns {
   RealColumn get distance => real().nullable()(); // For cardio in the set
   IntColumn get durationSeconds => integer().nullable()(); // For cardio/static
   TextColumn get notes => text().nullable()();
+
+  /// Prescription origin ('none', 'routine', 'engine').
+  TextColumn get prescriptionOrigin =>
+      text().withDefault(const Constant('none'))();
+
+  /// Prescribed minimum repetitions.
+  IntColumn get prescribedRepMin => integer().nullable()();
+
+  /// Prescribed maximum repetitions.
+  IntColumn get prescribedRepMax => integer().nullable()();
+
+  /// Prescribed target weight in kg.
+  RealColumn get prescribedWeight => real().nullable()();
+
+  /// Prescribed Reps in Reserve.
+  IntColumn get prescribedRir => integer().nullable()();
+
+  /// Whether the prescription was overridden by the user.
+  BoolColumn get prescriptionOverridden =>
+      boolean().withDefault(const Constant(false))();
+
+  /// Whether values were auto-filled from target template upon completion.
+  BoolColumn get valuesAutoFilled =>
+      boolean().withDefault(const Constant(false))();
+
+  /// ID of the exercise for which this exercise was substituted, if any.
+  TextColumn get substitutedForExerciseId => text().nullable()();
+
+  /// Human-readable explanation of the progression rationale.
+  TextColumn get progressionReason => text().nullable()();
+
+  /// Version of the algorithm that produced the prescription.
+  TextColumn get progressionAlgorithmVersion => text().nullable()();
 }
 
 // 9. CardioActivities (new in target schema)
@@ -785,7 +832,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
-  int get schemaVersion => 29;
+  int get schemaVersion => 30;
 
   /// Adds whatever the file is missing compared to the generated tables.
   ///
@@ -1374,11 +1421,81 @@ class AppDatabase extends _$AppDatabase {
               await m.createTable(exerciseAliases);
             }
             if (from < 29) {
-              await m.addColumn(
-                routineExercises,
-                routineExercises.supersetGroup,
+              if (!await _columnExists(
+                  this, routineExercises.actualTableName, 'superset_group')) {
+                await m.addColumn(
+                  routineExercises,
+                  routineExercises.supersetGroup,
+                );
+              }
+              if (!await _columnExists(
+                  this, setLogs.actualTableName, 'superset_group')) {
+                await m.addColumn(setLogs, setLogs.supersetGroup);
+              }
+            }
+            if (from < 30) {
+              Future<void> addColIfNotExists(
+                TableInfo table,
+                GeneratedColumn column,
+              ) async {
+                if (!await _columnExists(
+                    this, table.actualTableName, column.name)) {
+                  await m.addColumn(table, column);
+                }
+              }
+
+              // 1. AppSettings: Add autonomy levels & experience level
+              await addColIfNotExists(
+                  appSettings, appSettings.trainingAutonomyLevel);
+              await addColIfNotExists(
+                  appSettings, appSettings.nutritionAutonomyLevel);
+              await addColIfNotExists(appSettings, appSettings.experienceLevel);
+
+              // 2. RoutineSetTemplates: Add targetRepMin and targetRepMax
+              await addColIfNotExists(
+                routineSetTemplates,
+                routineSetTemplates.targetRepMin,
               );
-              await m.addColumn(setLogs, setLogs.supersetGroup);
+              await addColIfNotExists(
+                routineSetTemplates,
+                routineSetTemplates.targetRepMax,
+              );
+
+              // 3. SetLogs: Add 10 prescription columns
+              await addColIfNotExists(setLogs, setLogs.prescriptionOrigin);
+              await addColIfNotExists(setLogs, setLogs.prescribedRepMin);
+              await addColIfNotExists(setLogs, setLogs.prescribedRepMax);
+              await addColIfNotExists(setLogs, setLogs.prescribedWeight);
+              await addColIfNotExists(setLogs, setLogs.prescribedRir);
+              await addColIfNotExists(setLogs, setLogs.prescriptionOverridden);
+              await addColIfNotExists(setLogs, setLogs.valuesAutoFilled);
+              await addColIfNotExists(
+                  setLogs, setLogs.substitutedForExerciseId);
+              await addColIfNotExists(setLogs, setLogs.progressionReason);
+              await addColIfNotExists(
+                  setLogs, setLogs.progressionAlgorithmVersion);
+
+              // 4. Backfill SetLogs.prescription_origin = 'none' where null
+              await customStatement('''
+                UPDATE set_logs SET prescription_origin = 'none'
+                WHERE prescription_origin IS NULL;
+              ''');
+
+              // 5. Backfill RoutineSetTemplates.target_rep_min/max from target_reps
+              final templates = await customSelect(
+                'SELECT local_id, target_reps FROM routine_set_templates WHERE target_reps IS NOT NULL',
+              ).get();
+              for (final row in templates) {
+                final localId = row.read<int>('local_id');
+                final targetReps = row.read<String?>('target_reps');
+                final parsed = parseRepRange(targetReps);
+                if (parsed != null) {
+                  await customStatement(
+                    'UPDATE routine_set_templates SET target_rep_min = ?, target_rep_max = ? WHERE local_id = ?',
+                    [parsed.min, parsed.max, localId],
+                  );
+                }
+              }
             }
             unawaited(TelemetryService.instance.trackDbMigrationStatus(
               fromVersion: from,

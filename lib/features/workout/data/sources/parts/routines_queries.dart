@@ -88,6 +88,7 @@ extension RoutinesQueries on WorkoutLocalDataSource {
 
     // FIX: Dynamic number of sets instead of hardcoded 3.
     final templates = <SetTemplate>[];
+    final defaultParsedRange = parseRepRange('8-12');
     for (int i = 0; i < initialSetCount; i++) {
       final stRow =
           await dbInstance.into(dbInstance.routineSetTemplates).insertReturning(
@@ -95,10 +96,18 @@ extension RoutinesQueries on WorkoutLocalDataSource {
                   routineExerciseId: drift.Value(reRow.id),
                   setType: const drift.Value('normal'),
                   targetReps: const drift.Value('8-12'),
+                  targetRepMin: drift.Value(defaultParsedRange?.min),
+                  targetRepMax: drift.Value(defaultParsedRange?.max),
                 ),
               );
       templates.add(
-        SetTemplate(id: stRow.localId, setType: 'normal', targetReps: '8-12'),
+        SetTemplate(
+          id: stRow.localId,
+          setType: 'normal',
+          targetReps: '8-12',
+          targetRepMin: defaultParsedRange?.min,
+          targetRepMax: defaultParsedRange?.max,
+        ),
       );
     }
 
@@ -214,7 +223,9 @@ extension RoutinesQueries on WorkoutLocalDataSource {
               setType: t.setType,
               targetReps: t.targetReps,
               targetWeight: t.targetWeight,
-              targetRir: t.targetRir, // <--- New
+              targetRir: t.targetRir,
+              targetRepMin: t.targetRepMin,
+              targetRepMax: t.targetRepMax,
             ),
           )
           .toList();
@@ -241,6 +252,7 @@ extension RoutinesQueries on WorkoutLocalDataSource {
   Future<void> updateSetTemplate(SetTemplate setTemplate) async {
     if (setTemplate.id == null) return;
     final dbInstance = await database;
+    final parsed = parseRepRange(setTemplate.targetReps);
     await (dbInstance.update(
       dbInstance.routineSetTemplates,
     )..where((tbl) => tbl.localId.equals(setTemplate.id!)))
@@ -249,7 +261,9 @@ extension RoutinesQueries on WorkoutLocalDataSource {
         setType: drift.Value(setTemplate.setType),
         targetReps: drift.Value(setTemplate.targetReps),
         targetWeight: drift.Value(setTemplate.targetWeight),
-        targetRir: drift.Value(setTemplate.targetRir), // <--- New
+        targetRir: drift.Value(setTemplate.targetRir),
+        targetRepMin: drift.Value(setTemplate.targetRepMin ?? parsed?.min),
+        targetRepMax: drift.Value(setTemplate.targetRepMax ?? parsed?.max),
       ),
     );
   }
@@ -274,13 +288,16 @@ extension RoutinesQueries on WorkoutLocalDataSource {
 
       // Insert new
       for (final t in newTemplates) {
+        final parsed = parseRepRange(t.targetReps);
         await dbInstance.into(dbInstance.routineSetTemplates).insert(
               db.RoutineSetTemplatesCompanion(
                 routineExerciseId: drift.Value(reUuid),
                 setType: drift.Value(t.setType),
                 targetReps: drift.Value(t.targetReps),
                 targetWeight: drift.Value(t.targetWeight),
-                targetRir: drift.Value(t.targetRir), // <--- New
+                targetRir: drift.Value(t.targetRir),
+                targetRepMin: drift.Value(t.targetRepMin ?? parsed?.min),
+                targetRepMax: drift.Value(t.targetRepMax ?? parsed?.max),
               ),
             );
       }

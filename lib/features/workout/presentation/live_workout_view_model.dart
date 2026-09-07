@@ -11,6 +11,8 @@ import '../domain/classification/exercise_log_mask.dart';
 import '../domain/models/set_log.dart';
 import '../domain/models/set_template.dart';
 import '../domain/models/workout_log.dart';
+import '../domain/models/prescription_enums.dart';
+import '../domain/parsers/rep_range_parser.dart';
 import '../domain/repositories/workout_repository.dart';
 import '../domain/detect_personal_record_use_case.dart';
 import '../domain/log_workout_set_use_case.dart';
@@ -435,11 +437,20 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
     // Both the position and the exercise it belongs to are written with the
     // row. They used to be left at the column default of 0, which made the
     // rows indistinguishable and the restore's ordering arbitrary.
+    final isRoutineWorkout = _workoutLog?.routineId != null ||
+        (_workoutLog?.routineName != null &&
+            _workoutLog!.routineName!.isNotEmpty);
+
     var logOrder = 0;
     for (var blockIndex = 0; blockIndex < _exercises.length; blockIndex++) {
       final re = _exercises[blockIndex];
       for (var template in re.setTemplates) {
         if (template.id == null) continue;
+
+        final repRange =
+            template.targetRepMin != null && template.targetRepMax != null
+                ? (min: template.targetRepMin!, max: template.targetRepMax!)
+                : parseRepRange(template.targetReps);
 
         final newSetLog = SetLog(
           workoutLogId: _workoutLog!.id!,
@@ -454,6 +465,13 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
           exerciseBlock: blockIndex,
           supersetGroup: re.supersetGroup,
           rir: null,
+          prescriptionOrigin: isRoutineWorkout
+              ? PrescriptionOrigin.routine.name
+              : PrescriptionOrigin.none.name,
+          prescribedRepMin: isRoutineWorkout ? repRange?.min : null,
+          prescribedRepMax: isRoutineWorkout ? repRange?.max : null,
+          prescribedWeight: isRoutineWorkout ? template.targetWeight : null,
+          prescribedRir: isRoutineWorkout ? template.targetRir : null,
         );
 
         final id = await _repository.insertSetLog(newSetLog);

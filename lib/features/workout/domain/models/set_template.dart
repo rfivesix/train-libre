@@ -19,6 +19,12 @@ class SetTemplate {
   /// The target Reps in Reserve (RIR).
   final int? targetRir;
 
+  /// The minimum target repetitions parsed from targetReps.
+  final int? targetRepMin;
+
+  /// The maximum target repetitions parsed from targetReps.
+  final int? targetRepMax;
+
   /// Creates a new [SetTemplate] instance.
   SetTemplate({
     this.id,
@@ -26,6 +32,8 @@ class SetTemplate {
     this.targetReps,
     this.targetWeight,
     this.targetRir,
+    this.targetRepMin,
+    this.targetRepMax,
   });
 
   /// Creates a [SetTemplate] instance from a Map, typically from a database row.
@@ -34,8 +42,10 @@ class SetTemplate {
       id: map['id'],
       setType: map['set_type'] ?? 'normal',
       targetReps: map['target_reps'],
-      targetWeight: map['target_weight'],
+      targetWeight: (map['target_weight'] as num?)?.toDouble(),
       targetRir: map['target_rir'],
+      targetRepMin: map['target_rep_min'],
+      targetRepMax: map['target_rep_max'],
     );
   }
 
@@ -47,6 +57,8 @@ class SetTemplate {
       'target_reps': targetReps,
       'target_weight': targetWeight,
       'target_rir': targetRir,
+      'target_rep_min': targetRepMin,
+      'target_rep_max': targetRepMax,
     };
   }
 
@@ -58,6 +70,8 @@ class SetTemplate {
     double? targetWeight,
     int? targetRir,
     bool clearTargetRir = false,
+    int? targetRepMin,
+    int? targetRepMax,
   }) {
     return SetTemplate(
       id: id ?? this.id,
@@ -65,6 +79,8 @@ class SetTemplate {
       targetReps: targetReps ?? this.targetReps,
       targetWeight: targetWeight ?? this.targetWeight,
       targetRir: clearTargetRir ? null : (targetRir ?? this.targetRir),
+      targetRepMin: targetRepMin ?? this.targetRepMin,
+      targetRepMax: targetRepMax ?? this.targetRepMax,
     );
   }
 }
