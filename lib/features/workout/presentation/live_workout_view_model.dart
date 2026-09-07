@@ -1155,6 +1155,15 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
         }
       }
     }
+
+    // The progression work above is asynchronous. TextEditingControllers
+    // update their field contents themselves, but the suggestion key used by
+    // the generated-value morph lives in this view model. Rebuild on the next
+    // frame: this method can finish while the workout screen is laying out,
+    // and notifying listeners in that phase dirties its semantics tree.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!_isDisposed) notifyListeners();
+    });
   }
 
   void _applyRestAfterCompletion(int templateId) {

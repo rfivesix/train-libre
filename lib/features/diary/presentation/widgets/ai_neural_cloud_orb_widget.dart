@@ -39,6 +39,11 @@ class AiNeuralCloudOrbWidget extends StatefulWidget {
   /// Animated internally, so callers can flip it between the two.
   final double morph;
 
+  /// Drives the silhouette directly for compound transitions where another
+  /// shape (for example a number made of pixels) must meet this cloud on the
+  /// exact same frame. Normal callers should leave this null and use [morph].
+  final double? instantaneousMorph;
+
   /// Live input level, 0 to 1. Swells the silhouette and speeds up the flow.
   /// Smoothed here rather than by the caller, so it decays gently into silence
   /// instead of snapping back between microphone callbacks.
@@ -77,6 +82,7 @@ class AiNeuralCloudOrbWidget extends StatefulWidget {
     this.accentColor,
     this.onTap,
     this.morph = 1.0,
+    this.instantaneousMorph,
     this.energy = 0.0,
     this.flowSpeed = 1.0,
     this.tint,
@@ -164,7 +170,7 @@ class AiNeuralCloudOrbWidgetState extends State<AiNeuralCloudOrbWidget>
   void didUpdateWidget(AiNeuralCloudOrbWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
 
-    if (oldWidget.morph != widget.morph) {
+    if (widget.instantaneousMorph == null && oldWidget.morph != widget.morph) {
       _morphController.animateTo(widget.morph.clamp(0.0, 1.0));
     }
 
@@ -271,7 +277,8 @@ class AiNeuralCloudOrbWidgetState extends State<AiNeuralCloudOrbWidget>
                 charge: (_chargeAnimation.value +
                         widget.tintEnergyGain * _energy * 5.0)
                     .clamp(0.0, 5.0),
-                morph: _morphAnimation.value.clamp(0.0, 1.0),
+                morph: (widget.instantaneousMorph ?? _morphAnimation.value)
+                    .clamp(0.0, 1.0),
                 energy: _energy,
                 showAmbientGlow: widget.showAmbientGlow,
                 baseColor: effectiveBase,

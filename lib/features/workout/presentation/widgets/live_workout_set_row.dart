@@ -426,9 +426,14 @@ class LiveWorkoutSetRow extends StatelessWidget {
 
                     return GeneratedValueMorph(
                       suggestionKey: suggestionKey,
+                      value: manager.weightControllers[templateId]?.text ?? '',
                       accentColor: primaryColor,
                       restingColor:
                           textColor ?? Theme.of(context).colorScheme.onSurface,
+                      morphTextStyle: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
                       childBuilder: (generatedTextColor) => TextFormField(
                         controller: manager.weightControllers[templateId],
                         textAlign: TextAlign.center,
@@ -514,9 +519,14 @@ class LiveWorkoutSetRow extends StatelessWidget {
               ? const SizedBox.shrink()
               : GeneratedValueMorph(
                   suggestionKey: mask.logsDuration ? null : suggestionKey,
+                  value: manager.repsControllers[templateId]?.text ?? '',
                   accentColor: Theme.of(context).colorScheme.primary,
                   restingColor:
                       textColor ?? Theme.of(context).colorScheme.onSurface,
+                  morphTextStyle: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
                   childBuilder: (generatedTextColor) => TextFormField(
                     controller: manager.repsControllers[templateId],
                     readOnly: mask.logsDuration,
