@@ -6779,4 +6779,18 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get diaryWeightRetry => 'Réessayer';
+
+  @override
+  String get settingsTrainingProgressionTitle =>
+      'Progression de l\'entraînement';
+
+  @override
+  String get settingsTrainingProgressionSubtitle =>
+      'Suggestions de poids basées sur votre historique';
+
+  @override
+  String get trainingProgressionOff => 'Désactivé';
+
+  @override
+  String get trainingProgressionSuggest => 'Suggérer';
 }

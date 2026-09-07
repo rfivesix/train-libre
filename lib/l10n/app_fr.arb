@@ -2922,5 +2922,9 @@
         "type": "int"
       }
     }
-  }
+  },
+  "settingsTrainingProgressionTitle": "Progression de l'entraînement",
+  "settingsTrainingProgressionSubtitle": "Suggestions de poids basées sur votre historique",
+  "trainingProgressionOff": "Désactivé",
+  "trainingProgressionSuggest": "Suggérer"
 }

@@ -338,6 +338,9 @@ class LiveWorkoutSetRow extends StatelessWidget {
                       manager.weightControllers[templateId]?.text =
                           displayWeight;
                       metricWeight = lastSet.weightKg;
+                      if (manager.isSetSuggested(templateId)) {
+                        manager.markSetOverridden(templateId);
+                      }
                     }
 
                     if (mask.logsDuration) {
@@ -398,73 +401,104 @@ class LiveWorkoutSetRow extends StatelessWidget {
               // A plank has nothing to put here. An empty box invites a
               // number that would mean nothing.
               ? const SizedBox.shrink()
-              : TextFormField(
-                  controller: manager.weightControllers[templateId],
-                  textAlign: TextAlign.center,
-                  keyboardType:
-                      const TextInputType.numberWithOptions(decimal: true),
-                  textInputAction: TextInputAction.next,
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: textColor,
-                  ),
-                  decoration: InputDecoration(
-                    border: InputBorder.none,
-                    isDense: true,
-                    fillColor: Colors.transparent,
-                    hintText: weightHint,
-                    hintStyle: TextStyle(
-                      color: Colors.grey.withValues(alpha: 0.5),
-                      fontSize: 18,
-                    ),
-                  ),
-                  enabled: !isCompleted,
-                  onChanged: (text) {
-                    final String sanitized = text.replaceAll(',', '.');
-                    final double? val;
-                    if (sanitized.contains('-')) {
-                      final parts = sanitized.split('-');
-                      if (parts.length == 2) {
-                        final min = double.tryParse(parts[0].trim());
-                        final max = double.tryParse(parts[1].trim());
-                        if (min != null && max != null) {
-                          val = (min + max) / 2;
-                        } else {
-                          val = null;
-                        }
-                      } else {
-                        val = null;
-                      }
-                    } else {
-                      val = double.tryParse(sanitized);
-                    }
-                    final clearValue = val == null && text.isEmpty;
+              : Builder(
+                  builder: (context) {
+                    final isSuggested =
+                        manager.isSetSuggested(templateId) && !isCompleted;
+                    final primaryColor = Theme.of(context).colorScheme.primary;
 
-                    if (mask.logsDistance) {
-                      if (val != manager.setLogs[templateId]?.distanceKm ||
-                          clearValue) {
-                        manager.updateSet(
-                          templateId,
-                          distance: val,
-                          clearDistance: clearValue,
-                        );
-                      }
-                    } else {
-                      final metricValue = val == null
-                          ? null
-                          : unitService.convertToMetric(
-                              val, UnitDimension.weight);
-                      if (metricValue !=
-                              manager.setLogs[templateId]?.weightKg ||
-                          clearValue) {
-                        manager.updateSet(
-                          templateId,
-                          weight: metricValue,
-                          clearWeight: clearValue,
-                        );
-                      }
-                    }
+                    return AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 4,
+                        vertical: 2,
+                      ),
+                      decoration: isSuggested
+                          ? BoxDecoration(
+                              color: primaryColor.withValues(
+                                alpha: isLightMode ? 0.08 : 0.12,
+                              ),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: primaryColor.withValues(alpha: 0.28),
+                                width: 1,
+                              ),
+                            )
+                          : null,
+                      child: TextFormField(
+                        controller: manager.weightControllers[templateId],
+                        textAlign: TextAlign.center,
+                        keyboardType: const TextInputType.numberWithOptions(
+                            decimal: true),
+                        textInputAction: TextInputAction.next,
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: isSuggested ? primaryColor : textColor,
+                        ),
+                        decoration: InputDecoration(
+                          border: InputBorder.none,
+                          isDense: true,
+                          fillColor: Colors.transparent,
+                          hintText: weightHint,
+                          hintStyle: TextStyle(
+                            color: Colors.grey.withValues(alpha: 0.5),
+                            fontSize: 18,
+                          ),
+                        ),
+                        enabled: !isCompleted,
+                        onChanged: (text) {
+                          if (manager.isSetSuggested(templateId)) {
+                            manager.markSetOverridden(templateId);
+                          }
+                          final String sanitized = text.replaceAll(',', '.');
+                          final double? val;
+                          if (sanitized.contains('-')) {
+                            final parts = sanitized.split('-');
+                            if (parts.length == 2) {
+                              final min = double.tryParse(parts[0].trim());
+                              final max = double.tryParse(parts[1].trim());
+                              if (min != null && max != null) {
+                                val = (min + max) / 2;
+                              } else {
+                                val = null;
+                              }
+                            } else {
+                              val = null;
+                            }
+                          } else {
+                            val = double.tryParse(sanitized);
+                          }
+                          final clearValue = val == null && text.isEmpty;
+
+                          if (mask.logsDistance) {
+                            if (val !=
+                                    manager.setLogs[templateId]?.distanceKm ||
+                                clearValue) {
+                              manager.updateSet(
+                                templateId,
+                                distance: val,
+                                clearDistance: clearValue,
+                              );
+                            }
+                          } else {
+                            final metricValue = val == null
+                                ? null
+                                : unitService.convertToMetric(
+                                    val, UnitDimension.weight);
+                            if (metricValue !=
+                                    manager.setLogs[templateId]?.weightKg ||
+                                clearValue) {
+                              manager.updateSet(
+                                templateId,
+                                weight: metricValue,
+                                clearWeight: clearValue,
+                              );
+                            }
+                          }
+                        },
+                      ),
+                    );
                   },
                 ),
         ),

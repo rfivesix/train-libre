@@ -2922,5 +2922,9 @@
         "type": "int"
       }
     }
-  }
+  },
+  "settingsTrainingProgressionTitle": "Progressione dell'allenamento",
+  "settingsTrainingProgressionSubtitle": "Suggerimenti di carico basati sulla tua cronologia",
+  "trainingProgressionOff": "Disattivato",
+  "trainingProgressionSuggest": "Suggerisci"
 }

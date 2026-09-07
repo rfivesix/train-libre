@@ -6449,4 +6449,16 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get diaryWeightRetry => '再試行';
+
+  @override
+  String get settingsTrainingProgressionTitle => 'トレーニングの進捗';
+
+  @override
+  String get settingsTrainingProgressionSubtitle => '履歴に基づいた重量の提案';
+
+  @override
+  String get trainingProgressionOff => 'オフ';
+
+  @override
+  String get trainingProgressionSuggest => '提案';
 }

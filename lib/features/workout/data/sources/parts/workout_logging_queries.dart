@@ -693,8 +693,10 @@ extension WorkoutLoggingQueries on WorkoutLocalDataSource {
     final result = await query.getSingleOrNull();
     if (result == null) return [];
 
-    final logUuid = result.readTable(dbInstance.workoutLogs).id;
-    final wLogId = result.readTable(dbInstance.workoutLogs).localId;
+    final workoutRow = result.readTable(dbInstance.workoutLogs);
+    final logUuid = workoutRow.id;
+    final wLogId = workoutRow.localId;
+    final workoutStartTime = workoutRow.startTime;
 
     final setRows = await (dbInstance.select(dbInstance.setLogs)
           ..where(
@@ -737,6 +739,7 @@ extension WorkoutLoggingQueries on WorkoutLocalDataSource {
             substitutedForExerciseId: r.substitutedForExerciseId,
             progressionReason: r.progressionReason,
             progressionAlgorithmVersion: r.progressionAlgorithmVersion,
+            performedAt: workoutStartTime,
           ),
         )
         .toList();

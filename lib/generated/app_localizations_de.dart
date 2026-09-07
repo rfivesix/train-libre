@@ -6722,4 +6722,17 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diaryWeightRetry => 'Erneut versuchen';
+
+  @override
+  String get settingsTrainingProgressionTitle => 'Trainingsprogression';
+
+  @override
+  String get settingsTrainingProgressionSubtitle =>
+      'Gewichtsvorschläge aus deiner Historie';
+
+  @override
+  String get trainingProgressionOff => 'Aus';
+
+  @override
+  String get trainingProgressionSuggest => 'Vorschlagen';
 }

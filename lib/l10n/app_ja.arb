@@ -2922,5 +2922,9 @@
         "type": "int"
       }
     }
-  }
+  },
+  "settingsTrainingProgressionTitle": "トレーニングの進捗",
+  "settingsTrainingProgressionSubtitle": "履歴に基づいた重量の提案",
+  "trainingProgressionOff": "オフ",
+  "trainingProgressionSuggest": "提案"
 }

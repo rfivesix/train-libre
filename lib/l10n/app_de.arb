@@ -2920,5 +2920,9 @@
         "type": "int"
       }
     }
-  }
+  },
+  "settingsTrainingProgressionTitle": "Trainingsprogression",
+  "settingsTrainingProgressionSubtitle": "Gewichtsvorschläge aus deiner Historie",
+  "trainingProgressionOff": "Aus",
+  "trainingProgressionSuggest": "Vorschlagen"
 }

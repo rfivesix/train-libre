@@ -23,6 +23,9 @@ import '../domain/live_activity/workout_live_activity_strings.dart';
 import '../../../services/local_notification_service.dart';
 import '../../../services/haptic_feedback_service.dart';
 import '../../../services/sound_service.dart';
+import '../../../services/training_autonomy_service.dart';
+import '../domain/services/workout_progression_service.dart';
+import '../domain/progression/double_progression_engine.dart';
 import '../../../util/time_util.dart';
 import '../../../services/telemetry/telemetry_service.dart';
 
@@ -30,6 +33,8 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
   final IWorkoutRepository _repository;
   final DetectPersonalRecordUseCase _detectPRUseCase;
   final LogWorkoutSetUseCase _logSetUseCase;
+  final WorkoutProgressionService _progressionService;
+  final TrainingAutonomyService? _trainingAutonomyService;
   final bool _registerLifecycleObserver;
 
   // ignore: unused_field
@@ -42,26 +47,79 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
     required this.unitService,
     DetectPersonalRecordUseCase? detectPRUseCase,
     LogWorkoutSetUseCase? logSetUseCase,
+    WorkoutProgressionService? progressionService,
+    TrainingAutonomyService? trainingAutonomyService,
     bool registerLifecycleObserver = true,
   })  : _repository = repository,
         _detectPRUseCase = detectPRUseCase ?? DetectPersonalRecordUseCase(),
         _logSetUseCase = logSetUseCase ?? LogWorkoutSetUseCase(),
+        _progressionService = progressionService ??
+            WorkoutProgressionService(
+              repository: repository,
+              unitService: unitService,
+            ),
+        _trainingAutonomyService = trainingAutonomyService,
         _registerLifecycleObserver = registerLifecycleObserver {
     if (_registerLifecycleObserver) {
       WidgetsBinding.instance.addObserver(this);
     }
+    _trainingAutonomyService?.addListener(_onAutonomyChanged);
   }
 
   @visibleForTesting
   factory LiveWorkoutViewModel.forTesting({
     required IWorkoutRepository workoutDb,
     UnitService? unitService,
+    WorkoutProgressionService? progressionService,
+    TrainingAutonomyService? trainingAutonomyService,
   }) {
+    final resolvedUnitService = unitService ?? UnitService();
     return LiveWorkoutViewModel(
       repository: workoutDb,
-      unitService: unitService ?? UnitService(),
+      unitService: resolvedUnitService,
+      progressionService: progressionService ??
+          WorkoutProgressionService(
+            repository: workoutDb,
+            unitService: resolvedUnitService,
+          ),
+      trainingAutonomyService: trainingAutonomyService,
       registerLifecycleObserver: false,
     );
+  }
+
+  final Map<int, ProgressionSuggestion> _suggestions = {};
+  final Set<int> _suggestedTemplates = {};
+  final Set<int> _overriddenTemplates = {};
+  bool _isDisposed = false;
+  Future<void>? _pendingProgressionUpdate;
+
+  @visibleForTesting
+  Future<void>? get pendingProgressionUpdate => _pendingProgressionUpdate;
+
+  bool isSetSuggested(int templateId) {
+    if (!_suggestedTemplates.contains(templateId)) return false;
+    if (_overriddenTemplates.contains(templateId)) return false;
+    final log = _setLogs[templateId];
+    if (log == null || log.isCompleted == true) return false;
+    return true;
+  }
+
+  void markSetOverridden(int templateId) {
+    if (!_suggestedTemplates.contains(templateId)) return;
+    if (_overriddenTemplates.contains(templateId)) return;
+    _overriddenTemplates.add(templateId);
+    final log = _setLogs[templateId];
+    if (log != null) {
+      _setLogs[templateId] = log.copyWith(prescriptionOverridden: true);
+    }
+    notifyListeners();
+  }
+
+  String? getSuggestedFormattedWeight(int templateId) {
+    final suggestion = _suggestions[templateId];
+    if (suggestion == null || suggestion.targetWeight == null) return null;
+    return unitService.formatDisplayWeight(suggestion.targetWeight!,
+        fractionDigits: 2);
   }
 
   WorkoutLog? _workoutLog;
@@ -607,6 +665,10 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
       await _updateLogOrdersInDatabase();
     }
 
+    syncControllers();
+    _pendingProgressionUpdate = _applyProgressionSuggestions();
+    await _pendingProgressionUpdate;
+
     _startWorkoutTimer();
     notifyListeners();
     unawaited(_syncLiveActivity());
@@ -676,6 +738,8 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
 
     await loadBodyweight();
     syncControllers();
+    _pendingProgressionUpdate = _applyProgressionSuggestions();
+    await _pendingProgressionUpdate;
     isLoading = false;
     notifyListeners();
   }
@@ -840,29 +904,190 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
       clearDuration: clearDuration,
     );
 
-    _setLogs[templateId] = result.updatedSet;
+    var finalSet = result.updatedSet;
+
+    // Handle progression suggestion provenance & override status
+    final suggestion = _suggestions[templateId];
+    if (suggestion != null) {
+      final isOverridden = _overriddenTemplates.contains(templateId);
+      final hasRoutineTarget = template?.targetWeight != null;
+
+      if (!hasRoutineTarget) {
+        final repRange =
+            template?.targetRepMin != null && template?.targetRepMax != null
+                ? (min: template!.targetRepMin!, max: template.targetRepMax!)
+                : parseRepRange(template?.targetReps);
+
+        finalSet = finalSet.copyWith(
+          prescriptionOrigin: PrescriptionOrigin.engine.name,
+          prescribedWeight: suggestion.targetWeight,
+          prescribedRepMin: suggestion.targetReps ?? repRange?.min,
+          prescribedRepMax: suggestion.targetReps ?? repRange?.max,
+          progressionReason: suggestion.reason,
+          progressionAlgorithmVersion: suggestion.algorithmVersion,
+          prescriptionOverridden: isOverridden,
+          // When suggestion accepted unchanged and user left weight field untouched:
+          weightKg: isOverridden
+              ? finalSet.weightKg
+              : (finalSet.weightKg ?? suggestion.targetWeight),
+        );
+      } else {
+        finalSet = finalSet.copyWith(
+          prescriptionOrigin: PrescriptionOrigin.routine.name,
+          prescribedWeight: template!.targetWeight,
+          prescriptionOverridden: isOverridden,
+        );
+      }
+    }
+
+    _setLogs[templateId] = finalSet;
     _totalVolume += result.volumeDelta;
 
     if (isCompleted == true &&
         oldLog.isCompleted != true &&
-        result.updatedSet.setType != 'warmup') {
-      await _checkAndApplyPRs(result.updatedSet, templateId);
+        finalSet.setType != 'warmup') {
+      await _checkAndApplyPRs(finalSet, templateId);
     }
 
     await _repository.updateSetLogs([_setLogs[templateId]!]);
 
     if (isCompleted == true && oldLog.isCompleted != true) {
-      _fillControllersFromSet(templateId, result.updatedSet);
+      _fillControllersFromSet(templateId, finalSet);
 
       _applyRestAfterCompletion(templateId);
       final next = _nextOpenSet();
       _autoAdvanceExerciseIndex = next?.exerciseIndex;
       _autoAdvanceRevision++;
+
+      // Advance suggestions to the next open set of the exercise
+      _pendingProgressionUpdate = _applyProgressionSuggestions();
+      unawaited(_pendingProgressionUpdate!);
+    } else if (isCompleted == false && oldLog.isCompleted == true) {
+      // Set uncompleted: refresh suggestions
+      _pendingProgressionUpdate = _applyProgressionSuggestions();
+      unawaited(_pendingProgressionUpdate!);
     }
 
     notifyListeners();
     // The next set changed — this is the main reason the activity updates.
     unawaited(_syncLiveActivity());
+  }
+
+  void _onAutonomyChanged() {
+    final autonomy = _trainingAutonomyService?.level ?? AutonomyLevel.off;
+    if (autonomy == AutonomyLevel.suggest) {
+      _pendingProgressionUpdate = _applyProgressionSuggestions();
+      _pendingProgressionUpdate?.then((_) {
+        if (!_isDisposed) notifyListeners();
+      });
+    } else {
+      // Autonomy turned off: clear pre-filled suggestions on open unedited sets
+      for (final templateId in _suggestedTemplates.toList()) {
+        final log = _setLogs[templateId];
+        if (log != null &&
+            log.isCompleted != true &&
+            !_overriddenTemplates.contains(templateId)) {
+          weightControllers[templateId]?.text = '';
+          _setLogs[templateId] = log.copyWith(
+            clearWeight: true,
+            clearPrescribedWeight: true,
+            clearPrescribedRepMin: true,
+            clearPrescribedRepMax: true,
+            prescriptionOrigin: _workoutLog?.routineName != null
+                ? PrescriptionOrigin.routine.name
+                : PrescriptionOrigin.none.name,
+          );
+        }
+      }
+      _suggestedTemplates.clear();
+      _suggestions.clear();
+      notifyListeners();
+    }
+  }
+
+  Future<void> _applyProgressionSuggestions() async {
+    if (_isDisposed) return;
+    final autonomyLevel = _trainingAutonomyService?.level ?? AutonomyLevel.off;
+    if (autonomyLevel != AutonomyLevel.suggest) {
+      return;
+    }
+
+    for (var re in _exercises) {
+      if (_isDisposed) return;
+      final mask = ExerciseLogMask.forExercise(re.exercise);
+      if (!mask.showsPrimary) continue;
+
+      // Find the first open template in this exercise
+      SetTemplate? nextOpenTemplate;
+      for (var t in re.setTemplates) {
+        final log = _setLogs[t.id];
+        if (log != null && log.isCompleted != true) {
+          nextOpenTemplate = t;
+          break;
+        }
+      }
+
+      if (nextOpenTemplate == null || nextOpenTemplate.id == null) continue;
+      final templateId = nextOpenTemplate.id!;
+
+      // If user already typed or completed, do not overwrite
+      if (_overriddenTemplates.contains(templateId)) continue;
+      if (_setLogs[templateId]?.isCompleted == true) continue;
+
+      // If routine already has explicit targetWeight, routine wins completely (no suggestion/styling)
+      if (nextOpenTemplate.targetWeight != null) continue;
+
+      final suggestion = await _progressionService.getProgressionSuggestion(
+        exercise: re.exercise,
+        template: nextOpenTemplate,
+      );
+      if (_isDisposed) return;
+
+      if (suggestion != null && suggestion.targetWeight != null) {
+        _suggestions[templateId] = suggestion;
+        _suggestedTemplates.add(templateId);
+
+        final displayWeightStr = unitService.formatDisplayWeight(
+          suggestion.targetWeight!,
+          fractionDigits: 2,
+        );
+
+        // Programmatically set controller text (does NOT fire user onChanged)
+        final controller = weightControllers[templateId];
+        if (controller != null &&
+            (controller.text.isEmpty || controller.text == displayWeightStr)) {
+          controller.text = displayWeightStr;
+        }
+
+        // Populate setLog with engine prescription
+        final currentLog = _setLogs[templateId];
+        if (currentLog != null) {
+          final repRange = nextOpenTemplate.targetRepMin != null &&
+                  nextOpenTemplate.targetRepMax != null
+              ? (
+                  min: nextOpenTemplate.targetRepMin!,
+                  max: nextOpenTemplate.targetRepMax!
+                )
+              : parseRepRange(nextOpenTemplate.targetReps);
+
+          final updated = currentLog.copyWith(
+            weightKg: suggestion.targetWeight,
+            prescriptionOrigin: currentLog.prescriptionOrigin == 'none'
+                ? PrescriptionOrigin.engine.name
+                : currentLog.prescriptionOrigin,
+            prescribedWeight: suggestion.targetWeight,
+            prescribedRepMin: suggestion.targetReps ?? repRange?.min,
+            prescribedRepMax: suggestion.targetReps ?? repRange?.max,
+            progressionReason: suggestion.reason,
+            progressionAlgorithmVersion: suggestion.algorithmVersion,
+            prescriptionOverridden: false,
+          );
+          _setLogs[templateId] = updated;
+          if (_isDisposed) return;
+          await _repository.updateSetLogs([updated]);
+        }
+      }
+    }
   }
 
   void _applyRestAfterCompletion(int templateId) {
@@ -1034,6 +1259,8 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
 
     await _updateLogOrdersInDatabase();
     syncControllers();
+    _pendingProgressionUpdate = _applyProgressionSuggestions();
+    unawaited(_pendingProgressionUpdate!);
     notifyListeners();
     unawaited(_syncLiveActivity());
   }
@@ -1514,6 +1741,9 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
     _elapsedDuration = Duration.zero;
     _totalVolume = 0.0;
     _totalSets = 0;
+    _suggestions.clear();
+    _suggestedTemplates.clear();
+    _overriddenTemplates.clear();
     disposeControllers();
     notifyListeners();
   }
@@ -1546,6 +1776,8 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
 
   @override
   void dispose() {
+    _isDisposed = true;
+    _trainingAutonomyService?.removeListener(_onAutonomyChanged);
     _restTimer?.cancel();
     _restDoneBannerTimer?.cancel();
     _workoutDurationTimer?.cancel();

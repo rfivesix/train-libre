@@ -130,6 +130,9 @@ class SetLog {
   /// Version of the algorithm that produced the prescription.
   final String? progressionAlgorithmVersion;
 
+  /// Timestamp when the workout/set was performed.
+  final DateTime? performedAt;
+
   /// Creates a new [SetLog] instance.
   SetLog({
     this.id,
@@ -172,6 +175,7 @@ class SetLog {
     this.substitutedForExerciseId,
     this.progressionReason,
     this.progressionAlgorithmVersion,
+    this.performedAt,
   });
 
   /// Creates a [SetLog] instance from a Map, typically from a database row.
@@ -217,6 +221,15 @@ class SetLog {
       progressionAlgorithmVersion:
           map['progression_algorithm_version'] as String? ??
               map['progressionAlgorithmVersion'] as String?,
+      performedAt: map['performed_at'] != null
+          ? (map['performed_at'] is DateTime
+              ? map['performed_at'] as DateTime
+              : DateTime.tryParse(map['performed_at'].toString()))
+          : (map['performedAt'] is DateTime
+              ? map['performedAt'] as DateTime
+              : (map['performedAt'] != null
+                  ? DateTime.tryParse(map['performedAt'].toString())
+                  : null)),
       // Note: PR flags are not stored in the database.
     );
   }
@@ -253,6 +266,7 @@ class SetLog {
       'substituted_for_exercise_id': substitutedForExerciseId,
       'progression_reason': progressionReason,
       'progression_algorithm_version': progressionAlgorithmVersion,
+      'performed_at': performedAt?.toIso8601String(),
     };
   }
 
@@ -301,6 +315,8 @@ class SetLog {
     String? substitutedForExerciseId,
     String? progressionReason,
     String? progressionAlgorithmVersion,
+    DateTime? performedAt,
+    bool clearPerformedAt = false,
     bool clearWeight = false,
     bool clearReps = false,
     bool clearRir = false,
@@ -366,6 +382,7 @@ class SetLog {
       progressionReason: progressionReason ?? this.progressionReason,
       progressionAlgorithmVersion:
           progressionAlgorithmVersion ?? this.progressionAlgorithmVersion,
+      performedAt: clearPerformedAt ? null : (performedAt ?? this.performedAt),
     );
   }
 }

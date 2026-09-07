@@ -3114,5 +3114,9 @@
         "type": "int"
       }
     }
-  }
+  },
+  "settingsTrainingProgressionTitle": "Training progression",
+  "settingsTrainingProgressionSubtitle": "Weight suggestions based on your history",
+  "trainingProgressionOff": "Off",
+  "trainingProgressionSuggest": "Suggest"
 }

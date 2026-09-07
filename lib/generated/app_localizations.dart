@@ -11688,6 +11688,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Try again'**
   String get diaryWeightRetry;
+
+  /// No description provided for @settingsTrainingProgressionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Training progression'**
+  String get settingsTrainingProgressionTitle;
+
+  /// No description provided for @settingsTrainingProgressionSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight suggestions based on your history'**
+  String get settingsTrainingProgressionSubtitle;
+
+  /// No description provided for @trainingProgressionOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Off'**
+  String get trainingProgressionOff;
+
+  /// No description provided for @trainingProgressionSuggest.
+  ///
+  /// In en, this message translates to:
+  /// **'Suggest'**
+  String get trainingProgressionSuggest;
 }
 
 class _AppLocalizationsDelegate

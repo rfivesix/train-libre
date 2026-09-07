@@ -20,7 +20,9 @@ import 'core/performance/startup_trace.dart';
 import 'features/app/presentation/app_initializer_screen.dart';
 import 'services/experience_level_service.dart';
 import 'services/profile_service.dart';
+import 'services/training_autonomy_service.dart';
 import 'services/unit_service.dart';
+import 'features/workout/domain/services/workout_progression_service.dart';
 import 'features/workout/presentation/live_workout_view_model.dart';
 import 'features/workout/presentation/live_workout_screen.dart';
 import 'features/workout/presentation/workout_morph_route.dart';
@@ -188,11 +190,22 @@ void main() async {
   final themeService = ThemeService(); // Create an instance
   final unitService = UnitService();
   final experienceLevelService = ExperienceLevelService();
+  final trainingAutonomyService = TrainingAutonomyService(database);
+  await trainingAutonomyService.initialize();
+
+  final workoutProgressionService = WorkoutProgressionService(
+    repository: workoutRepository,
+    unitService: unitService,
+  );
 
   // Create the workout session manager before injecting it. Restoration is
   // handled by AppInitializerScreen after the first frame is visible.
   final workoutSessionManager = LiveWorkoutViewModel(
-      repository: workoutRepository, unitService: unitService);
+    repository: workoutRepository,
+    unitService: unitService,
+    progressionService: workoutProgressionService,
+    trainingAutonomyService: trainingAutonomyService,
+  );
 
   // Start the app with all required providers and Liquid Glass Setup.
   runApp(
@@ -230,6 +243,10 @@ void main() async {
             ),
           ),
           ChangeNotifierProvider.value(value: workoutSessionManager),
+          ChangeNotifierProvider.value(value: trainingAutonomyService),
+          Provider<WorkoutProgressionService>.value(
+            value: workoutProgressionService,
+          ),
           ChangeNotifierProvider(
             create: (context) {
               final profileService = ProfileService();

@@ -120,7 +120,8 @@ class WorkoutLocalDataSource {
     );
   }
 
-  SetLog _mapSetLogToModel(db.SetLog row, int workoutLogLocalId) {
+  SetLog _mapSetLogToModel(db.SetLog row, int workoutLogLocalId,
+      {DateTime? performedAt}) {
     return SetLog(
       id: row.localId,
       workoutLogId: workoutLogLocalId,
@@ -149,6 +150,7 @@ class WorkoutLocalDataSource {
       substitutedForExerciseId: row.substitutedForExerciseId,
       progressionReason: row.progressionReason,
       progressionAlgorithmVersion: row.progressionAlgorithmVersion,
+      performedAt: performedAt ?? row.createdAt,
     );
   }
 
@@ -184,8 +186,10 @@ class WorkoutLocalDataSource {
         logRow.photoPath,
         logRow.photoExtraPaths,
       ),
-      sets:
-          setRows.map((row) => _mapSetLogToModel(row, logRow.localId)).toList(),
+      sets: setRows
+          .map((row) => _mapSetLogToModel(row, logRow.localId,
+              performedAt: logRow.startTime))
+          .toList(),
     );
   }
 

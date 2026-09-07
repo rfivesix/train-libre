@@ -34,17 +34,22 @@ import '../../../widgets/common/app_button.dart';
 import '../../../services/app_tour_service.dart';
 import '../../../services/telemetry/telemetry_service.dart';
 import '../../../widgets/common/app_restart.dart';
+import '../../../services/training_autonomy_service.dart';
+import '../../workout/domain/models/prescription_enums.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({
     super.key,
     SleepSettingsService? sleepSyncService,
     SleepPermissionController? sleepPermissionController,
+    TrainingAutonomyService? trainingAutonomyService,
   })  : _sleepSyncService = sleepSyncService,
-        _sleepPermissionController = sleepPermissionController;
+        _sleepPermissionController = sleepPermissionController,
+        _trainingAutonomyService = trainingAutonomyService;
 
   final SleepSettingsService? _sleepSyncService;
   final SleepPermissionController? _sleepPermissionController;
+  final TrainingAutonomyService? _trainingAutonomyService;
 
   @override
   State<SettingsScreen> createState() => _SettingsScreenState();
@@ -270,6 +275,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final unitService = context.watch<UnitService>();
+    final trainingAutonomyService = widget._trainingAutonomyService ??
+        Provider.of<TrainingAutonomyService?>(context) ??
+        TrainingAutonomyService();
+    final currentAutonomy = trainingAutonomyService.level;
+    final autonomyLabel = currentAutonomy == AutonomyLevel.suggest
+        ? l10n.trainingProgressionSuggest
+        : l10n.trainingProgressionOff;
     final topPadding = MediaQuery.of(context).padding.top + kToolbarHeight;
 
     return Scaffold(
@@ -392,6 +404,48 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           ? 'Metric (kg, cm, ml)'
                           : 'Imperial (lbs, in, fl oz)',
                     ),
+                    trailing: const Icon(LucideIcons.chevron_right),
+                  ),
+                ),
+                const Divider(height: 1),
+                PlatformAdaptivePopupMenu<AutonomyLevel>(
+                  key: const Key('settings_training_progression_entry'),
+                  selectedValue: currentAutonomy,
+                  onSelected: (value) async {
+                    if (value == currentAutonomy) return;
+                    await trainingAutonomyService.setLevel(value);
+                    unawaited(TelemetryService.instance.trackSettingToggled(
+                      settingKey: 'training_autonomy_level',
+                      value: value.name,
+                    ));
+                  },
+                  items: [
+                    PlatformAdaptivePopupMenuItem(
+                      value: AutonomyLevel.off,
+                      label: l10n.trainingProgressionOff,
+                      icon: LucideIcons.circle_off,
+                    ),
+                    PlatformAdaptivePopupMenuItem(
+                      value: AutonomyLevel.suggest,
+                      label: l10n.trainingProgressionSuggest,
+                      icon: LucideIcons.sparkles,
+                    ),
+                  ],
+                  icon: ListTile(
+                    contentPadding: DesignConstants.screenPadding,
+                    leading: Icon(
+                      LucideIcons.trending_up,
+                      size: 36,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                    title: Text(
+                      l10n.settingsTrainingProgressionTitle,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    subtitle: Text(
+                      '${l10n.settingsTrainingProgressionSubtitle}\n$autonomyLabel',
+                    ),
+                    isThreeLine: true,
                     trailing: const Icon(LucideIcons.chevron_right),
                   ),
                 ),
