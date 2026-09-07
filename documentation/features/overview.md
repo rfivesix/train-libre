@@ -46,3 +46,6 @@ A fitness-oriented piecewise linear decay heuristic designed to estimate readine
 A physical capacity estimation model that computes estimated maximum strength capabilities from submaximal resistance training loads using the Epley formula. It enables users to track strength progression safely without testing true physical failure limits.
 *   *Learn more in the [**Estimated 1-Rep Max Documentation**](intelligent_workouts.md).*
 
+### 8. Double Progression & Set-Structure Heuristic
+The position-aware workout progression model turns recent working-set performance into conservative per-set load and repetition suggestions. It distinguishes warm-ups, working sets, and drop sets; preserves top-set/back-off structures; advances load only after the complete comparable working structure reaches its repetition ceilings; and documents its scientific scope and limitations.
+*   *Learn more in the [**Double Progression & Set-Structure Documentation**](workout_progression_engine.md).*
