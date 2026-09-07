@@ -99,9 +99,11 @@ extension WorkoutLoggingQueries on WorkoutLocalDataSource {
     }
 
     // Search for exercise UUID
-    String? exerciseUuid;
-    final exercise = await getExerciseByName(setLog.exerciseName);
-    exerciseUuid = exercise?.uuid;
+    String? exerciseUuid = setLog.exerciseId;
+    if (exerciseUuid == null || exerciseUuid.isEmpty) {
+      final exercise = await getExerciseByName(setLog.exerciseName);
+      exerciseUuid = exercise?.uuid;
+    }
 
     // Keep existing exercise linkage on updates when name-based lookup fails.
     if (setLog.id != null && (exerciseUuid == null || exerciseUuid.isEmpty)) {
@@ -238,6 +240,7 @@ extension WorkoutLoggingQueries on WorkoutLocalDataSource {
     return SetLog(
       id: row.localId,
       workoutLogId: wLogId ?? 0,
+      exerciseId: row.exerciseId,
       exerciseName: row.exerciseNameSnapshot ?? 'Unknown',
       setType: row.setType,
       weightKg: row.weight,
@@ -649,8 +652,37 @@ extension WorkoutLoggingQueries on WorkoutLocalDataSource {
         .toSet();
   }
 
-  Future<List<SetLog>> getLastSetsForExercise(String exerciseName) async {
+  /// Returns the most recently completed sets for an exercise, ordered by [SetLog.logOrder].
+  ///
+  /// Exercise history is read by stable exercise UUID ([exerciseId]) rather than
+  /// by display name snapshot, so that renames or catalogue merges do not silently
+  /// attach one exercise's history to another.
+  ///
+  /// The condition `(exercise_id = :exerciseId) OR (exercise_id IS NULL AND exercise_name_snapshot = :name)`
+  /// handles mixed data in a single query without two-stage reloading:
+  /// - New rows match on stable [exerciseId].
+  /// - Legacy rows written before `set_logs.exercise_id` existed carry a null
+  ///   `exercise_id` and fall back to matching on [exerciseNameSnapshot].
+  /// - If [exerciseId] is null, only the name snapshot applies.
+  /// - A row with an explicit, differing `exercise_id` is never matched, even if
+  ///   its snapshot name is identical.
+  Future<List<SetLog>> getLastSetsForExercise({
+    required String? exerciseId,
+    required String exerciseNameSnapshot,
+  }) async {
     final dbInstance = await database;
+
+    // Select by exercise UUID, falling back to name snapshot only for legacy
+    // rows written before exercise_id existed. A row with an explicit, differing
+    // exercise_id is never matched even if the snapshot name is identical.
+    drift.Expression<bool> exercisePredicate(db.$SetLogsTable tbl) {
+      if (exerciseId != null && exerciseId.isNotEmpty) {
+        return tbl.exerciseId.equals(exerciseId) |
+            (tbl.exerciseId.isNull() &
+                tbl.exerciseNameSnapshot.equals(exerciseNameSnapshot));
+      }
+      return tbl.exerciseNameSnapshot.equals(exerciseNameSnapshot);
+    }
 
     final query = dbInstance.select(dbInstance.workoutLogs).join([
       drift.innerJoin(
@@ -661,7 +693,7 @@ extension WorkoutLoggingQueries on WorkoutLocalDataSource {
       ),
     ])
       ..where(
-        dbInstance.setLogs.exerciseNameSnapshot.equals(exerciseName) &
+        exercisePredicate(dbInstance.setLogs) &
             dbInstance.workoutLogs.status.equals('completed'),
       )
       ..orderBy([
@@ -680,9 +712,7 @@ extension WorkoutLoggingQueries on WorkoutLocalDataSource {
 
     final setRows = await (dbInstance.select(dbInstance.setLogs)
           ..where(
-            (tbl) =>
-                tbl.workoutLogId.equals(logUuid) &
-                tbl.exerciseNameSnapshot.equals(exerciseName),
+            (tbl) => tbl.workoutLogId.equals(logUuid) & exercisePredicate(tbl),
           )
           ..orderBy([(t) => drift.OrderingTerm(expression: t.logOrder)]))
         .get();
@@ -692,6 +722,7 @@ extension WorkoutLoggingQueries on WorkoutLocalDataSource {
           (r) => SetLog(
             id: r.localId,
             workoutLogId: wLogId,
+            exerciseId: r.exerciseId,
             exerciseName: r.exerciseNameSnapshot ?? '',
             setType: r.setType,
             weightKg: r.weight,
@@ -705,6 +736,11 @@ extension WorkoutLoggingQueries on WorkoutLocalDataSource {
             distanceKm: r.distance,
             isCompleted: r.isCompleted,
             rir: r.rir, // Use directly
+            exerciseBlock: r.exerciseBlock,
+            supersetGroup: r.supersetGroup,
+            notes: r.notes,
+            rpe: r.rpe,
+            logOrder: r.logOrder,
           ),
         )
         .toList();

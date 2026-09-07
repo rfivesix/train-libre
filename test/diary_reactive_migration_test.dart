@@ -109,7 +109,11 @@ class FakeWorkoutRepository implements IWorkoutRepository {
   Future<Map<String, String>> getWorkoutExerciseNotes(int workoutLogId) async =>
       {};
   @override
-  Future<List<SetLog>> getLastSetsForExercise(String exerciseName) async => [];
+  Future<List<SetLog>> getLastSetsForExercise({
+    required String? exerciseId,
+    required String exerciseNameSnapshot,
+  }) async =>
+      [];
   @override
   Future<List<WorkoutLog>> getWorkoutLogsForDateRange(
           DateTime start, DateTime end) async =>

@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [1.4.0-alpha.1] - Unreleased
 
+### Changed
+- **Exercise History by UUID (`getLastSetsForExercise`, `SetLog.exerciseId`):** Switched exercise history queries from display name matching to stable exercise UUIDs with fallback for legacy rows without an exercise ID. Renaming or catalog merges no longer compromise exercise history.
+
 ## [1.3.0] - 2026-09-07
 
 ### Added

@@ -37,7 +37,10 @@ abstract class IWorkoutRepository {
     required String? notes,
   });
   Future<Map<String, String>> getWorkoutExerciseNotes(int workoutLogId);
-  Future<List<SetLog>> getLastSetsForExercise(String exerciseName);
+  Future<List<SetLog>> getLastSetsForExercise({
+    required String? exerciseId,
+    required String exerciseNameSnapshot,
+  });
   Future<List<WorkoutLog>> getWorkoutLogsForDateRange(
       DateTime start, DateTime end);
   Stream<List<WorkoutLog>> watchFullWorkoutLogs();

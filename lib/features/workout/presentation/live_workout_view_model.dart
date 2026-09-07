@@ -443,6 +443,7 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
 
         final newSetLog = SetLog(
           workoutLogId: _workoutLog!.id!,
+          exerciseId: re.exercise.uuid,
           exerciseName: re.exercise.canonicalName,
           setType: template.setType,
           weightKg: null,
@@ -648,8 +649,10 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
     }
 
     for (var re in exercisesToInit) {
-      final lastSets =
-          await _repository.getLastSetsForExercise(re.exercise.canonicalName);
+      final lastSets = await _repository.getLastSetsForExercise(
+        exerciseId: re.exercise.uuid,
+        exerciseNameSnapshot: re.exercise.canonicalName,
+      );
       lastPerformances[re.exercise.canonicalName] = lastSets;
     }
 
@@ -990,6 +993,7 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
 
     final newSetLog = SetLog(
       workoutLogId: _workoutLog!.id!,
+      exerciseId: re.exercise.uuid,
       exerciseName: re.exercise.canonicalName,
       setType: 'normal',
       weightKg: prevSet?.weightKg,
@@ -1103,6 +1107,7 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
     for (var t in templates) {
       final newSetLog = SetLog(
         workoutLogId: _workoutLog!.id!,
+        exerciseId: exercise.uuid,
         exerciseName: exercise.canonicalName,
         setType: 'normal',
         weightKg: null,

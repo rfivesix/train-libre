@@ -788,8 +788,11 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
     );
 
     if (selectedExercise != null) {
-      final lastSets = await WorkoutLocalDataSource.instance
-          .getLastSetsForExercise(selectedExercise.canonicalName);
+      final lastSets =
+          await WorkoutLocalDataSource.instance.getLastSetsForExercise(
+        exerciseId: selectedExercise.uuid,
+        exerciseNameSnapshot: selectedExercise.canonicalName,
+      );
       if (mounted) {
         setState(() {
           manager.lastPerformances[selectedExercise.canonicalName] = lastSets;

@@ -135,6 +135,7 @@ class WorkoutLocalDataSource {
     return SetLog(
       id: row.localId,
       workoutLogId: workoutLogLocalId,
+      exerciseId: row.exerciseId,
       exerciseName: row.exerciseNameSnapshot ?? 'Unknown',
       setType: row.setType,
       weightKg: row.weight,

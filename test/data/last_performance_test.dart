@@ -81,7 +81,10 @@ void main() {
   test('a plank comes back with its duration', () async {
     await logSet('Plank', durationSeconds: 60);
 
-    final sets = await source.getLastSetsForExercise('Plank');
+    final sets = await source.getLastSetsForExercise(
+      exerciseId: null,
+      exerciseNameSnapshot: 'Plank',
+    );
     expect(sets, hasLength(1));
     expect(sets.single.durationSeconds, 60);
   });
@@ -89,7 +92,10 @@ void main() {
   test('a run comes back with both distance and duration', () async {
     await logSet('Run', distanceKm: 5.0, durationSeconds: 1694);
 
-    final sets = await source.getLastSetsForExercise('Run');
+    final sets = await source.getLastSetsForExercise(
+      exerciseId: null,
+      exerciseNameSnapshot: 'Run',
+    );
     expect(sets, hasLength(1));
     expect(sets.single.distanceKm, 5.0);
     expect(sets.single.durationSeconds, 1694);
@@ -168,7 +174,10 @@ void main() {
   test('a barbell set still carries weight and reps', () async {
     await logSet('Squat', weight: 70, reps: 6);
 
-    final sets = await source.getLastSetsForExercise('Squat');
+    final sets = await source.getLastSetsForExercise(
+      exerciseId: null,
+      exerciseNameSnapshot: 'Squat',
+    );
     expect(sets, hasLength(1));
     expect(sets.single.weightKg, 70);
     expect(sets.single.reps, 6);

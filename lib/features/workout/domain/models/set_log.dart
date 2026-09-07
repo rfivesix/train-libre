@@ -11,6 +11,10 @@ class SetLog {
   /// The identifier of the workout session this set belongs to.
   final int workoutLogId;
 
+  /// The stable identifier of the exercise in the catalog or database, if known.
+  /// Null for legacy rows written before exercise_id was tracked.
+  final String? exerciseId;
+
   /// The name of the exercise performed in this set.
   final String exerciseName;
 
@@ -100,6 +104,7 @@ class SetLog {
   SetLog({
     this.id,
     required this.workoutLogId,
+    this.exerciseId,
     required this.exerciseName,
     required this.setType,
     this.weightKg,
@@ -134,6 +139,7 @@ class SetLog {
     return SetLog(
       id: map['id'],
       workoutLogId: map['workout_log_id'],
+      exerciseId: map['exercise_id'] as String? ?? map['exerciseId'] as String?,
       exerciseName: map['exercise_name'],
       setType: map['set_type'],
       weightKg: map['weight_kg'],
@@ -159,6 +165,7 @@ class SetLog {
     return {
       'id': id,
       'workout_log_id': workoutLogId,
+      'exercise_id': exerciseId,
       'exercise_name': exerciseName,
       'set_type': setType,
       'weight_kg': weightKg,
@@ -185,6 +192,7 @@ class SetLog {
   SetLog copyWith({
     int? id,
     int? workoutLogId,
+    String? exerciseId,
     String? exerciseName,
     String? setType,
     double? weightKg,
@@ -218,10 +226,12 @@ class SetLog {
     bool clearDistance = false,
     bool clearDuration = false,
     bool clearSupersetGroup = false,
+    bool clearExerciseId = false,
   }) {
     return SetLog(
       id: id ?? this.id,
       workoutLogId: workoutLogId ?? this.workoutLogId,
+      exerciseId: clearExerciseId ? null : (exerciseId ?? this.exerciseId),
       exerciseName: exerciseName ?? this.exerciseName,
       setType: setType ?? this.setType,
       weightKg: clearWeight ? null : (weightKg ?? this.weightKg),
