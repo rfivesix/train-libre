@@ -39,9 +39,7 @@ class LogWorkoutSetUseCase {
         bool autoFilledNow = false;
         if (currentWeight == null && !clearWeight) {
           finalWeight = template.targetWeight ?? 0.0;
-          if (template.targetWeight != null) {
-            autoFilledNow = true;
-          }
+          autoFilledNow = true;
         }
         if (currentReps == null && !clearReps) {
           if (template.targetReps != null && template.targetReps!.isNotEmpty) {
@@ -53,10 +51,10 @@ class LogWorkoutSetUseCase {
             } else {
               finalReps = int.tryParse(template.targetReps!.trim()) ?? 0;
             }
-            autoFilledNow = true;
           } else {
             finalReps = 0;
           }
+          autoFilledNow = true;
         }
         if (autoFilledNow) {
           valuesAutoFilled = true;

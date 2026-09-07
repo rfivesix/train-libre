@@ -16,6 +16,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Exercise History by UUID (`getLastSetsForExercise`, `SetLog.exerciseId`):** Switched exercise history queries from display name matching to stable exercise UUIDs with fallback for legacy rows without an exercise ID. Renaming or catalog merges no longer compromise exercise history.
 - **ExperienceLevel Persistence (`ExperienceLevelService`, `AppSettings`):** Experience level preference moved from `SharedPreferences` to SQLite `AppSettings.experienceLevel` with automatic one-time migration and backup/restore support.
 
+### Fixed
+- **Auto-Fill Marking for Fabricated Zeros (`LogWorkoutSetUseCase`):** Completing sets where template weight is null (falling back to 0.0 kg) or target repetitions are empty (falling back to 0 reps) now flags `valuesAutoFilled = true` so fabricated defaults are not mistaken for user input.
+
 ### Removed
 - **Obsolete Performance Query:** Removed deprecated `getLastPerformance` method from `WorkoutLoggingQueries`.
 

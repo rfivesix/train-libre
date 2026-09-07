@@ -239,5 +239,39 @@ void main() {
     expect(userFilledResult.updatedSet.valuesAutoFilled, isFalse);
     expect(userFilledResult.updatedSet.weightKg, equals(65.0));
     expect(userFilledResult.updatedSet.reps, equals(8));
+
+    // Case 3: Template targetWeight is null -> finalWeight is fabricated 0.0 and marked auto-filled
+    final nullWeightTemplate = SetTemplate(
+      id: 501,
+      setType: 'normal',
+      targetReps: '10',
+      targetWeight: null,
+    );
+    final nullWeightResult = useCase.execute(
+      oldLog: emptySet,
+      template: nullWeightTemplate,
+      reps: 10, // user provided reps, but weight is missing
+      isCompleted: true,
+    );
+    expect(nullWeightResult.updatedSet.valuesAutoFilled, isTrue);
+    expect(nullWeightResult.updatedSet.weightKg, equals(0.0));
+    expect(nullWeightResult.updatedSet.reps, equals(10));
+
+    // Case 4: Template targetReps is empty/null -> finalReps is fabricated 0 and marked auto-filled
+    final emptyRepsTemplate = SetTemplate(
+      id: 502,
+      setType: 'normal',
+      targetReps: '',
+      targetWeight: 50.0,
+    );
+    final emptyRepsResult = useCase.execute(
+      oldLog: emptySet,
+      template: emptyRepsTemplate,
+      weight: 50.0, // user provided weight, but reps is missing
+      isCompleted: true,
+    );
+    expect(emptyRepsResult.updatedSet.valuesAutoFilled, isTrue);
+    expect(emptyRepsResult.updatedSet.weightKg, equals(50.0));
+    expect(emptyRepsResult.updatedSet.reps, equals(0));
   });
 }
