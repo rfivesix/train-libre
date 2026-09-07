@@ -527,9 +527,15 @@ class SleepPipelineService {
         )
         .toList(growable: false);
 
+    // BOLT OPTIMIZATION: Replaced O(N^2) `.where().any()` with an O(N) Set lookup.
+    final activeLookbackSessionIds = <String>{};
+    for (final s in activeLookbackSessions) {
+      activeLookbackSessionIds.add(s.id);
+    }
+
     final activeLookbackSessionsRecords =
         params.lookbackSessions.where((dbSession) {
-      return activeLookbackSessions.any((s) => s.id == dbSession.id);
+      return activeLookbackSessionIds.contains(dbSession.id);
     }).toList();
 
     final regularityByNight = _buildRegularityByNight(

@@ -1,0 +1,16 @@
+Replacing the O(N^2) `.where().any()` with a Set lookup:
+
+```dart
+    final activeLookbackSessionIds = <String>{};
+    for (final s in activeLookbackSessions) {
+      activeLookbackSessionIds.add(s.id);
+    }
+
+    final activeLookbackSessionsRecords =
+        params.lookbackSessions.where((dbSession) {
+      return activeLookbackSessionIds.contains(dbSession.id);
+    }).toList();
+```
+This is a genuine algorithmic improvement that matches the codebase's existing performance optimizations (like the memory guidelines suggest, "When checking for existence inside a loop (e.g., verifying if an item is already in a list using .any()), maintain a Set of IDs/keys and use .contains() for O(1) lookups.") and prevents degraded O(N^2) complexity.
+
+Let's test this in `lib/features/sleep/data/processing/sleep_pipeline_service.dart`.
