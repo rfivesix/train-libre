@@ -1237,6 +1237,22 @@ class AppLocalizationsDe extends AppLocalizations {
   String get set_type_dropset => 'Dropset';
 
   @override
+  String get set_type_normal_help =>
+      'Regulärer Arbeitssatz. Nach dem Warm-up ist der erste meist dein schwerer Fokus-Satz; zählt für die Progression.';
+
+  @override
+  String get set_type_warmup_help =>
+      'Zum Aufwärmen: Gewicht schrittweise steigern. Zählt nicht für die Progression.';
+
+  @override
+  String get set_type_failure_help =>
+      'Arbeitssatz bis keine weitere saubere Wiederholung möglich ist. Zählt für die Progression.';
+
+  @override
+  String get set_type_dropset_help =>
+      'Direkt nach einem Arbeitssatz Gewicht reduzieren und weitermachen. Zählt nicht für die Progression.';
+
+  @override
   String get set_reps_hint => '8-12';
 
   @override

@@ -435,8 +435,6 @@ class _GlassTile extends StatelessWidget {
                   const SizedBox(height: 2),
                   Text(
                     subtitle!,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
                     style: textTheme.bodySmall?.copyWith(
                       color: textTheme.bodySmall?.color?.withValues(alpha: 0.8),
                     ),

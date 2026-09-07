@@ -2186,6 +2186,30 @@ abstract class AppLocalizations {
   /// **'Dropset'**
   String get set_type_dropset;
 
+  /// No description provided for @set_type_normal_help.
+  ///
+  /// In en, this message translates to:
+  /// **'A regular working set. After warming up, the first is usually your heavy focus set; it counts towards progression.'**
+  String get set_type_normal_help;
+
+  /// No description provided for @set_type_warmup_help.
+  ///
+  /// In en, this message translates to:
+  /// **'Warm up by gradually increasing the load. It does not count towards progression.'**
+  String get set_type_warmup_help;
+
+  /// No description provided for @set_type_failure_help.
+  ///
+  /// In en, this message translates to:
+  /// **'A working set taken until no more clean repetitions are possible. Counts towards progression.'**
+  String get set_type_failure_help;
+
+  /// No description provided for @set_type_dropset_help.
+  ///
+  /// In en, this message translates to:
+  /// **'Lower the load immediately after a working set and continue. It does not count towards progression.'**
+  String get set_type_dropset_help;
+
   /// No description provided for @set_reps_hint.
   ///
   /// In en, this message translates to:

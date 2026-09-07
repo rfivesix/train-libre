@@ -1243,6 +1243,22 @@ class AppLocalizationsFr extends AppLocalizations {
   String get set_type_dropset => 'Ensemble de gouttes';
 
   @override
+  String get set_type_normal_help =>
+      'Une série de travail normale. Après l\'échauffement, la première est généralement votre série lourde de référence ; elle compte pour la progression.';
+
+  @override
+  String get set_type_warmup_help =>
+      'Échauffez-vous en augmentant progressivement la charge. Ne compte pas pour la progression.';
+
+  @override
+  String get set_type_failure_help =>
+      'Une série de travail jusqu\'à ce qu\'aucune répétition propre ne soit possible. Compte pour la progression.';
+
+  @override
+  String get set_type_dropset_help =>
+      'Réduisez la charge juste après une série de travail et continuez. Ne compte pas pour la progression.';
+
+  @override
   String get set_reps_hint => '8-12';
 
   @override

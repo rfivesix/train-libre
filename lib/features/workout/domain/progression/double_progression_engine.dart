@@ -9,7 +9,7 @@ export 'progression_models.dart';
 /// Operates strictly on domain history and templates without database or I/O access.
 class DoubleProgressionEngine {
   /// The algorithm version tag recorded in SetLogs.progressionAlgorithmVersion.
-  static const String algorithmVersion = 'double_progression_v1';
+  static const String algorithmVersion = 'double_progression_v2';
 
   /// Computes the next prescription suggestion from exercise history and routine targets.
   static ProgressionSuggestion nextPrescription({
@@ -145,6 +145,122 @@ class DoubleProgressionEngine {
       algorithmVersion: algorithmVersion,
     );
   }
+
+  /// Produces one prescription for every current working-set position.
+  ///
+  /// Unlike the legacy single-value API above, this never takes the maximum
+  /// load from a session. Position zero is matched to position zero, and so
+  /// on, after warm-ups and drop sets have been removed. That preserves both
+  /// ascending series and a heavy top set followed by back-offs.
+  static List<ProgressionSuggestion> nextPrescriptions({
+    required ExerciseProgressionHistory history,
+    required List<WorkingSetPosition> positions,
+    required LoadIncrement increment,
+    required LoadMode loadMode,
+    DateTime? now,
+  }) {
+    ProgressionSuggestion absent(String reason) => ProgressionSuggestion(
+          outcome: ProgressionOutcome.noSuggestion,
+          reason: reason,
+          algorithmVersion: algorithmVersion,
+        );
+
+    if (positions.isEmpty) return const [];
+    if (history.isEmpty) {
+      return List.filled(positions.length, absent(ProgressionReason.noHistory));
+    }
+
+    final workingSets = history.sets.where((set) => set.isWorkingSet).toList();
+    if (workingSets.isEmpty) {
+      return List.filled(positions.length, absent(ProgressionReason.noHistory));
+    }
+
+    final sessions = <String, List<ProgressionSetEntry>>{};
+    for (final set in workingSets) {
+      final key = set.sessionId?.isNotEmpty == true
+          ? set.sessionId!
+          : '${set.performedAt.year}-${set.performedAt.month}-${set.performedAt.day}';
+      sessions.putIfAbsent(key, () => []).add(set);
+    }
+    final orderedSessions = sessions.values.toList()
+      ..sort((left, right) {
+        DateTime latest(List<ProgressionSetEntry> session) => session
+            .map((entry) => entry.performedAt)
+            .reduce((a, b) => a.isAfter(b) ? a : b);
+        return latest(left).compareTo(latest(right));
+      });
+    final lastSession = List<ProgressionSetEntry>.from(orderedSessions.last)
+      ..sort((left, right) {
+        final order = (left.order ?? 0).compareTo(right.order ?? 0);
+        return order != 0
+            ? order
+            : left.performedAt.compareTo(right.performedAt);
+      });
+    final lastSessionDate = lastSession
+        .map((entry) => entry.performedAt)
+        .reduce((a, b) => a.isAfter(b) ? a : b);
+
+    if ((now ?? DateTime.now()).difference(lastSessionDate) >
+        const Duration(days: 21)) {
+      return List.filled(
+          positions.length, absent(ProgressionReason.breakExceededThreeWeeks));
+    }
+
+    // A raise is deliberately a whole-exercise decision. We only have enough
+    // evidence when every current working position has a matching historical
+    // set, a range and an honest performance at its own range maximum.
+    final hasCompleteComparableSession =
+        lastSession.isNotEmpty && lastSession.length <= positions.length;
+    final allToppedOut = hasCompleteComparableSession &&
+        List.generate(lastSession.length, (index) {
+          final range = positions[index].range;
+          final previous = lastSession[index];
+          return range != null &&
+              !previous.valuesAutoFilled &&
+              (previous.reps ?? 0) >= range.max;
+        }).every((value) => value);
+
+    return List.generate(positions.length, (index) {
+      if (index >= lastSession.length || lastSession[index].weight == null) {
+        return absent(ProgressionReason.noLoadSupport);
+      }
+
+      final previous = lastSession[index];
+      final range = positions[index].range;
+      if (allToppedOut) {
+        final target = loadMode == LoadMode.assisted
+            ? math.max(0.0, previous.weight! - increment.value)
+            : previous.weight! + increment.value;
+        return ProgressionSuggestion(
+          outcome: ProgressionOutcome.raise,
+          targetWeight: target,
+          targetReps: nextSuggestedReps(
+            previousReps: previous.reps,
+            range: range,
+            loadRaised: true,
+          ),
+          reason: ProgressionReason.rangeToppedOut,
+          algorithmVersion: algorithmVersion,
+        );
+      }
+
+      final reason = range == null
+          ? ProgressionReason.noRepRange
+          : previous.valuesAutoFilled
+              ? ProgressionReason.autoFilledSets
+              : (previous.reps ?? 0) < range.min
+                  ? ProgressionReason.repsBelowRangeMin
+                  : ProgressionReason.repsInRangeNotToppedOut;
+      return ProgressionSuggestion(
+        outcome: ProgressionOutcome.hold,
+        targetWeight: previous.weight,
+        targetReps:
+            nextSuggestedReps(previousReps: previous.reps, range: range),
+        reason: reason,
+        algorithmVersion: algorithmVersion,
+      );
+    });
+  }
 }
 
 /// Convenience pure function matching the domain interface.
@@ -158,6 +274,22 @@ ProgressionSuggestion nextPrescription({
     DoubleProgressionEngine.nextPrescription(
       history: history,
       range: range,
+      increment: increment,
+      loadMode: loadMode,
+      now: now,
+    );
+
+/// Position-aware progression used by the live-workout flow.
+List<ProgressionSuggestion> nextPrescriptions({
+  required ExerciseProgressionHistory history,
+  required List<WorkingSetPosition> positions,
+  required LoadIncrement increment,
+  required LoadMode loadMode,
+  DateTime? now,
+}) =>
+    DoubleProgressionEngine.nextPrescriptions(
+      history: history,
+      positions: positions,
       increment: increment,
       loadMode: loadMode,
       now: now,

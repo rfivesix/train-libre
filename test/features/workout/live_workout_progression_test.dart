@@ -129,6 +129,96 @@ void main() {
   }
 
   group('Live Workout Progression Integration', () {
+    test('never pre-fills a warm-up; it targets the first open working set',
+        () async {
+      await seedHistorySets(
+        weightKg: 80.0,
+        reps: 12,
+        date: now.subtract(const Duration(days: 2)),
+      );
+      final exercise = createExercise();
+      final routineEx = createRoutineExercise(
+        exercise: exercise,
+        templates: [
+          SetTemplate(
+            id: 100,
+            setType: 'warmup',
+            targetRepMin: 8,
+            targetRepMax: 12,
+          ),
+          SetTemplate(
+            id: 101,
+            setType: 'normal',
+            targetRepMin: 8,
+            targetRepMax: 12,
+          ),
+        ],
+      );
+      final log = await workoutDb.startWorkout(routineName: 'Chest Day');
+
+      await vm.loadInitialData(log, [routineEx]);
+
+      expect(vm.isSetSuggested(100), isFalse);
+      expect(vm.isSetSuggested(101), isTrue);
+    });
+
+    test('recalculates every later working set from today\'s completed set',
+        () async {
+      final previous =
+          await workoutDb.startWorkout(routineName: 'Previous Push');
+      await workoutDb.finishWorkout(previous.id!);
+      await workoutDb.insertSetLog(SetLog(
+        workoutLogId: previous.id!,
+        exerciseId: 'ex-bench',
+        exerciseName: 'Bench Press',
+        setType: 'normal',
+        weightKg: 35,
+        reps: 8,
+        isCompleted: true,
+        performedAt: now.subtract(const Duration(days: 2)),
+        logOrder: 1,
+      ));
+      await workoutDb.insertSetLog(SetLog(
+        workoutLogId: previous.id!,
+        exerciseId: 'ex-bench',
+        exerciseName: 'Bench Press',
+        setType: 'normal',
+        weightKg: 30,
+        reps: 12,
+        isCompleted: true,
+        performedAt: now.subtract(const Duration(days: 2)),
+        logOrder: 2,
+      ));
+      final exercise = createExercise();
+      final routineEx = createRoutineExercise(exercise: exercise);
+      final log = await workoutDb.startWorkout(routineName: 'Chest Day');
+
+      await vm.loadInitialData(log, [routineEx]);
+      await vm.updateSet(101, weight: 40, reps: 8, isCompleted: true);
+      await vm.pendingProgressionUpdate;
+
+      expect(vm.isSetSuggested(102), isTrue);
+      expect(vm.weightControllers[102]?.text, equals('35'));
+    });
+
+    test('an added set follows today\'s last working set, never a drop set',
+        () async {
+      final exercise = createExercise();
+      final routineEx = createRoutineExercise(exercise: exercise);
+      final log = await workoutDb.startWorkout(routineName: 'Chest Day');
+
+      await vm.loadInitialData(log, [routineEx]);
+      await vm.updateSet(101, weight: 40, reps: 9, isCompleted: true);
+      await vm.pendingProgressionUpdate;
+      await vm.addSetToExercise(10);
+      await vm.pendingProgressionUpdate;
+
+      final addedTemplateId = vm.exercises.single.setTemplates.last.id!;
+      expect(vm.isSetSuggested(addedTemplateId), isTrue);
+      expect(vm.weightControllers[addedTemplateId]?.text, equals('40'));
+      expect(vm.repsControllers[addedTemplateId]?.text, equals('10'));
+    });
+
     test('Programmatic controller updates do NOT trigger markSetOverridden',
         () async {
       await seedHistorySets(

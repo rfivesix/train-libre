@@ -593,4 +593,116 @@ void main() {
           equals(5.0));
     });
   });
+
+  group('Position-aware prescriptions', () {
+    List<WorkingSetPosition> positions() => const [
+          WorkingSetPosition(id: 'top', range: RepRange(8, 12)),
+          WorkingSetPosition(id: 'backoff', range: RepRange(8, 12)),
+        ];
+
+    test('preserves an ascending or top-set/back-off structure while holding',
+        () {
+      final suggestions = nextPrescriptions(
+        history: ExerciseProgressionHistory([
+          ProgressionSetEntry(
+            performedAt: now.subtract(const Duration(days: 2)),
+            weight: 30,
+            reps: 12,
+            order: 1,
+          ),
+          ProgressionSetEntry(
+            performedAt: now.subtract(const Duration(days: 2)),
+            weight: 35,
+            reps: 8,
+            order: 2,
+          ),
+        ]),
+        positions: positions(),
+        increment: barbellInc,
+        loadMode: LoadMode.external,
+        now: now,
+      );
+
+      expect(suggestions.map((suggestion) => suggestion.targetWeight),
+          equals([30, 35]));
+      expect(suggestions.map((suggestion) => suggestion.targetReps),
+          equals([12, 9]));
+      expect(suggestions.every((s) => s.outcome == ProgressionOutcome.hold),
+          isTrue);
+    });
+
+    test('raises every corresponding position only after all are topped out',
+        () {
+      final suggestions = nextPrescriptions(
+        history: ExerciseProgressionHistory([
+          ProgressionSetEntry(
+            performedAt: now.subtract(const Duration(days: 2)),
+            weight: 35,
+            reps: 12,
+            order: 1,
+          ),
+          ProgressionSetEntry(
+            performedAt: now.subtract(const Duration(days: 2)),
+            weight: 30,
+            reps: 12,
+            order: 2,
+          ),
+        ]),
+        positions: positions(),
+        increment: barbellInc,
+        loadMode: LoadMode.external,
+        now: now,
+      );
+
+      expect(suggestions.map((suggestion) => suggestion.targetWeight),
+          equals([37.5, 32.5]));
+      expect(suggestions.map((suggestion) => suggestion.targetReps),
+          equals([8, 8]));
+    });
+
+    test('a position without a range repeats its load but never raises it', () {
+      final suggestions = nextPrescriptions(
+        history: ExerciseProgressionHistory([
+          ProgressionSetEntry(
+            performedAt: now.subtract(const Duration(days: 2)),
+            weight: 35,
+            reps: 12,
+          ),
+        ]),
+        positions: const [WorkingSetPosition(id: 'one')],
+        increment: barbellInc,
+        loadMode: LoadMode.external,
+        now: now,
+      );
+
+      expect(suggestions.single.targetWeight, equals(35));
+      expect(suggestions.single.targetReps, equals(12));
+      expect(suggestions.single.outcome, equals(ProgressionOutcome.hold));
+      expect(suggestions.single.reason, equals(ProgressionReason.noRepRange));
+    });
+
+    test('does not offer an initial value after the history window', () {
+      final suggestions = nextPrescriptions(
+        history: ExerciseProgressionHistory([
+          ProgressionSetEntry(
+            performedAt: now.subtract(const Duration(days: 22)),
+            weight: 35,
+            reps: 12,
+          ),
+        ]),
+        positions: const [
+          WorkingSetPosition(id: 'one', range: RepRange(8, 12)),
+        ],
+        increment: barbellInc,
+        loadMode: LoadMode.external,
+        now: now,
+      );
+
+      expect(
+          suggestions.single.outcome, equals(ProgressionOutcome.noSuggestion));
+      expect(suggestions.single.targetWeight, isNull);
+      expect(suggestions.single.reason,
+          equals(ProgressionReason.breakExceededThreeWeeks));
+    });
+  });
 }

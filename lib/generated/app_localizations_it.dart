@@ -1237,6 +1237,22 @@ class AppLocalizationsIt extends AppLocalizations {
   String get set_type_dropset => 'Dropset';
 
   @override
+  String get set_type_normal_help =>
+      'Una normale serie di lavoro. Dopo il riscaldamento, la prima è di solito la serie pesante principale; conta per la progressione.';
+
+  @override
+  String get set_type_warmup_help =>
+      'Riscaldati aumentando gradualmente il carico. Non conta per la progressione.';
+
+  @override
+  String get set_type_failure_help =>
+      'Una serie di lavoro fino a quando non sono possibili altre ripetizioni pulite. Conta per la progressione.';
+
+  @override
+  String get set_type_dropset_help =>
+      'Riduci il carico subito dopo una serie di lavoro e continua. Non conta per la progressione.';
+
+  @override
   String get set_reps_hint => '8-12';
 
   @override

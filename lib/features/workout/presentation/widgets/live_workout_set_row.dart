@@ -8,6 +8,7 @@ import '../../../../services/haptic_feedback_service.dart';
 import '../../../../services/unit_service.dart';
 import '../../../app/presentation/widgets/glass_bottom_menu.dart';
 import '../../domain/classification/exercise_log_mask.dart';
+import '../../domain/classification/workout_set_position.dart';
 import 'log_mask_labels.dart';
 import '../../domain/models/set_log.dart';
 import '../../domain/models/set_template.dart';
@@ -15,6 +16,7 @@ import '../live_workout_view_model.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../../util/time_util.dart';
 import '../../../../util/design_constants.dart';
+import 'generated_value_morph.dart';
 
 /// An interactive row representing a single set in an active workout session.
 ///
@@ -26,6 +28,7 @@ class LiveWorkoutSetRow extends StatelessWidget {
   final int templateId;
   final SetLog setLog;
   final List<SetLog> lastPerfSets;
+  final List<String> currentSetTypes;
   final SetTemplate template;
   final LiveWorkoutViewModel manager;
 
@@ -45,6 +48,7 @@ class LiveWorkoutSetRow extends StatelessWidget {
     required this.templateId,
     required this.setLog,
     required this.lastPerfSets,
+    required this.currentSetTypes,
     required this.template,
     required this.manager,
     required this.mask,
@@ -83,21 +87,25 @@ class LiveWorkoutSetRow extends StatelessWidget {
       {
         'type': 'normal',
         'label': l10n.set_type_normal,
+        'subtitle': l10n.set_type_normal_help,
         'symbol': buildSymbol('N', Colors.grey),
       },
       {
         'type': 'warmup',
         'label': l10n.set_type_warmup,
+        'subtitle': l10n.set_type_warmup_help,
         'symbol': buildSymbol('W', Colors.orange),
       },
       {
         'type': 'failure',
         'label': l10n.set_type_failure,
+        'subtitle': l10n.set_type_failure_help,
         'symbol': buildSymbol('F', DesignConstants.brandRedColor),
       },
       {
         'type': 'dropset',
         'label': l10n.set_type_dropset,
+        'subtitle': l10n.set_type_dropset_help,
         'symbol': buildSymbol('D', Colors.blue),
       },
     ];
@@ -109,6 +117,7 @@ class LiveWorkoutSetRow extends StatelessWidget {
         return GlassMenuAction(
           customIcon: opt['symbol'] as Widget,
           label: opt['label'] as String,
+          subtitle: opt['subtitle'] as String,
           onTap: () => _changeSetType(templateId, opt['type'] as String),
         );
       }).toList(),
@@ -277,6 +286,16 @@ class LiveWorkoutSetRow extends StatelessWidget {
             ? template.targetReps!
             : '0');
 
+    final lastPerformanceIndex = WorkoutSetPositionMapper.matchingPreviousIndex(
+      currentSetTypes: currentSetTypes,
+      currentIndex: rowIndex,
+      previousSetTypes: lastPerfSets.map((set) => set.setType).toList(),
+    );
+    final lastPerformance = lastPerformanceIndex == null
+        ? null
+        : lastPerfSets[lastPerformanceIndex];
+    final suggestionKey = manager.suggestionAppearanceKey(templateId);
+
     final rowContent = Row(
       children: [
         // 1. SET NUMBER
@@ -306,9 +325,9 @@ class LiveWorkoutSetRow extends StatelessWidget {
         Expanded(
           flex: flex.lastTime,
           child: GestureDetector(
-            onTap: (!isCompleted && rowIndex < lastPerfSets.length)
+            onTap: (!isCompleted && lastPerformance != null)
                 ? () {
-                    final lastSet = lastPerfSets[rowIndex];
+                    final lastSet = lastPerformance;
                     double? metricWeight;
                     double? distance;
                     int? reps;
@@ -376,9 +395,7 @@ class LiveWorkoutSetRow extends StatelessWidget {
               child: Text(
                 LogMaskLabels.lastPerformance(
                   mask,
-                  rowIndex < lastPerfSets.length
-                      ? lastPerfSets[rowIndex]
-                      : null,
+                  lastPerformance,
                   AppLocalizations.of(context)!,
                   unitService,
                 ),
@@ -407,25 +424,12 @@ class LiveWorkoutSetRow extends StatelessWidget {
                         manager.isSetSuggested(templateId) && !isCompleted;
                     final primaryColor = Theme.of(context).colorScheme.primary;
 
-                    return AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 4,
-                        vertical: 2,
-                      ),
-                      decoration: isSuggested
-                          ? BoxDecoration(
-                              color: primaryColor.withValues(
-                                alpha: isLightMode ? 0.08 : 0.12,
-                              ),
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(
-                                color: primaryColor.withValues(alpha: 0.28),
-                                width: 1,
-                              ),
-                            )
-                          : null,
-                      child: TextFormField(
+                    return GeneratedValueMorph(
+                      suggestionKey: suggestionKey,
+                      accentColor: primaryColor,
+                      restingColor:
+                          textColor ?? Theme.of(context).colorScheme.onSurface,
+                      childBuilder: (generatedTextColor) => TextFormField(
                         controller: manager.weightControllers[templateId],
                         textAlign: TextAlign.center,
                         keyboardType: const TextInputType.numberWithOptions(
@@ -434,7 +438,7 @@ class LiveWorkoutSetRow extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: isSuggested ? primaryColor : textColor,
+                          color: isSuggested ? generatedTextColor : textColor,
                         ),
                         decoration: InputDecoration(
                           border: InputBorder.none,
@@ -508,99 +512,113 @@ class LiveWorkoutSetRow extends StatelessWidget {
           flex: flex.secondary,
           child: !mask.showsSecondary
               ? const SizedBox.shrink()
-              : TextFormField(
-                  controller: manager.repsControllers[templateId],
-                  readOnly: mask.logsDuration,
-                  textAlign: TextAlign.center,
-                  keyboardType: TextInputType.number,
-                  inputFormatters:
-                      mask.logsDuration ? [TimerInputFormatter()] : null,
-                  textInputAction: TextInputAction.next,
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: textColor,
-                  ),
-                  decoration: InputDecoration(
-                    border: InputBorder.none,
-                    isDense: true,
-                    fillColor: Colors.transparent,
-                    hintText: repHint,
-                    hintStyle: TextStyle(
-                      color: Colors.grey.withValues(alpha: 0.5),
+              : GeneratedValueMorph(
+                  suggestionKey: mask.logsDuration ? null : suggestionKey,
+                  accentColor: Theme.of(context).colorScheme.primary,
+                  restingColor:
+                      textColor ?? Theme.of(context).colorScheme.onSurface,
+                  childBuilder: (generatedTextColor) => TextFormField(
+                    controller: manager.repsControllers[templateId],
+                    readOnly: mask.logsDuration,
+                    textAlign: TextAlign.center,
+                    keyboardType: TextInputType.number,
+                    inputFormatters:
+                        mask.logsDuration ? [TimerInputFormatter()] : null,
+                    textInputAction: TextInputAction.next,
+                    style: TextStyle(
                       fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: suggestionKey == null
+                          ? textColor
+                          : generatedTextColor,
                     ),
-                  ),
-                  enabled: !isCompleted,
-                  onTap: (mask.logsDuration && !isCompleted)
-                      ? () async {
-                          final currentSeconds =
-                              manager.setLogs[templateId]?.durationSeconds ?? 0;
-                          final newDuration =
-                              await adaptive_pickers.showAdaptiveDurationPicker(
-                            context: context,
-                            initialDuration: Duration(seconds: currentSeconds),
-                          );
-                          if (newDuration != null) {
-                            final seconds = newDuration.inSeconds;
-                            final clearDuration = seconds == 0;
-                            if (seconds !=
-                                    manager
-                                        .setLogs[templateId]?.durationSeconds ||
-                                clearDuration) {
-                              manager.repsControllers[templateId]?.text =
-                                  formatPauseDuration(seconds);
-                              manager.updateSet(
-                                templateId,
-                                duration: seconds,
-                                clearDuration: clearDuration,
-                              );
+                    decoration: InputDecoration(
+                      border: InputBorder.none,
+                      isDense: true,
+                      fillColor: Colors.transparent,
+                      hintText: repHint,
+                      hintStyle: TextStyle(
+                        color: Colors.grey.withValues(alpha: 0.5),
+                        fontSize: 18,
+                      ),
+                    ),
+                    enabled: !isCompleted,
+                    onTap: (mask.logsDuration && !isCompleted)
+                        ? () async {
+                            final currentSeconds =
+                                manager.setLogs[templateId]?.durationSeconds ??
+                                    0;
+                            final newDuration = await adaptive_pickers
+                                .showAdaptiveDurationPicker(
+                              context: context,
+                              initialDuration:
+                                  Duration(seconds: currentSeconds),
+                            );
+                            if (newDuration != null) {
+                              final seconds = newDuration.inSeconds;
+                              final clearDuration = seconds == 0;
+                              if (seconds !=
+                                      manager.setLogs[templateId]
+                                          ?.durationSeconds ||
+                                  clearDuration) {
+                                manager.repsControllers[templateId]?.text =
+                                    formatPauseDuration(seconds);
+                                manager.updateSet(
+                                  templateId,
+                                  duration: seconds,
+                                  clearDuration: clearDuration,
+                                );
+                              }
                             }
                           }
-                        }
-                      : null,
-                  onChanged: (text) {
-                    if (mask.logsDuration) {
-                      final seconds = parsePauseDuration(text);
-                      final clearDuration = seconds == null && text.isEmpty;
-                      if (seconds !=
-                              manager.setLogs[templateId]?.durationSeconds ||
-                          clearDuration) {
-                        manager.updateSet(
-                          templateId,
-                          duration: seconds,
-                          clearDuration: clearDuration,
-                        );
+                        : null,
+                    onChanged: (text) {
+                      if (!mask.logsDuration &&
+                          manager.isSetSuggested(templateId)) {
+                        manager.markSetOverridden(templateId);
                       }
-                    } else {
-                      final int? val;
-                      if (text.contains('-')) {
-                        final parts = text.split('-');
-                        if (parts.length == 2) {
-                          final min = int.tryParse(parts[0].trim());
-                          final max = int.tryParse(parts[1].trim());
-                          if (min != null && max != null) {
-                            val = ((min + max) / 2).round();
+                      if (mask.logsDuration) {
+                        final seconds = parsePauseDuration(text);
+                        final clearDuration = seconds == null && text.isEmpty;
+                        if (seconds !=
+                                manager.setLogs[templateId]?.durationSeconds ||
+                            clearDuration) {
+                          manager.updateSet(
+                            templateId,
+                            duration: seconds,
+                            clearDuration: clearDuration,
+                          );
+                        }
+                      } else {
+                        final int? val;
+                        if (text.contains('-')) {
+                          final parts = text.split('-');
+                          if (parts.length == 2) {
+                            final min = int.tryParse(parts[0].trim());
+                            final max = int.tryParse(parts[1].trim());
+                            if (min != null && max != null) {
+                              val = ((min + max) / 2).round();
+                            } else {
+                              val = null;
+                            }
                           } else {
                             val = null;
                           }
                         } else {
-                          val = null;
+                          val = int.tryParse(text);
                         }
-                      } else {
-                        val = int.tryParse(text);
+                        final clearValue = val == null && text.isEmpty;
+                        if (val != manager.setLogs[templateId]?.reps ||
+                            clearValue) {
+                          manager.updateSet(
+                            templateId,
+                            reps: val,
+                            clearReps: clearValue,
+                          );
+                        }
                       }
-                      final clearValue = val == null && text.isEmpty;
-                      if (val != manager.setLogs[templateId]?.reps ||
-                          clearValue) {
-                        manager.updateSet(
-                          templateId,
-                          reps: val,
-                          clearReps: clearValue,
-                        );
-                      }
-                    }
-                  },
+                    },
+                  ),
                 ),
         ),
 

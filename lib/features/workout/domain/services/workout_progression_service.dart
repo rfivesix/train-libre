@@ -2,6 +2,7 @@ import '../../../../services/unit_service.dart';
 import '../../../exercise_catalog/domain/models/exercise.dart';
 import '../classification/exercise_log_mask.dart';
 import '../models/set_template.dart';
+import '../models/set_log.dart';
 import '../parsers/rep_range_parser.dart' hide RepRange;
 import '../progression/double_progression_engine.dart';
 import '../repositories/workout_repository.dart';
@@ -131,5 +132,187 @@ class WorkoutProgressionService {
       reason: suggestion.reason,
       algorithmVersion: suggestion.algorithmVersion,
     );
+  }
+
+  /// Computes matching suggestions for the complete working-set structure of
+  /// one exercise. Callers should pass only normal/failure templates, in their
+  /// displayed order. The returned map is keyed by template id.
+  Future<Map<int, ProgressionSuggestion>> getProgressionSuggestions({
+    required Exercise exercise,
+    required List<SetTemplate> workingTemplates,
+    int? excludeWorkoutLogId,
+    DateTime? now,
+  }) async {
+    final mask = ExerciseLogMask.forExercise(exercise);
+    if (!mask.showsPrimary || workingTemplates.isEmpty) return const {};
+
+    final templates =
+        workingTemplates.where((template) => template.id != null).toList();
+    if (templates.isEmpty) return const {};
+
+    final historyLogs = await _repository.getLastSetsForExercise(
+      exerciseId: exercise.uuid,
+      exerciseNameSnapshot: exercise.canonicalName,
+    );
+    final relevantHistory = excludeWorkoutLogId == null
+        ? historyLogs
+        : historyLogs
+            .where((set) => set.workoutLogId != excludeWorkoutLogId)
+            .toList();
+    if (relevantHistory.isEmpty) return const {};
+
+    final isMetric = _unitService.isMetric;
+    final entries = relevantHistory
+        .map((set) => _toProgressionEntry(set, isMetric))
+        .toList();
+    final positions = templates
+        .map((template) => WorkingSetPosition(
+              id: template.id!.toString(),
+              range: _rangeFor(template),
+            ))
+        .toList();
+    final suggestions = DoubleProgressionEngine.nextPrescriptions(
+      history: ExerciseProgressionHistory(entries),
+      positions: positions,
+      increment: LoadIncrement.fromEquipment(exercise.primaryEquipment,
+          isMetric: isMetric),
+      loadMode: LoadMode.fromString(exercise.loadMode),
+      now: now,
+    );
+
+    final results = <int, ProgressionSuggestion>{};
+    for (var index = 0; index < templates.length; index++) {
+      final suggestion = suggestions[index];
+      if (suggestion.targetWeight == null) continue;
+      results[templates[index].id!] = _toMetricSuggestion(suggestion, isMetric);
+    }
+    return results;
+  }
+
+  /// Re-shapes an unfinished set from a real set completed earlier *today*.
+  /// It uses the historic difference between the two positions, not an old
+  /// absolute load, which keeps this safe even after the normal history window.
+  Future<ProgressionSuggestion?> getInWorkoutSuggestion({
+    required Exercise exercise,
+    required List<SetTemplate> workingTemplates,
+    required List<SetLog> currentWorkingSets,
+    required int targetTemplateId,
+    required int currentWorkoutLogId,
+  }) async {
+    final targetIndex =
+        workingTemplates.indexWhere((t) => t.id == targetTemplateId);
+    if (targetIndex < 0 || targetIndex >= currentWorkingSets.length) {
+      return null;
+    }
+
+    var anchorIndex = -1;
+    for (var index = 0; index < targetIndex; index++) {
+      final set = currentWorkingSets[index];
+      if (set.isCompleted == true && set.weightKg != null) {
+        anchorIndex = index;
+      }
+    }
+    if (anchorIndex < 0) return null;
+
+    final historyLogs = await _repository.getLastSetsForExercise(
+      exerciseId: exercise.uuid,
+      exerciseNameSnapshot: exercise.canonicalName,
+    );
+    final previousEntries = historyLogs
+        .where((set) => set.workoutLogId != currentWorkoutLogId)
+        .map((set) => _toProgressionEntry(set, true))
+        .where((set) => set.isWorkingSet)
+        .toList();
+    final anchorWeight = currentWorkingSets[anchorIndex].weightKg!;
+    final anchorReps = currentWorkingSets[anchorIndex].reps;
+    final targetRange = _rangeFor(workingTemplates[targetIndex]);
+    final previousSession = _latestSession(previousEntries);
+    final canPreserveHistoricalStructure =
+        previousSession.length > targetIndex &&
+            previousSession.length > anchorIndex &&
+            previousSession[targetIndex].weight != null &&
+            previousSession[anchorIndex].weight != null;
+    final targetWeight = canPreserveHistoricalStructure
+        ? anchorWeight +
+            previousSession[targetIndex].weight! -
+            previousSession[anchorIndex].weight!
+        : anchorWeight;
+    final referenceReps = canPreserveHistoricalStructure
+        ? previousSession[targetIndex].reps
+        : anchorReps;
+    return ProgressionSuggestion(
+      outcome: ProgressionOutcome.hold,
+      targetWeight: targetWeight,
+      targetReps:
+          nextSuggestedReps(previousReps: referenceReps, range: targetRange),
+      reason: canPreserveHistoricalStructure
+          ? ProgressionReason.inWorkoutStructure
+          : ProgressionReason.inWorkoutFallback,
+      algorithmVersion: DoubleProgressionEngine.algorithmVersion,
+    );
+  }
+
+  RepRange? _rangeFor(SetTemplate template) {
+    if (template.targetRepMin != null && template.targetRepMax != null) {
+      return RepRange(template.targetRepMin!, template.targetRepMax!);
+    }
+    final parsed = parseRepRange(template.targetReps);
+    return parsed == null ? null : RepRange(parsed.min, parsed.max);
+  }
+
+  ProgressionSetEntry _toProgressionEntry(SetLog set, bool isMetric) {
+    final weight = set.weightKg == null
+        ? null
+        : isMetric
+            ? set.weightKg
+            : _unitService.convertDisplayValue(
+                set.weightKg!, UnitDimension.weight);
+    return ProgressionSetEntry(
+      performedAt: set.performedAt ?? DateTime.now(),
+      weight: weight,
+      reps: set.reps,
+      setType: set.setType,
+      rir: set.rir,
+      valuesAutoFilled: set.valuesAutoFilled,
+      isCompleted: set.isCompleted ?? true,
+      sessionId: set.workoutLogId.toString(),
+      order: set.logOrder,
+    );
+  }
+
+  ProgressionSuggestion _toMetricSuggestion(
+      ProgressionSuggestion suggestion, bool isMetric) {
+    return ProgressionSuggestion(
+      outcome: suggestion.outcome,
+      targetWeight: isMetric
+          ? suggestion.targetWeight
+          : _unitService.convertToMetric(
+              suggestion.targetWeight!, UnitDimension.weight),
+      targetReps: suggestion.targetReps,
+      targetRir: suggestion.targetRir,
+      reason: suggestion.reason,
+      algorithmVersion: suggestion.algorithmVersion,
+    );
+  }
+
+  List<ProgressionSetEntry> _latestSession(List<ProgressionSetEntry> entries) {
+    if (entries.isEmpty) return const [];
+    final sessions = <String, List<ProgressionSetEntry>>{};
+    for (final entry in entries) {
+      sessions.putIfAbsent(entry.sessionId ?? '', () => []).add(entry);
+    }
+    final latest = sessions.values.reduce((left, right) {
+      DateTime dateOf(List<ProgressionSetEntry> session) => session
+          .map((entry) => entry.performedAt)
+          .reduce((a, b) => a.isAfter(b) ? a : b);
+      return dateOf(left).isAfter(dateOf(right)) ? left : right;
+    });
+    return List<ProgressionSetEntry>.from(latest)
+      ..sort((left, right) {
+        final order = (left.order ?? 0).compareTo(right.order ?? 0);
+        return order != 0
+            ? order
+            : left.performedAt.compareTo(right.performedAt);
+      });
   }
 }

@@ -1,4 +1,5 @@
 import '../models/prescription_enums.dart';
+import '../classification/workout_set_position.dart';
 
 export '../models/prescription_enums.dart' show ProgressionOutcome, LoadMode;
 
@@ -26,6 +27,21 @@ class RepRange {
 
   @override
   String toString() => '$min-$max';
+}
+
+/// The next explicit rep target for a held load. A range supplies a real
+/// training target; without one the most honest continuation is the last
+/// recorded number of reps.
+int? nextSuggestedReps({
+  required int? previousReps,
+  required RepRange? range,
+  bool loadRaised = false,
+}) {
+  if (range == null) return previousReps;
+  if (loadRaised || previousReps == null || previousReps < range.min) {
+    return range.min;
+  }
+  return previousReps >= range.max ? range.max : previousReps + 1;
 }
 
 /// Static table of smallest weight step increments per equipment type and unit.
@@ -103,6 +119,7 @@ class ProgressionSetEntry {
   final bool valuesAutoFilled;
   final bool isCompleted;
   final String? sessionId;
+  final int? order;
 
   const ProgressionSetEntry({
     required this.performedAt,
@@ -113,14 +130,25 @@ class ProgressionSetEntry {
     this.valuesAutoFilled = false,
     this.isCompleted = true,
     this.sessionId,
+    this.order,
   });
 
   bool get isWarmup => setType.toLowerCase() == 'warmup';
   bool get isDropset => setType.toLowerCase() == 'dropset';
   bool get isWorkingSet =>
-      (setType.toLowerCase() == 'normal' ||
-          setType.toLowerCase() == 'failure') &&
-      isCompleted;
+      WorkoutSetPositionMapper.isWorking(setType) && isCompleted;
+}
+
+/// One eligible (normal or failure) set in the routine currently being run.
+///
+/// [id] is deliberately an opaque domain key. The service uses the routine
+/// template id, while the pure engine only needs it to return the matching
+/// suggestion without ever knowing about persistence.
+class WorkingSetPosition {
+  final String id;
+  final RepRange? range;
+
+  const WorkingSetPosition({required this.id, this.range});
 }
 
 /// The collection of past sets for an exercise.
@@ -144,6 +172,9 @@ abstract class ProgressionReason {
   static const String noWorkingSetsInSession = 'no_working_sets_in_session';
   static const String noLoadSupport = 'no_load_support';
   static const String invalidRange = 'invalid_range';
+  static const String noRepRange = 'no_rep_range';
+  static const String inWorkoutStructure = 'in_workout_structure';
+  static const String inWorkoutFallback = 'in_workout_fallback';
 }
 
 /// The progression prescription produced by the adaptive engine.

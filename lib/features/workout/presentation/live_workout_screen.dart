@@ -32,6 +32,7 @@ import 'widgets/workout_card.dart';
 import 'widgets/reorder_drag_proxy.dart';
 import 'widgets/pr_celebration_banner.dart';
 import '../domain/classification/exercise_log_mask.dart';
+import '../domain/classification/workout_set_position.dart';
 import 'widgets/exercise_e1rm_summary.dart';
 import 'widgets/log_mask_labels.dart';
 import 'widgets/live_workout_set_row.dart';
@@ -1391,20 +1392,19 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                                                                       if (setLog == null) {
                                                                                         return const SizedBox.shrink();
                                                                                       }
-                                                                                      int workingSetIndex = 0;
-                                                                                      for (int i = 0; i <= setEntry.key; i++) {
-                                                                                        final currentTemplateId = routineExercise.setTemplates[i].id!;
-                                                                                        if (exerciseSetLogs[currentTemplateId]?.setType != 'warmup') {
-                                                                                          workingSetIndex++;
-                                                                                        }
-                                                                                      }
+                                                                                      final currentSetTypes = routineExercise.setTemplates.map((currentTemplate) => exerciseSetLogs[currentTemplate.id]?.setType ?? currentTemplate.setType).toList();
+                                                                                      final position = WorkoutSetPositionMapper.positionAt(
+                                                                                        currentSetTypes,
+                                                                                        setEntry.key,
+                                                                                      );
 
                                                                                       return LiveWorkoutSetRow(
-                                                                                        setIndex: workingSetIndex,
+                                                                                        setIndex: position.ordinal,
                                                                                         rowIndex: setEntry.key,
                                                                                         templateId: templateId,
                                                                                         setLog: setLog,
                                                                                         lastPerfSets: manager.lastPerformances[routineExercise.exercise.canonicalName] ?? [],
+                                                                                        currentSetTypes: currentSetTypes,
                                                                                         template: template,
                                                                                         manager: manager,
                                                                                         mask: ExerciseLogMask.forExercise(routineExercise.exercise),

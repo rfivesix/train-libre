@@ -1231,6 +1231,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get set_type_dropset => 'Dropset';
 
   @override
+  String get set_type_normal_help =>
+      'A regular working set. After warming up, the first is usually your heavy focus set; it counts towards progression.';
+
+  @override
+  String get set_type_warmup_help =>
+      'Warm up by gradually increasing the load. It does not count towards progression.';
+
+  @override
+  String get set_type_failure_help =>
+      'A working set taken until no more clean repetitions are possible. Counts towards progression.';
+
+  @override
+  String get set_type_dropset_help =>
+      'Lower the load immediately after a working set and continue. It does not count towards progression.';
+
+  @override
   String get set_reps_hint => '8-12';
 
   @override

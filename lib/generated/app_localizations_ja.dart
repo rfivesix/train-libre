@@ -1221,6 +1221,20 @@ class AppLocalizationsJa extends AppLocalizations {
   String get set_type_dropset => 'ドロップセット';
 
   @override
+  String get set_type_normal_help =>
+      '通常のワーキングセットです。ウォームアップ後の最初のセットは、通常は重いメインセットです。漸進に反映されます。';
+
+  @override
+  String get set_type_warmup_help => '負荷を徐々に上げてウォームアップします。漸進には反映されません。';
+
+  @override
+  String get set_type_failure_help =>
+      'きれいな反復をこれ以上できなくなるまで行うワーキングセットです。漸進に反映されます。';
+
+  @override
+  String get set_type_dropset_help => 'ワーキングセット直後に負荷を下げて続けます。漸進には反映されません。';
+
+  @override
   String get set_reps_hint => '8-12';
 
   @override

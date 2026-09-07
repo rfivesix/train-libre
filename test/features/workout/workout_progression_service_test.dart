@@ -243,5 +243,96 @@ void main() {
       expect(result!.outcome, equals(ProgressionOutcome.raise));
       expect(result.targetWeight, equals(22.0)); // 20.0 + 2.0 kg
     });
+
+    test('recalculates a later set from today while preserving its back-off',
+        () async {
+      final date = now.subtract(const Duration(days: 2));
+      fakeRepo.historySets = [
+        createTestSetLog(
+          id: 1,
+          workoutLogId: 10,
+          weightKg: 35,
+          reps: 8,
+          performedAt: date,
+        ).copyWith(logOrder: 1),
+        createTestSetLog(
+          id: 2,
+          workoutLogId: 10,
+          weightKg: 30,
+          reps: 12,
+          performedAt: date,
+        ).copyWith(logOrder: 2),
+      ];
+      final templates = [
+        createTestTemplate(),
+        createTestTemplate().copyWith(id: 2),
+      ];
+      final currentSets = [
+        createTestSetLog(
+          id: 11,
+          workoutLogId: 99,
+          weightKg: 40,
+          reps: 8,
+          performedAt: now,
+        ),
+        createTestSetLog(
+          id: 12,
+          workoutLogId: 99,
+          weightKg: null,
+          reps: null,
+          performedAt: now,
+          isCompleted: false,
+        ),
+      ];
+
+      final result = await service.getInWorkoutSuggestion(
+        exercise: createTestExercise(),
+        workingTemplates: templates,
+        currentWorkingSets: currentSets,
+        targetTemplateId: 2,
+        currentWorkoutLogId: 99,
+      );
+
+      expect(result?.targetWeight, equals(35));
+      expect(result?.reason, equals(ProgressionReason.inWorkoutStructure));
+    });
+
+    test('uses today\'s last working set when an added position has no history',
+        () async {
+      fakeRepo.historySets = [];
+      final templates = [
+        createTestTemplate(),
+        createTestTemplate().copyWith(id: 2),
+      ];
+      final currentSets = [
+        createTestSetLog(
+          id: 11,
+          workoutLogId: 99,
+          weightKg: 40,
+          reps: 9,
+          performedAt: now,
+        ),
+        createTestSetLog(
+          id: 12,
+          workoutLogId: 99,
+          weightKg: null,
+          reps: null,
+          performedAt: now,
+          isCompleted: false,
+        ),
+      ];
+
+      final result = await service.getInWorkoutSuggestion(
+        exercise: createTestExercise(),
+        workingTemplates: templates,
+        currentWorkingSets: currentSets,
+        targetTemplateId: 2,
+        currentWorkoutLogId: 99,
+      );
+
+      expect(result?.targetWeight, equals(40));
+      expect(result?.targetReps, equals(10));
+      expect(result?.reason, equals(ProgressionReason.inWorkoutFallback));
+    });
   });
 }
