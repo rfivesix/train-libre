@@ -105,7 +105,9 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
   List<ProgressionReview> reviewsFor(int templateId) {
     if (!progressionEnabled) return const [];
     final log = _setLogs[templateId];
-    if (log == null || log.progression.completion != SetCompletion.completed) {
+    if (log == null ||
+        log.isCompleted == true ||
+        log.progression.completion != SetCompletion.completed) {
       return const [];
     }
     final events = log.progression.events;
@@ -136,6 +138,7 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
         !WorkoutSetPositionMapper.isWorking(log.setType)) {
       return false;
     }
+    if (log.progression.completionReviewAcknowledged) return false;
     if (log.progression.completion != SetCompletion.completed) return true;
 
     final plannedReps =
@@ -159,8 +162,12 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
     final log = _setLogs[templateId];
     if (log == null) return;
     final updated = log.copyWith(
-        progressionData:
-            log.progression.copyWith(completion: completion).encode());
+        progressionData: log.progression
+            .copyWith(
+              completion: completion,
+              completionReviewAcknowledged: true,
+            )
+            .encode());
     _setLogs[templateId] = updated;
     await _repository.updateSetLogs([updated]);
     if (completion != SetCompletion.completed && log.isCompleted != true) {
@@ -1235,6 +1242,39 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
     );
 
     var finalSet = result.updatedSet;
+
+    if (isCompleted == true && oldLog.isCompleted != true) {
+      final openReviews = reviewsFor(templateId);
+      if (openReviews.isNotEmpty) {
+        final decidedAt = DateTime.now();
+        finalSet = finalSet.copyWith(
+          progressionData: finalSet.progression.copyWith(
+            events: [
+              ...finalSet.progression.events,
+              ...openReviews.map(
+                (review) => ReviewDecision(
+                  review: review,
+                  action: ReviewAction.dismissed,
+                  at: decidedAt,
+                  note: 'set_completed',
+                ),
+              ),
+            ],
+          ).encode(),
+        );
+      }
+    }
+
+    if (isCompleted == false && oldLog.isCompleted == true) {
+      finalSet = finalSet.copyWith(
+        progressionData: finalSet.progression
+            .copyWith(
+              completion: SetCompletion.completed,
+              completionReviewAcknowledged: false,
+            )
+            .encode(),
+      );
+    }
 
     // Handle progression suggestion provenance & override status
     final suggestion = _suggestions[templateId];

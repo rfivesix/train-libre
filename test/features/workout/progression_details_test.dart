@@ -60,11 +60,53 @@ void main() {
     await tester.tap(find.text('Keep current load'));
     await tester.pump();
     expect(decision, ReviewAction.rejected);
+    expect(find.text('Dismiss hint'), findsNothing);
+    expect(find.byIcon(Icons.close_rounded), findsOneWidget);
+    await tester.tap(find.byIcon(Icons.close_rounded));
+    await tester.pump();
+    expect(decision, ReviewAction.dismissed);
 
     await tester.tap(find.text('Completed normally'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Ended early').last);
     await tester.pumpAndSettle();
     expect(completion, SetCompletion.abandoned);
+  });
+
+  testWidgets('completion-only control has no progression review card',
+      (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    final units = UnitService();
+    await units.setUnitSystem(UnitSystem.metric);
+    await tester.pumpWidget(ChangeNotifierProvider<UnitService>.value(
+      value: units,
+      child: MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        locale: const Locale('en'),
+        home: Scaffold(
+          body: ProgressionDetails(
+            log: SetLog(
+              workoutLogId: 1,
+              exerciseName: 'Press',
+              setType: 'normal',
+            ),
+            showCompletionPicker: true,
+            onCompletion: (_) {},
+          ),
+        ),
+      ),
+    ));
+
+    expect(find.byType(PlatformAdaptiveDropdownFormField<SetCompletion>),
+        findsOneWidget);
+    expect(
+      find.byWidgetPredicate((widget) {
+        final key = widget.key;
+        return key is ValueKey<String> &&
+            key.value.startsWith('progression_review_');
+      }),
+      findsNothing,
+    );
   });
 }

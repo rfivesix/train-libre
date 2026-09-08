@@ -157,6 +157,7 @@ class ProgressionConfig {
   final String? equipmentIdentity;
   final LoadMode? loadMode;
   final SetCompletion completion;
+  final bool completionReviewAcknowledged;
   final List<ReviewDecision> events;
   final String? contextNote;
   final int? bridgeTarget;
@@ -169,6 +170,7 @@ class ProgressionConfig {
       this.equipmentIdentity,
       this.loadMode,
       this.completion = SetCompletion.completed,
+      this.completionReviewAcknowledged = false,
       this.events = const [],
       this.contextNote,
       this.bridgeTarget,
@@ -181,6 +183,7 @@ class ProgressionConfig {
           String? equipmentIdentity,
           LoadMode? loadMode,
           SetCompletion? completion,
+          bool? completionReviewAcknowledged,
           List<ReviewDecision>? events,
           String? contextNote,
           int? bridgeTarget,
@@ -194,6 +197,8 @@ class ProgressionConfig {
           equipmentIdentity: equipmentIdentity ?? this.equipmentIdentity,
           loadMode: loadMode ?? this.loadMode,
           completion: completion ?? this.completion,
+          completionReviewAcknowledged:
+              completionReviewAcknowledged ?? this.completionReviewAcknowledged,
           events: events ?? this.events,
           contextNote: contextNote ?? this.contextNote,
           bridgeTarget: clearBridge ? null : bridgeTarget ?? this.bridgeTarget,
@@ -211,6 +216,7 @@ class ProgressionConfig {
         'equipmentIdentity': equipmentIdentity,
         'loadMode': loadMode?.name,
         'completion': completion.name,
+        'completionReviewAcknowledged': completionReviewAcknowledged,
         'events': events.map((e) => e.toJson()).toList(),
         'contextNote': contextNote
       });
@@ -226,6 +232,7 @@ class ProgressionConfig {
             j['loadMode'] == null ? null : LoadMode.fromString(j['loadMode']),
         completion: _enum(
             SetCompletion.values, j['completion'], SetCompletion.completed),
+        completionReviewAcknowledged: j['completionReviewAcknowledged'] == true,
         prescriptionKey: j['prescriptionKey'],
         baselines: (j['baselines'] as Map<String, dynamic>? ?? {})
             .map((k, v) => MapEntry(k, ConfirmedBaseline.fromJson(v))),

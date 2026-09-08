@@ -85,96 +85,118 @@ class ProgressionDetails extends StatelessWidget {
     String load(double? v) =>
         v == null ? '—' : units.formatDisplayWeight(v, fractionDigits: 2);
     final colorScheme = Theme.of(context).colorScheme;
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        DesignConstants.spacingM,
-        DesignConstants.spacingXS,
-        DesignConstants.spacingM,
-        DesignConstants.spacingS,
-      ),
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.45),
-          borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(DesignConstants.spacingM),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              if (showCompletionPicker && onCompletion != null)
-                PlatformAdaptiveDropdownFormField<SetCompletion>(
-                  key:
-                      ValueKey('set_completion_${log.id ?? log.logOrder ?? 0}'),
-                  value: config.completion,
-                  decoration:
-                      InputDecoration(labelText: l.progressionSetOutcome),
-                  items: SetCompletion.values
-                      .map((c) => DropdownMenuItem(
-                          value: c, child: Text(completionLabel(l, c))))
-                      .toList(),
-                  onChanged: (value) {
-                    if (value != null) onCompletion!(value);
-                  },
-                ),
-              if (showCompletionPicker &&
-                  config.completion == SetCompletion.stoppedForPain)
-                Padding(
-                  padding: const EdgeInsets.only(top: DesignConstants.spacingS),
-                  child: Text(l.progressionPainGuidance),
-                ),
-              if (showCompletionPicker && reviews.isNotEmpty)
-                const SizedBox(height: DesignConstants.spacingM),
-              if (config.completion == SetCompletion.completed)
-                ...reviews.map((review) => Padding(
-                    padding: const EdgeInsets.symmetric(
-                        vertical: DesignConstants.spacingXS),
-                    child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(reviewLabel(l, review.kind)),
-                          Text(
-                              '${load(review.currentLoad)} → ${load(review.targetLoad)}${review.relativeJump == null ? '' : ' (${(review.relativeJump! * 100).toStringAsFixed(1)}%)'}${review.targetReps == null ? '' : ' × ${review.targetReps}'}'),
-                          if (onDecision != null)
-                            Wrap(spacing: 8, children: [
-                              if (review.kind == ReviewKind.farAboveRange)
-                                TextButton(
-                                    onPressed: () => onDecision!(
-                                        review, ReviewAction.confirmedLog),
-                                    child: Text(l.progressionConfirmLog))
-                              else if (review.targetLoad != null)
-                                TextButton(
-                                    onPressed: () => onDecision!(
-                                        review, ReviewAction.accepted),
-                                    child: Text(l.progressionAccept)),
-                              if (review.kind == ReviewKind.farAboveRange ||
-                                  review.kind == ReviewKind.stepUnavailable)
-                                TextButton(
-                                    onPressed: () async {
-                                      final chosen =
-                                          await chooseProgressionBaseline(
-                                              context, review.currentLoad);
-                                      if (chosen != null) {
-                                        await onDecision!(
-                                            review, ReviewAction.recalibrated,
-                                            chosenLoad: chosen);
-                                      }
-                                    },
-                                    child: Text(l.progressionRecalibrate)),
-                              TextButton(
-                                  onPressed: () => onDecision!(
-                                      review, ReviewAction.rejected),
-                                  child: Text(l.progressionDecline)),
-                              TextButton(
-                                  onPressed: () => onDecision!(
-                                      review, ReviewAction.dismissed),
-                                  child: Text(l.progressionDismiss)),
-                            ]),
-                        ]))),
-            ],
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (showCompletionPicker && onCompletion != null)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              DesignConstants.spacingM,
+              DesignConstants.spacingXS,
+              DesignConstants.spacingM,
+              DesignConstants.spacingS,
+            ),
+            child: PlatformAdaptiveDropdownFormField<SetCompletion>(
+              key: ValueKey('set_completion_${log.id ?? log.logOrder ?? 0}'),
+              value: config.completion,
+              decoration: InputDecoration(labelText: l.progressionSetOutcome),
+              items: SetCompletion.values
+                  .map((c) => DropdownMenuItem(
+                      value: c, child: Text(completionLabel(l, c))))
+                  .toList(),
+              onChanged: (value) {
+                if (value == null) return;
+                if (value == SetCompletion.stoppedForPain) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(l.progressionPainGuidance)),
+                  );
+                }
+                onCompletion!(value);
+              },
+            ),
           ),
-        ),
-      ),
+        if (config.completion == SetCompletion.completed)
+          ...reviews.map((review) => Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  DesignConstants.spacingM,
+                  DesignConstants.spacingXS,
+                  DesignConstants.spacingM,
+                  DesignConstants.spacingS,
+                ),
+                child: DecoratedBox(
+                  key: ValueKey('progression_review_${review.key}'),
+                  decoration: BoxDecoration(
+                    color: colorScheme.surfaceContainerHighest
+                        .withValues(alpha: 0.45),
+                    borderRadius:
+                        BorderRadius.circular(DesignConstants.borderRadiusM),
+                  ),
+                  child: Stack(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(
+                          DesignConstants.spacingM,
+                          DesignConstants.spacingM,
+                          44,
+                          DesignConstants.spacingS,
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(reviewLabel(l, review.kind)),
+                            Text(
+                                '${load(review.currentLoad)} → ${load(review.targetLoad)}${review.relativeJump == null ? '' : ' (${(review.relativeJump! * 100).toStringAsFixed(1)}%)'}${review.targetReps == null ? '' : ' × ${review.targetReps}'}'),
+                            if (onDecision != null)
+                              Wrap(spacing: 8, children: [
+                                if (review.kind == ReviewKind.farAboveRange)
+                                  TextButton(
+                                      onPressed: () => onDecision!(
+                                          review, ReviewAction.confirmedLog),
+                                      child: Text(l.progressionConfirmLog))
+                                else if (review.targetLoad != null)
+                                  TextButton(
+                                      onPressed: () => onDecision!(
+                                          review, ReviewAction.accepted),
+                                      child: Text(l.progressionAccept)),
+                                if (review.kind == ReviewKind.farAboveRange ||
+                                    review.kind == ReviewKind.stepUnavailable)
+                                  TextButton(
+                                      onPressed: () async {
+                                        final chosen =
+                                            await chooseProgressionBaseline(
+                                                context, review.currentLoad);
+                                        if (chosen != null) {
+                                          await onDecision!(
+                                              review, ReviewAction.recalibrated,
+                                              chosenLoad: chosen);
+                                        }
+                                      },
+                                      child: Text(l.progressionRecalibrate)),
+                                TextButton(
+                                    onPressed: () => onDecision!(
+                                        review, ReviewAction.rejected),
+                                    child: Text(l.progressionDecline)),
+                              ]),
+                          ],
+                        ),
+                      ),
+                      if (onDecision != null)
+                        Positioned(
+                          top: 2,
+                          right: 2,
+                          child: IconButton(
+                            tooltip: l.progressionDismiss,
+                            visualDensity: VisualDensity.compact,
+                            icon: const Icon(Icons.close_rounded, size: 20),
+                            onPressed: () =>
+                                onDecision!(review, ReviewAction.dismissed),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              )),
+      ],
     );
   }
 }

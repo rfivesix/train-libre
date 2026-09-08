@@ -286,6 +286,29 @@ void main() {
     expect(vm.setLogs[101]!.valuesAutoFilled, true);
   });
 
+  test('completing a set closes its pending target decision', () async {
+    await seedV15([(8, 12), (8, 12)]);
+    final re = createRoutineExercise(exercise: createExercise()).copyWith(
+        progressionData: ProgressionConfig(
+                policy: ProgressionPolicy.independentWorkingSets,
+                ladder: LoadLadder([8, 10], source: LoadLadderSource.user))
+            .encode());
+    final workout = await workoutDb.startWorkout(routineName: 'coarse');
+    await vm.loadInitialData(workout, [re]);
+
+    expect(vm.reviewsFor(101).single.kind, ReviewKind.largeStepTrial);
+
+    await vm.updateSet(101, isCompleted: true);
+    await vm.pendingProgressionUpdate;
+
+    expect(vm.reviewsFor(101), isEmpty);
+    expect(
+      vm.setLogs[101]!.progression.events.last.action,
+      ReviewAction.dismissed,
+    );
+    expect(vm.setLogs[101]!.progression.events.last.note, 'set_completed');
+  });
+
   test('v1.5 completion states persist and never anchor', () async {
     final re = createRoutineExercise(exercise: createExercise());
     final workout = await workoutDb.startWorkout(routineName: 'interruption');
@@ -311,6 +334,10 @@ void main() {
     expect(vm.shouldShowCompletionPicker(101), isTrue);
     expect(vm.shouldShowCompletionPicker(102), isFalse);
 
+    await vm.setCompletion(101, SetCompletion.completed);
+    await vm.pendingProgressionUpdate;
+    expect(vm.shouldShowCompletionPicker(101), isFalse);
+
     await vm.updateSet(102, weight: 60, reps: 8, isCompleted: true);
     await vm.pendingProgressionUpdate;
     expect(vm.latestCompletedWorkingTemplateId, 102);
@@ -335,7 +362,7 @@ void main() {
     expect(vm.shouldShowCompletionPicker(101), isTrue);
     await vm.setCompletion(101, SetCompletion.equipmentInterrupted);
     await vm.pendingProgressionUpdate;
-    expect(vm.shouldShowCompletionPicker(101), isTrue);
+    expect(vm.shouldShowCompletionPicker(101), isFalse);
     expect(vm.reviewsFor(101), isEmpty);
   });
 
@@ -361,18 +388,19 @@ void main() {
     expect(vm.shouldShowCompletionPicker(101), isTrue);
   });
 
-  test('v1.5 overshoot is reviewed immediately after manual completion',
+  test('v1.5 stores an overshoot review without showing it on the closed set',
       () async {
     final re = createRoutineExercise(exercise: createExercise());
     final workout = await workoutDb.startWorkout(routineName: 'overshoot');
     await vm.loadInitialData(workout, [re]);
     await vm.updateSet(101, weight: 60, reps: 15, isCompleted: true);
     await vm.pendingProgressionUpdate;
-    expect(vm.reviewsFor(101).single.kind, ReviewKind.farAboveRange);
-    expect(vm.setLogs[101]!.weightKg, 60);
-    await vm.decideReview(
-        101, vm.reviewsFor(101).single, ReviewAction.confirmedLog);
-    expect(vm.reviewsFor(101).single.targetLoad, 62.5);
+    expect(vm.reviewsFor(101), isEmpty);
+    final review = vm.setLogs[101]!.progression.events
+        .where((event) => event.action == ReviewAction.offered)
+        .map((event) => event.review)
+        .single;
+    expect(review.kind, ReviewKind.farAboveRange);
     expect(vm.setLogs[101]!.weightKg, 60);
   });
 

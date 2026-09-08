@@ -169,6 +169,7 @@ void main() {
     final config = ProgressionConfig(
         policy: r.policy,
         ladder: LoadLadder([8, 10], source: LoadLadderSource.user),
+        completionReviewAcknowledged: true,
         events: [
           ReviewDecision(
               review: r.reviews.single, action: ReviewAction.rejected, at: now)
@@ -177,6 +178,7 @@ void main() {
     expect(restored.events.single.review.algorithmVersion,
         ProgressionV15.algorithmVersion);
     expect(restored.events.single.review.ladderSource, LoadLadderSource.user);
+    expect(restored.completionReviewAcknowledged, isTrue);
     expect(ProgressionConfig.decode(null).policy,
         ProgressionPolicy.linkedWorkingSets);
   });

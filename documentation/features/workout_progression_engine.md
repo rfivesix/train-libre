@@ -132,11 +132,19 @@ shown only below the most recently completed working set when the entered load
 or repetitions fall below the concrete suggestion, or below the routine minimum
 when no exact repetition suggestion existed. `completed` remains the default;
 the control lets the user explicitly exclude an early stop, pain or an equipment
-problem. Completing a later working set removes the control from the earlier
-row. Pending progression reviews remain visible only while they require a real
-decision. Generic reasons, ladder sources, algorithm versions and event history
-are not repeated beneath normal live rows. Workout history shows only a compact
-label for exceptional completion states.
+problem. Any selection acknowledges and closes the control, including an
+explicitly confirmed regular completion; that acknowledgement is retained in
+the workout snapshot. Undoing the completed set resets it. Completing a later
+working set also removes an unacknowledged control from the earlier row. The
+completion picker uses no additional card frame. Pending progression reviews
+remain visible only while they require a real decision, and their dismiss action
+is a compact top-right close icon. They are displayed only on open sets and
+disappear when that set is completed. A review derived only from the newly
+logged performance, such as an overshoot review, remains recorded for later
+progression instead of reopening a menu beneath the closed row. Generic reasons,
+ladder sources, algorithm versions and event history are not repeated beneath
+normal live rows. Workout history shows only a compact label for exceptional
+completion states.
 
 Comparability excludes explicit mode/identity changes, substitutions, changed
 ranges and non-completed states. Missing legacy context is treated
