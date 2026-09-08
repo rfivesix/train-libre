@@ -147,6 +147,7 @@ class DiaryViewModel extends ChangeNotifier {
       (sleepOverview != null && (sleepOverview!.totalSleepMinutes ?? 0) > 0) ||
       (pulseSummary != null && pulseSummary!.sampleCount > 0) ||
       hasWeightMeasurementForSelectedDate;
+  bool get isSelectedDateToday => selectedDate.isSameDate(DateTime.now());
 
   int targetSteps = StepsSyncService.defaultStepsGoal;
 

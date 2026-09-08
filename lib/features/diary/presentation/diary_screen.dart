@@ -1536,7 +1536,7 @@ class _MealCardState extends State<_MealCard> {
 
     return Selector<DiaryViewModel, List<TrackedFoodItem>>(
       selector: (context, vm) {
-        if (!vm.hasDataForSelectedDate) {
+        if (!vm.hasDataForSelectedDate && !vm.isSelectedDateToday) {
           return [
             TrackedFoodItem(
               item: FoodItem(
@@ -1879,7 +1879,7 @@ class _FluidsCardState extends State<_FluidsCard> {
 
     return Selector<DiaryViewModel, List<FluidEntry>>(
       selector: (context, vm) {
-        if (!vm.hasDataForSelectedDate) {
+        if (!vm.hasDataForSelectedDate && !vm.isSelectedDateToday) {
           return [
             FluidEntry(
               timestamp: DateTime.now(),

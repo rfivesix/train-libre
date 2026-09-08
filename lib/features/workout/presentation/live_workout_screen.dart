@@ -177,7 +177,6 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
   /// gives up. Each attempt advances one viewport.
   static const int _maxScrollAttempts = 24;
   int _scrollRequest = 0;
-  int _handledAutoAdvanceRevision = 0;
 
   /// Brings the exercise holding the next open set to the top of the list.
   ///
@@ -391,11 +390,12 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
     LiveWorkoutScreen.onDeepLinkReturn = () {
       // Tapping the Live Activity body itself returns here via URL deep link
       // rather than an app-lifecycle resume, so it needs its own drain too.
-      unawaited(
-        Provider.of<LiveWorkoutViewModel>(context, listen: false)
-            .applyPendingLiveActivityCommands(),
-      );
-      _scrollToActiveExercise();
+      () async {
+        await Provider.of<LiveWorkoutViewModel>(context, listen: false)
+            .applyPendingLiveActivityCommands();
+        if (!mounted) return;
+        _scrollToActiveExercise();
+      }();
     };
     final l10n = AppLocalizations.of(context)!;
     final unitService = Provider.of<UnitService>(context);
@@ -430,10 +430,12 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
     if (state != AppLifecycleState.resumed || !mounted) return;
-    unawaited(
-      Provider.of<LiveWorkoutViewModel>(context, listen: false)
-          .applyPendingLiveActivityCommands(),
-    );
+    () async {
+      await Provider.of<LiveWorkoutViewModel>(context, listen: false)
+          .applyPendingLiveActivityCommands();
+      if (!mounted) return;
+      _scrollToActiveExercise();
+    }();
   }
 
   // --- Cardio check helper ---
@@ -948,13 +950,6 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
             (vm) => vm.exercises);
     final showRestBar = context.select<LiveWorkoutViewModel, bool>(
         (vm) => vm.remainingRestSeconds > 0 || vm.showRestDone);
-    final autoAdvanceRevision = context.select<LiveWorkoutViewModel, int>(
-      (vm) => vm.autoAdvanceRevision,
-    );
-    if (autoAdvanceRevision > _handledAutoAdvanceRevision) {
-      _handledAutoAdvanceRevision = autoAdvanceRevision;
-      _scrollToActiveExercise();
-    }
 
     // If the workout was just finished, the manager state is cleared.
     // We return a blank scaffold to avoid any errors during the Navigator transition.
@@ -1890,16 +1885,23 @@ class _LiveWorkoutRestBarState extends State<_LiveWorkoutRestBar>
     final isDark = theme.brightness == Brightness.dark;
     final double r = DesignConstants.workoutOverlayHeight / 2;
 
-    const saturatedAccent = DesignConstants.brandAccentColor;
     final defaultGlass = DesignConstants.liquidGlassSettings(isDark);
+    final doneGlassColor = isDark
+        ? const Color(0xFF1B5E20).withValues(alpha: 0.75)
+        : const Color(0xFF81C784).withValues(alpha: 0.70);
+
     final doneGlass = LiquidGlassSettings(
-      thickness: 30,
-      blur: 0.0,
-      glassColor: saturatedAccent,
-      lightIntensity: isDark ? 0.55 : 0.80,
-      saturation: 1.0,
-      ambientRim: 0.2,
+      thickness: 25,
+      blur: 3.5,
+      glassColor: doneGlassColor,
+      lightIntensity: isDark ? 0.70 : 0.85,
+      saturation: 1.2,
+      ambientRim: 0.15,
     );
+
+    final Color doneTextColor = isDark ? Colors.white : Colors.black;
+    final Color doneIconColor =
+        isDark ? const Color(0xFF69F0AE) : const Color(0xFF2E7D32);
 
     final restSeconds = widget.remainingRestSeconds;
     final minutes = restSeconds ~/ 60;
@@ -2075,7 +2077,7 @@ class _LiveWorkoutRestBarState extends State<_LiveWorkoutRestBar>
                         ),
                       ),
 
-                    // Layer 2: Radiant Yellow "Pause is over" Pill
+                    // Layer 2: Completed "Pause is over" Pill
                     if (t > 0.0)
                       Positioned.fill(
                         child: Opacity(
@@ -2103,13 +2105,13 @@ class _LiveWorkoutRestBarState extends State<_LiveWorkoutRestBar>
                                       Row(
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
-                                          const Icon(LucideIcons.circle_check,
-                                              color: Colors.black),
+                                          Icon(LucideIcons.circle_check,
+                                              color: doneIconColor),
                                           const SizedBox(width: 8),
                                           Text(
                                             l10n.restOverLabel,
-                                            style: const TextStyle(
-                                              color: Colors.black,
+                                            style: TextStyle(
+                                              color: doneTextColor,
                                               fontWeight: FontWeight.bold,
                                               fontSize: 16,
                                             ),
@@ -2123,14 +2125,31 @@ class _LiveWorkoutRestBarState extends State<_LiveWorkoutRestBar>
                                             minimumSize: Size.zero,
                                             tapTargetSize: MaterialTapTargetSize
                                                 .shrinkWrap,
-                                            foregroundColor: Colors.black,
+                                            foregroundColor: doneTextColor,
+                                            backgroundColor: isDark
+                                                ? Colors.white
+                                                    .withValues(alpha: 0.15)
+                                                : Colors.black
+                                                    .withValues(alpha: 0.08),
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(10),
+                                              side: BorderSide(
+                                                color: isDark
+                                                    ? Colors.white.withValues(
+                                                        alpha: 0.20)
+                                                    : Colors.black.withValues(
+                                                        alpha: 0.08),
+                                              ),
+                                            ),
                                             padding: const EdgeInsets.symmetric(
                                                 horizontal: 16),
                                           ),
                                           onPressed: widget.onCancelRest,
                                           child: Text(
                                             l10n.snackbar_button_ok,
-                                            style: const TextStyle(
+                                            style: TextStyle(
+                                              color: doneTextColor,
                                               fontWeight: FontWeight.bold,
                                               fontSize: 15,
                                             ),

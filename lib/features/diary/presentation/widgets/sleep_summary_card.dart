@@ -35,7 +35,7 @@ class SleepSummaryCard extends StatelessWidget {
         isSleepWidgetLoading: vm.isSleepWidgetLoading,
         sleepOverview: vm.sleepOverview,
         selectedDate: vm.selectedDate,
-        showSkeleton: !vm.hasDataForSelectedDate,
+        showSkeleton: !vm.hasDataForSelectedDate && !vm.isSelectedDateToday,
       ),
       builder: (context, data, child) {
         final showSkeleton = data.showSkeleton;

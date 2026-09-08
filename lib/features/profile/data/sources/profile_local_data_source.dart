@@ -324,6 +324,8 @@ class ProfileLocalDataSource {
     if (!weightKg.isFinite || weightKg <= 0) {
       throw ArgumentError.value(weightKg, 'weightKg');
     }
+    unawaited(TelemetryService.instance
+        .trackFeatureUsed(featureKey: FeatureKey.bodyMeasurementLogged));
     await dbInstance.transaction(() async {
       await (dbInstance.delete(dbInstance.measurements)
             ..where((t) => t.type.equals('weight') & t.date.equals(date)))

@@ -33,7 +33,7 @@ class StepsSummaryCard extends StatelessWidget {
         stepsForSelectedDay: vm.stepsForSelectedDay,
         targetSteps: vm.targetSteps,
         selectedDate: vm.selectedDate,
-        showSkeleton: !vm.hasDataForSelectedDate,
+        showSkeleton: !vm.hasDataForSelectedDate && !vm.isSelectedDateToday,
       ),
       builder: (context, data, child) {
         final showSkeleton = data.showSkeleton;

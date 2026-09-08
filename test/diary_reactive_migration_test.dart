@@ -439,5 +439,16 @@ void main() {
       await workoutControllerB.close();
       testVM.dispose();
     });
+
+    test('isSelectedDateToday is true only when selected date is today',
+        () async {
+      viewModel.selectedDateNotifier.value = DateTime.now();
+      expect(viewModel.isSelectedDateToday, isTrue);
+
+      viewModel.selectedDateNotifier.value =
+          DateTime.now().subtract(const Duration(days: 1));
+      expect(viewModel.isSelectedDateToday, isFalse);
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+    });
   });
 }

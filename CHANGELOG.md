@@ -23,6 +23,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **ExperienceLevel Persistence (`ExperienceLevelService`, `AppSettings`):** Experience level preference moved from `SharedPreferences` to SQLite `AppSettings.experienceLevel` with automatic one-time migration and backup/restore support.
 
 ### Fixed
+- **PostHog Measurement Log Telemetry (`ProfileLocalDataSource.saveWeightKg`):** Instrumented `FeatureKey.bodyMeasurementLogged` when logging weight entries (such as from the diary screen `WeightCard`), resolving an issue where weigh-ins recorded from the diary did not emit the telemetry event.
+- **Diary Today Placeholders (`DiaryScreen`, `StepsSummaryCard`, `PulseSummaryCard`, `SleepSummaryCard`):** Removed placeholder food entries, placeholder water logs, and simulated skeleton values for steps, pulse, and sleep when viewing today's diary before any data has been recorded.
+- **Live-Workout Automatic Scroll During Exercise (`LiveWorkoutScreen`):** Removed unwanted auto-scrolling when completing sets during an active workout session. Auto-scrolling to the active exercise now only occurs when reopening the workout screen or returning from a Live Activity or background resume.
+- **Live-Workout Rest Completion Banner Styling & Contrast (`LiveWorkoutScreen`):** Increased backdrop blur on the rest timer completion banner (`doneGlass`) to `3.5` (raised from `0.0`) so the glass effect is prominent and visibly frosted against background content. Replaced the yellow accent styling with the completed set green palette (`Color(0xFF1B5E20)` in dark mode, `Color(0xFF81C784)` in light mode) and dynamic high-contrast text and button colors (`Colors.white` in dark mode, `Colors.black` in light mode), resolving illegibility in dark mode.
 - **Auto-Fill Marking for Fabricated Zeros (`LogWorkoutSetUseCase`):** Completing sets where template weight is null (falling back to 0.0 kg) or target repetitions are empty (falling back to 0 reps) now flags `valuesAutoFilled = true` so fabricated defaults are not mistaken for user input.
 
 ### Removed
