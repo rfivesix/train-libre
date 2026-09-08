@@ -11736,6 +11736,240 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Suggest'**
   String get trainingProgressionSuggest;
+
+  /// No description provided for @progressionTogether.
+  ///
+  /// In en, this message translates to:
+  /// **'Develop sets together'**
+  String get progressionTogether;
+
+  /// No description provided for @progressionIndividually.
+  ///
+  /// In en, this message translates to:
+  /// **'Develop sets individually'**
+  String get progressionIndividually;
+
+  /// No description provided for @progressionPolicy.
+  ///
+  /// In en, this message translates to:
+  /// **'Set progression'**
+  String get progressionPolicy;
+
+  /// No description provided for @progressionSetOutcome.
+  ///
+  /// In en, this message translates to:
+  /// **'Count set as'**
+  String get progressionSetOutcome;
+
+  /// No description provided for @progressionDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Progression and equipment'**
+  String get progressionDetails;
+
+  /// No description provided for @progressionLargeStep.
+  ///
+  /// In en, this message translates to:
+  /// **'The next available load is a large step. Test it only after confirming, or keep the current load.'**
+  String get progressionLargeStep;
+
+  /// No description provided for @progressionBridge.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional temporary target: two repetitions above the range ceiling. Your authored range stays unchanged. Reaching this target offers the real load step again.'**
+  String get progressionBridge;
+
+  /// No description provided for @progressionUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'No next rung is available. Hold, correct the available loads for microloading, or choose a new baseline.'**
+  String get progressionUnavailable;
+
+  /// No description provided for @progressionOvershoot.
+  ///
+  /// In en, this message translates to:
+  /// **'This log is at least three repetitions above the ceiling. Confirm the entry, then choose the next available rung or explicitly set a new baseline.'**
+  String get progressionOvershoot;
+
+  /// No description provided for @progressionStall.
+  ///
+  /// In en, this message translates to:
+  /// **'This position was below its range in three comparable sessions. You may choose the proposed easier load, keep the plan, or edit your range. Nothing changes automatically.'**
+  String get progressionStall;
+
+  /// No description provided for @progressionBoundary.
+  ///
+  /// In en, this message translates to:
+  /// **'New metric and baseline. Confirm the transition for this exercise; assistance, bodyweight and added load are separate metrics.'**
+  String get progressionBoundary;
+
+  /// No description provided for @progressionAccept.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm target'**
+  String get progressionAccept;
+
+  /// No description provided for @progressionDecline.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep current load'**
+  String get progressionDecline;
+
+  /// No description provided for @progressionDismiss.
+  ///
+  /// In en, this message translates to:
+  /// **'Dismiss review'**
+  String get progressionDismiss;
+
+  /// No description provided for @progressionRecalibrate.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose new baseline'**
+  String get progressionRecalibrate;
+
+  /// No description provided for @progressionConfirmLog.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm log and review next rung'**
+  String get progressionConfirmLog;
+
+  /// No description provided for @progressionLoads.
+  ///
+  /// In en, this message translates to:
+  /// **'Available loads (separate with semicolons)'**
+  String get progressionLoads;
+
+  /// No description provided for @progressionEquipment.
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment identity (optional)'**
+  String get progressionEquipment;
+
+  /// No description provided for @progressionContext.
+  ///
+  /// In en, this message translates to:
+  /// **'Context or temporary reason (optional)'**
+  String get progressionContext;
+
+  /// No description provided for @progressionCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed normally'**
+  String get progressionCompleted;
+
+  /// No description provided for @progressionAbandoned.
+  ///
+  /// In en, this message translates to:
+  /// **'Ended early'**
+  String get progressionAbandoned;
+
+  /// No description provided for @progressionPain.
+  ///
+  /// In en, this message translates to:
+  /// **'Stopped because of pain'**
+  String get progressionPain;
+
+  /// No description provided for @progressionEquipmentInterrupted.
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment or setup interfered'**
+  String get progressionEquipmentInterrupted;
+
+  /// No description provided for @progressionPainGuidance.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop this set. Consider appropriate assessment before continuing; no load recommendation is offered.'**
+  String get progressionPainGuidance;
+
+  /// No description provided for @progressionUserLadder.
+  ///
+  /// In en, this message translates to:
+  /// **'Your available loads'**
+  String get progressionUserLadder;
+
+  /// No description provided for @progressionEquipmentLadder.
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment load ladder'**
+  String get progressionEquipmentLadder;
+
+  /// No description provided for @progressionFallback.
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment increment fallback'**
+  String get progressionFallback;
+
+  /// No description provided for @progressionHold.
+  ///
+  /// In en, this message translates to:
+  /// **'Hold load; repetitions follow this position’s range and history.'**
+  String get progressionHold;
+
+  /// No description provided for @progressionOrdinary.
+  ///
+  /// In en, this message translates to:
+  /// **'Upper range reached: next available load, repetitions restart at the range minimum.'**
+  String get progressionOrdinary;
+
+  /// No description provided for @progressionAnchor.
+  ///
+  /// In en, this message translates to:
+  /// **'Linked positions preserve today’s load difference from the previous session.'**
+  String get progressionAnchor;
+
+  /// No description provided for @progressionNewPosition.
+  ///
+  /// In en, this message translates to:
+  /// **'New position: provisional baseline from today’s completed working set, not historical progression evidence.'**
+  String get progressionNewPosition;
+
+  /// No description provided for @progressionWithheld.
+  ///
+  /// In en, this message translates to:
+  /// **'No comparable evidence for a suggestion.'**
+  String get progressionWithheld;
+
+  /// No description provided for @progressionOffered.
+  ///
+  /// In en, this message translates to:
+  /// **'Offered'**
+  String get progressionOffered;
+
+  /// No description provided for @progressionAccepted.
+  ///
+  /// In en, this message translates to:
+  /// **'Accepted'**
+  String get progressionAccepted;
+
+  /// No description provided for @progressionRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Declined'**
+  String get progressionRejected;
+
+  /// No description provided for @progressionInvalidLoads.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter non-negative loads; at least one available value is required.'**
+  String get progressionInvalidLoads;
+
+  /// No description provided for @progressionBodyweight.
+  ///
+  /// In en, this message translates to:
+  /// **'Bodyweight'**
+  String get progressionBodyweight;
+
+  /// No description provided for @progressionWeighted.
+  ///
+  /// In en, this message translates to:
+  /// **'Weighted bodyweight'**
+  String get progressionWeighted;
+
+  /// No description provided for @progressionAssisted.
+  ///
+  /// In en, this message translates to:
+  /// **'Assistance'**
+  String get progressionAssisted;
 }
 
 class _AppLocalizationsDelegate

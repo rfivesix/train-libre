@@ -1338,7 +1338,10 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                                                           ),
                                                                           child: Selector<
                                                                               LiveWorkoutViewModel,
-                                                                              Map<int, SetLog>>(
+                                                                              ({
+                                                                                Map<int, SetLog> logs,
+                                                                                int? latestCompleted
+                                                                              })>(
                                                                             selector:
                                                                                 (context, vm) {
                                                                               final map = <int, SetLog>{};
@@ -1348,28 +1351,32 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                                                                   map[template.id!] = log;
                                                                                 }
                                                                               }
-                                                                              return map;
+                                                                              return (
+                                                                                logs: map,
+                                                                                latestCompleted: vm.latestCompletedWorkingTemplateId,
+                                                                              );
                                                                             },
                                                                             shouldRebuild:
                                                                                 (prev, next) {
-                                                                              if (prev.length != next.length) {
+                                                                              if (prev.latestCompleted != next.latestCompleted || prev.logs.length != next.logs.length) {
                                                                                 return true;
                                                                               }
-                                                                              for (final key in prev.keys) {
-                                                                                final prevLog = prev[key];
-                                                                                final nextLog = next[key];
+                                                                              for (final key in prev.logs.keys) {
+                                                                                final prevLog = prev.logs[key];
+                                                                                final nextLog = next.logs[key];
                                                                                 if (prevLog == null || nextLog == null) {
                                                                                   return true;
                                                                                 }
-                                                                                if (prevLog.setType != nextLog.setType || prevLog.isCompleted != nextLog.isCompleted) {
+                                                                                if (prevLog.setType != nextLog.setType || prevLog.isCompleted != nextLog.isCompleted || prevLog.weightKg != nextLog.weightKg || prevLog.reps != nextLog.reps || prevLog.prescribedWeight != nextLog.prescribedWeight || prevLog.prescribedRepMin != nextLog.prescribedRepMin || prevLog.progressionData != nextLog.progressionData) {
                                                                                   return true;
                                                                                 }
                                                                               }
                                                                               return false;
                                                                             },
                                                                             builder: (context,
-                                                                                exerciseSetLogs,
+                                                                                selection,
                                                                                 child) {
+                                                                              final exerciseSetLogs = selection.logs;
                                                                               return AnimatedSize(
                                                                                 duration: const Duration(milliseconds: 260),
                                                                                 curve: Curves.easeInOutCubic,

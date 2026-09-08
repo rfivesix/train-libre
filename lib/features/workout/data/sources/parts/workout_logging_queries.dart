@@ -1,6 +1,34 @@
 part of '../workout_local_data_source.dart';
 
 extension WorkoutLoggingQueries on WorkoutLocalDataSource {
+  Future<List<SetLog>> getProgressionHistory({
+    required String exerciseId,
+    required String exerciseNameSnapshot,
+  }) async {
+    final d = await database;
+    final rows = await (d.select(d.setLogs).join([
+      drift.innerJoin(
+          d.workoutLogs, d.workoutLogs.id.equalsExp(d.setLogs.workoutLogId)),
+    ])
+          ..where((d.setLogs.exerciseId.equals(exerciseId) |
+                  (d.setLogs.exerciseId.isNull() &
+                      d.setLogs.exerciseNameSnapshot
+                          .equals(exerciseNameSnapshot))) &
+              d.workoutLogs.status.equals('completed'))
+          ..orderBy([
+            drift.OrderingTerm.desc(d.workoutLogs.startTime),
+            drift.OrderingTerm.asc(d.setLogs.logOrder),
+            drift.OrderingTerm.asc(d.setLogs.localId)
+          ]))
+        .get();
+    return rows.map((r) {
+      final set = r.readTable(d.setLogs);
+      final workout = r.readTable(d.workoutLogs);
+      return _mapSetLogToModel(set, workout.localId)
+          .copyWith(performedAt: workout.startTime);
+    }).toList();
+  }
+
   /// Creates a new [WorkoutLog] and marks it as "ongoing".
   Future<WorkoutLog> startWorkout({String? routineName}) async {
     final dbInstance = await database;
@@ -139,6 +167,7 @@ extension WorkoutLoggingQueries on WorkoutLocalDataSource {
       prescriptionOverridden: drift.Value(setLog.prescriptionOverridden),
       valuesAutoFilled: drift.Value(setLog.valuesAutoFilled),
       substitutedForExerciseId: drift.Value(setLog.substitutedForExerciseId),
+      progressionData: drift.Value(setLog.progressionData),
       progressionReason: drift.Value(setLog.progressionReason),
       progressionAlgorithmVersion:
           drift.Value(setLog.progressionAlgorithmVersion),
@@ -203,6 +232,16 @@ extension WorkoutLoggingQueries on WorkoutLocalDataSource {
         await (dbInstance.update(dbInstance.setLogs)
               ..where((tbl) => tbl.localId.equals(s.id!)))
             .write(db.SetLogsCompanion(
+          progressionData: drift.Value(s.progressionData),
+          prescriptionOrigin: drift.Value(s.prescriptionOrigin),
+          prescribedWeight: drift.Value(s.prescribedWeight),
+          prescribedRepMin: drift.Value(s.prescribedRepMin),
+          prescribedRepMax: drift.Value(s.prescribedRepMax),
+          prescribedRir: drift.Value(s.prescribedRir),
+          progressionReason: drift.Value(s.progressionReason),
+          progressionAlgorithmVersion:
+              drift.Value(s.progressionAlgorithmVersion),
+          substitutedForExerciseId: drift.Value(s.substitutedForExerciseId),
           weight: drift.Value(s.weightKg),
           reps: drift.Value(s.reps),
           isCompleted: drift.Value(s.isCompleted ?? false),
@@ -496,6 +535,7 @@ extension WorkoutLoggingQueries on WorkoutLocalDataSource {
                   orderIndex: drift.Value(orderIndex),
                   pauseSeconds: drift.Value(re.pauseSeconds),
                   supersetGroup: drift.Value(re.supersetGroup),
+                  progressionData: drift.Value(re.progressionData),
                   notes: drift.Value(re.notes),
                 ),
               );
@@ -570,6 +610,7 @@ extension WorkoutLoggingQueries on WorkoutLocalDataSource {
                   valuesAutoFilled: drift.Value(s.valuesAutoFilled),
                   substitutedForExerciseId:
                       drift.Value(s.substitutedForExerciseId),
+                  progressionData: drift.Value(s.progressionData),
                   progressionReason: drift.Value(s.progressionReason),
                   progressionAlgorithmVersion:
                       drift.Value(s.progressionAlgorithmVersion),
@@ -737,6 +778,7 @@ extension WorkoutLoggingQueries on WorkoutLocalDataSource {
             prescriptionOverridden: r.prescriptionOverridden,
             valuesAutoFilled: r.valuesAutoFilled,
             substitutedForExerciseId: r.substitutedForExerciseId,
+            progressionData: r.progressionData,
             progressionReason: r.progressionReason,
             progressionAlgorithmVersion: r.progressionAlgorithmVersion,
             performedAt: workoutStartTime,

@@ -37,7 +37,11 @@ class LogWorkoutSetUseCase {
 
       if (template != null) {
         bool autoFilledNow = false;
-        if (currentWeight == null && !clearWeight) {
+        if (currentWeight == null &&
+            !clearWeight &&
+            oldLog.progression.loadMode?.name == 'bodyweight') {
+          finalWeight = 0;
+        } else if (currentWeight == null && !clearWeight) {
           finalWeight = template.targetWeight ?? 0.0;
           autoFilledNow = true;
         }

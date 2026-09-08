@@ -6790,4 +6790,137 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get trainingProgressionSuggest => 'Suggerisci';
+
+  @override
+  String get progressionTogether => 'Sviluppa le serie insieme';
+
+  @override
+  String get progressionIndividually => 'Sviluppa le serie singolarmente';
+
+  @override
+  String get progressionPolicy => 'Progressione delle serie';
+
+  @override
+  String get progressionSetOutcome => 'Valuta la serie come';
+
+  @override
+  String get progressionDetails => 'Progressione e attrezzatura';
+
+  @override
+  String get progressionLargeStep =>
+      'Il prossimo carico disponibile è un salto ampio. Conferma per provarlo oppure mantieni il carico attuale.';
+
+  @override
+  String get progressionBridge =>
+      'Obiettivo temporaneo facoltativo: due ripetizioni oltre il limite superiore. L’intervallo resta invariato. Raggiungerlo ripropone il salto di carico reale.';
+
+  @override
+  String get progressionUnavailable =>
+      'Nessun livello successivo disponibile. Mantieni il carico, correggi i carichi disponibili o scegli una nuova base.';
+
+  @override
+  String get progressionOvershoot =>
+      'Questo dato supera il limite di almeno tre ripetizioni. Confermalo, poi scegli il livello successivo o una nuova base.';
+
+  @override
+  String get progressionStall =>
+      'Questa posizione è rimasta sotto l’intervallo in tre sessioni confrontabili. Puoi scegliere il carico più facile, mantenere il piano o modificare l’intervallo. Nulla cambia automaticamente.';
+
+  @override
+  String get progressionBoundary =>
+      'Nuova metrica e nuova base. Conferma il passaggio per questo esercizio; assistenza, peso corporeo e carico aggiunto sono metriche distinte.';
+
+  @override
+  String get progressionAccept => 'Conferma obiettivo';
+
+  @override
+  String get progressionDecline => 'Mantieni il carico attuale';
+
+  @override
+  String get progressionDismiss => 'Chiudi revisione';
+
+  @override
+  String get progressionRecalibrate => 'Scegli una nuova base';
+
+  @override
+  String get progressionConfirmLog =>
+      'Conferma il dato e verifica il prossimo livello';
+
+  @override
+  String get progressionLoads =>
+      'Carichi disponibili (separati da punto e virgola)';
+
+  @override
+  String get progressionEquipment => 'Identità attrezzatura (facoltativa)';
+
+  @override
+  String get progressionContext => 'Contesto o motivo temporaneo (facoltativo)';
+
+  @override
+  String get progressionCompleted => 'Completata regolarmente';
+
+  @override
+  String get progressionAbandoned => 'Interrotta in anticipo';
+
+  @override
+  String get progressionPain => 'Interrotta per dolore';
+
+  @override
+  String get progressionEquipmentInterrupted =>
+      'Attrezzatura o configurazione inadeguata';
+
+  @override
+  String get progressionPainGuidance =>
+      'Ferma questa serie. Valuta un accertamento adeguato prima di continuare; non viene consigliato un carico.';
+
+  @override
+  String get progressionUserLadder => 'I tuoi carichi disponibili';
+
+  @override
+  String get progressionEquipmentLadder => 'Livelli dell’attrezzatura';
+
+  @override
+  String get progressionFallback => 'Incremento predefinito dell’attrezzatura';
+
+  @override
+  String get progressionHold =>
+      'Carico mantenuto; le ripetizioni seguono intervallo e storico di questa posizione.';
+
+  @override
+  String get progressionOrdinary =>
+      'Limite raggiunto: prossimo carico disponibile, ripetizioni al minimo dell’intervallo.';
+
+  @override
+  String get progressionAnchor =>
+      'Le posizioni collegate mantengono oggi la differenza di carico della sessione precedente.';
+
+  @override
+  String get progressionNewPosition =>
+      'Nuova posizione: base provvisoria dalla serie di oggi, non una prova storica di progressione.';
+
+  @override
+  String get progressionWithheld =>
+      'Nessun dato confrontabile per un suggerimento.';
+
+  @override
+  String get progressionOffered => 'Proposta';
+
+  @override
+  String get progressionAccepted => 'Accettata';
+
+  @override
+  String get progressionRejected => 'Rifiutata';
+
+  @override
+  String get progressionInvalidLoads =>
+      'Inserisci carichi non negativi; è richiesto almeno un valore.';
+
+  @override
+  String get progressionBodyweight => 'Peso corporeo';
+
+  @override
+  String get progressionWeighted => 'Peso corporeo con carico';
+
+  @override
+  String get progressionAssisted => 'Assistenza';
 }

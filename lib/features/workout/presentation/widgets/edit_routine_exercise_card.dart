@@ -1,3 +1,6 @@
+import 'progression_details.dart';
+import '../../domain/progression/progression_v15.dart';
+import '../../domain/parsers/rep_range_parser.dart' as parser;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../../generated/app_localizations.dart';
@@ -9,6 +12,7 @@ import '../../domain/models/set_template.dart';
 import '../../../exercise_catalog/presentation/exercise_detail_screen.dart';
 import '../../../../widgets/common/card_morph_route.dart';
 import '../../../../widgets/common/morph_source.dart';
+import '../../../../widgets/common/platform_adaptive_dropdown.dart';
 import 'superset_connector_button.dart';
 import 'workout_card.dart';
 import '../../domain/classification/exercise_log_mask.dart';
@@ -27,6 +31,7 @@ class EditRoutineExerciseCard extends StatelessWidget {
   final Map<int, TextEditingController> repsControllers;
   final Map<int, TextEditingController> weightControllers;
   final Map<int, TextEditingController> rirControllers;
+  final ValueChanged<ProgressionConfig>? onProgressionChanged;
   final VoidCallback onEditNotes;
   final VoidCallback onEditPauseTime;
   final VoidCallback onDeleteExercise;
@@ -56,6 +61,7 @@ class EditRoutineExerciseCard extends StatelessWidget {
 
   const EditRoutineExerciseCard({
     super.key,
+    this.onProgressionChanged,
     required this.routineExercise,
     required this.index,
     required this.isCardio,
@@ -192,6 +198,49 @@ class EditRoutineExerciseCard extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      if (!isCardio)
+                        Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            child: PlatformAdaptiveDropdownFormField<
+                                ProgressionPolicy>(
+                              value: routineExercise.progressionData != null
+                                  ? routineExercise.progression.policy
+                                  : selectProgressionPolicy(
+                                      routineExercise.setTemplates
+                                          .where((t) =>
+                                              t.setType == 'normal' ||
+                                              t.setType == 'failure')
+                                          .map((t) => t.targetWeight)
+                                          .toList(),
+                                      routineExercise.setTemplates
+                                          .where((t) =>
+                                              t.setType == 'normal' ||
+                                              t.setType == 'failure')
+                                          .map((t) {
+                                        final r =
+                                            parser.parseRepRange(t.targetReps);
+                                        return r == null
+                                            ? null
+                                            : RepRange(r.min, r.max);
+                                      }).toList()),
+                              decoration: InputDecoration(
+                                  labelText: l10n.progressionPolicy),
+                              items: ProgressionPolicy.values
+                                  .map((p) => DropdownMenuItem(
+                                      value: p,
+                                      child: Text(policyLabel(l10n, p))))
+                                  .toList(),
+                              onChanged:
+                                  !isEditMode || onProgressionChanged == null
+                                      ? null
+                                      : (p) {
+                                          if (p != null) {
+                                            onProgressionChanged!(
+                                                routineExercise.progression
+                                                    .copyWith(policy: p));
+                                          }
+                                        },
+                            )),
                       if (routineExercise.notes != null &&
                           routineExercise.notes!.isNotEmpty)
                         Padding(

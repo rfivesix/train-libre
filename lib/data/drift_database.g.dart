@@ -3145,6 +3145,12 @@ class $RoutineExercisesTable extends RoutineExercises
   late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
       'deleted_at', aliasedName, true,
       type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  static const VerificationMeta _progressionDataMeta =
+      const VerificationMeta('progressionData');
+  @override
+  late final GeneratedColumn<String> progressionData = GeneratedColumn<String>(
+      'progression_data', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _routineIdMeta =
       const VerificationMeta('routineId');
   @override
@@ -3193,6 +3199,7 @@ class $RoutineExercisesTable extends RoutineExercises
         createdAt,
         updatedAt,
         deletedAt,
+        progressionData,
         routineId,
         exerciseId,
         orderIndex,
@@ -3228,6 +3235,12 @@ class $RoutineExercisesTable extends RoutineExercises
     if (data.containsKey('deleted_at')) {
       context.handle(_deletedAtMeta,
           deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta));
+    }
+    if (data.containsKey('progression_data')) {
+      context.handle(
+          _progressionDataMeta,
+          progressionData.isAcceptableOrUnknown(
+              data['progression_data']!, _progressionDataMeta));
     }
     if (data.containsKey('routine_id')) {
       context.handle(_routineIdMeta,
@@ -3286,6 +3299,8 @@ class $RoutineExercisesTable extends RoutineExercises
           .read(DriftSqlType.dateTime, data['${effectivePrefix}updated_at'])!,
       deletedAt: attachedDatabase.typeMapping
           .read(DriftSqlType.dateTime, data['${effectivePrefix}deleted_at']),
+      progressionData: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}progression_data']),
       routineId: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}routine_id'])!,
       exerciseId: attachedDatabase.typeMapping
@@ -3313,6 +3328,7 @@ class RoutineExercise extends DataClass implements Insertable<RoutineExercise> {
   final DateTime createdAt;
   final DateTime updatedAt;
   final DateTime? deletedAt;
+  final String? progressionData;
   final String routineId;
   final String exerciseId;
   final int orderIndex;
@@ -3325,6 +3341,7 @@ class RoutineExercise extends DataClass implements Insertable<RoutineExercise> {
       required this.createdAt,
       required this.updatedAt,
       this.deletedAt,
+      this.progressionData,
       required this.routineId,
       required this.exerciseId,
       required this.orderIndex,
@@ -3340,6 +3357,9 @@ class RoutineExercise extends DataClass implements Insertable<RoutineExercise> {
     map['updated_at'] = Variable<DateTime>(updatedAt);
     if (!nullToAbsent || deletedAt != null) {
       map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
+    if (!nullToAbsent || progressionData != null) {
+      map['progression_data'] = Variable<String>(progressionData);
     }
     map['routine_id'] = Variable<String>(routineId);
     map['exercise_id'] = Variable<String>(exerciseId);
@@ -3365,6 +3385,9 @@ class RoutineExercise extends DataClass implements Insertable<RoutineExercise> {
       deletedAt: deletedAt == null && nullToAbsent
           ? const Value.absent()
           : Value(deletedAt),
+      progressionData: progressionData == null && nullToAbsent
+          ? const Value.absent()
+          : Value(progressionData),
       routineId: Value(routineId),
       exerciseId: Value(exerciseId),
       orderIndex: Value(orderIndex),
@@ -3388,6 +3411,7 @@ class RoutineExercise extends DataClass implements Insertable<RoutineExercise> {
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+      progressionData: serializer.fromJson<String?>(json['progressionData']),
       routineId: serializer.fromJson<String>(json['routineId']),
       exerciseId: serializer.fromJson<String>(json['exerciseId']),
       orderIndex: serializer.fromJson<int>(json['orderIndex']),
@@ -3405,6 +3429,7 @@ class RoutineExercise extends DataClass implements Insertable<RoutineExercise> {
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+      'progressionData': serializer.toJson<String?>(progressionData),
       'routineId': serializer.toJson<String>(routineId),
       'exerciseId': serializer.toJson<String>(exerciseId),
       'orderIndex': serializer.toJson<int>(orderIndex),
@@ -3420,6 +3445,7 @@ class RoutineExercise extends DataClass implements Insertable<RoutineExercise> {
           DateTime? createdAt,
           DateTime? updatedAt,
           Value<DateTime?> deletedAt = const Value.absent(),
+          Value<String?> progressionData = const Value.absent(),
           String? routineId,
           String? exerciseId,
           int? orderIndex,
@@ -3432,6 +3458,9 @@ class RoutineExercise extends DataClass implements Insertable<RoutineExercise> {
         createdAt: createdAt ?? this.createdAt,
         updatedAt: updatedAt ?? this.updatedAt,
         deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+        progressionData: progressionData.present
+            ? progressionData.value
+            : this.progressionData,
         routineId: routineId ?? this.routineId,
         exerciseId: exerciseId ?? this.exerciseId,
         orderIndex: orderIndex ?? this.orderIndex,
@@ -3448,6 +3477,9 @@ class RoutineExercise extends DataClass implements Insertable<RoutineExercise> {
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
       deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+      progressionData: data.progressionData.present
+          ? data.progressionData.value
+          : this.progressionData,
       routineId: data.routineId.present ? data.routineId.value : this.routineId,
       exerciseId:
           data.exerciseId.present ? data.exerciseId.value : this.exerciseId,
@@ -3471,6 +3503,7 @@ class RoutineExercise extends DataClass implements Insertable<RoutineExercise> {
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('deletedAt: $deletedAt, ')
+          ..write('progressionData: $progressionData, ')
           ..write('routineId: $routineId, ')
           ..write('exerciseId: $exerciseId, ')
           ..write('orderIndex: $orderIndex, ')
@@ -3482,8 +3515,19 @@ class RoutineExercise extends DataClass implements Insertable<RoutineExercise> {
   }
 
   @override
-  int get hashCode => Object.hash(localId, id, createdAt, updatedAt, deletedAt,
-      routineId, exerciseId, orderIndex, pauseSeconds, supersetGroup, notes);
+  int get hashCode => Object.hash(
+      localId,
+      id,
+      createdAt,
+      updatedAt,
+      deletedAt,
+      progressionData,
+      routineId,
+      exerciseId,
+      orderIndex,
+      pauseSeconds,
+      supersetGroup,
+      notes);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -3493,6 +3537,7 @@ class RoutineExercise extends DataClass implements Insertable<RoutineExercise> {
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt &&
           other.deletedAt == this.deletedAt &&
+          other.progressionData == this.progressionData &&
           other.routineId == this.routineId &&
           other.exerciseId == this.exerciseId &&
           other.orderIndex == this.orderIndex &&
@@ -3507,6 +3552,7 @@ class RoutineExercisesCompanion extends UpdateCompanion<RoutineExercise> {
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   final Value<DateTime?> deletedAt;
+  final Value<String?> progressionData;
   final Value<String> routineId;
   final Value<String> exerciseId;
   final Value<int> orderIndex;
@@ -3519,6 +3565,7 @@ class RoutineExercisesCompanion extends UpdateCompanion<RoutineExercise> {
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.deletedAt = const Value.absent(),
+    this.progressionData = const Value.absent(),
     this.routineId = const Value.absent(),
     this.exerciseId = const Value.absent(),
     this.orderIndex = const Value.absent(),
@@ -3532,6 +3579,7 @@ class RoutineExercisesCompanion extends UpdateCompanion<RoutineExercise> {
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.deletedAt = const Value.absent(),
+    this.progressionData = const Value.absent(),
     required String routineId,
     required String exerciseId,
     required int orderIndex,
@@ -3547,6 +3595,7 @@ class RoutineExercisesCompanion extends UpdateCompanion<RoutineExercise> {
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
     Expression<DateTime>? deletedAt,
+    Expression<String>? progressionData,
     Expression<String>? routineId,
     Expression<String>? exerciseId,
     Expression<int>? orderIndex,
@@ -3560,6 +3609,7 @@ class RoutineExercisesCompanion extends UpdateCompanion<RoutineExercise> {
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (deletedAt != null) 'deleted_at': deletedAt,
+      if (progressionData != null) 'progression_data': progressionData,
       if (routineId != null) 'routine_id': routineId,
       if (exerciseId != null) 'exercise_id': exerciseId,
       if (orderIndex != null) 'order_index': orderIndex,
@@ -3575,6 +3625,7 @@ class RoutineExercisesCompanion extends UpdateCompanion<RoutineExercise> {
       Value<DateTime>? createdAt,
       Value<DateTime>? updatedAt,
       Value<DateTime?>? deletedAt,
+      Value<String?>? progressionData,
       Value<String>? routineId,
       Value<String>? exerciseId,
       Value<int>? orderIndex,
@@ -3587,6 +3638,7 @@ class RoutineExercisesCompanion extends UpdateCompanion<RoutineExercise> {
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       deletedAt: deletedAt ?? this.deletedAt,
+      progressionData: progressionData ?? this.progressionData,
       routineId: routineId ?? this.routineId,
       exerciseId: exerciseId ?? this.exerciseId,
       orderIndex: orderIndex ?? this.orderIndex,
@@ -3613,6 +3665,9 @@ class RoutineExercisesCompanion extends UpdateCompanion<RoutineExercise> {
     }
     if (deletedAt.present) {
       map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
+    if (progressionData.present) {
+      map['progression_data'] = Variable<String>(progressionData.value);
     }
     if (routineId.present) {
       map['routine_id'] = Variable<String>(routineId.value);
@@ -3643,6 +3698,7 @@ class RoutineExercisesCompanion extends UpdateCompanion<RoutineExercise> {
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('deletedAt: $deletedAt, ')
+          ..write('progressionData: $progressionData, ')
           ..write('routineId: $routineId, ')
           ..write('exerciseId: $exerciseId, ')
           ..write('orderIndex: $orderIndex, ')
@@ -5083,6 +5139,12 @@ class $SetLogsTable extends SetLogs with TableInfo<$SetLogsTable, SetLog> {
   late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
       'deleted_at', aliasedName, true,
       type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  static const VerificationMeta _progressionDataMeta =
+      const VerificationMeta('progressionData');
+  @override
+  late final GeneratedColumn<String> progressionData = GeneratedColumn<String>(
+      'progression_data', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _workoutLogIdMeta =
       const VerificationMeta('workoutLogId');
   @override
@@ -5266,6 +5328,7 @@ class $SetLogsTable extends SetLogs with TableInfo<$SetLogsTable, SetLog> {
         createdAt,
         updatedAt,
         deletedAt,
+        progressionData,
         workoutLogId,
         exerciseId,
         exerciseNameSnapshot,
@@ -5321,6 +5384,12 @@ class $SetLogsTable extends SetLogs with TableInfo<$SetLogsTable, SetLog> {
     if (data.containsKey('deleted_at')) {
       context.handle(_deletedAtMeta,
           deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta));
+    }
+    if (data.containsKey('progression_data')) {
+      context.handle(
+          _progressionDataMeta,
+          progressionData.isAcceptableOrUnknown(
+              data['progression_data']!, _progressionDataMeta));
     }
     if (data.containsKey('workout_log_id')) {
       context.handle(
@@ -5485,6 +5554,8 @@ class $SetLogsTable extends SetLogs with TableInfo<$SetLogsTable, SetLog> {
           .read(DriftSqlType.dateTime, data['${effectivePrefix}updated_at'])!,
       deletedAt: attachedDatabase.typeMapping
           .read(DriftSqlType.dateTime, data['${effectivePrefix}deleted_at']),
+      progressionData: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}progression_data']),
       workoutLogId: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}workout_log_id'])!,
       exerciseId: attachedDatabase.typeMapping
@@ -5556,6 +5627,7 @@ class SetLog extends DataClass implements Insertable<SetLog> {
   final DateTime createdAt;
   final DateTime updatedAt;
   final DateTime? deletedAt;
+  final String? progressionData;
   final String workoutLogId;
   final String? exerciseId;
   final String? exerciseNameSnapshot;
@@ -5617,6 +5689,7 @@ class SetLog extends DataClass implements Insertable<SetLog> {
       required this.createdAt,
       required this.updatedAt,
       this.deletedAt,
+      this.progressionData,
       required this.workoutLogId,
       this.exerciseId,
       this.exerciseNameSnapshot,
@@ -5652,6 +5725,9 @@ class SetLog extends DataClass implements Insertable<SetLog> {
     map['updated_at'] = Variable<DateTime>(updatedAt);
     if (!nullToAbsent || deletedAt != null) {
       map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
+    if (!nullToAbsent || progressionData != null) {
+      map['progression_data'] = Variable<String>(progressionData);
     }
     map['workout_log_id'] = Variable<String>(workoutLogId);
     if (!nullToAbsent || exerciseId != null) {
@@ -5731,6 +5807,9 @@ class SetLog extends DataClass implements Insertable<SetLog> {
       deletedAt: deletedAt == null && nullToAbsent
           ? const Value.absent()
           : Value(deletedAt),
+      progressionData: progressionData == null && nullToAbsent
+          ? const Value.absent()
+          : Value(progressionData),
       workoutLogId: Value(workoutLogId),
       exerciseId: exerciseId == null && nullToAbsent
           ? const Value.absent()
@@ -5800,6 +5879,7 @@ class SetLog extends DataClass implements Insertable<SetLog> {
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+      progressionData: serializer.fromJson<String?>(json['progressionData']),
       workoutLogId: serializer.fromJson<String>(json['workoutLogId']),
       exerciseId: serializer.fromJson<String?>(json['exerciseId']),
       exerciseNameSnapshot:
@@ -5843,6 +5923,7 @@ class SetLog extends DataClass implements Insertable<SetLog> {
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+      'progressionData': serializer.toJson<String?>(progressionData),
       'workoutLogId': serializer.toJson<String>(workoutLogId),
       'exerciseId': serializer.toJson<String?>(exerciseId),
       'exerciseNameSnapshot': serializer.toJson<String?>(exerciseNameSnapshot),
@@ -5880,6 +5961,7 @@ class SetLog extends DataClass implements Insertable<SetLog> {
           DateTime? createdAt,
           DateTime? updatedAt,
           Value<DateTime?> deletedAt = const Value.absent(),
+          Value<String?> progressionData = const Value.absent(),
           String? workoutLogId,
           Value<String?> exerciseId = const Value.absent(),
           Value<String?> exerciseNameSnapshot = const Value.absent(),
@@ -5912,6 +5994,9 @@ class SetLog extends DataClass implements Insertable<SetLog> {
         createdAt: createdAt ?? this.createdAt,
         updatedAt: updatedAt ?? this.updatedAt,
         deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+        progressionData: progressionData.present
+            ? progressionData.value
+            : this.progressionData,
         workoutLogId: workoutLogId ?? this.workoutLogId,
         exerciseId: exerciseId.present ? exerciseId.value : this.exerciseId,
         exerciseNameSnapshot: exerciseNameSnapshot.present
@@ -5968,6 +6053,9 @@ class SetLog extends DataClass implements Insertable<SetLog> {
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
       deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+      progressionData: data.progressionData.present
+          ? data.progressionData.value
+          : this.progressionData,
       workoutLogId: data.workoutLogId.present
           ? data.workoutLogId.value
           : this.workoutLogId,
@@ -6039,6 +6127,7 @@ class SetLog extends DataClass implements Insertable<SetLog> {
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('deletedAt: $deletedAt, ')
+          ..write('progressionData: $progressionData, ')
           ..write('workoutLogId: $workoutLogId, ')
           ..write('exerciseId: $exerciseId, ')
           ..write('exerciseNameSnapshot: $exerciseNameSnapshot, ')
@@ -6076,6 +6165,7 @@ class SetLog extends DataClass implements Insertable<SetLog> {
         createdAt,
         updatedAt,
         deletedAt,
+        progressionData,
         workoutLogId,
         exerciseId,
         exerciseNameSnapshot,
@@ -6112,6 +6202,7 @@ class SetLog extends DataClass implements Insertable<SetLog> {
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt &&
           other.deletedAt == this.deletedAt &&
+          other.progressionData == this.progressionData &&
           other.workoutLogId == this.workoutLogId &&
           other.exerciseId == this.exerciseId &&
           other.exerciseNameSnapshot == this.exerciseNameSnapshot &&
@@ -6147,6 +6238,7 @@ class SetLogsCompanion extends UpdateCompanion<SetLog> {
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   final Value<DateTime?> deletedAt;
+  final Value<String?> progressionData;
   final Value<String> workoutLogId;
   final Value<String?> exerciseId;
   final Value<String?> exerciseNameSnapshot;
@@ -6179,6 +6271,7 @@ class SetLogsCompanion extends UpdateCompanion<SetLog> {
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.deletedAt = const Value.absent(),
+    this.progressionData = const Value.absent(),
     this.workoutLogId = const Value.absent(),
     this.exerciseId = const Value.absent(),
     this.exerciseNameSnapshot = const Value.absent(),
@@ -6212,6 +6305,7 @@ class SetLogsCompanion extends UpdateCompanion<SetLog> {
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.deletedAt = const Value.absent(),
+    this.progressionData = const Value.absent(),
     required String workoutLogId,
     this.exerciseId = const Value.absent(),
     this.exerciseNameSnapshot = const Value.absent(),
@@ -6245,6 +6339,7 @@ class SetLogsCompanion extends UpdateCompanion<SetLog> {
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
     Expression<DateTime>? deletedAt,
+    Expression<String>? progressionData,
     Expression<String>? workoutLogId,
     Expression<String>? exerciseId,
     Expression<String>? exerciseNameSnapshot,
@@ -6278,6 +6373,7 @@ class SetLogsCompanion extends UpdateCompanion<SetLog> {
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (deletedAt != null) 'deleted_at': deletedAt,
+      if (progressionData != null) 'progression_data': progressionData,
       if (workoutLogId != null) 'workout_log_id': workoutLogId,
       if (exerciseId != null) 'exercise_id': exerciseId,
       if (exerciseNameSnapshot != null)
@@ -6317,6 +6413,7 @@ class SetLogsCompanion extends UpdateCompanion<SetLog> {
       Value<DateTime>? createdAt,
       Value<DateTime>? updatedAt,
       Value<DateTime?>? deletedAt,
+      Value<String?>? progressionData,
       Value<String>? workoutLogId,
       Value<String?>? exerciseId,
       Value<String?>? exerciseNameSnapshot,
@@ -6349,6 +6446,7 @@ class SetLogsCompanion extends UpdateCompanion<SetLog> {
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       deletedAt: deletedAt ?? this.deletedAt,
+      progressionData: progressionData ?? this.progressionData,
       workoutLogId: workoutLogId ?? this.workoutLogId,
       exerciseId: exerciseId ?? this.exerciseId,
       exerciseNameSnapshot: exerciseNameSnapshot ?? this.exerciseNameSnapshot,
@@ -6398,6 +6496,9 @@ class SetLogsCompanion extends UpdateCompanion<SetLog> {
     }
     if (deletedAt.present) {
       map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
+    if (progressionData.present) {
+      map['progression_data'] = Variable<String>(progressionData.value);
     }
     if (workoutLogId.present) {
       map['workout_log_id'] = Variable<String>(workoutLogId.value);
@@ -6492,6 +6593,7 @@ class SetLogsCompanion extends UpdateCompanion<SetLog> {
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('deletedAt: $deletedAt, ')
+          ..write('progressionData: $progressionData, ')
           ..write('workoutLogId: $workoutLogId, ')
           ..write('exerciseId: $exerciseId, ')
           ..write('exerciseNameSnapshot: $exerciseNameSnapshot, ')
@@ -25451,6 +25553,7 @@ typedef $$RoutineExercisesTableCreateCompanionBuilder
   Value<DateTime> createdAt,
   Value<DateTime> updatedAt,
   Value<DateTime?> deletedAt,
+  Value<String?> progressionData,
   required String routineId,
   required String exerciseId,
   required int orderIndex,
@@ -25465,6 +25568,7 @@ typedef $$RoutineExercisesTableUpdateCompanionBuilder
   Value<DateTime> createdAt,
   Value<DateTime> updatedAt,
   Value<DateTime?> deletedAt,
+  Value<String?> progressionData,
   Value<String> routineId,
   Value<String> exerciseId,
   Value<int> orderIndex,
@@ -25549,6 +25653,10 @@ class $$RoutineExercisesTableFilterComposer
 
   ColumnFilters<DateTime> get deletedAt => $composableBuilder(
       column: $table.deletedAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get progressionData => $composableBuilder(
+      column: $table.progressionData,
+      builder: (column) => ColumnFilters(column));
 
   ColumnFilters<int> get orderIndex => $composableBuilder(
       column: $table.orderIndex, builder: (column) => ColumnFilters(column));
@@ -25648,6 +25756,10 @@ class $$RoutineExercisesTableOrderingComposer
   ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
       column: $table.deletedAt, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<String> get progressionData => $composableBuilder(
+      column: $table.progressionData,
+      builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<int> get orderIndex => $composableBuilder(
       column: $table.orderIndex, builder: (column) => ColumnOrderings(column));
 
@@ -25726,6 +25838,9 @@ class $$RoutineExercisesTableAnnotationComposer
 
   GeneratedColumn<DateTime> get deletedAt =>
       $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+
+  GeneratedColumn<String> get progressionData => $composableBuilder(
+      column: $table.progressionData, builder: (column) => column);
 
   GeneratedColumn<int> get orderIndex => $composableBuilder(
       column: $table.orderIndex, builder: (column) => column);
@@ -25833,6 +25948,7 @@ class $$RoutineExercisesTableTableManager extends RootTableManager<
             Value<DateTime> createdAt = const Value.absent(),
             Value<DateTime> updatedAt = const Value.absent(),
             Value<DateTime?> deletedAt = const Value.absent(),
+            Value<String?> progressionData = const Value.absent(),
             Value<String> routineId = const Value.absent(),
             Value<String> exerciseId = const Value.absent(),
             Value<int> orderIndex = const Value.absent(),
@@ -25846,6 +25962,7 @@ class $$RoutineExercisesTableTableManager extends RootTableManager<
             createdAt: createdAt,
             updatedAt: updatedAt,
             deletedAt: deletedAt,
+            progressionData: progressionData,
             routineId: routineId,
             exerciseId: exerciseId,
             orderIndex: orderIndex,
@@ -25859,6 +25976,7 @@ class $$RoutineExercisesTableTableManager extends RootTableManager<
             Value<DateTime> createdAt = const Value.absent(),
             Value<DateTime> updatedAt = const Value.absent(),
             Value<DateTime?> deletedAt = const Value.absent(),
+            Value<String?> progressionData = const Value.absent(),
             required String routineId,
             required String exerciseId,
             required int orderIndex,
@@ -25872,6 +25990,7 @@ class $$RoutineExercisesTableTableManager extends RootTableManager<
             createdAt: createdAt,
             updatedAt: updatedAt,
             deletedAt: deletedAt,
+            progressionData: progressionData,
             routineId: routineId,
             exerciseId: exerciseId,
             orderIndex: orderIndex,
@@ -27027,6 +27146,7 @@ typedef $$SetLogsTableCreateCompanionBuilder = SetLogsCompanion Function({
   Value<DateTime> createdAt,
   Value<DateTime> updatedAt,
   Value<DateTime?> deletedAt,
+  Value<String?> progressionData,
   required String workoutLogId,
   Value<String?> exerciseId,
   Value<String?> exerciseNameSnapshot,
@@ -27060,6 +27180,7 @@ typedef $$SetLogsTableUpdateCompanionBuilder = SetLogsCompanion Function({
   Value<DateTime> createdAt,
   Value<DateTime> updatedAt,
   Value<DateTime?> deletedAt,
+  Value<String?> progressionData,
   Value<String> workoutLogId,
   Value<String?> exerciseId,
   Value<String?> exerciseNameSnapshot,
@@ -27144,6 +27265,10 @@ class $$SetLogsTableFilterComposer
 
   ColumnFilters<DateTime> get deletedAt => $composableBuilder(
       column: $table.deletedAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get progressionData => $composableBuilder(
+      column: $table.progressionData,
+      builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get exerciseNameSnapshot => $composableBuilder(
       column: $table.exerciseNameSnapshot,
@@ -27293,6 +27418,10 @@ class $$SetLogsTableOrderingComposer
 
   ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
       column: $table.deletedAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get progressionData => $composableBuilder(
+      column: $table.progressionData,
+      builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get exerciseNameSnapshot => $composableBuilder(
       column: $table.exerciseNameSnapshot,
@@ -27446,6 +27575,9 @@ class $$SetLogsTableAnnotationComposer
   GeneratedColumn<DateTime> get deletedAt =>
       $composableBuilder(column: $table.deletedAt, builder: (column) => column);
 
+  GeneratedColumn<String> get progressionData => $composableBuilder(
+      column: $table.progressionData, builder: (column) => column);
+
   GeneratedColumn<String> get exerciseNameSnapshot => $composableBuilder(
       column: $table.exerciseNameSnapshot, builder: (column) => column);
 
@@ -27587,6 +27719,7 @@ class $$SetLogsTableTableManager extends RootTableManager<
             Value<DateTime> createdAt = const Value.absent(),
             Value<DateTime> updatedAt = const Value.absent(),
             Value<DateTime?> deletedAt = const Value.absent(),
+            Value<String?> progressionData = const Value.absent(),
             Value<String> workoutLogId = const Value.absent(),
             Value<String?> exerciseId = const Value.absent(),
             Value<String?> exerciseNameSnapshot = const Value.absent(),
@@ -27620,6 +27753,7 @@ class $$SetLogsTableTableManager extends RootTableManager<
             createdAt: createdAt,
             updatedAt: updatedAt,
             deletedAt: deletedAt,
+            progressionData: progressionData,
             workoutLogId: workoutLogId,
             exerciseId: exerciseId,
             exerciseNameSnapshot: exerciseNameSnapshot,
@@ -27653,6 +27787,7 @@ class $$SetLogsTableTableManager extends RootTableManager<
             Value<DateTime> createdAt = const Value.absent(),
             Value<DateTime> updatedAt = const Value.absent(),
             Value<DateTime?> deletedAt = const Value.absent(),
+            Value<String?> progressionData = const Value.absent(),
             required String workoutLogId,
             Value<String?> exerciseId = const Value.absent(),
             Value<String?> exerciseNameSnapshot = const Value.absent(),
@@ -27686,6 +27821,7 @@ class $$SetLogsTableTableManager extends RootTableManager<
             createdAt: createdAt,
             updatedAt: updatedAt,
             deletedAt: deletedAt,
+            progressionData: progressionData,
             workoutLogId: workoutLogId,
             exerciseId: exerciseId,
             exerciseNameSnapshot: exerciseNameSnapshot,

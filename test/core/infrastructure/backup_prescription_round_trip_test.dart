@@ -1,3 +1,4 @@
+import 'package:train_libre/features/workout/domain/progression/progression_v15.dart';
 import 'dart:io';
 
 import 'package:drift/drift.dart' as drift;
@@ -78,7 +79,33 @@ void main() {
       ),
     );
 
+    final config = ProgressionConfig(
+        policy: ProgressionPolicy.independentWorkingSets,
+        prescriptionKey: 'stable-prescription',
+        ladder: LoadLadder([8, 10], source: LoadLadderSource.user),
+        loadMode: LoadMode.assisted,
+        equipmentIdentity: 'stack-A',
+        completion: SetCompletion.equipmentInterrupted,
+        bridgeTarget: 14,
+        baselines: {
+          '0': ConfirmedBaseline(8, DateTime(2026, 9, 8))
+        },
+        events: [
+          ReviewDecision(
+              review: const ProgressionReview(
+                  kind: ReviewKind.largeStepTrial,
+                  position: '0',
+                  policy: ProgressionPolicy.independentWorkingSets,
+                  ladderSource: LoadLadderSource.user,
+                  reason: 'largeStepTrial',
+                  currentLoad: 8,
+                  targetLoad: 10,
+                  relativeJump: 0.25),
+              action: ReviewAction.rejected,
+              at: DateTime(2026, 9, 8))
+        ]);
     final setLog = SetLog(
+      progressionData: config.encode(),
       workoutLogId: 1,
       exerciseId: benchEx.uuid,
       exerciseName: 'Bench Press',
@@ -120,6 +147,7 @@ void main() {
       name: 'Push Routine',
       exercises: [
         RoutineExercise(
+          progressionData: config.encode(),
           id: 1,
           exercise: benchEx,
           setTemplates: [routineTemplate],
@@ -173,6 +201,10 @@ void main() {
     final targetSets = await targetDb.select(targetDb.setLogs).get();
     expect(targetSets.isNotEmpty, isTrue);
     final restoredSet = targetSets.first;
+    expect(restoredSet.progressionData, config.encode());
+    final restoredRoutine =
+        (await targetDb.select(targetDb.routineExercises).get()).single;
+    expect(restoredRoutine.progressionData, config.encode());
     expect(restoredSet.prescriptionOrigin, equals('routine'));
     expect(restoredSet.prescribedRepMin, equals(8));
     expect(restoredSet.prescribedRepMax, equals(12));

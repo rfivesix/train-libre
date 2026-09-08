@@ -1,7 +1,9 @@
+import '../domain/progression/progression_v15.dart';
 import "../../../services/unit_service.dart";
 
 import 'dart:async';
 import 'dart:io';
+import 'package:uuid/uuid.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -13,7 +15,7 @@ import '../domain/models/set_log.dart';
 import '../domain/models/set_template.dart';
 import '../domain/models/workout_log.dart';
 import '../domain/models/prescription_enums.dart';
-import '../domain/parsers/rep_range_parser.dart';
+import '../domain/parsers/rep_range_parser.dart' hide RepRange;
 import '../domain/repositories/workout_repository.dart';
 import '../domain/detect_personal_record_use_case.dart';
 import '../domain/log_workout_set_use_case.dart';
@@ -26,7 +28,6 @@ import '../../../services/haptic_feedback_service.dart';
 import '../../../services/sound_service.dart';
 import '../../../services/training_autonomy_service.dart';
 import '../domain/services/workout_progression_service.dart';
-import '../domain/progression/double_progression_engine.dart';
 import '../../../util/time_util.dart';
 import '../../../services/telemetry/telemetry_service.dart';
 
@@ -91,11 +92,275 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
   final Map<int, ProgressionSuggestion> _suggestions = {};
   final Set<int> _suggestedTemplates = {};
   final Set<int> _overriddenTemplates = {};
+  final List<int> _completedWorkingOrder = [];
   bool _isDisposed = false;
   Future<void>? _pendingProgressionUpdate;
 
   @visibleForTesting
   Future<void>? get pendingProgressionUpdate => _pendingProgressionUpdate;
+
+  bool get progressionEnabled =>
+      _trainingAutonomyService?.level == AutonomyLevel.suggest;
+
+  List<ProgressionReview> reviewsFor(int templateId) {
+    if (!progressionEnabled) return const [];
+    final log = _setLogs[templateId];
+    if (log == null || log.progression.completion != SetCompletion.completed) {
+      return const [];
+    }
+    final events = log.progression.events;
+    final latest = <String, ReviewDecision>{};
+    for (final event in events) {
+      latest[event.review.key] = event;
+    }
+    return latest.values
+        .where((e) => e.action == ReviewAction.offered)
+        .map((e) => e.review)
+        .toList();
+  }
+
+  int? get latestCompletedWorkingTemplateId =>
+      _completedWorkingOrder.lastOrNull;
+
+  /// The completion reason is an exception control. It is only surfaced for
+  /// the most recently completed working set when its entered performance is
+  /// below the concrete suggestion, or below the routine minimum when no
+  /// exact suggestion was shown.
+  bool shouldShowCompletionPicker(int templateId) {
+    if (!progressionEnabled || latestCompletedWorkingTemplateId != templateId) {
+      return false;
+    }
+    final log = _setLogs[templateId];
+    if (log == null ||
+        log.isCompleted != true ||
+        !WorkoutSetPositionMapper.isWorking(log.setType)) {
+      return false;
+    }
+    if (log.progression.completion != SetCompletion.completed) return true;
+
+    final plannedReps =
+        _suggestions[templateId]?.targetReps ?? log.prescribedRepMin;
+    final repsBelowPlan =
+        plannedReps != null && log.reps != null && log.reps! < plannedReps;
+
+    final plannedWeight = log.prescribedWeight;
+    final actualWeight = log.weightKg;
+    var loadBelowPlan = false;
+    if (plannedWeight != null && actualWeight != null) {
+      const tolerance = 0.000001;
+      loadBelowPlan = log.progression.loadMode == LoadMode.assisted
+          ? actualWeight > plannedWeight + tolerance
+          : actualWeight < plannedWeight - tolerance;
+    }
+    return repsBelowPlan || loadBelowPlan;
+  }
+
+  Future<void> setCompletion(int templateId, SetCompletion completion) async {
+    final log = _setLogs[templateId];
+    if (log == null) return;
+    final updated = log.copyWith(
+        progressionData:
+            log.progression.copyWith(completion: completion).encode());
+    _setLogs[templateId] = updated;
+    await _repository.updateSetLogs([updated]);
+    if (completion != SetCompletion.completed && log.isCompleted != true) {
+      markSetOverridden(templateId);
+      await updateSet(templateId, isCompleted: true);
+    }
+    _pendingProgressionUpdate = _applyProgressionSuggestions();
+    unawaited(_pendingProgressionUpdate!);
+    notifyListeners();
+  }
+
+  Future<void> updateProgressionEquipment(
+      int templateId, ProgressionConfig config) async {
+    final re = _exercises
+        .firstWhere((r) => r.setTemplates.any((t) => t.id == templateId));
+    final changed = <SetLog>[];
+    for (final t in re.setTemplates) {
+      final log = _setLogs[t.id];
+      if (log == null || log.isCompleted == true) continue;
+      final closed = [
+        ...log.progression.events,
+        ...reviewsFor(t.id!).map((r) => ReviewDecision(
+            review: r,
+            action: ReviewAction.dismissed,
+            at: DateTime.now(),
+            note: 'equipment_changed'))
+      ];
+      final updated = log.copyWith(
+          progressionData: log.progression
+              .copyWith(
+                  events: closed,
+                  ladder: config.ladder,
+                  equipmentIdentity: config.equipmentIdentity,
+                  contextNote: config.contextNote)
+              .encode());
+      _setLogs[t.id!] = updated;
+      changed.add(updated);
+    }
+    await _repository.updateSetLogs(changed);
+    _exercises[_exercises.indexOf(re)] =
+        re.copyWith(progressionData: config.encode());
+    if (config.prescriptionKey != null &&
+        _repository is ProgressionPrescriptionRepository) {
+      await (_repository as ProgressionPrescriptionRepository)
+          .saveProgressionConfig(config.prescriptionKey!, config.encode(),
+              equipmentOnly: true);
+    }
+    await _applyProgressionSuggestions();
+    notifyListeners();
+  }
+
+  Future<void> decideReview(
+      int templateId, ProgressionReview review, ReviewAction action,
+      {double? chosenLoad, String? note}) async {
+    var log = _setLogs[templateId];
+    if (log == null) return;
+    if (action == ReviewAction.accepted ||
+        action == ReviewAction.recalibrated) {
+      final chosen = chosenLoad ?? review.targetLoad;
+      if (chosen == null || !chosen.isFinite || chosen < 0) {
+        throw ArgumentError.value(chosen, 'chosenLoad');
+      }
+      if (review.kind == ReviewKind.modeBoundary &&
+          review.targetMode == LoadMode.weightedBodyweight &&
+          chosen <= 0) {
+        throw ArgumentError.value(chosen, 'chosenLoad');
+      }
+    }
+    final events = [
+      ...log.progression.events,
+      ReviewDecision(
+          review: review,
+          action: action,
+          at: DateTime.now(),
+          chosenLoad: chosenLoad,
+          note: note)
+    ];
+    if (action == ReviewAction.rejected &&
+        review.kind == ReviewKind.largeStepTrial &&
+        log.prescribedRepMax != null) {
+      final bridge = review.declineBridge(RepRange(
+          log.prescribedRepMin ?? log.prescribedRepMax!,
+          log.prescribedRepMax!))!;
+      events.add(ReviewDecision(
+          review: bridge, action: ReviewAction.offered, at: DateTime.now()));
+    }
+    if (action == ReviewAction.confirmedLog &&
+        review.kind == ReviewKind.farAboveRange) {
+      final current = review.currentLoad;
+      final next = review.targetLoad;
+      if (current != null && next != null) {
+        final follow = ProgressionReview(
+            kind: ReviewKind.largeStepTrial,
+            position: review.position,
+            policy: review.policy,
+            ladderSource: review.ladderSource,
+            reason: 'confirmed_log_next_rung',
+            currentLoad: current,
+            targetLoad: next,
+            targetReps: log.prescribedRepMin,
+            relativeJump:
+                current > 0 ? (next - current).abs() / current : null);
+        events.add(ReviewDecision(
+            review: follow, action: ReviewAction.offered, at: DateTime.now()));
+      }
+    }
+    log = log.copyWith(
+        progressionData: log.progression.copyWith(events: events).encode(),
+        progressionAlgorithmVersion: ProgressionV15.algorithmVersion,
+        progressionReason: review.reason);
+    _setLogs[templateId] = log;
+    await _repository.updateSetLogs([log]);
+    if (action == ReviewAction.accepted ||
+        action == ReviewAction.recalibrated) {
+      final load = chosenLoad ?? review.targetLoad;
+      if (load != null &&
+          load.isFinite &&
+          load >= 0 &&
+          review.kind != ReviewKind.overRepBridge) {
+        final re = _exercises
+            .firstWhere((r) => r.setTemplates.any((t) => t.id == templateId));
+        final working = re.setTemplates
+            .where((t) => WorkoutSetPositionMapper.isWorking(t.setType))
+            .toList();
+        final baselines = {...log.progression.baselines};
+        for (var i = 0; i < working.length; i++) {
+          if (review.kind == ReviewKind.modeBoundary ||
+              working[i].id == templateId) {
+            baselines['$i'] = ConfirmedBaseline(load, DateTime.now());
+          }
+        }
+        final config = log.progression
+            .copyWith(loadMode: review.targetMode, baselines: baselines);
+        final key = config.prescriptionKey;
+        if (key != null && _repository is ProgressionPrescriptionRepository) {
+          await (_repository as ProgressionPrescriptionRepository)
+              .saveProgressionConfig(key, config.encode());
+        }
+        _exercises[_exercises.indexOf(re)] =
+            re.copyWith(progressionData: config.encode());
+      }
+      if (load != null &&
+          load.isFinite &&
+          load >= 0 &&
+          log.isCompleted != true) {
+        final re = _exercises
+            .firstWhere((r) => r.setTemplates.any((t) => t.id == templateId));
+        final targets = review.kind == ReviewKind.modeBoundary
+            ? re.setTemplates
+                .where((t) => WorkoutSetPositionMapper.isWorking(t.setType))
+                .map((t) => t.id!)
+                .toList()
+            : [templateId];
+        final changed = <SetLog>[];
+        for (final id in targets) {
+          final current = _setLogs[id]!;
+          if (current.isCompleted == true) continue;
+          _overriddenTemplates.add(id);
+          _suggestedTemplates.remove(id);
+          final config = current.progression.copyWith(
+              loadMode: review.targetMode,
+              bridgeLoad: review.kind == ReviewKind.overRepBridge ? load : null,
+              clearBridge: review.kind != ReviewKind.overRepBridge,
+              bridgeTarget: review.kind == ReviewKind.overRepBridge
+                  ? review.targetReps
+                  : null,
+              events: id == templateId
+                  ? events
+                  : [...current.progression.events, events.last]);
+          final reps = review.targetReps ?? current.prescribedRepMin;
+          final updated = current.copyWith(
+              weightKg: load,
+              reps: reps,
+              prescribedWeight: load,
+              progressionData: config.encode(),
+              prescriptionOverridden: true,
+              valuesAutoFilled: true,
+              progressionReason: review.reason,
+              progressionAlgorithmVersion: review.algorithmVersion);
+          _setLogs[id] = updated;
+          changed.add(updated);
+          weightControllers[id]?.text =
+              unitService.formatDisplayWeight(load, fractionDigits: 2);
+          if (reps != null) repsControllers[id]?.text = reps.toString();
+        }
+        await _repository.updateSetLogs(changed);
+        if (review.targetMode != null) {
+          final index = _exercises.indexOf(re);
+          _exercises[index] = re.copyWith(
+              exercise: re.exercise.copyWith(
+                  loadMode: review.targetMode!.name,
+                  trackingType: 'bodyweight_reps'),
+              progressionData: log.progression
+                  .copyWith(loadMode: review.targetMode)
+                  .encode());
+        }
+      }
+    }
+    notifyListeners();
+  }
 
   bool isSetSuggested(int templateId) {
     if (!_suggestedTemplates.contains(templateId)) return false;
@@ -476,7 +741,39 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
 
     _workoutLog = log;
     _exercises = normalizeSupersetGroups(List.from(routineExercises));
+
+    // Select a policy from the authored prescription once. Generated and
+    // performed loads never feed back into this decision.
+    for (var index = 0; index < _exercises.length; index++) {
+      final routineExercise = _exercises[index];
+      if (routineExercise.progressionData != null) continue;
+      final working = routineExercise.setTemplates
+          .where((template) =>
+              WorkoutSetPositionMapper.isWorking(template.setType))
+          .toList();
+      final ranges = working.map((template) {
+        final parsed = parseRepRange(template.targetReps);
+        final min = template.targetRepMin ?? parsed?.min;
+        final max = template.targetRepMax ?? parsed?.max;
+        return min == null || max == null ? null : RepRange(min, max);
+      }).toList();
+      final config = ProgressionConfig(
+        policy: selectProgressionPolicy(
+          working.map((template) => template.targetWeight).toList(),
+          ranges,
+        ),
+        prescriptionKey: const Uuid().v4(),
+      );
+      _exercises[index] =
+          routineExercise.copyWith(progressionData: config.encode());
+      if (routineExercise.id != null &&
+          _repository is ProgressionPrescriptionRepository) {
+        await (_repository as ProgressionPrescriptionRepository)
+            .initializeProgressionConfig(routineExercise.id!, config.encode());
+      }
+    }
     _setLogs.clear();
+    _completedWorkingOrder.clear();
     pauseTimes.clear();
 
     for (var re in _exercises) {
@@ -533,6 +830,10 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
           exerciseBlock: blockIndex,
           supersetGroup: re.supersetGroup,
           rir: null,
+          progressionData: re.progression.copyWith(
+              loadMode: re.progression.loadMode ??
+                  LoadMode.fromString(re.exercise.loadMode),
+              events: []).encode(),
           prescriptionOrigin: isRoutineWorkout
               ? PrescriptionOrigin.routine.name
               : PrescriptionOrigin.none.name,
@@ -558,6 +859,7 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
         await _repository.getWorkoutExerciseNotes(log.id!);
 
     _setLogs.clear();
+    _completedWorkingOrder.clear();
     final List<RoutineExercise> restoredExercises = [];
     _exercises = restoredExercises;
     pauseTimes.clear();
@@ -639,13 +941,23 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
           SetTemplate(
             id: templateId,
             setType: s.setType,
+            // Restore the active row exactly. The authored comparison remains
+            // immutable on the SetLog prescription snapshot.
             targetWeight: s.weightKg,
-            targetReps: s.reps?.toString(),
+            targetReps: s.prescribedRepMin != null && s.prescribedRepMax != null
+                ? '${s.prescribedRepMin}-${s.prescribedRepMax}'
+                : s.reps?.toString(),
+            targetRepMin: s.prescribedRepMin,
+            targetRepMax: s.prescribedRepMax,
             targetRir: s.rir,
           ),
         );
 
         _setLogs[templateId] = s;
+        if (s.isCompleted == true &&
+            WorkoutSetPositionMapper.isWorking(s.setType)) {
+          _completedWorkingOrder.add(templateId);
+        }
         _totalVolume += (s.weightKg ?? 0) * (s.reps ?? 0);
         _totalSets++;
       }
@@ -656,10 +968,13 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
               .firstWhere((note) => note != null, orElse: () => null);
       final re = RoutineExercise(
         id: syntheticReId,
-        exercise: exercise,
+        exercise: firstSet.progression.loadMode == null
+            ? exercise
+            : exercise.copyWith(loadMode: firstSet.progression.loadMode!.name),
         setTemplates: templates,
         pauseSeconds: pauseSec,
         supersetGroup: isLegacySession ? null : firstSet.supersetGroup,
+        progressionData: firstSet.progressionData,
         notes: savedNote,
       );
 
@@ -884,8 +1199,13 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
     bool clearDuration = false,
   }) async {
     if (!_setLogs.containsKey(templateId)) return;
+    if (weight != null || reps != null || clearWeight || clearReps) {
+      markSetOverridden(templateId);
+    }
 
-    final oldLog = _setLogs[templateId]!;
+    final oldLog = (weight != null || reps != null)
+        ? _setLogs[templateId]!.copyWith(valuesAutoFilled: false)
+        : _setLogs[templateId]!;
     SetTemplate? template;
     for (var re in _exercises) {
       for (var t in re.setTemplates) {
@@ -920,9 +1240,7 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
     final suggestion = _suggestions[templateId];
     if (suggestion != null) {
       final isOverridden = _overriddenTemplates.contains(templateId);
-      final hasRoutineTarget = template?.targetWeight != null;
-
-      if (!hasRoutineTarget) {
+      {
         final repRange =
             template?.targetRepMin != null && template?.targetRepMax != null
                 ? (min: template!.targetRepMin!, max: template.targetRepMax!)
@@ -947,21 +1265,25 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
               ? true
               : finalSet.valuesAutoFilled,
         );
-      } else {
-        finalSet = finalSet.copyWith(
-          prescriptionOrigin: PrescriptionOrigin.routine.name,
-          prescribedWeight: template!.targetWeight,
-          prescriptionOverridden: isOverridden,
-        );
       }
     }
 
     _setLogs[templateId] = finalSet;
     _totalVolume += result.volumeDelta;
 
+    if (isCompleted == true && oldLog.isCompleted != true) {
+      if (WorkoutSetPositionMapper.isWorking(finalSet.setType)) {
+        _completedWorkingOrder.remove(templateId);
+        _completedWorkingOrder.add(templateId);
+      }
+    } else if (isCompleted == false && oldLog.isCompleted == true) {
+      _completedWorkingOrder.remove(templateId);
+    }
+
     if (isCompleted == true &&
         oldLog.isCompleted != true &&
-        finalSet.setType != 'warmup') {
+        finalSet.setType != 'warmup' &&
+        finalSet.progression.completion == SetCompletion.completed) {
       await _checkAndApplyPRs(finalSet, templateId);
     }
 
@@ -1029,9 +1351,7 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
   Future<void> _applyProgressionSuggestions() async {
     if (_isDisposed) return;
     final autonomyLevel = _trainingAutonomyService?.level ?? AutonomyLevel.off;
-    if (autonomyLevel != AutonomyLevel.suggest) {
-      return;
-    }
+    final deliver = autonomyLevel == AutonomyLevel.suggest;
 
     for (var re in _exercises) {
       if (_isDisposed) return;
@@ -1054,6 +1374,39 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
       final openTemplates = workingTemplates.where((template) {
         return _setLogs[template.id]?.isCompleted != true;
       }).toList();
+      if (currentWorkingSets.any((s) => s.isCompleted == true)) {
+        final result = await _progressionService.currentReviews(
+            exercise: re.exercise,
+            templates: workingTemplates,
+            current: currentWorkingSets,
+            config: currentWorkingSets.first.progression);
+        if (_isDisposed) return;
+        if (deliver) {
+          for (final review in result.reviews.where((r) =>
+              r.kind == ReviewKind.farAboveRange ||
+              r.kind == ReviewKind.stallCandidate ||
+              r.kind == ReviewKind.modeBoundary)) {
+            final id = int.parse(review.position);
+            final log = _setLogs[id];
+            if (log == null ||
+                log.progression.events.any((e) => e.review.key == review.key)) {
+              continue;
+            }
+            final updated = log.copyWith(
+                progressionData: log.progression.copyWith(events: [
+                  ...log.progression.events,
+                  ReviewDecision(
+                      review: review,
+                      action: ReviewAction.offered,
+                      at: DateTime.now())
+                ]).encode(),
+                progressionReason: review.reason,
+                progressionAlgorithmVersion: review.algorithmVersion);
+            _setLogs[id] = updated;
+            await _repository.updateSetLogs([updated]);
+          }
+        }
+      }
       if (openTemplates.isEmpty) continue;
 
       final hasCompletedWorkingSet =
@@ -1062,9 +1415,34 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
           await _progressionService.getProgressionSuggestions(
         exercise: re.exercise,
         workingTemplates: workingTemplates,
+        config: currentWorkingSets.first.progression,
         excludeWorkoutLogId: _workoutLog?.id,
       );
       if (_isDisposed) return;
+      if (!deliver) continue;
+      for (final t in openTemplates) {
+        // A user-authored load is already the prescription for this set. It
+        // remains stronger than generated history and review outcomes.
+        if (t.targetWeight != null) continue;
+        final result = initialSuggestions[t.id];
+        final log = _setLogs[t.id];
+        if (result == null || log == null) continue;
+        final events = [...log.progression.events];
+        for (final review in result.reviews) {
+          if (!events.any((e) => e.review.key == review.key)) {
+            events.add(ReviewDecision(
+                review: review,
+                action: ReviewAction.offered,
+                at: DateTime.now()));
+          }
+        }
+        final updated = log.copyWith(
+            progressionData: log.progression.copyWith(events: events).encode(),
+            progressionReason: result.reason,
+            progressionAlgorithmVersion: result.algorithmVersion);
+        _setLogs[t.id!] = updated;
+        await _repository.updateSetLogs([updated]);
+      }
 
       // Before any working set is completed, surface only the first one. Once
       // a real working set exists today, every later open position can be
@@ -1082,19 +1460,35 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
         }
 
         ProgressionSuggestion? suggestion;
-        if (hasCompletedWorkingSet && _workoutLog?.id != null) {
+        if (hasCompletedWorkingSet &&
+            _workoutLog?.id != null &&
+            initialSuggestions[templateId]?.reviews.isEmpty != false) {
           suggestion = await _progressionService.getInWorkoutSuggestion(
             exercise: re.exercise,
             workingTemplates: workingTemplates,
             currentWorkingSets: currentWorkingSets,
             targetTemplateId: templateId,
             currentWorkoutLogId: _workoutLog!.id!,
+            config: currentWorkingSets.first.progression,
           );
         }
         suggestion ??= initialSuggestions[templateId];
         if (_isDisposed) return;
 
-        if (suggestion == null || suggestion.targetWeight == null) continue;
+        if (suggestion == null || suggestion.targetWeight == null) {
+          if (_suggestedTemplates.remove(templateId)) {
+            _suggestions.remove(templateId);
+            weightControllers[templateId]?.clear();
+            repsControllers[templateId]?.clear();
+            final old = _setLogs[templateId];
+            if (old != null) {
+              final cleared = old.copyWith(clearWeight: true, clearReps: true);
+              _setLogs[templateId] = cleared;
+              await _repository.updateSetLogs([cleared]);
+            }
+          }
+          continue;
+        }
 
         final previousSuggestion = _suggestions[templateId];
         _suggestions[templateId] = suggestion;
@@ -1145,6 +1539,13 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
             prescribedRepMin: repRange?.min,
             prescribedRepMax: repRange?.max,
             reps: suggestion.targetReps,
+            progressionData: currentLog.progression
+                .copyWith(
+                    bridgeTarget: suggestion.bridgeTarget,
+                    bridgeLoad: suggestion.bridgeTarget == null
+                        ? null
+                        : suggestion.targetWeight)
+                .encode(),
             progressionReason: suggestion.reason,
             progressionAlgorithmVersion: suggestion.algorithmVersion,
             prescriptionOverridden: false,
@@ -1325,6 +1726,7 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
       exerciseId: re.exercise.uuid,
       exerciseName: re.exercise.canonicalName,
       setType: 'normal',
+      progressionData: re.progressionData,
       // A newly added working set has no made-up raw-row predecessor. Once a
       // real working set exists today, the progression fallback supplies it
       // from that set (and never from a warm-up or drop set).
@@ -1361,6 +1763,7 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
       await _repository.deleteSetLogs([log.id!]);
     }
     _setLogs.remove(templateId);
+    _completedWorkingOrder.remove(templateId);
 
     final newExercises = List<RoutineExercise>.from(_exercises);
     for (var i = 0; i < newExercises.length; i++) {
@@ -1801,6 +2204,7 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
 
       _workoutLog = null;
       _setLogs.clear();
+      _completedWorkingOrder.clear();
       pauseTimes.clear();
       _exercises.clear();
       disposeControllers();
@@ -1823,6 +2227,7 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
     _workoutLog = null;
     _exercises.clear();
     _setLogs.clear();
+    _completedWorkingOrder.clear();
     _exerciseBests.clear();
     pauseTimes.clear();
     _remainingRestSeconds = 0;

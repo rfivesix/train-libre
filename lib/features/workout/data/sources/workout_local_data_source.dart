@@ -1,3 +1,5 @@
+import 'package:uuid/uuid.dart';
+import '../../domain/progression/progression_contract.dart';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:drift/drift.dart' as drift;
@@ -149,6 +151,7 @@ class WorkoutLocalDataSource {
       valuesAutoFilled: row.valuesAutoFilled,
       substitutedForExerciseId: row.substitutedForExerciseId,
       progressionReason: row.progressionReason,
+      progressionData: row.progressionData,
       progressionAlgorithmVersion: row.progressionAlgorithmVersion,
       performedAt: performedAt ?? row.createdAt,
     );

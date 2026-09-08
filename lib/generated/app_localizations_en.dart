@@ -6698,4 +6698,133 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get trainingProgressionSuggest => 'Suggest';
+
+  @override
+  String get progressionTogether => 'Develop sets together';
+
+  @override
+  String get progressionIndividually => 'Develop sets individually';
+
+  @override
+  String get progressionPolicy => 'Set progression';
+
+  @override
+  String get progressionSetOutcome => 'Count set as';
+
+  @override
+  String get progressionDetails => 'Progression and equipment';
+
+  @override
+  String get progressionLargeStep =>
+      'The next available load is a large step. Test it only after confirming, or keep the current load.';
+
+  @override
+  String get progressionBridge =>
+      'Optional temporary target: two repetitions above the range ceiling. Your authored range stays unchanged. Reaching this target offers the real load step again.';
+
+  @override
+  String get progressionUnavailable =>
+      'No next rung is available. Hold, correct the available loads for microloading, or choose a new baseline.';
+
+  @override
+  String get progressionOvershoot =>
+      'This log is at least three repetitions above the ceiling. Confirm the entry, then choose the next available rung or explicitly set a new baseline.';
+
+  @override
+  String get progressionStall =>
+      'This position was below its range in three comparable sessions. You may choose the proposed easier load, keep the plan, or edit your range. Nothing changes automatically.';
+
+  @override
+  String get progressionBoundary =>
+      'New metric and baseline. Confirm the transition for this exercise; assistance, bodyweight and added load are separate metrics.';
+
+  @override
+  String get progressionAccept => 'Confirm target';
+
+  @override
+  String get progressionDecline => 'Keep current load';
+
+  @override
+  String get progressionDismiss => 'Dismiss review';
+
+  @override
+  String get progressionRecalibrate => 'Choose new baseline';
+
+  @override
+  String get progressionConfirmLog => 'Confirm log and review next rung';
+
+  @override
+  String get progressionLoads => 'Available loads (separate with semicolons)';
+
+  @override
+  String get progressionEquipment => 'Equipment identity (optional)';
+
+  @override
+  String get progressionContext => 'Context or temporary reason (optional)';
+
+  @override
+  String get progressionCompleted => 'Completed normally';
+
+  @override
+  String get progressionAbandoned => 'Ended early';
+
+  @override
+  String get progressionPain => 'Stopped because of pain';
+
+  @override
+  String get progressionEquipmentInterrupted => 'Equipment or setup interfered';
+
+  @override
+  String get progressionPainGuidance =>
+      'Stop this set. Consider appropriate assessment before continuing; no load recommendation is offered.';
+
+  @override
+  String get progressionUserLadder => 'Your available loads';
+
+  @override
+  String get progressionEquipmentLadder => 'Equipment load ladder';
+
+  @override
+  String get progressionFallback => 'Equipment increment fallback';
+
+  @override
+  String get progressionHold =>
+      'Hold load; repetitions follow this position’s range and history.';
+
+  @override
+  String get progressionOrdinary =>
+      'Upper range reached: next available load, repetitions restart at the range minimum.';
+
+  @override
+  String get progressionAnchor =>
+      'Linked positions preserve today’s load difference from the previous session.';
+
+  @override
+  String get progressionNewPosition =>
+      'New position: provisional baseline from today’s completed working set, not historical progression evidence.';
+
+  @override
+  String get progressionWithheld => 'No comparable evidence for a suggestion.';
+
+  @override
+  String get progressionOffered => 'Offered';
+
+  @override
+  String get progressionAccepted => 'Accepted';
+
+  @override
+  String get progressionRejected => 'Declined';
+
+  @override
+  String get progressionInvalidLoads =>
+      'Enter non-negative loads; at least one available value is required.';
+
+  @override
+  String get progressionBodyweight => 'Bodyweight';
+
+  @override
+  String get progressionWeighted => 'Weighted bodyweight';
+
+  @override
+  String get progressionAssisted => 'Assistance';
 }

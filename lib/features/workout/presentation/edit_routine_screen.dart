@@ -1,3 +1,6 @@
+import 'package:uuid/uuid.dart';
+import '../domain/progression/progression_v15.dart';
+import '../domain/parsers/rep_range_parser.dart' as progression_parser;
 import '../../../services/unit_service.dart';
 import 'package:provider/provider.dart';
 // lib/screens/edit_routine_screen.dart
@@ -502,6 +505,12 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
         currentTemplates.add(
           set.copyWith(
             targetReps: _repsControllers[set.id!]?.text,
+            targetRepMin: progression_parser
+                .parseRepRange(_repsControllers[set.id!]?.text)
+                ?.min,
+            targetRepMax: progression_parser
+                .parseRepRange(_repsControllers[set.id!]?.text)
+                ?.max,
             targetWeight: _weightControllers[set.id!]!.text.isEmpty
                 ? null
                 : (() {
@@ -520,6 +529,23 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
           ),
         );
       }
+      final working = currentTemplates
+          .where((t) => t.setType == 'normal' || t.setType == 'failure')
+          .toList();
+      final selectedConfig = re.progressionData != null
+          ? re.progression
+          : ProgressionConfig(
+              policy: selectProgressionPolicy(
+                  working.map((t) => t.targetWeight).toList(),
+                  working.map((t) {
+                    final r = progression_parser.parseRepRange(t.targetReps);
+                    return r == null ? null : RepRange(r.min, r.max);
+                  }).toList()));
+      final config = selectedConfig.copyWith(
+          prescriptionKey: selectedConfig.prescriptionKey ?? const Uuid().v4());
+      await db.updateProgressionData(re.id!, config.encode());
+      final index = _routineExercises.indexOf(re);
+      _routineExercises[index] = re.copyWith(progressionData: config.encode());
       await db.replaceSetTemplatesForExercise(re.id!, currentTemplates);
       await db.updateRoutineExerciseNotes(re.id!, re.notes);
     }
@@ -558,6 +584,7 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
 
       final updatedTemplates = [...routineExercise.setTemplates, newSet];
       final updatedExercise = RoutineExercise(
+        progressionData: routineExercise.progressionData,
         id: routineExercise.id,
         exercise: routineExercise.exercise,
         setTemplates: updatedTemplates,
@@ -1171,6 +1198,21 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                                                                 _weightControllers,
                                                             rirControllers:
                                                                 _rirControllers,
+                                                            onProgressionChanged:
+                                                                (config) =>
+                                                                    setState(
+                                                                        () {
+                                                              final i =
+                                                                  _routineExercises
+                                                                      .indexOf(
+                                                                          routineExercise);
+                                                              _routineExercises[
+                                                                      i] =
+                                                                  routineExercise.copyWith(
+                                                                      progressionData:
+                                                                          config
+                                                                              .encode());
+                                                            }),
                                                             onEditNotes: () =>
                                                                 _editExerciseNotes(
                                                                     context,

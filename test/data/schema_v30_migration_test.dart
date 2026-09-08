@@ -29,7 +29,7 @@ void main() {
   });
 
   test(
-      'Migration from v29 to v30 adds columns, backfills data and is idempotent',
+      'Migration from v29 to the current schema adds columns, backfills data and is idempotent',
       () async {
     // 1. Initialize DB at v30 temporarily and insert baseline data
     final initDb = AppDatabase(NativeDatabase(dbFile));
@@ -155,7 +155,7 @@ void main() {
           ),
         );
 
-    // 2. Drop the 15 columns to revert the schema to Version 29
+    // 2. Drop the v30 and v31 columns to revert the schema to Version 29.
     // AppSettings (3 columns)
     await initDb.customStatement(
         'ALTER TABLE app_settings DROP COLUMN training_autonomy_level;');
@@ -191,6 +191,10 @@ void main() {
         'ALTER TABLE set_logs DROP COLUMN progression_reason;');
     await initDb.customStatement(
         'ALTER TABLE set_logs DROP COLUMN progression_algorithm_version;');
+    await initDb
+        .customStatement('ALTER TABLE set_logs DROP COLUMN progression_data;');
+    await initDb.customStatement(
+        'ALTER TABLE routine_exercises DROP COLUMN progression_data;');
 
     // Set schema user_version to 29
     await initDb.customStatement('PRAGMA user_version = 29;');
@@ -208,10 +212,15 @@ void main() {
     final v29SetLogCols = await _columnsOf(initDb, 'set_logs');
     expect(v29SetLogCols, isNot(contains('prescription_origin')));
     expect(v29SetLogCols, isNot(contains('prescribed_rep_min')));
+    expect(v29SetLogCols, isNot(contains('progression_data')));
+    final v29RoutineExerciseCols =
+        await _columnsOf(initDb, 'routine_exercises');
+    expect(v29RoutineExerciseCols, isNot(contains('progression_data')));
 
     await initDb.close();
 
-    // 3. Open AppDatabase on the v29 database to trigger onUpgrade(29 -> 30)
+    // 3. Open the current database on the v29 file. This runs the v30
+    // prescription migration and the v31 progression snapshot migration.
     final db = AppDatabase(NativeDatabase(dbFile));
     addTearDown(db.close);
 
@@ -219,7 +228,7 @@ void main() {
     await db.customSelect('SELECT 1;').get();
 
     // Verify schemaVersion getter
-    expect(db.schemaVersion, 30);
+    expect(db.schemaVersion, 31);
 
     // 4. Verify all 15 new columns exist
     final migratedAppSettingsCols = await _columnsOf(db, 'app_settings');
@@ -257,6 +266,11 @@ void main() {
         'progression_algorithm_version',
       ]),
     );
+
+    expect(migratedSetLogCols, contains('progression_data'));
+    final migratedRoutineExerciseCols =
+        await _columnsOf(db, 'routine_exercises');
+    expect(migratedRoutineExerciseCols, contains('progression_data'));
 
     // 5. Verify pre-existing data and backfilled values
     // AppSettings: defaults 'off', 'suggest', 'pro', preserving themeMode 'dark'

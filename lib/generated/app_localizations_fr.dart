@@ -6809,4 +6809,137 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get trainingProgressionSuggest => 'Suggérer';
+
+  @override
+  String get progressionTogether => 'Faire progresser les séries ensemble';
+
+  @override
+  String get progressionIndividually =>
+      'Faire progresser les séries séparément';
+
+  @override
+  String get progressionPolicy => 'Progression des séries';
+
+  @override
+  String get progressionSetOutcome => 'Évaluer la série comme';
+
+  @override
+  String get progressionDetails => 'Progression et équipement';
+
+  @override
+  String get progressionLargeStep =>
+      'La charge suivante représente un grand palier. Confirmez pour la tester, ou gardez la charge actuelle.';
+
+  @override
+  String get progressionBridge =>
+      'Objectif temporaire facultatif : deux répétitions au-dessus du maximum. Votre plage reste inchangée. Ce résultat proposera à nouveau le palier réel.';
+
+  @override
+  String get progressionUnavailable =>
+      'Aucun palier suivant disponible. Gardez la charge, corrigez les charges disponibles ou choisissez une nouvelle base.';
+
+  @override
+  String get progressionOvershoot =>
+      'Cette saisie dépasse le maximum d’au moins trois répétitions. Confirmez-la puis choisissez le prochain palier ou une nouvelle base.';
+
+  @override
+  String get progressionStall =>
+      'Cette position était sous sa plage lors de trois séances comparables. Vous pouvez choisir la charge plus facile, garder le plan ou modifier la plage. Rien ne change automatiquement.';
+
+  @override
+  String get progressionBoundary =>
+      'Nouvelle mesure et nouvelle base. Confirmez la transition pour cet exercice ; assistance, poids du corps et charge ajoutée sont des mesures distinctes.';
+
+  @override
+  String get progressionAccept => 'Confirmer la cible';
+
+  @override
+  String get progressionDecline => 'Garder la charge actuelle';
+
+  @override
+  String get progressionDismiss => 'Fermer cet avis';
+
+  @override
+  String get progressionRecalibrate => 'Choisir une nouvelle base';
+
+  @override
+  String get progressionConfirmLog =>
+      'Confirmer la saisie et examiner le prochain palier';
+
+  @override
+  String get progressionLoads =>
+      'Charges disponibles (séparées par des points-virgules)';
+
+  @override
+  String get progressionEquipment => 'Identifiant de l’équipement (facultatif)';
+
+  @override
+  String get progressionContext => 'Contexte ou raison temporaire (facultatif)';
+
+  @override
+  String get progressionCompleted => 'Terminée normalement';
+
+  @override
+  String get progressionAbandoned => 'Arrêtée avant la fin';
+
+  @override
+  String get progressionPain => 'Arrêtée à cause d’une douleur';
+
+  @override
+  String get progressionEquipmentInterrupted => 'Matériel ou réglage perturbé';
+
+  @override
+  String get progressionPainGuidance =>
+      'Arrêtez cette série. Envisagez une évaluation appropriée avant de continuer ; aucune charge n’est recommandée.';
+
+  @override
+  String get progressionUserLadder => 'Vos charges disponibles';
+
+  @override
+  String get progressionEquipmentLadder => 'Paliers de l’équipement';
+
+  @override
+  String get progressionFallback => 'Incrément par défaut du matériel';
+
+  @override
+  String get progressionHold =>
+      'Charge maintenue ; les répétitions suivent la plage et l’historique de cette position.';
+
+  @override
+  String get progressionOrdinary =>
+      'Maximum atteint : charge suivante, répétitions au minimum de la plage.';
+
+  @override
+  String get progressionAnchor =>
+      'Les positions liées conservent aujourd’hui l’écart de charge de la séance précédente.';
+
+  @override
+  String get progressionNewPosition =>
+      'Nouvelle position : base provisoire issue de la série réalisée aujourd’hui, sans preuve historique de progression.';
+
+  @override
+  String get progressionWithheld =>
+      'Aucune donnée comparable pour une suggestion.';
+
+  @override
+  String get progressionOffered => 'Proposée';
+
+  @override
+  String get progressionAccepted => 'Acceptée';
+
+  @override
+  String get progressionRejected => 'Refusée';
+
+  @override
+  String get progressionInvalidLoads =>
+      'Saisissez des charges positives ou nulles ; au moins une valeur est requise.';
+
+  @override
+  String get progressionBodyweight => 'Poids du corps';
+
+  @override
+  String get progressionWeighted => 'Poids du corps lesté';
+
+  @override
+  String get progressionAssisted => 'Assistance';
 }

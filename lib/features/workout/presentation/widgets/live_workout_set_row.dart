@@ -1,3 +1,4 @@
+import 'progression_details.dart';
 import '../../../../widgets/common/platform_adaptive_pickers.dart'
     as adaptive_pickers;
 import 'package:flutter/material.dart';
@@ -244,6 +245,7 @@ class LiveWorkoutSetRow extends StatelessWidget {
           (vm) => vm.setLogs[templateId],
         ) ??
         setLog;
+    final mask = this.mask.withSnapshotMode(log.progression.loadMode?.name);
     final bool isCompleted = log.isCompleted ?? false;
     final unitService = context.read<UnitService>();
     final showsIntensity = showsIntensityColumn(context, mask);
@@ -725,9 +727,21 @@ class LiveWorkoutSetRow extends StatelessWidget {
             log.isMaxDurationPR ||
             log.isFastestPacePR);
 
+    final progressionReviews = manager.reviewsFor(templateId);
+    final showCompletionPicker = manager.shouldShowCompletionPicker(templateId);
+
     final rowWithSubInfo = Column(
       children: [
         rowContent,
+        if (showCompletionPicker || progressionReviews.isNotEmpty)
+          ProgressionDetails(
+            log: log,
+            reviews: progressionReviews,
+            showCompletionPicker: showCompletionPicker,
+            onDecision: (r, a, {chosenLoad}) =>
+                manager.decideReview(templateId, r, a, chosenLoad: chosenLoad),
+            onCompletion: (c) => manager.setCompletion(templateId, c),
+          ),
         if (showCurrentSetE1rm || hasPR)
           Padding(
             padding: const EdgeInsets.only(right: 12.0, bottom: 4.0),

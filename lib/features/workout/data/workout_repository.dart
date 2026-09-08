@@ -8,7 +8,11 @@ import '../domain/repositories/workout_repository.dart';
 import '../domain/classification/set_load.dart';
 
 /// Concrete implementation of [IWorkoutRepository] implementing workout database transactions.
-class WorkoutRepository implements IWorkoutRepository {
+class WorkoutRepository
+    implements
+        IWorkoutRepository,
+        ProgressionHistoryRepository,
+        ProgressionPrescriptionRepository {
   @override
   Future<BodyweightHistory> getBodyweightHistory() =>
       _localDataSource.getBodyweightHistory();
@@ -97,6 +101,27 @@ class WorkoutRepository implements IWorkoutRepository {
   @override
   Future<Map<String, String>> getWorkoutExerciseNotes(int workoutLogId) =>
       _localDataSource.getWorkoutExerciseNotes(workoutLogId);
+
+  @override
+  Future<void> saveProgressionConfig(String prescriptionKey, String data,
+          {bool equipmentOnly = false}) =>
+      _localDataSource.saveProgressionConfig(prescriptionKey, data,
+          equipmentOnly: equipmentOnly);
+
+  @override
+  Future<void> initializeProgressionConfig(
+          int routineExerciseId, String data) =>
+      _localDataSource.initializeProgressionConfig(routineExerciseId, data);
+
+  @override
+  Future<List<SetLog>> getProgressionHistory({
+    required String exerciseId,
+    required String exerciseNameSnapshot,
+  }) =>
+      _localDataSource.getProgressionHistory(
+        exerciseId: exerciseId,
+        exerciseNameSnapshot: exerciseNameSnapshot,
+      );
 
   @override
   Future<List<SetLog>> getLastSetsForExercise({

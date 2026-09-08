@@ -1,3 +1,4 @@
+import 'progression_details.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -6,6 +7,7 @@ import '../../../../services/experience_level_service.dart';
 import '../../../../services/unit_service.dart';
 import '../../domain/classification/exercise_log_mask.dart';
 import '../../domain/models/set_log.dart';
+import '../../domain/progression/progression_contract.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../../util/time_util.dart';
 import '../../../../widgets/common/platform_adaptive_pickers.dart'
@@ -53,6 +55,7 @@ class WorkoutLogSetRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final mask = this.mask.withSnapshotMode(setLog.progression.loadMode?.name);
     final setType = setLog.setType;
     final isLightMode = Theme.of(context).brightness == Brightness.light;
     final bool isColoredRow = rowIndex > 0 && rowIndex.isOdd;
@@ -282,6 +285,24 @@ class WorkoutLogSetRow extends StatelessWidget {
             padding: const EdgeInsets.symmetric(vertical: 4.0),
             child: rowContent,
           ),
+          if (setLog.progressionData != null &&
+              setLog.progression.completion != SetCompletion.completed)
+            Padding(
+              padding: const EdgeInsets.only(
+                right: DesignConstants.spacingM,
+                bottom: DesignConstants.spacingXS,
+              ),
+              child: Align(
+                alignment: Alignment.centerRight,
+                child: Text(
+                  completionLabel(AppLocalizations.of(context)!,
+                      setLog.progression.completion),
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                ),
+              ),
+            ),
           if (showCurrentSetE1rm || hasPR)
             Padding(
               padding: const EdgeInsets.only(right: 12.0, bottom: 8.0),

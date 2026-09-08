@@ -1,3 +1,4 @@
+import '../progression/progression_contract.dart';
 // lib/models/set_log.dart
 // Complete code
 
@@ -5,6 +6,10 @@
 ///
 /// Contains data about weight, repetitions, rest time, and completion status.
 class SetLog {
+  final String? progressionData;
+  ProgressionConfig get progression =>
+      ProgressionConfig.decode(progressionData);
+
   /// Unique identifier for the set log.
   final int? id;
 
@@ -135,6 +140,7 @@ class SetLog {
 
   /// Creates a new [SetLog] instance.
   SetLog({
+    this.progressionData,
     this.id,
     required this.workoutLogId,
     this.exerciseId,
@@ -181,6 +187,7 @@ class SetLog {
   /// Creates a [SetLog] instance from a Map, typically from a database row.
   factory SetLog.fromMap(Map<String, dynamic> map) {
     return SetLog(
+      progressionData: map['progression_data'] ?? map['progressionData'],
       id: map['id'],
       workoutLogId: map['workout_log_id'] ?? map['workoutLogId'],
       exerciseId: map['exercise_id'] as String? ?? map['exerciseId'] as String?,
@@ -237,6 +244,7 @@ class SetLog {
   /// Converts the [SetLog] instance to a Map for database storage.
   Map<String, dynamic> toMap() {
     return {
+      'progression_data': progressionData,
       'id': id,
       'workout_log_id': workoutLogId,
       'exercise_id': exerciseId,
@@ -275,6 +283,7 @@ class SetLog {
   /// Use optional [clearWeight], [clearReps], [clearRir], [clearDistance], and [clearDuration]
   /// flags to explicitly set those fields to null.
   SetLog copyWith({
+    String? progressionData,
     int? id,
     int? workoutLogId,
     String? exerciseId,
@@ -330,6 +339,7 @@ class SetLog {
     bool clearPrescribedRepMax = false,
   }) {
     return SetLog(
+      progressionData: progressionData ?? this.progressionData,
       id: id ?? this.id,
       workoutLogId: workoutLogId ?? this.workoutLogId,
       exerciseId: clearExerciseId ? null : (exerciseId ?? this.exerciseId),

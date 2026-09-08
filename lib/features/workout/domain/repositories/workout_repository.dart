@@ -58,3 +58,17 @@ abstract class IWorkoutRepository {
   });
   Future<void> updateWorkoutLogPhotos(int logId, List<String> paths);
 }
+
+/// Full canonical history for multi-session progression evidence.
+abstract interface class ProgressionHistoryRepository {
+  Future<List<SetLog>> getProgressionHistory({
+    required String exerciseId,
+    required String exerciseNameSnapshot,
+  });
+}
+
+abstract interface class ProgressionPrescriptionRepository {
+  Future<void> saveProgressionConfig(String prescriptionKey, String data,
+      {bool equipmentOnly = false});
+  Future<void> initializeProgressionConfig(int routineExerciseId, String data);
+}

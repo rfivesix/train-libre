@@ -133,6 +133,21 @@ class ExerciseLogMask {
     return (exercise?.isCardio ?? false) ? distanceAndDuration : weightAndReps;
   }
 
+  /// A workout's confirmed metric takes precedence over today's catalogue.
+  ExerciseLogMask withSnapshotMode(String? mode) {
+    if (mode == null || secondary != LogField.reps) return this;
+    return ExerciseLogMask(
+        primary: mode == 'assisted'
+            ? LogField.assistance
+            : (mode == 'bodyweight' || mode == 'weightedBodyweight')
+                ? LogField.addedWeight
+                : primary,
+        secondary: secondary,
+        trackingType: trackingType,
+        loadMode: mode,
+        mechanic: mechanic);
+  }
+
   /// What a logged number was actually worth, in kilograms.
   ///
   /// Delegates rather than reimplementing: the sign error this guards against

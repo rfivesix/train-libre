@@ -20,6 +20,7 @@ enum LoadMode {
   external,
   bodyweight,
   assisted,
+  weightedBodyweight,
   variable;
 
   static LoadMode fromString(String? value) {
@@ -31,6 +32,9 @@ enum LoadMode {
       case 'assisted':
       case 'assisted_reps':
         return LoadMode.assisted;
+      case 'weightedbodyweight':
+      case 'weighted_bodyweight':
+        return LoadMode.weightedBodyweight;
       case 'variable':
         return LoadMode.variable;
       case 'external':

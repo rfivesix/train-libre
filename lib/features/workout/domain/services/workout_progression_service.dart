@@ -1,3 +1,4 @@
+import '../progression/progression_v15.dart';
 import '../../../../services/unit_service.dart';
 import '../../../exercise_catalog/domain/models/exercise.dart';
 import '../classification/exercise_log_mask.dart';
@@ -140,53 +141,73 @@ class WorkoutProgressionService {
   Future<Map<int, ProgressionSuggestion>> getProgressionSuggestions({
     required Exercise exercise,
     required List<SetTemplate> workingTemplates,
+    ProgressionConfig config = const ProgressionConfig(),
     int? excludeWorkoutLogId,
     DateTime? now,
   }) async {
+    final mode = config.loadMode ?? LoadMode.fromString(exercise.loadMode);
     final mask = ExerciseLogMask.forExercise(exercise);
-    if (!mask.showsPrimary || workingTemplates.isEmpty) return const {};
-
-    final templates =
-        workingTemplates.where((template) => template.id != null).toList();
-    if (templates.isEmpty) return const {};
-
-    final historyLogs = await _repository.getLastSetsForExercise(
-      exerciseId: exercise.uuid,
-      exerciseNameSnapshot: exercise.canonicalName,
-    );
-    final relevantHistory = excludeWorkoutLogId == null
-        ? historyLogs
-        : historyLogs
-            .where((set) => set.workoutLogId != excludeWorkoutLogId)
-            .toList();
-    if (relevantHistory.isEmpty) return const {};
-
-    final isMetric = _unitService.isMetric;
-    final entries = relevantHistory
-        .map((set) => _toProgressionEntry(set, isMetric))
-        .toList();
-    final positions = templates
-        .map((template) => WorkingSetPosition(
-              id: template.id!.toString(),
-              range: _rangeFor(template),
-            ))
-        .toList();
-    final suggestions = DoubleProgressionEngine.nextPrescriptions(
-      history: ExerciseProgressionHistory(entries),
-      positions: positions,
-      increment: LoadIncrement.fromEquipment(exercise.primaryEquipment,
-          isMetric: isMetric),
-      loadMode: LoadMode.fromString(exercise.loadMode),
-      now: now,
-    );
-
-    final results = <int, ProgressionSuggestion>{};
-    for (var index = 0; index < templates.length; index++) {
-      final suggestion = suggestions[index];
-      if (suggestion.targetWeight == null) continue;
-      results[templates[index].id!] = _toMetricSuggestion(suggestion, isMetric);
+    if ((!mask.showsPrimary && mode != LoadMode.bodyweight) ||
+        workingTemplates.isEmpty) {
+      return const {};
     }
-    return results;
+    final templates = workingTemplates.where((t) => t.id != null).toList();
+    final logs = await _history(exercise);
+    final entries = logs
+        .where((s) => s.workoutLogId != excludeWorkoutLogId)
+        .map((s) => _toProgressionEntry(s, true))
+        .toList();
+    final nominal = LoadIncrement.fromEquipment(exercise.primaryEquipment,
+        isMetric: _unitService.isMetric);
+    final increment = LoadIncrement(_unitService.isMetric
+        ? nominal.value
+        : _unitService.convertToMetric(nominal.value, UnitDimension.weight));
+    final result = ProgressionV15.evaluate(
+        history: ExerciseProgressionHistory(entries),
+        positions: templates
+            .map((t) =>
+                WorkingSetPosition(id: t.id.toString(), range: _rangeFor(t)))
+            .toList(),
+        increment: increment,
+        loadMode: mode,
+        policy: config.policy,
+        ladder: config.ladder,
+        equipmentIdentity: config.equipmentIdentity,
+        now: now);
+    final latestDate = entries.isEmpty
+        ? null
+        : entries
+            .map((e) => e.performedAt)
+            .reduce((a, b) => a.isAfter(b) ? a : b);
+    return {
+      for (var i = 0; i < templates.length; i++)
+        templates[i].id!: config.baselines['$i'] != null &&
+                (latestDate == null ||
+                    latestDate.isBefore(config.baselines['$i']!.at))
+            ? ProgressionSuggestion(
+                outcome: ProgressionOutcome.hold,
+                targetWeight: config.baselines['$i']!.load,
+                targetReps: _rangeFor(templates[i])?.min,
+                reason: 'confirmed_baseline',
+                algorithmVersion: ProgressionV15.algorithmVersion,
+                policy: config.policy,
+                ladderSource:
+                    config.ladder?.source ?? LoadLadderSource.incrementFallback)
+            : result.suggestions[i]
+    };
+  }
+
+  Future<List<SetLog>> _history(Exercise exercise) async {
+    final repository = _repository;
+    if (repository is ProgressionHistoryRepository && exercise.uuid != null) {
+      return (repository as ProgressionHistoryRepository).getProgressionHistory(
+        exerciseId: exercise.uuid!,
+        exerciseNameSnapshot: exercise.canonicalName,
+      );
+    }
+    return repository.getLastSetsForExercise(
+        exerciseId: exercise.uuid,
+        exerciseNameSnapshot: exercise.canonicalName);
   }
 
   /// Re-shapes an unfinished set from a real set completed earlier *today*.
@@ -198,6 +219,7 @@ class WorkoutProgressionService {
     required List<SetLog> currentWorkingSets,
     required int targetTemplateId,
     required int currentWorkoutLogId,
+    ProgressionConfig config = const ProgressionConfig(),
   }) async {
     final targetIndex =
         workingTemplates.indexWhere((t) => t.id == targetTemplateId);
@@ -208,16 +230,16 @@ class WorkoutProgressionService {
     var anchorIndex = -1;
     for (var index = 0; index < targetIndex; index++) {
       final set = currentWorkingSets[index];
-      if (set.isCompleted == true && set.weightKg != null) {
+      if (set.isCompleted == true &&
+          set.weightKg != null &&
+          set.progression.completion == SetCompletion.completed &&
+          !set.valuesAutoFilled) {
         anchorIndex = index;
       }
     }
     if (anchorIndex < 0) return null;
 
-    final historyLogs = await _repository.getLastSetsForExercise(
-      exerciseId: exercise.uuid,
-      exerciseNameSnapshot: exercise.canonicalName,
-    );
+    final historyLogs = await _history(exercise);
     final previousEntries = historyLogs
         .where((set) => set.workoutLogId != currentWorkoutLogId)
         .map((set) => _toProgressionEntry(set, true))
@@ -227,9 +249,30 @@ class WorkoutProgressionService {
     final anchorReps = currentWorkingSets[anchorIndex].reps;
     final targetRange = _rangeFor(workingTemplates[targetIndex]);
     final previousSession = _latestSession(previousEntries);
+    if (!canAnchorPosition(config.policy,
+        hasOwnHistory: previousSession.length > targetIndex ||
+            previousEntries
+                    .where((e) =>
+                        e.sessionId != previousSession.firstOrNull?.sessionId)
+                    .isNotEmpty &&
+                _sessionsHavePosition(previousEntries, targetIndex))) {
+      return null;
+    }
+    final anchorConfig = currentWorkingSets[anchorIndex].progression;
+    final mode = config.loadMode ?? LoadMode.fromString(exercise.loadMode);
+    bool comparable(ProgressionSetEntry e) =>
+        (e.loadMode == null || e.loadMode == mode) &&
+        e.equipmentIdentity == config.equipmentIdentity &&
+        e.completion == SetCompletion.completed &&
+        !e.substituted;
+    if (anchorConfig.loadMode != null && anchorConfig.loadMode != mode) {
+      return null;
+    }
     final canPreserveHistoricalStructure =
         previousSession.length > targetIndex &&
             previousSession.length > anchorIndex &&
+            comparable(previousSession[targetIndex]) &&
+            comparable(previousSession[anchorIndex]) &&
             previousSession[targetIndex].weight != null &&
             previousSession[anchorIndex].weight != null;
     final targetWeight = canPreserveHistoricalStructure
@@ -242,7 +285,9 @@ class WorkoutProgressionService {
         : anchorReps;
     return ProgressionSuggestion(
       outcome: ProgressionOutcome.hold,
-      targetWeight: targetWeight,
+      policy: config.policy,
+      ladderSource: config.ladder?.source ?? LoadLadderSource.incrementFallback,
+      targetWeight: targetWeight < 0 ? 0 : targetWeight,
       targetReps:
           nextSuggestedReps(previousReps: referenceReps, range: targetRange),
       reason: canPreserveHistoricalStructure
@@ -275,24 +320,55 @@ class WorkoutProgressionService {
       rir: set.rir,
       valuesAutoFilled: set.valuesAutoFilled,
       isCompleted: set.isCompleted ?? true,
-      sessionId: set.workoutLogId.toString(),
+      sessionId: '${set.workoutLogId}:${set.exerciseBlock ?? 0}',
       order: set.logOrder,
+      bridgeTarget: set.progression.bridgeLoad == set.weightKg
+          ? set.progression.bridgeTarget
+          : null,
+      completion: set.progression.completion,
+      loadMode: set.progression.loadMode,
+      range: set.prescribedRepMin != null && set.prescribedRepMax != null
+          ? RepRange(set.prescribedRepMin!, set.prescribedRepMax!)
+          : null,
+      equipmentIdentity: set.progression.equipmentIdentity,
+      substituted: set.substitutedForExerciseId != null,
+      overshootConfirmed: set.progression.events
+          .any((e) => e.action == ReviewAction.confirmedLog),
     );
   }
 
-  ProgressionSuggestion _toMetricSuggestion(
-      ProgressionSuggestion suggestion, bool isMetric) {
-    return ProgressionSuggestion(
-      outcome: suggestion.outcome,
-      targetWeight: isMetric
-          ? suggestion.targetWeight
-          : _unitService.convertToMetric(
-              suggestion.targetWeight!, UnitDimension.weight),
-      targetReps: suggestion.targetReps,
-      targetRir: suggestion.targetRir,
-      reason: suggestion.reason,
-      algorithmVersion: suggestion.algorithmVersion,
-    );
+  bool _sessionsHavePosition(List<ProgressionSetEntry> entries, int position) {
+    final counts = <String?, int>{};
+    for (final e in entries) {
+      counts[e.sessionId] = (counts[e.sessionId] ?? 0) + 1;
+    }
+    return counts.values.any((n) => n > position);
+  }
+
+  Future<ProgressionResult> currentReviews(
+      {required Exercise exercise,
+      required List<SetTemplate> templates,
+      required List<SetLog> current,
+      required ProgressionConfig config}) async {
+    final past = await _history(exercise);
+    final entries =
+        [...past, ...current].map((s) => _toProgressionEntry(s, true)).toList();
+    final nominal = LoadIncrement.fromEquipment(exercise.primaryEquipment,
+        isMetric: _unitService.isMetric);
+    return ProgressionV15.evaluate(
+        history: ExerciseProgressionHistory(entries),
+        positions: templates
+            .map((t) =>
+                WorkingSetPosition(id: t.id.toString(), range: _rangeFor(t)))
+            .toList(),
+        increment: LoadIncrement(_unitService.isMetric
+            ? nominal.value
+            : _unitService.convertToMetric(
+                nominal.value, UnitDimension.weight)),
+        loadMode: config.loadMode ?? LoadMode.fromString(exercise.loadMode),
+        policy: config.policy,
+        ladder: config.ladder,
+        equipmentIdentity: config.equipmentIdentity);
   }
 
   List<ProgressionSetEntry> _latestSession(List<ProgressionSetEntry> entries) {

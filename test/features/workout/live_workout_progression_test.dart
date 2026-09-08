@@ -10,7 +10,7 @@ import 'package:train_libre/features/workout/domain/models/prescription_enums.da
 import 'package:train_libre/features/workout/domain/models/routine_exercise.dart';
 import 'package:train_libre/features/workout/domain/models/set_log.dart';
 import 'package:train_libre/features/workout/domain/models/set_template.dart';
-import 'package:train_libre/features/workout/domain/progression/double_progression_engine.dart';
+import 'package:train_libre/features/workout/domain/progression/progression_v15.dart';
 import 'package:train_libre/features/workout/domain/services/workout_progression_service.dart';
 import 'package:train_libre/features/workout/presentation/live_workout_view_model.dart';
 import 'package:train_libre/services/training_autonomy_service.dart';
@@ -125,8 +125,286 @@ void main() {
       isCompleted: true,
       performedAt: date,
     );
-    await workoutDb.insertSetLog(setLog);
+    await workoutDb.insertSetLog(setLog.copyWith(logOrder: 0));
+    await workoutDb.insertSetLog(setLog.copyWith(logOrder: 1));
   }
+
+  Future<void> seedV15(List<(double, int)> performances,
+      {LoadMode mode = LoadMode.external}) async {
+    final previous = await workoutDb.startWorkout(routineName: 'history');
+    await workoutDb.finishWorkout(previous.id!);
+    for (var i = 0; i < performances.length; i++) {
+      await workoutDb.insertSetLog(SetLog(
+          workoutLogId: previous.id!,
+          exerciseId: 'ex-bench',
+          exerciseName: 'Old name',
+          setType: 'normal',
+          weightKg: performances[i].$1,
+          reps: performances[i].$2,
+          isCompleted: true,
+          logOrder: i,
+          prescribedRepMin: 8,
+          prescribedRepMax: 12,
+          progressionData: ProgressionConfig(loadMode: mode).encode()));
+    }
+  }
+
+  test('v1.5 selects and snapshots the visible authored default once',
+      () async {
+    final templates = [
+      SetTemplate(
+          id: 101,
+          setType: 'normal',
+          targetWeight: 60,
+          targetRepMin: 8,
+          targetRepMax: 12),
+      SetTemplate(
+          id: 102,
+          setType: 'normal',
+          targetWeight: 60,
+          targetRepMin: 8,
+          targetRepMax: 12),
+    ];
+    final routineExercise = createRoutineExercise(
+      exercise: createExercise(),
+      templates: templates,
+    );
+    final workout = await workoutDb.startWorkout(routineName: 'uniform');
+
+    await vm.loadInitialData(workout, [routineExercise]);
+
+    expect(vm.exercises.single.progression.policy,
+        ProgressionPolicy.independentWorkingSets);
+    expect(
+        vm.setLogs.values.every((set) =>
+            set.progression.policy == ProgressionPolicy.independentWorkingSets),
+        isTrue);
+    expect(
+        vm.setLogs.values.map((set) => set.progression.prescriptionKey).toSet(),
+        hasLength(1));
+  });
+
+  test('v1.5 reads legacy null-ID history but rejects a different UUID',
+      () async {
+    final legacyWorkout =
+        await workoutDb.startWorkout(routineName: 'legacy history');
+    await workoutDb.finishWorkout(legacyWorkout.id!);
+    await workoutDb.insertSetLog(SetLog(
+      workoutLogId: legacyWorkout.id!,
+      exerciseName: 'Bench Press',
+      setType: 'normal',
+      weightKg: 60,
+      reps: 12,
+      isCompleted: true,
+      logOrder: 0,
+      prescribedRepMin: 8,
+      prescribedRepMax: 12,
+    ));
+    await workoutDb.insertSetLog(SetLog(
+      workoutLogId: legacyWorkout.id!,
+      exerciseId: 'a-different-exercise',
+      exerciseName: 'Bench Press',
+      setType: 'normal',
+      weightKg: 200,
+      reps: 12,
+      isCompleted: true,
+      logOrder: 1,
+      prescribedRepMin: 8,
+      prescribedRepMax: 12,
+    ));
+    final routineExercise = createRoutineExercise(
+      exercise: createExercise(),
+      templates: [
+        SetTemplate(
+            id: 101, setType: 'normal', targetRepMin: 8, targetRepMax: 12),
+      ],
+    );
+    final workout = await workoutDb.startWorkout(routineName: 'today');
+
+    await vm.loadInitialData(workout, [routineExercise]);
+
+    expect(vm.setLogs[101]!.weightKg, 62.5);
+  });
+
+  test('v1.5 independent positions survive heavier and lighter manual anchors',
+      () async {
+    await seedV15([(60, 12), (60, 10)]);
+    final re = createRoutineExercise(exercise: createExercise()).copyWith(
+        progressionData: const ProgressionConfig(
+                policy: ProgressionPolicy.independentWorkingSets)
+            .encode());
+    final workout = await workoutDb.startWorkout(routineName: 'independent');
+    await vm.loadInitialData(workout, [re]);
+    expect(vm.setLogs[101]!.weightKg, 62.5);
+    await vm.updateSet(101, weight: 40, reps: 9, isCompleted: true);
+    await vm.pendingProgressionUpdate;
+    expect(vm.setLogs[102]!.weightKg, 60);
+    await vm.updateSet(101, weight: 80, reps: 9);
+    await vm.pendingProgressionUpdate;
+    expect(vm.setLogs[102]!.weightKg, 60);
+    expect(vm.setLogs[102]!.progression.policy,
+        ProgressionPolicy.independentWorkingSets);
+    await vm.addSetToExercise(10);
+    await vm.pendingProgressionUpdate;
+    final added = vm.exercises.single.setTemplates.last.id!;
+    expect(vm.setLogs[added]!.weightKg, 80);
+    expect(vm.setLogs[added]!.progressionReason,
+        ProgressionReason.inWorkoutFallback);
+  });
+
+  test('v1.5 coarse trial and bridge decisions persist without changing range',
+      () async {
+    await seedV15([(8, 12), (8, 12)]);
+    final re = createRoutineExercise(exercise: createExercise()).copyWith(
+        progressionData: ProgressionConfig(
+                policy: ProgressionPolicy.independentWorkingSets,
+                ladder: LoadLadder([8, 10], source: LoadLadderSource.user))
+            .encode());
+    final workout = await workoutDb.startWorkout(routineName: 'coarse');
+    await vm.loadInitialData(workout, [re]);
+    expect(vm.setLogs[101]!.weightKg, 8);
+    final trial = vm.reviewsFor(101).single;
+    expect(trial.kind, ReviewKind.largeStepTrial);
+    await vm.decideReview(101, trial, ReviewAction.rejected);
+    final bridge = vm.reviewsFor(101).single;
+    expect(bridge.targetReps, 14);
+    await vm.decideReview(101, bridge, ReviewAction.accepted);
+    expect(vm.setLogs[101]!.reps, 14);
+    expect(vm.setLogs[101]!.prescribedRepMax, 12);
+    expect(vm.setLogs[101]!.progression.bridgeTarget, 14);
+    expect(vm.setLogs[101]!.progression.bridgeLoad, 8);
+    final restored = (await repository.getSetLogsForWorkout(workout.id!)).first;
+    expect(restored.progression.events.map((e) => e.action), [
+      ReviewAction.offered,
+      ReviewAction.rejected,
+      ReviewAction.offered,
+      ReviewAction.accepted
+    ]);
+    expect(
+        restored.progressionAlgorithmVersion, ProgressionV15.algorithmVersion);
+    await vm.updateSet(101, isCompleted: true);
+    expect(vm.setLogs[101]!.valuesAutoFilled, true);
+  });
+
+  test('v1.5 completion states persist and never anchor', () async {
+    final re = createRoutineExercise(exercise: createExercise());
+    final workout = await workoutDb.startWorkout(routineName: 'interruption');
+    await vm.loadInitialData(workout, [re]);
+    await vm.updateSet(101, weight: 80, reps: 15);
+    await vm.setCompletion(101, SetCompletion.stoppedForPain);
+    await vm.pendingProgressionUpdate;
+    expect(vm.isSetSuggested(102), false);
+    expect(vm.reviewsFor(101), isEmpty);
+    final restored = (await repository.getSetLogsForWorkout(workout.id!)).first;
+    expect(restored.progression.completion, SetCompletion.stoppedForPain);
+  });
+
+  test('completion prompt belongs only to the latest under-target working set',
+      () async {
+    final re = createRoutineExercise(exercise: createExercise());
+    final workout = await workoutDb.startWorkout(routineName: 'under target');
+    await vm.loadInitialData(workout, [re]);
+
+    await vm.updateSet(101, weight: 60, reps: 6, isCompleted: true);
+    await vm.pendingProgressionUpdate;
+    expect(vm.latestCompletedWorkingTemplateId, 101);
+    expect(vm.shouldShowCompletionPicker(101), isTrue);
+    expect(vm.shouldShowCompletionPicker(102), isFalse);
+
+    await vm.updateSet(102, weight: 60, reps: 8, isCompleted: true);
+    await vm.pendingProgressionUpdate;
+    expect(vm.latestCompletedWorkingTemplateId, 102);
+    expect(vm.shouldShowCompletionPicker(101), isFalse);
+    expect(vm.shouldShowCompletionPicker(102), isFalse);
+  });
+
+  test('completion prompt compares against the concrete engine rep target',
+      () async {
+    await seedV15([(60, 10), (60, 10)]);
+    final re = createRoutineExercise(exercise: createExercise()).copyWith(
+        progressionData: const ProgressionConfig(
+                policy: ProgressionPolicy.independentWorkingSets)
+            .encode());
+    final workout = await workoutDb.startWorkout(routineName: 'exact target');
+    await vm.loadInitialData(workout, [re]);
+    expect(vm.setLogs[101]!.reps, 11);
+
+    await vm.updateSet(101, weight: 60, reps: 10, isCompleted: true);
+    await vm.pendingProgressionUpdate;
+
+    expect(vm.shouldShowCompletionPicker(101), isTrue);
+    await vm.setCompletion(101, SetCompletion.equipmentInterrupted);
+    await vm.pendingProgressionUpdate;
+    expect(vm.shouldShowCompletionPicker(101), isTrue);
+    expect(vm.reviewsFor(101), isEmpty);
+  });
+
+  test('completion prompt detects a lower concrete load', () async {
+    final re = createRoutineExercise(
+      exercise: createExercise(),
+      templates: [
+        SetTemplate(
+          id: 101,
+          setType: 'normal',
+          targetWeight: 62.5,
+          targetRepMin: 8,
+          targetRepMax: 12,
+        ),
+      ],
+    );
+    final workout = await workoutDb.startWorkout(routineName: 'lower load');
+    await vm.loadInitialData(workout, [re]);
+
+    await vm.updateSet(101, weight: 60, reps: 8, isCompleted: true);
+    await vm.pendingProgressionUpdate;
+
+    expect(vm.shouldShowCompletionPicker(101), isTrue);
+  });
+
+  test('v1.5 overshoot is reviewed immediately after manual completion',
+      () async {
+    final re = createRoutineExercise(exercise: createExercise());
+    final workout = await workoutDb.startWorkout(routineName: 'overshoot');
+    await vm.loadInitialData(workout, [re]);
+    await vm.updateSet(101, weight: 60, reps: 15, isCompleted: true);
+    await vm.pendingProgressionUpdate;
+    expect(vm.reviewsFor(101).single.kind, ReviewKind.farAboveRange);
+    expect(vm.setLogs[101]!.weightKg, 60);
+    await vm.decideReview(
+        101, vm.reviewsFor(101).single, ReviewAction.confirmedLog);
+    expect(vm.reviewsFor(101).single.targetLoad, 62.5);
+    expect(vm.setLogs[101]!.weightKg, 60);
+  });
+
+  test(
+      'v1.5 bodyweight boundary changes all open positions only after confirmation',
+      () async {
+    await seedV15([(0, 12), (0, 12)], mode: LoadMode.bodyweight);
+    final re = createRoutineExercise(
+            exercise: createExercise(
+                loadMode: 'bodyweight', trackingType: 'bodyweight_reps'))
+        .copyWith(
+            progressionData: ProgressionConfig(
+                    policy: ProgressionPolicy.independentWorkingSets,
+                    loadMode: LoadMode.bodyweight,
+                    ladder: LoadLadder([2.5, 5], source: LoadLadderSource.user))
+                .encode());
+    final workout = await workoutDb.startWorkout(routineName: 'bodyweight');
+    await vm.loadInitialData(workout, [re]);
+    final review = vm.reviewsFor(101).single;
+    expect(review.kind, ReviewKind.modeBoundary);
+    expect(vm.setLogs[101]!.weightKg, 0);
+    await vm.decideReview(101, review, ReviewAction.accepted);
+    for (final id in [101, 102]) {
+      expect(vm.setLogs[id]!.weightKg, 2.5);
+      expect(vm.setLogs[id]!.progression.loadMode, LoadMode.weightedBodyweight);
+    }
+    final stored = await repository.getSetLogsForWorkout(workout.id!);
+    expect(
+        stored.every(
+            (s) => s.progression.loadMode == LoadMode.weightedBodyweight),
+        true);
+  });
 
   group('Live Workout Progression Integration', () {
     test('never pre-fills a warm-up; it targets the first open working set',
@@ -276,10 +554,9 @@ void main() {
       expect(completedSet.prescriptionOrigin, equals('engine'));
       expect(completedSet.prescribedWeight, equals(82.5));
       expect(completedSet.prescriptionOverridden, isTrue);
-      expect(completedSet.progressionReason,
-          equals(ProgressionReason.rangeToppedOut));
-      expect(completedSet.progressionAlgorithmVersion,
-          equals(DoubleProgressionEngine.algorithmVersion));
+      expect(completedSet.progressionReason, equals('ordinaryStep'));
+      expect(
+          completedSet.progressionAlgorithmVersion, equals('progression_v1.5'));
     });
 
     test(
@@ -300,7 +577,6 @@ void main() {
       // Complete set without modifying weight (accepted suggestion 82.5)
       await vm.updateSet(
         101,
-        reps: 8,
         isCompleted: true,
       );
       await vm.pendingProgressionUpdate;

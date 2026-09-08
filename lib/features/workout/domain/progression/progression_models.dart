@@ -1,3 +1,5 @@
+import 'progression_contract.dart';
+export 'progression_contract.dart';
 import '../models/prescription_enums.dart';
 import '../classification/workout_set_position.dart';
 
@@ -111,6 +113,13 @@ class LoadIncrement {
 
 /// A recorded set from workout history used to derive progression.
 class ProgressionSetEntry {
+  final SetCompletion completion;
+  final LoadMode? loadMode;
+  final RepRange? range;
+  final String? equipmentIdentity;
+  final bool substituted;
+  final bool overshootConfirmed;
+  final int? bridgeTarget;
   final DateTime performedAt;
   final double? weight;
   final int? reps;
@@ -122,6 +131,13 @@ class ProgressionSetEntry {
   final int? order;
 
   const ProgressionSetEntry({
+    this.completion = SetCompletion.completed,
+    this.loadMode,
+    this.range,
+    this.equipmentIdentity,
+    this.substituted = false,
+    this.overshootConfirmed = false,
+    this.bridgeTarget,
     required this.performedAt,
     this.weight,
     this.reps,
@@ -179,6 +195,10 @@ abstract class ProgressionReason {
 
 /// The progression prescription produced by the adaptive engine.
 class ProgressionSuggestion {
+  final ProgressionPolicy policy;
+  final LoadLadderSource ladderSource;
+  final List<ProgressionReview> reviews;
+  final int? bridgeTarget;
   final ProgressionOutcome outcome;
   final double? targetWeight;
   final int? targetReps;
@@ -187,6 +207,10 @@ class ProgressionSuggestion {
   final String algorithmVersion;
 
   const ProgressionSuggestion({
+    this.policy = ProgressionPolicy.linkedWorkingSets,
+    this.ladderSource = LoadLadderSource.incrementFallback,
+    this.reviews = const [],
+    this.bridgeTarget,
     required this.outcome,
     this.targetWeight,
     this.targetReps,

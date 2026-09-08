@@ -326,6 +326,7 @@ class Routines extends Table with HybridId, MetaColumns {
 
 // 5. RoutineExercises
 class RoutineExercises extends Table with HybridId, MetaColumns {
+  TextColumn get progressionData => text().nullable()();
   TextColumn get routineId =>
       text().references(Routines, #id, onDelete: KeyAction.cascade)();
   TextColumn get exerciseId => text().references(Exercises, #id)();
@@ -381,6 +382,7 @@ class WorkoutLogs extends Table with HybridId, MetaColumns {
 
 // 8. SetLogs
 class SetLogs extends Table with HybridId, MetaColumns {
+  TextColumn get progressionData => text().nullable()();
   TextColumn get workoutLogId =>
       text().references(WorkoutLogs, #id, onDelete: KeyAction.cascade)();
   TextColumn get exerciseId => text().nullable().references(Exercises, #id)();
@@ -832,7 +834,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
-  int get schemaVersion => 30;
+  int get schemaVersion => 31;
 
   /// Adds whatever the file is missing compared to the generated tables.
   ///
@@ -1495,6 +1497,17 @@ class AppDatabase extends _$AppDatabase {
                     [parsed.min, parsed.max, localId],
                   );
                 }
+              }
+            }
+            if (from < 31) {
+              if (!await _columnExists(
+                  this, routineExercises.actualTableName, 'progression_data')) {
+                await m.addColumn(
+                    routineExercises, routineExercises.progressionData);
+              }
+              if (!await _columnExists(
+                  this, setLogs.actualTableName, 'progression_data')) {
+                await m.addColumn(setLogs, setLogs.progressionData);
               }
             }
             unawaited(TelemetryService.instance.trackDbMigrationStatus(

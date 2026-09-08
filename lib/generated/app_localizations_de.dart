@@ -6751,4 +6751,136 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get trainingProgressionSuggest => 'Vorschlagen';
+
+  @override
+  String get progressionTogether => 'Sätze gemeinsam entwickeln';
+
+  @override
+  String get progressionIndividually => 'Sätze einzeln entwickeln';
+
+  @override
+  String get progressionPolicy => 'Satzprogression';
+
+  @override
+  String get progressionSetOutcome => 'Satz gewertet als';
+
+  @override
+  String get progressionDetails => 'Progression und Geräte';
+
+  @override
+  String get progressionLargeStep =>
+      'Die nächste verfügbare Last ist ein großer Schritt. Bestätige den Versuch oder behalte die aktuelle Last.';
+
+  @override
+  String get progressionBridge =>
+      'Optionales Übergangsziel: zwei Wiederholungen über der Bereichsobergrenze. Dein Bereich bleibt unverändert. Danach wird der echte Lastschritt erneut angeboten.';
+
+  @override
+  String get progressionUnavailable =>
+      'Kein nächster Lastschritt verfügbar. Behalte die Last, korrigiere verfügbare Lasten für Mikrogewichte oder wähle eine neue Ausgangslast.';
+
+  @override
+  String get progressionOvershoot =>
+      'Dieser Eintrag liegt mindestens drei Wiederholungen über der Obergrenze. Bestätige ihn und wähle den nächsten Lastschritt oder ausdrücklich eine neue Ausgangslast.';
+
+  @override
+  String get progressionStall =>
+      'Diese Position lag in drei vergleichbaren Einheiten unter ihrem Bereich. Du kannst die vorgeschlagene leichtere Last wählen, den Plan behalten oder den Bereich bearbeiten. Nichts ändert sich automatisch.';
+
+  @override
+  String get progressionBoundary =>
+      'Neue Messgröße und Ausgangsbasis. Bestätige den Wechsel für diese Übung; Unterstützung, Körpergewicht und Zusatzlast sind getrennte Messgrößen.';
+
+  @override
+  String get progressionAccept => 'Ziel bestätigen';
+
+  @override
+  String get progressionDecline => 'Aktuelle Last behalten';
+
+  @override
+  String get progressionDismiss => 'Hinweis schließen';
+
+  @override
+  String get progressionRecalibrate => 'Neue Ausgangslast wählen';
+
+  @override
+  String get progressionConfirmLog =>
+      'Eintrag bestätigen und nächsten Schritt prüfen';
+
+  @override
+  String get progressionLoads => 'Verfügbare Lasten (mit Semikolon trennen)';
+
+  @override
+  String get progressionEquipment => 'Gerätekennung (optional)';
+
+  @override
+  String get progressionContext =>
+      'Kontext oder vorübergehender Grund (optional)';
+
+  @override
+  String get progressionCompleted => 'Regulär abgeschlossen';
+
+  @override
+  String get progressionAbandoned => 'Vorzeitig abgebrochen';
+
+  @override
+  String get progressionPain => 'Wegen Schmerzen gestoppt';
+
+  @override
+  String get progressionEquipmentInterrupted => 'Gerät oder Setup hat gestört';
+
+  @override
+  String get progressionPainGuidance =>
+      'Beende diesen Satz. Ziehe vor dem Fortsetzen eine geeignete Abklärung in Betracht; es wird keine Last empfohlen.';
+
+  @override
+  String get progressionUserLadder => 'Deine verfügbaren Lasten';
+
+  @override
+  String get progressionEquipmentLadder => 'Laststufen des Geräts';
+
+  @override
+  String get progressionFallback => 'Ersatzweise Geräteschritt';
+
+  @override
+  String get progressionHold =>
+      'Last halten; Wiederholungen folgen Bereich und Verlauf dieser Position.';
+
+  @override
+  String get progressionOrdinary =>
+      'Obergrenze erreicht: nächste verfügbare Last, Wiederholungen beginnen am Bereichsminimum.';
+
+  @override
+  String get progressionAnchor =>
+      'Verknüpfte Positionen behalten heute den Lastabstand der letzten Einheit.';
+
+  @override
+  String get progressionNewPosition =>
+      'Neue Position: vorläufige Ausgangslast aus dem heutigen Arbeitssatz, kein historischer Progressionsnachweis.';
+
+  @override
+  String get progressionWithheld =>
+      'Keine vergleichbare Grundlage für einen Vorschlag.';
+
+  @override
+  String get progressionOffered => 'Angeboten';
+
+  @override
+  String get progressionAccepted => 'Angenommen';
+
+  @override
+  String get progressionRejected => 'Abgelehnt';
+
+  @override
+  String get progressionInvalidLoads =>
+      'Gib nicht negative Lasten ein; mindestens ein verfügbarer Wert ist erforderlich.';
+
+  @override
+  String get progressionBodyweight => 'Körpergewicht';
+
+  @override
+  String get progressionWeighted => 'Körpergewicht mit Zusatzlast';
+
+  @override
+  String get progressionAssisted => 'Unterstützung';
 }
