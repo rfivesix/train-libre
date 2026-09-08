@@ -43,7 +43,7 @@ class WorkoutProgressionService {
 
     // 2. Bodyweight-only or non-weight exercises have no primary weight input.
     final mask = ExerciseLogMask.forExercise(exercise);
-    if (!mask.showsPrimary) {
+    if (!mask.supportsLoadRepProgression) {
       return null;
     }
 
@@ -146,9 +146,9 @@ class WorkoutProgressionService {
     DateTime? now,
   }) async {
     final mode = config.loadMode ?? LoadMode.fromString(exercise.loadMode);
-    final mask = ExerciseLogMask.forExercise(exercise);
-    if ((!mask.showsPrimary && mode != LoadMode.bodyweight) ||
-        workingTemplates.isEmpty) {
+    final mask =
+        ExerciseLogMask.forExercise(exercise).withSnapshotMode(mode.name);
+    if (!mask.supportsLoadRepProgression || workingTemplates.isEmpty) {
       return const {};
     }
     final templates = workingTemplates.where((t) => t.id != null).toList();
@@ -221,6 +221,11 @@ class WorkoutProgressionService {
     required int currentWorkoutLogId,
     ProgressionConfig config = const ProgressionConfig(),
   }) async {
+    final mode = config.loadMode ?? LoadMode.fromString(exercise.loadMode);
+    final mask =
+        ExerciseLogMask.forExercise(exercise).withSnapshotMode(mode.name);
+    if (!mask.supportsLoadRepProgression) return null;
+
     final targetIndex =
         workingTemplates.indexWhere((t) => t.id == targetTemplateId);
     if (targetIndex < 0 || targetIndex >= currentWorkingSets.length) {
@@ -259,7 +264,6 @@ class WorkoutProgressionService {
       return null;
     }
     final anchorConfig = currentWorkingSets[anchorIndex].progression;
-    final mode = config.loadMode ?? LoadMode.fromString(exercise.loadMode);
     bool comparable(ProgressionSetEntry e) =>
         (e.loadMode == null || e.loadMode == mode) &&
         e.equipmentIdentity == config.equipmentIdentity &&
@@ -350,6 +354,16 @@ class WorkoutProgressionService {
       required List<SetTemplate> templates,
       required List<SetLog> current,
       required ProgressionConfig config}) async {
+    final mode = config.loadMode ?? LoadMode.fromString(exercise.loadMode);
+    final mask =
+        ExerciseLogMask.forExercise(exercise).withSnapshotMode(mode.name);
+    if (!mask.supportsLoadRepProgression) {
+      return ProgressionResult(
+        policy: config.policy,
+        suggestions: const [],
+        reviews: const [],
+      );
+    }
     final past = await _history(exercise);
     final entries =
         [...past, ...current].map((s) => _toProgressionEntry(s, true)).toList();
@@ -365,7 +379,7 @@ class WorkoutProgressionService {
             ? nominal.value
             : _unitService.convertToMetric(
                 nominal.value, UnitDimension.weight)),
-        loadMode: config.loadMode ?? LoadMode.fromString(exercise.loadMode),
+        loadMode: mode,
         policy: config.policy,
         ladder: config.ladder,
         equipmentIdentity: config.equipmentIdentity);

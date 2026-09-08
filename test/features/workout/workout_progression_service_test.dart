@@ -125,18 +125,63 @@ void main() {
       expect(result, isNull);
     });
 
-    test('Non-weight tracking exercise (e.g. cardio or plank) returns null',
+    test('metric-specific tracking types never enter load-rep progression',
         () async {
-      final cardioExercise = createTestExercise(trackingType: 'time');
+      fakeRepo.historySets = [
+        createTestSetLog(
+          id: 1,
+          workoutLogId: 10,
+          weightKg: 80,
+          reps: 12,
+          performedAt: now.subtract(const Duration(days: 2)),
+        ),
+      ];
       final template = createTestTemplate();
 
-      final result = await service.getProgressionSuggestion(
-        exercise: cardioExercise,
-        template: template,
-        now: now,
-      );
+      for (final trackingType in [
+        'time',
+        'time_weight',
+        'distance_time',
+        'distance_only',
+      ]) {
+        final exercise = createTestExercise(trackingType: trackingType);
+        expect(
+          await service.getProgressionSuggestion(
+            exercise: exercise,
+            template: template,
+            now: now,
+          ),
+          isNull,
+          reason: trackingType,
+        );
+        expect(
+          await service.getProgressionSuggestions(
+            exercise: exercise,
+            workingTemplates: [template],
+            now: now,
+          ),
+          isEmpty,
+          reason: trackingType,
+        );
+      }
 
-      expect(result, isNull);
+      final variable = createTestExercise(loadMode: 'variable');
+      expect(
+        await service.getProgressionSuggestion(
+          exercise: variable,
+          template: template,
+          now: now,
+        ),
+        isNull,
+      );
+      expect(
+        await service.getProgressionSuggestions(
+          exercise: variable,
+          workingTemplates: [template],
+          now: now,
+        ),
+        isEmpty,
+      );
     });
 
     test('Translates SetLogs and raises load when topped out', () async {

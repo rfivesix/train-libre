@@ -102,8 +102,23 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
   bool get progressionEnabled =>
       _trainingAutonomyService?.level == AutonomyLevel.suggest;
 
+  bool _supportsProgressionForTemplate(int templateId) {
+    final log = _setLogs[templateId];
+    for (final exercise in _exercises) {
+      if (!exercise.setTemplates.any((template) => template.id == templateId)) {
+        continue;
+      }
+      return ExerciseLogMask.forExercise(exercise.exercise)
+          .withSnapshotMode(log?.progression.loadMode?.name)
+          .supportsLoadRepProgression;
+    }
+    return false;
+  }
+
   List<ProgressionReview> reviewsFor(int templateId) {
-    if (!progressionEnabled) return const [];
+    if (!progressionEnabled || !_supportsProgressionForTemplate(templateId)) {
+      return const [];
+    }
     final log = _setLogs[templateId];
     if (log == null ||
         log.isCompleted == true ||
@@ -129,7 +144,9 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
   /// below the concrete suggestion, or below the routine minimum when no
   /// exact suggestion was shown.
   bool shouldShowCompletionPicker(int templateId) {
-    if (!progressionEnabled || latestCompletedWorkingTemplateId != templateId) {
+    if (!progressionEnabled ||
+        !_supportsProgressionForTemplate(templateId) ||
+        latestCompletedWorkingTemplateId != templateId) {
       return false;
     }
     final log = _setLogs[templateId];
@@ -1395,8 +1412,9 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
 
     for (var re in _exercises) {
       if (_isDisposed) return;
-      final mask = ExerciseLogMask.forExercise(re.exercise);
-      if (!mask.showsPrimary) continue;
+      final mask = ExerciseLogMask.forExercise(re.exercise)
+          .withSnapshotMode(re.progression.loadMode?.name);
+      if (!mask.supportsLoadRepProgression) continue;
 
       // Progression positions are only normal/failure sets. This is read from
       // the live log rather than the template so a just-changed set type takes

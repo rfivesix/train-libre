@@ -6,6 +6,21 @@ point is `ProgressionV15.evaluate`; its algorithm identifier is
 exercise history and converts the equipment fallback increment to kilograms.
 No e1RM estimate selects a prescription. RIR is optional.
 
+## Eligible exercise metrics
+
+This engine models a stable load axis plus repetitions. It is enabled only for
+`weight_reps`, `bodyweight_reps`, and legacy non-cardio exercises that fall back
+to the same two fields. External load, assistance, bodyweight and confirmed
+weighted-bodyweight modes remain eligible. Variable-load exercises are not.
+
+`time`, `time_weight`, `distance_time`, and `distance_only` are excluded at the
+shared log-mask boundary and again in the service. They retain their normal
+logging, history, statistics and personal records, but receive no generated
+load, repetition, review, completion-reason or routine-policy UI from this
+engine. Duration, distance, pace, intensity and combined load-duration work
+need separate metric-specific progression rules before suggestions can be made
+honestly.
+
 ## Policies and positions
 
 A policy belongs to one **routine-exercise prescription**, not the catalogue

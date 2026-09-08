@@ -200,6 +200,15 @@ class ExerciseLogMask {
   bool get logsReps => secondary == LogField.reps;
   bool get logsDuration => secondary == LogField.duration;
 
+  /// Whether the current load-and-repetition progression model understands
+  /// both axes of this exercise.
+  ///
+  /// Duration and distance need their own progression rules. Merely having a
+  /// primary field is insufficient because that field may be kilometres. A
+  /// variable load also has no stable ladder to advance along.
+  bool get supportsLoadRepProgression =>
+      logsWeight && logsReps && loadMode != 'variable';
+
   /// Whether the duration column opens a picker rather than a keyboard, and
   /// whether the distance column is a distance. Both were `isCardio` before.
   bool get usesDurationPicker => logsDuration;

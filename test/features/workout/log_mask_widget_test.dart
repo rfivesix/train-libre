@@ -124,6 +124,45 @@ void main() {
           ExerciseLogMask.weightAndReps);
       expect(ExerciseLogMask.forExercise(null), ExerciseLogMask.weightAndReps);
     });
+
+    test('load-and-rep progression eligibility follows the logged metrics', () {
+      for (final trackingType in [
+        'time',
+        'time_weight',
+        'distance_time',
+        'distance_only',
+      ]) {
+        expect(
+          ExerciseLogMask.forExercise(
+            _exercise(trackingType: trackingType),
+          ).supportsLoadRepProgression,
+          isFalse,
+          reason: '$trackingType needs a metric-specific progression model',
+        );
+      }
+
+      for (final mode in ['external', 'assisted', 'bodyweight']) {
+        expect(
+          ExerciseLogMask.forExercise(
+            _exercise(trackingType: 'bodyweight_reps', loadMode: mode),
+          ).supportsLoadRepProgression,
+          isTrue,
+          reason: '$mode still logs a stable load axis and repetitions',
+        );
+      }
+
+      expect(
+        ExerciseLogMask.forExercise(
+          _exercise(trackingType: 'weight_reps', loadMode: 'variable'),
+        ).supportsLoadRepProgression,
+        isFalse,
+      );
+      expect(
+        ExerciseLogMask.forExercise(_exercise()).supportsLoadRepProgression,
+        isTrue,
+        reason: 'legacy non-cardio exercises retain their old fallback',
+      );
+    });
   });
 
   group('what the set row renders', () {

@@ -388,6 +388,60 @@ void main() {
     expect(vm.shouldShowCompletionPicker(101), isTrue);
   });
 
+  test('metric-specific exercises receive no progression UI', () async {
+    for (final kind in [
+      (tracking: 'time', mode: 'bodyweight'),
+      (tracking: 'time_weight', mode: 'external'),
+      (tracking: 'distance_time', mode: 'variable'),
+      (tracking: 'distance_only', mode: 'variable'),
+    ]) {
+      final re = createRoutineExercise(
+        exercise: createExercise(
+          trackingType: kind.tracking,
+          loadMode: kind.mode,
+        ),
+        templates: [
+          SetTemplate(
+            id: 101,
+            setType: 'normal',
+            targetWeight: 20,
+            targetRepMin: 8,
+            targetRepMax: 12,
+          ),
+        ],
+      );
+      final workout = await workoutDb.startWorkout(
+        routineName: 'metric ${kind.tracking}',
+      );
+      await vm.loadInitialData(workout, [re]);
+      await vm.updateSet(
+        101,
+        weight: 10,
+        reps: 4,
+        distance: 1,
+        duration: 60,
+        isCompleted: true,
+      );
+      await vm.pendingProgressionUpdate;
+
+      expect(vm.isSetSuggested(101), isFalse, reason: kind.tracking);
+      expect(vm.reviewsFor(101), isEmpty, reason: kind.tracking);
+      expect(
+        vm.shouldShowCompletionPicker(101),
+        isFalse,
+        reason: kind.tracking,
+      );
+
+      vm.dispose();
+      vm = LiveWorkoutViewModel.forTesting(
+        workoutDb: repository,
+        unitService: unitService,
+        progressionService: progressionService,
+        trainingAutonomyService: autonomyService,
+      );
+    }
+  });
+
   test('v1.5 stores an overshoot review without showing it on the closed set',
       () async {
     final re = createRoutineExercise(exercise: createExercise());

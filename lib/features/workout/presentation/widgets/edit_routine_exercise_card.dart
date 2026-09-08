@@ -96,6 +96,10 @@ class EditRoutineExerciseCard extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final supportsProgression =
+        ExerciseLogMask.forExercise(routineExercise.exercise)
+            .withSnapshotMode(routineExercise.progression.loadMode?.name)
+            .supportsLoadRepProgression;
 
     return WorkoutCard(
       continuesSupersetAbove: continuesSupersetAbove,
@@ -198,7 +202,7 @@ class EditRoutineExerciseCard extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      if (!isCardio)
+                      if (supportsProgression)
                         Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 16),
                             child: PlatformAdaptiveDropdownFormField<
