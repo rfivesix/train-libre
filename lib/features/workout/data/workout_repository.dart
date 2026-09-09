@@ -12,7 +12,8 @@ class WorkoutRepository
     implements
         IWorkoutRepository,
         ProgressionHistoryRepository,
-        ProgressionPrescriptionRepository {
+        ProgressionPrescriptionRepository,
+        WorkoutFinalizationRepository {
   @override
   Future<BodyweightHistory> getBodyweightHistory() =>
       _localDataSource.getBodyweightHistory();
@@ -76,6 +77,22 @@ class WorkoutRepository
   @override
   Future<void> finishWorkout(int logId, {String? title, String? notes}) =>
       _localDataSource.finishWorkout(logId, title: title, notes: notes);
+
+  @override
+  Future<List<SetLog>> finalizeWorkout({
+    required int workoutLogId,
+    required List<SetLog> sets,
+    required List<int> discardSetIds,
+    String? title,
+    String? notes,
+  }) =>
+      _localDataSource.finalizeWorkout(
+        workoutLogId: workoutLogId,
+        sets: sets,
+        discardSetIds: discardSetIds,
+        title: title,
+        notes: notes,
+      );
 
   @override
   Future<void> updatePauseTime(int routineExerciseId, int? seconds) =>

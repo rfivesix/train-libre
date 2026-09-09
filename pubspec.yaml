@@ -13,7 +13,7 @@ dependencies:
   # DOC: Added for localization (multilingual support)
   flutter_localizations:
     sdk: flutter
-  intl: 0.20.2 # Pinned to 0.20.2 by flutter_localizations from the Flutter SDK.
+  intl: ^0.20.3 # Must track flutter_localizations from the active Flutter SDK.
 
   # DOC: Added for the SQLite database
   sqflite: ^2.4.3

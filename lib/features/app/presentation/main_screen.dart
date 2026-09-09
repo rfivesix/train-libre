@@ -1556,7 +1556,11 @@ class _MainScreenState extends State<MainScreen>
           if (logId != null) {
             await WorkoutLocalDataSource.instance.deleteWorkoutLog(logId);
           }
-          await wsm.finishWorkout();
+          // This workout has just been deleted. Finalizing would try to write
+          // it again and leave the in-memory session visible over the Diary.
+          // Discarding only clears the local session after the database row is
+          // gone, exactly like the conflict dialogs elsewhere in the app.
+          await wsm.clearLocalSessionState();
         }
       },
     );

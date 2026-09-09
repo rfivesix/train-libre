@@ -19,10 +19,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Database Schema 30 (`AppDatabase`):** Added 10 prescription snapshot and override tracking columns to `SetLogs`, `targetRepMin` and `targetRepMax` to `RoutineSetTemplates`, and `trainingAutonomyLevel`, `nutritionAutonomyLevel`, and `experienceLevel` to `AppSettings`.
 
 ### Changed
+- **Simplified workout progression:** The active live-workout path now uses the first working set of the latest comparable session for the initial suggestion. After the first set is completed, it derives each remaining open set from that set's shared Brzycki e1RM estimate and a 95% per-set capacity retention. Repetition ranges retain simple double progression; fixed targets receive a calculated load capped to one normal increment. Cardio and other non-load-and-repetition exercises remain outside this feature. New suggestions use `progression_v1.6_simple`; historical Part 11 metadata remains readable for existing workouts, backups and restores.
+- **Atomic workout finalization:** Completing a workout now updates all retained set rows, removes untouched empty rows and generated placeholders, marks the workout completed, and verifies the retained rows in one SQLite transaction. Manually entered open sets are retained. No schema migration is required, so updating an existing device database does not replace or transform user records.
+- **Progression documentation:** Replaced the retired v1.5 policy/review model with the current first-set workflow and aligned e1RM documentation with the Brzycki calculation used by the app.
+- **Progression Simplification Plan:** Added the binding Part 12 alpha correction to the adaptive-engine plan. The next progression iteration uses the first working set as the session e1RM anchor, derives later loads from concrete repetition targets and a single versioned fatigue factor, and removes linked/independent policies, completion reasons, reviews and equipment-configuration controls from the intended workout UX. The plan also makes atomic, verified workout persistence a release blocker after the real-device alpha lost entered exercises and sets.
 - **Exercise History by UUID (`getLastSetsForExercise`, `SetLog.exerciseId`):** Switched exercise history queries from display name matching to stable exercise UUIDs with fallback for legacy rows without an exercise ID. Renaming or catalog merges no longer compromise exercise history.
 - **ExperienceLevel Persistence (`ExperienceLevelService`, `AppSettings`):** Experience level preference moved from `SharedPreferences` to SQLite `AppSettings.experienceLevel` with automatic one-time migration and backup/restore support.
 
 ### Fixed
+- **Failure-set RIR:** Marking a live set as failure now automatically records and displays `0` repetitions in reserve. Logging RIR `0` on a normal set does not change its type.
+- **Diary workout discard:** Discarding a running workout from the Diary overlay now clears the active in-memory workout after deleting its database record. The deleted session can no longer be reopened or accidentally finalized again.
 - **PostHog Measurement Log Telemetry (`ProfileLocalDataSource.saveWeightKg`):** Instrumented `FeatureKey.bodyMeasurementLogged` when logging weight entries (such as from the diary screen `WeightCard`), resolving an issue where weigh-ins recorded from the diary did not emit the telemetry event.
 - **Diary Today Placeholders (`DiaryScreen`, `StepsSummaryCard`, `PulseSummaryCard`, `SleepSummaryCard`):** Removed placeholder food entries, placeholder water logs, and simulated skeleton values for steps, pulse, and sleep when viewing today's diary before any data has been recorded.
 - **Live-Workout Automatic Scroll During Exercise (`LiveWorkoutScreen`):** Removed unwanted auto-scrolling when completing sets during an active workout session. Auto-scrolling to the active exercise now only occurs when reopening the workout screen or returning from a Live Activity or background resume.
@@ -30,6 +36,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Auto-Fill Marking for Fabricated Zeros (`LogWorkoutSetUseCase`):** Completing sets where template weight is null (falling back to 0.0 kg) or target repetitions are empty (falling back to 0 reps) now flags `valuesAutoFilled = true` so fabricated defaults are not mistaken for user input.
 
 ### Removed
+- **Live-workout progression controls:** Removed linked/independent policy selection, completion-reason controls, progression review cards and the provisional equipment controls from the active routine and workout interfaces.
 - **Obsolete Performance Query:** Removed deprecated `getLastPerformance` method from `WorkoutLoggingQueries`.
 
 ## [1.3.0] - 2026-09-07

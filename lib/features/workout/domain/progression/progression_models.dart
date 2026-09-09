@@ -191,6 +191,10 @@ abstract class ProgressionReason {
   static const String noRepRange = 'no_rep_range';
   static const String inWorkoutStructure = 'in_workout_structure';
   static const String inWorkoutFallback = 'in_workout_fallback';
+  static const String firstSetE1rm = 'first_set_e1rm';
+  static const String fixedRepTarget = 'fixed_rep_target';
+  static const String bodyweightReps = 'bodyweight_reps';
+  static const String e1rmUnavailable = 'e1rm_unavailable';
 }
 
 /// The progression prescription produced by the adaptive engine.

@@ -1,6 +1,150 @@
 part of '../workout_local_data_source.dart';
 
 extension WorkoutLoggingQueries on WorkoutLocalDataSource {
+  db.SetLogsCompanion _setLogCompanion(SetLog set) => db.SetLogsCompanion(
+        progressionData: drift.Value(set.progressionData),
+        prescriptionOrigin: drift.Value(set.prescriptionOrigin),
+        prescribedWeight: drift.Value(set.prescribedWeight),
+        prescribedRepMin: drift.Value(set.prescribedRepMin),
+        prescribedRepMax: drift.Value(set.prescribedRepMax),
+        prescribedRir: drift.Value(set.prescribedRir),
+        progressionReason: drift.Value(set.progressionReason),
+        progressionAlgorithmVersion:
+            drift.Value(set.progressionAlgorithmVersion),
+        substitutedForExerciseId: drift.Value(set.substitutedForExerciseId),
+        weight: drift.Value(set.weightKg),
+        reps: drift.Value(set.reps),
+        isCompleted: drift.Value(set.isCompleted ?? false),
+        notes: drift.Value(set.notes),
+        rir: drift.Value(set.rir),
+        setType: drift.Value(set.setType),
+        logOrder: drift.Value(set.logOrder ?? 0),
+        exerciseBlock: drift.Value(set.exerciseBlock),
+        supersetGroup: drift.Value(set.supersetGroup),
+        distance: drift.Value(set.distanceKm),
+        durationSeconds: drift.Value(set.durationSeconds),
+        restTimeSeconds: drift.Value(set.restTimeSeconds),
+        valuesAutoFilled: drift.Value(set.valuesAutoFilled),
+        prescriptionOverridden: drift.Value(set.prescriptionOverridden),
+      );
+
+  Future<void> _incrementExerciseUsageCounts(
+    db.AppDatabase dbInstance,
+    int workoutLogId,
+  ) async {
+    try {
+      final logRow = await (dbInstance.select(dbInstance.workoutLogs)
+            ..where((table) => table.localId.equals(workoutLogId)))
+          .getSingle();
+
+      final setLogsQuery =
+          dbInstance.selectOnly(dbInstance.setLogs, distinct: true)
+            ..addColumns([dbInstance.setLogs.exerciseId])
+            ..where(dbInstance.setLogs.workoutLogId.equals(logRow.id))
+            ..where(dbInstance.setLogs.exerciseId.isNotNull());
+
+      final exerciseIds = (await setLogsQuery.get())
+          .map((row) => row.read(dbInstance.setLogs.exerciseId))
+          .whereType<String>()
+          .toList();
+
+      if (exerciseIds.isNotEmpty) {
+        await dbInstance.customUpdate(
+          'UPDATE exercises SET usage_count = usage_count + 1 WHERE id IN (${exerciseIds.map((_) => '?').join(',')})',
+          variables:
+              exerciseIds.map((id) => drift.Variable.withString(id)).toList(),
+          updates: {dbInstance.exercises},
+        );
+      }
+    } catch (_) {
+      // Usage counts are informational and must never prevent a workout from
+      // being saved. The finalization transaction still commits its workout
+      // and set data if this optional update is unavailable.
+    }
+  }
+
+  /// Commits a workout's final state as one transaction. The old sequence
+  /// deleted open rows, updated completed rows and only then completed the
+  /// workout record. An interrupted write in that gap could make an entire
+  /// exercise disappear. This method either writes and verifies every retained
+  /// row together, or rolls the whole operation back.
+  Future<List<SetLog>> finalizeWorkout({
+    required int workoutLogId,
+    required List<SetLog> sets,
+    required List<int> discardSetIds,
+    String? title,
+    String? notes,
+  }) async {
+    final dbInstance = await database;
+    final retainedIds = sets
+        .where((set) => set.id != null && !discardSetIds.contains(set.id))
+        .map((set) => set.id!)
+        .toSet();
+
+    await dbInstance.transaction(() async {
+      final workout = await (dbInstance.select(dbInstance.workoutLogs)
+            ..where((table) => table.localId.equals(workoutLogId)))
+          .getSingleOrNull();
+      if (workout == null) {
+        throw StateError('Cannot finalize missing workout $workoutLogId');
+      }
+      if (workout.status != 'ongoing') {
+        throw StateError('Workout $workoutLogId is no longer ongoing');
+      }
+
+      for (final set in sets) {
+        if (set.id == null || discardSetIds.contains(set.id)) continue;
+        final updated = await (dbInstance.update(dbInstance.setLogs)
+              ..where((table) => table.localId.equals(set.id!)))
+            .write(_setLogCompanion(set));
+        if (updated != 1) {
+          throw StateError('Cannot persist set ${set.id} while finalizing');
+        }
+      }
+
+      if (discardSetIds.isNotEmpty) {
+        await (dbInstance.delete(dbInstance.setLogs)
+              ..where((table) => table.localId.isIn(discardSetIds)))
+            .go();
+      }
+
+      final persistedRows = await (dbInstance.select(dbInstance.setLogs)
+            ..where((table) => table.workoutLogId.equals(workout.id)))
+          .get();
+      final persistedIds = persistedRows.map((row) => row.localId).toSet();
+      if (!persistedIds.containsAll(retainedIds) ||
+          persistedIds.any(discardSetIds.contains)) {
+        throw StateError('Workout set verification failed before completion');
+      }
+
+      final completed = await (dbInstance.update(dbInstance.workoutLogs)
+            ..where((table) => table.localId.equals(workoutLogId)))
+          .write(db.WorkoutLogsCompanion(
+        endTime: drift.Value(DateTime.now()),
+        status: const drift.Value('completed'),
+        routineNameSnapshot:
+            title != null ? drift.Value(title) : const drift.Value.absent(),
+        notes: notes != null ? drift.Value(notes) : const drift.Value.absent(),
+      ));
+      if (completed != 1) {
+        throw StateError('Cannot mark workout $workoutLogId as completed');
+      }
+
+      await _incrementExerciseUsageCounts(dbInstance, workoutLogId);
+    });
+
+    // Read through the normal mapping after the transaction. If this fails,
+    // callers still retain a completed database record rather than having
+    // cleared the only in-memory copy first.
+    final persisted = await getSetLogsForWorkout(workoutLogId);
+    final persistedIds =
+        persisted.map((set) => set.id).whereType<int>().toSet();
+    if (!persistedIds.containsAll(retainedIds)) {
+      throw StateError('Workout verification failed after completion');
+    }
+    return persisted;
+  }
+
   Future<List<SetLog>> getProgressionHistory({
     required String exerciseId,
     required String exerciseNameSnapshot,
@@ -83,34 +227,7 @@ extension WorkoutLoggingQueries on WorkoutLocalDataSource {
       ),
     );
 
-    // Increment usageCount for exercises used in this workout
-    try {
-      final logRow = await (dbInstance.select(dbInstance.workoutLogs)
-            ..where((t) => t.localId.equals(workoutLogId)))
-          .getSingle();
-
-      final setLogsQuery =
-          dbInstance.selectOnly(dbInstance.setLogs, distinct: true)
-            ..addColumns([dbInstance.setLogs.exerciseId])
-            ..where(dbInstance.setLogs.workoutLogId.equals(logRow.id))
-            ..where(dbInstance.setLogs.exerciseId.isNotNull());
-
-      final exerciseIds = (await setLogsQuery.get())
-          .map((r) => r.read(dbInstance.setLogs.exerciseId))
-          .whereType<String>()
-          .toList();
-
-      if (exerciseIds.isNotEmpty) {
-        await dbInstance.customUpdate(
-          'UPDATE exercises SET usage_count = usage_count + 1 WHERE id IN (${exerciseIds.map((_) => '?').join(',')})',
-          variables:
-              exerciseIds.map((id) => drift.Variable.withString(id)).toList(),
-          updates: {dbInstance.exercises},
-        );
-      }
-    } catch (e) {
-      // Non-critical: don't fail finishWorkout if usageCount update fails
-    }
+    await _incrementExerciseUsageCounts(dbInstance, workoutLogId);
   }
 
   Future<int> insertSetLog(SetLog setLog) async {

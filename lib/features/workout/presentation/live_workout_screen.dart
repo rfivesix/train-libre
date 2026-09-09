@@ -1333,10 +1333,7 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                                                           ),
                                                                           child: Selector<
                                                                               LiveWorkoutViewModel,
-                                                                              ({
-                                                                                Map<int, SetLog> logs,
-                                                                                int? latestCompleted
-                                                                              })>(
+                                                                              Map<int, SetLog>>(
                                                                             selector:
                                                                                 (context, vm) {
                                                                               final map = <int, SetLog>{};
@@ -1346,19 +1343,16 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                                                                   map[template.id!] = log;
                                                                                 }
                                                                               }
-                                                                              return (
-                                                                                logs: map,
-                                                                                latestCompleted: vm.latestCompletedWorkingTemplateId,
-                                                                              );
+                                                                              return map;
                                                                             },
                                                                             shouldRebuild:
                                                                                 (prev, next) {
-                                                                              if (prev.latestCompleted != next.latestCompleted || prev.logs.length != next.logs.length) {
+                                                                              if (prev.length != next.length) {
                                                                                 return true;
                                                                               }
-                                                                              for (final key in prev.logs.keys) {
-                                                                                final prevLog = prev.logs[key];
-                                                                                final nextLog = next.logs[key];
+                                                                              for (final key in prev.keys) {
+                                                                                final prevLog = prev[key];
+                                                                                final nextLog = next[key];
                                                                                 if (prevLog == null || nextLog == null) {
                                                                                   return true;
                                                                                 }
@@ -1371,7 +1365,7 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                                                                             builder: (context,
                                                                                 selection,
                                                                                 child) {
-                                                                              final exerciseSetLogs = selection.logs;
+                                                                              final exerciseSetLogs = selection;
                                                                               return AnimatedSize(
                                                                                 duration: const Duration(milliseconds: 260),
                                                                                 curve: Curves.easeInOutCubic,
@@ -2136,8 +2130,8 @@ class _LiveWorkoutRestBarState extends State<_LiveWorkoutRestBar>
                                                   BorderRadius.circular(10),
                                               side: BorderSide(
                                                 color: isDark
-                                                    ? Colors.white.withValues(
-                                                        alpha: 0.20)
+                                                    ? Colors.white
+                                                        .withValues(alpha: 0.20)
                                                     : Colors.black.withValues(
                                                         alpha: 0.08),
                                               ),
