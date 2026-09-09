@@ -172,6 +172,36 @@ void main() {
     expect(viewModel.setLogs[103]!.reps, 8);
   });
 
+  test('RIR refines subsequent working-set back-offs', () async {
+    final bench = exercise();
+    final workout = await dataSource.startWorkout(routineName: 'Push');
+    await viewModel.loadInitialData(
+      workout,
+      [routine(id: 1, exercise: bench, templates: rangedTemplates())],
+    );
+
+    await viewModel.updateSet(
+      101,
+      weight: 60,
+      reps: 10,
+      rir: 2,
+      isCompleted: true,
+    );
+    await viewModel.pendingProgressionUpdate;
+    expect(viewModel.setLogs[102]!.weightKg, 67.5);
+
+    await viewModel.updateSet(
+      102,
+      weight: 67.5,
+      reps: 8,
+      rir: 0,
+      isCompleted: true,
+    );
+    await viewModel.pendingProgressionUpdate;
+    expect(viewModel.setLogs[103]!.weightKg, 62.5);
+    expect(viewModel.setLogs[103]!.reps, 8);
+  });
+
   test('a fixed repetition target still receives a calculated weight',
       () async {
     final bench = exercise();

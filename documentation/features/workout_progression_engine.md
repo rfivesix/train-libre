@@ -38,14 +38,19 @@ progression:
 
 For a fixed repetition target, the app projects a load capable of that target
 from the previous first set's estimated 1RM, while limiting an increase to one
-standard equipment increment. Without a repetition target it repeats the prior
-load and leaves repetitions empty.
+standard equipment increment. A recorded RIR contributes to that estimate as
+additional repetitions to failure; a missing RIR uses only the performed
+repetitions. Without a repetition target it repeats the prior load and leaves
+repetitions empty.
 
 The completed first working set is the strength anchor for every later set in
-that workout. The app uses its shared Brzycki estimated-1RM calculation and a
-versioned 95% capacity retention per later set, then rounds the projected load
-conservatively to the normal equipment increment. Each later set uses the
-routine's authored lower repetition target, or its fixed repetition target.
+that workout. The app uses its shared Brzycki estimated-1RM calculation. A
+missing RIR or RIR `0` retains 95% capacity for the next set; RIR `1` through
+`4+` retain 96% through 99%. Each completed prior working set contributes one
+such factor, while unfinished sets use the normal 95% forecast. The resulting
+load is rounded conservatively to the normal equipment increment. Each later
+set uses the routine's authored lower repetition target, or its fixed
+repetition target.
 Bodyweight exercises receive repetition targets only. Assisted and
 weighted-bodyweight exercises retain their own load semantics and use body
 weight only where it is available; the app does not invent it.
@@ -64,4 +69,4 @@ finalization was interrupted.
 
 The simplification does not require a schema migration. Existing progression
 metadata remains readable for backup, restore and historical records, while new
-workouts use algorithm version `progression_v1.6_simple`.
+workouts use algorithm version `progression_v1.7_rir`.

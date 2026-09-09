@@ -10,8 +10,16 @@ import 'progression_models.dart';
 /// the next workout's first working set, and how to size the later sets from
 /// today's first completed working set.
 class SimpleProgressionEngine {
-  static const algorithmVersion = 'progression_v1.6_simple';
+  static const algorithmVersion = 'progression_v1.7_rir';
   static const fatigueRetentionPerSet = 0.95;
+
+  /// A recorded RIR makes the fixed 95% back-off less severe. Missing RIR
+  /// deliberately stays on the original 95% rule, so beginners receive the
+  /// exact same suggestions as before.
+  static double fatigueRetentionForRir(int? rir) {
+    final bounded = (rir ?? 0).clamp(0, 4).toDouble();
+    return fatigueRetentionPerSet + (bounded * 0.01);
+  }
 
   /// Suggests the first working set of a new session from the previous first
   /// working set. A range retains simple double progression. A fixed target
@@ -23,6 +31,7 @@ class SimpleProgressionEngine {
     required RepRange? target,
     required LoadIncrement increment,
     required LoadMode mode,
+    int? previousRir,
     double? bodyweightKg,
   }) {
     if (previousLoadKg == null && mode != LoadMode.bodyweight) {
@@ -51,6 +60,7 @@ class SimpleProgressionEngine {
       final projected = _projectLoadForReps(
         loggedLoadKg: previousLoadKg,
         reps: previousReps,
+        rir: previousRir,
         targetReps: target.min,
         mode: mode,
         bodyweightKg: bodyweightKg,
@@ -116,9 +126,10 @@ class SimpleProgressionEngine {
     required double? firstLoggedLoadKg,
     required int? firstReps,
     required RepRange? target,
-    required int ordinalAfterFirst,
     required LoadIncrement increment,
     required LoadMode mode,
+    required List<int?> precedingSetRirs,
+    int? firstRir,
     double? bodyweightKg,
     bool reduceOneStep = false,
   }) {
@@ -146,7 +157,7 @@ class SimpleProgressionEngine {
           mode == LoadMode.external ? 'weight_reps' : 'bodyweight_reps',
       loadMode: mode.name,
       loggedWeightKg: firstLoggedLoadKg,
-      reps: firstReps,
+      reps: _repsToFailure(firstReps, firstRir),
       bodyweightKg: bodyweightKg,
     );
     if (e1rm == null) {
@@ -159,8 +170,10 @@ class SimpleProgressionEngine {
       );
     }
 
-    final retainedCapacity =
-        e1rm * math.pow(fatigueRetentionPerSet, ordinalAfterFirst).toDouble();
+    final retainedCapacity = precedingSetRirs.fold(
+      e1rm,
+      (capacity, rir) => capacity * fatigueRetentionForRir(rir),
+    );
     final targetEffectiveLoad = retainedCapacity * ((37 - targetReps) / 36);
     final projected = _toLoggedLoad(
       effectiveLoadKg: targetEffectiveLoad,
@@ -216,6 +229,7 @@ class SimpleProgressionEngine {
   static double? _projectLoadForReps({
     required double? loggedLoadKg,
     required int? reps,
+    int? rir,
     required int targetReps,
     required LoadMode mode,
     required double? bodyweightKg,
@@ -225,7 +239,7 @@ class SimpleProgressionEngine {
           mode == LoadMode.external ? 'weight_reps' : 'bodyweight_reps',
       loadMode: mode.name,
       loggedWeightKg: loggedLoadKg,
-      reps: reps,
+      reps: _repsToFailure(reps, rir),
       bodyweightKg: bodyweightKg,
     );
     if (e1rm == null || targetReps > 12) return null;
@@ -234,6 +248,11 @@ class SimpleProgressionEngine {
       mode: mode,
       bodyweightKg: bodyweightKg,
     );
+  }
+
+  static int? _repsToFailure(int? reps, int? rir) {
+    if (reps == null) return null;
+    return reps + (rir == null ? 0 : math.max(0, rir));
   }
 
   static double? _toLoggedLoad({

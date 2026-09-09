@@ -75,6 +75,7 @@ class WorkoutProgressionService {
     final suggestion = SimpleProgressionEngine.firstSet(
       previousLoadKg: previous.weightKg,
       previousReps: previous.reps,
+      previousRir: previous.rir,
       target: _rangeFor(first),
       increment: _incrementFor(exercise),
       mode: mode,
@@ -130,9 +131,15 @@ class WorkoutProgressionService {
       firstLoggedLoadKg: first.weightKg,
       firstReps: first.reps,
       target: _rangeFor(workingTemplates[targetIndex]),
-      ordinalAfterFirst: targetIndex,
       increment: _incrementFor(exercise),
       mode: mode,
+      firstRir: first.rir,
+      precedingSetRirs: [
+        for (var index = 0; index < targetIndex; index++)
+          currentWorkingSets[index].isCompleted == true
+              ? currentWorkingSets[index].rir
+              : null,
+      ],
       bodyweightKg: bodyweightKg,
       reduceOneStep: reduceOneStep,
     );
