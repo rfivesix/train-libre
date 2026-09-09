@@ -100,8 +100,7 @@ void main() {
   }
 
   group('WorkoutProgressionService', () {
-    test(
-        'Explicit routine targetWeight completely suppresses engine suggestion',
+    test('history remains the first-set source when a routine has a seed load',
         () async {
       fakeRepo.historySets = [
         createTestSetLog(
@@ -122,7 +121,8 @@ void main() {
         now: now,
       );
 
-      expect(result, isNull);
+      expect(result?.targetWeight, 82.5);
+      expect(result?.targetReps, 8);
     });
 
     test('metric-specific tracking types never enter load-rep progression',
@@ -338,11 +338,13 @@ void main() {
         currentWorkoutLogId: 99,
       );
 
-      expect(result?.targetWeight, equals(35));
-      expect(result?.reason, equals(ProgressionReason.inWorkoutStructure));
+      expect(result?.targetWeight, equals(37.5));
+      expect(result?.targetReps, equals(8));
+      expect(result?.reason,
+          equals(ProgressionReason.inWorkoutProjectedBelowRange));
     });
 
-    test('uses today\'s last working set when an added position has no history',
+    test('uses today\'s preceding working set when a position has no history',
         () async {
       fakeRepo.historySets = [];
       final templates = [
@@ -375,9 +377,10 @@ void main() {
         currentWorkoutLogId: 99,
       );
 
-      expect(result?.targetWeight, equals(40));
-      expect(result?.targetReps, equals(10));
-      expect(result?.reason, equals(ProgressionReason.inWorkoutFallback));
+      expect(result?.targetWeight, equals(37.5));
+      expect(result?.targetReps, equals(8));
+      expect(result?.reason,
+          equals(ProgressionReason.inWorkoutProjectedBelowRange));
     });
   });
 }

@@ -1,3 +1,5 @@
+// ignore_for_file: unused_local_variable
+
 import 'package:figma_squircle/figma_squircle.dart';
 import 'package:flutter/material.dart';
 import '../../util/design_constants.dart';
@@ -69,7 +71,8 @@ class SummaryCard extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(DesignConstants.borderRadiusL),
-          boxShadow: (disableShadow || isDark)
+          //temporarly disabled
+          /*boxShadow: (disableShadow || isDark)
               ? null
               : [
                   BoxShadow(
@@ -78,6 +81,7 @@ class SummaryCard extends StatelessWidget {
                     color: cs.shadow.withValues(alpha: 0.05),
                   ),
                 ],
+          */
         ),
         child: ClipPath(
           clipper: clipper,

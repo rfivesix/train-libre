@@ -10,6 +10,48 @@ class _MorphState {
 }
 
 void main() {
+  testWidgets('editing a generated value retains input focus', (tester) async {
+    final state = ValueNotifier(const _MorphState('11', 'suggestion'));
+    final focusNode = FocusNode();
+    addTearDown(() {
+      state.dispose();
+      focusNode.dispose();
+    });
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: ValueListenableBuilder<_MorphState>(
+            valueListenable: state,
+            builder: (context, current, _) => GeneratedValueMorph(
+              suggestionKey: current.suggestionKey,
+              value: current.value,
+              accentColor: Colors.white,
+              restingColor: Colors.white,
+              morphTextStyle: const TextStyle(fontSize: 18),
+              childBuilder: (color) => TextFormField(
+                focusNode: focusNode,
+                initialValue: current.value,
+                style: TextStyle(color: color),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 800));
+
+    await tester.tap(find.byType(TextFormField));
+    expect(focusNode.hasFocus, isTrue);
+
+    // This reproduces removing the first digit: the live row clears its
+    // suggestion key as soon as an edit begins.
+    state.value = const _MorphState('1', null);
+    await tester.pump();
+
+    expect(focusNode.hasFocus, isTrue);
+  });
+
   testWidgets('pixel morph survives a generated-value replacement',
       (tester) async {
     final state = ValueNotifier(const _MorphState('10', null));
@@ -32,7 +74,7 @@ void main() {
                       builder: (context, current, _) => GeneratedValueMorph(
                         suggestionKey: current.suggestionKey,
                         value: current.value,
-                        accentColor: Colors.green,
+                        accentColor: Colors.white,
                         restingColor: Colors.white,
                         morphTextStyle: const TextStyle(
                           fontSize: 18,

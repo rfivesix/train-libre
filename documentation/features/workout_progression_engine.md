@@ -12,8 +12,9 @@ field and completes the set with the usual check action. There are no policy
 selectors, completion reasons, review cards, confirmation dialogs, equipment
 configuration controls, or progression-specific menus in a live workout.
 
-After the first working set is completed, the remaining open working sets get
-their targets. A value entered by the user always wins over a generated value,
+After a working set is completed, only the directly following open working set
+gets its target. Its completed predecessor is the evidence for that one
+prescription. A value entered by the user always wins over a generated value,
 including if an asynchronous history lookup finishes afterwards.
 
 Cardio, duration, distance, variable-load and other exercises without a stable
@@ -43,17 +44,37 @@ additional repetitions to failure; a missing RIR uses only the performed
 repetitions. Without a repetition target it repeats the prior load and leaves
 repetitions empty.
 
-The completed first working set is the strength anchor for every later set in
-that workout. The app uses its shared Brzycki estimated-1RM calculation. A
-missing RIR or RIR `0` retains 95% capacity for the next set; RIR `1` through
-`4+` retain 96% through 99%. Each completed prior working set contributes one
-such factor, while unfinished sets use the normal 95% forecast. The resulting
-load is rounded conservatively to the normal equipment increment. Each later
-set uses the routine's authored lower repetition target, or its fixed
-repetition target.
+For each later set, the app calculates a fresh Brzycki capacity from the
+immediately preceding real set. Missing RIR or RIR `0` retain 95% capacity for
+the next set; RIR `1` through `4+` retain 96% through 99%. The next test load
+is normally the previous real load. When routine weights deliberately define a
+different positive next-set weight, their ratio to the first template weight
+is applied to today's real first-set load and rounded to a usable increment
+before calculating repetitions.
+
+For a range `[L, U]`, the calculated repetitions determine the next target:
+
+| Projection at the rounded test load | Suggested next set |
+| --- | --- |
+| Above `U` | One normal increment harder, `U` reps |
+| `L` through `U` | Hold the test load, projected reps |
+| Below `L` | Lower to the highest usable load capable of `L` reps, `L` reps |
+
+The engine does not use Brzycki beyond 12 effective repetitions. In that case
+it holds the test load unless the actual result reached the range maximum, when
+it advances by exactly one increment. A result of at most three effective reps
+in a range beginning at six or more reps holds the test load and targets the
+lower bound, avoiding an implausible deload after insufficient evidence.
+
 Bodyweight exercises receive repetition targets only. Assisted and
-weighted-bodyweight exercises retain their own load semantics and use body
-weight only where it is available; the app does not invent it.
+weighted-bodyweight exercises retain their own load semantics. Assisted work
+uses effective resistance when body weight is available. Without body weight,
+it uses a discrete rule: less assistance at the range maximum, more assistance
+below the range, and the same assistance with one more rep inside the range.
+Generic equipment floors prevent suggestions below an unloaded standard
+barbell, the smallest dumbbell, cable or machine increment. The database does
+not yet store a user's specific gym inventory, so these floors are deliberately
+conservative class defaults rather than claims about a particular facility.
 
 The recommendation is deliberately a starting point. It does not diagnose
 fatigue, pain, form, recovery or readiness, and it never changes the routine.
@@ -69,4 +90,4 @@ finalization was interrupted.
 
 The simplification does not require a schema migration. Existing progression
 metadata remains readable for backup, restore and historical records, while new
-workouts use algorithm version `progression_v1.7_rir`.
+workouts use algorithm version `progression_v1.8_jit`.

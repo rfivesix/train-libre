@@ -51,19 +51,31 @@ class LoadIncrement {
   final double value;
   final String unit;
 
-  const LoadIncrement(this.value, {this.unit = 'kg'});
+  /// Smallest meaningful selectable resistance for this generic equipment
+  /// class. It is a safe hardware floor, not a per-gym availability list.
+  final double minimumLoad;
 
-  static const LoadIncrement barbellMetric = LoadIncrement(2.5, unit: 'kg');
-  static const LoadIncrement dumbbellMetric = LoadIncrement(2.0, unit: 'kg');
-  static const LoadIncrement machineMetric = LoadIncrement(5.0, unit: 'kg');
-  static const LoadIncrement cableMetric = LoadIncrement(2.5, unit: 'kg');
+  const LoadIncrement(this.value, {this.unit = 'kg', this.minimumLoad = 0});
+
+  static const LoadIncrement barbellMetric =
+      LoadIncrement(2.5, unit: 'kg', minimumLoad: 20);
+  static const LoadIncrement dumbbellMetric =
+      LoadIncrement(2.0, unit: 'kg', minimumLoad: 2);
+  static const LoadIncrement machineMetric =
+      LoadIncrement(5.0, unit: 'kg', minimumLoad: 5);
+  static const LoadIncrement cableMetric =
+      LoadIncrement(2.5, unit: 'kg', minimumLoad: 2.5);
   static const LoadIncrement assistedMetric = LoadIncrement(2.5, unit: 'kg');
   static const LoadIncrement defaultMetric = LoadIncrement(2.5, unit: 'kg');
 
-  static const LoadIncrement barbellImperial = LoadIncrement(5.0, unit: 'lb');
-  static const LoadIncrement dumbbellImperial = LoadIncrement(5.0, unit: 'lb');
-  static const LoadIncrement machineImperial = LoadIncrement(10.0, unit: 'lb');
-  static const LoadIncrement cableImperial = LoadIncrement(5.0, unit: 'lb');
+  static const LoadIncrement barbellImperial =
+      LoadIncrement(5.0, unit: 'lb', minimumLoad: 45);
+  static const LoadIncrement dumbbellImperial =
+      LoadIncrement(5.0, unit: 'lb', minimumLoad: 5);
+  static const LoadIncrement machineImperial =
+      LoadIncrement(10.0, unit: 'lb', minimumLoad: 10);
+  static const LoadIncrement cableImperial =
+      LoadIncrement(5.0, unit: 'lb', minimumLoad: 5);
   static const LoadIncrement assistedImperial = LoadIncrement(5.0, unit: 'lb');
   static const LoadIncrement defaultImperial = LoadIncrement(5.0, unit: 'lb');
 
@@ -102,10 +114,11 @@ class LoadIncrement {
       other is LoadIncrement &&
           runtimeType == other.runtimeType &&
           value == other.value &&
-          unit == other.unit;
+          unit == other.unit &&
+          minimumLoad == other.minimumLoad;
 
   @override
-  int get hashCode => value.hashCode ^ unit.hashCode;
+  int get hashCode => Object.hash(value, unit, minimumLoad);
 
   @override
   String toString() => '$value $unit';
@@ -195,6 +208,17 @@ abstract class ProgressionReason {
   static const String fixedRepTarget = 'fixed_rep_target';
   static const String bodyweightReps = 'bodyweight_reps';
   static const String e1rmUnavailable = 'e1rm_unavailable';
+  static const String inWorkoutShortSetGuard = 'in_workout_short_set_guard';
+  static const String inWorkoutHighRepGuard = 'in_workout_high_rep_guard';
+  static const String inWorkoutProjectedAboveRange =
+      'in_workout_projected_above_range';
+  static const String inWorkoutProjectedInRange =
+      'in_workout_projected_in_range';
+  static const String inWorkoutProjectedBelowRange =
+      'in_workout_projected_below_range';
+  static const String assistedStepDown = 'assisted_step_down';
+  static const String assistedStepUp = 'assisted_step_up';
+  static const String assistedHold = 'assisted_hold';
 }
 
 /// The progression prescription produced by the adaptive engine.

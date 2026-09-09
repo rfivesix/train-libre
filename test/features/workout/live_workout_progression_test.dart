@@ -151,7 +151,7 @@ void main() {
     expect(viewModel.setLogs[101]!.valuesAutoFilled, isFalse);
   });
 
-  test('later sets use the completed first set e1RM and fatigue back-offs',
+  test('later sets are prescribed one at a time from real prior performance',
       () async {
     final bench = exercise();
     await seedPreviousFirstSet(exercise: bench, weight: 60, reps: 10);
@@ -164,12 +164,49 @@ void main() {
     await viewModel.updateSet(101, weight: 60, reps: 10, isCompleted: true);
     await viewModel.pendingProgressionUpdate;
 
-    // Brzycki e1RM of 60 x 10 is 80 kg. With 95% capacity and an 8-rep
-    // target the second set rounds down to 60 kg; the third to 57.5 kg.
+    // The first result only fills the directly following row. At 60 x 10,
+    // the projected straight-set result is 60 kg x 8.
     expect(viewModel.setLogs[102]!.weightKg, 60);
     expect(viewModel.setLogs[102]!.reps, 8);
-    expect(viewModel.setLogs[103]!.weightKg, 57.5);
+    expect(viewModel.setLogs[103]!.weightKg, isNull);
+
+    await viewModel.updateSet(102, weight: 60, reps: 8, isCompleted: true);
+    await viewModel.pendingProgressionUpdate;
+    expect(viewModel.setLogs[103]!.weightKg, 55);
     expect(viewModel.setLogs[103]!.reps, 8);
+  });
+
+  test('preserves a routine back-off as a ratio of the real top set', () async {
+    final bench = exercise();
+    final workout = await dataSource.startWorkout(routineName: 'Back-off');
+    final templates = [
+      SetTemplate(
+        id: 101,
+        setType: 'normal',
+        targetWeight: 100,
+        targetRepMin: 8,
+        targetRepMax: 12,
+      ),
+      SetTemplate(
+        id: 102,
+        setType: 'normal',
+        targetWeight: 80,
+        targetRepMin: 8,
+        targetRepMax: 12,
+      ),
+    ];
+    await viewModel.loadInitialData(
+      workout,
+      [routine(id: 1, exercise: bench, templates: templates)],
+    );
+
+    await viewModel.updateSet(101, weight: 120, reps: 7, isCompleted: true);
+    await viewModel.pendingProgressionUpdate;
+
+    // The authored 80% relationship becomes 96 kg at today's 120 kg top
+    // set, then rounds to the available 95 kg increment before projection.
+    expect(viewModel.setLogs[102]!.weightKg, 95);
+    expect(viewModel.setLogs[102]!.reps, 12);
   });
 
   test('RIR refines subsequent working-set back-offs', () async {
@@ -188,18 +225,19 @@ void main() {
       isCompleted: true,
     );
     await viewModel.pendingProgressionUpdate;
-    expect(viewModel.setLogs[102]!.weightKg, 67.5);
+    expect(viewModel.setLogs[102]!.weightKg, 60);
+    expect(viewModel.setLogs[102]!.reps, 11);
 
     await viewModel.updateSet(
       102,
-      weight: 67.5,
-      reps: 8,
+      weight: 60,
+      reps: 11,
       rir: 0,
       isCompleted: true,
     );
     await viewModel.pendingProgressionUpdate;
-    expect(viewModel.setLogs[103]!.weightKg, 62.5);
-    expect(viewModel.setLogs[103]!.reps, 8);
+    expect(viewModel.setLogs[103]!.weightKg, 60);
+    expect(viewModel.setLogs[103]!.reps, 9);
   });
 
   test('a fixed repetition target still receives a calculated weight',

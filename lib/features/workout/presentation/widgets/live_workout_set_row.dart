@@ -250,6 +250,7 @@ class LiveWorkoutSetRow extends StatelessWidget {
     final showsIntensity = showsIntensityColumn(context, mask);
 
     final isLightMode = Theme.of(context).brightness == Brightness.light;
+    final suggestionMorphColor = isLightMode ? Colors.black : Colors.white;
     final Color? textColor =
         isCompleted ? (isLightMode ? Colors.black : Colors.white) : null;
     final bool isColoredRow = rowIndex > 0 && rowIndex.isOdd;
@@ -423,12 +424,10 @@ class LiveWorkoutSetRow extends StatelessWidget {
                   builder: (context) {
                     final isSuggested =
                         manager.isSetSuggested(templateId) && !isCompleted;
-                    final primaryColor = Theme.of(context).colorScheme.primary;
-
                     return GeneratedValueMorph(
                       suggestionKey: suggestionKey,
                       value: manager.weightControllers[templateId]?.text ?? '',
-                      accentColor: primaryColor,
+                      accentColor: suggestionMorphColor,
                       restingColor:
                           textColor ?? Theme.of(context).colorScheme.onSurface,
                       morphTextStyle: const TextStyle(
@@ -521,7 +520,7 @@ class LiveWorkoutSetRow extends StatelessWidget {
               : GeneratedValueMorph(
                   suggestionKey: mask.logsDuration ? null : suggestionKey,
                   value: manager.repsControllers[templateId]?.text ?? '',
-                  accentColor: Theme.of(context).colorScheme.primary,
+                  accentColor: suggestionMorphColor,
                   restingColor:
                       textColor ?? Theme.of(context).colorScheme.onSurface,
                   morphTextStyle: const TextStyle(

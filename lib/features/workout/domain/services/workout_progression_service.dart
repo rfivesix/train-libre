@@ -12,8 +12,8 @@ import '../repositories/workout_repository.dart';
 /// Loads the small amount of history needed by Part 12.
 ///
 /// Only the first working set of the latest comparable session drives the
-/// first suggestion. Once that set is completed today, all later suggestions
-/// are calculated from it rather than from historical set positions.
+/// first suggestion. During a live workout, each completed working set drives
+/// just the directly following open position.
 class WorkoutProgressionService {
   final IWorkoutRepository _repository;
 
@@ -87,9 +87,9 @@ class WorkoutProgressionService {
     return {first.id!: suggestion};
   }
 
-  /// Creates a later-set back-off from today's first completed working set.
-  /// Earlier historical set positions and Part 11 policies intentionally have
-  /// no effect here.
+  /// Creates the next set from today's immediately preceding completed set.
+  /// A deliberately different target weight in the routine preserves its
+  /// relative relationship to today's actual first working-set load.
   Future<ProgressionSuggestion?> getInWorkoutSuggestion({
     required Exercise exercise,
     required List<SetTemplate> workingTemplates,
@@ -110,39 +110,61 @@ class WorkoutProgressionService {
         ExerciseLogMask.forExercise(exercise).withSnapshotMode(mode.name);
     if (!mask.supportsLoadRepProgression) return null;
 
-    final first = currentWorkingSets.first;
-    if (first.isCompleted != true ||
-        (mode != LoadMode.bodyweight && first.weightKg == null)) {
+    final previous = currentWorkingSets[targetIndex - 1];
+    if (previous.isCompleted != true ||
+        (mode != LoadMode.bodyweight && previous.weightKg == null)) {
       return null;
     }
 
-    var reduceOneStep = false;
-    if (targetIndex > 1) {
-      final previousIndex = targetIndex - 1;
-      final previous = currentWorkingSets[previousIndex];
-      final previousTarget = _rangeFor(workingTemplates[previousIndex]);
-      reduceOneStep = previous.isCompleted == true &&
-          previousTarget != null &&
-          previous.reps != null &&
-          previous.reps! < previousTarget.min;
-    }
+    final testLoad = _testLoadFor(
+      mode: mode,
+      increment: _incrementFor(exercise),
+      workingTemplates: workingTemplates,
+      currentWorkingSets: currentWorkingSets,
+      targetIndex: targetIndex,
+    );
 
     return SimpleProgressionEngine.laterSet(
-      firstLoggedLoadKg: first.weightKg,
-      firstReps: first.reps,
+      previousLoggedLoadKg: previous.weightKg,
+      previousReps: previous.reps,
+      previousRir: previous.rir,
+      testLoggedLoadKg: testLoad,
       target: _rangeFor(workingTemplates[targetIndex]),
       increment: _incrementFor(exercise),
       mode: mode,
-      firstRir: first.rir,
-      precedingSetRirs: [
-        for (var index = 0; index < targetIndex; index++)
-          currentWorkingSets[index].isCompleted == true
-              ? currentWorkingSets[index].rir
-              : null,
-      ],
       bodyweightKg: bodyweightKg,
-      reduceOneStep: reduceOneStep,
     );
+  }
+
+  double? _testLoadFor({
+    required LoadMode mode,
+    required LoadIncrement increment,
+    required List<SetTemplate> workingTemplates,
+    required List<SetLog> currentWorkingSets,
+    required int targetIndex,
+  }) {
+    final previous = currentWorkingSets[targetIndex - 1];
+    if (mode == LoadMode.bodyweight || previous.weightKg == null) return null;
+
+    // Assistance values run in the opposite direction and cannot express a
+    // useful percentage of resistance. Their discrete fallback uses the last
+    // visible assistance amount instead.
+    if (mode == LoadMode.assisted) return previous.weightKg;
+
+    final firstTemplateWeight = workingTemplates.first.targetWeight;
+    final targetTemplateWeight = workingTemplates[targetIndex].targetWeight;
+    final firstActualWeight = currentWorkingSets.first.weightKg;
+    final hasRelativeBackoff = firstTemplateWeight != null &&
+        firstTemplateWeight > 0 &&
+        targetTemplateWeight != null &&
+        targetTemplateWeight > 0 &&
+        firstActualWeight != null &&
+        (targetTemplateWeight - firstTemplateWeight).abs() >= increment.value;
+    if (!hasRelativeBackoff) return previous.weightKg;
+
+    // Use a ratio, not an absolute delta: an authored 100 -> 80 back-off
+    // remains 20% as the athlete's real first-set load progresses.
+    return firstActualWeight * (targetTemplateWeight / firstTemplateWeight);
   }
 
   Future<List<SetLog>> _history(Exercise exercise) async {

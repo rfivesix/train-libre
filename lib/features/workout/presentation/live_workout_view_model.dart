@@ -1123,9 +1123,10 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
 
       final hasCompletedWorkingSet =
           currentWorkingSets.any((set) => set.isCompleted == true);
-      final templatesToFill = hasCompletedWorkingSet
-          ? openTemplates
-          : <SetTemplate>[openTemplates.first];
+      // JIT progression intentionally exposes one next set at a time. The
+      // completed predecessor is the evidence for that one prescription; a
+      // later row remains untouched until its own predecessor is completed.
+      final templatesToFill = <SetTemplate>[openTemplates.first];
 
       for (final nextOpenTemplate in templatesToFill) {
         final templateId = nextOpenTemplate.id;

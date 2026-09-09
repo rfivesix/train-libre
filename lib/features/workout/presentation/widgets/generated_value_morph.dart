@@ -20,7 +20,7 @@ const _inputGlyphAlignmentOffset = Offset(-1, -1);
 ///
 /// This intentionally does not use blur, fade-outs, or two overlapping text
 /// widgets. It rasterises visible glyph pixels, moves those exact pixels into
-/// a compact white circle, lets the existing cloud grow from that circle, and
+/// a compact theme-contrast circle, lets the existing cloud grow from that circle, and
 /// reverses the same route for the incoming value.
 class GeneratedValueMorph extends StatefulWidget {
   final String? suggestionKey;
@@ -137,13 +137,11 @@ class _GeneratedValueMorphState extends State<GeneratedValueMorph>
 
   @override
   Widget build(BuildContext context) {
-    if (!_isGenerated) return widget.childBuilder(widget.restingColor);
-
     return AnimatedBuilder(
       animation: _controller,
       builder: (context, _) {
         final timeline = _controller.value;
-        // Number -> white circle, circle -> cloud, cloud -> circle, circle
+        // Number -> theme-contrast circle, circle -> cloud, cloud -> circle, circle
         // -> number. The circle windows overlap so every transition has a
         // real shared shape rather than an opacity cut.
         final outgoingProgress =
@@ -171,33 +169,41 @@ class _GeneratedValueMorphState extends State<GeneratedValueMorph>
               // This is deliberately a binary visibility switch, not a fade:
               // the static field appears only once its moving pixel twin has
               // already formed the exact same number.
-              opacity: incomingProgress >= 1 ? 1 : 0,
+              // Keep this exact subtree mounted after a generated value is
+              // edited. Replacing the Stack with a bare TextFormField here
+              // disposes its EditableText and ejects the user from the
+              // keyboard on the first deleted character.
+              opacity: _isGenerated && incomingProgress < 1 ? 0 : 1,
               child: widget.childBuilder(textColor),
             ),
-            if (_outgoingPixels case final outgoingPixels?
-                when timeline <= 0.30)
-              Positioned.fill(
-                child: IgnorePointer(
-                  child: CustomPaint(
-                    key: const ValueKey('generated-value-morph-outgoing'),
-                    painter: _PixelCirclePainter(
-                      field: outgoingPixels,
-                      progress: outgoingProgress,
-                      towardCircle: true,
-                      fromColor: widget.accentColor,
-                      toColor: Colors.white,
+            if (_isGenerated)
+              if (_outgoingPixels case final outgoingPixels?
+                  when timeline <= 0.30)
+                Positioned.fill(
+                  child: IgnorePointer(
+                    child: CustomPaint(
+                      key: const ValueKey('generated-value-morph-outgoing'),
+                      painter: _PixelCirclePainter(
+                        field: outgoingPixels,
+                        progress: outgoingProgress,
+                        towardCircle: true,
+                        fromColor: widget.accentColor,
+                        toColor: widget.accentColor,
+                      ),
                     ),
                   ),
                 ),
-              ),
-            if (cloudVisible)
+            if (_isGenerated && cloudVisible)
               Positioned.fill(
                 child: IgnorePointer(
                   child: Center(
                     child: AiNeuralCloudOrbWidget(
                       size: _cloudSize,
                       showAmbientGlow: true,
-                      baseColor: Colors.white,
+                      // The live-workout animation stays monochrome: white
+                      // on dark surfaces and black on light ones. It does not
+                      // inherit the app's green primary accent.
+                      baseColor: widget.accentColor,
                       accentColor: widget.accentColor,
                       // Bypasses the cloud's own easing so its circle meets
                       // the circle made by the number pixels on this frame.
@@ -210,22 +216,23 @@ class _GeneratedValueMorphState extends State<GeneratedValueMorph>
                   ),
                 ),
               ),
-            if (_incomingPixels case final incomingPixels?
-                when timeline >= 0.70 && timeline < 1)
-              Positioned.fill(
-                child: IgnorePointer(
-                  child: CustomPaint(
-                    key: const ValueKey('generated-value-morph-incoming'),
-                    painter: _PixelCirclePainter(
-                      field: incomingPixels,
-                      progress: incomingProgress,
-                      towardCircle: false,
-                      fromColor: Colors.white,
-                      toColor: widget.restingColor,
+            if (_isGenerated)
+              if (_incomingPixels case final incomingPixels?
+                  when timeline >= 0.70 && timeline < 1)
+                Positioned.fill(
+                  child: IgnorePointer(
+                    child: CustomPaint(
+                      key: const ValueKey('generated-value-morph-incoming'),
+                      painter: _PixelCirclePainter(
+                        field: incomingPixels,
+                        progress: incomingProgress,
+                        towardCircle: false,
+                        fromColor: widget.accentColor,
+                        toColor: widget.restingColor,
+                      ),
                     ),
                   ),
                 ),
-              ),
           ],
         );
       },
@@ -233,12 +240,11 @@ class _GeneratedValueMorphState extends State<GeneratedValueMorph>
   }
 
   Color _incomingColor(double progress) {
-    // The new number first inherits the AI accent, then settles into the
-    // ordinary input colour without a separate fade-in stage.
+    // The new number first uses the theme-contrast cloud colour, then settles
+    // into the ordinary input colour without a separate fade-in stage.
     final accentPhase = (progress / 0.42).clamp(0.0, 1.0);
     if (accentPhase < 1) {
-      return Color.lerp(Colors.white, widget.accentColor, accentPhase) ??
-          widget.accentColor;
+      return widget.accentColor;
     }
     return Color.lerp(
           widget.accentColor,
