@@ -4,6 +4,7 @@ import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:provider/provider.dart';
 import '../domain/repositories/exercise_catalog_repository.dart';
 import '../domain/models/exercise.dart';
+import '../domain/exercise_classification_labels.dart';
 import '../../../generated/app_localizations.dart';
 import '../../../util/design_constants.dart';
 import '../../../widgets/common/common.dart';
@@ -35,6 +36,11 @@ class _CreateExerciseScreenState extends State<CreateExerciseScreen> {
   final _descriptionController = TextEditingController();
 
   String? _selectedCategory;
+  String? _selectedMechanic;
+  String? _selectedForceVector;
+  String? _selectedMovementPattern;
+  String? _selectedLaterality;
+  String? _selectedDifficulty;
   bool get _isReadOnly => widget.exerciseToEdit?.source == 'wger';
   bool get _isValid =>
       _nameController.text.trim().isNotEmpty && _selectedCategory != null;
@@ -122,6 +128,11 @@ class _CreateExerciseScreenState extends State<CreateExerciseScreen> {
             _selectedCategory = toEdit.categoryName;
             _selectedPrimaryMuscles.addAll(toEdit.primaryMuscles);
             _selectedSecondaryMuscles.addAll(toEdit.secondaryMuscles);
+            _selectedMechanic = toEdit.mechanic;
+            _selectedForceVector = toEdit.forceVector;
+            _selectedMovementPattern = toEdit.movementPattern;
+            _selectedLaterality = toEdit.laterality;
+            _selectedDifficulty = toEdit.difficulty;
           }
 
           _isLoading = false;
@@ -168,6 +179,11 @@ class _CreateExerciseScreenState extends State<CreateExerciseScreen> {
         categoryName: _selectedCategory ?? 'Other',
         primaryMuscles: _selectedPrimaryMuscles,
         secondaryMuscles: _selectedSecondaryMuscles,
+        mechanic: _selectedMechanic,
+        forceVector: _selectedForceVector,
+        movementPattern: _selectedMovementPattern,
+        laterality: _selectedLaterality,
+        difficulty: _selectedDifficulty,
         imagePath: widget.exerciseToEdit?.imagePath,
       );
 
@@ -313,6 +329,62 @@ class _CreateExerciseScreenState extends State<CreateExerciseScreen> {
                   availableMuscles: _allMuscleGroups,
                   selectedMuscles: _selectedSecondaryMuscles,
                 ),
+                const SizedBox(height: DesignConstants.spacingXL),
+                AppSectionHeader(title: l10n.exerciseClassificationTitle),
+                const SizedBox(height: DesignConstants.spacingS),
+                _buildClassificationDropdown(
+                  label: l10n.exerciseMovementPatternLabel,
+                  value: _selectedMovementPattern,
+                  values: _movementPatterns,
+                  labelFor: (value) =>
+                      ExerciseClassificationLabels.movementPattern(
+                        context,
+                        value,
+                      ) ??
+                      l10n.exercisePatternOther,
+                  onChanged: (value) =>
+                      setState(() => _selectedMovementPattern = value),
+                ),
+                const SizedBox(height: DesignConstants.spacingM),
+                _buildClassificationDropdown(
+                  label: l10n.exerciseForceVectorLabel,
+                  value: _selectedForceVector,
+                  values: const ['push', 'pull', 'static'],
+                  labelFor: (value) =>
+                      ExerciseClassificationLabels.forceVector(context, value)!,
+                  onChanged: (value) =>
+                      setState(() => _selectedForceVector = value),
+                ),
+                const SizedBox(height: DesignConstants.spacingM),
+                _buildClassificationDropdown(
+                  label: l10n.exerciseMechanicLabel,
+                  value: _selectedMechanic,
+                  values: const ['compound', 'isolation'],
+                  labelFor: (value) =>
+                      ExerciseClassificationLabels.mechanic(context, value)!,
+                  onChanged: (value) =>
+                      setState(() => _selectedMechanic = value),
+                ),
+                const SizedBox(height: DesignConstants.spacingM),
+                _buildClassificationDropdown(
+                  label: l10n.exerciseLateralityLabel,
+                  value: _selectedLaterality,
+                  values: const ['bilateral', 'unilateral', 'alternating'],
+                  labelFor: (value) =>
+                      ExerciseClassificationLabels.laterality(context, value)!,
+                  onChanged: (value) =>
+                      setState(() => _selectedLaterality = value),
+                ),
+                const SizedBox(height: DesignConstants.spacingM),
+                _buildClassificationDropdown(
+                  label: l10n.exerciseDifficultyLabel,
+                  value: _selectedDifficulty,
+                  values: const ['beginner', 'intermediate', 'advanced'],
+                  labelFor: (value) =>
+                      ExerciseClassificationLabels.difficulty(context, value)!,
+                  onChanged: (value) =>
+                      setState(() => _selectedDifficulty = value),
+                ),
                 const SizedBox(height: DesignConstants.spacingXXL),
               ],
             ),
@@ -350,4 +422,64 @@ class _CreateExerciseScreenState extends State<CreateExerciseScreen> {
       }).toList(),
     );
   }
+
+  Widget _buildClassificationDropdown({
+    required String label,
+    required String? value,
+    required List<String> values,
+    required String Function(String value) labelFor,
+    required ValueChanged<String?> onChanged,
+  }) {
+    return PlatformAdaptiveDropdownFormField<String>(
+      initialValue: value,
+      items: values
+          .map(
+            (value) => DropdownMenuItem(
+              value: value,
+              child: Text(labelFor(value)),
+            ),
+          )
+          .toList(growable: false),
+      onChanged: _isReadOnly ? null : onChanged,
+      decoration: InputDecoration(
+        labelText: label,
+        hintText: l10n.exerciseClassificationNotSpecified,
+        filled: true,
+      ),
+    );
+  }
+
+  static const _movementPatterns = [
+    'horizontal_push',
+    'horizontal_pull',
+    'vertical_push',
+    'vertical_pull',
+    'squat',
+    'hinge',
+    'lunge',
+    'gait',
+    'carry',
+    'rotation',
+    'anti_rotation',
+    'anti_extension',
+    'anti_flexion',
+    'anti_lateral_flexion',
+    'spinal_flexion',
+    'spinal_extension',
+    'elbow_flexion',
+    'elbow_extension',
+    'shoulder_flexion',
+    'shoulder_abduction',
+    'scapular_elevation',
+    'hip_extension',
+    'hip_abduction',
+    'hip_adduction',
+    'knee_flexion',
+    'knee_extension',
+    'plantar_flexion',
+    'dorsiflexion',
+    'wrist_flexion',
+    'wrist_extension',
+    'other',
+  ];
 }

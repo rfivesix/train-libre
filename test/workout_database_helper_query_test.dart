@@ -69,7 +69,6 @@ void main() {
         isCompleted: true,
         logOrder: 0,
       ));
-
       // 5 RM: 90kg (Bracket 4-6 RM)
       await helper.insertSetLog(domain_set.SetLog(
         workoutLogId: log.id!,
@@ -163,8 +162,7 @@ void main() {
       expect(lastWeekEntry['setCount'], 1);
     });
 
-    test('getMuscleGroupAnalytics calculates volume and sets per muscle group',
-        () async {
+    test('getMuscleGroupAnalytics counts primary working sets only', () async {
       final now = DateTime.now();
 
       // Create an exercise with muscles
@@ -177,6 +175,7 @@ void main() {
           categoryName: 'Strength',
           primaryMuscles: ['chest'],
           secondaryMuscles: ['triceps'],
+          movementPattern: 'horizontal_push',
         ),
       );
 
@@ -197,20 +196,73 @@ void main() {
         isCompleted: true,
         logOrder: 0,
       ));
+      await helper.insertSetLog(domain_set.SetLog(
+        workoutLogId: log.id!,
+        exerciseName: 'Bench Press',
+        setType: 'failure',
+        weightKg: 100,
+        reps: 8,
+        isCompleted: true,
+        logOrder: 1,
+      ));
+      await helper.insertSetLog(domain_set.SetLog(
+        workoutLogId: log.id!,
+        exerciseName: 'Bench Press',
+        setType: 'warmup',
+        weightKg: 50,
+        reps: 10,
+        isCompleted: true,
+        logOrder: 2,
+      ));
+      await helper.insertSetLog(domain_set.SetLog(
+        workoutLogId: log.id!,
+        exerciseName: 'Bench Press',
+        setType: 'dropset',
+        weightKg: 50,
+        reps: 10,
+        isCompleted: true,
+        logOrder: 3,
+      ));
+      await helper.insertSetLog(domain_set.SetLog(
+        workoutLogId: log.id!,
+        exerciseName: 'Unclassified Lift',
+        setType: 'normal',
+        weightKg: 50,
+        reps: 10,
+        isCompleted: true,
+        logOrder: 4,
+      ));
 
       final result = await helper.getMuscleGroupAnalytics(daysBack: 7);
 
       expect(result['muscles'], isNotEmpty);
       final muscles = result['muscles'] as List;
       final chestEntry = muscles.firstWhere((e) => e['muscleGroup'] == 'chest');
-      final tricepsEntry =
-          muscles.firstWhere((e) => e['muscleGroup'] == 'triceps');
-
-      // Primary muscle gets 1.0 contribution
-      expect(chestEntry['equivalentSets'], 1.0);
-
-      // Secondary muscle gets 0.3 contribution
-      expect(tricepsEntry['equivalentSets'], 0.3);
+      // Only primary muscles receive coverage credit.
+      expect(chestEntry['equivalentSets'], 2.0);
+      expect(
+        muscles.where((e) => e['muscleGroup'] == 'triceps'),
+        isEmpty,
+      );
+      expect(
+        result['movementPatterns'],
+        contains(
+          predicate<Map>(
+            (entry) =>
+                entry['movementPattern'] == 'horizontal_push' &&
+                entry['setCount'] == 2.0,
+          ),
+        ),
+      );
+      expect(
+        muscles.where((entry) => entry['muscleGroup'] == 'unclassified'),
+        isEmpty,
+      );
+      expect(
+        (result['movementPatterns'] as List)
+            .where((entry) => entry['movementPattern'] == 'unclassified'),
+        isEmpty,
+      );
     });
 
     test(
@@ -773,13 +825,28 @@ void main() {
         expect(verifySystem?.canonicalName, 'Pullup');
 
         // 2. Try to update user exercise - should succeed
-        final updatedUserModel = userModel.withText(
-            'en', const model.ExerciseText(name: 'Chinup (Updated)'));
+        final updatedUserModel = userModel
+            .withText(
+              'en',
+              const model.ExerciseText(name: 'Chinup (Updated)'),
+            )
+            .copyWith(
+              mechanic: 'compound',
+              forceVector: 'pull',
+              movementPattern: 'vertical_pull',
+              laterality: 'bilateral',
+              difficulty: 'intermediate',
+            );
         await helper.updateCustomExercise(updatedUserModel);
 
         // Verify name changed
         final verifyUser = await helper.getExerciseByUuid('custom-5');
         expect(verifyUser?.canonicalName, 'Chinup (Updated)');
+        expect(verifyUser?.mechanic, 'compound');
+        expect(verifyUser?.forceVector, 'pull');
+        expect(verifyUser?.movementPattern, 'vertical_pull');
+        expect(verifyUser?.laterality, 'bilateral');
+        expect(verifyUser?.difficulty, 'intermediate');
       });
     });
 

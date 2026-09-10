@@ -3551,6 +3551,46 @@ class AppLocalizationsDe extends AppLocalizations {
   String get analyticsPeriodLabel => 'Zeitraum';
 
   @override
+  String get analyticsCoverageMuscles => 'Muskeln';
+
+  @override
+  String get analyticsCoverageMovementPatterns => 'Bewegungsmuster';
+
+  @override
+  String get analyticsWorkingSetsByMuscle => 'Arbeitssätze je Muskel';
+
+  @override
+  String get analyticsWorkingSetsByPattern => 'Arbeitssätze je Bewegungsmuster';
+
+  @override
+  String get analyticsPrimaryMuscleCoverageCaption =>
+      'Zeigt abgeschlossene normale Sätze und Versagenssätze nur für primär trainierte Muskeln.';
+
+  @override
+  String get analyticsMovementPatternCoverageCaption =>
+      'Zeigt abgeschlossene normale Sätze und Versagenssätze nach Bewegungsmuster.';
+
+  @override
+  String get analyticsUnclassified => 'Nicht klassifiziert';
+
+  @override
+  String get analyticsPatternOther => 'Andere';
+
+  @override
+  String analyticsAverageWorkingSetsPerWeek(String value) {
+    return 'Ø $value Arbeitssätze pro Woche';
+  }
+
+  @override
+  String get analyticsFrequencyWorkingSetFooter =>
+      'Die Frequenz zählt Trainingstage mit mindestens einem Arbeitssatz für diesen Muskel.';
+
+  @override
+  String analyticsTotalWorkingSets(String value) {
+    return '$value Arbeitssätze';
+  }
+
+  @override
   String get analyticsEquivalentSetsExplainer =>
       'Äquivalente Arbeitssätze nutzen Primär x1.0 und Sekundär x0.3. Frequenz zählt nur Tage mit >= 1.0 äquivalenten Sätzen.';
 
@@ -6533,6 +6573,30 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get exerciseLateralityAlternating => 'Im Wechsel';
+
+  @override
+  String get exerciseClassificationTitle => 'Klassifizierung';
+
+  @override
+  String get exerciseMovementPatternLabel => 'Bewegungsmuster';
+
+  @override
+  String get exerciseForceVectorLabel => 'Bewegungsrichtung';
+
+  @override
+  String get exerciseMechanicLabel => 'Übungsart';
+
+  @override
+  String get exerciseLateralityLabel => 'Ausführung';
+
+  @override
+  String get exerciseDifficultyLabel => 'Schwierigkeitsgrad';
+
+  @override
+  String get exerciseClassificationNotSpecified => 'Nicht festgelegt';
+
+  @override
+  String get exercisePatternOther => 'Andere';
 
   @override
   String get exerciseUsageWarmup => 'Aufwärmen';

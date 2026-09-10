@@ -17,6 +17,7 @@ import '../../../widgets/common/seamless_loading_overlay.dart';
 import '../../../widgets/common/common.dart';
 import '../../workout/presentation/widgets/muscle_color_helper.dart';
 import '../../exercise_catalog/domain/body_slug_mapper.dart';
+import '../../exercise_catalog/domain/exercise_classification_labels.dart';
 import '../../../widgets/common/dual_body_highlighter.dart';
 import '../../../util/timeframe_label_formatter.dart';
 import '../../../widgets/common/platform_adaptive_pickers.dart'
@@ -40,7 +41,7 @@ class _MuscleGroupAnalyticsScreenState
   final _rangePolicy = StatisticsRangePolicyService.instance;
   bool _isLoading = true;
 
-  TimeframeBlock _activeBlock = TimeframeBlock.month;
+  TimeframeBlock _activeBlock = TimeframeBlock.week;
   DateTime _anchorDate = DateTime.now();
 
   final List<TimeframeBlock> _validBlocks = const [
@@ -107,17 +108,17 @@ class _MuscleGroupAnalyticsScreenState
 
     final muscles = (displayAnalytics['muscles'] as List<dynamic>? ?? const [])
         .cast<Map<String, dynamic>>()
-        .where(
-          (m) => !StatisticsPresentationFormatter.isOtherCategoryLabel(
-            m['muscleGroup'] as String?,
-          ),
-        )
-        .toList(growable: false);
+        .where((m) {
+      final group = m['muscleGroup'] as String?;
+      return group != 'unclassified' &&
+          !StatisticsPresentationFormatter.isOtherCategoryLabel(group);
+    }).toList(growable: false);
 
-    final undertrained =
-        (displayAnalytics['undertrained'] as List<dynamic>? ?? const [])
-            .cast<String>();
-    final dataQualityOk = (displayAnalytics['dataQualityOk'] as bool?) ?? false;
+    final movementPatterns =
+        (displayAnalytics['movementPatterns'] as List<dynamic>? ?? const [])
+            .cast<Map<String, dynamic>>()
+            .where((pattern) => pattern['movementPattern'] != 'unclassified')
+            .toList(growable: false);
 
     final workload = <String, double>{};
     for (final m in muscles) {
@@ -130,19 +131,18 @@ class _MuscleGroupAnalyticsScreenState
     final highlights =
         MuscleColorHelper.mapVolumeToPrimaryColors(context, workload);
 
-    final double totalWeeks = ((displayAnalytics['daysBack'] as int?) ?? 7) / 7.0;
+    final double totalWeeks =
+        ((displayAnalytics['daysBack'] as int?) ?? 7) / 7.0;
 
     final double topPadding =
         MediaQuery.of(context).padding.top + kToolbarHeight;
 
-    Widget bodyContent = _buildBodyContent(
+    Widget bodyContent = _buildMuscleContent(
       context,
       muscles,
-      undertrained,
-      dataQualityOk,
+      movementPatterns,
       totalWeeks,
       highlights,
-      workload,
       l10n,
     );
 
@@ -266,7 +266,6 @@ class _MuscleGroupAnalyticsScreenState
                                 .start)),
                 showDateNavigation: _activeBlock != TimeframeBlock.maxBlock,
               ),
-              const SizedBox(height: DesignConstants.spacingM),
               bodyContent,
             ],
           ),
@@ -301,7 +300,7 @@ class _MuscleGroupAnalyticsScreenState
   void _showMuscleDetail(Map<String, dynamic> muscle) {
     final l10n = AppLocalizations.of(context)!;
     final group = muscle['muscleGroup'] as String;
-    final name = StatisticsPresentationFormatter.muscleGroupLabel(l10n, group);
+    final name = _muscleLabel(l10n, group);
 
     showModalBottomSheet(
       context: context,
@@ -321,7 +320,7 @@ class _MuscleGroupAnalyticsScreenState
                 ),
                 const SizedBox(height: DesignConstants.spacingL),
                 _buildDetailRow(
-                  l10n.exerciseMetricVolume,
+                  l10n.analyticsWorkSets,
                   _formatCompact(
                     (muscle['equivalentSets'] as num).toDouble(),
                   ),
@@ -379,7 +378,7 @@ class _MuscleGroupAnalyticsScreenState
         .map(
           (m) => {
             'muscleGroup': m['muscleGroup'] as String,
-            // Use total equivalent sets for the selected period instead of average per week
+            // Coverage uses direct primary-muscle working-set counts.
             'value': (m['equivalentSets'] as num).toDouble(),
           },
         )
@@ -397,18 +396,15 @@ class _MuscleGroupAnalyticsScreenState
     final labels = items
         .take(_maxMuscleBars)
         .map(
-          (e) => StatisticsPresentationFormatter.muscleGroupLabel(
-            l10n,
-            e['muscleGroup'] as String,
-          ),
+          (e) => _muscleLabel(l10n, e['muscleGroup'] as String),
         )
         .toList();
 
-    final totalEquivalentSets = muscles.fold<double>(
+    final totalWorkingSets = muscles.fold<double>(
       0.0,
       (sum, m) => sum + (m['equivalentSets'] as num).toDouble(),
     );
-    final totalPerWeek = totalEquivalentSets / totalWeeks;
+    final totalPerWeek = totalWorkingSets / totalWeeks;
 
     return _buildMuscleBarChart(
       items: items.take(_maxMuscleBars).toList(),
@@ -416,12 +412,11 @@ class _MuscleGroupAnalyticsScreenState
       unit: l10n.analyticsUnitSets,
       emptyLabel: l10n.noWorkoutDataLabel,
       yAxisLabel:
-          '${l10n.analyticsWeeklySetsByMuscle} (${l10n.analyticsUnitSets})',
-      footer: l10n.analyticsWeekTotalEquivalentSets(
+          '${l10n.analyticsWorkingSetsByMuscle} (${l10n.analyticsUnitSets})',
+      footer: l10n.analyticsAverageWorkingSetsPerWeek(
         totalPerWeek.toStringAsFixed(1),
       ),
       chartHeight: 260,
-      emphasize: true,
     );
   }
 
@@ -443,10 +438,7 @@ class _MuscleGroupAnalyticsScreenState
     final labels = items
         .take(_maxMuscleBars)
         .map(
-          (e) => StatisticsPresentationFormatter.muscleGroupLabel(
-            l10n,
-            e['muscleGroup'] as String,
-          ),
+          (e) => _muscleLabel(l10n, e['muscleGroup'] as String),
         )
         .toList();
 
@@ -457,7 +449,7 @@ class _MuscleGroupAnalyticsScreenState
       emptyLabel: l10n.noWorkoutDataLabel,
       yAxisLabel:
           '${l10n.analyticsFrequencyByMuscle} (/${l10n.analyticsPerWeekAbbrev})',
-      footer: l10n.analyticsFrequencyRuleFooter,
+      footer: l10n.analyticsFrequencyWorkingSetFooter,
     );
   }
 
@@ -469,7 +461,7 @@ class _MuscleGroupAnalyticsScreenState
     required String footer,
     required String yAxisLabel,
     double chartHeight = 220,
-    bool emphasize = false,
+    String? xAxisLabel,
   }) {
     final l10n = AppLocalizations.of(context)!;
     if (items.isEmpty) {
@@ -512,24 +504,6 @@ class _MuscleGroupAnalyticsScreenState
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (emphasize)
-          Container(
-            margin: const EdgeInsets.only(bottom: DesignConstants.spacingS),
-            padding: const EdgeInsets.symmetric(
-              horizontal: DesignConstants.spacingS,
-              vertical: DesignConstants.spacingXS,
-            ),
-            decoration: BoxDecoration(
-              color: Theme.of(
-                context,
-              ).colorScheme.primaryContainer.withValues(alpha: 0.45),
-              borderRadius: BorderRadius.circular(6),
-            ),
-            child: Text(
-              l10n.analyticsEquivalentSetsExplainer,
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
-          ),
         AnalyticsChartDefaults.axisTitleLabel(
           context,
           'Y: $yAxisLabel',
@@ -598,23 +572,26 @@ class _MuscleGroupAnalyticsScreenState
                 bottomTitles: AxisTitles(
                   sideTitles: SideTitles(
                     showTitles: true,
-                    reservedSize: 48,
+                    reservedSize: 108,
                     getTitlesWidget: (value, meta) {
                       final index = value.toInt();
                       if (index < 0 || index >= labels.length) {
                         return const SizedBox.shrink();
                       }
                       final label = labels[index];
-                      final compact = label.length > 8
-                          ? '${label.substring(0, 8)}...'
-                          : label;
                       return SideTitleWidget(
                         meta: meta,
-                        space: 4,
-                        angle: -45 * 3.141592653589793 / 180,
-                        child: AnalyticsChartDefaults.tickLabel(
-                          context,
-                          compact,
+                        space: 8,
+                        angle: -52 * 3.141592653589793 / 180,
+                        child: SizedBox(
+                          width: 112,
+                          child: Text(
+                            label,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            textAlign: TextAlign.left,
+                            style: Theme.of(context).textTheme.labelSmall,
+                          ),
                         ),
                       );
                     },
@@ -630,7 +607,7 @@ class _MuscleGroupAnalyticsScreenState
                       barRods: [
                         BarChartRodData(
                           toY: entry.value,
-                          width: emphasize ? 16 : 14,
+                          width: 14,
                           borderRadius: BorderRadius.circular(4),
                           color: Theme.of(context).colorScheme.primary,
                         ),
@@ -644,7 +621,7 @@ class _MuscleGroupAnalyticsScreenState
         const SizedBox(height: DesignConstants.spacingS),
         AnalyticsChartDefaults.axisTitleLabel(
           context,
-          'X: ${l10n.analyticsViewByMuscle}',
+          'X: ${xAxisLabel ?? l10n.analyticsViewByMuscle}',
         ),
         const SizedBox(height: 6),
         Text(
@@ -657,13 +634,15 @@ class _MuscleGroupAnalyticsScreenState
     );
   }
 
-  String _guidanceLabel(bool dataQualityOk, List<String> undertrained) {
-    final l10n = AppLocalizations.of(context)!;
-    return StatisticsPresentationFormatter.muscleGuidanceLabel(
-      l10n,
-      dataQualityOk,
-      undertrained,
-    );
+  String _muscleLabel(AppLocalizations l10n, String raw) {
+    return StatisticsPresentationFormatter.muscleGroupLabel(l10n, raw);
+  }
+
+  String _movementPatternLabel(BuildContext context, String raw) {
+    if (raw == 'other') {
+      return AppLocalizations.of(context)!.analyticsPatternOther;
+    }
+    return ExerciseClassificationLabels.movementPattern(context, raw) ?? raw;
   }
 
   Widget _sectionLabel(String text, {bool isPrimary = false}) {
@@ -681,27 +660,51 @@ class _MuscleGroupAnalyticsScreenState
   Map<String, dynamic> getMockAnalytics() {
     return {
       'daysBack': 7,
-      'dataQualityOk': true,
-      'undertrained': ['chest', 'back'],
       'muscles': [
-        {'muscleGroup': 'chest', 'equivalentSets': 12.0, 'workoutCount': 3},
-        {'muscleGroup': 'back', 'equivalentSets': 10.0, 'workoutCount': 2},
-        {'muscleGroup': 'quads', 'equivalentSets': 8.0, 'workoutCount': 2},
-        {'muscleGroup': 'shoulders', 'equivalentSets': 6.0, 'workoutCount': 1},
-        {'muscleGroup': 'biceps', 'equivalentSets': 4.0, 'workoutCount': 2},
-        {'muscleGroup': 'triceps', 'equivalentSets': 4.0, 'workoutCount': 2},
+        {
+          'muscleGroup': 'chest',
+          'equivalentSets': 12.0,
+          'frequencyPerWeek': 3.0
+        },
+        {
+          'muscleGroup': 'back',
+          'equivalentSets': 10.0,
+          'frequencyPerWeek': 2.0
+        },
+        {
+          'muscleGroup': 'quads',
+          'equivalentSets': 8.0,
+          'frequencyPerWeek': 2.0
+        },
+        {
+          'muscleGroup': 'shoulders',
+          'equivalentSets': 6.0,
+          'frequencyPerWeek': 1.0
+        },
+        {
+          'muscleGroup': 'biceps',
+          'equivalentSets': 4.0,
+          'frequencyPerWeek': 2.0
+        },
+        {
+          'muscleGroup': 'triceps',
+          'equivalentSets': 4.0,
+          'frequencyPerWeek': 2.0
+        },
+      ],
+      'movementPatterns': [
+        {'movementPattern': 'horizontal_push', 'setCount': 12.0},
+        {'movementPattern': 'vertical_pull', 'setCount': 8.0},
       ],
     };
   }
 
-  Widget _buildBodyContent(
+  Widget _buildMuscleContent(
     BuildContext context,
     List<Map<String, dynamic>> muscles,
-    List<String> undertrained,
-    bool dataQualityOk,
+    List<Map<String, dynamic>> movementPatterns,
     double totalWeeks,
     List<BodyPartHighlightData> highlights,
-    Map<String, double> workload,
     AppLocalizations l10n,
   ) {
     return Column(
@@ -720,7 +723,7 @@ class _MuscleGroupAnalyticsScreenState
             ),
             const SizedBox(height: DesignConstants.spacingS),
             Text(
-              l10n.analyticsRadarVolumeCaption,
+              l10n.analyticsPrimaryMuscleCoverageCaption,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: Theme.of(context).colorScheme.outline,
                   ),
@@ -729,7 +732,7 @@ class _MuscleGroupAnalyticsScreenState
         ),
         const SizedBox(height: DesignConstants.spacingM),
         _sectionLabel(
-          l10n.analyticsWeeklySetsByMuscle,
+          l10n.analyticsWorkingSetsByMuscle,
           isPrimary: true,
         ),
         RepaintBoundary(
@@ -741,20 +744,69 @@ class _MuscleGroupAnalyticsScreenState
           child: _buildFrequencyCard(muscles),
         ),
         const SizedBox(height: DesignConstants.spacingM),
-        _sectionLabel(l10n.analyticsGuidanceTitle),
-        const SizedBox(height: DesignConstants.spacingXS),
+        _buildMovementPatternContent(context, movementPatterns, l10n),
+        const SizedBox(height: DesignConstants.spacingM),
+      ],
+    );
+  }
+
+  Widget _buildMovementPatternContent(
+    BuildContext context,
+    List<Map<String, dynamic>> movementPatterns,
+    AppLocalizations l10n,
+  ) {
+    final items = movementPatterns
+        .map(
+          (pattern) => <String, dynamic>{
+            'value': (pattern['setCount'] as num?)?.toDouble() ?? 0.0,
+            'movementPattern':
+                pattern['movementPattern'] as String? ?? 'unclassified',
+          },
+        )
+        .where((pattern) => (pattern['value'] as double) > 0)
+        .toList()
+      ..sort(
+        (a, b) => (b['value'] as double).compareTo(a['value'] as double),
+      );
+    final labels = items
+        .take(_maxMuscleBars)
+        .map(
+          (pattern) => _movementPatternLabel(
+            context,
+            pattern['movementPattern'] as String,
+          ),
+        )
+        .toList();
+    final totalSets = items.fold<double>(
+      0,
+      (sum, pattern) => sum + (pattern['value'] as double),
+    );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _sectionLabel(l10n.analyticsWorkingSetsByPattern),
         Text(
-          dataQualityOk
-              ? l10n.analyticsGuidanceDirectionalDisclaimer
-              : l10n.analyticsGuidanceSoftenedDisclaimer,
+          l10n.analyticsMovementPatternCoverageCaption,
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: Theme.of(context).colorScheme.outline,
               ),
         ),
-        const SizedBox(height: DesignConstants.spacingS),
-        Text(
-          _guidanceLabel(dataQualityOk, undertrained),
-          style: Theme.of(context).textTheme.bodyMedium,
+        const SizedBox(height: DesignConstants.spacingM),
+        RepaintBoundary(
+          child: _buildMuscleBarChart(
+            items: items.take(_maxMuscleBars).toList(),
+            labels: labels,
+            unit: l10n.analyticsUnitSets,
+            emptyLabel: l10n.noWorkoutDataLabel,
+            yAxisLabel:
+                '${l10n.analyticsWorkingSetsByPattern} (${l10n.analyticsUnitSets})',
+            xAxisLabel: l10n.analyticsCoverageMovementPatterns,
+            footer: l10n.analyticsTotalWorkingSets(
+              _formatCompact(totalSets),
+            ),
+            chartHeight: 280,
+          ),
         ),
       ],
     );

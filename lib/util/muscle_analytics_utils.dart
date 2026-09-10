@@ -1,7 +1,4 @@
-import '../features/statistics/domain/statistics_data_quality_policy.dart';
-
 class MuscleAnalyticsUtils {
-  static const _dataQualityPolicy = StatisticsDataQualityPolicy.instance;
   static DateTime normalizeDay(DateTime date) {
     return DateTime(date.year, date.month, date.day);
   }
@@ -106,67 +103,12 @@ class MuscleAnalyticsUtils {
         ),
       );
 
-    final trainedDates = dayMuscleSets.keys.toList()..sort();
-    final dataPointDays = trainedDates.length;
-    final spanDays = trainedDates.isEmpty
-        ? 0
-        : trainedDates.last.difference(trainedDates.first).inDays + 1;
-    final qualityAssessment = _dataQualityPolicy.muscleDistribution(
-      dataPointDays: dataPointDays,
-      spanDays: spanDays,
-    );
-    final dataQualityOk = qualityAssessment.hasSufficientData;
-
-    final undertrained = _findUndertrainedMuscles(muscles, dataQualityOk);
-
     return {
       'daysBack': daysBack,
       'weeksBack': weeksBack,
-      'dataPointDays': dataPointDays,
-      'spanDays': spanDays,
-      'dataQualityOk': dataQualityOk,
-      'dataQualityReasonHook': qualityAssessment.reasonHook,
       'totalEquivalentSets': totalEquivalentSets,
       'muscles': muscles,
       'weekly': weekRows,
-      'undertrained': undertrained,
     };
-  }
-
-  static List<String> _findUndertrainedMuscles(
-    List<Map<String, dynamic>> muscles,
-    bool dataQualityOk,
-  ) {
-    if (!dataQualityOk || muscles.isEmpty) return const [];
-
-    final active = muscles
-        .where((m) => ((m['equivalentSets'] as num).toDouble()) > 0)
-        .toList();
-    if (active.length < 3) return const [];
-
-    final avgShare = active
-            .map((m) => (m['distributionShare'] as num).toDouble())
-            .fold<double>(0.0, (sum, value) => sum + value) /
-        active.length;
-
-    final threshold = avgShare * 0.6;
-
-    final candidates = active
-        .where(
-          (m) =>
-              (m['distributionShare'] as num).toDouble() > 0 &&
-              (m['distributionShare'] as num).toDouble() < threshold,
-        )
-        .toList()
-      ..sort(
-        (a, b) => ((a['distributionShare'] as num).toDouble()).compareTo(
-          (b['distributionShare'] as num).toDouble(),
-        ),
-      );
-
-    return candidates
-        .take(3)
-        .map((m) => m['muscleGroup'] as String)
-        .toList(growable: false);
   }
 }

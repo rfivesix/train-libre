@@ -74,8 +74,8 @@ class Exercise {
   /// Whether a belt or a dumbbell between the feet is a real option here.
   final bool supportsAddedWeight;
 
-  /// `compound` | `isolation`. Null for pre-v2 rows and user-created
-  /// exercises, and for the 32 catalog rows that carry no classification.
+  /// `compound` | `isolation`. Null for pre-v2 rows and for exercises where
+  /// neither the catalog nor the person creating it specified a classification.
   final String? mechanic;
 
   /// `bilateral` | `unilateral` | `alternating`.
@@ -96,8 +96,9 @@ class Exercise {
 
   /// `beginner` | `intermediate` | `advanced`.
   ///
-  /// The catalog's own judgement, not the user's — which is why nothing in the
-  /// app filters or hides on it by default.
+  /// A descriptive difficulty selected by the catalog or by the person
+  /// creating an exercise. Nothing in the app filters or hides on it by
+  /// default.
   final String? difficulty;
 
   /// Whether this exercise is categorized as Cardio.

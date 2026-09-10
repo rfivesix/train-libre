@@ -3430,6 +3430,46 @@ class AppLocalizationsJa extends AppLocalizations {
   String get analyticsPeriodLabel => '期間';
 
   @override
+  String get analyticsCoverageMuscles => '筋肉';
+
+  @override
+  String get analyticsCoverageMovementPatterns => '動作パターン';
+
+  @override
+  String get analyticsWorkingSetsByMuscle => '筋肉別ワーキングセット';
+
+  @override
+  String get analyticsWorkingSetsByPattern => '動作パターン別ワーキングセット';
+
+  @override
+  String get analyticsPrimaryMuscleCoverageCaption =>
+      '主働筋に対する完了済みの通常セットと限界セットのみを表示します。';
+
+  @override
+  String get analyticsMovementPatternCoverageCaption =>
+      '動作パターン別の完了済み通常セットと限界セットを表示します。';
+
+  @override
+  String get analyticsUnclassified => '未分類';
+
+  @override
+  String get analyticsPatternOther => 'その他';
+
+  @override
+  String analyticsAverageWorkingSetsPerWeek(String value) {
+    return '週平均 $value ワーキングセット';
+  }
+
+  @override
+  String get analyticsFrequencyWorkingSetFooter =>
+      '頻度は、その筋肉に対して少なくとも1つのワーキングセットを行った日を数えます。';
+
+  @override
+  String analyticsTotalWorkingSets(String value) {
+    return '$value ワーキングセット';
+  }
+
+  @override
   String get analyticsEquivalentSetsExplainer =>
       '同等のハード セットでは、プライマリ x1.0 とセカンダリ x0.3 の重み付けが使用されます。頻度は、同等のセットが 1.0 以上に達した日のみをカウントします。';
 
@@ -6269,6 +6309,30 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get exerciseLateralityAlternating => '交互';
+
+  @override
+  String get exerciseClassificationTitle => '分類';
+
+  @override
+  String get exerciseMovementPatternLabel => '動作パターン';
+
+  @override
+  String get exerciseForceVectorLabel => '力の方向';
+
+  @override
+  String get exerciseMechanicLabel => '種目タイプ';
+
+  @override
+  String get exerciseLateralityLabel => '左右の使い方';
+
+  @override
+  String get exerciseDifficultyLabel => '難易度';
+
+  @override
+  String get exerciseClassificationNotSpecified => '未指定';
+
+  @override
+  String get exercisePatternOther => 'その他';
 
   @override
   String get exerciseUsageWarmup => 'ウォームアップ';

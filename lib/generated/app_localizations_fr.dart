@@ -3580,6 +3580,46 @@ class AppLocalizationsFr extends AppLocalizations {
   String get analyticsPeriodLabel => 'Période';
 
   @override
+  String get analyticsCoverageMuscles => 'Muscles';
+
+  @override
+  String get analyticsCoverageMovementPatterns => 'Mouvements';
+
+  @override
+  String get analyticsWorkingSetsByMuscle => 'Séries de travail par muscle';
+
+  @override
+  String get analyticsWorkingSetsByPattern => 'Séries de travail par mouvement';
+
+  @override
+  String get analyticsPrimaryMuscleCoverageCaption =>
+      'Affiche uniquement les séries normales et à l’échec terminées pour les muscles principaux.';
+
+  @override
+  String get analyticsMovementPatternCoverageCaption =>
+      'Affiche les séries normales et à l’échec terminées par mouvement.';
+
+  @override
+  String get analyticsUnclassified => 'Non classé';
+
+  @override
+  String get analyticsPatternOther => 'Autre';
+
+  @override
+  String analyticsAverageWorkingSetsPerWeek(String value) {
+    return 'Ø $value séries de travail par semaine';
+  }
+
+  @override
+  String get analyticsFrequencyWorkingSetFooter =>
+      'La fréquence compte les jours avec au moins une série de travail pour ce muscle.';
+
+  @override
+  String analyticsTotalWorkingSets(String value) {
+    return '$value séries de travail';
+  }
+
+  @override
   String get analyticsEquivalentSetsExplainer =>
       'Les ensembles durs équivalents utilisent une pondération primaire x1,0 et secondaire x0,3. La fréquence ne compte que les jours atteignant >= 1,0 ensembles équivalents.';
 
@@ -6590,6 +6630,30 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get exerciseLateralityAlternating => 'En alternance';
+
+  @override
+  String get exerciseClassificationTitle => 'Classification';
+
+  @override
+  String get exerciseMovementPatternLabel => 'Schéma de mouvement';
+
+  @override
+  String get exerciseForceVectorLabel => 'Direction de force';
+
+  @override
+  String get exerciseMechanicLabel => 'Type d’exercice';
+
+  @override
+  String get exerciseLateralityLabel => 'Latéralité';
+
+  @override
+  String get exerciseDifficultyLabel => 'Difficulté';
+
+  @override
+  String get exerciseClassificationNotSpecified => 'Non défini';
+
+  @override
+  String get exercisePatternOther => 'Autre';
 
   @override
   String get exerciseUsageWarmup => 'Échauffement';

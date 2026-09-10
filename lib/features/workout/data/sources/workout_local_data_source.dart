@@ -44,7 +44,7 @@ class MuscleAnalyticsBackgroundTaskParams {
 class MuscleContributionRawData {
   final DateTime startTime;
   final String? musclesPrimary;
-  final String? musclesSecondary;
+  final String? movementPattern;
 
   /// Carried into the isolate so volume can drop the sets that are not work on
   /// the annotated muscle. Null for pre-v2 rows and user exercises, where the
@@ -59,7 +59,7 @@ class MuscleContributionRawData {
   MuscleContributionRawData({
     required this.startTime,
     this.musclesPrimary,
-    this.musclesSecondary,
+    this.movementPattern,
     this.modality,
     this.categoryName,
     this.setType,

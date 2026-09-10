@@ -6317,6 +6317,72 @@ abstract class AppLocalizations {
   /// **'Period'**
   String get analyticsPeriodLabel;
 
+  /// No description provided for @analyticsCoverageMuscles.
+  ///
+  /// In en, this message translates to:
+  /// **'Muscles'**
+  String get analyticsCoverageMuscles;
+
+  /// No description provided for @analyticsCoverageMovementPatterns.
+  ///
+  /// In en, this message translates to:
+  /// **'Movement Patterns'**
+  String get analyticsCoverageMovementPatterns;
+
+  /// No description provided for @analyticsWorkingSetsByMuscle.
+  ///
+  /// In en, this message translates to:
+  /// **'Working Sets by Muscle'**
+  String get analyticsWorkingSetsByMuscle;
+
+  /// No description provided for @analyticsWorkingSetsByPattern.
+  ///
+  /// In en, this message translates to:
+  /// **'Working Sets by Movement Pattern'**
+  String get analyticsWorkingSetsByPattern;
+
+  /// No description provided for @analyticsPrimaryMuscleCoverageCaption.
+  ///
+  /// In en, this message translates to:
+  /// **'Shows completed normal and failure sets for primary muscles only.'**
+  String get analyticsPrimaryMuscleCoverageCaption;
+
+  /// No description provided for @analyticsMovementPatternCoverageCaption.
+  ///
+  /// In en, this message translates to:
+  /// **'Shows completed normal and failure sets by movement pattern.'**
+  String get analyticsMovementPatternCoverageCaption;
+
+  /// No description provided for @analyticsUnclassified.
+  ///
+  /// In en, this message translates to:
+  /// **'Unclassified'**
+  String get analyticsUnclassified;
+
+  /// No description provided for @analyticsPatternOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get analyticsPatternOther;
+
+  /// No description provided for @analyticsAverageWorkingSetsPerWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'Ø {value} working sets per week'**
+  String analyticsAverageWorkingSetsPerWeek(String value);
+
+  /// No description provided for @analyticsFrequencyWorkingSetFooter.
+  ///
+  /// In en, this message translates to:
+  /// **'Frequency counts training days with at least one working set for that muscle.'**
+  String get analyticsFrequencyWorkingSetFooter;
+
+  /// No description provided for @analyticsTotalWorkingSets.
+  ///
+  /// In en, this message translates to:
+  /// **'{value} working sets'**
+  String analyticsTotalWorkingSets(String value);
+
   /// No description provided for @analyticsEquivalentSetsExplainer.
   ///
   /// In en, this message translates to:
@@ -11334,6 +11400,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Alternating'**
   String get exerciseLateralityAlternating;
+
+  /// No description provided for @exerciseClassificationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Classification'**
+  String get exerciseClassificationTitle;
+
+  /// No description provided for @exerciseMovementPatternLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Movement pattern'**
+  String get exerciseMovementPatternLabel;
+
+  /// No description provided for @exerciseForceVectorLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Force direction'**
+  String get exerciseForceVectorLabel;
+
+  /// No description provided for @exerciseMechanicLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Exercise type'**
+  String get exerciseMechanicLabel;
+
+  /// No description provided for @exerciseLateralityLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Laterality'**
+  String get exerciseLateralityLabel;
+
+  /// No description provided for @exerciseDifficultyLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Difficulty'**
+  String get exerciseDifficultyLabel;
+
+  /// No description provided for @exerciseClassificationNotSpecified.
+  ///
+  /// In en, this message translates to:
+  /// **'Not specified'**
+  String get exerciseClassificationNotSpecified;
+
+  /// No description provided for @exercisePatternOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get exercisePatternOther;
 
   /// No description provided for @exerciseUsageWarmup.
   ///

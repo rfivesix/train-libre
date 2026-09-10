@@ -3526,6 +3526,47 @@ class AppLocalizationsEn extends AppLocalizations {
   String get analyticsPeriodLabel => 'Period';
 
   @override
+  String get analyticsCoverageMuscles => 'Muscles';
+
+  @override
+  String get analyticsCoverageMovementPatterns => 'Movement Patterns';
+
+  @override
+  String get analyticsWorkingSetsByMuscle => 'Working Sets by Muscle';
+
+  @override
+  String get analyticsWorkingSetsByPattern =>
+      'Working Sets by Movement Pattern';
+
+  @override
+  String get analyticsPrimaryMuscleCoverageCaption =>
+      'Shows completed normal and failure sets for primary muscles only.';
+
+  @override
+  String get analyticsMovementPatternCoverageCaption =>
+      'Shows completed normal and failure sets by movement pattern.';
+
+  @override
+  String get analyticsUnclassified => 'Unclassified';
+
+  @override
+  String get analyticsPatternOther => 'Other';
+
+  @override
+  String analyticsAverageWorkingSetsPerWeek(String value) {
+    return 'Ø $value working sets per week';
+  }
+
+  @override
+  String get analyticsFrequencyWorkingSetFooter =>
+      'Frequency counts training days with at least one working set for that muscle.';
+
+  @override
+  String analyticsTotalWorkingSets(String value) {
+    return '$value working sets';
+  }
+
+  @override
   String get analyticsEquivalentSetsExplainer =>
       'Equivalent hard sets use primary x1.0 and secondary x0.3 weighting. Frequency counts only days reaching >= 1.0 equivalent sets.';
 
@@ -6481,6 +6522,30 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get exerciseLateralityAlternating => 'Alternating';
+
+  @override
+  String get exerciseClassificationTitle => 'Classification';
+
+  @override
+  String get exerciseMovementPatternLabel => 'Movement pattern';
+
+  @override
+  String get exerciseForceVectorLabel => 'Force direction';
+
+  @override
+  String get exerciseMechanicLabel => 'Exercise type';
+
+  @override
+  String get exerciseLateralityLabel => 'Laterality';
+
+  @override
+  String get exerciseDifficultyLabel => 'Difficulty';
+
+  @override
+  String get exerciseClassificationNotSpecified => 'Not specified';
+
+  @override
+  String get exercisePatternOther => 'Other';
 
   @override
   String get exerciseUsageWarmup => 'Warm-up';

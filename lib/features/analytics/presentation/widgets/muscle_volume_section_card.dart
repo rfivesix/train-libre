@@ -27,7 +27,6 @@ class MuscleVolumeSectionCard extends StatelessWidget {
     final sectionId = StatisticsHubSectionId.volumeMuscles;
     final title = l10n.analyticsMuscleTopFrequency;
 
-
     if (state.hasError && !state.hasData) {
       return AnalyticsCardBase.buildSectionErrorCard(
         context,
@@ -43,12 +42,11 @@ class MuscleVolumeSectionCard extends StatelessWidget {
 
     final muscles = (muscleAnalytics['muscles'] as List<dynamic>? ?? const [])
         .cast<Map<String, dynamic>>()
-        .where(
-          (m) => !StatisticsPresentationFormatter.isOtherCategoryLabel(
-            m['muscleGroup'] as String?,
-          ),
-        )
-        .toList(growable: false);
+        .where((m) {
+      final group = m['muscleGroup'] as String?;
+      return group != 'unclassified' &&
+          !StatisticsPresentationFormatter.isOtherCategoryLabel(group);
+    }).toList(growable: false);
     final topMuscle = muscles.isNotEmpty ? muscles.first : null;
     final topMuscleShare =
         (topMuscle?['distributionShare'] as num?)?.toDouble() ?? 0.0;

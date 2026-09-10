@@ -19,6 +19,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Database Schema 30 (`AppDatabase`):** Added 10 prescription snapshot and override tracking columns to `SetLogs`, `targetRepMin` and `targetRepMax` to `RoutineSetTemplates`, and `trainingAutonomyLevel`, `nutritionAutonomyLevel`, and `experienceLevel` to `AppSettings`.
 
 ### Changed
+- **Training coverage:** Muscle Group Analytics now counts completed normal and
+  failure sets only, credits primary muscles without secondary-muscle weighting,
+  and adds a localized movement-pattern view. The screen defaults to the last
+  seven days and remains descriptive without targets or balance judgements.
+  Movement patterns are the third metric below muscle coverage and frequency;
+  unclassified rows are omitted. Custom exercises can now store their movement
+  pattern, force direction, mechanic, laterality and difficulty.
 - **JIT workout progression:** The active live-workout path now calculates only the directly following open working set from the preceding completed set (`progression_v1.8_jit`). Straight-set loads remain in place while repetitions absorb normal fatigue; load changes occur only above or below the authored repetition range. Differing positive routine weights preserve their relative back-off ratio against today's real first set and are rounded before projection. The engine guards short hypertrophy-set outliers, high-repetition Brzycki limits, and assisted exercises without a recorded body weight. Generic equipment floors prevent suggestions below an unloaded barbell or standard machine, cable and dumbbell minimum. Existing workout and backup data remain readable without a database migration.
 - **Atomic workout finalization:** Completing a workout now updates all retained set rows, removes untouched empty rows and generated placeholders, marks the workout completed, and verifies the retained rows in one SQLite transaction. Manually entered open sets are retained. No schema migration is required, so updating an existing device database does not replace or transform user records.
 - **Progression documentation:** Replaced the retired v1.5 policy/review model with the current first-set workflow and aligned e1RM documentation with the Brzycki calculation used by the app.
