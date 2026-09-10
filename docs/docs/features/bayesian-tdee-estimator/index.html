@@ -1,0 +1,411 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Kalman filter and Bayesian recursive estimation for adaptive calorie targets.">
+  <title>Fitness-Oriented Bayesian TDEE Estimator &amp; Adaptive Diet Phase Engine | Train Libre Documentation</title>
+  <link rel="canonical" href="https://trainlibre.com/docs/features/bayesian-tdee-estimator/">
+
+  <link rel="icon" type="image/png" sizes="32x32" href="../../../favicon.png?v=2">
+  <link rel="apple-touch-icon" sizes="180x180" href="../../../assets/apple-touch-icon.png">
+
+  <!-- Open Graph -->
+  <meta property="og:site_name" content="Train Libre Documentation">
+  <meta property="og:title" content="Fitness-Oriented Bayesian TDEE Estimator &amp; Adaptive Diet Phase Engine | Train Libre">
+  <meta property="og:description" content="Kalman filter and Bayesian recursive estimation for adaptive calorie targets.">
+  <meta property="og:url" content="https://trainlibre.com/docs/features/bayesian-tdee-estimator/">
+  <meta property="og:type" content="article">
+  <meta property="og:image" content="https://trainlibre.com/assets/og-image.png">
+
+  <!-- KaTeX CSS (CDN primary with local fallback) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+  <link rel="stylesheet" href="../../../katex.min.css">
+
+  <!-- Train Libre Design System & Dedicated Docs Styles -->
+  <link rel="stylesheet" href="../../../style.css">
+  <link rel="stylesheet" href="../../docs.css">
+
+  <!-- KaTeX Auto-render Script -->
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" defer onload="renderMathInElement(document.body, {
+    delimiters: [
+      {left: '$$', right: '$$', display: true},
+      {left: '$', right: '$', display: false}
+    ],
+    throwOnError: false
+  });"></script>
+
+  <!-- Mermaid.js for Architecture Diagrams -->
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      if (typeof mermaid !== "undefined") {
+        const isDark = document.documentElement.getAttribute("data-theme") !== "light";
+        mermaid.initialize({
+          startOnLoad: true,
+          theme: isDark ? "dark" : "default",
+          themeVariables: isDark ? {
+            darkMode: true,
+            background: "#151815",
+            primaryColor: "#1b1f1b",
+            primaryTextColor: "#f4f6f4",
+            primaryBorderColor: "rgba(221, 255, 0, 0.4)",
+            lineColor: "#ddff00",
+            secondaryColor: "#151815",
+            tertiaryColor: "#0e100e"
+          } : {}
+        });
+      }
+    });
+  </script>
+
+  <!-- Prevent Theme Flash -->
+  <script>
+    (function () {
+      const theme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: light)').matches ? "light" : "dark");
+      document.documentElement.setAttribute("data-theme", theme);
+    })();
+  </script>
+</head>
+<body class="docs-body">
+  <div class="page">
+    <!-- Header -->
+    <header class="docs-header">
+      <nav class="docs-nav" aria-label="Documentation navigation">
+        <a class="brand" href="../../../index.html" aria-label="Train Libre Home">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 270.933 270.933" role="img">
+              <path fill="#ddff00"
+                d="M47.621 39.688c-4.385 0-7.939 3.554-7.939 7.939v116.172c0 37.238 30.188 67.472 67.426 67.459l13.482-.006c.15.003.3.005.451.005h89.722c11.367 0 20.518-9.154 20.518-20.525s-9.151-20.525-20.518-20.525h-42.739a7.937 7.937 0 0 1-7.937-7.937v-25.174a7.937 7.937 0 0 1 7.937-7.937l41.159-.001c12.244 0 22.101-9.154 22.1-20.525-.001-11.371-9.859-20.525-22.103-20.525l-41.156.001a7.937 7.937 0 0 1-7.937-7.937V47.627c0-4.385-3.555-7.939-7.939-7.939z" />
+            </svg>
+          </span>
+          <span class="brand-name">Train Libre</span>
+          <span class="docs-badge">Docs</span>
+        </a>
+
+        <div class="nav-links">
+          <a href="../../../index.html" class="nav-link">Website</a>
+          <a class="nav-priority" href="https://github.com/rfivesix/train-libre" target="_blank" rel="noreferrer">GitHub</a>
+        </div>
+
+        <div class="nav-controls">
+          <button id="theme-toggle" class="control-btn" aria-label="Toggle Theme">
+            <svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="5"></circle>
+              <line x1="12" y1="1" x2="12" y2="3"></line>
+              <line x1="12" y1="21" x2="12" y2="23"></line>
+              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+              <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+              <line x1="1" y1="12" x2="3" y2="12"></line>
+              <line x1="21" y1="12" x2="23" y2="12"></line>
+              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+              <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+            </svg>
+            <svg class="moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+            </svg>
+          </button>
+          
+          <button id="sidebar-toggle" class="control-btn mobile-menu-btn" aria-label="Open sidebar menu" aria-expanded="false">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="3" y1="12" x2="21" y2="12"></line>
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+      </nav>
+    </header>
+
+    <!-- Docs Main Layout -->
+    <div class="docs-container">
+      <!-- Left Sidebar -->
+      <aside id="docs-sidebar" class="docs-sidebar" aria-label="Documentation sidebar">
+        <div class="sidebar-header-search">
+          <input type="text" id="sidebar-filter" placeholder="Filter topics..." aria-label="Filter topics in documentation">
+        </div>
+        <div class="sidebar-scroll-area">
+          <div class="sidebar-group"><div class="sidebar-group-title">Overview</div><ul class="sidebar-nav-list">
+<li><a href="../../index.html" class="sidebar-link">Documentation Suite Overview</a></li>
+</ul></div>
+<div class="sidebar-group"><div class="sidebar-group-title">Features &amp; Heuristics</div><ul class="sidebar-nav-list">
+<li><a href="../overview/index.html" class="sidebar-link">Capabilities &amp; Privacy</a></li>
+<li><a href="../sleep-scoring-engine/index.html" class="sidebar-link">Sleep Health Score (SHS v3.5)</a></li>
+<li><a href="../muscle-recovery-model/index.html" class="sidebar-link">Muscle Recovery &amp; Readiness</a></li>
+<li><a href="index.html" class="sidebar-link active" aria-current="page">Bayesian TDEE Estimator</a></li>
+<li><a href="../macro-distribution/index.html" class="sidebar-link">Macronutrient Distribution</a></li>
+<li><a href="../workout-progression-engine/index.html" class="sidebar-link">Workout Progression Engine</a></li>
+<li><a href="../intelligent-workouts/index.html" class="sidebar-link">Estimated 1-Rep Max (e1RM)</a></li>
+<li><a href="../meal-capture-pipeline/index.html" class="sidebar-link">Meal Capture Pipeline</a></li>
+<li><a href="../byok-ai-validation/index.html" class="sidebar-link">BYOK AI Meal Validation</a></li>
+<li><a href="../depth-scale-hint/index.html" class="sidebar-link">Depth Scale Hint (LiDAR)</a></li>
+<li><a href="../health-sync-export/index.html" class="sidebar-link">Native Health Sync &amp; Export</a></li>
+<li><a href="../live-activity-workout/index.html" class="sidebar-link">Live Activity &amp; Workout Session</a></li>
+</ul></div>
+<div class="sidebar-group"><div class="sidebar-group-title">Developer &amp; Architecture</div><ul class="sidebar-nav-list">
+<li><a href="../../developer/overview/index.html" class="sidebar-link">Developer Overview &amp; Tests</a></li>
+<li><a href="../../developer/architecture/index.html" class="sidebar-link">System Architecture &amp; Wiring</a></li>
+<li><a href="../../developer/data-flow-and-state/index.html" class="sidebar-link">Data Flow &amp; State Lifecycle</a></li>
+<li><a href="../../developer/localization-architecture/index.html" class="sidebar-link">Localization Architecture</a></li>
+<li><a href="../../developer/ios-home-screen-widgets/index.html" class="sidebar-link">Home Screen Widgets</a></li>
+</ul></div>
+        </div>
+      </aside>
+
+      <!-- Center Article Content -->
+      <main class="docs-main" id="main-content">
+        <div class="docs-breadcrumb" aria-label="Breadcrumb">
+          <a href="../../../index.html">Home</a> <span class="bc-sep">/</span> <a href="../../index.html">Docs</a> <span class="bc-sep">/</span> <span>Features &amp; Heuristics</span>
+        </div>
+
+        <article class="docs-article">
+          <h1 class="doc-title">Fitness-Oriented Bayesian TDEE Estimator & Adaptive Diet Phase Engine</h1>
+<div class="callout callout-warning"><div class="callout-title"><span class="callout-badge">Disclaimer</span></div><div class="callout-body"><strong>Non-Medical Disclaimer</strong>: This feature is a fitness-oriented, non-clinical heuristic designed for healthy individuals tracking performance and dietary habits. It is not intended for clinical use, diagnostics, or managing medical conditions (such as eating disorders or endocrine/metabolic diseases). All calorie estimates, adaptive calculations, and target adjustment suggestions are sports-science-inspired abstractions and engineering design choices rather than prescriptive clinical thresholds or direct experimental derivations.</div></div>
+<p>The <strong>Bayesian TDEE Estimator</strong> is the mathematical foundation of Train Libre's adaptive diet recommendations. It runs entirely on-device, implementing a customized one-dimensional <strong>Recursive Kalman Filter</strong> to estimate a user's latent Total Daily Energy Expenditure (TDEE). Unlike simple moving averages or static calculators, this estimator models metabolic changes dynamically, using a simplified dynamic energy balance heuristic inspired by Hall’s mathematical models of human body weight change and energy imbalance. It assigns mathematical certainty to logging habits, scales observation variance based on logging completeness, and automatically manages calorie target changes.</p>
+<hr class="divider">
+<h2 id="1-the-observation-model" class="doc-h2">1. The Observation Model<a href="#1-the-observation-model" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>At any given week <em>t</em>, the estimator receives a logging context containing the user's average calorie intake, bodyweight readings, and active diet phase. It computes an <strong>Observed Maintenance</strong> value (<em>M_t</em>) by adjusting average calorie intake against body mass change:</p>
+<div class="math-block">$$M_t = \text{avgLoggedCalories}_t - \left(\text{smoothedWeightSlopeKgPerWeek}_t \cdot \frac{\text{kcalPerKg}_t}{7}\right)$$</div>
+<h3 id="dynamic-kcalkg-scaling-ramp-model" class="doc-h3">Dynamic Kcal/Kg Scaling (Ramp Model)<a href="#dynamic-kcalkg-scaling-ramp-model" class="header-anchor" aria-label="Link to section">#</a></h3>
+<p>The energetic value of bodyweight changes (<em>kcalPerKg</em>) is not static. During transitions to new diet phases, water weight fluctuations and metabolic adaptations skew short-term readings. To compensate, Train Libre implements a <strong>9-Week Linear Ramp</strong>:</p>
+<ul class="doc-list">
+<li><strong>Week 1</strong>: Starts at a highly conservative baseline:</li>
+</ul>
+<div class="math-block">$$\text{kcalPerKg} = 3000 \text{ kcal/kg}$$</div>
+<ul class="doc-list">
+<li><strong>Weeks 2 to 8</strong>: Linear transition toward the mature baseline:</li>
+</ul>
+<div class="math-block">$$\text{kcalPerKg}_t = 3000 + (7700 - 3000) \cdot \left(\frac{t_{\text{weeks}} - 1}{8}\right)$$</div>
+<ul class="doc-list">
+<li><strong>Week 9+ (Mature)</strong>: Scales to the physiological standard:</li>
+</ul>
+<div class="math-block">$$\text{kcalPerKg} = 7700 \text{ kcal/kg}$$</div>
+<p><em>Note: The 3000→7700 kcal/kg 9-week linear ramp is an engineering safeguard and modeling abstraction to attenuate early water-driven weight changes; it is not directly specified in any single study but is chosen to be conservative relative to empirically observed weight change energy densities.</em></p>
+<p>This linear transition prevents sudden, massive adjustments to calorie recommendations during the initial, highly volatile weeks of a new diet phase.</p>
+<hr class="divider">
+<h2 id="2-mathematical-modeling-of-uncertainty-observation-variance" class="doc-h2">2. Mathematical Modeling of Uncertainty (Observation Variance)<a href="#2-mathematical-modeling-of-uncertainty-observation-variance" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>A Kalman Filter relies on the ratio of system process noise to observation noise to adjust its update weight (Kalman Gain). Train Libre computes the <strong>Observation Variance</strong> (<em>R_t</em>) dynamically for each logging cycle based on data density and accuracy.</p>
+<p><em>Note: Numeric values for base model error, day-to-day logging noise, and slope deviations are heuristic engineering parameters and modeling abstractions calibrated from the variability reported in free-living energy intake modeling studies rather than formal inferential statistics from a single paper.</em></p>
+<h3 id="step-21-reference-variance-vref" class="doc-h3">Step 2.1: Reference Variance (<em>V_ref</em>)<a href="#step-21-reference-variance-vref" class="header-anchor" aria-label="Link to section">#</a></h3>
+<p>The baseline uncertainty is a combination of three independent standard error sources:</p>
+<div class="math-block">$$V_{\text{ref}} = V_{\text{base}} + V_{\text{intake}} + V_{\text{slope}}$$</div>
+<p>Where: <em>   <strong>Base Model Mismatch (</em>V_base*)</strong>: Represents residual model error under ideal logging conditions (default standard deviation: 120 kcal/day):</p>
+<div class="math-block">$$V_{\text{base}} = 120^2 = 14400$$</div>
+<ul class="doc-list">
+<li><strong>Intake Day-to-Day Error (<em>V_intake</em>)</strong>: Models the standard error of food logs over the window (default day-to-day deviation: 320 kcal/day):</li>
+</ul>
+<div class="math-block">$$V_{\text{intake}} = \left(\frac{320}{\sqrt{\text{intakeLoggedDays}}}\right)^2$$</div>
+<ul class="doc-list">
+<li><strong>Weight Slope Error (<em>V_slope</em>)</strong>: Models the standard error of the linear weight trend based on weight reading density (default trend deviation: 0.55 kg/week):</li>
+</ul>
+<div class="math-block">$$V_{\text{slope}} = \left(\frac{0.55 \cdot \frac{\text{kcalPerKg}}{7}}{\sqrt{\text{weightLogCount} - 1}}\right)^2$$</div>
+<h3 id="step-22-completeness-penalty-multiplier-mcomp" class="doc-h3">Step 2.2: Completeness Penalty Multiplier (<em>M_comp</em>)<a href="#step-22-completeness-penalty-multiplier-mcomp" class="header-anchor" aria-label="Link to section">#</a></h3>
+<p>If the user logs sparsely, the uncertainty of the observation must be penalized. Train Libre calculates localized completeness coefficients clamped between 0.05 and 1.0:</p>
+<div class="math-block">$$\text{intakeCompleteness} = \text{clamp}\left(\frac{\text{intakeLoggedDays}}{\text{windowDays}}, 0.05, 1.0\right)$$</div>
+<div class="math-block">$$\text{weightCompleteness} = \text{clamp}\left(\frac{\text{weightLogCount} - 1}{\text{windowDays} - 1}, 0.05, 1.0\right)$$</div>
+<p>The completeness multiplier <em>M_comp</em> scales observation variance quadratically:</p>
+<div class="math-block">$$M_{\text{comp}} = \frac{1}{\sqrt{\text{intakeCompleteness} \cdot \text{weightCompleteness}}}$$</div>
+<h3 id="step-23-data-quality-multipliers-mqual" class="doc-h3">Step 2.3: Data Quality Multipliers (<em>M_qual</em>)<a href="#step-23-data-quality-multipliers-mqual" class="header-anchor" aria-label="Link to section">#</a></h3>
+<p>The engine applies multiplicative penalties for sparse data or unresolved logs: <em>   <strong>Sparse Intake Penalty</strong>: If </em>intakeLoggedDays<em> < 5, apply a multiplier of 1.12. </em>   <strong>Sparse Weight Penalty</strong>: If <em>weightLogCount</em> < 5, apply a multiplier of 1.10. *   <strong>Unresolved Food Calories</strong>: If the user logged custom food items with unlinked or incomplete nutritional profiles, apply a multiplier of 1.30.</p>
+<h3 id="final-combined-observation-variance-rt" class="doc-h3">Final Combined Observation Variance (<em>R_t</em>)<a href="#final-combined-observation-variance-rt" class="header-anchor" aria-label="Link to section">#</a></h3>
+<div class="math-block">$$R_t = V_{\text{ref}} \cdot M_{\text{comp}}^2 \cdot M_{\text{qual}}^2$$</div>
+<p>Sparse logging or unlinked foods rapidly balloon <em>R_t</em>, signaling the filter to discount the current week's observation and lean heavily on the prior estimate.</p>
+<hr class="divider">
+<h2 id="3-the-kalman-filter-update-equations" class="doc-h2">3. The Kalman Filter Update Equations<a href="#3-the-kalman-filter-update-equations" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>At each logging cycle, the filter runs a prediction step followed by a correction step.</p>
+<h3 id="step-31-the-prediction-step" class="doc-h3">Step 3.1: The Prediction Step<a href="#step-31-the-prediction-step" class="header-anchor" aria-label="Link to section">#</a></h3>
+<p>The system state moves forward in time. The prior mean remains constant, but the state uncertainty (<em>P</em>) increases due to metabolic drift (process noise <em>Q</em> = 40² = 1600 kcal²/week):</p>
+<div class="math-block">$$X_{t|t-1} = X_{t-1}$$</div>
+<div class="math-block">$$P_{t|t-1} = \min\left(P_{t-1} + Q \cdot \Delta t, \, V_{\text{cap}}\right)$$</div>
+<p>Where Δ<em>t</em> is the number of weeks elapsed since the last observation, and the variance cap <em>V_cap</em> = 10 · <em>V_ref</em> bounds maximum uncertainty.</p>
+<h3 id="step-32-the-correction-step-kalman-gain" class="doc-h3">Step 3.2: The Correction Step (Kalman Gain)<a href="#step-32-the-correction-step-kalman-gain" class="header-anchor" aria-label="Link to section">#</a></h3>
+<p>If an observation is available (i.e., both intake and weight were logged), the filter computes the <strong>Kalman Gain</strong> (<em>K_t</em>) and updates the posterior state:</p>
+<div class="math-block">$$K_t = \frac{P_{t|t-1}}{P_{t|t-1} + R_t}$$</div>
+<div class="math-block">$$X_t = X_{t|t-1} + K_t \cdot \left(M_t - X_{t|t-1}\right)$$</div>
+<div class="math-block">$$P_t = (1 - K_t) \cdot P_{t|t-1}$$</div>
+<h3 id="step-33-clamping-bounds" class="doc-h3">Step 3.3: Clamping & Bounds<a href="#step-33-clamping-bounds" class="header-anchor" aria-label="Link to section">#</a></h3>
+<p>To maintain physiological safety, the posterior mean <em>X_t</em> is strictly clamped:</p>
+<div class="math-block">$$\text{clamp}(X_t, \, 1200\text{ kcal}, \, 5000\text{ kcal})$$</div>
+<p>Posterior variance is kept above a floor of 1.0:</p>
+<div class="math-block">$$\text{clamp}(P_t, \, 1.0, \, V_{\text{cap}})$$</div>
+<h3 id="step-34-handover-to-the-macronutrient-distribution" class="doc-h3">Step 3.4: Handover to the Macronutrient Distribution<a href="#step-34-handover-to-the-macronutrient-distribution" class="header-anchor" aria-label="Link to section">#</a></h3>
+<p>The clamped posterior is the end of this document's scope. The calorie target derived from it — the posterior plus the goal's rate adjustment — is handed to a separate, deterministic stage that resolves it into protein, carbohydrate, and fat. That stage observes no logging history and holds no state; it is a pure function of the calorie target, body weight, and goal. See the <a href="../macro-distribution/index.html"><strong>Macronutrient Distribution Documentation</strong></a>.</p>
+<hr class="divider">
+<h2 id="4-history-based-adaptive-calibration" class="doc-h2">4. History-Based Adaptive Calibration<a href="#4-history-based-adaptive-calibration" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>To accommodate individual logging variance, Train Libre maintains a rolling 8-week history of posterior means, observation residuals, and implied maintenance logs to perform on-the-fly calibration of <em>Q</em> and <em>R</em>.</p>
+<h3 id="observation-noise-calibration-rscale" class="doc-h3">Observation Noise Calibration (<em>R_scale</em>)<a href="#observation-noise-calibration-rscale" class="header-anchor" aria-label="Link to section">#</a></h3>
+<p>If the user's historical residuals differ wildly from predictions, the base observation noise is scaled dynamically:</p>
+<div class="math-block">$$\text{residualVariance} = \frac{1}{N-1} \sum_{i=1}^N (e_i - \bar{e})^2$$</div>
+<div class="math-block">$$R_{\text{scale}} = \text{clamp}\left(\frac{\text{residualVariance}}{R_{\text{base}}}, \, 0.50, \, 2.60\right)$$</div>
+<h3 id="latent-process-noise-calibration-qscale" class="doc-h3">Latent Process Noise Calibration (<em>Q_scale</em>)<a href="#latent-process-noise-calibration-qscale" class="header-anchor" aria-label="Link to section">#</a></h3>
+<p>If the user's actual calculated TDEE is shifting rapidly week-to-week, the process noise <em>Q</em> (metabolic drift) is increased to allow faster filter tracking:</p>
+<div class="math-block">$$\text{weeklyRmsDelta} = \sqrt{\frac{1}{N-1} \sum_{i=2}^N (X_i - X_{i-1})^2}$$</div>
+<div class="math-block">$$Q_{\text{scale}} = \text{clamp}\left(\left(\frac{\text{weeklyRmsDelta}}{40}\right)^2, \, 0.60, \, 1.90\right)$$</div>
+<hr class="divider">
+<h2 id="5-residual-variance-bias-stabilization-heuristic" class="doc-h2">5. Residual Variance Bias & Stabilization Heuristic<a href="#5-residual-variance-bias-stabilization-heuristic" class="header-anchor" aria-label="Link to section">#</a></h2>
+<h3 id="residual-bias-indicators" class="doc-h3">Residual Bias Indicators<a href="#residual-bias-indicators" class="header-anchor" aria-label="Link to section">#</a></h3>
+<p>The estimator summarizes the 8-week history of residuals (<em>e_t</em> = <em>M_t</em> - <em>X_{t|t-1}</em>) to check for persistent systematic bias. These indicators are data-quality suggestions rather than metabolic or clinical diagnostics: <em>   <strong>Potential Logging Variance Indicator (data-quality hint, not a metabolic diagnosis)</strong>: If the mean residual is > +40 kcal/day, the user's logs may be under-reporting portion sizes or overestimating calorie burns. </em>   <strong>Potential Logging Variance Indicator (data-quality hint, not a metabolic diagnosis)</strong>: If the mean residual is < -40 kcal/day, the user's logs may be over-reporting portion sizes.</p>
+<h3 id="confidence-ratings" class="doc-h3">Confidence Ratings<a href="#confidence-ratings" class="header-anchor" aria-label="Link to section">#</a></h3>
+<p>Recommendations are given an interpretative confidence rating based on logging history and uncertainty: 1.  <strong>High Confidence</strong>: Logging history ≥ 21 days, effective sample size ≥ 10, and posterior variance ≤ 25% of the variance cap. 2.  <strong>Medium Confidence</strong>: Logging history ≥ 14 days, effective sample size ≥ 7, and posterior variance ≤ 45% of the variance cap. 3.  <strong>Low Confidence</strong>: Logging history ≥ 7 days, effective sample size ≥ 4, and posterior variance ≤ 70% of the variance cap. 4.  <strong>Not Enough Data</strong>: Assigned if the above conditions are unmet, or during the initial stabilization bootstrap phase.</p>
+<hr class="divider">
+<h2 id="6-non-clinical-heuristic-disclaimer" class="doc-h2">6. Non-Clinical Heuristic Disclaimer<a href="#6-non-clinical-heuristic-disclaimer" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>The Bayesian TDEE Estimator is a sports-science-inspired, non-clinical fitness heuristic based on thermodynamic energy balance concepts and recursive filtering. While highly stable for healthy individuals tracking physical performance, it is not a diagnostic tool and does not apply to clinical conditions (such as eating disorders, endocrine disorders, or metabolic pathologies). The underlying mathematical model is based on healthy population averages and may not apply to individuals with metabolic or medical concerns. Users should consult a qualified healthcare professional before making changes to their caloric intake.</p>
+<hr class="divider">
+<h2 id="7-scientific-references-sources" class="doc-h2"><a id="evidence" class="anchor-target"></a>7. Scientific References & Sources<a href="#7-scientific-references-sources" class="header-anchor" aria-label="Link to section">#</a></h2>
+<ul class="doc-list">
+<li>Hall, K. D. (2008) — <em>The dynamics of human body weight change</em>. DOI: <a href="https://doi.org/10.1371/journal.pcbi.1000045" target="_blank" rel="noopener noreferrer">10.1371/journal.pcbi.1000045 <span class="ext-icon">↗</span></a></li>
+<li>Hall et al. (2011) — <em>Quantification of the effect of energy imbalance on bodyweight</em>. DOI: <a href="https://doi.org/10.1016/S0140-6736(11" target="_blank" rel="noopener noreferrer">10.1016/S0140-6736(11)60812-X <span class="ext-icon">↗</span></a>60812-X)</li>
+<li>Mifflin et al. (1990) — <em>A new predictive equation for resting energy expenditure in healthy individuals</em>. DOI: <a href="https://doi.org/10.1016/0002-8223(05" target="_blank" rel="noopener noreferrer">10.1016/0002-8223(05)80008-1 <span class="ext-icon">↗</span></a>80008-1)</li>
+<li>Müller & Bosy-Westphal (2013) — <em>Adaptive thermogenesis with weight loss in humans</em>. DOI: <a href="https://doi.org/10.1111/j.1467-789X.2012.01045.x" target="_blank" rel="noopener noreferrer">10.1111/j.1467-789X.2012.01045.x <span class="ext-icon">↗</span></a></li>
+<li>Frankenfield et al. (2005) — <em>Comparison of predictive equations for resting metabolic rate</em>. DOI: <a href="https://doi.org/10.1249/MSS.0b013e3181aff2ab" target="_blank" rel="noopener noreferrer">10.1249/MSS.0b013e3181aff2ab <span class="ext-icon">↗</span></a></li>
+<li>Hall & Chow (2011) — <em>Estimating changes in free-living energy intake and its confidence interval</em>. DOI: <a href="https://doi.org/10.3945/ajcn.111.014399" target="_blank" rel="noopener noreferrer">10.3945/ajcn.111.014399 <span class="ext-icon">↗</span></a></li>
+<li>Westerterp (2004) — <em>Diet induced thermogenesis</em>. DOI: <a href="https://doi.org/10.1007/s00421-003-0988-y" target="_blank" rel="noopener noreferrer">10.1007/s00421-003-0988-y <span class="ext-icon">↗</span></a></li>
+</ul>
+        </article>
+
+        <nav class="docs-pager" aria-label="Documentation navigation">
+<a href="../muscle-recovery-model/index.html" class="pager-card pager-prev"><span class="pager-label">← Previous</span><span class="pager-title">Muscle Recovery &amp; Readiness</span></a>
+<a href="../macro-distribution/index.html" class="pager-card pager-next"><span class="pager-label">Next →</span><span class="pager-title">Macronutrient Distribution</span></a>
+</nav>
+      </main>
+
+      <!-- Right Table of Contents -->
+      <aside class="docs-toc" aria-label="Table of contents"><div class="toc-sticky-box"><div class="toc-heading">On this page</div><ul class="toc-list">
+<li class="toc-item toc-item-l2"><a href="#1-the-observation-model">1. The Observation Model</a></li>
+<li class="toc-item toc-item-l3"><a href="#dynamic-kcalkg-scaling-ramp-model">Dynamic Kcal/Kg Scaling (Ramp Model)</a></li>
+<li class="toc-item toc-item-l2"><a href="#2-mathematical-modeling-of-uncertainty-observation-variance">2. Mathematical Modeling of Uncertainty (Observation Variance)</a></li>
+<li class="toc-item toc-item-l3"><a href="#step-21-reference-variance-vref">Step 2.1: Reference Variance (Vref)</a></li>
+<li class="toc-item toc-item-l3"><a href="#step-22-completeness-penalty-multiplier-mcomp">Step 2.2: Completeness Penalty Multiplier (Mcomp)</a></li>
+<li class="toc-item toc-item-l3"><a href="#step-23-data-quality-multipliers-mqual">Step 2.3: Data Quality Multipliers (Mqual)</a></li>
+<li class="toc-item toc-item-l3"><a href="#final-combined-observation-variance-rt">Final Combined Observation Variance (Rt)</a></li>
+<li class="toc-item toc-item-l2"><a href="#3-the-kalman-filter-update-equations">3. The Kalman Filter Update Equations</a></li>
+<li class="toc-item toc-item-l3"><a href="#step-31-the-prediction-step">Step 3.1: The Prediction Step</a></li>
+<li class="toc-item toc-item-l3"><a href="#step-32-the-correction-step-kalman-gain">Step 3.2: The Correction Step (Kalman Gain)</a></li>
+<li class="toc-item toc-item-l3"><a href="#step-33-clamping-bounds">Step 3.3: Clamping &amp; Bounds</a></li>
+<li class="toc-item toc-item-l3"><a href="#step-34-handover-to-the-macronutrient-distribution">Step 3.4: Handover to the Macronutrient Distribution</a></li>
+<li class="toc-item toc-item-l2"><a href="#4-history-based-adaptive-calibration">4. History-Based Adaptive Calibration</a></li>
+<li class="toc-item toc-item-l3"><a href="#observation-noise-calibration-rscale">Observation Noise Calibration (Rscale)</a></li>
+<li class="toc-item toc-item-l3"><a href="#latent-process-noise-calibration-qscale">Latent Process Noise Calibration (Qscale)</a></li>
+<li class="toc-item toc-item-l2"><a href="#5-residual-variance-bias-stabilization-heuristic">5. Residual Variance Bias &amp; Stabilization Heuristic</a></li>
+<li class="toc-item toc-item-l3"><a href="#residual-bias-indicators">Residual Bias Indicators</a></li>
+<li class="toc-item toc-item-l3"><a href="#confidence-ratings">Confidence Ratings</a></li>
+<li class="toc-item toc-item-l2"><a href="#6-non-clinical-heuristic-disclaimer">6. Non-Clinical Heuristic Disclaimer</a></li>
+<li class="toc-item toc-item-l2"><a href="#7-scientific-references-sources">7. Scientific References &amp; Sources</a></li>
+</ul></div></aside>
+    </div>
+
+    <!-- Footer (100% harmonized with main website footer) -->
+    <footer class="site-footer">
+      <div>
+        <a class="brand" href="../../../index.html" aria-label="Train Libre home">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 270.933 270.933" role="img">
+              <path fill="#ddff00"
+                d="M47.621 39.688c-4.385 0-7.939 3.554-7.939 7.939v116.172c0 37.238 30.188 67.472 67.426 67.459l13.482-.006c.15.003.3.005.451.005h89.722c11.367 0 20.518-9.154 20.518-20.525s-9.151-20.525-20.518-20.525h-42.739a7.937 7.937 0 0 1-7.937-7.937v-25.174a7.937 7.937 0 0 1 7.937-7.937l41.159-.001c12.244 0 22.101-9.154 22.1-20.525-.001-11.371-9.859-20.525-22.103-20.525l-41.156.001a7.937 7.937 0 0 1-7.937-7.937V47.627c0-4.385-3.555-7.939-7.939-7.939z" />
+            </svg>
+          </span>
+          <span>Train Libre</span>
+        </a>
+        <p class="fine-print">Fitness, nutrition, recovery, and pulse features are non-clinical heuristics for healthy individuals tracking performance, not medical advice. They do not apply to medical conditions (such as eating or sleep disorders).</p>
+      </div>
+      <div class="footer-links">
+        <a href="../../index.html">Documentation</a>
+        <a href="../../../privacy.html">Privacy Policy</a>
+        <a href="../../../terms.html">Terms of Service</a>
+        <a href="../../../impressum.html">Imprint</a>
+        <a href="../../../support.html">Support</a>
+        <a href="https://github.com/rfivesix/train-libre" data-link="github" target="_blank" rel="noreferrer">GitHub</a>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Documentation Interactions Script -->
+  <script>
+    // Theme toggle interaction
+    const themeBtn = document.getElementById("theme-toggle");
+    if (themeBtn) {
+      themeBtn.addEventListener("click", () => {
+        const current = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
+        document.documentElement.setAttribute("data-theme", current);
+        localStorage.setItem("theme", current);
+        if (typeof mermaid !== "undefined") {
+          const mNodes = document.querySelectorAll(".mermaid");
+          if (mNodes.length > 0) {
+            mNodes.forEach(node => {
+              if (node.hasAttribute("data-mermaid")) {
+                node.removeAttribute("data-processed");
+                node.innerHTML = node.getAttribute("data-mermaid");
+              }
+            });
+            mermaid.initialize({
+              startOnLoad: false,
+              theme: current === "light" ? "default" : "dark"
+            });
+            mermaid.run();
+          }
+        }
+      });
+    }
+
+    // Mobile sidebar toggle
+    const sidebarToggle = document.getElementById("sidebar-toggle");
+    const sidebar = document.getElementById("docs-sidebar");
+    if (sidebarToggle && sidebar) {
+      sidebarToggle.addEventListener("click", () => {
+        const expanded = sidebar.classList.toggle("open");
+        sidebarToggle.setAttribute("aria-expanded", expanded);
+      });
+
+      document.addEventListener("click", (e) => {
+        if (sidebar.classList.contains("open") && !sidebar.contains(e.target) && !sidebarToggle.contains(e.target)) {
+          sidebar.classList.remove("open");
+          sidebarToggle.setAttribute("aria-expanded", "false");
+        }
+      });
+    }
+
+    // Sidebar filter/search
+    const filterInput = document.getElementById("sidebar-filter");
+    if (filterInput) {
+      filterInput.addEventListener("input", (e) => {
+        const val = e.target.value.toLowerCase().trim();
+        document.querySelectorAll(".sidebar-nav-list li").forEach(li => {
+          const text = li.textContent.toLowerCase();
+          li.style.display = text.includes(val) ? "" : "none";
+        });
+        document.querySelectorAll(".sidebar-group").forEach(group => {
+          const hasVisible = Array.from(group.querySelectorAll("li")).some(li => li.style.display !== "none");
+          group.style.display = hasVisible ? "" : "none";
+        });
+      });
+    }
+
+    // Scroll-spy for Table of Contents
+    const tocItems = document.querySelectorAll(".toc-list a");
+    if (tocItems.length > 0) {
+      const headingElements = Array.from(tocItems).map(a => {
+        const id = a.getAttribute("href").substring(1);
+        return document.getElementById(id);
+      }).filter(Boolean);
+
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const id = entry.target.getAttribute("id");
+            tocItems.forEach(a => {
+              if (a.getAttribute("href") === "#" + id) {
+                a.classList.add("active");
+              } else {
+                a.classList.remove("active");
+              }
+            });
+          }
+        });
+      }, { rootMargin: "0px 0px -70% 0px", threshold: 0.1 });
+
+      headingElements.forEach(h => observer.observe(h));
+    }
+  </script>
+</body>
+</html>

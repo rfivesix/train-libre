@@ -5,6 +5,8 @@ on:
     branches: [main]
     paths:
       - 'docs/**'
+      - 'documentation/**'
+      - 'tool/build_docs.py'
       - '.github/workflows/deploy-docs.yml'
   workflow_dispatch:
 
@@ -23,6 +25,14 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Generate docs from markdown
+        run: python3 tool/build_docs.py
 
       - name: Deploy docs to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4

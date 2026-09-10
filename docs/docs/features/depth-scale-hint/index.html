@@ -1,0 +1,353 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="LiDAR metric scale facts and false-colour depth hints for portion guidance.">
+  <title>Depth Scale Hint (LiDAR) | Train Libre Documentation</title>
+  <link rel="canonical" href="https://trainlibre.com/docs/features/depth-scale-hint/">
+
+  <link rel="icon" type="image/png" sizes="32x32" href="../../../favicon.png?v=2">
+  <link rel="apple-touch-icon" sizes="180x180" href="../../../assets/apple-touch-icon.png">
+
+  <!-- Open Graph -->
+  <meta property="og:site_name" content="Train Libre Documentation">
+  <meta property="og:title" content="Depth Scale Hint (LiDAR) | Train Libre">
+  <meta property="og:description" content="LiDAR metric scale facts and false-colour depth hints for portion guidance.">
+  <meta property="og:url" content="https://trainlibre.com/docs/features/depth-scale-hint/">
+  <meta property="og:type" content="article">
+  <meta property="og:image" content="https://trainlibre.com/assets/og-image.png">
+
+  <!-- KaTeX CSS (CDN primary with local fallback) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+  <link rel="stylesheet" href="../../../katex.min.css">
+
+  <!-- Train Libre Design System & Dedicated Docs Styles -->
+  <link rel="stylesheet" href="../../../style.css">
+  <link rel="stylesheet" href="../../docs.css">
+
+  <!-- KaTeX Auto-render Script -->
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" defer onload="renderMathInElement(document.body, {
+    delimiters: [
+      {left: '$$', right: '$$', display: true},
+      {left: '$', right: '$', display: false}
+    ],
+    throwOnError: false
+  });"></script>
+
+  <!-- Mermaid.js for Architecture Diagrams -->
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      if (typeof mermaid !== "undefined") {
+        const isDark = document.documentElement.getAttribute("data-theme") !== "light";
+        mermaid.initialize({
+          startOnLoad: true,
+          theme: isDark ? "dark" : "default",
+          themeVariables: isDark ? {
+            darkMode: true,
+            background: "#151815",
+            primaryColor: "#1b1f1b",
+            primaryTextColor: "#f4f6f4",
+            primaryBorderColor: "rgba(221, 255, 0, 0.4)",
+            lineColor: "#ddff00",
+            secondaryColor: "#151815",
+            tertiaryColor: "#0e100e"
+          } : {}
+        });
+      }
+    });
+  </script>
+
+  <!-- Prevent Theme Flash -->
+  <script>
+    (function () {
+      const theme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: light)').matches ? "light" : "dark");
+      document.documentElement.setAttribute("data-theme", theme);
+    })();
+  </script>
+</head>
+<body class="docs-body">
+  <div class="page">
+    <!-- Header -->
+    <header class="docs-header">
+      <nav class="docs-nav" aria-label="Documentation navigation">
+        <a class="brand" href="../../../index.html" aria-label="Train Libre Home">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 270.933 270.933" role="img">
+              <path fill="#ddff00"
+                d="M47.621 39.688c-4.385 0-7.939 3.554-7.939 7.939v116.172c0 37.238 30.188 67.472 67.426 67.459l13.482-.006c.15.003.3.005.451.005h89.722c11.367 0 20.518-9.154 20.518-20.525s-9.151-20.525-20.518-20.525h-42.739a7.937 7.937 0 0 1-7.937-7.937v-25.174a7.937 7.937 0 0 1 7.937-7.937l41.159-.001c12.244 0 22.101-9.154 22.1-20.525-.001-11.371-9.859-20.525-22.103-20.525l-41.156.001a7.937 7.937 0 0 1-7.937-7.937V47.627c0-4.385-3.555-7.939-7.939-7.939z" />
+            </svg>
+          </span>
+          <span class="brand-name">Train Libre</span>
+          <span class="docs-badge">Docs</span>
+        </a>
+
+        <div class="nav-links">
+          <a href="../../../index.html" class="nav-link">Website</a>
+          <a class="nav-priority" href="https://github.com/rfivesix/train-libre" target="_blank" rel="noreferrer">GitHub</a>
+        </div>
+
+        <div class="nav-controls">
+          <button id="theme-toggle" class="control-btn" aria-label="Toggle Theme">
+            <svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="5"></circle>
+              <line x1="12" y1="1" x2="12" y2="3"></line>
+              <line x1="12" y1="21" x2="12" y2="23"></line>
+              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+              <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+              <line x1="1" y1="12" x2="3" y2="12"></line>
+              <line x1="21" y1="12" x2="23" y2="12"></line>
+              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+              <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+            </svg>
+            <svg class="moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+            </svg>
+          </button>
+          
+          <button id="sidebar-toggle" class="control-btn mobile-menu-btn" aria-label="Open sidebar menu" aria-expanded="false">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="3" y1="12" x2="21" y2="12"></line>
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+      </nav>
+    </header>
+
+    <!-- Docs Main Layout -->
+    <div class="docs-container">
+      <!-- Left Sidebar -->
+      <aside id="docs-sidebar" class="docs-sidebar" aria-label="Documentation sidebar">
+        <div class="sidebar-header-search">
+          <input type="text" id="sidebar-filter" placeholder="Filter topics..." aria-label="Filter topics in documentation">
+        </div>
+        <div class="sidebar-scroll-area">
+          <div class="sidebar-group"><div class="sidebar-group-title">Overview</div><ul class="sidebar-nav-list">
+<li><a href="../../index.html" class="sidebar-link">Documentation Suite Overview</a></li>
+</ul></div>
+<div class="sidebar-group"><div class="sidebar-group-title">Features &amp; Heuristics</div><ul class="sidebar-nav-list">
+<li><a href="../overview/index.html" class="sidebar-link">Capabilities &amp; Privacy</a></li>
+<li><a href="../sleep-scoring-engine/index.html" class="sidebar-link">Sleep Health Score (SHS v3.5)</a></li>
+<li><a href="../muscle-recovery-model/index.html" class="sidebar-link">Muscle Recovery &amp; Readiness</a></li>
+<li><a href="../bayesian-tdee-estimator/index.html" class="sidebar-link">Bayesian TDEE Estimator</a></li>
+<li><a href="../macro-distribution/index.html" class="sidebar-link">Macronutrient Distribution</a></li>
+<li><a href="../workout-progression-engine/index.html" class="sidebar-link">Workout Progression Engine</a></li>
+<li><a href="../intelligent-workouts/index.html" class="sidebar-link">Estimated 1-Rep Max (e1RM)</a></li>
+<li><a href="../meal-capture-pipeline/index.html" class="sidebar-link">Meal Capture Pipeline</a></li>
+<li><a href="../byok-ai-validation/index.html" class="sidebar-link">BYOK AI Meal Validation</a></li>
+<li><a href="index.html" class="sidebar-link active" aria-current="page">Depth Scale Hint (LiDAR)</a></li>
+<li><a href="../health-sync-export/index.html" class="sidebar-link">Native Health Sync &amp; Export</a></li>
+<li><a href="../live-activity-workout/index.html" class="sidebar-link">Live Activity &amp; Workout Session</a></li>
+</ul></div>
+<div class="sidebar-group"><div class="sidebar-group-title">Developer &amp; Architecture</div><ul class="sidebar-nav-list">
+<li><a href="../../developer/overview/index.html" class="sidebar-link">Developer Overview &amp; Tests</a></li>
+<li><a href="../../developer/architecture/index.html" class="sidebar-link">System Architecture &amp; Wiring</a></li>
+<li><a href="../../developer/data-flow-and-state/index.html" class="sidebar-link">Data Flow &amp; State Lifecycle</a></li>
+<li><a href="../../developer/localization-architecture/index.html" class="sidebar-link">Localization Architecture</a></li>
+<li><a href="../../developer/ios-home-screen-widgets/index.html" class="sidebar-link">Home Screen Widgets</a></li>
+</ul></div>
+        </div>
+      </aside>
+
+      <!-- Center Article Content -->
+      <main class="docs-main" id="main-content">
+        <div class="docs-breadcrumb" aria-label="Breadcrumb">
+          <a href="../../../index.html">Home</a> <span class="bc-sep">/</span> <a href="../../index.html">Docs</a> <span class="bc-sep">/</span> <span>Features &amp; Heuristics</span>
+        </div>
+
+        <article class="docs-article">
+          <h1 class="doc-title">Depth Scale Hint (LiDAR)</h1>
+<p>The single largest error in estimating a portion from a photograph is not recognising the food — it is not knowing how big anything is. A plate assumed 1.5× too wide is a portion roughly 3× too large. On devices with a LiDAR sensor, Train Libre removes that unknown by measuring the scene and handing the model a few measured numbers.</p>
+<p>This is a <strong>hint to the AI</strong>, not a local computation of what is on the plate.</p>
+<hr class="divider">
+<h2 id="1-explicit-non-goals" class="doc-h2">1. Explicit Non-Goals<a href="#1-explicit-non-goals" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>The following are deliberately <em>not</em> built, because geometry sees height differences, not ingredients — rice and chicken side by side at the same height are one shape, and a heap of rice with a dent in it is two:</p>
+<ul class="doc-list">
+<li>No local segmentation or mask generation (neither geometric nor via CoreML/Vision).</li>
+<li>No plate or plane detection, no clustering of points into ingredients.</li>
+<li>No local per-ingredient volume calculation.</li>
+<li>No point cloud in the prompt — it does not work and costs a great many tokens.</li>
+<li>No bundled model, no training, no new network or cloud dependency beyond the existing BYOK provider.</li>
+</ul>
+<p>What <em>is</em> done: reading the depth buffer, elementary arithmetic on it (median, percentiles, camera intrinsics), and rendering an image.</p>
+<hr class="divider">
+<h2 id="2-capture" class="doc-h2">2. Capture<a href="#2-capture" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>Depth is delivered by the same native <code>AVCaptureSession</code> that provides the preview, the barcode stream and the photo (see <a href="../meal-capture-pipeline/index.html">Meal Capture Pipeline</a>). <code>DepthScanCapability</code> reports two independent things: whether the unified session can run at all (false on Android and in tests) and whether a depth map accompanies the photo. Everything below is skipped when depth is unavailable, and no user on a device without LiDAR is told that anything is missing.</p>
+<p>The raw depth buffer never leaves the device.</p>
+<hr class="divider">
+<h2 id="3-the-scale-facts" class="doc-h2">3. The Scale Facts<a href="#3-the-scale-facts" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p><code>DepthScaleCalculator</code> reduces a Float32 depth buffer (metres) plus camera intrinsics to five numbers:</p>
+<div class="table-responsive"><table class="doc-table"><thead><tr><th>Fact</th><th>Definition</th></tr></thead><tbody><tr><td><code>subjectDistanceCm</code></td><td>median distance to the subject, measured over the centre third of the frame</td></tr><tr><td><code>frameWidthCm</code>, <code>frameHeightCm</code></td><td>how much of the world the frame covers at that distance</td></tr><tr><td><code>nearCm</code>, <code>farCm</code></td><td>5th and 95th percentile distance — nearest and farthest surface</td></tr><tr><td><code>validSampleRatio</code></td><td>share of usable, non-null depth samples across the frame</td></tr></tbody></table></div>
+<h3 id="quality-gate" class="doc-h3">Quality Gate<a href="#quality-gate" class="header-anchor" aria-label="Link to section">#</a></h3>
+<p>A measurement is only used when it is trustworthy. It is discarded when: <em>   the subject distance falls outside <strong>15–120 cm</strong>, </em>   fewer than <strong>50 %</strong> of samples are valid, or *   the sensor reports <code>relative</code> rather than <code>absolute</code> accuracy.</p>
+<p>Glass, liquids and reflective surfaces are the typical cause of a rejected measurement. A rejected measurement means the analysis proceeds exactly as it did before LiDAR existed — never with a wrong scale.</p>
+<hr class="divider">
+<h2 id="4-what-the-model-receives" class="doc-h2">4. What the Model Receives<a href="#4-what-the-model-receives" class="header-anchor" aria-label="Link to section">#</a></h2>
+<h3 id="the-numbers" class="doc-h3">The Numbers<a href="#the-numbers" class="header-anchor" aria-label="Link to section">#</a></h3>
+<p>When the facts pass the gate, a block is prepended to the system prompt stating the distance, the physical frame size and the near/far range, marked explicitly as <em>measured, not estimated</em>, with the instruction to derive plate and portion dimensions from the frame size instead of from assumed cutlery sizes. The same summary is repeated in the repair prompt, so a correction pass cannot silently discard the measurement.</p>
+<h3 id="the-depth-image" class="doc-h3">The Depth Image<a href="#the-depth-image" class="header-anchor" aria-label="Link to section">#</a></h3>
+<p>Optionally a second image is attached: a false-colour depth map rendered by <code>DepthMapRenderer</code>.</p>
+<ul class="doc-list">
+<li><strong>Plain distance from the camera</strong>, not height above a reference plane. An earlier version derived a plane from the frame; point the camera at a room and that "reference" lands on a wall metres away, and the picture stops meaning anything.</li>
+<li><strong>The ramp is fitted to what the frame actually contains</strong> — the 2nd to 98th percentile of valid readings, with a minimum span of 4 cm and a 0–80 cm fallback when there is too little to measure. A fixed 0–80 cm scale would paint a plate sitting between 24 and 31 cm in a single colour.</li>
+<li><strong>40 bands.</strong> Eight was far too coarse: across an 8 cm plate each band covered a full centimetre, and rice heaped in the middle looked the same as rice spread flat. Forty puts the steps at about two millimetres, finer than the sensor's own noise — deliberately, because at that density the image stops reading as bands and becomes a smooth relief, and the dithering along an edge is a fairer picture of an uncertain measurement than a hard line.</li>
+<li><strong>Viridis</strong>, sampled from anchor points so the band count can change without hand-picking colours. Missing readings are neutral gray.</li>
+</ul>
+<p>A generated legend tells the model what the bands mean in centimetres, together with the instruction that the photo identifies the food while the depth map gives its shape.</p>
+<p>The depth image is what distinguishes a heaped portion from a flat one: both cover the same area in a photo.</p>
+<hr class="divider">
+<h2 id="5-user-control" class="doc-h2">5. User Control<a href="#5-user-control" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>Both halves are separately switchable, because they cost different things and their value is a genuinely open question:</p>
+<div class="table-responsive"><table class="doc-table"><thead><tr><th>Setting key</th><th>Default</th><th>Effect</th></tr></thead><tbody><tr><td><code>depth_scan_scale_hint_enabled</code></td><td>on</td><td>the measured numbers in the prompt</td></tr><tr><td><code>depth_scan_depth_image_enabled</code></td><td>on</td><td>the false-colour depth map as a second image</td></tr></tbody></table></div>
+<p>The numbers are cheap and certain; the picture costs a second image per analysis. Switching them lets the same meal be photographed twice, with and without, which is the only honest way to judge the effect on real food.</p>
+<hr class="divider">
+<h2 id="6-storage-and-telemetry" class="doc-h2">6. Storage and Telemetry<a href="#6-storage-and-telemetry" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>The scale facts of a capture are persisted in <code>MealEntries.captureMeta</code> alongside the provider and model used, so a logged meal records how it was measured. Two telemetry events (<code>lidar_depth_captured</code>, <code>lidar_depth_visualized</code>) record only <em>that</em> a measurement or visualisation happened — see <a href="https://github.com/rfivesix/train-libre/blob/main/TELEMETRY.md" target="_blank" rel="noopener noreferrer">TELEMETRY.md <span class="ext-icon">↗</span></a>.</p>
+<hr class="divider">
+<h2 id="7-privacy" class="doc-h2">7. Privacy<a href="#7-privacy" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>The photo already goes to the BYOK provider the user configured. What is added is a handful of centimetre figures and, optionally, an abstract depth image — both carrying less personal information than the photograph itself. The raw depth buffer never leaves the device, and without a configured AI provider nothing is transmitted at all.</p>
+<hr class="divider">
+<h2 id="8-accuracy-expectations" class="doc-h2">8. Accuracy Expectations<a href="#8-accuracy-expectations" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>Published laboratory baselines for image-plus-depth food mass estimation sit around 15–25 % error; pure image estimation typically lands at 40–50 %. A scale hint therefore aims to make a rough estimate less rough — it does not make it a measurement. The clinical disclaimer in <a href="../byok-ai-validation/index.html">BYOK AI Meal Capture & Validation</a> applies unchanged.</p>
+        </article>
+
+        <nav class="docs-pager" aria-label="Documentation navigation">
+<a href="../byok-ai-validation/index.html" class="pager-card pager-prev"><span class="pager-label">← Previous</span><span class="pager-title">BYOK AI Meal Validation</span></a>
+<a href="../health-sync-export/index.html" class="pager-card pager-next"><span class="pager-label">Next →</span><span class="pager-title">Native Health Sync &amp; Export</span></a>
+</nav>
+      </main>
+
+      <!-- Right Table of Contents -->
+      <aside class="docs-toc" aria-label="Table of contents"><div class="toc-sticky-box"><div class="toc-heading">On this page</div><ul class="toc-list">
+<li class="toc-item toc-item-l2"><a href="#1-explicit-non-goals">1. Explicit Non-Goals</a></li>
+<li class="toc-item toc-item-l2"><a href="#2-capture">2. Capture</a></li>
+<li class="toc-item toc-item-l2"><a href="#3-the-scale-facts">3. The Scale Facts</a></li>
+<li class="toc-item toc-item-l3"><a href="#quality-gate">Quality Gate</a></li>
+<li class="toc-item toc-item-l2"><a href="#4-what-the-model-receives">4. What the Model Receives</a></li>
+<li class="toc-item toc-item-l3"><a href="#the-numbers">The Numbers</a></li>
+<li class="toc-item toc-item-l3"><a href="#the-depth-image">The Depth Image</a></li>
+<li class="toc-item toc-item-l2"><a href="#5-user-control">5. User Control</a></li>
+<li class="toc-item toc-item-l2"><a href="#6-storage-and-telemetry">6. Storage and Telemetry</a></li>
+<li class="toc-item toc-item-l2"><a href="#7-privacy">7. Privacy</a></li>
+<li class="toc-item toc-item-l2"><a href="#8-accuracy-expectations">8. Accuracy Expectations</a></li>
+</ul></div></aside>
+    </div>
+
+    <!-- Footer (100% harmonized with main website footer) -->
+    <footer class="site-footer">
+      <div>
+        <a class="brand" href="../../../index.html" aria-label="Train Libre home">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 270.933 270.933" role="img">
+              <path fill="#ddff00"
+                d="M47.621 39.688c-4.385 0-7.939 3.554-7.939 7.939v116.172c0 37.238 30.188 67.472 67.426 67.459l13.482-.006c.15.003.3.005.451.005h89.722c11.367 0 20.518-9.154 20.518-20.525s-9.151-20.525-20.518-20.525h-42.739a7.937 7.937 0 0 1-7.937-7.937v-25.174a7.937 7.937 0 0 1 7.937-7.937l41.159-.001c12.244 0 22.101-9.154 22.1-20.525-.001-11.371-9.859-20.525-22.103-20.525l-41.156.001a7.937 7.937 0 0 1-7.937-7.937V47.627c0-4.385-3.555-7.939-7.939-7.939z" />
+            </svg>
+          </span>
+          <span>Train Libre</span>
+        </a>
+        <p class="fine-print">Fitness, nutrition, recovery, and pulse features are non-clinical heuristics for healthy individuals tracking performance, not medical advice. They do not apply to medical conditions (such as eating or sleep disorders).</p>
+      </div>
+      <div class="footer-links">
+        <a href="../../index.html">Documentation</a>
+        <a href="../../../privacy.html">Privacy Policy</a>
+        <a href="../../../terms.html">Terms of Service</a>
+        <a href="../../../impressum.html">Imprint</a>
+        <a href="../../../support.html">Support</a>
+        <a href="https://github.com/rfivesix/train-libre" data-link="github" target="_blank" rel="noreferrer">GitHub</a>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Documentation Interactions Script -->
+  <script>
+    // Theme toggle interaction
+    const themeBtn = document.getElementById("theme-toggle");
+    if (themeBtn) {
+      themeBtn.addEventListener("click", () => {
+        const current = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
+        document.documentElement.setAttribute("data-theme", current);
+        localStorage.setItem("theme", current);
+        if (typeof mermaid !== "undefined") {
+          const mNodes = document.querySelectorAll(".mermaid");
+          if (mNodes.length > 0) {
+            mNodes.forEach(node => {
+              if (node.hasAttribute("data-mermaid")) {
+                node.removeAttribute("data-processed");
+                node.innerHTML = node.getAttribute("data-mermaid");
+              }
+            });
+            mermaid.initialize({
+              startOnLoad: false,
+              theme: current === "light" ? "default" : "dark"
+            });
+            mermaid.run();
+          }
+        }
+      });
+    }
+
+    // Mobile sidebar toggle
+    const sidebarToggle = document.getElementById("sidebar-toggle");
+    const sidebar = document.getElementById("docs-sidebar");
+    if (sidebarToggle && sidebar) {
+      sidebarToggle.addEventListener("click", () => {
+        const expanded = sidebar.classList.toggle("open");
+        sidebarToggle.setAttribute("aria-expanded", expanded);
+      });
+
+      document.addEventListener("click", (e) => {
+        if (sidebar.classList.contains("open") && !sidebar.contains(e.target) && !sidebarToggle.contains(e.target)) {
+          sidebar.classList.remove("open");
+          sidebarToggle.setAttribute("aria-expanded", "false");
+        }
+      });
+    }
+
+    // Sidebar filter/search
+    const filterInput = document.getElementById("sidebar-filter");
+    if (filterInput) {
+      filterInput.addEventListener("input", (e) => {
+        const val = e.target.value.toLowerCase().trim();
+        document.querySelectorAll(".sidebar-nav-list li").forEach(li => {
+          const text = li.textContent.toLowerCase();
+          li.style.display = text.includes(val) ? "" : "none";
+        });
+        document.querySelectorAll(".sidebar-group").forEach(group => {
+          const hasVisible = Array.from(group.querySelectorAll("li")).some(li => li.style.display !== "none");
+          group.style.display = hasVisible ? "" : "none";
+        });
+      });
+    }
+
+    // Scroll-spy for Table of Contents
+    const tocItems = document.querySelectorAll(".toc-list a");
+    if (tocItems.length > 0) {
+      const headingElements = Array.from(tocItems).map(a => {
+        const id = a.getAttribute("href").substring(1);
+        return document.getElementById(id);
+      }).filter(Boolean);
+
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const id = entry.target.getAttribute("id");
+            tocItems.forEach(a => {
+              if (a.getAttribute("href") === "#" + id) {
+                a.classList.add("active");
+              } else {
+                a.classList.remove("active");
+              }
+            });
+          }
+        });
+      }, { rootMargin: "0px 0px -70% 0px", threshold: 0.1 });
+
+      headingElements.forEach(h => observer.observe(h));
+    }
+  </script>
+</body>
+</html>

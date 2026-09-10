@@ -1,0 +1,434 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Local BYOK LLM integration, fuzzy matching, and 3-pass self-repair verification.">
+  <title>BYOK AI Meal Capture &amp; Deterministic Validation Engine | Train Libre Documentation</title>
+  <link rel="canonical" href="https://trainlibre.com/docs/features/byok-ai-validation/">
+
+  <link rel="icon" type="image/png" sizes="32x32" href="../../../favicon.png?v=2">
+  <link rel="apple-touch-icon" sizes="180x180" href="../../../assets/apple-touch-icon.png">
+
+  <!-- Open Graph -->
+  <meta property="og:site_name" content="Train Libre Documentation">
+  <meta property="og:title" content="BYOK AI Meal Capture &amp; Deterministic Validation Engine | Train Libre">
+  <meta property="og:description" content="Local BYOK LLM integration, fuzzy matching, and 3-pass self-repair verification.">
+  <meta property="og:url" content="https://trainlibre.com/docs/features/byok-ai-validation/">
+  <meta property="og:type" content="article">
+  <meta property="og:image" content="https://trainlibre.com/assets/og-image.png">
+
+  <!-- KaTeX CSS (CDN primary with local fallback) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+  <link rel="stylesheet" href="../../../katex.min.css">
+
+  <!-- Train Libre Design System & Dedicated Docs Styles -->
+  <link rel="stylesheet" href="../../../style.css">
+  <link rel="stylesheet" href="../../docs.css">
+
+  <!-- KaTeX Auto-render Script -->
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" defer onload="renderMathInElement(document.body, {
+    delimiters: [
+      {left: '$$', right: '$$', display: true},
+      {left: '$', right: '$', display: false}
+    ],
+    throwOnError: false
+  });"></script>
+
+  <!-- Mermaid.js for Architecture Diagrams -->
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      if (typeof mermaid !== "undefined") {
+        const isDark = document.documentElement.getAttribute("data-theme") !== "light";
+        mermaid.initialize({
+          startOnLoad: true,
+          theme: isDark ? "dark" : "default",
+          themeVariables: isDark ? {
+            darkMode: true,
+            background: "#151815",
+            primaryColor: "#1b1f1b",
+            primaryTextColor: "#f4f6f4",
+            primaryBorderColor: "rgba(221, 255, 0, 0.4)",
+            lineColor: "#ddff00",
+            secondaryColor: "#151815",
+            tertiaryColor: "#0e100e"
+          } : {}
+        });
+      }
+    });
+  </script>
+
+  <!-- Prevent Theme Flash -->
+  <script>
+    (function () {
+      const theme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: light)').matches ? "light" : "dark");
+      document.documentElement.setAttribute("data-theme", theme);
+    })();
+  </script>
+</head>
+<body class="docs-body">
+  <div class="page">
+    <!-- Header -->
+    <header class="docs-header">
+      <nav class="docs-nav" aria-label="Documentation navigation">
+        <a class="brand" href="../../../index.html" aria-label="Train Libre Home">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 270.933 270.933" role="img">
+              <path fill="#ddff00"
+                d="M47.621 39.688c-4.385 0-7.939 3.554-7.939 7.939v116.172c0 37.238 30.188 67.472 67.426 67.459l13.482-.006c.15.003.3.005.451.005h89.722c11.367 0 20.518-9.154 20.518-20.525s-9.151-20.525-20.518-20.525h-42.739a7.937 7.937 0 0 1-7.937-7.937v-25.174a7.937 7.937 0 0 1 7.937-7.937l41.159-.001c12.244 0 22.101-9.154 22.1-20.525-.001-11.371-9.859-20.525-22.103-20.525l-41.156.001a7.937 7.937 0 0 1-7.937-7.937V47.627c0-4.385-3.555-7.939-7.939-7.939z" />
+            </svg>
+          </span>
+          <span class="brand-name">Train Libre</span>
+          <span class="docs-badge">Docs</span>
+        </a>
+
+        <div class="nav-links">
+          <a href="../../../index.html" class="nav-link">Website</a>
+          <a class="nav-priority" href="https://github.com/rfivesix/train-libre" target="_blank" rel="noreferrer">GitHub</a>
+        </div>
+
+        <div class="nav-controls">
+          <button id="theme-toggle" class="control-btn" aria-label="Toggle Theme">
+            <svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="5"></circle>
+              <line x1="12" y1="1" x2="12" y2="3"></line>
+              <line x1="12" y1="21" x2="12" y2="23"></line>
+              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+              <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+              <line x1="1" y1="12" x2="3" y2="12"></line>
+              <line x1="21" y1="12" x2="23" y2="12"></line>
+              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+              <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+            </svg>
+            <svg class="moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+            </svg>
+          </button>
+          
+          <button id="sidebar-toggle" class="control-btn mobile-menu-btn" aria-label="Open sidebar menu" aria-expanded="false">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="3" y1="12" x2="21" y2="12"></line>
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+      </nav>
+    </header>
+
+    <!-- Docs Main Layout -->
+    <div class="docs-container">
+      <!-- Left Sidebar -->
+      <aside id="docs-sidebar" class="docs-sidebar" aria-label="Documentation sidebar">
+        <div class="sidebar-header-search">
+          <input type="text" id="sidebar-filter" placeholder="Filter topics..." aria-label="Filter topics in documentation">
+        </div>
+        <div class="sidebar-scroll-area">
+          <div class="sidebar-group"><div class="sidebar-group-title">Overview</div><ul class="sidebar-nav-list">
+<li><a href="../../index.html" class="sidebar-link">Documentation Suite Overview</a></li>
+</ul></div>
+<div class="sidebar-group"><div class="sidebar-group-title">Features &amp; Heuristics</div><ul class="sidebar-nav-list">
+<li><a href="../overview/index.html" class="sidebar-link">Capabilities &amp; Privacy</a></li>
+<li><a href="../sleep-scoring-engine/index.html" class="sidebar-link">Sleep Health Score (SHS v3.5)</a></li>
+<li><a href="../muscle-recovery-model/index.html" class="sidebar-link">Muscle Recovery &amp; Readiness</a></li>
+<li><a href="../bayesian-tdee-estimator/index.html" class="sidebar-link">Bayesian TDEE Estimator</a></li>
+<li><a href="../macro-distribution/index.html" class="sidebar-link">Macronutrient Distribution</a></li>
+<li><a href="../workout-progression-engine/index.html" class="sidebar-link">Workout Progression Engine</a></li>
+<li><a href="../intelligent-workouts/index.html" class="sidebar-link">Estimated 1-Rep Max (e1RM)</a></li>
+<li><a href="../meal-capture-pipeline/index.html" class="sidebar-link">Meal Capture Pipeline</a></li>
+<li><a href="index.html" class="sidebar-link active" aria-current="page">BYOK AI Meal Validation</a></li>
+<li><a href="../depth-scale-hint/index.html" class="sidebar-link">Depth Scale Hint (LiDAR)</a></li>
+<li><a href="../health-sync-export/index.html" class="sidebar-link">Native Health Sync &amp; Export</a></li>
+<li><a href="../live-activity-workout/index.html" class="sidebar-link">Live Activity &amp; Workout Session</a></li>
+</ul></div>
+<div class="sidebar-group"><div class="sidebar-group-title">Developer &amp; Architecture</div><ul class="sidebar-nav-list">
+<li><a href="../../developer/overview/index.html" class="sidebar-link">Developer Overview &amp; Tests</a></li>
+<li><a href="../../developer/architecture/index.html" class="sidebar-link">System Architecture &amp; Wiring</a></li>
+<li><a href="../../developer/data-flow-and-state/index.html" class="sidebar-link">Data Flow &amp; State Lifecycle</a></li>
+<li><a href="../../developer/localization-architecture/index.html" class="sidebar-link">Localization Architecture</a></li>
+<li><a href="../../developer/ios-home-screen-widgets/index.html" class="sidebar-link">Home Screen Widgets</a></li>
+</ul></div>
+        </div>
+      </aside>
+
+      <!-- Center Article Content -->
+      <main class="docs-main" id="main-content">
+        <div class="docs-breadcrumb" aria-label="Breadcrumb">
+          <a href="../../../index.html">Home</a> <span class="bc-sep">/</span> <a href="../../index.html">Docs</a> <span class="bc-sep">/</span> <span>Features &amp; Heuristics</span>
+        </div>
+
+        <article class="docs-article">
+          <h1 class="doc-title">BYOK AI Meal Capture & Deterministic Validation Engine</h1>
+<p>Train Libre translates food descriptions, dictated speech or meal photos into precise, loggable items. The language model is the only part that leaves the device, and only to the provider the user configured themselves: the feature operates on a <strong>Bring Your Own Key (BYOK)</strong> model, and every model output is verified on-device by a deterministic validation pipeline before it can be saved. All nutritional numbers come from the local database, never from the model.</p>
+<p>This document describes the analysis and validation engine. The surrounding capture flow — the unified camera, barcode detection, dictation, meal grouping and photo storage — is described in <a href="../meal-capture-pipeline/index.html">Meal Capture Pipeline</a>.</p>
+<hr class="divider">
+<h2 id="1-bring-your-own-key-byok-security-architecture" class="doc-h2">1. Bring Your Own Key (BYOK) Security Architecture<a href="#1-bring-your-own-key-byok-security-architecture" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>Train Libre does not deploy intermediate servers to handle AI requests. All calls are dispatched directly from the user's mobile device to the selected AI provider.</p>
+<h3 id="encrypted-key-storage" class="doc-h3">Encrypted Key Storage<a href="#encrypted-key-storage" class="header-anchor" aria-label="Link to section">#</a></h3>
+<p>User-configured API keys are stored directly inside native system secure vaults (iOS Keychain and Android Keystore) via <code>FlutterSecureStorage</code>, using device-only accessibility so they are never carried into an iCloud Keychain backup. The key for each provider is stored under <code>ai_api_key_&lt;provider&gt;</code>:</p>
+<ul class="doc-list">
+<li><code>ai_api_key_openai</code>: Secure key for OpenAI.</li>
+<li><code>ai_api_key_gemini</code>: Secure key for Google Gemini.</li>
+<li><code>ai_api_key_anthropic</code>: Secure key for Anthropic Claude.</li>
+<li><code>ai_api_key_mistral</code>: Secure key for Mistral.</li>
+<li><code>ai_api_key_xai</code>: Secure key for xAI Grok.</li>
+<li><code>ai_api_key_ollama</code>: Optional — Ollama normally needs no key.</li>
+<li><code>ai_api_key_custom</code>: Optional key for any OpenAI-compatible endpoint.</li>
+</ul>
+<p>The active provider (<code>ai_selected_provider</code>) and the selected model (<code>ai_selected_model_&lt;provider&gt;</code>) are saved in the same secure store, isolating all credentials from external developers.</p>
+<h3 id="self-hosted-and-custom-endpoints" class="doc-h3">Self-Hosted and Custom Endpoints<a href="#self-hosted-and-custom-endpoints" class="header-anchor" aria-label="Link to section">#</a></h3>
+<p>Two of the seven providers do not imply a third party at all:</p>
+<ul class="doc-list">
+<li><strong>Ollama</strong>: points at a local or home-network Ollama server; the meal photo never leaves the user's own machines.</li>
+<li><strong>Custom OpenAI Compatible</strong>: any endpoint the user enters under <code>ai_custom_base_url</code>, with an optional key and model name.</li>
+</ul>
+<p>Both support vision, so the full photo pipeline works without any commercial provider involved. The request timeout is user-configurable (<code>ai_timeout_seconds</code>).</p>
+<hr class="divider">
+<h2 id="2-system-prompt-llm-boundaries" class="doc-h2">2. System Prompt & LLM Boundaries<a href="#2-system-prompt-llm-boundaries" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>To maintain data integrity and prevent AI hallucination of nutritional values, the system prompt strictly restricts the AI's responsibilities:</p>
+<ol class="doc-list">
+<li><strong>Macro/Calorie Ban</strong>: The AI is strictly prohibited from estimating, guessing, or returning any nutritional numbers (calories, protein, carbs, fat). Nutritional calculations are resolved deterministically by Train Libre using its local database.</li>
+<li><strong>Decomposition Rule</strong>: The AI must break down every composite meal into its basic, atomic components. For example, "Spaghetti Bolognese" must be decomposed into: <em>spaghetti, beef mince, tomatoes, onions, garlic, olive oil, parmesan cheese</em>.</li>
+<li><strong>Short Base Names</strong>: Ingredient names must be returned in their simplest, generic forms (e.g., "Apfel" instead of "Grüner Apfel", "Ei" instead of "Großes gekochtes Ei") to maximize local database match rates.</li>
+<li><strong>Consolidation</strong>: Duplicate items must be consolidated before returning (e.g., if the user describes eating 3 eggs, the AI must return a single entry for "Egg" with a combined weight).</li>
+<li><strong>Holistic Context Anchor (<code>mealContext</code>)</strong>: The system requests and structures a <code>mealContext</code> block, establishing a culinary baseline for validation:</li>
+<li><code>dishType</code>: Name of the identified dish.</li>
+<li><code>expectedKcalRange</code>: Estimated total calorie boundaries <code>[low, high]</code>.</li>
+<li><code>expectedMacroProfile</code>: Expected macronutrient percentage ranges (<code>proteinPercent</code>, <code>carbsPercent</code>, <code>fatPercent</code>), each as <code>[low, high]</code>.</li>
+<li><code>cookingMethod</code>: Overall preparation method of the dish.</li>
+<li><code>contextNotes</code>: Free-text culinary details.</li>
+<li><strong>Dual-Language Catalog Search</strong>: The app language and the installed food catalog's language are not always the same (a German UI on a French Open Food Facts catalog). When they differ, each item may additionally carry a <code>catalogSearchTerm</code> in the catalog language, so the local matcher can search the catalog in its own language while the user still reads the item in theirs.</li>
+<li><strong>Output Constancy</strong>: The output format is restricted to a structured JSON object with exactly two fields:</li>
+<li><code>mealContext</code>: The holistic culinary anchors described above.</li>
+<li><code>items</code>: A list of food components, each with <code>name</code>, optional <code>catalogSearchTerm</code>, <code>estimatedGrams</code>, <code>confidence</code> and <code>stateHint</code>.</li>
+</ol>
+<h3 id="optional-prompt-blocks" class="doc-h3">Optional Prompt Blocks<a href="#optional-prompt-blocks" class="header-anchor" aria-label="Link to section">#</a></h3>
+<p>Two blocks are prepended to the system prompt only when the corresponding data exists:</p>
+<ul class="doc-list">
+<li><strong>LiDAR scale measurement</strong>: measured distance and visible frame size in centimetres, marked explicitly as measured rather than estimated. See <a href="../depth-scale-hint/index.html">Depth Scale Hint</a>.</li>
+<li><strong>Depth map legend</strong>: an explanation of the false-colour depth image attached as the last picture, again only on capable devices with the setting enabled.</li>
+</ul>
+<h3 id="voice-transcript-tidy-pass" class="doc-h3">Voice Transcript Tidy Pass<a href="#voice-transcript-tidy-pass" class="header-anchor" aria-label="Link to section">#</a></h3>
+<p>Dictated meal descriptions run through a separate, small prompt (<code>buildVoiceTidyPrompt</code>) before analysis. It only restructures what was said — one bullet per food, qualifiers preserved as notes, obvious speech-recognition mishearings of food names corrected — and is explicitly forbidden from inventing foods, amounts or preparation. Nutrition is never touched here; the tidied text then enters the normal text analysis path. See <a href="../meal-capture-pipeline/index.html">Meal Capture Pipeline</a>.</p>
+<hr class="divider">
+<h2 id="3-deterministic-validation-engine" class="doc-h2">3. Deterministic Validation Engine<a href="#3-deterministic-validation-engine" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>Once the AI returns its JSON list, the raw suggestions are processed by the local <code>AiMealValidationEngine</code>. This engine applies a series of rigid checks:</p>
+<h3 id="merge-heuristics-normalization" class="doc-h3">Merge Heuristics & Normalization<a href="#merge-heuristics-normalization" class="header-anchor" aria-label="Link to section">#</a></h3>
+<p>Before evaluating database matches, the engine normalizes all text tokens and checks for duplicates. If duplicate ingredients are detected, they are automatically merged: the weights are summed, and the maximum confidence is retained.</p>
+<h3 id="database-matching-quality-classification" class="doc-h3">Database Matching & Quality Classification<a href="#database-matching-quality-classification" class="header-anchor" aria-label="Link to section">#</a></h3>
+<p>The engine matches ingredients against the local SQLite database using fuzzy string matching and barcodes: <em>   <strong>Exact Match (Score ≥ 0.95)</strong>: Perfect textual alignment or matching barcode. </em>   <strong>Strong Match (Score ≥ 0.78)</strong>: Excellent alignment (e.g., token overlaps). <em>   <strong>Partial Match (Score ≥ 0.55)</strong>: Moderate overlap (triggers an information warning). </em>   <strong>Weak Match (Score < 0.55)</strong>: Lower overlap or questionable semantic alignment. *   <strong>Unmatched</strong>: Results in an <code>unmatched_item</code> error for that item. Triggered only when no database candidates are found at all; it is not bound to a specific score threshold.</p>
+<p>Match quality itself is also reported: <code>weak_db_match</code> and <code>partial_db_match</code> raise a warning and an info issue respectively, and <code>ambiguous_db_match</code> warns when the two best candidates are within 0.08 of each other, i.e. when the engine cannot meaningfully tell them apart.</p>
+<h3 id="item-level-validation-rules" class="doc-h3">Item-Level Validation Rules<a href="#item-level-validation-rules" class="header-anchor" aria-label="Link to section">#</a></h3>
+<p>The engine raises warnings or errors if a suggested portion violates physiological plausibility: <em>   <strong>Grams ≤ 0</strong>: Triggers a critical <code>invalid_quantity</code> error. </em>   <strong>Grams > 3000g</strong>: Triggers a critical <code>extreme_quantity</code> error. <em>   <strong>Grams ≤ 5g</strong>: Triggers a <code>tiny_quantity</code> warning. </em>   <strong>Grams > 1200g</strong>: Triggers a <code>large_quantity</code> warning. *   <strong>Confidence < 0.5</strong>: Triggers a <code>low_ai_confidence</code> warning.</p>
+<p>Once an item is matched, the matched database entry is checked as well: <em>   <code>zero_nutrition_match</code>: the matched entry carries no usable nutrition data. </em>   <code>implausible_food_density</code>: the matched entry exceeds 950 kcal per 100 g. <em>   <code>macro_energy_mismatch</code>: the entry's macros imply more than 180 kcal above its stated calories. </em>   <code>implausible_item_nutrition</code>: this portion alone exceeds 2500 kcal, 250 g protein, 500 g carbs or 220 g fat.</p>
+<h3 id="meal-level-validation-rules" class="doc-h3">Meal-Level Validation Rules<a href="#meal-level-validation-rules" class="header-anchor" aria-label="Link to section">#</a></h3>
+<p>Beyond the individual items, the assembled meal is checked as a whole: <em>   <code>empty_meal</code> (error): the AI returned no items. </em>   <code>all_items_unmatched</code> (error): not a single item could be matched to the local database. <em>   <code>partial_unmatched_items</code> (warning): some items remain unmatched and cannot be saved until resolved. </em>   <code>zero_total_kcal</code> (warning): matched items sum to 0 kcal. <em>   <code>capture_total_kcal_extreme</code> (error) / <code>capture_total_kcal_high</code> (warning): above 5000 / 3500 kcal for a single captured meal. </em>   <code>macro_total_extreme</code> (error) / <code>macro_total_high</code> (warning): totals above 350/700/300 g or 250/550/220 g of protein/carbs/fat.</p>
+<hr class="divider">
+<h2 id="4-multi-dimensional-cross-check-validation-rules" class="doc-h2">4. Multi-Dimensional Cross-Check Validation Rules<a href="#4-multi-dimensional-cross-check-validation-rules" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>To prevent erroneous database matching and portion estimation, Train Libre implements four strict multi-dimensional cross-check rules connecting matched database entities with the holistic culinary anchors:</p>
+<h3 id="c1-expected-kcal-range-check" class="doc-h3">C1: expected Kcal Range Check<a href="#c1-expected-kcal-range-check" class="header-anchor" aria-label="Link to section">#</a></h3>
+<p>Verifies whether the sum of the calories of all matched database ingredients is within the expected total meal calorie range from the culinary anchor: <em>   <strong>Warning (<code>anchor_kcal_deviation</code>)</strong>: Raised if the total matched calories deviate by > 25% from the nearest boundary of the expected range. </em>   <strong>Error (<code>anchor_kcal_extreme</code>)</strong>: Raised if the total matched calories deviate by > 50% from the nearest boundary, escalating to a hard validation failure.</p>
+<h3 id="c2-expected-macro-profile-check" class="doc-h3">C2: Expected Macro Profile Check<a href="#c2-expected-macro-profile-check" class="header-anchor" aria-label="Link to section">#</a></h3>
+<p>Compares the matched database macronutrient distribution against the expected macro percentage profile in the culinary anchor: *   <strong>Warning (<code>anchor_macro_profile_deviation</code>)</strong>: Raised if the actual protein, carbs, or fat percentage deviates by > 15% from the anchor profile.</p>
+<h3 id="c3-cooking-state-mismatch-check" class="doc-h3">C3: Cooking State Mismatch Check<a href="#c3-cooking-state-mismatch-check" class="header-anchor" aria-label="Link to section">#</a></h3>
+<p>Detects preparation state discrepancies between the AI's parsed item and the matched database entry (e.g., a "raw chicken breast" matched to "cooked chicken breast"). Both sides are read for raw and cooked markers in German and English (<code>raw</code>/<code>roh</code>, <code>cooked</code>/<code>gekocht</code>, <code>fried</code>/<code>gebraten</code>, <code>baked</code>/<code>gebacken</code>, <code>boiled</code>, <code>zubereitet</code>): <em>   <strong>Warning (<code>state_mismatch</code>)</strong>: Raised when the state hint and the matched entry do not clearly agree. </em>   <strong>Error (same <code>state_mismatch</code> code, escalated severity)</strong>: Raised when the two directly contradict each other — a raw hint on a cooked database entry or vice versa — because that is the case where the caloric density is systematically wrong.</p>
+<h3 id="c4-portion-density-anomaly-detection" class="doc-h3">C4: Portion Density Anomaly Detection<a href="#c4-portion-density-anomaly-detection" class="header-anchor" aria-label="Link to section">#</a></h3>
+<p>Checks for implausible ingredient quantities based on standard portion densities: *   <strong>Warning (<code>implausible_portion_density</code>)</strong>: Raised if the matched database product density deviates significantly, meaning the effective portion density is > 2x or < 0.5x of the default database product density, indicating potential gram calculation anomalies.</p>
+<hr class="divider">
+<h2 id="5-the-top-n-fuzzy-alternatives-candidate-selection-system" class="doc-h2">5. The "Top-N Fuzzy Alternatives" Candidate Selection System<a href="#5-the-top-n-fuzzy-alternatives-candidate-selection-system" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>When a validation issue or match anomaly occurs, Train Libre does not let the LLM blindly guess replacements. Instead, the local Dart engine uses a <strong>Candidate Selection</strong> model:</p>
+<ol class="doc-list">
+<li><strong>Local Database Querying</strong>: The <code>ProductLocalDataSource</code> queries the SQLite database via <code>fuzzyMatchCandidatesForRepair</code>, pulling the top 5 to 10 closest fuzzy matches using Jaro-Winkler string similarity.</li>
+<li><strong>State-Aware Re-ranking</strong>: Candidates are re-ranked based on preparation state matches (e.g., prioritising cooked or grilled items if a cooking hint is present).</li>
+<li><strong>Prompt Menu Injection</strong>: These database candidates (including their exact database names, calories, and macronutrient distributions) are structured as a selection menu and injected directly into the repair prompt payload under a <code>CANDIDATES</code> block.</li>
+<li><strong>Semantic Selection</strong>: The LLM acts as a semantic selector rather than an estimator, choosing the mathematically and culinary-wise best-fitting database candidate.</li>
+</ol>
+<hr class="divider">
+<h2 id="6-the-3-pass-self-repair-loop" class="doc-h2">6. The 3-Pass Self-Repair Loop<a href="#6-the-3-pass-self-repair-loop" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>To recover from invalid JSON formats, incorrect ingredient portions, or missing database matches, Train Libre runs a closed feedback loop managed by <code>AiRepairOrchestrator</code>:</p>
+<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">text</span><button class="copy-btn" onclick="navigator.clipboard.writeText(this.closest('.code-block-wrapper').querySelector('code').innerText); this.textContent='Copied!'; setTimeout(()=>this.textContent='Copy', 1500);">Copy</button></div><pre><code>               [LLM Candidate Output]
+                         |
+                         v
+             [AiMealValidationEngine]
+                         |
+           Is Score &gt;= 70 &amp; No Errors?
+             /                       \
+          (Yes)                      (No)
+           /                           \
+[Pass Validation]            [Format Feedback Log]
+                                        |
+                            Has Loop Run &lt; 3 Times?
+                              /                 \
+                           (Yes)                (No)
+                            /                     \
+                   [Re-request LLM]       [Fail Validation]
+               (Injects Top-N Candidates &amp;
+                Holistic mealContext Anchor)</code></pre></div>
+<h3 id="1-scoring-formula" class="doc-h3">1. Scoring Formula<a href="#1-scoring-formula" class="header-anchor" aria-label="Link to section">#</a></h3>
+<p>The engine computes an overall quality score starting at 100, subtracting points based on issue severity: <em>   <strong>Info Issue</strong>: -2 points. </em>   <strong>Warning Issue</strong>: -8 points. <em>   <strong>Error Issue</strong>: -24 points. </em>   <strong>Missed macro target fit</strong>: -12 points, applied once when an explicit macro target was given (recipe target-fit mode) and the result does not meet it.</p>
+<p>The result is clamped to the 0–100 range.</p>
+<h3 id="2-validation-threshold" class="doc-h3">2. Validation Threshold<a href="#2-validation-threshold" class="header-anchor" aria-label="Link to section">#</a></h3>
+<p>A candidate only passes validation if: <em>   The overall score is <strong>≥ 70</strong>. </em>   There are <strong>zero critical errors</strong> (e.g., no <code>all_items_unmatched</code>, no <code>anchor_kcal_extreme</code>, no <code>invalid_quantity</code>).</p>
+<h3 id="3-repair-feedback-generation" class="doc-h3">3. Repair Feedback Generation<a href="#3-repair-feedback-generation" class="header-anchor" aria-label="Link to section">#</a></h3>
+<p>If the candidate fails, the engine generates a structured feedback block detailing the precise index of the offending items and the error codes (e.g., <code>state_mismatch</code>, <code>anchor_kcal_extreme</code>). The orchestrator submits this log alongside the list of verified <strong>Top-N Database Candidates</strong> and the <strong><code>mealContext</code></strong> back to the LLM. The loop runs for a maximum of <strong>3 passes</strong> before returning a final failed validation status.</p>
+<hr class="divider">
+<h2 id="7-clinical-disclaimer" class="doc-h2">7. Clinical Disclaimer<a href="#7-clinical-disclaimer" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>The AI Meal Capture system is an estimation tool designed to simplify dietary logging. Portion sizes and ingredient weights are heuristic estimates and may deviate from actual values. Users should manually verify all structural components and weights before finalizing their logs, especially when managing medical conditions like diabetes.</p>
+<hr class="divider">
+<h2 id="8-related-documentation" class="doc-h2">8. Related Documentation<a href="#8-related-documentation" class="header-anchor" aria-label="Link to section">#</a></h2>
+<ul class="doc-list">
+<li><a href="../meal-capture-pipeline/index.html">Meal Capture Pipeline</a> — the capture paths that feed this engine and how a meal is stored afterwards.</li>
+<li><a href="../depth-scale-hint/index.html">Depth Scale Hint</a> — the LiDAR measurement and depth image that extend the prompt on capable devices.</li>
+</ul>
+        </article>
+
+        <nav class="docs-pager" aria-label="Documentation navigation">
+<a href="../meal-capture-pipeline/index.html" class="pager-card pager-prev"><span class="pager-label">← Previous</span><span class="pager-title">Meal Capture Pipeline</span></a>
+<a href="../depth-scale-hint/index.html" class="pager-card pager-next"><span class="pager-label">Next →</span><span class="pager-title">Depth Scale Hint (LiDAR)</span></a>
+</nav>
+      </main>
+
+      <!-- Right Table of Contents -->
+      <aside class="docs-toc" aria-label="Table of contents"><div class="toc-sticky-box"><div class="toc-heading">On this page</div><ul class="toc-list">
+<li class="toc-item toc-item-l2"><a href="#1-bring-your-own-key-byok-security-architecture">1. Bring Your Own Key (BYOK) Security Architecture</a></li>
+<li class="toc-item toc-item-l3"><a href="#encrypted-key-storage">Encrypted Key Storage</a></li>
+<li class="toc-item toc-item-l3"><a href="#self-hosted-and-custom-endpoints">Self-Hosted and Custom Endpoints</a></li>
+<li class="toc-item toc-item-l2"><a href="#2-system-prompt-llm-boundaries">2. System Prompt &amp; LLM Boundaries</a></li>
+<li class="toc-item toc-item-l3"><a href="#optional-prompt-blocks">Optional Prompt Blocks</a></li>
+<li class="toc-item toc-item-l3"><a href="#voice-transcript-tidy-pass">Voice Transcript Tidy Pass</a></li>
+<li class="toc-item toc-item-l2"><a href="#3-deterministic-validation-engine">3. Deterministic Validation Engine</a></li>
+<li class="toc-item toc-item-l3"><a href="#merge-heuristics-normalization">Merge Heuristics &amp; Normalization</a></li>
+<li class="toc-item toc-item-l3"><a href="#database-matching-quality-classification">Database Matching &amp; Quality Classification</a></li>
+<li class="toc-item toc-item-l3"><a href="#item-level-validation-rules">Item-Level Validation Rules</a></li>
+<li class="toc-item toc-item-l3"><a href="#meal-level-validation-rules">Meal-Level Validation Rules</a></li>
+<li class="toc-item toc-item-l2"><a href="#4-multi-dimensional-cross-check-validation-rules">4. Multi-Dimensional Cross-Check Validation Rules</a></li>
+<li class="toc-item toc-item-l3"><a href="#c1-expected-kcal-range-check">C1: expected Kcal Range Check</a></li>
+<li class="toc-item toc-item-l3"><a href="#c2-expected-macro-profile-check">C2: Expected Macro Profile Check</a></li>
+<li class="toc-item toc-item-l3"><a href="#c3-cooking-state-mismatch-check">C3: Cooking State Mismatch Check</a></li>
+<li class="toc-item toc-item-l3"><a href="#c4-portion-density-anomaly-detection">C4: Portion Density Anomaly Detection</a></li>
+<li class="toc-item toc-item-l2"><a href="#5-the-top-n-fuzzy-alternatives-candidate-selection-system">5. The &quot;Top-N Fuzzy Alternatives&quot; Candidate Selection System</a></li>
+<li class="toc-item toc-item-l2"><a href="#6-the-3-pass-self-repair-loop">6. The 3-Pass Self-Repair Loop</a></li>
+<li class="toc-item toc-item-l3"><a href="#1-scoring-formula">1. Scoring Formula</a></li>
+<li class="toc-item toc-item-l3"><a href="#2-validation-threshold">2. Validation Threshold</a></li>
+<li class="toc-item toc-item-l3"><a href="#3-repair-feedback-generation">3. Repair Feedback Generation</a></li>
+<li class="toc-item toc-item-l2"><a href="#7-clinical-disclaimer">7. Clinical Disclaimer</a></li>
+<li class="toc-item toc-item-l2"><a href="#8-related-documentation">8. Related Documentation</a></li>
+</ul></div></aside>
+    </div>
+
+    <!-- Footer (100% harmonized with main website footer) -->
+    <footer class="site-footer">
+      <div>
+        <a class="brand" href="../../../index.html" aria-label="Train Libre home">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 270.933 270.933" role="img">
+              <path fill="#ddff00"
+                d="M47.621 39.688c-4.385 0-7.939 3.554-7.939 7.939v116.172c0 37.238 30.188 67.472 67.426 67.459l13.482-.006c.15.003.3.005.451.005h89.722c11.367 0 20.518-9.154 20.518-20.525s-9.151-20.525-20.518-20.525h-42.739a7.937 7.937 0 0 1-7.937-7.937v-25.174a7.937 7.937 0 0 1 7.937-7.937l41.159-.001c12.244 0 22.101-9.154 22.1-20.525-.001-11.371-9.859-20.525-22.103-20.525l-41.156.001a7.937 7.937 0 0 1-7.937-7.937V47.627c0-4.385-3.555-7.939-7.939-7.939z" />
+            </svg>
+          </span>
+          <span>Train Libre</span>
+        </a>
+        <p class="fine-print">Fitness, nutrition, recovery, and pulse features are non-clinical heuristics for healthy individuals tracking performance, not medical advice. They do not apply to medical conditions (such as eating or sleep disorders).</p>
+      </div>
+      <div class="footer-links">
+        <a href="../../index.html">Documentation</a>
+        <a href="../../../privacy.html">Privacy Policy</a>
+        <a href="../../../terms.html">Terms of Service</a>
+        <a href="../../../impressum.html">Imprint</a>
+        <a href="../../../support.html">Support</a>
+        <a href="https://github.com/rfivesix/train-libre" data-link="github" target="_blank" rel="noreferrer">GitHub</a>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Documentation Interactions Script -->
+  <script>
+    // Theme toggle interaction
+    const themeBtn = document.getElementById("theme-toggle");
+    if (themeBtn) {
+      themeBtn.addEventListener("click", () => {
+        const current = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
+        document.documentElement.setAttribute("data-theme", current);
+        localStorage.setItem("theme", current);
+        if (typeof mermaid !== "undefined") {
+          const mNodes = document.querySelectorAll(".mermaid");
+          if (mNodes.length > 0) {
+            mNodes.forEach(node => {
+              if (node.hasAttribute("data-mermaid")) {
+                node.removeAttribute("data-processed");
+                node.innerHTML = node.getAttribute("data-mermaid");
+              }
+            });
+            mermaid.initialize({
+              startOnLoad: false,
+              theme: current === "light" ? "default" : "dark"
+            });
+            mermaid.run();
+          }
+        }
+      });
+    }
+
+    // Mobile sidebar toggle
+    const sidebarToggle = document.getElementById("sidebar-toggle");
+    const sidebar = document.getElementById("docs-sidebar");
+    if (sidebarToggle && sidebar) {
+      sidebarToggle.addEventListener("click", () => {
+        const expanded = sidebar.classList.toggle("open");
+        sidebarToggle.setAttribute("aria-expanded", expanded);
+      });
+
+      document.addEventListener("click", (e) => {
+        if (sidebar.classList.contains("open") && !sidebar.contains(e.target) && !sidebarToggle.contains(e.target)) {
+          sidebar.classList.remove("open");
+          sidebarToggle.setAttribute("aria-expanded", "false");
+        }
+      });
+    }
+
+    // Sidebar filter/search
+    const filterInput = document.getElementById("sidebar-filter");
+    if (filterInput) {
+      filterInput.addEventListener("input", (e) => {
+        const val = e.target.value.toLowerCase().trim();
+        document.querySelectorAll(".sidebar-nav-list li").forEach(li => {
+          const text = li.textContent.toLowerCase();
+          li.style.display = text.includes(val) ? "" : "none";
+        });
+        document.querySelectorAll(".sidebar-group").forEach(group => {
+          const hasVisible = Array.from(group.querySelectorAll("li")).some(li => li.style.display !== "none");
+          group.style.display = hasVisible ? "" : "none";
+        });
+      });
+    }
+
+    // Scroll-spy for Table of Contents
+    const tocItems = document.querySelectorAll(".toc-list a");
+    if (tocItems.length > 0) {
+      const headingElements = Array.from(tocItems).map(a => {
+        const id = a.getAttribute("href").substring(1);
+        return document.getElementById(id);
+      }).filter(Boolean);
+
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const id = entry.target.getAttribute("id");
+            tocItems.forEach(a => {
+              if (a.getAttribute("href") === "#" + id) {
+                a.classList.add("active");
+              } else {
+                a.classList.remove("active");
+              }
+            });
+          }
+        });
+      }, { rootMargin: "0px 0px -70% 0px", threshold: 0.1 });
+
+      headingElements.forEach(h => observer.observe(h));
+    }
+  </script>
+</body>
+</html>
