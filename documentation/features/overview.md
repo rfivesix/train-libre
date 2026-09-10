@@ -1,16 +1,23 @@
 # Feature Transparency & Privacy Architecture
 
-Train Libre leverages advanced computational intelligence to provide users with adaptive nutrition recommendations, intelligent meal capture, and robust health metrics synchronization. Crucially, all calculations and integrations are designed around strict **local-first** and **privacy-first** principles.
+Train Libre leverages advanced computational intelligence to provide users with adaptive nutrition recommendations, intelligent meal capture, workout progression, recovery analytics, and robust health metrics synchronization. Crucially, all calculations and integrations are designed around strict **local-first** and **privacy-first** principles.
 
 ---
 
 ## Architectural Privacy Invariants
 
-To achieve true user privacy, the application enforces the following technical boundaries:
+To achieve true user privacy and data ownership, the application enforces the following technical boundaries:
 
-1.  **Zero Cloud Intermediaries**: The application does not route user metrics through a custom server. There is no central database, no login wall, and no shared telemetry pipeline.
-2.  **On-Device Encryption & Security**: Extremely sensitive data, such as the developer keys required to invoke third-party Large Language Models, are stored using hardware-backed cryptographic keychains (`flutter_secure_storage`).
-3.  **Local Algorithmic Execution**: High-level statistical logic, such as the Kalman Filter that computes TDEE recommendations, is evaluated completely on-device. Your body mass indices, intake habits, and physical metrics are never transmitted for analysis.
+1.  **Zero Mandatory Cloud Intermediaries**: The application does not require a custom backend server to function. There is no central user database, no mandatory registration, and no login wall. All diary, workout, sleep, and metric records reside in local SQLite storage.
+2.  **On-Device Encryption & Security**: Sensitive credentials, specifically the user-provided API keys required for Bring Your Own Key (BYOK) Large Language Models, are stored in hardware-backed system secure vaults (iOS Keychain and Android Keystore) via `FlutterSecureStorage` with device-only accessibility.
+3.  **Local Algorithmic Execution**: High-level statistical and physiological logic — including the Kalman filter for TDEE, macronutrient distributions, the Sleep Health Score engine, muscle recovery timelines, and Brzycki 1RM heuristics — executes entirely on-device. Personal logs, bodyweight measurements, and physical metrics are never transmitted to external servers for analytical evaluation.
+4.  **Strictly Opt-In, Zero-Profiling Usage Telemetry**:
+    *   Disabled by default upon installation.
+    *   No network connection or SDK initialization occurs before explicit consent.
+    *   Consent is requested separately from mandatory terms, with at most one non-intrusive follow-up after 14 days and 5 app launches.
+    *   When enabled, events (sent to PostHog EU) are decoupled from device identity via per-launch ID rotation. Personal profiles are suppressed (`personProfiles: never`, `$process_person_profile: false`), rageclicks/autocapture are disabled, and all metrics are grouped into coarse, anonymous buckets (`TelemetryBuckets`).
+    *   Users can revoke consent or delete all server-side records with one tap in Settings.
+    *   A build compiled with `--dart-define=DISABLE_TELEMETRY=true` selects the no-op telemetry implementation, so telemetry initialization and event dispatch do not run.
 
 ---
 
@@ -27,15 +34,17 @@ The deterministic second stage of the nutrition recommendation. It turns the est
 *   *Learn more in the [**Macronutrient Distribution Documentation**](macro_distribution.md).*
 
 ### 3. BYOK AI Meal Capture & Validation
-An image and text analysis capture engine that translates photo logs or food descriptions into atomic, loggable ingredient components. It operates under a **Bring Your Own Key (BYOK)** security structure, communicating directly with provider end-points (OpenAI, Gemini, Anthropic, Mistral, xAI). It enforces a deterministic validation engine and a 3-pass self-repair validation loop to ensure all suggested weights and names map precisely to local database items before saving.
+An image and text analysis capture engine that translates photo logs or food descriptions into atomic, loggable ingredient components. It operates under a **Bring Your Own Key (BYOK)** security structure, communicating directly with provider endpoints (OpenAI, Gemini, Anthropic, Mistral, xAI, Ollama, or custom OpenAI-compatible servers). It enforces a deterministic validation engine and a 3-pass self-repair validation loop to ensure all suggested weights and names map precisely to local database items before saving.
 *   *Learn more in the [**BYOK AI Captured Meal Validation Documentation**](byok_ai_validation.md).*
 
-### 4. One-Way Health Export
-A local synchronization pipe that bridges local wellness data with native system platforms (Apple HealthKit and Google Health Connect). The export pipelines emphasize absolute idempotency. Using a local SQLite single source of truth (`health_export_records`), the application logs a custom hash of the data payload and date, ensuring that repeated synchronizations never write duplicate segments.
-*   *Learn more in the [**One-Way Native Health Export Documentation**](health_sync_export.md).*
+### 4. Native Health Sync & Export
+A local synchronization pipe bridging local wellness records with native platform health frameworks (Apple HealthKit on iOS and Google Health Connect on Android). The architecture is bidirectional:
+*   **Import**: Ingests passive vitals (step segments, sleep stage intervals, and heart rate samples) into local SQLite tables, using configurable hourly step segment merging policies (`auto_dominant` and `max_per_hour`).
+*   **Export**: Pushes user logs (body measurements, nutrition & hydration totals, and workout sessions) to the platform health store using a hash-based idempotency table (`health_export_records`) and incremental domain checkpoints to guarantee zero duplicate writes.
+*   *Learn more in the [**Native Health Sync & Export Documentation**](health_sync_export.md).*
 
 ### 5. Sleep Health Score Engine (SHS v3.5)
-A clinical-grade sleep analysis engine that evaluates overnight recovery across 5 domains (Sleep Duration, Sleep Continuity, Sleep Stage Depth / Architecture, Circadian Timing, and Sleep Regularity). Shifting from rigid binary limits to a continuous soft-cap multiplier model, the engine dynamically applies penalty factors based on the single worst-performing biological bottleneck (such as severe REM or N3 deep sleep deprivation, insufficient TST, or late circadian mid-sleep delays) to guide users with precise, contextual biological feedback.
+A sleep analysis engine evaluating overnight recovery across 5 domains (Sleep Duration, Sleep Continuity, Sleep Stage Depth / Architecture, Circadian Timing, and Sleep Regularity). Using a continuous soft-cap multiplier model, the engine dynamically applies penalty factors based on the single worst-performing biological bottleneck (such as severe REM or N3 deep sleep deprivation, insufficient TST, or late circadian mid-sleep delays) to guide users with precise, contextual feedback.
 *   *Learn more in the [**Sleep Health Score Engine Documentation**](sleep_scoring_engine.md).*
 
 ### 6. Muscle Recovery Model
@@ -43,9 +52,15 @@ A fitness-oriented piecewise linear decay heuristic designed to estimate readine
 *   *Learn more in the [**Muscle Recovery Model Documentation**](muscle_recovery_model.md).*
 
 ### 7. Estimated 1-Rep Max (1RM) Heuristics
-A physical capacity estimation model that computes estimated maximum strength capabilities from submaximal resistance training loads using the Brzycki formula. It enables users to track strength progression safely without testing true physical failure limits.
+A physical capacity estimation model that computes estimated maximum strength capabilities from submaximal resistance training loads using the Brzycki formula. It accurately handles effective set loads for assisted exercises (subtracting machine assistance from bodyweight) and bodyweight movements (using historical bodyweight on the day the set was performed), capped within the safe $1 \leq r \leq 12$ repetition window.
 *   *Learn more in the [**Estimated 1-Rep Max Documentation**](intelligent_workouts.md).*
 
-### 8. Workout progression
+### 8. Workout Progression
 The workout recommendation uses the most recent first working set to suggest the next first set, then derives later-set targets from the completed first set with a transparent fatigue back-off. The user can edit every generated value directly.
-*   *Learn more in the [**Workout progression documentation**](workout_progression_engine.md).*
+*   *Learn more in the [**Workout Progression Documentation**](workout_progression_engine.md).*
+
+### 9. Live Activity & Cross-Platform Widgets
+Real-time glanceable surfaces mirroring active workouts and daily wellness metrics:
+*   **Workout Live Activity**: iOS Lock Screen and Dynamic Island card displaying live set targets, active rest timers, and exercise navigation without background network polling.
+*   **Home Screen Widgets**: Shared Dart snapshot engine delivering six glanceable widgets (Today Glance, Quick Actions, Steps, Measurements, Muscle Recovery, Last Workout) on both iOS 18+ and Android 12+.
+*   *Learn more in the [**Live Activity Documentation**](live_activity_workout.md) and [**Home Screen Widgets Guide**](../developer/ios_home_screen_widgets.md).*
