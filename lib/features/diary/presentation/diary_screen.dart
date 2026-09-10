@@ -875,7 +875,7 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
       context: context,
       initialDate: viewModel.selectedDate,
       firstDate: DateTime(2020),
-      lastDate: DateTime.now(),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
     );
     if (picked != null) {
       viewModel.pickDate(picked);
@@ -1362,7 +1362,7 @@ class _DiaryAppBarState extends State<DiaryAppBar> {
   Widget build(BuildContext context) {
     if (_notifier == null) {
       return Padding(
-        padding: const EdgeInsets.only(left: DesignConstants.spacingXS),
+        padding: const EdgeInsets.only(left: DesignConstants.spacingS),
         child: _DiaryDateStrip(
           selectedDate: DateTime.now().dateOnly,
           onSelectDay: (date) => widget.diaryKey.currentState?.selectDate(date),
@@ -1375,7 +1375,7 @@ class _DiaryAppBarState extends State<DiaryAppBar> {
       valueListenable: _notifier!,
       builder: (context, selectedDate, child) {
         return Padding(
-          padding: const EdgeInsets.only(left: DesignConstants.spacingXS),
+          padding: const EdgeInsets.only(left: DesignConstants.spacingS),
           child: _DiaryDateStrip(
             selectedDate: selectedDate,
             onSelectDay: (date) =>
@@ -1405,9 +1405,10 @@ class _DiaryDateStrip extends StatefulWidget {
 
 class _DiaryDateStripState extends State<_DiaryDateStrip> {
   static const double _dayItemExtent = 48;
-  static const double _fiveDayStripWidth = _dayItemExtent * 5;
+  static const double _fourDayStripWidth = _dayItemExtent * 4;
   static final DateTime _firstDate = DateTime(2020);
-  int _selectedLeadingItems = 3;
+  double _currentItemExtent = _dayItemExtent;
+  int _rightmostVisibleOffset = 3;
   final ScrollController _scrollController = ScrollController();
 
   @override
@@ -1428,10 +1429,12 @@ class _DiaryDateStripState extends State<_DiaryDateStrip> {
     if (!_scrollController.hasClients) return;
     final today = DateTime.now().dateOnly;
     final selected = widget.selectedDate.dateOnly;
-    final visibleSelected = selected.isAfter(today) ? today : selected;
-    final selectedIndex = visibleSelected.difference(_firstDate).inDays;
+    final daysFromToday = today.difference(selected).inDays;
+    final rightmostDate =
+        !selected.isAfter(today) && daysFromToday <= 3 ? today : selected;
+    final rightmostIndex = rightmostDate.difference(_firstDate).inDays;
     final targetOffset =
-        (selectedIndex - _selectedLeadingItems) * _dayItemExtent;
+        (rightmostIndex - _rightmostVisibleOffset) * _currentItemExtent;
     _scrollController.jumpTo(
       targetOffset.clamp(
         _scrollController.position.minScrollExtent,
@@ -1451,10 +1454,6 @@ class _DiaryDateStripState extends State<_DiaryDateStrip> {
     final locale = Localizations.localeOf(context).toString();
     final colorScheme = Theme.of(context).colorScheme;
     final today = DateTime.now().dateOnly;
-    final dates = List<DateTime>.generate(
-      today.difference(_firstDate).inDays + 1,
-      (index) => _firstDate.add(Duration(days: index)),
-    );
 
     return SizedBox(
       height: kToolbarHeight,
@@ -1471,12 +1470,12 @@ class _DiaryDateStripState extends State<_DiaryDateStrip> {
           Expanded(
             child: LayoutBuilder(
               builder: (context, constraints) {
-                final showsFiveDays =
-                    constraints.maxWidth >= _fiveDayStripWidth;
-                _selectedLeadingItems = showsFiveDays ? 3 : 2;
-                final stripWidth =
-                    showsFiveDays ? _fiveDayStripWidth : constraints.maxWidth;
-                final fadeStart = showsFiveDays ? 0.8 : 0.75;
+                final stripWidth = constraints.maxWidth >= _fourDayStripWidth
+                    ? _fourDayStripWidth
+                    : constraints.maxWidth;
+                final itemExtent = stripWidth / 4;
+                _currentItemExtent = itemExtent;
+                _rightmostVisibleOffset = 3;
 
                 return Align(
                   alignment: Alignment.centerLeft,
@@ -1492,20 +1491,17 @@ class _DiaryDateStripState extends State<_DiaryDateStrip> {
                           Colors.black,
                           Colors.transparent,
                         ],
-                        stops: [0, 0.045, fadeStart, 1],
+                        stops: [0, 0.04, 0.9, 1],
                       ).createShader(bounds),
                       blendMode: BlendMode.dstIn,
                       child: ListView.builder(
                         controller: _scrollController,
                         scrollDirection: Axis.horizontal,
                         physics: const BouncingScrollPhysics(),
-                        itemExtent: _dayItemExtent,
-                        itemCount: dates.length + 1,
+                        itemExtent: itemExtent,
+                        itemCount: null,
                         itemBuilder: (context, index) {
-                          if (index == dates.length) {
-                            return const SizedBox.shrink();
-                          }
-                          final date = dates[index];
+                          final date = _firstDate.add(Duration(days: index));
                           return _DiaryDayButton(
                             date: date,
                             locale: locale,
