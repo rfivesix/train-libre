@@ -22,6 +22,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Neu hinzugefügte Arbeitssätze und geeignete neue Übungen übernehmen den vorherigen Wiederholungsbereich beziehungsweise `8–12` als Standard. Cardio-, Zeit-, Distanz- und sonstige nicht passende Übungen bleiben ohne künstlichen Wiederholungsbereich.
 - **Website & Docs Footer Harmonization:** Removed legacy feature links from footers across all site screens (`index.html`, `terms.html`, `privacy.html`, `impressum.html`, `support.html`, `privacy-policy/index.html`) to retain only Documentation, Privacy Policy, Terms of Service, Imprint, Support, and GitHub. Harmonized the Docs footer structure 1:1 with the main website.
 - **Documentation Link Styling:** Enhanced link visibility in documentation articles with persistent accent-toned underlines (`text-underline-offset: 3px`), color inheritance for bold (`strong`) and emphasized (`em`) link texts (resolving white unstyled links), distinctive styling for code links, and interactive external link animations.
+- **In-App Documentation & Legal Links:** Updated all in-app citation and legal URLs across the Flutter app from legacy `rfivesix.github.io/train-libre/` URLs to canonical `https://trainlibre.com/docs/features/.../#evidence` and `https://trainlibre.com/privacy.html` targets.
 
 ### Added
 - **Diary date strip:** The Diary header now offers a horizontally scrollable,
