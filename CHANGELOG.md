@@ -38,7 +38,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Weight ruler and workout timing:** The Diary weight ruler now provides a
   selection haptic at every 0.1 kg position. Editing a completed workout's
   start time now shifts its end time by the same amount, preserving duration;
-  the duration itself can now be edited afterward.
+  the duration itself can now be edited afterward. Its editable date and
+  duration rows are now frameless and align with the workout title in both
+  colour themes.
 - **Summary-card shadows:** Removed the remaining Light Mode drop shadow from
   compact `GlassProgressBar` summary-card variants as well as the shared card
   surface.

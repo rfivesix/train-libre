@@ -796,6 +796,50 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
     setState(() => _editedDuration = selected);
   }
 
+  Widget _buildEditableMetadataField({
+    required IconData icon,
+    required String value,
+    required String semanticLabel,
+    required VoidCallback onTap,
+  }) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    return Semantics(
+      button: true,
+      label: semanticLabel,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              vertical: DesignConstants.spacingXS,
+            ),
+            child: Row(
+              children: [
+                Icon(icon, size: 18, color: colorScheme.primary),
+                const SizedBox(width: DesignConstants.spacingS),
+                Expanded(
+                  child: Text(
+                    value,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                Icon(
+                  LucideIcons.chevron_right,
+                  size: 18,
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   Future<void> _saveChanges() async {
     FocusScope.of(context).unfocus();
     if (_formKey.currentState != null && !_formKey.currentState!.validate()) {
@@ -1188,40 +1232,41 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                                           ),
                                         ),
                                       ),
-                                      if (_isEditMode)
-                                        IconButton(
-                                          tooltip: l10n.selectDateTitle,
-                                          icon: Icon(
-                                            LucideIcons.calendar,
-                                            size: 20,
-                                            color: colorScheme.primary,
-                                          ),
-                                          onPressed: _pickDateTime,
-                                        ),
                                     ],
                                   ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    DateFormat.yMMMMd(locale).add_Hm().format(
-                                          _editedStartTime ?? _log!.startTime,
-                                        ),
-                                    style: textTheme.bodyMedium?.copyWith(
-                                      color: colorScheme.onSurfaceVariant,
-                                    ),
+                                  const SizedBox(
+                                    height: DesignConstants.spacingS,
                                   ),
-                                  if (_isEditMode && _log!.endTime != null)
-                                    Align(
-                                      alignment: Alignment.centerLeft,
-                                      child: TextButton.icon(
-                                        onPressed: _pickDuration,
-                                        icon: Icon(
-                                          LucideIcons.timer,
-                                          size: 17,
-                                          color: colorScheme.primary,
-                                        ),
-                                        label: Text(
-                                          '${l10n.durationLabel}: ${formatDuration(duration)}',
-                                        ),
+                                  if (_isEditMode) ...[
+                                    _buildEditableMetadataField(
+                                      icon: LucideIcons.calendar,
+                                      value: DateFormat.yMMMMd(locale)
+                                          .add_Hm()
+                                          .format(
+                                            _editedStartTime ?? _log!.startTime,
+                                          ),
+                                      semanticLabel: l10n.selectDateTitle,
+                                      onTap: _pickDateTime,
+                                    ),
+                                    if (_log!.endTime != null) ...[
+                                      const SizedBox(
+                                        height: DesignConstants.spacingXS,
+                                      ),
+                                      _buildEditableMetadataField(
+                                        icon: LucideIcons.timer,
+                                        value:
+                                            '${l10n.durationLabel}: ${formatDuration(duration)}',
+                                        semanticLabel: l10n.durationLabel,
+                                        onTap: _pickDuration,
+                                      ),
+                                    ],
+                                  ] else
+                                    Text(
+                                      DateFormat.yMMMMd(locale)
+                                          .add_Hm()
+                                          .format(_log!.startTime),
+                                      style: textTheme.bodyMedium?.copyWith(
+                                        color: colorScheme.onSurfaceVariant,
                                       ),
                                     ),
                                   if (_isEditMode) ...[
