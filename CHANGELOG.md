@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [1.4.0-alpha.1] - Unreleased
 
 ### Added
+- The calendar view is now the default for date-only pickers. Birth-date editing in onboarding and the profile keeps the Cupertino wheel as the intentional exception.
 - The date picker wheel toggle now uses the clearer three-column Lucide icon.
 - The shared date picker now accepts an initial presentation mode. The Diary opens directly in the localized calendar view, while other date-only inputs retain the Cupertino wheel by default.
 - Date-only adaptive pickers now offer a localized calendar view alongside the existing Cupertino wheel. The view uses the same date limits, theme, haptics, and confirmation flow, while date-time pickers remain unchanged.

@@ -38,7 +38,7 @@ Future<DateTime?> showAdaptiveDatePicker({
   required DateTime firstDate,
   required DateTime lastDate,
   Locale? locale,
-  AdaptiveDatePickerView initialView = AdaptiveDatePickerView.wheel,
+  AdaptiveDatePickerView initialView = AdaptiveDatePickerView.calendar,
 }) async {
   return _showGlassDatePicker(
     context: context,
@@ -310,7 +310,7 @@ Future<DateTime?> _showGlassDatePicker({
                               },
                               icon: Icon(
                                 showCalendar
-                                ? LucideIcons.columns_3
+                                    ? LucideIcons.columns_3
                                     : LucideIcons.calendar_days,
                               ),
                             ),
