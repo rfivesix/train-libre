@@ -22,7 +22,7 @@ dependencies:
   # cupertino_icons: ^1.0.8
   flutter_gen: ^5.14.1
   shared_preferences: ^2.2.3
-  dynamic_color: ^1.9.0 # 2.x switches to package:material_ui, whose ColorScheme/MaterialApp
+  dynamic_color: ^2.1.0 # 2.x switches to package:material_ui, whose ColorScheme/MaterialApp
   # are distinct types from package:flutter/material.dart. Moving up means
   # migrating every material.dart import in the app first.
   url_launcher: ^6.2.6
@@ -68,7 +68,7 @@ dependencies:
   qr_code_scanner_plus: ^2.2.0
   # Pinned below 13.0.0 for the same reason: it pulls permission_handler_android
   # 14.x, which also requires compileSdk 37.
-  permission_handler: ">=12.0.3 <13.0.0"
+  permission_handler: ^13.0.2
   flutter_markdown_plus: ^1.0.12
   flutter_markdown_plus_latex: ^1.0.5
   markdown: ^7.3.1
@@ -81,7 +81,7 @@ dependencies:
   in_app_review: ^2.0.12
   icloud_storage: ^2.0.3
   skeletonizer: ^2.1.3
-  workmanager: ^0.10.7
+  workmanager: ^0.10.10
   posthog_flutter: ^5.36.0
   audioplayers: ^6.1.0
   speech_to_text: ^7.4.0
@@ -90,7 +90,7 @@ dev_dependencies:
     sdk: flutter
   flutter_lints: ^6.0.0
   flutter_launcher_icons: ^0.14.4
-  build_runner: ^2.15.1 # 2.16.0 needs meta 1.18.3; flutter_test pins meta 1.18.0.
+  build_runner: ^2.16.1 # 2.16.0 needs meta 1.18.3; flutter_test pins meta 1.18.0.
   drift_dev: ^2.34.4
   # Imported directly by the camera/permission widget tests, which mock the
   # platform interfaces rather than the plugin facades.
