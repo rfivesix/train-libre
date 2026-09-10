@@ -527,10 +527,12 @@ class SleepPipelineService {
         )
         .toList(growable: false);
 
-    final activeLookbackSessionsRecords =
-        params.lookbackSessions.where((dbSession) {
-      return activeLookbackSessions.any((s) => s.id == dbSession.id);
-    }).toList();
+    final activeLookbackSessionIds = <String>{
+      for (final session in activeLookbackSessions) session.id,
+    };
+    final activeLookbackSessionsRecords = params.lookbackSessions
+        .where((dbSession) => activeLookbackSessionIds.contains(dbSession.id))
+        .toList();
 
     final regularityByNight = _buildRegularityByNight(
       targetSessions: mapped.sessions,
