@@ -27,7 +27,6 @@ import 'body_nutrition_correlation_screen.dart';
 import 'consistency_tracker_screen.dart';
 import 'muscle_group_analytics_screen.dart';
 import 'pr_dashboard_screen.dart';
-import 'recovery_tracker_screen.dart';
 import '../../profile/presentation/measurements_screen.dart';
 import '../../steps/presentation/statistics_steps_card.dart';
 import '../../steps/domain/steps_models.dart';
@@ -44,7 +43,6 @@ import 'widgets/consistency_section_card.dart';
 import 'widgets/muscle_volume_section_card.dart';
 import 'widgets/performance_section_card.dart';
 import 'widgets/pulse_section_card.dart';
-import 'widgets/recovery_section_card.dart';
 import 'widgets/sleep_section_card.dart';
 
 class StatisticsHubScreen extends StatefulWidget {
@@ -174,7 +172,8 @@ class _StatisticsHubScreenView extends StatelessWidget {
   Widget build(BuildContext context) {
     final viewModel = context.watch<StatisticsHubViewModel>();
     final l10n = AppLocalizations.of(context)!;
-    final appBarHeight = MediaQuery.paddingOf(context).top; // + kToolbarHeight omitted: same as DiaryScreen/WorkoutHubScreen
+    final appBarHeight = MediaQuery.paddingOf(context)
+        .top; // + kToolbarHeight omitted: same as DiaryScreen/WorkoutHubScreen
     final finalPadding = EdgeInsets.only(
       top: appBarHeight + DesignConstants.cardPadding.top,
       left: 0,
@@ -198,165 +197,150 @@ class _StatisticsHubScreenView extends StatelessWidget {
                       icon: LucideIcons.chart_spline,
                       title: l10n.statisticsColdStartTitle,
                       subtitle: l10n.statisticsColdStartSubtitle,
-                      callToAction:
-                          l10n.emptyStateDiaryColdStartCallToAction,
+                      callToAction: l10n.emptyStateDiaryColdStartCallToAction,
                     ),
                   )
                 : SliverList(
                     delegate: SliverChildListDelegate([
                       TimeRangeFilter(
-                            ranges: _timeRanges(l10n),
-                            selectedIndex:
-                                _hubBlocks.indexOf(viewModel.activeBlockType),
-                            onSelected: (index) {
-                              viewModel.activeBlockType = _hubBlocks[index];
-                            },
-                            onPrevious: viewModel.activeBlockType ==
-                                    TimeframeBlock.maxBlock
+                        ranges: _timeRanges(l10n),
+                        selectedIndex:
+                            _hubBlocks.indexOf(viewModel.activeBlockType),
+                        onSelected: (index) {
+                          viewModel.activeBlockType = _hubBlocks[index];
+                        },
+                        onPrevious:
+                            viewModel.activeBlockType == TimeframeBlock.maxBlock
                                 ? null
                                 : () => viewModel.shiftTimeframe(true),
-                            onNext: viewModel.activeBlockType ==
-                                    TimeframeBlock.maxBlock
+                        onNext:
+                            viewModel.activeBlockType == TimeframeBlock.maxBlock
                                 ? null
                                 : () => viewModel.shiftTimeframe(false),
-                            displayDate: _unifiedRangeLabel(viewModel, l10n),
-                            onTapDateDisplay: () async {
-                              final selected = await adaptive_pickers
-                                  .showAdaptiveTimeframePicker(
-                                context: context,
-                                activeBlock: viewModel.activeBlockType,
-                                initialAnchor: viewModel.anchorDate,
-                                initialIsRolling: viewModel.isRolling,
-                                earliestAvailableDay: DateTime(2020),
-                              );
-                              if (selected != null) {
-                                viewModel.setTimeframeSelection(selected);
-                              }
-                            },
-                            nextEnabled: viewModel.activeBlockType !=
-                                    TimeframeBlock.maxBlock &&
-                                (viewModel.isRolling ||
-                                    !viewModel.activeBlockType
-                                        .getBounds(viewModel.anchorDate,
-                                            DateTime(2020))
-                                        .start
-                                        .isAtSameMomentAs(viewModel
-                                            .activeBlockType
-                                            .getBounds(
-                                                DateTime.now(), DateTime(2020))
-                                            .start)),
-                            showDateNavigation: viewModel.activeBlockType !=
-                                TimeframeBlock.maxBlock,
-                          ),
-                          const SizedBox(height: DesignConstants.spacingL),
-                          Builder(builder: (context) {
-                            Widget contentColumn = Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                if (viewModel.stepsTrackingEnabled) ...[
-                                  AppSectionHeader(title: l10n.steps),
-                                  RepaintBoundary(
-                                    child: _buildStepsCard(
-                                        context, viewModel, l10n),
-                                  ),
-                                  const SizedBox(
-                                      height: DesignConstants.spacingL),
-                                ],
-                                AppSectionHeader(title: l10n.sectionRecovery),
-                                RepaintBoundary(
-                                  child: _buildRecoverySection(
-                                      context, viewModel, l10n),
-                                ),
-                                if (viewModel.sleepTrackingEnabled) ...[
-                                  const SizedBox(
-                                      height: DesignConstants.spacingS),
-                                  RepaintBoundary(
-                                    child: _buildSleepSection(
-                                        context, viewModel, l10n),
-                                  ),
-                                ],
-                                if (viewModel.pulseTrackingEnabled) ...[
-                                  const SizedBox(
-                                      height: DesignConstants.spacingS),
-                                  RepaintBoundary(
-                                    child: _buildPulseSection(
-                                        context, viewModel, l10n),
-                                  ),
-                                ],
-                                const SizedBox(
-                                    height: DesignConstants.spacingL),
-                                AppSectionHeader(
-                                    title: l10n.statisticsSectionBody),
-                                RepaintBoundary(
-                                  child: _buildBodyMetricsSection(
-                                      context, viewModel, l10n),
-                                ),
-                                const SizedBox(
-                                    height: DesignConstants.spacingS),
-                                _buildMeasurementsShortcutCard(context, l10n),
-                                const SizedBox(
-                                    height: DesignConstants.spacingL),
-                                AppSectionHeader(
-                                    title: l10n.statisticsSectionTraining),
-                                RepaintBoundary(
-                                  child: _buildConsistencySection(
-                                      context, viewModel, l10n),
-                                ),
-                                const SizedBox(
-                                    height: DesignConstants.spacingS),
-                                RepaintBoundary(
-                                  child: _buildPerformanceSection(
-                                      context, viewModel, l10n),
-                                ),
-                                const SizedBox(
-                                    height: DesignConstants.spacingS),
-                                RepaintBoundary(
-                                  child: _buildMuscleVolumeSection(
-                                      context, viewModel, l10n),
-                                ),
-                                const BottomContentSpacer(),
-                              ],
-                            );
-
-                            Widget content = Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: DesignConstants.cardPaddingInternal,
-                              ),
-                              child: contentColumn,
-                            );
-
-                            if (viewModel.isActiveGap || viewModel.isSkeletonizing) {
-                              content = SizedBox(
-                                height: MediaQuery.of(context).size.height -
-                                    appBarHeight -
-                                    140,
-                                child: ClipRect(
-                                  child: SingleChildScrollView(
-                                    physics:
-                                        const NeverScrollableScrollPhysics(),
-                                    child: content,
-                                  ),
-                                ),
-                              );
-                            }
-
-                            content = Skeletonizer(
-                              enabled:
-                                  viewModel.isSkeletonizing || viewModel.isActiveGap,
-                              child: content,
-                            );
-
-                            if (viewModel.isActiveGap) {
-                              content = ActiveGapOverlay(
-                                message: l10n.emptyStateActiveGapOverlay,
-                                background: content,
-                              );
-                            }
-
-                            return content;
-                          }),
-                        ]),
+                        displayDate: _unifiedRangeLabel(viewModel, l10n),
+                        onTapDateDisplay: () async {
+                          final selected = await adaptive_pickers
+                              .showAdaptiveTimeframePicker(
+                            context: context,
+                            activeBlock: viewModel.activeBlockType,
+                            initialAnchor: viewModel.anchorDate,
+                            initialIsRolling: viewModel.isRolling,
+                            earliestAvailableDay: DateTime(2020),
+                          );
+                          if (selected != null) {
+                            viewModel.setTimeframeSelection(selected);
+                          }
+                        },
+                        nextEnabled: viewModel.activeBlockType !=
+                                TimeframeBlock.maxBlock &&
+                            (viewModel.isRolling ||
+                                !viewModel.activeBlockType
+                                    .getBounds(
+                                        viewModel.anchorDate, DateTime(2020))
+                                    .start
+                                    .isAtSameMomentAs(viewModel.activeBlockType
+                                        .getBounds(
+                                            DateTime.now(), DateTime(2020))
+                                        .start)),
+                        showDateNavigation: viewModel.activeBlockType !=
+                            TimeframeBlock.maxBlock,
                       ),
+                      const SizedBox(height: DesignConstants.spacingL),
+                      Builder(builder: (context) {
+                        Widget contentColumn = Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            if (viewModel.stepsTrackingEnabled) ...[
+                              AppSectionHeader(title: l10n.steps),
+                              RepaintBoundary(
+                                child:
+                                    _buildStepsCard(context, viewModel, l10n),
+                              ),
+                              const SizedBox(height: DesignConstants.spacingL),
+                            ],
+                            AppSectionHeader(title: l10n.sectionRecovery),
+                            if (viewModel.sleepTrackingEnabled) ...[
+                              const SizedBox(height: DesignConstants.spacingS),
+                              RepaintBoundary(
+                                child: _buildSleepSection(
+                                    context, viewModel, l10n),
+                              ),
+                            ],
+                            if (viewModel.pulseTrackingEnabled) ...[
+                              const SizedBox(height: DesignConstants.spacingS),
+                              RepaintBoundary(
+                                child: _buildPulseSection(
+                                    context, viewModel, l10n),
+                              ),
+                            ],
+                            const SizedBox(height: DesignConstants.spacingL),
+                            AppSectionHeader(title: l10n.statisticsSectionBody),
+                            RepaintBoundary(
+                              child: _buildBodyMetricsSection(
+                                  context, viewModel, l10n),
+                            ),
+                            const SizedBox(height: DesignConstants.spacingS),
+                            _buildMeasurementsShortcutCard(context, l10n),
+                            const SizedBox(height: DesignConstants.spacingL),
+                            AppSectionHeader(
+                                title: l10n.statisticsSectionTraining),
+                            RepaintBoundary(
+                              child: _buildConsistencySection(
+                                  context, viewModel, l10n),
+                            ),
+                            const SizedBox(height: DesignConstants.spacingS),
+                            RepaintBoundary(
+                              child: _buildPerformanceSection(
+                                  context, viewModel, l10n),
+                            ),
+                            const SizedBox(height: DesignConstants.spacingS),
+                            RepaintBoundary(
+                              child: _buildMuscleVolumeSection(
+                                  context, viewModel, l10n),
+                            ),
+                            const BottomContentSpacer(),
+                          ],
+                        );
+
+                        Widget content = Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: DesignConstants.cardPaddingInternal,
+                          ),
+                          child: contentColumn,
+                        );
+
+                        if (viewModel.isActiveGap ||
+                            viewModel.isSkeletonizing) {
+                          content = SizedBox(
+                            height: MediaQuery.of(context).size.height -
+                                appBarHeight -
+                                140,
+                            child: ClipRect(
+                              child: SingleChildScrollView(
+                                physics: const NeverScrollableScrollPhysics(),
+                                child: content,
+                              ),
+                            ),
+                          );
+                        }
+
+                        content = Skeletonizer(
+                          enabled: viewModel.isSkeletonizing ||
+                              viewModel.isActiveGap,
+                          child: content,
+                        );
+
+                        if (viewModel.isActiveGap) {
+                          content = ActiveGapOverlay(
+                            message: l10n.emptyStateActiveGapOverlay,
+                            background: content,
+                          );
+                        }
+
+                        return content;
+                      }),
+                    ]),
+                  ),
           ),
         ],
       ),
@@ -478,44 +462,6 @@ class _StatisticsHubScreenView extends StatelessWidget {
       viewModel.activeBlockType,
       viewModel.anchorDate,
       l10n,
-    );
-  }
-
-  Widget _buildRecoverySection(
-    BuildContext context,
-    StatisticsHubViewModel viewModel,
-    AppLocalizations l10n,
-  ) {
-    final card = MorphSourceScope(
-      builder: (context, setHidden) => Builder(
-        builder: (cardCtx) => RecoverySectionCard(
-          state: viewModel.recoveryState,
-          chipText: null, // As requested, no pill for Recovery
-          onRetry: () => viewModel.loadHubAnalytics(),
-          onTap: () {
-            Navigator.of(context).push(
-              CardMorphRoute(
-                sourceContext: cardCtx,
-                sourceBuilder: (_) => RecoverySectionCard(
-                  state: viewModel.recoveryState,
-                  chipText: null,
-                  onRetry: () {},
-                  onTap: () {},
-                ),
-                onSourceVisibilityChanged: setHidden,
-                builder: (_) => const RecoveryTrackerScreen(),
-              ),
-            );
-          },
-        ),
-      ),
-    );
-    final hasData = viewModel.recoveryState.data?.hasData ?? false;
-    if (hasData) return card;
-    return CardEmptyStateOverlay(
-      isEmpty: true,
-      message: l10n.emptyStateActiveGapOverlay,
-      child: card,
     );
   }
 
@@ -670,7 +616,8 @@ class _StatisticsHubScreenView extends StatelessWidget {
     );
     final hasRecords =
         (viewModel.performanceState.data?.recentPrs.isNotEmpty ?? false) ||
-        (viewModel.performanceState.data?.notableImprovements.isNotEmpty ?? false);
+            (viewModel.performanceState.data?.notableImprovements.isNotEmpty ??
+                false);
     if (hasRecords) return card;
     return CardEmptyStateOverlay(
       isEmpty: true,
@@ -762,38 +709,38 @@ class _StatisticsHubScreenView extends StatelessWidget {
   Widget _buildMeasurementsShortcutCard(
       BuildContext context, AppLocalizations l10n) {
     Widget buildShortcutContent() => Padding(
-      padding: const EdgeInsets.all(DesignConstants.spacingL),
-      child: Row(
-        children: [
-          Icon(
-            LucideIcons.ruler,
-            color: Theme.of(context).colorScheme.primary,
-          ),
-          const SizedBox(width: DesignConstants.spacingM),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  l10n.body_measurements,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
+          padding: const EdgeInsets.all(DesignConstants.spacingL),
+          child: Row(
+            children: [
+              Icon(
+                LucideIcons.ruler,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+              const SizedBox(width: DesignConstants.spacingM),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l10n.body_measurements,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      l10n.all_measurements_no_cap,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Theme.of(context).colorScheme.outline,
+                          ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 2),
-                Text(
-                  l10n.all_measurements_no_cap,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.outline,
-                      ),
-                ),
-              ],
-            ),
+              ),
+              const Icon(LucideIcons.chevron_right),
+            ],
           ),
-          const Icon(LucideIcons.chevron_right),
-        ],
-      ),
-    );
+        );
 
     return MorphSourceScope(
       builder: (context, setHidden) => Builder(
@@ -803,7 +750,8 @@ class _StatisticsHubScreenView extends StatelessWidget {
             Navigator.of(context).push(
               CardMorphRoute(
                 sourceContext: cardCtx,
-                sourceBuilder: (_) => SummaryCard(child: buildShortcutContent()),
+                sourceBuilder: (_) =>
+                    SummaryCard(child: buildShortcutContent()),
                 onSourceVisibilityChanged: setHidden,
                 builder: (_) => const MeasurementsScreen(),
               ),

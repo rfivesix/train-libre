@@ -19,6 +19,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Database Schema 30 (`AppDatabase`):** Added 10 prescription snapshot and override tracking columns to `SetLogs`, `targetRepMin` and `targetRepMax` to `RoutineSetTemplates`, and `trainingAutonomyLevel`, `nutritionAutonomyLevel`, and `experienceLevel` to `AppSettings`.
 
 ### Changed
+- **Workout hub recovery:** Moved the Muscle Recovery card and Tracker to the
+  top of the Workout tab, under the localized Recovery section. Statistics
+  retains its Recovery section for sleep and pulse insights.
 - **Training coverage:** Muscle Group Analytics now counts completed normal and
   failure sets only, credits primary muscles without secondary-muscle weighting,
   and adds a localized movement-pattern view. The screen defaults to the last
