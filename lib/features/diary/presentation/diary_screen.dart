@@ -36,6 +36,7 @@ import '../../../widgets/common/macro_badge_row.dart';
 import 'diary_view_model.dart';
 import '../../../services/theme_service.dart';
 import '../../../services/base_food_language_service.dart';
+import '../../../services/haptic_feedback_service.dart';
 import '../../workout/presentation/workout_history_screen.dart';
 import '../../workout/presentation/widgets/todays_workout_summary_card.dart';
 import 'widgets/weight_card.dart';
@@ -885,6 +886,10 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
     context.read<DiaryViewModel>().navigateDay(forward);
   }
 
+  void selectDate(DateTime date) {
+    context.read<DiaryViewModel>().pickDate(date);
+  }
+
   @override
   Widget build(BuildContext context) {
     final isLoading = context.select<DiaryViewModel, bool>(
@@ -1353,44 +1358,15 @@ class _DiaryAppBarState extends State<DiaryAppBar> {
     }
   }
 
-  String _getAppBarTitle(
-    BuildContext context,
-    AppLocalizations l10n,
-    DateTime selectedDate,
-  ) {
-    final today = DateTime.now();
-    final yesterday = today.subtract(const Duration(days: 1));
-    final dayBeforeYesterday = today.subtract(const Duration(days: 2));
-
-    if (selectedDate.isSameDate(today)) {
-      return l10n.today;
-    } else if (selectedDate.isSameDate(yesterday)) {
-      return l10n.yesterday;
-    } else if (selectedDate.isSameDate(dayBeforeYesterday)) {
-      return l10n.dayBeforeYesterday;
-    } else {
-      return DateFormat.yMMMMd(
-        Localizations.localeOf(context).toString(),
-      ).format(selectedDate);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final titleStyle = Theme.of(
-      context,
-    ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900);
-
     if (_notifier == null) {
       return Padding(
         padding: const EdgeInsets.only(left: DesignConstants.spacingXS),
-        child: _DiaryDateNavigator(
-          l10n.today,
-          titleStyle: titleStyle,
-          onPreviousDay: () => widget.diaryKey.currentState?.navigateDay(false),
+        child: _DiaryDateStrip(
+          selectedDate: DateTime.now().dateOnly,
+          onSelectDay: (date) => widget.diaryKey.currentState?.selectDate(date),
           onPickDate: () => widget.diaryKey.currentState?.pickDate(),
-          onNextDay: () => widget.diaryKey.currentState?.navigateDay(true),
         ),
       );
     }
@@ -1398,16 +1374,13 @@ class _DiaryAppBarState extends State<DiaryAppBar> {
     return ValueListenableBuilder<DateTime>(
       valueListenable: _notifier!,
       builder: (context, selectedDate, child) {
-        final title = _getAppBarTitle(context, l10n, selectedDate);
         return Padding(
           padding: const EdgeInsets.only(left: DesignConstants.spacingXS),
-          child: _DiaryDateNavigator(
-            title,
-            titleStyle: titleStyle,
-            onPreviousDay: () =>
-                widget.diaryKey.currentState?.navigateDay(false),
+          child: _DiaryDateStrip(
+            selectedDate: selectedDate,
+            onSelectDay: (date) =>
+                widget.diaryKey.currentState?.selectDate(date),
             onPickDate: () => widget.diaryKey.currentState?.pickDate(),
-            onNextDay: () => widget.diaryKey.currentState?.navigateDay(true),
           ),
         );
       },
@@ -1415,70 +1388,241 @@ class _DiaryAppBarState extends State<DiaryAppBar> {
   }
 }
 
-class _DiaryDateNavigator extends StatelessWidget {
-  final String title;
-  final TextStyle? titleStyle;
-  final VoidCallback onPreviousDay;
-  final VoidCallback onPickDate;
-  final VoidCallback onNextDay;
-
-  const _DiaryDateNavigator(
-    this.title, {
-    required this.titleStyle,
-    required this.onPreviousDay,
+class _DiaryDateStrip extends StatefulWidget {
+  const _DiaryDateStrip({
+    required this.selectedDate,
+    required this.onSelectDay,
     required this.onPickDate,
-    required this.onNextDay,
   });
+
+  final DateTime selectedDate;
+  final ValueChanged<DateTime> onSelectDay;
+  final VoidCallback onPickDate;
+
+  @override
+  State<_DiaryDateStrip> createState() => _DiaryDateStripState();
+}
+
+class _DiaryDateStripState extends State<_DiaryDateStrip> {
+  static const int _daysBeforeSelected = 30;
+  static const int _daysAfterSelected = 30;
+  static const double _dayItemExtent = 48;
+  static const double _fiveDayStripWidth = _dayItemExtent * 5;
+  int _selectedLeadingItems = 3;
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _centerSelectedDay());
+  }
+
+  @override
+  void didUpdateWidget(covariant _DiaryDateStrip oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!oldWidget.selectedDate.isSameDate(widget.selectedDate)) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _centerSelectedDay());
+    }
+  }
+
+  void _centerSelectedDay() {
+    if (!_scrollController.hasClients) return;
+    _scrollController.jumpTo(_daysBeforeSelected * _dayItemExtent -
+        _selectedLeadingItems * _dayItemExtent);
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        _compactIconButton(
-          tooltip: MaterialLocalizations.of(context).previousPageTooltip,
-          icon: LucideIcons.chevron_left,
-          onPressed: onPreviousDay,
-        ),
-        Flexible(
+    final locale = Localizations.localeOf(context).toString();
+    final colorScheme = Theme.of(context).colorScheme;
+    final dates = List<DateTime>.generate(
+      _daysBeforeSelected + _daysAfterSelected + 1,
+      (index) => widget.selectedDate.dateOnly.add(
+        Duration(days: index - _daysBeforeSelected),
+      ),
+    );
+
+    return SizedBox(
+      height: kToolbarHeight,
+      child: Row(
+        children: [
+          _DiaryCalendarButton(
+            colorScheme: colorScheme,
+            tooltip: AppLocalizations.of(context)!.selectDateTitle,
+            onPressed: () {
+              HapticFeedbackService.instance.selectionFeedback();
+              widget.onPickDate();
+            },
+          ),
+          Expanded(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final showsFiveDays =
+                    constraints.maxWidth >= _fiveDayStripWidth;
+                _selectedLeadingItems = showsFiveDays ? 3 : 2;
+                final stripWidth =
+                    showsFiveDays ? _fiveDayStripWidth : constraints.maxWidth;
+
+                return Align(
+                  alignment: Alignment.centerLeft,
+                  child: SizedBox(
+                    width: stripWidth,
+                    child: ShaderMask(
+                      shaderCallback: (bounds) => const LinearGradient(
+                        begin: Alignment.centerLeft,
+                        end: Alignment.centerRight,
+                        colors: [
+                          Colors.transparent,
+                          Colors.black,
+                          Colors.black,
+                          Colors.transparent,
+                        ],
+                        stops: [0, 0.045, 0.955, 1],
+                      ).createShader(bounds),
+                      blendMode: BlendMode.dstIn,
+                      child: ListView.builder(
+                        controller: _scrollController,
+                        scrollDirection: Axis.horizontal,
+                        physics: const BouncingScrollPhysics(),
+                        itemExtent: _dayItemExtent,
+                        itemCount: dates.length,
+                        itemBuilder: (context, index) => _DiaryDayButton(
+                          date: dates[index],
+                          locale: locale,
+                          isSelected:
+                              dates[index].isSameDate(widget.selectedDate),
+                          onTap: () {
+                            if (dates[index].isSameDate(widget.selectedDate)) {
+                              return;
+                            }
+                            HapticFeedbackService.instance.selectionFeedback();
+                            widget.onSelectDay(dates[index]);
+                          },
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _DiaryCalendarButton extends StatelessWidget {
+  const _DiaryCalendarButton({
+    required this.colorScheme,
+    required this.tooltip,
+    required this.onPressed,
+  });
+
+  final ColorScheme colorScheme;
+  final String tooltip;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final background =
+        isDark ? DesignConstants.summaryCardDarkMode : Colors.white;
+
+    return Tooltip(
+      message: tooltip,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 4),
+        child: Material(
+          color: background,
+          borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
           child: InkWell(
-            borderRadius: BorderRadius.circular(DesignConstants.borderRadiusS),
-            onTap: onPickDate,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: DesignConstants.spacingXS,
-                vertical: DesignConstants.spacingS,
-              ),
-              child: Text(
-                title,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: titleStyle,
+            onTap: onPressed,
+            borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
+            child: SizedBox(
+              width: 44,
+              height: 48,
+              child: Icon(
+                LucideIcons.calendar_days,
+                color: colorScheme.primary,
               ),
             ),
           ),
         ),
-        _compactIconButton(
-          tooltip: MaterialLocalizations.of(context).nextPageTooltip,
-          icon: LucideIcons.chevron_right,
-          onPressed: onNextDay,
-        ),
-      ],
+      ),
     );
   }
+}
 
-  Widget _compactIconButton({
-    required IconData icon,
-    required VoidCallback onPressed,
-    String? tooltip,
-  }) {
-    return IconButton(
-      tooltip: tooltip,
-      icon: Icon(icon),
-      visualDensity: VisualDensity.compact,
-      padding: EdgeInsets.zero,
-      constraints: const BoxConstraints.tightFor(width: 48, height: 48),
-      onPressed: onPressed,
+class _DiaryDayButton extends StatelessWidget {
+  const _DiaryDayButton({
+    required this.date,
+    required this.locale,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  final DateTime date;
+  final String locale;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final weekday = DateFormat.E(locale).format(date).toUpperCase();
+    final dateLabel = DateFormat.yMMMMEEEEd(locale).format(date);
+    final foreground =
+        isSelected ? colorScheme.onPrimary : colorScheme.onSurface;
+
+    return Semantics(
+      button: true,
+      selected: isSelected,
+      label: dateLabel,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: 2,
+          vertical: 4,
+        ),
+        child: Material(
+          color: isSelected ? colorScheme.primary : Colors.transparent,
+          borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
+          child: InkWell(
+            onTap: onTap,
+            borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
+            child: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    weekday,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: foreground,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  Text(
+                    DateFormat.d(locale).format(date),
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      color: foreground,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
