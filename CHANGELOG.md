@@ -17,6 +17,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Changed
 - Neu hinzugefügte Arbeitssätze und geeignete neue Übungen übernehmen den vorherigen Wiederholungsbereich beziehungsweise `8–12` als Standard. Cardio-, Zeit-, Distanz- und sonstige nicht passende Übungen bleiben ohne künstlichen Wiederholungsbereich.
+- **Documentation website:** Replaced the stale engineering-documentation index in `docs/README.md`, whose links no longer existed, with the current shared Feature/Developer documentation map and the actual public feature pages.
 
 ### Added
 - **Diary date strip:** The Diary header now offers a horizontally scrollable,
