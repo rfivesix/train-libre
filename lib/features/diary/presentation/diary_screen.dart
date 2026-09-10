@@ -1362,7 +1362,9 @@ class _DiaryAppBarState extends State<DiaryAppBar> {
   Widget build(BuildContext context) {
     if (_notifier == null) {
       return Padding(
-        padding: const EdgeInsets.only(left: DesignConstants.spacingS),
+        padding: const EdgeInsets.only(
+          left: DesignConstants.cardPaddingInternal,
+        ),
         child: _DiaryDateStrip(
           selectedDate: DateTime.now().dateOnly,
           onSelectDay: (date) => widget.diaryKey.currentState?.selectDate(date),
@@ -1375,7 +1377,9 @@ class _DiaryAppBarState extends State<DiaryAppBar> {
       valueListenable: _notifier!,
       builder: (context, selectedDate, child) {
         return Padding(
-          padding: const EdgeInsets.only(left: DesignConstants.spacingS),
+          padding: const EdgeInsets.only(
+            left: DesignConstants.cardPaddingInternal,
+          ),
           child: _DiaryDateStrip(
             selectedDate: selectedDate,
             onSelectDay: (date) =>
@@ -1406,9 +1410,12 @@ class _DiaryDateStrip extends StatefulWidget {
 class _DiaryDateStripState extends State<_DiaryDateStrip> {
   static const double _dayItemExtent = 48;
   static const double _fourDayStripWidth = _dayItemExtent * 4;
+  static const double _scrollPreviewWidth = _dayItemExtent * 0.5;
   static final DateTime _firstDate = DateTime(2020);
   double _currentItemExtent = _dayItemExtent;
-  int _rightmostVisibleOffset = 3;
+  // The strip reserves a half-card preview on the right. Keeping the target
+  // one slot earlier leaves the selected card fully outside that fade.
+  int _rightmostVisibleOffset = 2;
   final ScrollController _scrollController = ScrollController();
 
   @override
@@ -1421,11 +1428,13 @@ class _DiaryDateStripState extends State<_DiaryDateStrip> {
   void didUpdateWidget(covariant _DiaryDateStrip oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (!oldWidget.selectedDate.isSameDate(widget.selectedDate)) {
-      WidgetsBinding.instance.addPostFrameCallback((_) => _centerSelectedDay());
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => _centerSelectedDay(animated: true),
+      );
     }
   }
 
-  void _centerSelectedDay() {
+  void _centerSelectedDay({bool animated = false}) {
     if (!_scrollController.hasClients) return;
     final today = DateTime.now().dateOnly;
     final selected = widget.selectedDate.dateOnly;
@@ -1435,12 +1444,19 @@ class _DiaryDateStripState extends State<_DiaryDateStrip> {
     final rightmostIndex = rightmostDate.difference(_firstDate).inDays;
     final targetOffset =
         (rightmostIndex - _rightmostVisibleOffset) * _currentItemExtent;
-    _scrollController.jumpTo(
-      targetOffset.clamp(
-        _scrollController.position.minScrollExtent,
-        _scrollController.position.maxScrollExtent,
-      ),
+    final clampedOffset = targetOffset.clamp(
+      _scrollController.position.minScrollExtent,
+      _scrollController.position.maxScrollExtent,
     );
+    if (animated) {
+      _scrollController.animateTo(
+        clampedOffset,
+        duration: const Duration(milliseconds: 280),
+        curve: Curves.easeOutCubic,
+      );
+    } else {
+      _scrollController.jumpTo(clampedOffset);
+    }
   }
 
   @override
@@ -1470,12 +1486,14 @@ class _DiaryDateStripState extends State<_DiaryDateStrip> {
           Expanded(
             child: LayoutBuilder(
               builder: (context, constraints) {
-                final stripWidth = constraints.maxWidth >= _fourDayStripWidth
-                    ? _fourDayStripWidth
-                    : constraints.maxWidth;
-                final itemExtent = stripWidth / 4;
+                final requestedWidth = _fourDayStripWidth + _scrollPreviewWidth;
+                final fitsPreview = constraints.maxWidth >= requestedWidth;
+                final stripWidth =
+                    fitsPreview ? requestedWidth : constraints.maxWidth;
+                final itemExtent =
+                    fitsPreview ? _dayItemExtent : stripWidth / 4.5;
                 _currentItemExtent = itemExtent;
-                _rightmostVisibleOffset = 3;
+                _rightmostVisibleOffset = 2;
 
                 return Align(
                   alignment: Alignment.centerLeft,
