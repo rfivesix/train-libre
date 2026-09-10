@@ -343,6 +343,8 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
   late final AppLifecycleListener _lifecycleListener;
+  bool _isRunningBackgroundWork = false;
+  bool _hasHandledCurrentBackground = false;
 
   @override
   void initState() {
@@ -351,6 +353,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     _lifecycleListener = AppLifecycleListener(
       onPause: _onAppPause,
       onHide: _onAppPause,
+      onResume: () => _hasHandledCurrentBackground = false,
     );
   }
 
@@ -454,16 +457,27 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   /// Silently snapshot and upload the database to iCloud when the app is
   /// backgrounded. Only runs if the user has enabled iCloud sync.
   Future<void> _onAppPause() async {
+    // iOS sends both `hidden` and `paused` for one trip to the background.
+    // AppLifecycleListener maps both to this callback, so without this guard
+    // the same telemetry flush and iCloud eligibility checks raced twice.
+    if (_hasHandledCurrentBackground || _isRunningBackgroundWork) return;
+    _hasHandledCurrentBackground = true;
+    _isRunningBackgroundWork = true;
+
     // Flush the aggregated food-log counter here rather than only from
     // MainScreen, so entries still get reported when the app is backgrounded
     // from onboarding or any other screen outside the tab shell.
-    unawaited(TelemetryService.instance.flushDailyFoodLog());
+    try {
+      await TelemetryService.instance.flushDailyFoodLog();
 
-    final db = DatabaseHelper.driftDb;
-    if (db == null) return;
-    // Fire-and-forget — we intentionally do not await so the UI is never
-    // blocked by the sync operation.
-    unawaited(ICloudSyncService.instance.syncIfEnabled(db));
+      final db = DatabaseHelper.driftDb;
+      if (db == null) return;
+      // The database and archive work run outside the UI isolate. Awaiting it
+      // here only keeps this lifecycle gate closed until it has settled.
+      await ICloudSyncService.instance.syncIfEnabled(db);
+    } finally {
+      _isRunningBackgroundWork = false;
+    }
   }
 
   @override

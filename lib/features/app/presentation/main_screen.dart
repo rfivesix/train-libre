@@ -195,7 +195,6 @@ class _MainScreenState extends State<MainScreen>
     if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.detached) {
       _widgetRefreshTimer?.cancel();
-      unawaited(TelemetryService.instance.flushDailyFoodLog());
       // Catch-all for everything that changes the widget without going through
       // _refreshHomeScreen — goals, the extra-nutrient choice, the unit system,
       // the app language. Backgrounding is also exactly the moment before the
