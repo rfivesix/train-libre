@@ -432,14 +432,18 @@ class _CreateExerciseScreenState extends State<CreateExerciseScreen> {
   }) {
     return PlatformAdaptiveDropdownFormField<String>(
       initialValue: value,
-      items: values
-          .map(
-            (value) => DropdownMenuItem(
-              value: value,
-              child: Text(labelFor(value)),
-            ),
-          )
-          .toList(growable: false),
+      items: [
+        DropdownMenuItem<String>(
+          value: null,
+          child: Text(l10n.exerciseClassificationNotSpecified),
+        ),
+        ...values.map(
+          (value) => DropdownMenuItem(
+            value: value,
+            child: Text(labelFor(value)),
+          ),
+        ),
+      ],
       onChanged: _isReadOnly ? null : onChanged,
       decoration: InputDecoration(
         labelText: label,
