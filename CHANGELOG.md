@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## [1.4.0-alpha.1] - Unreleased
+## [1.4.0-beta.1] - 2026-09-10
 
 ### Added
 - The calendar view is now the default for date-only pickers. Birth-date editing in onboarding and the profile keeps the Cupertino wheel as the intentional exception.
