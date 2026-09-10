@@ -116,15 +116,22 @@ class PulseAnalysisEngine {
     var weightedSum = 0.0;
     var totalSeconds = 0;
 
+    // BOLT OPTIMIZATION: Avoid DateTime/Duration allocations inside hot loop.
+    // Replaced with direct integer math on microsecondsSinceEpoch to reduce GC pressure and CPU overhead.
+    final windowStartUs = window.startUtc.microsecondsSinceEpoch;
+    final windowEndUs = window.endUtc.microsecondsSinceEpoch;
+
     for (var i = 0; i < samples.length; i++) {
       final current = samples[i];
-      final previous = i == 0 ? window.startUtc : samples[i - 1].sampledAtUtc;
-      final next =
-          i == samples.length - 1 ? window.endUtc : samples[i + 1].sampledAtUtc;
-      final start = _midpoint(previous, current.sampledAtUtc);
-      final end = _midpoint(current.sampledAtUtc, next);
-      final seconds = math.max(0, end.difference(start).inSeconds);
+      final currentUs = current.sampledAtUtc.microsecondsSinceEpoch;
+      final previousUs = i == 0 ? windowStartUs : samples[i - 1].sampledAtUtc.microsecondsSinceEpoch;
+      final nextUs = i == samples.length - 1 ? windowEndUs : samples[i + 1].sampledAtUtc.microsecondsSinceEpoch;
+
+      final startUs = previousUs + ((currentUs - previousUs) ~/ 2);
+      final endUs = currentUs + ((nextUs - currentUs) ~/ 2);
+      final seconds = math.max(0, (endUs - startUs) ~/ 1000000);
       if (seconds == 0) continue;
+
       weightedSum += current.bpm * seconds;
       totalSeconds += seconds;
     }
@@ -174,11 +181,6 @@ class PulseAnalysisEngine {
       return PulseDataQuality.limited;
     }
     return PulseDataQuality.ready;
-  }
-
-  DateTime _midpoint(DateTime a, DateTime b) {
-    final deltaMicros = b.difference(a).inMicroseconds;
-    return a.add(Duration(microseconds: deltaMicros ~/ 2));
   }
 
   List<PulseSamplePoint> _downsample(List<PulseSamplePoint> points) {
