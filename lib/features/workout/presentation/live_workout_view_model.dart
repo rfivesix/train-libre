@@ -278,6 +278,7 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
   WorkoutLiveActivityStrings? _liveActivityStrings;
   String _liveActivityLocale = 'en';
   bool _liveActivityRunning = false;
+  Future<void> _liveActivitySyncChain = Future<void>.value();
 
   /// Called by the live workout screen once localizations are available.
   void configureLiveActivity({
@@ -306,14 +307,28 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
     );
   }
 
-  /// Starts the activity on first call and updates it afterwards. Cheap to
-  /// call often — the service drops pushes that would not change anything.
-  Future<void> _syncLiveActivity() async {
+  /// Serializes refreshes so an older async payload cannot overwrite a newer
+  /// one when several workout callbacks fire in the same frame.
+  Future<void> _syncLiveActivity() {
+    final next = _liveActivitySyncChain.then((_) => _syncLiveActivityNow());
+    _liveActivitySyncChain = next.catchError((_) {});
+    return next;
+  }
+
+  /// Starts the activity on first call and updates it afterwards. Suggestions
+  /// are awaited before building the payload, so pre-filled values are also
+  /// visible in the Live Activity.
+  Future<void> _syncLiveActivityNow() async {
     if (!_liveActivityService.isPlatformSupported) return;
     final log = _workoutLog;
     final strings = _liveActivityStrings;
     if (log == null || log.id == null || strings == null) return;
     if (!isActive) return;
+
+    final pendingProgression = _pendingProgressionUpdate;
+    if (pendingProgression != null) {
+      await pendingProgression;
+    }
 
     final content = _buildLiveActivityContent();
     if (content == null) return;
@@ -1370,12 +1385,36 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
       }
     }
 
+    final repProgressionSupported =
+        ExerciseLogMask.forExercise(re.exercise).supportsLoadRepProgression;
+    final parsedPrecedingRange =
+        parseRepRange(precedingWorkingTemplate?.targetReps);
+    final explicitPrecedingRange =
+        precedingWorkingTemplate?.targetRepMin != null &&
+                precedingWorkingTemplate?.targetRepMax != null
+            ? (
+                min: precedingWorkingTemplate!.targetRepMin!,
+                max: precedingWorkingTemplate.targetRepMax!
+              )
+            : null;
+    // A single prescription such as `10` is a fixed target, not a range to
+    // inherit. Only a genuine range is copied; otherwise eligible exercises
+    // receive the neutral 8–12 fallback below.
+    final candidateRange = explicitPrecedingRange ?? parsedPrecedingRange;
+    final hasInheritedRange =
+        candidateRange != null && candidateRange.min != candidateRange.max;
+    final inheritedRange = hasInheritedRange ? candidateRange : null;
+    final targetReps = inheritedRange == null
+        ? (repProgressionSupported ? '8-12' : null)
+        : '${inheritedRange.min}-${inheritedRange.max}';
+
     final newTemplate = SetTemplate(
       id: tempTemplateId,
       setType: 'normal',
-      targetReps: precedingWorkingTemplate?.targetReps,
-      targetRepMin: precedingWorkingTemplate?.targetRepMin,
-      targetRepMax: precedingWorkingTemplate?.targetRepMax,
+      targetReps: targetReps,
+      targetRepMin: inheritedRange?.min ?? (repProgressionSupported ? 8 : null),
+      targetRepMax:
+          inheritedRange?.max ?? (repProgressionSupported ? 12 : null),
       targetWeight: null,
       targetRir: precedingWorkingTemplate?.targetRir,
     );
@@ -1467,7 +1506,9 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
     final tempReId = _nextSyntheticId(_allRoutineExerciseIds());
     final isCardio = exercise.isCardio;
     final initialSetCount = isCardio ? 1 : 3;
-    final initialReps = isCardio ? '' : '10';
+    final repProgressionSupported =
+        ExerciseLogMask.forExercise(exercise).supportsLoadRepProgression;
+    final initialReps = repProgressionSupported ? '8-12' : '';
 
     final existingTemplateIds = _allTemplateIds()..addAll(_setLogs.keys);
     final templates = <SetTemplate>[];
@@ -1479,6 +1520,8 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
           id: templateId,
           setType: 'normal',
           targetReps: initialReps,
+          targetRepMin: repProgressionSupported ? 8 : null,
+          targetRepMax: repProgressionSupported ? 12 : null,
           targetWeight: null));
     }
 

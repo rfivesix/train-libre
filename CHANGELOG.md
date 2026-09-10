@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [1.4.0-alpha.1] - Unreleased
 
+### Fixed
+- Live-Activity-Vorschläge werden nach abgeschlossener Progressionsberechnung zuverlässig synchronisiert und zeigen vorausgefüllte Werte auf iOS und Android an.
+
+### Changed
+- Neu hinzugefügte Arbeitssätze und geeignete neue Übungen übernehmen den vorherigen Wiederholungsbereich beziehungsweise `8–12` als Standard. Cardio-, Zeit-, Distanz- und sonstige nicht passende Übungen bleiben ohne künstlichen Wiederholungsbereich.
+
 ### Added
 - **Diary date strip:** The Diary header now offers a horizontally scrollable,
   localized day strip with nearby one-tap dates, a clear calendar-picker
