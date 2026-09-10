@@ -19,6 +19,7 @@ For software engineers, system architects, and technical contributors.
 *   [**System Architecture & SQLite Lifecycle**](developer/architecture.md): Our strict Clean Architecture boundaries (Presentation $\rightarrow$ Domain $\leftarrow$ Data) and thread-safe lazy-initializing private constructor for SQLite.
 *   [**Data Flow & State Lifecycle**](developer/data_flow_and_state.md): Detail on our "Reactive Reads / Imperative Writes" paradigm, reactive Drift stream handlers, subscription lifecycles, and edit-mode user interface input blocking.
 *   [**Localization Architecture**](developer/localization_architecture.md): Offline-first relational localization strategy for the app's catalogs and UI strings, plus the step-by-step guide for adding a new locale.
+*   [**iOS Home Screen Widgets**](developer/ios_home_screen_widgets.md): The home screen widget family, their configuration, data flow, and implementation notes.
 
 ### 2. Feature Transparency & Algorithmic Logic (`documentation/features/`)
 For advanced users, mathematical evaluators, and privacy auditors who seek complete transparency into our smart processing engines.
@@ -35,4 +36,3 @@ For advanced users, mathematical evaluators, and privacy auditors who seek compl
 *   [**Estimated 1-Rep Max Heuristic**](features/intelligent_workouts.md): The Brzycki-based submaximal strength estimation model behind personal records and strength progression, including its non-medical scope.
 *   [**Workout progression**](features/workout_progression_engine.md): A first-working-set recommendation for eligible load-and-repetition exercises, with simple double progression and later-set e1RM back-offs.
 *   [**Live Activity & Workout Session**](features/live_activity_workout.md): The iOS Live Activity and Dynamic Island surface for a running workout, and the state it mirrors.
-*   [**iOS Home Screen Widgets**](features/ios_home_screen_widgets.md): The home screen widget family, their configuration, and the data they read.

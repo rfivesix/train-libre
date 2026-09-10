@@ -23,6 +23,7 @@ The application's framework and core modules are built using the following techn
 *   **Local Persistence**: Drift (formerly Moor) built on top of native SQLite databases. Drift acts as the reactive database layer, utilizing Dart code-generation for type-safe queries.
 *   **Security & Encryption**: `flutter_secure_storage` to handle sensitive local data, such as private developer API keys for the optional AI services, utilizing iOS Keychain and Android Keystore services.
 *   **Platform Integration**: Native Method Channels to bridge iOS Swift HealthKit and Android Kotlin Health Connect systems directly to Dart services.
+*   **iOS Home Screen Widgets**: WidgetKit implementation, shared App Group snapshot flow, configuration, and test coverage are documented in the [iOS Home Screen Widgets guide](ios_home_screen_widgets.md).
 
 ---
 
