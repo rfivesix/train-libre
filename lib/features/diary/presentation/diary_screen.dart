@@ -875,7 +875,7 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
       context: context,
       initialDate: viewModel.selectedDate,
       firstDate: DateTime(2020),
-      lastDate: DateTime.now().add(const Duration(days: 365)),
+      lastDate: DateTime.now(),
     );
     if (picked != null) {
       viewModel.pickDate(picked);
@@ -1404,10 +1404,9 @@ class _DiaryDateStrip extends StatefulWidget {
 }
 
 class _DiaryDateStripState extends State<_DiaryDateStrip> {
-  static const int _daysBeforeSelected = 30;
-  static const int _daysAfterSelected = 30;
   static const double _dayItemExtent = 48;
   static const double _fiveDayStripWidth = _dayItemExtent * 5;
+  static final DateTime _firstDate = DateTime(2020);
   int _selectedLeadingItems = 3;
   final ScrollController _scrollController = ScrollController();
 
@@ -1427,8 +1426,18 @@ class _DiaryDateStripState extends State<_DiaryDateStrip> {
 
   void _centerSelectedDay() {
     if (!_scrollController.hasClients) return;
-    _scrollController.jumpTo(_daysBeforeSelected * _dayItemExtent -
-        _selectedLeadingItems * _dayItemExtent);
+    final today = DateTime.now().dateOnly;
+    final selected = widget.selectedDate.dateOnly;
+    final visibleSelected = selected.isAfter(today) ? today : selected;
+    final selectedIndex = visibleSelected.difference(_firstDate).inDays;
+    final targetOffset =
+        (selectedIndex - _selectedLeadingItems) * _dayItemExtent;
+    _scrollController.jumpTo(
+      targetOffset.clamp(
+        _scrollController.position.minScrollExtent,
+        _scrollController.position.maxScrollExtent,
+      ),
+    );
   }
 
   @override
@@ -1441,11 +1450,10 @@ class _DiaryDateStripState extends State<_DiaryDateStrip> {
   Widget build(BuildContext context) {
     final locale = Localizations.localeOf(context).toString();
     final colorScheme = Theme.of(context).colorScheme;
+    final today = DateTime.now().dateOnly;
     final dates = List<DateTime>.generate(
-      _daysBeforeSelected + _daysAfterSelected + 1,
-      (index) => widget.selectedDate.dateOnly.add(
-        Duration(days: index - _daysBeforeSelected),
-      ),
+      today.difference(_firstDate).inDays + 1,
+      (index) => _firstDate.add(Duration(days: index)),
     );
 
     return SizedBox(
@@ -1468,13 +1476,14 @@ class _DiaryDateStripState extends State<_DiaryDateStrip> {
                 _selectedLeadingItems = showsFiveDays ? 3 : 2;
                 final stripWidth =
                     showsFiveDays ? _fiveDayStripWidth : constraints.maxWidth;
+                final fadeStart = showsFiveDays ? 0.8 : 0.75;
 
                 return Align(
                   alignment: Alignment.centerLeft,
                   child: SizedBox(
                     width: stripWidth,
                     child: ShaderMask(
-                      shaderCallback: (bounds) => const LinearGradient(
+                      shaderCallback: (bounds) => LinearGradient(
                         begin: Alignment.centerLeft,
                         end: Alignment.centerRight,
                         colors: [
@@ -1483,7 +1492,7 @@ class _DiaryDateStripState extends State<_DiaryDateStrip> {
                           Colors.black,
                           Colors.transparent,
                         ],
-                        stops: [0, 0.045, 0.955, 1],
+                        stops: [0, 0.045, fadeStart, 1],
                       ).createShader(bounds),
                       blendMode: BlendMode.dstIn,
                       child: ListView.builder(
@@ -1491,20 +1500,25 @@ class _DiaryDateStripState extends State<_DiaryDateStrip> {
                         scrollDirection: Axis.horizontal,
                         physics: const BouncingScrollPhysics(),
                         itemExtent: _dayItemExtent,
-                        itemCount: dates.length,
-                        itemBuilder: (context, index) => _DiaryDayButton(
-                          date: dates[index],
-                          locale: locale,
-                          isSelected:
-                              dates[index].isSameDate(widget.selectedDate),
-                          onTap: () {
-                            if (dates[index].isSameDate(widget.selectedDate)) {
-                              return;
-                            }
-                            HapticFeedbackService.instance.selectionFeedback();
-                            widget.onSelectDay(dates[index]);
-                          },
-                        ),
+                        itemCount: dates.length + 1,
+                        itemBuilder: (context, index) {
+                          if (index == dates.length) {
+                            return const SizedBox.shrink();
+                          }
+                          final date = dates[index];
+                          return _DiaryDayButton(
+                            date: date,
+                            locale: locale,
+                            isSelected: date.isSameDate(widget.selectedDate),
+                            isToday: date.isSameDate(today),
+                            onTap: () {
+                              if (date.isSameDate(widget.selectedDate)) return;
+                              HapticFeedbackService.instance
+                                  .selectionFeedback();
+                              widget.onSelectDay(date);
+                            },
+                          );
+                        },
                       ),
                     ),
                   ),
@@ -1550,7 +1564,7 @@ class _DiaryCalendarButton extends StatelessWidget {
               height: 48,
               child: Icon(
                 LucideIcons.calendar_days,
-                color: colorScheme.primary,
+                color: colorScheme.onSurface,
               ),
             ),
           ),
@@ -1565,12 +1579,14 @@ class _DiaryDayButton extends StatelessWidget {
     required this.date,
     required this.locale,
     required this.isSelected,
+    required this.isToday,
     required this.onTap,
   });
 
   final DateTime date;
   final String locale;
   final bool isSelected;
+  final bool isToday;
   final VoidCallback onTap;
 
   @override
@@ -1593,7 +1609,12 @@ class _DiaryDayButton extends StatelessWidget {
         ),
         child: Material(
           color: isSelected ? colorScheme.primary : Colors.transparent,
-          borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
+            side: isToday && !isSelected
+                ? BorderSide(color: colorScheme.primary, width: 1.5)
+                : BorderSide.none,
+          ),
           child: InkWell(
             onTap: onTap,
             borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
