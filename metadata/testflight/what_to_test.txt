@@ -1,7 +1,11 @@
-Train Libre 1.3.0 — Official Release Candidate
+Train Libre 1.4.0 — Beta 1
 
-All major features and workflows for version 1.3.0 (Supersets, OpenExerciseDB catalog migration, exercise-specific logging fields, and Diary body weight entry) have been fully verified during the 1.3.0-beta.1 testing period. Only minor cosmetic refinements, typography alignments, and layout polish have been added since.
+Please focus your testing on the updated Diary and training experience:
 
-No specific testing focus is required for this build. Please verify general stability and smooth day-to-day operation.
+• Diary navigation: swipe the date strip below the header, tap nearby days, and select a date using the calendar button.
+• Next-set suggestions: enable Training suggestions in Settings, complete a weighted working set, then check that the following compatible set receives an editable suggested weight.
+• Recovery insights: verify Muscle Recovery appears on the Workout tab and that Movement Patterns is available in Muscle Group Analytics.
+
+Please also report any issues with general stability, layout, and day-to-day use.
 
 Thank you for testing Train Libre!
