@@ -62,8 +62,6 @@ Intelligentere Vorschläge für den nächsten Satz: Aktivierst du Trainingsvorsc
 
 Regeneration dort, wo du trainierst: Die Muskelregeneration steht jetzt ganz oben im Workout-Tab. Die Muskelgruppen-Analyse zeigt neben Muskelabdeckung und Häufigkeit auch deine Bewegungsmuster.
 
-Trainingszeiten sicher bearbeiten: Ändere die Startzeit eines abgeschlossenen Workouts, ohne dass sich seine Dauer verändert, oder passe die Dauer anschließend direkt an.
-
 ## Support URL (Support Web Page URL)
 https://rfivesix.github.io/train-libre/
 

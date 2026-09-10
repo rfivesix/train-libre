@@ -62,8 +62,6 @@ Smarter next-set suggestions: When you enable training suggestions in Settings, 
 
 Recovery where you train: Muscle Recovery is now at the top of the Workout tab. Muscle Group Analytics also shows your movement patterns alongside muscle coverage and frequency.
 
-Edit workout timing with confidence: Change the start time of a completed workout while keeping its duration, or adjust the duration itself afterwards.
-
 ## Support URL (Support Web Page URL)
 https://rfivesix.github.io/train-libre/support.html
 

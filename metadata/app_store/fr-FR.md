@@ -62,8 +62,6 @@ Des suggestions plus intelligentes pour la prochaine série: si tu actives les s
 
 La récupération là où tu t'entraînes: la récupération musculaire se trouve maintenant en haut de l'onglet Entraînement. L'analyse des groupes musculaires affiche aussi tes schémas de mouvement, en plus de la couverture et de la fréquence.
 
-Modifie les horaires de tes séances en toute confiance: change l'heure de début d'une séance terminée sans modifier sa durée, ou ajuste directement cette durée ensuite.
-
 ## Support URL (Support Web Page URL)
 https://rfivesix.github.io/train-libre/support.html
 

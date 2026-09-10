@@ -62,8 +62,6 @@ Suggerimenti più intelligenti per la prossima serie: se attivi i suggerimenti d
 
 Recupero dove ti alleni: il recupero muscolare ora è in cima alla scheda Allenamento. L'analisi dei gruppi muscolari mostra anche i tuoi schemi di movimento, oltre a copertura e frequenza.
 
-Modifica gli orari degli allenamenti con sicurezza: cambia l'ora di inizio di un allenamento completato mantenendone la durata, oppure modifica direttamente la durata in seguito.
-
 ## Support URL (Support Web Page URL)
 https://rfivesix.github.io/train-libre/support.html
 

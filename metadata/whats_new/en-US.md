@@ -14,8 +14,6 @@
 
 {heart} Recovery where you train: Muscle Recovery is now at the top of the Workout tab. Muscle Group Analytics also shows your movement patterns alongside muscle coverage and frequency.
 
-{timer} Edit workout timing with confidence: Change the start time of a completed workout while keeping its duration, or adjust the duration itself afterwards.
-
 ## 1.3.0 (2026-09-07)
 
 {dumbbell} Supersets: Join exercises in your routines into supersets, trisets or larger groups. During a workout you alternate between them round by round, and the rest timer only starts after the last exercise of a round.

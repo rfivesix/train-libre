@@ -34,11 +34,6 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
           title: 'Recovery where you train',
           body: 'Muscle Recovery is now at the top of the Workout tab. Muscle Group Analytics also shows your movement patterns alongside muscle coverage and frequency.',
         ),
-        WhatsNewEntry(
-          icon: LucideIcons.timer,
-          title: 'Edit workout timing with confidence',
-          body: 'Change the start time of a completed workout while keeping its duration, or adjust the duration itself afterwards.',
-        ),
       ],
     ),
     WhatsNewRelease(
@@ -191,11 +186,6 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
           icon: LucideIcons.heart,
           title: 'Regeneration dort, wo du trainierst',
           body: 'Die Muskelregeneration steht jetzt ganz oben im Workout-Tab. Die Muskelgruppen-Analyse zeigt neben Muskelabdeckung und Häufigkeit auch deine Bewegungsmuster.',
-        ),
-        WhatsNewEntry(
-          icon: LucideIcons.timer,
-          title: 'Trainingszeiten sicher bearbeiten',
-          body: 'Ändere die Startzeit eines abgeschlossenen Workouts, ohne dass sich seine Dauer verändert, oder passe die Dauer anschließend direkt an.',
         ),
       ],
     ),
@@ -350,11 +340,6 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
           title: 'La récupération là où tu t\'entraînes',
           body: 'la récupération musculaire se trouve maintenant en haut de l\'onglet Entraînement. L\'analyse des groupes musculaires affiche aussi tes schémas de mouvement, en plus de la couverture et de la fréquence.',
         ),
-        WhatsNewEntry(
-          icon: LucideIcons.timer,
-          title: 'Modifie les horaires de tes séances en toute confiance',
-          body: 'change l\'heure de début d\'une séance terminée sans modifier sa durée, ou ajuste directement cette durée ensuite.',
-        ),
       ],
     ),
     WhatsNewRelease(
@@ -508,11 +493,6 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
           title: 'Recupero dove ti alleni',
           body: 'il recupero muscolare ora è in cima alla scheda Allenamento. L\'analisi dei gruppi muscolari mostra anche i tuoi schemi di movimento, oltre a copertura e frequenza.',
         ),
-        WhatsNewEntry(
-          icon: LucideIcons.timer,
-          title: 'Modifica gli orari degli allenamenti con sicurezza',
-          body: 'cambia l\'ora di inizio di un allenamento completato mantenendone la durata, oppure modifica direttamente la durata in seguito.',
-        ),
       ],
     ),
     WhatsNewRelease(
@@ -665,11 +645,6 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
           icon: LucideIcons.heart,
           title: 'トレーニング画面で回復を確認',
           body: '筋肉の回復状況がワークアウトタブの上部に移動しました。筋肉グループ分析では、カバー率や頻度に加えて動作パターンも確認できます。',
-        ),
-        WhatsNewEntry(
-          icon: LucideIcons.timer,
-          title: 'ワークアウトの時間を安心して編集',
-          body: '完了したワークアウトの開始時刻を、時間を保ったまま変更できます。後から時間そのものを調整することもできます。',
         ),
       ],
     ),

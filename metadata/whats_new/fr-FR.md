@@ -14,8 +14,6 @@
 
 {heart} La récupération là où tu t'entraînes : la récupération musculaire se trouve maintenant en haut de l'onglet Entraînement. L'analyse des groupes musculaires affiche aussi tes schémas de mouvement, en plus de la couverture et de la fréquence.
 
-{timer} Modifie les horaires de tes séances en toute confiance : change l'heure de début d'une séance terminée sans modifier sa durée, ou ajuste directement cette durée ensuite.
-
 ## 1.3.0 (2026-09-07)
 
 {dumbbell} Superséries : regroupe des exercices de tes programmes en superséries, trisets ou groupes plus larges. Pendant la séance, tu alternes entre eux tour après tour, et le temps de repos ne démarre qu'après le dernier exercice d'un tour.

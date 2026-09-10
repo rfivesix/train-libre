@@ -14,8 +14,6 @@
 
 {heart} Recupero dove ti alleni: il recupero muscolare ora è in cima alla scheda Allenamento. L'analisi dei gruppi muscolari mostra anche i tuoi schemi di movimento, oltre a copertura e frequenza.
 
-{timer} Modifica gli orari degli allenamenti con sicurezza: cambia l'ora di inizio di un allenamento completato mantenendone la durata, oppure modifica direttamente la durata in seguito.
-
 ## 1.3.0 (2026-09-07)
 
 {dumbbell} Superserie: unisci gli esercizi delle tue schede in superserie, triset o gruppi più ampi. Durante l'allenamento li alterni giro dopo giro e il recupero parte solo dopo l'ultimo esercizio del giro.

@@ -14,8 +14,6 @@
 
 {heart} Regeneration dort, wo du trainierst: Die Muskelregeneration steht jetzt ganz oben im Workout-Tab. Die Muskelgruppen-Analyse zeigt neben Muskelabdeckung und Häufigkeit auch deine Bewegungsmuster.
 
-{timer} Trainingszeiten sicher bearbeiten: Ändere die Startzeit eines abgeschlossenen Workouts, ohne dass sich seine Dauer verändert, oder passe die Dauer anschließend direkt an.
-
 ## 1.3.0 (2026-09-07)
 
 {dumbbell} Supersätze: Verbinde Übungen in deinen Trainingsplänen zu Supersätzen, Trisätzen oder größeren Gruppen. Im Training wechselst du rundenweise zwischen ihnen, und die Pause startet erst nach der letzten Übung einer Runde.
