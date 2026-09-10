@@ -534,7 +534,14 @@ class MarkdownParser:
             else:
                 return f'<a href="{target}">{link_text}</a>'
 
-        text = re.sub(r'\[([^\]]+)\]\(([^\)]+)\)', link_repl, text)
+        # Markdown link destinations may contain a balanced parenthesis, as is
+        # common in DOI URLs such as `S0140-6736(11)60812-X`. A plain
+        # `[^)]` matcher would truncate those links at the first parenthesis.
+        text = re.sub(
+            r'\[([^\]]+)\]\(((?:[^()]|\([^()]*\))*)\)',
+            link_repl,
+            text,
+        )
 
         return text
 

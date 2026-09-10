@@ -15,6 +15,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Fixed
 - Live-Activity-Vorschläge werden nach abgeschlossener Progressionsberechnung zuverlässig synchronisiert und zeigen vorausgefüllte Werte auf iOS und Android an.
+- **Documentation Builder:** Preserve balanced parentheses in Markdown link destinations so DOI links render with their complete URL.
 - **Documentation Suite Header & Placeholder Fixes:** Fixed token placeholder collisions in `tool/build_docs.py` where italic markdown regex mangled inline code/math tokens. Aligned the Docs header brand element horizontally to match the exact pixel positioning of the main website header. Removed redundant Docs link in Docs header navigation.
 - **Mermaid Diagram Rendering:** Added Mermaid.js support to documentation pages to render architecture and database schema diagrams cleanly in dark and light modes with seamless theme-toggle updating.
 
