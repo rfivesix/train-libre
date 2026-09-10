@@ -162,6 +162,48 @@ void main() {
       expect(lastWeekEntry['setCount'], 1);
     });
 
+    test('editing a completed workout start preserves its duration', () async {
+      final originalStart = DateTime(2026, 9, 10, 9, 0);
+      final originalEnd = originalStart.add(const Duration(minutes: 75));
+      final id = await database.into(database.workoutLogs).insert(
+            db.WorkoutLogsCompanion.insert(
+              startTime: originalStart,
+              endTime: drift.Value(originalEnd),
+              status: const drift.Value('completed'),
+            ),
+          );
+      final editedStart = DateTime(2026, 9, 10, 15, 30);
+
+      await helper.updateWorkoutLogDetails(id, editedStart, 'Updated note');
+
+      final updated = await helper.getWorkoutLogById(id);
+      expect(updated?.startTime, editedStart);
+      expect(updated?.endTime, editedStart.add(const Duration(minutes: 75)));
+      expect(updated?.endTime?.difference(updated.startTime),
+          const Duration(minutes: 75));
+    });
+
+    test('editing a completed workout duration updates its end time', () async {
+      final start = DateTime(2026, 9, 10, 9, 0);
+      final id = await database.into(database.workoutLogs).insert(
+            db.WorkoutLogsCompanion.insert(
+              startTime: start,
+              endTime: drift.Value(start.add(const Duration(minutes: 45))),
+              status: const drift.Value('completed'),
+            ),
+          );
+
+      await helper.updateWorkoutLogDetails(
+        id,
+        start,
+        null,
+        duration: const Duration(minutes: 95),
+      );
+
+      final updated = await helper.getWorkoutLogById(id);
+      expect(updated?.endTime, start.add(const Duration(minutes: 95)));
+    });
+
     test('getMuscleGroupAnalytics counts primary working sets only', () async {
       final now = DateTime.now();
 

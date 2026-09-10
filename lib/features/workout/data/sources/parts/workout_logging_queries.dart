@@ -561,18 +561,38 @@ extension WorkoutLoggingQueries on WorkoutLocalDataSource {
   Future<void> updateWorkoutLogDetails(
     int logId,
     DateTime startTime,
-    String? notes,
-  ) async {
+    String? notes, {
+    Duration? duration,
+  }) async {
     final dbInstance = await database;
-    await (dbInstance.update(
-      dbInstance.workoutLogs,
-    )..where((tbl) => tbl.localId.equals(logId)))
-        .write(
-      db.WorkoutLogsCompanion(
-        startTime: drift.Value(startTime),
-        notes: drift.Value(notes),
-      ),
-    );
+    await dbInstance.transaction(() async {
+      final existing = await (dbInstance.select(dbInstance.workoutLogs)
+            ..where((tbl) => tbl.localId.equals(logId))
+            ..limit(1))
+          .getSingle();
+      final previousDuration = existing.endTime?.difference(existing.startTime);
+      final effectiveDuration = duration ?? previousDuration;
+      final preservedEndTime = effectiveDuration == null
+          ? const drift.Value<DateTime?>.absent()
+          : drift.Value(
+              startTime.add(
+                effectiveDuration.isNegative
+                    ? Duration.zero
+                    : effectiveDuration,
+              ),
+            );
+
+      await (dbInstance.update(
+        dbInstance.workoutLogs,
+      )..where((tbl) => tbl.localId.equals(logId)))
+          .write(
+        db.WorkoutLogsCompanion(
+          startTime: drift.Value(startTime),
+          endTime: preservedEndTime,
+          notes: drift.Value(notes),
+        ),
+      );
+    });
   }
 
   Future<void> deleteSetLogs(List<int> idsToDelete) async {

@@ -35,6 +35,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **ExperienceLevel Persistence (`ExperienceLevelService`, `AppSettings`):** Experience level preference moved from `SharedPreferences` to SQLite `AppSettings.experienceLevel` with automatic one-time migration and backup/restore support.
 
 ### Fixed
+- **Weight ruler and workout timing:** The Diary weight ruler now provides a
+  selection haptic at every 0.1 kg position. Editing a completed workout's
+  start time now shifts its end time by the same amount, preserving duration;
+  the duration itself can now be edited afterward.
 - **Summary-card shadows:** Removed the remaining Light Mode drop shadow from
   compact `GlassProgressBar` summary-card variants as well as the shared card
   surface.

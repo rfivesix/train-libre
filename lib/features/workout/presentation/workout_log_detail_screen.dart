@@ -46,6 +46,8 @@ import 'widgets/reorder_drag_proxy.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../util/time_util.dart';
 import '../../../widgets/common/app_button.dart';
+import '../../../widgets/common/platform_adaptive_pickers.dart'
+    as adaptive_pickers;
 import '../../../services/telemetry/telemetry_service.dart';
 
 /// A detailed view for a single completed [WorkoutLog].
@@ -195,6 +197,7 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
 
   bool _pulseTrackingEnabled = false;
   DateTime? _editedStartTime;
+  Duration? _editedDuration;
   static const ShareService _shareService = ShareService();
 
   StreamSubscription<List<SetLog>>? _setLogsSubscription;
@@ -473,6 +476,7 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
 
     _notesController.text = data.notes ?? '';
     _editedStartTime = data.startTime;
+    _editedDuration = data.endTime?.difference(data.startTime);
 
     // Populate controllers
     _clearControllers();
@@ -780,6 +784,18 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
     });
   }
 
+  Future<void> _pickDuration() async {
+    final initialDuration = _editedDuration ?? Duration.zero;
+    final selected = await adaptive_pickers.showAdaptiveDurationPicker(
+      context: context,
+      initialDuration: initialDuration,
+      title: AppLocalizations.of(context)!.durationLabel,
+    );
+    if (selected == null || !mounted) return;
+
+    setState(() => _editedDuration = selected);
+  }
+
   Future<void> _saveChanges() async {
     FocusScope.of(context).unfocus();
     if (_formKey.currentState != null && !_formKey.currentState!.validate()) {
@@ -864,6 +880,7 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
           widget.logId,
           _editedStartTime!,
           _notesController.text,
+          duration: _editedDuration,
         );
         if (idsToDelete.isNotEmpty) await dbHelper.deleteSetLogs(idsToDelete);
         if (setsToUpdate.isNotEmpty) await dbHelper.updateSetLogs(setsToUpdate);
@@ -1078,8 +1095,9 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
         totalVolume += (set.weightKg ?? 0) * (set.reps ?? 0);
       }
     }
-    final Duration duration =
-        _log?.endTime?.difference(_log!.startTime) ?? Duration.zero;
+    final Duration duration = _isEditMode
+        ? (_editedDuration ?? Duration.zero)
+        : (_log?.endTime?.difference(_log!.startTime) ?? Duration.zero);
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -1191,6 +1209,21 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                                       color: colorScheme.onSurfaceVariant,
                                     ),
                                   ),
+                                  if (_isEditMode && _log!.endTime != null)
+                                    Align(
+                                      alignment: Alignment.centerLeft,
+                                      child: TextButton.icon(
+                                        onPressed: _pickDuration,
+                                        icon: Icon(
+                                          LucideIcons.timer,
+                                          size: 17,
+                                          color: colorScheme.primary,
+                                        ),
+                                        label: Text(
+                                          '${l10n.durationLabel}: ${formatDuration(duration)}',
+                                        ),
+                                      ),
+                                    ),
                                   if (_isEditMode) ...[
                                     const SizedBox(
                                         height: DesignConstants.spacingM),
