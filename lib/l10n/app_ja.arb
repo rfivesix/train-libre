@@ -533,6 +533,8 @@
   "free_training": "無料のトレーニング",
   "my_consistency": "私の一貫性",
   "calendar_currently_not_available": "カレンダー ビューは近日中に利用できるようになる予定です。",
+  "datePickerCalendar": "カレンダー表示",
+  "datePickerWheel": "ホイール表示",
   "in_depth_analysis": "徹底した分析",
   "body_measurements": "身体測定",
   "measurements_description": "体重、体脂肪率、周囲径を分析します。",

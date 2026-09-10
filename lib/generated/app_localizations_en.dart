@@ -1346,6 +1346,12 @@ class AppLocalizationsEn extends AppLocalizations {
       'The calendar view will be available soon.';
 
   @override
+  String get datePickerCalendar => 'Calendar view';
+
+  @override
+  String get datePickerWheel => 'Wheel view';
+
+  @override
   String get in_depth_analysis => 'IN-DEPTH ANALYSIS';
 
   @override

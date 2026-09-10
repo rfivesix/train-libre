@@ -2,11 +2,13 @@
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import '../../generated/app_localizations.dart';
 import '../../util/design_constants.dart';
 import '../../features/statistics/domain/timeframe_block.dart';
 import 'package:intl/intl.dart';
+import 'package:table_calendar/table_calendar.dart';
 import 'glass_border_painter.dart';
 import '../../services/haptic_feedback_service.dart';
 import 'app_button.dart';
@@ -23,6 +25,8 @@ String _getSelectTimeTitle(BuildContext context) {
   return AppLocalizations.of(context)?.selectTimeTitle ?? 'Select Time';
 }
 
+enum AdaptiveDatePickerView { wheel, calendar }
+
 /// A platform-adaptive Date Picker.
 ///
 /// On Android, displays a themed Material 3 Date Picker dialog.
@@ -34,12 +38,14 @@ Future<DateTime?> showAdaptiveDatePicker({
   required DateTime firstDate,
   required DateTime lastDate,
   Locale? locale,
+  AdaptiveDatePickerView initialView = AdaptiveDatePickerView.wheel,
 }) async {
   return _showGlassDatePicker(
     context: context,
     initialDate: initialDate,
     firstDate: firstDate,
     lastDate: lastDate,
+    initialView: initialView,
   );
 }
 
@@ -240,8 +246,11 @@ Future<DateTime?> _showGlassDatePicker({
   required DateTime initialDate,
   required DateTime firstDate,
   required DateTime lastDate,
+  required AdaptiveDatePickerView initialView,
 }) async {
   DateTime tempDate = initialDate;
+  DateTime focusedDate = initialDate;
+  bool showCalendar = initialView == AdaptiveDatePickerView.calendar;
   final isDark = Theme.of(context).brightness == Brightness.dark;
   final l10n = AppLocalizations.of(context);
   final theme = Theme.of(context);
@@ -258,114 +267,215 @@ Future<DateTime?> _showGlassDatePicker({
     backgroundColor: Colors.transparent,
     barrierColor: barrierColor,
     builder: (ctx) {
-      final kb = MediaQuery.of(ctx).viewInsets.bottom;
-      return AnimatedPadding(
-        duration: const Duration(milliseconds: 220),
-        curve: Curves.easeOutCubic,
-        padding: EdgeInsets.only(bottom: kb),
-        child: _GlassPickerSheet(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Title at the top
-              Padding(
-                padding: const EdgeInsets.only(
-                  left: DesignConstants.spacingL,
-                  right: DesignConstants.spacingL,
-                  top: DesignConstants.spacingL,
-                  bottom: DesignConstants.spacingS,
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const SizedBox(width: 60),
-                    Text(
-                      _getSelectDateTitle(ctx),
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
+      return StatefulBuilder(
+        builder: (ctx, setModalState) {
+          final kb = MediaQuery.of(ctx).viewInsets.bottom;
+          return AnimatedPadding(
+            duration: const Duration(milliseconds: 220),
+            curve: Curves.easeOutCubic,
+            padding: EdgeInsets.only(bottom: kb),
+            child: _GlassPickerSheet(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Title at the top
+                  Padding(
+                    padding: const EdgeInsets.only(
+                      left: DesignConstants.spacingL,
+                      right: DesignConstants.spacingL,
+                      top: DesignConstants.spacingL,
+                      bottom: DesignConstants.spacingS,
                     ),
-                    SizedBox(
-                      width: 60,
-                      child: Align(
-                        alignment: Alignment.centerRight,
-                        child: TextButton(
-                          style: TextButton.styleFrom(
-                            padding: EdgeInsets.zero,
-                            minimumSize: const Size(0, 0),
-                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        SizedBox(
+                          width: 60,
+                          child: Align(
+                            alignment: Alignment.centerLeft,
+                            child: IconButton(
+                              tooltip: showCalendar
+                                  ? (l10n?.datePickerWheel ?? 'Wheel picker')
+                                  : (l10n?.datePickerCalendar ?? 'Calendar'),
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(
+                                minWidth: 44,
+                                minHeight: 44,
+                              ),
+                              onPressed: () {
+                                HapticFeedbackService.instance
+                                    .selectionFeedback();
+                                setModalState(
+                                    () => showCalendar = !showCalendar);
+                              },
+                              icon: Icon(
+                                showCalendar
+                                ? LucideIcons.columns_3
+                                    : LucideIcons.calendar_days,
+                              ),
+                            ),
                           ),
-                          onPressed: () {
-                            HapticFeedbackService.instance.selectionFeedback();
-                            Navigator.pop(ctx, DateTime.now());
-                          },
-                          child: Text(
-                            l10n?.today ?? 'Today',
-                            style: const TextStyle(fontWeight: FontWeight.w600),
+                        ),
+                        Text(
+                          _getSelectDateTitle(ctx),
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        SizedBox(
+                          width: 60,
+                          child: Align(
+                            alignment: Alignment.centerRight,
+                            child: TextButton(
+                              style: TextButton.styleFrom(
+                                padding: EdgeInsets.zero,
+                                minimumSize: const Size(0, 0),
+                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              ),
+                              onPressed: () {
+                                HapticFeedbackService.instance
+                                    .selectionFeedback();
+                                Navigator.pop(ctx, DateTime.now());
+                              },
+                              child: Text(
+                                l10n?.today ?? 'Today',
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.w600),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (showCalendar)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: DesignConstants.spacingS,
+                      ),
+                      child: TableCalendar<void>(
+                        firstDay: firstDate,
+                        lastDay: lastDate,
+                        focusedDay: focusedDate,
+                        selectedDayPredicate: (day) => isSameDay(day, tempDate),
+                        onDaySelected: (selectedDay, newFocusedDay) {
+                          HapticFeedbackService.instance.selectionFeedback();
+                          tempDate = selectedDay;
+                          focusedDate = newFocusedDay;
+                          setModalState(() {});
+                        },
+                        onPageChanged: (newFocusedDay) {
+                          focusedDate = newFocusedDay;
+                          setModalState(() {});
+                        },
+                        locale: Localizations.localeOf(ctx).toLanguageTag(),
+                        startingDayOfWeek: StartingDayOfWeek.monday,
+                        headerStyle: HeaderStyle(
+                          titleCentered: true,
+                          formatButtonVisible: false,
+                          leftChevronIcon: Icon(
+                            LucideIcons.chevron_left,
+                            color: theme.colorScheme.onSurface,
+                          ),
+                          rightChevronIcon: Icon(
+                            LucideIcons.chevron_right,
+                            color: theme.colorScheme.onSurface,
+                          ),
+                          titleTextStyle: theme.textTheme.titleMedium!.copyWith(
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        calendarStyle: CalendarStyle(
+                          outsideDaysVisible: false,
+                          defaultTextStyle: TextStyle(
+                            color: theme.colorScheme.onSurface,
+                          ),
+                          weekendTextStyle: TextStyle(
+                            color: theme.colorScheme.onSurface,
+                          ),
+                          todayDecoration: BoxDecoration(
+                            color: theme.colorScheme.primary
+                                .withValues(alpha: 0.18),
+                            shape: BoxShape.circle,
+                          ),
+                          todayTextStyle: TextStyle(
+                            color: theme.colorScheme.onSurface,
+                            fontWeight: FontWeight.w700,
+                          ),
+                          selectedDecoration: BoxDecoration(
+                            color: theme.colorScheme.primary,
+                            shape: BoxShape.circle,
+                          ),
+                          selectedTextStyle: TextStyle(
+                            color: theme.colorScheme.onPrimary,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
-              ),
-              // Date Picker Wheel
-              SizedBox(
-                height: 200,
-                child: CupertinoTheme(
-                  data: CupertinoThemeData(
-                    brightness: isDark ? Brightness.dark : Brightness.light,
-                    textTheme: CupertinoTextThemeData(
-                      dateTimePickerTextStyle: TextStyle(
-                        color: isDark ? Colors.white : Colors.black87,
-                        fontSize: 20,
+                    )
+                  else
+                    // Date Picker Wheel
+                    SizedBox(
+                      height: 200,
+                      child: CupertinoTheme(
+                        data: CupertinoThemeData(
+                          brightness:
+                              isDark ? Brightness.dark : Brightness.light,
+                          textTheme: CupertinoTextThemeData(
+                            dateTimePickerTextStyle: TextStyle(
+                              color: isDark ? Colors.white : Colors.black87,
+                              fontSize: 20,
+                            ),
+                          ),
+                        ),
+                        child: CupertinoDatePicker(
+                          initialDateTime: initialDate,
+                          minimumDate: firstDate,
+                          maximumDate: lastDate,
+                          mode: CupertinoDatePickerMode.date,
+                          use24hFormat:
+                              MediaQuery.alwaysUse24HourFormatOf(ctx) ||
+                                  Localizations.localeOf(ctx).languageCode ==
+                                      'de',
+                          onDateTimeChanged: (DateTime newDate) {
+                            tempDate = newDate;
+                          },
+                        ),
                       ),
+                    ),
+                  // Action Buttons
+                  Padding(
+                    padding: const EdgeInsets.only(
+                      left: DesignConstants.spacingL,
+                      right: DesignConstants.spacingL,
+                      top: DesignConstants.spacingXS,
+                      bottom: DesignConstants.spacingM,
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: AppButton.secondary(
+                            onPressed: () => Navigator.pop(ctx),
+                            label: l10n?.cancel ?? 'Cancel',
+                            tooltip: l10n?.cancel ?? 'Cancel',
+                          ),
+                        ),
+                        const SizedBox(width: DesignConstants.spacingM),
+                        Expanded(
+                          child: AppButton.primary(
+                            onPressed: () => Navigator.pop(ctx, tempDate),
+                            label: l10n?.snackbarButtonOK ?? 'OK',
+                            tooltip: l10n?.snackbarButtonOK ?? 'OK',
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  child: CupertinoDatePicker(
-                    initialDateTime: initialDate,
-                    minimumDate: firstDate,
-                    maximumDate: lastDate,
-                    mode: CupertinoDatePickerMode.date,
-                    use24hFormat: MediaQuery.alwaysUse24HourFormatOf(ctx) ||
-                        Localizations.localeOf(ctx).languageCode == 'de',
-                    onDateTimeChanged: (DateTime newDate) {
-                      tempDate = newDate;
-                    },
-                  ),
-                ),
+                ],
               ),
-              // Action Buttons
-              Padding(
-                padding: const EdgeInsets.only(
-                  left: DesignConstants.spacingL,
-                  right: DesignConstants.spacingL,
-                  top: DesignConstants.spacingXS,
-                  bottom: DesignConstants.spacingM,
-                ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: AppButton.secondary(
-                        onPressed: () => Navigator.pop(ctx),
-                        label: l10n?.cancel ?? 'Cancel',
-                        tooltip: l10n?.cancel ?? 'Cancel',
-                      ),
-                    ),
-                    const SizedBox(width: DesignConstants.spacingM),
-                    Expanded(
-                      child: AppButton.primary(
-                        onPressed: () => Navigator.pop(ctx, tempDate),
-                        label: l10n?.snackbarButtonOK ?? 'OK',
-                        tooltip: l10n?.snackbarButtonOK ?? 'OK',
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
+            ),
+          );
+        },
       );
     },
   );

@@ -532,6 +532,8 @@
   "free_training": "free training",
   "my_consistency": "MY CONSISTENCY",
   "calendar_currently_not_available": "The calendar view will be available soon.",
+  "datePickerCalendar": "Calendar view",
+  "datePickerWheel": "Wheel view",
   "in_depth_analysis": "IN-DEPTH ANALYSIS",
   "body_measurements": "Body measurements",
   "measurements_description": "Analyze weight, body fat percentage and circumference.",

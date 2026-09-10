@@ -1353,6 +1353,12 @@ class AppLocalizationsDe extends AppLocalizations {
       'Die Kalender-Ansicht ist in Kürze verfügbar.';
 
   @override
+  String get datePickerCalendar => 'Kalenderansicht';
+
+  @override
+  String get datePickerWheel => 'Schieberadansicht';
+
+  @override
   String get in_depth_analysis => 'TIEFEN-ANALYSE';
 
   @override

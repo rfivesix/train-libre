@@ -1333,6 +1333,12 @@ class AppLocalizationsJa extends AppLocalizations {
       'カレンダー ビューは近日中に利用できるようになる予定です。';
 
   @override
+  String get datePickerCalendar => 'カレンダー表示';
+
+  @override
+  String get datePickerWheel => 'ホイール表示';
+
+  @override
   String get in_depth_analysis => '徹底した分析';
 
   @override

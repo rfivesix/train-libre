@@ -2402,6 +2402,18 @@ abstract class AppLocalizations {
   /// **'The calendar view will be available soon.'**
   String get calendar_currently_not_available;
 
+  /// No description provided for @datePickerCalendar.
+  ///
+  /// In en, this message translates to:
+  /// **'Calendar view'**
+  String get datePickerCalendar;
+
+  /// No description provided for @datePickerWheel.
+  ///
+  /// In en, this message translates to:
+  /// **'Wheel view'**
+  String get datePickerWheel;
+
   /// No description provided for @in_depth_analysis.
   ///
   /// In en, this message translates to:

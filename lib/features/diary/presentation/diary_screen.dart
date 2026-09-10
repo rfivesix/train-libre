@@ -876,6 +876,7 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
       initialDate: viewModel.selectedDate,
       firstDate: DateTime(2020),
       lastDate: DateTime.now().add(const Duration(days: 365)),
+      initialView: AdaptiveDatePickerView.calendar,
     );
     if (picked != null) {
       viewModel.pickDate(picked);

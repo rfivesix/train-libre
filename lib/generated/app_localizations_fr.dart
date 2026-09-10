@@ -1358,6 +1358,12 @@ class AppLocalizationsFr extends AppLocalizations {
       'La vue du calendrier sera bientôt disponible.';
 
   @override
+  String get datePickerCalendar => 'Vue calendrier';
+
+  @override
+  String get datePickerWheel => 'Vue roulette';
+
+  @override
   String get in_depth_analysis => 'ANALYSE APPROFONDIE';
 
   @override

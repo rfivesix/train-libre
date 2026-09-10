@@ -1353,6 +1353,12 @@ class AppLocalizationsIt extends AppLocalizations {
       'La visualizzazione del calendario sarà presto disponibile.';
 
   @override
+  String get datePickerCalendar => 'Vista calendario';
+
+  @override
+  String get datePickerWheel => 'Vista a rotella';
+
+  @override
   String get in_depth_analysis => 'ANALISI APPROFONDITA';
 
   @override

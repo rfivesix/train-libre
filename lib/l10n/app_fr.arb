@@ -533,6 +533,8 @@
   "free_training": "formation gratuite",
   "my_consistency": "MA COHÉRENCE",
   "calendar_currently_not_available": "La vue du calendrier sera bientôt disponible.",
+  "datePickerCalendar": "Vue calendrier",
+  "datePickerWheel": "Vue roulette",
   "in_depth_analysis": "ANALYSE APPROFONDIE",
   "body_measurements": "Mesures du corps",
   "measurements_description": "Analysez le poids, le pourcentage de graisse corporelle et la circonférence.",

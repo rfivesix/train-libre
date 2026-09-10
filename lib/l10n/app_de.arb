@@ -533,6 +533,8 @@
   "free_training": "Freies Training",
   "my_consistency": "MEINE KONSISTENZ",
   "calendar_currently_not_available": "Die Kalender-Ansicht ist in Kürze verfügbar.",
+  "datePickerCalendar": "Kalenderansicht",
+  "datePickerWheel": "Schieberadansicht",
   "in_depth_analysis": "TIEFEN-ANALYSE",
   "body_measurements": "Körpermaße",
   "measurements_description": "Gewicht, KFA und Umfänge analysieren.",
