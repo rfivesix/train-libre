@@ -219,6 +219,9 @@ The closed set of values lives in `FeatureKey` (`lib/services/telemetry/telemetr
 * **`ai_meal_correction_completed`**: `has_images`, `latency_bucket`, `success`, `repair_attempts_count`, `error_code`
 * **`db_migration_status`**: `from_version`, `to_version`, `success`
 
+* **`app_review_prompt_responded`** (Post-workout App Store review menu):
+  * `response` (string enum: `"yes"`, `"no"`, or `"later"`). Dismissing or dragging away the menu is recorded as `"later"`; no review text, App Store result, workout details, or user identifiers are sent.
+
 * **`performance_stall`** (UI Freeze Detection):
   Emitted when the UI isolate stopped answering for at least 1.2 seconds — a freeze the user experiences as the app not reacting to taps. A frozen UI is the one problem a user cannot describe usefully after the fact, so it is reported on its own rather than waiting for a feedback report that may never be sent. Capped at **5 events per app session**, so an app stuck in a pathological loop cannot flood the pipeline.
   * `screen` (string: the Dart class name of the screen, e.g. `"DataManagementScreen"`, or a tab label such as `"DiaryTab"` — never a title or any user-authored text)

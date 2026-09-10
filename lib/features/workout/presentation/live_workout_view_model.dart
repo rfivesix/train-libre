@@ -22,6 +22,7 @@ import '../data/live_activity/workout_live_activity_service.dart';
 import '../domain/live_activity/build_workout_live_activity_content.dart';
 import '../domain/live_activity/workout_live_activity_content.dart';
 import '../domain/live_activity/workout_live_activity_strings.dart';
+import '../domain/workout_next_set.dart';
 import '../../../services/local_notification_service.dart';
 import '../../../services/haptic_feedback_service.dart';
 import '../../../services/sound_service.dart';
@@ -202,59 +203,13 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   ({int exerciseIndex, int templateIndex, int templateId})? _nextOpenSet() {
-    var exerciseIndex = 0;
-    while (exerciseIndex < _exercises.length) {
-      final exercise = _exercises[exerciseIndex];
-      final group = exercise.supersetGroup;
-      if (group == null) {
-        if (exercise.setTemplates.isEmpty) {
-          return (
-            exerciseIndex: exerciseIndex,
-            templateIndex: 0,
-            templateId: -1
-          );
-        }
-        for (var templateIndex = 0;
-            templateIndex < exercise.setTemplates.length;
-            templateIndex++) {
-          final id = exercise.setTemplates[templateIndex].id;
-          if (id != null && _setLogs[id]?.isCompleted != true) {
-            return (
-              exerciseIndex: exerciseIndex,
-              templateIndex: templateIndex,
-              templateId: id,
-            );
-          }
-        }
-        exerciseIndex++;
-        continue;
-      }
-
-      var groupEnd = exerciseIndex;
-      var rounds = 0;
-      while (groupEnd < _exercises.length &&
-          _exercises[groupEnd].supersetGroup == group) {
-        final count = _exercises[groupEnd].setTemplates.length;
-        if (count > rounds) rounds = count;
-        groupEnd++;
-      }
-      for (var round = 0; round < rounds; round++) {
-        for (var member = exerciseIndex; member < groupEnd; member++) {
-          final templates = _exercises[member].setTemplates;
-          if (round >= templates.length) continue;
-          final id = templates[round].id;
-          if (id != null && _setLogs[id]?.isCompleted != true) {
-            return (
-              exerciseIndex: member,
-              templateIndex: round,
-              templateId: id,
-            );
-          }
-        }
-      }
-      exerciseIndex = groupEnd;
-    }
-    return null;
+    final next = findNextWorkoutSet(_exercises, _setLogs);
+    if (next == null) return null;
+    return (
+      exerciseIndex: next.exerciseIndex,
+      templateIndex: next.templateIndex,
+      templateId: next.templateId,
+    );
   }
 
   String _displayNameOf(RoutineExercise exercise, String languageCode) {

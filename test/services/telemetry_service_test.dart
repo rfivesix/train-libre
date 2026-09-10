@@ -23,7 +23,9 @@ void main() {
       noOpService = const NoOpTelemetryService();
     });
 
-    test('NoOpTelemetryService defaults to opted out and performs no-ops without throwing', () async {
+    test(
+        'NoOpTelemetryService defaults to opted out and performs no-ops without throwing',
+        () async {
       expect(await noOpService.isOptedIn(), isFalse);
 
       await noOpService.init();
@@ -47,9 +49,12 @@ void main() {
       );
       await noOpService.incrementFoodLogCount(source: 'barcode_scan');
       await noOpService.flushDailyFoodLog();
+      await noOpService.trackAppReviewPromptResponded(response: 'later');
     });
 
-    test('PostHogTelemetryService handles opt-in, persistent device ID and daily food logging state', () async {
+    test(
+        'PostHogTelemetryService handles opt-in, persistent device ID and daily food logging state',
+        () async {
       final prefs = await SharedPreferences.getInstance();
 
       expect(await postHogService.isOptedIn(), isFalse);
@@ -63,7 +68,8 @@ void main() {
       await postHogService.incrementFoodLogCount(source: 'manual_search');
 
       expect(prefs.getInt('telemetry_daily_food_count'), 2);
-      expect(prefs.getStringList('telemetry_daily_food_sources'), containsAll(['barcode_scan', 'manual_search']));
+      expect(prefs.getStringList('telemetry_daily_food_sources'),
+          containsAll(['barcode_scan', 'manual_search']));
 
       // Flush daily food log
       await postHogService.flushDailyFoodLog();
@@ -77,11 +83,13 @@ void main() {
       expect(prefs.getBool('telemetry_opt_in'), isFalse);
     });
 
-    test('PostHogTelemetryService tracks workout completed without PII', () async {
+    test('PostHogTelemetryService tracks workout completed without PII',
+        () async {
       await postHogService.optIn();
 
       await postHogService.trackWorkoutCompleted(
-        workoutType: 'My Custom Leg Day Workout Name', // Should be sanitized to 'custom'
+        workoutType:
+            'My Custom Leg Day Workout Name', // Should be sanitized to 'custom'
         exerciseCount: 6,
         setCount: 24,
         durationMinutes: 60,
@@ -97,7 +105,8 @@ void main() {
       );
     });
 
-    test('PostHogTelemetryService onboarding step and completion tracking', () async {
+    test('PostHogTelemetryService onboarding step and completion tracking',
+        () async {
       await postHogService.optIn();
 
       const sessionId = 'test-session-uuid-1234';
@@ -115,7 +124,9 @@ void main() {
       );
     });
 
-    test('PostHogTelemetryService resetLocalData clears persistent device ID and counters', () async {
+    test(
+        'PostHogTelemetryService resetLocalData clears persistent device ID and counters',
+        () async {
       final prefs = await SharedPreferences.getInstance();
       await postHogService.optIn();
 
@@ -128,8 +139,11 @@ void main() {
       expect(prefs.getString('telemetry_persistent_device_id'), isNotNull);
     });
 
-    test('TelemetryService resolves system locale and country metadata accurately', () {
-      final (locale, country) = TelemetryService.resolveSystemLocaleAndCountry();
+    test(
+        'TelemetryService resolves system locale and country metadata accurately',
+        () {
+      final (locale, country) =
+          TelemetryService.resolveSystemLocaleAndCountry();
       expect(locale, isNotEmpty);
       expect(country, isNotEmpty);
       expect(country.length, 2);
@@ -147,7 +161,8 @@ void main() {
       expect(metaUS.continentName, 'North America');
     });
 
-    test('PostHogTelemetryService tracks app launched with country and locale', () async {
+    test('PostHogTelemetryService tracks app launched with country and locale',
+        () async {
       await postHogService.optIn();
       await postHogService.trackAppLaunched(
         appVersion: '1.0.0',
@@ -158,7 +173,9 @@ void main() {
       );
     });
 
-    test('PostHogTelemetryService tracks recommendation generated and feedback report submitted', () async {
+    test(
+        'PostHogTelemetryService tracks recommendation generated and feedback report submitted',
+        () async {
       await postHogService.optIn();
       await postHogService.trackRecommendationGenerated(
         weightLogCount: 12,
@@ -247,6 +264,13 @@ void main() {
       );
     });
 
+    test('AppReviewPromptResponse only permits the documented responses', () {
+      expect(AppReviewPromptResponse.sanitize('yes'), 'yes');
+      expect(AppReviewPromptResponse.sanitize('no'), 'no');
+      expect(AppReviewPromptResponse.sanitize('later'), 'later');
+      expect(AppReviewPromptResponse.sanitize('unexpected'), 'later');
+    });
+
     test('init does not touch the PostHog SDK while opted out', () async {
       // Posthog().setup() unconditionally triggers the native remote-config
       // fetch, which ignores the opt-out state — so setup itself would open a
@@ -301,11 +325,20 @@ void main() {
       }
     });
 
-    test('TelemetryBuckets handles voice durations and item counts accurately', () {
-      expect(TelemetryBuckets.getVoiceDurationBucket(const Duration(seconds: 2)), '<5s');
-      expect(TelemetryBuckets.getVoiceDurationBucket(const Duration(seconds: 10)), '5-15s');
-      expect(TelemetryBuckets.getVoiceDurationBucket(const Duration(seconds: 20)), '15-30s');
-      expect(TelemetryBuckets.getVoiceDurationBucket(const Duration(seconds: 45)), '>30s');
+    test('TelemetryBuckets handles voice durations and item counts accurately',
+        () {
+      expect(
+          TelemetryBuckets.getVoiceDurationBucket(const Duration(seconds: 2)),
+          '<5s');
+      expect(
+          TelemetryBuckets.getVoiceDurationBucket(const Duration(seconds: 10)),
+          '5-15s');
+      expect(
+          TelemetryBuckets.getVoiceDurationBucket(const Duration(seconds: 20)),
+          '15-30s');
+      expect(
+          TelemetryBuckets.getVoiceDurationBucket(const Duration(seconds: 45)),
+          '>30s');
 
       expect(TelemetryBuckets.getItemCountBucket(0), '0');
       expect(TelemetryBuckets.getItemCountBucket(2), '1-2');
@@ -313,7 +346,9 @@ void main() {
       expect(TelemetryBuckets.getItemCountBucket(8), '6+');
     });
 
-    test('PostHogTelemetryService tracks AI meal scan, voice dictation, and corrections', () async {
+    test(
+        'PostHogTelemetryService tracks AI meal scan, voice dictation, and corrections',
+        () async {
       await postHogService.optIn();
 
       await postHogService.trackAiMealScanRequested(
@@ -354,11 +389,15 @@ void main() {
         success: true,
         repairAttemptsCount: 1,
       );
+      await postHogService.trackAppReviewPromptResponded(response: 'later');
     });
 
-    test('ICloudSyncService.setSyncEnabled tracks setting_toggled and feature_used on toggle', () async {
+    test(
+        'ICloudSyncService.setSyncEnabled tracks setting_toggled and feature_used on toggle',
+        () async {
       final trackedEvents = <Map<String, dynamic>>[];
-      final testTelemetry = TestTelemetryService((event) => trackedEvents.add(event));
+      final testTelemetry =
+          TestTelemetryService((event) => trackedEvents.add(event));
       TelemetryService.instance = testTelemetry;
 
       await ICloudSyncService.instance.setSyncEnabled(true);
@@ -368,7 +407,8 @@ void main() {
       expect(trackedEvents[0]['setting_key'], equals('icloud_sync_enabled'));
       expect(trackedEvents[0]['value'], equals(true));
       expect(trackedEvents[1]['type'], equals('feature_used'));
-      expect(trackedEvents[1]['feature_key'], equals(FeatureKey.icloudSyncTriggered));
+      expect(trackedEvents[1]['feature_key'],
+          equals(FeatureKey.icloudSyncTriggered));
 
       trackedEvents.clear();
 
@@ -391,7 +431,8 @@ class TestTelemetryService extends NoOpTelemetryService {
     required String settingKey,
     required dynamic value,
   }) async {
-    onTrack({'type': 'setting_toggled', 'setting_key': settingKey, 'value': value});
+    onTrack(
+        {'type': 'setting_toggled', 'setting_key': settingKey, 'value': value});
   }
 
   @override

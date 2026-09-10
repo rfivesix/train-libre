@@ -264,6 +264,56 @@ void main() {
     });
   });
 
+  group('Supersets', () {
+    test('shows the next member round by round, including trisets', () {
+      final exercises = [
+        RoutineExercise(
+          id: 40,
+          exercise: _exercise(name: 'A', category: 'Strength'),
+          supersetGroup: 1,
+          setTemplates: [
+            SetTemplate(id: 401, setType: 'normal'),
+            SetTemplate(id: 402, setType: 'normal'),
+          ],
+        ),
+        RoutineExercise(
+          id: 50,
+          exercise: _exercise(name: 'B', category: 'Strength'),
+          supersetGroup: 1,
+          setTemplates: [SetTemplate(id: 501, setType: 'normal')],
+        ),
+        RoutineExercise(
+          id: 60,
+          exercise: _exercise(name: 'C', category: 'Strength'),
+          supersetGroup: 1,
+          setTemplates: [
+            SetTemplate(id: 601, setType: 'normal'),
+            SetTemplate(id: 602, setType: 'normal'),
+            SetTemplate(id: 603, setType: 'normal'),
+          ],
+        ),
+      ];
+      final logs = {
+        401: _log(exerciseName: 'A', completed: true),
+        402: _log(exerciseName: 'A'),
+        501: _log(exerciseName: 'B'),
+        601: _log(exerciseName: 'C'),
+        602: _log(exerciseName: 'C'),
+        603: _log(exerciseName: 'C'),
+      };
+
+      expect(_build(exercises: exercises, setLogs: logs).exerciseName, 'B');
+
+      logs[501] = _log(exerciseName: 'B', completed: true);
+      expect(_build(exercises: exercises, setLogs: logs).exerciseName, 'C');
+
+      logs[601] = _log(exerciseName: 'C', completed: true);
+      final nextRound = _build(exercises: exercises, setLogs: logs);
+      expect(nextRound.exerciseName, 'A');
+      expect(nextRound.setPosition, 'Satz 2 von 2');
+    });
+  });
+
   group('Cardio', () {
     final cardioExercise = RoutineExercise(
       id: 20,

@@ -708,7 +708,10 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
         HapticFeedbackService.instance.confirmationFeedback();
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
-            builder: (context) => WorkoutSummaryScreen(logId: logId),
+            builder: (context) => WorkoutSummaryScreen(
+              logId: logId,
+              requestReviewOnClose: true,
+            ),
           ),
         );
       }

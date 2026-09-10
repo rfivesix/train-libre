@@ -6,6 +6,16 @@
   Danach ausführen: python3 script/build_whats_new.py --write --sync-store
 -->
 
+## 1.4.0 (2026-09-10)
+
+{layout_grid} Tagebuch nach Datum durchsuchen: Über eine neue, horizontal scrollbare Tagesleiste wechselst du mit einem Tipp zu nahegelegenen Tagen. Wenn du im Tagebuch ein Datum auswählst, öffnet sich direkt der Kalender.
+
+{sparkles} Intelligentere Vorschläge für den nächsten Satz: Aktivierst du Trainingsvorschläge in den Einstellungen, kann Train Libre das Gewicht für den nächsten Arbeitssatz anhand deiner letzten Leistung vorausfüllen. Vor dem Speichern kannst du es jederzeit ändern.
+
+{heart} Regeneration dort, wo du trainierst: Die Muskelregeneration steht jetzt ganz oben im Workout-Tab. Die Muskelgruppen-Analyse zeigt neben Muskelabdeckung und Häufigkeit auch deine Bewegungsmuster.
+
+{timer} Trainingszeiten sicher bearbeiten: Ändere die Startzeit eines abgeschlossenen Workouts, ohne dass sich seine Dauer verändert, oder passe die Dauer anschließend direkt an.
+
 ## 1.3.0 (2026-09-07)
 
 {dumbbell} Supersätze: Verbinde Übungen in deinen Trainingsplänen zu Supersätzen, Trisätzen oder größeren Gruppen. Im Training wechselst du rundenweise zwischen ihnen, und die Pause startet erst nach der letzten Übung einer Runde.

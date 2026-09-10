@@ -16,6 +16,32 @@ import 'whats_new_release.dart';
 const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
   'en': <WhatsNewRelease>[
     WhatsNewRelease(
+      version: '1.4.0',
+      releasedOn: '2026-09-10',
+      entries: <WhatsNewEntry>[
+        WhatsNewEntry(
+          icon: LucideIcons.layout_grid,
+          title: 'Browse your diary by date',
+          body: 'A new, scrollable day strip lets you jump between nearby days in one tap. The calendar opens directly when you choose a date in the Diary.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.sparkles,
+          title: 'Smarter next-set suggestions',
+          body: 'When you enable training suggestions in Settings, Train Libre can prefill the next working set with a weight based on your recent performance. You can always change it before logging.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.heart,
+          title: 'Recovery where you train',
+          body: 'Muscle Recovery is now at the top of the Workout tab. Muscle Group Analytics also shows your movement patterns alongside muscle coverage and frequency.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.timer,
+          title: 'Edit workout timing with confidence',
+          body: 'Change the start time of a completed workout while keeping its duration, or adjust the duration itself afterwards.',
+        ),
+      ],
+    ),
+    WhatsNewRelease(
       version: '1.3.0',
       releasedOn: '2026-09-07',
       entries: <WhatsNewEntry>[
@@ -147,6 +173,32 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
     ),
   ],
   'de': <WhatsNewRelease>[
+    WhatsNewRelease(
+      version: '1.4.0',
+      releasedOn: '2026-09-10',
+      entries: <WhatsNewEntry>[
+        WhatsNewEntry(
+          icon: LucideIcons.layout_grid,
+          title: 'Tagebuch nach Datum durchsuchen',
+          body: 'Über eine neue, horizontal scrollbare Tagesleiste wechselst du mit einem Tipp zu nahegelegenen Tagen. Wenn du im Tagebuch ein Datum auswählst, öffnet sich direkt der Kalender.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.sparkles,
+          title: 'Intelligentere Vorschläge für den nächsten Satz',
+          body: 'Aktivierst du Trainingsvorschläge in den Einstellungen, kann Train Libre das Gewicht für den nächsten Arbeitssatz anhand deiner letzten Leistung vorausfüllen. Vor dem Speichern kannst du es jederzeit ändern.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.heart,
+          title: 'Regeneration dort, wo du trainierst',
+          body: 'Die Muskelregeneration steht jetzt ganz oben im Workout-Tab. Die Muskelgruppen-Analyse zeigt neben Muskelabdeckung und Häufigkeit auch deine Bewegungsmuster.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.timer,
+          title: 'Trainingszeiten sicher bearbeiten',
+          body: 'Ändere die Startzeit eines abgeschlossenen Workouts, ohne dass sich seine Dauer verändert, oder passe die Dauer anschließend direkt an.',
+        ),
+      ],
+    ),
     WhatsNewRelease(
       version: '1.3.0',
       releasedOn: '2026-09-07',
@@ -280,6 +332,32 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
   ],
   'fr': <WhatsNewRelease>[
     WhatsNewRelease(
+      version: '1.4.0',
+      releasedOn: '2026-09-10',
+      entries: <WhatsNewEntry>[
+        WhatsNewEntry(
+          icon: LucideIcons.layout_grid,
+          title: 'Parcours ton journal par date',
+          body: 'une nouvelle barre de jours défilante te permet d\'accéder aux jours proches en un geste. Lorsque tu choisis une date dans le journal, le calendrier s\'ouvre directement.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.sparkles,
+          title: 'Des suggestions plus intelligentes pour la prochaine série',
+          body: 'si tu actives les suggestions d\'entraînement dans les réglages, Train Libre peut préremplir le poids de ta prochaine série de travail selon tes dernières performances. Tu peux toujours le modifier avant de l\'enregistrer.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.heart,
+          title: 'La récupération là où tu t\'entraînes',
+          body: 'la récupération musculaire se trouve maintenant en haut de l\'onglet Entraînement. L\'analyse des groupes musculaires affiche aussi tes schémas de mouvement, en plus de la couverture et de la fréquence.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.timer,
+          title: 'Modifie les horaires de tes séances en toute confiance',
+          body: 'change l\'heure de début d\'une séance terminée sans modifier sa durée, ou ajuste directement cette durée ensuite.',
+        ),
+      ],
+    ),
+    WhatsNewRelease(
       version: '1.3.0',
       releasedOn: '2026-09-07',
       entries: <WhatsNewEntry>[
@@ -412,6 +490,32 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
   ],
   'it': <WhatsNewRelease>[
     WhatsNewRelease(
+      version: '1.4.0',
+      releasedOn: '2026-09-10',
+      entries: <WhatsNewEntry>[
+        WhatsNewEntry(
+          icon: LucideIcons.layout_grid,
+          title: 'Sfoglia il diario per data',
+          body: 'una nuova barra dei giorni scorrevole ti permette di passare ai giorni vicini con un tocco. Quando scegli una data nel diario, il calendario si apre direttamente.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.sparkles,
+          title: 'Suggerimenti più intelligenti per la prossima serie',
+          body: 'se attivi i suggerimenti di allenamento nelle Impostazioni, Train Libre può precompilare il peso della prossima serie di lavoro in base alle tue prestazioni recenti. Puoi sempre modificarlo prima di registrarlo.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.heart,
+          title: 'Recupero dove ti alleni',
+          body: 'il recupero muscolare ora è in cima alla scheda Allenamento. L\'analisi dei gruppi muscolari mostra anche i tuoi schemi di movimento, oltre a copertura e frequenza.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.timer,
+          title: 'Modifica gli orari degli allenamenti con sicurezza',
+          body: 'cambia l\'ora di inizio di un allenamento completato mantenendone la durata, oppure modifica direttamente la durata in seguito.',
+        ),
+      ],
+    ),
+    WhatsNewRelease(
       version: '1.3.0',
       releasedOn: '2026-09-07',
       entries: <WhatsNewEntry>[
@@ -543,6 +647,32 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
     ),
   ],
   'ja': <WhatsNewRelease>[
+    WhatsNewRelease(
+      version: '1.4.0',
+      releasedOn: '2026-09-10',
+      entries: <WhatsNewEntry>[
+        WhatsNewEntry(
+          icon: LucideIcons.layout_grid,
+          title: '日付から日記を確認',
+          body: '新しい横スクロールの日付バーから、近い日へワンタップで移動できます。日記で日付を選ぶと、カレンダーがすぐに開きます。',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.sparkles,
+          title: '次のセットをより賢く提案',
+          body: '設定でトレーニングの提案を有効にすると、最近の記録をもとに次のワーキングセットの重量をあらかじめ入力できます。記録する前にいつでも変更できます。',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.heart,
+          title: 'トレーニング画面で回復を確認',
+          body: '筋肉の回復状況がワークアウトタブの上部に移動しました。筋肉グループ分析では、カバー率や頻度に加えて動作パターンも確認できます。',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.timer,
+          title: 'ワークアウトの時間を安心して編集',
+          body: '完了したワークアウトの開始時刻を、時間を保ったまま変更できます。後から時間そのものを調整することもできます。',
+        ),
+      ],
+    ),
     WhatsNewRelease(
       version: '1.3.0',
       releasedOn: '2026-09-07',
@@ -680,4 +810,4 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
 const String kWhatsNewFallbackLanguage = 'en';
 
 /// The version this catalog was generated for, taken from pubspec.yaml.
-const String kWhatsNewGeneratedForVersion = '1.3.0';
+const String kWhatsNewGeneratedForVersion = '1.4.0';

@@ -34,6 +34,7 @@ import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../widgets/common/app_button.dart';
 import 'dart:async';
 import '../../../services/telemetry/telemetry_service.dart';
+import '../../../services/app_review_service.dart';
 import '../domain/classification/exercise_log_mask.dart';
 import '../domain/classification/set_load.dart';
 
@@ -45,7 +46,14 @@ class WorkoutSummaryScreen extends StatefulWidget {
   /// The unique identifier of the summarized workout log.
   final int logId;
 
-  const WorkoutSummaryScreen({super.key, required this.logId});
+  /// True only for the summary shown immediately after a completed workout.
+  final bool requestReviewOnClose;
+
+  const WorkoutSummaryScreen({
+    super.key,
+    required this.logId,
+    this.requestReviewOnClose = false,
+  });
 
   @override
   State<WorkoutSummaryScreen> createState() => _WorkoutSummaryScreenState();
@@ -71,6 +79,19 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
   Routine? _associatedRoutine;
   bool _isSyncing = false;
   bool _pulseTrackingEnabled = false;
+  bool _handlingClose = false;
+  bool _allowClose = false;
+
+  Future<void> _handleCloseAttempt() async {
+    if (!widget.requestReviewOnClose || _handlingClose) return;
+
+    _handlingClose = true;
+    await AppReviewService.instance
+        .requestAfterFirstWorkoutSummaryClose(context);
+    if (!mounted) return;
+    setState(() => _allowClose = true);
+    Navigator.of(context).pop();
+  }
 
   @override
   void initState() {
@@ -375,134 +396,174 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
       }
     }
 
-    return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: GlobalAppBar(
-        title: l10n.workoutSummaryTitle,
-        actions: [
-          if (!_isLoading && _log != null)
-            IconButton(
-              tooltip: l10n.share,
-              icon: Icon(DesignConstants.adaptiveShareIcon),
-              onPressed: () => _shareService.showWorkoutShareSheet(
-                context: context,
-                workout: _log!,
+    return PopScope(
+      canPop: !widget.requestReviewOnClose || _allowClose,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) unawaited(_handleCloseAttempt());
+      },
+      child: Scaffold(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        appBar: GlobalAppBar(
+          title: l10n.workoutSummaryTitle,
+          actions: [
+            if (!_isLoading && _log != null)
+              IconButton(
+                tooltip: l10n.share,
+                icon: Icon(DesignConstants.adaptiveShareIcon),
+                onPressed: () => _shareService.showWorkoutShareSheet(
+                  context: context,
+                  workout: _log!,
+                ),
               ),
-            ),
-        ],
-      ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _log == null
-              ? Center(child: Text(l10n.workoutNotFound))
-              : Padding(
-                  padding: DesignConstants.cardPadding,
-                  child: Column(
-                    children: [
-                      // Exercise list and all summary content
-                      Expanded(
-                        child: ListView(
-                          children: [
-                            // Overall statistics (very top, under the app bar)
-                            WorkoutSummaryBar(
-                              duration:
-                                  _log!.endTime?.difference(_log!.startTime),
-                              volume: globalVolume,
-                              sets: _log!.sets.length,
-                              progress: null,
-                            ),
-                            const SizedBox(height: DesignConstants.spacingL),
+          ],
+        ),
+        body: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : _log == null
+                ? Center(child: Text(l10n.workoutNotFound))
+                : Padding(
+                    padding: DesignConstants.cardPadding,
+                    child: Column(
+                      children: [
+                        // Exercise list and all summary content
+                        Expanded(
+                          child: ListView(
+                            children: [
+                              // Overall statistics (very top, under the app bar)
+                              WorkoutSummaryBar(
+                                duration:
+                                    _log!.endTime?.difference(_log!.startTime),
+                                volume: globalVolume,
+                                sets: _log!.sets.length,
+                                progress: null,
+                              ),
+                              const SizedBox(height: DesignConstants.spacingL),
 
-                            // Routine Title, Date/Time & Notes
-                            Text(
-                              _log!.routineName != null &&
-                                      _log!.routineName!.isNotEmpty
-                                  ? _log!.routineName!
-                                  : l10n.freeWorkoutTitle,
-                              style: textTheme.headlineMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
-                              textAlign: TextAlign.left,
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              DateFormat.yMMMMd(
-                                Localizations.localeOf(context).toString(),
-                              ).add_Hm().format(_log!.startTime),
-                              style: textTheme.bodyMedium?.copyWith(
-                                color: colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                            if (_log!.notes != null &&
-                                _log!.notes!.isNotEmpty) ...[
-                              const SizedBox(height: DesignConstants.spacingXS),
+                              // Routine Title, Date/Time & Notes
                               Text(
-                                _log!.notes!,
-                                style: textTheme.bodyMedium?.copyWith(
-                                  fontStyle: FontStyle.italic,
-                                  color: colorScheme.onSurfaceVariant,
+                                _log!.routineName != null &&
+                                        _log!.routineName!.isNotEmpty
+                                    ? _log!.routineName!
+                                    : l10n.freeWorkoutTitle,
+                                style: textTheme.headlineMedium?.copyWith(
+                                  fontWeight: FontWeight.bold,
                                 ),
                                 textAlign: TextAlign.left,
                               ),
-                            ],
-                            const SizedBox(height: DesignConstants.spacingM),
-
-                            // Photos (under Title, Date, Time and Stats)
-                            WorkoutPhotoCard(
-                              workoutLogId: _log!.id,
-                              photoPaths: _log!.photoPaths,
-                              isEditable: true,
-                              onPhotosChanged: (updatedPaths) {
-                                setState(() {
-                                  _log = _log!.copyWith(
-                                    photoPaths: updatedPaths,
-                                  );
-                                });
-                              },
-                            ),
-                            const SizedBox(height: DesignConstants.spacingL),
-
-                            if (_exerciseDetails.isNotEmpty) ...[
-                              _buildMuscleHeatmap(l10n),
-                              const SizedBox(height: DesignConstants.spacingL),
-                            ],
-                            if (_heartRateSummary != null &&
-                                (_pulseTrackingEnabled ||
-                                    _heartRateSummary!.hasData)) ...[
-                              _buildHeartRateCard(l10n, _heartRateSummary!),
-                              const SizedBox(height: DesignConstants.spacingL),
-                            ],
-
-                            // NEW RECORDS SECTION
-                            if (_newRecordsPerExercise.isNotEmpty) ...[
-                              AppSectionHeader(
-                                title: l10n.workoutSummaryNewRecordsTitle,
-                                padding: EdgeInsets.zero,
-                                action: AlgorithmInfoButton(
-                                  title:
-                                      "Estimated 1-Rep Max Heuristic (Epley Equation)",
-                                  explanation:
-                                      "Estimates maximal strength capacities based on submaximal workloads to allow safe, non-clinical progression tracking.",
-                                  keyPoints: const [
-                                    "1RM ≈ w * (36 / (37 - r)) where w = weight, r = repetitions (valid for r <= 10).",
-                                    "Estimates are sports-science heuristics designed for healthy individuals.",
-                                    "Provides a safe way to track strength progression without testing true failure.",
-                                  ],
-                                  technicalTitle: "Epley Equation Details",
-                                  technicalExplanation:
-                                      "The Epley equation estimates one-repetition maximum (1RM) as 1RM = w * (1 + r/30) which simplifies to w * (36 / (37 - r)) for r <= 10. Research suggests this linear approximation is reliable for low repetitions (2-10 reps) in healthy active individuals, but tends to overestimate capacity beyond 10 repetitions.",
-                                  citationUrl:
-                                      "https://rfivesix.github.io/train-libre/intelligent-workouts/#evidence",
+                              const SizedBox(height: 4),
+                              Text(
+                                DateFormat.yMMMMd(
+                                  Localizations.localeOf(context).toString(),
+                                ).add_Hm().format(_log!.startTime),
+                                style: textTheme.bodyMedium?.copyWith(
+                                  color: colorScheme.onSurfaceVariant,
                                 ),
                               ),
+                              if (_log!.notes != null &&
+                                  _log!.notes!.isNotEmpty) ...[
+                                const SizedBox(
+                                    height: DesignConstants.spacingXS),
+                                Text(
+                                  _log!.notes!,
+                                  style: textTheme.bodyMedium?.copyWith(
+                                    fontStyle: FontStyle.italic,
+                                    color: colorScheme.onSurfaceVariant,
+                                  ),
+                                  textAlign: TextAlign.left,
+                                ),
+                              ],
+                              const SizedBox(height: DesignConstants.spacingM),
+
+                              // Photos (under Title, Date, Time and Stats)
+                              WorkoutPhotoCard(
+                                workoutLogId: _log!.id,
+                                photoPaths: _log!.photoPaths,
+                                isEditable: true,
+                                onPhotosChanged: (updatedPaths) {
+                                  setState(() {
+                                    _log = _log!.copyWith(
+                                      photoPaths: updatedPaths,
+                                    );
+                                  });
+                                },
+                              ),
+                              const SizedBox(height: DesignConstants.spacingL),
+
+                              if (_exerciseDetails.isNotEmpty) ...[
+                                _buildMuscleHeatmap(l10n),
+                                const SizedBox(
+                                    height: DesignConstants.spacingL),
+                              ],
+                              if (_heartRateSummary != null &&
+                                  (_pulseTrackingEnabled ||
+                                      _heartRateSummary!.hasData)) ...[
+                                _buildHeartRateCard(l10n, _heartRateSummary!),
+                                const SizedBox(
+                                    height: DesignConstants.spacingL),
+                              ],
+
+                              // NEW RECORDS SECTION
+                              if (_newRecordsPerExercise.isNotEmpty) ...[
+                                AppSectionHeader(
+                                  title: l10n.workoutSummaryNewRecordsTitle,
+                                  padding: EdgeInsets.zero,
+                                  action: AlgorithmInfoButton(
+                                    title:
+                                        "Estimated 1-Rep Max Heuristic (Epley Equation)",
+                                    explanation:
+                                        "Estimates maximal strength capacities based on submaximal workloads to allow safe, non-clinical progression tracking.",
+                                    keyPoints: const [
+                                      "1RM ≈ w * (36 / (37 - r)) where w = weight, r = repetitions (valid for r <= 10).",
+                                      "Estimates are sports-science heuristics designed for healthy individuals.",
+                                      "Provides a safe way to track strength progression without testing true failure.",
+                                    ],
+                                    technicalTitle: "Epley Equation Details",
+                                    technicalExplanation:
+                                        "The Epley equation estimates one-repetition maximum (1RM) as 1RM = w * (1 + r/30) which simplifies to w * (36 / (37 - r)) for r <= 10. Research suggests this linear approximation is reliable for low repetitions (2-10 reps) in healthy active individuals, but tends to overestimate capacity beyond 10 repetitions.",
+                                    citationUrl:
+                                        "https://rfivesix.github.io/train-libre/intelligent-workouts/#evidence",
+                                  ),
+                                ),
+                                const SizedBox(
+                                    height: DesignConstants.spacingS),
+                                ..._newRecordsPerExercise.entries.map((entry) {
+                                  return SummaryCard(
+                                    child: ListTile(
+                                      leading: const Icon(
+                                        LucideIcons.trophy,
+                                        color: Colors.amber,
+                                      ),
+                                      title: Text(
+                                        _exerciseDetails[entry.key]
+                                                ?.getLocalizedName(context) ??
+                                            entry.key,
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      subtitle: Text(
+                                        entry.value
+                                            .map(
+                                              (record) =>
+                                                  record.format(unitService),
+                                            )
+                                            .join(', '),
+                                      ),
+                                    ),
+                                  );
+                                }),
+                                const SizedBox(
+                                    height: DesignConstants.spacingL),
+                              ],
+
+                              AppSectionHeader(
+                                title: l10n.workoutSummaryExerciseOverview,
+                                padding: EdgeInsets.zero,
+                              ),
                               const SizedBox(height: DesignConstants.spacingS),
-                              ..._newRecordsPerExercise.entries.map((entry) {
+                              ..._summaryPerExercise.entries.map((entry) {
                                 return SummaryCard(
                                   child: ListTile(
-                                    leading: const Icon(
-                                      LucideIcons.trophy,
-                                      color: Colors.amber,
-                                    ),
                                     title: Text(
                                       _exerciseDetails[entry.key]
                                               ?.getLocalizedName(context) ??
@@ -511,69 +572,41 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),
-                                    subtitle: Text(
-                                      entry.value
-                                          .map(
-                                            (record) =>
-                                                record.format(unitService),
-                                          )
-                                          .join(', '),
+                                    trailing: Text(
+                                      entry.value.format(unitService),
+                                      style: textTheme.bodyLarge,
                                     ),
                                   ),
                                 );
                               }),
-                              const SizedBox(height: DesignConstants.spacingL),
+
+                              // Update Routine Banner at the very bottom of the screen
+                              if (_showSyncBanner &&
+                                  _associatedRoutine != null) ...[
+                                const SizedBox(
+                                    height: DesignConstants.spacingL),
+                                _buildSyncBanner(colorScheme, textTheme),
+                              ],
                             ],
-
-                            AppSectionHeader(
-                              title: l10n.workoutSummaryExerciseOverview,
-                              padding: EdgeInsets.zero,
-                            ),
-                            const SizedBox(height: DesignConstants.spacingS),
-                            ..._summaryPerExercise.entries.map((entry) {
-                              return SummaryCard(
-                                child: ListTile(
-                                  title: Text(
-                                    _exerciseDetails[entry.key]
-                                            ?.getLocalizedName(context) ??
-                                        entry.key,
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  trailing: Text(
-                                    entry.value.format(unitService),
-                                    style: textTheme.bodyLarge,
-                                  ),
-                                ),
-                              );
-                            }),
-
-                            // Update Routine Banner at the very bottom of the screen
-                            if (_showSyncBanner &&
-                                _associatedRoutine != null) ...[
-                              const SizedBox(height: DesignConstants.spacingL),
-                              _buildSyncBanner(colorScheme, textTheme),
-                            ],
-                          ],
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: DesignConstants.spacingXL),
+                        const SizedBox(height: DesignConstants.spacingXL),
 
-                      // Fertig-Button
-                      SizedBox(
-                        width: double.infinity,
-                        child: AppButton.primary(
-                          onPressed: () {
-                            Navigator.of(context).pop();
-                          },
-                          label: l10n.doneButtonLabel,
-                          tooltip: l10n.doneButtonLabel,
+                        // Fertig-Button
+                        SizedBox(
+                          width: double.infinity,
+                          child: AppButton.primary(
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                            label: l10n.doneButtonLabel,
+                            tooltip: l10n.doneButtonLabel,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
+      ),
     );
   }
 

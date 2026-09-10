@@ -782,4 +782,13 @@ class PostHogTelemetryService implements TelemetryService {
   }) async {
     await track('performance_stall', properties: properties);
   }
+
+  @override
+  Future<void> trackAppReviewPromptResponded({
+    required String response,
+  }) async {
+    await track('app_review_prompt_responded', properties: {
+      'response': AppReviewPromptResponse.sanitize(response),
+    });
+  }
 }

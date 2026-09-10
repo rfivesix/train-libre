@@ -56,15 +56,13 @@ OPEN SOURCE & DONNÉES OUVERTES :
 Développé de manière transparente à partir des catalogues communautaires de confiance Open Food Facts et OpenExerciseDB. Le code source complet est accessible publiquement : nos promesses de confidentialité se vérifient au lieu de se croire.
 
 ## Release Notes (What's New / Release Notes in this version)
-Superséries: regroupe des exercices de tes programmes en superséries, trisets ou groupes plus larges. Pendant la séance, tu alternes entre eux tour après tour, et le temps de repos ne démarre qu'après le dernier exercice d'un tour.
+Parcours ton journal par date: une nouvelle barre de jours défilante te permet d'accéder aux jours proches en un geste. Lorsque tu choisis une date dans le journal, le calendrier s'ouvre directement.
 
-Les bons champs pour chaque exercice: note la durée d'une planche, les répétitions et le lest éventuel des tractions, ou l'assistance des exercices assistés. Les valeurs de la dernière séance et les graphiques s'adaptent aussi.
+Des suggestions plus intelligentes pour la prochaine série: si tu actives les suggestions d'entraînement dans les réglages, Train Libre peut préremplir le poids de ta prochaine série de travail selon tes dernières performances. Tu peux toujours le modifier avant de l'enregistrer.
 
-Un catalogue d'exercices enrichi: le catalogue utilise désormais OpenExerciseDB, avec des informations plus précises sur les muscles et les mouvements et des noms dans la langue de ton app. Filtre par matériel, difficulté et autres caractéristiques, y compris pendant la création de tes programmes.
+La récupération là où tu t'entraînes: la récupération musculaire se trouve maintenant en haut de l'onglet Entraînement. L'analyse des groupes musculaires affiche aussi tes schémas de mouvement, en plus de la couverture et de la fréquence.
 
-Enregistre ton poids depuis le journal: note ton poids dans la nouvelle carte sous les compléments, avec une règle fluide en kilogrammes ou en livres. Ton historique de mesures s'ouvre au même endroit.
-
-Une progression mieux représentée: pour les exercices au poids du corps, le volume d'entraînement et les records de force tiennent compte de ton poids enregistré, le lest s'ajoute à la charge et l'assistance s'en déduit. Les étirements et la mobilité ne comptent plus comme des séries de musculation.
+Modifie les horaires de tes séances en toute confiance: change l'heure de début d'une séance terminée sans modifier sa durée, ou ajuste directement cette durée ensuite.
 
 ## Support URL (Support Web Page URL)
 https://rfivesix.github.io/train-libre/support.html

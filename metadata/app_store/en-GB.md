@@ -56,15 +56,13 @@ OPEN SOURCE & OPEN DATA:
 Built transparently on trusted community catalogues from Open Food Facts and OpenExerciseDB. The full source code is publicly accessible, so our privacy claims can be verified rather than just believed.
 
 ## Release Notes (What's New / Release Notes in this version)
-Supersets: Join exercises in your routines into supersets, trisets or larger groups. During a workout you alternate between them round by round, and the rest timer only starts after the last exercise of a round.
+Browse your diary by date: A new, scrollable day strip lets you jump between nearby days in one tap. The calendar opens directly when you choose a date in the Diary.
 
-The right fields for every exercise: Log hold time for planks, reps and optional added weight for pull-ups, and assistance for assisted exercises. Previous workout values and charts adapt too.
+Smarter next-set suggestions: When you enable training suggestions in Settings, Train Libre can prefill the next working set with a weight based on your recent performance. You can always change it before logging.
 
-A reworked exercise catalogue: The catalogue now uses OpenExerciseDB, with more detailed information about muscles and movements and names in your app language. Filter by equipment, difficulty and other details, including while building your routines.
+Recovery where you train: Muscle Recovery is now at the top of the Workout tab. Muscle Group Analytics also shows your movement patterns alongside muscle coverage and frequency.
 
-Log weight from your diary: Record your weight in the new card below Supplements, with a smooth ruler in kilograms or pounds. Your measurement history opens from the same place.
-
-A clearer picture of your progress: Training volume and strength records for bodyweight exercises now account for your logged body weight, added weight increases the load and assistance reduces it. Stretching and mobility exercises no longer count as strength sets.
+Edit workout timing with confidence: Change the start time of a completed workout while keeping its duration, or adjust the duration itself afterwards.
 
 ## Support URL (Support Web Page URL)
 https://rfivesix.github.io/train-libre/support.html
