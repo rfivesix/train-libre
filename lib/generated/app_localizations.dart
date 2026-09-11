@@ -2309,7 +2309,7 @@ abstract class AppLocalizations {
   /// No description provided for @today_overview_text.
   ///
   /// In en, this message translates to:
-  /// **'TODAY IN FOCUS'**
+  /// **'AT A GLANCE'**
   String get today_overview_text;
 
   /// No description provided for @quick_add_text.

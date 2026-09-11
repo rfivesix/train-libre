@@ -1303,7 +1303,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get start_button => 'Start';
 
   @override
-  String get today_overview_text => 'HEUTE IM BLICK';
+  String get today_overview_text => 'AUF EINEN BLICK';
 
   @override
   String get quick_add_text => 'SCHNELLES HINZUFÜGEN';

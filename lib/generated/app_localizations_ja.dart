@@ -1283,7 +1283,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get start_button => '始める';
 
   @override
-  String get today_overview_text => '今日に注目';
+  String get today_overview_text => '一目で';
 
   @override
   String get quick_add_text => 'クイック追加';

@@ -1296,7 +1296,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get start_button => 'Start';
 
   @override
-  String get today_overview_text => 'TODAY IN FOCUS';
+  String get today_overview_text => 'AT A GLANCE';
 
   @override
   String get quick_add_text => 'QUICK ADD';

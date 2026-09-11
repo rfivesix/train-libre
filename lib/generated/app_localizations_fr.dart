@@ -1308,7 +1308,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get start_button => 'Commencer';
 
   @override
-  String get today_overview_text => 'AUJOURD\'HUI À L\'AFFICHE';
+  String get today_overview_text => 'EN UN COUP D\'ŒIL';
 
   @override
   String get quick_add_text => 'AJOUT RAPIDE';
