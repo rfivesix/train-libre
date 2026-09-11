@@ -339,6 +339,28 @@ class _MuscleGroupAnalyticsScreenState
         : '$totalTitle (${l10n.analyticsVolumeWeeklyAverage})';
   }
 
+  Widget _volumeContextChip(BuildContext context, AppLocalizations l10n) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: DesignConstants.spacingS,
+        vertical: 3,
+      ),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(DesignConstants.borderRadiusS),
+      ),
+      child: Text(
+        _showTotalVolume
+            ? l10n.analyticsVolumeTotal
+            : l10n.analyticsVolumeWeeklyAverage,
+        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+              fontWeight: FontWeight.w600,
+            ),
+      ),
+    );
+  }
+
   Widget _buildBodyHeatmap(
     BuildContext context,
     List<BodyPartHighlightData> highlights,
@@ -720,9 +742,14 @@ class _MuscleGroupAnalyticsScreenState
     return ExerciseClassificationLabels.movementPattern(context, raw) ?? raw;
   }
 
-  Widget _sectionLabel(String text, {bool isPrimary = false}) {
+  Widget _sectionLabel(
+    String text, {
+    bool isPrimary = false,
+    Widget? action,
+  }) {
     return AppSectionHeader(
       title: text,
+      action: action,
       padding: isPrimary
           ? const EdgeInsets.only(
               left: DesignConstants.spacingXS,
@@ -871,14 +898,15 @@ class _MuscleGroupAnalyticsScreenState
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _sectionLabel(
-          _volumeSectionTitle(l10n, l10n.analyticsWorkingSetsByMuscle),
+          l10n.analyticsWorkingSetsByMuscle,
+          action: _volumeContextChip(context, l10n),
         ),
         _buildTwoColumnGrid(
           sortedMuscles
               .map(
                 (muscle) => ValueSummaryCard(
                   value:
-                      '${_formatCompact(_displayVolumeValue((muscle['equivalentSets'] as num?)?.toDouble() ?? 0, totalWeeks))} ${_volumeUnit(l10n)}',
+                      '${_formatCompact(_displayVolumeValue((muscle['equivalentSets'] as num?)?.toDouble() ?? 0, totalWeeks))} ${l10n.analyticsUnitSets}',
                   label: _muscleLabel(l10n, muscle['muscleGroup'] as String),
                   subtitle: l10n.analyticsAverageFrequencyPerWeek(
                     ((muscle['frequencyPerWeek'] as num?)?.toDouble() ?? 0)
@@ -891,17 +919,15 @@ class _MuscleGroupAnalyticsScreenState
         ),
         const SizedBox(height: DesignConstants.spacingM),
         _sectionLabel(
-          _volumeSectionTitle(
-            l10n,
-            l10n.analyticsWorkingSetsByPattern,
-          ),
+          l10n.analyticsWorkingSetsByPattern,
+          action: _volumeContextChip(context, l10n),
         ),
         _buildTwoColumnGrid(
           sortedPatterns
               .map(
                 (pattern) => ValueSummaryCard(
                   value:
-                      '${_formatCompact(_displayVolumeValue((pattern['setCount'] as num?)?.toDouble() ?? 0, totalWeeks))} ${_volumeUnit(l10n)}',
+                      '${_formatCompact(_displayVolumeValue((pattern['setCount'] as num?)?.toDouble() ?? 0, totalWeeks))} ${l10n.analyticsUnitSets}',
                   label: _movementPatternLabel(
                     context,
                     pattern['movementPattern'] as String,
