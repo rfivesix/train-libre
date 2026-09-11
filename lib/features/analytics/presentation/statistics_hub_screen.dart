@@ -708,11 +708,6 @@ class _StatisticsHubScreenView extends StatelessWidget {
           padding: const EdgeInsets.all(DesignConstants.spacingL),
           child: Row(
             children: [
-              Icon(
-                LucideIcons.ruler,
-                color: Theme.of(context).colorScheme.primary,
-              ),
-              const SizedBox(width: DesignConstants.spacingM),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
