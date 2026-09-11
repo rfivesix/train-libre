@@ -1076,23 +1076,29 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
       // Progression positions are only normal/failure sets. This is read from
       // the live log rather than the template so a just-changed set type takes
       // effect without requiring a restart.
-      final workingTemplates = re.setTemplates.where((template) {
-        final type = _setLogs[template.id]?.setType;
-        return type != null && WorkoutSetPositionMapper.isWorking(type);
-      }).toList();
-      if (workingTemplates.isEmpty) continue;
+      // BOLT OPTIMIZATION: Replaced chained .where().toList(), .map().whereType().toList(),
+      // .where().toList(), and .any() with a single-pass loop to avoid multiple intermediate
+      // array allocations for every exercise when progression suggestions are updated.
+      final workingTemplates = <SetTemplate>[];
+      final currentWorkingSets = <SetLog>[];
+      final openTemplates = <SetTemplate>[];
+      bool hasCompletedWorkingSet = false;
 
-      final currentWorkingSets = workingTemplates
-          .map((template) => _setLogs[template.id])
-          .whereType<SetLog>()
-          .toList();
-      final openTemplates = workingTemplates.where((template) {
-        return _setLogs[template.id]?.isCompleted != true;
-      }).toList();
-      if (openTemplates.isEmpty) continue;
+      for (final template in re.setTemplates) {
+        final log = _setLogs[template.id];
+        if (log != null && WorkoutSetPositionMapper.isWorking(log.setType)) {
+          workingTemplates.add(template);
+          currentWorkingSets.add(log);
+          if (log.isCompleted == true) {
+            hasCompletedWorkingSet = true;
+          } else {
+            openTemplates.add(template);
+          }
+        }
+      }
 
-      final hasCompletedWorkingSet =
-          currentWorkingSets.any((set) => set.isCompleted == true);
+      if (workingTemplates.isEmpty || openTemplates.isEmpty) continue;
+
       // JIT progression intentionally exposes one next set at a time. The
       // completed predecessor is the evidence for that one prescription; a
       // later row remains untouched until its own predecessor is completed.
