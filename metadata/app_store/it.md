@@ -62,6 +62,10 @@ Suggerimenti più intelligenti per la prossima serie: se attivi i suggerimenti d
 
 Recupero dove ti alleni: il recupero muscolare ora è in cima alla scheda Allenamento. L'analisi dei gruppi muscolari mostra anche i tuoi schemi di movimento, oltre a copertura e frequenza.
 
+Gruppi muscolari a colpo d'occhio: l'analisi ora offre una panoramica completa di ogni gruppo muscolare e schema di movimento, una heatmap di distribuzione sempre visibile e serie di lavoro settimanali o totali.
+
+Allenamento e record più chiari: il ritmo di allenamento mostra in modo più leggibile allenamenti, serie e calendario. I nuovi record personali compaiono in un feed dei progressi con una panoramica dei record.
+
 ## Support URL (Support Web Page URL)
 https://rfivesix.github.io/train-libre/support.html
 

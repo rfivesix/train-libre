@@ -6,13 +6,17 @@
   Newest version first. Regenerate with: python3 script/build_whats_new.py
 -->
 
-## 1.4.0 (2026-09-10)
+## 1.4.0 (2026-09-11)
 
 {layout_grid} Browse your diary by date: A new, scrollable day strip lets you jump between nearby days in one tap. The calendar opens directly when you choose a date in the Diary.
 
 {sparkles} Smarter next-set suggestions: When you enable training suggestions in Settings, Train Libre can prefill the next working set with a weight based on your recent performance. You can always change it before logging.
 
 {heart} Recovery where you train: Muscle Recovery is now at the top of the Workout tab. Muscle Group Analytics also shows your movement patterns alongside muscle coverage and frequency.
+
+{layout_grid} Muscle groups at a glance: The analysis now offers a complete overview of every muscle group and movement pattern, a permanent distribution heatmap, and weekly or total working-set values.
+
+{chart_line} A clearer view of training and records: Training Rhythm presents your workouts, streak and calendar more clearly. New personal bests now appear in a progress feed with a record overview.
 
 ## 1.3.0 (2026-09-07)
 

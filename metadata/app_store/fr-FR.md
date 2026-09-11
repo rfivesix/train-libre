@@ -62,6 +62,10 @@ Des suggestions plus intelligentes pour la prochaine série: si tu actives les s
 
 La récupération là où tu t'entraînes: la récupération musculaire se trouve maintenant en haut de l'onglet Entraînement. L'analyse des groupes musculaires affiche aussi tes schémas de mouvement, en plus de la couverture et de la fréquence.
 
+Groupes musculaires en un coup d'œil: l'analyse propose désormais une vue complète de chaque groupe musculaire et schéma de mouvement, une heatmap de répartition permanente et des séries de travail hebdomadaires ou totales.
+
+Entraînement et records plus lisibles: le rythme d'entraînement présente plus clairement tes séances, ta série et ton calendrier. Tes nouvelles meilleures performances apparaissent dans un fil de progression avec une vue des records.
+
 ## Support URL (Support Web Page URL)
 https://rfivesix.github.io/train-libre/support.html
 

@@ -6,13 +6,17 @@
   récente en premier. Ensuite : python3 script/build_whats_new.py --write --sync-store
 -->
 
-## 1.4.0 (2026-09-10)
+## 1.4.0 (2026-09-11)
 
 {layout_grid} Parcours ton journal par date : une nouvelle barre de jours défilante te permet d'accéder aux jours proches en un geste. Lorsque tu choisis une date dans le journal, le calendrier s'ouvre directement.
 
 {sparkles} Des suggestions plus intelligentes pour la prochaine série : si tu actives les suggestions d'entraînement dans les réglages, Train Libre peut préremplir le poids de ta prochaine série de travail selon tes dernières performances. Tu peux toujours le modifier avant de l'enregistrer.
 
 {heart} La récupération là où tu t'entraînes : la récupération musculaire se trouve maintenant en haut de l'onglet Entraînement. L'analyse des groupes musculaires affiche aussi tes schémas de mouvement, en plus de la couverture et de la fréquence.
+
+{layout_grid} Groupes musculaires en un coup d'œil : l'analyse propose désormais une vue complète de chaque groupe musculaire et schéma de mouvement, une heatmap de répartition permanente et des séries de travail hebdomadaires ou totales.
+
+{chart_line} Entraînement et records plus lisibles : le rythme d'entraînement présente plus clairement tes séances, ta série et ton calendrier. Tes nouvelles meilleures performances apparaissent dans un fil de progression avec une vue des records.
 
 ## 1.3.0 (2026-09-07)
 

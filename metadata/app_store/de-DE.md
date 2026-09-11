@@ -62,6 +62,10 @@ Intelligentere Vorschläge für den nächsten Satz: Aktivierst du Trainingsvorsc
 
 Regeneration dort, wo du trainierst: Die Muskelregeneration steht jetzt ganz oben im Workout-Tab. Die Muskelgruppen-Analyse zeigt neben Muskelabdeckung und Häufigkeit auch deine Bewegungsmuster.
 
+Muskelgruppen auf einen Blick: Die Analyse bietet jetzt eine vollständige Übersicht aller Muskelgruppen und Bewegungsmuster, eine permanente Verteilungs-Heatmap sowie Wochen- und Gesamtwerte für Arbeitssätze.
+
+Training und Rekorde klarer verstehen: Trainingsrhythmus zeigt dir verständlich deine Einheiten, Serie und den Kalender. Deine neuen Bestleistungen erscheinen als Feed mit Fortschritt und Rekordübersicht.
+
 ## Support URL (Support Web Page URL)
 https://rfivesix.github.io/train-libre/
 

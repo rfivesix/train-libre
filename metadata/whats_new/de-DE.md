@@ -6,13 +6,17 @@
   Danach ausführen: python3 script/build_whats_new.py --write --sync-store
 -->
 
-## 1.4.0 (2026-09-10)
+## 1.4.0 (2026-09-11)
 
 {layout_grid} Tagebuch nach Datum durchsuchen: Über eine neue, horizontal scrollbare Tagesleiste wechselst du mit einem Tipp zu nahegelegenen Tagen. Wenn du im Tagebuch ein Datum auswählst, öffnet sich direkt der Kalender.
 
 {sparkles} Intelligentere Vorschläge für den nächsten Satz: Aktivierst du Trainingsvorschläge in den Einstellungen, kann Train Libre das Gewicht für den nächsten Arbeitssatz anhand deiner letzten Leistung vorausfüllen. Vor dem Speichern kannst du es jederzeit ändern.
 
 {heart} Regeneration dort, wo du trainierst: Die Muskelregeneration steht jetzt ganz oben im Workout-Tab. Die Muskelgruppen-Analyse zeigt neben Muskelabdeckung und Häufigkeit auch deine Bewegungsmuster.
+
+{layout_grid} Muskelgruppen auf einen Blick: Die Analyse bietet jetzt eine vollständige Übersicht aller Muskelgruppen und Bewegungsmuster, eine permanente Verteilungs-Heatmap sowie Wochen- und Gesamtwerte für Arbeitssätze.
+
+{chart_line} Training und Rekorde klarer verstehen: Trainingsrhythmus zeigt dir verständlich deine Einheiten, Serie und den Kalender. Deine neuen Bestleistungen erscheinen als Feed mit Fortschritt und Rekordübersicht.
 
 ## 1.3.0 (2026-09-07)
 

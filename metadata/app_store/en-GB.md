@@ -62,6 +62,10 @@ Smarter next-set suggestions: When you enable training suggestions in Settings, 
 
 Recovery where you train: Muscle Recovery is now at the top of the Workout tab. Muscle Group Analytics also shows your movement patterns alongside muscle coverage and frequency.
 
+Muscle groups at a glance: The analysis now offers a complete overview of every muscle group and movement pattern, a permanent distribution heatmap, and weekly or total working-set values.
+
+A clearer view of training and records: Training Rhythm presents your workouts, streak and calendar more clearly. New personal bests now appear in a progress feed with a record overview.
+
 ## Support URL (Support Web Page URL)
 https://rfivesix.github.io/train-libre/support.html
 
