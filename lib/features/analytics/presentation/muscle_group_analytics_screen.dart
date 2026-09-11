@@ -915,7 +915,6 @@ class _MuscleGroupAnalyticsScreenState
                     ((muscle['frequencyPerWeek'] as num?)?.toDouble() ?? 0)
                         .toStringAsFixed(1),
                   ),
-                  useSecondarySurface: true,
                 ),
               )
               .toList(growable: false),
@@ -935,7 +934,6 @@ class _MuscleGroupAnalyticsScreenState
                     context,
                     pattern['movementPattern'] as String,
                   ),
-                  useSecondarySurface: true,
                 ),
               )
               .toList(growable: false),
