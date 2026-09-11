@@ -6131,6 +6131,42 @@ abstract class AppLocalizations {
   /// **'View'**
   String get analyticsViewLabel;
 
+  /// No description provided for @analyticsViewChart.
+  ///
+  /// In en, this message translates to:
+  /// **'Chart'**
+  String get analyticsViewChart;
+
+  /// No description provided for @analyticsViewOverview.
+  ///
+  /// In en, this message translates to:
+  /// **'Overview'**
+  String get analyticsViewOverview;
+
+  /// No description provided for @analyticsVolumeWeeklyAverage.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly average'**
+  String get analyticsVolumeWeeklyAverage;
+
+  /// No description provided for @analyticsVolumeTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Total'**
+  String get analyticsVolumeTotal;
+
+  /// No description provided for @analyticsSwitchToChart.
+  ///
+  /// In en, this message translates to:
+  /// **'Show chart'**
+  String get analyticsSwitchToChart;
+
+  /// No description provided for @analyticsSwitchToOverview.
+  ///
+  /// In en, this message translates to:
+  /// **'Show overview'**
+  String get analyticsSwitchToOverview;
+
   /// No description provided for @analyticsViewWeek.
   ///
   /// In en, this message translates to:
@@ -6388,6 +6424,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Frequency counts training days with at least one working set for that muscle.'**
   String get analyticsFrequencyWorkingSetFooter;
+
+  /// No description provided for @analyticsAverageFrequencyPerWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'Average frequency: {value} / wk'**
+  String analyticsAverageFrequencyPerWeek(String value);
 
   /// No description provided for @analyticsTotalWorkingSets.
   ///

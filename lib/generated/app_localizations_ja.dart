@@ -3330,6 +3330,24 @@ class AppLocalizationsJa extends AppLocalizations {
   String get analyticsViewLabel => 'ビュー';
 
   @override
+  String get analyticsViewChart => 'グラフ';
+
+  @override
+  String get analyticsViewOverview => '概要';
+
+  @override
+  String get analyticsVolumeWeeklyAverage => '週平均';
+
+  @override
+  String get analyticsVolumeTotal => '合計';
+
+  @override
+  String get analyticsSwitchToChart => 'グラフを表示';
+
+  @override
+  String get analyticsSwitchToOverview => '概要を表示';
+
+  @override
   String get analyticsViewWeek => '週';
 
   @override
@@ -3469,6 +3487,11 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String get analyticsFrequencyWorkingSetFooter =>
       '頻度は、その筋肉に対して少なくとも1つのワーキングセットを行った日を数えます。';
+
+  @override
+  String analyticsAverageFrequencyPerWeek(String value) {
+    return '平均頻度: 週 $value 回';
+  }
 
   @override
   String analyticsTotalWorkingSets(String value) {

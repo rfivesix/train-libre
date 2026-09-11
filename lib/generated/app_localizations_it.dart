@@ -3465,6 +3465,24 @@ class AppLocalizationsIt extends AppLocalizations {
   String get analyticsViewLabel => 'Visualizzazione';
 
   @override
+  String get analyticsViewChart => 'Grafico';
+
+  @override
+  String get analyticsViewOverview => 'Panoramica';
+
+  @override
+  String get analyticsVolumeWeeklyAverage => 'Media settimanale';
+
+  @override
+  String get analyticsVolumeTotal => 'Totale';
+
+  @override
+  String get analyticsSwitchToChart => 'Mostra il grafico';
+
+  @override
+  String get analyticsSwitchToOverview => 'Mostra panoramica';
+
+  @override
   String get analyticsViewWeek => 'Settimana';
 
   @override
@@ -3609,6 +3627,11 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get analyticsFrequencyWorkingSetFooter =>
       'La frequenza conta i giorni con almeno una serie di lavoro per quel muscolo.';
+
+  @override
+  String analyticsAverageFrequencyPerWeek(String value) {
+    return 'Frequenza media: $value / sett.';
+  }
 
   @override
   String analyticsTotalWorkingSets(String value) {
