@@ -3092,7 +3092,7 @@ class AppLocalizationsFr extends AppLocalizations {
       'Visuel de la carte thermique du calendrier';
 
   @override
-  String get consistencyTrackerTitle => 'Suivi de cohérence';
+  String get consistencyTrackerTitle => 'Rythme d\'entraînement';
 
   @override
   String get consistencyTrackerComingSoon =>
@@ -3125,7 +3125,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get metricsRecentPrs => 'PR récents';
 
   @override
-  String get metricsVolumeLifted => 'Volume augmenté';
+  String get metricsVolumeLifted => 'Volume';
 
   @override
   String get metricsMostImproved => 'Le plus amélioré';
@@ -3552,7 +3552,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get analyticsCalendarExplainer =>
-      'L\'intensité des couleurs reflète les séances quotidiennes, ce qui en fait une véritable carte de cohérence.';
+      'La couleur indique les séances par jour.';
 
   @override
   String get analyticsSelectDayPrompt =>

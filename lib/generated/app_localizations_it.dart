@@ -3082,7 +3082,7 @@ class AppLocalizationsIt extends AppLocalizations {
       'Visualizzazione della mappa termica del calendario';
 
   @override
-  String get consistencyTrackerTitle => 'Monitoraggio della coerenza';
+  String get consistencyTrackerTitle => 'Ritmo di allenamento';
 
   @override
   String get consistencyTrackerComingSoon =>
@@ -3114,7 +3114,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get metricsRecentPrs => 'PR recenti';
 
   @override
-  String get metricsVolumeLifted => 'Volume sollevato';
+  String get metricsVolumeLifted => 'Volume';
 
   @override
   String get metricsMostImproved => 'Molto migliorato';
@@ -3541,7 +3541,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get analyticsCalendarExplainer =>
-      'L\'intensità del colore riflette le sessioni giornaliere, rendendola una vera mappa di coerenza.';
+      'Il colore indica le sessioni giornaliere.';
 
   @override
   String get analyticsSelectDayPrompt =>

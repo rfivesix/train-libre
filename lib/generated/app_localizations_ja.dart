@@ -2963,7 +2963,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get placeholderCalendarHeatmap => 'カレンダーヒートマップビジュアル';
 
   @override
-  String get consistencyTrackerTitle => '一貫性トラッカー';
+  String get consistencyTrackerTitle => 'トレーニングリズム';
 
   @override
   String get consistencyTrackerComingSoon => '一貫性と習慣のトラッカー (近日公開予定)';
@@ -2993,7 +2993,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get metricsRecentPrs => '最近のPR';
 
   @override
-  String get metricsVolumeLifted => 'ボリュームアップ';
+  String get metricsVolumeLifted => 'ボリューム';
 
   @override
   String get metricsMostImproved => '最も改善された';
@@ -3404,8 +3404,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get analyticsVsPriorPeriod => '前期間比';
 
   @override
-  String get analyticsCalendarExplainer =>
-      '色の濃さは 1 日あたりのセッションを反映しており、これが真の一貫性マップになります。';
+  String get analyticsCalendarExplainer => '色の濃さが1日あたりのセッション数を示します。';
 
   @override
   String get analyticsSelectDayPrompt => 'セッション数を検査する日を選択します。';

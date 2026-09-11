@@ -3042,7 +3042,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get placeholderCalendarHeatmap => 'Calendar Heatmap Visual';
 
   @override
-  String get consistencyTrackerTitle => 'Consistency Tracker';
+  String get consistencyTrackerTitle => 'Training Rhythm';
 
   @override
   String get consistencyTrackerComingSoon =>
@@ -3074,7 +3074,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get metricsRecentPrs => 'Recent PRs';
 
   @override
-  String get metricsVolumeLifted => 'Volume Lifted';
+  String get metricsVolumeLifted => 'Volume';
 
   @override
   String get metricsMostImproved => 'Most Improved';
@@ -3497,8 +3497,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get analyticsVsPriorPeriod => 'vs prior period';
 
   @override
-  String get analyticsCalendarExplainer =>
-      'Color intensity reflects sessions per day, making this a true consistency map.';
+  String get analyticsCalendarExplainer => 'Color shows sessions per day.';
 
   @override
   String get analyticsSelectDayPrompt =>

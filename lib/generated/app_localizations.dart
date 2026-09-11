@@ -5444,7 +5444,7 @@ abstract class AppLocalizations {
   /// No description provided for @consistencyTrackerTitle.
   ///
   /// In en, this message translates to:
-  /// **'Consistency Tracker'**
+  /// **'Training Rhythm'**
   String get consistencyTrackerTitle;
 
   /// No description provided for @consistencyTrackerComingSoon.
@@ -5504,7 +5504,7 @@ abstract class AppLocalizations {
   /// No description provided for @metricsVolumeLifted.
   ///
   /// In en, this message translates to:
-  /// **'Volume Lifted'**
+  /// **'Volume'**
   String get metricsVolumeLifted;
 
   /// No description provided for @metricsMostImproved.
@@ -6278,7 +6278,7 @@ abstract class AppLocalizations {
   /// No description provided for @analyticsCalendarExplainer.
   ///
   /// In en, this message translates to:
-  /// **'Color intensity reflects sessions per day, making this a true consistency map.'**
+  /// **'Color shows sessions per day.'**
   String get analyticsCalendarExplainer;
 
   /// No description provided for @analyticsSelectDayPrompt.

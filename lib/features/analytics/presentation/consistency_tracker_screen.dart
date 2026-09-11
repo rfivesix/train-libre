@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
 import '../../statistics/domain/analytics_state.dart';
 import '../../statistics/domain/consistency_domain_service.dart';
@@ -20,6 +21,7 @@ import '../../../widgets/common/platform_adaptive_pickers.dart'
     as adaptive_pickers;
 import '../../statistics/domain/timeframe_block.dart';
 import 'dart:async';
+import 'dart:math' as math;
 import '../../../services/telemetry/telemetry_service.dart';
 
 enum _ConsistencyMetric { volume, duration, frequency }
@@ -33,6 +35,8 @@ class ConsistencyTrackerScreen extends StatefulWidget {
 }
 
 class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
+  static const int _calendarLookbackDays = 365;
+
   bool _isRolling = true;
   TimeframeBlock _activeBlock = TimeframeBlock.month;
   DateTime _anchorDate = DateTime.now();
@@ -59,20 +63,25 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
     streakWeeks: 0,
   );
   List<WeeklyConsistencyMetricPayload> _weeklyMetrics = const [];
-  Map<DateTime, int> _workoutDayCounts = const {};
+  Map<DateTime, int> _timeframeWorkoutDayCounts = const {};
+  Map<DateTime, int> _calendarWorkoutDayCounts = const {};
   _ConsistencyMetric _selectedMetric = _ConsistencyMetric.volume;
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
+  int _timeframeLoadGeneration = 0;
+  int _calendarLoadGeneration = 0;
 
   @override
   void initState() {
     super.initState();
     unawaited(TelemetryService.instance
         .trackScreenView(screenName: ScreenName.consistencyTracker));
-    _loadData();
+    _loadTimeframeData();
+    _loadCalendarData();
   }
 
-  Future<void> _loadData() async {
+  Future<void> _loadTimeframeData() async {
+    final generation = ++_timeframeLoadGeneration;
     setState(() => _isLoading = true);
     final bounds = _isRolling
         ? _activeBlock.getRollingBounds()
@@ -100,7 +109,7 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
     );
 
     final results = await Future.wait([stats, weekly, dayCounts]);
-    if (!mounted) return;
+    if (!mounted || generation != _timeframeLoadGeneration) return;
 
     setState(() {
       _trainingStats = TrainingStatsPayload.fromMap(
@@ -109,10 +118,19 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
       _weeklyMetrics = (results[1] as List<Map<String, dynamic>>)
           .map(WeeklyConsistencyMetricPayload.fromMap)
           .toList();
-      _workoutDayCounts = results[2] as Map<DateTime, int>;
-      _focusedDay = _isRolling ? DateTime.now() : _anchorDate;
+      _timeframeWorkoutDayCounts = results[2] as Map<DateTime, int>;
       _isLoading = false;
     });
+  }
+
+  Future<void> _loadCalendarData() async {
+    final generation = ++_calendarLoadGeneration;
+    final dayCounts = await WorkoutLocalDataSource.instance.getWorkoutDayCounts(
+      daysBack: _calendarLookbackDays,
+    );
+    if (!mounted || generation != _calendarLoadGeneration) return;
+
+    setState(() => _calendarWorkoutDayCounts = dayCounts);
   }
 
   int _computeMaxStreak(List<WeeklyConsistencyMetricPayload> weeklyMetrics) {
@@ -134,7 +152,15 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
   DateTime _normalize(DateTime date) =>
       DateTime(date.year, date.month, date.day);
 
-  int _dailyCount(DateTime day) => _workoutDayCounts[_normalize(day)] ?? 0;
+  int _dailyCount(DateTime day) =>
+      _calendarWorkoutDayCounts[_normalize(day)] ?? 0;
+
+  DateTime get _calendarFirstDay {
+    final now = _normalize(DateTime.now());
+    return now.subtract(const Duration(days: _calendarLookbackDays - 1));
+  }
+
+  DateTime get _calendarLastDay => _normalize(DateTime.now());
 
   double _metricValue(WeeklyConsistencyMetricPayload row) {
     return switch (_selectedMetric) {
@@ -149,18 +175,103 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
       _ConsistencyMetric.volume =>
         context.read<UnitService>().suffixFor(UnitDimension.weight),
       _ConsistencyMetric.duration => 'min',
-      _ConsistencyMetric.frequency => l10n.analyticsPerWeekAbbrev,
+      _ConsistencyMetric.frequency => l10n.workoutsLabel,
     };
   }
 
   String _formatAxisValue(double value) {
+    final roundedValue = value.round();
     if (_selectedMetric == _ConsistencyMetric.volume) {
-      if (value >= 1000) {
-        return '${(value / 1000).toStringAsFixed(1)}k';
+      if (roundedValue >= 1000) {
+        return '${(roundedValue / 1000).round()}k';
       }
-      return value.toStringAsFixed(0);
+      return '$roundedValue';
     }
-    return value.toStringAsFixed(0);
+    return '$roundedValue';
+  }
+
+  String _formatWeekRange(
+    BuildContext context,
+    WeeklyConsistencyMetricPayload row,
+  ) {
+    final format = DateFormat.Md(Localizations.localeOf(context).toString());
+    final start = _normalize(row.weekStart);
+    final end = start.add(const Duration(days: 6));
+    return '${format.format(start)} – ${format.format(end)}';
+  }
+
+  double _chartBarWidth(int numberOfWeeks) {
+    if (numberOfWeeks > 26) return 4;
+    if (numberOfWeeks > 13) return 7;
+    return 12;
+  }
+
+  double _chartInterval(List<WeeklyConsistencyMetricPayload> metrics) {
+    final maxValue = metrics.fold<double>(
+      0,
+      (currentMax, metric) => math.max(currentMax, _metricValue(metric)),
+    );
+    if (maxValue <= 0) return 1;
+
+    final roughInterval = maxValue / 5;
+    final magnitude = math.pow(
+      10,
+      (math.log(roughInterval) / math.ln10).floor(),
+    );
+    final normalized = roughInterval / magnitude;
+    final multiplier = normalized <= 1
+        ? 1
+        : normalized <= 2
+            ? 2
+            : normalized <= 5
+                ? 5
+                : 10;
+    return (multiplier * magnitude).toDouble();
+  }
+
+  double _chartMaxY(
+    List<WeeklyConsistencyMetricPayload> metrics,
+    double interval,
+  ) {
+    final maxValue = metrics.fold<double>(
+      0,
+      (currentMax, metric) => math.max(currentMax, _metricValue(metric)),
+    );
+    return (maxValue / interval).ceil() * interval;
+  }
+
+  double get _yAxisReservedSize {
+    return switch (_selectedMetric) {
+      _ConsistencyMetric.volume => 36,
+      _ConsistencyMetric.duration => 30,
+      _ConsistencyMetric.frequency => 20,
+    };
+  }
+
+  Widget _yAxisTick(BuildContext context, double value) {
+    return SizedBox(
+      width: _yAxisReservedSize,
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        alignment: Alignment.centerRight,
+        child: Text(
+          _formatAxisValue(value),
+          maxLines: 1,
+          softWrap: false,
+          textAlign: TextAlign.right,
+          style: Theme.of(context).textTheme.labelSmall,
+        ),
+      ),
+    );
+  }
+
+  bool _shouldShowWeekLabel({required int index, required int total}) {
+    if (total <= 6 || index == 0 || index == total - 1) return true;
+
+    // Keep at most about six labels on compact phone charts. The individual
+    // weekly values remain accessible through the bar tooltip.
+    final interval = (total / 5).ceil();
+    return index % interval == 0;
   }
 
   @override
@@ -171,26 +282,27 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
     final bounds = _isRolling
         ? _activeBlock.getRollingBounds()
         : _activeBlock.getBounds(_anchorDate, DateTime(2020));
-    final displayMetrics = hasNoData ? getMockWeeklyMetrics(bounds) : _weeklyMetrics;
+    final displayMetrics =
+        hasNoData ? getMockWeeklyMetrics(bounds) : _weeklyMetrics;
     final displayStats = hasNoData ? getMockTrainingStats() : _trainingStats;
 
     final trainingDaysPerWeek = hasNoData
         ? 2.5
         : (_isRolling
             ? ConsistencyDomainService.computeTrainingDaysPerWeekLast4(
-                workoutDayCounts: _workoutDayCounts,
+                workoutDayCounts: _timeframeWorkoutDayCounts,
               )
-            : ((_workoutDayCounts.entries
-                        .where((e) =>
-                            (e.key.isAfter(bounds.start) ||
-                                e.key.isAtSameMomentAs(bounds.start)) &&
-                            (e.key.isBefore(bounds.end) ||
-                                e.key.isAtSameMomentAs(bounds.end)) &&
-                            e.value > 0)
-                        .length) /
-                    (_weeklyMetrics.isEmpty
-                        ? 1.0
-                        : _weeklyMetrics.length.toDouble())));
+            : ((_timeframeWorkoutDayCounts.entries
+                    .where((e) =>
+                        (e.key.isAfter(bounds.start) ||
+                            e.key.isAtSameMomentAs(bounds.start)) &&
+                        (e.key.isBefore(bounds.end) ||
+                            e.key.isAtSameMomentAs(bounds.end)) &&
+                        e.value > 0)
+                    .length) /
+                (_weeklyMetrics.isEmpty
+                    ? 1.0
+                    : _weeklyMetrics.length.toDouble())));
 
     final rhythmDelta = hasNoData
         ? 0.5
@@ -251,7 +363,7 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
                     _activeBlock = _validBlocks[index];
                     _isRolling = false;
                   });
-                  _loadData();
+                  _loadTimeframeData();
                 },
                 onPrevious: () {
                   setState(() {
@@ -271,7 +383,7 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
                       _anchorDate = _activeBlock.shift(_anchorDate, -1);
                     }
                   });
-                  _loadData();
+                  _loadTimeframeData();
                 },
                 onNext: () {
                   setState(() {
@@ -295,7 +407,7 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
                       }
                     }
                   });
-                  _loadData();
+                  _loadTimeframeData();
                 },
                 displayDate: _isRolling
                     ? TimeframeLabelFormatter.formatRolling(_activeBlock, l10n)
@@ -315,7 +427,7 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
                       _anchorDate = selected.anchorDate;
                       _isRolling = selected.isRolling;
                     });
-                    _loadData();
+                    _loadTimeframeData();
                   }
                 },
                 nextEnabled: _isRolling
@@ -337,38 +449,43 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
   }
 
   Widget _calendarLegend(AppLocalizations l10n) {
-    Widget item(String label, double alpha) {
-      return Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 12,
-            height: 12,
-            decoration: BoxDecoration(
-              color: Theme.of(
-                context,
-              ).colorScheme.primary.withValues(alpha: alpha),
-              shape: BoxShape.circle,
+    Widget item(String count, double alpha) {
+      return Tooltip(
+        message: '$count ${l10n.workoutsLabel}',
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 10,
+              height: 10,
+              decoration: BoxDecoration(
+                color: Theme.of(
+                  context,
+                ).colorScheme.primary.withValues(alpha: alpha),
+                shape: BoxShape.circle,
+              ),
             ),
-          ),
-          const SizedBox(width: DesignConstants.spacingXS),
-          Text(label, style: Theme.of(context).textTheme.labelSmall),
-        ],
+            const SizedBox(width: 4),
+            Text(count, style: Theme.of(context).textTheme.labelSmall),
+          ],
+        ),
       );
     }
 
-    return Wrap(
-      spacing: 12,
-      runSpacing: 8,
+    return Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        item('1 ${l10n.workoutsLabel}', _calendarIntensityForCount(1)),
-        item('2 ${l10n.workoutsLabel}', _calendarIntensityForCount(2)),
-        item('3+ ${l10n.workoutsLabel}', _calendarIntensityForCount(3)),
+        item('1', _calendarIntensityForCount(1)),
+        const SizedBox(width: 8),
+        item('2', _calendarIntensityForCount(2)),
+        const SizedBox(width: 8),
+        item('3+', _calendarIntensityForCount(3)),
       ],
     );
   }
 
-  List<WeeklyConsistencyMetricPayload> getMockWeeklyMetrics(DateTimeRange range) {
+  List<WeeklyConsistencyMetricPayload> getMockWeeklyMetrics(
+      DateTimeRange range) {
     final start = range.start;
     final end = range.end;
     final duration = end.difference(start);
@@ -415,9 +532,8 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
     }
     final total = isRolling ? stats.totalWorkouts : timeframeTotalWorkouts;
     final thisWeek = isRolling ? stats.thisWeekCount : timeframeTotalWorkouts;
-    final streak = isRolling
-        ? stats.streakWeeks
-        : _computeMaxStreak(weeklyMetrics);
+    final streak =
+        isRolling ? stats.streakWeeks : _computeMaxStreak(weeklyMetrics);
     final avgPerWeek = isRolling
         ? stats.avgPerWeek
         : (weeklyMetrics.isEmpty
@@ -425,6 +541,8 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
             : timeframeTotalWorkouts / weeklyMetrics.length.toDouble());
 
     final timeframeSubtitle = l10n.analyticsInTimeframe;
+    final chartInterval = _chartInterval(weeklyMetrics);
+    final chartMaxY = _chartMaxY(weeklyMetrics, chartInterval);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -451,8 +569,7 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
                     child: ValueSummaryCard(
                       label: l10n.streakLabel,
                       value: '$streak',
-                      subtitle:
-                          isRolling ? l10n.weeksLabel : timeframeSubtitle,
+                      subtitle: isRolling ? l10n.weeksLabel : timeframeSubtitle,
                     ),
                   ),
                 ],
@@ -559,8 +676,11 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
                 : BarChart(
                     BarChartData(
                       alignment: BarChartAlignment.spaceAround,
+                      minY: 0,
+                      maxY: chartMaxY,
                       borderData: AnalyticsChartDefaults.noBorder,
-                      gridData: AnalyticsChartDefaults.themeAwareCompactGrid(context),
+                      gridData:
+                          AnalyticsChartDefaults.themeAwareCompactGrid(context),
                       barTouchData: BarTouchData(
                         enabled: true,
                         touchTooltipData: BarTouchTooltipData(
@@ -573,13 +693,17 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
                             vertical: 10,
                           ),
                           getTooltipColor: (_) {
-                            final isDark = Theme.of(context).brightness == Brightness.dark;
+                            final isDark =
+                                Theme.of(context).brightness == Brightness.dark;
                             return isDark
                                 ? DesignConstants.summaryCardDarkMode
                                 : DesignConstants.summaryCardSecondaryLightMode;
                           },
                           tooltipBorder: BorderSide(
-                            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.08),
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onSurface
+                                .withValues(alpha: 0.08),
                           ),
                           getTooltipItem: (group, groupIndex, rod, rodIndex) {
                             final i = group.x.toInt();
@@ -588,13 +712,16 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
                             }
                             final row = weeklyMetrics[i];
                             return BarTooltipItem(
-                              '${row.weekLabel}\n${rod.toY.toStringAsFixed(1)} ${_metricUnit(l10n)}',
+                              '${_formatWeekRange(context, row)}\n${rod.toY.round()} ${_metricUnit(l10n)}',
                               Theme.of(context).textTheme.labelSmall?.copyWith(
-                                    color: Theme.of(context).colorScheme.onSurface,
-                                    fontWeight: FontWeight.w600,
-                                  ) ??
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onSurface,
+                                        fontWeight: FontWeight.w600,
+                                      ) ??
                                   TextStyle(
-                                    color: Theme.of(context).colorScheme.onSurface,
+                                    color:
+                                        Theme.of(context).colorScheme.onSurface,
                                   ),
                             );
                           },
@@ -604,11 +731,10 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
                         leftTitles: AxisTitles(
                           sideTitles: SideTitles(
                             showTitles: true,
-                            reservedSize: 28,
-                            getTitlesWidget: (value, meta) => AnalyticsChartDefaults.tickLabel(
-                              context,
-                              _formatAxisValue(value),
-                            ),
+                            interval: chartInterval,
+                            reservedSize: _yAxisReservedSize,
+                            getTitlesWidget: (value, meta) =>
+                                _yAxisTick(context, value),
                           ),
                         ),
                         bottomTitles: AxisTitles(
@@ -617,7 +743,12 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
                             reservedSize: 30,
                             getTitlesWidget: (value, meta) {
                               final i = value.toInt();
-                              if (i < 0 || i >= weeklyMetrics.length) {
+                              if (i < 0 ||
+                                  i >= weeklyMetrics.length ||
+                                  !_shouldShowWeekLabel(
+                                    index: i,
+                                    total: weeklyMetrics.length,
+                                  )) {
                                 return const SizedBox.shrink();
                               }
                               final label = weeklyMetrics[i].weekLabel;
@@ -636,9 +767,12 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
                           barRods: [
                             BarChartRodData(
                               toY: value,
-                              width: 12,
+                              width: _chartBarWidth(weeklyMetrics.length),
                               borderRadius: BorderRadius.circular(4),
-                              color: Theme.of(context).colorScheme.primary.withValues(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .primary
+                                  .withValues(
                                     alpha: _weeklyBarAlpha(
                                       index: entry.key,
                                       total: weeklyMetrics.length,
@@ -658,21 +792,23 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
           style: Theme.of(context).textTheme.bodySmall,
         ),
         const SizedBox(height: DesignConstants.spacingM),
-        AppSectionHeader(title: l10n.trainingCalendarLabel),
+        AppSectionHeader(
+          title: l10n.trainingCalendarLabel,
+          action: _calendarLegend(l10n),
+        ),
         Text(
           l10n.analyticsCalendarExplainer,
           style: Theme.of(context).textTheme.bodySmall,
         ),
         const SizedBox(height: DesignConstants.spacingS),
-        _calendarLegend(l10n),
-        const SizedBox(height: DesignConstants.spacingS),
         SummaryCard(
           child: RepaintBoundary(
             child: TableCalendar<int>(
-              firstDay: DateTime.now().subtract(const Duration(days: 365)),
-              lastDay: DateTime.now().add(const Duration(days: 30)),
+              firstDay: _calendarFirstDay,
+              lastDay: _calendarLastDay,
               focusedDay: _focusedDay,
-              selectedDayPredicate: (day) => _selectedDay != null && isSameDay(_selectedDay, day),
+              selectedDayPredicate: (day) =>
+                  _selectedDay != null && isSameDay(_selectedDay, day),
               eventLoader: (day) {
                 final count = _dailyCount(day);
                 if (count <= 0) return const [];
@@ -681,11 +817,16 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
               headerStyle: HeaderStyle(
                 titleCentered: true,
                 formatButtonVisible: false,
-                titleTextStyle: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold) ?? const TextStyle(fontWeight: FontWeight.bold),
+                titleTextStyle: Theme.of(context)
+                        .textTheme
+                        .titleSmall
+                        ?.copyWith(fontWeight: FontWeight.bold) ??
+                    const TextStyle(fontWeight: FontWeight.bold),
               ),
               calendarStyle: CalendarStyle(
                 outsideDaysVisible: false,
-                defaultTextStyle: Theme.of(context).textTheme.bodySmall ?? const TextStyle(),
+                defaultTextStyle:
+                    Theme.of(context).textTheme.bodySmall ?? const TextStyle(),
               ),
               calendarBuilders: CalendarBuilders<int>(
                 defaultBuilder: (context, day, _) {
@@ -695,7 +836,10 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
                   return Container(
                     margin: const EdgeInsets.all(6),
                     decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primary.withValues(alpha: intensity),
+                      color: Theme.of(context)
+                          .colorScheme
+                          .primary
+                          .withValues(alpha: intensity),
                       shape: BoxShape.circle,
                     ),
                     alignment: Alignment.center,
@@ -749,7 +893,10 @@ class _ConsistencyTrackerScreenState extends State<ConsistencyTrackerScreen> {
             ),
             Text(
               '$total',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+              style: Theme.of(context)
+                  .textTheme
+                  .titleMedium
+                  ?.copyWith(fontWeight: FontWeight.bold),
             ),
           ],
         ),
