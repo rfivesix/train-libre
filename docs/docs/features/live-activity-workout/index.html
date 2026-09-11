@@ -1,0 +1,366 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="iOS Live Activity, Dynamic Island, and workout session state synchronization.">
+  <title>Workout Live Activity | Train Libre Documentation</title>
+  <link rel="canonical" href="https://trainlibre.com/docs/features/live-activity-workout/">
+
+  <link rel="icon" type="image/png" sizes="32x32" href="../../../favicon.png?v=2">
+  <link rel="apple-touch-icon" sizes="180x180" href="../../../assets/apple-touch-icon.png">
+
+  <!-- Open Graph -->
+  <meta property="og:site_name" content="Train Libre Documentation">
+  <meta property="og:title" content="Workout Live Activity | Train Libre">
+  <meta property="og:description" content="iOS Live Activity, Dynamic Island, and workout session state synchronization.">
+  <meta property="og:url" content="https://trainlibre.com/docs/features/live-activity-workout/">
+  <meta property="og:type" content="article">
+  <meta property="og:image" content="https://trainlibre.com/assets/og-image.png">
+
+  <!-- KaTeX CSS (CDN primary with local fallback) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+  <link rel="stylesheet" href="../../../katex.min.css">
+
+  <!-- Train Libre Design System & Dedicated Docs Styles -->
+  <link rel="stylesheet" href="../../../style.css">
+  <link rel="stylesheet" href="../../docs.css">
+
+  <!-- KaTeX Auto-render Script -->
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" defer onload="renderMathInElement(document.body, {
+    delimiters: [
+      {left: '$$', right: '$$', display: true},
+      {left: '$', right: '$', display: false}
+    ],
+    throwOnError: false
+  });"></script>
+
+  <!-- Mermaid.js for Architecture Diagrams -->
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      if (typeof mermaid !== "undefined") {
+        const isDark = document.documentElement.getAttribute("data-theme") !== "light";
+        mermaid.initialize({
+          startOnLoad: true,
+          theme: isDark ? "dark" : "default",
+          themeVariables: isDark ? {
+            darkMode: true,
+            background: "#151815",
+            primaryColor: "#1b1f1b",
+            primaryTextColor: "#f4f6f4",
+            primaryBorderColor: "rgba(221, 255, 0, 0.4)",
+            lineColor: "#ddff00",
+            secondaryColor: "#151815",
+            tertiaryColor: "#0e100e"
+          } : {}
+        });
+      }
+    });
+  </script>
+
+  <!-- Prevent Theme Flash -->
+  <script>
+    (function () {
+      const theme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: light)').matches ? "light" : "dark");
+      document.documentElement.setAttribute("data-theme", theme);
+    })();
+  </script>
+</head>
+<body class="docs-body">
+  <div class="page">
+    <!-- Header -->
+    <header class="docs-header">
+      <nav class="docs-nav" aria-label="Documentation navigation">
+        <a class="brand" href="../../../index.html" aria-label="Train Libre Home">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 270.933 270.933" role="img">
+              <path fill="#ddff00"
+                d="M47.621 39.688c-4.385 0-7.939 3.554-7.939 7.939v116.172c0 37.238 30.188 67.472 67.426 67.459l13.482-.006c.15.003.3.005.451.005h89.722c11.367 0 20.518-9.154 20.518-20.525s-9.151-20.525-20.518-20.525h-42.739a7.937 7.937 0 0 1-7.937-7.937v-25.174a7.937 7.937 0 0 1 7.937-7.937l41.159-.001c12.244 0 22.101-9.154 22.1-20.525-.001-11.371-9.859-20.525-22.103-20.525l-41.156.001a7.937 7.937 0 0 1-7.937-7.937V47.627c0-4.385-3.555-7.939-7.939-7.939z" />
+            </svg>
+          </span>
+          <span class="brand-name">Train Libre</span>
+          <span class="docs-badge">Docs</span>
+        </a>
+
+        <div class="nav-links">
+          <a href="../../../index.html" class="nav-link">Website</a>
+          <a class="nav-priority" href="https://github.com/rfivesix/train-libre" target="_blank" rel="noreferrer">GitHub</a>
+        </div>
+
+        <div class="nav-controls">
+          <button id="theme-toggle" class="control-btn" aria-label="Toggle Theme">
+            <svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="5"></circle>
+              <line x1="12" y1="1" x2="12" y2="3"></line>
+              <line x1="12" y1="21" x2="12" y2="23"></line>
+              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+              <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+              <line x1="1" y1="12" x2="3" y2="12"></line>
+              <line x1="21" y1="12" x2="23" y2="12"></line>
+              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+              <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+            </svg>
+            <svg class="moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+            </svg>
+          </button>
+          
+          <button id="sidebar-toggle" class="control-btn mobile-menu-btn" aria-label="Open sidebar menu" aria-expanded="false">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="3" y1="12" x2="21" y2="12"></line>
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+      </nav>
+    </header>
+
+    <!-- Docs Main Layout -->
+    <div class="docs-container">
+      <!-- Left Sidebar -->
+      <aside id="docs-sidebar" class="docs-sidebar" aria-label="Documentation sidebar">
+        <div class="sidebar-header-search">
+          <input type="text" id="sidebar-filter" placeholder="Filter topics..." aria-label="Filter topics in documentation">
+        </div>
+        <div class="sidebar-scroll-area">
+          <div class="sidebar-group"><div class="sidebar-group-title">Overview</div><ul class="sidebar-nav-list">
+<li><a href="../../index.html" class="sidebar-link">Documentation Suite Overview</a></li>
+</ul></div>
+<div class="sidebar-group"><div class="sidebar-group-title">Features &amp; Heuristics</div><ul class="sidebar-nav-list">
+<li><a href="../overview/index.html" class="sidebar-link">Capabilities &amp; Privacy</a></li>
+<li><a href="../sleep-scoring-engine/index.html" class="sidebar-link">Sleep Health Score (SHS v3.5)</a></li>
+<li><a href="../muscle-recovery-model/index.html" class="sidebar-link">Muscle Recovery &amp; Readiness</a></li>
+<li><a href="../bayesian-tdee-estimator/index.html" class="sidebar-link">Bayesian TDEE Estimator</a></li>
+<li><a href="../macro-distribution/index.html" class="sidebar-link">Macronutrient Distribution</a></li>
+<li><a href="../workout-progression-engine/index.html" class="sidebar-link">Workout Progression Engine</a></li>
+<li><a href="../intelligent-workouts/index.html" class="sidebar-link">Estimated 1-Rep Max (e1RM)</a></li>
+<li><a href="../meal-capture-pipeline/index.html" class="sidebar-link">Meal Capture Pipeline</a></li>
+<li><a href="../byok-ai-validation/index.html" class="sidebar-link">BYOK AI Meal Validation</a></li>
+<li><a href="../depth-scale-hint/index.html" class="sidebar-link">Depth Scale Hint (LiDAR)</a></li>
+<li><a href="../health-sync-export/index.html" class="sidebar-link">Native Health Sync &amp; Export</a></li>
+<li><a href="index.html" class="sidebar-link active" aria-current="page">Live Activity &amp; Workout Session</a></li>
+</ul></div>
+<div class="sidebar-group"><div class="sidebar-group-title">Developer &amp; Architecture</div><ul class="sidebar-nav-list">
+<li><a href="../../developer/overview/index.html" class="sidebar-link">Developer Overview &amp; Tests</a></li>
+<li><a href="../../developer/architecture/index.html" class="sidebar-link">System Architecture &amp; Wiring</a></li>
+<li><a href="../../developer/data-flow-and-state/index.html" class="sidebar-link">Data Flow &amp; State Lifecycle</a></li>
+<li><a href="../../developer/localization-architecture/index.html" class="sidebar-link">Localization Architecture</a></li>
+<li><a href="../../developer/ios-home-screen-widgets/index.html" class="sidebar-link">Home Screen Widgets</a></li>
+</ul></div>
+        </div>
+      </aside>
+
+      <!-- Center Article Content -->
+      <main class="docs-main" id="main-content">
+        <div class="docs-breadcrumb" aria-label="Breadcrumb">
+          <a href="../../../index.html">Home</a> <span class="bc-sep">/</span> <a href="../../index.html">Docs</a> <span class="bc-sep">/</span> <span>Features &amp; Heuristics</span>
+        </div>
+
+        <article class="docs-article">
+          <h1 class="doc-title">Workout Live Activity</h1>
+<p>The <strong>Workout Live Activity</strong> puts the current workout on the Lock Screen and in the Dynamic Island for as long as a session is running. It answers one question at a glance — <em>what am I lifting next, and how much rest is left</em> — so the phone can stay in a pocket, on a bench, or on a music screen without the workout disappearing from view.</p>
+<p>Available on iOS 16.2 and newer. The Dynamic Island presentations require an iPhone 14 Pro or newer; every device gets the Lock Screen card. Interactive buttons require iOS 17.</p>
+<blockquote><p>Like everything else in Train Libre, this runs entirely on the device. Live Activities are commonly driven by remote push notifications; this one never is. There is no server, no APNs certificate and no network round-trip — the app updates the card directly, and the system animates the timers on its own.</p></blockquote>
+<hr class="divider">
+<h2 id="what-it-shows" class="doc-h2">What it shows<a href="#what-it-shows" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>The card always carries the same four pieces of information:</p>
+<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">text</span><button class="copy-btn" onclick="navigator.clipboard.writeText(this.closest('.code-block-wrapper').querySelector('code').innerText); this.textContent='Copied!'; setTimeout(()=>this.textContent='Copy', 1500);">Copy</button></div><pre><code>[icon]  Push Day                                          17:06
+        Bench Press                                 Set 3 of 5
+        W  72.5 kg  ×  8 reps  (RIR 2)                     [✓]</code></pre></div>
+<ul class="doc-list">
+<li><strong>Header</strong> — routine name and the elapsed workout duration, counting up on its own.</li>
+<li><strong>Exercise and position</strong> — which exercise, and where in it you are.</li>
+<li><strong>The set</strong> — set type, weight, reps and RIR, led by a coloured set-type badge.</li>
+<li><strong>The checkmark</strong> — completes the set with the values shown.</li>
+</ul>
+<p>The <strong>set-type badge</strong> uses the same letters and colours as the app's own set rows: <code>W</code> warm-up in orange, <code>F</code> failure in red, <code>D</code> drop set in blue, <code>S</code> superset and <code>O</code> other in neutral grey. Normal working sets show <code>N</code> — the position is already spelled out as "Set 3 of 5" beside it, so repeating the number would add nothing.</p>
+<p>While a rest timer runs, a control row appears beneath the set:</p>
+<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">text</span><button class="copy-btn" onclick="navigator.clipboard.writeText(this.closest('.code-block-wrapper').querySelector('code').innerText); this.textContent='Copied!'; setTimeout(()=>this.textContent='Copy', 1500);">Copy</button></div><pre><code>        [ −15s ]        1:07        [ +15s ]        [ Skip ]</code></pre></div>
+<p>When there are no sets left the card offers <strong>Add exercise</strong>; if a workout is running with no exercises at all, it offers <strong>Open app</strong>. The workout is never finished from the card — that stays a deliberate action inside the app.</p>
+<h3 id="cardio" class="doc-h3">Cardio<a href="#cardio" class="header-anchor" aria-label="Link to section">#</a></h3>
+<p>Cardio sets use the same card with different numbers: duration, distance and RPE instead of weight, reps and RIR, separated by <code>·</code> instead of <code>×</code>, and without a set-type badge.</p>
+<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">text</span><button class="copy-btn" onclick="navigator.clipboard.writeText(this.closest('.code-block-wrapper').querySelector('code').innerText); this.textContent='Copied!'; setTimeout(()=>this.textContent='Copy', 1500);">Copy</button></div><pre><code>        Treadmill                                   Set 1 of 1
+        20:00  ·  5.00 km  (RPE 7)                         [✓]</code></pre></div>
+<p>Routines currently store no target duration or distance for cardio, so a cardio set shows values only once they have been entered. Until then the line reads <code>–</code> and the set cannot be completed from the card.</p>
+<hr class="divider">
+<h2 id="the-four-surfaces" class="doc-h2">The four surfaces<a href="#the-four-surfaces" class="header-anchor" aria-label="Link to section">#</a></h2>
+<div class="table-responsive"><table class="doc-table"><thead><tr><th>Surface</th><th>What it shows</th></tr></thead><tbody><tr><td><strong>Lock Screen / banner</strong></td><td>The full card described above</td></tr><tr><td><strong>Dynamic Island, expanded</strong></td><td>The same content, laid out for the narrower island</td></tr><tr><td><strong>Dynamic Island, compact</strong></td><td>Rest timer on the left, <code>72.5 kg / × 8</code> on the right</td></tr><tr><td><strong>Dynamic Island, minimal</strong></td><td>One element: the rest timer, or <code>115×9</code>, or the app icon</td></tr></tbody></table></div>
+<p>Which of the compact and minimal forms you see is decided by iOS, not by the app. When a second Live Activity is on screen — a music player, a timer — both are reduced to their minimal circle. Because that circle is then the only place the set appears at all, it shows the numbers rather than the app icon.</p>
+<hr class="divider">
+<h2 id="interactions" class="doc-h2">Interactions<a href="#interactions" class="header-anchor" aria-label="Link to section">#</a></h2>
+<div class="table-responsive"><table class="doc-table"><thead><tr><th>Element</th><th>Effect</th></tr></thead><tbody><tr><td>Tapping the card</td><td>Opens the running workout. Never stacks a second copy of the screen.</td></tr><tr><td><code>−15s</code> / <code>+15s</code></td><td>Extends or shortens the running pause</td></tr><tr><td><code>Skip</code></td><td>Ends the pause immediately</td></tr><tr><td><code>✓</code></td><td>Completes the set with the values shown and starts the next pause</td></tr><tr><td><strong>Add exercise</strong></td><td>Opens the exercise picker</td></tr></tbody></table></div>
+<p>The buttons work while the app is closed. They run in the widget's own process, which has no access to the app's database — so a completed set is recorded as a pending command in the shared App Group and applied by the app the next time it runs. Because of that, the checkmark also brings the app to the foreground; the timer buttons do not need to.</p>
+<p><strong>A set with missing values cannot be completed from the card.</strong> If weight or reps are unknown, the checkmark is grey and inert, and tapping it opens the app instead. Missing numbers are shown as <code>–</code>; nothing is ever filled in from the plan or guessed.</p>
+<hr class="divider">
+<h2 id="the-rest-timer" class="doc-h2">The rest timer<a href="#the-rest-timer" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>The rest countdown is the part of the card people look at most, and the part with the most subtlety behind it.</p>
+<p><strong>It never stops.</strong> The number counts down to zero and then keeps counting <em>up</em>, so an overdue pause shows how long it has been overdue rather than sitting frozen at <code>0:00</code>.</p>
+<p><strong>The field turns red the moment the pause ends</strong> — not a second later. This matters more than it sounds: a Live Activity cannot change its own layout, text or colour while the app is asleep. Only a handful of system-drawn views update on their own, and the red backdrop is built from one of them, so it flips exactly on time without the app being woken at all.</p>
+<p><strong>The sound is what actually reaches you</strong> when the phone is in a pocket and music is playing. It is scheduled ahead of time and moves along when the pause is changed from the card, so <code>+15s</code> really does mean fifteen seconds more. While the card is visible, the app does not additionally post a banner — the card already says it.</p>
+<hr class="divider">
+<h2 id="behaviour-worth-knowing" class="doc-h2">Behaviour worth knowing<a href="#behaviour-worth-knowing" class="header-anchor" aria-label="Link to section">#</a></h2>
+<ul class="doc-list">
+<li>The Live Activity ends when the workout is finished or discarded. A workout left over from a</li>
+<li>crash or force quit is cleaned up when the next one starts.</li>
+<li>iOS ends Live Activities after about eight hours and removes them from the Lock Screen after</li>
+<li>twelve. A very long session will lose the card before the workout ends.</li>
+<li>If Live Activities are switched off in Settings, the workout is unaffected; the card simply</li>
+<li>never appears.</li>
+<li>Editing the workout in the app — adding, removing or reordering sets and exercises — is</li>
+<li>reflected on the card immediately.</li>
+<li>Text is fully localized (DE, EN, FR, IT, JA) and follows the chosen unit system, including</li>
+<li>lbs and miles.</li>
+</ul>
+<hr class="divider">
+<h2 id="how-it-fits-together" class="doc-h2">How it fits together<a href="#how-it-fits-together" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>Everything the card displays is prepared in Dart and handed over ready to draw: numbers already formatted, units already converted, words already translated, badge colours already resolved. The Swift side formats nothing — it lays out strings it does not interpret. That keeps a single source of truth for how a set is written, shared with the rest of the app.</p>
+<p>Times are the exception, and deliberately so: they cross over as absolute dates rather than counters, which lets the system animate them without an update every second. A running workout needs roughly one update per set.</p>
+<div class="table-responsive"><table class="doc-table"><thead><tr><th>Path</th><th>Role</th></tr></thead><tbody><tr><td><code>lib/features/workout/domain/live_activity/</code></td><td>Builds the card's content from the session</td></tr><tr><td><code>lib/features/workout/data/live_activity/</code></td><td>Channel to the platform</td></tr><tr><td><code>ios/LiveActivity/</code></td><td>Shared model, bridge, rest-sound scheduler</td></tr><tr><td><code>ios/TrainLibreLiveActivity/</code></td><td>The widget extension: views, App Intents, theme</td></tr><tr><td><code>test/features/workout/live_activity_content_test.dart</code></td><td>Content, badges, cardio, guard rails</td></tr></tbody></table></div>
+<hr class="divider">
+<h2 id="known-limits" class="doc-h2">Known limits<a href="#known-limits" class="header-anchor" aria-label="Link to section">#</a></h2>
+<ul class="doc-list">
+<li><strong>Android is not covered.</strong> Live Activities are an iOS feature; the equivalent there is a</li>
+<li>foreground-service notification and has not been built.</li>
+<li><strong>Cardio targets do not exist yet.</strong> Routines store no planned duration or distance, so cardio</li>
+<li>sets stay empty until values are entered.</li>
+<li><strong>The numbers cannot be edited from the card.</strong> Weight and reps are shown as planned; changing</li>
+<li>them means opening the app.</li>
+</ul>
+        </article>
+
+        <nav class="docs-pager" aria-label="Documentation navigation">
+<a href="../health-sync-export/index.html" class="pager-card pager-prev"><span class="pager-label">← Previous</span><span class="pager-title">Native Health Sync &amp; Export</span></a>
+<a href="../../developer/overview/index.html" class="pager-card pager-next"><span class="pager-label">Next →</span><span class="pager-title">Developer Overview &amp; Tests</span></a>
+</nav>
+      </main>
+
+      <!-- Right Table of Contents -->
+      <aside class="docs-toc" aria-label="Table of contents"><div class="toc-sticky-box"><div class="toc-heading">On this page</div><ul class="toc-list">
+<li class="toc-item toc-item-l2"><a href="#what-it-shows">What it shows</a></li>
+<li class="toc-item toc-item-l3"><a href="#cardio">Cardio</a></li>
+<li class="toc-item toc-item-l2"><a href="#the-four-surfaces">The four surfaces</a></li>
+<li class="toc-item toc-item-l2"><a href="#interactions">Interactions</a></li>
+<li class="toc-item toc-item-l2"><a href="#the-rest-timer">The rest timer</a></li>
+<li class="toc-item toc-item-l2"><a href="#behaviour-worth-knowing">Behaviour worth knowing</a></li>
+<li class="toc-item toc-item-l2"><a href="#how-it-fits-together">How it fits together</a></li>
+<li class="toc-item toc-item-l2"><a href="#known-limits">Known limits</a></li>
+</ul></div></aside>
+    </div>
+
+    <!-- Footer (100% harmonized with main website footer) -->
+    <footer class="site-footer">
+      <div>
+        <a class="brand" href="../../../index.html" aria-label="Train Libre home">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 270.933 270.933" role="img">
+              <path fill="#ddff00"
+                d="M47.621 39.688c-4.385 0-7.939 3.554-7.939 7.939v116.172c0 37.238 30.188 67.472 67.426 67.459l13.482-.006c.15.003.3.005.451.005h89.722c11.367 0 20.518-9.154 20.518-20.525s-9.151-20.525-20.518-20.525h-42.739a7.937 7.937 0 0 1-7.937-7.937v-25.174a7.937 7.937 0 0 1 7.937-7.937l41.159-.001c12.244 0 22.101-9.154 22.1-20.525-.001-11.371-9.859-20.525-22.103-20.525l-41.156.001a7.937 7.937 0 0 1-7.937-7.937V47.627c0-4.385-3.555-7.939-7.939-7.939z" />
+            </svg>
+          </span>
+          <span>Train Libre</span>
+        </a>
+        <p class="fine-print">Fitness, nutrition, recovery, and pulse features are non-clinical heuristics for healthy individuals tracking performance, not medical advice. They do not apply to medical conditions (such as eating or sleep disorders).</p>
+      </div>
+      <div class="footer-links">
+        <a href="../../index.html">Documentation</a>
+        <a href="../../../privacy.html">Privacy Policy</a>
+        <a href="../../../terms.html">Terms of Service</a>
+        <a href="../../../impressum.html">Imprint</a>
+        <a href="../../../support.html">Support</a>
+        <a href="https://github.com/rfivesix/train-libre" data-link="github" target="_blank" rel="noreferrer">GitHub</a>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Documentation Interactions Script -->
+  <script>
+    // Theme toggle interaction
+    const themeBtn = document.getElementById("theme-toggle");
+    if (themeBtn) {
+      themeBtn.addEventListener("click", () => {
+        const current = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
+        document.documentElement.setAttribute("data-theme", current);
+        localStorage.setItem("theme", current);
+        if (typeof mermaid !== "undefined") {
+          const mNodes = document.querySelectorAll(".mermaid");
+          if (mNodes.length > 0) {
+            mNodes.forEach(node => {
+              if (node.hasAttribute("data-mermaid")) {
+                node.removeAttribute("data-processed");
+                node.innerHTML = node.getAttribute("data-mermaid");
+              }
+            });
+            mermaid.initialize({
+              startOnLoad: false,
+              theme: current === "light" ? "default" : "dark"
+            });
+            mermaid.run();
+          }
+        }
+      });
+    }
+
+    // Mobile sidebar toggle
+    const sidebarToggle = document.getElementById("sidebar-toggle");
+    const sidebar = document.getElementById("docs-sidebar");
+    if (sidebarToggle && sidebar) {
+      sidebarToggle.addEventListener("click", () => {
+        const expanded = sidebar.classList.toggle("open");
+        sidebarToggle.setAttribute("aria-expanded", expanded);
+      });
+
+      document.addEventListener("click", (e) => {
+        if (sidebar.classList.contains("open") && !sidebar.contains(e.target) && !sidebarToggle.contains(e.target)) {
+          sidebar.classList.remove("open");
+          sidebarToggle.setAttribute("aria-expanded", "false");
+        }
+      });
+    }
+
+    // Sidebar filter/search
+    const filterInput = document.getElementById("sidebar-filter");
+    if (filterInput) {
+      filterInput.addEventListener("input", (e) => {
+        const val = e.target.value.toLowerCase().trim();
+        document.querySelectorAll(".sidebar-nav-list li").forEach(li => {
+          const text = li.textContent.toLowerCase();
+          li.style.display = text.includes(val) ? "" : "none";
+        });
+        document.querySelectorAll(".sidebar-group").forEach(group => {
+          const hasVisible = Array.from(group.querySelectorAll("li")).some(li => li.style.display !== "none");
+          group.style.display = hasVisible ? "" : "none";
+        });
+      });
+    }
+
+    // Scroll-spy for Table of Contents
+    const tocItems = document.querySelectorAll(".toc-list a");
+    if (tocItems.length > 0) {
+      const headingElements = Array.from(tocItems).map(a => {
+        const id = a.getAttribute("href").substring(1);
+        return document.getElementById(id);
+      }).filter(Boolean);
+
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const id = entry.target.getAttribute("id");
+            tocItems.forEach(a => {
+              if (a.getAttribute("href") === "#" + id) {
+                a.classList.add("active");
+              } else {
+                a.classList.remove("active");
+              }
+            });
+          }
+        });
+      }, { rootMargin: "0px 0px -70% 0px", threshold: 0.1 });
+
+      headingElements.forEach(h => observer.observe(h));
+    }
+  </script>
+</body>
+</html>

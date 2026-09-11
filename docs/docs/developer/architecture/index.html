@@ -1,0 +1,504 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Clean Architecture boundaries, Drift SQLite lifecycle, and DI provider graph.">
+  <title>System Architecture &amp; SQLite Lifecycle | Train Libre Documentation</title>
+  <link rel="canonical" href="https://trainlibre.com/docs/developer/architecture/">
+
+  <link rel="icon" type="image/png" sizes="32x32" href="../../../favicon.png?v=2">
+  <link rel="apple-touch-icon" sizes="180x180" href="../../../assets/apple-touch-icon.png">
+
+  <!-- Open Graph -->
+  <meta property="og:site_name" content="Train Libre Documentation">
+  <meta property="og:title" content="System Architecture &amp; SQLite Lifecycle | Train Libre">
+  <meta property="og:description" content="Clean Architecture boundaries, Drift SQLite lifecycle, and DI provider graph.">
+  <meta property="og:url" content="https://trainlibre.com/docs/developer/architecture/">
+  <meta property="og:type" content="article">
+  <meta property="og:image" content="https://trainlibre.com/assets/og-image.png">
+
+  <!-- KaTeX CSS (CDN primary with local fallback) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+  <link rel="stylesheet" href="../../../katex.min.css">
+
+  <!-- Train Libre Design System & Dedicated Docs Styles -->
+  <link rel="stylesheet" href="../../../style.css">
+  <link rel="stylesheet" href="../../docs.css">
+
+  <!-- KaTeX Auto-render Script -->
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" defer onload="renderMathInElement(document.body, {
+    delimiters: [
+      {left: '$$', right: '$$', display: true},
+      {left: '$', right: '$', display: false}
+    ],
+    throwOnError: false
+  });"></script>
+
+  <!-- Mermaid.js for Architecture Diagrams -->
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      if (typeof mermaid !== "undefined") {
+        const isDark = document.documentElement.getAttribute("data-theme") !== "light";
+        mermaid.initialize({
+          startOnLoad: true,
+          theme: isDark ? "dark" : "default",
+          themeVariables: isDark ? {
+            darkMode: true,
+            background: "#151815",
+            primaryColor: "#1b1f1b",
+            primaryTextColor: "#f4f6f4",
+            primaryBorderColor: "rgba(221, 255, 0, 0.4)",
+            lineColor: "#ddff00",
+            secondaryColor: "#151815",
+            tertiaryColor: "#0e100e"
+          } : {}
+        });
+      }
+    });
+  </script>
+
+  <!-- Prevent Theme Flash -->
+  <script>
+    (function () {
+      const theme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: light)').matches ? "light" : "dark");
+      document.documentElement.setAttribute("data-theme", theme);
+    })();
+  </script>
+</head>
+<body class="docs-body">
+  <div class="page">
+    <!-- Header -->
+    <header class="docs-header">
+      <nav class="docs-nav" aria-label="Documentation navigation">
+        <a class="brand" href="../../../index.html" aria-label="Train Libre Home">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 270.933 270.933" role="img">
+              <path fill="#ddff00"
+                d="M47.621 39.688c-4.385 0-7.939 3.554-7.939 7.939v116.172c0 37.238 30.188 67.472 67.426 67.459l13.482-.006c.15.003.3.005.451.005h89.722c11.367 0 20.518-9.154 20.518-20.525s-9.151-20.525-20.518-20.525h-42.739a7.937 7.937 0 0 1-7.937-7.937v-25.174a7.937 7.937 0 0 1 7.937-7.937l41.159-.001c12.244 0 22.101-9.154 22.1-20.525-.001-11.371-9.859-20.525-22.103-20.525l-41.156.001a7.937 7.937 0 0 1-7.937-7.937V47.627c0-4.385-3.555-7.939-7.939-7.939z" />
+            </svg>
+          </span>
+          <span class="brand-name">Train Libre</span>
+          <span class="docs-badge">Docs</span>
+        </a>
+
+        <div class="nav-links">
+          <a href="../../../index.html" class="nav-link">Website</a>
+          <a class="nav-priority" href="https://github.com/rfivesix/train-libre" target="_blank" rel="noreferrer">GitHub</a>
+        </div>
+
+        <div class="nav-controls">
+          <button id="theme-toggle" class="control-btn" aria-label="Toggle Theme">
+            <svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="5"></circle>
+              <line x1="12" y1="1" x2="12" y2="3"></line>
+              <line x1="12" y1="21" x2="12" y2="23"></line>
+              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+              <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+              <line x1="1" y1="12" x2="3" y2="12"></line>
+              <line x1="21" y1="12" x2="23" y2="12"></line>
+              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+              <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+            </svg>
+            <svg class="moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+            </svg>
+          </button>
+          
+          <button id="sidebar-toggle" class="control-btn mobile-menu-btn" aria-label="Open sidebar menu" aria-expanded="false">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="3" y1="12" x2="21" y2="12"></line>
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+      </nav>
+    </header>
+
+    <!-- Docs Main Layout -->
+    <div class="docs-container">
+      <!-- Left Sidebar -->
+      <aside id="docs-sidebar" class="docs-sidebar" aria-label="Documentation sidebar">
+        <div class="sidebar-header-search">
+          <input type="text" id="sidebar-filter" placeholder="Filter topics..." aria-label="Filter topics in documentation">
+        </div>
+        <div class="sidebar-scroll-area">
+          <div class="sidebar-group"><div class="sidebar-group-title">Overview</div><ul class="sidebar-nav-list">
+<li><a href="../../index.html" class="sidebar-link">Documentation Suite Overview</a></li>
+</ul></div>
+<div class="sidebar-group"><div class="sidebar-group-title">Features &amp; Heuristics</div><ul class="sidebar-nav-list">
+<li><a href="../../features/overview/index.html" class="sidebar-link">Capabilities &amp; Privacy</a></li>
+<li><a href="../../features/sleep-scoring-engine/index.html" class="sidebar-link">Sleep Health Score (SHS v3.5)</a></li>
+<li><a href="../../features/muscle-recovery-model/index.html" class="sidebar-link">Muscle Recovery &amp; Readiness</a></li>
+<li><a href="../../features/bayesian-tdee-estimator/index.html" class="sidebar-link">Bayesian TDEE Estimator</a></li>
+<li><a href="../../features/macro-distribution/index.html" class="sidebar-link">Macronutrient Distribution</a></li>
+<li><a href="../../features/workout-progression-engine/index.html" class="sidebar-link">Workout Progression Engine</a></li>
+<li><a href="../../features/intelligent-workouts/index.html" class="sidebar-link">Estimated 1-Rep Max (e1RM)</a></li>
+<li><a href="../../features/meal-capture-pipeline/index.html" class="sidebar-link">Meal Capture Pipeline</a></li>
+<li><a href="../../features/byok-ai-validation/index.html" class="sidebar-link">BYOK AI Meal Validation</a></li>
+<li><a href="../../features/depth-scale-hint/index.html" class="sidebar-link">Depth Scale Hint (LiDAR)</a></li>
+<li><a href="../../features/health-sync-export/index.html" class="sidebar-link">Native Health Sync &amp; Export</a></li>
+<li><a href="../../features/live-activity-workout/index.html" class="sidebar-link">Live Activity &amp; Workout Session</a></li>
+</ul></div>
+<div class="sidebar-group"><div class="sidebar-group-title">Developer &amp; Architecture</div><ul class="sidebar-nav-list">
+<li><a href="../overview/index.html" class="sidebar-link">Developer Overview &amp; Tests</a></li>
+<li><a href="index.html" class="sidebar-link active" aria-current="page">System Architecture &amp; Wiring</a></li>
+<li><a href="../data-flow-and-state/index.html" class="sidebar-link">Data Flow &amp; State Lifecycle</a></li>
+<li><a href="../localization-architecture/index.html" class="sidebar-link">Localization Architecture</a></li>
+<li><a href="../ios-home-screen-widgets/index.html" class="sidebar-link">Home Screen Widgets</a></li>
+</ul></div>
+        </div>
+      </aside>
+
+      <!-- Center Article Content -->
+      <main class="docs-main" id="main-content">
+        <div class="docs-breadcrumb" aria-label="Breadcrumb">
+          <a href="../../../index.html">Home</a> <span class="bc-sep">/</span> <a href="../../index.html">Docs</a> <span class="bc-sep">/</span> <span>Developer</span>
+        </div>
+
+        <article class="docs-article">
+          <h1 class="doc-title">System Architecture & SQLite Lifecycle</h1>
+<p>Train Libre strictly adheres to the principles of <strong>Clean Architecture</strong>. This segregation ensures that business logic remains highly testable, independent of the user interface framework, and decoupled from raw persistence mechanisms.</p>
+<hr class="divider">
+<h2 id="architectural-layering" class="doc-h2">Architectural Layering<a href="#architectural-layering" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>The codebase is segregated into three distinct conceptual layers, with dependencies flowing inward toward the Domain layer.</p>
+<div class="mermaid-container"><pre class="mermaid" data-mermaid="graph TD
+    %% Presentation Layer
+    subgraph Presentation [&quot;Presentation Layer (Flutter/MVVM)&quot;]
+        UI[Flutter Widgets / Screens]
+        VM[ViewModels / ChangeNotifiers]
+    end
+
+    %% Domain Layer
+    subgraph Domain [&quot;Domain Layer (Core Logic)&quot;]
+        Models[Pure Domain Models]
+        RepoInterfaces[Abstract Repository Interfaces]
+        DomainServices[Domain &amp; Progression Services]
+    end
+
+    %% Data Layer
+    subgraph Data [&quot;Data Layer (Infrastructure)&quot;]
+        ReposConcrete[Concrete Repositories]
+        DataSources[Drift Local Data Sources]
+        SQLite[(Drift AppDatabase SQLite v31)]
+        PlatformAdapters[Native Method Channels / Health / Widgets]
+    end
+
+    %% Dependency Direction (flows inward)
+    UI --&gt; VM
+    VM --&gt; Models
+    VM --&gt; RepoInterfaces
+    VM --&gt; DomainServices
+    DomainServices --&gt; RepoInterfaces
+    ReposConcrete --&gt; RepoInterfaces
+    ReposConcrete --&gt; DataSources
+    DataSources --&gt; SQLite
+    PlatformAdapters --&gt; ReposConcrete">graph TD
+    %% Presentation Layer
+    subgraph Presentation [&quot;Presentation Layer (Flutter/MVVM)&quot;]
+        UI[Flutter Widgets / Screens]
+        VM[ViewModels / ChangeNotifiers]
+    end
+
+    %% Domain Layer
+    subgraph Domain [&quot;Domain Layer (Core Logic)&quot;]
+        Models[Pure Domain Models]
+        RepoInterfaces[Abstract Repository Interfaces]
+        DomainServices[Domain &amp; Progression Services]
+    end
+
+    %% Data Layer
+    subgraph Data [&quot;Data Layer (Infrastructure)&quot;]
+        ReposConcrete[Concrete Repositories]
+        DataSources[Drift Local Data Sources]
+        SQLite[(Drift AppDatabase SQLite v31)]
+        PlatformAdapters[Native Method Channels / Health / Widgets]
+    end
+
+    %% Dependency Direction (flows inward)
+    UI --&gt; VM
+    VM --&gt; Models
+    VM --&gt; RepoInterfaces
+    VM --&gt; DomainServices
+    DomainServices --&gt; RepoInterfaces
+    ReposConcrete --&gt; RepoInterfaces
+    ReposConcrete --&gt; DataSources
+    DataSources --&gt; SQLite
+    PlatformAdapters --&gt; ReposConcrete</pre></div>
+<h3 id="1-presentation-layer-flutter-mvvm" class="doc-h3">1. Presentation Layer (Flutter & MVVM)<a href="#1-presentation-layer-flutter-mvvm" class="header-anchor" aria-label="Link to section">#</a></h3>
+<ul class="doc-list">
+<li><strong>Role</strong>: Handles user interaction, responsive layouts, animations, and input collection.</li>
+<li><strong>Components</strong>: Flutter screens, custom widgets, and ViewModels (extending <code>ChangeNotifier</code>).</li>
+<li><strong>Dependency Rule</strong>: ViewModels depend strictly on abstract repository interfaces (<code>IDiaryRepository</code>, <code>IWorkoutRepository</code>, <code>IExerciseCatalogRepository</code>, <code>IProfileRepository</code>, <code>SupplementRepository</code>) or focused domain services injected via Provider. They possess no direct knowledge of Drift queries, file systems, or API endpoints.</li>
+</ul>
+<h3 id="2-domain-layer-inward-layer" class="doc-h3">2. Domain Layer (Inward Layer)<a href="#2-domain-layer-inward-layer" class="header-anchor" aria-label="Link to section">#</a></h3>
+<ul class="doc-list">
+<li><strong>Role</strong>: The heart of the application containing pure business rules, algorithmic engines, and data contracts.</li>
+<li><strong>Components</strong>: Pure data models (e.g., <code>FoodItem</code>, <code>FoodEntry</code>, <code>MeasurementSession</code>, <code>Supplement</code>), abstract repository interfaces, and computational domain services (e.g., <code>WorkoutProgressionService</code>, <code>BayesianTdeeEstimator</code>, <code>SleepScoringEngine</code>).</li>
+<li><strong>Dependency Rule</strong>: Highly decoupled. It depends on no UI framework or data-layer implementations.</li>
+</ul>
+<h3 id="3-data-layer-outward-layer" class="doc-h3">3. Data Layer (Outward Layer)<a href="#3-data-layer-outward-layer" class="header-anchor" aria-label="Link to section">#</a></h3>
+<ul class="doc-list">
+<li><strong>Role</strong>: Handles raw SQLite persistence via Drift, file caching (<code>AppMediaStore</code>, <code>MealPhotoStore</code>), hardware-backed secure storage (<code>FlutterSecureStorage</code>), and native platform communication (HealthKit, Health Connect, Home Screen Widgets).</li>
+<li><strong>Components</strong>: Concrete repository implementations (e.g., <code>WorkoutRepository</code>, <code>NutritionRepository</code>, <code>SupplementRepositoryImpl</code>), specialized Drift Local Data Sources (<code>DiaryLocalDataSource</code>, <code>WorkoutLocalDataSource</code>, <code>StepsLocalDataSource</code>, etc.), and <code>DatabaseHelper</code>.</li>
+<li><strong>Dependency Rule</strong>: Translates domain-specific requests into database transactions, queries, or channel calls.</li>
+</ul>
+<hr class="divider">
+<h2 id="runtime-bootstrap-dependency-wiring-libmaindart" class="doc-h2">Runtime Bootstrap & Dependency Wiring (<code>lib/main.dart</code>)<a href="#runtime-bootstrap-dependency-wiring-libmaindart" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>At runtime, the application bootstraps and binds dependencies imperatively in <code>lib/main.dart</code> before rendering the root widget tree.</p>
+<h3 id="1-cold-start-initialization-sequence" class="doc-h3">1. Cold-Start Initialization Sequence<a href="#1-cold-start-initialization-sequence" class="header-anchor" aria-label="Link to section">#</a></h3>
+<ol class="doc-list">
+<li><strong>Flutter Bindings & Orientation</strong>: Invokes <code>WidgetsFlutterBinding.ensureInitialized()</code> and locks orientation to portrait.</li>
+<li><strong>Telemetry & Tracing</strong>:</li>
+<li>Opens <code>StartupTrace.instance.beginColdStart()</code> and attaches listeners to measure cold start milestones.</li>
+<li>Starts <code>JankRecorder.instance</code> with <code>StallTelemetryReporter</code> to detect UI frame stalls (dropped frames). If the user is opted out of telemetry, tracking dispatches are no-ops.</li>
+<li><strong>Visual Pipelines & Formatters</strong>:</li>
+<li>Initializes <code>LiquidGlassWidgets</code> shaders.</li>
+<li>Executes <code>initializeDateFormatting()</code> to avoid <code>LocaleDataException</code> across international locales.</li>
+<li>Initializes <code>MealPhotoStore.instance</code> to synchronously resolve relative photo paths.</li>
+<li><strong>Security Migration</strong>: Runs <code>AiService.migrateSecureStorageToDeviceOnly()</code>, migrating legacy Keychain entries to hardware-backed device-only accessibility.</li>
+<li><strong>Consent & Legal Version Check</strong>: Checks <code>SharedPreferences</code> for onboarding consent and legal version agreement (<code>acceptedLegalVersion</code>).</li>
+</ol>
+<h3 id="2-database-data-source-assembly" class="doc-h3">2. Database & Data Source Assembly<a href="#2-database-data-source-assembly" class="header-anchor" aria-label="Link to section">#</a></h3>
+<p>The main isolate creates one <code>AppDatabase</code> instance and registers it with <code>DatabaseHelper</code> before wiring modular data sources. Other isolates, such as the Workmanager callback, create and register their own short-lived instance.</p>
+<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">dart</span><button class="copy-btn" onclick="navigator.clipboard.writeText(this.closest('.code-block-wrapper').querySelector('code').innerText); this.textContent='Copied!'; setTimeout(()=>this.textContent='Copy', 1500);">Copy</button></div><pre><code class="language-dart">final database = db.AppDatabase();
+DatabaseHelper.setDriftDb(database);
+
+final diaryLocalDataSource = DiaryLocalDataSource(database);
+final workoutLocalDataSource = WorkoutLocalDataSource(database);
+final exerciseCatalogLocalDataSource = ExerciseCatalogLocalDataSource(database);
+final profileLocalDataSource = ProfileLocalDataSource(database);
+final supplementLocalDataSource = SupplementLocalDataSource(database);</code></pre></div>
+<h3 id="3-repository-service-assembly" class="doc-h3">3. Repository & Service Assembly<a href="#3-repository-service-assembly" class="header-anchor" aria-label="Link to section">#</a></h3>
+<p>Concrete repositories implement domain interfaces and wrap their respective data sources:</p>
+<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">dart</span><button class="copy-btn" onclick="navigator.clipboard.writeText(this.closest('.code-block-wrapper').querySelector('code').innerText); this.textContent='Copied!'; setTimeout(()=>this.textContent='Copy', 1500);">Copy</button></div><pre><code class="language-dart">final workoutRepository = WorkoutRepository(localDataSource: workoutLocalDataSource);
+final nutritionRepository = NutritionRepository(localDataSource: diaryLocalDataSource);
+final supplementRepository = SupplementRepositoryImpl(localDataSource: supplementLocalDataSource);
+final exerciseCatalogRepository = ExerciseCatalogRepository(localDataSource: exerciseCatalogLocalDataSource);
+final profileRepository = ProfileRepository(localDataSource: profileLocalDataSource);
+
+final unitService = UnitService();
+final themeService = ThemeService();
+final experienceLevelService = ExperienceLevelService();
+final trainingAutonomyService = TrainingAutonomyService(database);
+await trainingAutonomyService.initialize();
+
+final workoutProgressionService = WorkoutProgressionService(
+  repository: workoutRepository,
+  unitService: unitService,
+);
+
+final workoutSessionManager = LiveWorkoutViewModel(
+  repository: workoutRepository,
+  unitService: unitService,
+  progressionService: workoutProgressionService,
+  trainingAutonomyService: trainingAutonomyService,
+);</code></pre></div>
+<h3 id="4-provider-dependency-injection-tree" class="doc-h3">4. Provider Dependency Injection Tree<a href="#4-provider-dependency-injection-tree" class="header-anchor" aria-label="Link to section">#</a></h3>
+<p>A top-level <code>MultiProvider</code> registers dependencies so child widgets access them via <code>context.read&lt;T&gt;()</code> or <code>context.watch&lt;T&gt;()</code>: <em>   <code>Provider&lt;IDiaryRepository&gt;.value(...)</code> </em>   <code>Provider&lt;IWorkoutRepository&gt;.value(...)</code> <em>   <code>Provider&lt;SupplementRepository&gt;.value(...)</code> </em>   <code>Provider&lt;IExerciseCatalogRepository&gt;.value(...)</code> <em>   <code>Provider&lt;IProfileRepository&gt;.value(...)</code> </em>   <code>ChangeNotifierProvider.value(value: workoutSessionManager)</code> <em>   <code>ChangeNotifierProvider.value(value: trainingAutonomyService)</code> </em>   <code>Provider&lt;WorkoutProgressionService&gt;.value(...)</code> <em>   <code>ChangeNotifierProvider(create: ... ProfileService ...)</code> </em>   <code>ChangeNotifierProvider.value(value: unitService)</code> <em>   <code>ChangeNotifierProvider.value(value: themeService)</code> </em>   <code>ChangeNotifierProvider.value(value: experienceLevelService)</code> *   <code>Provider&lt;HomeWidgetSyncService&gt;(create: ...)</code> (listens to repositories and keeps iOS/Android widget snapshots synced)</p>
+<h3 id="5-app-initializer-screen-background-tasks" class="doc-h3">5. App Initializer Screen & Background Tasks<a href="#5-app-initializer-screen-background-tasks" class="header-anchor" aria-label="Link to section">#</a></h3>
+<ul class="doc-list">
+<li><strong>Startup Routing</strong>: <code>MyApp</code> routes fresh installs to <code>InitialConsentScreen</code>, legal updates to <code>LegalUpdateConsentScreen</code>, or directly to <code>AppInitializerScreen</code>.</li>
+<li><strong>AppInitializerScreen</strong>: Handles background checks on startup:</li>
+<li>Executes <code>BasisDataManager.instance.checkForBasisDataUpdate()</code> to ensure offline catalogs (Open Food Facts / exercise catalog) are seeded or updated.</li>
+<li>Runs <code>BackupManager.instance.runAutoBackupIfDue()</code>.</li>
+<li>Restores an uncompleted live workout session via <code>workoutSessionManager.tryRestoreSession()</code>.</li>
+<li><strong>Periodic Background Tasks (Workmanager)</strong>:</li>
+<li>Initializes <code>Workmanager().initialize(callbackDispatcher)</code>.</li>
+<li>Registers a periodic 12-hour task (<code>tdeeCalculationTask</code>) executed by <code>callbackDispatcher</code> in a background isolate:</li>
+</ul>
+<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">dart</span><button class="copy-btn" onclick="navigator.clipboard.writeText(this.closest('.code-block-wrapper').querySelector('code').innerText); this.textContent='Copied!'; setTimeout(()=>this.textContent='Copy', 1500);">Copy</button></div><pre><code class="language-dart">    @pragma(&#x27;vm:entry-point&#x27;)
+    void callbackDispatcher() {
+      Workmanager().executeTask((task, inputData) async {
+        WidgetsFlutterBinding.ensureInitialized();
+        final database = db.AppDatabase();
+        DatabaseHelper.setDriftDb(database);
+        await LocalNotificationService.instance.initialize();
+        final service = AdaptiveNutritionRecommendationService(
+          databaseHelper: DatabaseHelper.instance,
+        );
+        await service.refreshRecommendationIfDue();
+        return true;
+      });
+    }
+    </code></pre></div>
+<hr class="divider">
+<h2 id="database-lifecycle-schema-management" class="doc-h2">Database Lifecycle & Schema Management<a href="#database-lifecycle-schema-management" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>Persistence in Train Libre is driven by SQLite through the Drift package. The database is currently at <strong>schema version 31</strong>.</p>
+<h3 id="the-databasehelper-singleton" class="doc-h3">The DatabaseHelper Singleton<a href="#the-databasehelper-singleton" class="header-anchor" aria-label="Link to section">#</a></h3>
+<p>A central mediator <code>DatabaseHelper</code> manages the active database instance:</p>
+<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">dart</span><button class="copy-btn" onclick="navigator.clipboard.writeText(this.closest('.code-block-wrapper').querySelector('code').innerText); this.textContent='Copied!'; setTimeout(()=>this.textContent='Copy', 1500);">Copy</button></div><pre><code class="language-dart">class DatabaseHelper {
+  static final DatabaseHelper instance = DatabaseHelper._init();
+  
+  static db.AppDatabase? _driftDb;
+  final db.AppDatabase? _injectedDb;
+
+  DatabaseHelper._init() : _injectedDb = null;
+  DatabaseHelper.forTesting(db.AppDatabase database) : _injectedDb = database;
+
+  static void setDriftDb(db.AppDatabase database) {
+    _driftDb = database;
+  }
+
+  static db.AppDatabase? get driftDb =&gt; _driftDb;
+
+  /// Resets the connection before a database restore from backup
+  static Future&lt;void&gt; closeAndResetDriftDb() async {
+    final current = _driftDb;
+    _driftDb = null;
+    if (current != null) {
+      await current.close();
+    }
+  }
+
+  db.AppDatabase get dbInstance =&gt;
+      _injectedDb ?? (_driftDb ??= db.AppDatabase());
+
+  Future&lt;db.AppDatabase&gt; get database async =&gt; dbInstance;
+}</code></pre></div>
+<h3 id="additive-schema-self-healing-reconcileschema" class="doc-h3">Additive Schema Self-Healing (<code>reconcileSchema</code>)<a href="#additive-schema-self-healing-reconcileschema" class="header-anchor" aria-label="Link to section">#</a></h3>
+<p>Drift schema migrations only trigger when the database's <code>user_version</code> PRAGMA changes. During rapid feature development, multiple additions may occur within the same schema version.</p>
+<p>To ensure no table or column is missing on an upgraded device: 1.  <strong><code>beforeOpen</code> Hook</strong>: On every database connection open, <code>AppDatabase</code> runs <code>reconcileSchema()</code>. 2.  <strong>Safe Additions Only</strong>: It inspects SQLite system catalogs (<code>sqlite_master</code> and table info) against generated tables. If a table or a nullable/defaulted column is missing, it creates it immediately without requiring manual migration scripts or dropping user data. 3.  <strong>Migration History</strong>: Explicit migrations from schema version 1 to 31 are maintained in <code>MigrationStrategy.onUpgrade</code>, ensuring backward compatibility for users upgrading from any previous release.</p>
+        </article>
+
+        <nav class="docs-pager" aria-label="Documentation navigation">
+<a href="../overview/index.html" class="pager-card pager-prev"><span class="pager-label">← Previous</span><span class="pager-title">Developer Overview &amp; Tests</span></a>
+<a href="../data-flow-and-state/index.html" class="pager-card pager-next"><span class="pager-label">Next →</span><span class="pager-title">Data Flow &amp; State Lifecycle</span></a>
+</nav>
+      </main>
+
+      <!-- Right Table of Contents -->
+      <aside class="docs-toc" aria-label="Table of contents"><div class="toc-sticky-box"><div class="toc-heading">On this page</div><ul class="toc-list">
+<li class="toc-item toc-item-l2"><a href="#architectural-layering">Architectural Layering</a></li>
+<li class="toc-item toc-item-l3"><a href="#1-presentation-layer-flutter-mvvm">1. Presentation Layer (Flutter &amp; MVVM)</a></li>
+<li class="toc-item toc-item-l3"><a href="#2-domain-layer-inward-layer">2. Domain Layer (Inward Layer)</a></li>
+<li class="toc-item toc-item-l3"><a href="#3-data-layer-outward-layer">3. Data Layer (Outward Layer)</a></li>
+<li class="toc-item toc-item-l2"><a href="#runtime-bootstrap-dependency-wiring-libmaindart">Runtime Bootstrap &amp; Dependency Wiring (lib/main.dart)</a></li>
+<li class="toc-item toc-item-l3"><a href="#1-cold-start-initialization-sequence">1. Cold-Start Initialization Sequence</a></li>
+<li class="toc-item toc-item-l3"><a href="#2-database-data-source-assembly">2. Database &amp; Data Source Assembly</a></li>
+<li class="toc-item toc-item-l3"><a href="#3-repository-service-assembly">3. Repository &amp; Service Assembly</a></li>
+<li class="toc-item toc-item-l3"><a href="#4-provider-dependency-injection-tree">4. Provider Dependency Injection Tree</a></li>
+<li class="toc-item toc-item-l3"><a href="#5-app-initializer-screen-background-tasks">5. App Initializer Screen &amp; Background Tasks</a></li>
+<li class="toc-item toc-item-l2"><a href="#database-lifecycle-schema-management">Database Lifecycle &amp; Schema Management</a></li>
+<li class="toc-item toc-item-l3"><a href="#the-databasehelper-singleton">The DatabaseHelper Singleton</a></li>
+<li class="toc-item toc-item-l3"><a href="#additive-schema-self-healing-reconcileschema">Additive Schema Self-Healing (reconcileSchema)</a></li>
+</ul></div></aside>
+    </div>
+
+    <!-- Footer (100% harmonized with main website footer) -->
+    <footer class="site-footer">
+      <div>
+        <a class="brand" href="../../../index.html" aria-label="Train Libre home">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 270.933 270.933" role="img">
+              <path fill="#ddff00"
+                d="M47.621 39.688c-4.385 0-7.939 3.554-7.939 7.939v116.172c0 37.238 30.188 67.472 67.426 67.459l13.482-.006c.15.003.3.005.451.005h89.722c11.367 0 20.518-9.154 20.518-20.525s-9.151-20.525-20.518-20.525h-42.739a7.937 7.937 0 0 1-7.937-7.937v-25.174a7.937 7.937 0 0 1 7.937-7.937l41.159-.001c12.244 0 22.101-9.154 22.1-20.525-.001-11.371-9.859-20.525-22.103-20.525l-41.156.001a7.937 7.937 0 0 1-7.937-7.937V47.627c0-4.385-3.555-7.939-7.939-7.939z" />
+            </svg>
+          </span>
+          <span>Train Libre</span>
+        </a>
+        <p class="fine-print">Fitness, nutrition, recovery, and pulse features are non-clinical heuristics for healthy individuals tracking performance, not medical advice. They do not apply to medical conditions (such as eating or sleep disorders).</p>
+      </div>
+      <div class="footer-links">
+        <a href="../../index.html">Documentation</a>
+        <a href="../../../privacy.html">Privacy Policy</a>
+        <a href="../../../terms.html">Terms of Service</a>
+        <a href="../../../impressum.html">Imprint</a>
+        <a href="../../../support.html">Support</a>
+        <a href="https://github.com/rfivesix/train-libre" data-link="github" target="_blank" rel="noreferrer">GitHub</a>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Documentation Interactions Script -->
+  <script>
+    // Theme toggle interaction
+    const themeBtn = document.getElementById("theme-toggle");
+    if (themeBtn) {
+      themeBtn.addEventListener("click", () => {
+        const current = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
+        document.documentElement.setAttribute("data-theme", current);
+        localStorage.setItem("theme", current);
+        if (typeof mermaid !== "undefined") {
+          const mNodes = document.querySelectorAll(".mermaid");
+          if (mNodes.length > 0) {
+            mNodes.forEach(node => {
+              if (node.hasAttribute("data-mermaid")) {
+                node.removeAttribute("data-processed");
+                node.innerHTML = node.getAttribute("data-mermaid");
+              }
+            });
+            mermaid.initialize({
+              startOnLoad: false,
+              theme: current === "light" ? "default" : "dark"
+            });
+            mermaid.run();
+          }
+        }
+      });
+    }
+
+    // Mobile sidebar toggle
+    const sidebarToggle = document.getElementById("sidebar-toggle");
+    const sidebar = document.getElementById("docs-sidebar");
+    if (sidebarToggle && sidebar) {
+      sidebarToggle.addEventListener("click", () => {
+        const expanded = sidebar.classList.toggle("open");
+        sidebarToggle.setAttribute("aria-expanded", expanded);
+      });
+
+      document.addEventListener("click", (e) => {
+        if (sidebar.classList.contains("open") && !sidebar.contains(e.target) && !sidebarToggle.contains(e.target)) {
+          sidebar.classList.remove("open");
+          sidebarToggle.setAttribute("aria-expanded", "false");
+        }
+      });
+    }
+
+    // Sidebar filter/search
+    const filterInput = document.getElementById("sidebar-filter");
+    if (filterInput) {
+      filterInput.addEventListener("input", (e) => {
+        const val = e.target.value.toLowerCase().trim();
+        document.querySelectorAll(".sidebar-nav-list li").forEach(li => {
+          const text = li.textContent.toLowerCase();
+          li.style.display = text.includes(val) ? "" : "none";
+        });
+        document.querySelectorAll(".sidebar-group").forEach(group => {
+          const hasVisible = Array.from(group.querySelectorAll("li")).some(li => li.style.display !== "none");
+          group.style.display = hasVisible ? "" : "none";
+        });
+      });
+    }
+
+    // Scroll-spy for Table of Contents
+    const tocItems = document.querySelectorAll(".toc-list a");
+    if (tocItems.length > 0) {
+      const headingElements = Array.from(tocItems).map(a => {
+        const id = a.getAttribute("href").substring(1);
+        return document.getElementById(id);
+      }).filter(Boolean);
+
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const id = entry.target.getAttribute("id");
+            tocItems.forEach(a => {
+              if (a.getAttribute("href") === "#" + id) {
+                a.classList.add("active");
+              } else {
+                a.classList.remove("active");
+              }
+            });
+          }
+        });
+      }, { rootMargin: "0px 0px -70% 0px", threshold: 0.1 });
+
+      headingElements.forEach(h => observer.observe(h));
+    }
+  </script>
+</body>
+</html>

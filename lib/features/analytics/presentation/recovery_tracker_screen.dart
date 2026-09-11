@@ -709,7 +709,7 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
             markdownAssetPath:
                 'documentation/features/muscle_recovery_model.md',
             citationUrl:
-                'https://rfivesix.github.io/train-libre/recovery/#evidence',
+                'https://trainlibre.com/docs/features/muscle-recovery-model/#evidence',
             iconColor: Theme.of(context).colorScheme.onSurface,
           ),
         ],

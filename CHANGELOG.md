@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [1.4.0-beta.1] - 2026-09-10
 
 ### Added
+- **Centralized Documentation Suite (`/docs/`):** Restructured the website documentation into a dedicated, responsive documentation portal (`trainlibre.com/docs/`) with sidebar topic navigation, scroll-spy table of contents, quick topic filter, and KaTeX mathematical formula rendering. Created `tool/build_docs.py` to compile Markdown files directly from `documentation/` as the single source of truth, integrated automated generation into `.github/workflows/deploy-docs.yml`, and added backwards-compatible hash-preserving redirect stubs (`/sleep-score/`, `/recovery/`, `/intelligent-workouts/`, `/adaptive-nutrition/`, `/ai-nutrition/`) ensuring existing in-app deep links (such as `#evidence`) continue working seamlessly while removing outdated calculators.
 - The calendar view is now the default for date-only pickers. Birth-date editing in onboarding and the profile keeps the Cupertino wheel as the intentional exception.
 - The date picker wheel toggle now uses the clearer three-column Lucide icon.
 - The shared date picker now accepts an initial presentation mode. The Diary opens directly in the localized calendar view, while other date-only inputs retain the Cupertino wheel by default.
@@ -16,9 +17,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Fixed
 - Live-Activity-Vorschläge werden nach abgeschlossener Progressionsberechnung zuverlässig synchronisiert und zeigen vorausgefüllte Werte auf iOS und Android an.
+- **Documentation Builder:** Preserve balanced parentheses in Markdown link destinations so DOI links render with their complete URL.
+- **Documentation Suite Header & Placeholder Fixes:** Fixed token placeholder collisions in `tool/build_docs.py` where italic markdown regex mangled inline code/math tokens. Aligned the Docs header brand element horizontally to match the exact pixel positioning of the main website header. Removed redundant Docs link in Docs header navigation.
+- **Mermaid Diagram Rendering:** Added Mermaid.js support to documentation pages to render architecture and database schema diagrams cleanly in dark and light modes with seamless theme-toggle updating.
 
 ### Changed
 - Neu hinzugefügte Arbeitssätze und geeignete neue Übungen übernehmen den vorherigen Wiederholungsbereich beziehungsweise `8–12` als Standard. Cardio-, Zeit-, Distanz- und sonstige nicht passende Übungen bleiben ohne künstlichen Wiederholungsbereich.
+- **Website & Docs Footer Harmonization:** Removed legacy feature links from footers across all site screens (`index.html`, `terms.html`, `privacy.html`, `impressum.html`, `support.html`, `privacy-policy/index.html`) to retain only Documentation, Privacy Policy, Terms of Service, Imprint, Support, and GitHub. Harmonized the Docs footer structure 1:1 with the main website.
+- **Documentation Link Styling:** Enhanced link visibility in documentation articles with persistent accent-toned underlines (`text-underline-offset: 3px`), color inheritance for bold (`strong`) and emphasized (`em`) link texts (resolving white unstyled links), distinctive styling for code links, and interactive external link animations.
+- **In-App Documentation & Legal Links:** Updated all in-app citation and legal URLs across the Flutter app from legacy `rfivesix.github.io/train-libre/` URLs to canonical `https://trainlibre.com/docs/features/.../#evidence` and `https://trainlibre.com/privacy.html` targets.
 
 ### Added
 - **Diary date strip:** The Diary header now offers a horizontally scrollable,

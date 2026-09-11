@@ -1,187 +1,135 @@
-# iOS Home Screen Widgets
+# Home Screen Widgets (iOS & Cross-Platform Architecture)
 
-Two widgets put the diary on the Home Screen:
+Train Libre brings glanceable diary, activity, recovery, and workout metrics directly to the user's Home Screen without compromising offline autonomy or data privacy.
 
-- **Heute im Blick** (`.systemMedium`) — the diary's six-tile nutrition grid, rendered 1:1.
-- **Schnellzugriff** (`.systemSmall` / `.systemMedium`) — two or four freely chosen actions.
+The widget suite is driven by a shared, pure Dart snapshot architecture (`lib/features/home_widgets/`) that synchronizes state over the `trainlibre.widgets/home_screen` MethodChannel to native platforms:
+- **iOS 18+**: Native SwiftUI widgets via WidgetKit in `ios/TrainLibreLiveActivity/`, sharing data through an App Group container (`group.com.rfivesix.trainlibre`).
+- **Android 12+**: Native widgets via Jetpack Glance and custom canvas renderers in `android/app/src/main/kotlin/com/rfivesix/trainlibre/widgets/`, plus an Android Quick Settings Tile (`QuickActionTileService`).
 
-Available on **iOS 18 and newer**. The app and the Workout Live Activity keep their iOS 16.2
-floor; the widgets are gated inside the widget bundle rather than by raising the extension's
-deployment target, so nothing is taken away from 16/17 users.
-
-> Like everything else in Train Libre, this runs entirely on the device. The widgets read a
-> snapshot the app writes into the shared App Group container — no server, no network, no
-> background fetch.
+> Like everything else in Train Libre, widgets run entirely on the device. Widgets read a serialized JSON snapshot written directly by the app into local platform storage — no external server, no network connection, and no background fetch.
 
 ---
 
-## What they show
+## The Widget Family
+
+The snapshot provides data for six distinct widget surfaces across both platforms:
+
+1. **Heute im Blick / Today Glance** (`.systemMedium` on iOS; 4x2 on Android):
+   The diary's six-tile nutrition grid rendered 1:1 with `NutritionSummaryWidget` (Calories, Protein, Water, Carbohydrates, Extra Nutrient [fibre/sugar/salt], and Fat) including progress fills and targets. Tapping opens the diary.
+2. **Schnellzugriff / Quick Actions** (`.systemSmall` / `.systemMedium` on iOS; 2x2 / 4x2 on Android):
+   Configurable action shortcuts (AI meal capture, barcode scanner, start workout, log measurement, log supplement, add fluid). Tapping directly deep-links to that specific flow. On Android, also available as a Quick Settings Tile.
+3. **Schritte / Steps** (`.systemSmall` / `.systemMedium` on iOS; 2x2 / 4x2 on Android):
+   Current day's step count against the active daily goal, paired with an hourly/daily bar chart.
+4. **Messwerte / Measurements** (`.systemSmall` / `.systemMedium` on iOS; 2x2 / 4x2 on Android):
+   User-selected body metric (weight, body fat, waist circumference, etc.) showing the latest reading, change over time, and a historical sparkline chart. Configured via native configuration intents/activities.
+5. **Muskel-Erholung / Muscle Recovery** (`.systemSmall` / `.systemMedium` on iOS; 2x2 / 4x2 on Android):
+   Heuristic muscle readiness breakdown, showing percentages and counts for *Recovering*, *Ready*, and *Fresh* muscle groups. Tapping navigates to the Recovery Tracker.
+6. **Letztes Workout / Last Workout** (`.systemMedium` / `.systemLarge` on iOS; 4x2 / 4x3 on Android):
+   Summary of the most recently completed workout session (duration, tonnage, total reps, sets) alongside a rendered muscle heatmap image (`last_workout_heatmap_<id>.png`).
+
+---
+
+## Architecture & Data Flow
 
 ```
-┌─────────────────────┬─────────────────────┐
-│ Kalorien            │ Protein             │
-│ 1234.0 / 2000 kcal  │ 98.0 / 150 g        │
-├─────────────────────┼─────────────────────┤
-│ Wasser              │ Kohlenhydrate       │
-│ 1500.0 / 2500 ml    │ 180.0 / 200 g       │
-├─────────────────────┼─────────────────────┤
-│ Ballaststoffe       │ Fett                │
-│ 12.0 / 30 g         │ 55.0 / 60 g         │
-└─────────────────────┴─────────────────────┘
+Flutter (Source of Truth)                       Native Platform Storage                  Native Widget Renderers
+─────────────────────────                       ───────────────────────                  ───────────────────────
+[Repositories: Diary, Workout, Profile]
+         │
+         ▼
+HomeWidgetSyncService                           iOS: App Group UserDefaults              iOS: WidgetKit Extension
+  (Listens to reactive repository changes,        (suiteName: group.com.rfivesix...)       (TimelineProvider -> SwiftUI)
+   builds HomeWidgetSnapshot JSON)                        │
+         │                                                │
+         ├──MethodChannel (trainlibre.widgets/home_screen)┤
+         │                                                │
+         ▼                                                ▼
+HomeWidgetChannel                               Android: SharedPreferences               Android: Glance & AppWidget
+  .writeSnapshot(json)                            (HomeWidgetStore)                        (HomeWidgetRefresher -> Renderers)
+  .writeSharedFile(heatmapBytes)
 ```
 
-Same six tiles as `NutritionSummaryWidget` with `isExpandedView: false`, in the same column
-order, with the same colours, corner radii, spacing and fill behaviour. The third left-hand tile
-follows the app's `overviewExtraNutrient` setting (fibre, sugar or salt) rather than offering a
-separate widget setting, so the two can never disagree.
+### Snapshot Payload (`HomeWidgetSnapshot` Schema v2)
+The snapshot (`HomeWidgetSnapshot`) holds **aggregate totals, targets, and presentation metrics only**:
+- No food names, exact timestamps, or granular user log entries ever reach the shared container.
+- `schemaVersion: 2` supports nullable modular sections (`recovery`, `steps`, `measurements`, `lastWorkout`, `tiles`). Missing sections gracefully degrade to an empty state rather than causing decoding failures.
+- `rolloverHour`: Sent explicitly in the snapshot (default 3 AM) so native timeline providers know when to zero out the nutrition grid without duplicating Dart rollover rules.
 
-When the day has targets but nothing logged yet, the grid stays — the targets are the useful part —
-and gains one quiet line beneath it. If the app has never written a snapshot at all (a widget added
-before the app was first opened), the line instead says so rather than leaving six dashes unexplained.
+### Push-Based Updates & Timeline Budgeting
+Nutrition and workout data cannot change while the app is closed. A snapshot written on each mutation and on app backgrounding is exact. Polling data that provably did not change would exhaust OS widget reload budgets (WidgetKit budgets ~40–70 reloads per day).
 
-Tapping the widget opens the diary.
-
-**Schnellzugriff** shows Shortcuts-style tiles for: KI-Mahlzeit, Barcode scannen, Workout starten,
-Messwert hinzufügen, Einnahme protokollieren, Flüssigkeit hinzufügen. Each slot is chosen by the
-user in the widget's configuration. Tapping a tile opens the app directly in that flow.
+The synchronization uses **push**:
+- The app updates the snapshot and requests a timeline reload whenever relevant data changes.
+- Two timeline entries are scheduled on iOS: the current moment, and the next day rollover (`snapshot.zeroed(forDayKey:)`), ensuring the widget rolls over cleanly even if the app remains closed past 03:00.
 
 ---
 
-## How the data gets there
+## Where the Code Lives
 
-```
-Flutter (source of truth)                 App Group                    Extension
-─────────────────────────                 ─────────                    ─────────
-CalculateDailyNutritionUseCase
-        │
-        ▼
-HomeWidgetSyncService  ──MethodChannel──►  UserDefaults(suiteName:)  ──►  TimelineProvider
-  (builds snapshot JSON)                   key: home_widget_snapshot       (decodes, renders)
-        │
-        └──────────────────────────────►  WidgetCenter.reloadTimelines()
-```
+### Cross-Platform Dart Layer (`lib/features/home_widgets/`)
+*   `domain/models/home_widget_snapshot.dart`: Schema version 2 snapshot model, tiles, recovery, steps, measurements, and workout structures with JSON serialization.
+*   `domain/build_home_widget_snapshot.dart`: Pure builder function transforming domain repository entities into the platform snapshot.
+*   `data/home_widget_channel.dart`: Wraps the `trainlibre.widgets/home_screen` MethodChannel (writeSnapshot, writeSharedFile, sharedFileExists, clearSnapshot).
+*   `application/home_widget_sync_service.dart`: Listens to diary, profile, supplement, and workout repositories, building and pushing snapshots.
+*   `application/workout_heatmap_publisher.dart`: Renders muscle fatigue heatmaps into PNG byte buffers and publishes them to shared storage.
+*   `home_widget_deep_link.dart`: Unified deep-link parser routing incoming `trainlibre://widget/<action>` URLs.
 
-The snapshot holds **aggregate totals and targets only** — no food names, no timestamps, no
-entry-level rows ever reach the shared container.
+### iOS Implementation (`ios/`)
+| File | Role |
+| --- | --- |
+| `ios/LiveActivity/HomeWidgetShared.swift` | Snapshot decoding, day maths, Dart-compatible number formatting |
+| `ios/LiveActivity/HomeWidgetBridge.swift` | `trainlibre.widgets/home_screen` MethodChannel implementation |
+| `ios/TrainLibreLiveActivity/TodayGlanceWidget.swift` | Nutrition grid widget, configuration intent, timeline provider |
+| `ios/TrainLibreLiveActivity/TodayGlanceViews.swift` | SwiftUI grid layout and progress bar rendering |
+| `ios/TrainLibreLiveActivity/QuickActionsWidget.swift` | Quick action launcher widget, configuration intent, tiles |
+| `ios/TrainLibreLiveActivity/StepsWidget.swift` | Steps counter and bar chart widget |
+| `ios/TrainLibreLiveActivity/MeasurementsWidget.swift` | Metric tracking and trend line widget |
+| `ios/TrainLibreLiveActivity/RecoveryWidget.swift` | Muscle readiness pills and breakdown widget |
+| `ios/TrainLibreLiveActivity/LastWorkoutWidget.swift` | Workout recap and muscle heatmap viewer |
+| `ios/TrainLibreLiveActivity/Localizable.xcstrings` | Native localization for widget gallery and configuration UI |
 
-### Why there is no periodic refresh
-
-Nutrition data cannot change while the app is closed. HealthKit nutrition and hydration are
-**write-only** here ([`AppDelegate.swift`](../../ios/Runner/AppDelegate.swift) writes
-`dietaryWater`; only steps, sleep and heart rate are ever read back), so every calorie and
-millilitre enters through app UI. A snapshot written on each mutation is therefore not an
-approximation — it is exact.
-
-WidgetKit also budgets roughly 40–70 timeline reloads per widget per day. Spending them polling
-data that provably did not change would make the widget *more* likely to be stale when it matters.
-
-So the widget uses **push** (the app reloads timelines after every write and on backgrounding)
-plus exactly **two timeline entries**: now, and the next day rollover.
-
-### The day rollover
-
-The diary shows the previous day until 03:00 (`resolveDiaryInitialDate`). That rule lives in Dart
-and travels in the snapshot as `rolloverHour`, so the widget never keeps its own copy of it.
-
-The widget's second timeline entry fires at the next rollover and renders
-`snapshot.zeroed(forDayKey:)` — the previous day's totals cleared, its targets kept. Nothing can
-have been logged for the new day without the app running, so zero is the correct answer rather
-than a guess, and the widget rolls over correctly with the app closed.
-
-Each widget instance can be configured to follow the app (03:00) or the calendar day (00:00).
+### Android Implementation (`android/app/.../widgets/`)
+| File | Role |
+| --- | --- |
+| `HomeWidgetBridge.kt` | MethodChannel handling snapshot persistence and file writing |
+| `snapshot/HomeWidgetStore.kt` | Stores and parses `HomeWidgetSnapshot` from SharedPreferences |
+| `HomeWidgetRefresher.kt` | Broadcasts update intents to all active AppWidgets and tile services |
+| `TodayGlanceWidget.kt` | Nutrition summary widget provider |
+| `QuickActionsWidget.kt` | Quick action shortcut widget provider |
+| `StepsWidget.kt` | Step counter widget provider with bar chart |
+| `MeasurementsWidget.kt` | Measurement widget provider with trend chart |
+| `RecoveryWidget.kt` | Muscle recovery widget provider |
+| `LastWorkoutWidget.kt` | Last workout widget provider with heatmap display |
+| `charts/*` | Custom Canvas chart renderers (`MeasurementChartRenderer`, `StepsBarChartRenderer`, etc.) |
+| `config/*Activity.kt` | Interactive configuration activities for widget instances |
+| `tiles/QuickActionTileService.kt` | Quick Settings tile for immediate action triggering |
+| `WidgetDeepLinks.kt` | Native Android deep-link generator |
 
 ---
 
-## Where the code lives
+## iOS Implementation Details & Lessons Learned
 
-| File | Target | Role |
-| --- | --- | --- |
-| `ios/LiveActivity/HomeWidgetShared.swift` | Runner + extension | Snapshot types, day maths, Dart-compatible number formatting |
-| `ios/LiveActivity/HomeWidgetBridge.swift` | Runner | `trainlibre.widgets/home_screen` MethodChannel |
-| `ios/TrainLibreLiveActivity/TodayGlanceWidget.swift` | extension | Widget, configuration intent, timeline |
-| `ios/TrainLibreLiveActivity/TodayGlanceViews.swift` | extension | The grid and the progress bar |
-| `ios/TrainLibreLiveActivity/QuickActionsWidget.swift` | extension | Widget, configuration intent, tiles |
-| `ios/TrainLibreLiveActivity/QuickActionEntity.swift` | extension | Selectable actions, AI gating |
-| `ios/TrainLibreLiveActivity/Localizable.xcstrings` | extension | Native strings (de/en/fr/it/ja) |
-| `lib/features/home_widgets/` | — | Snapshot model, pure builder, channel, sync service |
-
-`ios/TrainLibreLiveActivity/` is a **synchronized** Xcode group: files added there join both
-targets automatically, so widget-only files are listed as Runner membership exceptions in
-`project.pbxproj`.
-
-### Localization is split, deliberately
-
-Widget **content** (tile labels, units) comes from the snapshot, so it reuses the app's `.arb`
-files. Widget **chrome** (gallery name, configuration sheet, action names in the picker) is
-rendered by iOS *outside our process*, before any snapshot exists, so it must be native — hence
-the duplicated strings in `Localizable.xcstrings`. Both files carry a comment pointing at the
-other.
+1.  **`Button(intent:)` does not work in these widgets**:
+    Tiles built with `Button(intent: OpenURLIntent(...))` render and accept taps, but `perform()` is not invoked reliably. Instead, SwiftUI `Link` is handled directly by SpringBoard and works reliably across `.systemSmall` and `.systemMedium` on iOS 18+.
+2.  **`GeometryReader` layout root constraints**:
+    `GeometryReader` has no intrinsic size. Stacking them in a `VStack` divides height unpredictably. Layouts use `ZStack` as the root, placing `GeometryReader` strictly inside fill masks where layout sizes are already settled.
+3.  **`String(format: "%.1f")` vs Dart `toStringAsFixed(1)`**:
+    C string formatting breaks exact ties to even numbers, whereas Dart breaks ties away from zero (e.g., 40.25 rounds to 40.2 in C, but 40.3 in Dart). `HomeWidgetTile.dartFixed(_:_:)` in `HomeWidgetShared.swift` parses the printed expansion of the double to match Dart's output exactly, verified by unit tests.
+4.  **Configuration Intent Restoration**:
+    Each quick action slot on iOS uses a dedicated `AppEnum` (`QuickActionSlot1` through `QuickActionSlot4`). This prevents iOS 18 from resetting all parameters when sharing an identical enum type.
 
 ---
 
-## Three things that were not obvious
+## Automated Verification & Tests
 
-**1. `Button(intent:)` does not work in these widgets.** Tiles built with
-`Button(intent: OpenURLIntent(...))` — and with a custom `AppIntent` carrying
-`openAppWhenRun` — render and accept the tap, but `perform()` never runs and the app never opens.
-`Link` is handled by SpringBoard itself and works. Contrary to the long-standing "small widgets
-only support `widgetURL`" rule, `Link` works in `systemSmall` too on the iOS 18 floor; both tile
-counts were verified on device.
-
-**2. `GeometryReader` must not be a bar's layout root.** It has no intrinsic size, so three of
-them stacked in a `VStack` divide the height unevenly — the third bar lost its card entirely while
-its text still rendered. The `ZStack` is the layout root now, and `GeometryReader` appears only
-inside the fill's mask, where it reads a size the layout has already resolved.
-
-**3. `String(format: "%.1f")` is not `toStringAsFixed(1)`.** Both round on the double's true
-value, but C breaks an exact tie to even where Dart breaks it away from zero: 40.25 g of sugar
-renders as `40.2` in the widget and `40.3` in the diary. The tie cannot be detected by scaling
-either — `0.15 * 10` lands on exactly `1.5` even though the double sits below the tie, which would
-round 0.15 *up* and disagree with the app in the other direction.
-`HomeWidgetTile.dartFixed(_:_:)` decides on the printed expansion of the double instead and is
-pinned against Dart's real output in `HomeWidgetSharedTests`.
+- `test/features/home_widgets/build_home_widget_snapshot_test.dart`: Validates snapshot day rollover across 03:00, metric/imperial conversions, color hex mapping, and empty-state fallbacks.
+- `test/features/home_widgets/home_widget_deep_link_test.dart`: Validates routing for every action key, unknown keys, malformed URLs, and Live Activity URL isolation.
+- `test/features/home_widgets/workout_heatmap_publisher_test.dart`: Tests heatmap rendering and App Group image file writing.
+- `ios/RunnerTests/HomeWidgetSharedTests.swift`: Tests Swift snapshot decoding, next-rollover calculation, progress clamping, and Dart-identical number formatting tables.
 
 ---
 
-## Tests
+## Design Considerations & Future Refinements
 
-- `test/features/home_widgets/build_home_widget_snapshot_test.dart` — day resolution across the
-  03:00 boundary and month/year ends, the extra-nutrient slot, metric vs imperial conversion,
-  colour hex, zero-target and empty-day cases, JSON round trip.
-- `test/features/home_widgets/home_widget_deep_link_test.dart` — every action key, unknown keys,
-  malformed URLs, and that the workout Live Activity link is left alone.
-- `ios/RunnerTests/HomeWidgetSharedTests.swift` — day key and next-rollover maths, snapshot
-  decoding, zeroing, progress clamping, and the number formatting table captured from Dart.
-
-`RunnerTests` runs with
-`xcodebuild test -workspace ios/Runner.xcworkspace -scheme Runner -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 17 Pro' -only-testing:RunnerTests`.
-
----
-
-## Resolved Issues
-
-### Quick Action Widget Configuration Intent Restoration
-
-The configuration sheet for `QuickActionsWidget` showed all four action pickers and accepted a
-selection, but the timeline provider was always passed the defaults. The App Intents metadata
-contained every field, so this was not an export or timeline issue. iOS 18 failed to restore
-separate widget parameters that all used the same `QuickActionKind` AppEnum type.
-
-**Fix:** Each slot uses a dedicated AppEnum (`QuickActionSlot1` through
-`QuickActionSlot4`) with the same cases and labels. The provider immediately maps those values
-to `QuickActionKind`, so widget rendering and deep links remain shared while WidgetKit persists
-each configured slot under a distinct type.
-
----
-
-## Still open
-
-### Other
-
-- **Tinted and clear Home Screen modes (iOS 18/26)** have not been reviewed on a device. The six
-  coloured bars will desaturate there; whether to accept that or force full colour with
-  `widgetAccentedRenderingMode` is a design call best made while looking at it.
-- **Inline actions** were deliberately deferred: every quick action opens the app. When logging a
-  fixed amount of fluid straight from the widget comes up, the Live Activity's
-  `pendingCommandsKey` queue is the precedent to follow.
-- **Android** is not covered at all.
+- **Tinted & Clear Home Screen Modes (iOS 18+)**: High-saturation category colors may desaturate under tinted Home Screen settings. Reviewing `widgetAccentedRenderingMode` behavior on physical hardware remains an aesthetic consideration.
+- **Direct Interactive Actions**: Quick action shortcuts open the app immediately. Future inline completions (such as logging a fixed water amount without opening the app) can follow the Live Activity command-queue pattern (`pendingCommandsKey`).

@@ -1,6 +1,34 @@
-# Train Libre Engineering Documentation
+# Train Libre Website & Documentation
 
-This directory contains the technical documentation for the Train Libre architecture, modules, and processes.
+This directory is the deployable public website for [Train Libre](https://trainlibre.com/).
+It contains the landing page, public feature explainers, legal pages, assets, and
+the publishing configuration for GitHub Pages.
+
+The documentation content itself is deliberately split by audience in the
+repository's [`documentation/`](../documentation/README.md) directory:
+
+- [`documentation/features/`](../documentation/features/overview.md) explains
+  Train Libre's user-facing features, mathematical models, privacy boundaries,
+  and their limitations.
+- [`documentation/developer/`](../documentation/developer/overview.md) is for
+  contributors and documents the app architecture, state and data flow,
+  localization, and platform integrations.
+
+The public website should expose both areas under one documentation experience.
+The source folders above remain the canonical organisation of their content.
+
+## Public feature pages
+
+The currently published feature explainers are:
+
+- [Adaptive Nutrition](adaptive-nutrition/)
+- [AI Meal Recognition](ai-nutrition/)
+- [Recovery Tracker](recovery/)
+- [Sleep Health Score](sleep-score/)
+- [Estimated 1RM](intelligent-workouts/)
+
+Do not add links here to planned or removed pages. Add a public page only once
+its corresponding files are present in `docs/`.
 
 ## Website and F-Droid publishing
 
@@ -41,35 +69,3 @@ python3 .github/scripts/test_fdroid_workflows.py
 
 These tests use fixtures and do not validate live TLS, real signatures, or Android
 client behavior. The F-Droid workflow also runs them before generating the index.
-
-## Architecture & System
-- **[System Architecture](../documentation/architecture.md)**
-  Details the high-level layering, clean architecture boundaries, and execution flows within the app. Consult this when extending or adding a new feature module.
-- **[Project Overview](../documentation/overview.md)**
-  Provides a bird's-eye view of app capabilities, shell navigation, and module responsibilities. Read this for a general introduction to the repository.
-- **[Data Models & Storage](../documentation/data_models_and_storage.md)**
-  Explains the local persistence strategy, database schema rules, and Drift ORM implementations. Reference this when migrating tables or modifying core storage mechanisms.
-- **[UI & Widgets](../documentation/ui_and_widgets.md)**
-  Covers the app's design system, custom surface extensions, widget catalog, and interaction patterns. Consult this when building new interfaces to ensure visual consistency.
-
-## Modules & Features
-- **[Statistics Module](../documentation/statistics_module.md)**
-  Outlines the data sources, range policies, and recovery heuristics driving the analytics views. Consult this when modifying chart logic or metric calculations.
-- **[Sleep Module Current State](../documentation/sleep/sleep_current_state.md)**
-  Describes the pipeline, platform ingestion, and aggregation mechanics of the sleep tracking module.
-- **[Sleep Health Score V2](../documentation/sleep/sleep_health_score_v2.md)**
-  Details the mathematical modeling behind the sleep scoring algorithm and pipeline phases.
-- **[Adaptive Nutrition Recommendation](../documentation/adaptive_nutrition_recommendation_current_state.md)**
-  Explains the Bayesian logic, adaptive estimation constraints, and recommendation flow for nutrition goals.
-- **[AI Meal Features Architecture](../documentation/ai_meal_features_architecture.md)**
-  Maps out the opt-in meal processing AI systems and their integration layers.
-- **[Health Steps Integration](../documentation/health_steps.md)**
-  Documents how health steps are aggregated, synchronized, and stored within the application.
-
-## Synchronization & Integrations
-- **[Wger Catalog Refresh & Distribution](../documentation/wger_catalog_refresh_system.md)**
-  Describes the synchronization patterns for the exercise catalog derived from Wger base data.
-- **[OFF Catalog Refresh System](../documentation/off_catalog_refresh_system.md)**
-  Explains the background fetch and local merge processes for Open Food Facts catalogs.
-- **[Health Export One-Way](../documentation/health_export_one_way.md)**
-  Outlines the one-way background synchronization rules for external health metric platforms.

@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Architecture principles, testing tiers, and continuous integration strategy.">
+  <title>Developer Overview &amp; Testing Philosophy | Train Libre Documentation</title>
+  <link rel="canonical" href="https://trainlibre.com/docs/developer/overview/">
+
+  <link rel="icon" type="image/png" sizes="32x32" href="../../../favicon.png?v=2">
+  <link rel="apple-touch-icon" sizes="180x180" href="../../../assets/apple-touch-icon.png">
+
+  <!-- Open Graph -->
+  <meta property="og:site_name" content="Train Libre Documentation">
+  <meta property="og:title" content="Developer Overview &amp; Testing Philosophy | Train Libre">
+  <meta property="og:description" content="Architecture principles, testing tiers, and continuous integration strategy.">
+  <meta property="og:url" content="https://trainlibre.com/docs/developer/overview/">
+  <meta property="og:type" content="article">
+  <meta property="og:image" content="https://trainlibre.com/assets/og-image.png">
+
+  <!-- KaTeX CSS (CDN primary with local fallback) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+  <link rel="stylesheet" href="../../../katex.min.css">
+
+  <!-- Train Libre Design System & Dedicated Docs Styles -->
+  <link rel="stylesheet" href="../../../style.css">
+  <link rel="stylesheet" href="../../docs.css">
+
+  <!-- KaTeX Auto-render Script -->
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" defer onload="renderMathInElement(document.body, {
+    delimiters: [
+      {left: '$$', right: '$$', display: true},
+      {left: '$', right: '$', display: false}
+    ],
+    throwOnError: false
+  });"></script>
+
+  <!-- Mermaid.js for Architecture Diagrams -->
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      if (typeof mermaid !== "undefined") {
+        const isDark = document.documentElement.getAttribute("data-theme") !== "light";
+        mermaid.initialize({
+          startOnLoad: true,
+          theme: isDark ? "dark" : "default",
+          themeVariables: isDark ? {
+            darkMode: true,
+            background: "#151815",
+            primaryColor: "#1b1f1b",
+            primaryTextColor: "#f4f6f4",
+            primaryBorderColor: "rgba(221, 255, 0, 0.4)",
+            lineColor: "#ddff00",
+            secondaryColor: "#151815",
+            tertiaryColor: "#0e100e"
+          } : {}
+        });
+      }
+    });
+  </script>
+
+  <!-- Prevent Theme Flash -->
+  <script>
+    (function () {
+      const theme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: light)').matches ? "light" : "dark");
+      document.documentElement.setAttribute("data-theme", theme);
+    })();
+  </script>
+</head>
+<body class="docs-body">
+  <div class="page">
+    <!-- Header -->
+    <header class="docs-header">
+      <nav class="docs-nav" aria-label="Documentation navigation">
+        <a class="brand" href="../../../index.html" aria-label="Train Libre Home">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 270.933 270.933" role="img">
+              <path fill="#ddff00"
+                d="M47.621 39.688c-4.385 0-7.939 3.554-7.939 7.939v116.172c0 37.238 30.188 67.472 67.426 67.459l13.482-.006c.15.003.3.005.451.005h89.722c11.367 0 20.518-9.154 20.518-20.525s-9.151-20.525-20.518-20.525h-42.739a7.937 7.937 0 0 1-7.937-7.937v-25.174a7.937 7.937 0 0 1 7.937-7.937l41.159-.001c12.244 0 22.101-9.154 22.1-20.525-.001-11.371-9.859-20.525-22.103-20.525l-41.156.001a7.937 7.937 0 0 1-7.937-7.937V47.627c0-4.385-3.555-7.939-7.939-7.939z" />
+            </svg>
+          </span>
+          <span class="brand-name">Train Libre</span>
+          <span class="docs-badge">Docs</span>
+        </a>
+
+        <div class="nav-links">
+          <a href="../../../index.html" class="nav-link">Website</a>
+          <a class="nav-priority" href="https://github.com/rfivesix/train-libre" target="_blank" rel="noreferrer">GitHub</a>
+        </div>
+
+        <div class="nav-controls">
+          <button id="theme-toggle" class="control-btn" aria-label="Toggle Theme">
+            <svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="5"></circle>
+              <line x1="12" y1="1" x2="12" y2="3"></line>
+              <line x1="12" y1="21" x2="12" y2="23"></line>
+              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+              <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+              <line x1="1" y1="12" x2="3" y2="12"></line>
+              <line x1="21" y1="12" x2="23" y2="12"></line>
+              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+              <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+            </svg>
+            <svg class="moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+            </svg>
+          </button>
+          
+          <button id="sidebar-toggle" class="control-btn mobile-menu-btn" aria-label="Open sidebar menu" aria-expanded="false">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="3" y1="12" x2="21" y2="12"></line>
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+      </nav>
+    </header>
+
+    <!-- Docs Main Layout -->
+    <div class="docs-container">
+      <!-- Left Sidebar -->
+      <aside id="docs-sidebar" class="docs-sidebar" aria-label="Documentation sidebar">
+        <div class="sidebar-header-search">
+          <input type="text" id="sidebar-filter" placeholder="Filter topics..." aria-label="Filter topics in documentation">
+        </div>
+        <div class="sidebar-scroll-area">
+          <div class="sidebar-group"><div class="sidebar-group-title">Overview</div><ul class="sidebar-nav-list">
+<li><a href="../../index.html" class="sidebar-link">Documentation Suite Overview</a></li>
+</ul></div>
+<div class="sidebar-group"><div class="sidebar-group-title">Features &amp; Heuristics</div><ul class="sidebar-nav-list">
+<li><a href="../../features/overview/index.html" class="sidebar-link">Capabilities &amp; Privacy</a></li>
+<li><a href="../../features/sleep-scoring-engine/index.html" class="sidebar-link">Sleep Health Score (SHS v3.5)</a></li>
+<li><a href="../../features/muscle-recovery-model/index.html" class="sidebar-link">Muscle Recovery &amp; Readiness</a></li>
+<li><a href="../../features/bayesian-tdee-estimator/index.html" class="sidebar-link">Bayesian TDEE Estimator</a></li>
+<li><a href="../../features/macro-distribution/index.html" class="sidebar-link">Macronutrient Distribution</a></li>
+<li><a href="../../features/workout-progression-engine/index.html" class="sidebar-link">Workout Progression Engine</a></li>
+<li><a href="../../features/intelligent-workouts/index.html" class="sidebar-link">Estimated 1-Rep Max (e1RM)</a></li>
+<li><a href="../../features/meal-capture-pipeline/index.html" class="sidebar-link">Meal Capture Pipeline</a></li>
+<li><a href="../../features/byok-ai-validation/index.html" class="sidebar-link">BYOK AI Meal Validation</a></li>
+<li><a href="../../features/depth-scale-hint/index.html" class="sidebar-link">Depth Scale Hint (LiDAR)</a></li>
+<li><a href="../../features/health-sync-export/index.html" class="sidebar-link">Native Health Sync &amp; Export</a></li>
+<li><a href="../../features/live-activity-workout/index.html" class="sidebar-link">Live Activity &amp; Workout Session</a></li>
+</ul></div>
+<div class="sidebar-group"><div class="sidebar-group-title">Developer &amp; Architecture</div><ul class="sidebar-nav-list">
+<li><a href="index.html" class="sidebar-link active" aria-current="page">Developer Overview &amp; Tests</a></li>
+<li><a href="../architecture/index.html" class="sidebar-link">System Architecture &amp; Wiring</a></li>
+<li><a href="../data-flow-and-state/index.html" class="sidebar-link">Data Flow &amp; State Lifecycle</a></li>
+<li><a href="../localization-architecture/index.html" class="sidebar-link">Localization Architecture</a></li>
+<li><a href="../ios-home-screen-widgets/index.html" class="sidebar-link">Home Screen Widgets</a></li>
+</ul></div>
+        </div>
+      </aside>
+
+      <!-- Center Article Content -->
+      <main class="docs-main" id="main-content">
+        <div class="docs-breadcrumb" aria-label="Breadcrumb">
+          <a href="../../../index.html">Home</a> <span class="bc-sep">/</span> <a href="../../index.html">Docs</a> <span class="bc-sep">/</span> <span>Developer</span>
+        </div>
+
+        <article class="docs-article">
+          <h1 class="doc-title">Developer Overview & Testing Philosophy</h1>
+<p>This document outlines the high-level system purpose, the modular offline-first tech stack, and the comprehensive testing philosophy that maintains stability across the Train Libre codebase.</p>
+<hr class="divider">
+<h2 id="high-level-system-purpose" class="doc-h2">High-Level System Purpose<a href="#high-level-system-purpose" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>Train Libre is an offline-first, privacy-respecting health, nutrition, sleep, and activity tracker. Unlike traditional wellness applications that rely on persistent cloud servers, Train Libre runs entirely locally. It treats the user's mobile device as the primary computing unit and the absolute source of truth.</p>
+<h3 id="key-technical-pillars" class="doc-h3">Key Technical Pillars<a href="#key-technical-pillars" class="header-anchor" aria-label="Link to section">#</a></h3>
+<ol class="doc-list">
+<li><strong>Zero Backend Dependency</strong>: No external cloud service or account is required for registration, database writes, sync logs, or analytic graphs. The user's device remains the absolute authority.</li>
+<li><strong>User-Driven Connectivity & Privacy Boundaries</strong>: User actions initiate Bring Your Own Key (BYOK) AI capture APIs (or local/LAN Ollama endpoints), the platform speech recognizer used for meal dictation when no on-device recognizer exists, catalog downloads, and native system Health platforms (Apple HealthKit / Google Health Connect). Optional pseudonymised usage telemetry (PostHog EU) is disabled by default, uses coarse metric bucketing without person profiling, and may send its fixed event catalog only after explicit consent. A build compiled with <code>--dart-define=DISABLE_TELEMETRY=true</code> selects the no-op telemetry implementation.</li>
+<li><strong>Performance and Battery Preservation</strong>: Database access and background syncing utilize optimized local querying, reactive streams, caching, and lazy initialization to minimize battery usage and CPU overhead.</li>
+</ol>
+<hr class="divider">
+<h2 id="technology-stack" class="doc-h2">Technology Stack<a href="#technology-stack" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>The application's framework and core modules are built using the following technologies:</p>
+<ul class="doc-list">
+<li><strong>Core Framework</strong>: Flutter (Dart) for high-performance cross-platform presentation and systems integration.</li>
+<li><strong>Local Persistence</strong>: Drift (built on top of native SQLite databases) using schema version 31 with compile-time type safety, reactive streams, and additive schema self-healing (<code>reconcileSchema()</code>).</li>
+<li><strong>Security & Encryption</strong>: <code>flutter_secure_storage</code> to handle sensitive local data, such as private API keys for optional AI services, utilizing iOS Keychain and Android Keystore with device-only accessibility.</li>
+<li><strong>Platform Integration</strong>: Native Method Channels to bridge iOS Swift HealthKit and Android Kotlin Health Connect systems directly to Dart services.</li>
+<li><strong>Home Screen Widgets & Live Activity</strong>: Shared Dart snapshot architecture (<code>HomeWidgetSnapshot</code>) feeding iOS WidgetKit and Dynamic Island / Live Activities, as well as Android AppWidget/Glance providers and Quick Settings tiles, documented in the <a href="../ios-home-screen-widgets/index.html">Home Screen Widgets guide</a>.</li>
+</ul>
+<hr class="divider">
+<h2 id="testing-philosophy" class="doc-h2">Testing Philosophy<a href="#testing-philosophy" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>A core tenet of the Train Libre development lifecycle is strict mathematical and logic regression checking. Due to the high sensitivity of personal health records and the mathematical nature of the TDEE (Total Daily Energy Expenditure) filter, any logic drift would result in erroneous calorie targets or synchronization corruption.</p>
+<p>To prevent regressions, the codebase maintains an automated test suite. Contributors should run the relevant tests and static analysis locally; this document does not claim that every pull request is enforced by a repository-wide test workflow.</p>
+<h3 id="test-categories" class="doc-h3">Test Categories<a href="#test-categories" class="header-anchor" aria-label="Link to section">#</a></h3>
+<ol class="doc-list">
+<li><strong>Unit Tests</strong>: Validate mathematical engines (e.g., <code>BayesianTdeeEstimator</code> and Kalman updates, Brzycki 1RM heuristics with effective load resolution), text token fuzzy matching scores, data parsing models, and canonical health-data mapping algorithms.</li>
+<li><strong>Widget & Integration Tests</strong>: Test page transitions, loading state blocks, secure key persistence, backup/restore file integrity, and asynchronous data ingestion flows.</li>
+<li><strong>Database Migration Tests</strong>: Validate that schema transitions across all versions up to the current schema version 31 are completely lossless, and verify additive schema self-healing via <code>reconcileSchema()</code>.</li>
+</ol>
+<h3 id="core-testing-invariant" class="doc-h3">Core Testing Invariant<a href="#core-testing-invariant" class="header-anchor" aria-label="Link to section">#</a></h3>
+<p>Changes should be validated with the relevant automated tests before merge. Database tests can inject an isolated database through <code>DatabaseHelper.forTesting()</code>, preventing them from colliding with real user storage.</p>
+        </article>
+
+        <nav class="docs-pager" aria-label="Documentation navigation">
+<a href="../../features/live-activity-workout/index.html" class="pager-card pager-prev"><span class="pager-label">← Previous</span><span class="pager-title">Live Activity &amp; Workout Session</span></a>
+<a href="../architecture/index.html" class="pager-card pager-next"><span class="pager-label">Next →</span><span class="pager-title">System Architecture &amp; Wiring</span></a>
+</nav>
+      </main>
+
+      <!-- Right Table of Contents -->
+      <aside class="docs-toc" aria-label="Table of contents"><div class="toc-sticky-box"><div class="toc-heading">On this page</div><ul class="toc-list">
+<li class="toc-item toc-item-l2"><a href="#high-level-system-purpose">High-Level System Purpose</a></li>
+<li class="toc-item toc-item-l3"><a href="#key-technical-pillars">Key Technical Pillars</a></li>
+<li class="toc-item toc-item-l2"><a href="#technology-stack">Technology Stack</a></li>
+<li class="toc-item toc-item-l2"><a href="#testing-philosophy">Testing Philosophy</a></li>
+<li class="toc-item toc-item-l3"><a href="#test-categories">Test Categories</a></li>
+<li class="toc-item toc-item-l3"><a href="#core-testing-invariant">Core Testing Invariant</a></li>
+</ul></div></aside>
+    </div>
+
+    <!-- Footer (100% harmonized with main website footer) -->
+    <footer class="site-footer">
+      <div>
+        <a class="brand" href="../../../index.html" aria-label="Train Libre home">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 270.933 270.933" role="img">
+              <path fill="#ddff00"
+                d="M47.621 39.688c-4.385 0-7.939 3.554-7.939 7.939v116.172c0 37.238 30.188 67.472 67.426 67.459l13.482-.006c.15.003.3.005.451.005h89.722c11.367 0 20.518-9.154 20.518-20.525s-9.151-20.525-20.518-20.525h-42.739a7.937 7.937 0 0 1-7.937-7.937v-25.174a7.937 7.937 0 0 1 7.937-7.937l41.159-.001c12.244 0 22.101-9.154 22.1-20.525-.001-11.371-9.859-20.525-22.103-20.525l-41.156.001a7.937 7.937 0 0 1-7.937-7.937V47.627c0-4.385-3.555-7.939-7.939-7.939z" />
+            </svg>
+          </span>
+          <span>Train Libre</span>
+        </a>
+        <p class="fine-print">Fitness, nutrition, recovery, and pulse features are non-clinical heuristics for healthy individuals tracking performance, not medical advice. They do not apply to medical conditions (such as eating or sleep disorders).</p>
+      </div>
+      <div class="footer-links">
+        <a href="../../index.html">Documentation</a>
+        <a href="../../../privacy.html">Privacy Policy</a>
+        <a href="../../../terms.html">Terms of Service</a>
+        <a href="../../../impressum.html">Imprint</a>
+        <a href="../../../support.html">Support</a>
+        <a href="https://github.com/rfivesix/train-libre" data-link="github" target="_blank" rel="noreferrer">GitHub</a>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Documentation Interactions Script -->
+  <script>
+    // Theme toggle interaction
+    const themeBtn = document.getElementById("theme-toggle");
+    if (themeBtn) {
+      themeBtn.addEventListener("click", () => {
+        const current = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
+        document.documentElement.setAttribute("data-theme", current);
+        localStorage.setItem("theme", current);
+        if (typeof mermaid !== "undefined") {
+          const mNodes = document.querySelectorAll(".mermaid");
+          if (mNodes.length > 0) {
+            mNodes.forEach(node => {
+              if (node.hasAttribute("data-mermaid")) {
+                node.removeAttribute("data-processed");
+                node.innerHTML = node.getAttribute("data-mermaid");
+              }
+            });
+            mermaid.initialize({
+              startOnLoad: false,
+              theme: current === "light" ? "default" : "dark"
+            });
+            mermaid.run();
+          }
+        }
+      });
+    }
+
+    // Mobile sidebar toggle
+    const sidebarToggle = document.getElementById("sidebar-toggle");
+    const sidebar = document.getElementById("docs-sidebar");
+    if (sidebarToggle && sidebar) {
+      sidebarToggle.addEventListener("click", () => {
+        const expanded = sidebar.classList.toggle("open");
+        sidebarToggle.setAttribute("aria-expanded", expanded);
+      });
+
+      document.addEventListener("click", (e) => {
+        if (sidebar.classList.contains("open") && !sidebar.contains(e.target) && !sidebarToggle.contains(e.target)) {
+          sidebar.classList.remove("open");
+          sidebarToggle.setAttribute("aria-expanded", "false");
+        }
+      });
+    }
+
+    // Sidebar filter/search
+    const filterInput = document.getElementById("sidebar-filter");
+    if (filterInput) {
+      filterInput.addEventListener("input", (e) => {
+        const val = e.target.value.toLowerCase().trim();
+        document.querySelectorAll(".sidebar-nav-list li").forEach(li => {
+          const text = li.textContent.toLowerCase();
+          li.style.display = text.includes(val) ? "" : "none";
+        });
+        document.querySelectorAll(".sidebar-group").forEach(group => {
+          const hasVisible = Array.from(group.querySelectorAll("li")).some(li => li.style.display !== "none");
+          group.style.display = hasVisible ? "" : "none";
+        });
+      });
+    }
+
+    // Scroll-spy for Table of Contents
+    const tocItems = document.querySelectorAll(".toc-list a");
+    if (tocItems.length > 0) {
+      const headingElements = Array.from(tocItems).map(a => {
+        const id = a.getAttribute("href").substring(1);
+        return document.getElementById(id);
+      }).filter(Boolean);
+
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const id = entry.target.getAttribute("id");
+            tocItems.forEach(a => {
+              if (a.getAttribute("href") === "#" + id) {
+                a.classList.add("active");
+              } else {
+                a.classList.remove("active");
+              }
+            });
+          }
+        });
+      }, { rootMargin: "0px 0px -70% 0px", threshold: 0.1 });
+
+      headingElements.forEach(h => observer.observe(h));
+    }
+  </script>
+</body>
+</html>

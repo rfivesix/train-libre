@@ -1,0 +1,325 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Overview of Train Libre architecture, heuristics, and developer guides.">
+  <title>Train Libre: Modular Documentation Suite | Train Libre Documentation</title>
+  <link rel="canonical" href="https://trainlibre.com/docs/">
+
+  <link rel="icon" type="image/png" sizes="32x32" href="../favicon.png?v=2">
+  <link rel="apple-touch-icon" sizes="180x180" href="../assets/apple-touch-icon.png">
+
+  <!-- Open Graph -->
+  <meta property="og:site_name" content="Train Libre Documentation">
+  <meta property="og:title" content="Train Libre: Modular Documentation Suite | Train Libre">
+  <meta property="og:description" content="Overview of Train Libre architecture, heuristics, and developer guides.">
+  <meta property="og:url" content="https://trainlibre.com/docs/">
+  <meta property="og:type" content="article">
+  <meta property="og:image" content="https://trainlibre.com/assets/og-image.png">
+
+  <!-- KaTeX CSS (CDN primary with local fallback) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+  <link rel="stylesheet" href="../katex.min.css">
+
+  <!-- Train Libre Design System & Dedicated Docs Styles -->
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="./docs.css">
+
+  <!-- KaTeX Auto-render Script -->
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" defer onload="renderMathInElement(document.body, {
+    delimiters: [
+      {left: '$$', right: '$$', display: true},
+      {left: '$', right: '$', display: false}
+    ],
+    throwOnError: false
+  });"></script>
+
+  <!-- Mermaid.js for Architecture Diagrams -->
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      if (typeof mermaid !== "undefined") {
+        const isDark = document.documentElement.getAttribute("data-theme") !== "light";
+        mermaid.initialize({
+          startOnLoad: true,
+          theme: isDark ? "dark" : "default",
+          themeVariables: isDark ? {
+            darkMode: true,
+            background: "#151815",
+            primaryColor: "#1b1f1b",
+            primaryTextColor: "#f4f6f4",
+            primaryBorderColor: "rgba(221, 255, 0, 0.4)",
+            lineColor: "#ddff00",
+            secondaryColor: "#151815",
+            tertiaryColor: "#0e100e"
+          } : {}
+        });
+      }
+    });
+  </script>
+
+  <!-- Prevent Theme Flash -->
+  <script>
+    (function () {
+      const theme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: light)').matches ? "light" : "dark");
+      document.documentElement.setAttribute("data-theme", theme);
+    })();
+  </script>
+</head>
+<body class="docs-body">
+  <div class="page">
+    <!-- Header -->
+    <header class="docs-header">
+      <nav class="docs-nav" aria-label="Documentation navigation">
+        <a class="brand" href="../index.html" aria-label="Train Libre Home">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 270.933 270.933" role="img">
+              <path fill="#ddff00"
+                d="M47.621 39.688c-4.385 0-7.939 3.554-7.939 7.939v116.172c0 37.238 30.188 67.472 67.426 67.459l13.482-.006c.15.003.3.005.451.005h89.722c11.367 0 20.518-9.154 20.518-20.525s-9.151-20.525-20.518-20.525h-42.739a7.937 7.937 0 0 1-7.937-7.937v-25.174a7.937 7.937 0 0 1 7.937-7.937l41.159-.001c12.244 0 22.101-9.154 22.1-20.525-.001-11.371-9.859-20.525-22.103-20.525l-41.156.001a7.937 7.937 0 0 1-7.937-7.937V47.627c0-4.385-3.555-7.939-7.939-7.939z" />
+            </svg>
+          </span>
+          <span class="brand-name">Train Libre</span>
+          <span class="docs-badge">Docs</span>
+        </a>
+
+        <div class="nav-links">
+          <a href="../index.html" class="nav-link">Website</a>
+          <a class="nav-priority" href="https://github.com/rfivesix/train-libre" target="_blank" rel="noreferrer">GitHub</a>
+        </div>
+
+        <div class="nav-controls">
+          <button id="theme-toggle" class="control-btn" aria-label="Toggle Theme">
+            <svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="5"></circle>
+              <line x1="12" y1="1" x2="12" y2="3"></line>
+              <line x1="12" y1="21" x2="12" y2="23"></line>
+              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+              <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+              <line x1="1" y1="12" x2="3" y2="12"></line>
+              <line x1="21" y1="12" x2="23" y2="12"></line>
+              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+              <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+            </svg>
+            <svg class="moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+            </svg>
+          </button>
+          
+          <button id="sidebar-toggle" class="control-btn mobile-menu-btn" aria-label="Open sidebar menu" aria-expanded="false">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="3" y1="12" x2="21" y2="12"></line>
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+      </nav>
+    </header>
+
+    <!-- Docs Main Layout -->
+    <div class="docs-container">
+      <!-- Left Sidebar -->
+      <aside id="docs-sidebar" class="docs-sidebar" aria-label="Documentation sidebar">
+        <div class="sidebar-header-search">
+          <input type="text" id="sidebar-filter" placeholder="Filter topics..." aria-label="Filter topics in documentation">
+        </div>
+        <div class="sidebar-scroll-area">
+          <div class="sidebar-group"><div class="sidebar-group-title">Overview</div><ul class="sidebar-nav-list">
+<li><a href="index.html" class="sidebar-link active" aria-current="page">Documentation Suite Overview</a></li>
+</ul></div>
+<div class="sidebar-group"><div class="sidebar-group-title">Features &amp; Heuristics</div><ul class="sidebar-nav-list">
+<li><a href="features/overview/index.html" class="sidebar-link">Capabilities &amp; Privacy</a></li>
+<li><a href="features/sleep-scoring-engine/index.html" class="sidebar-link">Sleep Health Score (SHS v3.5)</a></li>
+<li><a href="features/muscle-recovery-model/index.html" class="sidebar-link">Muscle Recovery &amp; Readiness</a></li>
+<li><a href="features/bayesian-tdee-estimator/index.html" class="sidebar-link">Bayesian TDEE Estimator</a></li>
+<li><a href="features/macro-distribution/index.html" class="sidebar-link">Macronutrient Distribution</a></li>
+<li><a href="features/workout-progression-engine/index.html" class="sidebar-link">Workout Progression Engine</a></li>
+<li><a href="features/intelligent-workouts/index.html" class="sidebar-link">Estimated 1-Rep Max (e1RM)</a></li>
+<li><a href="features/meal-capture-pipeline/index.html" class="sidebar-link">Meal Capture Pipeline</a></li>
+<li><a href="features/byok-ai-validation/index.html" class="sidebar-link">BYOK AI Meal Validation</a></li>
+<li><a href="features/depth-scale-hint/index.html" class="sidebar-link">Depth Scale Hint (LiDAR)</a></li>
+<li><a href="features/health-sync-export/index.html" class="sidebar-link">Native Health Sync &amp; Export</a></li>
+<li><a href="features/live-activity-workout/index.html" class="sidebar-link">Live Activity &amp; Workout Session</a></li>
+</ul></div>
+<div class="sidebar-group"><div class="sidebar-group-title">Developer &amp; Architecture</div><ul class="sidebar-nav-list">
+<li><a href="developer/overview/index.html" class="sidebar-link">Developer Overview &amp; Tests</a></li>
+<li><a href="developer/architecture/index.html" class="sidebar-link">System Architecture &amp; Wiring</a></li>
+<li><a href="developer/data-flow-and-state/index.html" class="sidebar-link">Data Flow &amp; State Lifecycle</a></li>
+<li><a href="developer/localization-architecture/index.html" class="sidebar-link">Localization Architecture</a></li>
+<li><a href="developer/ios-home-screen-widgets/index.html" class="sidebar-link">Home Screen Widgets</a></li>
+</ul></div>
+        </div>
+      </aside>
+
+      <!-- Center Article Content -->
+      <main class="docs-main" id="main-content">
+        <div class="docs-breadcrumb" aria-label="Breadcrumb">
+          <a href="../index.html">Home</a> <span class="bc-sep">/</span> <a href="./index.html">Docs</a>
+        </div>
+
+        <article class="docs-article">
+          <h1 class="doc-title">Train Libre: Modular Documentation Suite</h1>
+<p>Welcome to the technical documentation suite for <strong>Train Libre</strong>, a highly performant, offline-first, and privacy-centric wellness, sleep, and nutrition tracking application. This suite provides detailed architecture specifications, state management paradigms, and mathematical descriptions of the core algorithmic features of the application.</p>
+<h2 id="project-vision" class="doc-h2">Project Vision<a href="#project-vision" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>Train Libre is designed around the core principles of user autonomy, offline capability, and algorithmic transparency. By avoiding any centralized backend, storing all user records in a local SQLite database (via Drift), and utilizing a Bring Your Own Key (BYOK) model for optional AI enhancements, the application guarantees absolute user privacy and data ownership.</p>
+<hr class="divider">
+<h2 id="documentation-directory-map" class="doc-h2">Documentation Directory Map<a href="#documentation-directory-map" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>This documentation suite is split into highly modular, focused files categorised by audience and purpose. Use the links below to navigate the suite.</p>
+<h3 id="1-developer-documentation-documentationdeveloper" class="doc-h3">1. Developer Documentation (<code>documentation/developer/</code>)<a href="#1-developer-documentation-documentationdeveloper" class="header-anchor" aria-label="Link to section">#</a></h3>
+<p>For software engineers, system architects, and technical contributors.</p>
+<ul class="doc-list">
+<li><a href="developer/overview/index.html"><strong>System Overview & Testing Philosophy</strong></a>: High-level system purpose, tech stack, and automated testing strategy spanning unit, integration, and database migration tests.</li>
+<li><a href="developer/architecture/index.html"><strong>System Architecture & Runtime Wiring</strong></a>: Clean Architecture boundaries (Presentation <span class="math-inline">$\rightarrow$</span> Domain <span class="math-inline">$\leftarrow$</span> Data), application startup and Provider wiring in <code>main.dart</code>, Drift SQLite lifecycle at schema version 31, and background tasks.</li>
+<li><a href="developer/data-flow-and-state/index.html"><strong>Data Flow & State Lifecycle</strong></a>: Detail on our "Reactive Reads / Imperative Writes" paradigm, reactive Drift stream handlers, subscription lifecycles, and edit-mode user interface input blocking.</li>
+<li><a href="developer/localization-architecture/index.html"><strong>Localization Architecture</strong></a>: Offline-first relational localization strategy for catalogs and UI strings across 5 supported locales, schema migration to normalized translation tables, and guide for adding locales.</li>
+<li><a href="developer/ios-home-screen-widgets/index.html"><strong>Home Screen Widgets (iOS & Android)</strong></a>: Cross-platform snapshot architecture and native widget families for both iOS (WidgetKit) and Android (Glance/AppWidgetProvider), their configuration, and deep links.</li>
+</ul>
+<h3 id="2-feature-transparency-algorithmic-logic-documentationfeatures" class="doc-h3">2. Feature Transparency & Algorithmic Logic (<code>documentation/features/</code>)<a href="#2-feature-transparency-algorithmic-logic-documentationfeatures" class="header-anchor" aria-label="Link to section">#</a></h3>
+<p>For advanced users, mathematical evaluators, and privacy auditors who seek complete transparency into our smart processing engines.</p>
+<ul class="doc-list">
+<li><a href="features/overview/index.html"><strong>Capabilities & Privacy Overview</strong></a>: Summary of the app's smart capabilities, local processing model, native secure storage, and opt-in zero-profiling telemetry boundaries.</li>
+<li><a href="features/bayesian-tdee-estimator/index.html"><strong>Bayesian TDEE Estimator (Kalman Filter)</strong></a>: Full mathematical and algorithmic analysis of the Adaptive Diet Recommendation Engine, including Kalman filter equations, variance boundaries, completeness coefficients, and linear ramps.</li>
+<li><a href="features/macro-distribution/index.html"><strong>Macronutrient Distribution</strong></a>: How the estimator's calorie target becomes protein, carbohydrate, and fat — the per-kilogram anchors, the fat floor, the order in which the distribution gives way on a constrained budget, and worked examples.</li>
+<li><a href="features/byok-ai-validation/index.html"><strong>BYOK AI Meal Capture & Validation</strong></a>: Core detail on the local BYOK API integration, system prompts restricting LLM calculations, fuzzy string matching, target-fit verification, and the 3-pass self-repair verification loop.</li>
+<li><a href="features/meal-capture-pipeline/index.html"><strong>Meal Capture Pipeline</strong></a>: The capture paths around the analysis — unified camera with passive barcode detection, voice dictation, meals as logged events, photo storage, and what leaves the device on each path.</li>
+<li><a href="features/depth-scale-hint/index.html"><strong>Depth Scale Hint (LiDAR)</strong></a>: How measured scale facts and an optional false-colour depth image improve portion estimation on LiDAR devices, including the quality gate and the explicit non-goals.</li>
+<li><a href="features/health-sync-export/index.html"><strong>Native Health Sync & Export</strong></a>: Technical overview of the Apple HealthKit and Google Health Connect pipelines: passive vitals import (steps, sleep, pulse), outbound export (measurements, nutrition/hydration, workouts), step segment merging, and the SQLite-backed idempotency architecture.</li>
+<li><a href="features/sleep-scoring-engine/index.html"><strong>Sleep Health Score Engine (SHS v3.5)</strong></a>: Complete technical specification of our sleep scoring algorithms, including Gaussian, logistic, and quadratic curves for 5 domains and the continuous soft-cap multiplier penalty logic.</li>
+<li><a href="features/muscle-recovery-model/index.html"><strong>Muscle Recovery & Fatigue Modeling</strong></a>: Detailed heuristic for estimating muscle-specific readiness using piecewise interpolation, volume-based recovery windows, and intensity-based fatigue extensions.</li>
+<li><a href="features/intelligent-workouts/index.html"><strong>Estimated 1-Rep Max Heuristic</strong></a>: The Brzycki-based submaximal strength estimation model behind personal records and strength progression, accounting for effective load across assisted, bodyweight, and loaded sets, and its non-medical scope.</li>
+<li><a href="features/workout-progression-engine/index.html"><strong>Workout progression</strong></a>: A first-working-set recommendation for eligible load-and-repetition exercises, with simple double progression and later-set e1RM back-offs.</li>
+<li><a href="features/live-activity-workout/index.html"><strong>Live Activity & Workout Session</strong></a>: The iOS Live Activity and Dynamic Island surface for a running workout, and the state it mirrors.</li>
+</ul>
+        </article>
+
+        <nav class="docs-pager" aria-label="Documentation navigation">
+<div></div>
+<a href="features/overview/index.html" class="pager-card pager-next"><span class="pager-label">Next →</span><span class="pager-title">Capabilities &amp; Privacy</span></a>
+</nav>
+      </main>
+
+      <!-- Right Table of Contents -->
+      <aside class="docs-toc" aria-label="Table of contents"><div class="toc-sticky-box"><div class="toc-heading">On this page</div><ul class="toc-list">
+<li class="toc-item toc-item-l2"><a href="#project-vision">Project Vision</a></li>
+<li class="toc-item toc-item-l2"><a href="#documentation-directory-map">Documentation Directory Map</a></li>
+<li class="toc-item toc-item-l3"><a href="#1-developer-documentation-documentationdeveloper">1. Developer Documentation (documentation/developer/)</a></li>
+<li class="toc-item toc-item-l3"><a href="#2-feature-transparency-algorithmic-logic-documentationfeatures">2. Feature Transparency &amp; Algorithmic Logic (documentation/features/)</a></li>
+</ul></div></aside>
+    </div>
+
+    <!-- Footer (100% harmonized with main website footer) -->
+    <footer class="site-footer">
+      <div>
+        <a class="brand" href="../index.html" aria-label="Train Libre home">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 270.933 270.933" role="img">
+              <path fill="#ddff00"
+                d="M47.621 39.688c-4.385 0-7.939 3.554-7.939 7.939v116.172c0 37.238 30.188 67.472 67.426 67.459l13.482-.006c.15.003.3.005.451.005h89.722c11.367 0 20.518-9.154 20.518-20.525s-9.151-20.525-20.518-20.525h-42.739a7.937 7.937 0 0 1-7.937-7.937v-25.174a7.937 7.937 0 0 1 7.937-7.937l41.159-.001c12.244 0 22.101-9.154 22.1-20.525-.001-11.371-9.859-20.525-22.103-20.525l-41.156.001a7.937 7.937 0 0 1-7.937-7.937V47.627c0-4.385-3.555-7.939-7.939-7.939z" />
+            </svg>
+          </span>
+          <span>Train Libre</span>
+        </a>
+        <p class="fine-print">Fitness, nutrition, recovery, and pulse features are non-clinical heuristics for healthy individuals tracking performance, not medical advice. They do not apply to medical conditions (such as eating or sleep disorders).</p>
+      </div>
+      <div class="footer-links">
+        <a href="./index.html">Documentation</a>
+        <a href="../privacy.html">Privacy Policy</a>
+        <a href="../terms.html">Terms of Service</a>
+        <a href="../impressum.html">Imprint</a>
+        <a href="../support.html">Support</a>
+        <a href="https://github.com/rfivesix/train-libre" data-link="github" target="_blank" rel="noreferrer">GitHub</a>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Documentation Interactions Script -->
+  <script>
+    // Theme toggle interaction
+    const themeBtn = document.getElementById("theme-toggle");
+    if (themeBtn) {
+      themeBtn.addEventListener("click", () => {
+        const current = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
+        document.documentElement.setAttribute("data-theme", current);
+        localStorage.setItem("theme", current);
+        if (typeof mermaid !== "undefined") {
+          const mNodes = document.querySelectorAll(".mermaid");
+          if (mNodes.length > 0) {
+            mNodes.forEach(node => {
+              if (node.hasAttribute("data-mermaid")) {
+                node.removeAttribute("data-processed");
+                node.innerHTML = node.getAttribute("data-mermaid");
+              }
+            });
+            mermaid.initialize({
+              startOnLoad: false,
+              theme: current === "light" ? "default" : "dark"
+            });
+            mermaid.run();
+          }
+        }
+      });
+    }
+
+    // Mobile sidebar toggle
+    const sidebarToggle = document.getElementById("sidebar-toggle");
+    const sidebar = document.getElementById("docs-sidebar");
+    if (sidebarToggle && sidebar) {
+      sidebarToggle.addEventListener("click", () => {
+        const expanded = sidebar.classList.toggle("open");
+        sidebarToggle.setAttribute("aria-expanded", expanded);
+      });
+
+      document.addEventListener("click", (e) => {
+        if (sidebar.classList.contains("open") && !sidebar.contains(e.target) && !sidebarToggle.contains(e.target)) {
+          sidebar.classList.remove("open");
+          sidebarToggle.setAttribute("aria-expanded", "false");
+        }
+      });
+    }
+
+    // Sidebar filter/search
+    const filterInput = document.getElementById("sidebar-filter");
+    if (filterInput) {
+      filterInput.addEventListener("input", (e) => {
+        const val = e.target.value.toLowerCase().trim();
+        document.querySelectorAll(".sidebar-nav-list li").forEach(li => {
+          const text = li.textContent.toLowerCase();
+          li.style.display = text.includes(val) ? "" : "none";
+        });
+        document.querySelectorAll(".sidebar-group").forEach(group => {
+          const hasVisible = Array.from(group.querySelectorAll("li")).some(li => li.style.display !== "none");
+          group.style.display = hasVisible ? "" : "none";
+        });
+      });
+    }
+
+    // Scroll-spy for Table of Contents
+    const tocItems = document.querySelectorAll(".toc-list a");
+    if (tocItems.length > 0) {
+      const headingElements = Array.from(tocItems).map(a => {
+        const id = a.getAttribute("href").substring(1);
+        return document.getElementById(id);
+      }).filter(Boolean);
+
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const id = entry.target.getAttribute("id");
+            tocItems.forEach(a => {
+              if (a.getAttribute("href") === "#" + id) {
+                a.classList.add("active");
+              } else {
+                a.classList.remove("active");
+              }
+            });
+          }
+        });
+      }, { rootMargin: "0px 0px -70% 0px", threshold: 0.1 });
+
+      headingElements.forEach(h => observer.observe(h));
+    }
+  </script>
+</body>
+</html>
