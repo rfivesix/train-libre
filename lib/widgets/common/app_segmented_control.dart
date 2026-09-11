@@ -36,9 +36,8 @@ class AppSegmentedControl<T> extends StatelessWidget {
     final keys = children.keys.toList();
     final selectedIndex = keys.indexOf(groupValue);
 
-    final containerBg = isDark
-        ? const Color(0xFF171719)
-        : const Color(0xFFE3E3E8);
+    final containerBg =
+        isDark ? const Color(0xFF171719) : const Color(0xFFE3E3E8);
 
     final indicatorBg = isDark
         ? DesignConstants.summaryCardSecondaryDarkMode // #2C2C2E
@@ -62,7 +61,10 @@ class AppSegmentedControl<T> extends StatelessWidget {
           final totalSegments = keys.length;
           if (totalSegments == 0) return const SizedBox.shrink();
 
-          final segmentWidth = (constraints.maxWidth - 4.0) / totalSegments;
+          // The outer container's padding has already been excluded from
+          // these constraints. Subtracting it again left a visible gap at the
+          // right edge of the selected indicator.
+          final segmentWidth = constraints.maxWidth / totalSegments;
           final validIndex = selectedIndex >= 0 ? selectedIndex : 0;
 
           return Stack(
@@ -118,9 +120,8 @@ class AppSegmentedControl<T> extends StatelessWidget {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: theme.textTheme.labelMedium?.copyWith(
-                            fontWeight: isSelected
-                                ? FontWeight.bold
-                                : FontWeight.w500,
+                            fontWeight:
+                                isSelected ? FontWeight.bold : FontWeight.w500,
                             color: isSelected
                                 ? theme.colorScheme.onSurface
                                 : theme.colorScheme.onSurface

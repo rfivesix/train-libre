@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import '../../workout/data/sources/workout_local_data_source.dart';
 import '../../statistics/domain/timeframe_block.dart';
@@ -9,6 +10,7 @@ import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/seamless_loading_overlay.dart';
 import '../../../widgets/common/summary_card.dart';
 import '../../../widgets/common/common.dart';
+import '../../../widgets/common/app_segmented_control.dart';
 import 'package:provider/provider.dart';
 import '../../../services/unit_service.dart';
 import '../../../util/timeframe_label_formatter.dart';
@@ -16,6 +18,8 @@ import '../../../widgets/common/platform_adaptive_pickers.dart'
     as adaptive_pickers;
 import 'dart:async';
 import '../../../services/telemetry/telemetry_service.dart';
+
+enum _RecordOverview { recent, repRange }
 
 class PRDashboardScreen extends StatefulWidget {
   const PRDashboardScreen({super.key});
@@ -48,9 +52,9 @@ class _PRDashboardScreenState extends State<PRDashboardScreen> {
       ];
 
   List<Map<String, dynamic>> _recentPrs = [];
-  List<Map<String, dynamic>> _allTimePrs = [];
   List<Map<String, dynamic>> _notableImprovements = [];
   Map<String, Map<String, dynamic>?> _prsByRepRange = const {};
+  _RecordOverview _recordOverview = _RecordOverview.recent;
 
   @override
   void initState() {
@@ -64,9 +68,6 @@ class _PRDashboardScreenState extends State<PRDashboardScreen> {
     setState(() => _isLoading = true);
 
     final recent = WorkoutLocalDataSource.instance.getRecentGlobalPRs(limit: 8);
-    final allTime = WorkoutLocalDataSource.instance.getAllTimeGlobalPRs(
-      limit: 10,
-    );
     final repRange =
         WorkoutLocalDataSource.instance.getAllTimePRsByRepBracket();
     final bounds = _isRolling
@@ -78,12 +79,12 @@ class _PRDashboardScreenState extends State<PRDashboardScreen> {
     final improvements =
         WorkoutLocalDataSource.instance.getNotablePrImprovements(
       daysWindow: daysBack,
-      limit: 6,
+      limit: 100,
+      sortByRecentDate: true,
     );
 
     final results = await Future.wait([
       recent,
-      allTime,
       repRange,
       improvements,
     ]);
@@ -91,9 +92,8 @@ class _PRDashboardScreenState extends State<PRDashboardScreen> {
     if (!mounted) return;
     setState(() {
       _recentPrs = results[0] as List<Map<String, dynamic>>;
-      _allTimePrs = results[1] as List<Map<String, dynamic>>;
-      _prsByRepRange = results[2] as Map<String, Map<String, dynamic>?>;
-      _notableImprovements = results[3] as List<Map<String, dynamic>>;
+      _prsByRepRange = results[1] as Map<String, Map<String, dynamic>?>;
+      _notableImprovements = results[2] as List<Map<String, dynamic>>;
       _isLoading = false;
     });
   }
@@ -109,6 +109,21 @@ class _PRDashboardScreenState extends State<PRDashboardScreen> {
     return '$weightText ${context.read<UnitService>().suffixFor(UnitDimension.weight)} x $reps';
   }
 
+  String _formatDisplayWeight(double weightKg) {
+    final unitService = context.read<UnitService>();
+    final displayWeight = unitService.convertDisplayValue(
+      weightKg,
+      UnitDimension.weight,
+    );
+    return StatisticsPresentationFormatter.formatWeight(displayWeight);
+  }
+
+  String _formatRecordDate(DateTime? date) {
+    if (date == null) return '';
+    return DateFormat.yMMMd(Localizations.localeOf(context).toString())
+        .format(date);
+  }
+
   AppLocalizations get l10n => AppLocalizations.of(context)!;
 
   @override
@@ -116,20 +131,16 @@ class _PRDashboardScreenState extends State<PRDashboardScreen> {
     final double topPadding =
         MediaQuery.of(context).padding.top + kToolbarHeight;
 
-    final hasNoData = _recentPrs.isEmpty &&
-        _allTimePrs.isEmpty &&
-        _notableImprovements.isEmpty;
+    final hasNoData = _recentPrs.isEmpty && _notableImprovements.isEmpty;
     final displayNotable =
         hasNoData ? getMockNotableImprovements() : _notableImprovements;
     final displayRecent = hasNoData ? getMockRecentPrs() : _recentPrs;
-    final displayAllTime = hasNoData ? getMockAllTimePrs() : _allTimePrs;
     final displayByRepRange =
         hasNoData ? getMockPrsByRepRange() : _prsByRepRange;
 
     Widget bodyContent = _buildBodyContent(
       displayNotable,
       displayRecent,
-      displayAllTime,
       displayByRepRange,
     );
 
@@ -158,7 +169,7 @@ class _PRDashboardScreenState extends State<PRDashboardScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              AppSectionHeader(title: l10n.analyticsNotableImprovements),
+              AppSectionHeader(title: l10n.analyticsNewBestPerformances),
               TimeRangeFilter(
                 ranges: _timeRanges(l10n),
                 selectedIndex: _validBlocks.indexOf(_activeBlock),
@@ -286,40 +297,22 @@ class _PRDashboardScreenState extends State<PRDashboardScreen> {
     return Column(children: rows);
   }
 
-  Widget _buildRankedRow({
-    required int rank,
-    required String exerciseName,
-    required String valueLabel,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(
-        children: [
-          SizedBox(
-            width: 32,
-            child: Text(
-              '$rank.',
-              style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-            ),
-          ),
-          Expanded(
-            child: Text(
-              exerciseName,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-          const SizedBox(width: DesignConstants.spacingM),
-          Text(
-            valueLabel,
-            style: Theme.of(
-              context,
-            ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
-          ),
-        ],
+  Widget _buildRecentRecordRow(Map<String, dynamic> record) {
+    final achievedAt = record['achievedAt'] as DateTime?;
+    return ListTile(
+      dense: true,
+      contentPadding: EdgeInsets.zero,
+      title: Text(
+        record['exerciseName'] as String,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ),
+      subtitle: achievedAt == null ? null : Text(_formatRecordDate(achievedAt)),
+      trailing: Text(
+        _perfLabel(record),
+        style: Theme.of(
+          context,
+        ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
       ),
     );
   }
@@ -331,12 +324,14 @@ class _PRDashboardScreenState extends State<PRDashboardScreen> {
         'previousBestE1rm': 80.0,
         'recentBestE1rm': 85.0,
         'improvementPct': 6.25,
+        'achievedAt': DateTime.now().subtract(const Duration(days: 1)),
       },
       {
         'exerciseName': 'Squat',
         'previousBestE1rm': 100.0,
         'recentBestE1rm': 108.0,
         'improvementPct': 8.0,
+        'achievedAt': DateTime.now().subtract(const Duration(days: 3)),
       },
     ];
   }
@@ -347,30 +342,13 @@ class _PRDashboardScreenState extends State<PRDashboardScreen> {
         'exerciseName': 'Bench Press',
         'weight': 82.5,
         'reps': 5,
-        'calculatedE1rm': 92.8,
+        'achievedAt': DateTime.now().subtract(const Duration(days: 1)),
       },
       {
         'exerciseName': 'Squat',
         'weight': 105.0,
         'reps': 3,
-        'calculatedE1rm': 111.3,
-      },
-    ];
-  }
-
-  List<Map<String, dynamic>> getMockAllTimePrs() {
-    return [
-      {
-        'exerciseName': 'Bench Press',
-        'weight': 85.0,
-        'reps': 3,
-        'calculatedE1rm': 90.1,
-      },
-      {
-        'exerciseName': 'Squat',
-        'weight': 110.0,
-        'reps': 2,
-        'calculatedE1rm': 113.7,
+        'achievedAt': DateTime.now().subtract(const Duration(days: 4)),
       },
     ];
   }
@@ -389,12 +367,39 @@ class _PRDashboardScreenState extends State<PRDashboardScreen> {
   Widget _buildBodyContent(
     List<Map<String, dynamic>> notableImprovements,
     List<Map<String, dynamic>> recentPrs,
-    List<Map<String, dynamic>> allTimePrs,
     Map<String, Map<String, dynamic>?> prsByRepRange,
   ) {
+    final strongestImprovement = notableImprovements.isEmpty
+        ? null
+        : notableImprovements.reduce(
+            (strongest, candidate) =>
+                (candidate['improvementPct'] as num).toDouble() >
+                        (strongest['improvementPct'] as num).toDouble()
+                    ? candidate
+                    : strongest,
+          );
+    final unit = context.read<UnitService>().suffixFor(UnitDimension.weight);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        _buildTwoColumnGrid([
+          ValueSummaryCard(
+            value: '${notableImprovements.length}',
+            label: l10n.analyticsNewBestPerformances,
+            subtitle: l10n.analyticsInTimeframe,
+          ),
+          ValueSummaryCard(
+            value: strongestImprovement == null
+                ? '–'
+                : '+${_formatDisplayWeight((strongestImprovement['recentBestE1rm'] as num).toDouble() - (strongestImprovement['previousBestE1rm'] as num).toDouble())} $unit',
+            label: l10n.analyticsStrongestBreakthrough,
+            subtitle: strongestImprovement == null
+                ? l10n.analyticsNoRecordYet
+                : strongestImprovement['exerciseName'] as String,
+          ),
+        ]),
+        const SizedBox(height: DesignConstants.spacingS),
         SummaryCard(
           child: notableImprovements.isEmpty
               ? Padding(
@@ -411,7 +416,7 @@ class _PRDashboardScreenState extends State<PRDashboardScreen> {
                     final recent = (row['recentBestE1rm'] as num).toDouble();
                     final improvement =
                         (row['improvementPct'] as num).toDouble();
-                    final delta = recent - previous;
+                    final achievedAt = row['achievedAt'] as DateTime?;
 
                     return ListTile(
                       dense: true,
@@ -422,17 +427,7 @@ class _PRDashboardScreenState extends State<PRDashboardScreen> {
                         overflow: TextOverflow.ellipsis,
                       ),
                       subtitle: Text(
-                        l10n.analyticsE1rmProgress(
-                          StatisticsPresentationFormatter.formatWeight(
-                            previous,
-                          ),
-                          StatisticsPresentationFormatter.formatWeight(
-                            recent,
-                          ),
-                          context
-                              .read<UnitService>()
-                              .suffixFor(UnitDimension.weight),
-                        ),
+                        '${achievedAt == null ? '' : '${_formatRecordDate(achievedAt)} · '}${l10n.analyticsE1rmProgress(_formatDisplayWeight(previous), _formatDisplayWeight(recent), unit)}',
                       ),
                       trailing: Column(
                         mainAxisSize: MainAxisSize.min,
@@ -448,12 +443,6 @@ class _PRDashboardScreenState extends State<PRDashboardScreen> {
                                   fontWeight: FontWeight.bold,
                                 ),
                           ),
-                          Text(
-                            'Δ ${StatisticsPresentationFormatter.formatWeight(delta)}',
-                            style: Theme.of(
-                              context,
-                            ).textTheme.labelSmall,
-                          ),
                         ],
                       ),
                     );
@@ -461,73 +450,55 @@ class _PRDashboardScreenState extends State<PRDashboardScreen> {
                 ),
         ),
         const SizedBox(height: DesignConstants.spacingL),
-        AppSectionHeader(title: l10n.analyticsRecentRecords),
-        SummaryCard(
-          child: recentPrs.isEmpty
-              ? Padding(
-                  padding: const EdgeInsets.all(DesignConstants.spacingM),
-                  child: Text(l10n.noWorkoutDataLabel),
-                )
-              : Column(
-                  children: recentPrs.asMap().entries.map((entry) {
-                    return _buildRankedRow(
-                      rank: entry.key + 1,
-                      exerciseName: entry.value['exerciseName'] as String,
-                      valueLabel: _perfLabel(entry.value),
-                    );
-                  }).toList(),
+        AppSectionHeader(title: l10n.analyticsRecordOverview),
+        AppSegmentedControl<_RecordOverview>(
+          children: {
+            _RecordOverview.recent: l10n.analyticsRecentlySet,
+            _RecordOverview.repRange: l10n.analyticsByRepetitionRange,
+          },
+          groupValue: _recordOverview,
+          onValueChanged: (value) => setState(() => _recordOverview = value),
+        ),
+        const SizedBox(height: DesignConstants.spacingS),
+        if (_recordOverview == _RecordOverview.recent)
+          SummaryCard(
+            child: recentPrs.isEmpty
+                ? Padding(
+                    padding: const EdgeInsets.all(DesignConstants.spacingM),
+                    child: Text(l10n.noWorkoutDataLabel),
+                  )
+                : Column(
+                    children: recentPrs
+                        .map(_buildRecentRecordRow)
+                        .toList(growable: false),
+                  ),
+          )
+        else
+          _buildTwoColumnGrid(
+            prsByRepRange.entries.map((entry) {
+              final data = entry.value;
+              final hasData = data != null;
+              return ValueSummaryCard(
+                label: entry.key.replaceAll(
+                  ' RM',
+                  l10n.analyticsRepRangeSuffix,
                 ),
-        ),
-        const SizedBox(height: DesignConstants.spacingL),
-        AppSectionHeader(title: l10n.allTimeRecordsLabel),
-        allTimePrs.isEmpty
-            ? Text(
-                l10n.noWorkoutDataLabel,
-                style: Theme.of(context).textTheme.bodyMedium,
-              )
-            : _buildTwoColumnGrid(
-                allTimePrs.asMap().entries.map((entry) {
-                  return ValueSummaryCard(
-                    label: '#${entry.key + 1}',
-                    value: _perfLabel(entry.value),
-                    subtitle: entry.value['exerciseName'] as String,
-                  );
-                }).toList(),
-              ),
-        const SizedBox(height: DesignConstants.spacingL),
-        AppSectionHeader(title: l10n.prsByRepRangeLabel),
-        _buildTwoColumnGrid(
-          prsByRepRange.entries.map((entry) {
-            final data = entry.value;
-            final hasData = data != null;
-            return ValueSummaryCard(
-              // The bracket keys read '1 RM', '2–3 RM' and so on, and the
-              // suffix carries its own leading space — replacing bare 'RM'
-              // left "1  Wdh." with a gap in the middle.
-              label: entry.key.replaceAll(
-                ' RM',
-                l10n.analyticsRepRangeSuffix,
-              ),
-              value: hasData
-                  ? l10n.analyticsPerfWithReps(
-                      StatisticsPresentationFormatter.formatWeight(
-                        (data['weight'] as num).toDouble(),
-                      ),
-                      (data['reps'] as num).toInt(),
-                      context
-                          .read<UnitService>()
-                          .suffixFor(UnitDimension.weight),
-                    )
-                  : '–',
-              subtitle: hasData
-                  ? data['exerciseName'] as String
-                  : l10n.analyticsNoRecordYet,
-            );
-          }).toList(),
-        ),
+                value: hasData
+                    ? l10n.analyticsPerfWithReps(
+                        _formatDisplayWeight(
+                          (data['weight'] as num).toDouble(),
+                        ),
+                        (data['reps'] as num).toInt(),
+                        unit,
+                      )
+                    : '–',
+                subtitle: hasData
+                    ? data['exerciseName'] as String
+                    : l10n.analyticsNoRecordYet,
+              );
+            }).toList(),
+          ),
       ],
     );
   }
-
-  // Removed _windowChip
 }

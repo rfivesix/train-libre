@@ -10,25 +10,21 @@ class ConsistencySectionCard extends StatelessWidget {
   final SectionLoadState<ConsistencySectionData> state;
   final VoidCallback onRetry;
   final VoidCallback onTap;
-  final String? chipText;
 
   static const int _fixedConsistencyWeeks = 6;
-  static const int _miniSignalPoints = 8;
 
   const ConsistencySectionCard({
     super.key,
     required this.state,
     required this.onRetry,
     required this.onTap,
-    this.chipText,
   });
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final sectionId = StatisticsHubSectionId.consistency;
-    final title = l10n.workoutsPerWeekLabel;
-
+    final title = l10n.consistencyTrackerTitle;
 
     if (state.hasError && !state.hasData) {
       return AnalyticsCardBase.buildSectionErrorCard(
@@ -43,17 +39,13 @@ class ConsistencySectionCard extends StatelessWidget {
     final data = state.data;
     final workoutsPerWeek = data?.workoutsPerWeek ?? const [];
     final trainingStats = data?.trainingStats;
-
-    final counts = workoutsPerWeek
-        .map((w) => ((w['count'] as num?) ?? 0).toDouble())
-        .toList(growable: false);
-    final avgWorkouts = counts.isEmpty
-        ? '-'
-        : (counts.reduce((a, b) => a + b) / counts.length).toStringAsFixed(1);
-    final weeklyTrend = counts.toList(growable: false);
+    final totalWorkouts = workoutsPerWeek.fold<int>(
+      0,
+      (total, week) => total + ((week['count'] as num?)?.toInt() ?? 0),
+    );
     final streakText = trainingStats == null
-        ? '${l10n.metricsCurrentStreak}: -'
-        : '${l10n.metricsCurrentStreak}: ${trainingStats.streakWeeks} ${l10n.metricsActiveWeeks}';
+        ? '${l10n.streakLabel}: -'
+        : '${l10n.streakLabel}: ${trainingStats.streakWeeks} ${l10n.weeksLabel}';
 
     return AnalyticsCardBase.decorateSectionCard(
       context,
@@ -68,12 +60,13 @@ class ConsistencySectionCard extends StatelessWidget {
               AnalyticsCardBase.buildHeaderWithChevron(
                 context,
                 label: title,
-                chipText: chipText ??
-                    _fixedWeeksChipLabel(l10n, _fixedConsistencyWeeks),
+                chipText: _fixedWeeksChipLabel(l10n, _fixedConsistencyWeeks),
               ),
               const SizedBox(height: DesignConstants.spacingXS),
               Text(
-                avgWorkouts == '-' ? '-' : _formatPerWeek(l10n, avgWorkouts),
+                trainingStats == null
+                    ? '-'
+                    : '$totalWorkouts ${l10n.workoutsLabel}',
                 style: Theme.of(context)
                     .textTheme
                     .titleLarge
@@ -86,19 +79,6 @@ class ConsistencySectionCard extends StatelessWidget {
                       color: Theme.of(context).colorScheme.outline,
                     ),
               ),
-              const SizedBox(height: DesignConstants.spacingS),
-              AnalyticsCardBase.buildMicroCaption(
-                context,
-                '${l10n.analyticsRollingConsistency} • ${_fixedWeeksChipLabel(l10n, _fixedConsistencyWeeks)}',
-              ),
-              const SizedBox(height: DesignConstants.spacingXS),
-              AnalyticsCardBase.buildMiniBars(
-                context,
-                values:
-                    weeklyTrend.take(_miniSignalPoints).toList(growable: false),
-                color: Theme.of(context).colorScheme.primary,
-                semanticsLabel: l10n.sectionConsistency,
-              ),
             ],
           ),
         ),
@@ -106,11 +86,7 @@ class ConsistencySectionCard extends StatelessWidget {
     );
   }
 
-  String _formatPerWeek(AppLocalizations l10n, String valueText) {
-    return '$valueText / ${l10n.analyticsPerWeekAbbrev}';
-  }
-
   String _fixedWeeksChipLabel(AppLocalizations l10n, int weeks) {
-    return '$weeks ${l10n.weeksLabel}';
+    return l10n.analyticsLastWeeks(weeks);
   }
 }

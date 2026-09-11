@@ -3402,6 +3402,32 @@ class AppLocalizationsDe extends AppLocalizations {
   String get analyticsRecentRecords => 'Aktuelle Rekorde';
 
   @override
+  String get analyticsNewBestPerformances => 'Neue Bestleistungen';
+
+  @override
+  String get analyticsTop => 'Top';
+
+  @override
+  String analyticsLastWeeks(int weeks) {
+    return 'Letzte $weeks Wochen';
+  }
+
+  @override
+  String get analyticsMuscleGroups => 'Muskelgruppen';
+
+  @override
+  String get analyticsStrongestBreakthrough => 'Größter Durchbruch';
+
+  @override
+  String get analyticsRecordOverview => 'Rekordübersicht';
+
+  @override
+  String get analyticsRecentlySet => 'Zuletzt aufgestellt';
+
+  @override
+  String get analyticsByRepetitionRange => 'Nach Wiederholungen';
+
+  @override
   String analyticsPerfWithReps(String weight, int reps, Object unit) {
     return '$weight $unit x $reps';
   }

@@ -9,14 +9,13 @@ import 'analytics_card_base.dart';
 
 class MuscleVolumeSectionCard extends StatelessWidget {
   final SectionLoadState<VolumeMusclesSectionData> state;
-  final String? rangeLabel;
   final VoidCallback onRetry;
   final VoidCallback onTap;
+  static const int _fixedMuscleWeeks = 8;
 
   const MuscleVolumeSectionCard({
     super.key,
     required this.state,
-    this.rangeLabel,
     required this.onRetry,
     required this.onTap,
   });
@@ -25,7 +24,7 @@ class MuscleVolumeSectionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final sectionId = StatisticsHubSectionId.volumeMuscles;
-    final title = l10n.analyticsMuscleTopFrequency;
+    final title = l10n.analyticsMuscleGroups;
 
     if (state.hasError && !state.hasData) {
       return AnalyticsCardBase.buildSectionErrorCard(
@@ -46,18 +45,22 @@ class MuscleVolumeSectionCard extends StatelessWidget {
       final group = m['muscleGroup'] as String?;
       return group != 'unclassified' &&
           !StatisticsPresentationFormatter.isOtherCategoryLabel(group);
-    }).toList(growable: false);
+    }).toList()
+      ..sort(
+        (a, b) => ((b['equivalentSets'] as num?)?.toDouble() ?? 0).compareTo(
+          (a['equivalentSets'] as num?)?.toDouble() ?? 0,
+        ),
+      );
     final topMuscle = muscles.isNotEmpty ? muscles.first : null;
-    final topMuscleShare =
-        (topMuscle?['distributionShare'] as num?)?.toDouble() ?? 0.0;
-    final topMuscleFrequency = topMuscle == null
-        ? l10n.exerciseAnalyticsNoData
-        : _formatPerWeek(
-            l10n,
-            (topMuscle['frequencyPerWeek'] as num).toDouble().toStringAsFixed(
-                  1,
-                ),
-          );
+    final totalEquivalentSets = muscles.fold<double>(
+      0,
+      (total, muscle) =>
+          total + ((muscle['equivalentSets'] as num?)?.toDouble() ?? 0),
+    );
+    final weeklySets = totalEquivalentSets / _fixedMuscleWeeks;
+    final topMuscleSets =
+        ((topMuscle?['equivalentSets'] as num?)?.toDouble() ?? 0) /
+            _fixedMuscleWeeks;
 
     return AnalyticsCardBase.decorateSectionCard(
       context,
@@ -73,11 +76,13 @@ class MuscleVolumeSectionCard extends StatelessWidget {
                 context,
                 label: title,
                 trailingIcon: true,
-                chipText: rangeLabel,
+                chipText: l10n.analyticsLastWeeks(_fixedMuscleWeeks),
               ),
               const SizedBox(height: DesignConstants.spacingXS),
               Text(
-                _formatMuscleLabel(l10n, topMuscle?['muscleGroup'] as String?),
+                topMuscle == null
+                    ? '–'
+                    : '${weeklySets.toStringAsFixed(1)} ${l10n.analyticsUnitSets} / ${l10n.analyticsPerWeekAbbrev}',
                 style: Theme.of(context)
                     .textTheme
                     .titleLarge
@@ -85,41 +90,18 @@ class MuscleVolumeSectionCard extends StatelessWidget {
               ),
               const SizedBox(height: 6),
               Text(
-                topMuscleFrequency,
+                topMuscle == null
+                    ? l10n.exerciseAnalyticsNoData
+                    : '${_formatMuscleLabel(l10n, topMuscle['muscleGroup'] as String?)} · ${topMuscleSets.toStringAsFixed(1)} ${l10n.analyticsUnitSets} / ${l10n.analyticsPerWeekAbbrev}',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: Theme.of(context).colorScheme.outline,
                     ),
               ),
-              if (topMuscleShare > 0) ...[
-                const SizedBox(height: DesignConstants.spacingS),
-                ClipRRect(
-                  borderRadius:
-                      BorderRadius.circular(DesignConstants.borderRadiusS),
-                  child: LinearProgressIndicator(
-                    minHeight: 6,
-                    value: topMuscleShare.clamp(0.0, 1.0),
-                    backgroundColor:
-                        Theme.of(context).colorScheme.surfaceContainerHighest,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                ),
-              ],
-              if (topMuscle != null) ...[
-                const SizedBox(height: 6),
-                AnalyticsCardBase.buildMicroCaption(
-                  context,
-                  '${(topMuscleShare * 100).toStringAsFixed(0)}%',
-                ),
-              ]
             ],
           ),
         ),
       ),
     );
-  }
-
-  String _formatPerWeek(AppLocalizations l10n, String valueText) {
-    return '$valueText / ${l10n.analyticsPerWeekAbbrev}';
   }
 
   String _formatMuscleLabel(AppLocalizations l10n, String? label) {

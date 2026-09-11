@@ -845,6 +845,7 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
             'exerciseName': e.name,
             'weight': e.load,
             'reps': e.reps,
+            'achievedAt': e.achievedAt,
           },
         )
         .toList();
@@ -2046,6 +2047,7 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
   Future<List<Map<String, dynamic>>> getNotablePrImprovements({
     int daysWindow = 30,
     int limit = 5,
+    bool sortByRecentDate = false,
   }) async {
     final stopwatch = Stopwatch()..start();
     final now = DateTime.now();
@@ -2110,6 +2112,7 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
 
     final Map<String, double> previousBest = {};
     final Map<String, double> recentBest = {};
+    final Map<String, DateTime> recentBestAchievedAt = {};
 
     for (final r in rows) {
       final setRow = r.readTable(dbInstance.setLogs);
@@ -2140,7 +2143,15 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
 
       final isRecent = !logRow.startTime.isBefore(recentStart);
       if (isRecent) {
-        if (value > (recentBest[name] ?? 0.0)) recentBest[name] = value;
+        final currentBest = recentBest[name] ?? 0.0;
+        final currentBestAt = recentBestAchievedAt[name];
+        if (value > currentBest ||
+            (value == currentBest &&
+                (currentBestAt == null ||
+                    logRow.startTime.isAfter(currentBestAt)))) {
+          recentBest[name] = value;
+          recentBestAchievedAt[name] = logRow.startTime;
+        }
       } else {
         if (value > (previousBest[name] ?? 0.0)) previousBest[name] = value;
       }
@@ -2159,13 +2170,18 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
         'previousBestE1rm': previous,
         'recentBestE1rm': recent,
         'improvementPct': improvementPct,
+        'achievedAt': recentBestAchievedAt[name],
       });
     }
 
     result.sort(
-      (a, b) => (b['improvementPct'] as double).compareTo(
-        a['improvementPct'] as double,
-      ),
+      sortByRecentDate
+          ? (a, b) => (b['achievedAt'] as DateTime).compareTo(
+                a['achievedAt'] as DateTime,
+              )
+          : (a, b) => (b['improvementPct'] as double).compareTo(
+                a['improvementPct'] as double,
+              ),
     );
     final limited = result.take(limit).toList();
     PerfDebugTimer.logDuration(

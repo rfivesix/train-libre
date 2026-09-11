@@ -6,6 +6,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [1.4.0] - 2026-09-11
 
+### Added
+- **Muskelgruppen-Analyse – vollständige Übersicht:** Die neue Standardansicht zeigt alle Muskelgruppen und Bewegungsmuster als bestehendes zweispaltiges `ValueSummaryCard`-Grid, einschließlich Nullwerten. Arbeitssets werden standardmäßig als Wochenmittel angezeigt; ein dezenter Umschalter am Ende wechselt bei Bedarf auf Gesamtwerte. Die permanente Verteilungs-Heatmap bleibt über beiden Ansichten sichtbar.
+- **Muskelgruppen-Analyse – Diagrammansicht:** Ein Lucide-Icon in der App-Bar schaltet zur Diagrammansicht. X-Achsenlabels sind bei unterschiedlich langen Namen sauber ausgerichtet und kollisionsfrei platziert.
+- **Trainingsrhythmus:** Der bisherige Konsistenz-Tracker erhielt einen lesbaren Wochenverlauf mit Tooltip-Details, gerundeten Werten, adaptiven Balkenbreiten und ausgedünnten Zeitlabels für lange Zeiträume. Der Trainingskalender lädt unabhängig vom Zeitraumfilter die letzten zwölf Monate, behält beim Filterwechsel seinen sichtbaren Monat und zeigt eine kompakte Intensitätslegende im Kopf.
+- **Bestleistungs-Feed:** Das PR-Dashboard zeigt gefilterte neue Bestleistungen als Kennzahlen und chronologischen Feed mit Datum, e1RM-Vergleich und prozentualem Fortschritt. Eine bestehende Segmentsteuerung wechselt in der Rekordübersicht zwischen zuletzt aufgestellten Rekorden und Bestleistungen nach Wiederholungsbereich.
+- **Training-Vorschauen im Statistik-Hub:** Die drei Einstiegskarten beantworten nun klar getrennte Fragen und beschränken sich jeweils auf eine Hero-Aussage plus Kontext: Trainingsrhythmus zeigt die Gesamtzahl der Workouts über sechs Wochen und den Streak; Bestleistungen zeigt die Anzahl im gewählten Zeitraum sowie den Top-Durchbruch; Muskelgruppen zeigt durchschnittliche Arbeitssätze pro Woche sowie den meisttrainierten Muskel über acht Wochen.
+
+### Changed
+- **Übersichtstitel im Tagebuch:** „Heute im Blick“ heißt nun zeitunabhängig „Auf einen Blick“ beziehungsweise „At a Glance“ und wurde in allen unterstützten Sprachen angepasst.
+- **Muskelgruppen-Analyse – Klarere Einheiten:** Die Grid-Karten zeigen den Zeitraum gesammelt im Abschnitt statt wiederholt auf jeder Karte; die Frequenz bleibt als dezente durchschnittliche Wochenfrequenz sichtbar. Im Hellmodus verwenden die Karten wieder die reguläre weiße Standardoberfläche.
+- **Trainingsrhythmus – Sprache und Daten:** Der Screen heißt nun „Trainingsrhythmus“ in allen Sprachen. „Bewegtes Gewicht“ wurde als Metrik durch den gebräuchlichen Begriff „Volumen“ ersetzt. Tooltips zeigen vollständige Wochenbereiche und geben Trainings als ganze Workout-Anzahl aus.
+- **PR-Dashboard – Informationshierarchie:** Redundante All-Time-Ranglisten wurden zugunsten einer fokussierten Rekordübersicht entfernt. Verbesserungsdaten enthalten nun das Erreichungsdatum; die Hub-Ansicht behält weiterhin ihre Sortierung nach stärkster Verbesserung.
+
+### Fixed
+- **Diagrammachsen:** Die Trainingsrhythmus-Y-Achse erzeugt keine doppelt gerundeten Tickwerte mehr und nutzt pro Metrik nur den nötigen linken Platz.
+- **Segmentsteuerung:** Der aktive Chip endet jetzt bündig an beiden Seiten der bestehenden Segmentsteuerung.
+
 ## [1.4.0-beta.1] - 2026-09-10
 
 ### Added

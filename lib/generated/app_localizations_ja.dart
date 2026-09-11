@@ -3287,6 +3287,32 @@ class AppLocalizationsJa extends AppLocalizations {
   String get analyticsRecentRecords => '最近の記録';
 
   @override
+  String get analyticsNewBestPerformances => '新しい自己ベスト';
+
+  @override
+  String get analyticsTop => 'トップ';
+
+  @override
+  String analyticsLastWeeks(int weeks) {
+    return '直近$weeks週間';
+  }
+
+  @override
+  String get analyticsMuscleGroups => '筋肉グループ';
+
+  @override
+  String get analyticsStrongestBreakthrough => '最大の進歩';
+
+  @override
+  String get analyticsRecordOverview => '記録の概要';
+
+  @override
+  String get analyticsRecentlySet => '最近達成';
+
+  @override
+  String get analyticsByRepetitionRange => '回数別';
+
+  @override
   String analyticsPerfWithReps(String weight, int reps, Object unit) {
     return '$weight $unit x $reps';
   }

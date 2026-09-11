@@ -6053,6 +6053,54 @@ abstract class AppLocalizations {
   /// **'Recent Records'**
   String get analyticsRecentRecords;
 
+  /// No description provided for @analyticsNewBestPerformances.
+  ///
+  /// In en, this message translates to:
+  /// **'New Personal Bests'**
+  String get analyticsNewBestPerformances;
+
+  /// No description provided for @analyticsTop.
+  ///
+  /// In en, this message translates to:
+  /// **'Top'**
+  String get analyticsTop;
+
+  /// No description provided for @analyticsLastWeeks.
+  ///
+  /// In en, this message translates to:
+  /// **'Last {weeks} weeks'**
+  String analyticsLastWeeks(int weeks);
+
+  /// No description provided for @analyticsMuscleGroups.
+  ///
+  /// In en, this message translates to:
+  /// **'Muscle Groups'**
+  String get analyticsMuscleGroups;
+
+  /// No description provided for @analyticsStrongestBreakthrough.
+  ///
+  /// In en, this message translates to:
+  /// **'Biggest Breakthrough'**
+  String get analyticsStrongestBreakthrough;
+
+  /// No description provided for @analyticsRecordOverview.
+  ///
+  /// In en, this message translates to:
+  /// **'Record Overview'**
+  String get analyticsRecordOverview;
+
+  /// No description provided for @analyticsRecentlySet.
+  ///
+  /// In en, this message translates to:
+  /// **'Recently Set'**
+  String get analyticsRecentlySet;
+
+  /// No description provided for @analyticsByRepetitionRange.
+  ///
+  /// In en, this message translates to:
+  /// **'By Repetitions'**
+  String get analyticsByRepetitionRange;
+
   /// No description provided for @analyticsPerfWithReps.
   ///
   /// In en, this message translates to:

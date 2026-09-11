@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../../../util/design_constants.dart';
-
 import '../../../../generated/app_localizations.dart';
 import '../../../../widgets/common/summary_card.dart';
 import '../statistics_hub_view_model.dart';
@@ -24,8 +23,7 @@ class PerformanceSectionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final sectionId = StatisticsHubSectionId.performanceRecords;
-    final title = l10n.exerciseAnalyticsTitle;
-
+    final title = l10n.analyticsNewBestPerformances;
 
     if (state.hasError && !state.hasData) {
       return AnalyticsCardBase.buildSectionErrorCard(
@@ -40,22 +38,23 @@ class PerformanceSectionCard extends StatelessWidget {
     final data = state.data;
     final notableImprovements = data?.notableImprovements ?? const [];
 
-    final topImprovement =
-        notableImprovements.isNotEmpty ? notableImprovements.first : null;
-    final momentumValue = topImprovement == null
+    final strongestImprovement = notableImprovements.isEmpty
+        ? null
+        : notableImprovements.reduce(
+            (strongest, candidate) =>
+                ((candidate['improvementPct'] as num?)?.toDouble() ?? 0) >
+                        ((strongest['improvementPct'] as num?)?.toDouble() ?? 0)
+                    ? candidate
+                    : strongest,
+          );
+    final momentumValue = strongestImprovement == null
         ? '-'
-        : '+${((topImprovement['improvementPct'] as num).toDouble()).toStringAsFixed(1)}%';
-    final topExerciseName = topImprovement == null
+        : '+${((strongestImprovement['improvementPct'] as num).toDouble()).toStringAsFixed(1)}%';
+    final topExerciseName = strongestImprovement == null
         ? l10n.metricsMostImproved
-        : (topImprovement['exerciseName'] as String? ??
+        : (strongestImprovement['exerciseName'] as String? ??
             l10n.metricsMostImproved);
-    final performanceSummaryText = notableImprovements.isEmpty
-        ? l10n.exerciseAnalyticsNoData
-        : '${l10n.analyticsRecentRecords}: ${notableImprovements.length}';
-    final compactSignals = notableImprovements
-        .map((row) => ((row['improvementPct'] as num?) ?? 0).toDouble())
-        .toList(growable: false);
-    final momentumColor = topImprovement == null
+    final momentumColor = strongestImprovement == null
         ? Theme.of(context).colorScheme.outline
         : Theme.of(context).colorScheme.primary;
 
@@ -76,33 +75,18 @@ class PerformanceSectionCard extends StatelessWidget {
               ),
               const SizedBox(height: DesignConstants.spacingXS),
               Text(
-                topExerciseName,
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-              const SizedBox(height: DesignConstants.spacingXS),
-              Text(
-                momentumValue,
+                '${notableImprovements.length} ${l10n.analyticsInTimeframe.toLowerCase()}',
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.bold,
-                      color: momentumColor,
                     ),
               ),
               const SizedBox(height: 6),
               Text(
-                performanceSummaryText,
+                '${l10n.analyticsTop}: $topExerciseName · $momentumValue',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.outline,
+                      color: momentumColor,
+                      fontWeight: FontWeight.w600,
                     ),
-              ),
-              const SizedBox(height: DesignConstants.spacingS),
-              AnalyticsCardBase.buildMicroCaption(
-                  context, l10n.analyticsRecentRecords),
-              const SizedBox(height: DesignConstants.spacingXS),
-              AnalyticsCardBase.buildMiniBars(
-                context,
-                values: compactSignals,
-                color: Theme.of(context).colorScheme.primary,
-                semanticsLabel: title,
               ),
             ],
           ),

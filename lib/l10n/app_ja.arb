@@ -1439,6 +1439,19 @@
   "analyticsTopVolume": "トップトレーニング済み",
   "analyticsLowestVolume": "最低音量",
   "analyticsRecentRecords": "最近の記録",
+  "analyticsNewBestPerformances": "新しい自己ベスト",
+  "analyticsTop": "トップ",
+  "analyticsLastWeeks": "直近{weeks}週間",
+  "@analyticsLastWeeks": {
+    "placeholders": {
+      "weeks": { "type": "int" }
+    }
+  },
+  "analyticsMuscleGroups": "筋肉グループ",
+  "analyticsStrongestBreakthrough": "最大の進歩",
+  "analyticsRecordOverview": "記録の概要",
+  "analyticsRecentlySet": "最近達成",
+  "analyticsByRepetitionRange": "回数別",
   "analyticsPerfWithReps": "{weight} {unit} x {reps}",
   "@analyticsPerfWithReps": {
     "placeholders": {

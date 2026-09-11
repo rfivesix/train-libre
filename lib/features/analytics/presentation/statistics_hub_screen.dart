@@ -555,7 +555,6 @@ class _StatisticsHubScreenView extends StatelessWidget {
       builder: (context, setHidden) => Builder(
         builder: (cardCtx) => ConsistencySectionCard(
           state: viewModel.consistencyState,
-          chipText: _unifiedRangeLabel(viewModel, l10n),
           onRetry: () => viewModel.loadHubAnalytics(),
           onTap: () {
             Navigator.of(context).push(
@@ -563,7 +562,6 @@ class _StatisticsHubScreenView extends StatelessWidget {
                 sourceContext: cardCtx,
                 sourceBuilder: (_) => ConsistencySectionCard(
                   state: viewModel.consistencyState,
-                  chipText: _unifiedRangeLabel(viewModel, l10n),
                   onRetry: () {},
                   onTap: () {},
                 ),
@@ -635,7 +633,6 @@ class _StatisticsHubScreenView extends StatelessWidget {
       builder: (context, setHidden) => Builder(
         builder: (cardCtx) => MuscleVolumeSectionCard(
           state: viewModel.volumeMusclesState,
-          rangeLabel: _unifiedRangeLabel(viewModel, l10n),
           onRetry: () => viewModel.loadHubAnalytics(),
           onTap: () {
             Navigator.of(context).push(
@@ -643,7 +640,6 @@ class _StatisticsHubScreenView extends StatelessWidget {
                 sourceContext: cardCtx,
                 sourceBuilder: (_) => MuscleVolumeSectionCard(
                   state: viewModel.volumeMusclesState,
-                  rangeLabel: _unifiedRangeLabel(viewModel, l10n),
                   onRetry: () {},
                   onTap: () {},
                 ),

@@ -1439,6 +1439,19 @@
   "analyticsTopVolume": "Top trainiert",
   "analyticsLowestVolume": "Niedrigstes Volumen",
   "analyticsRecentRecords": "Aktuelle Rekorde",
+  "analyticsNewBestPerformances": "Neue Bestleistungen",
+  "analyticsTop": "Top",
+  "analyticsLastWeeks": "Letzte {weeks} Wochen",
+  "@analyticsLastWeeks": {
+    "placeholders": {
+      "weeks": { "type": "int" }
+    }
+  },
+  "analyticsMuscleGroups": "Muskelgruppen",
+  "analyticsStrongestBreakthrough": "Größter Durchbruch",
+  "analyticsRecordOverview": "Rekordübersicht",
+  "analyticsRecentlySet": "Zuletzt aufgestellt",
+  "analyticsByRepetitionRange": "Nach Wiederholungen",
   "analyticsPerfWithReps": "{weight} {unit} x {reps}",
   "@analyticsPerfWithReps": {
     "placeholders": {
