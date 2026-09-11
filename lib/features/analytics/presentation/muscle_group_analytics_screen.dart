@@ -674,19 +674,22 @@ class _MuscleGroupAnalyticsScreenState
                       final label = labels[index];
                       return SideTitleWidget(
                         meta: meta,
-                        space: 8,
+                        space: 28,
                         angle: -52 * 3.141592653589793 / 180,
-                        child: SizedBox(
-                          width: 112,
-                          height: 40,
-                          child: Align(
-                            alignment: Alignment.topLeft,
-                            child: Text(
-                              label,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              textAlign: TextAlign.left,
-                              style: Theme.of(context).textTheme.labelSmall,
+                        child: Transform.translate(
+                          offset: const Offset(-20, 0),
+                          child: SizedBox(
+                            width: 112,
+                            height: 40,
+                            child: Align(
+                              alignment: Alignment.topRight,
+                              child: Text(
+                                label,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                textAlign: TextAlign.right,
+                                style: Theme.of(context).textTheme.labelSmall,
+                              ),
                             ),
                           ),
                         ),
