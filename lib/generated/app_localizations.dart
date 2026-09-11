@@ -2327,7 +2327,7 @@ abstract class AppLocalizations {
   /// No description provided for @protocol_today_capslock.
   ///
   /// In en, this message translates to:
-  /// **'TODAY\'S PROTOCOL'**
+  /// **'PROTOCOL'**
   String get protocol_today_capslock;
 
   /// No description provided for @my_plans_capslock.

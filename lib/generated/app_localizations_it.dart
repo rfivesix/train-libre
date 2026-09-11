@@ -1312,7 +1312,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get scann_barcode_capslock => 'Scansiona il codice a barre';
 
   @override
-  String get protocol_today_capslock => 'IL PROTOCOLLO DI OGGI';
+  String get protocol_today_capslock => 'PROTOCOLLO';
 
   @override
   String get my_plans_capslock => 'I MIEI PIANI';

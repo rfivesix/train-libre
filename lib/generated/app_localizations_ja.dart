@@ -1292,7 +1292,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get scann_barcode_capslock => 'バーコードをスキャンする';
 
   @override
-  String get protocol_today_capslock => '今日のプロトコル';
+  String get protocol_today_capslock => 'プロトコル';
 
   @override
   String get my_plans_capslock => '私の計画';
