@@ -987,9 +987,17 @@ class SleepPipelineService {
         .toList()
       ..sort((a, b) => a.day.compareTo(b.day));
     final byNight = <String, SleepRegularityIndexResult>{};
+    var endIdx = 0;
     for (final night in targetNights) {
-      final history =
-          dailyStates.where((state) => !state.day.isAfter(night)).toList();
+      // Advance endIdx to include all dailyStates up to and including 'night'.
+      // Since both targetNights and dailyStates are sorted chronologically,
+      // endIdx only moves forward, reducing complexity from O(N*M) to O(N+M).
+      while (endIdx < dailyStates.length && !dailyStates[endIdx].day.isAfter(night)) {
+        endIdx++;
+      }
+
+      // Use .take(endIdx) which is a lightweight Iterable view rather than a full List allocation
+      final history = dailyStates.take(endIdx);
       final sri = calculateSleepRegularityIndex(dailyStates: history);
       byNight[_nightKey(night)] = sri;
     }
