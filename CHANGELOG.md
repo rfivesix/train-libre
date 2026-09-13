@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.4.1] — 2026-09-14
+
+### Changed
+- **Recovery tracker (planned):** Audit and, where supported by evidence and tests, refine the non-medical readiness heuristic for RIR/RPE, total sets, primary/secondary muscle involvement and movement patterns; simplify the per-muscle presentation so the actionable recovery state comes before technical diagnostics.
+- **AI meal presentation (planned):** Make newly captured and saved AI meals substantially more concise by default, with a consistent edit action for ingredients, quantities, matching and validation detail.
+- **AI meal recognition (planned):** Improve food identification through multi-query catalog retrieval, semantic candidate ranking, cooking-state and portion plausibility checks, and stronger repair-loop validation while keeping persisted nutrition values database-derived.
+
 ## [1.4.0] - 2026-09-11
 
 ### Added
