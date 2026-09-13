@@ -3098,7 +3098,7 @@
   "goalBaselineHeader": "開始（基準値）",
   "goalCurrentHeader": "現在",
   "goalTargetHeader": "目標",
-  "goalProgressSectionTitle": "進捗と軌跡",
+  "goalProgressSectionTitle": "進捗",
   "goalRemainingDistanceLabel": "残り {distance}",
   "@goalRemainingDistanceLabel": {
     "placeholders": {

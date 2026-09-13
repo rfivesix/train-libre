@@ -35,6 +35,9 @@ class GlassProgressBar extends StatefulWidget {
   /// Whether to disable the drop shadow.
   final bool disableShadow;
 
+  /// Optional custom subtitle to display instead of the default "value / target unit".
+  final String? customSubtitle;
+
   const GlassProgressBar({
     super.key,
     required this.label,
@@ -45,6 +48,7 @@ class GlassProgressBar extends StatefulWidget {
     this.height = 54.0,
     this.borderRadius = DesignConstants.borderRadiusL,
     this.disableShadow = false,
+    this.customSubtitle,
   });
 
   @override
@@ -98,6 +102,7 @@ class _GlassProgressBarState extends State<GlassProgressBar> {
               height: widget.height,
               borderRadius: widget.borderRadius,
               disableShadow: widget.disableShadow,
+              customSubtitle: widget.customSubtitle,
             );
           },
         );
@@ -116,6 +121,7 @@ class _GlassProgressBarPainter extends StatelessWidget {
   final double height;
   final double borderRadius;
   final bool disableShadow;
+  final String? customSubtitle;
 
   const _GlassProgressBarPainter({
     required this.label,
@@ -126,6 +132,7 @@ class _GlassProgressBarPainter extends StatelessWidget {
     required this.height,
     required this.borderRadius,
     required this.disableShadow,
+    this.customSubtitle,
   });
 
   @override
@@ -137,22 +144,9 @@ class _GlassProgressBarPainter extends StatelessWidget {
     final rawProgress = hasTarget ? (value / target) : 0.0;
     final progress = rawProgress.clamp(0.0, 1.0);
 
-    // Crisp, minimal text shadow for edge definition, only if bar has progress
-    final textShadows = value > 0
-        ? [
-            Shadow(
-              color: Colors.black.withValues(alpha: 0.3),
-              offset: const Offset(0, 1),
-              blurRadius: 2.0,
-            ),
-          ]
-        : null;
 
-    // Heuristic for readability: if the bar color contrast with text is low,
-    // we add a subtle readability scrim behind the text area.
-    // Only applied if there is actual progress color to contrast with.
-    final luminance = color.computeLuminance();
-    final bool isLowContrast = isDark ? (luminance > 0.5) : (luminance < 0.5);
+    // Text color follows theme brightness: black in light mode, white in dark mode.
+    final Color textColor = isDark ? Colors.white : const Color(0xFF1C1C1E);
 
     // Identical to SummaryCard: same cornerRadius, same cornerSmoothing.
     // NOTE: do not wrap this widget in a LayoutBuilder to derive the radius from
@@ -185,12 +179,25 @@ class _GlassProgressBarPainter extends StatelessWidget {
           ),
           child: LayoutBuilder(
             builder: (context, constraints) {
-              Widget buildTextContent({required bool withShadow}) {
+              Widget buildTextContent({required bool isFilled}) {
                 final colorScheme = theme.colorScheme;
-                final Color filledTextColor =
-                    theme.brightness == Brightness.dark
-                        ? Colors.white
-                        : Colors.black;
+                final primaryColor = textColor;
+                final secondaryColor = isFilled
+                    ? (isDark
+                        ? Colors.white.withValues(alpha: 0.9)
+                        : const Color(0xFF1C1C1E).withValues(alpha: 0.85))
+                    : colorScheme.onSurface.withValues(alpha: 0.8);
+
+                // Subtle shadow only in dark mode on filled bar to enhance edge definition
+                final shadows = (isFilled && isDark && value > 0)
+                    ? [
+                        Shadow(
+                          color: Colors.black.withValues(alpha: 0.35),
+                          offset: const Offset(0, 1),
+                          blurRadius: 2.0,
+                        ),
+                      ]
+                    : null;
 
                 return Padding(
                   padding: const EdgeInsets.symmetric(
@@ -206,21 +213,20 @@ class _GlassProgressBarPainter extends StatelessWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: theme.textTheme.titleMedium?.copyWith(
-                          color: filledTextColor,
-                          shadows: withShadow ? textShadows : null,
+                          color: primaryColor,
+                          shadows: shadows,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        hasTarget
-                            ? '${value.toStringAsFixed(1)} / ${target.toStringAsFixed(0)} $unit'
-                            : '${value.toStringAsFixed(1)} $unit',
+                        customSubtitle ??
+                            (hasTarget
+                                ? '${value.toStringAsFixed(1)} / ${target.toStringAsFixed(0)} $unit'
+                                : '${value.toStringAsFixed(1)} $unit'),
                         style: theme.textTheme.bodyMedium?.copyWith(
-                          color: withShadow
-                              ? filledTextColor.withValues(alpha: 0.9)
-                              : colorScheme.onSurface,
-                          shadows: withShadow ? textShadows : null,
+                          color: secondaryColor,
+                          shadows: shadows,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -232,12 +238,12 @@ class _GlassProgressBarPainter extends StatelessWidget {
               return Stack(
                 fit: StackFit.expand,
                 children: [
-                  // Layer 1: Unfilled background text content (no shadow, track color)
+                  // Layer 1: Unfilled background text content
                   Positioned.fill(
-                    child: buildTextContent(withShadow: false),
+                    child: buildTextContent(isFilled: false),
                   ),
 
-                  // Layer 2: Clipped progress bar + filled text content (with shadow)
+                  // Layer 2: Clipped progress bar + filled text content
                   if (progress > 0)
                     Positioned.fill(
                       child: ClipRect(
@@ -250,7 +256,7 @@ class _GlassProgressBarPainter extends StatelessWidget {
                                 color: color,
                               ),
                             ),
-                            if ((isLowContrast || isDark) && value > 0)
+                            if (isDark && value > 0)
                               Positioned.fill(
                                 child: DecoratedBox(
                                   decoration: BoxDecoration(
@@ -258,9 +264,7 @@ class _GlassProgressBarPainter extends StatelessWidget {
                                       begin: Alignment.centerLeft,
                                       end: Alignment.centerRight,
                                       colors: [
-                                        Colors.black.withValues(
-                                          alpha: isDark ? 0.2 : 0.1,
-                                        ),
+                                        Colors.black.withValues(alpha: 0.15),
                                         Colors.transparent,
                                       ],
                                       stops: const [0.0, 0.6],
@@ -269,7 +273,7 @@ class _GlassProgressBarPainter extends StatelessWidget {
                                 ),
                               ),
                             Positioned.fill(
-                              child: buildTextContent(withShadow: true),
+                              child: buildTextContent(isFilled: true),
                             ),
                           ],
                         ),

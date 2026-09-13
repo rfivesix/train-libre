@@ -36,6 +36,9 @@ class MeasurementChartWidget extends StatefulWidget {
     this.axisLabelBuilder,
     this.repository,
     this.edgeToEdge = false,
+    this.domainDateRange,
+    this.trajectoryStart,
+    this.trajectoryEnd,
   })  : dataPoints = null,
         axisMode = MeasurementChartAxisMode.day;
 
@@ -53,6 +56,9 @@ class MeasurementChartWidget extends StatefulWidget {
     this.axisLabelBuilder,
     this.repository,
     this.edgeToEdge = false,
+    this.domainDateRange,
+    this.trajectoryStart,
+    this.trajectoryEnd,
   })  : chartType = null,
         dateRange = null;
 
@@ -64,6 +70,15 @@ class MeasurementChartWidget extends StatefulWidget {
 
   /// The time period to display in the chart.
   final DateTimeRange? dateRange;
+
+  /// Optional fixed domain date range for the horizontal axis.
+  final DateTimeRange? domainDateRange;
+
+  /// Optional linear trajectory target line start point.
+  final ChartDataPoint? trajectoryStart;
+
+  /// Optional linear trajectory target line end point.
+  final ChartDataPoint? trajectoryEnd;
 
   /// Optional direct datapoints to render without querying the measurement DB.
   final List<ChartDataPoint>? dataPoints;
@@ -270,12 +285,20 @@ class _MeasurementChartWidgetState extends State<MeasurementChartWidget> {
         widget.selectedDateLabelBuilder?.call(displayPoint.date) ??
             _defaultSelectedDateLabel(context, displayPoint.date);
 
-    final DateTime firstDate = widget.axisMode == MeasurementChartAxisMode.day
-        ? _atStartOfDay(_dataPoints.first.date)
-        : _dataPoints.first.date;
-    final DateTime lastDate = widget.axisMode == MeasurementChartAxisMode.day
-        ? _atStartOfDay(_dataPoints.last.date)
-        : _dataPoints.last.date;
+    final DateTime firstDate = widget.domainDateRange != null
+        ? (widget.axisMode == MeasurementChartAxisMode.day
+            ? _atStartOfDay(widget.domainDateRange!.start)
+            : widget.domainDateRange!.start)
+        : (widget.axisMode == MeasurementChartAxisMode.day
+            ? _atStartOfDay(_dataPoints.first.date)
+            : _dataPoints.first.date);
+    final DateTime lastDate = widget.domainDateRange != null
+        ? (widget.axisMode == MeasurementChartAxisMode.day
+            ? _atStartOfDay(widget.domainDateRange!.end)
+            : widget.domainDateRange!.end)
+        : (widget.axisMode == MeasurementChartAxisMode.day
+            ? _atStartOfDay(_dataPoints.last.date)
+            : _dataPoints.last.date);
 
     final int spanUnits = widget.axisMode == MeasurementChartAxisMode.day
         ? lastDate.difference(firstDate).inDays
@@ -314,6 +337,16 @@ class _MeasurementChartWidgetState extends State<MeasurementChartWidget> {
 
     for (final p in _dataPoints) {
       final val = _displayValue(p.value);
+      if (val < minVal) minVal = val;
+      if (val > maxVal) maxVal = val;
+    }
+    if (widget.trajectoryStart != null) {
+      final val = _displayValue(widget.trajectoryStart!.value);
+      if (val < minVal) minVal = val;
+      if (val > maxVal) maxVal = val;
+    }
+    if (widget.trajectoryEnd != null) {
+      final val = _displayValue(widget.trajectoryEnd!.value);
       if (val < minVal) minVal = val;
       if (val > maxVal) maxVal = val;
     }
@@ -505,6 +538,37 @@ class _MeasurementChartWidgetState extends State<MeasurementChartWidget> {
                   ),
                 ),
                 lineBarsData: [
+                  if (widget.trajectoryStart != null &&
+                      widget.trajectoryEnd != null)
+                    LineChartBarData(
+                      spots: [
+                        FlSpot(
+                          xForPoint(widget.trajectoryStart!),
+                          _displayValue(widget.trajectoryStart!.value),
+                        ),
+                        FlSpot(
+                          xForPoint(widget.trajectoryEnd!),
+                          _displayValue(widget.trajectoryEnd!.value),
+                        ),
+                      ],
+                      isCurved: false,
+                      color: Colors.grey.withValues(alpha: 0.45),
+                      barWidth: 2.0,
+                      dashArray: [6, 4],
+                      isStrokeCapRound: true,
+                      dotData: FlDotData(
+                        show: true,
+                        checkToShowDot: (spot, bar) => true,
+                        getDotPainter: (spot, percent, bar, index) =>
+                            FlDotCirclePainter(
+                          radius: 3.5,
+                          color: Colors.grey.withValues(alpha: 0.6),
+                          strokeWidth: 1.5,
+                          strokeColor:
+                              Theme.of(context).scaffoldBackgroundColor,
+                        ),
+                      ),
+                    ),
                   LineChartBarData(
                     spots: spots,
                     isCurved: true,
@@ -515,7 +579,8 @@ class _MeasurementChartWidgetState extends State<MeasurementChartWidget> {
                     dotData: FlDotData(
                       show: true,
                       checkToShowDot: (spot, bar) =>
-                          touchedSpot != null && spot == touchedSpot,
+                          spots.length == 1 ||
+                          (touchedSpot != null && spot == touchedSpot),
                       getDotPainter: (spot, percent, bar, index) =>
                           FlDotCirclePainter(
                         radius: 6,

@@ -7306,7 +7306,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get goalTargetHeader => 'Target';
 
   @override
-  String get goalProgressSectionTitle => 'Progress & Trajectory';
+  String get goalProgressSectionTitle => 'Progress';
 
   @override
   String goalRemainingDistanceLabel(String distance) {

@@ -12808,7 +12808,7 @@ abstract class AppLocalizations {
   /// No description provided for @goalProgressSectionTitle.
   ///
   /// In en, this message translates to:
-  /// **'Progress & Trajectory'**
+  /// **'Progress'**
   String get goalProgressSectionTitle;
 
   /// No description provided for @goalRemainingDistanceLabel.

@@ -3098,7 +3098,7 @@
   "goalBaselineHeader": "Inizio (Base)",
   "goalCurrentHeader": "Attuale",
   "goalTargetHeader": "Obiettivo",
-  "goalProgressSectionTitle": "Progresso & Traiettoria",
+  "goalProgressSectionTitle": "Progresso",
   "goalRemainingDistanceLabel": "Ancora {distance} rimanenti",
   "@goalRemainingDistanceLabel": {
     "placeholders": {

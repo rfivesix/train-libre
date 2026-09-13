@@ -9,9 +9,12 @@ import '../../../generated/app_localizations.dart';
 import '../../../services/unit_service.dart';
 import '../../../util/design_constants.dart';
 import '../../../widgets/common/app_button.dart';
+import '../../../widgets/common/app_section_header.dart';
 import '../../../widgets/common/bottom_content_spacer.dart';
+import '../../../widgets/common/glass_progress_bar.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/summary_card.dart';
+import '../../../widgets/common/value_summary_card.dart';
 import '../../analytics/domain/models/chart_data_point.dart';
 import '../domain/models/goal_model.dart';
 import '../domain/models/goal_progress.dart';
@@ -68,9 +71,9 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
 
     final progress = await _goalRepository.getGoalProgress(goal);
 
-    // Fetch chart points for weight
+    // Fetch chart points for weight from goal start date up to now
     final profileRepo = _profileRepo;
-    final startDate = goal.startDate.subtract(const Duration(days: 30));
+    final startDate = goal.startDate.subtract(const Duration(days: 1));
     final endDate = DateTime.now().add(const Duration(days: 1));
 
     List<ChartDataPoint> chartPoints = [];
@@ -82,6 +85,27 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
         );
       } catch (_) {
         chartPoints = [];
+      }
+    }
+
+    // Ensure baseline is included at goal start date if missing
+    final baseline = progress?.baselineValue;
+    if (baseline != null) {
+      if (chartPoints.isEmpty) {
+        chartPoints = [
+          ChartDataPoint(
+            date: goal.startDate,
+            value: baseline,
+          ),
+        ];
+      } else if (chartPoints.first.date.isAfter(goal.startDate)) {
+        chartPoints.insert(
+          0,
+          ChartDataPoint(
+            date: goal.startDate,
+            value: baseline,
+          ),
+        );
       }
     }
 
@@ -245,419 +269,217 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
           return RefreshIndicator(
             onRefresh: () async => _loadData(),
             child: ListView(
-              padding: DesignConstants.cardPadding,
+              padding: const EdgeInsets.symmetric(
+                vertical: DesignConstants.spacingM,
+              ),
               children: [
-                // Header card with goal title, preset badge, status
-                SummaryCard(
-                  child: Padding(
-                    padding: DesignConstants.cardPadding,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                                vertical: 4,
-                              ),
-                              decoration: BoxDecoration(
-                                color: theme.colorScheme.primary
-                                    .withValues(alpha: 0.12),
-                                borderRadius: BorderRadius.circular(
-                                  DesignConstants.borderRadiusS,
-                                ),
-                              ),
-                              child: Text(
-                                _presetLabel(context, goal.preset),
-                                style: theme.textTheme.labelSmall?.copyWith(
-                                  color: theme.colorScheme.primary,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                            const Spacer(),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 3,
-                              ),
-                              decoration: BoxDecoration(
-                                color: isActive
-                                    ? Colors.green.withValues(alpha: 0.15)
-                                    : theme.colorScheme.onSurface
-                                        .withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(
-                                  DesignConstants.borderRadiusS,
-                                ),
-                              ),
-                              child: Text(
-                                isActive
-                                    ? l10n.goalStatusActive
-                                    : (isRetired
-                                        ? l10n.goalStatusRetired
-                                        : l10n.goalStatusSuperseded),
-                                style: theme.textTheme.labelSmall?.copyWith(
-                                  color: isActive
-                                      ? Colors.green
-                                      : theme.colorScheme.onSurface
-                                          .withValues(alpha: 0.7),
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: DesignConstants.spacingM),
-                        Text(
-                          goal.title,
-                          style: theme.textTheme.headlineSmall?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: DesignConstants.spacingS),
-                        Text(
-                          '${l10n.goalStartedOnLabel(dateFormat.format(goal.startDate))} • ${goal.isNutritionDriver ? l10n.goalDrivesNutritionBadge : l10n.goalDocumentationOnlyBadge}',
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurface
-                                .withValues(alpha: 0.6),
-                          ),
-                        ),
-                      ],
-                    ),
+                // Header card with goal title, status, metadata, and motivation
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: DesignConstants.screenPaddingHorizontal,
                   ),
-                ),
-                const SizedBox(height: DesignConstants.spacingL),
-
-                // Drei-Säulen-Übersicht: Start, Aktuell, Ziel
-                Row(
-                  children: [
-                    // Start / Baseline
-                    Expanded(
-                      child: SummaryCard(
-                        child: Padding(
-                          padding: const EdgeInsets.all(DesignConstants.spacingM),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                l10n.goalBaselineHeader,
-                                style: theme.textTheme.labelSmall?.copyWith(
-                                  color: theme.colorScheme.onSurface
-                                      .withValues(alpha: 0.6),
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(height: DesignConstants.spacingS),
-                              Text(
-                                isWaiting
-                                    ? '--'
-                                    : formatWeight(progress?.baselineValue),
-                                style: theme.textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                progress?.baselineDate != null
-                                    ? dateFormat.format(progress!.baselineDate!)
-                                    : l10n.goalWaitingForBaselineLabel,
-                                style: theme.textTheme.bodySmall?.copyWith(
-                                  fontSize: 10,
-                                  color: theme.colorScheme.onSurface
-                                      .withValues(alpha: 0.5),
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: DesignConstants.spacingM),
-
-                    // Aktuell
-                    Expanded(
-                      child: SummaryCard(
-                        child: Padding(
-                          padding: const EdgeInsets.all(DesignConstants.spacingM),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                l10n.goalCurrentHeader,
-                                style: theme.textTheme.labelSmall?.copyWith(
-                                  color: theme.colorScheme.onSurface
-                                      .withValues(alpha: 0.6),
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(height: DesignConstants.spacingS),
-                              Text(
-                                formatWeight(progress?.currentValue),
-                                style: theme.textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                progress?.deltaSinceStart != null
-                                    ? '${progress!.deltaSinceStart! >= 0 ? "+" : ""}${unitService.convertDisplayValue(progress.deltaSinceStart!, UnitDimension.weight).toStringAsFixed(1)} ${unitService.unitString(UnitDimension.weight)}'
-                                    : '--',
-                                style: theme.textTheme.bodySmall?.copyWith(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w600,
-                                  color: (progress?.deltaSinceStart ?? 0) <= 0
-                                      ? Colors.green
-                                      : Colors.orange,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: DesignConstants.spacingM),
-
-                    // Ziel
-                    Expanded(
-                      child: SummaryCard(
-                        child: Padding(
-                          padding: const EdgeInsets.all(DesignConstants.spacingM),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                l10n.goalTargetHeader,
-                                style: theme.textTheme.labelSmall?.copyWith(
-                                  color: theme.colorScheme.onSurface
-                                      .withValues(alpha: 0.6),
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(height: DesignConstants.spacingS),
-                              Text(
-                                goal.targetValue != null
-                                    ? formatWeight(goal.targetValue)
-                                    : '± 1,0 kg',
-                                style: theme.textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                goal.targetDate != null
-                                    ? dateFormat.format(goal.targetDate!)
-                                    : l10n.goalNoTargetDateShort,
-                                style: theme.textTheme.bodySmall?.copyWith(
-                                  fontSize: 10,
-                                  color: theme.colorScheme.onSurface
-                                      .withValues(alpha: 0.5),
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: DesignConstants.spacingL),
-
-                // Waiting for baseline callout if needed
-                if (isWaiting) ...[
-                  Container(
-                    padding: const EdgeInsets.all(DesignConstants.spacingM),
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.primary.withValues(alpha: 0.1),
-                      borderRadius:
-                          BorderRadius.circular(DesignConstants.borderRadiusM),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Icon(
-                              LucideIcons.scale,
-                              color: theme.colorScheme.primary,
-                              size: 20,
-                            ),
-                            const SizedBox(width: DesignConstants.spacingM),
-                            Expanded(
-                              child: Text(
-                                l10n.goalWaitingForBaselineCalloutTitle,
-                                style: theme.textTheme.titleSmall?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: DesignConstants.spacingS),
-                        Text(
-                          l10n.goalWaitingForBaselineCalloutDescription,
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurface
-                                .withValues(alpha: 0.8),
-                          ),
-                        ),
-                        const SizedBox(height: DesignConstants.spacingM),
-                        AppButton.primary(
-                          label: l10n.recordFirstMeasurementButton,
-                          onPressed: () async {
-                            await Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (_) => const AddMeasurementScreen(),
-                              ),
-                            );
-                            _loadData();
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: DesignConstants.spacingL),
-                ],
-
-                // Trend & Remaining Distance Card
-                if (progress != null && !isWaiting) ...[
-                  SummaryCard(
+                  child: SummaryCard(
+                    margin: EdgeInsets.zero,
                     child: Padding(
                       padding: DesignConstants.cardPadding,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-                              Text(
-                                l10n.goalProgressSectionTitle,
-                                style: theme.textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.bold,
+                              Expanded(
+                                child: Text(
+                                  goal.title.isNotEmpty
+                                      ? goal.title
+                                      : _presetLabel(context, goal.preset),
+                                  style: theme.textTheme.titleLarge?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ),
-                              if (progress.trendRateKgPerWeek != null)
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 4,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: theme.colorScheme.surfaceContainerHighest,
-                                    borderRadius: BorderRadius.circular(
-                                      DesignConstants.borderRadiusS,
-                                    ),
-                                  ),
-                                  child: Text(
-                                    '${progress.trendRateKgPerWeek! >= 0 ? "+" : ""}${unitService.convertDisplayValue(progress.trendRateKgPerWeek!, UnitDimension.weight).toStringAsFixed(2)} ${unitService.unitString(UnitDimension.weight)}/${l10n.weekShort}',
-                                    style: theme.textTheme.labelSmall?.copyWith(
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                              const SizedBox(width: DesignConstants.spacingS),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: isActive
+                                      ? Colors.green.withValues(alpha: 0.15)
+                                      : theme.colorScheme.onSurface
+                                          .withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(
+                                    DesignConstants.borderRadiusS,
                                   ),
                                 ),
+                                child: Text(
+                                  isActive
+                                      ? l10n.goalStatusActive
+                                      : (isRetired
+                                          ? l10n.goalStatusRetired
+                                          : l10n.goalStatusSuperseded),
+                                  style: theme.textTheme.labelSmall?.copyWith(
+                                    color: isActive
+                                        ? Colors.green
+                                        : theme.colorScheme.onSurface
+                                            .withValues(alpha: 0.7),
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
                             ],
                           ),
-                          const SizedBox(height: DesignConstants.spacingM),
-                          if (progress.progressPercentage != null) ...[
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(4),
-                              child: LinearProgressIndicator(
-                                value: progress.progressPercentage,
-                                minHeight: 8,
-                                backgroundColor: theme.colorScheme.surfaceContainerHighest,
-                              ),
-                            ),
-                            const SizedBox(height: DesignConstants.spacingS),
-                          ],
-                          if (progress.remainingDistance != null)
-                            Text(
-                              l10n.goalRemainingDistanceLabel(
-                                '${unitService.convertDisplayValue(progress.remainingDistance!, UnitDimension.weight).toStringAsFixed(1)} ${unitService.unitString(UnitDimension.weight)}',
-                              ),
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                color: theme.colorScheme.onSurface
-                                    .withValues(alpha: 0.8),
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: DesignConstants.spacingL),
-                ],
-
-                // Visual Chart View
-                if (chartPoints.isNotEmpty) ...[
-                  SummaryCard(
-                    child: Padding(
-                      padding: DesignConstants.cardPadding,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
+                          const SizedBox(height: DesignConstants.spacingXS),
                           Text(
-                            l10n.goalWeightHistoryChartTitle,
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
+                            '${l10n.goalStartedOnLabel(dateFormat.format(goal.startDate))} • ${goal.isNutritionDriver ? l10n.goalDrivesNutritionBadge : l10n.goalDocumentationOnlyBadge}',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.onSurface
+                                  .withValues(alpha: 0.6),
                             ),
                           ),
-                          const SizedBox(height: DesignConstants.spacingM),
-                          SizedBox(
-                            height: 220,
-                            child: MeasurementChartWidget.fromData(
-                              dataPoints: chartPoints,
-                              unit: unitService.unitString(UnitDimension.weight),
-                              referenceLineValue: goal.targetValue != null
-                                  ? unitService.convertDisplayValue(
-                                      goal.targetValue!,
-                                      UnitDimension.weight,
-                                    )
-                                  : null,
-                              emptyStateLabel: l10n.emptyStateMeasurements,
+                          if (goal.reason != null &&
+                              goal.reason!.trim().isNotEmpty) ...[
+                            const SizedBox(height: DesignConstants.spacingS),
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  LucideIcons.quote,
+                                  size: 14,
+                                  color: theme.colorScheme.primary,
+                                ),
+                                const SizedBox(
+                                  width: DesignConstants.spacingS,
+                                ),
+                                Expanded(
+                                  child: Text(
+                                    goal.reason!.trim(),
+                                    style:
+                                        theme.textTheme.bodySmall?.copyWith(
+                                      fontStyle: FontStyle.italic,
+                                      color: theme.colorScheme.onSurface
+                                          .withValues(alpha: 0.75),
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
-                          ),
+                          ],
                         ],
                       ),
                     ),
                   ),
-                  const SizedBox(height: DesignConstants.spacingL),
-                ],
+                ),
+                const SizedBox(height: DesignConstants.spacingS),
 
-                // Motivation note if present
-                if (goal.reason != null && goal.reason!.trim().isNotEmpty) ...[
-                  SummaryCard(
-                    child: Padding(
-                      padding: DesignConstants.cardPadding,
+                // Drei-Säulen-Übersicht: Start, Aktuell, Ziel (ValueSummaryCards)
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: DesignConstants.screenPaddingHorizontal,
+                  ),
+                  child: Row(
+                    children: [
+                      // Start / Baseline
+                      Expanded(
+                        child: ValueSummaryCard(
+                          label: l10n.goalBaselineHeader,
+                          value: isWaiting
+                              ? '--'
+                              : formatWeight(progress?.baselineValue),
+                          subtitle: progress?.baselineDate != null
+                              ? dateFormat.format(progress!.baselineDate!)
+                              : l10n.goalWaitingForBaselineLabel,
+                        ),
+                      ),
+                      const SizedBox(width: DesignConstants.spacingS),
+
+                      // Aktuell
+                      Expanded(
+                        child: ValueSummaryCard(
+                          label: l10n.goalCurrentHeader,
+                          value: formatWeight(progress?.currentValue),
+                          subtitle: progress?.deltaSinceStart != null
+                              ? '${progress!.deltaSinceStart! >= 0 ? "+" : ""}${unitService.convertDisplayValue(progress.deltaSinceStart!, UnitDimension.weight).toStringAsFixed(1)} ${unitService.unitString(UnitDimension.weight)}'
+                              : null,
+                          valueColor: theme.colorScheme.primary,
+                        ),
+                      ),
+                      const SizedBox(width: DesignConstants.spacingS),
+
+                      // Ziel
+                      Expanded(
+                        child: ValueSummaryCard(
+                          label: l10n.goalTargetHeader,
+                          value: goal.targetValue != null
+                              ? formatWeight(goal.targetValue)
+                              : (goal.isMaintenanceOrRecomp
+                                  ? l10n.goalMaintainCorridor
+                                  : l10n.goalDirectionalOnly),
+                          subtitle: goal.targetDate != null
+                              ? dateFormat.format(goal.targetDate!)
+                              : l10n.goalNoTargetDateShort,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: DesignConstants.spacingS),
+
+                // Waiting for baseline callout if needed
+                if (isWaiting) ...[
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: DesignConstants.screenPaddingHorizontal,
+                    ),
+                    child: Container(
+                      padding: const EdgeInsets.all(DesignConstants.spacingM),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.primary.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(
+                          DesignConstants.borderRadiusM,
+                        ),
+                      ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Row(
                             children: [
                               Icon(
-                                LucideIcons.quote,
-                                size: 18,
+                                LucideIcons.scale,
                                 color: theme.colorScheme.primary,
+                                size: 20,
                               ),
-                              const SizedBox(width: DesignConstants.spacingS),
-                              Text(
-                                l10n.goalPersonalMotivationTitle,
-                                style: theme.textTheme.titleSmall?.copyWith(
-                                  fontWeight: FontWeight.bold,
+                              const SizedBox(width: DesignConstants.spacingM),
+                              Expanded(
+                                child: Text(
+                                  l10n.goalWaitingForBaselineCalloutTitle,
+                                  style: theme.textTheme.titleSmall?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ),
                             ],
                           ),
                           const SizedBox(height: DesignConstants.spacingS),
                           Text(
-                            goal.reason!,
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              fontStyle: FontStyle.italic,
+                            l10n.goalWaitingForBaselineCalloutDescription,
+                            style: theme.textTheme.bodySmall?.copyWith(
                               color: theme.colorScheme.onSurface
-                                  .withValues(alpha: 0.85),
+                                  .withValues(alpha: 0.8),
                             ),
+                          ),
+                          const SizedBox(height: DesignConstants.spacingM),
+                          AppButton.primary(
+                            label: l10n.recordFirstMeasurementButton,
+                            onPressed: () async {
+                              await Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => const AddMeasurementScreen(),
+                                ),
+                              );
+                              _loadData();
+                            },
                           ),
                         ],
                       ),
@@ -666,31 +488,160 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
                   const SizedBox(height: DesignConstants.spacingL),
                 ],
 
+                // GlassProgressBar & Weekly Rate
+                if (progress != null && !isWaiting) ...[
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: DesignConstants.screenPaddingHorizontal,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        GlassProgressBar(
+                          label: l10n.goalProgressSectionTitle,
+                          unit: unitService.unitString(UnitDimension.weight),
+                          value: ((progress.progressPercentage ?? 0.0) * 100)
+                              .clamp(0.0, 100.0),
+                          target: 100.0,
+                          color: Colors.green,
+                          borderRadius: DesignConstants.borderRadiusL,
+                          customSubtitle: progress.remainingDistance != null &&
+                                  goal.hasNumericTarget
+                              ? l10n.goalRemainingDistanceLabel(
+                                  '${unitService.convertDisplayValue(progress.remainingDistance!, UnitDimension.weight).toStringAsFixed(1)} ${unitService.unitString(UnitDimension.weight)}',
+                                )
+                              : (goal.isMaintenanceOrRecomp
+                                  ? (progress.isInToleranceBand == true
+                                      ? l10n.goalMaintenanceStable
+                                      : l10n.goalMaintenanceDrifting)
+                                  : '${((progress.progressPercentage ?? 0.0) * 100).toStringAsFixed(0)}%'),
+                        ),
+                        if (progress.trendRateKgPerWeek != null ||
+                            progress.progressPercentage != null) ...[
+                          const SizedBox(height: DesignConstants.spacingXS),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 4),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                if (progress.progressPercentage != null)
+                                  Text(
+                                    '${(progress.progressPercentage! * 100).toStringAsFixed(0)}%',
+                                    style: theme.textTheme.labelSmall?.copyWith(
+                                      color: theme.colorScheme.onSurface
+                                          .withValues(alpha: 0.6),
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  )
+                                else
+                                  const SizedBox.shrink(),
+                                if (progress.trendRateKgPerWeek != null)
+                                  Text(
+                                    '${progress.trendRateKgPerWeek! >= 0 ? "+" : ""}${unitService.convertDisplayValue(progress.trendRateKgPerWeek!, UnitDimension.weight).toStringAsFixed(2)} ${unitService.unitString(UnitDimension.weight)}/${l10n.weekShort}',
+                                    style: theme.textTheme.labelSmall?.copyWith(
+                                      color: theme.colorScheme.onSurface
+                                          .withValues(alpha: 0.6),
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: DesignConstants.spacingL),
+                ],
+
+                // Visual Chart View (Full-Width, edge-to-edge)
+                if (chartPoints.isNotEmpty) ...[
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: DesignConstants.screenPaddingHorizontal,
+                    ),
+                    child: AppSectionHeader(
+                      title: l10n.goalWeightHistoryChartTitle,
+                      padding: EdgeInsets.zero,
+                    ),
+                  ),
+                  const SizedBox(height: DesignConstants.spacingS),
+                  Builder(
+                    builder: (context) {
+                      final startWeight = progress?.baselineValue ??
+                          (chartPoints.isNotEmpty
+                              ? chartPoints.first.value
+                              : 75.0);
+                      final targetDate = goal.targetDate ??
+                          goal.startDate.add(const Duration(days: 84));
+                      final domainEnd = targetDate.isAfter(DateTime.now())
+                          ? targetDate
+                          : DateTime.now().add(const Duration(days: 7));
+                      final targetWeight = goal.targetValue ?? startWeight;
+
+                      return SizedBox(
+                        height: 250,
+                        child: MeasurementChartWidget.fromData(
+                          dataPoints: chartPoints,
+                          axisMode: MeasurementChartAxisMode.day,
+                          domainDateRange: DateTimeRange(
+                            start: goal.startDate,
+                            end: domainEnd,
+                          ),
+                          trajectoryStart: ChartDataPoint(
+                            date: goal.startDate,
+                            value: startWeight,
+                          ),
+                          trajectoryEnd: ChartDataPoint(
+                            date: targetDate,
+                            value: targetWeight,
+                          ),
+                          unit: unitService.unitString(UnitDimension.weight),
+                          emptyStateLabel: l10n.emptyStateMeasurements,
+                          edgeToEdge: true,
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: DesignConstants.spacingL),
+                ],
+
                 // Action Buttons
                 if (isActive) ...[
-                  Row(
-                    children: [
-                      Expanded(
-                        child: AppButton.secondary(
-                          label: l10n.adjustGoalTitle,
-                          onPressed: () => _openAdjustmentSheet(goal, progress),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: DesignConstants.screenPaddingHorizontal,
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: AppButton.secondary(
+                            label: l10n.adjustGoalTitle,
+                            onPressed: () =>
+                                _openAdjustmentSheet(goal, progress),
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: DesignConstants.spacingM),
-                      Expanded(
-                        child: AppButton.secondary(
-                          label: l10n.retireGoalButton,
-                          onPressed: () => _retireGoal(goal),
+                        const SizedBox(width: DesignConstants.spacingM),
+                        Expanded(
+                          child: AppButton.secondary(
+                            label: l10n.retireGoalButton,
+                            onPressed: () => _retireGoal(goal),
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ] else if (isRetired) ...[
-                  SizedBox(
-                    width: double.infinity,
-                    child: AppButton.primary(
-                      label: l10n.resumeGoalButton,
-                      onPressed: () => _resumeGoal(goal),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: DesignConstants.screenPaddingHorizontal,
+                    ),
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: AppButton.primary(
+                        label: l10n.resumeGoalButton,
+                        onPressed: () => _resumeGoal(goal),
+                      ),
                     ),
                   ),
                 ],

@@ -7056,7 +7056,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get goalTargetHeader => '目標';
 
   @override
-  String get goalProgressSectionTitle => '進捗と軌跡';
+  String get goalProgressSectionTitle => '進捗';
 
   @override
   String goalRemainingDistanceLabel(String distance) {

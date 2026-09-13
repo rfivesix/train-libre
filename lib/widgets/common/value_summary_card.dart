@@ -40,7 +40,9 @@ class ValueSummaryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return SummaryCard(
+    return SizedBox(
+      width: double.infinity,
+      child: SummaryCard(
       margin: EdgeInsets.zero,
       onTap: onTap,
       disableShadow: disableShadow,
@@ -89,6 +91,7 @@ class ValueSummaryCard extends StatelessWidget {
           ],
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 }

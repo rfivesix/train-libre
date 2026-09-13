@@ -3336,7 +3336,7 @@
   "goalBaselineHeader": "Start (Baseline)",
   "goalCurrentHeader": "Current",
   "goalTargetHeader": "Target",
-  "goalProgressSectionTitle": "Progress & Trajectory",
+  "goalProgressSectionTitle": "Progress",
   "goalRemainingDistanceLabel": "{distance} remaining",
   "@goalRemainingDistanceLabel": {
     "placeholders": {

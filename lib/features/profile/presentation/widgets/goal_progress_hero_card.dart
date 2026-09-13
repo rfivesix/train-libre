@@ -10,6 +10,7 @@ import '../../../../services/unit_service.dart';
 import '../../../../util/design_constants.dart';
 import '../../../../widgets/common/app_button.dart';
 import '../../../../widgets/common/summary_card.dart';
+import '../../../../widgets/common/value_summary_card.dart';
 import '../../domain/models/goal_model.dart';
 import '../../domain/models/goal_progress.dart';
 import '../create_goal_flow.dart';
@@ -40,21 +41,6 @@ class GoalProgressHeroCard extends StatelessWidget {
         return l10n.goalPresetRecomposition;
       case GoalPreset.custom:
         return l10n.goalPresetCustom;
-    }
-  }
-
-  IconData _presetIcon(GoalPreset preset) {
-    switch (preset) {
-      case GoalPreset.loseWeight:
-        return LucideIcons.trending_down;
-      case GoalPreset.gainWeight:
-        return LucideIcons.trending_up;
-      case GoalPreset.maintainWeight:
-        return LucideIcons.scale;
-      case GoalPreset.recomposition:
-        return LucideIcons.refresh_cw;
-      case GoalPreset.custom:
-        return LucideIcons.target;
     }
   }
 
@@ -168,220 +154,77 @@ class GoalProgressHeroCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header: Icon + Title + Driver Pill
+              // Header: Title and Chevron
               Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.primary.withValues(alpha: 0.12),
-                      borderRadius:
-                          BorderRadius.circular(DesignConstants.borderRadiusS),
-                    ),
-                    child: Icon(
-                      _presetIcon(currentGoal.preset),
-                      color: theme.colorScheme.primary,
-                      size: 20,
-                    ),
-                  ),
-                  const SizedBox(width: DesignConstants.spacingM),
                   Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          currentGoal.title.isNotEmpty
-                              ? currentGoal.title
-                              : _presetLabel(context, currentGoal.preset),
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        Text(
-                          _presetLabel(context, currentGoal.preset),
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurface
-                                .withValues(alpha: 0.6),
-                          ),
-                        ),
-                      ],
+                    child: Text(
+                      currentGoal.title.isNotEmpty
+                          ? currentGoal.title
+                          : _presetLabel(context, currentGoal.preset),
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  if (currentGoal.isNutritionDriver)
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.primary.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(
-                          DesignConstants.borderRadiusS,
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            LucideIcons.sparkles,
-                            size: 12,
-                            color: theme.colorScheme.primary,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            l10n.goalDrivesNutritionBadge,
-                            style: theme.textTheme.labelSmall?.copyWith(
-                              color: theme.colorScheme.primary,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  const SizedBox(width: 4),
-                  const Icon(LucideIcons.chevron_right, size: 18),
+                  Icon(
+                    LucideIcons.chevron_right,
+                    size: 20,
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                  ),
                 ],
               ),
-              const SizedBox(height: DesignConstants.spacingL),
+              const SizedBox(height: DesignConstants.spacingM),
 
-              // Dreiklang: Start / Aktuell / Ziel
-              Container(
-                padding: const EdgeInsets.all(DesignConstants.spacingM),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.surfaceContainerHighest
-                      .withValues(alpha: 0.5),
-                  borderRadius:
-                      BorderRadius.circular(DesignConstants.borderRadiusS),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    // Start
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            l10n.goalStartLabel,
-                            style: theme.textTheme.labelSmall?.copyWith(
-                              color: theme.colorScheme.onSurface
-                                  .withValues(alpha: 0.6),
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            isWaiting
-                                ? l10n.goalWaitingForMeasurementShort
-                                : formatWeight(currentProgress?.baselineValue),
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              fontWeight: FontWeight.w600,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          if (currentProgress?.baselineDate != null)
-                            Text(
-                              dateFormat.format(currentProgress!.baselineDate!),
-                              style: theme.textTheme.labelSmall?.copyWith(
-                                color: theme.colorScheme.onSurface
-                                    .withValues(alpha: 0.5),
-                                fontSize: 10,
-                              ),
-                            ),
-                        ],
-                      ),
+              // Prominent Current Value Card
+              ValueSummaryCard(
+                label: l10n.goalCurrentHeader,
+                value: formatWeight(currentProgress?.currentValue),
+                subtitle: currentProgress?.deltaSinceStart != null
+                    ? '${currentProgress!.deltaSinceStart! >= 0 ? '+' : ''}${unitService.convertDisplayValue(currentProgress.deltaSinceStart!, UnitDimension.weight).toStringAsFixed(1)} ${unitService.unitString(UnitDimension.weight)}'
+                    : null,
+                valueColor: theme.colorScheme.primary,
+                useSecondarySurface: true,
+                disableShadow: true,
+              ),
+              const SizedBox(height: DesignConstants.spacingS),
+
+              // Baseline & Target 2-Column Grid
+              Row(
+                children: [
+                  Expanded(
+                    child: ValueSummaryCard(
+                      label: l10n.goalStartLabel,
+                      value: isWaiting
+                          ? l10n.goalWaitingForMeasurementShort
+                          : formatWeight(currentProgress?.baselineValue),
+                      subtitle: currentProgress?.baselineDate != null
+                          ? dateFormat.format(currentProgress!.baselineDate!)
+                          : null,
+                      useSecondarySurface: true,
+                      disableShadow: true,
                     ),
-                    Container(
-                      height: 32,
-                      width: 1,
-                      color: theme.dividerColor.withValues(alpha: 0.3),
+                  ),
+                  const SizedBox(width: DesignConstants.spacingS),
+                  Expanded(
+                    child: ValueSummaryCard(
+                      label: l10n.goalTargetLabel,
+                      value: currentGoal.hasNumericTarget
+                          ? formatWeight(currentGoal.targetValue)
+                          : (currentGoal.isMaintenanceOrRecomp
+                              ? l10n.goalMaintainCorridor
+                              : l10n.goalDirectionalOnly),
+                      subtitle: currentGoal.targetDate != null
+                          ? dateFormat.format(currentGoal.targetDate!)
+                          : null,
+                      useSecondarySurface: true,
+                      disableShadow: true,
                     ),
-                    // Aktuell
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 8),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              l10n.goalCurrentHeader,
-                              style: theme.textTheme.labelSmall?.copyWith(
-                                color: theme.colorScheme.onSurface
-                                    .withValues(alpha: 0.6),
-                              ),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              formatWeight(currentProgress?.currentValue),
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: theme.colorScheme.primary,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            if (currentProgress?.deltaSinceStart != null)
-                              Text(
-                                '${currentProgress!.deltaSinceStart! >= 0 ? '+' : ''}${unitService.convertDisplayValue(currentProgress.deltaSinceStart!, UnitDimension.weight).toStringAsFixed(1)} ${unitService.unitString(UnitDimension.weight)}',
-                                style: theme.textTheme.labelSmall?.copyWith(
-                                  color: theme.colorScheme.onSurface
-                                      .withValues(alpha: 0.7),
-                                  fontSize: 10,
-                                ),
-                              ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    Container(
-                      height: 32,
-                      width: 1,
-                      color: theme.dividerColor.withValues(alpha: 0.3),
-                    ),
-                    // Ziel
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.only(left: 8),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              l10n.goalTargetLabel,
-                              style: theme.textTheme.labelSmall?.copyWith(
-                                color: theme.colorScheme.onSurface
-                                    .withValues(alpha: 0.6),
-                              ),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              currentGoal.hasNumericTarget
-                                  ? formatWeight(currentGoal.targetValue)
-                                  : (currentGoal.isMaintenanceOrRecomp
-                                      ? l10n.goalMaintainCorridor
-                                      : l10n.goalDirectionalOnly),
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                fontWeight: FontWeight.w600,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            if (currentGoal.targetDate != null)
-                              Text(
-                                dateFormat.format(currentGoal.targetDate!),
-                                style: theme.textTheme.labelSmall?.copyWith(
-                                  color: theme.colorScheme.onSurface
-                                      .withValues(alpha: 0.5),
-                                  fontSize: 10,
-                                ),
-                              ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
 
               // Progress Bar / Waiting indicator / Remaining Pill
