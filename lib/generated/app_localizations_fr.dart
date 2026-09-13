@@ -3203,6 +3203,56 @@ class AppLocalizationsFr extends AppLocalizations {
   String get recoveryStateUnknown => 'Inconnu';
 
   @override
+  String recoveryReadyInHours(int hours) {
+    return 'Prêt dans env. $hours h';
+  }
+
+  @override
+  String recoveryFreshInHours(int hours) {
+    return 'Totalement rétabli dans env. $hours h';
+  }
+
+  @override
+  String get recoveryStillRecovering => 'Encore en récupération';
+
+  @override
+  String get recoveryReadyForNormalTraining =>
+      'Prêt pour un entraînement normal';
+
+  @override
+  String get recoveryFreshForFullTraining =>
+      'En forme · prêt pour une charge complète';
+
+  @override
+  String get recoveryDetailLastSession => 'Dernière séance';
+
+  @override
+  String get recoveryDetailForecast => 'Prévision';
+
+  @override
+  String get recoveryDetailRirData => 'Données RIR';
+
+  @override
+  String recoveryCompactHours(int hours) {
+    return '≈ $hours h';
+  }
+
+  @override
+  String recoverySessionLoadAndAge(String load, int hours) {
+    return '$load unités de charge · il y a $hours h';
+  }
+
+  @override
+  String recoveryLastSessionDetails(String load, int hours) {
+    return 'Dernière séance : $load unités de charge · il y a $hours h';
+  }
+
+  @override
+  String recoveryRirCoverage(int covered, int total) {
+    return 'RIR saisi pour $covered séries sur $total';
+  }
+
+  @override
   String recoveryLastLoadedHours(int hours) {
     return 'Dernier chargement significatif : il y a $hours h';
   }

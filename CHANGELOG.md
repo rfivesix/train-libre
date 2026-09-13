@@ -7,11 +7,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [1.4.1] — 2026-09-14
 
 ### Changed
+- **Recovery Tracker Decision-Focused Muscle Rows (`RecoveryTrackerScreen`):** Each muscle now keeps only its changing values visible: name, numeric readiness, a three-zone readiness scale with a score marker, and compact remaining hours unless it is already fresh. The enclosing section supplies the shared state instead of repeating it on every row. Tapping a row opens a structured text-only evidence panel with latest-session dose and age, remaining forecast(s), and RIR-set coverage; redundant state pills, qualitative fatigue labels, decorative detail icons, and unclear role-ratio details no longer compete with the decision.
 - **Recovery tracker:** Replaced the fixed 14-day aggregate with a per-set, time-decaying residual-load engine. It uses each session's end time, bounded RIR and repetition modifiers, failure-set semantics, direct/indirect muscle roles, supplied catalog contributions where available, and distinct baseline recovery rates per muscle group. The latest session is now reported separately from remaining multi-session load, so old hard sessions no longer masquerade as today's load.
-- **Recovery tracker documentation:** Finalized the v2 model reference with a quick-output guide, worked calculations, exact calibration boundaries, evidence sources, and verification coverage. The legacy v1 document remains retained but is no longer the linked in-app or documentation-hub reference.
+- **Recovery tracker documentation:** Finalized the current model reference with a quick-output guide, worked calculations, exact calibration boundaries, evidence sources, and verification coverage. The superseded v1 document was removed; Git history retains it when historical comparison is needed.
+- **Recovery Tracker Documentation Website:** The public, stable recovery URL now compiles from the current model reference. Its sidebar, documentation overview, canonical metadata, and legacy `/recovery/` redirect continue to resolve to the same public route, so existing links remain valid while the content matches the app.
 - **AI meal presentation:** Newly captured AI meals and saved meal entries now open with compact ingredient cards and a prominent edit action. Each card keeps only its name, calories and quantity; macro rows, matching, validation diagnostics and correction controls appear only while editing, while blocking validation failures remain visible before saving.
 - **AI meal recognition:** AI capture now separates a visible prepared portion from the raw-equivalent grams used to calculate database nutrition, broadens local catalog retrieval with several model-provided search variants, and triggers a barcode-locked semantic repair cycle when plausible candidates have materially different calorie densities.
 - **AI meal logging:** The meal-type picker remains available in the compact post-scan review, so a recognized meal can be assigned to breakfast, lunch, dinner, or a snack without entering ingredient edit mode.
+
+### Fixed
+- **Recovery Readiness Scale Rendering (`RecoveryTrackerScreen`):** The three-state 0–100 scale could collapse to an invisible background while its score marker still rendered. It now uses an explicitly sized, bordered gradient track, so the recovering, ready, and fresh zones remain visible in every card.
 
 ## [1.4.0] - 2026-09-11
 

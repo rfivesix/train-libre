@@ -161,7 +161,7 @@ This project features a comprehensive, modular documentation suite split by targ
 *   [Depth Scale Hint (LiDAR)](documentation/features/depth_scale_hint.md): Measured scale facts and the optional depth image, the quality gate that discards untrustworthy measurements, and the explicit non-goals.
 *   [**Native Health Sync & Export**](documentation/features/health_sync_export.md): Bidirectional vital synchronization (Steps, Sleep), outbound manual log export pipelines, SQLite-backed idempotency tracking, and fault-tolerance patterns.
 *   [Sleep Health Score Engine](documentation/features/sleep_scoring_engine.md): The five scoring domains, their curve shapes, and the soft-cap penalty logic.
-*   [Muscle Recovery & Fatigue Model](documentation/features/muscle_recovery_model.md): Volume-based recovery windows and intensity-driven fatigue extension per muscle.
+*   [Muscle Recovery & Readiness Model](documentation/features/muscle_recovery_model.md): Per-set RIR-aware residual load, role-weighted exposure, muscle-specific decay, and readiness.
 *   [Estimated 1-Rep Max Heuristic](documentation/features/intelligent_workouts.md): The Epley-based submaximal strength model behind PRs and progression.
 *   [Live Activity & Workout Session](documentation/features/live_activity_workout.md): The iOS Live Activity and Dynamic Island surface for a running workout.
 *   [Telemetry & Privacy Architecture](TELEMETRY.md): The complete opt-in telemetry event catalog and the anti-profiling safeguards around it.

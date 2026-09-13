@@ -3152,6 +3152,54 @@ class AppLocalizationsEn extends AppLocalizations {
   String get recoveryStateUnknown => 'Unknown';
 
   @override
+  String recoveryReadyInHours(int hours) {
+    return 'Expected to be ready in about $hours h';
+  }
+
+  @override
+  String recoveryFreshInHours(int hours) {
+    return 'Expected to be fresh in about $hours h';
+  }
+
+  @override
+  String get recoveryStillRecovering => 'Still recovering';
+
+  @override
+  String get recoveryReadyForNormalTraining => 'Ready for normal training';
+
+  @override
+  String get recoveryFreshForFullTraining => 'Fresh · ready for full training';
+
+  @override
+  String get recoveryDetailLastSession => 'Last session';
+
+  @override
+  String get recoveryDetailForecast => 'Forecast';
+
+  @override
+  String get recoveryDetailRirData => 'RIR data';
+
+  @override
+  String recoveryCompactHours(int hours) {
+    return '≈ $hours h';
+  }
+
+  @override
+  String recoverySessionLoadAndAge(String load, int hours) {
+    return '$load load units · $hours h ago';
+  }
+
+  @override
+  String recoveryLastSessionDetails(String load, int hours) {
+    return 'Last session: $load load units · $hours h ago';
+  }
+
+  @override
+  String recoveryRirCoverage(int covered, int total) {
+    return 'RIR recorded for $covered of $total sets';
+  }
+
+  @override
   String recoveryLastLoadedHours(int hours) {
     return 'Last significantly loaded: $hours h ago';
   }

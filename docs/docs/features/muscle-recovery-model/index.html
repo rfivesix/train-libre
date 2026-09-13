@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Piecewise recovery kinetics, equivalent set weighting, and failure-induced fatigue.">
-  <title>Fitness-Oriented Muscle Recovery &amp; Fatigue Heuristic | Train Libre Documentation</title>
+  <meta name="description" content="Per-set, RIR-aware residual load with muscle-specific time decay and readiness.">
+  <title>Muscle Recovery &amp; Readiness Model | Train Libre Documentation</title>
   <link rel="canonical" href="https://trainlibre.com/docs/features/muscle-recovery-model/">
 
   <link rel="icon" type="image/png" sizes="32x32" href="../../../favicon.png?v=2">
@@ -12,8 +12,8 @@
 
   <!-- Open Graph -->
   <meta property="og:site_name" content="Train Libre Documentation">
-  <meta property="og:title" content="Fitness-Oriented Muscle Recovery &amp; Fatigue Heuristic | Train Libre">
-  <meta property="og:description" content="Piecewise recovery kinetics, equivalent set weighting, and failure-induced fatigue.">
+  <meta property="og:title" content="Muscle Recovery &amp; Readiness Model | Train Libre">
+  <meta property="og:description" content="Per-set, RIR-aware residual load with muscle-specific time decay and readiness.">
   <meta property="og:url" content="https://trainlibre.com/docs/features/muscle-recovery-model/">
   <meta property="og:type" content="article">
   <meta property="og:image" content="https://trainlibre.com/assets/og-image.png">
@@ -160,67 +160,123 @@
         </div>
 
         <article class="docs-article">
-          <h1 class="doc-title">Fitness-Oriented Muscle Recovery & Fatigue Heuristic</h1>
-<div class="callout callout-warning"><div class="callout-title"><span class="callout-badge">Disclaimer</span></div><div class="callout-body"><strong>Non-Medical Disclaimer</strong>: This feature is a fitness-oriented, non-clinical heuristic designed for healthy individuals tracking performance and workout recovery. It does not apply to clinical conditions, injury diagnosis, or medical rehabilitation. All recovery timelines, baseline windows (e.g. 24–120 hours), set extensions, and readiness categories are sports-science-inspired abstractions and engineering design choices rather than prescriptive clinical thresholds or direct experimental derivations.</div></div>
-<p>The <strong>Muscle Recovery Model</strong> in Train Libre is a fitness-oriented, non-clinical piecewise linear decay heuristic designed to estimate readiness scores <em>R</em>(<em>t</em>) for individual muscle groups. It accounts for non-linear recovery curves, set-weighting based on primary vs. secondary involvement, and sports-science-inspired baseline extensions.</p>
-<hr class="divider">
-<h2 id="1-readiness-score-equation-rt" class="doc-h2">1. Readiness Score Equation <em>R</em>(<em>t</em>)<a href="#1-readiness-score-equation-rt" class="header-anchor" aria-label="Link to section">#</a></h2>
-<p>The readiness of a muscle group at time <em>t</em> (hours since last load) is calculated using a 3-phase piecewise interpolation mapping, ensuring a non-linear recovery curve that accounts for acute fatigue, adaptation, and supercompensation.</p>
-<h3 id="phase-1-acute-recovery-t-leq-trec" class="doc-h3">Phase 1: Acute Recovery (\(t \leq T_{rec}\))<a href="#phase-1-acute-recovery-t-leq-trec" class="header-anchor" aria-label="Link to section">#</a></h3>
-<p>During the initial recovery window, readiness scales from 10% to 60%:</p>
-<div class="math-block">$$R(t) = 10.0 + (60.0 - 10.0) \cdot \frac{t}{T_{rec}}$$</div>
-<h3 id="phase-2-adaptation-window-trec-t-leq-tready" class="doc-h3">Phase 2: Adaptation Window (\(T_{rec} < t \leq T_{ready}\))<a href="#phase-2-adaptation-window-trec-t-leq-tready" class="header-anchor" aria-label="Link to section">#</a></h3>
-<p>As the muscle enters the adaptation phase, readiness scales from 60% to 85%:</p>
-<div class="math-block">$$R(t) = 60.0 + (85.0 - 60.0) \cdot \frac{t - T_{rec}}{T_{ready} - T_{rec}}$$</div>
-<h3 id="phase-3-supercompensation-t-tready" class="doc-h3">Phase 3: Supercompensation (\(t > T_{ready}\))<a href="#phase-3-supercompensation-t-tready" class="header-anchor" aria-label="Link to section">#</a></h3>
-<p>Beyond the primary recovery window, the muscle enters supercompensation, scaling from 85% toward 100% over a 48-hour rolling window:</p>
-<div class="math-block">$$R(t) = \text{clamp}\left( 85.0 + (100.0 - 85.0) \cdot \frac{t - T_{ready}}{48.0}, \; 85.0, \; 100.0 \right)$$</div>
-<h3 id="dynamic-recovery-windows" class="doc-h3">Dynamic Recovery Windows<a href="#dynamic-recovery-windows" class="header-anchor" aria-label="Link to section">#</a></h3>
-<p>The time thresholds (\(T_{rec}\) and \(T_{ready}\)) are sports-science-inspired heuristic approximations representing dynamic recovery kinetics. These values and extensions are engineering design choices calibrated against typical literature ranges rather than prescriptive clinical thresholds or direct experimental derivations:</p>
+          <h1 class="doc-title">Muscle Recovery & Readiness Model</h1>
+<div class="callout callout-warning"><div class="callout-title"><span class="callout-badge">Disclaimer</span></div><div class="callout-body"><strong>Non-medical disclaimer:</strong> This remains a fitness-oriented, log-based readiness heuristic for healthy people. It is not a measure of biological recovery, an injury-risk prediction, or medical advice. Its purpose is to make recorded training exposure understandable and comparable over time.</div></div>
+<h2 id="quick-overview" class="doc-h2">Quick Overview<a href="#quick-overview" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>The tracker converts completed training sets into a muscle-specific, time-decaying <strong>residual load</strong>. That residual load becomes one readiness score and one matching state:</p>
+<div class="table-responsive"><table class="doc-table"><thead><tr><th>Output</th><th>Meaning</th></tr></thead><tbody><tr><td>Last session load</td><td>Only the latest workout's calculated dose for this muscle.</td></tr><tr><td>Residual load</td><td>Latest load plus the diminished remaining effect of recent earlier sessions.</td></tr><tr><td>Readiness</td><td>A 0–100 log-based estimate derived from residual load.</td></tr><tr><td>Recovering</td><td>Readiness below 60.</td></tr><tr><td>Ready</td><td>Readiness from 60 up to, but not including, 85.</td></tr><tr><td>Fresh</td><td>Readiness of 85 or more.</td></tr><tr><td>Data confidence</td><td>Based on how much of the latest session has a plausible logged RIR.</td></tr></tbody></table></div>
+<p>Different muscles keep different baseline decay rates: the current profile lets biceps and triceps decay faster than quads, hamstrings, glutes, and lower back. Training dose and recency still matter more than the muscle label alone.</p>
+<h3 id="tracker-presentation" class="doc-h3">Tracker presentation<a href="#tracker-presentation" class="header-anchor" aria-label="Link to section">#</a></h3>
+<p>The state is communicated once by its enclosing section. Each muscle row then contains only its changing values: muscle name, numeric readiness, a shared three-zone readiness scale (recovering / ready / fresh) with a score marker, and — unless already fresh — compact remaining hours. Tapping a row exposes supporting values in structured detail rows: latest-session load and age, remaining forecast(s), and RIR coverage. Role ratios, qualitative load-pressure labels, duplicated state badges, and repeated prose are intentionally not presented as primary guidance.</p>
+<h3 id="worked-examples" class="doc-h3">Worked Examples<a href="#worked-examples" class="header-anchor" aria-label="Link to section">#</a></h3>
+<p>These examples use the current engineering calibration: 10 repetitions, primary role, RIR 2 equals <code>1.0 × 0.8 × 1.0 = 0.8</code> load units per set. They show the exact behaviour of the model rather than claiming that the displayed hours are biological measurements.</p>
+<div class="table-responsive"><table class="doc-table"><thead><tr><th>Scenario</th><th style="text-align:right">Last session load</th><th>At session end</th><th>After 24 h</th><th>After 48 h</th><th>Fresh from</th></tr></thead><tbody><tr><td>Chest: 3 direct sets × 10 reps at RIR 2</td><td style="text-align:right">2.40</td><td>Residual 2.40, <strong>51</strong>, Recovering</td><td>1.72, <strong>59</strong>, Recovering</td><td>1.23, <strong>67</strong>, Ready</td><td>about 122 h</td></tr><tr><td>Triceps: 3 secondary sets × 10 reps at RIR 2</td><td style="text-align:right">0.72</td><td>Residual 0.72, <strong>78</strong>, Ready</td><td>0.48, <strong>84</strong>, Ready</td><td>0.32, <strong>89</strong>, Fresh</td><td>about 30 h</td></tr><tr><td>Chest: today's 1 set × 10 reps at RIR 3, plus a Failure set 13 days ago</td><td style="text-align:right">0.70</td><td>Residual 0.71, <strong>78</strong>, Ready</td><td>0.51, <strong>83</strong>, Ready</td><td>0.37, <strong>87</strong>, Fresh</td><td>about 45 h</td></tr></tbody></table></div>
+<p>The third row illustrates the central correction over v1: the old Failure set still has a tiny residual effect, but it does not turn today's single RIR-3 set into a falsely large "last load" or an all-session high-fatigue flag.</p>
+<h2 id="1-what-changed-from-v1" class="doc-h2">1. What Changed from v1<a href="#1-what-changed-from-v1" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>v1 had useful inputs — completed sets, repetitions, RIR, set type, exercise modality, primary/secondary muscle assignments, movement patterns, and workout timestamps — but combined them in a way that could misrepresent the latest load:</p>
 <ul class="doc-list">
-<li><strong>Muscle Baselines</strong>: Standard groups (e.g., Chest) default to \(T_{rec}=48h\) and \(T_{ready}=72h\), while smaller groups (e.g., Biceps) use shorter windows (36h/60h), and large posterior chain groups (e.g., Quads/Lower Back) use extended windows (up to 72h/120h). These are designed to align with typical training frequencies.</li>
-<li><strong>Volume Extensions</strong>: Training volume beyond baseline thresholds expands the recovery windows (representing the increased fatigue accumulation observed with higher training volumes):</li>
-<li>3–5 sets: +6 hours</li>
-<li>5–8 sets: +12 hours</li>
-<li>8–11 sets: +24 hours</li>
-<li>11+ sets: +36 hours</li>
-<li><strong>Intensity Extensions</strong>: High-intensity efforts (Session \(avgRIR \leq 0.5\) or \(avgRPE \geq 8.5\)) add a flat +24 hour penalty to both \(T_{rec}\) and \(T_{ready}\), serving as a heuristic representation of failure-induced neuromuscular fatigue.</li>
+<li>It uses the <strong>latest relevant session time</strong> as the clock, but uses the sum of equivalent sets from <strong>all sessions in the 14-day lookback</strong> to extend that latest session's recovery window.</li>
+<li>A previous failure session can set one <code>highSessionFatigue</code> flag for the whole lookback, even when the latest session was light.</li>
+<li>RIR is reduced to a binary trigger (<code>avgRIR &lt;= 0.5</code>), despite being logged per set. Repetitions and set type have almost no recovery-specific effect.</li>
+<li>A session with less than 1.0 equivalent set is discarded completely. This loses several small, recent secondary-muscle exposures instead of allowing them to accumulate modestly.</li>
+<li>The status boundary and the displayed readiness score disagree: the current <code>Fresh</code> state begins while the current score is still 85/100.</li>
 </ul>
-<hr class="divider">
-<h2 id="2-equivalent-set-weighting" class="doc-h2">2. Equivalent Set Weighting<a href="#2-equivalent-set-weighting" class="header-anchor" aria-label="Link to section">#</a></h2>
-<p>To accurately map compound movements to multiple muscle groups, Train Libre uses a weighted contribution ratio:</p>
+<p>The current model replaces the all-or-nothing, fixed-lookback aggregation with a transparent <strong>residual training-load estimate</strong>. Every valid training session creates a muscle-specific load impulse that gradually decays. Recent sessions matter most; older sessions naturally fade rather than abruptly disappearing or continuing to inflate the latest session.</p>
+<h2 id="2-evidence-and-design-boundaries" class="doc-h2"><a id="evidence" class="anchor-target"></a>2. Evidence and Design Boundaries<a href="#2-evidence-and-design-boundaries" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>The model follows the direction of the evidence, not a claim that a universal formula can determine a person's exact recovery time:</p>
 <ul class="doc-list">
-<li><strong>Primary Muscle</strong>: 1.0 equivalent set. (e.g., Chest in a Bench Press).</li>
-<li><strong>Secondary Muscle</strong>: 0.3 - 0.5 equivalent set. (e.g., Triceps in a Bench Press).</li>
+<li>Total volume, set duration, and proximity to failure are important acute determinants of voluntary-performance and perceived-fatigue impairment in resistance training. <a href="https://pubmed.ncbi.nlm.nih.gov/40644670/" target="_blank" rel="noopener noreferrer">Varela-Olalla et al., 2025 <span class="ext-icon">↗</span></a></li>
+<li>RIR is useful for prescribing effort, but its accuracy is person- and load-dependent; it is less dependable at lighter loads. It must therefore be a bounded signal, not an absolute truth or a sharp all-or-nothing rule. <a href="https://pubmed.ncbi.nlm.nih.gov/33337690/" target="_blank" rel="noopener noreferrer">Hughes et al., 2020 <span class="ext-icon">↗</span></a></li>
+<li>Recovery time varies by protocol, individual, and outcome. For example, a controlled comparison of squat, bench press, and deadlift sessions did not justify a simple "larger muscle/exercise = universally longer recovery" rule. <a href="https://pubmed.ncbi.nlm.nih.gov/30779596/" target="_blank" rel="noopener noreferrer">Zourdos et al., 2019 <span class="ext-icon">↗</span></a></li>
+<li>Resistance-training load has no single accepted monitoring formula. Session load, perceived exertion, recovery intervals, and performance each provide different information. <a href="https://pubmed.ncbi.nlm.nih.gov/26780346/" target="_blank" rel="noopener noreferrer">McGuigan, 2017 <span class="ext-icon">↗</span></a></li>
 </ul>
-<div class="math-block">$$V_{total} = \sum (\text{Sets} \cdot \text{Weighting} \cdot \text{IntensityFactor})$$</div>
-<hr class="divider">
-<h2 id="3-failure-induced-fatigue-extensions" class="doc-h2">3. Failure-Induced Fatigue Extensions<a href="#3-failure-induced-fatigue-extensions" class="header-anchor" aria-label="Link to section">#</a></h2>
-<p>The proximity to failure (Reps-In-Reserve, <em>RIR</em>) is a strong indicator of exercise-induced fatigue duration. Train Libre applies a discrete penalty to the recovery timeline:</p>
-<div class="table-responsive"><table class="doc-table"><thead><tr><th style="text-align:left">RIR Value</th><th style="text-align:left">Timeline Adjustment</th></tr></thead><tbody><tr><td style="text-align:left"><em>RIR</em> ≥ 3</td><td style="text-align:left">0 hours (Baseline)</td></tr><tr><td style="text-align:left"><em>RIR</em> = 2</td><td style="text-align:left">+6 hours</td></tr><tr><td style="text-align:left"><em>RIR</em> = 1</td><td style="text-align:left">+12 hours</td></tr><tr><td style="text-align:left"><em>RIR</em> = 0 (Failure)</td><td style="text-align:left">+24 hours</td></tr></tbody></table></div>
-<p>This ensures that "training to failure" is mathematically represented as a significant exercise stressor requiring extended rest, which is an ordinal design choice rather than a direct replication of any single experimental protocol.</p>
-<hr class="divider">
-<h2 id="4-heuristic-categories" class="doc-h2">4. Heuristic Categories<a href="#4-heuristic-categories" class="header-anchor" aria-label="Link to section">#</a></h2>
-<p>Readiness is categorized into three discrete states for user presentation. These are simple interpretative feedback labels for the continuous heuristic score and do not represent medical diagnoses, clinical assessments, or injury risk predictions:</p>
+<p>Accordingly, all numeric weights and time constants in the current model are <strong>engineering calibrations</strong>, must be documented as such, and require deterministic tests. They are deliberately not presented as medical thresholds or direct copies of one study.</p>
+<h2 id="3-inputs-and-eligibility" class="doc-h2">3. Inputs and Eligibility<a href="#3-inputs-and-eligibility" class="header-anchor" aria-label="Link to section">#</a></h2>
+<h3 id="31-existing-data-used-by-the-current-model" class="doc-h3">3.1 Existing data used by the current model<a href="#31-existing-data-used-by-the-current-model" class="header-anchor" aria-label="Link to section">#</a></h3>
+<div class="table-responsive"><table class="doc-table"><thead><tr><th>Input</th><th>Source</th><th>Current use</th></tr></thead><tbody><tr><td>Completion, reps, duration</td><td><code>set_logs</code></td><td>Identifies a performed set and provides bounded work context.</td></tr><tr><td>RIR</td><td><code>set_logs.rir</code></td><td>Per-set proximity-to-failure modifier when plausible.</td></tr><tr><td>Set type</td><td><code>set_logs.set_type</code></td><td>Excludes warm-ups; treats explicit failure deterministically.</td></tr><tr><td>Workout end time</td><td><code>workout_logs.end_time</code></td><td>Starts the post-session decay clock; falls back to start time for historical data.</td></tr><tr><td>Modality</td><td>exercise catalog</td><td>Includes strength and plyometric work; excludes cardio, mobility, stretching, and balance.</td></tr><tr><td>Primary/secondary roles</td><td><code>exercise_muscles</code></td><td>Splits a set's local exposure among assigned muscles.</td></tr><tr><td>Movement pattern</td><td>exercise catalog</td><td>Explains the exposure and supports a separate session-demand signal.</td></tr><tr><td>Muscle profile</td><td>domain configuration</td><td>Preserves different baseline recovery kinetics per muscle group.</td></tr></tbody></table></div>
+<p>The data model already has <code>exercise_muscles.contribution</code>. The current model uses it when populated; the current shipped catalog generally leaves it empty, so the explicit fallback role weights apply in ordinary use.</p>
+<h3 id="32-eligible-sets" class="doc-h3">3.2 Eligible sets<a href="#32-eligible-sets" class="header-anchor" aria-label="Link to section">#</a></h3>
+<ul class="doc-list">
+<li>A set must be completed and contain repetitions or a duration.</li>
+<li><code>strength</code> and <code>plyometric</code> modalities are eligible. Existing legacy fallbacks remain for older or user-created exercises without catalog metadata.</li>
+<li>Warm-up sets contribute no recovery dose.</li>
+<li>A <code>failure</code> set has RIR 0 by definition, regardless of an absent saved RIR.</li>
+<li>A dropset contributes the work that the user actually logged, but receives <strong>no invented dropset multiplier</strong>. The app does not store the individual reductions, repetitions, or effort of the sub-sets needed to justify one.</li>
+<li>Missing, implausible, or unusually high RIR values use a neutral fallback for the calculation and lower data-confidence; they must not be silently interpreted as maximal effort.</li>
+</ul>
+<h2 id="4-per-set-exposure" class="doc-h2">4. Per-Set Exposure<a href="#4-per-set-exposure" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>For each eligible set <code>s</code> and affected muscle <code>m</code>, calculate a bounded local exposure:</p>
+<p>\[ E_{s,m} = B_s \cdot W_{role}(s,m) \cdot W_{effort}(RIR_s) \cdot W_{reps}(s) \]</p>
+<p>Where:</p>
+<ul class="doc-list">
+<li><code>B_s</code> is one completed working-set unit.</li>
+<li><code>W_role</code> uses the catalog contribution when it exists. Until then, it uses an explicit, conservative fallback: primary <code>1.0</code>, secondary <code>0.3</code>.</li>
+<li><code>W_effort</code> is a smooth, capped curve: lower RIR raises exposure gradually; it is not a single <code>+24 h</code> step.</li>
+<li><code>W_reps</code> is only a bounded context modifier alongside RIR. Raw repetition count and tonnage must not be treated as universal intensity measures: five heavy repetitions and twenty light repetitions are not directly comparable from logs alone.</li>
+</ul>
+<p>The current core calibration is deliberately modest: primary/secondary fallbacks are <code>1.0</code>/<code>0.3</code>; RIR 0 through 5 maps smoothly from <code>1.0</code> to <code>0.5</code> in <code>0.1</code> steps; missing or implausible RIR uses <code>0.7</code>; and repetitions are bounded between <code>0.8</code> and <code>1.1</code>. These are documented engineering defaults, covered by regression tests, and may be recalibrated only alongside an explicit evidence and test update.</p>
+<p>The model retains direct and indirect exposure separately in the payload. That lets the UI explain <em>why</em> a muscle is affected without claiming that a secondary role is identical to direct work.</p>
+<h2 id="5-session-and-time-decay-model" class="doc-h2">5. Session and Time-Decay Model<a href="#5-session-and-time-decay-model" class="header-anchor" aria-label="Link to section">#</a></h2>
+<h3 id="51-session-impulse" class="doc-h3">5.1 Session impulse<a href="#51-session-impulse" class="header-anchor" aria-label="Link to section">#</a></h3>
+<p>Aggregate the per-set exposures by muscle within one completed workout:</p>
+<p>\[ L_{session,m} = \sum_{s \in session} E_{s,m} \]</p>
+<p>Small sessions are not discarded. A very small secondary contribution remains small, but several relevant exposures can add up over time.</p>
+<p>The payload keeps <code>lastSessionLoad</code> distinct from any accumulated value. A multi-day total is never labelled as the latest load.</p>
+<h3 id="52-residual-exposure" class="doc-h3">5.2 Residual exposure<a href="#52-residual-exposure" class="header-anchor" aria-label="Link to section">#</a></h3>
+<p>At the current time <code>t</code>, each session contributes an exponentially decaying residual:</p>
+<p>\[ R_m(t) = \sum_j L_{j,m} \cdot e^{-\Delta t_j / \tau_m} \]</p>
+<ul class="doc-list">
+<li><code>\Delta t_j</code> is measured from <code>workout_logs.end_time</code>; historical sessions without it fall back to <code>start_time</code>.</li>
+<li><code>\tau_m</code> is the muscle group's baseline time constant.</li>
+<li>The calculation queries a sufficiently conservative history horizon; it has no behavioural discontinuity at an arbitrary 14-day boundary.</li>
+</ul>
+<p>This is the key correction over v1: a hard session thirteen days ago has only a tiny residual effect, while two moderate sessions in the last 48 hours can meaningfully combine.</p>
+<h3 id="53-different-muscle-recovery-kinetics-are-retained" class="doc-h3">5.3 Different muscle recovery kinetics are retained<a href="#53-different-muscle-recovery-kinetics-are-retained" class="header-anchor" aria-label="Link to section">#</a></h3>
+<p>The current model explicitly retains different baseline recovery profiles. Quads, hamstrings, glutes, adductors, and lower back may use slower baseline decay than smaller groups such as biceps, triceps, calves, and shoulders. The profiles are calibration defaults, not biological promises; they represent a transparent prior that is then adjusted by the user's recorded dose, effort, and recency.</p>
+<p>The existing muscle alias mapping and catalogue vocabulary remain the single source for resolving exercises into the tracked major groups.</p>
+<h2 id="6-movement-patterns-and-systemic-demand" class="doc-h2">6. Movement Patterns and Systemic Demand<a href="#6-movement-patterns-and-systemic-demand" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>Movement patterns must not be used to apply a second, hidden local-muscle multiplier: the primary/secondary role already allocates local exposure. Doing both would double count compound movements.</p>
+<p>Instead, the current model records movement-pattern exposure in two honest ways:</p>
 <ol class="doc-list">
-<li><strong>Recovering</strong> (<em>R</em> < 0.6): High residual fatigue. Performance is likely compromised.</li>
-<li><strong>Ready</strong> (0.6 ≤ <em>R</em> < 0.9): Muscle is functional but may have slight remaining soreness or substrate depletion.</li>
-<li><strong>Fresh</strong> (<em>R</em> ≥ 0.9): Optimal readiness for high-intensity training.</li>
+<li><strong>Exposure context:</strong> the payload records whether recent load came from horizontal pushes, squats, hinges, or direct isolation work.</li>
+<li><strong>No hidden double counting:</strong> a pattern is not silently added to every muscle's residual exposure after primary/secondary roles already allocated that set.</li>
 </ol>
-<hr class="divider">
-<h2 id="5-non-clinical-heuristic-disclaimer" class="doc-h2">5. Non-Clinical Heuristic Disclaimer<a href="#5-non-clinical-heuristic-disclaimer" class="header-anchor" aria-label="Link to section">#</a></h2>
-<p>This model is a fitness-oriented, non-clinical heuristic based on established sports science literature (NSCA, ACSM, Damas) regarding muscle protein synthesis and post-exercise recovery windows. It is designed for healthy training populations and does not account for individual genetic variance, clinical pathology, nutrition quality, or systemic medical conditions.</p>
-<hr class="divider">
-<h2 id="6-scientific-references-sources" class="doc-h2"><a id="evidence" class="anchor-target"></a>6. Scientific References & Sources<a href="#6-scientific-references-sources" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>Missing or unclassified patterns lower explanatory detail but do not prevent the underlying muscle calculation when roles are known.</p>
+<h2 id="7-readiness-states-and-confidence" class="doc-h2">7. Readiness, States, and Confidence<a href="#7-readiness-states-and-confidence" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>The engine maps residual exposure to a continuous log-based readiness estimate and derives the state from that <strong>same score</strong>. This removes the current <code>Fresh at 85/100</code> contradiction.</p>
+<p>The typed result contains:</p>
 <ul class="doc-list">
-<li>Morán-Navarro et al. (2017) — <em>Time course of recovery following resistance training leading or not to failure</em>. DOI: <a href="https://doi.org/10.1007/s00421-017-3704-9" target="_blank" rel="noopener noreferrer">10.1007/s00421-017-3704-9 <span class="ext-icon">↗</span></a></li>
-<li>Schoenfeld et al. (2017) — <em>Dose-response relationship between weekly resistance training volume and increases in muscle mass</em>. DOI: <a href="https://doi.org/10.1080/02640414.2016.1243800" target="_blank" rel="noopener noreferrer">10.1080/02640414.2016.1243800 <span class="ext-icon">↗</span></a></li>
-<li>Sánchez-Medina & González-Badillo (2011) — <em>Velocity loss as an indicator of neuromuscular fatigue</em>. DOI: <a href="https://doi.org/10.1249/MSS.0b013e318213f880" target="_blank" rel="noopener noreferrer">10.1249/MSS.0b013e318213f880 <span class="ext-icon">↗</span></a></li>
-<li>Ratamess et al. (2009) — <em>NSCA Position Stand: Progression Models in Resistance Training</em>. DOI: <a href="https://doi.org/10.1519/JSC.0b013e3181e382ec" target="_blank" rel="noopener noreferrer">10.1519/JSC.0b013e3181e382ec <span class="ext-icon">↗</span></a></li>
-<li>Vieira et al. (2016) — <em>Effects of resistance training to failure on recovery kinetics</em>. DOI: <a href="https://doi.org/10.1007/s40279-016-0543-8" target="_blank" rel="noopener noreferrer">10.1007/s40279-016-0543-8 <span class="ext-icon">↗</span></a></li>
-<li>Watson et al. (2015) — <em>AASM Recommended Amount of Sleep for a Healthy Adult</em>. DOI: <a href="https://doi.org/10.5664/jcsm.9538" target="_blank" rel="noopener noreferrer">10.5664/jcsm.9538 <span class="ext-icon">↗</span></a></li>
-<li>Damas et al. (2019) — <em>Resistance training‐induced changes in integrated myofibrillar protein synthesis</em>. DOI: <a href="https://doi.org/10.1249/MSS.0000000000002473" target="_blank" rel="noopener noreferrer">10.1249/MSS.0000000000002473 <span class="ext-icon">↗</span></a></li>
+<li><code>lastSessionAt</code>, <code>lastSessionLoad</code>, <code>lastSessionDirectLoad</code>, and <code>lastSessionIndirectLoad</code></li>
+<li><code>residualLoad</code> and its associated readiness score</li>
+<li>RIR coverage (<code>setsWithRir / eligibleSets</code>)</li>
+<li>direct/indirect and movement-pattern summaries</li>
+<li><code>dataConfidence</code>: high at 80% or more RIR coverage in the latest session, medium from 40% to below 80%, low below 40%, and none without a session</li>
+<li>state (<code>recovering</code>, <code>ready</code>, <code>fresh</code>) derived from the readiness score</li>
 </ul>
+<h2 id="8-scope-limits" class="doc-h2">8. Scope Limits<a href="#8-scope-limits" class="header-anchor" aria-label="Link to section">#</a></h2>
+<ul class="doc-list">
+<li>Do not use RPE as a principal strength-training input. It exists in the schema but is not collected through the ordinary strength-set flow.</li>
+<li>Do not infer true relative intensity from raw kilograms, because bodyweight, assistance, exercise mechanics, and missing bodyweight make it unreliable.</li>
+<li>Do not manufacture a precise per-muscle contribution table before the catalog actually provides validated <code>contribution</code> data.</li>
+<li>Do not claim injury prediction, DOMS measurement, muscle-protein synthesis, or clinical recovery.</li>
+<li>Do not add a database migration: the current model can derive its data from existing logs.</li>
+</ul>
+<h2 id="9-verification-coverage" class="doc-h2">9. Verification Coverage<a href="#9-verification-coverage" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>The implementation is covered by deterministic tests for:</p>
+<ol class="doc-list">
+<li>Readiness and residual load decline monotonically as time passes.</li>
+<li>A RIR-0 failure set produces more exposure than otherwise comparable RIR-1, RIR-2, and RIR-3+ sets, without an unbounded jump.</li>
+<li>Missing RIR applies the neutral fallback and reduces confidence.</li>
+<li>A thirteen-day-old failure session does not substantially inflate a light session today.</li>
+<li>Two recent moderate sessions combine through residual exposure.</li>
+<li>Several sub-1.0 secondary exposures accumulate rather than disappear.</li>
+<li>Primary exposure exceeds otherwise equal secondary exposure.</li>
+<li>Warm-up is excluded; failure and dropset handling match the input contract.</li>
+<li>Start-time fallback works for historical logs without an end time.</li>
+<li>Each muscle's distinct baseline profile changes decay/readiness in the intended direction.</li>
+<li>State boundaries and displayed readiness score always agree.</li>
+<li>Legacy exercises without current catalog metadata retain their existing safe fallback classification.</li>
+</ol>
         </article>
 
         <nav class="docs-pager" aria-label="Documentation navigation">
@@ -231,16 +287,23 @@
 
       <!-- Right Table of Contents -->
       <aside class="docs-toc" aria-label="Table of contents"><div class="toc-sticky-box"><div class="toc-heading">On this page</div><ul class="toc-list">
-<li class="toc-item toc-item-l2"><a href="#1-readiness-score-equation-rt">1. Readiness Score Equation R(t)</a></li>
-<li class="toc-item toc-item-l3"><a href="#phase-1-acute-recovery-t-leq-trec">Phase 1: Acute Recovery (\(t \leq T{rec}\))</a></li>
-<li class="toc-item toc-item-l3"><a href="#phase-2-adaptation-window-trec-t-leq-tready">Phase 2: Adaptation Window (\(T{rec} &lt; t \leq T{ready}\))</a></li>
-<li class="toc-item toc-item-l3"><a href="#phase-3-supercompensation-t-tready">Phase 3: Supercompensation (\(t &gt; T{ready}\))</a></li>
-<li class="toc-item toc-item-l3"><a href="#dynamic-recovery-windows">Dynamic Recovery Windows</a></li>
-<li class="toc-item toc-item-l2"><a href="#2-equivalent-set-weighting">2. Equivalent Set Weighting</a></li>
-<li class="toc-item toc-item-l2"><a href="#3-failure-induced-fatigue-extensions">3. Failure-Induced Fatigue Extensions</a></li>
-<li class="toc-item toc-item-l2"><a href="#4-heuristic-categories">4. Heuristic Categories</a></li>
-<li class="toc-item toc-item-l2"><a href="#5-non-clinical-heuristic-disclaimer">5. Non-Clinical Heuristic Disclaimer</a></li>
-<li class="toc-item toc-item-l2"><a href="#6-scientific-references-sources">6. Scientific References &amp; Sources</a></li>
+<li class="toc-item toc-item-l2"><a href="#quick-overview">Quick Overview</a></li>
+<li class="toc-item toc-item-l3"><a href="#tracker-presentation">Tracker presentation</a></li>
+<li class="toc-item toc-item-l3"><a href="#worked-examples">Worked Examples</a></li>
+<li class="toc-item toc-item-l2"><a href="#1-what-changed-from-v1">1. What Changed from v1</a></li>
+<li class="toc-item toc-item-l2"><a href="#2-evidence-and-design-boundaries">2. Evidence and Design Boundaries</a></li>
+<li class="toc-item toc-item-l2"><a href="#3-inputs-and-eligibility">3. Inputs and Eligibility</a></li>
+<li class="toc-item toc-item-l3"><a href="#31-existing-data-used-by-the-current-model">3.1 Existing data used by the current model</a></li>
+<li class="toc-item toc-item-l3"><a href="#32-eligible-sets">3.2 Eligible sets</a></li>
+<li class="toc-item toc-item-l2"><a href="#4-per-set-exposure">4. Per-Set Exposure</a></li>
+<li class="toc-item toc-item-l2"><a href="#5-session-and-time-decay-model">5. Session and Time-Decay Model</a></li>
+<li class="toc-item toc-item-l3"><a href="#51-session-impulse">5.1 Session impulse</a></li>
+<li class="toc-item toc-item-l3"><a href="#52-residual-exposure">5.2 Residual exposure</a></li>
+<li class="toc-item toc-item-l3"><a href="#53-different-muscle-recovery-kinetics-are-retained">5.3 Different muscle recovery kinetics are retained</a></li>
+<li class="toc-item toc-item-l2"><a href="#6-movement-patterns-and-systemic-demand">6. Movement Patterns and Systemic Demand</a></li>
+<li class="toc-item toc-item-l2"><a href="#7-readiness-states-and-confidence">7. Readiness, States, and Confidence</a></li>
+<li class="toc-item toc-item-l2"><a href="#8-scope-limits">8. Scope Limits</a></li>
+<li class="toc-item toc-item-l2"><a href="#9-verification-coverage">9. Verification Coverage</a></li>
 </ul></div></aside>
     </div>
 

@@ -3064,6 +3064,54 @@ class AppLocalizationsJa extends AppLocalizations {
   String get recoveryStateUnknown => '未知';
 
   @override
+  String recoveryReadyInHours(int hours) {
+    return 'あと約$hours時間でトレーニング可能';
+  }
+
+  @override
+  String recoveryFreshInHours(int hours) {
+    return 'あと約$hours時間でフレッシュな状態';
+  }
+
+  @override
+  String get recoveryStillRecovering => '回復中';
+
+  @override
+  String get recoveryReadyForNormalTraining => '通常のトレーニングが可能';
+
+  @override
+  String get recoveryFreshForFullTraining => 'フレッシュ・十分な負荷でトレーニング可能';
+
+  @override
+  String get recoveryDetailLastSession => '直近のセッション';
+
+  @override
+  String get recoveryDetailForecast => '見通し';
+
+  @override
+  String get recoveryDetailRirData => 'RIRデータ';
+
+  @override
+  String recoveryCompactHours(int hours) {
+    return '約$hours時間';
+  }
+
+  @override
+  String recoverySessionLoadAndAge(String load, int hours) {
+    return '負荷 $load 単位・$hours時間前';
+  }
+
+  @override
+  String recoveryLastSessionDetails(String load, int hours) {
+    return '直近のセッション: 負荷 $load 単位・$hours時間前';
+  }
+
+  @override
+  String recoveryRirCoverage(int covered, int total) {
+    return 'RIRを記録したセット: $covered/$total';
+  }
+
+  @override
   String recoveryLastLoadedHours(int hours) {
     return '最後に大幅に読み込まれた: $hours 時間前';
   }

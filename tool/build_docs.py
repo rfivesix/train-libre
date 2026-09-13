@@ -66,7 +66,7 @@ DOCS_STRUCTURE = [
                 "src_file": SRC_DOC_DIR / "features" / "muscle_recovery_model.md",
                 "out_dir": OUTPUT_DOCS_DIR / "features" / "muscle-recovery-model",
                 "url": "/docs/features/muscle-recovery-model/",
-                "desc": "Piecewise recovery kinetics, equivalent set weighting, and failure-induced fatigue."
+                "desc": "Per-set, RIR-aware residual load with muscle-specific time decay and readiness."
             },
             {
                 "id": "features-tdee",
@@ -480,14 +480,26 @@ class MarkdownParser:
         lines = block.split("\n")
         is_ordered = bool(re.match(r'^\d+\.', lines[0].strip()))
         tag = "ol" if is_ordered else "ul"
-        
+
         items = []
+        current_item = None
         for line in lines:
             line_str = line.strip()
             if not line_str:
                 continue
-            item_content = re.sub(r'^(\*|-|\d+\.)\s+', '', line_str)
-            items.append(f'<li>{self._parse_inline(item_content)}</li>')
+
+            if re.match(r'^(\*|-|\d+\.)\s+', line_str):
+                if current_item is not None:
+                    items.append(f'<li>{self._parse_inline(current_item)}</li>')
+                current_item = re.sub(r'^(\*|-|\d+\.)\s+', '', line_str)
+            elif current_item is not None:
+                # Markdown permits an indented continuation line in a list
+                # item. Keep it with the preceding item instead of emitting a
+                # misleading separate bullet in the public documentation.
+                current_item = f'{current_item} {line_str}'
+
+        if current_item is not None:
+            items.append(f'<li>{self._parse_inline(current_item)}</li>')
 
         return f'<{tag} class="doc-list">\n' + "\n".join(items) + f'\n</{tag}>'
 
