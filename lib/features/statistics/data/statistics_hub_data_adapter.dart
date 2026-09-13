@@ -116,7 +116,7 @@ class StatisticsHubDataAdapter {
         label: 'notablePrImprovements',
         action: () => _workoutDatabaseHelper.getNotablePrImprovements(
           daysWindow: improvementRange.effectiveDays ?? 30,
-          limit: 3,
+          limit: 100,
         ),
       );
       final bodyNutrition = PerfDebugTimer.time(
@@ -142,21 +142,21 @@ class StatisticsHubDataAdapter {
       ]);
 
       final payload = await Isolate.run(() => StatisticsHubPayload(
-        recentPrs: results[0] as List<Map<String, dynamic>>,
-        weeklyVolume: results[1] as List<Map<String, dynamic>>,
-        workoutsPerWeek: results[2] as List<Map<String, dynamic>>,
-        weeklyConsistencyMetrics: (results[3] as List<Map<String, dynamic>>)
-            .map(WeeklyConsistencyMetricPayload.fromMap)
-            .toList(),
-        muscleAnalytics: results[4] as Map<String, dynamic>,
-        trainingStats: TrainingStatsPayload.fromMap(
-          results[5] as Map<String, dynamic>,
-        ),
-        recoveryAnalytics: RecoveryAnalyticsPayload.fromMap(
-          results[6] as Map<String, dynamic>,
-        ),
-        notableImprovements: results[7] as List<Map<String, dynamic>>,
-      ));
+            recentPrs: results[0] as List<Map<String, dynamic>>,
+            weeklyVolume: results[1] as List<Map<String, dynamic>>,
+            workoutsPerWeek: results[2] as List<Map<String, dynamic>>,
+            weeklyConsistencyMetrics: (results[3] as List<Map<String, dynamic>>)
+                .map(WeeklyConsistencyMetricPayload.fromMap)
+                .toList(),
+            muscleAnalytics: results[4] as Map<String, dynamic>,
+            trainingStats: TrainingStatsPayload.fromMap(
+              results[5] as Map<String, dynamic>,
+            ),
+            recoveryAnalytics: RecoveryAnalyticsPayload.fromMap(
+              results[6] as Map<String, dynamic>,
+            ),
+            notableImprovements: results[7] as List<Map<String, dynamic>>,
+          ));
 
       return (payload, results[8] as BodyNutritionAnalyticsResult);
     } finally {
@@ -276,7 +276,7 @@ class StatisticsHubDataAdapter {
         label: 'notablePrImprovements',
         action: () => _workoutDatabaseHelper.getNotablePrImprovements(
           daysWindow: improvementRange.effectiveDays ?? 30,
-          limit: 3,
+          limit: 100,
         ),
       ),
     ]);

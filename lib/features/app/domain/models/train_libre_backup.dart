@@ -171,6 +171,8 @@ class TrainLibreBackup {
               exercises: (routineMap['exercises'] as List<dynamic>?)?.map((re) {
                     final reMap = re as Map<String, dynamic>;
                     return RoutineExercise(
+                      progressionData:
+                          reMap['progression_data'] ?? reMap['progressionData'],
                       id: reMap['id'],
                       // Recursive call to the .fromMap constructors
                       exercise: Exercise.fromMap(

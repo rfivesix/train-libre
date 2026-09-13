@@ -1237,6 +1237,22 @@ class AppLocalizationsIt extends AppLocalizations {
   String get set_type_dropset => 'Dropset';
 
   @override
+  String get set_type_normal_help =>
+      'Una normale serie di lavoro. Dopo il riscaldamento, la prima è di solito la serie pesante principale; conta per la progressione.';
+
+  @override
+  String get set_type_warmup_help =>
+      'Riscaldati aumentando gradualmente il carico. Non conta per la progressione.';
+
+  @override
+  String get set_type_failure_help =>
+      'Una serie di lavoro fino a quando non sono possibili altre ripetizioni pulite. Conta per la progressione.';
+
+  @override
+  String get set_type_dropset_help =>
+      'Riduci il carico subito dopo una serie di lavoro e continua. Non conta per la progressione.';
+
+  @override
   String get set_reps_hint => '8-12';
 
   @override
@@ -1287,7 +1303,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get start_button => 'Inizio';
 
   @override
-  String get today_overview_text => 'OGGI IN FOCUS';
+  String get today_overview_text => 'A COLPO D\'OCCHIO';
 
   @override
   String get quick_add_text => 'AGGIUNTA VELOCE';
@@ -1296,7 +1312,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get scann_barcode_capslock => 'Scansiona il codice a barre';
 
   @override
-  String get protocol_today_capslock => 'IL PROTOCOLLO DI OGGI';
+  String get protocol_today_capslock => 'PROTOCOLLO';
 
   @override
   String get my_plans_capslock => 'I MIEI PIANI';
@@ -1335,6 +1351,12 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get calendar_currently_not_available =>
       'La visualizzazione del calendario sarà presto disponibile.';
+
+  @override
+  String get datePickerCalendar => 'Vista calendario';
+
+  @override
+  String get datePickerWheel => 'Vista a rotella';
 
   @override
   String get in_depth_analysis => 'ANALISI APPROFONDITA';
@@ -3060,7 +3082,7 @@ class AppLocalizationsIt extends AppLocalizations {
       'Visualizzazione della mappa termica del calendario';
 
   @override
-  String get consistencyTrackerTitle => 'Monitoraggio della coerenza';
+  String get consistencyTrackerTitle => 'Ritmo di allenamento';
 
   @override
   String get consistencyTrackerComingSoon =>
@@ -3092,7 +3114,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get metricsRecentPrs => 'PR recenti';
 
   @override
-  String get metricsVolumeLifted => 'Volume sollevato';
+  String get metricsVolumeLifted => 'Volume';
 
   @override
   String get metricsMostImproved => 'Molto migliorato';
@@ -3399,6 +3421,32 @@ class AppLocalizationsIt extends AppLocalizations {
   String get analyticsRecentRecords => 'Record recenti';
 
   @override
+  String get analyticsNewBestPerformances => 'Nuovi record personali';
+
+  @override
+  String get analyticsTop => 'Top';
+
+  @override
+  String analyticsLastWeeks(int weeks) {
+    return 'Ultime $weeks settimane';
+  }
+
+  @override
+  String get analyticsMuscleGroups => 'Gruppi muscolari';
+
+  @override
+  String get analyticsStrongestBreakthrough => 'Miglior progresso';
+
+  @override
+  String get analyticsRecordOverview => 'Panoramica record';
+
+  @override
+  String get analyticsRecentlySet => 'Stabiliti di recente';
+
+  @override
+  String get analyticsByRepetitionRange => 'Per ripetizioni';
+
+  @override
   String analyticsPerfWithReps(String weight, int reps, Object unit) {
     return '$weight $unit x $reps';
   }
@@ -3441,6 +3489,24 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get analyticsViewLabel => 'Visualizzazione';
+
+  @override
+  String get analyticsViewChart => 'Grafico';
+
+  @override
+  String get analyticsViewOverview => 'Panoramica';
+
+  @override
+  String get analyticsVolumeWeeklyAverage => 'Media settimanale';
+
+  @override
+  String get analyticsVolumeTotal => 'Totale';
+
+  @override
+  String get analyticsSwitchToChart => 'Mostra il grafico';
+
+  @override
+  String get analyticsSwitchToOverview => 'Mostra panoramica';
 
   @override
   String get analyticsViewWeek => 'Settimana';
@@ -3501,7 +3567,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get analyticsCalendarExplainer =>
-      'L\'intensità del colore riflette le sessioni giornaliere, rendendola una vera mappa di coerenza.';
+      'Il colore indica le sessioni giornaliere.';
 
   @override
   String get analyticsSelectDayPrompt =>
@@ -3551,6 +3617,52 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get analyticsPeriodLabel => 'Periodo';
+
+  @override
+  String get analyticsCoverageMuscles => 'Muscoli';
+
+  @override
+  String get analyticsCoverageMovementPatterns => 'Schemi di movimento';
+
+  @override
+  String get analyticsWorkingSetsByMuscle => 'Serie di lavoro per muscolo';
+
+  @override
+  String get analyticsWorkingSetsByPattern =>
+      'Serie di lavoro per schema di movimento';
+
+  @override
+  String get analyticsPrimaryMuscleCoverageCaption =>
+      'Mostra solo le serie normali e a cedimento completate per i muscoli primari.';
+
+  @override
+  String get analyticsMovementPatternCoverageCaption =>
+      'Mostra le serie normali e a cedimento completate per schema di movimento.';
+
+  @override
+  String get analyticsUnclassified => 'Non classificato';
+
+  @override
+  String get analyticsPatternOther => 'Altro';
+
+  @override
+  String analyticsAverageWorkingSetsPerWeek(String value) {
+    return 'Ø $value serie di lavoro a settimana';
+  }
+
+  @override
+  String get analyticsFrequencyWorkingSetFooter =>
+      'La frequenza conta i giorni con almeno una serie di lavoro per quel muscolo.';
+
+  @override
+  String analyticsAverageFrequencyPerWeek(String value) {
+    return 'Frequenza media: $value / sett.';
+  }
+
+  @override
+  String analyticsTotalWorkingSets(String value) {
+    return '$value serie di lavoro';
+  }
 
   @override
   String get analyticsEquivalentSetsExplainer =>
@@ -6559,6 +6671,30 @@ class AppLocalizationsIt extends AppLocalizations {
   String get exerciseLateralityAlternating => 'Alternato';
 
   @override
+  String get exerciseClassificationTitle => 'Classificazione';
+
+  @override
+  String get exerciseMovementPatternLabel => 'Schema di movimento';
+
+  @override
+  String get exerciseForceVectorLabel => 'Direzione della forza';
+
+  @override
+  String get exerciseMechanicLabel => 'Tipo di esercizio';
+
+  @override
+  String get exerciseLateralityLabel => 'Lateralità';
+
+  @override
+  String get exerciseDifficultyLabel => 'Difficoltà';
+
+  @override
+  String get exerciseClassificationNotSpecified => 'Non specificato';
+
+  @override
+  String get exercisePatternOther => 'Altro';
+
+  @override
   String get exerciseUsageWarmup => 'Riscaldamento';
 
   @override
@@ -6760,4 +6896,151 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diaryWeightRetry => 'Riprova';
+
+  @override
+  String get settingsTrainingProgressionTitle =>
+      'Progressione dell\'allenamento';
+
+  @override
+  String get settingsTrainingProgressionSubtitle =>
+      'Suggerimenti di carico basati sulla tua cronologia';
+
+  @override
+  String get trainingProgressionOff => 'Disattivato';
+
+  @override
+  String get trainingProgressionSuggest => 'Suggerisci';
+
+  @override
+  String get progressionTogether => 'Sviluppa le serie insieme';
+
+  @override
+  String get progressionIndividually => 'Sviluppa le serie singolarmente';
+
+  @override
+  String get progressionPolicy => 'Progressione delle serie';
+
+  @override
+  String get progressionSetOutcome => 'Valuta la serie come';
+
+  @override
+  String get progressionDetails => 'Progressione e attrezzatura';
+
+  @override
+  String get progressionLargeStep =>
+      'Il prossimo carico disponibile è un salto ampio. Conferma per provarlo oppure mantieni il carico attuale.';
+
+  @override
+  String get progressionBridge =>
+      'Obiettivo temporaneo facoltativo: due ripetizioni oltre il limite superiore. L’intervallo resta invariato. Raggiungerlo ripropone il salto di carico reale.';
+
+  @override
+  String get progressionUnavailable =>
+      'Nessun livello successivo disponibile. Mantieni il carico, correggi i carichi disponibili o scegli una nuova base.';
+
+  @override
+  String get progressionOvershoot =>
+      'Questo dato supera il limite di almeno tre ripetizioni. Confermalo, poi scegli il livello successivo o una nuova base.';
+
+  @override
+  String get progressionStall =>
+      'Questa posizione è rimasta sotto l’intervallo in tre sessioni confrontabili. Puoi scegliere il carico più facile, mantenere il piano o modificare l’intervallo. Nulla cambia automaticamente.';
+
+  @override
+  String get progressionBoundary =>
+      'Nuova metrica e nuova base. Conferma il passaggio per questo esercizio; assistenza, peso corporeo e carico aggiunto sono metriche distinte.';
+
+  @override
+  String get progressionAccept => 'Conferma obiettivo';
+
+  @override
+  String get progressionDecline => 'Mantieni il carico attuale';
+
+  @override
+  String get progressionDismiss => 'Chiudi revisione';
+
+  @override
+  String get progressionRecalibrate => 'Scegli una nuova base';
+
+  @override
+  String get progressionConfirmLog =>
+      'Conferma il dato e verifica il prossimo livello';
+
+  @override
+  String get progressionLoads =>
+      'Carichi disponibili (separati da punto e virgola)';
+
+  @override
+  String get progressionEquipment => 'Identità attrezzatura (facoltativa)';
+
+  @override
+  String get progressionContext => 'Contesto o motivo temporaneo (facoltativo)';
+
+  @override
+  String get progressionCompleted => 'Completata regolarmente';
+
+  @override
+  String get progressionAbandoned => 'Interrotta in anticipo';
+
+  @override
+  String get progressionPain => 'Interrotta per dolore';
+
+  @override
+  String get progressionEquipmentInterrupted =>
+      'Attrezzatura o configurazione inadeguata';
+
+  @override
+  String get progressionPainGuidance =>
+      'Ferma questa serie. Valuta un accertamento adeguato prima di continuare; non viene consigliato un carico.';
+
+  @override
+  String get progressionUserLadder => 'I tuoi carichi disponibili';
+
+  @override
+  String get progressionEquipmentLadder => 'Livelli dell’attrezzatura';
+
+  @override
+  String get progressionFallback => 'Incremento predefinito dell’attrezzatura';
+
+  @override
+  String get progressionHold =>
+      'Carico mantenuto; le ripetizioni seguono intervallo e storico di questa posizione.';
+
+  @override
+  String get progressionOrdinary =>
+      'Limite raggiunto: prossimo carico disponibile, ripetizioni al minimo dell’intervallo.';
+
+  @override
+  String get progressionAnchor =>
+      'Le posizioni collegate mantengono oggi la differenza di carico della sessione precedente.';
+
+  @override
+  String get progressionNewPosition =>
+      'Nuova posizione: base provvisoria dalla serie di oggi, non una prova storica di progressione.';
+
+  @override
+  String get progressionWithheld =>
+      'Nessun dato confrontabile per un suggerimento.';
+
+  @override
+  String get progressionOffered => 'Proposta';
+
+  @override
+  String get progressionAccepted => 'Accettata';
+
+  @override
+  String get progressionRejected => 'Rifiutata';
+
+  @override
+  String get progressionInvalidLoads =>
+      'Inserisci carichi non negativi; è richiesto almeno un valore.';
+
+  @override
+  String get progressionBodyweight => 'Peso corporeo';
+
+  @override
+  String get progressionWeighted => 'Peso corporeo con carico';
+
+  @override
+  String get progressionAssisted => 'Assistenza';
 }

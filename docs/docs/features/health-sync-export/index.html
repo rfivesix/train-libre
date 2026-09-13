@@ -1,0 +1,488 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Apple HealthKit and Health Connect bidirectional sync &amp; SQLite idempotency.">
+  <title>Native Health Sync &amp; Export Pipeline | Train Libre Documentation</title>
+  <link rel="canonical" href="https://trainlibre.com/docs/features/health-sync-export/">
+
+  <link rel="icon" type="image/png" sizes="32x32" href="../../../favicon.png?v=2">
+  <link rel="apple-touch-icon" sizes="180x180" href="../../../assets/apple-touch-icon.png">
+
+  <!-- Open Graph -->
+  <meta property="og:site_name" content="Train Libre Documentation">
+  <meta property="og:title" content="Native Health Sync &amp; Export Pipeline | Train Libre">
+  <meta property="og:description" content="Apple HealthKit and Health Connect bidirectional sync &amp; SQLite idempotency.">
+  <meta property="og:url" content="https://trainlibre.com/docs/features/health-sync-export/">
+  <meta property="og:type" content="article">
+  <meta property="og:image" content="https://trainlibre.com/assets/og-image.png">
+
+  <!-- KaTeX CSS (CDN primary with local fallback) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+  <link rel="stylesheet" href="../../../katex.min.css">
+
+  <!-- Train Libre Design System & Dedicated Docs Styles -->
+  <link rel="stylesheet" href="../../../style.css">
+  <link rel="stylesheet" href="../../docs.css">
+
+  <!-- KaTeX Auto-render Script -->
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" defer onload="renderMathInElement(document.body, {
+    delimiters: [
+      {left: '$$', right: '$$', display: true},
+      {left: '$', right: '$', display: false}
+    ],
+    throwOnError: false
+  });"></script>
+
+  <!-- Mermaid.js for Architecture Diagrams -->
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      if (typeof mermaid !== "undefined") {
+        const isDark = document.documentElement.getAttribute("data-theme") !== "light";
+        mermaid.initialize({
+          startOnLoad: true,
+          theme: isDark ? "dark" : "default",
+          themeVariables: isDark ? {
+            darkMode: true,
+            background: "#151815",
+            primaryColor: "#1b1f1b",
+            primaryTextColor: "#f4f6f4",
+            primaryBorderColor: "rgba(221, 255, 0, 0.4)",
+            lineColor: "#ddff00",
+            secondaryColor: "#151815",
+            tertiaryColor: "#0e100e"
+          } : {}
+        });
+      }
+    });
+  </script>
+
+  <!-- Prevent Theme Flash -->
+  <script>
+    (function () {
+      const theme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: light)').matches ? "light" : "dark");
+      document.documentElement.setAttribute("data-theme", theme);
+    })();
+  </script>
+</head>
+<body class="docs-body">
+  <div class="page">
+    <!-- Header -->
+    <header class="docs-header">
+      <nav class="docs-nav" aria-label="Documentation navigation">
+        <a class="brand" href="../../../index.html" aria-label="Train Libre Home">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 270.933 270.933" role="img">
+              <path fill="#ddff00"
+                d="M47.621 39.688c-4.385 0-7.939 3.554-7.939 7.939v116.172c0 37.238 30.188 67.472 67.426 67.459l13.482-.006c.15.003.3.005.451.005h89.722c11.367 0 20.518-9.154 20.518-20.525s-9.151-20.525-20.518-20.525h-42.739a7.937 7.937 0 0 1-7.937-7.937v-25.174a7.937 7.937 0 0 1 7.937-7.937l41.159-.001c12.244 0 22.101-9.154 22.1-20.525-.001-11.371-9.859-20.525-22.103-20.525l-41.156.001a7.937 7.937 0 0 1-7.937-7.937V47.627c0-4.385-3.555-7.939-7.939-7.939z" />
+            </svg>
+          </span>
+          <span class="brand-name">Train Libre</span>
+          <span class="docs-badge">Docs</span>
+        </a>
+
+        <div class="nav-links">
+          <a href="../../../index.html" class="nav-link">Website</a>
+          <a class="nav-priority" href="https://github.com/rfivesix/train-libre" target="_blank" rel="noreferrer">GitHub</a>
+        </div>
+
+        <div class="nav-controls">
+          <button id="theme-toggle" class="control-btn" aria-label="Toggle Theme">
+            <svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="5"></circle>
+              <line x1="12" y1="1" x2="12" y2="3"></line>
+              <line x1="12" y1="21" x2="12" y2="23"></line>
+              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+              <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+              <line x1="1" y1="12" x2="3" y2="12"></line>
+              <line x1="21" y1="12" x2="23" y2="12"></line>
+              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+              <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+            </svg>
+            <svg class="moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+            </svg>
+          </button>
+          
+          <button id="sidebar-toggle" class="control-btn mobile-menu-btn" aria-label="Open sidebar menu" aria-expanded="false">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="3" y1="12" x2="21" y2="12"></line>
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+      </nav>
+    </header>
+
+    <!-- Docs Main Layout -->
+    <div class="docs-container">
+      <!-- Left Sidebar -->
+      <aside id="docs-sidebar" class="docs-sidebar" aria-label="Documentation sidebar">
+        <div class="sidebar-header-search">
+          <input type="text" id="sidebar-filter" placeholder="Filter topics..." aria-label="Filter topics in documentation">
+        </div>
+        <div class="sidebar-scroll-area">
+          <div class="sidebar-group"><div class="sidebar-group-title">Overview</div><ul class="sidebar-nav-list">
+<li><a href="../../index.html" class="sidebar-link">Documentation Suite Overview</a></li>
+</ul></div>
+<div class="sidebar-group"><div class="sidebar-group-title">Features &amp; Heuristics</div><ul class="sidebar-nav-list">
+<li><a href="../overview/index.html" class="sidebar-link">Capabilities &amp; Privacy</a></li>
+<li><a href="../sleep-scoring-engine/index.html" class="sidebar-link">Sleep Health Score (SHS v3.5)</a></li>
+<li><a href="../muscle-recovery-model/index.html" class="sidebar-link">Muscle Recovery &amp; Readiness</a></li>
+<li><a href="../bayesian-tdee-estimator/index.html" class="sidebar-link">Bayesian TDEE Estimator</a></li>
+<li><a href="../macro-distribution/index.html" class="sidebar-link">Macronutrient Distribution</a></li>
+<li><a href="../workout-progression-engine/index.html" class="sidebar-link">Workout Progression Engine</a></li>
+<li><a href="../intelligent-workouts/index.html" class="sidebar-link">Estimated 1-Rep Max (e1RM)</a></li>
+<li><a href="../meal-capture-pipeline/index.html" class="sidebar-link">Meal Capture Pipeline</a></li>
+<li><a href="../byok-ai-validation/index.html" class="sidebar-link">BYOK AI Meal Validation</a></li>
+<li><a href="../depth-scale-hint/index.html" class="sidebar-link">Depth Scale Hint (LiDAR)</a></li>
+<li><a href="index.html" class="sidebar-link active" aria-current="page">Native Health Sync &amp; Export</a></li>
+<li><a href="../live-activity-workout/index.html" class="sidebar-link">Live Activity &amp; Workout Session</a></li>
+</ul></div>
+<div class="sidebar-group"><div class="sidebar-group-title">Developer &amp; Architecture</div><ul class="sidebar-nav-list">
+<li><a href="../../developer/overview/index.html" class="sidebar-link">Developer Overview &amp; Tests</a></li>
+<li><a href="../../developer/architecture/index.html" class="sidebar-link">System Architecture &amp; Wiring</a></li>
+<li><a href="../../developer/data-flow-and-state/index.html" class="sidebar-link">Data Flow &amp; State Lifecycle</a></li>
+<li><a href="../../developer/localization-architecture/index.html" class="sidebar-link">Localization Architecture</a></li>
+<li><a href="../../developer/ios-home-screen-widgets/index.html" class="sidebar-link">Home Screen Widgets</a></li>
+</ul></div>
+        </div>
+      </aside>
+
+      <!-- Center Article Content -->
+      <main class="docs-main" id="main-content">
+        <div class="docs-breadcrumb" aria-label="Breadcrumb">
+          <a href="../../../index.html">Home</a> <span class="bc-sep">/</span> <a href="../../index.html">Docs</a> <span class="bc-sep">/</span> <span>Features &amp; Heuristics</span>
+        </div>
+
+        <article class="docs-article">
+          <h1 class="doc-title">Native Health Sync & Export Pipeline</h1>
+<p>Train Libre integrates directly with native system-level health frameworks: Apple HealthKit on iOS and Google Health Connect on Android. To preserve user privacy, maintain complete data ownership, and avoid cloud dependencies, all communication with platform health stores occurs directly on-device via native method channels.</p>
+<p>The integration operates with clear directional boundaries: - <strong>Inbound Vitals Synchronization</strong>: Passive sensor data (daily step segments, sleep stage sessions, and heart rate samples) are imported into Train Libre's local SQLite database. - <strong>Outbound Health Export</strong>: User-logged wellness activities (body measurements, nutrition and hydration intake, and completed workout sessions) are exported outward to the platform health store using a strictly idempotent tracking architecture.</p>
+<hr class="divider">
+<h2 id="architectural-principles" class="doc-h2">Architectural Principles<a href="#architectural-principles" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>The health synchronization engine operates under three core technical invariants:</p>
+<ol class="doc-list">
+<li><strong>On-Device Authority</strong>: Train Libre's local SQLite database serves as the primary single source of truth (SSOT). While passive vitals are imported from HealthKit or Health Connect to populate activity, sleep, and cardiovascular history, user-authored logs and sessions remain strictly authoritative in Train Libre and are pushed outbound.</li>
+<li><strong>Zero Cloud Intermediaries</strong>: All communication with native health APIs occurs directly through OS-level platform channels and native bindings (<code>trainlibre.health/steps</code>, <code>trainlibre.health/sleep_healthkit</code>, <code>trainlibre.health/export_apple_health</code>, and Android Health Connect clients). No external servers, cloud synchronizers, or third-party telemetry systems handle or store these records.</li>
+<li><strong>Strict Idempotency & Checkpointing</strong>: Repeated synchronization runs must never create duplicate segments or write redundant entries into the platform health database, regardless of sync frequency, background launches, or app interruptions.</li>
+</ol>
+<hr class="divider">
+<h2 id="idempotency-engine" class="doc-h2">Idempotency Engine<a href="#idempotency-engine" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>To guarantee that each record is exported exactly once, the platform implements a hash-based tracking registry.</p>
+<h3 id="sqlite-schema-healthexportrecords" class="doc-h3">SQLite Schema: <code>health_export_records</code><a href="#sqlite-schema-healthexportrecords" class="header-anchor" aria-label="Link to section">#</a></h3>
+<p>Every successfully exported record is registered in a dedicated SQLite table managed via the Drift ORM:</p>
+<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">sql</span><button class="copy-btn" onclick="navigator.clipboard.writeText(this.closest('.code-block-wrapper').querySelector('code').innerText); this.textContent='Copied!'; setTimeout(()=>this.textContent='Copy', 1500);">Copy</button></div><pre><code class="language-sql">CREATE TABLE IF NOT EXISTS health_export_records (
+    local_id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    id TEXT NOT NULL UNIQUE,
+    platform TEXT NOT NULL,
+    domain TEXT NOT NULL,
+    idempotency_key TEXT NOT NULL,
+    exported_at INTEGER NOT NULL,
+    UNIQUE(platform, domain, idempotency_key)
+);</code></pre></div>
+<h4 id="fields-and-logic" class="doc-h4">Fields and Logic<a href="#fields-and-logic" class="header-anchor" aria-label="Link to section">#</a></h4>
+<ul class="doc-list">
+<li><code>id</code>: A unique 128-bit hexadecimal identifier generated deterministically on insertion using the SQLite function <code>lower(hex(randomblob(16)))</code>.</li>
+<li><code>platform</code>: Identifies the target platform (<code>appleHealth</code> or <code>healthConnect</code>).</li>
+<li><code>domain</code>: Categorizes the exported record type into one of three domains: <code>measurements</code>, <code>nutritionHydration</code>, or <code>workouts</code>.</li>
+<li><code>idempotency_key</code>: A unique computed hash corresponding directly to the original record's identity, timestamp, and payload values.</li>
+<li><code>exported_at</code>: A Unix timestamp (seconds since epoch) capturing when the export was registered locally.</li>
+</ul>
+<h3 id="upsert-and-verification-mechanics" class="doc-h3">Upsert and Verification Mechanics<a href="#upsert-and-verification-mechanics" class="header-anchor" aria-label="Link to section">#</a></h3>
+<p>When writing records, the local data source handles conflicts gracefully via SQL upsert. This is executed using the following statement in <code>StepsLocalDataSource.markHealthExported</code>:</p>
+<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">sql</span><button class="copy-btn" onclick="navigator.clipboard.writeText(this.closest('.code-block-wrapper').querySelector('code').innerText); this.textContent='Copied!'; setTimeout(()=>this.textContent='Copy', 1500);">Copy</button></div><pre><code class="language-sql">INSERT INTO health_export_records (id, platform, domain, idempotency_key, exported_at)
+VALUES (lower(hex(randomblob(16))), ?, ?, ?, ?)
+ON CONFLICT(platform, domain, idempotency_key) DO UPDATE SET
+  exported_at = excluded.exported_at;</code></pre></div>
+<p>Before passing payloads to the native adapter, the service queries the database to filter out already-exported items. The verification lookup matches keys in batches using <code>getExportedHealthKeys</code>:</p>
+<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">sql</span><button class="copy-btn" onclick="navigator.clipboard.writeText(this.closest('.code-block-wrapper').querySelector('code').innerText); this.textContent='Copied!'; setTimeout(()=>this.textContent='Copy', 1500);">Copy</button></div><pre><code class="language-sql">SELECT idempotency_key
+FROM health_export_records
+WHERE platform = ?
+  AND domain = ?
+  AND idempotency_key IN (&lt;idempotency_keys_placeholders&gt;);</code></pre></div>
+<p>Only records whose <code>idempotency_key</code> is not returned by this query are forwarded to the native system APIs for writing.</p>
+<hr class="divider">
+<h2 id="step-segment-hourly-merging" class="doc-h2">Step Segment Hourly Merging<a href="#step-segment-hourly-merging" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>Since step logs can be gathered concurrently by different sub-sensors (such as phone accelerometers, smartwatches, or manual inputs), the local database stores them as raw segments inside <code>health_step_segments</code>. When exporting or aggregating these segments for a given calendar day, overlapping data must be resolved.</p>
+<p>Train Libre implements two configurable merging policies inside <code>StepsLocalDataSource.getHourlyStepsTotalsForDay</code>:</p>
+<h3 id="1-auto-dominant-source-policy-autodominant" class="doc-h3">1. Auto-Dominant Source Policy (<code>auto_dominant</code>)<a href="#1-auto-dominant-source-policy-autodominant" class="header-anchor" aria-label="Link to section">#</a></h3>
+<p>The <code>auto_dominant</code> policy is the default behavior. It identifies the single device or sensor that contributed the highest volume of steps for the target day and aggregates data <em>only</em> from that source, ignoring potential overlap from secondary sensors.</p>
+<h4 id="sql-execution-model" class="doc-h4">SQL Execution Model:<a href="#sql-execution-model" class="header-anchor" aria-label="Link to section">#</a></h4>
+<ol class="doc-list">
+<li><strong>Calculate Total Steps per Source</strong>:</li>
+</ol>
+<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">sql</span><button class="copy-btn" onclick="navigator.clipboard.writeText(this.closest('.code-block-wrapper').querySelector('code').innerText); this.textContent='Copied!'; setTimeout(()=>this.textContent='Copy', 1500);">Copy</button></div><pre><code class="language-sql">    WITH source_totals AS (
+      SELECT
+        COALESCE(source_id, &#x27;&#x27;) AS source_key,
+        SUM(step_count) AS source_total
+      FROM health_step_segments
+      WHERE start_at &lt; ? AND end_at &gt;= ?
+      GROUP BY source_key
+    )
+    </code></pre></div>
+<ol class="doc-list">
+<li><strong>Select Dominant Source</strong>:</li>
+</ol>
+<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">sql</span><button class="copy-btn" onclick="navigator.clipboard.writeText(this.closest('.code-block-wrapper').querySelector('code').innerText); this.textContent='Copied!'; setTimeout(()=>this.textContent='Copy', 1500);">Copy</button></div><pre><code class="language-sql">    dominant_source AS (
+      SELECT source_key
+      FROM source_totals
+      ORDER BY source_total DESC, source_key ASC
+      LIMIT 1
+    )
+    </code></pre></div>
+<ol class="doc-list">
+<li><strong>Aggregate Hourly for Dominant Source</strong>:</li>
+</ol>
+<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">sql</span><button class="copy-btn" onclick="navigator.clipboard.writeText(this.closest('.code-block-wrapper').querySelector('code').innerText); this.textContent='Copied!'; setTimeout(()=>this.textContent='Copy', 1500);">Copy</button></div><pre><code class="language-sql">    SELECT
+      CAST(strftime(&#x27;%H&#x27;, datetime(start_at, &#x27;unixepoch&#x27;, &#x27;localtime&#x27;)) AS INTEGER) AS hour_local,
+      SUM(step_count) AS total_steps
+    FROM health_step_segments
+    WHERE start_at &lt; ? AND end_at &gt;= ?
+      AND COALESCE(source_id, &#x27;&#x27;) = (SELECT source_key FROM dominant_source)
+    GROUP BY hour_local
+    ORDER BY hour_local ASC;
+    </code></pre></div>
+<h3 id="2-maximum-hourly-output-policy-maxperhour" class="doc-h3">2. Maximum Hourly Output Policy (<code>max_per_hour</code>)<a href="#2-maximum-hourly-output-policy-maxperhour" class="header-anchor" aria-label="Link to section">#</a></h3>
+<p>The <code>max_per_hour</code> policy is designed for users with multiple active tracking devices. It aggregates and sums steps per hour for each source independently, and then selects the maximum hourly total among all active sources for each hour segment.</p>
+<h4 id="sql-execution-model" class="doc-h4">SQL Execution Model:<a href="#sql-execution-model" class="header-anchor" aria-label="Link to section">#</a></h4>
+<ol class="doc-list">
+<li><strong>Calculate Hourly Sums per Source</strong>:</li>
+</ol>
+<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">sql</span><button class="copy-btn" onclick="navigator.clipboard.writeText(this.closest('.code-block-wrapper').querySelector('code').innerText); this.textContent='Copied!'; setTimeout(()=>this.textContent='Copy', 1500);">Copy</button></div><pre><code class="language-sql">    WITH source_hour AS (
+      SELECT
+        CAST(strftime(&#x27;%H&#x27;, datetime(start_at, &#x27;unixepoch&#x27;, &#x27;localtime&#x27;)) AS INTEGER) AS hour_local,
+        COALESCE(source_id, &#x27;&#x27;) AS source_key,
+        SUM(step_count) AS source_steps
+      FROM health_step_segments
+      WHERE start_at &lt; ? AND end_at &gt;= ?
+      GROUP BY hour_local, source_key
+    )
+    </code></pre></div>
+<ol class="doc-list">
+<li><strong>Select Max Source Volume per Hour</strong>:</li>
+</ol>
+<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">sql</span><button class="copy-btn" onclick="navigator.clipboard.writeText(this.closest('.code-block-wrapper').querySelector('code').innerText); this.textContent='Copied!'; setTimeout(()=>this.textContent='Copy', 1500);">Copy</button></div><pre><code class="language-sql">    SELECT hour_local, MAX(source_steps) AS total_steps
+    FROM source_hour
+    GROUP BY hour_local
+    ORDER BY hour_local ASC;
+    </code></pre></div>
+<hr class="divider">
+<h2 id="export-execution-lifecycle" class="doc-h2">Export Execution Lifecycle<a href="#export-execution-lifecycle" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>The export loop is orchestrated by <code>HealthExportService</code> and involves a highly defensive multi-stage execution pipeline:</p>
+<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">text</span><button class="copy-btn" onclick="navigator.clipboard.writeText(this.closest('.code-block-wrapper').querySelector('code').innerText); this.textContent='Copied!'; setTimeout(()=>this.textContent='Copy', 1500);">Copy</button></div><pre><code>[Request Export] 
+       │
+       ▼
+[Verify Platform Support &amp; Permissions] ──(Not Configured)──► [Abort &amp; Set Disabled]
+       │
+       ▼
+[Load Domain Checkpoints (Checkpoints Map)]
+       │
+       ▼
+[Load Payload for Domain since Checkpoint]
+       │
+       ▼
+[Filter out Already Exported Keys (via SQLite lookup)]
+       │
+       ▼
+[Chunk Pending Records (max 1000 per batch)]
+       │
+       ▼
+[Write Batch via Native OS Adapter]
+       │
+  ┌────┴────────────────────────┐
+  │                             │
+(Success)                    (Failure)
+  │                             │
+  ▼                             ▼
+[Mark Keys Exported in DB]   [Fall Back to Individual Writes]
+                                │
+                                ├─► (Success) ──► [Mark Key Exported in DB]
+                                │
+                                └─► (Failure) ──► [Log Error &amp; Keep Key Pending]</code></pre></div>
+<h3 id="1-platform-validation-permissions" class="doc-h3">1. Platform Validation & Permissions<a href="#1-platform-validation-permissions" class="header-anchor" aria-label="Link to section">#</a></h3>
+<p>Before initiating any transaction, the service queries <code>HealthExportAdapter.getAvailability()</code>. If the platform is not installed or is marked as unavailable, the platform state is set to <code>disabled</code>. The service also checks and requests explicit user permissions before reading or writing any data.</p>
+<h3 id="2-incremental-domain-checkpoints" class="doc-h3">2. Incremental Domain Checkpoints<a href="#2-incremental-domain-checkpoints" class="header-anchor" aria-label="Link to section">#</a></h3>
+<p>To avoid loading the entire database history for every export, <code>HealthExportService</code> reads the platform's historical execution state from <code>SharedPreferences</code>. The system tracks a separate <code>lastSuccessfulExportAtUtc</code> timestamp for each independent domain (<code>measurements</code>, <code>nutritionHydration</code>, <code>workouts</code>). <em>   If a checkpoint exists for a domain, only logs added or updated </em>after<em> that timestamp are retrieved for export. </em>   If a checkpoint is null (e.g., first sync or state reset), a full historical backfill is scheduled <em>only</em> for that specific domain. This ensures that a failure in one domain does not force other healthy domains to re-export their entire histories.</p>
+<h3 id="3-record-batching-chunking" class="doc-h3">3. Record Batching (Chunking)<a href="#3-record-batching-chunking" class="header-anchor" aria-label="Link to section">#</a></h3>
+<p>Native OS APIs impose strict bounds on payload sizes to prevent memory spikes and thread starvation. <code>HealthExportService</code> partitions all outbound arrays into batches of up to <code>1000</code> records (<code>maxWriteBatchSize</code>):</p>
+<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">dart</span><button class="copy-btn" onclick="navigator.clipboard.writeText(this.closest('.code-block-wrapper').querySelector('code').innerText); this.textContent='Copied!'; setTimeout(()=>this.textContent='Copy', 1500);">Copy</button></div><pre><code class="language-dart">List&lt;List&lt;T&gt;&gt; _chunkRecords&lt;T&gt;(List&lt;T&gt; records) {
+  if (records.isEmpty) return &lt;List&lt;T&gt;&gt;[];
+  final chunks = &lt;List&lt;T&gt;&gt;[];
+  for (var i = 0; i &lt; records.length; i += maxWriteBatchSize) {
+    final end = (i + maxWriteBatchSize) &gt; records.length
+        ? records.length
+        : (i + maxWriteBatchSize);
+    chunks.add(records.sublist(i, end));
+  }
+  return chunks;
+}</code></pre></div>
+<h3 id="4-fault-tolerance-individual-fallback" class="doc-h3">4. Fault Tolerance & Individual Fallback<a href="#4-fault-tolerance-individual-fallback" class="header-anchor" aria-label="Link to section">#</a></h3>
+<p>While measurements and workouts are exported in bulk, the <code>nutritionHydration</code> domain employs a defensive fallback mechanism. If a batch write to HealthKit or Health Connect fails, the system does not fail the entire sync. Instead, it enters a granular recovery mode: 1.  <strong>Batch Write Attempt</strong>: The service attempts to write the entire chunk of nutrition or hydration records. 2.  <strong>Fallback Trigger</strong>: If the batch throws an exception, the system catches the error and iterates over every record in that batch individually. 3.  <strong>Individual Writes</strong>: The service invokes the single-record writer method (<code>adapter.writeNutrition</code> or <code>adapter.writeHydration</code>) for each record. 4.  <strong>Partial Completion</strong>: Successful writes are recorded immediately in <code>health_export_records</code>, while failed records are logged individually and skipped. This prevents a single corrupt record (e.g., invalid timestamp or out-of-range value) from blocking the export of remaining healthy data.</p>
+<hr class="divider">
+<h2 id="inbound-vitals-synchronization" class="doc-h2">Inbound Vitals Synchronization<a href="#inbound-vitals-synchronization" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>In addition to outbound export, Train Libre passively imports wellness vitals to provide rich local analytics without manual data entry. Inbound synchronization is coordinated by <code>DiaryHealthSyncCoordinator</code>:</p>
+<h3 id="1-steps-ingestion-stepssyncservice" class="doc-h3">1. Steps Ingestion (<code>StepsSyncService</code>)<a href="#1-steps-ingestion-stepssyncservice" class="header-anchor" aria-label="Link to section">#</a></h3>
+<ul class="doc-list">
+<li>Periodically queries <code>HealthPlatformSteps.readStepSegments</code> for new intervals since the last sync.</li>
+<li>Writes raw segments with source identifiers into <code>health_step_segments</code>.</li>
+<li>Resolves multi-device overlaps using either the <code>auto_dominant</code> or <code>max_per_hour</code> merging policies described above.</li>
+</ul>
+<h3 id="2-sleep-stages-ingestion-sleepsyncservice" class="doc-h3">2. Sleep Stages Ingestion (<code>SleepSyncService</code>)<a href="#2-sleep-stages-ingestion-sleepsyncservice" class="header-anchor" aria-label="Link to section">#</a></h3>
+<ul class="doc-list">
+<li>Uses <code>HealthKitSleepAdapter</code> (iOS) and <code>HealthConnectSleepAdapter</code> (Android) to retrieve recorded sleep intervals and sleep stages (awake, REM, core/light, deep/N3).</li>
+<li>Maps raw platform categories into canonical stages (<code>sleep_canonical_stage_segments</code>) and sessions (<code>sleep_canonical_sessions</code>).</li>
+<li>Serves as the raw biological input to the <a href="../sleep-scoring-engine/index.html">Sleep Health Score Engine</a>.</li>
+</ul>
+<h3 id="3-heart-rate-pulse-tracking-healthpulseanalysisrepository" class="doc-h3">3. Heart Rate & Pulse Tracking (<code>HealthPulseAnalysisRepository</code>)<a href="#3-heart-rate-pulse-tracking-healthpulseanalysisrepository" class="header-anchor" aria-label="Link to section">#</a></h3>
+<ul class="doc-list">
+<li><code>PulseTrackingService</code> manages the user's enablement setting and permission request. <code>HealthPulseAnalysisRepository</code> reads resting and active heart-rate samples via <code>HealthPlatformHeartRate</code> when analysis needs data.</li>
+<li><code>PulseAggregateStore</code> converts those samples into hourly minimum, maximum, and average aggregates in <code>pulse_hourly_aggregates</code> for recovery and cardio trend visualisation.</li>
+</ul>
+        </article>
+
+        <nav class="docs-pager" aria-label="Documentation navigation">
+<a href="../depth-scale-hint/index.html" class="pager-card pager-prev"><span class="pager-label">← Previous</span><span class="pager-title">Depth Scale Hint (LiDAR)</span></a>
+<a href="../live-activity-workout/index.html" class="pager-card pager-next"><span class="pager-label">Next →</span><span class="pager-title">Live Activity &amp; Workout Session</span></a>
+</nav>
+      </main>
+
+      <!-- Right Table of Contents -->
+      <aside class="docs-toc" aria-label="Table of contents"><div class="toc-sticky-box"><div class="toc-heading">On this page</div><ul class="toc-list">
+<li class="toc-item toc-item-l2"><a href="#architectural-principles">Architectural Principles</a></li>
+<li class="toc-item toc-item-l2"><a href="#idempotency-engine">Idempotency Engine</a></li>
+<li class="toc-item toc-item-l3"><a href="#sqlite-schema-healthexportrecords">SQLite Schema: healthexportrecords</a></li>
+<li class="toc-item toc-item-l3"><a href="#upsert-and-verification-mechanics">Upsert and Verification Mechanics</a></li>
+<li class="toc-item toc-item-l2"><a href="#step-segment-hourly-merging">Step Segment Hourly Merging</a></li>
+<li class="toc-item toc-item-l3"><a href="#1-auto-dominant-source-policy-autodominant">1. Auto-Dominant Source Policy (autodominant)</a></li>
+<li class="toc-item toc-item-l3"><a href="#2-maximum-hourly-output-policy-maxperhour">2. Maximum Hourly Output Policy (maxperhour)</a></li>
+<li class="toc-item toc-item-l2"><a href="#export-execution-lifecycle">Export Execution Lifecycle</a></li>
+<li class="toc-item toc-item-l3"><a href="#1-platform-validation-permissions">1. Platform Validation &amp; Permissions</a></li>
+<li class="toc-item toc-item-l3"><a href="#2-incremental-domain-checkpoints">2. Incremental Domain Checkpoints</a></li>
+<li class="toc-item toc-item-l3"><a href="#3-record-batching-chunking">3. Record Batching (Chunking)</a></li>
+<li class="toc-item toc-item-l3"><a href="#4-fault-tolerance-individual-fallback">4. Fault Tolerance &amp; Individual Fallback</a></li>
+<li class="toc-item toc-item-l2"><a href="#inbound-vitals-synchronization">Inbound Vitals Synchronization</a></li>
+<li class="toc-item toc-item-l3"><a href="#1-steps-ingestion-stepssyncservice">1. Steps Ingestion (StepsSyncService)</a></li>
+<li class="toc-item toc-item-l3"><a href="#2-sleep-stages-ingestion-sleepsyncservice">2. Sleep Stages Ingestion (SleepSyncService)</a></li>
+<li class="toc-item toc-item-l3"><a href="#3-heart-rate-pulse-tracking-healthpulseanalysisrepository">3. Heart Rate &amp; Pulse Tracking (HealthPulseAnalysisRepository)</a></li>
+</ul></div></aside>
+    </div>
+
+    <!-- Footer (100% harmonized with main website footer) -->
+    <footer class="site-footer">
+      <div>
+        <a class="brand" href="../../../index.html" aria-label="Train Libre home">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 270.933 270.933" role="img">
+              <path fill="#ddff00"
+                d="M47.621 39.688c-4.385 0-7.939 3.554-7.939 7.939v116.172c0 37.238 30.188 67.472 67.426 67.459l13.482-.006c.15.003.3.005.451.005h89.722c11.367 0 20.518-9.154 20.518-20.525s-9.151-20.525-20.518-20.525h-42.739a7.937 7.937 0 0 1-7.937-7.937v-25.174a7.937 7.937 0 0 1 7.937-7.937l41.159-.001c12.244 0 22.101-9.154 22.1-20.525-.001-11.371-9.859-20.525-22.103-20.525l-41.156.001a7.937 7.937 0 0 1-7.937-7.937V47.627c0-4.385-3.555-7.939-7.939-7.939z" />
+            </svg>
+          </span>
+          <span>Train Libre</span>
+        </a>
+        <p class="fine-print">Fitness, nutrition, recovery, and pulse features are non-clinical heuristics for healthy individuals tracking performance, not medical advice. They do not apply to medical conditions (such as eating or sleep disorders).</p>
+      </div>
+      <div class="footer-links">
+        <a href="../../index.html">Documentation</a>
+        <a href="../../../privacy.html">Privacy Policy</a>
+        <a href="../../../terms.html">Terms of Service</a>
+        <a href="../../../impressum.html">Imprint</a>
+        <a href="../../../support.html">Support</a>
+        <a href="https://github.com/rfivesix/train-libre" data-link="github" target="_blank" rel="noreferrer">GitHub</a>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Documentation Interactions Script -->
+  <script>
+    // Theme toggle interaction
+    const themeBtn = document.getElementById("theme-toggle");
+    if (themeBtn) {
+      themeBtn.addEventListener("click", () => {
+        const current = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
+        document.documentElement.setAttribute("data-theme", current);
+        localStorage.setItem("theme", current);
+        if (typeof mermaid !== "undefined") {
+          const mNodes = document.querySelectorAll(".mermaid");
+          if (mNodes.length > 0) {
+            mNodes.forEach(node => {
+              if (node.hasAttribute("data-mermaid")) {
+                node.removeAttribute("data-processed");
+                node.innerHTML = node.getAttribute("data-mermaid");
+              }
+            });
+            mermaid.initialize({
+              startOnLoad: false,
+              theme: current === "light" ? "default" : "dark"
+            });
+            mermaid.run();
+          }
+        }
+      });
+    }
+
+    // Mobile sidebar toggle
+    const sidebarToggle = document.getElementById("sidebar-toggle");
+    const sidebar = document.getElementById("docs-sidebar");
+    if (sidebarToggle && sidebar) {
+      sidebarToggle.addEventListener("click", () => {
+        const expanded = sidebar.classList.toggle("open");
+        sidebarToggle.setAttribute("aria-expanded", expanded);
+      });
+
+      document.addEventListener("click", (e) => {
+        if (sidebar.classList.contains("open") && !sidebar.contains(e.target) && !sidebarToggle.contains(e.target)) {
+          sidebar.classList.remove("open");
+          sidebarToggle.setAttribute("aria-expanded", "false");
+        }
+      });
+    }
+
+    // Sidebar filter/search
+    const filterInput = document.getElementById("sidebar-filter");
+    if (filterInput) {
+      filterInput.addEventListener("input", (e) => {
+        const val = e.target.value.toLowerCase().trim();
+        document.querySelectorAll(".sidebar-nav-list li").forEach(li => {
+          const text = li.textContent.toLowerCase();
+          li.style.display = text.includes(val) ? "" : "none";
+        });
+        document.querySelectorAll(".sidebar-group").forEach(group => {
+          const hasVisible = Array.from(group.querySelectorAll("li")).some(li => li.style.display !== "none");
+          group.style.display = hasVisible ? "" : "none";
+        });
+      });
+    }
+
+    // Scroll-spy for Table of Contents
+    const tocItems = document.querySelectorAll(".toc-list a");
+    if (tocItems.length > 0) {
+      const headingElements = Array.from(tocItems).map(a => {
+        const id = a.getAttribute("href").substring(1);
+        return document.getElementById(id);
+      }).filter(Boolean);
+
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const id = entry.target.getAttribute("id");
+            tocItems.forEach(a => {
+              if (a.getAttribute("href") === "#" + id) {
+                a.classList.add("active");
+              } else {
+                a.classList.remove("active");
+              }
+            });
+          }
+        });
+      }, { rootMargin: "0px 0px -70% 0px", threshold: 0.1 });
+
+      headingElements.forEach(h => observer.observe(h));
+    }
+  </script>
+</body>
+</html>

@@ -68,11 +68,14 @@ class Exercise {
   /// e1RM curve runs exactly backwards and nothing looks wrong.
   final String? loadMode;
 
+  /// The load-bearing implement, e.g. 'barbell', 'dumbbell', 'cable', 'machine'.
+  final String? primaryEquipment;
+
   /// Whether a belt or a dumbbell between the feet is a real option here.
   final bool supportsAddedWeight;
 
-  /// `compound` | `isolation`. Null for pre-v2 rows and user-created
-  /// exercises, and for the 32 catalog rows that carry no classification.
+  /// `compound` | `isolation`. Null for pre-v2 rows and for exercises where
+  /// neither the catalog nor the person creating it specified a classification.
   final String? mechanic;
 
   /// `bilateral` | `unilateral` | `alternating`.
@@ -93,8 +96,9 @@ class Exercise {
 
   /// `beginner` | `intermediate` | `advanced`.
   ///
-  /// The catalog's own judgement, not the user's — which is why nothing in the
-  /// app filters or hides on it by default.
+  /// A descriptive difficulty selected by the catalog or by the person
+  /// creating an exercise. Nothing in the app filters or hides on it by
+  /// default.
   final String? difficulty;
 
   /// Whether this exercise is categorized as Cardio.
@@ -205,6 +209,7 @@ class Exercise {
     this.secondaryMuscleIds = const [],
     this.trackingType,
     this.loadMode,
+    this.primaryEquipment,
     this.supportsAddedWeight = false,
     this.mechanic,
     this.laterality,
@@ -232,6 +237,7 @@ class Exercise {
     this.secondaryMuscleIds = const [],
     this.trackingType,
     this.loadMode,
+    this.primaryEquipment,
     this.supportsAddedWeight = false,
     this.mechanic,
     this.laterality,
@@ -371,6 +377,7 @@ class Exercise {
     List<String>? secondaryMuscleIds,
     String? trackingType,
     String? loadMode,
+    String? primaryEquipment,
     bool? supportsAddedWeight,
     String? mechanic,
     String? laterality,
@@ -392,6 +399,7 @@ class Exercise {
       secondaryMuscleIds: secondaryMuscleIds ?? this.secondaryMuscleIds,
       trackingType: trackingType ?? this.trackingType,
       loadMode: loadMode ?? this.loadMode,
+      primaryEquipment: primaryEquipment ?? this.primaryEquipment,
       supportsAddedWeight: supportsAddedWeight ?? this.supportsAddedWeight,
       mechanic: mechanic ?? this.mechanic,
       laterality: laterality ?? this.laterality,
@@ -422,6 +430,7 @@ class Exercise {
       secondaryMuscleIds: List.from(original.secondaryMuscleIds),
       trackingType: original.trackingType,
       loadMode: original.loadMode,
+      primaryEquipment: original.primaryEquipment,
       supportsAddedWeight: original.supportsAddedWeight,
       mechanic: original.mechanic,
       laterality: original.laterality,

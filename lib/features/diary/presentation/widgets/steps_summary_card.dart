@@ -14,10 +14,13 @@ import '../diary_view_model.dart';
 class StepsSummaryCard extends StatelessWidget {
   const StepsSummaryCard({super.key});
 
+  // Distinct from the hydration blue. Its luminance keeps both black and white
+  // label text comfortably legible across the app's light and dark themes.
+  static const _stepsProgressColor = Color(0xFF008295);
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final theme = Theme.of(context);
 
     return Selector<
         DiaryViewModel,
@@ -33,7 +36,7 @@ class StepsSummaryCard extends StatelessWidget {
         stepsForSelectedDay: vm.stepsForSelectedDay,
         targetSteps: vm.targetSteps,
         selectedDate: vm.selectedDate,
-        showSkeleton: !vm.hasDataForSelectedDate,
+        showSkeleton: !vm.hasDataForSelectedDate && !vm.isSelectedDateToday,
       ),
       builder: (context, data, child) {
         final showSkeleton = data.showSkeleton;
@@ -90,7 +93,7 @@ class StepsSummaryCard extends StatelessWidget {
                         unit: 'steps',
                         value: (data.stepsForSelectedDay ?? 0).toDouble(),
                         target: target,
-                        color: theme.colorScheme.primary,
+                        color: _stepsProgressColor,
                         height: 54,
                         borderRadius: DesignConstants.borderRadiusL,
                       );

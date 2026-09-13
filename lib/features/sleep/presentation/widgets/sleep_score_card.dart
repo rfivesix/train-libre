@@ -56,7 +56,7 @@ class SleepScoreCard extends StatelessWidget {
                 markdownAssetPath:
                     'documentation/features/sleep_scoring_engine.md',
                 citationUrl:
-                    'https://rfivesix.github.io/train-libre/sleep-score/#evidence',
+                    'https://trainlibre.com/docs/features/sleep-scoring-engine/#evidence',
               ),
             ],
           ),

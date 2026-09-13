@@ -106,10 +106,12 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
               secondary: fromCatalog!.secondary
                   .difference(primary)
                   .toList(growable: false),
+              movementPattern: exerciseRow.movementPattern,
             )
           : _profileFromLegacy(
               legacyGroups(exerciseRow.musclesPrimary),
               legacyGroups(exerciseRow.musclesSecondary),
+              movementPattern: exerciseRow.movementPattern,
             );
     }
 
@@ -147,11 +149,13 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
 
   static _ExerciseMuscleProfile _profileFromLegacy(
     Set<String> primary,
-    Set<String> secondary,
-  ) {
+    Set<String> secondary, {
+    String? movementPattern,
+  }) {
     return _ExerciseMuscleProfile(
       primary: primary.toList(growable: false),
       secondary: secondary.difference(primary).toList(growable: false),
+      movementPattern: movementPattern,
     );
   }
 
@@ -841,6 +845,7 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
             'exerciseName': e.name,
             'weight': e.load,
             'reps': e.reps,
+            'achievedAt': e.achievedAt,
           },
         )
         .toList();
@@ -976,7 +981,7 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
     ])
       ..where(
         dbInstance.setLogs.isCompleted.equals(true) &
-            dbInstance.setLogs.setType.isNotIn(['warmup']) &
+            dbInstance.setLogs.setType.isIn(['normal', 'failure']) &
             // A body-weight set has no weight to be greater than zero. Which
             // sets carry load is decided when the tonnage is computed, not by
             // a predicate that cannot see the exercise.
@@ -1001,6 +1006,16 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
         exerciseRow: exRow,
         exerciseNameSnapshot: setRow.exerciseNameSnapshot,
       );
+      if (!WorkoutClassification.countsTowardsMuscleLoad(
+        modality: exRow?.modality,
+        setType: setRow.setType,
+        categoryName: exRow?.categoryName,
+        exerciseNameSnapshot: setRow.exerciseNameSnapshot,
+        reps: setRow.reps ?? 0,
+        durationSeconds: setRow.durationSeconds ?? 0,
+      )) {
+        continue;
+      }
 
       final tonnage =
           _rowTonnage(dbInstance, row, bodyweights, logRow.startTime);
@@ -1026,7 +1041,8 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
           (a, b) => (b['tonnage'] as double).compareTo(a['tonnage'] as double));
   }
 
-  /// Equivalent hard-set analytics for muscle groups.
+  /// Descriptive working-set coverage for primary muscle groups and movement
+  /// patterns. A coverage set is completed normal or failure strength work.
   Future<Map<String, dynamic>> getMuscleGroupAnalytics({
     int daysBack = 30,
     int weeksBack = 8,
@@ -1051,7 +1067,7 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
     ])
       ..where(
         dbInstance.setLogs.isCompleted.equals(true) &
-            dbInstance.setLogs.setType.isNotIn(['warmup']) &
+            dbInstance.setLogs.setType.isIn(['normal', 'failure']) &
             // Was `weight > 0 AND reps > 0`. That held only as long as every
             // exercise was logged with weight and reps; once tracking_type
             // drives the mask, 253 bodyweight exercises have no weight field
@@ -1085,7 +1101,7 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
         // Already resolved to tracked groups by _loadExerciseMuscleLookup, so
         // the isolate does not need the catalog vocabulary shipped to it.
         musclesPrimary: jsonEncode(profile?.primary ?? const <String>[]),
-        musclesSecondary: jsonEncode(profile?.secondary ?? const <String>[]),
+        movementPattern: profile?.movementPattern ?? exRow?.movementPattern,
         modality: exRow?.modality,
         categoryName: exRow?.categoryName,
         setType: setRow.setType,
@@ -1120,7 +1136,8 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
   static Map<String, dynamic> _processMuscleGroupAnalyticsInBackground(
     MuscleAnalyticsBackgroundTaskParams params,
   ) {
-    final contributions = <Map<String, dynamic>>[];
+    final muscleContributions = <Map<String, dynamic>>[];
+    final movementPatternSets = <String, double>{};
 
     for (final row in params.rows) {
       // Volume had no such filter at all until now. With v2 that stops being
@@ -1143,35 +1160,41 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
           row.musclesPrimary,
         ).map((m) => m.trim()).where((m) => m.isNotEmpty),
       };
-      final secondary = <String>{
-        ...WorkoutLocalDataSource._parseMuscleList(
-          row.musclesSecondary,
-        ).map((m) => m.trim()).where((m) => m.isNotEmpty),
-      }..removeAll(primary);
-
       for (final group in primary) {
-        contributions.add({
+        muscleContributions.add({
           'day': row.startTime,
           'muscleGroup': group,
           'equivalentSets': 1.0,
         });
       }
 
-      for (final group in secondary) {
-        contributions.add({
-          'day': row.startTime,
-          'muscleGroup': group,
-          'equivalentSets': 0.3,
-        });
+      final pattern = (row.movementPattern ?? '').trim();
+      if (pattern.isNotEmpty) {
+        movementPatternSets[pattern] =
+            (movementPatternSets[pattern] ?? 0) + 1.0;
       }
     } // end for (final row in params.rows)
 
-    return MuscleAnalyticsUtils.buildSummary(
-      contributions: contributions,
+    final result = MuscleAnalyticsUtils.buildSummary(
+      contributions: muscleContributions,
       daysBack: params.daysBack,
       weeksBack: params.weeksBack,
       now: params.now,
     );
+    final movementPatterns = movementPatternSets.entries
+        .map(
+          (entry) => <String, dynamic>{
+            'movementPattern': entry.key,
+            'setCount': entry.value,
+          },
+        )
+        .toList()
+      ..sort(
+        (a, b) => ((b['setCount'] as num).toDouble()).compareTo(
+          (a['setCount'] as num).toDouble(),
+        ),
+      );
+    return {...result, 'movementPatterns': movementPatterns};
   }
 
   /// Recovery analytics based on shared v1 heuristics.
@@ -2024,6 +2047,7 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
   Future<List<Map<String, dynamic>>> getNotablePrImprovements({
     int daysWindow = 30,
     int limit = 5,
+    bool sortByRecentDate = false,
   }) async {
     final stopwatch = Stopwatch()..start();
     final now = DateTime.now();
@@ -2088,6 +2112,7 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
 
     final Map<String, double> previousBest = {};
     final Map<String, double> recentBest = {};
+    final Map<String, DateTime> recentBestAchievedAt = {};
 
     for (final r in rows) {
       final setRow = r.readTable(dbInstance.setLogs);
@@ -2118,7 +2143,15 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
 
       final isRecent = !logRow.startTime.isBefore(recentStart);
       if (isRecent) {
-        if (value > (recentBest[name] ?? 0.0)) recentBest[name] = value;
+        final currentBest = recentBest[name] ?? 0.0;
+        final currentBestAt = recentBestAchievedAt[name];
+        if (value > currentBest ||
+            (value == currentBest &&
+                (currentBestAt == null ||
+                    logRow.startTime.isAfter(currentBestAt)))) {
+          recentBest[name] = value;
+          recentBestAchievedAt[name] = logRow.startTime;
+        }
       } else {
         if (value > (previousBest[name] ?? 0.0)) previousBest[name] = value;
       }
@@ -2137,13 +2170,18 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
         'previousBestE1rm': previous,
         'recentBestE1rm': recent,
         'improvementPct': improvementPct,
+        'achievedAt': recentBestAchievedAt[name],
       });
     }
 
     result.sort(
-      (a, b) => (b['improvementPct'] as double).compareTo(
-        a['improvementPct'] as double,
-      ),
+      sortByRecentDate
+          ? (a, b) => (b['achievedAt'] as DateTime).compareTo(
+                a['achievedAt'] as DateTime,
+              )
+          : (a, b) => (b['improvementPct'] as double).compareTo(
+                a['improvementPct'] as double,
+              ),
     );
     final limited = result.take(limit).toList();
     PerfDebugTimer.logDuration(
@@ -2196,9 +2234,11 @@ class _ExerciseMuscleLookup {
 class _ExerciseMuscleProfile {
   final List<String> primary;
   final List<String> secondary;
+  final String? movementPattern;
 
   const _ExerciseMuscleProfile({
     required this.primary,
     required this.secondary,
+    this.movementPattern,
   });
 }

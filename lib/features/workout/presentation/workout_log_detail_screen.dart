@@ -46,6 +46,8 @@ import 'widgets/reorder_drag_proxy.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../util/time_util.dart';
 import '../../../widgets/common/app_button.dart';
+import '../../../widgets/common/platform_adaptive_pickers.dart'
+    as adaptive_pickers;
 import '../../../services/telemetry/telemetry_service.dart';
 
 /// A detailed view for a single completed [WorkoutLog].
@@ -195,6 +197,7 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
 
   bool _pulseTrackingEnabled = false;
   DateTime? _editedStartTime;
+  Duration? _editedDuration;
   static const ShareService _shareService = ShareService();
 
   StreamSubscription<List<SetLog>>? _setLogsSubscription;
@@ -473,6 +476,7 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
 
     _notesController.text = data.notes ?? '';
     _editedStartTime = data.startTime;
+    _editedDuration = data.endTime?.difference(data.startTime);
 
     // Populate controllers
     _clearControllers();
@@ -780,6 +784,62 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
     });
   }
 
+  Future<void> _pickDuration() async {
+    final initialDuration = _editedDuration ?? Duration.zero;
+    final selected = await adaptive_pickers.showAdaptiveDurationPicker(
+      context: context,
+      initialDuration: initialDuration,
+      title: AppLocalizations.of(context)!.durationLabel,
+    );
+    if (selected == null || !mounted) return;
+
+    setState(() => _editedDuration = selected);
+  }
+
+  Widget _buildEditableMetadataField({
+    required IconData icon,
+    required String value,
+    required String semanticLabel,
+    required VoidCallback onTap,
+  }) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    return Semantics(
+      button: true,
+      label: semanticLabel,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              vertical: DesignConstants.spacingXS,
+            ),
+            child: Row(
+              children: [
+                Icon(icon, size: 18, color: colorScheme.primary),
+                const SizedBox(width: DesignConstants.spacingS),
+                Expanded(
+                  child: Text(
+                    value,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                Icon(
+                  LucideIcons.chevron_right,
+                  size: 18,
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   Future<void> _saveChanges() async {
     FocusScope.of(context).unfocus();
     if (_formKey.currentState != null && !_formKey.currentState!.validate()) {
@@ -864,6 +924,7 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
           widget.logId,
           _editedStartTime!,
           _notesController.text,
+          duration: _editedDuration,
         );
         if (idsToDelete.isNotEmpty) await dbHelper.deleteSetLogs(idsToDelete);
         if (setsToUpdate.isNotEmpty) await dbHelper.updateSetLogs(setsToUpdate);
@@ -1078,8 +1139,9 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
         totalVolume += (set.weightKg ?? 0) * (set.reps ?? 0);
       }
     }
-    final Duration duration =
-        _log?.endTime?.difference(_log!.startTime) ?? Duration.zero;
+    final Duration duration = _isEditMode
+        ? (_editedDuration ?? Duration.zero)
+        : (_log?.endTime?.difference(_log!.startTime) ?? Duration.zero);
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -1170,27 +1232,43 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                                           ),
                                         ),
                                       ),
-                                      if (_isEditMode)
-                                        IconButton(
-                                          tooltip: l10n.selectDateTitle,
-                                          icon: Icon(
-                                            LucideIcons.calendar,
-                                            size: 20,
-                                            color: colorScheme.primary,
-                                          ),
-                                          onPressed: _pickDateTime,
-                                        ),
                                     ],
                                   ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    DateFormat.yMMMMd(locale).add_Hm().format(
-                                          _editedStartTime ?? _log!.startTime,
-                                        ),
-                                    style: textTheme.bodyMedium?.copyWith(
-                                      color: colorScheme.onSurfaceVariant,
-                                    ),
+                                  const SizedBox(
+                                    height: DesignConstants.spacingS,
                                   ),
+                                  if (_isEditMode) ...[
+                                    _buildEditableMetadataField(
+                                      icon: LucideIcons.calendar,
+                                      value: DateFormat.yMMMMd(locale)
+                                          .add_Hm()
+                                          .format(
+                                            _editedStartTime ?? _log!.startTime,
+                                          ),
+                                      semanticLabel: l10n.selectDateTitle,
+                                      onTap: _pickDateTime,
+                                    ),
+                                    if (_log!.endTime != null) ...[
+                                      const SizedBox(
+                                        height: DesignConstants.spacingXS,
+                                      ),
+                                      _buildEditableMetadataField(
+                                        icon: LucideIcons.timer,
+                                        value:
+                                            '${l10n.durationLabel}: ${formatDuration(duration)}',
+                                        semanticLabel: l10n.durationLabel,
+                                        onTap: _pickDuration,
+                                      ),
+                                    ],
+                                  ] else
+                                    Text(
+                                      DateFormat.yMMMMd(locale)
+                                          .add_Hm()
+                                          .format(_log!.startTime),
+                                      style: textTheme.bodyMedium?.copyWith(
+                                        color: colorScheme.onSurfaceVariant,
+                                      ),
+                                    ),
                                   if (_isEditMode) ...[
                                     const SizedBox(
                                         height: DesignConstants.spacingM),
@@ -1328,7 +1406,7 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                                   technicalExplanation:
                                       "The Epley equation estimates one-repetition maximum (1RM) as 1RM = w * (1 + r/30) which simplifies to w * (36 / (37 - r)) for r <= 10. Research suggests this linear approximation is reliable for low repetitions (2-10 reps) in healthy active individuals, but tends to overestimate capacity beyond 10 repetitions.",
                                   citationUrl:
-                                      "https://rfivesix.github.io/train-libre/intelligent-workouts/#evidence",
+                                      "https://trainlibre.com/docs/features/intelligent-workouts/#evidence",
                                 ),
                               ),
                             ),

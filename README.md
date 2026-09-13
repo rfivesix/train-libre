@@ -151,6 +151,7 @@ This project features a comprehensive, modular documentation suite split by targ
 *   [Architecture & SQLite Lifecycle](documentation/developer/architecture.md): Clean Architecture layering and database connection lifecycle pattern.
 *   [Data Flow & State Lifecycle](documentation/developer/data_flow_and_state.md): Reactive reads, imperative writes, subscription cancellation, and UI concurrency guards.
 *   [Localization Architecture](documentation/developer/localization_architecture.md): Offline-first relational localization and the guide for adding a new locale.
+*   [iOS Home Screen Widgets](documentation/developer/ios_home_screen_widgets.md): The widget family, their configuration, data flow, and implementation notes.
 
 ### Advanced Features & Algorithmic Transparency
 *   [Smart Features Overview](documentation/features/overview.md): Overview of algorithmic features and architectural privacy invariants.
@@ -163,7 +164,6 @@ This project features a comprehensive, modular documentation suite split by targ
 *   [Muscle Recovery & Fatigue Model](documentation/features/muscle_recovery_model.md): Volume-based recovery windows and intensity-driven fatigue extension per muscle.
 *   [Estimated 1-Rep Max Heuristic](documentation/features/intelligent_workouts.md): The Epley-based submaximal strength model behind PRs and progression.
 *   [Live Activity & Workout Session](documentation/features/live_activity_workout.md): The iOS Live Activity and Dynamic Island surface for a running workout.
-*   [iOS Home Screen Widgets](documentation/features/ios_home_screen_widgets.md): The widget family, their configuration, and the data they read.
 *   [Telemetry & Privacy Architecture](TELEMETRY.md): The complete opt-in telemetry event catalog and the anti-profiling safeguards around it.
 
 For the full interlinked documentation map, see the main [Documentation Entry Point](documentation/README.md).

@@ -1,6 +1,178 @@
 part of '../workout_local_data_source.dart';
 
 extension WorkoutLoggingQueries on WorkoutLocalDataSource {
+  db.SetLogsCompanion _setLogCompanion(SetLog set) => db.SetLogsCompanion(
+        progressionData: drift.Value(set.progressionData),
+        prescriptionOrigin: drift.Value(set.prescriptionOrigin),
+        prescribedWeight: drift.Value(set.prescribedWeight),
+        prescribedRepMin: drift.Value(set.prescribedRepMin),
+        prescribedRepMax: drift.Value(set.prescribedRepMax),
+        prescribedRir: drift.Value(set.prescribedRir),
+        progressionReason: drift.Value(set.progressionReason),
+        progressionAlgorithmVersion:
+            drift.Value(set.progressionAlgorithmVersion),
+        substitutedForExerciseId: drift.Value(set.substitutedForExerciseId),
+        weight: drift.Value(set.weightKg),
+        reps: drift.Value(set.reps),
+        isCompleted: drift.Value(set.isCompleted ?? false),
+        notes: drift.Value(set.notes),
+        rir: drift.Value(set.rir),
+        setType: drift.Value(set.setType),
+        logOrder: drift.Value(set.logOrder ?? 0),
+        exerciseBlock: drift.Value(set.exerciseBlock),
+        supersetGroup: drift.Value(set.supersetGroup),
+        distance: drift.Value(set.distanceKm),
+        durationSeconds: drift.Value(set.durationSeconds),
+        restTimeSeconds: drift.Value(set.restTimeSeconds),
+        valuesAutoFilled: drift.Value(set.valuesAutoFilled),
+        prescriptionOverridden: drift.Value(set.prescriptionOverridden),
+      );
+
+  Future<void> _incrementExerciseUsageCounts(
+    db.AppDatabase dbInstance,
+    int workoutLogId,
+  ) async {
+    try {
+      final logRow = await (dbInstance.select(dbInstance.workoutLogs)
+            ..where((table) => table.localId.equals(workoutLogId)))
+          .getSingle();
+
+      final setLogsQuery =
+          dbInstance.selectOnly(dbInstance.setLogs, distinct: true)
+            ..addColumns([dbInstance.setLogs.exerciseId])
+            ..where(dbInstance.setLogs.workoutLogId.equals(logRow.id))
+            ..where(dbInstance.setLogs.exerciseId.isNotNull());
+
+      final exerciseIds = (await setLogsQuery.get())
+          .map((row) => row.read(dbInstance.setLogs.exerciseId))
+          .whereType<String>()
+          .toList();
+
+      if (exerciseIds.isNotEmpty) {
+        await dbInstance.customUpdate(
+          'UPDATE exercises SET usage_count = usage_count + 1 WHERE id IN (${exerciseIds.map((_) => '?').join(',')})',
+          variables:
+              exerciseIds.map((id) => drift.Variable.withString(id)).toList(),
+          updates: {dbInstance.exercises},
+        );
+      }
+    } catch (_) {
+      // Usage counts are informational and must never prevent a workout from
+      // being saved. The finalization transaction still commits its workout
+      // and set data if this optional update is unavailable.
+    }
+  }
+
+  /// Commits a workout's final state as one transaction. The old sequence
+  /// deleted open rows, updated completed rows and only then completed the
+  /// workout record. An interrupted write in that gap could make an entire
+  /// exercise disappear. This method either writes and verifies every retained
+  /// row together, or rolls the whole operation back.
+  Future<List<SetLog>> finalizeWorkout({
+    required int workoutLogId,
+    required List<SetLog> sets,
+    required List<int> discardSetIds,
+    String? title,
+    String? notes,
+  }) async {
+    final dbInstance = await database;
+    final retainedIds = sets
+        .where((set) => set.id != null && !discardSetIds.contains(set.id))
+        .map((set) => set.id!)
+        .toSet();
+
+    await dbInstance.transaction(() async {
+      final workout = await (dbInstance.select(dbInstance.workoutLogs)
+            ..where((table) => table.localId.equals(workoutLogId)))
+          .getSingleOrNull();
+      if (workout == null) {
+        throw StateError('Cannot finalize missing workout $workoutLogId');
+      }
+      if (workout.status != 'ongoing') {
+        throw StateError('Workout $workoutLogId is no longer ongoing');
+      }
+
+      for (final set in sets) {
+        if (set.id == null || discardSetIds.contains(set.id)) continue;
+        final updated = await (dbInstance.update(dbInstance.setLogs)
+              ..where((table) => table.localId.equals(set.id!)))
+            .write(_setLogCompanion(set));
+        if (updated != 1) {
+          throw StateError('Cannot persist set ${set.id} while finalizing');
+        }
+      }
+
+      if (discardSetIds.isNotEmpty) {
+        await (dbInstance.delete(dbInstance.setLogs)
+              ..where((table) => table.localId.isIn(discardSetIds)))
+            .go();
+      }
+
+      final persistedRows = await (dbInstance.select(dbInstance.setLogs)
+            ..where((table) => table.workoutLogId.equals(workout.id)))
+          .get();
+      final persistedIds = persistedRows.map((row) => row.localId).toSet();
+      if (!persistedIds.containsAll(retainedIds) ||
+          persistedIds.any(discardSetIds.contains)) {
+        throw StateError('Workout set verification failed before completion');
+      }
+
+      final completed = await (dbInstance.update(dbInstance.workoutLogs)
+            ..where((table) => table.localId.equals(workoutLogId)))
+          .write(db.WorkoutLogsCompanion(
+        endTime: drift.Value(DateTime.now()),
+        status: const drift.Value('completed'),
+        routineNameSnapshot:
+            title != null ? drift.Value(title) : const drift.Value.absent(),
+        notes: notes != null ? drift.Value(notes) : const drift.Value.absent(),
+      ));
+      if (completed != 1) {
+        throw StateError('Cannot mark workout $workoutLogId as completed');
+      }
+
+      await _incrementExerciseUsageCounts(dbInstance, workoutLogId);
+    });
+
+    // Read through the normal mapping after the transaction. If this fails,
+    // callers still retain a completed database record rather than having
+    // cleared the only in-memory copy first.
+    final persisted = await getSetLogsForWorkout(workoutLogId);
+    final persistedIds =
+        persisted.map((set) => set.id).whereType<int>().toSet();
+    if (!persistedIds.containsAll(retainedIds)) {
+      throw StateError('Workout verification failed after completion');
+    }
+    return persisted;
+  }
+
+  Future<List<SetLog>> getProgressionHistory({
+    required String exerciseId,
+    required String exerciseNameSnapshot,
+  }) async {
+    final d = await database;
+    final rows = await (d.select(d.setLogs).join([
+      drift.innerJoin(
+          d.workoutLogs, d.workoutLogs.id.equalsExp(d.setLogs.workoutLogId)),
+    ])
+          ..where((d.setLogs.exerciseId.equals(exerciseId) |
+                  (d.setLogs.exerciseId.isNull() &
+                      d.setLogs.exerciseNameSnapshot
+                          .equals(exerciseNameSnapshot))) &
+              d.workoutLogs.status.equals('completed'))
+          ..orderBy([
+            drift.OrderingTerm.desc(d.workoutLogs.startTime),
+            drift.OrderingTerm.asc(d.setLogs.logOrder),
+            drift.OrderingTerm.asc(d.setLogs.localId)
+          ]))
+        .get();
+    return rows.map((r) {
+      final set = r.readTable(d.setLogs);
+      final workout = r.readTable(d.workoutLogs);
+      return _mapSetLogToModel(set, workout.localId)
+          .copyWith(performedAt: workout.startTime);
+    }).toList();
+  }
+
   /// Creates a new [WorkoutLog] and marks it as "ongoing".
   Future<WorkoutLog> startWorkout({String? routineName}) async {
     final dbInstance = await database;
@@ -55,34 +227,7 @@ extension WorkoutLoggingQueries on WorkoutLocalDataSource {
       ),
     );
 
-    // Increment usageCount for exercises used in this workout
-    try {
-      final logRow = await (dbInstance.select(dbInstance.workoutLogs)
-            ..where((t) => t.localId.equals(workoutLogId)))
-          .getSingle();
-
-      final setLogsQuery =
-          dbInstance.selectOnly(dbInstance.setLogs, distinct: true)
-            ..addColumns([dbInstance.setLogs.exerciseId])
-            ..where(dbInstance.setLogs.workoutLogId.equals(logRow.id))
-            ..where(dbInstance.setLogs.exerciseId.isNotNull());
-
-      final exerciseIds = (await setLogsQuery.get())
-          .map((r) => r.read(dbInstance.setLogs.exerciseId))
-          .whereType<String>()
-          .toList();
-
-      if (exerciseIds.isNotEmpty) {
-        await dbInstance.customUpdate(
-          'UPDATE exercises SET usage_count = usage_count + 1 WHERE id IN (${exerciseIds.map((_) => '?').join(',')})',
-          variables:
-              exerciseIds.map((id) => drift.Variable.withString(id)).toList(),
-          updates: {dbInstance.exercises},
-        );
-      }
-    } catch (e) {
-      // Non-critical: don't fail finishWorkout if usageCount update fails
-    }
+    await _incrementExerciseUsageCounts(dbInstance, workoutLogId);
   }
 
   Future<int> insertSetLog(SetLog setLog) async {
@@ -99,9 +244,11 @@ extension WorkoutLoggingQueries on WorkoutLocalDataSource {
     }
 
     // Search for exercise UUID
-    String? exerciseUuid;
-    final exercise = await getExerciseByName(setLog.exerciseName);
-    exerciseUuid = exercise?.uuid;
+    String? exerciseUuid = setLog.exerciseId;
+    if (exerciseUuid == null || exerciseUuid.isEmpty) {
+      final exercise = await getExerciseByName(setLog.exerciseName);
+      exerciseUuid = exercise?.uuid;
+    }
 
     // Keep existing exercise linkage on updates when name-based lookup fails.
     if (setLog.id != null && (exerciseUuid == null || exerciseUuid.isEmpty)) {
@@ -129,6 +276,18 @@ extension WorkoutLoggingQueries on WorkoutLocalDataSource {
       durationSeconds: drift.Value(setLog.durationSeconds),
       rpe: drift.Value(setLog.rpe),
       rir: drift.Value(setLog.rir), // Direct int now, perfect.
+      prescriptionOrigin: drift.Value(setLog.prescriptionOrigin),
+      prescribedRepMin: drift.Value(setLog.prescribedRepMin),
+      prescribedRepMax: drift.Value(setLog.prescribedRepMax),
+      prescribedWeight: drift.Value(setLog.prescribedWeight),
+      prescribedRir: drift.Value(setLog.prescribedRir),
+      prescriptionOverridden: drift.Value(setLog.prescriptionOverridden),
+      valuesAutoFilled: drift.Value(setLog.valuesAutoFilled),
+      substitutedForExerciseId: drift.Value(setLog.substitutedForExerciseId),
+      progressionData: drift.Value(setLog.progressionData),
+      progressionReason: drift.Value(setLog.progressionReason),
+      progressionAlgorithmVersion:
+          drift.Value(setLog.progressionAlgorithmVersion),
     );
 
     if (setLog.id != null && setLog.id! > 0) {
@@ -151,9 +310,7 @@ extension WorkoutLoggingQueries on WorkoutLocalDataSource {
             variables: [drift.Variable.withString(exerciseUuid)],
             updates: {dbInstance.exercises},
           );
-        } catch (_) {
-          // Non-critical
-        }
+        } catch (_) {}
       }
 
       return row.localId;
@@ -192,6 +349,16 @@ extension WorkoutLoggingQueries on WorkoutLocalDataSource {
         await (dbInstance.update(dbInstance.setLogs)
               ..where((tbl) => tbl.localId.equals(s.id!)))
             .write(db.SetLogsCompanion(
+          progressionData: drift.Value(s.progressionData),
+          prescriptionOrigin: drift.Value(s.prescriptionOrigin),
+          prescribedWeight: drift.Value(s.prescribedWeight),
+          prescribedRepMin: drift.Value(s.prescribedRepMin),
+          prescribedRepMax: drift.Value(s.prescribedRepMax),
+          prescribedRir: drift.Value(s.prescribedRir),
+          progressionReason: drift.Value(s.progressionReason),
+          progressionAlgorithmVersion:
+              drift.Value(s.progressionAlgorithmVersion),
+          substitutedForExerciseId: drift.Value(s.substitutedForExerciseId),
           weight: drift.Value(s.weightKg),
           reps: drift.Value(s.reps),
           isCompleted: drift.Value(s.isCompleted ?? false),
@@ -204,47 +371,11 @@ extension WorkoutLoggingQueries on WorkoutLocalDataSource {
           distance: drift.Value(s.distanceKm),
           durationSeconds: drift.Value(s.durationSeconds),
           restTimeSeconds: drift.Value(s.restTimeSeconds),
+          valuesAutoFilled: drift.Value(s.valuesAutoFilled),
+          prescriptionOverridden: drift.Value(s.prescriptionOverridden),
         ));
       }
     }
-  }
-
-  Future<SetLog?> getLastPerformance(String exerciseName) async {
-    final dbInstance = await database;
-    final query = dbInstance.select(dbInstance.setLogs)
-      ..where(
-        (tbl) =>
-            tbl.exerciseNameSnapshot.equals(exerciseName) &
-            tbl.setType.isNotValue('warmup') &
-            tbl.weight.isNotNull() &
-            tbl.reps.isNotNull(),
-      )
-      ..orderBy([
-        (t) => drift.OrderingTerm(
-              expression: t.localId,
-              mode: drift.OrderingMode.desc,
-            ),
-      ])
-      ..limit(1);
-
-    final row = await query.getSingleOrNull();
-    if (row == null) return null;
-
-    final wLogId = await _getLocalIdFromUuid(
-      dbInstance.workoutLogs,
-      row.workoutLogId,
-    );
-
-    return SetLog(
-      id: row.localId,
-      workoutLogId: wLogId ?? 0,
-      exerciseName: row.exerciseNameSnapshot ?? 'Unknown',
-      setType: row.setType,
-      weightKg: row.weight,
-      reps: row.reps,
-      isCompleted: row.isCompleted,
-      rir: row.rir, // Use directly
-    );
   }
 
   Future<void> deleteWorkoutLog(int logId) async {
@@ -430,18 +561,38 @@ extension WorkoutLoggingQueries on WorkoutLocalDataSource {
   Future<void> updateWorkoutLogDetails(
     int logId,
     DateTime startTime,
-    String? notes,
-  ) async {
+    String? notes, {
+    Duration? duration,
+  }) async {
     final dbInstance = await database;
-    await (dbInstance.update(
-      dbInstance.workoutLogs,
-    )..where((tbl) => tbl.localId.equals(logId)))
-        .write(
-      db.WorkoutLogsCompanion(
-        startTime: drift.Value(startTime),
-        notes: drift.Value(notes),
-      ),
-    );
+    await dbInstance.transaction(() async {
+      final existing = await (dbInstance.select(dbInstance.workoutLogs)
+            ..where((tbl) => tbl.localId.equals(logId))
+            ..limit(1))
+          .getSingle();
+      final previousDuration = existing.endTime?.difference(existing.startTime);
+      final effectiveDuration = duration ?? previousDuration;
+      final preservedEndTime = effectiveDuration == null
+          ? const drift.Value<DateTime?>.absent()
+          : drift.Value(
+              startTime.add(
+                effectiveDuration.isNegative
+                    ? Duration.zero
+                    : effectiveDuration,
+              ),
+            );
+
+      await (dbInstance.update(
+        dbInstance.workoutLogs,
+      )..where((tbl) => tbl.localId.equals(logId)))
+          .write(
+        db.WorkoutLogsCompanion(
+          startTime: drift.Value(startTime),
+          endTime: preservedEndTime,
+          notes: drift.Value(notes),
+        ),
+      );
+    });
   }
 
   Future<void> deleteSetLogs(List<int> idsToDelete) async {
@@ -521,6 +672,7 @@ extension WorkoutLoggingQueries on WorkoutLocalDataSource {
                   orderIndex: drift.Value(orderIndex),
                   pauseSeconds: drift.Value(re.pauseSeconds),
                   supersetGroup: drift.Value(re.supersetGroup),
+                  progressionData: drift.Value(re.progressionData),
                   notes: drift.Value(re.notes),
                 ),
               );
@@ -534,6 +686,8 @@ extension WorkoutLoggingQueries on WorkoutLocalDataSource {
                     targetReps: drift.Value(t.targetReps),
                     targetWeight: drift.Value(t.targetWeight),
                     targetRir: drift.Value(t.targetRir),
+                    targetRepMin: drift.Value(t.targetRepMin),
+                    targetRepMax: drift.Value(t.targetRepMax),
                   ),
                 );
           }
@@ -584,6 +738,19 @@ extension WorkoutLoggingQueries on WorkoutLocalDataSource {
                   durationSeconds: drift.Value(s.durationSeconds),
                   rpe: drift.Value(s.rpe),
                   rir: drift.Value(s.rir),
+                  prescriptionOrigin: drift.Value(s.prescriptionOrigin),
+                  prescribedRepMin: drift.Value(s.prescribedRepMin),
+                  prescribedRepMax: drift.Value(s.prescribedRepMax),
+                  prescribedWeight: drift.Value(s.prescribedWeight),
+                  prescribedRir: drift.Value(s.prescribedRir),
+                  prescriptionOverridden: drift.Value(s.prescriptionOverridden),
+                  valuesAutoFilled: drift.Value(s.valuesAutoFilled),
+                  substitutedForExerciseId:
+                      drift.Value(s.substitutedForExerciseId),
+                  progressionData: drift.Value(s.progressionData),
+                  progressionReason: drift.Value(s.progressionReason),
+                  progressionAlgorithmVersion:
+                      drift.Value(s.progressionAlgorithmVersion),
                 ),
               );
         }
@@ -649,8 +816,37 @@ extension WorkoutLoggingQueries on WorkoutLocalDataSource {
         .toSet();
   }
 
-  Future<List<SetLog>> getLastSetsForExercise(String exerciseName) async {
+  /// Returns the most recently completed sets for an exercise, ordered by [SetLog.logOrder].
+  ///
+  /// Exercise history is read by stable exercise UUID ([exerciseId]) rather than
+  /// by display name snapshot, so that renames or catalogue merges do not silently
+  /// attach one exercise's history to another.
+  ///
+  /// The condition `(exercise_id = :exerciseId) OR (exercise_id IS NULL AND exercise_name_snapshot = :name)`
+  /// handles mixed data in a single query without two-stage reloading:
+  /// - New rows match on stable [exerciseId].
+  /// - Legacy rows written before `set_logs.exercise_id` existed carry a null
+  ///   `exercise_id` and fall back to matching on [exerciseNameSnapshot].
+  /// - If [exerciseId] is null, only the name snapshot applies.
+  /// - A row with an explicit, differing `exercise_id` is never matched, even if
+  ///   its snapshot name is identical.
+  Future<List<SetLog>> getLastSetsForExercise({
+    required String? exerciseId,
+    required String exerciseNameSnapshot,
+  }) async {
     final dbInstance = await database;
+
+    // Select by exercise UUID, falling back to name snapshot only for legacy
+    // rows written before exercise_id existed. A row with an explicit, differing
+    // exercise_id is never matched even if the snapshot name is identical.
+    drift.Expression<bool> exercisePredicate(db.$SetLogsTable tbl) {
+      if (exerciseId != null && exerciseId.isNotEmpty) {
+        return tbl.exerciseId.equals(exerciseId) |
+            (tbl.exerciseId.isNull() &
+                tbl.exerciseNameSnapshot.equals(exerciseNameSnapshot));
+      }
+      return tbl.exerciseNameSnapshot.equals(exerciseNameSnapshot);
+    }
 
     final query = dbInstance.select(dbInstance.workoutLogs).join([
       drift.innerJoin(
@@ -661,7 +857,7 @@ extension WorkoutLoggingQueries on WorkoutLocalDataSource {
       ),
     ])
       ..where(
-        dbInstance.setLogs.exerciseNameSnapshot.equals(exerciseName) &
+        exercisePredicate(dbInstance.setLogs) &
             dbInstance.workoutLogs.status.equals('completed'),
       )
       ..orderBy([
@@ -675,14 +871,14 @@ extension WorkoutLoggingQueries on WorkoutLocalDataSource {
     final result = await query.getSingleOrNull();
     if (result == null) return [];
 
-    final logUuid = result.readTable(dbInstance.workoutLogs).id;
-    final wLogId = result.readTable(dbInstance.workoutLogs).localId;
+    final workoutRow = result.readTable(dbInstance.workoutLogs);
+    final logUuid = workoutRow.id;
+    final wLogId = workoutRow.localId;
+    final workoutStartTime = workoutRow.startTime;
 
     final setRows = await (dbInstance.select(dbInstance.setLogs)
           ..where(
-            (tbl) =>
-                tbl.workoutLogId.equals(logUuid) &
-                tbl.exerciseNameSnapshot.equals(exerciseName),
+            (tbl) => tbl.workoutLogId.equals(logUuid) & exercisePredicate(tbl),
           )
           ..orderBy([(t) => drift.OrderingTerm(expression: t.logOrder)]))
         .get();
@@ -692,6 +888,7 @@ extension WorkoutLoggingQueries on WorkoutLocalDataSource {
           (r) => SetLog(
             id: r.localId,
             workoutLogId: wLogId,
+            exerciseId: r.exerciseId,
             exerciseName: r.exerciseNameSnapshot ?? '',
             setType: r.setType,
             weightKg: r.weight,
@@ -705,6 +902,23 @@ extension WorkoutLoggingQueries on WorkoutLocalDataSource {
             distanceKm: r.distance,
             isCompleted: r.isCompleted,
             rir: r.rir, // Use directly
+            exerciseBlock: r.exerciseBlock,
+            supersetGroup: r.supersetGroup,
+            notes: r.notes,
+            rpe: r.rpe,
+            logOrder: r.logOrder,
+            prescriptionOrigin: r.prescriptionOrigin,
+            prescribedRepMin: r.prescribedRepMin,
+            prescribedRepMax: r.prescribedRepMax,
+            prescribedWeight: r.prescribedWeight,
+            prescribedRir: r.prescribedRir,
+            prescriptionOverridden: r.prescriptionOverridden,
+            valuesAutoFilled: r.valuesAutoFilled,
+            substitutedForExerciseId: r.substitutedForExerciseId,
+            progressionData: r.progressionData,
+            progressionReason: r.progressionReason,
+            progressionAlgorithmVersion: r.progressionAlgorithmVersion,
+            performedAt: workoutStartTime,
           ),
         )
         .toList();

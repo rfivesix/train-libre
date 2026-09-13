@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:isolate';
 
 import 'package:archive/archive_io.dart';
 import 'package:flutter/foundation.dart';
@@ -64,6 +65,30 @@ class ICloudBackupArchive {
     List<File> thumbnails = const [],
     List<File> workoutThumbnails = const [],
   }) async {
+    // `ZipFileEncoder` does its deflate work synchronously between its async
+    // file operations. An automatic iCloud backup commonly gets suspended in
+    // the middle of that work; without an isolate it then continues on the
+    // Dart UI isolate immediately after resume, producing a fast first frame
+    // followed by a multi-second freeze. The archive only depends on file
+    // paths, so it is safe (and important) to build it off the UI isolate.
+    final archivePath = await Isolate.run(
+      () => _packInBackground(
+        targetPath: targetPath,
+        databasePath: database.path,
+        thumbnailPaths: thumbnails.map((file) => file.path).toList(),
+        workoutThumbnailPaths:
+            workoutThumbnails.map((file) => file.path).toList(),
+      ),
+    );
+    return File(archivePath);
+  }
+
+  static Future<String> _packInBackground({
+    required String targetPath,
+    required String databasePath,
+    required List<String> thumbnailPaths,
+    required List<String> workoutThumbnailPaths,
+  }) async {
     final existing = File(targetPath);
     if (await existing.exists()) await existing.delete();
 
@@ -72,13 +97,18 @@ class ICloudBackupArchive {
     try {
       // Streamed from disk: the snapshot is the largest thing the app owns and
       // must not be held in memory in full to be zipped.
-      await encoder.addFile(database, databaseEntry, _databaseLevel);
+      await encoder.addFile(
+        File(databasePath),
+        databaseEntry,
+        _databaseLevel,
+      );
 
       final used = <String>{};
-      for (final thumb in thumbnails) {
-        final name = p.basename(thumb.path);
-        final folder = thumb.path.contains('/workouts/') ||
-                thumb.path.contains('\\workouts\\')
+      for (final thumbnailPath in thumbnailPaths) {
+        final thumb = File(thumbnailPath);
+        final name = p.basename(thumbnailPath);
+        final folder = thumbnailPath.contains('/workouts/') ||
+                thumbnailPath.contains('\\workouts\\')
             ? workoutThumbsFolder
             : mealThumbsFolder;
         if (!used.add('$folder/$name')) continue;
@@ -92,8 +122,9 @@ class ICloudBackupArchive {
         }
       }
 
-      for (final thumb in workoutThumbnails) {
-        final name = p.basename(thumb.path);
+      for (final thumbnailPath in workoutThumbnailPaths) {
+        final thumb = File(thumbnailPath);
+        final name = p.basename(thumbnailPath);
         if (!used.add('$workoutThumbsFolder/$name')) continue;
         try {
           final bytes = await thumb.readAsBytes();
@@ -108,7 +139,7 @@ class ICloudBackupArchive {
     } finally {
       await encoder.close();
     }
-    return File(targetPath);
+    return targetPath;
   }
 
   /// True when [file] starts with the zip magic number.

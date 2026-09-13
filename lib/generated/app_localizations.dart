@@ -2186,6 +2186,30 @@ abstract class AppLocalizations {
   /// **'Dropset'**
   String get set_type_dropset;
 
+  /// No description provided for @set_type_normal_help.
+  ///
+  /// In en, this message translates to:
+  /// **'A regular working set. After warming up, the first is usually your heavy focus set; it counts towards progression.'**
+  String get set_type_normal_help;
+
+  /// No description provided for @set_type_warmup_help.
+  ///
+  /// In en, this message translates to:
+  /// **'Warm up by gradually increasing the load. It does not count towards progression.'**
+  String get set_type_warmup_help;
+
+  /// No description provided for @set_type_failure_help.
+  ///
+  /// In en, this message translates to:
+  /// **'A working set taken until no more clean repetitions are possible. Counts towards progression.'**
+  String get set_type_failure_help;
+
+  /// No description provided for @set_type_dropset_help.
+  ///
+  /// In en, this message translates to:
+  /// **'Lower the load immediately after a working set and continue. It does not count towards progression.'**
+  String get set_type_dropset_help;
+
   /// No description provided for @set_reps_hint.
   ///
   /// In en, this message translates to:
@@ -2285,7 +2309,7 @@ abstract class AppLocalizations {
   /// No description provided for @today_overview_text.
   ///
   /// In en, this message translates to:
-  /// **'TODAY IN FOCUS'**
+  /// **'AT A GLANCE'**
   String get today_overview_text;
 
   /// No description provided for @quick_add_text.
@@ -2303,7 +2327,7 @@ abstract class AppLocalizations {
   /// No description provided for @protocol_today_capslock.
   ///
   /// In en, this message translates to:
-  /// **'TODAY\'S PROTOCOL'**
+  /// **'PROTOCOL'**
   String get protocol_today_capslock;
 
   /// No description provided for @my_plans_capslock.
@@ -2377,6 +2401,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The calendar view will be available soon.'**
   String get calendar_currently_not_available;
+
+  /// No description provided for @datePickerCalendar.
+  ///
+  /// In en, this message translates to:
+  /// **'Calendar view'**
+  String get datePickerCalendar;
+
+  /// No description provided for @datePickerWheel.
+  ///
+  /// In en, this message translates to:
+  /// **'Wheel view'**
+  String get datePickerWheel;
 
   /// No description provided for @in_depth_analysis.
   ///
@@ -5408,7 +5444,7 @@ abstract class AppLocalizations {
   /// No description provided for @consistencyTrackerTitle.
   ///
   /// In en, this message translates to:
-  /// **'Consistency Tracker'**
+  /// **'Training Rhythm'**
   String get consistencyTrackerTitle;
 
   /// No description provided for @consistencyTrackerComingSoon.
@@ -5468,7 +5504,7 @@ abstract class AppLocalizations {
   /// No description provided for @metricsVolumeLifted.
   ///
   /// In en, this message translates to:
-  /// **'Volume Lifted'**
+  /// **'Volume'**
   String get metricsVolumeLifted;
 
   /// No description provided for @metricsMostImproved.
@@ -6017,6 +6053,54 @@ abstract class AppLocalizations {
   /// **'Recent Records'**
   String get analyticsRecentRecords;
 
+  /// No description provided for @analyticsNewBestPerformances.
+  ///
+  /// In en, this message translates to:
+  /// **'New Personal Bests'**
+  String get analyticsNewBestPerformances;
+
+  /// No description provided for @analyticsTop.
+  ///
+  /// In en, this message translates to:
+  /// **'Top'**
+  String get analyticsTop;
+
+  /// No description provided for @analyticsLastWeeks.
+  ///
+  /// In en, this message translates to:
+  /// **'Last {weeks} weeks'**
+  String analyticsLastWeeks(int weeks);
+
+  /// No description provided for @analyticsMuscleGroups.
+  ///
+  /// In en, this message translates to:
+  /// **'Muscle Groups'**
+  String get analyticsMuscleGroups;
+
+  /// No description provided for @analyticsStrongestBreakthrough.
+  ///
+  /// In en, this message translates to:
+  /// **'Biggest Breakthrough'**
+  String get analyticsStrongestBreakthrough;
+
+  /// No description provided for @analyticsRecordOverview.
+  ///
+  /// In en, this message translates to:
+  /// **'Record Overview'**
+  String get analyticsRecordOverview;
+
+  /// No description provided for @analyticsRecentlySet.
+  ///
+  /// In en, this message translates to:
+  /// **'Recently Set'**
+  String get analyticsRecentlySet;
+
+  /// No description provided for @analyticsByRepetitionRange.
+  ///
+  /// In en, this message translates to:
+  /// **'By Repetitions'**
+  String get analyticsByRepetitionRange;
+
   /// No description provided for @analyticsPerfWithReps.
   ///
   /// In en, this message translates to:
@@ -6094,6 +6178,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'View'**
   String get analyticsViewLabel;
+
+  /// No description provided for @analyticsViewChart.
+  ///
+  /// In en, this message translates to:
+  /// **'Chart'**
+  String get analyticsViewChart;
+
+  /// No description provided for @analyticsViewOverview.
+  ///
+  /// In en, this message translates to:
+  /// **'Overview'**
+  String get analyticsViewOverview;
+
+  /// No description provided for @analyticsVolumeWeeklyAverage.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly average'**
+  String get analyticsVolumeWeeklyAverage;
+
+  /// No description provided for @analyticsVolumeTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Total'**
+  String get analyticsVolumeTotal;
+
+  /// No description provided for @analyticsSwitchToChart.
+  ///
+  /// In en, this message translates to:
+  /// **'Show chart'**
+  String get analyticsSwitchToChart;
+
+  /// No description provided for @analyticsSwitchToOverview.
+  ///
+  /// In en, this message translates to:
+  /// **'Show overview'**
+  String get analyticsSwitchToOverview;
 
   /// No description provided for @analyticsViewWeek.
   ///
@@ -6206,7 +6326,7 @@ abstract class AppLocalizations {
   /// No description provided for @analyticsCalendarExplainer.
   ///
   /// In en, this message translates to:
-  /// **'Color intensity reflects sessions per day, making this a true consistency map.'**
+  /// **'Color shows sessions per day.'**
   String get analyticsCalendarExplainer;
 
   /// No description provided for @analyticsSelectDayPrompt.
@@ -6292,6 +6412,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Period'**
   String get analyticsPeriodLabel;
+
+  /// No description provided for @analyticsCoverageMuscles.
+  ///
+  /// In en, this message translates to:
+  /// **'Muscles'**
+  String get analyticsCoverageMuscles;
+
+  /// No description provided for @analyticsCoverageMovementPatterns.
+  ///
+  /// In en, this message translates to:
+  /// **'Movement Patterns'**
+  String get analyticsCoverageMovementPatterns;
+
+  /// No description provided for @analyticsWorkingSetsByMuscle.
+  ///
+  /// In en, this message translates to:
+  /// **'Working Sets by Muscle'**
+  String get analyticsWorkingSetsByMuscle;
+
+  /// No description provided for @analyticsWorkingSetsByPattern.
+  ///
+  /// In en, this message translates to:
+  /// **'Working Sets by Movement Pattern'**
+  String get analyticsWorkingSetsByPattern;
+
+  /// No description provided for @analyticsPrimaryMuscleCoverageCaption.
+  ///
+  /// In en, this message translates to:
+  /// **'Shows completed normal and failure sets for primary muscles only.'**
+  String get analyticsPrimaryMuscleCoverageCaption;
+
+  /// No description provided for @analyticsMovementPatternCoverageCaption.
+  ///
+  /// In en, this message translates to:
+  /// **'Shows completed normal and failure sets by movement pattern.'**
+  String get analyticsMovementPatternCoverageCaption;
+
+  /// No description provided for @analyticsUnclassified.
+  ///
+  /// In en, this message translates to:
+  /// **'Unclassified'**
+  String get analyticsUnclassified;
+
+  /// No description provided for @analyticsPatternOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get analyticsPatternOther;
+
+  /// No description provided for @analyticsAverageWorkingSetsPerWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'Ø {value} working sets per week'**
+  String analyticsAverageWorkingSetsPerWeek(String value);
+
+  /// No description provided for @analyticsFrequencyWorkingSetFooter.
+  ///
+  /// In en, this message translates to:
+  /// **'Frequency counts training days with at least one working set for that muscle.'**
+  String get analyticsFrequencyWorkingSetFooter;
+
+  /// No description provided for @analyticsAverageFrequencyPerWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'Average frequency: {value} / wk'**
+  String analyticsAverageFrequencyPerWeek(String value);
+
+  /// No description provided for @analyticsTotalWorkingSets.
+  ///
+  /// In en, this message translates to:
+  /// **'{value} working sets'**
+  String analyticsTotalWorkingSets(String value);
 
   /// No description provided for @analyticsEquivalentSetsExplainer.
   ///
@@ -11311,6 +11503,54 @@ abstract class AppLocalizations {
   /// **'Alternating'**
   String get exerciseLateralityAlternating;
 
+  /// No description provided for @exerciseClassificationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Classification'**
+  String get exerciseClassificationTitle;
+
+  /// No description provided for @exerciseMovementPatternLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Movement pattern'**
+  String get exerciseMovementPatternLabel;
+
+  /// No description provided for @exerciseForceVectorLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Force direction'**
+  String get exerciseForceVectorLabel;
+
+  /// No description provided for @exerciseMechanicLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Exercise type'**
+  String get exerciseMechanicLabel;
+
+  /// No description provided for @exerciseLateralityLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Laterality'**
+  String get exerciseLateralityLabel;
+
+  /// No description provided for @exerciseDifficultyLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Difficulty'**
+  String get exerciseDifficultyLabel;
+
+  /// No description provided for @exerciseClassificationNotSpecified.
+  ///
+  /// In en, this message translates to:
+  /// **'Not specified'**
+  String get exerciseClassificationNotSpecified;
+
+  /// No description provided for @exercisePatternOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get exercisePatternOther;
+
   /// No description provided for @exerciseUsageWarmup.
   ///
   /// In en, this message translates to:
@@ -11688,6 +11928,264 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Try again'**
   String get diaryWeightRetry;
+
+  /// No description provided for @settingsTrainingProgressionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Training progression'**
+  String get settingsTrainingProgressionTitle;
+
+  /// No description provided for @settingsTrainingProgressionSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight suggestions based on your history'**
+  String get settingsTrainingProgressionSubtitle;
+
+  /// No description provided for @trainingProgressionOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Off'**
+  String get trainingProgressionOff;
+
+  /// No description provided for @trainingProgressionSuggest.
+  ///
+  /// In en, this message translates to:
+  /// **'Suggest'**
+  String get trainingProgressionSuggest;
+
+  /// No description provided for @progressionTogether.
+  ///
+  /// In en, this message translates to:
+  /// **'Develop sets together'**
+  String get progressionTogether;
+
+  /// No description provided for @progressionIndividually.
+  ///
+  /// In en, this message translates to:
+  /// **'Develop sets individually'**
+  String get progressionIndividually;
+
+  /// No description provided for @progressionPolicy.
+  ///
+  /// In en, this message translates to:
+  /// **'Set progression'**
+  String get progressionPolicy;
+
+  /// No description provided for @progressionSetOutcome.
+  ///
+  /// In en, this message translates to:
+  /// **'Count set as'**
+  String get progressionSetOutcome;
+
+  /// No description provided for @progressionDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Progression and equipment'**
+  String get progressionDetails;
+
+  /// No description provided for @progressionLargeStep.
+  ///
+  /// In en, this message translates to:
+  /// **'The next available load is a large step. Test it only after confirming, or keep the current load.'**
+  String get progressionLargeStep;
+
+  /// No description provided for @progressionBridge.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional temporary target: two repetitions above the range ceiling. Your authored range stays unchanged. Reaching this target offers the real load step again.'**
+  String get progressionBridge;
+
+  /// No description provided for @progressionUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'No next rung is available. Hold, correct the available loads for microloading, or choose a new baseline.'**
+  String get progressionUnavailable;
+
+  /// No description provided for @progressionOvershoot.
+  ///
+  /// In en, this message translates to:
+  /// **'This log is at least three repetitions above the ceiling. Confirm the entry, then choose the next available rung or explicitly set a new baseline.'**
+  String get progressionOvershoot;
+
+  /// No description provided for @progressionStall.
+  ///
+  /// In en, this message translates to:
+  /// **'This position was below its range in three comparable sessions. You may choose the proposed easier load, keep the plan, or edit your range. Nothing changes automatically.'**
+  String get progressionStall;
+
+  /// No description provided for @progressionBoundary.
+  ///
+  /// In en, this message translates to:
+  /// **'New metric and baseline. Confirm the transition for this exercise; assistance, bodyweight and added load are separate metrics.'**
+  String get progressionBoundary;
+
+  /// No description provided for @progressionAccept.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm target'**
+  String get progressionAccept;
+
+  /// No description provided for @progressionDecline.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep current load'**
+  String get progressionDecline;
+
+  /// No description provided for @progressionDismiss.
+  ///
+  /// In en, this message translates to:
+  /// **'Dismiss review'**
+  String get progressionDismiss;
+
+  /// No description provided for @progressionRecalibrate.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose new baseline'**
+  String get progressionRecalibrate;
+
+  /// No description provided for @progressionConfirmLog.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm log and review next rung'**
+  String get progressionConfirmLog;
+
+  /// No description provided for @progressionLoads.
+  ///
+  /// In en, this message translates to:
+  /// **'Available loads (separate with semicolons)'**
+  String get progressionLoads;
+
+  /// No description provided for @progressionEquipment.
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment identity (optional)'**
+  String get progressionEquipment;
+
+  /// No description provided for @progressionContext.
+  ///
+  /// In en, this message translates to:
+  /// **'Context or temporary reason (optional)'**
+  String get progressionContext;
+
+  /// No description provided for @progressionCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed normally'**
+  String get progressionCompleted;
+
+  /// No description provided for @progressionAbandoned.
+  ///
+  /// In en, this message translates to:
+  /// **'Ended early'**
+  String get progressionAbandoned;
+
+  /// No description provided for @progressionPain.
+  ///
+  /// In en, this message translates to:
+  /// **'Stopped because of pain'**
+  String get progressionPain;
+
+  /// No description provided for @progressionEquipmentInterrupted.
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment or setup interfered'**
+  String get progressionEquipmentInterrupted;
+
+  /// No description provided for @progressionPainGuidance.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop this set. Consider appropriate assessment before continuing; no load recommendation is offered.'**
+  String get progressionPainGuidance;
+
+  /// No description provided for @progressionUserLadder.
+  ///
+  /// In en, this message translates to:
+  /// **'Your available loads'**
+  String get progressionUserLadder;
+
+  /// No description provided for @progressionEquipmentLadder.
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment load ladder'**
+  String get progressionEquipmentLadder;
+
+  /// No description provided for @progressionFallback.
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment increment fallback'**
+  String get progressionFallback;
+
+  /// No description provided for @progressionHold.
+  ///
+  /// In en, this message translates to:
+  /// **'Hold load; repetitions follow this position’s range and history.'**
+  String get progressionHold;
+
+  /// No description provided for @progressionOrdinary.
+  ///
+  /// In en, this message translates to:
+  /// **'Upper range reached: next available load, repetitions restart at the range minimum.'**
+  String get progressionOrdinary;
+
+  /// No description provided for @progressionAnchor.
+  ///
+  /// In en, this message translates to:
+  /// **'Linked positions preserve today’s load difference from the previous session.'**
+  String get progressionAnchor;
+
+  /// No description provided for @progressionNewPosition.
+  ///
+  /// In en, this message translates to:
+  /// **'New position: provisional baseline from today’s completed working set, not historical progression evidence.'**
+  String get progressionNewPosition;
+
+  /// No description provided for @progressionWithheld.
+  ///
+  /// In en, this message translates to:
+  /// **'No comparable evidence for a suggestion.'**
+  String get progressionWithheld;
+
+  /// No description provided for @progressionOffered.
+  ///
+  /// In en, this message translates to:
+  /// **'Offered'**
+  String get progressionOffered;
+
+  /// No description provided for @progressionAccepted.
+  ///
+  /// In en, this message translates to:
+  /// **'Accepted'**
+  String get progressionAccepted;
+
+  /// No description provided for @progressionRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Declined'**
+  String get progressionRejected;
+
+  /// No description provided for @progressionInvalidLoads.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter non-negative loads; at least one available value is required.'**
+  String get progressionInvalidLoads;
+
+  /// No description provided for @progressionBodyweight.
+  ///
+  /// In en, this message translates to:
+  /// **'Bodyweight'**
+  String get progressionBodyweight;
+
+  /// No description provided for @progressionWeighted.
+  ///
+  /// In en, this message translates to:
+  /// **'Weighted bodyweight'**
+  String get progressionWeighted;
+
+  /// No description provided for @progressionAssisted.
+  ///
+  /// In en, this message translates to:
+  /// **'Assistance'**
+  String get progressionAssisted;
 }
 
 class _AppLocalizationsDelegate

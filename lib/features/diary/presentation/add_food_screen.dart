@@ -810,7 +810,7 @@ class _AddFoodScreenState extends State<AddFoodScreen>
                   horizontal: isSearching ? 14 : 16,
                 ),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFC9EF00),
+                  color: colorScheme.primary,
                   borderRadius: BorderRadius.circular(14),
                 ),
                 child: Row(
@@ -861,7 +861,7 @@ class _AddFoodScreenState extends State<AddFoodScreen>
                   horizontal: isSearching ? 14 : 16,
                 ),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFC9EF00),
+                  color: colorScheme.primary,
                   borderRadius: BorderRadius.circular(14),
                 ),
                 child: Row(

@@ -56,23 +56,23 @@ OPEN SOURCE E DATI APERTI:
 Sviluppato in modo trasparente sui database aperti e affidabili di Open Food Facts e OpenExerciseDB. Il codice sorgente completo è pubblicamente accessibile: le nostre promesse sulla privacy si verificano, non si prendono per buone.
 
 ## Release Notes (What's New / Release Notes in this version)
-Superserie: unisci gli esercizi delle tue schede in superserie, triset o gruppi più ampi. Durante l'allenamento li alterni giro dopo giro e il recupero parte solo dopo l'ultimo esercizio del giro.
+Sfoglia il diario per data: una nuova barra dei giorni scorrevole ti permette di passare ai giorni vicini con un tocco. Quando scegli una data nel diario, il calendario si apre direttamente.
 
-I campi giusti per ogni esercizio: registra il tempo di tenuta per i plank, le ripetizioni e l'eventuale peso aggiuntivo per le trazioni, oppure l'assistenza per gli esercizi assistiti. Anche i valori dell'ultimo allenamento e i grafici si adattano.
+Suggerimenti più intelligenti per la prossima serie: se attivi i suggerimenti di allenamento nelle Impostazioni, Train Libre può precompilare il peso della prossima serie di lavoro in base alle tue prestazioni recenti. Puoi sempre modificarlo prima di registrarlo.
 
-Catalogo degli esercizi rinnovato: il catalogo ora utilizza OpenExerciseDB, con informazioni più precise su muscoli e movimenti e nomi nella lingua dell'app. Filtra per attrezzatura, difficoltà e altre caratteristiche, anche mentre crei le tue schede.
+Recupero dove ti alleni: il recupero muscolare ora è in cima alla scheda Allenamento. L'analisi dei gruppi muscolari mostra anche i tuoi schemi di movimento, oltre a copertura e frequenza.
 
-Registra il peso dal diario: annota il peso nella nuova scheda sotto Integratori, con un righello fluido in chilogrammi o libbre. Da lì apri anche la cronologia delle misurazioni.
+Gruppi muscolari a colpo d'occhio: l'analisi ora offre una panoramica completa di ogni gruppo muscolare e schema di movimento, una heatmap di distribuzione sempre visibile e serie di lavoro settimanali o totali.
 
-Progressi rappresentati meglio: per gli esercizi a corpo libero, il volume di allenamento e i record di forza tengono conto del peso corporeo registrato, il peso aggiuntivo aumenta il carico e l'assistenza lo riduce. Stretching e mobilità non contano più come serie di forza.
+Allenamento e record più chiari: il ritmo di allenamento mostra in modo più leggibile allenamenti, serie e calendario. I nuovi record personali compaiono in un feed dei progressi con una panoramica dei record.
 
 ## Support URL (Support Web Page URL)
-https://rfivesix.github.io/train-libre/support.html
+https://trainlibre.com/support
 
 ## Marketing URL (Marketing / Product Web Page URL)
-https://rfivesix.github.io/train-libre/
+https://trainlibre.com
 
 ## Privacy Policy URL (Privacy Policy Web Page URL)
-https://rfivesix.github.io/train-libre/privacy-policy/
+https://trainlibre.com/privacy-policy/
 
 ## Copyright (Copyright holder (e.g. 2026 Richard Schotte))

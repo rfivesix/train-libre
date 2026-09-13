@@ -2,6 +2,8 @@ import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:train_libre/data/drift_database.dart';
 import 'package:train_libre/features/profile/data/sources/profile_local_data_source.dart';
+import 'package:train_libre/services/telemetry/telemetry_service.dart';
+import 'package:train_libre/services/telemetry/telemetry_service_noop.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -60,4 +62,29 @@ void main() {
     }
     expect(await database.select(database.measurements).get(), isEmpty);
   });
+
+  test('tracks body_measurement_logged feature on saveWeightKg', () async {
+    final tracked = <String>[];
+    final originalTelemetry = TelemetryService.instance;
+    TelemetryService.instance = _MockTelemetry((key) => tracked.add(key));
+    try {
+      await source.saveWeightKg(72.5, date: day);
+      expect(tracked, contains(FeatureKey.bodyMeasurementLogged));
+    } finally {
+      TelemetryService.instance = originalTelemetry;
+    }
+  });
+}
+
+class _MockTelemetry extends NoOpTelemetryService {
+  final void Function(String key) onFeatureUsed;
+  _MockTelemetry(this.onFeatureUsed);
+
+  @override
+  Future<void> trackFeatureUsed({
+    required String featureKey,
+    Map<String, dynamic>? extraProps,
+  }) async {
+    onFeatureUsed(featureKey);
+  }
 }

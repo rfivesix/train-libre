@@ -361,7 +361,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
                             markdownAssetPath:
                                 'documentation/features/bayesian_tdee_estimator.md',
                             citationUrl:
-                                'https://rfivesix.github.io/train-libre/adaptive-nutrition/#evidence',
+                                'https://trainlibre.com/docs/features/bayesian-tdee-estimator/#evidence',
                           ),
                         ),
                       ],

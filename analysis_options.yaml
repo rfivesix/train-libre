@@ -10,6 +10,13 @@ include: package:flutter_lints/flutter.yaml
 analyzer:
   errors:
     experimental_member_use: ignore
+  exclude:
+    - build/**
+    - android/**
+    - ios/**
+    - windows/**
+    - macos/**
+    - linux/**
 
 
 linter:

@@ -186,4 +186,9 @@ class NoOpTelemetryService implements TelemetryService {
   Future<void> trackPerformanceStall({
     required Map<String, dynamic> properties,
   }) async {}
+
+  @override
+  Future<void> trackAppReviewPromptResponded({
+    required String response,
+  }) async {}
 }

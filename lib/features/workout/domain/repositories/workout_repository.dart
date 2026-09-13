@@ -37,7 +37,10 @@ abstract class IWorkoutRepository {
     required String? notes,
   });
   Future<Map<String, String>> getWorkoutExerciseNotes(int workoutLogId);
-  Future<List<SetLog>> getLastSetsForExercise(String exerciseName);
+  Future<List<SetLog>> getLastSetsForExercise({
+    required String? exerciseId,
+    required String exerciseNameSnapshot,
+  });
   Future<List<WorkoutLog>> getWorkoutLogsForDateRange(
       DateTime start, DateTime end);
   Stream<List<WorkoutLog>> watchFullWorkoutLogs();
@@ -54,4 +57,34 @@ abstract class IWorkoutRepository {
     required String name,
   });
   Future<void> updateWorkoutLogPhotos(int logId, List<String> paths);
+}
+
+/// Optional capability used by the live-workout screen when it commits a
+/// session. Keeping it separate from [IWorkoutRepository] avoids forcing
+/// unrelated read-only test doubles to implement a write-heavy transaction.
+abstract interface class WorkoutFinalizationRepository {
+  /// Persists the final set snapshot and marks the workout completed as one
+  /// transaction. A failure leaves the ongoing workout untouched so it can be
+  /// recovered instead of silently losing rows.
+  Future<List<SetLog>> finalizeWorkout({
+    required int workoutLogId,
+    required List<SetLog> sets,
+    required List<int> discardSetIds,
+    String? title,
+    String? notes,
+  });
+}
+
+/// Full canonical history for multi-session progression evidence.
+abstract interface class ProgressionHistoryRepository {
+  Future<List<SetLog>> getProgressionHistory({
+    required String exerciseId,
+    required String exerciseNameSnapshot,
+  });
+}
+
+abstract interface class ProgressionPrescriptionRepository {
+  Future<void> saveProgressionConfig(String prescriptionKey, String data,
+      {bool equipmentOnly = false});
+  Future<void> initializeProgressionConfig(int routineExerciseId, String data);
 }

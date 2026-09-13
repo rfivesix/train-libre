@@ -29,14 +29,28 @@ class LogWorkoutSetUseCase {
     double? finalWeight = weight;
     int? finalReps = reps;
     int? finalRir = rir;
+    bool valuesAutoFilled = oldLog.valuesAutoFilled;
+    final isFailureSet = (setType ?? oldLog.setType).toLowerCase() == 'failure';
+
+    // A failure set has, by definition, no repetitions in reserve. This is a
+    // one-way convenience: recording RIR 0 on an ordinary set must not change
+    // its set type, because reaching the last possible rep is not necessarily
+    // muscular failure.
+    if (isFailureSet) finalRir = 0;
 
     if (newlyCompleted) {
       final currentWeight = weight ?? oldLog.weightKg;
       final currentReps = reps ?? oldLog.reps;
 
       if (template != null) {
-        if (currentWeight == null && !clearWeight) {
+        bool autoFilledNow = false;
+        if (currentWeight == null &&
+            !clearWeight &&
+            oldLog.progression.loadMode?.name == 'bodyweight') {
+          finalWeight = 0;
+        } else if (currentWeight == null && !clearWeight) {
           finalWeight = template.targetWeight ?? 0.0;
+          autoFilledNow = true;
         }
         if (currentReps == null && !clearReps) {
           if (template.targetReps != null && template.targetReps!.isNotEmpty) {
@@ -51,6 +65,10 @@ class LogWorkoutSetUseCase {
           } else {
             finalReps = 0;
           }
+          autoFilledNow = true;
+        }
+        if (autoFilledNow) {
+          valuesAutoFilled = true;
         }
       }
     }
@@ -72,11 +90,12 @@ class LogWorkoutSetUseCase {
       isCompleted: isCompleted,
       setType: setType,
       rir: finalRir,
-      clearRir: clearRir,
+      clearRir: isFailureSet ? false : clearRir,
       distanceKm: distance,
       clearDistance: clearDistance,
       durationSeconds: duration,
       clearDuration: clearDuration,
+      valuesAutoFilled: valuesAutoFilled,
     );
 
     return LogSetResult(newLog, volumeDelta);

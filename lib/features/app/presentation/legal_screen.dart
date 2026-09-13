@@ -197,7 +197,7 @@ class _LegalScreenState extends State<LegalScreen> {
   Widget _buildBrowserButton(AppLocalizations l10n) {
     return AppButton.primary(
       onPressed: () =>
-          _handleLink('https://rfivesix.github.io/train-libre/privacy-policy/'),
+          _handleLink('https://trainlibre.com/privacy.html'),
       label: l10n.view_in_browser,
       tooltip: l10n.view_in_browser,
       icon: LucideIcons.globe,

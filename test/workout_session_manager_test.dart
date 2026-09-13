@@ -289,7 +289,8 @@ void main() {
       expect(manager.remainingRestSeconds, 0);
     });
 
-    test('addSetToExercise keeps previous-set defaults and ordering', () async {
+    test('addSetToExercise creates an unperformed row and keeps ordering',
+        () async {
       final log = await workoutDb.startWorkout(routineName: 'Session');
       final exercise = const model.Exercise(
         id: 1,
@@ -321,8 +322,11 @@ void main() {
           .firstWhere((entry) => entry.key != 2001)
           .value;
 
-      expect(newSet.weightKg, 100);
-      expect(newSet.reps, 8);
+      // A new position can receive a generated provisional anchor when
+      // suggestions are enabled, but performed values are never copied into
+      // the log as facts.
+      expect(newSet.weightKg, isNull);
+      expect(newSet.reps, isNull);
       expect(newSet.isCompleted, isFalse);
       expect(newSet.logOrder, 1);
       expect(manager.totalSets, 2);

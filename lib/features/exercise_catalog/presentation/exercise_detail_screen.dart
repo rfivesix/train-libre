@@ -798,7 +798,7 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
             technicalExplanation:
                 "The Epley equation estimates one-repetition maximum (1RM) as 1RM = w * (1 + r/30) which simplifies to w * (36 / (37 - r)) for r <= 10. Research suggests this linear approximation is reliable for low repetitions (2-10 reps) in healthy active individuals, but tends to overestimate capacity beyond 10 repetitions.",
             citationUrl:
-                "https://rfivesix.github.io/train-libre/intelligent-workouts/#evidence",
+                "https://trainlibre.com/docs/features/intelligent-workouts/#evidence",
           ),
         ],
         const SizedBox(width: DesignConstants.spacingS),

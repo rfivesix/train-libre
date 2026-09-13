@@ -1,16 +1,20 @@
-# One-Way Native Health Export & Idempotency Pipeline
+# Native Health Sync & Export Pipeline
 
-Train Libre integrates directly with system-level health aggregates via Apple HealthKit (iOS) and Google Health Connect (Android). To preserve user privacy and maintain on-device authority, the integration functions strictly as a one-way export from Train Libre's local SQLite database to the target platform. 
+Train Libre integrates directly with native system-level health frameworks: Apple HealthKit on iOS and Google Health Connect on Android. To preserve user privacy, maintain complete data ownership, and avoid cloud dependencies, all communication with platform health stores occurs directly on-device via native method channels.
+
+The integration operates with clear directional boundaries:
+- **Inbound Vitals Synchronization**: Passive sensor data (daily step segments, sleep stage sessions, and heart rate samples) are imported into Train Libre's local SQLite database.
+- **Outbound Health Export**: User-logged wellness activities (body measurements, nutrition and hydration intake, and completed workout sessions) are exported outward to the platform health store using a strictly idempotent tracking architecture.
 
 ---
 
 ## Architectural Principles
 
-The synchronization engine operates under three technical invariants:
+The health synchronization engine operates under three core technical invariants:
 
-1.  **On-Device Authority**: Train Libre's local SQLite database serves as the primary source of truth (SSOT). While vital metrics are imported from HealthKit or Health Connect to populate activity history, manual entries and session logs remain strictly outbound.
-2.  **Zero Cloud Intermediaries**: All communication with the native health APIs occurs directly through OS-level platform channels and native bindings. No external servers or telemetry systems handle or store these records.
-3.  **Strict Idempotency**: Repeated synchronization runs must never create duplicate segments or write redundant entries into the system health database, regardless of sync frequency or network interrupts.
+1.  **On-Device Authority**: Train Libre's local SQLite database serves as the primary single source of truth (SSOT). While passive vitals are imported from HealthKit or Health Connect to populate activity, sleep, and cardiovascular history, user-authored logs and sessions remain strictly authoritative in Train Libre and are pushed outbound.
+2.  **Zero Cloud Intermediaries**: All communication with native health APIs occurs directly through OS-level platform channels and native bindings (`trainlibre.health/steps`, `trainlibre.health/sleep_healthkit`, `trainlibre.health/export_apple_health`, and Android Health Connect clients). No external servers, cloud synchronizers, or third-party telemetry systems handle or store these records.
+3.  **Strict Idempotency & Checkpointing**: Repeated synchronization runs must never create duplicate segments or write redundant entries into the platform health database, regardless of sync frequency, background launches, or app interruptions.
 
 ---
 
@@ -203,4 +207,23 @@ While measurements and workouts are exported in bulk, the `nutritionHydration` d
 2.  **Fallback Trigger**: If the batch throws an exception, the system catches the error and iterates over every record in that batch individually.
 3.  **Individual Writes**: The service invokes the single-record writer method (`adapter.writeNutrition` or `adapter.writeHydration`) for each record.
 4.  **Partial Completion**: Successful writes are recorded immediately in `health_export_records`, while failed records are logged individually and skipped. This prevents a single corrupt record (e.g., invalid timestamp or out-of-range value) from blocking the export of remaining healthy data.
-lly and skipped. This prevents a single corrupt record (e.g., invalid timestamp or out-of-range value) from blocking the export of remaining healthy data.
+
+---
+
+## Inbound Vitals Synchronization
+
+In addition to outbound export, Train Libre passively imports wellness vitals to provide rich local analytics without manual data entry. Inbound synchronization is coordinated by `DiaryHealthSyncCoordinator`:
+
+### 1. Steps Ingestion (`StepsSyncService`)
+*   Periodically queries `HealthPlatformSteps.readStepSegments` for new intervals since the last sync.
+*   Writes raw segments with source identifiers into `health_step_segments`.
+*   Resolves multi-device overlaps using either the `auto_dominant` or `max_per_hour` merging policies described above.
+
+### 2. Sleep Stages Ingestion (`SleepSyncService`)
+*   Uses `HealthKitSleepAdapter` (iOS) and `HealthConnectSleepAdapter` (Android) to retrieve recorded sleep intervals and sleep stages (awake, REM, core/light, deep/N3).
+*   Maps raw platform categories into canonical stages (`sleep_canonical_stage_segments`) and sessions (`sleep_canonical_sessions`).
+*   Serves as the raw biological input to the [Sleep Health Score Engine](sleep_scoring_engine.md).
+
+### 3. Heart Rate & Pulse Tracking (`HealthPulseAnalysisRepository`)
+*   `PulseTrackingService` manages the user's enablement setting and permission request. `HealthPulseAnalysisRepository` reads resting and active heart-rate samples via `HealthPlatformHeartRate` when analysis needs data.
+*   `PulseAggregateStore` converts those samples into hourly minimum, maximum, and average aggregates in `pulse_hourly_aggregates` for recovery and cardio trend visualisation.

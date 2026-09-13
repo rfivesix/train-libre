@@ -57,6 +57,7 @@ class VoiceDictationService {
   bool _initialized = false;
   bool _onDeviceAvailable = false;
   bool _lastRunUsedNetwork = false;
+  VoidCallback? _onListeningStopped;
 
   bool get isListening => _speech.isListening;
   bool get onDeviceAvailable => _onDeviceAvailable;
@@ -101,7 +102,7 @@ class VoiceDictationService {
       final available = await _speech.initialize(
         onError: (error) =>
             debugPrint('[VoiceDictation] error: ${error.errorMsg}'),
-        onStatus: (status) => debugPrint('[VoiceDictation] status: $status'),
+        onStatus: _handleStatus,
         debugLogging: false,
       );
 
@@ -127,6 +128,13 @@ class VoiceDictationService {
         available: false,
         reason: VoiceUnavailableReason.failed,
       );
+    }
+  }
+
+  void _handleStatus(String status) {
+    debugPrint('[VoiceDictation] status: $status');
+    if (status == 'done' || status == 'notListening') {
+      _onListeningStopped?.call();
     }
   }
 
@@ -242,6 +250,7 @@ class VoiceDictationService {
     required void Function(String text) onPartial,
     required void Function(String text) onFinal,
     void Function(double level)? onSoundLevel,
+    VoidCallback? onStopped,
     String? localeId,
   }) async {
     final availability = await prepare();
@@ -253,6 +262,7 @@ class VoiceDictationService {
     if (_speech.isListening) {
       await cancel();
     }
+    _onListeningStopped = onStopped;
 
     void handleResult(SpeechRecognitionResult result) {
       final words = result.recognizedWords.trim();

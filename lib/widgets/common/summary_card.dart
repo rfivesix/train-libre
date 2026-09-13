@@ -41,7 +41,6 @@ class SummaryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final cs = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
 
     final defaultBg = isDark
@@ -69,15 +68,9 @@ class SummaryCard extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(DesignConstants.borderRadiusL),
-          boxShadow: (disableShadow || isDark)
-              ? null
-              : [
-                  BoxShadow(
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                    color: cs.shadow.withValues(alpha: 0.05),
-                  ),
-                ],
+          // Summary cards stay flat in both themes. The surface contrast and
+          // grouped-page background provide their separation.
+          boxShadow: null,
         ),
         child: ClipPath(
           clipper: clipper,

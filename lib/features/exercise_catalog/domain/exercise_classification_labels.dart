@@ -12,8 +12,9 @@ import '../../../generated/app_localizations.dart';
 /// other line is in the user's language.
 ///
 /// Every method returns null for an unknown or absent value. That is the
-/// common case, not an error: 32 catalog rows carry no classification, and
-/// user-created exercises never will. A null means "draw nothing here".
+/// common case, not an error: 32 catalog rows carry no classification, and a
+/// custom exercise may deliberately leave it unset. A null means "draw
+/// nothing here".
 abstract final class ExerciseClassificationLabels {
   /// `compound` | `isolation`.
   static String? mechanic(BuildContext context, String? value) {

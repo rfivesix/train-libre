@@ -1,3 +1,5 @@
+import 'package:uuid/uuid.dart';
+import '../../domain/progression/progression_contract.dart';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:drift/drift.dart' as drift;
@@ -11,6 +13,7 @@ import '../../domain/models/routine_exercise.dart';
 import '../../domain/models/set_log.dart';
 import '../../domain/models/set_template.dart';
 import '../../domain/models/workout_log.dart';
+import '../../domain/parsers/rep_range_parser.dart';
 import '../../domain/classification/set_load.dart';
 import '../../domain/classification/workout_classification.dart';
 import '../../../statistics/domain/recovery_domain_service.dart';
@@ -41,7 +44,7 @@ class MuscleAnalyticsBackgroundTaskParams {
 class MuscleContributionRawData {
   final DateTime startTime;
   final String? musclesPrimary;
-  final String? musclesSecondary;
+  final String? movementPattern;
 
   /// Carried into the isolate so volume can drop the sets that are not work on
   /// the annotated muscle. Null for pre-v2 rows and user exercises, where the
@@ -56,7 +59,7 @@ class MuscleContributionRawData {
   MuscleContributionRawData({
     required this.startTime,
     this.musclesPrimary,
-    this.musclesSecondary,
+    this.movementPattern,
     this.modality,
     this.categoryName,
     this.setType,
@@ -97,18 +100,6 @@ class WorkoutLocalDataSource {
     return (row as dynamic)?.id;
   }
 
-  /// Converts a UUID back to its local integer ID when needed.
-  Future<int?> _getLocalIdFromUuid<T extends drift.Table, D>(
-    drift.TableInfo<T, D> table,
-    String uuid,
-  ) async {
-    final dbInstance = await database;
-    final query = dbInstance.select(table)
-      ..where((tbl) => (tbl as dynamic).id.equals(uuid));
-    final row = await query.getSingleOrNull();
-    return (row as dynamic)?.localId;
-  }
-
   static List<String> _parseMuscleList(String? jsonStr) {
     return WorkoutClassification.parseMuscleList(jsonStr);
   }
@@ -131,10 +122,12 @@ class WorkoutLocalDataSource {
     );
   }
 
-  SetLog _mapSetLogToModel(db.SetLog row, int workoutLogLocalId) {
+  SetLog _mapSetLogToModel(db.SetLog row, int workoutLogLocalId,
+      {DateTime? performedAt}) {
     return SetLog(
       id: row.localId,
       workoutLogId: workoutLogLocalId,
+      exerciseId: row.exerciseId,
       exerciseName: row.exerciseNameSnapshot ?? 'Unknown',
       setType: row.setType,
       weightKg: row.weight,
@@ -149,6 +142,18 @@ class WorkoutLocalDataSource {
       durationSeconds: row.durationSeconds,
       rpe: row.rpe,
       rir: row.rir,
+      prescriptionOrigin: row.prescriptionOrigin,
+      prescribedRepMin: row.prescribedRepMin,
+      prescribedRepMax: row.prescribedRepMax,
+      prescribedWeight: row.prescribedWeight,
+      prescribedRir: row.prescribedRir,
+      prescriptionOverridden: row.prescriptionOverridden,
+      valuesAutoFilled: row.valuesAutoFilled,
+      substitutedForExerciseId: row.substitutedForExerciseId,
+      progressionReason: row.progressionReason,
+      progressionData: row.progressionData,
+      progressionAlgorithmVersion: row.progressionAlgorithmVersion,
+      performedAt: performedAt ?? row.createdAt,
     );
   }
 
@@ -184,8 +189,10 @@ class WorkoutLocalDataSource {
         logRow.photoPath,
         logRow.photoExtraPaths,
       ),
-      sets:
-          setRows.map((row) => _mapSetLogToModel(row, logRow.localId)).toList(),
+      sets: setRows
+          .map((row) => _mapSetLogToModel(row, logRow.localId,
+              performedAt: logRow.startTime))
+          .toList(),
     );
   }
 

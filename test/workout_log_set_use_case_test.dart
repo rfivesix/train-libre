@@ -46,6 +46,35 @@ void main() {
       expect(resultCleared.updatedSet.rir, isNull);
     });
 
+    test('failure sets always record RIR zero', () {
+      final oldLog = SetLog(
+        id: 1,
+        workoutLogId: 10,
+        exerciseName: 'Bench Press',
+        setType: 'normal',
+        rir: 2,
+      );
+
+      final result = useCase.execute(oldLog: oldLog, setType: 'failure');
+
+      expect(result.updatedSet.setType, 'failure');
+      expect(result.updatedSet.rir, 0);
+    });
+
+    test('RIR zero does not turn a normal set into a failure set', () {
+      final oldLog = SetLog(
+        id: 1,
+        workoutLogId: 10,
+        exerciseName: 'Bench Press',
+        setType: 'normal',
+      );
+
+      final result = useCase.execute(oldLog: oldLog, rir: 0);
+
+      expect(result.updatedSet.setType, 'normal');
+      expect(result.updatedSet.rir, 0);
+    });
+
     test('Rep range average fallback parses hyphen range and rounds correctly',
         () {
       final oldLog = SetLog(

@@ -1,0 +1,360 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Piecewise recovery kinetics, equivalent set weighting, and failure-induced fatigue.">
+  <title>Fitness-Oriented Muscle Recovery &amp; Fatigue Heuristic | Train Libre Documentation</title>
+  <link rel="canonical" href="https://trainlibre.com/docs/features/muscle-recovery-model/">
+
+  <link rel="icon" type="image/png" sizes="32x32" href="../../../favicon.png?v=2">
+  <link rel="apple-touch-icon" sizes="180x180" href="../../../assets/apple-touch-icon.png">
+
+  <!-- Open Graph -->
+  <meta property="og:site_name" content="Train Libre Documentation">
+  <meta property="og:title" content="Fitness-Oriented Muscle Recovery &amp; Fatigue Heuristic | Train Libre">
+  <meta property="og:description" content="Piecewise recovery kinetics, equivalent set weighting, and failure-induced fatigue.">
+  <meta property="og:url" content="https://trainlibre.com/docs/features/muscle-recovery-model/">
+  <meta property="og:type" content="article">
+  <meta property="og:image" content="https://trainlibre.com/assets/og-image.png">
+
+  <!-- KaTeX CSS (CDN primary with local fallback) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+  <link rel="stylesheet" href="../../../katex.min.css">
+
+  <!-- Train Libre Design System & Dedicated Docs Styles -->
+  <link rel="stylesheet" href="../../../style.css">
+  <link rel="stylesheet" href="../../docs.css">
+
+  <!-- KaTeX Auto-render Script -->
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" defer onload="renderMathInElement(document.body, {
+    delimiters: [
+      {left: '$$', right: '$$', display: true},
+      {left: '$', right: '$', display: false}
+    ],
+    throwOnError: false
+  });"></script>
+
+  <!-- Mermaid.js for Architecture Diagrams -->
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      if (typeof mermaid !== "undefined") {
+        const isDark = document.documentElement.getAttribute("data-theme") !== "light";
+        mermaid.initialize({
+          startOnLoad: true,
+          theme: isDark ? "dark" : "default",
+          themeVariables: isDark ? {
+            darkMode: true,
+            background: "#151815",
+            primaryColor: "#1b1f1b",
+            primaryTextColor: "#f4f6f4",
+            primaryBorderColor: "rgba(221, 255, 0, 0.4)",
+            lineColor: "#ddff00",
+            secondaryColor: "#151815",
+            tertiaryColor: "#0e100e"
+          } : {}
+        });
+      }
+    });
+  </script>
+
+  <!-- Prevent Theme Flash -->
+  <script>
+    (function () {
+      const theme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: light)').matches ? "light" : "dark");
+      document.documentElement.setAttribute("data-theme", theme);
+    })();
+  </script>
+</head>
+<body class="docs-body">
+  <div class="page">
+    <!-- Header -->
+    <header class="docs-header">
+      <nav class="docs-nav" aria-label="Documentation navigation">
+        <a class="brand" href="../../../index.html" aria-label="Train Libre Home">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 270.933 270.933" role="img">
+              <path fill="#ddff00"
+                d="M47.621 39.688c-4.385 0-7.939 3.554-7.939 7.939v116.172c0 37.238 30.188 67.472 67.426 67.459l13.482-.006c.15.003.3.005.451.005h89.722c11.367 0 20.518-9.154 20.518-20.525s-9.151-20.525-20.518-20.525h-42.739a7.937 7.937 0 0 1-7.937-7.937v-25.174a7.937 7.937 0 0 1 7.937-7.937l41.159-.001c12.244 0 22.101-9.154 22.1-20.525-.001-11.371-9.859-20.525-22.103-20.525l-41.156.001a7.937 7.937 0 0 1-7.937-7.937V47.627c0-4.385-3.555-7.939-7.939-7.939z" />
+            </svg>
+          </span>
+          <span class="brand-name">Train Libre</span>
+          <span class="docs-badge">Docs</span>
+        </a>
+
+        <div class="nav-links">
+          <a href="../../../index.html" class="nav-link">Website</a>
+          <a class="nav-priority" href="https://github.com/rfivesix/train-libre" target="_blank" rel="noreferrer">GitHub</a>
+        </div>
+
+        <div class="nav-controls">
+          <button id="theme-toggle" class="control-btn" aria-label="Toggle Theme">
+            <svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="5"></circle>
+              <line x1="12" y1="1" x2="12" y2="3"></line>
+              <line x1="12" y1="21" x2="12" y2="23"></line>
+              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+              <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+              <line x1="1" y1="12" x2="3" y2="12"></line>
+              <line x1="21" y1="12" x2="23" y2="12"></line>
+              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+              <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+            </svg>
+            <svg class="moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+            </svg>
+          </button>
+          
+          <button id="sidebar-toggle" class="control-btn mobile-menu-btn" aria-label="Open sidebar menu" aria-expanded="false">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="3" y1="12" x2="21" y2="12"></line>
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+      </nav>
+    </header>
+
+    <!-- Docs Main Layout -->
+    <div class="docs-container">
+      <!-- Left Sidebar -->
+      <aside id="docs-sidebar" class="docs-sidebar" aria-label="Documentation sidebar">
+        <div class="sidebar-header-search">
+          <input type="text" id="sidebar-filter" placeholder="Filter topics..." aria-label="Filter topics in documentation">
+        </div>
+        <div class="sidebar-scroll-area">
+          <div class="sidebar-group"><div class="sidebar-group-title">Overview</div><ul class="sidebar-nav-list">
+<li><a href="../../index.html" class="sidebar-link">Documentation Suite Overview</a></li>
+</ul></div>
+<div class="sidebar-group"><div class="sidebar-group-title">Features &amp; Heuristics</div><ul class="sidebar-nav-list">
+<li><a href="../overview/index.html" class="sidebar-link">Capabilities &amp; Privacy</a></li>
+<li><a href="../sleep-scoring-engine/index.html" class="sidebar-link">Sleep Health Score (SHS v3.5)</a></li>
+<li><a href="index.html" class="sidebar-link active" aria-current="page">Muscle Recovery &amp; Readiness</a></li>
+<li><a href="../bayesian-tdee-estimator/index.html" class="sidebar-link">Bayesian TDEE Estimator</a></li>
+<li><a href="../macro-distribution/index.html" class="sidebar-link">Macronutrient Distribution</a></li>
+<li><a href="../workout-progression-engine/index.html" class="sidebar-link">Workout Progression Engine</a></li>
+<li><a href="../intelligent-workouts/index.html" class="sidebar-link">Estimated 1-Rep Max (e1RM)</a></li>
+<li><a href="../meal-capture-pipeline/index.html" class="sidebar-link">Meal Capture Pipeline</a></li>
+<li><a href="../byok-ai-validation/index.html" class="sidebar-link">BYOK AI Meal Validation</a></li>
+<li><a href="../depth-scale-hint/index.html" class="sidebar-link">Depth Scale Hint (LiDAR)</a></li>
+<li><a href="../health-sync-export/index.html" class="sidebar-link">Native Health Sync &amp; Export</a></li>
+<li><a href="../live-activity-workout/index.html" class="sidebar-link">Live Activity &amp; Workout Session</a></li>
+</ul></div>
+<div class="sidebar-group"><div class="sidebar-group-title">Developer &amp; Architecture</div><ul class="sidebar-nav-list">
+<li><a href="../../developer/overview/index.html" class="sidebar-link">Developer Overview &amp; Tests</a></li>
+<li><a href="../../developer/architecture/index.html" class="sidebar-link">System Architecture &amp; Wiring</a></li>
+<li><a href="../../developer/data-flow-and-state/index.html" class="sidebar-link">Data Flow &amp; State Lifecycle</a></li>
+<li><a href="../../developer/localization-architecture/index.html" class="sidebar-link">Localization Architecture</a></li>
+<li><a href="../../developer/ios-home-screen-widgets/index.html" class="sidebar-link">Home Screen Widgets</a></li>
+</ul></div>
+        </div>
+      </aside>
+
+      <!-- Center Article Content -->
+      <main class="docs-main" id="main-content">
+        <div class="docs-breadcrumb" aria-label="Breadcrumb">
+          <a href="../../../index.html">Home</a> <span class="bc-sep">/</span> <a href="../../index.html">Docs</a> <span class="bc-sep">/</span> <span>Features &amp; Heuristics</span>
+        </div>
+
+        <article class="docs-article">
+          <h1 class="doc-title">Fitness-Oriented Muscle Recovery & Fatigue Heuristic</h1>
+<div class="callout callout-warning"><div class="callout-title"><span class="callout-badge">Disclaimer</span></div><div class="callout-body"><strong>Non-Medical Disclaimer</strong>: This feature is a fitness-oriented, non-clinical heuristic designed for healthy individuals tracking performance and workout recovery. It does not apply to clinical conditions, injury diagnosis, or medical rehabilitation. All recovery timelines, baseline windows (e.g. 24–120 hours), set extensions, and readiness categories are sports-science-inspired abstractions and engineering design choices rather than prescriptive clinical thresholds or direct experimental derivations.</div></div>
+<p>The <strong>Muscle Recovery Model</strong> in Train Libre is a fitness-oriented, non-clinical piecewise linear decay heuristic designed to estimate readiness scores <em>R</em>(<em>t</em>) for individual muscle groups. It accounts for non-linear recovery curves, set-weighting based on primary vs. secondary involvement, and sports-science-inspired baseline extensions.</p>
+<hr class="divider">
+<h2 id="1-readiness-score-equation-rt" class="doc-h2">1. Readiness Score Equation <em>R</em>(<em>t</em>)<a href="#1-readiness-score-equation-rt" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>The readiness of a muscle group at time <em>t</em> (hours since last load) is calculated using a 3-phase piecewise interpolation mapping, ensuring a non-linear recovery curve that accounts for acute fatigue, adaptation, and supercompensation.</p>
+<h3 id="phase-1-acute-recovery-t-leq-trec" class="doc-h3">Phase 1: Acute Recovery (\(t \leq T_{rec}\))<a href="#phase-1-acute-recovery-t-leq-trec" class="header-anchor" aria-label="Link to section">#</a></h3>
+<p>During the initial recovery window, readiness scales from 10% to 60%:</p>
+<div class="math-block">$$R(t) = 10.0 + (60.0 - 10.0) \cdot \frac{t}{T_{rec}}$$</div>
+<h3 id="phase-2-adaptation-window-trec-t-leq-tready" class="doc-h3">Phase 2: Adaptation Window (\(T_{rec} < t \leq T_{ready}\))<a href="#phase-2-adaptation-window-trec-t-leq-tready" class="header-anchor" aria-label="Link to section">#</a></h3>
+<p>As the muscle enters the adaptation phase, readiness scales from 60% to 85%:</p>
+<div class="math-block">$$R(t) = 60.0 + (85.0 - 60.0) \cdot \frac{t - T_{rec}}{T_{ready} - T_{rec}}$$</div>
+<h3 id="phase-3-supercompensation-t-tready" class="doc-h3">Phase 3: Supercompensation (\(t > T_{ready}\))<a href="#phase-3-supercompensation-t-tready" class="header-anchor" aria-label="Link to section">#</a></h3>
+<p>Beyond the primary recovery window, the muscle enters supercompensation, scaling from 85% toward 100% over a 48-hour rolling window:</p>
+<div class="math-block">$$R(t) = \text{clamp}\left( 85.0 + (100.0 - 85.0) \cdot \frac{t - T_{ready}}{48.0}, \; 85.0, \; 100.0 \right)$$</div>
+<h3 id="dynamic-recovery-windows" class="doc-h3">Dynamic Recovery Windows<a href="#dynamic-recovery-windows" class="header-anchor" aria-label="Link to section">#</a></h3>
+<p>The time thresholds (\(T_{rec}\) and \(T_{ready}\)) are sports-science-inspired heuristic approximations representing dynamic recovery kinetics. These values and extensions are engineering design choices calibrated against typical literature ranges rather than prescriptive clinical thresholds or direct experimental derivations:</p>
+<ul class="doc-list">
+<li><strong>Muscle Baselines</strong>: Standard groups (e.g., Chest) default to \(T_{rec}=48h\) and \(T_{ready}=72h\), while smaller groups (e.g., Biceps) use shorter windows (36h/60h), and large posterior chain groups (e.g., Quads/Lower Back) use extended windows (up to 72h/120h). These are designed to align with typical training frequencies.</li>
+<li><strong>Volume Extensions</strong>: Training volume beyond baseline thresholds expands the recovery windows (representing the increased fatigue accumulation observed with higher training volumes):</li>
+<li>3–5 sets: +6 hours</li>
+<li>5–8 sets: +12 hours</li>
+<li>8–11 sets: +24 hours</li>
+<li>11+ sets: +36 hours</li>
+<li><strong>Intensity Extensions</strong>: High-intensity efforts (Session \(avgRIR \leq 0.5\) or \(avgRPE \geq 8.5\)) add a flat +24 hour penalty to both \(T_{rec}\) and \(T_{ready}\), serving as a heuristic representation of failure-induced neuromuscular fatigue.</li>
+</ul>
+<hr class="divider">
+<h2 id="2-equivalent-set-weighting" class="doc-h2">2. Equivalent Set Weighting<a href="#2-equivalent-set-weighting" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>To accurately map compound movements to multiple muscle groups, Train Libre uses a weighted contribution ratio:</p>
+<ul class="doc-list">
+<li><strong>Primary Muscle</strong>: 1.0 equivalent set. (e.g., Chest in a Bench Press).</li>
+<li><strong>Secondary Muscle</strong>: 0.3 - 0.5 equivalent set. (e.g., Triceps in a Bench Press).</li>
+</ul>
+<div class="math-block">$$V_{total} = \sum (\text{Sets} \cdot \text{Weighting} \cdot \text{IntensityFactor})$$</div>
+<hr class="divider">
+<h2 id="3-failure-induced-fatigue-extensions" class="doc-h2">3. Failure-Induced Fatigue Extensions<a href="#3-failure-induced-fatigue-extensions" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>The proximity to failure (Reps-In-Reserve, <em>RIR</em>) is a strong indicator of exercise-induced fatigue duration. Train Libre applies a discrete penalty to the recovery timeline:</p>
+<div class="table-responsive"><table class="doc-table"><thead><tr><th style="text-align:left">RIR Value</th><th style="text-align:left">Timeline Adjustment</th></tr></thead><tbody><tr><td style="text-align:left"><em>RIR</em> ≥ 3</td><td style="text-align:left">0 hours (Baseline)</td></tr><tr><td style="text-align:left"><em>RIR</em> = 2</td><td style="text-align:left">+6 hours</td></tr><tr><td style="text-align:left"><em>RIR</em> = 1</td><td style="text-align:left">+12 hours</td></tr><tr><td style="text-align:left"><em>RIR</em> = 0 (Failure)</td><td style="text-align:left">+24 hours</td></tr></tbody></table></div>
+<p>This ensures that "training to failure" is mathematically represented as a significant exercise stressor requiring extended rest, which is an ordinal design choice rather than a direct replication of any single experimental protocol.</p>
+<hr class="divider">
+<h2 id="4-heuristic-categories" class="doc-h2">4. Heuristic Categories<a href="#4-heuristic-categories" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>Readiness is categorized into three discrete states for user presentation. These are simple interpretative feedback labels for the continuous heuristic score and do not represent medical diagnoses, clinical assessments, or injury risk predictions:</p>
+<ol class="doc-list">
+<li><strong>Recovering</strong> (<em>R</em> < 0.6): High residual fatigue. Performance is likely compromised.</li>
+<li><strong>Ready</strong> (0.6 ≤ <em>R</em> < 0.9): Muscle is functional but may have slight remaining soreness or substrate depletion.</li>
+<li><strong>Fresh</strong> (<em>R</em> ≥ 0.9): Optimal readiness for high-intensity training.</li>
+</ol>
+<hr class="divider">
+<h2 id="5-non-clinical-heuristic-disclaimer" class="doc-h2">5. Non-Clinical Heuristic Disclaimer<a href="#5-non-clinical-heuristic-disclaimer" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>This model is a fitness-oriented, non-clinical heuristic based on established sports science literature (NSCA, ACSM, Damas) regarding muscle protein synthesis and post-exercise recovery windows. It is designed for healthy training populations and does not account for individual genetic variance, clinical pathology, nutrition quality, or systemic medical conditions.</p>
+<hr class="divider">
+<h2 id="6-scientific-references-sources" class="doc-h2"><a id="evidence" class="anchor-target"></a>6. Scientific References & Sources<a href="#6-scientific-references-sources" class="header-anchor" aria-label="Link to section">#</a></h2>
+<ul class="doc-list">
+<li>Morán-Navarro et al. (2017) — <em>Time course of recovery following resistance training leading or not to failure</em>. DOI: <a href="https://doi.org/10.1007/s00421-017-3704-9" target="_blank" rel="noopener noreferrer">10.1007/s00421-017-3704-9 <span class="ext-icon">↗</span></a></li>
+<li>Schoenfeld et al. (2017) — <em>Dose-response relationship between weekly resistance training volume and increases in muscle mass</em>. DOI: <a href="https://doi.org/10.1080/02640414.2016.1243800" target="_blank" rel="noopener noreferrer">10.1080/02640414.2016.1243800 <span class="ext-icon">↗</span></a></li>
+<li>Sánchez-Medina & González-Badillo (2011) — <em>Velocity loss as an indicator of neuromuscular fatigue</em>. DOI: <a href="https://doi.org/10.1249/MSS.0b013e318213f880" target="_blank" rel="noopener noreferrer">10.1249/MSS.0b013e318213f880 <span class="ext-icon">↗</span></a></li>
+<li>Ratamess et al. (2009) — <em>NSCA Position Stand: Progression Models in Resistance Training</em>. DOI: <a href="https://doi.org/10.1519/JSC.0b013e3181e382ec" target="_blank" rel="noopener noreferrer">10.1519/JSC.0b013e3181e382ec <span class="ext-icon">↗</span></a></li>
+<li>Vieira et al. (2016) — <em>Effects of resistance training to failure on recovery kinetics</em>. DOI: <a href="https://doi.org/10.1007/s40279-016-0543-8" target="_blank" rel="noopener noreferrer">10.1007/s40279-016-0543-8 <span class="ext-icon">↗</span></a></li>
+<li>Watson et al. (2015) — <em>AASM Recommended Amount of Sleep for a Healthy Adult</em>. DOI: <a href="https://doi.org/10.5664/jcsm.9538" target="_blank" rel="noopener noreferrer">10.5664/jcsm.9538 <span class="ext-icon">↗</span></a></li>
+<li>Damas et al. (2019) — <em>Resistance training‐induced changes in integrated myofibrillar protein synthesis</em>. DOI: <a href="https://doi.org/10.1249/MSS.0000000000002473" target="_blank" rel="noopener noreferrer">10.1249/MSS.0000000000002473 <span class="ext-icon">↗</span></a></li>
+</ul>
+        </article>
+
+        <nav class="docs-pager" aria-label="Documentation navigation">
+<a href="../sleep-scoring-engine/index.html" class="pager-card pager-prev"><span class="pager-label">← Previous</span><span class="pager-title">Sleep Health Score (SHS v3.5)</span></a>
+<a href="../bayesian-tdee-estimator/index.html" class="pager-card pager-next"><span class="pager-label">Next →</span><span class="pager-title">Bayesian TDEE Estimator</span></a>
+</nav>
+      </main>
+
+      <!-- Right Table of Contents -->
+      <aside class="docs-toc" aria-label="Table of contents"><div class="toc-sticky-box"><div class="toc-heading">On this page</div><ul class="toc-list">
+<li class="toc-item toc-item-l2"><a href="#1-readiness-score-equation-rt">1. Readiness Score Equation R(t)</a></li>
+<li class="toc-item toc-item-l3"><a href="#phase-1-acute-recovery-t-leq-trec">Phase 1: Acute Recovery (\(t \leq T{rec}\))</a></li>
+<li class="toc-item toc-item-l3"><a href="#phase-2-adaptation-window-trec-t-leq-tready">Phase 2: Adaptation Window (\(T{rec} &lt; t \leq T{ready}\))</a></li>
+<li class="toc-item toc-item-l3"><a href="#phase-3-supercompensation-t-tready">Phase 3: Supercompensation (\(t &gt; T{ready}\))</a></li>
+<li class="toc-item toc-item-l3"><a href="#dynamic-recovery-windows">Dynamic Recovery Windows</a></li>
+<li class="toc-item toc-item-l2"><a href="#2-equivalent-set-weighting">2. Equivalent Set Weighting</a></li>
+<li class="toc-item toc-item-l2"><a href="#3-failure-induced-fatigue-extensions">3. Failure-Induced Fatigue Extensions</a></li>
+<li class="toc-item toc-item-l2"><a href="#4-heuristic-categories">4. Heuristic Categories</a></li>
+<li class="toc-item toc-item-l2"><a href="#5-non-clinical-heuristic-disclaimer">5. Non-Clinical Heuristic Disclaimer</a></li>
+<li class="toc-item toc-item-l2"><a href="#6-scientific-references-sources">6. Scientific References &amp; Sources</a></li>
+</ul></div></aside>
+    </div>
+
+    <!-- Footer (100% harmonized with main website footer) -->
+    <footer class="site-footer">
+      <div>
+        <a class="brand" href="../../../index.html" aria-label="Train Libre home">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 270.933 270.933" role="img">
+              <path fill="#ddff00"
+                d="M47.621 39.688c-4.385 0-7.939 3.554-7.939 7.939v116.172c0 37.238 30.188 67.472 67.426 67.459l13.482-.006c.15.003.3.005.451.005h89.722c11.367 0 20.518-9.154 20.518-20.525s-9.151-20.525-20.518-20.525h-42.739a7.937 7.937 0 0 1-7.937-7.937v-25.174a7.937 7.937 0 0 1 7.937-7.937l41.159-.001c12.244 0 22.101-9.154 22.1-20.525-.001-11.371-9.859-20.525-22.103-20.525l-41.156.001a7.937 7.937 0 0 1-7.937-7.937V47.627c0-4.385-3.555-7.939-7.939-7.939z" />
+            </svg>
+          </span>
+          <span>Train Libre</span>
+        </a>
+        <p class="fine-print">Fitness, nutrition, recovery, and pulse features are non-clinical heuristics for healthy individuals tracking performance, not medical advice. They do not apply to medical conditions (such as eating or sleep disorders).</p>
+      </div>
+      <div class="footer-links">
+        <a href="../../index.html">Documentation</a>
+        <a href="../../../privacy.html">Privacy Policy</a>
+        <a href="../../../terms.html">Terms of Service</a>
+        <a href="../../../impressum.html">Imprint</a>
+        <a href="../../../support.html">Support</a>
+        <a href="https://github.com/rfivesix/train-libre" data-link="github" target="_blank" rel="noreferrer">GitHub</a>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Documentation Interactions Script -->
+  <script>
+    // Theme toggle interaction
+    const themeBtn = document.getElementById("theme-toggle");
+    if (themeBtn) {
+      themeBtn.addEventListener("click", () => {
+        const current = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
+        document.documentElement.setAttribute("data-theme", current);
+        localStorage.setItem("theme", current);
+        if (typeof mermaid !== "undefined") {
+          const mNodes = document.querySelectorAll(".mermaid");
+          if (mNodes.length > 0) {
+            mNodes.forEach(node => {
+              if (node.hasAttribute("data-mermaid")) {
+                node.removeAttribute("data-processed");
+                node.innerHTML = node.getAttribute("data-mermaid");
+              }
+            });
+            mermaid.initialize({
+              startOnLoad: false,
+              theme: current === "light" ? "default" : "dark"
+            });
+            mermaid.run();
+          }
+        }
+      });
+    }
+
+    // Mobile sidebar toggle
+    const sidebarToggle = document.getElementById("sidebar-toggle");
+    const sidebar = document.getElementById("docs-sidebar");
+    if (sidebarToggle && sidebar) {
+      sidebarToggle.addEventListener("click", () => {
+        const expanded = sidebar.classList.toggle("open");
+        sidebarToggle.setAttribute("aria-expanded", expanded);
+      });
+
+      document.addEventListener("click", (e) => {
+        if (sidebar.classList.contains("open") && !sidebar.contains(e.target) && !sidebarToggle.contains(e.target)) {
+          sidebar.classList.remove("open");
+          sidebarToggle.setAttribute("aria-expanded", "false");
+        }
+      });
+    }
+
+    // Sidebar filter/search
+    const filterInput = document.getElementById("sidebar-filter");
+    if (filterInput) {
+      filterInput.addEventListener("input", (e) => {
+        const val = e.target.value.toLowerCase().trim();
+        document.querySelectorAll(".sidebar-nav-list li").forEach(li => {
+          const text = li.textContent.toLowerCase();
+          li.style.display = text.includes(val) ? "" : "none";
+        });
+        document.querySelectorAll(".sidebar-group").forEach(group => {
+          const hasVisible = Array.from(group.querySelectorAll("li")).some(li => li.style.display !== "none");
+          group.style.display = hasVisible ? "" : "none";
+        });
+      });
+    }
+
+    // Scroll-spy for Table of Contents
+    const tocItems = document.querySelectorAll(".toc-list a");
+    if (tocItems.length > 0) {
+      const headingElements = Array.from(tocItems).map(a => {
+        const id = a.getAttribute("href").substring(1);
+        return document.getElementById(id);
+      }).filter(Boolean);
+
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const id = entry.target.getAttribute("id");
+            tocItems.forEach(a => {
+              if (a.getAttribute("href") === "#" + id) {
+                a.classList.add("active");
+              } else {
+                a.classList.remove("active");
+              }
+            });
+          }
+        });
+      }, { rootMargin: "0px 0px -70% 0px", threshold: 0.1 });
+
+      headingElements.forEach(h => observer.observe(h));
+    }
+  </script>
+</body>
+</html>

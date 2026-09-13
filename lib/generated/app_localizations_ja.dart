@@ -1221,6 +1221,20 @@ class AppLocalizationsJa extends AppLocalizations {
   String get set_type_dropset => 'ドロップセット';
 
   @override
+  String get set_type_normal_help =>
+      '通常のワーキングセットです。ウォームアップ後の最初のセットは、通常は重いメインセットです。漸進に反映されます。';
+
+  @override
+  String get set_type_warmup_help => '負荷を徐々に上げてウォームアップします。漸進には反映されません。';
+
+  @override
+  String get set_type_failure_help =>
+      'きれいな反復をこれ以上できなくなるまで行うワーキングセットです。漸進に反映されます。';
+
+  @override
+  String get set_type_dropset_help => 'ワーキングセット直後に負荷を下げて続けます。漸進には反映されません。';
+
+  @override
   String get set_reps_hint => '8-12';
 
   @override
@@ -1269,7 +1283,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get start_button => '始める';
 
   @override
-  String get today_overview_text => '今日に注目';
+  String get today_overview_text => '一目で';
 
   @override
   String get quick_add_text => 'クイック追加';
@@ -1278,7 +1292,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get scann_barcode_capslock => 'バーコードをスキャンする';
 
   @override
-  String get protocol_today_capslock => '今日のプロトコル';
+  String get protocol_today_capslock => 'プロトコル';
 
   @override
   String get my_plans_capslock => '私の計画';
@@ -1317,6 +1331,12 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String get calendar_currently_not_available =>
       'カレンダー ビューは近日中に利用できるようになる予定です。';
+
+  @override
+  String get datePickerCalendar => 'カレンダー表示';
+
+  @override
+  String get datePickerWheel => 'ホイール表示';
 
   @override
   String get in_depth_analysis => '徹底した分析';
@@ -2943,7 +2963,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get placeholderCalendarHeatmap => 'カレンダーヒートマップビジュアル';
 
   @override
-  String get consistencyTrackerTitle => '一貫性トラッカー';
+  String get consistencyTrackerTitle => 'トレーニングリズム';
 
   @override
   String get consistencyTrackerComingSoon => '一貫性と習慣のトラッカー (近日公開予定)';
@@ -2973,7 +2993,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get metricsRecentPrs => '最近のPR';
 
   @override
-  String get metricsVolumeLifted => 'ボリュームアップ';
+  String get metricsVolumeLifted => 'ボリューム';
 
   @override
   String get metricsMostImproved => '最も改善された';
@@ -3267,6 +3287,32 @@ class AppLocalizationsJa extends AppLocalizations {
   String get analyticsRecentRecords => '最近の記録';
 
   @override
+  String get analyticsNewBestPerformances => '新しい自己ベスト';
+
+  @override
+  String get analyticsTop => 'トップ';
+
+  @override
+  String analyticsLastWeeks(int weeks) {
+    return '直近$weeks週間';
+  }
+
+  @override
+  String get analyticsMuscleGroups => '筋肉グループ';
+
+  @override
+  String get analyticsStrongestBreakthrough => '最大の進歩';
+
+  @override
+  String get analyticsRecordOverview => '記録の概要';
+
+  @override
+  String get analyticsRecentlySet => '最近達成';
+
+  @override
+  String get analyticsByRepetitionRange => '回数別';
+
+  @override
   String analyticsPerfWithReps(String weight, int reps, Object unit) {
     return '$weight $unit x $reps';
   }
@@ -3308,6 +3354,24 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get analyticsViewLabel => 'ビュー';
+
+  @override
+  String get analyticsViewChart => 'グラフ';
+
+  @override
+  String get analyticsViewOverview => '概要';
+
+  @override
+  String get analyticsVolumeWeeklyAverage => '週平均';
+
+  @override
+  String get analyticsVolumeTotal => '合計';
+
+  @override
+  String get analyticsSwitchToChart => 'グラフを表示';
+
+  @override
+  String get analyticsSwitchToOverview => '概要を表示';
 
   @override
   String get analyticsViewWeek => '週';
@@ -3366,8 +3430,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get analyticsVsPriorPeriod => '前期間比';
 
   @override
-  String get analyticsCalendarExplainer =>
-      '色の濃さは 1 日あたりのセッションを反映しており、これが真の一貫性マップになります。';
+  String get analyticsCalendarExplainer => '色の濃さが1日あたりのセッション数を示します。';
 
   @override
   String get analyticsSelectDayPrompt => 'セッション数を検査する日を選択します。';
@@ -3414,6 +3477,51 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get analyticsPeriodLabel => '期間';
+
+  @override
+  String get analyticsCoverageMuscles => '筋肉';
+
+  @override
+  String get analyticsCoverageMovementPatterns => '動作パターン';
+
+  @override
+  String get analyticsWorkingSetsByMuscle => '筋肉別ワーキングセット';
+
+  @override
+  String get analyticsWorkingSetsByPattern => '動作パターン別ワーキングセット';
+
+  @override
+  String get analyticsPrimaryMuscleCoverageCaption =>
+      '主働筋に対する完了済みの通常セットと限界セットのみを表示します。';
+
+  @override
+  String get analyticsMovementPatternCoverageCaption =>
+      '動作パターン別の完了済み通常セットと限界セットを表示します。';
+
+  @override
+  String get analyticsUnclassified => '未分類';
+
+  @override
+  String get analyticsPatternOther => 'その他';
+
+  @override
+  String analyticsAverageWorkingSetsPerWeek(String value) {
+    return '週平均 $value ワーキングセット';
+  }
+
+  @override
+  String get analyticsFrequencyWorkingSetFooter =>
+      '頻度は、その筋肉に対して少なくとも1つのワーキングセットを行った日を数えます。';
+
+  @override
+  String analyticsAverageFrequencyPerWeek(String value) {
+    return '平均頻度: 週 $value 回';
+  }
+
+  @override
+  String analyticsTotalWorkingSets(String value) {
+    return '$value ワーキングセット';
+  }
 
   @override
   String get analyticsEquivalentSetsExplainer =>
@@ -6257,6 +6365,30 @@ class AppLocalizationsJa extends AppLocalizations {
   String get exerciseLateralityAlternating => '交互';
 
   @override
+  String get exerciseClassificationTitle => '分類';
+
+  @override
+  String get exerciseMovementPatternLabel => '動作パターン';
+
+  @override
+  String get exerciseForceVectorLabel => '力の方向';
+
+  @override
+  String get exerciseMechanicLabel => '種目タイプ';
+
+  @override
+  String get exerciseLateralityLabel => '左右の使い方';
+
+  @override
+  String get exerciseDifficultyLabel => '難易度';
+
+  @override
+  String get exerciseClassificationNotSpecified => '未指定';
+
+  @override
+  String get exercisePatternOther => 'その他';
+
+  @override
   String get exerciseUsageWarmup => 'ウォームアップ';
 
   @override
@@ -6449,4 +6581,140 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get diaryWeightRetry => '再試行';
+
+  @override
+  String get settingsTrainingProgressionTitle => 'トレーニングの進捗';
+
+  @override
+  String get settingsTrainingProgressionSubtitle => '履歴に基づいた重量の提案';
+
+  @override
+  String get trainingProgressionOff => 'オフ';
+
+  @override
+  String get trainingProgressionSuggest => '提案';
+
+  @override
+  String get progressionTogether => 'セットを一緒に伸ばす';
+
+  @override
+  String get progressionIndividually => 'セットを個別に伸ばす';
+
+  @override
+  String get progressionPolicy => 'セットの進行方法';
+
+  @override
+  String get progressionSetOutcome => 'セットの扱い';
+
+  @override
+  String get progressionDetails => '進歩と器具';
+
+  @override
+  String get progressionLargeStep => '次の利用可能な重量は大きな増減です。確認して試すか、現在の重量を維持できます。';
+
+  @override
+  String get progressionBridge =>
+      '任意の一時目標：範囲の上限より2回多い回数。設定した範囲は変わりません。達成すると次の実際の重量が再提示されます。';
+
+  @override
+  String get progressionUnavailable =>
+      '次の重量がありません。維持するか、利用可能な重量を修正するか、新しい基準を選べます。';
+
+  @override
+  String get progressionOvershoot =>
+      'この記録は上限より3回以上多くなっています。記録を確認してから次の重量か新しい基準を選んでください。';
+
+  @override
+  String get progressionStall =>
+      '比較可能な3回のセッションでこのセットが範囲を下回りました。提案された軽い負荷を選ぶか、計画を維持するか、範囲を編集できます。自動変更はありません。';
+
+  @override
+  String get progressionBoundary =>
+      '新しい測定方式と基準です。この種目の移行を確認してください。補助、自重、追加重量は別の測定方式です。';
+
+  @override
+  String get progressionAccept => '目標を確認';
+
+  @override
+  String get progressionDecline => '現在の重量を維持';
+
+  @override
+  String get progressionDismiss => '提案を閉じる';
+
+  @override
+  String get progressionRecalibrate => '新しい基準を選ぶ';
+
+  @override
+  String get progressionConfirmLog => '記録を確認して次の重量を検討';
+
+  @override
+  String get progressionLoads => '利用可能な重量（セミコロン区切り）';
+
+  @override
+  String get progressionEquipment => '器具の識別名（任意）';
+
+  @override
+  String get progressionContext => '状況や一時的な理由（任意）';
+
+  @override
+  String get progressionCompleted => '通常どおり完了';
+
+  @override
+  String get progressionAbandoned => '途中で中止';
+
+  @override
+  String get progressionPain => '痛みのため中止';
+
+  @override
+  String get progressionEquipmentInterrupted => '器具または設定に問題があった';
+
+  @override
+  String get progressionPainGuidance =>
+      'このセットを中止してください。続ける前に適切な評価を検討してください。重量の提案は行いません。';
+
+  @override
+  String get progressionUserLadder => '設定した利用可能な重量';
+
+  @override
+  String get progressionEquipmentLadder => '器具の重量段階';
+
+  @override
+  String get progressionFallback => '器具の既定刻みを使用';
+
+  @override
+  String get progressionHold => '重量を維持し、この位置の範囲と履歴に合わせて回数を提案します。';
+
+  @override
+  String get progressionOrdinary => '上限達成：次の利用可能な重量に進み、回数は範囲の下限から始めます。';
+
+  @override
+  String get progressionAnchor => '連動するセットは前回の重量差を今日の重量に反映します。';
+
+  @override
+  String get progressionNewPosition =>
+      '新しい位置：今日の完了セットからの暫定基準であり、過去の進歩の証拠ではありません。';
+
+  @override
+  String get progressionWithheld => '提案に使える比較可能な記録がありません。';
+
+  @override
+  String get progressionOffered => '提示済み';
+
+  @override
+  String get progressionAccepted => '承認済み';
+
+  @override
+  String get progressionRejected => '辞退済み';
+
+  @override
+  String get progressionInvalidLoads => '0以上の重量を1つ以上入力してください。';
+
+  @override
+  String get progressionBodyweight => '自重';
+
+  @override
+  String get progressionWeighted => '追加重量ありの自重';
+
+  @override
+  String get progressionAssisted => '補助';
 }

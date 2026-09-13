@@ -31,7 +31,9 @@ class WeightRuler extends StatefulWidget {
 
 class _WeightRulerState extends State<WeightRuler> {
   double _dragValue = 0;
+  int? _lastHapticTick;
   double get _pixelsPerUnit => widget.imperial ? 35 : 70;
+  double get _tickStep => widget.imperial ? .2 : .1;
 
   void _change(double raw) {
     // Keep the painted ruler continuous under the finger. The card formats the
@@ -40,9 +42,10 @@ class _WeightRulerState extends State<WeightRuler> {
       widget.imperial ? 55.0 : 25.0,
       widget.imperial ? 570.0 : 260.0,
     );
-    final major = widget.imperial ? 5 : 1;
-    if ((value / major).floor() != (widget.value / major).floor()) {
+    final tick = (value / _tickStep).round();
+    if (tick != _lastHapticTick) {
       HapticFeedback.selectionClick();
+      _lastHapticTick = tick;
     }
     widget.onChanged(value);
   }
@@ -61,8 +64,12 @@ class _WeightRulerState extends State<WeightRuler> {
       onDecrease: widget.enabled ? () => _change(widget.value - .1) : null,
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
-        onHorizontalDragStart:
-            widget.enabled ? (_) => _dragValue = widget.value : null,
+        onHorizontalDragStart: widget.enabled
+            ? (_) {
+                _dragValue = widget.value;
+                _lastHapticTick = (widget.value / _tickStep).round();
+              }
+            : null,
         onHorizontalDragUpdate: widget.enabled
             ? (details) {
                 _dragValue -= details.delta.dx / _pixelsPerUnit;

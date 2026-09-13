@@ -131,7 +131,6 @@ class _GlassProgressBarPainter extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final cs = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
 
     final hasTarget = target > 0;
@@ -170,15 +169,9 @@ class _GlassProgressBarPainter extends StatelessWidget {
     return Container(
       decoration: ShapeDecoration(
         shape: squircle,
-        shadows: (disableShadow || isDark)
-            ? null
-            : [
-                BoxShadow(
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                  color: cs.shadow.withValues(alpha: 0.05),
-                ),
-              ],
+        // This is the compact progress-card variant used beside summary
+        // cards, so it follows the same flat surface treatment.
+        shadows: null,
       ),
       child: ClipPath(
         clipper: clipper,

@@ -4,6 +4,7 @@ import '../../../../services/unit_service.dart';
 import '../models/routine_exercise.dart';
 import '../models/set_log.dart';
 import '../models/set_template.dart';
+import '../workout_next_set.dart';
 import 'workout_live_activity_content.dart';
 import 'workout_live_activity_strings.dart';
 
@@ -247,27 +248,23 @@ class _NextSet {
   String get setType => log.setType;
 }
 
-/// The first set that is not yet completed, in routine order.
 _NextSet? _findNextSet(
   List<RoutineExercise> exercises,
   Map<int, SetLog> setLogs,
 ) {
-  for (final exercise in exercises) {
-    final templates = exercise.setTemplates;
-    for (var i = 0; i < templates.length; i++) {
-      final template = templates[i];
-      final templateId = template.id;
-      if (templateId == null) continue;
-      final log = setLogs[templateId];
-      if (log == null || log.isCompleted == true) continue;
-      return _NextSet(
-        exercise: exercise,
-        template: template,
-        log: log,
-        indexInExercise: i + 1,
-        totalInExercise: templates.length,
-      );
-    }
-  }
-  return null;
+  final next = findNextWorkoutSet(exercises, setLogs);
+  if (next == null) return null;
+
+  final exercise = exercises[next.exerciseIndex];
+  final template = exercise.setTemplates[next.templateIndex];
+  final log = setLogs[next.templateId];
+  if (log == null) return null;
+
+  return _NextSet(
+    exercise: exercise,
+    template: template,
+    log: log,
+    indexInExercise: next.templateIndex + 1,
+    totalInExercise: exercise.setTemplates.length,
+  );
 }

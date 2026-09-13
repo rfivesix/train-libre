@@ -22,12 +22,17 @@ class GlassMenuAction {
   /// Callback triggered when the action is selected.
   final VoidCallback onTap;
 
+  /// Optional result returned by [showGlassBottomMenu] when this action closes
+  /// the sheet. Kept untyped because the menu is shared by multiple flows.
+  final Object? result;
+
   GlassMenuAction({
     this.icon,
     this.customIcon, // New
     required this.label,
     this.subtitle,
     required this.onTap,
+    this.result,
   }) : assert(
           icon != null || customIcon != null,
           'Icon or customIcon must be provided',
@@ -227,7 +232,7 @@ class _GlassBottomMenuSheet extends StatelessWidget {
                             onTap: () {
                               HapticFeedbackService.instance
                                   .selectionFeedback();
-                              Navigator.of(context).maybePop();
+                              Navigator.of(context).maybePop(a.result);
                               WidgetsBinding.instance.addPostFrameCallback(
                                 (_) => a.onTap(),
                               );
@@ -435,8 +440,6 @@ class _GlassTile extends StatelessWidget {
                   const SizedBox(height: 2),
                   Text(
                     subtitle!,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
                     style: textTheme.bodySmall?.copyWith(
                       color: textTheme.bodySmall?.color?.withValues(alpha: 0.8),
                     ),

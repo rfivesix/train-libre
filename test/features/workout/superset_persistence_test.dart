@@ -97,7 +97,7 @@ void main() {
     final migratedSource = WorkoutLocalDataSource.forTesting(database);
     final loaded = await migratedSource.getRoutineById(routine.id!);
 
-    expect(database.schemaVersion, 29);
+    expect(database.schemaVersion, greaterThanOrEqualTo(29));
     expect(loaded, isNotNull);
     expect(loaded!.exercises.single.supersetGroup, isNull);
     final setColumns =

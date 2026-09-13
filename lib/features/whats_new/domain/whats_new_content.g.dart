@@ -16,6 +16,37 @@ import 'whats_new_release.dart';
 const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
   'en': <WhatsNewRelease>[
     WhatsNewRelease(
+      version: '1.4.0',
+      releasedOn: '2026-09-11',
+      entries: <WhatsNewEntry>[
+        WhatsNewEntry(
+          icon: LucideIcons.layout_grid,
+          title: 'Browse your diary by date',
+          body: 'A new, scrollable day strip lets you jump between nearby days in one tap. The calendar opens directly when you choose a date in the Diary.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.sparkles,
+          title: 'Smarter next-set suggestions',
+          body: 'When you enable training suggestions in Settings, Train Libre can prefill the next working set with a weight based on your recent performance. You can always change it before logging.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.heart,
+          title: 'Recovery where you train',
+          body: 'Muscle Recovery is now at the top of the Workout tab. Muscle Group Analytics also shows your movement patterns alongside muscle coverage and frequency.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.layout_grid,
+          title: 'Muscle groups at a glance',
+          body: 'The analysis now offers a complete overview of every muscle group and movement pattern, a permanent distribution heatmap, and weekly or total working-set values.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.chart_line,
+          title: 'A clearer view of training and records',
+          body: 'Training Rhythm presents your workouts, streak and calendar more clearly. New personal bests now appear in a progress feed with a record overview.',
+        ),
+      ],
+    ),
+    WhatsNewRelease(
       version: '1.3.0',
       releasedOn: '2026-09-07',
       entries: <WhatsNewEntry>[
@@ -147,6 +178,37 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
     ),
   ],
   'de': <WhatsNewRelease>[
+    WhatsNewRelease(
+      version: '1.4.0',
+      releasedOn: '2026-09-11',
+      entries: <WhatsNewEntry>[
+        WhatsNewEntry(
+          icon: LucideIcons.layout_grid,
+          title: 'Tagebuch nach Datum durchsuchen',
+          body: 'Über eine neue, horizontal scrollbare Tagesleiste wechselst du mit einem Tipp zu nahegelegenen Tagen. Wenn du im Tagebuch ein Datum auswählst, öffnet sich direkt der Kalender.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.sparkles,
+          title: 'Intelligentere Vorschläge für den nächsten Satz',
+          body: 'Aktivierst du Trainingsvorschläge in den Einstellungen, kann Train Libre das Gewicht für den nächsten Arbeitssatz anhand deiner letzten Leistung vorausfüllen. Vor dem Speichern kannst du es jederzeit ändern.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.heart,
+          title: 'Regeneration dort, wo du trainierst',
+          body: 'Die Muskelregeneration steht jetzt ganz oben im Workout-Tab. Die Muskelgruppen-Analyse zeigt neben Muskelabdeckung und Häufigkeit auch deine Bewegungsmuster.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.layout_grid,
+          title: 'Muskelgruppen auf einen Blick',
+          body: 'Die Analyse bietet jetzt eine vollständige Übersicht aller Muskelgruppen und Bewegungsmuster, eine permanente Verteilungs-Heatmap sowie Wochen- und Gesamtwerte für Arbeitssätze.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.chart_line,
+          title: 'Training und Rekorde klarer verstehen',
+          body: 'Trainingsrhythmus zeigt dir verständlich deine Einheiten, Serie und den Kalender. Deine neuen Bestleistungen erscheinen als Feed mit Fortschritt und Rekordübersicht.',
+        ),
+      ],
+    ),
     WhatsNewRelease(
       version: '1.3.0',
       releasedOn: '2026-09-07',
@@ -280,6 +342,37 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
   ],
   'fr': <WhatsNewRelease>[
     WhatsNewRelease(
+      version: '1.4.0',
+      releasedOn: '2026-09-11',
+      entries: <WhatsNewEntry>[
+        WhatsNewEntry(
+          icon: LucideIcons.layout_grid,
+          title: 'Parcours ton journal par date',
+          body: 'une nouvelle barre de jours défilante te permet d\'accéder aux jours proches en un geste. Lorsque tu choisis une date dans le journal, le calendrier s\'ouvre directement.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.sparkles,
+          title: 'Des suggestions plus intelligentes pour la prochaine série',
+          body: 'si tu actives les suggestions d\'entraînement dans les réglages, Train Libre peut préremplir le poids de ta prochaine série de travail selon tes dernières performances. Tu peux toujours le modifier avant de l\'enregistrer.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.heart,
+          title: 'La récupération là où tu t\'entraînes',
+          body: 'la récupération musculaire se trouve maintenant en haut de l\'onglet Entraînement. L\'analyse des groupes musculaires affiche aussi tes schémas de mouvement, en plus de la couverture et de la fréquence.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.layout_grid,
+          title: 'Groupes musculaires en un coup d\'œil',
+          body: 'l\'analyse propose désormais une vue complète de chaque groupe musculaire et schéma de mouvement, une heatmap de répartition permanente et des séries de travail hebdomadaires ou totales.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.chart_line,
+          title: 'Entraînement et records plus lisibles',
+          body: 'le rythme d\'entraînement présente plus clairement tes séances, ta série et ton calendrier. Tes nouvelles meilleures performances apparaissent dans un fil de progression avec une vue des records.',
+        ),
+      ],
+    ),
+    WhatsNewRelease(
       version: '1.3.0',
       releasedOn: '2026-09-07',
       entries: <WhatsNewEntry>[
@@ -412,6 +505,37 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
   ],
   'it': <WhatsNewRelease>[
     WhatsNewRelease(
+      version: '1.4.0',
+      releasedOn: '2026-09-11',
+      entries: <WhatsNewEntry>[
+        WhatsNewEntry(
+          icon: LucideIcons.layout_grid,
+          title: 'Sfoglia il diario per data',
+          body: 'una nuova barra dei giorni scorrevole ti permette di passare ai giorni vicini con un tocco. Quando scegli una data nel diario, il calendario si apre direttamente.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.sparkles,
+          title: 'Suggerimenti più intelligenti per la prossima serie',
+          body: 'se attivi i suggerimenti di allenamento nelle Impostazioni, Train Libre può precompilare il peso della prossima serie di lavoro in base alle tue prestazioni recenti. Puoi sempre modificarlo prima di registrarlo.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.heart,
+          title: 'Recupero dove ti alleni',
+          body: 'il recupero muscolare ora è in cima alla scheda Allenamento. L\'analisi dei gruppi muscolari mostra anche i tuoi schemi di movimento, oltre a copertura e frequenza.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.layout_grid,
+          title: 'Gruppi muscolari a colpo d\'occhio',
+          body: 'l\'analisi ora offre una panoramica completa di ogni gruppo muscolare e schema di movimento, una heatmap di distribuzione sempre visibile e serie di lavoro settimanali o totali.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.chart_line,
+          title: 'Allenamento e record più chiari',
+          body: 'il ritmo di allenamento mostra in modo più leggibile allenamenti, serie e calendario. I nuovi record personali compaiono in un feed dei progressi con una panoramica dei record.',
+        ),
+      ],
+    ),
+    WhatsNewRelease(
       version: '1.3.0',
       releasedOn: '2026-09-07',
       entries: <WhatsNewEntry>[
@@ -543,6 +667,37 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
     ),
   ],
   'ja': <WhatsNewRelease>[
+    WhatsNewRelease(
+      version: '1.4.0',
+      releasedOn: '2026-09-11',
+      entries: <WhatsNewEntry>[
+        WhatsNewEntry(
+          icon: LucideIcons.layout_grid,
+          title: '日付から日記を確認',
+          body: '新しい横スクロールの日付バーから、近い日へワンタップで移動できます。日記で日付を選ぶと、カレンダーがすぐに開きます。',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.sparkles,
+          title: '次のセットをより賢く提案',
+          body: '設定でトレーニングの提案を有効にすると、最近の記録をもとに次のワーキングセットの重量をあらかじめ入力できます。記録する前にいつでも変更できます。',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.heart,
+          title: 'トレーニング画面で回復を確認',
+          body: '筋肉の回復状況がワークアウトタブの上部に移動しました。筋肉グループ分析では、カバー率や頻度に加えて動作パターンも確認できます。',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.layout_grid,
+          title: '筋肉グループを一目で確認',
+          body: 'すべての筋肉グループと動作パターンの完全な概要、常時表示の分布ヒートマップ、週平均または合計のワーキングセットを確認できます。',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.chart_line,
+          title: 'トレーニングと記録をより分かりやすく',
+          body: 'トレーニングリズムでワークアウト、ストリーク、カレンダーを見やすく確認できます。新しい自己ベストは進歩フィードと記録の概要に表示されます。',
+        ),
+      ],
+    ),
     WhatsNewRelease(
       version: '1.3.0',
       releasedOn: '2026-09-07',
@@ -680,4 +835,4 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
 const String kWhatsNewFallbackLanguage = 'en';
 
 /// The version this catalog was generated for, taken from pubspec.yaml.
-const String kWhatsNewGeneratedForVersion = '1.3.0';
+const String kWhatsNewGeneratedForVersion = '1.4.0';

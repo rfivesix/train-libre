@@ -133,6 +133,21 @@ class ExerciseLogMask {
     return (exercise?.isCardio ?? false) ? distanceAndDuration : weightAndReps;
   }
 
+  /// A workout's confirmed metric takes precedence over today's catalogue.
+  ExerciseLogMask withSnapshotMode(String? mode) {
+    if (mode == null || secondary != LogField.reps) return this;
+    return ExerciseLogMask(
+        primary: mode == 'assisted'
+            ? LogField.assistance
+            : (mode == 'bodyweight' || mode == 'weightedBodyweight')
+                ? LogField.addedWeight
+                : primary,
+        secondary: secondary,
+        trackingType: trackingType,
+        loadMode: mode,
+        mechanic: mechanic);
+  }
+
   /// What a logged number was actually worth, in kilograms.
   ///
   /// Delegates rather than reimplementing: the sign error this guards against
@@ -184,6 +199,15 @@ class ExerciseLogMask {
   bool get logsDistance => primary == LogField.distance;
   bool get logsReps => secondary == LogField.reps;
   bool get logsDuration => secondary == LogField.duration;
+
+  /// Whether the current load-and-repetition progression model understands
+  /// both axes of this exercise.
+  ///
+  /// Duration and distance need their own progression rules. Merely having a
+  /// primary field is insufficient because that field may be kilometres. A
+  /// variable load also has no stable ladder to advance along.
+  bool get supportsLoadRepProgression =>
+      logsWeight && logsReps && loadMode != 'variable';
 
   /// Whether the duration column opens a picker rather than a keyboard, and
   /// whether the distance column is a distance. Both were `isCardio` before.

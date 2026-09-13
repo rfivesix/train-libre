@@ -712,6 +712,30 @@ class $AppSettingsTable extends AppSettings
       type: DriftSqlType.int,
       requiredDuringInsert: false,
       defaultValue: const Constant(8000));
+  static const VerificationMeta _trainingAutonomyLevelMeta =
+      const VerificationMeta('trainingAutonomyLevel');
+  @override
+  late final GeneratedColumn<String> trainingAutonomyLevel =
+      GeneratedColumn<String>('training_autonomy_level', aliasedName, false,
+          type: DriftSqlType.string,
+          requiredDuringInsert: false,
+          defaultValue: const Constant('off'));
+  static const VerificationMeta _nutritionAutonomyLevelMeta =
+      const VerificationMeta('nutritionAutonomyLevel');
+  @override
+  late final GeneratedColumn<String> nutritionAutonomyLevel =
+      GeneratedColumn<String>('nutrition_autonomy_level', aliasedName, false,
+          type: DriftSqlType.string,
+          requiredDuringInsert: false,
+          defaultValue: const Constant('suggest'));
+  static const VerificationMeta _experienceLevelMeta =
+      const VerificationMeta('experienceLevel');
+  @override
+  late final GeneratedColumn<String> experienceLevel = GeneratedColumn<String>(
+      'experience_level', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultValue: const Constant('pro'));
   @override
   List<GeneratedColumn> get $columns => [
         localId,
@@ -727,7 +751,10 @@ class $AppSettingsTable extends AppSettings
         targetCarbs,
         targetFat,
         targetWater,
-        targetSteps
+        targetSteps,
+        trainingAutonomyLevel,
+        nutritionAutonomyLevel,
+        experienceLevel
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -808,6 +835,24 @@ class $AppSettingsTable extends AppSettings
           targetSteps.isAcceptableOrUnknown(
               data['target_steps']!, _targetStepsMeta));
     }
+    if (data.containsKey('training_autonomy_level')) {
+      context.handle(
+          _trainingAutonomyLevelMeta,
+          trainingAutonomyLevel.isAcceptableOrUnknown(
+              data['training_autonomy_level']!, _trainingAutonomyLevelMeta));
+    }
+    if (data.containsKey('nutrition_autonomy_level')) {
+      context.handle(
+          _nutritionAutonomyLevelMeta,
+          nutritionAutonomyLevel.isAcceptableOrUnknown(
+              data['nutrition_autonomy_level']!, _nutritionAutonomyLevelMeta));
+    }
+    if (data.containsKey('experience_level')) {
+      context.handle(
+          _experienceLevelMeta,
+          experienceLevel.isAcceptableOrUnknown(
+              data['experience_level']!, _experienceLevelMeta));
+    }
     return context;
   }
 
@@ -845,6 +890,14 @@ class $AppSettingsTable extends AppSettings
           .read(DriftSqlType.int, data['${effectivePrefix}target_water'])!,
       targetSteps: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}target_steps'])!,
+      trainingAutonomyLevel: attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}training_autonomy_level'])!,
+      nutritionAutonomyLevel: attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}nutrition_autonomy_level'])!,
+      experienceLevel: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}experience_level'])!,
     );
   }
 
@@ -869,6 +922,15 @@ class AppSetting extends DataClass implements Insertable<AppSetting> {
   final int targetFat;
   final int targetWater;
   final int targetSteps;
+
+  /// Autonomy level for training ('off', 'suggest', 'automatic').
+  final String trainingAutonomyLevel;
+
+  /// Autonomy level for nutrition ('off', 'suggest', 'automatic').
+  final String nutritionAutonomyLevel;
+
+  /// User experience level ('beginner', 'intermediate', 'pro').
+  final String experienceLevel;
   const AppSetting(
       {required this.localId,
       required this.id,
@@ -883,7 +945,10 @@ class AppSetting extends DataClass implements Insertable<AppSetting> {
       required this.targetCarbs,
       required this.targetFat,
       required this.targetWater,
-      required this.targetSteps});
+      required this.targetSteps,
+      required this.trainingAutonomyLevel,
+      required this.nutritionAutonomyLevel,
+      required this.experienceLevel});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -903,6 +968,9 @@ class AppSetting extends DataClass implements Insertable<AppSetting> {
     map['target_fat'] = Variable<int>(targetFat);
     map['target_water'] = Variable<int>(targetWater);
     map['target_steps'] = Variable<int>(targetSteps);
+    map['training_autonomy_level'] = Variable<String>(trainingAutonomyLevel);
+    map['nutrition_autonomy_level'] = Variable<String>(nutritionAutonomyLevel);
+    map['experience_level'] = Variable<String>(experienceLevel);
     return map;
   }
 
@@ -924,6 +992,9 @@ class AppSetting extends DataClass implements Insertable<AppSetting> {
       targetFat: Value(targetFat),
       targetWater: Value(targetWater),
       targetSteps: Value(targetSteps),
+      trainingAutonomyLevel: Value(trainingAutonomyLevel),
+      nutritionAutonomyLevel: Value(nutritionAutonomyLevel),
+      experienceLevel: Value(experienceLevel),
     );
   }
 
@@ -945,6 +1016,11 @@ class AppSetting extends DataClass implements Insertable<AppSetting> {
       targetFat: serializer.fromJson<int>(json['targetFat']),
       targetWater: serializer.fromJson<int>(json['targetWater']),
       targetSteps: serializer.fromJson<int>(json['targetSteps']),
+      trainingAutonomyLevel:
+          serializer.fromJson<String>(json['trainingAutonomyLevel']),
+      nutritionAutonomyLevel:
+          serializer.fromJson<String>(json['nutritionAutonomyLevel']),
+      experienceLevel: serializer.fromJson<String>(json['experienceLevel']),
     );
   }
   @override
@@ -965,6 +1041,10 @@ class AppSetting extends DataClass implements Insertable<AppSetting> {
       'targetFat': serializer.toJson<int>(targetFat),
       'targetWater': serializer.toJson<int>(targetWater),
       'targetSteps': serializer.toJson<int>(targetSteps),
+      'trainingAutonomyLevel': serializer.toJson<String>(trainingAutonomyLevel),
+      'nutritionAutonomyLevel':
+          serializer.toJson<String>(nutritionAutonomyLevel),
+      'experienceLevel': serializer.toJson<String>(experienceLevel),
     };
   }
 
@@ -982,7 +1062,10 @@ class AppSetting extends DataClass implements Insertable<AppSetting> {
           int? targetCarbs,
           int? targetFat,
           int? targetWater,
-          int? targetSteps}) =>
+          int? targetSteps,
+          String? trainingAutonomyLevel,
+          String? nutritionAutonomyLevel,
+          String? experienceLevel}) =>
       AppSetting(
         localId: localId ?? this.localId,
         id: id ?? this.id,
@@ -998,6 +1081,11 @@ class AppSetting extends DataClass implements Insertable<AppSetting> {
         targetFat: targetFat ?? this.targetFat,
         targetWater: targetWater ?? this.targetWater,
         targetSteps: targetSteps ?? this.targetSteps,
+        trainingAutonomyLevel:
+            trainingAutonomyLevel ?? this.trainingAutonomyLevel,
+        nutritionAutonomyLevel:
+            nutritionAutonomyLevel ?? this.nutritionAutonomyLevel,
+        experienceLevel: experienceLevel ?? this.experienceLevel,
       );
   AppSetting copyWithCompanion(AppSettingsCompanion data) {
     return AppSetting(
@@ -1023,6 +1111,15 @@ class AppSetting extends DataClass implements Insertable<AppSetting> {
           data.targetWater.present ? data.targetWater.value : this.targetWater,
       targetSteps:
           data.targetSteps.present ? data.targetSteps.value : this.targetSteps,
+      trainingAutonomyLevel: data.trainingAutonomyLevel.present
+          ? data.trainingAutonomyLevel.value
+          : this.trainingAutonomyLevel,
+      nutritionAutonomyLevel: data.nutritionAutonomyLevel.present
+          ? data.nutritionAutonomyLevel.value
+          : this.nutritionAutonomyLevel,
+      experienceLevel: data.experienceLevel.present
+          ? data.experienceLevel.value
+          : this.experienceLevel,
     );
   }
 
@@ -1042,7 +1139,10 @@ class AppSetting extends DataClass implements Insertable<AppSetting> {
           ..write('targetCarbs: $targetCarbs, ')
           ..write('targetFat: $targetFat, ')
           ..write('targetWater: $targetWater, ')
-          ..write('targetSteps: $targetSteps')
+          ..write('targetSteps: $targetSteps, ')
+          ..write('trainingAutonomyLevel: $trainingAutonomyLevel, ')
+          ..write('nutritionAutonomyLevel: $nutritionAutonomyLevel, ')
+          ..write('experienceLevel: $experienceLevel')
           ..write(')'))
         .toString();
   }
@@ -1062,7 +1162,10 @@ class AppSetting extends DataClass implements Insertable<AppSetting> {
       targetCarbs,
       targetFat,
       targetWater,
-      targetSteps);
+      targetSteps,
+      trainingAutonomyLevel,
+      nutritionAutonomyLevel,
+      experienceLevel);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -1080,7 +1183,10 @@ class AppSetting extends DataClass implements Insertable<AppSetting> {
           other.targetCarbs == this.targetCarbs &&
           other.targetFat == this.targetFat &&
           other.targetWater == this.targetWater &&
-          other.targetSteps == this.targetSteps);
+          other.targetSteps == this.targetSteps &&
+          other.trainingAutonomyLevel == this.trainingAutonomyLevel &&
+          other.nutritionAutonomyLevel == this.nutritionAutonomyLevel &&
+          other.experienceLevel == this.experienceLevel);
 }
 
 class AppSettingsCompanion extends UpdateCompanion<AppSetting> {
@@ -1098,6 +1204,9 @@ class AppSettingsCompanion extends UpdateCompanion<AppSetting> {
   final Value<int> targetFat;
   final Value<int> targetWater;
   final Value<int> targetSteps;
+  final Value<String> trainingAutonomyLevel;
+  final Value<String> nutritionAutonomyLevel;
+  final Value<String> experienceLevel;
   const AppSettingsCompanion({
     this.localId = const Value.absent(),
     this.id = const Value.absent(),
@@ -1113,6 +1222,9 @@ class AppSettingsCompanion extends UpdateCompanion<AppSetting> {
     this.targetFat = const Value.absent(),
     this.targetWater = const Value.absent(),
     this.targetSteps = const Value.absent(),
+    this.trainingAutonomyLevel = const Value.absent(),
+    this.nutritionAutonomyLevel = const Value.absent(),
+    this.experienceLevel = const Value.absent(),
   });
   AppSettingsCompanion.insert({
     this.localId = const Value.absent(),
@@ -1129,6 +1241,9 @@ class AppSettingsCompanion extends UpdateCompanion<AppSetting> {
     this.targetFat = const Value.absent(),
     this.targetWater = const Value.absent(),
     this.targetSteps = const Value.absent(),
+    this.trainingAutonomyLevel = const Value.absent(),
+    this.nutritionAutonomyLevel = const Value.absent(),
+    this.experienceLevel = const Value.absent(),
   }) : userId = Value(userId);
   static Insertable<AppSetting> custom({
     Expression<int>? localId,
@@ -1145,6 +1260,9 @@ class AppSettingsCompanion extends UpdateCompanion<AppSetting> {
     Expression<int>? targetFat,
     Expression<int>? targetWater,
     Expression<int>? targetSteps,
+    Expression<String>? trainingAutonomyLevel,
+    Expression<String>? nutritionAutonomyLevel,
+    Expression<String>? experienceLevel,
   }) {
     return RawValuesInsertable({
       if (localId != null) 'local_id': localId,
@@ -1161,6 +1279,11 @@ class AppSettingsCompanion extends UpdateCompanion<AppSetting> {
       if (targetFat != null) 'target_fat': targetFat,
       if (targetWater != null) 'target_water': targetWater,
       if (targetSteps != null) 'target_steps': targetSteps,
+      if (trainingAutonomyLevel != null)
+        'training_autonomy_level': trainingAutonomyLevel,
+      if (nutritionAutonomyLevel != null)
+        'nutrition_autonomy_level': nutritionAutonomyLevel,
+      if (experienceLevel != null) 'experience_level': experienceLevel,
     });
   }
 
@@ -1178,7 +1301,10 @@ class AppSettingsCompanion extends UpdateCompanion<AppSetting> {
       Value<int>? targetCarbs,
       Value<int>? targetFat,
       Value<int>? targetWater,
-      Value<int>? targetSteps}) {
+      Value<int>? targetSteps,
+      Value<String>? trainingAutonomyLevel,
+      Value<String>? nutritionAutonomyLevel,
+      Value<String>? experienceLevel}) {
     return AppSettingsCompanion(
       localId: localId ?? this.localId,
       id: id ?? this.id,
@@ -1194,6 +1320,11 @@ class AppSettingsCompanion extends UpdateCompanion<AppSetting> {
       targetFat: targetFat ?? this.targetFat,
       targetWater: targetWater ?? this.targetWater,
       targetSteps: targetSteps ?? this.targetSteps,
+      trainingAutonomyLevel:
+          trainingAutonomyLevel ?? this.trainingAutonomyLevel,
+      nutritionAutonomyLevel:
+          nutritionAutonomyLevel ?? this.nutritionAutonomyLevel,
+      experienceLevel: experienceLevel ?? this.experienceLevel,
     );
   }
 
@@ -1242,6 +1373,17 @@ class AppSettingsCompanion extends UpdateCompanion<AppSetting> {
     if (targetSteps.present) {
       map['target_steps'] = Variable<int>(targetSteps.value);
     }
+    if (trainingAutonomyLevel.present) {
+      map['training_autonomy_level'] =
+          Variable<String>(trainingAutonomyLevel.value);
+    }
+    if (nutritionAutonomyLevel.present) {
+      map['nutrition_autonomy_level'] =
+          Variable<String>(nutritionAutonomyLevel.value);
+    }
+    if (experienceLevel.present) {
+      map['experience_level'] = Variable<String>(experienceLevel.value);
+    }
     return map;
   }
 
@@ -1261,7 +1403,10 @@ class AppSettingsCompanion extends UpdateCompanion<AppSetting> {
           ..write('targetCarbs: $targetCarbs, ')
           ..write('targetFat: $targetFat, ')
           ..write('targetWater: $targetWater, ')
-          ..write('targetSteps: $targetSteps')
+          ..write('targetSteps: $targetSteps, ')
+          ..write('trainingAutonomyLevel: $trainingAutonomyLevel, ')
+          ..write('nutritionAutonomyLevel: $nutritionAutonomyLevel, ')
+          ..write('experienceLevel: $experienceLevel')
           ..write(')'))
         .toString();
   }
@@ -3000,6 +3145,12 @@ class $RoutineExercisesTable extends RoutineExercises
   late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
       'deleted_at', aliasedName, true,
       type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  static const VerificationMeta _progressionDataMeta =
+      const VerificationMeta('progressionData');
+  @override
+  late final GeneratedColumn<String> progressionData = GeneratedColumn<String>(
+      'progression_data', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _routineIdMeta =
       const VerificationMeta('routineId');
   @override
@@ -3048,6 +3199,7 @@ class $RoutineExercisesTable extends RoutineExercises
         createdAt,
         updatedAt,
         deletedAt,
+        progressionData,
         routineId,
         exerciseId,
         orderIndex,
@@ -3083,6 +3235,12 @@ class $RoutineExercisesTable extends RoutineExercises
     if (data.containsKey('deleted_at')) {
       context.handle(_deletedAtMeta,
           deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta));
+    }
+    if (data.containsKey('progression_data')) {
+      context.handle(
+          _progressionDataMeta,
+          progressionData.isAcceptableOrUnknown(
+              data['progression_data']!, _progressionDataMeta));
     }
     if (data.containsKey('routine_id')) {
       context.handle(_routineIdMeta,
@@ -3141,6 +3299,8 @@ class $RoutineExercisesTable extends RoutineExercises
           .read(DriftSqlType.dateTime, data['${effectivePrefix}updated_at'])!,
       deletedAt: attachedDatabase.typeMapping
           .read(DriftSqlType.dateTime, data['${effectivePrefix}deleted_at']),
+      progressionData: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}progression_data']),
       routineId: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}routine_id'])!,
       exerciseId: attachedDatabase.typeMapping
@@ -3168,6 +3328,7 @@ class RoutineExercise extends DataClass implements Insertable<RoutineExercise> {
   final DateTime createdAt;
   final DateTime updatedAt;
   final DateTime? deletedAt;
+  final String? progressionData;
   final String routineId;
   final String exerciseId;
   final int orderIndex;
@@ -3180,6 +3341,7 @@ class RoutineExercise extends DataClass implements Insertable<RoutineExercise> {
       required this.createdAt,
       required this.updatedAt,
       this.deletedAt,
+      this.progressionData,
       required this.routineId,
       required this.exerciseId,
       required this.orderIndex,
@@ -3195,6 +3357,9 @@ class RoutineExercise extends DataClass implements Insertable<RoutineExercise> {
     map['updated_at'] = Variable<DateTime>(updatedAt);
     if (!nullToAbsent || deletedAt != null) {
       map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
+    if (!nullToAbsent || progressionData != null) {
+      map['progression_data'] = Variable<String>(progressionData);
     }
     map['routine_id'] = Variable<String>(routineId);
     map['exercise_id'] = Variable<String>(exerciseId);
@@ -3220,6 +3385,9 @@ class RoutineExercise extends DataClass implements Insertable<RoutineExercise> {
       deletedAt: deletedAt == null && nullToAbsent
           ? const Value.absent()
           : Value(deletedAt),
+      progressionData: progressionData == null && nullToAbsent
+          ? const Value.absent()
+          : Value(progressionData),
       routineId: Value(routineId),
       exerciseId: Value(exerciseId),
       orderIndex: Value(orderIndex),
@@ -3243,6 +3411,7 @@ class RoutineExercise extends DataClass implements Insertable<RoutineExercise> {
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+      progressionData: serializer.fromJson<String?>(json['progressionData']),
       routineId: serializer.fromJson<String>(json['routineId']),
       exerciseId: serializer.fromJson<String>(json['exerciseId']),
       orderIndex: serializer.fromJson<int>(json['orderIndex']),
@@ -3260,6 +3429,7 @@ class RoutineExercise extends DataClass implements Insertable<RoutineExercise> {
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+      'progressionData': serializer.toJson<String?>(progressionData),
       'routineId': serializer.toJson<String>(routineId),
       'exerciseId': serializer.toJson<String>(exerciseId),
       'orderIndex': serializer.toJson<int>(orderIndex),
@@ -3275,6 +3445,7 @@ class RoutineExercise extends DataClass implements Insertable<RoutineExercise> {
           DateTime? createdAt,
           DateTime? updatedAt,
           Value<DateTime?> deletedAt = const Value.absent(),
+          Value<String?> progressionData = const Value.absent(),
           String? routineId,
           String? exerciseId,
           int? orderIndex,
@@ -3287,6 +3458,9 @@ class RoutineExercise extends DataClass implements Insertable<RoutineExercise> {
         createdAt: createdAt ?? this.createdAt,
         updatedAt: updatedAt ?? this.updatedAt,
         deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+        progressionData: progressionData.present
+            ? progressionData.value
+            : this.progressionData,
         routineId: routineId ?? this.routineId,
         exerciseId: exerciseId ?? this.exerciseId,
         orderIndex: orderIndex ?? this.orderIndex,
@@ -3303,6 +3477,9 @@ class RoutineExercise extends DataClass implements Insertable<RoutineExercise> {
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
       deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+      progressionData: data.progressionData.present
+          ? data.progressionData.value
+          : this.progressionData,
       routineId: data.routineId.present ? data.routineId.value : this.routineId,
       exerciseId:
           data.exerciseId.present ? data.exerciseId.value : this.exerciseId,
@@ -3326,6 +3503,7 @@ class RoutineExercise extends DataClass implements Insertable<RoutineExercise> {
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('deletedAt: $deletedAt, ')
+          ..write('progressionData: $progressionData, ')
           ..write('routineId: $routineId, ')
           ..write('exerciseId: $exerciseId, ')
           ..write('orderIndex: $orderIndex, ')
@@ -3337,8 +3515,19 @@ class RoutineExercise extends DataClass implements Insertable<RoutineExercise> {
   }
 
   @override
-  int get hashCode => Object.hash(localId, id, createdAt, updatedAt, deletedAt,
-      routineId, exerciseId, orderIndex, pauseSeconds, supersetGroup, notes);
+  int get hashCode => Object.hash(
+      localId,
+      id,
+      createdAt,
+      updatedAt,
+      deletedAt,
+      progressionData,
+      routineId,
+      exerciseId,
+      orderIndex,
+      pauseSeconds,
+      supersetGroup,
+      notes);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -3348,6 +3537,7 @@ class RoutineExercise extends DataClass implements Insertable<RoutineExercise> {
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt &&
           other.deletedAt == this.deletedAt &&
+          other.progressionData == this.progressionData &&
           other.routineId == this.routineId &&
           other.exerciseId == this.exerciseId &&
           other.orderIndex == this.orderIndex &&
@@ -3362,6 +3552,7 @@ class RoutineExercisesCompanion extends UpdateCompanion<RoutineExercise> {
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   final Value<DateTime?> deletedAt;
+  final Value<String?> progressionData;
   final Value<String> routineId;
   final Value<String> exerciseId;
   final Value<int> orderIndex;
@@ -3374,6 +3565,7 @@ class RoutineExercisesCompanion extends UpdateCompanion<RoutineExercise> {
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.deletedAt = const Value.absent(),
+    this.progressionData = const Value.absent(),
     this.routineId = const Value.absent(),
     this.exerciseId = const Value.absent(),
     this.orderIndex = const Value.absent(),
@@ -3387,6 +3579,7 @@ class RoutineExercisesCompanion extends UpdateCompanion<RoutineExercise> {
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.deletedAt = const Value.absent(),
+    this.progressionData = const Value.absent(),
     required String routineId,
     required String exerciseId,
     required int orderIndex,
@@ -3402,6 +3595,7 @@ class RoutineExercisesCompanion extends UpdateCompanion<RoutineExercise> {
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
     Expression<DateTime>? deletedAt,
+    Expression<String>? progressionData,
     Expression<String>? routineId,
     Expression<String>? exerciseId,
     Expression<int>? orderIndex,
@@ -3415,6 +3609,7 @@ class RoutineExercisesCompanion extends UpdateCompanion<RoutineExercise> {
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (deletedAt != null) 'deleted_at': deletedAt,
+      if (progressionData != null) 'progression_data': progressionData,
       if (routineId != null) 'routine_id': routineId,
       if (exerciseId != null) 'exercise_id': exerciseId,
       if (orderIndex != null) 'order_index': orderIndex,
@@ -3430,6 +3625,7 @@ class RoutineExercisesCompanion extends UpdateCompanion<RoutineExercise> {
       Value<DateTime>? createdAt,
       Value<DateTime>? updatedAt,
       Value<DateTime?>? deletedAt,
+      Value<String?>? progressionData,
       Value<String>? routineId,
       Value<String>? exerciseId,
       Value<int>? orderIndex,
@@ -3442,6 +3638,7 @@ class RoutineExercisesCompanion extends UpdateCompanion<RoutineExercise> {
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       deletedAt: deletedAt ?? this.deletedAt,
+      progressionData: progressionData ?? this.progressionData,
       routineId: routineId ?? this.routineId,
       exerciseId: exerciseId ?? this.exerciseId,
       orderIndex: orderIndex ?? this.orderIndex,
@@ -3468,6 +3665,9 @@ class RoutineExercisesCompanion extends UpdateCompanion<RoutineExercise> {
     }
     if (deletedAt.present) {
       map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
+    if (progressionData.present) {
+      map['progression_data'] = Variable<String>(progressionData.value);
     }
     if (routineId.present) {
       map['routine_id'] = Variable<String>(routineId.value);
@@ -3498,6 +3698,7 @@ class RoutineExercisesCompanion extends UpdateCompanion<RoutineExercise> {
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('deletedAt: $deletedAt, ')
+          ..write('progressionData: $progressionData, ')
           ..write('routineId: $routineId, ')
           ..write('exerciseId: $exerciseId, ')
           ..write('orderIndex: $orderIndex, ')
@@ -3590,6 +3791,18 @@ class $RoutineSetTemplatesTable extends RoutineSetTemplates
   late final GeneratedColumn<int> targetRir = GeneratedColumn<int>(
       'target_rir', aliasedName, true,
       type: DriftSqlType.int, requiredDuringInsert: false);
+  static const VerificationMeta _targetRepMinMeta =
+      const VerificationMeta('targetRepMin');
+  @override
+  late final GeneratedColumn<int> targetRepMin = GeneratedColumn<int>(
+      'target_rep_min', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
+  static const VerificationMeta _targetRepMaxMeta =
+      const VerificationMeta('targetRepMax');
+  @override
+  late final GeneratedColumn<int> targetRepMax = GeneratedColumn<int>(
+      'target_rep_max', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns => [
         localId,
@@ -3601,7 +3814,9 @@ class $RoutineSetTemplatesTable extends RoutineSetTemplates
         setType,
         targetReps,
         targetWeight,
-        targetRir
+        targetRir,
+        targetRepMin,
+        targetRepMax
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -3660,6 +3875,18 @@ class $RoutineSetTemplatesTable extends RoutineSetTemplates
       context.handle(_targetRirMeta,
           targetRir.isAcceptableOrUnknown(data['target_rir']!, _targetRirMeta));
     }
+    if (data.containsKey('target_rep_min')) {
+      context.handle(
+          _targetRepMinMeta,
+          targetRepMin.isAcceptableOrUnknown(
+              data['target_rep_min']!, _targetRepMinMeta));
+    }
+    if (data.containsKey('target_rep_max')) {
+      context.handle(
+          _targetRepMaxMeta,
+          targetRepMax.isAcceptableOrUnknown(
+              data['target_rep_max']!, _targetRepMaxMeta));
+    }
     return context;
   }
 
@@ -3689,6 +3916,10 @@ class $RoutineSetTemplatesTable extends RoutineSetTemplates
           .read(DriftSqlType.double, data['${effectivePrefix}target_weight']),
       targetRir: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}target_rir']),
+      targetRepMin: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}target_rep_min']),
+      targetRepMax: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}target_rep_max']),
     );
   }
 
@@ -3710,6 +3941,8 @@ class RoutineSetTemplate extends DataClass
   final String? targetReps;
   final double? targetWeight;
   final int? targetRir;
+  final int? targetRepMin;
+  final int? targetRepMax;
   const RoutineSetTemplate(
       {required this.localId,
       required this.id,
@@ -3720,7 +3953,9 @@ class RoutineSetTemplate extends DataClass
       required this.setType,
       this.targetReps,
       this.targetWeight,
-      this.targetRir});
+      this.targetRir,
+      this.targetRepMin,
+      this.targetRepMax});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -3741,6 +3976,12 @@ class RoutineSetTemplate extends DataClass
     }
     if (!nullToAbsent || targetRir != null) {
       map['target_rir'] = Variable<int>(targetRir);
+    }
+    if (!nullToAbsent || targetRepMin != null) {
+      map['target_rep_min'] = Variable<int>(targetRepMin);
+    }
+    if (!nullToAbsent || targetRepMax != null) {
+      map['target_rep_max'] = Variable<int>(targetRepMax);
     }
     return map;
   }
@@ -3765,6 +4006,12 @@ class RoutineSetTemplate extends DataClass
       targetRir: targetRir == null && nullToAbsent
           ? const Value.absent()
           : Value(targetRir),
+      targetRepMin: targetRepMin == null && nullToAbsent
+          ? const Value.absent()
+          : Value(targetRepMin),
+      targetRepMax: targetRepMax == null && nullToAbsent
+          ? const Value.absent()
+          : Value(targetRepMax),
     );
   }
 
@@ -3782,6 +4029,8 @@ class RoutineSetTemplate extends DataClass
       targetReps: serializer.fromJson<String?>(json['targetReps']),
       targetWeight: serializer.fromJson<double?>(json['targetWeight']),
       targetRir: serializer.fromJson<int?>(json['targetRir']),
+      targetRepMin: serializer.fromJson<int?>(json['targetRepMin']),
+      targetRepMax: serializer.fromJson<int?>(json['targetRepMax']),
     );
   }
   @override
@@ -3798,6 +4047,8 @@ class RoutineSetTemplate extends DataClass
       'targetReps': serializer.toJson<String?>(targetReps),
       'targetWeight': serializer.toJson<double?>(targetWeight),
       'targetRir': serializer.toJson<int?>(targetRir),
+      'targetRepMin': serializer.toJson<int?>(targetRepMin),
+      'targetRepMax': serializer.toJson<int?>(targetRepMax),
     };
   }
 
@@ -3811,7 +4062,9 @@ class RoutineSetTemplate extends DataClass
           String? setType,
           Value<String?> targetReps = const Value.absent(),
           Value<double?> targetWeight = const Value.absent(),
-          Value<int?> targetRir = const Value.absent()}) =>
+          Value<int?> targetRir = const Value.absent(),
+          Value<int?> targetRepMin = const Value.absent(),
+          Value<int?> targetRepMax = const Value.absent()}) =>
       RoutineSetTemplate(
         localId: localId ?? this.localId,
         id: id ?? this.id,
@@ -3824,6 +4077,10 @@ class RoutineSetTemplate extends DataClass
         targetWeight:
             targetWeight.present ? targetWeight.value : this.targetWeight,
         targetRir: targetRir.present ? targetRir.value : this.targetRir,
+        targetRepMin:
+            targetRepMin.present ? targetRepMin.value : this.targetRepMin,
+        targetRepMax:
+            targetRepMax.present ? targetRepMax.value : this.targetRepMax,
       );
   RoutineSetTemplate copyWithCompanion(RoutineSetTemplatesCompanion data) {
     return RoutineSetTemplate(
@@ -3842,6 +4099,12 @@ class RoutineSetTemplate extends DataClass
           ? data.targetWeight.value
           : this.targetWeight,
       targetRir: data.targetRir.present ? data.targetRir.value : this.targetRir,
+      targetRepMin: data.targetRepMin.present
+          ? data.targetRepMin.value
+          : this.targetRepMin,
+      targetRepMax: data.targetRepMax.present
+          ? data.targetRepMax.value
+          : this.targetRepMax,
     );
   }
 
@@ -3857,14 +4120,27 @@ class RoutineSetTemplate extends DataClass
           ..write('setType: $setType, ')
           ..write('targetReps: $targetReps, ')
           ..write('targetWeight: $targetWeight, ')
-          ..write('targetRir: $targetRir')
+          ..write('targetRir: $targetRir, ')
+          ..write('targetRepMin: $targetRepMin, ')
+          ..write('targetRepMax: $targetRepMax')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(localId, id, createdAt, updatedAt, deletedAt,
-      routineExerciseId, setType, targetReps, targetWeight, targetRir);
+  int get hashCode => Object.hash(
+      localId,
+      id,
+      createdAt,
+      updatedAt,
+      deletedAt,
+      routineExerciseId,
+      setType,
+      targetReps,
+      targetWeight,
+      targetRir,
+      targetRepMin,
+      targetRepMax);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -3878,7 +4154,9 @@ class RoutineSetTemplate extends DataClass
           other.setType == this.setType &&
           other.targetReps == this.targetReps &&
           other.targetWeight == this.targetWeight &&
-          other.targetRir == this.targetRir);
+          other.targetRir == this.targetRir &&
+          other.targetRepMin == this.targetRepMin &&
+          other.targetRepMax == this.targetRepMax);
 }
 
 class RoutineSetTemplatesCompanion extends UpdateCompanion<RoutineSetTemplate> {
@@ -3892,6 +4170,8 @@ class RoutineSetTemplatesCompanion extends UpdateCompanion<RoutineSetTemplate> {
   final Value<String?> targetReps;
   final Value<double?> targetWeight;
   final Value<int?> targetRir;
+  final Value<int?> targetRepMin;
+  final Value<int?> targetRepMax;
   const RoutineSetTemplatesCompanion({
     this.localId = const Value.absent(),
     this.id = const Value.absent(),
@@ -3903,6 +4183,8 @@ class RoutineSetTemplatesCompanion extends UpdateCompanion<RoutineSetTemplate> {
     this.targetReps = const Value.absent(),
     this.targetWeight = const Value.absent(),
     this.targetRir = const Value.absent(),
+    this.targetRepMin = const Value.absent(),
+    this.targetRepMax = const Value.absent(),
   });
   RoutineSetTemplatesCompanion.insert({
     this.localId = const Value.absent(),
@@ -3915,6 +4197,8 @@ class RoutineSetTemplatesCompanion extends UpdateCompanion<RoutineSetTemplate> {
     this.targetReps = const Value.absent(),
     this.targetWeight = const Value.absent(),
     this.targetRir = const Value.absent(),
+    this.targetRepMin = const Value.absent(),
+    this.targetRepMax = const Value.absent(),
   }) : routineExerciseId = Value(routineExerciseId);
   static Insertable<RoutineSetTemplate> custom({
     Expression<int>? localId,
@@ -3927,6 +4211,8 @@ class RoutineSetTemplatesCompanion extends UpdateCompanion<RoutineSetTemplate> {
     Expression<String>? targetReps,
     Expression<double>? targetWeight,
     Expression<int>? targetRir,
+    Expression<int>? targetRepMin,
+    Expression<int>? targetRepMax,
   }) {
     return RawValuesInsertable({
       if (localId != null) 'local_id': localId,
@@ -3939,6 +4225,8 @@ class RoutineSetTemplatesCompanion extends UpdateCompanion<RoutineSetTemplate> {
       if (targetReps != null) 'target_reps': targetReps,
       if (targetWeight != null) 'target_weight': targetWeight,
       if (targetRir != null) 'target_rir': targetRir,
+      if (targetRepMin != null) 'target_rep_min': targetRepMin,
+      if (targetRepMax != null) 'target_rep_max': targetRepMax,
     });
   }
 
@@ -3952,7 +4240,9 @@ class RoutineSetTemplatesCompanion extends UpdateCompanion<RoutineSetTemplate> {
       Value<String>? setType,
       Value<String?>? targetReps,
       Value<double?>? targetWeight,
-      Value<int?>? targetRir}) {
+      Value<int?>? targetRir,
+      Value<int?>? targetRepMin,
+      Value<int?>? targetRepMax}) {
     return RoutineSetTemplatesCompanion(
       localId: localId ?? this.localId,
       id: id ?? this.id,
@@ -3964,6 +4254,8 @@ class RoutineSetTemplatesCompanion extends UpdateCompanion<RoutineSetTemplate> {
       targetReps: targetReps ?? this.targetReps,
       targetWeight: targetWeight ?? this.targetWeight,
       targetRir: targetRir ?? this.targetRir,
+      targetRepMin: targetRepMin ?? this.targetRepMin,
+      targetRepMax: targetRepMax ?? this.targetRepMax,
     );
   }
 
@@ -4000,6 +4292,12 @@ class RoutineSetTemplatesCompanion extends UpdateCompanion<RoutineSetTemplate> {
     if (targetRir.present) {
       map['target_rir'] = Variable<int>(targetRir.value);
     }
+    if (targetRepMin.present) {
+      map['target_rep_min'] = Variable<int>(targetRepMin.value);
+    }
+    if (targetRepMax.present) {
+      map['target_rep_max'] = Variable<int>(targetRepMax.value);
+    }
     return map;
   }
 
@@ -4015,7 +4313,9 @@ class RoutineSetTemplatesCompanion extends UpdateCompanion<RoutineSetTemplate> {
           ..write('setType: $setType, ')
           ..write('targetReps: $targetReps, ')
           ..write('targetWeight: $targetWeight, ')
-          ..write('targetRir: $targetRir')
+          ..write('targetRir: $targetRir, ')
+          ..write('targetRepMin: $targetRepMin, ')
+          ..write('targetRepMax: $targetRepMax')
           ..write(')'))
         .toString();
   }
@@ -4839,6 +5139,12 @@ class $SetLogsTable extends SetLogs with TableInfo<$SetLogsTable, SetLog> {
   late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
       'deleted_at', aliasedName, true,
       type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  static const VerificationMeta _progressionDataMeta =
+      const VerificationMeta('progressionData');
+  @override
+  late final GeneratedColumn<String> progressionData = GeneratedColumn<String>(
+      'progression_data', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _workoutLogIdMeta =
       const VerificationMeta('workoutLogId');
   @override
@@ -4944,6 +5250,77 @@ class $SetLogsTable extends SetLogs with TableInfo<$SetLogsTable, SetLog> {
   late final GeneratedColumn<String> notes = GeneratedColumn<String>(
       'notes', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _prescriptionOriginMeta =
+      const VerificationMeta('prescriptionOrigin');
+  @override
+  late final GeneratedColumn<String> prescriptionOrigin =
+      GeneratedColumn<String>('prescription_origin', aliasedName, false,
+          type: DriftSqlType.string,
+          requiredDuringInsert: false,
+          defaultValue: const Constant('none'));
+  static const VerificationMeta _prescribedRepMinMeta =
+      const VerificationMeta('prescribedRepMin');
+  @override
+  late final GeneratedColumn<int> prescribedRepMin = GeneratedColumn<int>(
+      'prescribed_rep_min', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
+  static const VerificationMeta _prescribedRepMaxMeta =
+      const VerificationMeta('prescribedRepMax');
+  @override
+  late final GeneratedColumn<int> prescribedRepMax = GeneratedColumn<int>(
+      'prescribed_rep_max', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
+  static const VerificationMeta _prescribedWeightMeta =
+      const VerificationMeta('prescribedWeight');
+  @override
+  late final GeneratedColumn<double> prescribedWeight = GeneratedColumn<double>(
+      'prescribed_weight', aliasedName, true,
+      type: DriftSqlType.double, requiredDuringInsert: false);
+  static const VerificationMeta _prescribedRirMeta =
+      const VerificationMeta('prescribedRir');
+  @override
+  late final GeneratedColumn<int> prescribedRir = GeneratedColumn<int>(
+      'prescribed_rir', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
+  static const VerificationMeta _prescriptionOverriddenMeta =
+      const VerificationMeta('prescriptionOverridden');
+  @override
+  late final GeneratedColumn<bool> prescriptionOverridden =
+      GeneratedColumn<bool>('prescription_overridden', aliasedName, false,
+          type: DriftSqlType.bool,
+          requiredDuringInsert: false,
+          defaultConstraints: GeneratedColumn.constraintIsAlways(
+              'CHECK ("prescription_overridden" IN (0, 1))'),
+          defaultValue: const Constant(false));
+  static const VerificationMeta _valuesAutoFilledMeta =
+      const VerificationMeta('valuesAutoFilled');
+  @override
+  late final GeneratedColumn<bool> valuesAutoFilled = GeneratedColumn<bool>(
+      'values_auto_filled', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'CHECK ("values_auto_filled" IN (0, 1))'),
+      defaultValue: const Constant(false));
+  static const VerificationMeta _substitutedForExerciseIdMeta =
+      const VerificationMeta('substitutedForExerciseId');
+  @override
+  late final GeneratedColumn<String> substitutedForExerciseId =
+      GeneratedColumn<String>('substituted_for_exercise_id', aliasedName, true,
+          type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _progressionReasonMeta =
+      const VerificationMeta('progressionReason');
+  @override
+  late final GeneratedColumn<String> progressionReason =
+      GeneratedColumn<String>('progression_reason', aliasedName, true,
+          type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _progressionAlgorithmVersionMeta =
+      const VerificationMeta('progressionAlgorithmVersion');
+  @override
+  late final GeneratedColumn<String> progressionAlgorithmVersion =
+      GeneratedColumn<String>(
+          'progression_algorithm_version', aliasedName, true,
+          type: DriftSqlType.string, requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns => [
         localId,
@@ -4951,6 +5328,7 @@ class $SetLogsTable extends SetLogs with TableInfo<$SetLogsTable, SetLog> {
         createdAt,
         updatedAt,
         deletedAt,
+        progressionData,
         workoutLogId,
         exerciseId,
         exerciseNameSnapshot,
@@ -4966,7 +5344,17 @@ class $SetLogsTable extends SetLogs with TableInfo<$SetLogsTable, SetLog> {
         supersetGroup,
         distance,
         durationSeconds,
-        notes
+        notes,
+        prescriptionOrigin,
+        prescribedRepMin,
+        prescribedRepMax,
+        prescribedWeight,
+        prescribedRir,
+        prescriptionOverridden,
+        valuesAutoFilled,
+        substitutedForExerciseId,
+        progressionReason,
+        progressionAlgorithmVersion
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -4996,6 +5384,12 @@ class $SetLogsTable extends SetLogs with TableInfo<$SetLogsTable, SetLog> {
     if (data.containsKey('deleted_at')) {
       context.handle(_deletedAtMeta,
           deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta));
+    }
+    if (data.containsKey('progression_data')) {
+      context.handle(
+          _progressionDataMeta,
+          progressionData.isAcceptableOrUnknown(
+              data['progression_data']!, _progressionDataMeta));
     }
     if (data.containsKey('workout_log_id')) {
       context.handle(
@@ -5079,6 +5473,68 @@ class $SetLogsTable extends SetLogs with TableInfo<$SetLogsTable, SetLog> {
       context.handle(
           _notesMeta, notes.isAcceptableOrUnknown(data['notes']!, _notesMeta));
     }
+    if (data.containsKey('prescription_origin')) {
+      context.handle(
+          _prescriptionOriginMeta,
+          prescriptionOrigin.isAcceptableOrUnknown(
+              data['prescription_origin']!, _prescriptionOriginMeta));
+    }
+    if (data.containsKey('prescribed_rep_min')) {
+      context.handle(
+          _prescribedRepMinMeta,
+          prescribedRepMin.isAcceptableOrUnknown(
+              data['prescribed_rep_min']!, _prescribedRepMinMeta));
+    }
+    if (data.containsKey('prescribed_rep_max')) {
+      context.handle(
+          _prescribedRepMaxMeta,
+          prescribedRepMax.isAcceptableOrUnknown(
+              data['prescribed_rep_max']!, _prescribedRepMaxMeta));
+    }
+    if (data.containsKey('prescribed_weight')) {
+      context.handle(
+          _prescribedWeightMeta,
+          prescribedWeight.isAcceptableOrUnknown(
+              data['prescribed_weight']!, _prescribedWeightMeta));
+    }
+    if (data.containsKey('prescribed_rir')) {
+      context.handle(
+          _prescribedRirMeta,
+          prescribedRir.isAcceptableOrUnknown(
+              data['prescribed_rir']!, _prescribedRirMeta));
+    }
+    if (data.containsKey('prescription_overridden')) {
+      context.handle(
+          _prescriptionOverriddenMeta,
+          prescriptionOverridden.isAcceptableOrUnknown(
+              data['prescription_overridden']!, _prescriptionOverriddenMeta));
+    }
+    if (data.containsKey('values_auto_filled')) {
+      context.handle(
+          _valuesAutoFilledMeta,
+          valuesAutoFilled.isAcceptableOrUnknown(
+              data['values_auto_filled']!, _valuesAutoFilledMeta));
+    }
+    if (data.containsKey('substituted_for_exercise_id')) {
+      context.handle(
+          _substitutedForExerciseIdMeta,
+          substitutedForExerciseId.isAcceptableOrUnknown(
+              data['substituted_for_exercise_id']!,
+              _substitutedForExerciseIdMeta));
+    }
+    if (data.containsKey('progression_reason')) {
+      context.handle(
+          _progressionReasonMeta,
+          progressionReason.isAcceptableOrUnknown(
+              data['progression_reason']!, _progressionReasonMeta));
+    }
+    if (data.containsKey('progression_algorithm_version')) {
+      context.handle(
+          _progressionAlgorithmVersionMeta,
+          progressionAlgorithmVersion.isAcceptableOrUnknown(
+              data['progression_algorithm_version']!,
+              _progressionAlgorithmVersionMeta));
+    }
     return context;
   }
 
@@ -5098,6 +5554,8 @@ class $SetLogsTable extends SetLogs with TableInfo<$SetLogsTable, SetLog> {
           .read(DriftSqlType.dateTime, data['${effectivePrefix}updated_at'])!,
       deletedAt: attachedDatabase.typeMapping
           .read(DriftSqlType.dateTime, data['${effectivePrefix}deleted_at']),
+      progressionData: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}progression_data']),
       workoutLogId: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}workout_log_id'])!,
       exerciseId: attachedDatabase.typeMapping
@@ -5131,6 +5589,29 @@ class $SetLogsTable extends SetLogs with TableInfo<$SetLogsTable, SetLog> {
           .read(DriftSqlType.int, data['${effectivePrefix}duration_seconds']),
       notes: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}notes']),
+      prescriptionOrigin: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}prescription_origin'])!,
+      prescribedRepMin: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}prescribed_rep_min']),
+      prescribedRepMax: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}prescribed_rep_max']),
+      prescribedWeight: attachedDatabase.typeMapping.read(
+          DriftSqlType.double, data['${effectivePrefix}prescribed_weight']),
+      prescribedRir: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}prescribed_rir']),
+      prescriptionOverridden: attachedDatabase.typeMapping.read(
+          DriftSqlType.bool,
+          data['${effectivePrefix}prescription_overridden'])!,
+      valuesAutoFilled: attachedDatabase.typeMapping.read(
+          DriftSqlType.bool, data['${effectivePrefix}values_auto_filled'])!,
+      substitutedForExerciseId: attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}substituted_for_exercise_id']),
+      progressionReason: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}progression_reason']),
+      progressionAlgorithmVersion: attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}progression_algorithm_version']),
     );
   }
 
@@ -5146,6 +5627,7 @@ class SetLog extends DataClass implements Insertable<SetLog> {
   final DateTime createdAt;
   final DateTime updatedAt;
   final DateTime? deletedAt;
+  final String? progressionData;
   final String workoutLogId;
   final String? exerciseId;
   final String? exerciseNameSnapshot;
@@ -5171,12 +5653,43 @@ class SetLog extends DataClass implements Insertable<SetLog> {
   final double? distance;
   final int? durationSeconds;
   final String? notes;
+
+  /// Prescription origin ('none', 'routine', 'engine').
+  final String prescriptionOrigin;
+
+  /// Prescribed minimum repetitions.
+  final int? prescribedRepMin;
+
+  /// Prescribed maximum repetitions.
+  final int? prescribedRepMax;
+
+  /// Prescribed target weight in kg.
+  final double? prescribedWeight;
+
+  /// Prescribed Reps in Reserve.
+  final int? prescribedRir;
+
+  /// Whether the prescription was overridden by the user.
+  final bool prescriptionOverridden;
+
+  /// Whether values were auto-filled from target template upon completion.
+  final bool valuesAutoFilled;
+
+  /// ID of the exercise for which this exercise was substituted, if any.
+  final String? substitutedForExerciseId;
+
+  /// Human-readable explanation of the progression rationale.
+  final String? progressionReason;
+
+  /// Version of the algorithm that produced the prescription.
+  final String? progressionAlgorithmVersion;
   const SetLog(
       {required this.localId,
       required this.id,
       required this.createdAt,
       required this.updatedAt,
       this.deletedAt,
+      this.progressionData,
       required this.workoutLogId,
       this.exerciseId,
       this.exerciseNameSnapshot,
@@ -5192,7 +5705,17 @@ class SetLog extends DataClass implements Insertable<SetLog> {
       this.supersetGroup,
       this.distance,
       this.durationSeconds,
-      this.notes});
+      this.notes,
+      required this.prescriptionOrigin,
+      this.prescribedRepMin,
+      this.prescribedRepMax,
+      this.prescribedWeight,
+      this.prescribedRir,
+      required this.prescriptionOverridden,
+      required this.valuesAutoFilled,
+      this.substitutedForExerciseId,
+      this.progressionReason,
+      this.progressionAlgorithmVersion});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -5202,6 +5725,9 @@ class SetLog extends DataClass implements Insertable<SetLog> {
     map['updated_at'] = Variable<DateTime>(updatedAt);
     if (!nullToAbsent || deletedAt != null) {
       map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
+    if (!nullToAbsent || progressionData != null) {
+      map['progression_data'] = Variable<String>(progressionData);
     }
     map['workout_log_id'] = Variable<String>(workoutLogId);
     if (!nullToAbsent || exerciseId != null) {
@@ -5243,6 +5769,32 @@ class SetLog extends DataClass implements Insertable<SetLog> {
     if (!nullToAbsent || notes != null) {
       map['notes'] = Variable<String>(notes);
     }
+    map['prescription_origin'] = Variable<String>(prescriptionOrigin);
+    if (!nullToAbsent || prescribedRepMin != null) {
+      map['prescribed_rep_min'] = Variable<int>(prescribedRepMin);
+    }
+    if (!nullToAbsent || prescribedRepMax != null) {
+      map['prescribed_rep_max'] = Variable<int>(prescribedRepMax);
+    }
+    if (!nullToAbsent || prescribedWeight != null) {
+      map['prescribed_weight'] = Variable<double>(prescribedWeight);
+    }
+    if (!nullToAbsent || prescribedRir != null) {
+      map['prescribed_rir'] = Variable<int>(prescribedRir);
+    }
+    map['prescription_overridden'] = Variable<bool>(prescriptionOverridden);
+    map['values_auto_filled'] = Variable<bool>(valuesAutoFilled);
+    if (!nullToAbsent || substitutedForExerciseId != null) {
+      map['substituted_for_exercise_id'] =
+          Variable<String>(substitutedForExerciseId);
+    }
+    if (!nullToAbsent || progressionReason != null) {
+      map['progression_reason'] = Variable<String>(progressionReason);
+    }
+    if (!nullToAbsent || progressionAlgorithmVersion != null) {
+      map['progression_algorithm_version'] =
+          Variable<String>(progressionAlgorithmVersion);
+    }
     return map;
   }
 
@@ -5255,6 +5807,9 @@ class SetLog extends DataClass implements Insertable<SetLog> {
       deletedAt: deletedAt == null && nullToAbsent
           ? const Value.absent()
           : Value(deletedAt),
+      progressionData: progressionData == null && nullToAbsent
+          ? const Value.absent()
+          : Value(progressionData),
       workoutLogId: Value(workoutLogId),
       exerciseId: exerciseId == null && nullToAbsent
           ? const Value.absent()
@@ -5287,6 +5842,31 @@ class SetLog extends DataClass implements Insertable<SetLog> {
           : Value(durationSeconds),
       notes:
           notes == null && nullToAbsent ? const Value.absent() : Value(notes),
+      prescriptionOrigin: Value(prescriptionOrigin),
+      prescribedRepMin: prescribedRepMin == null && nullToAbsent
+          ? const Value.absent()
+          : Value(prescribedRepMin),
+      prescribedRepMax: prescribedRepMax == null && nullToAbsent
+          ? const Value.absent()
+          : Value(prescribedRepMax),
+      prescribedWeight: prescribedWeight == null && nullToAbsent
+          ? const Value.absent()
+          : Value(prescribedWeight),
+      prescribedRir: prescribedRir == null && nullToAbsent
+          ? const Value.absent()
+          : Value(prescribedRir),
+      prescriptionOverridden: Value(prescriptionOverridden),
+      valuesAutoFilled: Value(valuesAutoFilled),
+      substitutedForExerciseId: substitutedForExerciseId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(substitutedForExerciseId),
+      progressionReason: progressionReason == null && nullToAbsent
+          ? const Value.absent()
+          : Value(progressionReason),
+      progressionAlgorithmVersion:
+          progressionAlgorithmVersion == null && nullToAbsent
+              ? const Value.absent()
+              : Value(progressionAlgorithmVersion),
     );
   }
 
@@ -5299,6 +5879,7 @@ class SetLog extends DataClass implements Insertable<SetLog> {
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+      progressionData: serializer.fromJson<String?>(json['progressionData']),
       workoutLogId: serializer.fromJson<String>(json['workoutLogId']),
       exerciseId: serializer.fromJson<String?>(json['exerciseId']),
       exerciseNameSnapshot:
@@ -5316,6 +5897,21 @@ class SetLog extends DataClass implements Insertable<SetLog> {
       distance: serializer.fromJson<double?>(json['distance']),
       durationSeconds: serializer.fromJson<int?>(json['durationSeconds']),
       notes: serializer.fromJson<String?>(json['notes']),
+      prescriptionOrigin:
+          serializer.fromJson<String>(json['prescriptionOrigin']),
+      prescribedRepMin: serializer.fromJson<int?>(json['prescribedRepMin']),
+      prescribedRepMax: serializer.fromJson<int?>(json['prescribedRepMax']),
+      prescribedWeight: serializer.fromJson<double?>(json['prescribedWeight']),
+      prescribedRir: serializer.fromJson<int?>(json['prescribedRir']),
+      prescriptionOverridden:
+          serializer.fromJson<bool>(json['prescriptionOverridden']),
+      valuesAutoFilled: serializer.fromJson<bool>(json['valuesAutoFilled']),
+      substitutedForExerciseId:
+          serializer.fromJson<String?>(json['substitutedForExerciseId']),
+      progressionReason:
+          serializer.fromJson<String?>(json['progressionReason']),
+      progressionAlgorithmVersion:
+          serializer.fromJson<String?>(json['progressionAlgorithmVersion']),
     );
   }
   @override
@@ -5327,6 +5923,7 @@ class SetLog extends DataClass implements Insertable<SetLog> {
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+      'progressionData': serializer.toJson<String?>(progressionData),
       'workoutLogId': serializer.toJson<String>(workoutLogId),
       'exerciseId': serializer.toJson<String?>(exerciseId),
       'exerciseNameSnapshot': serializer.toJson<String?>(exerciseNameSnapshot),
@@ -5343,6 +5940,18 @@ class SetLog extends DataClass implements Insertable<SetLog> {
       'distance': serializer.toJson<double?>(distance),
       'durationSeconds': serializer.toJson<int?>(durationSeconds),
       'notes': serializer.toJson<String?>(notes),
+      'prescriptionOrigin': serializer.toJson<String>(prescriptionOrigin),
+      'prescribedRepMin': serializer.toJson<int?>(prescribedRepMin),
+      'prescribedRepMax': serializer.toJson<int?>(prescribedRepMax),
+      'prescribedWeight': serializer.toJson<double?>(prescribedWeight),
+      'prescribedRir': serializer.toJson<int?>(prescribedRir),
+      'prescriptionOverridden': serializer.toJson<bool>(prescriptionOverridden),
+      'valuesAutoFilled': serializer.toJson<bool>(valuesAutoFilled),
+      'substitutedForExerciseId':
+          serializer.toJson<String?>(substitutedForExerciseId),
+      'progressionReason': serializer.toJson<String?>(progressionReason),
+      'progressionAlgorithmVersion':
+          serializer.toJson<String?>(progressionAlgorithmVersion),
     };
   }
 
@@ -5352,6 +5961,7 @@ class SetLog extends DataClass implements Insertable<SetLog> {
           DateTime? createdAt,
           DateTime? updatedAt,
           Value<DateTime?> deletedAt = const Value.absent(),
+          Value<String?> progressionData = const Value.absent(),
           String? workoutLogId,
           Value<String?> exerciseId = const Value.absent(),
           Value<String?> exerciseNameSnapshot = const Value.absent(),
@@ -5367,13 +5977,26 @@ class SetLog extends DataClass implements Insertable<SetLog> {
           Value<int?> supersetGroup = const Value.absent(),
           Value<double?> distance = const Value.absent(),
           Value<int?> durationSeconds = const Value.absent(),
-          Value<String?> notes = const Value.absent()}) =>
+          Value<String?> notes = const Value.absent(),
+          String? prescriptionOrigin,
+          Value<int?> prescribedRepMin = const Value.absent(),
+          Value<int?> prescribedRepMax = const Value.absent(),
+          Value<double?> prescribedWeight = const Value.absent(),
+          Value<int?> prescribedRir = const Value.absent(),
+          bool? prescriptionOverridden,
+          bool? valuesAutoFilled,
+          Value<String?> substitutedForExerciseId = const Value.absent(),
+          Value<String?> progressionReason = const Value.absent(),
+          Value<String?> progressionAlgorithmVersion = const Value.absent()}) =>
       SetLog(
         localId: localId ?? this.localId,
         id: id ?? this.id,
         createdAt: createdAt ?? this.createdAt,
         updatedAt: updatedAt ?? this.updatedAt,
         deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+        progressionData: progressionData.present
+            ? progressionData.value
+            : this.progressionData,
         workoutLogId: workoutLogId ?? this.workoutLogId,
         exerciseId: exerciseId.present ? exerciseId.value : this.exerciseId,
         exerciseNameSnapshot: exerciseNameSnapshot.present
@@ -5398,6 +6021,30 @@ class SetLog extends DataClass implements Insertable<SetLog> {
             ? durationSeconds.value
             : this.durationSeconds,
         notes: notes.present ? notes.value : this.notes,
+        prescriptionOrigin: prescriptionOrigin ?? this.prescriptionOrigin,
+        prescribedRepMin: prescribedRepMin.present
+            ? prescribedRepMin.value
+            : this.prescribedRepMin,
+        prescribedRepMax: prescribedRepMax.present
+            ? prescribedRepMax.value
+            : this.prescribedRepMax,
+        prescribedWeight: prescribedWeight.present
+            ? prescribedWeight.value
+            : this.prescribedWeight,
+        prescribedRir:
+            prescribedRir.present ? prescribedRir.value : this.prescribedRir,
+        prescriptionOverridden:
+            prescriptionOverridden ?? this.prescriptionOverridden,
+        valuesAutoFilled: valuesAutoFilled ?? this.valuesAutoFilled,
+        substitutedForExerciseId: substitutedForExerciseId.present
+            ? substitutedForExerciseId.value
+            : this.substitutedForExerciseId,
+        progressionReason: progressionReason.present
+            ? progressionReason.value
+            : this.progressionReason,
+        progressionAlgorithmVersion: progressionAlgorithmVersion.present
+            ? progressionAlgorithmVersion.value
+            : this.progressionAlgorithmVersion,
       );
   SetLog copyWithCompanion(SetLogsCompanion data) {
     return SetLog(
@@ -5406,6 +6053,9 @@ class SetLog extends DataClass implements Insertable<SetLog> {
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
       deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+      progressionData: data.progressionData.present
+          ? data.progressionData.value
+          : this.progressionData,
       workoutLogId: data.workoutLogId.present
           ? data.workoutLogId.value
           : this.workoutLogId,
@@ -5436,6 +6086,36 @@ class SetLog extends DataClass implements Insertable<SetLog> {
           ? data.durationSeconds.value
           : this.durationSeconds,
       notes: data.notes.present ? data.notes.value : this.notes,
+      prescriptionOrigin: data.prescriptionOrigin.present
+          ? data.prescriptionOrigin.value
+          : this.prescriptionOrigin,
+      prescribedRepMin: data.prescribedRepMin.present
+          ? data.prescribedRepMin.value
+          : this.prescribedRepMin,
+      prescribedRepMax: data.prescribedRepMax.present
+          ? data.prescribedRepMax.value
+          : this.prescribedRepMax,
+      prescribedWeight: data.prescribedWeight.present
+          ? data.prescribedWeight.value
+          : this.prescribedWeight,
+      prescribedRir: data.prescribedRir.present
+          ? data.prescribedRir.value
+          : this.prescribedRir,
+      prescriptionOverridden: data.prescriptionOverridden.present
+          ? data.prescriptionOverridden.value
+          : this.prescriptionOverridden,
+      valuesAutoFilled: data.valuesAutoFilled.present
+          ? data.valuesAutoFilled.value
+          : this.valuesAutoFilled,
+      substitutedForExerciseId: data.substitutedForExerciseId.present
+          ? data.substitutedForExerciseId.value
+          : this.substitutedForExerciseId,
+      progressionReason: data.progressionReason.present
+          ? data.progressionReason.value
+          : this.progressionReason,
+      progressionAlgorithmVersion: data.progressionAlgorithmVersion.present
+          ? data.progressionAlgorithmVersion.value
+          : this.progressionAlgorithmVersion,
     );
   }
 
@@ -5447,6 +6127,7 @@ class SetLog extends DataClass implements Insertable<SetLog> {
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('deletedAt: $deletedAt, ')
+          ..write('progressionData: $progressionData, ')
           ..write('workoutLogId: $workoutLogId, ')
           ..write('exerciseId: $exerciseId, ')
           ..write('exerciseNameSnapshot: $exerciseNameSnapshot, ')
@@ -5462,7 +6143,17 @@ class SetLog extends DataClass implements Insertable<SetLog> {
           ..write('supersetGroup: $supersetGroup, ')
           ..write('distance: $distance, ')
           ..write('durationSeconds: $durationSeconds, ')
-          ..write('notes: $notes')
+          ..write('notes: $notes, ')
+          ..write('prescriptionOrigin: $prescriptionOrigin, ')
+          ..write('prescribedRepMin: $prescribedRepMin, ')
+          ..write('prescribedRepMax: $prescribedRepMax, ')
+          ..write('prescribedWeight: $prescribedWeight, ')
+          ..write('prescribedRir: $prescribedRir, ')
+          ..write('prescriptionOverridden: $prescriptionOverridden, ')
+          ..write('valuesAutoFilled: $valuesAutoFilled, ')
+          ..write('substitutedForExerciseId: $substitutedForExerciseId, ')
+          ..write('progressionReason: $progressionReason, ')
+          ..write('progressionAlgorithmVersion: $progressionAlgorithmVersion')
           ..write(')'))
         .toString();
   }
@@ -5474,6 +6165,7 @@ class SetLog extends DataClass implements Insertable<SetLog> {
         createdAt,
         updatedAt,
         deletedAt,
+        progressionData,
         workoutLogId,
         exerciseId,
         exerciseNameSnapshot,
@@ -5489,7 +6181,17 @@ class SetLog extends DataClass implements Insertable<SetLog> {
         supersetGroup,
         distance,
         durationSeconds,
-        notes
+        notes,
+        prescriptionOrigin,
+        prescribedRepMin,
+        prescribedRepMax,
+        prescribedWeight,
+        prescribedRir,
+        prescriptionOverridden,
+        valuesAutoFilled,
+        substitutedForExerciseId,
+        progressionReason,
+        progressionAlgorithmVersion
       ]);
   @override
   bool operator ==(Object other) =>
@@ -5500,6 +6202,7 @@ class SetLog extends DataClass implements Insertable<SetLog> {
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt &&
           other.deletedAt == this.deletedAt &&
+          other.progressionData == this.progressionData &&
           other.workoutLogId == this.workoutLogId &&
           other.exerciseId == this.exerciseId &&
           other.exerciseNameSnapshot == this.exerciseNameSnapshot &&
@@ -5515,7 +6218,18 @@ class SetLog extends DataClass implements Insertable<SetLog> {
           other.supersetGroup == this.supersetGroup &&
           other.distance == this.distance &&
           other.durationSeconds == this.durationSeconds &&
-          other.notes == this.notes);
+          other.notes == this.notes &&
+          other.prescriptionOrigin == this.prescriptionOrigin &&
+          other.prescribedRepMin == this.prescribedRepMin &&
+          other.prescribedRepMax == this.prescribedRepMax &&
+          other.prescribedWeight == this.prescribedWeight &&
+          other.prescribedRir == this.prescribedRir &&
+          other.prescriptionOverridden == this.prescriptionOverridden &&
+          other.valuesAutoFilled == this.valuesAutoFilled &&
+          other.substitutedForExerciseId == this.substitutedForExerciseId &&
+          other.progressionReason == this.progressionReason &&
+          other.progressionAlgorithmVersion ==
+              this.progressionAlgorithmVersion);
 }
 
 class SetLogsCompanion extends UpdateCompanion<SetLog> {
@@ -5524,6 +6238,7 @@ class SetLogsCompanion extends UpdateCompanion<SetLog> {
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   final Value<DateTime?> deletedAt;
+  final Value<String?> progressionData;
   final Value<String> workoutLogId;
   final Value<String?> exerciseId;
   final Value<String?> exerciseNameSnapshot;
@@ -5540,12 +6255,23 @@ class SetLogsCompanion extends UpdateCompanion<SetLog> {
   final Value<double?> distance;
   final Value<int?> durationSeconds;
   final Value<String?> notes;
+  final Value<String> prescriptionOrigin;
+  final Value<int?> prescribedRepMin;
+  final Value<int?> prescribedRepMax;
+  final Value<double?> prescribedWeight;
+  final Value<int?> prescribedRir;
+  final Value<bool> prescriptionOverridden;
+  final Value<bool> valuesAutoFilled;
+  final Value<String?> substitutedForExerciseId;
+  final Value<String?> progressionReason;
+  final Value<String?> progressionAlgorithmVersion;
   const SetLogsCompanion({
     this.localId = const Value.absent(),
     this.id = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.deletedAt = const Value.absent(),
+    this.progressionData = const Value.absent(),
     this.workoutLogId = const Value.absent(),
     this.exerciseId = const Value.absent(),
     this.exerciseNameSnapshot = const Value.absent(),
@@ -5562,6 +6288,16 @@ class SetLogsCompanion extends UpdateCompanion<SetLog> {
     this.distance = const Value.absent(),
     this.durationSeconds = const Value.absent(),
     this.notes = const Value.absent(),
+    this.prescriptionOrigin = const Value.absent(),
+    this.prescribedRepMin = const Value.absent(),
+    this.prescribedRepMax = const Value.absent(),
+    this.prescribedWeight = const Value.absent(),
+    this.prescribedRir = const Value.absent(),
+    this.prescriptionOverridden = const Value.absent(),
+    this.valuesAutoFilled = const Value.absent(),
+    this.substitutedForExerciseId = const Value.absent(),
+    this.progressionReason = const Value.absent(),
+    this.progressionAlgorithmVersion = const Value.absent(),
   });
   SetLogsCompanion.insert({
     this.localId = const Value.absent(),
@@ -5569,6 +6305,7 @@ class SetLogsCompanion extends UpdateCompanion<SetLog> {
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.deletedAt = const Value.absent(),
+    this.progressionData = const Value.absent(),
     required String workoutLogId,
     this.exerciseId = const Value.absent(),
     this.exerciseNameSnapshot = const Value.absent(),
@@ -5585,6 +6322,16 @@ class SetLogsCompanion extends UpdateCompanion<SetLog> {
     this.distance = const Value.absent(),
     this.durationSeconds = const Value.absent(),
     this.notes = const Value.absent(),
+    this.prescriptionOrigin = const Value.absent(),
+    this.prescribedRepMin = const Value.absent(),
+    this.prescribedRepMax = const Value.absent(),
+    this.prescribedWeight = const Value.absent(),
+    this.prescribedRir = const Value.absent(),
+    this.prescriptionOverridden = const Value.absent(),
+    this.valuesAutoFilled = const Value.absent(),
+    this.substitutedForExerciseId = const Value.absent(),
+    this.progressionReason = const Value.absent(),
+    this.progressionAlgorithmVersion = const Value.absent(),
   }) : workoutLogId = Value(workoutLogId);
   static Insertable<SetLog> custom({
     Expression<int>? localId,
@@ -5592,6 +6339,7 @@ class SetLogsCompanion extends UpdateCompanion<SetLog> {
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
     Expression<DateTime>? deletedAt,
+    Expression<String>? progressionData,
     Expression<String>? workoutLogId,
     Expression<String>? exerciseId,
     Expression<String>? exerciseNameSnapshot,
@@ -5608,6 +6356,16 @@ class SetLogsCompanion extends UpdateCompanion<SetLog> {
     Expression<double>? distance,
     Expression<int>? durationSeconds,
     Expression<String>? notes,
+    Expression<String>? prescriptionOrigin,
+    Expression<int>? prescribedRepMin,
+    Expression<int>? prescribedRepMax,
+    Expression<double>? prescribedWeight,
+    Expression<int>? prescribedRir,
+    Expression<bool>? prescriptionOverridden,
+    Expression<bool>? valuesAutoFilled,
+    Expression<String>? substitutedForExerciseId,
+    Expression<String>? progressionReason,
+    Expression<String>? progressionAlgorithmVersion,
   }) {
     return RawValuesInsertable({
       if (localId != null) 'local_id': localId,
@@ -5615,6 +6373,7 @@ class SetLogsCompanion extends UpdateCompanion<SetLog> {
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (deletedAt != null) 'deleted_at': deletedAt,
+      if (progressionData != null) 'progression_data': progressionData,
       if (workoutLogId != null) 'workout_log_id': workoutLogId,
       if (exerciseId != null) 'exercise_id': exerciseId,
       if (exerciseNameSnapshot != null)
@@ -5632,6 +6391,19 @@ class SetLogsCompanion extends UpdateCompanion<SetLog> {
       if (distance != null) 'distance': distance,
       if (durationSeconds != null) 'duration_seconds': durationSeconds,
       if (notes != null) 'notes': notes,
+      if (prescriptionOrigin != null) 'prescription_origin': prescriptionOrigin,
+      if (prescribedRepMin != null) 'prescribed_rep_min': prescribedRepMin,
+      if (prescribedRepMax != null) 'prescribed_rep_max': prescribedRepMax,
+      if (prescribedWeight != null) 'prescribed_weight': prescribedWeight,
+      if (prescribedRir != null) 'prescribed_rir': prescribedRir,
+      if (prescriptionOverridden != null)
+        'prescription_overridden': prescriptionOverridden,
+      if (valuesAutoFilled != null) 'values_auto_filled': valuesAutoFilled,
+      if (substitutedForExerciseId != null)
+        'substituted_for_exercise_id': substitutedForExerciseId,
+      if (progressionReason != null) 'progression_reason': progressionReason,
+      if (progressionAlgorithmVersion != null)
+        'progression_algorithm_version': progressionAlgorithmVersion,
     });
   }
 
@@ -5641,6 +6413,7 @@ class SetLogsCompanion extends UpdateCompanion<SetLog> {
       Value<DateTime>? createdAt,
       Value<DateTime>? updatedAt,
       Value<DateTime?>? deletedAt,
+      Value<String?>? progressionData,
       Value<String>? workoutLogId,
       Value<String?>? exerciseId,
       Value<String?>? exerciseNameSnapshot,
@@ -5656,13 +6429,24 @@ class SetLogsCompanion extends UpdateCompanion<SetLog> {
       Value<int?>? supersetGroup,
       Value<double?>? distance,
       Value<int?>? durationSeconds,
-      Value<String?>? notes}) {
+      Value<String?>? notes,
+      Value<String>? prescriptionOrigin,
+      Value<int?>? prescribedRepMin,
+      Value<int?>? prescribedRepMax,
+      Value<double?>? prescribedWeight,
+      Value<int?>? prescribedRir,
+      Value<bool>? prescriptionOverridden,
+      Value<bool>? valuesAutoFilled,
+      Value<String?>? substitutedForExerciseId,
+      Value<String?>? progressionReason,
+      Value<String?>? progressionAlgorithmVersion}) {
     return SetLogsCompanion(
       localId: localId ?? this.localId,
       id: id ?? this.id,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       deletedAt: deletedAt ?? this.deletedAt,
+      progressionData: progressionData ?? this.progressionData,
       workoutLogId: workoutLogId ?? this.workoutLogId,
       exerciseId: exerciseId ?? this.exerciseId,
       exerciseNameSnapshot: exerciseNameSnapshot ?? this.exerciseNameSnapshot,
@@ -5679,6 +6463,19 @@ class SetLogsCompanion extends UpdateCompanion<SetLog> {
       distance: distance ?? this.distance,
       durationSeconds: durationSeconds ?? this.durationSeconds,
       notes: notes ?? this.notes,
+      prescriptionOrigin: prescriptionOrigin ?? this.prescriptionOrigin,
+      prescribedRepMin: prescribedRepMin ?? this.prescribedRepMin,
+      prescribedRepMax: prescribedRepMax ?? this.prescribedRepMax,
+      prescribedWeight: prescribedWeight ?? this.prescribedWeight,
+      prescribedRir: prescribedRir ?? this.prescribedRir,
+      prescriptionOverridden:
+          prescriptionOverridden ?? this.prescriptionOverridden,
+      valuesAutoFilled: valuesAutoFilled ?? this.valuesAutoFilled,
+      substitutedForExerciseId:
+          substitutedForExerciseId ?? this.substitutedForExerciseId,
+      progressionReason: progressionReason ?? this.progressionReason,
+      progressionAlgorithmVersion:
+          progressionAlgorithmVersion ?? this.progressionAlgorithmVersion,
     );
   }
 
@@ -5699,6 +6496,9 @@ class SetLogsCompanion extends UpdateCompanion<SetLog> {
     }
     if (deletedAt.present) {
       map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
+    if (progressionData.present) {
+      map['progression_data'] = Variable<String>(progressionData.value);
     }
     if (workoutLogId.present) {
       map['workout_log_id'] = Variable<String>(workoutLogId.value);
@@ -5749,6 +6549,39 @@ class SetLogsCompanion extends UpdateCompanion<SetLog> {
     if (notes.present) {
       map['notes'] = Variable<String>(notes.value);
     }
+    if (prescriptionOrigin.present) {
+      map['prescription_origin'] = Variable<String>(prescriptionOrigin.value);
+    }
+    if (prescribedRepMin.present) {
+      map['prescribed_rep_min'] = Variable<int>(prescribedRepMin.value);
+    }
+    if (prescribedRepMax.present) {
+      map['prescribed_rep_max'] = Variable<int>(prescribedRepMax.value);
+    }
+    if (prescribedWeight.present) {
+      map['prescribed_weight'] = Variable<double>(prescribedWeight.value);
+    }
+    if (prescribedRir.present) {
+      map['prescribed_rir'] = Variable<int>(prescribedRir.value);
+    }
+    if (prescriptionOverridden.present) {
+      map['prescription_overridden'] =
+          Variable<bool>(prescriptionOverridden.value);
+    }
+    if (valuesAutoFilled.present) {
+      map['values_auto_filled'] = Variable<bool>(valuesAutoFilled.value);
+    }
+    if (substitutedForExerciseId.present) {
+      map['substituted_for_exercise_id'] =
+          Variable<String>(substitutedForExerciseId.value);
+    }
+    if (progressionReason.present) {
+      map['progression_reason'] = Variable<String>(progressionReason.value);
+    }
+    if (progressionAlgorithmVersion.present) {
+      map['progression_algorithm_version'] =
+          Variable<String>(progressionAlgorithmVersion.value);
+    }
     return map;
   }
 
@@ -5760,6 +6593,7 @@ class SetLogsCompanion extends UpdateCompanion<SetLog> {
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('deletedAt: $deletedAt, ')
+          ..write('progressionData: $progressionData, ')
           ..write('workoutLogId: $workoutLogId, ')
           ..write('exerciseId: $exerciseId, ')
           ..write('exerciseNameSnapshot: $exerciseNameSnapshot, ')
@@ -5775,7 +6609,17 @@ class SetLogsCompanion extends UpdateCompanion<SetLog> {
           ..write('supersetGroup: $supersetGroup, ')
           ..write('distance: $distance, ')
           ..write('durationSeconds: $durationSeconds, ')
-          ..write('notes: $notes')
+          ..write('notes: $notes, ')
+          ..write('prescriptionOrigin: $prescriptionOrigin, ')
+          ..write('prescribedRepMin: $prescribedRepMin, ')
+          ..write('prescribedRepMax: $prescribedRepMax, ')
+          ..write('prescribedWeight: $prescribedWeight, ')
+          ..write('prescribedRir: $prescribedRir, ')
+          ..write('prescriptionOverridden: $prescriptionOverridden, ')
+          ..write('valuesAutoFilled: $valuesAutoFilled, ')
+          ..write('substitutedForExerciseId: $substitutedForExerciseId, ')
+          ..write('progressionReason: $progressionReason, ')
+          ..write('progressionAlgorithmVersion: $progressionAlgorithmVersion')
           ..write(')'))
         .toString();
   }
@@ -22974,6 +23818,9 @@ typedef $$AppSettingsTableCreateCompanionBuilder = AppSettingsCompanion
   Value<int> targetFat,
   Value<int> targetWater,
   Value<int> targetSteps,
+  Value<String> trainingAutonomyLevel,
+  Value<String> nutritionAutonomyLevel,
+  Value<String> experienceLevel,
 });
 typedef $$AppSettingsTableUpdateCompanionBuilder = AppSettingsCompanion
     Function({
@@ -22991,6 +23838,9 @@ typedef $$AppSettingsTableUpdateCompanionBuilder = AppSettingsCompanion
   Value<int> targetFat,
   Value<int> targetWater,
   Value<int> targetSteps,
+  Value<String> trainingAutonomyLevel,
+  Value<String> nutritionAutonomyLevel,
+  Value<String> experienceLevel,
 });
 
 final class $$AppSettingsTableReferences
@@ -23060,6 +23910,18 @@ class $$AppSettingsTableFilterComposer
 
   ColumnFilters<int> get targetSteps => $composableBuilder(
       column: $table.targetSteps, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get trainingAutonomyLevel => $composableBuilder(
+      column: $table.trainingAutonomyLevel,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get nutritionAutonomyLevel => $composableBuilder(
+      column: $table.nutritionAutonomyLevel,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get experienceLevel => $composableBuilder(
+      column: $table.experienceLevel,
+      builder: (column) => ColumnFilters(column));
 
   $$ProfilesTableFilterComposer get userId {
     final $$ProfilesTableFilterComposer composer = $composerBuilder(
@@ -23132,6 +23994,18 @@ class $$AppSettingsTableOrderingComposer
   ColumnOrderings<int> get targetSteps => $composableBuilder(
       column: $table.targetSteps, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<String> get trainingAutonomyLevel => $composableBuilder(
+      column: $table.trainingAutonomyLevel,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get nutritionAutonomyLevel => $composableBuilder(
+      column: $table.nutritionAutonomyLevel,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get experienceLevel => $composableBuilder(
+      column: $table.experienceLevel,
+      builder: (column) => ColumnOrderings(column));
+
   $$ProfilesTableOrderingComposer get userId {
     final $$ProfilesTableOrderingComposer composer = $composerBuilder(
         composer: this,
@@ -23201,6 +24075,15 @@ class $$AppSettingsTableAnnotationComposer
   GeneratedColumn<int> get targetSteps => $composableBuilder(
       column: $table.targetSteps, builder: (column) => column);
 
+  GeneratedColumn<String> get trainingAutonomyLevel => $composableBuilder(
+      column: $table.trainingAutonomyLevel, builder: (column) => column);
+
+  GeneratedColumn<String> get nutritionAutonomyLevel => $composableBuilder(
+      column: $table.nutritionAutonomyLevel, builder: (column) => column);
+
+  GeneratedColumn<String> get experienceLevel => $composableBuilder(
+      column: $table.experienceLevel, builder: (column) => column);
+
   $$ProfilesTableAnnotationComposer get userId {
     final $$ProfilesTableAnnotationComposer composer = $composerBuilder(
         composer: this,
@@ -23259,6 +24142,9 @@ class $$AppSettingsTableTableManager extends RootTableManager<
             Value<int> targetFat = const Value.absent(),
             Value<int> targetWater = const Value.absent(),
             Value<int> targetSteps = const Value.absent(),
+            Value<String> trainingAutonomyLevel = const Value.absent(),
+            Value<String> nutritionAutonomyLevel = const Value.absent(),
+            Value<String> experienceLevel = const Value.absent(),
           }) =>
               AppSettingsCompanion(
             localId: localId,
@@ -23275,6 +24161,9 @@ class $$AppSettingsTableTableManager extends RootTableManager<
             targetFat: targetFat,
             targetWater: targetWater,
             targetSteps: targetSteps,
+            trainingAutonomyLevel: trainingAutonomyLevel,
+            nutritionAutonomyLevel: nutritionAutonomyLevel,
+            experienceLevel: experienceLevel,
           ),
           createCompanionCallback: ({
             Value<int> localId = const Value.absent(),
@@ -23291,6 +24180,9 @@ class $$AppSettingsTableTableManager extends RootTableManager<
             Value<int> targetFat = const Value.absent(),
             Value<int> targetWater = const Value.absent(),
             Value<int> targetSteps = const Value.absent(),
+            Value<String> trainingAutonomyLevel = const Value.absent(),
+            Value<String> nutritionAutonomyLevel = const Value.absent(),
+            Value<String> experienceLevel = const Value.absent(),
           }) =>
               AppSettingsCompanion.insert(
             localId: localId,
@@ -23307,6 +24199,9 @@ class $$AppSettingsTableTableManager extends RootTableManager<
             targetFat: targetFat,
             targetWater: targetWater,
             targetSteps: targetSteps,
+            trainingAutonomyLevel: trainingAutonomyLevel,
+            nutritionAutonomyLevel: nutritionAutonomyLevel,
+            experienceLevel: experienceLevel,
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (
@@ -24658,6 +25553,7 @@ typedef $$RoutineExercisesTableCreateCompanionBuilder
   Value<DateTime> createdAt,
   Value<DateTime> updatedAt,
   Value<DateTime?> deletedAt,
+  Value<String?> progressionData,
   required String routineId,
   required String exerciseId,
   required int orderIndex,
@@ -24672,6 +25568,7 @@ typedef $$RoutineExercisesTableUpdateCompanionBuilder
   Value<DateTime> createdAt,
   Value<DateTime> updatedAt,
   Value<DateTime?> deletedAt,
+  Value<String?> progressionData,
   Value<String> routineId,
   Value<String> exerciseId,
   Value<int> orderIndex,
@@ -24756,6 +25653,10 @@ class $$RoutineExercisesTableFilterComposer
 
   ColumnFilters<DateTime> get deletedAt => $composableBuilder(
       column: $table.deletedAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get progressionData => $composableBuilder(
+      column: $table.progressionData,
+      builder: (column) => ColumnFilters(column));
 
   ColumnFilters<int> get orderIndex => $composableBuilder(
       column: $table.orderIndex, builder: (column) => ColumnFilters(column));
@@ -24855,6 +25756,10 @@ class $$RoutineExercisesTableOrderingComposer
   ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
       column: $table.deletedAt, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<String> get progressionData => $composableBuilder(
+      column: $table.progressionData,
+      builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<int> get orderIndex => $composableBuilder(
       column: $table.orderIndex, builder: (column) => ColumnOrderings(column));
 
@@ -24933,6 +25838,9 @@ class $$RoutineExercisesTableAnnotationComposer
 
   GeneratedColumn<DateTime> get deletedAt =>
       $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+
+  GeneratedColumn<String> get progressionData => $composableBuilder(
+      column: $table.progressionData, builder: (column) => column);
 
   GeneratedColumn<int> get orderIndex => $composableBuilder(
       column: $table.orderIndex, builder: (column) => column);
@@ -25040,6 +25948,7 @@ class $$RoutineExercisesTableTableManager extends RootTableManager<
             Value<DateTime> createdAt = const Value.absent(),
             Value<DateTime> updatedAt = const Value.absent(),
             Value<DateTime?> deletedAt = const Value.absent(),
+            Value<String?> progressionData = const Value.absent(),
             Value<String> routineId = const Value.absent(),
             Value<String> exerciseId = const Value.absent(),
             Value<int> orderIndex = const Value.absent(),
@@ -25053,6 +25962,7 @@ class $$RoutineExercisesTableTableManager extends RootTableManager<
             createdAt: createdAt,
             updatedAt: updatedAt,
             deletedAt: deletedAt,
+            progressionData: progressionData,
             routineId: routineId,
             exerciseId: exerciseId,
             orderIndex: orderIndex,
@@ -25066,6 +25976,7 @@ class $$RoutineExercisesTableTableManager extends RootTableManager<
             Value<DateTime> createdAt = const Value.absent(),
             Value<DateTime> updatedAt = const Value.absent(),
             Value<DateTime?> deletedAt = const Value.absent(),
+            Value<String?> progressionData = const Value.absent(),
             required String routineId,
             required String exerciseId,
             required int orderIndex,
@@ -25079,6 +25990,7 @@ class $$RoutineExercisesTableTableManager extends RootTableManager<
             createdAt: createdAt,
             updatedAt: updatedAt,
             deletedAt: deletedAt,
+            progressionData: progressionData,
             routineId: routineId,
             exerciseId: exerciseId,
             orderIndex: orderIndex,
@@ -25186,6 +26098,8 @@ typedef $$RoutineSetTemplatesTableCreateCompanionBuilder
   Value<String?> targetReps,
   Value<double?> targetWeight,
   Value<int?> targetRir,
+  Value<int?> targetRepMin,
+  Value<int?> targetRepMax,
 });
 typedef $$RoutineSetTemplatesTableUpdateCompanionBuilder
     = RoutineSetTemplatesCompanion Function({
@@ -25199,6 +26113,8 @@ typedef $$RoutineSetTemplatesTableUpdateCompanionBuilder
   Value<String?> targetReps,
   Value<double?> targetWeight,
   Value<int?> targetRir,
+  Value<int?> targetRepMin,
+  Value<int?> targetRepMax,
 });
 
 final class $$RoutineSetTemplatesTableReferences extends BaseReferences<
@@ -25259,6 +26175,12 @@ class $$RoutineSetTemplatesTableFilterComposer
   ColumnFilters<int> get targetRir => $composableBuilder(
       column: $table.targetRir, builder: (column) => ColumnFilters(column));
 
+  ColumnFilters<int> get targetRepMin => $composableBuilder(
+      column: $table.targetRepMin, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get targetRepMax => $composableBuilder(
+      column: $table.targetRepMax, builder: (column) => ColumnFilters(column));
+
   $$RoutineExercisesTableFilterComposer get routineExerciseId {
     final $$RoutineExercisesTableFilterComposer composer = $composerBuilder(
         composer: this,
@@ -25317,6 +26239,14 @@ class $$RoutineSetTemplatesTableOrderingComposer
   ColumnOrderings<int> get targetRir => $composableBuilder(
       column: $table.targetRir, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<int> get targetRepMin => $composableBuilder(
+      column: $table.targetRepMin,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get targetRepMax => $composableBuilder(
+      column: $table.targetRepMax,
+      builder: (column) => ColumnOrderings(column));
+
   $$RoutineExercisesTableOrderingComposer get routineExerciseId {
     final $$RoutineExercisesTableOrderingComposer composer = $composerBuilder(
         composer: this,
@@ -25373,6 +26303,12 @@ class $$RoutineSetTemplatesTableAnnotationComposer
 
   GeneratedColumn<int> get targetRir =>
       $composableBuilder(column: $table.targetRir, builder: (column) => column);
+
+  GeneratedColumn<int> get targetRepMin => $composableBuilder(
+      column: $table.targetRepMin, builder: (column) => column);
+
+  GeneratedColumn<int> get targetRepMax => $composableBuilder(
+      column: $table.targetRepMax, builder: (column) => column);
 
   $$RoutineExercisesTableAnnotationComposer get routineExerciseId {
     final $$RoutineExercisesTableAnnotationComposer composer = $composerBuilder(
@@ -25431,6 +26367,8 @@ class $$RoutineSetTemplatesTableTableManager extends RootTableManager<
             Value<String?> targetReps = const Value.absent(),
             Value<double?> targetWeight = const Value.absent(),
             Value<int?> targetRir = const Value.absent(),
+            Value<int?> targetRepMin = const Value.absent(),
+            Value<int?> targetRepMax = const Value.absent(),
           }) =>
               RoutineSetTemplatesCompanion(
             localId: localId,
@@ -25443,6 +26381,8 @@ class $$RoutineSetTemplatesTableTableManager extends RootTableManager<
             targetReps: targetReps,
             targetWeight: targetWeight,
             targetRir: targetRir,
+            targetRepMin: targetRepMin,
+            targetRepMax: targetRepMax,
           ),
           createCompanionCallback: ({
             Value<int> localId = const Value.absent(),
@@ -25455,6 +26395,8 @@ class $$RoutineSetTemplatesTableTableManager extends RootTableManager<
             Value<String?> targetReps = const Value.absent(),
             Value<double?> targetWeight = const Value.absent(),
             Value<int?> targetRir = const Value.absent(),
+            Value<int?> targetRepMin = const Value.absent(),
+            Value<int?> targetRepMax = const Value.absent(),
           }) =>
               RoutineSetTemplatesCompanion.insert(
             localId: localId,
@@ -25467,6 +26409,8 @@ class $$RoutineSetTemplatesTableTableManager extends RootTableManager<
             targetReps: targetReps,
             targetWeight: targetWeight,
             targetRir: targetRir,
+            targetRepMin: targetRepMin,
+            targetRepMax: targetRepMax,
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (
@@ -26202,6 +27146,7 @@ typedef $$SetLogsTableCreateCompanionBuilder = SetLogsCompanion Function({
   Value<DateTime> createdAt,
   Value<DateTime> updatedAt,
   Value<DateTime?> deletedAt,
+  Value<String?> progressionData,
   required String workoutLogId,
   Value<String?> exerciseId,
   Value<String?> exerciseNameSnapshot,
@@ -26218,6 +27163,16 @@ typedef $$SetLogsTableCreateCompanionBuilder = SetLogsCompanion Function({
   Value<double?> distance,
   Value<int?> durationSeconds,
   Value<String?> notes,
+  Value<String> prescriptionOrigin,
+  Value<int?> prescribedRepMin,
+  Value<int?> prescribedRepMax,
+  Value<double?> prescribedWeight,
+  Value<int?> prescribedRir,
+  Value<bool> prescriptionOverridden,
+  Value<bool> valuesAutoFilled,
+  Value<String?> substitutedForExerciseId,
+  Value<String?> progressionReason,
+  Value<String?> progressionAlgorithmVersion,
 });
 typedef $$SetLogsTableUpdateCompanionBuilder = SetLogsCompanion Function({
   Value<int> localId,
@@ -26225,6 +27180,7 @@ typedef $$SetLogsTableUpdateCompanionBuilder = SetLogsCompanion Function({
   Value<DateTime> createdAt,
   Value<DateTime> updatedAt,
   Value<DateTime?> deletedAt,
+  Value<String?> progressionData,
   Value<String> workoutLogId,
   Value<String?> exerciseId,
   Value<String?> exerciseNameSnapshot,
@@ -26241,6 +27197,16 @@ typedef $$SetLogsTableUpdateCompanionBuilder = SetLogsCompanion Function({
   Value<double?> distance,
   Value<int?> durationSeconds,
   Value<String?> notes,
+  Value<String> prescriptionOrigin,
+  Value<int?> prescribedRepMin,
+  Value<int?> prescribedRepMax,
+  Value<double?> prescribedWeight,
+  Value<int?> prescribedRir,
+  Value<bool> prescriptionOverridden,
+  Value<bool> valuesAutoFilled,
+  Value<String?> substitutedForExerciseId,
+  Value<String?> progressionReason,
+  Value<String?> progressionAlgorithmVersion,
 });
 
 final class $$SetLogsTableReferences
@@ -26300,6 +27266,10 @@ class $$SetLogsTableFilterComposer
   ColumnFilters<DateTime> get deletedAt => $composableBuilder(
       column: $table.deletedAt, builder: (column) => ColumnFilters(column));
 
+  ColumnFilters<String> get progressionData => $composableBuilder(
+      column: $table.progressionData,
+      builder: (column) => ColumnFilters(column));
+
   ColumnFilters<String> get exerciseNameSnapshot => $composableBuilder(
       column: $table.exerciseNameSnapshot,
       builder: (column) => ColumnFilters(column));
@@ -26344,6 +27314,45 @@ class $$SetLogsTableFilterComposer
 
   ColumnFilters<String> get notes => $composableBuilder(
       column: $table.notes, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get prescriptionOrigin => $composableBuilder(
+      column: $table.prescriptionOrigin,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get prescribedRepMin => $composableBuilder(
+      column: $table.prescribedRepMin,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get prescribedRepMax => $composableBuilder(
+      column: $table.prescribedRepMax,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<double> get prescribedWeight => $composableBuilder(
+      column: $table.prescribedWeight,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get prescribedRir => $composableBuilder(
+      column: $table.prescribedRir, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get prescriptionOverridden => $composableBuilder(
+      column: $table.prescriptionOverridden,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get valuesAutoFilled => $composableBuilder(
+      column: $table.valuesAutoFilled,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get substitutedForExerciseId => $composableBuilder(
+      column: $table.substitutedForExerciseId,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get progressionReason => $composableBuilder(
+      column: $table.progressionReason,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get progressionAlgorithmVersion => $composableBuilder(
+      column: $table.progressionAlgorithmVersion,
+      builder: (column) => ColumnFilters(column));
 
   $$WorkoutLogsTableFilterComposer get workoutLogId {
     final $$WorkoutLogsTableFilterComposer composer = $composerBuilder(
@@ -26410,6 +27419,10 @@ class $$SetLogsTableOrderingComposer
   ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
       column: $table.deletedAt, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<String> get progressionData => $composableBuilder(
+      column: $table.progressionData,
+      builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<String> get exerciseNameSnapshot => $composableBuilder(
       column: $table.exerciseNameSnapshot,
       builder: (column) => ColumnOrderings(column));
@@ -26456,6 +27469,46 @@ class $$SetLogsTableOrderingComposer
 
   ColumnOrderings<String> get notes => $composableBuilder(
       column: $table.notes, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get prescriptionOrigin => $composableBuilder(
+      column: $table.prescriptionOrigin,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get prescribedRepMin => $composableBuilder(
+      column: $table.prescribedRepMin,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get prescribedRepMax => $composableBuilder(
+      column: $table.prescribedRepMax,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<double> get prescribedWeight => $composableBuilder(
+      column: $table.prescribedWeight,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get prescribedRir => $composableBuilder(
+      column: $table.prescribedRir,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get prescriptionOverridden => $composableBuilder(
+      column: $table.prescriptionOverridden,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get valuesAutoFilled => $composableBuilder(
+      column: $table.valuesAutoFilled,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get substitutedForExerciseId => $composableBuilder(
+      column: $table.substitutedForExerciseId,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get progressionReason => $composableBuilder(
+      column: $table.progressionReason,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get progressionAlgorithmVersion => $composableBuilder(
+      column: $table.progressionAlgorithmVersion,
+      builder: (column) => ColumnOrderings(column));
 
   $$WorkoutLogsTableOrderingComposer get workoutLogId {
     final $$WorkoutLogsTableOrderingComposer composer = $composerBuilder(
@@ -26522,6 +27575,9 @@ class $$SetLogsTableAnnotationComposer
   GeneratedColumn<DateTime> get deletedAt =>
       $composableBuilder(column: $table.deletedAt, builder: (column) => column);
 
+  GeneratedColumn<String> get progressionData => $composableBuilder(
+      column: $table.progressionData, builder: (column) => column);
+
   GeneratedColumn<String> get exerciseNameSnapshot => $composableBuilder(
       column: $table.exerciseNameSnapshot, builder: (column) => column);
 
@@ -26563,6 +27619,36 @@ class $$SetLogsTableAnnotationComposer
 
   GeneratedColumn<String> get notes =>
       $composableBuilder(column: $table.notes, builder: (column) => column);
+
+  GeneratedColumn<String> get prescriptionOrigin => $composableBuilder(
+      column: $table.prescriptionOrigin, builder: (column) => column);
+
+  GeneratedColumn<int> get prescribedRepMin => $composableBuilder(
+      column: $table.prescribedRepMin, builder: (column) => column);
+
+  GeneratedColumn<int> get prescribedRepMax => $composableBuilder(
+      column: $table.prescribedRepMax, builder: (column) => column);
+
+  GeneratedColumn<double> get prescribedWeight => $composableBuilder(
+      column: $table.prescribedWeight, builder: (column) => column);
+
+  GeneratedColumn<int> get prescribedRir => $composableBuilder(
+      column: $table.prescribedRir, builder: (column) => column);
+
+  GeneratedColumn<bool> get prescriptionOverridden => $composableBuilder(
+      column: $table.prescriptionOverridden, builder: (column) => column);
+
+  GeneratedColumn<bool> get valuesAutoFilled => $composableBuilder(
+      column: $table.valuesAutoFilled, builder: (column) => column);
+
+  GeneratedColumn<String> get substitutedForExerciseId => $composableBuilder(
+      column: $table.substitutedForExerciseId, builder: (column) => column);
+
+  GeneratedColumn<String> get progressionReason => $composableBuilder(
+      column: $table.progressionReason, builder: (column) => column);
+
+  GeneratedColumn<String> get progressionAlgorithmVersion => $composableBuilder(
+      column: $table.progressionAlgorithmVersion, builder: (column) => column);
 
   $$WorkoutLogsTableAnnotationComposer get workoutLogId {
     final $$WorkoutLogsTableAnnotationComposer composer = $composerBuilder(
@@ -26633,6 +27719,7 @@ class $$SetLogsTableTableManager extends RootTableManager<
             Value<DateTime> createdAt = const Value.absent(),
             Value<DateTime> updatedAt = const Value.absent(),
             Value<DateTime?> deletedAt = const Value.absent(),
+            Value<String?> progressionData = const Value.absent(),
             Value<String> workoutLogId = const Value.absent(),
             Value<String?> exerciseId = const Value.absent(),
             Value<String?> exerciseNameSnapshot = const Value.absent(),
@@ -26649,6 +27736,16 @@ class $$SetLogsTableTableManager extends RootTableManager<
             Value<double?> distance = const Value.absent(),
             Value<int?> durationSeconds = const Value.absent(),
             Value<String?> notes = const Value.absent(),
+            Value<String> prescriptionOrigin = const Value.absent(),
+            Value<int?> prescribedRepMin = const Value.absent(),
+            Value<int?> prescribedRepMax = const Value.absent(),
+            Value<double?> prescribedWeight = const Value.absent(),
+            Value<int?> prescribedRir = const Value.absent(),
+            Value<bool> prescriptionOverridden = const Value.absent(),
+            Value<bool> valuesAutoFilled = const Value.absent(),
+            Value<String?> substitutedForExerciseId = const Value.absent(),
+            Value<String?> progressionReason = const Value.absent(),
+            Value<String?> progressionAlgorithmVersion = const Value.absent(),
           }) =>
               SetLogsCompanion(
             localId: localId,
@@ -26656,6 +27753,7 @@ class $$SetLogsTableTableManager extends RootTableManager<
             createdAt: createdAt,
             updatedAt: updatedAt,
             deletedAt: deletedAt,
+            progressionData: progressionData,
             workoutLogId: workoutLogId,
             exerciseId: exerciseId,
             exerciseNameSnapshot: exerciseNameSnapshot,
@@ -26672,6 +27770,16 @@ class $$SetLogsTableTableManager extends RootTableManager<
             distance: distance,
             durationSeconds: durationSeconds,
             notes: notes,
+            prescriptionOrigin: prescriptionOrigin,
+            prescribedRepMin: prescribedRepMin,
+            prescribedRepMax: prescribedRepMax,
+            prescribedWeight: prescribedWeight,
+            prescribedRir: prescribedRir,
+            prescriptionOverridden: prescriptionOverridden,
+            valuesAutoFilled: valuesAutoFilled,
+            substitutedForExerciseId: substitutedForExerciseId,
+            progressionReason: progressionReason,
+            progressionAlgorithmVersion: progressionAlgorithmVersion,
           ),
           createCompanionCallback: ({
             Value<int> localId = const Value.absent(),
@@ -26679,6 +27787,7 @@ class $$SetLogsTableTableManager extends RootTableManager<
             Value<DateTime> createdAt = const Value.absent(),
             Value<DateTime> updatedAt = const Value.absent(),
             Value<DateTime?> deletedAt = const Value.absent(),
+            Value<String?> progressionData = const Value.absent(),
             required String workoutLogId,
             Value<String?> exerciseId = const Value.absent(),
             Value<String?> exerciseNameSnapshot = const Value.absent(),
@@ -26695,6 +27804,16 @@ class $$SetLogsTableTableManager extends RootTableManager<
             Value<double?> distance = const Value.absent(),
             Value<int?> durationSeconds = const Value.absent(),
             Value<String?> notes = const Value.absent(),
+            Value<String> prescriptionOrigin = const Value.absent(),
+            Value<int?> prescribedRepMin = const Value.absent(),
+            Value<int?> prescribedRepMax = const Value.absent(),
+            Value<double?> prescribedWeight = const Value.absent(),
+            Value<int?> prescribedRir = const Value.absent(),
+            Value<bool> prescriptionOverridden = const Value.absent(),
+            Value<bool> valuesAutoFilled = const Value.absent(),
+            Value<String?> substitutedForExerciseId = const Value.absent(),
+            Value<String?> progressionReason = const Value.absent(),
+            Value<String?> progressionAlgorithmVersion = const Value.absent(),
           }) =>
               SetLogsCompanion.insert(
             localId: localId,
@@ -26702,6 +27821,7 @@ class $$SetLogsTableTableManager extends RootTableManager<
             createdAt: createdAt,
             updatedAt: updatedAt,
             deletedAt: deletedAt,
+            progressionData: progressionData,
             workoutLogId: workoutLogId,
             exerciseId: exerciseId,
             exerciseNameSnapshot: exerciseNameSnapshot,
@@ -26718,6 +27838,16 @@ class $$SetLogsTableTableManager extends RootTableManager<
             distance: distance,
             durationSeconds: durationSeconds,
             notes: notes,
+            prescriptionOrigin: prescriptionOrigin,
+            prescribedRepMin: prescribedRepMin,
+            prescribedRepMax: prescribedRepMax,
+            prescribedWeight: prescribedWeight,
+            prescribedRir: prescribedRir,
+            prescriptionOverridden: prescriptionOverridden,
+            valuesAutoFilled: valuesAutoFilled,
+            substitutedForExerciseId: substitutedForExerciseId,
+            progressionReason: progressionReason,
+            progressionAlgorithmVersion: progressionAlgorithmVersion,
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (

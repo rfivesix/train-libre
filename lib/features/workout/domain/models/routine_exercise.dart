@@ -1,3 +1,4 @@
+import '../progression/progression_contract.dart';
 // lib/models/routine_exercise.dart
 
 import '../../../exercise_catalog/domain/models/exercise.dart';
@@ -7,6 +8,10 @@ import 'set_template.dart';
 ///
 /// Links an [Exercise] to a [Routine] and includes templates for sets and pause duration.
 class RoutineExercise {
+  final String? progressionData;
+  ProgressionConfig get progression =>
+      ProgressionConfig.decode(progressionData);
+
   /// Unique identifier for the routine-exercise association.
   final int? id;
 
@@ -27,6 +32,7 @@ class RoutineExercise {
 
   /// Creates a new [RoutineExercise] instance.
   RoutineExercise({
+    this.progressionData,
     this.id,
     required this.exercise,
     this.setTemplates = const [],
@@ -38,6 +44,7 @@ class RoutineExercise {
   /// Converts the [RoutineExercise] instance to a Map for database storage.
   Map<String, dynamic> toMap() {
     return {
+      'progression_data': progressionData,
       'id': id,
       'exercise': exercise.toMap(), // Assumption: Exercise has a toMap method
       'setTemplates': setTemplates.map((st) => st.toMap()).toList(),
@@ -49,6 +56,7 @@ class RoutineExercise {
 
   /// Creates a copy of this [RoutineExercise] with the given fields replaced by the new values.
   RoutineExercise copyWith({
+    String? progressionData,
     int? id,
     Exercise? exercise,
     List<SetTemplate>? setTemplates,
@@ -59,6 +67,7 @@ class RoutineExercise {
     bool clearSupersetGroup = false,
   }) {
     return RoutineExercise(
+      progressionData: progressionData ?? this.progressionData,
       id: id ?? this.id,
       exercise: exercise ?? this.exercise,
       setTemplates: setTemplates ?? this.setTemplates,

@@ -56,23 +56,23 @@ OPEN SOURCE & OFFENE DATEN:
 Transparent aufgebaut auf den vertrauenswürdigen Community-Katalogen von Open Food Facts und OpenExerciseDB. Der vollständige Quellcode ist öffentlich einsehbar – unsere Datenschutzversprechen kann man also nachprüfen, statt sie nur zu glauben.
 
 ## Release Notes (What's New / Release Notes in this version)
-Supersätze: Verbinde Übungen in deinen Trainingsplänen zu Supersätzen, Trisätzen oder größeren Gruppen. Im Training wechselst du rundenweise zwischen ihnen, und die Pause startet erst nach der letzten Übung einer Runde.
+Tagebuch nach Datum durchsuchen: Über eine neue, horizontal scrollbare Tagesleiste wechselst du mit einem Tipp zu nahegelegenen Tagen. Wenn du im Tagebuch ein Datum auswählst, öffnet sich direkt der Kalender.
 
-Für jede Übung die passenden Felder: Bei Planks erfasst du die Haltezeit, bei Klimmzügen Wiederholungen und optionales Zusatzgewicht, bei unterstützten Übungen die Unterstützung. Auch die Werte vom letzten Training und die Diagramme passen sich an.
+Intelligentere Vorschläge für den nächsten Satz: Aktivierst du Trainingsvorschläge in den Einstellungen, kann Train Libre das Gewicht für den nächsten Arbeitssatz anhand deiner letzten Leistung vorausfüllen. Vor dem Speichern kannst du es jederzeit ändern.
 
-Überarbeiteter Übungskatalog: Der Katalog basiert jetzt auf OpenExerciseDB, mit genaueren Angaben zu Muskeln und Bewegungen und Namen in deiner App-Sprache. Filtere nach Geräten, Schwierigkeitsgrad und weiteren Merkmalen, auch beim Zusammenstellen deiner Trainingspläne.
+Regeneration dort, wo du trainierst: Die Muskelregeneration steht jetzt ganz oben im Workout-Tab. Die Muskelgruppen-Analyse zeigt neben Muskelabdeckung und Häufigkeit auch deine Bewegungsmuster.
 
-Gewicht direkt im Tagebuch erfassen: Trage dein Gewicht über die neue Karte unter den Supplementen ein, mit einem flüssigen Regler in Kilogramm oder Pfund. Von dort öffnest du auch deinen Messverlauf.
+Muskelgruppen auf einen Blick: Die Analyse bietet jetzt eine vollständige Übersicht aller Muskelgruppen und Bewegungsmuster, eine permanente Verteilungs-Heatmap sowie Wochen- und Gesamtwerte für Arbeitssätze.
 
-Fortschritte richtig einordnen: Bei Eigengewichtsübungen berücksichtigen Trainingsvolumen und Kraftrekorde jetzt dein erfasstes Körpergewicht, Zusatzgewicht zählt dazu und Unterstützung wird abgezogen. Dehnen und Mobilitätsübungen zählen nicht mehr als Kraftsätze.
+Training und Rekorde klarer verstehen: Trainingsrhythmus zeigt dir verständlich deine Einheiten, Serie und den Kalender. Deine neuen Bestleistungen erscheinen als Feed mit Fortschritt und Rekordübersicht.
 
 ## Support URL (Support Web Page URL)
-https://rfivesix.github.io/train-libre/
+https://trainlibre.com/support
 
 ## Marketing URL (Marketing / Product Web Page URL)
-https://rfivesix.github.io/train-libre/
+https://trainlibre.com
 
 ## Privacy Policy URL (Privacy Policy Web Page URL)
-https://rfivesix.github.io/train-libre/privacy-policy/
+https://trainlibre.com/privacy-policy/
 
 ## Copyright (Copyright holder (e.g. 2026 Richard Schotte))

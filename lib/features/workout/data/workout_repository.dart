@@ -8,7 +8,12 @@ import '../domain/repositories/workout_repository.dart';
 import '../domain/classification/set_load.dart';
 
 /// Concrete implementation of [IWorkoutRepository] implementing workout database transactions.
-class WorkoutRepository implements IWorkoutRepository {
+class WorkoutRepository
+    implements
+        IWorkoutRepository,
+        ProgressionHistoryRepository,
+        ProgressionPrescriptionRepository,
+        WorkoutFinalizationRepository {
   @override
   Future<BodyweightHistory> getBodyweightHistory() =>
       _localDataSource.getBodyweightHistory();
@@ -74,6 +79,22 @@ class WorkoutRepository implements IWorkoutRepository {
       _localDataSource.finishWorkout(logId, title: title, notes: notes);
 
   @override
+  Future<List<SetLog>> finalizeWorkout({
+    required int workoutLogId,
+    required List<SetLog> sets,
+    required List<int> discardSetIds,
+    String? title,
+    String? notes,
+  }) =>
+      _localDataSource.finalizeWorkout(
+        workoutLogId: workoutLogId,
+        sets: sets,
+        discardSetIds: discardSetIds,
+        title: title,
+        notes: notes,
+      );
+
+  @override
   Future<void> updatePauseTime(int routineExerciseId, int? seconds) =>
       _localDataSource.updatePauseTime(routineExerciseId, seconds);
 
@@ -99,8 +120,35 @@ class WorkoutRepository implements IWorkoutRepository {
       _localDataSource.getWorkoutExerciseNotes(workoutLogId);
 
   @override
-  Future<List<SetLog>> getLastSetsForExercise(String exerciseName) =>
-      _localDataSource.getLastSetsForExercise(exerciseName);
+  Future<void> saveProgressionConfig(String prescriptionKey, String data,
+          {bool equipmentOnly = false}) =>
+      _localDataSource.saveProgressionConfig(prescriptionKey, data,
+          equipmentOnly: equipmentOnly);
+
+  @override
+  Future<void> initializeProgressionConfig(
+          int routineExerciseId, String data) =>
+      _localDataSource.initializeProgressionConfig(routineExerciseId, data);
+
+  @override
+  Future<List<SetLog>> getProgressionHistory({
+    required String exerciseId,
+    required String exerciseNameSnapshot,
+  }) =>
+      _localDataSource.getProgressionHistory(
+        exerciseId: exerciseId,
+        exerciseNameSnapshot: exerciseNameSnapshot,
+      );
+
+  @override
+  Future<List<SetLog>> getLastSetsForExercise({
+    required String? exerciseId,
+    required String exerciseNameSnapshot,
+  }) =>
+      _localDataSource.getLastSetsForExercise(
+        exerciseId: exerciseId,
+        exerciseNameSnapshot: exerciseNameSnapshot,
+      );
 
   @override
   Future<List<WorkoutLog>> getWorkoutLogsForDateRange(

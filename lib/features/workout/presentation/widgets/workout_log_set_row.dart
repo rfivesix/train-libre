@@ -53,6 +53,7 @@ class WorkoutLogSetRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final mask = this.mask.withSnapshotMode(setLog.progression.loadMode?.name);
     final setType = setLog.setType;
     final isLightMode = Theme.of(context).brightness == Brightness.light;
     final bool isColoredRow = rowIndex > 0 && rowIndex.isOdd;

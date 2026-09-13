@@ -46,6 +46,17 @@ abstract class FoodLogSource {
       all.contains(raw) ? raw! : manualSearch;
 }
 
+/// Closed response values for the post-workout App Store review prompt.
+abstract class AppReviewPromptResponse {
+  static const String yes = 'yes';
+  static const String no = 'no';
+  static const String later = 'later';
+
+  static const Set<String> all = {yes, no, later};
+
+  static String sanitize(String? raw) => all.contains(raw) ? raw! : later;
+}
+
 /// Closed set of `feature_key` values for the `feature_used` event.
 ///
 /// Using constants rather than string literals at the call sites keeps the
@@ -695,5 +706,10 @@ abstract class TelemetryService {
   /// and carry only hardware identifiers, Dart class names and counters.
   Future<void> trackPerformanceStall({
     required Map<String, dynamic> properties,
+  });
+
+  /// Records only the closed-set response to the App Store review prompt.
+  Future<void> trackAppReviewPromptResponded({
+    required String response,
   });
 }

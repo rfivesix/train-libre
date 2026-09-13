@@ -13,6 +13,7 @@ import '../../exercise_catalog/domain/models/exercise.dart';
 import '../domain/models/routine.dart';
 import '../domain/models/routine_exercise.dart';
 import '../domain/models/set_template.dart';
+import '../domain/parsers/rep_range_parser.dart' as progression_parser;
 import '../../../services/haptic_feedback_service.dart';
 import '../../exercise_catalog/presentation/exercise_catalog_screen.dart';
 import '../../../util/design_constants.dart';
@@ -502,6 +503,12 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
         currentTemplates.add(
           set.copyWith(
             targetReps: _repsControllers[set.id!]?.text,
+            targetRepMin: progression_parser
+                .parseRepRange(_repsControllers[set.id!]?.text)
+                ?.min,
+            targetRepMax: progression_parser
+                .parseRepRange(_repsControllers[set.id!]?.text)
+                ?.max,
             targetWeight: _weightControllers[set.id!]!.text.isEmpty
                 ? null
                 : (() {
@@ -558,6 +565,7 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
 
       final updatedTemplates = [...routineExercise.setTemplates, newSet];
       final updatedExercise = RoutineExercise(
+        progressionData: routineExercise.progressionData,
         id: routineExercise.id,
         exercise: routineExercise.exercise,
         setTemplates: updatedTemplates,

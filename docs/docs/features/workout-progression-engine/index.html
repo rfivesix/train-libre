@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="First-working-set load recommendation, double progression, and e1RM back-offs.">
+  <title>Workout progression | Train Libre Documentation</title>
+  <link rel="canonical" href="https://trainlibre.com/docs/features/workout-progression-engine/">
+
+  <link rel="icon" type="image/png" sizes="32x32" href="../../../favicon.png?v=2">
+  <link rel="apple-touch-icon" sizes="180x180" href="../../../assets/apple-touch-icon.png">
+
+  <!-- Open Graph -->
+  <meta property="og:site_name" content="Train Libre Documentation">
+  <meta property="og:title" content="Workout progression | Train Libre">
+  <meta property="og:description" content="First-working-set load recommendation, double progression, and e1RM back-offs.">
+  <meta property="og:url" content="https://trainlibre.com/docs/features/workout-progression-engine/">
+  <meta property="og:type" content="article">
+  <meta property="og:image" content="https://trainlibre.com/assets/og-image.png">
+
+  <!-- KaTeX CSS (CDN primary with local fallback) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+  <link rel="stylesheet" href="../../../katex.min.css">
+
+  <!-- Train Libre Design System & Dedicated Docs Styles -->
+  <link rel="stylesheet" href="../../../style.css">
+  <link rel="stylesheet" href="../../docs.css">
+
+  <!-- KaTeX Auto-render Script -->
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" defer onload="renderMathInElement(document.body, {
+    delimiters: [
+      {left: '$$', right: '$$', display: true},
+      {left: '$', right: '$', display: false}
+    ],
+    throwOnError: false
+  });"></script>
+
+  <!-- Mermaid.js for Architecture Diagrams -->
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      if (typeof mermaid !== "undefined") {
+        const isDark = document.documentElement.getAttribute("data-theme") !== "light";
+        mermaid.initialize({
+          startOnLoad: true,
+          theme: isDark ? "dark" : "default",
+          themeVariables: isDark ? {
+            darkMode: true,
+            background: "#151815",
+            primaryColor: "#1b1f1b",
+            primaryTextColor: "#f4f6f4",
+            primaryBorderColor: "rgba(221, 255, 0, 0.4)",
+            lineColor: "#ddff00",
+            secondaryColor: "#151815",
+            tertiaryColor: "#0e100e"
+          } : {}
+        });
+      }
+    });
+  </script>
+
+  <!-- Prevent Theme Flash -->
+  <script>
+    (function () {
+      const theme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: light)').matches ? "light" : "dark");
+      document.documentElement.setAttribute("data-theme", theme);
+    })();
+  </script>
+</head>
+<body class="docs-body">
+  <div class="page">
+    <!-- Header -->
+    <header class="docs-header">
+      <nav class="docs-nav" aria-label="Documentation navigation">
+        <a class="brand" href="../../../index.html" aria-label="Train Libre Home">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 270.933 270.933" role="img">
+              <path fill="#ddff00"
+                d="M47.621 39.688c-4.385 0-7.939 3.554-7.939 7.939v116.172c0 37.238 30.188 67.472 67.426 67.459l13.482-.006c.15.003.3.005.451.005h89.722c11.367 0 20.518-9.154 20.518-20.525s-9.151-20.525-20.518-20.525h-42.739a7.937 7.937 0 0 1-7.937-7.937v-25.174a7.937 7.937 0 0 1 7.937-7.937l41.159-.001c12.244 0 22.101-9.154 22.1-20.525-.001-11.371-9.859-20.525-22.103-20.525l-41.156.001a7.937 7.937 0 0 1-7.937-7.937V47.627c0-4.385-3.555-7.939-7.939-7.939z" />
+            </svg>
+          </span>
+          <span class="brand-name">Train Libre</span>
+          <span class="docs-badge">Docs</span>
+        </a>
+
+        <div class="nav-links">
+          <a href="../../../index.html" class="nav-link">Website</a>
+          <a class="nav-priority" href="https://github.com/rfivesix/train-libre" target="_blank" rel="noreferrer">GitHub</a>
+        </div>
+
+        <div class="nav-controls">
+          <button id="theme-toggle" class="control-btn" aria-label="Toggle Theme">
+            <svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="5"></circle>
+              <line x1="12" y1="1" x2="12" y2="3"></line>
+              <line x1="12" y1="21" x2="12" y2="23"></line>
+              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+              <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+              <line x1="1" y1="12" x2="3" y2="12"></line>
+              <line x1="21" y1="12" x2="23" y2="12"></line>
+              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+              <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+            </svg>
+            <svg class="moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+            </svg>
+          </button>
+          
+          <button id="sidebar-toggle" class="control-btn mobile-menu-btn" aria-label="Open sidebar menu" aria-expanded="false">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="3" y1="12" x2="21" y2="12"></line>
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+      </nav>
+    </header>
+
+    <!-- Docs Main Layout -->
+    <div class="docs-container">
+      <!-- Left Sidebar -->
+      <aside id="docs-sidebar" class="docs-sidebar" aria-label="Documentation sidebar">
+        <div class="sidebar-header-search">
+          <input type="text" id="sidebar-filter" placeholder="Filter topics..." aria-label="Filter topics in documentation">
+        </div>
+        <div class="sidebar-scroll-area">
+          <div class="sidebar-group"><div class="sidebar-group-title">Overview</div><ul class="sidebar-nav-list">
+<li><a href="../../index.html" class="sidebar-link">Documentation Suite Overview</a></li>
+</ul></div>
+<div class="sidebar-group"><div class="sidebar-group-title">Features &amp; Heuristics</div><ul class="sidebar-nav-list">
+<li><a href="../overview/index.html" class="sidebar-link">Capabilities &amp; Privacy</a></li>
+<li><a href="../sleep-scoring-engine/index.html" class="sidebar-link">Sleep Health Score (SHS v3.5)</a></li>
+<li><a href="../muscle-recovery-model/index.html" class="sidebar-link">Muscle Recovery &amp; Readiness</a></li>
+<li><a href="../bayesian-tdee-estimator/index.html" class="sidebar-link">Bayesian TDEE Estimator</a></li>
+<li><a href="../macro-distribution/index.html" class="sidebar-link">Macronutrient Distribution</a></li>
+<li><a href="index.html" class="sidebar-link active" aria-current="page">Workout Progression Engine</a></li>
+<li><a href="../intelligent-workouts/index.html" class="sidebar-link">Estimated 1-Rep Max (e1RM)</a></li>
+<li><a href="../meal-capture-pipeline/index.html" class="sidebar-link">Meal Capture Pipeline</a></li>
+<li><a href="../byok-ai-validation/index.html" class="sidebar-link">BYOK AI Meal Validation</a></li>
+<li><a href="../depth-scale-hint/index.html" class="sidebar-link">Depth Scale Hint (LiDAR)</a></li>
+<li><a href="../health-sync-export/index.html" class="sidebar-link">Native Health Sync &amp; Export</a></li>
+<li><a href="../live-activity-workout/index.html" class="sidebar-link">Live Activity &amp; Workout Session</a></li>
+</ul></div>
+<div class="sidebar-group"><div class="sidebar-group-title">Developer &amp; Architecture</div><ul class="sidebar-nav-list">
+<li><a href="../../developer/overview/index.html" class="sidebar-link">Developer Overview &amp; Tests</a></li>
+<li><a href="../../developer/architecture/index.html" class="sidebar-link">System Architecture &amp; Wiring</a></li>
+<li><a href="../../developer/data-flow-and-state/index.html" class="sidebar-link">Data Flow &amp; State Lifecycle</a></li>
+<li><a href="../../developer/localization-architecture/index.html" class="sidebar-link">Localization Architecture</a></li>
+<li><a href="../../developer/ios-home-screen-widgets/index.html" class="sidebar-link">Home Screen Widgets</a></li>
+</ul></div>
+        </div>
+      </aside>
+
+      <!-- Center Article Content -->
+      <main class="docs-main" id="main-content">
+        <div class="docs-breadcrumb" aria-label="Breadcrumb">
+          <a href="../../../index.html">Home</a> <span class="bc-sep">/</span> <a href="../../index.html">Docs</a> <span class="bc-sep">/</span> <span>Features &amp; Heuristics</span>
+        </div>
+
+        <article class="docs-article">
+          <h1 class="doc-title">Workout progression</h1>
+<p>The live workout offers a small, editable recommendation for eligible load-and-repetition exercises. Its purpose is to pre-fill ordinary weight and repetition fields at the useful moment; it is not a separate workout flow.</p>
+<h2 id="what-the-user-sees" class="doc-h2">What the user sees<a href="#what-the-user-sees" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>With Training Autonomy set to <strong>Suggest</strong>, the app fills only the first open working set when comparable history is available. The user can overwrite either field and completes the set with the usual check action. There are no policy selectors, completion reasons, review cards, confirmation dialogs, equipment configuration controls, or progression-specific menus in a live workout.</p>
+<p>After a working set is completed, only the directly following open working set gets its target. Its completed predecessor is the evidence for that one prescription. A value entered by the user always wins over a generated value, including if an asynchronous history lookup finishes afterwards.</p>
+<p>Cardio, duration, distance, variable-load and other exercises without a stable load-and-repetition axis continue to log normally, but receive no strength progression recommendation.</p>
+<h2 id="recommendation-rule" class="doc-h2">Recommendation rule<a href="#recommendation-rule" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>Only the first working set of the most recent completed comparable workout is used to start the next one. Warm-up and drop sets are excluded. Exercise matching uses the canonical exercise UUID, with the existing legacy name fallback for old records.</p>
+<p>For a repetition range <code>[L, U]</code>, the next first set is simple double progression:</p>
+<div class="table-responsive"><table class="doc-table"><thead><tr><th>Previous first set</th><th>Suggested next first set</th></tr></thead><tbody><tr><td>Below <code>L</code> repetitions</td><td>Hold the load and target <code>L</code></td></tr><tr><td><code>L</code> through <code>U - 1</code> repetitions</td><td>Hold the load and add one repetition</td></tr><tr><td>At least <code>U</code> repetitions</td><td>Advance one standard equipment increment and target <code>L</code></td></tr></tbody></table></div>
+<p>For a fixed repetition target, the app projects a load capable of that target from the previous first set's estimated 1RM, while limiting an increase to one standard equipment increment. A recorded RIR contributes to that estimate as additional repetitions to failure; a missing RIR uses only the performed repetitions. Without a repetition target it repeats the prior load and leaves repetitions empty.</p>
+<p>For each later set, the app calculates a fresh Brzycki capacity from the immediately preceding real set. Missing RIR or RIR <code>0</code> retain 95% capacity for the next set; RIR <code>1</code> through <code>4+</code> retain 96% through 99%. The next test load is normally the previous real load. When routine weights deliberately define a different positive next-set weight, their ratio to the first template weight is applied to today's real first-set load and rounded to a usable increment before calculating repetitions.</p>
+<p>For a range <code>[L, U]</code>, the calculated repetitions determine the next target:</p>
+<div class="table-responsive"><table class="doc-table"><thead><tr><th>Projection at the rounded test load</th><th>Suggested next set</th></tr></thead><tbody><tr><td>Above <code>U</code></td><td>One normal increment harder, <code>U</code> reps</td></tr><tr><td><code>L</code> through <code>U</code></td><td>Hold the test load, projected reps</td></tr><tr><td>Below <code>L</code></td><td>Lower to the highest usable load capable of <code>L</code> reps, <code>L</code> reps</td></tr></tbody></table></div>
+<p>The engine does not use Brzycki beyond 12 effective repetitions. In that case it holds the test load unless the actual result reached the range maximum, when it advances by exactly one increment. A result of at most three effective reps in a range beginning at six or more reps holds the test load and targets the lower bound, avoiding an implausible deload after insufficient evidence.</p>
+<p>Bodyweight exercises receive repetition targets only. Assisted and weighted-bodyweight exercises retain their own load semantics. Assisted work uses effective resistance when body weight is available. Without body weight, it uses a discrete rule: less assistance at the range maximum, more assistance below the range, and the same assistance with one more rep inside the range. Generic equipment floors prevent suggestions below an unloaded standard barbell, the smallest dumbbell, cable or machine increment. The database does not yet store a user's specific gym inventory, so these floors are deliberately conservative class defaults rather than claims about a particular facility.</p>
+<p>The recommendation is deliberately a starting point. It does not diagnose fatigue, pain, form, recovery or readiness, and it never changes the routine.</p>
+<h2 id="persistence-and-updates" class="doc-h2">Persistence and updates<a href="#persistence-and-updates" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>Saving a workout writes every retained set and the completed workout record in one SQLite transaction, then verifies the retained rows. Untouched empty rows and unfinished generated placeholders are discarded, so workout history shows only used sets. Manually entered open sets and all completed sets are retained. This avoids the former delete-before-save path that could lose entered sets if finalization was interrupted.</p>
+<p>The simplification does not require a schema migration. Existing progression metadata remains readable for backup, restore and historical records, while new workouts use algorithm version <code>progression_v1.8_jit</code>.</p>
+        </article>
+
+        <nav class="docs-pager" aria-label="Documentation navigation">
+<a href="../macro-distribution/index.html" class="pager-card pager-prev"><span class="pager-label">← Previous</span><span class="pager-title">Macronutrient Distribution</span></a>
+<a href="../intelligent-workouts/index.html" class="pager-card pager-next"><span class="pager-label">Next →</span><span class="pager-title">Estimated 1-Rep Max (e1RM)</span></a>
+</nav>
+      </main>
+
+      <!-- Right Table of Contents -->
+      <aside class="docs-toc" aria-label="Table of contents"><div class="toc-sticky-box"><div class="toc-heading">On this page</div><ul class="toc-list">
+<li class="toc-item toc-item-l2"><a href="#what-the-user-sees">What the user sees</a></li>
+<li class="toc-item toc-item-l2"><a href="#recommendation-rule">Recommendation rule</a></li>
+<li class="toc-item toc-item-l2"><a href="#persistence-and-updates">Persistence and updates</a></li>
+</ul></div></aside>
+    </div>
+
+    <!-- Footer (100% harmonized with main website footer) -->
+    <footer class="site-footer">
+      <div>
+        <a class="brand" href="../../../index.html" aria-label="Train Libre home">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 270.933 270.933" role="img">
+              <path fill="#ddff00"
+                d="M47.621 39.688c-4.385 0-7.939 3.554-7.939 7.939v116.172c0 37.238 30.188 67.472 67.426 67.459l13.482-.006c.15.003.3.005.451.005h89.722c11.367 0 20.518-9.154 20.518-20.525s-9.151-20.525-20.518-20.525h-42.739a7.937 7.937 0 0 1-7.937-7.937v-25.174a7.937 7.937 0 0 1 7.937-7.937l41.159-.001c12.244 0 22.101-9.154 22.1-20.525-.001-11.371-9.859-20.525-22.103-20.525l-41.156.001a7.937 7.937 0 0 1-7.937-7.937V47.627c0-4.385-3.555-7.939-7.939-7.939z" />
+            </svg>
+          </span>
+          <span>Train Libre</span>
+        </a>
+        <p class="fine-print">Fitness, nutrition, recovery, and pulse features are non-clinical heuristics for healthy individuals tracking performance, not medical advice. They do not apply to medical conditions (such as eating or sleep disorders).</p>
+      </div>
+      <div class="footer-links">
+        <a href="../../index.html">Documentation</a>
+        <a href="../../../privacy.html">Privacy Policy</a>
+        <a href="../../../terms.html">Terms of Service</a>
+        <a href="../../../impressum.html">Imprint</a>
+        <a href="../../../support.html">Support</a>
+        <a href="https://github.com/rfivesix/train-libre" data-link="github" target="_blank" rel="noreferrer">GitHub</a>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Documentation Interactions Script -->
+  <script>
+    // Theme toggle interaction
+    const themeBtn = document.getElementById("theme-toggle");
+    if (themeBtn) {
+      themeBtn.addEventListener("click", () => {
+        const current = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
+        document.documentElement.setAttribute("data-theme", current);
+        localStorage.setItem("theme", current);
+        if (typeof mermaid !== "undefined") {
+          const mNodes = document.querySelectorAll(".mermaid");
+          if (mNodes.length > 0) {
+            mNodes.forEach(node => {
+              if (node.hasAttribute("data-mermaid")) {
+                node.removeAttribute("data-processed");
+                node.innerHTML = node.getAttribute("data-mermaid");
+              }
+            });
+            mermaid.initialize({
+              startOnLoad: false,
+              theme: current === "light" ? "default" : "dark"
+            });
+            mermaid.run();
+          }
+        }
+      });
+    }
+
+    // Mobile sidebar toggle
+    const sidebarToggle = document.getElementById("sidebar-toggle");
+    const sidebar = document.getElementById("docs-sidebar");
+    if (sidebarToggle && sidebar) {
+      sidebarToggle.addEventListener("click", () => {
+        const expanded = sidebar.classList.toggle("open");
+        sidebarToggle.setAttribute("aria-expanded", expanded);
+      });
+
+      document.addEventListener("click", (e) => {
+        if (sidebar.classList.contains("open") && !sidebar.contains(e.target) && !sidebarToggle.contains(e.target)) {
+          sidebar.classList.remove("open");
+          sidebarToggle.setAttribute("aria-expanded", "false");
+        }
+      });
+    }
+
+    // Sidebar filter/search
+    const filterInput = document.getElementById("sidebar-filter");
+    if (filterInput) {
+      filterInput.addEventListener("input", (e) => {
+        const val = e.target.value.toLowerCase().trim();
+        document.querySelectorAll(".sidebar-nav-list li").forEach(li => {
+          const text = li.textContent.toLowerCase();
+          li.style.display = text.includes(val) ? "" : "none";
+        });
+        document.querySelectorAll(".sidebar-group").forEach(group => {
+          const hasVisible = Array.from(group.querySelectorAll("li")).some(li => li.style.display !== "none");
+          group.style.display = hasVisible ? "" : "none";
+        });
+      });
+    }
+
+    // Scroll-spy for Table of Contents
+    const tocItems = document.querySelectorAll(".toc-list a");
+    if (tocItems.length > 0) {
+      const headingElements = Array.from(tocItems).map(a => {
+        const id = a.getAttribute("href").substring(1);
+        return document.getElementById(id);
+      }).filter(Boolean);
+
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const id = entry.target.getAttribute("id");
+            tocItems.forEach(a => {
+              if (a.getAttribute("href") === "#" + id) {
+                a.classList.add("active");
+              } else {
+                a.classList.remove("active");
+              }
+            });
+          }
+        });
+      }, { rootMargin: "0px 0px -70% 0px", threshold: 0.1 });
+
+      headingElements.forEach(h => observer.observe(h));
+    }
+  </script>
+</body>
+</html>

@@ -71,6 +71,7 @@ class ProfileSlide extends StatelessWidget {
                 initialDate: DateTime(2000),
                 firstDate: DateTime(1900),
                 lastDate: DateTime.now(),
+                initialView: AdaptiveDatePickerView.wheel,
               );
               if (picked != null) {
                 onSelectDate(picked);

@@ -109,7 +109,11 @@ class FakeWorkoutRepository implements IWorkoutRepository {
   Future<Map<String, String>> getWorkoutExerciseNotes(int workoutLogId) async =>
       {};
   @override
-  Future<List<SetLog>> getLastSetsForExercise(String exerciseName) async => [];
+  Future<List<SetLog>> getLastSetsForExercise({
+    required String? exerciseId,
+    required String exerciseNameSnapshot,
+  }) async =>
+      [];
   @override
   Future<List<WorkoutLog>> getWorkoutLogsForDateRange(
           DateTime start, DateTime end) async =>
@@ -434,6 +438,17 @@ void main() {
       await workoutControllerA.close();
       await workoutControllerB.close();
       testVM.dispose();
+    });
+
+    test('isSelectedDateToday is true only when selected date is today',
+        () async {
+      viewModel.selectedDateNotifier.value = DateTime.now();
+      expect(viewModel.isSelectedDateToday, isTrue);
+
+      viewModel.selectedDateNotifier.value =
+          DateTime.now().subtract(const Duration(days: 1));
+      expect(viewModel.isSelectedDateToday, isFalse);
+      await Future<void>.delayed(const Duration(milliseconds: 100));
     });
   });
 }

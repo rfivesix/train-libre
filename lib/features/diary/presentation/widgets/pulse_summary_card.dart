@@ -30,7 +30,7 @@ class PulseSummaryCard extends StatelessWidget {
         isPulseWidgetLoading: vm.isPulseWidgetLoading,
         pulseSummary: vm.pulseSummary,
         selectedDate: vm.selectedDate,
-        showSkeleton: !vm.hasDataForSelectedDate,
+        showSkeleton: !vm.hasDataForSelectedDate && !vm.isSelectedDateToday,
       ),
       builder: (context, data, child) {
         final showSkeleton = data.showSkeleton;

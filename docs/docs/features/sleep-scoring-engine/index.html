@@ -1,0 +1,442 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Mathematical specification of the 5-domain continuous soft-cap multiplier sleep model.">
+  <title>Fitness-Oriented Sleep Health Score (SHS v3.5) Heuristic | Train Libre Documentation</title>
+  <link rel="canonical" href="https://trainlibre.com/docs/features/sleep-scoring-engine/">
+
+  <link rel="icon" type="image/png" sizes="32x32" href="../../../favicon.png?v=2">
+  <link rel="apple-touch-icon" sizes="180x180" href="../../../assets/apple-touch-icon.png">
+
+  <!-- Open Graph -->
+  <meta property="og:site_name" content="Train Libre Documentation">
+  <meta property="og:title" content="Fitness-Oriented Sleep Health Score (SHS v3.5) Heuristic | Train Libre">
+  <meta property="og:description" content="Mathematical specification of the 5-domain continuous soft-cap multiplier sleep model.">
+  <meta property="og:url" content="https://trainlibre.com/docs/features/sleep-scoring-engine/">
+  <meta property="og:type" content="article">
+  <meta property="og:image" content="https://trainlibre.com/assets/og-image.png">
+
+  <!-- KaTeX CSS (CDN primary with local fallback) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+  <link rel="stylesheet" href="../../../katex.min.css">
+
+  <!-- Train Libre Design System & Dedicated Docs Styles -->
+  <link rel="stylesheet" href="../../../style.css">
+  <link rel="stylesheet" href="../../docs.css">
+
+  <!-- KaTeX Auto-render Script -->
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" defer onload="renderMathInElement(document.body, {
+    delimiters: [
+      {left: '$$', right: '$$', display: true},
+      {left: '$', right: '$', display: false}
+    ],
+    throwOnError: false
+  });"></script>
+
+  <!-- Mermaid.js for Architecture Diagrams -->
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      if (typeof mermaid !== "undefined") {
+        const isDark = document.documentElement.getAttribute("data-theme") !== "light";
+        mermaid.initialize({
+          startOnLoad: true,
+          theme: isDark ? "dark" : "default",
+          themeVariables: isDark ? {
+            darkMode: true,
+            background: "#151815",
+            primaryColor: "#1b1f1b",
+            primaryTextColor: "#f4f6f4",
+            primaryBorderColor: "rgba(221, 255, 0, 0.4)",
+            lineColor: "#ddff00",
+            secondaryColor: "#151815",
+            tertiaryColor: "#0e100e"
+          } : {}
+        });
+      }
+    });
+  </script>
+
+  <!-- Prevent Theme Flash -->
+  <script>
+    (function () {
+      const theme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: light)').matches ? "light" : "dark");
+      document.documentElement.setAttribute("data-theme", theme);
+    })();
+  </script>
+</head>
+<body class="docs-body">
+  <div class="page">
+    <!-- Header -->
+    <header class="docs-header">
+      <nav class="docs-nav" aria-label="Documentation navigation">
+        <a class="brand" href="../../../index.html" aria-label="Train Libre Home">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 270.933 270.933" role="img">
+              <path fill="#ddff00"
+                d="M47.621 39.688c-4.385 0-7.939 3.554-7.939 7.939v116.172c0 37.238 30.188 67.472 67.426 67.459l13.482-.006c.15.003.3.005.451.005h89.722c11.367 0 20.518-9.154 20.518-20.525s-9.151-20.525-20.518-20.525h-42.739a7.937 7.937 0 0 1-7.937-7.937v-25.174a7.937 7.937 0 0 1 7.937-7.937l41.159-.001c12.244 0 22.101-9.154 22.1-20.525-.001-11.371-9.859-20.525-22.103-20.525l-41.156.001a7.937 7.937 0 0 1-7.937-7.937V47.627c0-4.385-3.555-7.939-7.939-7.939z" />
+            </svg>
+          </span>
+          <span class="brand-name">Train Libre</span>
+          <span class="docs-badge">Docs</span>
+        </a>
+
+        <div class="nav-links">
+          <a href="../../../index.html" class="nav-link">Website</a>
+          <a class="nav-priority" href="https://github.com/rfivesix/train-libre" target="_blank" rel="noreferrer">GitHub</a>
+        </div>
+
+        <div class="nav-controls">
+          <button id="theme-toggle" class="control-btn" aria-label="Toggle Theme">
+            <svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="5"></circle>
+              <line x1="12" y1="1" x2="12" y2="3"></line>
+              <line x1="12" y1="21" x2="12" y2="23"></line>
+              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+              <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+              <line x1="1" y1="12" x2="3" y2="12"></line>
+              <line x1="21" y1="12" x2="23" y2="12"></line>
+              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+              <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+            </svg>
+            <svg class="moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+            </svg>
+          </button>
+          
+          <button id="sidebar-toggle" class="control-btn mobile-menu-btn" aria-label="Open sidebar menu" aria-expanded="false">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="3" y1="12" x2="21" y2="12"></line>
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+      </nav>
+    </header>
+
+    <!-- Docs Main Layout -->
+    <div class="docs-container">
+      <!-- Left Sidebar -->
+      <aside id="docs-sidebar" class="docs-sidebar" aria-label="Documentation sidebar">
+        <div class="sidebar-header-search">
+          <input type="text" id="sidebar-filter" placeholder="Filter topics..." aria-label="Filter topics in documentation">
+        </div>
+        <div class="sidebar-scroll-area">
+          <div class="sidebar-group"><div class="sidebar-group-title">Overview</div><ul class="sidebar-nav-list">
+<li><a href="../../index.html" class="sidebar-link">Documentation Suite Overview</a></li>
+</ul></div>
+<div class="sidebar-group"><div class="sidebar-group-title">Features &amp; Heuristics</div><ul class="sidebar-nav-list">
+<li><a href="../overview/index.html" class="sidebar-link">Capabilities &amp; Privacy</a></li>
+<li><a href="index.html" class="sidebar-link active" aria-current="page">Sleep Health Score (SHS v3.5)</a></li>
+<li><a href="../muscle-recovery-model/index.html" class="sidebar-link">Muscle Recovery &amp; Readiness</a></li>
+<li><a href="../bayesian-tdee-estimator/index.html" class="sidebar-link">Bayesian TDEE Estimator</a></li>
+<li><a href="../macro-distribution/index.html" class="sidebar-link">Macronutrient Distribution</a></li>
+<li><a href="../workout-progression-engine/index.html" class="sidebar-link">Workout Progression Engine</a></li>
+<li><a href="../intelligent-workouts/index.html" class="sidebar-link">Estimated 1-Rep Max (e1RM)</a></li>
+<li><a href="../meal-capture-pipeline/index.html" class="sidebar-link">Meal Capture Pipeline</a></li>
+<li><a href="../byok-ai-validation/index.html" class="sidebar-link">BYOK AI Meal Validation</a></li>
+<li><a href="../depth-scale-hint/index.html" class="sidebar-link">Depth Scale Hint (LiDAR)</a></li>
+<li><a href="../health-sync-export/index.html" class="sidebar-link">Native Health Sync &amp; Export</a></li>
+<li><a href="../live-activity-workout/index.html" class="sidebar-link">Live Activity &amp; Workout Session</a></li>
+</ul></div>
+<div class="sidebar-group"><div class="sidebar-group-title">Developer &amp; Architecture</div><ul class="sidebar-nav-list">
+<li><a href="../../developer/overview/index.html" class="sidebar-link">Developer Overview &amp; Tests</a></li>
+<li><a href="../../developer/architecture/index.html" class="sidebar-link">System Architecture &amp; Wiring</a></li>
+<li><a href="../../developer/data-flow-and-state/index.html" class="sidebar-link">Data Flow &amp; State Lifecycle</a></li>
+<li><a href="../../developer/localization-architecture/index.html" class="sidebar-link">Localization Architecture</a></li>
+<li><a href="../../developer/ios-home-screen-widgets/index.html" class="sidebar-link">Home Screen Widgets</a></li>
+</ul></div>
+        </div>
+      </aside>
+
+      <!-- Center Article Content -->
+      <main class="docs-main" id="main-content">
+        <div class="docs-breadcrumb" aria-label="Breadcrumb">
+          <a href="../../../index.html">Home</a> <span class="bc-sep">/</span> <a href="../../index.html">Docs</a> <span class="bc-sep">/</span> <span>Features &amp; Heuristics</span>
+        </div>
+
+        <article class="docs-article">
+          <h1 class="doc-title">Fitness-Oriented Sleep Health Score (SHS v3.5) Heuristic</h1>
+<div class="callout callout-warning"><div class="callout-title"><span class="callout-badge">Disclaimer</span></div><div class="callout-body"><strong>Non-Medical Disclaimer</strong>: This feature is a fitness-oriented, non-clinical heuristic designed for healthy individuals tracking recovery, performance, and general well-being. It is not a diagnostic tool and does not apply to clinical sleep disorders (such as insomnia, sleep apnea, or other sleep pathologies). All scoring weights, optimal targets (e.g. 90 minutes deep sleep), and threshold boundaries are sports-science-inspired abstractions and engineering design choices rather than prescriptive clinical thresholds or diagnostic criteria.</div></div>
+<p>This document defines the mathematical architecture of the fitness-oriented <strong>Sleep Health Score v3.5 (SHS v3.5)</strong> engine. Moving away from rigid, binary hard-cap cutoffs (SHS v3), version 3.5 implements a continuous, multi-domain soft-cap multiplier system that dynamically degrades the composite sleep score based on the single worst-performing biological bottleneck.</p>
+<hr class="divider">
+<h2 id="1-engine-overview" class="doc-h2">1. Engine Overview<a href="#1-engine-overview" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>The Sleep Health Score (<em>SHS</em>) is constructed in two sequential phases: 1. <strong>Weighted Base Aggregation</strong>: A top-level normalized weighted average of 5 primary clinical domains. 2. <strong>Dynamic Soft-Cap Penalty</strong>: Multiplicative scaling using the single most severe biological penalty (bottleneck).</p>
+<h3 id="top-level-weighted-aggregation" class="doc-h3">Top-Level Weighted Aggregation<a href="#top-level-weighted-aggregation" class="header-anchor" aria-label="Link to section">#</a></h3>
+<p>The base score <em>SHS_base</em> ∈ [0, 100] aggregates 5 dimensions according to specific fitness-oriented weight allocations. These relative weights and mathematical curves are engineering design choices tuned for sports recovery and performance tracking, using consensus guidelines and sleep quality indicators as qualitative anchors rather than prescriptive clinical thresholds:</p>
+<ul class="doc-list">
+<li><strong>Sleep Duration (<em>D</em>)</strong> - <strong>30%</strong>: Evaluates overall sleep volume against homeostatic sleep need.</li>
+<li><strong>Sleep Continuity (<em>C</em>)</strong> - <strong>20%</strong>: Assesses fragmentation, divided equally (50/50) between Sleep Efficiency (<em>C_SE</em>) and Wake After Sleep Onset (<em>C_WASO</em>).</li>
+<li><strong>Sleep Stage Depth / Architecture (<em>A</em>)</strong> - <strong>25%</strong>: Sleep architecture quality, evaluating absolute minutes of Deep (N3) and REM sleep, with Light-stage (N1+N2) percentage penalties.</li>
+<li><strong>Circadian Timing (<em>T_circ</em>)</strong> - <strong>15%</strong>: Synchronization of sleep onset/mid-point with the natural light-dark cycle.</li>
+<li><strong>Sleep Regularity (<em>R</em>)</strong> - <strong>10%</strong>: Day-to-day stability of the sleep schedule using a rolling mid-sleep standard deviation.</li>
+</ul>
+<p>The base aggregation is dynamically renormalized to handle missing or incomplete data streams, ensuring the score remains reliable:</p>
+<div class="math-block">$$SHS_{base} = \left( \frac{\sum_{i \in \mathcal{A}} w_i \cdot S_i}{\sum_{i \in \mathcal{A}} w_i} \right) \cdot 100$$</div>
+<p>Where: <em>   </em>A<em> is the set of actively available dimensions. </em>   <em>w_i</em> is the weight coefficient for domain <em>i</em> (e.g., <em>w_D</em> = 0.30, <em>w_C</em> = 0.20, ...). <em>   </em>S_i<em> ∈ [0, 1] is the continuous normalized score of domain </em>i*.</p>
+<h3 id="final-score-degradation" class="doc-h3">Final Score Degradation<a href="#final-score-degradation" class="header-anchor" aria-label="Link to section">#</a></h3>
+<p>The final Sleep Health Score (<em>SHS_final</em>) applies the continuous <code>dynamicMultiplier</code> to the base score:</p>
+<div class="math-block">$$SHS_{final} = \text{clamp}\Big( SHS_{base} \cdot \text{dynamicMultiplier}, \; 0.0, \; 100.0 \Big)$$</div>
+<hr class="divider">
+<h2 id="2-dimension-specifications" class="doc-h2">2. Dimension Specifications<a href="#2-dimension-specifications" class="header-anchor" aria-label="Link to section">#</a></h2>
+<h3 id="21-sleep-duration-d" class="doc-h3">2.1 Sleep Duration (<em>D</em>)<a href="#21-sleep-duration-d" class="header-anchor" aria-label="Link to section">#</a></h3>
+<p>Calculated from total sleep time in hours (<em>h</em> = durationMinutes / 60). It utilizes a Gaussian distribution centered around the 7.0–9.0 hours anabolic plateau. Severe short sleep has no hard limit, letting the Gaussian decay smoothly toward zero, while extreme hypersomnia (<em>h</em> > 10.5h) results in a score of 0.0.</p>
+<ul class="doc-list">
+<li><em>S_D(h)</em> = 1.0 if <em>7.0 ≤ h ≤ 9.0</em></li>
+<li><em>S_D(h)</em> = 0.0 if <em>h > 10.5</em></li>
+<li>For short sleep (<em>h < 7.0</em>):</li>
+</ul>
+<div class="math-block">$$S_D(h) = \exp\left( -\frac{(h - 7.0)^2}{2 \cdot 1.0^2} \right)$$</div>
+<ul class="doc-list">
+<li>For long sleep (<em>9.0 < h ≤ 10.5</em>):</li>
+</ul>
+<div class="math-block">$$S_D(h) = \exp\left( -\frac{(h - 9.0)^2}{2 \cdot 1.0^2} \right)$$</div>
+<h3 id="22-sleep-continuity-c" class="doc-h3">2.2 Sleep Continuity (<em>C</em>)<a href="#22-sleep-continuity-c" class="header-anchor" aria-label="Link to section">#</a></h3>
+<p>Composed of two complementary sub-metrics, combined as <em>S_C</em> = 0.5 · <em>S_SE</em> + 0.5 · <em>S_WASO</em> (renormalized if only one sub-metric is active).</p>
+<h4 id="sleep-efficiency-sse" class="doc-h4">Sleep Efficiency (<em>S_SE</em>)<a href="#sleep-efficiency-sse" class="header-anchor" aria-label="Link to section">#</a></h4>
+<p>Uses a steep logistic sigmoid curve centered at a critical threshold of 90% efficiency.</p>
+<div class="math-block">$$S_{SE}(SE) = \frac{1}{1 + \exp\Big( -50.0 \cdot (SE - 0.90) \Big)}$$</div>
+<p>Where <em>SE</em> = sleepEfficiencyPct / 100.0.</p>
+<h4 id="wake-after-sleep-onset-swaso" class="doc-h4">Wake After Sleep Onset (<em>S_WASO</em>)<a href="#wake-after-sleep-onset-swaso" class="header-anchor" aria-label="Link to section">#</a></h4>
+<p>Calculated using a quadratic rational penalty decay function starting after a grace period of 20 minutes.</p>
+<div class="math-block">$$S_{WASO}(W) = \frac{1}{1 + \left( \frac{W_{pen}}{30} \right)^2}$$</div>
+<p>Where <em>W_pen</em> = max(<em>W</em> - 20.0, 0.0) and <em>W</em> is the WASO duration in minutes.</p>
+<h4 id="on-device-fallback-for-missing-metrics" class="doc-h4">On-Device Fallback for Missing Metrics<a href="#on-device-fallback-for-missing-metrics" class="header-anchor" aria-label="Link to section">#</a></h4>
+<p>If a connected smartwatch does not supply explicit Time-In-Bed or Awake-Minutes (rendering Efficiency and WASO unobservable), the engine automatically evaluates a robust fallback using sleep stage distribution and duration:</p>
+<div class="math-block">$$S_{C, fallback} = 0.9 \cdot (1.0 - \text{lightSleepPenalty}) + 0.1 \cdot \text{durationPenalty}$$</div>
+<p>Where: <em>   </em>lightSleepPenalty<em> = 1.0 - </em>P_light<em>(</em>p_light<em>) (based on the Light-stage (N1+N2) percentage penalty). </em>   <em>durationPenalty</em> = <em>S_D</em>(<em>h</em>) (the Sleep Duration subscore).</p>
+<p>This ensures commercial smartwatch summaries still generate a highly reliable continuity score.</p>
+<h3 id="23-sleep-stage-depth-architecture-a" class="doc-h3">2.3 Sleep Stage Depth / Architecture (<em>A</em>)<a href="#23-sleep-stage-depth-architecture-a" class="header-anchor" aria-label="Link to section">#</a></h3>
+<p>Evaluates the physiological structure of sleep stages based on absolute minutes of restorative stages, penalized by excessive light sleep.</p>
+<h4 id="deep-sleep-n3-an3" class="doc-h4">Deep Sleep / N3 (<em>A_N3</em>)<a href="#deep-sleep-n3-an3" class="header-anchor" aria-label="Link to section">#</a></h4>
+<p>A joint linear growth and Gaussian decay curve peaking at 90 minutes:</p>
+<div class="math-block">$$A_{N3}(t_{N3}) = \min\left( 1.0, \; \frac{t_{N3}}{90.0} \right) \cdot \exp\left( -\frac{(t_{N3} - 90.0)^2}{2 \cdot 40.0^2} \right)$$</div>
+<h4 id="rem-sleep-arem" class="doc-h4">REM Sleep (<em>A_REM</em>)<a href="#rem-sleep-arem" class="header-anchor" aria-label="Link to section">#</a></h4>
+<p>Similar joint linear-Gaussian curve optimized for a peak at 100 minutes:</p>
+<div class="math-block">$$A_{REM}(t_{REM}) = \min\left( 1.0, \; \frac{t_{REM}}{100.0} \right) \cdot \exp\left( -\frac{(t_{REM} - 100.0)^2}{2 \cdot 40.0^2} \right)$$</div>
+<h4 id="light-stage-n1n2-percentage-penalty-plight" class="doc-h4">Light-stage (N1+N2) Percentage Penalty (<em>P_light</em>)<a href="#light-stage-n1n2-percentage-penalty-plight" class="header-anchor" aria-label="Link to section">#</a></h4>
+<p>Triggers an exponential penalty decay when light sleep (which represents clinical stages N1 and N2 combined on consumer wearables) exceeds 65% of total sleep time.</p>
+<ul class="doc-list">
+<li><em>P_light</em>(<em>p_light</em>) = 1.0 if <em>p_light ≤ 65.0</em></li>
+<li>For high light sleep percentage (<em>p_light > 65.0</em>):</li>
+</ul>
+<div class="math-block">$$P_{light}(p_{light}) = \exp\left( -\frac{(p_{light} - 65.0)^2}{2 \cdot 7.0^2} \right)$$</div>
+<p>Where <em>p_light</em> is the percentage of light sleep.</p>
+<h4 id="combined-architecture-score" class="doc-h4">Combined Architecture Score<a href="#combined-architecture-score" class="header-anchor" aria-label="Link to section">#</a></h4>
+<div class="math-block">$$S_A = \text{clamp}\Big( (0.45 \cdot A_{N3} + 0.45 \cdot A_{REM}) \cdot P_{light} + 0.10, \; 0.0, \; 1.0 \Big)$$</div>
+<h3 id="24-circadian-timing-tcirc" class="doc-h3">2.4 Circadian Timing (<em>T_circ</em>)<a href="#24-circadian-timing-tcirc" class="header-anchor" aria-label="Link to section">#</a></h3>
+<p>Assesses circadian alignment using the mid-sleep clock hour (<em>MS</em>), computed to handle midnight crossings cleanly. The base score is a Gaussian curve centered at 03:30 (<em>MS</em> = 3.5). An exponential late-phase penalty applies if mid-sleep occurs past 05:30 (<em>MS</em> > 5.5).</p>
+<div class="math-block">$$S_{circ, base}(MS) = \exp\left( -\frac{(MS - 3.5)^2}{2 \cdot 1.0^2} \right)$$</div>
+<ul class="doc-list">
+<li><em>S_circ</em>(<em>MS</em>) = <em>S_circ,base</em>(<em>MS</em>) if <em>MS ≤ 5.5</em></li>
+<li>For late phase delay (<em>MS > 5.5</em>):</li>
+</ul>
+<div class="math-block">$$S_{circ}(MS) = S_{circ, base}(MS) \cdot \exp\left( -\frac{(MS - 5.5)^2}{2 \cdot 0.5^2} \right)$$</div>
+<h3 id="25-sleep-regularity-r" class="doc-h3">2.5 Sleep Regularity (<em>R</em>)<a href="#25-sleep-regularity-r" class="header-anchor" aria-label="Link to section">#</a></h3>
+<p>Evaluates schedule stability using the standard deviation of mid-sleep clock hours (<em>SD_mid</em>) over a 7-14 day rolling window. Uses an inverse-quadratic decay function.</p>
+<div class="math-block">$$S_R(SD_{mid}) = \frac{1}{1 + (SD_{mid} / 1.0)^2}$$</div>
+<hr class="divider">
+<h2 id="3-smartwatch-data-mapping-spec" class="doc-h2">3. Smartwatch Data Mapping Spec<a href="#3-smartwatch-data-mapping-spec" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>Scientific sleep studies (Polysomnography or PSG) differentiate between four distinct sleep stages: Wake, N1 (lightest), N2 (moderate light), and N3 (deep slow-wave sleep). However, commercial smartwatches and fitness trackers (Apple Watch, Garmin, Fitbit, Oura) compress these categories into a unified, consumer-friendly taxonomy.</p>
+<p>To bridge the gap between academic sports science and commercial API constraints, the Sleep Health Scoring Engine maps wearable data streams to the mathematical models as follows:</p>
+<h3 id="31-parameter-translation-matrix" class="doc-h3">3.1 Parameter Translation Matrix<a href="#31-parameter-translation-matrix" class="header-anchor" aria-label="Link to section">#</a></h3>
+<div class="table-responsive"><table class="doc-table"><thead><tr><th style="text-align:left">Wearable Stage Category</th><th style="text-align:left">Engine Metric Symbol</th><th style="text-align:left">Scientific PSG Translation</th><th style="text-align:left">Description & Mapping Formula</th></tr></thead><tbody><tr><td style="text-align:left"><strong>Deep Sleep</strong></td><td style="text-align:left"><em>t_N3</em></td><td style="text-align:left">Stage N3 (Slow-Wave Sleep)</td><td style="text-align:left">Absolute minutes spent in slow-wave sleep. Fed directly into deep sleep quality score (<em>A_N3</em>) and Deep Sleep Multiplier (<em>M_N3</em>).</td></tr><tr><td style="text-align:left"><strong>REM Sleep</strong></td><td style="text-align:left"><em>t_REM</em></td><td style="text-align:left">Stage REM (Rapid Eye Movement)</td><td style="text-align:left">Absolute minutes spent in dream sleep. Fed directly into REM sleep quality score (<em>A_REM</em>) and REM Sleep Multiplier (<em>M_REM</em>).</td></tr><tr><td style="text-align:left"><strong>Light Sleep</strong></td><td style="text-align:left"><em>p_light</em></td><td style="text-align:left">Stage N1 + Stage N2</td><td style="text-align:left">Expressed as a percentage of Total Sleep Time (TST): <br></td></tr></tbody></table></div>
+<div class="math-block">$$p_{light} = 100 \cdot \left( \frac{\text{Vendor Light Sleep Minutes}}{\text{Total Sleep Time Minutes}} \right)$$</div>
+<p><br> Fed into the Light-stage Percentage Penalty (<em>P_light</em>) curve. |</p>
+<h3 id="32-sports-science-rationale-for-smartwatch-mapping" class="doc-h3">3.2 Sports-Science Rationale for Smartwatch Mapping<a href="#32-sports-science-rationale-for-smartwatch-mapping" class="header-anchor" aria-label="Link to section">#</a></h3>
+<ol class="doc-list">
+<li><strong>Light Sleep Compression (<em>p_light</em>)</strong>: Smartwatches are highly accurate at separating overall light sleep from deep/REM, but lack the EEG resolution to reliably differentiate PSG Stage N1 from Stage N2. In healthy PSG, N1 constitutes ~5% and N2 constitutes ~50% of sleep (totaling ~55%). To account for this wearable limitation, our engine establishes an optimal threshold for Light-stage sleep at ≤ 65%. This grants a generous 10% non-clinical buffer to prevent false penalties from tracking noise while strictly penalizing highly fragmented sleep (where light sleep exceeds 65% due to stage-regression).</li>
+<li><strong>Missing SE/WASO Continuity Fallback</strong>: Classic sleep continuity metrics require explicit and highly accurate recognition of micro-arousals (WASO) and total sleep opportunity (Sleep Efficiency). Cheap trackers or restrictive API integrations often do not export total awake minutes or time-in-bed. When WASO/SE are missing:</li>
+<li>The engine falls back to an architecture-continuity proxy (<em>S_C, fallback</em>).</li>
+<li>The fallback is weighted 90% towards 1.0 - <em>lightSleepPenalty</em> and 10% towards the <em>S_D</em>(<em>h</em>) duration score.</li>
+<li>This prevents double-counting sleep duration in the final score while using excessive light sleep as an accurate physiological proxy for sleep fragmentation and light sleep regression caused by nocturnal awakenings.</li>
+</ol>
+<hr class="divider">
+<h2 id="4-the-soft-cap-multiplier-mechanics" class="doc-h2">4. The Soft-Cap Multiplier Mechanics<a href="#4-the-soft-cap-multiplier-mechanics" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>To prevent high scores when a critical physiological sleep domain is dangerously compromised, SHS v3.5 implements a dynamic, continuous soft-cap multiplier.</p>
+<p>The engine computes 4 individual potential multiplier penalties and selects the single lowest (the bottleneck):</p>
+<div class="math-block">$$\text{dynamicMultiplier} = \min\Big( M_{REM}, \; M_{N3}, \; M_{TST}, \; M_{circ} \Big)$$</div>
+<h3 id="linear-mapping-function" class="doc-h3">Linear Mapping Function<a href="#linear-mapping-function" class="header-anchor" aria-label="Link to section">#</a></h3>
+<p>Each multiplier is mapped continuously using the bounded linear interpolation helper function:</p>
+<div class="math-block">$$\_linear(v, x_{min}, x_{max}, y_{min}, y_{max}) = y_{min} + \left( \frac{\text{clamp}(v, x_{min}, x_{max}) - x_{min}}{x_{max} - x_{min}} \right) \cdot (y_{max} - y_{min})$$</div>
+<p>Where clamp(<em>v</em>, <em>x_min</em>, <em>x_max</em>) constrains the input parameter <em>v</em> to the range defined by [<em>x_min</em>, <em>x_max</em>].</p>
+<p><em>Note: The function natively supports decreasing mappings where </em>x_min<em> > </em>x_max<em>, allowing higher input values to output lower multipliers.</em></p>
+<h3 id="multiplier-threshold-formulations" class="doc-h3">Multiplier Threshold Formulations<a href="#multiplier-threshold-formulations" class="header-anchor" aria-label="Link to section">#</a></h3>
+<h4 id="1-rem-sleep-multiplier-mrem" class="doc-h4">1. REM Sleep Multiplier (<em>M_REM</em>)<a href="#1-rem-sleep-multiplier-mrem" class="header-anchor" aria-label="Link to section">#</a></h4>
+<p>Degrades score if REM duration (<em>t_REM</em>) falls below 60 minutes:</p>
+<div class="math-block">$$M_{REM} = \_linear(t_{REM}, \; 40.0, \; 60.0, \; 0.65, \; 1.0)$$</div>
+<h4 id="2-deep-sleep-n3-multiplier-mn3" class="doc-h4">2. Deep Sleep (N3) Multiplier (<em>M_N3</em>)<a href="#2-deep-sleep-n3-multiplier-mn3" class="header-anchor" aria-label="Link to section">#</a></h4>
+<p>Degrades score if N3 duration (<em>t_N3</em>) falls below 70 minutes:</p>
+<div class="math-block">$$M_{N3} = \_linear(t_{N3}, \; 40.0, \; 70.0, \; 0.60, \; 1.0)$$</div>
+<h4 id="3-total-sleep-time-tst-multiplier-mtst" class="doc-h4">3. Total Sleep Time (TST) Multiplier (<em>M_TST</em>)<a href="#3-total-sleep-time-tst-multiplier-mtst" class="header-anchor" aria-label="Link to section">#</a></h4>
+<p>Degrades score if sleep volume (<em>h</em> hours) falls below 6.5 hours:</p>
+<div class="math-block">$$M_{TST} = \_linear(h, \; 5.0, \; 6.5, \; 0.50, \; 1.0)$$</div>
+<h4 id="4-circadian-timing-multiplier-mcirc" class="doc-h4">4. Circadian Timing Multiplier (<em>M_circ</em>)<a href="#4-circadian-timing-multiplier-mcirc" class="header-anchor" aria-label="Link to section">#</a></h4>
+<p>Degrades score if the mid-sleep clock hour (<em>MS</em>) shifts later than 05:30 (5.5):</p>
+<div class="math-block">$$M_{circ} = \_linear(MS, \; 7.5, \; 5.5, \; 0.55, \; 1.0)$$</div>
+<hr class="divider">
+<h2 id="5-the-boundary-table" class="doc-h2">5. The Boundary Table<a href="#5-the-boundary-table" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>The following table summarizes the boundary conditions of the continuous soft-cap multiplier system:</p>
+<div class="table-responsive"><table class="doc-table"><thead><tr><th style="text-align:left">Affected Domain</th><th style="text-align:left">Input Metric (<em>v</em>)</th><th style="text-align:left">Optimal Zone (<em>M</em> = 1.0)</th><th style="text-align:left">Pathological / Max Penalty Zone</th><th style="text-align:left">Multiplier Range</th><th style="text-align:left">Clinical biological rationale</th></tr></thead><tbody><tr><td style="text-align:left"><strong>REM Sleep (<em>M_REM</em>)</strong></td><td style="text-align:left">REM Minutes (<em>t_REM</em>)</td><td style="text-align:left">≥ 60.0 min</td><td style="text-align:left">≤ 40.0 min</td><td style="text-align:left">1.0 → 0.65</td><td style="text-align:left">REM deficiency impairs emotional regulation, memory consolidation, and neuronal repair.</td></tr><tr><td style="text-align:left"><strong>Deep Sleep (<em>M_N3</em>)</strong></td><td style="text-align:left">N3 Minutes (<em>t_N3</em>)</td><td style="text-align:left">≥ 70.0 min</td><td style="text-align:left">≤ 40.0 min</td><td style="text-align:left">1.0 → 0.60</td><td style="text-align:left">Deep N3 slow-wave sleep is the primary driver of physical recovery, growth hormone release, and tissue repair.</td></tr><tr><td style="text-align:left"><strong>Sleep Duration (<em>M_TST</em>)</strong></td><td style="text-align:left">TST Hours (<em>h</em>)</td><td style="text-align:left">≥ 6.5 hours</td><td style="text-align:left">≤ 5.0 hours</td><td style="text-align:left">1.0 → 0.50</td><td style="text-align:left">Insufficient sleep duration restricts core metabolic recovery and disrupts homeostatic anabolic processes.</td></tr><tr><td style="text-align:left"><strong>Circadian Timing (<em>M_circ</em>)</strong></td><td style="text-align:left">Mid-Sleep Clock (<em>MS</em>)</td><td style="text-align:left">≤ 05:30 (5.5)</td><td style="text-align:left">≥ 07:30 (7.5)</td><td style="text-align:left">1.0 → 0.55</td><td style="text-align:left">Late phase delay (sleep against the circadian clock) severely reduces insulin sensitivity and sleep architecture quality.</td></tr></tbody></table></div>
+<hr class="divider">
+<h2 id="6-non-clinical-heuristic-disclaimer" class="doc-h2">6. Non-Clinical Heuristic Disclaimer<a href="#6-non-clinical-heuristic-disclaimer" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>The Sleep Health Score (SHS) is a fitness-oriented, non-clinical directional heuristic designed for sleep recovery tracking and educational purposes. It is not a diagnostic tool and does not identify or manage clinical sleep disorders (such as insomnia, sleep apnea, or other sleep pathologies). The accuracy of the score is dependent on the data quality and sampling frequency of the underlying wearable hardware. The mathematical curves and optimal targets are modeling choices designed for athletic recovery tracking in healthy individuals rather than medical thresholds.</p>
+<hr class="divider">
+<h2 id="7-scientific-references-sources" class="doc-h2"><a id="evidence" class="anchor-target"></a>7. Scientific References & Sources<a href="#7-scientific-references-sources" class="header-anchor" aria-label="Link to section">#</a></h2>
+<ul class="doc-list">
+<li>Ohayon et al. (2017) — <em>National Sleep Foundation's sleep quality recommendations: first report</em>. DOI: <a href="https://doi.org/10.1016/j.sleh.2016.11.002" target="_blank" rel="noopener noreferrer">10.1016/j.sleh.2016.11.002 <span class="ext-icon">↗</span></a></li>
+<li>Watson et al. (2015) — <em>Recommended Amount of Sleep for a Healthy Adult: A Joint Consensus Statement of the American Academy of Sleep Medicine and Sleep Research Society</em>. DOI: <a href="https://doi.org/10.5664/jcsm.9538" target="_blank" rel="noopener noreferrer">10.5664/jcsm.9538 <span class="ext-icon">↗</span></a></li>
+<li>AASM (2020) — <em>Consensus Statement on Sleep Duration for Healthy Adults</em>. DOI: <a href="https://doi.org/10.3389/fneur.2020.00762" target="_blank" rel="noopener noreferrer">10.3389/fneur.2020.00762 <span class="ext-icon">↗</span></a></li>
+<li>Buysse (2014) — <em>Sleep Health: Can We Define It? Does It Matter?</em>. DOI: <a href="https://doi.org/10.1093/sleep/zsu056" target="_blank" rel="noopener noreferrer">10.1093/sleep/zsu056 <span class="ext-icon">↗</span></a></li>
+<li>Ruhr-Universität Bochum (RU-SATED) — <em>Multi-domain continuous sleep tracking validation</em>. DOI: <a href="https://doi.org/10.1093/sleep/zsab134" target="_blank" rel="noopener noreferrer">10.1093/sleep/zsab134 <span class="ext-icon">↗</span></a></li>
+<li>SATED Index — <em>Quantifying Sleep Health Beyond Subjective Inventories</em>. DOI: <a href="https://doi.org/10.1016/j.physbeh.2018.11.032" target="_blank" rel="noopener noreferrer">10.1016/j.physbeh.2018.11.032 <span class="ext-icon">↗</span></a></li>
+</ul>
+        </article>
+
+        <nav class="docs-pager" aria-label="Documentation navigation">
+<a href="../overview/index.html" class="pager-card pager-prev"><span class="pager-label">← Previous</span><span class="pager-title">Capabilities &amp; Privacy</span></a>
+<a href="../muscle-recovery-model/index.html" class="pager-card pager-next"><span class="pager-label">Next →</span><span class="pager-title">Muscle Recovery &amp; Readiness</span></a>
+</nav>
+      </main>
+
+      <!-- Right Table of Contents -->
+      <aside class="docs-toc" aria-label="Table of contents"><div class="toc-sticky-box"><div class="toc-heading">On this page</div><ul class="toc-list">
+<li class="toc-item toc-item-l2"><a href="#1-engine-overview">1. Engine Overview</a></li>
+<li class="toc-item toc-item-l3"><a href="#top-level-weighted-aggregation">Top-Level Weighted Aggregation</a></li>
+<li class="toc-item toc-item-l3"><a href="#final-score-degradation">Final Score Degradation</a></li>
+<li class="toc-item toc-item-l2"><a href="#2-dimension-specifications">2. Dimension Specifications</a></li>
+<li class="toc-item toc-item-l3"><a href="#21-sleep-duration-d">2.1 Sleep Duration (D)</a></li>
+<li class="toc-item toc-item-l3"><a href="#22-sleep-continuity-c">2.2 Sleep Continuity (C)</a></li>
+<li class="toc-item toc-item-l3"><a href="#23-sleep-stage-depth-architecture-a">2.3 Sleep Stage Depth / Architecture (A)</a></li>
+<li class="toc-item toc-item-l3"><a href="#24-circadian-timing-tcirc">2.4 Circadian Timing (Tcirc)</a></li>
+<li class="toc-item toc-item-l3"><a href="#25-sleep-regularity-r">2.5 Sleep Regularity (R)</a></li>
+<li class="toc-item toc-item-l2"><a href="#3-smartwatch-data-mapping-spec">3. Smartwatch Data Mapping Spec</a></li>
+<li class="toc-item toc-item-l3"><a href="#31-parameter-translation-matrix">3.1 Parameter Translation Matrix</a></li>
+<li class="toc-item toc-item-l3"><a href="#32-sports-science-rationale-for-smartwatch-mapping">3.2 Sports-Science Rationale for Smartwatch Mapping</a></li>
+<li class="toc-item toc-item-l2"><a href="#4-the-soft-cap-multiplier-mechanics">4. The Soft-Cap Multiplier Mechanics</a></li>
+<li class="toc-item toc-item-l3"><a href="#linear-mapping-function">Linear Mapping Function</a></li>
+<li class="toc-item toc-item-l3"><a href="#multiplier-threshold-formulations">Multiplier Threshold Formulations</a></li>
+<li class="toc-item toc-item-l2"><a href="#5-the-boundary-table">5. The Boundary Table</a></li>
+<li class="toc-item toc-item-l2"><a href="#6-non-clinical-heuristic-disclaimer">6. Non-Clinical Heuristic Disclaimer</a></li>
+<li class="toc-item toc-item-l2"><a href="#7-scientific-references-sources">7. Scientific References &amp; Sources</a></li>
+</ul></div></aside>
+    </div>
+
+    <!-- Footer (100% harmonized with main website footer) -->
+    <footer class="site-footer">
+      <div>
+        <a class="brand" href="../../../index.html" aria-label="Train Libre home">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 270.933 270.933" role="img">
+              <path fill="#ddff00"
+                d="M47.621 39.688c-4.385 0-7.939 3.554-7.939 7.939v116.172c0 37.238 30.188 67.472 67.426 67.459l13.482-.006c.15.003.3.005.451.005h89.722c11.367 0 20.518-9.154 20.518-20.525s-9.151-20.525-20.518-20.525h-42.739a7.937 7.937 0 0 1-7.937-7.937v-25.174a7.937 7.937 0 0 1 7.937-7.937l41.159-.001c12.244 0 22.101-9.154 22.1-20.525-.001-11.371-9.859-20.525-22.103-20.525l-41.156.001a7.937 7.937 0 0 1-7.937-7.937V47.627c0-4.385-3.555-7.939-7.939-7.939z" />
+            </svg>
+          </span>
+          <span>Train Libre</span>
+        </a>
+        <p class="fine-print">Fitness, nutrition, recovery, and pulse features are non-clinical heuristics for healthy individuals tracking performance, not medical advice. They do not apply to medical conditions (such as eating or sleep disorders).</p>
+      </div>
+      <div class="footer-links">
+        <a href="../../index.html">Documentation</a>
+        <a href="../../../privacy.html">Privacy Policy</a>
+        <a href="../../../terms.html">Terms of Service</a>
+        <a href="../../../impressum.html">Imprint</a>
+        <a href="../../../support.html">Support</a>
+        <a href="https://github.com/rfivesix/train-libre" data-link="github" target="_blank" rel="noreferrer">GitHub</a>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Documentation Interactions Script -->
+  <script>
+    // Theme toggle interaction
+    const themeBtn = document.getElementById("theme-toggle");
+    if (themeBtn) {
+      themeBtn.addEventListener("click", () => {
+        const current = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
+        document.documentElement.setAttribute("data-theme", current);
+        localStorage.setItem("theme", current);
+        if (typeof mermaid !== "undefined") {
+          const mNodes = document.querySelectorAll(".mermaid");
+          if (mNodes.length > 0) {
+            mNodes.forEach(node => {
+              if (node.hasAttribute("data-mermaid")) {
+                node.removeAttribute("data-processed");
+                node.innerHTML = node.getAttribute("data-mermaid");
+              }
+            });
+            mermaid.initialize({
+              startOnLoad: false,
+              theme: current === "light" ? "default" : "dark"
+            });
+            mermaid.run();
+          }
+        }
+      });
+    }
+
+    // Mobile sidebar toggle
+    const sidebarToggle = document.getElementById("sidebar-toggle");
+    const sidebar = document.getElementById("docs-sidebar");
+    if (sidebarToggle && sidebar) {
+      sidebarToggle.addEventListener("click", () => {
+        const expanded = sidebar.classList.toggle("open");
+        sidebarToggle.setAttribute("aria-expanded", expanded);
+      });
+
+      document.addEventListener("click", (e) => {
+        if (sidebar.classList.contains("open") && !sidebar.contains(e.target) && !sidebarToggle.contains(e.target)) {
+          sidebar.classList.remove("open");
+          sidebarToggle.setAttribute("aria-expanded", "false");
+        }
+      });
+    }
+
+    // Sidebar filter/search
+    const filterInput = document.getElementById("sidebar-filter");
+    if (filterInput) {
+      filterInput.addEventListener("input", (e) => {
+        const val = e.target.value.toLowerCase().trim();
+        document.querySelectorAll(".sidebar-nav-list li").forEach(li => {
+          const text = li.textContent.toLowerCase();
+          li.style.display = text.includes(val) ? "" : "none";
+        });
+        document.querySelectorAll(".sidebar-group").forEach(group => {
+          const hasVisible = Array.from(group.querySelectorAll("li")).some(li => li.style.display !== "none");
+          group.style.display = hasVisible ? "" : "none";
+        });
+      });
+    }
+
+    // Scroll-spy for Table of Contents
+    const tocItems = document.querySelectorAll(".toc-list a");
+    if (tocItems.length > 0) {
+      const headingElements = Array.from(tocItems).map(a => {
+        const id = a.getAttribute("href").substring(1);
+        return document.getElementById(id);
+      }).filter(Boolean);
+
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const id = entry.target.getAttribute("id");
+            tocItems.forEach(a => {
+              if (a.getAttribute("href") === "#" + id) {
+                a.classList.add("active");
+              } else {
+                a.classList.remove("active");
+              }
+            });
+          }
+        });
+      }, { rootMargin: "0px 0px -70% 0px", threshold: 0.1 });
+
+      headingElements.forEach(h => observer.observe(h));
+    }
+  </script>
+</body>
+</html>

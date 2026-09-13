@@ -232,8 +232,12 @@ class BackupManager {
             'targetFat': settingsRow.targetFat,
             'targetWater': settingsRow.targetWater,
             'targetSteps': settingsRow.targetSteps,
+            'trainingAutonomyLevel': settingsRow.trainingAutonomyLevel,
+            'nutritionAutonomyLevel': settingsRow.nutritionAutonomyLevel,
+            'experienceLevel': settingsRow.experienceLevel,
           }
         : null;
+
     token?.throwIfCancelled();
 
     onProgress?.call('profile', 0.75);
@@ -902,13 +906,13 @@ class BackupManager {
         await _mealDb.importMealTemplates(backup.mealTemplates);
         token?.throwIfCancelled();
 
-        onProgress?.call('workouts', 0.70);
-        await _workoutDb.importWorkoutData(
-            routines: backup.routines, workoutLogs: backup.workoutLogs);
+        onProgress?.call('custom_exercises', 0.70);
+        await _workoutDb.importCustomExercises(backup.customExercises);
         token?.throwIfCancelled();
 
-        onProgress?.call('custom_exercises', 0.80);
-        await _workoutDb.importCustomExercises(backup.customExercises);
+        onProgress?.call('workouts', 0.80);
+        await _workoutDb.importWorkoutData(
+            routines: backup.routines, workoutLogs: backup.workoutLogs);
         token?.throwIfCancelled();
 
         // Import DailyGoalsHistory
@@ -1077,9 +1081,19 @@ class BackupManager {
                     targetSteps: drift.Value(
                       _asInt(s['targetSteps']) ?? 8000,
                     ),
+                    trainingAutonomyLevel: drift.Value(
+                      s['trainingAutonomyLevel']?.toString() ?? 'off',
+                    ),
+                    nutritionAutonomyLevel: drift.Value(
+                      s['nutritionAutonomyLevel']?.toString() ?? 'suggest',
+                    ),
+                    experienceLevel: drift.Value(
+                      s['experienceLevel']?.toString() ?? 'pro',
+                    ),
                   ),
                   mode: drift.InsertMode.insertOrReplace,
                 );
+
             await prefs.setString('unit_system', unitSystemVal);
           }
         }

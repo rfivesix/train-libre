@@ -4,6 +4,30 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.4.0] - 2026-09-11
+
+### Added
+- **Adaptive workout progression:** Opt in to personalised next-set suggestions that respond to your completed set and the routine's repetition range. Suggestions stay fully editable and support regular, assisted and bodyweight exercises.
+- **Diary navigation:** Browse nearby days from a new, scrollable date strip or open a localised calendar directly from the Diary.
+- **Muscle group analysis:** Explore a complete muscle and movement-pattern overview, including weekly averages, totals and an optional chart view.
+- **Training rhythm:** Follow your weekly training trend with clearer charts, detailed tooltips and a 12-month activity calendar.
+- **Personal records:** Review recent personal records and progress by repetition range in a focused chronological feed.
+- **Documentation hub:** Browse the new searchable Train Libre documentation at [trainlibre.com/docs](https://trainlibre.com/docs/).
+
+### Changed
+- **Statistics overview:** Training Rhythm, Personal Records and Muscle Groups now provide clearer at-a-glance summaries before opening their detailed views.
+- **Recovery:** Muscle Recovery is now easier to reach at the top of the Workout tab.
+- **Muscle group data:** Analytics now focus on completed working sets and primary muscles, with movement patterns included where available.
+- **Workout logging:** New working sets and compatible exercises inherit a useful repetition range, while cardio, time and distance exercises remain unaffected.
+- **Workout history:** Exercise history now follows an exercise's stable identity, so renaming an exercise no longer breaks its history.
+- **Documentation links:** In-app citations and legal links now point to the new Train Libre website.
+
+### Fixed
+- **Workout completion:** Finishing a workout now saves its retained sets reliably and removes only untouched placeholders.
+- **Diary workouts:** Discarded in-progress workouts can no longer be reopened or finalised accidentally.
+- **Live workouts:** Completing a set no longer unexpectedly scrolls the active exercise out of view.
+- **Diary:** Empty entries for food, water, steps, pulse and sleep are no longer shown for today.
+
 ## [1.3.0] - 2026-09-07
 
 ### Added

@@ -56,7 +56,6 @@ import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import '../../../navigation/app_route_observer.dart';
 import '../../../services/app_tour_service.dart';
 import '../../onboarding/presentation/widgets/app_tour_overlay.dart';
-import '../../../services/app_review_service.dart';
 import '../../../widgets/common/app_button.dart';
 import '../../home_widgets/application/home_widget_sync_service.dart';
 import '../../home_widgets/home_widget_deep_link.dart';
@@ -195,7 +194,6 @@ class _MainScreenState extends State<MainScreen>
     if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.detached) {
       _widgetRefreshTimer?.cancel();
-      unawaited(TelemetryService.instance.flushDailyFoodLog());
       // Catch-all for everything that changes the widget without going through
       // _refreshHomeScreen — goals, the extra-nutrient choice, the unit system,
       // the app language. Backgrounding is also exactly the moment before the
@@ -1308,15 +1306,13 @@ class _MainScreenState extends State<MainScreen>
   /// harmless only because the app tour and the review prompt rarely became due
   /// on the same launch. "What's New" makes that collision likely — an update
   /// is exactly when the tour can also be pending — so the order is now
-  /// explicit: app tour, then release notes, then the review prompt.
+  /// explicit: app tour, then release notes. The review prompt is reserved for
+  /// the first completed-workout summary instead of interrupting app launch.
   Future<void> _runStartupPrompts() async {
     await _handlePendingAppTourEntry();
     if (!mounted || _isTourActive || _isTourOfferVisible) return;
 
     if (await _showWhatsNewIfPending()) return;
-    if (!mounted) return;
-
-    await AppReviewService.instance.checkAndRequestReview(context);
     if (!mounted) return;
 
     await _showTelemetryFollowUpIfDue();
@@ -1556,7 +1552,11 @@ class _MainScreenState extends State<MainScreen>
           if (logId != null) {
             await WorkoutLocalDataSource.instance.deleteWorkoutLog(logId);
           }
-          await wsm.finishWorkout();
+          // This workout has just been deleted. Finalizing would try to write
+          // it again and leave the in-memory session visible over the Diary.
+          // Discarding only clears the local session after the database row is
+          // gone, exactly like the conflict dialogs elsewhere in the app.
+          await wsm.clearLocalSessionState();
         }
       },
     );

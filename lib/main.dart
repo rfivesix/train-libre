@@ -20,7 +20,9 @@ import 'core/performance/startup_trace.dart';
 import 'features/app/presentation/app_initializer_screen.dart';
 import 'services/experience_level_service.dart';
 import 'services/profile_service.dart';
+import 'services/training_autonomy_service.dart';
 import 'services/unit_service.dart';
+import 'features/workout/domain/services/workout_progression_service.dart';
 import 'features/workout/presentation/live_workout_view_model.dart';
 import 'features/workout/presentation/live_workout_screen.dart';
 import 'features/workout/presentation/workout_morph_route.dart';
@@ -188,11 +190,22 @@ void main() async {
   final themeService = ThemeService(); // Create an instance
   final unitService = UnitService();
   final experienceLevelService = ExperienceLevelService();
+  final trainingAutonomyService = TrainingAutonomyService(database);
+  await trainingAutonomyService.initialize();
+
+  final workoutProgressionService = WorkoutProgressionService(
+    repository: workoutRepository,
+    unitService: unitService,
+  );
 
   // Create the workout session manager before injecting it. Restoration is
   // handled by AppInitializerScreen after the first frame is visible.
   final workoutSessionManager = LiveWorkoutViewModel(
-      repository: workoutRepository, unitService: unitService);
+    repository: workoutRepository,
+    unitService: unitService,
+    progressionService: workoutProgressionService,
+    trainingAutonomyService: trainingAutonomyService,
+  );
 
   // Start the app with all required providers and Liquid Glass Setup.
   runApp(
@@ -230,6 +243,10 @@ void main() async {
             ),
           ),
           ChangeNotifierProvider.value(value: workoutSessionManager),
+          ChangeNotifierProvider.value(value: trainingAutonomyService),
+          Provider<WorkoutProgressionService>.value(
+            value: workoutProgressionService,
+          ),
           ChangeNotifierProvider(
             create: (context) {
               final profileService = ProfileService();
@@ -326,6 +343,8 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
   late final AppLifecycleListener _lifecycleListener;
+  bool _isRunningBackgroundWork = false;
+  bool _hasHandledCurrentBackground = false;
 
   @override
   void initState() {
@@ -334,6 +353,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     _lifecycleListener = AppLifecycleListener(
       onPause: _onAppPause,
       onHide: _onAppPause,
+      onResume: () => _hasHandledCurrentBackground = false,
     );
   }
 
@@ -437,16 +457,27 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   /// Silently snapshot and upload the database to iCloud when the app is
   /// backgrounded. Only runs if the user has enabled iCloud sync.
   Future<void> _onAppPause() async {
+    // iOS sends both `hidden` and `paused` for one trip to the background.
+    // AppLifecycleListener maps both to this callback, so without this guard
+    // the same telemetry flush and iCloud eligibility checks raced twice.
+    if (_hasHandledCurrentBackground || _isRunningBackgroundWork) return;
+    _hasHandledCurrentBackground = true;
+    _isRunningBackgroundWork = true;
+
     // Flush the aggregated food-log counter here rather than only from
     // MainScreen, so entries still get reported when the app is backgrounded
     // from onboarding or any other screen outside the tab shell.
-    unawaited(TelemetryService.instance.flushDailyFoodLog());
+    try {
+      await TelemetryService.instance.flushDailyFoodLog();
 
-    final db = DatabaseHelper.driftDb;
-    if (db == null) return;
-    // Fire-and-forget — we intentionally do not await so the UI is never
-    // blocked by the sync operation.
-    unawaited(ICloudSyncService.instance.syncIfEnabled(db));
+      final db = DatabaseHelper.driftDb;
+      if (db == null) return;
+      // The database and archive work run outside the UI isolate. Awaiting it
+      // here only keeps this lifecycle gate closed until it has settled.
+      await ICloudSyncService.instance.syncIfEnabled(db);
+    } finally {
+      _isRunningBackgroundWork = false;
+    }
   }
 
   @override

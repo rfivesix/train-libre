@@ -1,6 +1,54 @@
 part of '../workout_local_data_source.dart';
 
 extension RoutinesQueries on WorkoutLocalDataSource {
+  Future<void> initializeProgressionConfig(int id, String data) async {
+    final dbInstance = await database;
+    await (dbInstance.update(dbInstance.routineExercises)
+          ..where(
+              (row) => row.localId.equals(id) & row.progressionData.isNull()))
+        .write(db.RoutineExercisesCompanion(
+      progressionData: drift.Value(data),
+    ));
+  }
+
+  Future<void> saveProgressionConfig(String key, String data,
+      {bool equipmentOnly = false}) async {
+    final d = await database;
+    final incoming = ProgressionConfig.decode(data);
+    await d.transaction(() async {
+      final rows = await d.select(d.routineExercises).get();
+      for (final row in rows) {
+        final existing = ProgressionConfig.decode(row.progressionData);
+        if (existing.prescriptionKey != key) continue;
+        // A review from an older workout must not undo a later policy edit.
+        final updated = equipmentOnly
+            ? existing.copyWith(
+                ladder: incoming.ladder,
+                equipmentIdentity: incoming.equipmentIdentity,
+                contextNote: incoming.contextNote)
+            : existing.copyWith(loadMode: incoming.loadMode, baselines: {
+                ...existing.baselines,
+                ...incoming.baselines
+              }, events: [
+                ...existing.events,
+                ...incoming.events
+                    .where((e) => e.action != ReviewAction.offered)
+              ]);
+        await (d.update(d.routineExercises)..where((t) => t.id.equals(row.id)))
+            .write(db.RoutineExercisesCompanion(
+                progressionData: drift.Value(updated.encode())));
+      }
+    });
+  }
+
+  Future<void> updateProgressionData(int id, String? data) async {
+    final dbInstance = await database;
+    await (dbInstance.update(dbInstance.routineExercises)
+          ..where((t) => t.localId.equals(id)))
+        .write(
+            db.RoutineExercisesCompanion(progressionData: drift.Value(data)));
+  }
+
   Future<List<Routine>> getAllRoutines() async {
     final dbInstance = await database;
     final rows = await (dbInstance.select(
@@ -88,6 +136,7 @@ extension RoutinesQueries on WorkoutLocalDataSource {
 
     // FIX: Dynamic number of sets instead of hardcoded 3.
     final templates = <SetTemplate>[];
+    final defaultParsedRange = parseRepRange('8-12');
     for (int i = 0; i < initialSetCount; i++) {
       final stRow =
           await dbInstance.into(dbInstance.routineSetTemplates).insertReturning(
@@ -95,10 +144,18 @@ extension RoutinesQueries on WorkoutLocalDataSource {
                   routineExerciseId: drift.Value(reRow.id),
                   setType: const drift.Value('normal'),
                   targetReps: const drift.Value('8-12'),
+                  targetRepMin: drift.Value(defaultParsedRange?.min),
+                  targetRepMax: drift.Value(defaultParsedRange?.max),
                 ),
               );
       templates.add(
-        SetTemplate(id: stRow.localId, setType: 'normal', targetReps: '8-12'),
+        SetTemplate(
+          id: stRow.localId,
+          setType: 'normal',
+          targetReps: '8-12',
+          targetRepMin: defaultParsedRange?.min,
+          targetRepMax: defaultParsedRange?.max,
+        ),
       );
     }
 
@@ -214,7 +271,9 @@ extension RoutinesQueries on WorkoutLocalDataSource {
               setType: t.setType,
               targetReps: t.targetReps,
               targetWeight: t.targetWeight,
-              targetRir: t.targetRir, // <--- New
+              targetRir: t.targetRir,
+              targetRepMin: t.targetRepMin,
+              targetRepMax: t.targetRepMax,
             ),
           )
           .toList();
@@ -226,6 +285,7 @@ extension RoutinesQueries on WorkoutLocalDataSource {
           setTemplates: setTemplates,
           pauseSeconds: reData.pauseSeconds,
           supersetGroup: reData.supersetGroup,
+          progressionData: reData.progressionData,
           notes: reData.notes,
         ),
       );
@@ -241,6 +301,7 @@ extension RoutinesQueries on WorkoutLocalDataSource {
   Future<void> updateSetTemplate(SetTemplate setTemplate) async {
     if (setTemplate.id == null) return;
     final dbInstance = await database;
+    final parsed = parseRepRange(setTemplate.targetReps);
     await (dbInstance.update(
       dbInstance.routineSetTemplates,
     )..where((tbl) => tbl.localId.equals(setTemplate.id!)))
@@ -249,7 +310,9 @@ extension RoutinesQueries on WorkoutLocalDataSource {
         setType: drift.Value(setTemplate.setType),
         targetReps: drift.Value(setTemplate.targetReps),
         targetWeight: drift.Value(setTemplate.targetWeight),
-        targetRir: drift.Value(setTemplate.targetRir), // <--- New
+        targetRir: drift.Value(setTemplate.targetRir),
+        targetRepMin: drift.Value(setTemplate.targetRepMin ?? parsed?.min),
+        targetRepMax: drift.Value(setTemplate.targetRepMax ?? parsed?.max),
       ),
     );
   }
@@ -274,13 +337,16 @@ extension RoutinesQueries on WorkoutLocalDataSource {
 
       // Insert new
       for (final t in newTemplates) {
+        final parsed = parseRepRange(t.targetReps);
         await dbInstance.into(dbInstance.routineSetTemplates).insert(
               db.RoutineSetTemplatesCompanion(
                 routineExerciseId: drift.Value(reUuid),
                 setType: drift.Value(t.setType),
                 targetReps: drift.Value(t.targetReps),
                 targetWeight: drift.Value(t.targetWeight),
-                targetRir: drift.Value(t.targetRir), // <--- New
+                targetRir: drift.Value(t.targetRir),
+                targetRepMin: drift.Value(t.targetRepMin ?? parsed?.min),
+                targetRepMax: drift.Value(t.targetRepMax ?? parsed?.max),
               ),
             );
       }
@@ -310,6 +376,13 @@ extension RoutinesQueries on WorkoutLocalDataSource {
       if (newRe != null) {
         // Overwrite templates with copied values
         await replaceSetTemplatesForExercise(newRe.id!, re.setTemplates);
+        await updateProgressionData(
+            newRe.id!,
+            re.progressionData == null
+                ? null
+                : re.progression
+                    .copyWith(prescriptionKey: const Uuid().v4())
+                    .encode());
         // Copy rest duration
         await updatePauseTime(newRe.id!, re.pauseSeconds);
         await updateSupersetGroup(newRe.id!, re.supersetGroup);
@@ -530,6 +603,11 @@ extension RoutinesQueries on WorkoutLocalDataSource {
               .into(dbInstance.routineExercises)
               .insertReturning(
                 db.RoutineExercisesCompanion(
+                  progressionData: drift.Value(
+                      ProgressionConfig.decode(setsForEx.first.progressionData)
+                          .copyWith(
+                              prescriptionKey: const Uuid().v4(),
+                              events: []).encode()),
                   routineId: drift.Value(routineUuid),
                   exerciseId: drift.Value(exerciseUuid),
                   orderIndex: drift.Value(orderIndex),
@@ -744,15 +822,21 @@ extension RoutinesQueries on WorkoutLocalDataSource {
         final exerciseUuid = orderedExerciseUuids[orderIndex];
         final setsForEx = setsByExerciseUuid[exerciseUuid]!;
 
-        final newReRow =
-            await dbInstance.into(dbInstance.routineExercises).insertReturning(
-                  db.RoutineExercisesCompanion(
-                    routineId: drift.Value(routineRow.id),
-                    exerciseId: drift.Value(exerciseUuid),
-                    orderIndex: drift.Value(orderIndex),
-                    supersetGroup: drift.Value(setsForEx.first.supersetGroup),
-                  ),
-                );
+        final newReRow = await dbInstance
+            .into(dbInstance.routineExercises)
+            .insertReturning(
+              db.RoutineExercisesCompanion(
+                progressionData: drift.Value(
+                    ProgressionConfig.decode(setsForEx.first.progressionData)
+                        .copyWith(
+                            prescriptionKey: const Uuid().v4(),
+                            events: []).encode()),
+                routineId: drift.Value(routineRow.id),
+                exerciseId: drift.Value(exerciseUuid),
+                orderIndex: drift.Value(orderIndex),
+                supersetGroup: drift.Value(setsForEx.first.supersetGroup),
+              ),
+            );
 
         // Sort setsForEx to ensure warmups are first, and workings are second
         final sortedSets = [

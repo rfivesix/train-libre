@@ -62,10 +62,16 @@ CLAUDE.md
 .claude/
 .jules/
 
-# Fastlane local standalone bundles
+# Fastlane local standalone bundles & secrets
 ios/vendor/bundle/
 ios/.bundle/
 ios/fastlane/.env
+ios/fastlane/.env.*
+*.p8
+AuthKey_*.p8
+.env
+.env.*
+.env.local
 
 # App Review Information: goes to Apple only, never public. notes.txt carries
 # the reviewer API key, the rest is personal contact data (name, email, phone,

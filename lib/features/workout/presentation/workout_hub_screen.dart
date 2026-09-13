@@ -7,6 +7,12 @@ import '../domain/repositories/workout_repository.dart';
 import '../../../services/haptic_feedback_service.dart';
 import 'edit_routine_screen.dart';
 import '../../exercise_catalog/presentation/exercise_catalog_screen.dart';
+import '../../analytics/presentation/recovery_tracker_screen.dart';
+import '../../analytics/presentation/statistics_hub_view_model.dart';
+import '../../analytics/presentation/widgets/recovery_section_card.dart';
+import '../../statistics/data/statistics_hub_data_adapter.dart';
+import '../../statistics/domain/recovery_payload_models.dart';
+import '../../statistics/domain/timeframe_block.dart';
 import 'live_workout_screen.dart';
 import 'routines_screen.dart';
 import 'workout_history_screen.dart';
@@ -19,6 +25,7 @@ import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../app/presentation/widgets/glass_bottom_menu.dart';
 import 'live_workout_view_model.dart';
 import '../../../widgets/common/app_button.dart';
+import '../../../widgets/common/empty_states/card_empty_state_overlay.dart';
 import 'dart:async';
 import '../../../services/telemetry/telemetry_service.dart';
 
@@ -35,6 +42,7 @@ class WorkoutHubScreen extends StatefulWidget {
 
 class _WorkoutHubScreenState extends State<WorkoutHubScreen> {
   late final Stream<List<Routine>> _routinesStream;
+  late Future<RecoveryAnalyticsPayload> _recoveryFuture;
   late final l10n = AppLocalizations.of(context)!;
 
   @override
@@ -42,6 +50,20 @@ class _WorkoutHubScreenState extends State<WorkoutHubScreen> {
     super.initState();
     _routinesStream = Provider.of<IWorkoutRepository>(context, listen: false)
         .watchAllRoutines();
+    _recoveryFuture = _loadRecovery();
+  }
+
+  Future<RecoveryAnalyticsPayload> _loadRecovery() {
+    return StatisticsHubDataAdapter(
+      workoutDatabaseHelper: WorkoutLocalDataSource.instance,
+    ).fetchRecovery(
+      selectedBlockType: TimeframeBlock.week,
+      anchorDate: DateTime.now(),
+    );
+  }
+
+  void _retryRecovery() {
+    setState(() => _recoveryFuture = _loadRecovery());
   }
 
   Future<bool> _checkAndHandleOngoingWorkout() async {
@@ -173,6 +195,9 @@ class _WorkoutHubScreenState extends State<WorkoutHubScreen> {
     return ListView(
       padding: finalPadding,
       children: [
+        AppSectionHeader(title: l10n.sectionRecovery),
+        _buildRecoveryCard(context, l10n),
+        const SizedBox(height: DesignConstants.spacingXL),
         AppSectionHeader(title: l10n.workoutSectionStart),
         MorphSourceScope(
           builder: (context, setHidden) => Builder(
@@ -316,6 +341,56 @@ class _WorkoutHubScreenState extends State<WorkoutHubScreen> {
         ),
         const BottomContentSpacer(),
       ],
+    );
+  }
+
+  Widget _buildRecoveryCard(BuildContext context, AppLocalizations l10n) {
+    return FutureBuilder<RecoveryAnalyticsPayload>(
+      future: _recoveryFuture,
+      builder: (context, snapshot) {
+        final SectionLoadState<RecoveryAnalyticsPayload> state;
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          state = const SectionLoadState(isLoading: true);
+        } else if (snapshot.hasError) {
+          state = SectionLoadState(
+            error: snapshot.error,
+            stackTrace: snapshot.stackTrace,
+          );
+        } else {
+          state = SectionLoadState(data: snapshot.data);
+        }
+
+        Widget buildCard({required VoidCallback onTap}) => RecoverySectionCard(
+              state: state,
+              chipText: null,
+              onRetry: _retryRecovery,
+              onTap: onTap,
+            );
+
+        final card = MorphSourceScope(
+          builder: (context, setHidden) => Builder(
+            builder: (cardContext) => buildCard(
+              onTap: () {
+                Navigator.of(context).push(
+                  CardMorphRoute(
+                    sourceContext: cardContext,
+                    sourceBuilder: (_) => buildCard(onTap: () {}),
+                    onSourceVisibilityChanged: setHidden,
+                    builder: (_) => const RecoveryTrackerScreen(),
+                  ),
+                );
+              },
+            ),
+          ),
+        );
+
+        if (state.data?.hasData ?? false) return card;
+        return CardEmptyStateOverlay(
+          isEmpty: !state.isLoading,
+          message: l10n.emptyStateActiveGapOverlay,
+          child: card,
+        );
+      },
     );
   }
 
