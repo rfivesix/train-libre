@@ -1,0 +1,402 @@
+// lib/features/profile/data/goal_repository_impl.dart
+
+import 'package:drift/drift.dart' as drift;
+import 'package:uuid/uuid.dart';
+
+import '../../../data/database_helper.dart';
+import '../../../data/drift_database.dart' as db;
+import '../domain/models/goal_model.dart';
+import '../domain/models/goal_progress.dart';
+import '../domain/repositories/goal_repository.dart';
+
+class GoalRepositoryImpl implements IGoalRepository {
+  final db.AppDatabase _db;
+  final _uuid = const Uuid();
+
+  GoalRepositoryImpl({db.AppDatabase? database})
+      : _db = database ?? DatabaseHelper.instance.dbInstance;
+
+  Goal _mapRowToGoal(db.UserGoal row) {
+    return Goal(
+      id: row.id,
+      userId: row.userId,
+      area: row.area,
+      preset: GoalPreset.fromString(row.preset),
+      title: row.title,
+      reason: row.reason,
+      status: GoalStatus.fromString(row.status),
+      startDate: row.startDate,
+      targetDate: row.targetDate,
+      targetMetric: row.targetMetric,
+      targetValue: row.targetValue,
+      targetUnit: row.targetUnit,
+      desiredWeeklyRateKg: row.desiredWeeklyRateKg,
+      isNutritionDriver: row.isNutritionDriver,
+      predecessorGoalId: row.predecessorGoalId,
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt,
+      retiredAt: row.retiredAt,
+    );
+  }
+
+  GoalEvent _mapRowToEvent(db.GoalEvent row) {
+    return GoalEvent(
+      id: row.id,
+      goalId: row.goalId,
+      eventType: row.eventType,
+      actor: row.actor,
+      recommendationId: row.recommendationId,
+      reason: row.reason,
+      algorithmVersion: row.algorithmVersion,
+      occurredAt: row.occurredAt,
+      createdAt: row.createdAt,
+    );
+  }
+
+  GoalReviewRecord _mapRowToReview(db.GoalReview row) {
+    return GoalReviewRecord(
+      id: row.id,
+      goalId: row.goalId,
+      windowStart: row.windowStart,
+      windowEnd: row.windowEnd,
+      status: row.status,
+      trajectoryStatus: row.trajectoryStatus,
+      observedRateKgPerWeek: row.observedRateKgPerWeek,
+      confidenceLevel: row.confidenceLevel,
+      tdeeEstimate: row.tdeeEstimate,
+      recommendedCalories: row.recommendedCalories,
+      recommendedProtein: row.recommendedProtein,
+      recommendedCarbs: row.recommendedCarbs,
+      recommendedFat: row.recommendedFat,
+      decision: row.decision,
+      algorithmVersion: row.algorithmVersion,
+      explanation: row.explanation,
+      createdAt: row.createdAt,
+    );
+  }
+
+  @override
+  Future<Goal?> getActiveGoal() async {
+    final query = _db.select(_db.userGoals)
+      ..where((t) => t.status.equals('active'))
+      ..limit(1);
+    final row = await query.getSingleOrNull();
+    if (row == null) return null;
+    return _mapRowToGoal(row);
+  }
+
+  @override
+  Future<List<Goal>> getRetiredGoals() async {
+    final query = _db.select(_db.userGoals)
+      ..where((t) => t.status.isNotValue('active') & t.status.isNotValue('draft'))
+      ..orderBy([(t) => drift.OrderingTerm.desc(t.createdAt)]);
+    final rows = await query.get();
+    return rows.map(_mapRowToGoal).toList();
+  }
+
+  @override
+  Future<Goal?> getGoalById(String id) async {
+    final query = _db.select(_db.userGoals)..where((t) => t.id.equals(id));
+    final row = await query.getSingleOrNull();
+    if (row == null) return null;
+    return _mapRowToGoal(row);
+  }
+
+  @override
+  Future<GoalProgress?> getGoalProgress(Goal goal) async {
+    final metric = goal.targetMetric ?? 'weight';
+    final startEndOfDay = DateTime(
+      goal.startDate.year,
+      goal.startDate.month,
+      goal.startDate.day,
+      23,
+      59,
+      59,
+    );
+
+    // 1. Baseline: latest observation on or before startDate
+    final baselineQuery = _db.select(_db.measurements)
+      ..where((t) => t.type.equals(metric) & t.date.isSmallerOrEqualValue(startEndOfDay))
+      ..orderBy([(t) => drift.OrderingTerm.desc(t.date)])
+      ..limit(1);
+    final baselineRow = await baselineQuery.getSingleOrNull();
+
+    // 2. Latest observation overall
+    final latestQuery = _db.select(_db.measurements)
+      ..where((t) => t.type.equals(metric))
+      ..orderBy([(t) => drift.OrderingTerm.desc(t.date)])
+      ..limit(1);
+    final latestRow = await latestQuery.getSingleOrNull();
+
+    return GoalProgress.calculate(
+      goal: goal,
+      baselineValue: baselineRow?.value,
+      baselineDate: baselineRow?.date,
+      currentValue: latestRow?.value,
+      currentDate: latestRow?.date,
+      trendRateKgPerWeek: goal.desiredWeeklyRateKg,
+    );
+  }
+
+  @override
+  Future<Goal> createGoal({
+    required GoalPreset preset,
+    required String title,
+    String? reason,
+    required DateTime startDate,
+    DateTime? targetDate,
+    String? targetMetric,
+    double? targetValue,
+    String? targetUnit,
+    double? desiredWeeklyRateKg,
+    bool isNutritionDriver = true,
+  }) async {
+    return _db.transaction(() async {
+      final now = DateTime.now();
+
+      // Rule: Exactly ONE active goal. Retire or supersede any existing active goal.
+      final existingActive = await (_db.select(_db.userGoals)
+            ..where((t) => t.status.equals('active')))
+          .get();
+
+      for (final existing in existingActive) {
+        await (_db.update(_db.userGoals)..where((t) => t.id.equals(existing.id)))
+            .write(db.UserGoalsCompanion(
+          status: const drift.Value('superseded'),
+          retiredAt: drift.Value(now),
+          updatedAt: drift.Value(now),
+        ));
+        await _db.into(_db.goalEvents).insert(db.GoalEventsCompanion.insert(
+              id: drift.Value(_uuid.v4()),
+              goalId: existing.id,
+              eventType: 'superseded',
+              actor: const drift.Value('user'),
+              reason: const drift.Value('Replaced by newly created goal'),
+              occurredAt: drift.Value(now),
+              createdAt: drift.Value(now),
+            ));
+      }
+
+      final newGoalId = _uuid.v4();
+      await _db.into(_db.userGoals).insert(db.UserGoalsCompanion.insert(
+            id: drift.Value(newGoalId),
+            preset: preset.key,
+            title: title,
+            reason: drift.Value(reason),
+            status: const drift.Value('active'),
+            startDate: startDate,
+            targetDate: drift.Value(targetDate),
+            targetMetric: drift.Value(targetMetric),
+            targetValue: drift.Value(targetValue),
+            targetUnit: drift.Value(targetUnit),
+            desiredWeeklyRateKg: drift.Value(desiredWeeklyRateKg),
+            isNutritionDriver: drift.Value(isNutritionDriver),
+            createdAt: drift.Value(now),
+            updatedAt: drift.Value(now),
+          ));
+
+      await _db.into(_db.goalEvents).insert(db.GoalEventsCompanion.insert(
+            id: drift.Value(_uuid.v4()),
+            goalId: newGoalId,
+            eventType: 'created',
+            actor: const drift.Value('user'),
+            reason: drift.Value(reason),
+            occurredAt: drift.Value(now),
+            createdAt: drift.Value(now),
+          ));
+
+      final created = await getGoalById(newGoalId);
+      return created!;
+    });
+  }
+
+  @override
+  Future<Goal> supersedeGoal({
+    required Goal currentGoal,
+    required double? targetValue,
+    required DateTime? targetDate,
+    required double? desiredWeeklyRateKg,
+    String? reason,
+  }) async {
+    return _db.transaction(() async {
+      final now = DateTime.now();
+
+      // 1. Mark old goal as superseded
+      await (_db.update(_db.userGoals)..where((t) => t.id.equals(currentGoal.id)))
+          .write(db.UserGoalsCompanion(
+        status: const drift.Value('superseded'),
+        retiredAt: drift.Value(now),
+        updatedAt: drift.Value(now),
+      ));
+
+      await _db.into(_db.goalEvents).insert(db.GoalEventsCompanion.insert(
+            id: drift.Value(_uuid.v4()),
+            goalId: currentGoal.id,
+            eventType: 'superseded',
+            actor: const drift.Value('user'),
+            reason: drift.Value(reason ?? 'Superseded by trajectory adjustment'),
+            occurredAt: drift.Value(now),
+            createdAt: drift.Value(now),
+          ));
+
+      // 2. Create successor goal linked to currentGoal.id
+      final successorId = _uuid.v4();
+      await _db.into(_db.userGoals).insert(db.UserGoalsCompanion.insert(
+            id: drift.Value(successorId),
+            preset: currentGoal.preset.key,
+            title: currentGoal.title,
+            reason: drift.Value(reason ?? currentGoal.reason),
+            status: const drift.Value('active'),
+            startDate: currentGoal.startDate,
+            targetDate: drift.Value(targetDate),
+            targetMetric: drift.Value(currentGoal.targetMetric),
+            targetValue: drift.Value(targetValue),
+            targetUnit: drift.Value(currentGoal.targetUnit),
+            desiredWeeklyRateKg: drift.Value(desiredWeeklyRateKg),
+            isNutritionDriver: drift.Value(currentGoal.isNutritionDriver),
+            predecessorGoalId: drift.Value(currentGoal.id),
+            createdAt: drift.Value(now),
+            updatedAt: drift.Value(now),
+          ));
+
+      await _db.into(_db.goalEvents).insert(db.GoalEventsCompanion.insert(
+            id: drift.Value(_uuid.v4()),
+            goalId: successorId,
+            eventType: 'created',
+            actor: const drift.Value('user'),
+            reason: const drift.Value('Created as successor from trajectory adjustment'),
+            occurredAt: drift.Value(now),
+            createdAt: drift.Value(now),
+          ));
+
+      final created = await getGoalById(successorId);
+      return created!;
+    });
+  }
+
+  @override
+  Future<void> retireGoal(String goalId, {String? reason}) async {
+    final now = DateTime.now();
+    await _db.transaction(() async {
+      await (_db.update(_db.userGoals)..where((t) => t.id.equals(goalId)))
+          .write(db.UserGoalsCompanion(
+        status: const drift.Value('retired'),
+        retiredAt: drift.Value(now),
+        updatedAt: drift.Value(now),
+      ));
+
+      await _db.into(_db.goalEvents).insert(db.GoalEventsCompanion.insert(
+            id: drift.Value(_uuid.v4()),
+            goalId: goalId,
+            eventType: 'retired',
+            actor: const drift.Value('user'),
+            reason: drift.Value(reason),
+            occurredAt: drift.Value(now),
+            createdAt: drift.Value(now),
+          ));
+    });
+  }
+
+  @override
+  Future<Goal> resumeGoal(String goalId) async {
+    return _db.transaction(() async {
+      final now = DateTime.now();
+
+      // Ensure no other goal remains active
+      final activeGoals = await (_db.select(_db.userGoals)
+            ..where((t) => t.status.equals('active')))
+          .get();
+      for (final g in activeGoals) {
+        if (g.id != goalId) {
+          await (_db.update(_db.userGoals)..where((t) => t.id.equals(g.id)))
+              .write(db.UserGoalsCompanion(
+            status: const drift.Value('retired'),
+            retiredAt: drift.Value(now),
+            updatedAt: drift.Value(now),
+          ));
+        }
+      }
+
+      await (_db.update(_db.userGoals)..where((t) => t.id.equals(goalId)))
+          .write(db.UserGoalsCompanion(
+        status: const drift.Value('active'),
+        retiredAt: const drift.Value(null),
+        updatedAt: drift.Value(now),
+      ));
+
+      await _db.into(_db.goalEvents).insert(db.GoalEventsCompanion.insert(
+            id: drift.Value(_uuid.v4()),
+            goalId: goalId,
+            eventType: 'resumed',
+            actor: const drift.Value('user'),
+            occurredAt: drift.Value(now),
+            createdAt: drift.Value(now),
+          ));
+
+      final resumed = await getGoalById(goalId);
+      return resumed!;
+    });
+  }
+
+  @override
+  Future<void> deleteDraftGoal(String goalId) async {
+    await (_db.delete(_db.userGoals)..where((t) => t.id.equals(goalId))).go();
+  }
+
+  @override
+  Future<GoalReviewRecord?> getPendingReview(String goalId) async {
+    final query = _db.select(_db.goalReviews)
+      ..where((t) => t.goalId.equals(goalId) & t.status.equals('pending'))
+      ..orderBy([(t) => drift.OrderingTerm.desc(t.createdAt)])
+      ..limit(1);
+    final row = await query.getSingleOrNull();
+    if (row == null) return null;
+    return _mapRowToReview(row);
+  }
+
+  @override
+  Future<void> saveReview(GoalReviewRecord review) async {
+    await _db.into(_db.goalReviews).insert(db.GoalReviewsCompanion.insert(
+          id: drift.Value(review.id),
+          goalId: review.goalId,
+          windowStart: review.windowStart,
+          windowEnd: review.windowEnd,
+          status: drift.Value(review.status),
+          trajectoryStatus: drift.Value(review.trajectoryStatus),
+          observedRateKgPerWeek: drift.Value(review.observedRateKgPerWeek),
+          confidenceLevel: drift.Value(review.confidenceLevel),
+          tdeeEstimate: drift.Value(review.tdeeEstimate),
+          recommendedCalories: drift.Value(review.recommendedCalories),
+          recommendedProtein: drift.Value(review.recommendedProtein),
+          recommendedCarbs: drift.Value(review.recommendedCarbs),
+          recommendedFat: drift.Value(review.recommendedFat),
+          decision: drift.Value(review.decision),
+          algorithmVersion: review.algorithmVersion,
+          explanation: drift.Value(review.explanation),
+          createdAt: drift.Value(review.createdAt),
+        ));
+  }
+
+  @override
+  Future<void> updateReviewStatus(
+    String reviewId,
+    String status, {
+    String? decision,
+  }) async {
+    await (_db.update(_db.goalReviews)..where((t) => t.id.equals(reviewId)))
+        .write(db.GoalReviewsCompanion(
+      status: drift.Value(status),
+      decision: drift.Value(decision),
+      updatedAt: drift.Value(DateTime.now()),
+    ));
+  }
+
+  @override
+  Future<List<GoalEvent>> getGoalEvents(String goalId) async {
+    final query = _db.select(_db.goalEvents)
+      ..where((t) => t.goalId.equals(goalId))
+      ..orderBy([(t) => drift.OrderingTerm.desc(t.createdAt)]);
+    final rows = await query.get();
+    return rows.map(_mapRowToEvent).toList();
+  }
+}

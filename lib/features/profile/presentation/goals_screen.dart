@@ -14,7 +14,9 @@ import '../../nutrition_recommendation/domain/goal_models.dart';
 import '../../nutrition_recommendation/presentation/prior_activity_help_block.dart';
 import '../../../data/database_helper.dart';
 import 'dart:async';
+import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../services/telemetry/telemetry_service.dart';
+import 'my_goals_screen.dart';
 
 
 
@@ -231,6 +233,60 @@ class _GoalsScreenState extends State<GoalsScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
+                    InkWell(
+                      borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(builder: (_) => const MyGoalsScreen()),
+                        );
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(DesignConstants.spacingM),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
+                          border: Border.all(
+                            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              LucideIcons.target,
+                              color: Theme.of(context).colorScheme.primary,
+                              size: 22,
+                            ),
+                            const SizedBox(width: DesignConstants.spacingM),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    l10n.goalsScreenToMyGoalsBannerTitle,
+                                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    l10n.goalsScreenToMyGoalsBannerSubtitle,
+                                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+                                        ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Icon(
+                              LucideIcons.chevron_right,
+                              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4),
+                              size: 18,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: DesignConstants.spacingL),
                     AppSectionHeader(
                       key: const Key('goals_personal_section_title'),
                       title: l10n.personalDataCL,

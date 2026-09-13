@@ -3225,5 +3225,256 @@
   "progressionInvalidLoads": "Enter non-negative loads; at least one available value is required.",
   "progressionBodyweight": "Bodyweight",
   "progressionWeighted": "Weighted bodyweight",
-  "progressionAssisted": "Assistance"
+  "progressionAssisted": "Assistance",
+  "createGoalTitle": "Set New Goal",
+  "goalConfirmCreateButton": "Activate Goal",
+  "goalStep1Question": "What would you like to achieve?",
+  "goalStep1Description": "Choose a direction or describe your milestone in your own words.",
+  "goalPresetLoseWeight": "Lose weight",
+  "goalPresetLoseWeightDescription": "Reduce body fat and target weight in a controlled manner.",
+  "goalPresetGainWeight": "Gain weight",
+  "goalPresetGainWeightDescription": "Build muscle mass and body weight steadily.",
+  "goalPresetMaintainWeight": "Maintain weight",
+  "goalPresetMaintainWeightDescription": "Stabilize body weight within a balanced corridor.",
+  "goalPresetRecomposition": "Body Recomposition",
+  "goalPresetRecompositionDescription": "Lose fat while simultaneously building muscle.",
+  "goalPresetCustom": "Custom Goal",
+  "goalPresetCustomDescription": "Define an open milestone in your own words.",
+  "goalCustomTitleLabel": "Title of your goal",
+  "goalCustomTitleHint": "e.g. Summer shape or half marathon preparation",
+  "goalStep2Question": "How do you want to measure progress?",
+  "goalStep2Description": "Select the primary metric for tracking your goal.",
+  "goalMetricWeightTitle": "Body weight",
+  "goalMetricWeightSubtitle": "Track weight in kg or lbs via regular weigh-ins.",
+  "goalMetricBodyFatTitle": "Body fat percentage",
+  "goalMetricBodyFatSubtitle": "Track body fat percentage over time.",
+  "goalMetricCircumferenceTitle": "Body measurement / Girth",
+  "goalMetricCircumferenceSubtitle": "Track waist or other body measurements.",
+  "goalMetricDirectionalOnlyTitle": "Direction only",
+  "goalMetricDirectionalOnlySubtitle": "Follow the process without a fixed target number.",
+  "goalStep3Question": "Pace & Parameters",
+  "goalStep3Description": "Optionally specify a target value and weekly rate.",
+  "goalCustomDirectionPrompt": "Should this goal drive your nutrition targets?",
+  "goalCustomDirectionNone": "Documentation only",
+  "goalTargetValueOptionalLabel": "Target value (optional)",
+  "goalWeeklyRateLabel": "Planned weekly rate",
+  "goalStep4Question": "Is there a target date?",
+  "goalStep4Description": "A target date is purely optional. Train Libre never puts you under pressure.",
+  "goalNoDeadlineOption": "No target date",
+  "goalSelectDatePrompt": "Select date",
+  "goalRemoveDeadlineChip": "Remove target date",
+  "goalStep5Question": "Start Date & Baseline",
+  "goalStep5Description": "When does or did this goal start? Train Libre automatically looks for the baseline measurement.",
+  "goalStartDateLabel": "Start date",
+  "goalBaselineFoundTitle": "Baseline measurement found",
+  "goalBaselineNotFoundTitle": "No baseline measurement found",
+  "goalBaselineNotFoundDescription": "The goal will start in 'Waiting for measurement' status until your first weigh-in.",
+  "goalStep6Question": "Why is this important to you?",
+  "goalStep6Description": "Your personal motivation helps you stay focused. Stored purely locally.",
+  "goalStepBaselineQuestion": "Start Date & Baseline Weight",
+  "goalStepBaselineDescription": "When does this goal start? Train Libre uses your weight on this date as the starting baseline.",
+  "goalStepTargetWeightQuestion": "What is your target weight?",
+  "goalStepTargetWeightDescription": "Enter your desired target weight.",
+  "goalStepTrajectoryQuestion": "Plan Pace & Target Date",
+  "goalStepTrajectoryDescription": "Pick a target date or a weekly rate – the other will be calculated interactively in real time.",
+  "goalEnterBaselineWeightPrompt": "Enter starting weight ({unit})",
+  "@goalEnterBaselineWeightPrompt": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "goalTargetWeightLabel": "Target weight ({unit})",
+  "@goalTargetWeightLabel": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "goalWeightDifferenceLabel": "Planned change",
+  "goalPlanByDate": "Plan by target date",
+  "goalPlanByRate": "Plan by weekly pace",
+  "goalEstimatedDailyDelta": "Estimated daily calorie adjustment",
+  "goalEstimatedDuration": "Duration: {weeks} weeks",
+  "@goalEstimatedDuration": {
+    "placeholders": {
+      "weeks": {
+        "type": "int"
+      }
+    }
+  },
+  "goalRateGentle": "Gentle (0.25 kg/wk)",
+  "goalRateModerate": "Moderate (0.50 kg/wk)",
+  "goalRateAthletic": "Athletic (0.75 kg/wk)",
+  "goalRateAggressive": "Aggressive (1.00 kg/wk)",
+  "goalPaceFeedbackSafe": "Recommended, sustainable pace (0.5% - 1.0% body weight/week).",
+  "goalPaceFeedbackAggressive": "Aggressive pace. Pay close attention to adequate protein and recovery.",
+  "goalPaceFeedbackGentle": "Very gentle pace, very easy to sustain long term.",
+  "goalPaceFeedbackMaintain": "Maintain weight with a balanced energy intake.",
+  "goalReasonSuggestionHealth": "Health & vitality",
+  "goalReasonSuggestionFitness": "Fitness & performance",
+  "goalReasonSuggestionShape": "Comfortable weight & aesthetics",
+  "goalReasonSuggestionEvent": "Athletic competition or event",
+  "goalReasonPlaceholder": "e.g. I want to feel fitter and more agile again...",
+  "goalReasonPrivacyNotice": "Your note stays 100% private on your device and is never shared.",
+  "goalStep7Question": "Review & Activate",
+  "goalStep7Description": "Review your parameters before activating the goal.",
+  "goalAreaLabel": "Goal area",
+  "goalStartLabel": "Baseline",
+  "goalWaitingForMeasurementShort": "Waiting for measurement",
+  "goalTargetLabel": "Target",
+  "goalDirectionalOnly": "Process-driven",
+  "goalTargetDateLabel": "Target date",
+  "goalDriverSettingLabel": "Drives nutrition",
+  "noActiveGoalTitle": "No active goal",
+  "noActiveGoalSubtitle": "Train Libre works completely without preset goals.",
+  "noActiveGoalDescription": "You can set a goal for body weight, body fat, or a custom milestone anytime to enable trajectory tracking and weekly reviews.",
+  "createGoalButton": "Set a goal",
+  "goalWaitingForBaselineLabel": "Waiting for measurement",
+  "goalBaselineHeader": "Start (Baseline)",
+  "goalCurrentHeader": "Current",
+  "goalTargetHeader": "Target",
+  "goalProgressSectionTitle": "Progress & Trajectory",
+  "goalRemainingDistanceLabel": "{distance} remaining",
+  "@goalRemainingDistanceLabel": {
+    "placeholders": {
+      "distance": {
+        "type": "String"
+      }
+    }
+  },
+  "weekShort": "week",
+  "goalNoTargetDateShort": "No target date",
+  "reviewStatusOnTrack": "On track",
+  "reviewStatusSlower": "Slower than planned",
+  "reviewStatusFaster": "Faster than planned",
+  "reviewStatusCalibrating": "Calibrating",
+  "reviewNextAnalysisScheduled": "Next adaptive review on {date} (min. 3 weigh-ins & 4 calorie days)",
+  "@reviewNextAnalysisScheduled": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "weeklyReviewCardHeaderBadge": "Weekly Review",
+  "weeklyReviewPendingDefaultExplanation": "The adaptive engine compares your 7-day trend against your target trajectory.",
+  "reviewOpenDetailsButton": "View Review",
+  "applyRecommendationButton": "Apply recommendation",
+  "weeklyReviewScreenTitle": "Weekly Goal Review",
+  "reviewSufficiencyGateTitle": "Data Basis (Last 7 Days)",
+  "reviewWeighInsCountLabel": "Weigh-ins",
+  "reviewLoggedDaysCountLabel": "Nutrition Logged Days",
+  "reviewTrajectoryComparisonTitle": "Trajectory Comparison",
+  "reviewObservedRateLabel": "Observed Trend",
+  "reviewTargetRateLabel": "Planned Rate",
+  "reviewEstimatedTDEELabel": "Estimated Maintenance (TDEE)",
+  "reviewRecommendationTitle": "Recommended Daily Targets",
+  "reviewActionApplyRecommendation": "Apply recommended daily targets",
+  "reviewActionAdjustTrajectory": "Adjust goal & trajectory",
+  "reviewActionKeepCurrent": "Keep current targets",
+  "reviewDismissedSnack": "Review dismissed. Current targets remain active.",
+  "adjustGoalTitle": "Adjust Goal",
+  "adjustGoalDescription": "Adjust target weight, date, or weekly rate. The remaining variables recalculate synchronously.",
+  "adjustGoalFixOptionKeepDate": "Fixed date",
+  "adjustGoalFixOptionKeepRate": "Fixed rate",
+  "adjustGoalExtremeRateWarning": "Notice: This rate deviates significantly from standard physiological recommendations.",
+  "adjustGoalApplyAsSuccessorButton": "Apply as successor goal",
+  "adjustGoalTargetWeightLabel": "Target weight",
+  "adjustGoalTargetDateLabel": "Target date",
+  "adjustGoalWeeklyRateLabel": "Planned weekly rate",
+  "goalDetailScreenTitle": "Goal Details",
+  "retireGoalDialogTitle": "Retire goal?",
+  "retireGoalDialogContent": "The goal will be archived and will no longer drive adaptive nutrition. You can reactivate it at any time.",
+  "retireGoalConfirmButton": "Retire goal",
+  "goalRetiredSuccessSnack": "Goal has been retired and archived.",
+  "resumeGoalDialogTitle": "Reactivate goal?",
+  "resumeGoalDialogContent": "This goal will become your active goal again and drive adaptive nutrition.",
+  "resumeGoalConfirmButton": "Reactivate",
+  "goalResumedSuccessSnack": "Goal has been reactivated successfully.",
+  "goalStatusActive": "Active",
+  "goalStatusRetired": "Retired",
+  "goalStatusSuperseded": "Superseded",
+  "goalStartedOnLabel": "Started on {date}",
+  "@goalStartedOnLabel": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "goalDrivesNutritionBadge": "Drives nutrition",
+  "goalDocumentationOnlyBadge": "Documentation only",
+  "goalWaitingForBaselineCalloutTitle": "Baseline measurement required",
+  "goalWaitingForBaselineCalloutDescription": "No measurement exists on or before the start date for this goal. Log your first weigh-in to calculate progress and trajectory.",
+  "recordFirstMeasurementButton": "Log first measurement",
+  "goalWeightHistoryChartTitle": "Weight Trend & Target Line",
+  "goalPersonalMotivationTitle": "Your Motivation",
+  "retireGoalButton": "Retire goal",
+  "resumeGoalButton": "Reactivate goal",
+  "myGoalsOperativeTargetsBanner": "Go to daily operating targets (Calories, Macros & Water)",
+  "myGoalsActiveGoalSectionHeader": "Active Goal",
+  "myGoalsHistorySectionHeader": "Goal History",
+  "goalsScreenToMyGoalsBannerTitle": "Looking for long-term goals?",
+  "goalsScreenToMyGoalsBannerSubtitle": "Manage your weight trajectories and weekly reviews in 'My Goals'.",
+  "dailyOperatingTargetsTitle": "Daily Targets",
+  "dailyOperatingTargetsSubtitle": "Calories, Macronutrients & Water",
+  "adjustDailyTargetsButton": "Adjust daily targets",
+  "targetCaloriesLabel": "Daily target",
+  "goalNotificationSettingsTitle": "Goal & Review Notifications",
+  "goalNotificationWeeklyReviewTitle": "Weekly review ready",
+  "goalNotificationWeeklyReviewSubtitle": "Notifies you as soon as a 7-day review is available.",
+  "goalNotificationAdaptiveDueTitle": "Adaptive recommendation due",
+  "goalNotificationAdaptiveDueSubtitle": "Informs you when adjustments to daily targets are available.",
+  "goalNotificationTargetDateTitle": "Target date guidance",
+  "goalNotificationTargetDateSubtitle": "Gentle reminder as your target date approaches (no pressure).",
+  "goalNotificationPrivacyNotice": "All notifications are handled purely locally on your device. Private weight or calorie numbers never appear on the lock screen.",
+  "goalMaintainCorridor": "± 1.0 kg (Maintenance)",
+  "goalNeedsFirstMeasurementPrompt": "Log your first weigh-in to view progress and trend.",
+  "goalRemainingDistanceText": "{distance} remaining",
+  "@goalRemainingDistanceText": {
+    "placeholders": {
+      "distance": {
+        "type": "String"
+      }
+    }
+  },
+  "goalMaintenanceStable": "Stable in target corridor",
+  "goalMaintenanceDrifting": "Slight deviation from corridor",
+  "goalNotifyWeeklyReviewTitle": "Weekly review ready",
+  "goalNotifyWeeklyReviewSubtitle": "Notifies you as soon as a 7-day review is available.",
+  "goalNotifyRecommendationDueTitle": "Adaptive recommendation due",
+  "goalNotifyRecommendationDueSubtitle": "Informs you when adjustments to daily targets are available.",
+  "goalNotifyTargetDateTitle": "Target date guidance",
+  "goalNotifyTargetDateSubtitle": "Gentle reminder as your target date approaches (no pressure).",
+  "goalNotifyPrivacyTitle": "Privacy & Local Handling",
+  "goalNotifyPrivacyBody": "All goal and review notifications are handled purely locally on your device. Private weight or calorie numbers never appear on the lock screen.",
+  "goalNotificationSettingsSubtitle": "Local notifications for reviews and target dates",
+  "weeklyGoalReviewNotificationTitle": "Weekly review ready",
+  "weeklyGoalReviewNotificationBody": "Your new 7-day review is available in the Nutrition Hub.",
+  "goalTargetDateReminderTitle": "Goal target date",
+  "goalTargetDateReachedBody": "Your target date for '{goalTitle}' is today.",
+  "@goalTargetDateReachedBody": {
+    "placeholders": {
+      "goalTitle": {
+        "type": "String"
+      }
+    }
+  },
+  "goalTargetDateApproachingBody": "Your target date for '{goalTitle}' is approaching.",
+  "@goalTargetDateApproachingBody": {
+    "placeholders": {
+      "goalTitle": {
+        "type": "String"
+      }
+    }
+  },
+  "back": "Back",
+  "yes": "Yes",
+  "no": "No",
+  "retry": "Retry",
+  "saving": "Saving...",
+  "emptyStateMeasurements": "No measurements recorded yet."
 }

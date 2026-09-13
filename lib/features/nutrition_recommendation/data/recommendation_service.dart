@@ -16,6 +16,10 @@ import 'recommendation_due_notification.dart';
 import 'recommendation_input_adapter.dart';
 import 'recommendation_repository.dart';
 import 'recommendation_scheduler.dart';
+import '../../profile/domain/models/goal_model.dart';
+import '../../profile/domain/repositories/goal_repository.dart';
+import '../../profile/data/goal_repository_impl.dart';
+import '../../profile/domain/services/goal_trajectory_calculator.dart';
 
 class AdaptiveNutritionRecommendationState {
   final BodyweightGoal goal;
@@ -57,6 +61,7 @@ class AdaptiveNutritionRecommendationService {
   final DatabaseHelper _databaseHelper;
   final BayesianNutritionRecommendationEngine _bayesianEngine;
   final AdaptiveRecommendationDueNotifier _dueNotifier;
+  final IGoalRepository _goalRepository;
 
   AdaptiveNutritionRecommendationService({
     RecommendationRepository? repository,
@@ -64,12 +69,15 @@ class AdaptiveNutritionRecommendationService {
     DatabaseHelper? databaseHelper,
     BayesianNutritionRecommendationEngine? bayesianEngine,
     AdaptiveRecommendationDueNotifier? dueNotifier,
+    IGoalRepository? goalRepository,
   })  : _repository = repository ?? RecommendationRepository(),
         _databaseHelper = databaseHelper ?? DatabaseHelper.instance,
         _bayesianEngine =
             bayesianEngine ?? const BayesianNutritionRecommendationEngine(),
         _dueNotifier =
             dueNotifier ?? const LocalAdaptiveRecommendationDueNotifier(),
+        _goalRepository = goalRepository ??
+            GoalRepositoryImpl(database: databaseHelper?.dbInstance),
         _inputAdapter = inputAdapter ??
             RecommendationInputAdapter(
               databaseHelper: databaseHelper ?? DatabaseHelper.instance,
@@ -93,11 +101,51 @@ class AdaptiveNutritionRecommendationService {
     );
   }
 
-  Future<BodyweightGoal> getGoal() {
+  Future<BodyweightGoal> getGoal() async {
+    final activeGoal = await _goalRepository.getActiveGoal();
+    if (activeGoal != null && activeGoal.isNutritionDriver) {
+      switch (activeGoal.preset) {
+        case GoalPreset.loseWeight:
+          return BodyweightGoal.loseWeight;
+        case GoalPreset.gainWeight:
+          return BodyweightGoal.gainWeight;
+        case GoalPreset.maintainWeight:
+        case GoalPreset.recomposition:
+          return BodyweightGoal.maintainWeight;
+        case GoalPreset.custom:
+          if (activeGoal.desiredWeeklyRateKg != null) {
+            if (activeGoal.desiredWeeklyRateKg! < 0) return BodyweightGoal.loseWeight;
+            if (activeGoal.desiredWeeklyRateKg! > 0) return BodyweightGoal.gainWeight;
+          }
+          return BodyweightGoal.maintainWeight;
+      }
+    }
     return _repository.getGoal();
   }
 
-  Future<double> getTargetRateKgPerWeek() {
+  Future<double> getTargetRateKgPerWeek() async {
+    final activeGoal = await _goalRepository.getActiveGoal();
+    if (activeGoal != null && activeGoal.isNutritionDriver) {
+      if (activeGoal.targetValue != null && activeGoal.targetDate != null) {
+        final progress = await _goalRepository.getGoalProgress(activeGoal);
+        final baseline = progress?.baselineValue;
+        if (baseline != null) {
+          return GoalTrajectoryCalculator.calculateWeeklyRate(
+            startWeight: baseline,
+            targetWeight: activeGoal.targetValue!,
+            startDate: activeGoal.startDate,
+            targetDate: activeGoal.targetDate!,
+          );
+        }
+      }
+      if (activeGoal.desiredWeeklyRateKg != null) {
+        return activeGoal.desiredWeeklyRateKg!;
+      }
+      if (activeGoal.preset == GoalPreset.maintainWeight ||
+          activeGoal.preset == GoalPreset.recomposition) {
+        return 0.0;
+      }
+    }
     return _repository.getTargetRateKgPerWeek();
   }
 
@@ -542,6 +590,18 @@ class AdaptiveNutritionRecommendationService {
     await _repository.saveLatestAppliedRecommendation(
       recommendation: recommendation,
     );
+
+    final activeGoal = await _goalRepository.getActiveGoal();
+    if (activeGoal != null) {
+      final pendingReview = await _goalRepository.getPendingReview(activeGoal.id);
+      if (pendingReview != null) {
+        await _goalRepository.updateReviewStatus(
+          pendingReview.id,
+          'applied',
+          decision: 'applied',
+        );
+      }
+    }
 
     return true;
   }

@@ -12270,6 +12270,1134 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Assistance'**
   String get progressionAssisted;
+
+  /// No description provided for @createGoalTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Set New Goal'**
+  String get createGoalTitle;
+
+  /// No description provided for @goalConfirmCreateButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Activate Goal'**
+  String get goalConfirmCreateButton;
+
+  /// No description provided for @goalStep1Question.
+  ///
+  /// In en, this message translates to:
+  /// **'What would you like to achieve?'**
+  String get goalStep1Question;
+
+  /// No description provided for @goalStep1Description.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a direction or describe your milestone in your own words.'**
+  String get goalStep1Description;
+
+  /// No description provided for @goalPresetLoseWeight.
+  ///
+  /// In en, this message translates to:
+  /// **'Lose weight'**
+  String get goalPresetLoseWeight;
+
+  /// No description provided for @goalPresetLoseWeightDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Reduce body fat and target weight in a controlled manner.'**
+  String get goalPresetLoseWeightDescription;
+
+  /// No description provided for @goalPresetGainWeight.
+  ///
+  /// In en, this message translates to:
+  /// **'Gain weight'**
+  String get goalPresetGainWeight;
+
+  /// No description provided for @goalPresetGainWeightDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Build muscle mass and body weight steadily.'**
+  String get goalPresetGainWeightDescription;
+
+  /// No description provided for @goalPresetMaintainWeight.
+  ///
+  /// In en, this message translates to:
+  /// **'Maintain weight'**
+  String get goalPresetMaintainWeight;
+
+  /// No description provided for @goalPresetMaintainWeightDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Stabilize body weight within a balanced corridor.'**
+  String get goalPresetMaintainWeightDescription;
+
+  /// No description provided for @goalPresetRecomposition.
+  ///
+  /// In en, this message translates to:
+  /// **'Body Recomposition'**
+  String get goalPresetRecomposition;
+
+  /// No description provided for @goalPresetRecompositionDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Lose fat while simultaneously building muscle.'**
+  String get goalPresetRecompositionDescription;
+
+  /// No description provided for @goalPresetCustom.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom Goal'**
+  String get goalPresetCustom;
+
+  /// No description provided for @goalPresetCustomDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Define an open milestone in your own words.'**
+  String get goalPresetCustomDescription;
+
+  /// No description provided for @goalCustomTitleLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Title of your goal'**
+  String get goalCustomTitleLabel;
+
+  /// No description provided for @goalCustomTitleHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Summer shape or half marathon preparation'**
+  String get goalCustomTitleHint;
+
+  /// No description provided for @goalStep2Question.
+  ///
+  /// In en, this message translates to:
+  /// **'How do you want to measure progress?'**
+  String get goalStep2Question;
+
+  /// No description provided for @goalStep2Description.
+  ///
+  /// In en, this message translates to:
+  /// **'Select the primary metric for tracking your goal.'**
+  String get goalStep2Description;
+
+  /// No description provided for @goalMetricWeightTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Body weight'**
+  String get goalMetricWeightTitle;
+
+  /// No description provided for @goalMetricWeightSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Track weight in kg or lbs via regular weigh-ins.'**
+  String get goalMetricWeightSubtitle;
+
+  /// No description provided for @goalMetricBodyFatTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Body fat percentage'**
+  String get goalMetricBodyFatTitle;
+
+  /// No description provided for @goalMetricBodyFatSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Track body fat percentage over time.'**
+  String get goalMetricBodyFatSubtitle;
+
+  /// No description provided for @goalMetricCircumferenceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Body measurement / Girth'**
+  String get goalMetricCircumferenceTitle;
+
+  /// No description provided for @goalMetricCircumferenceSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Track waist or other body measurements.'**
+  String get goalMetricCircumferenceSubtitle;
+
+  /// No description provided for @goalMetricDirectionalOnlyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Direction only'**
+  String get goalMetricDirectionalOnlyTitle;
+
+  /// No description provided for @goalMetricDirectionalOnlySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow the process without a fixed target number.'**
+  String get goalMetricDirectionalOnlySubtitle;
+
+  /// No description provided for @goalStep3Question.
+  ///
+  /// In en, this message translates to:
+  /// **'Pace & Parameters'**
+  String get goalStep3Question;
+
+  /// No description provided for @goalStep3Description.
+  ///
+  /// In en, this message translates to:
+  /// **'Optionally specify a target value and weekly rate.'**
+  String get goalStep3Description;
+
+  /// No description provided for @goalCustomDirectionPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Should this goal drive your nutrition targets?'**
+  String get goalCustomDirectionPrompt;
+
+  /// No description provided for @goalCustomDirectionNone.
+  ///
+  /// In en, this message translates to:
+  /// **'Documentation only'**
+  String get goalCustomDirectionNone;
+
+  /// No description provided for @goalTargetValueOptionalLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Target value (optional)'**
+  String get goalTargetValueOptionalLabel;
+
+  /// No description provided for @goalWeeklyRateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Planned weekly rate'**
+  String get goalWeeklyRateLabel;
+
+  /// No description provided for @goalStep4Question.
+  ///
+  /// In en, this message translates to:
+  /// **'Is there a target date?'**
+  String get goalStep4Question;
+
+  /// No description provided for @goalStep4Description.
+  ///
+  /// In en, this message translates to:
+  /// **'A target date is purely optional. Train Libre never puts you under pressure.'**
+  String get goalStep4Description;
+
+  /// No description provided for @goalNoDeadlineOption.
+  ///
+  /// In en, this message translates to:
+  /// **'No target date'**
+  String get goalNoDeadlineOption;
+
+  /// No description provided for @goalSelectDatePrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Select date'**
+  String get goalSelectDatePrompt;
+
+  /// No description provided for @goalRemoveDeadlineChip.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove target date'**
+  String get goalRemoveDeadlineChip;
+
+  /// No description provided for @goalStep5Question.
+  ///
+  /// In en, this message translates to:
+  /// **'Start Date & Baseline'**
+  String get goalStep5Question;
+
+  /// No description provided for @goalStep5Description.
+  ///
+  /// In en, this message translates to:
+  /// **'When does or did this goal start? Train Libre automatically looks for the baseline measurement.'**
+  String get goalStep5Description;
+
+  /// No description provided for @goalStartDateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Start date'**
+  String get goalStartDateLabel;
+
+  /// No description provided for @goalBaselineFoundTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Baseline measurement found'**
+  String get goalBaselineFoundTitle;
+
+  /// No description provided for @goalBaselineNotFoundTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No baseline measurement found'**
+  String get goalBaselineNotFoundTitle;
+
+  /// No description provided for @goalBaselineNotFoundDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'The goal will start in \'Waiting for measurement\' status until your first weigh-in.'**
+  String get goalBaselineNotFoundDescription;
+
+  /// No description provided for @goalStep6Question.
+  ///
+  /// In en, this message translates to:
+  /// **'Why is this important to you?'**
+  String get goalStep6Question;
+
+  /// No description provided for @goalStep6Description.
+  ///
+  /// In en, this message translates to:
+  /// **'Your personal motivation helps you stay focused. Stored purely locally.'**
+  String get goalStep6Description;
+
+  /// No description provided for @goalStepBaselineQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Start Date & Baseline Weight'**
+  String get goalStepBaselineQuestion;
+
+  /// No description provided for @goalStepBaselineDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'When does this goal start? Train Libre uses your weight on this date as the starting baseline.'**
+  String get goalStepBaselineDescription;
+
+  /// No description provided for @goalStepTargetWeightQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'What is your target weight?'**
+  String get goalStepTargetWeightQuestion;
+
+  /// No description provided for @goalStepTargetWeightDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your desired target weight.'**
+  String get goalStepTargetWeightDescription;
+
+  /// No description provided for @goalStepTrajectoryQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan Pace & Target Date'**
+  String get goalStepTrajectoryQuestion;
+
+  /// No description provided for @goalStepTrajectoryDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a target date or a weekly rate – the other will be calculated interactively in real time.'**
+  String get goalStepTrajectoryDescription;
+
+  /// No description provided for @goalEnterBaselineWeightPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter starting weight ({unit})'**
+  String goalEnterBaselineWeightPrompt(String unit);
+
+  /// No description provided for @goalTargetWeightLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Target weight ({unit})'**
+  String goalTargetWeightLabel(String unit);
+
+  /// No description provided for @goalWeightDifferenceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Planned change'**
+  String get goalWeightDifferenceLabel;
+
+  /// No description provided for @goalPlanByDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan by target date'**
+  String get goalPlanByDate;
+
+  /// No description provided for @goalPlanByRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan by weekly pace'**
+  String get goalPlanByRate;
+
+  /// No description provided for @goalEstimatedDailyDelta.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimated daily calorie adjustment'**
+  String get goalEstimatedDailyDelta;
+
+  /// No description provided for @goalEstimatedDuration.
+  ///
+  /// In en, this message translates to:
+  /// **'Duration: {weeks} weeks'**
+  String goalEstimatedDuration(int weeks);
+
+  /// No description provided for @goalRateGentle.
+  ///
+  /// In en, this message translates to:
+  /// **'Gentle (0.25 kg/wk)'**
+  String get goalRateGentle;
+
+  /// No description provided for @goalRateModerate.
+  ///
+  /// In en, this message translates to:
+  /// **'Moderate (0.50 kg/wk)'**
+  String get goalRateModerate;
+
+  /// No description provided for @goalRateAthletic.
+  ///
+  /// In en, this message translates to:
+  /// **'Athletic (0.75 kg/wk)'**
+  String get goalRateAthletic;
+
+  /// No description provided for @goalRateAggressive.
+  ///
+  /// In en, this message translates to:
+  /// **'Aggressive (1.00 kg/wk)'**
+  String get goalRateAggressive;
+
+  /// No description provided for @goalPaceFeedbackSafe.
+  ///
+  /// In en, this message translates to:
+  /// **'Recommended, sustainable pace (0.5% - 1.0% body weight/week).'**
+  String get goalPaceFeedbackSafe;
+
+  /// No description provided for @goalPaceFeedbackAggressive.
+  ///
+  /// In en, this message translates to:
+  /// **'Aggressive pace. Pay close attention to adequate protein and recovery.'**
+  String get goalPaceFeedbackAggressive;
+
+  /// No description provided for @goalPaceFeedbackGentle.
+  ///
+  /// In en, this message translates to:
+  /// **'Very gentle pace, very easy to sustain long term.'**
+  String get goalPaceFeedbackGentle;
+
+  /// No description provided for @goalPaceFeedbackMaintain.
+  ///
+  /// In en, this message translates to:
+  /// **'Maintain weight with a balanced energy intake.'**
+  String get goalPaceFeedbackMaintain;
+
+  /// No description provided for @goalReasonSuggestionHealth.
+  ///
+  /// In en, this message translates to:
+  /// **'Health & vitality'**
+  String get goalReasonSuggestionHealth;
+
+  /// No description provided for @goalReasonSuggestionFitness.
+  ///
+  /// In en, this message translates to:
+  /// **'Fitness & performance'**
+  String get goalReasonSuggestionFitness;
+
+  /// No description provided for @goalReasonSuggestionShape.
+  ///
+  /// In en, this message translates to:
+  /// **'Comfortable weight & aesthetics'**
+  String get goalReasonSuggestionShape;
+
+  /// No description provided for @goalReasonSuggestionEvent.
+  ///
+  /// In en, this message translates to:
+  /// **'Athletic competition or event'**
+  String get goalReasonSuggestionEvent;
+
+  /// No description provided for @goalReasonPlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. I want to feel fitter and more agile again...'**
+  String get goalReasonPlaceholder;
+
+  /// No description provided for @goalReasonPrivacyNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'Your note stays 100% private on your device and is never shared.'**
+  String get goalReasonPrivacyNotice;
+
+  /// No description provided for @goalStep7Question.
+  ///
+  /// In en, this message translates to:
+  /// **'Review & Activate'**
+  String get goalStep7Question;
+
+  /// No description provided for @goalStep7Description.
+  ///
+  /// In en, this message translates to:
+  /// **'Review your parameters before activating the goal.'**
+  String get goalStep7Description;
+
+  /// No description provided for @goalAreaLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Goal area'**
+  String get goalAreaLabel;
+
+  /// No description provided for @goalStartLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Baseline'**
+  String get goalStartLabel;
+
+  /// No description provided for @goalWaitingForMeasurementShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for measurement'**
+  String get goalWaitingForMeasurementShort;
+
+  /// No description provided for @goalTargetLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Target'**
+  String get goalTargetLabel;
+
+  /// No description provided for @goalDirectionalOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Process-driven'**
+  String get goalDirectionalOnly;
+
+  /// No description provided for @goalTargetDateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Target date'**
+  String get goalTargetDateLabel;
+
+  /// No description provided for @goalDriverSettingLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Drives nutrition'**
+  String get goalDriverSettingLabel;
+
+  /// No description provided for @noActiveGoalTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No active goal'**
+  String get noActiveGoalTitle;
+
+  /// No description provided for @noActiveGoalSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Train Libre works completely without preset goals.'**
+  String get noActiveGoalSubtitle;
+
+  /// No description provided for @noActiveGoalDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'You can set a goal for body weight, body fat, or a custom milestone anytime to enable trajectory tracking and weekly reviews.'**
+  String get noActiveGoalDescription;
+
+  /// No description provided for @createGoalButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Set a goal'**
+  String get createGoalButton;
+
+  /// No description provided for @goalWaitingForBaselineLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for measurement'**
+  String get goalWaitingForBaselineLabel;
+
+  /// No description provided for @goalBaselineHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Start (Baseline)'**
+  String get goalBaselineHeader;
+
+  /// No description provided for @goalCurrentHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Current'**
+  String get goalCurrentHeader;
+
+  /// No description provided for @goalTargetHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Target'**
+  String get goalTargetHeader;
+
+  /// No description provided for @goalProgressSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Progress & Trajectory'**
+  String get goalProgressSectionTitle;
+
+  /// No description provided for @goalRemainingDistanceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{distance} remaining'**
+  String goalRemainingDistanceLabel(String distance);
+
+  /// No description provided for @weekShort.
+  ///
+  /// In en, this message translates to:
+  /// **'week'**
+  String get weekShort;
+
+  /// No description provided for @goalNoTargetDateShort.
+  ///
+  /// In en, this message translates to:
+  /// **'No target date'**
+  String get goalNoTargetDateShort;
+
+  /// No description provided for @reviewStatusOnTrack.
+  ///
+  /// In en, this message translates to:
+  /// **'On track'**
+  String get reviewStatusOnTrack;
+
+  /// No description provided for @reviewStatusSlower.
+  ///
+  /// In en, this message translates to:
+  /// **'Slower than planned'**
+  String get reviewStatusSlower;
+
+  /// No description provided for @reviewStatusFaster.
+  ///
+  /// In en, this message translates to:
+  /// **'Faster than planned'**
+  String get reviewStatusFaster;
+
+  /// No description provided for @reviewStatusCalibrating.
+  ///
+  /// In en, this message translates to:
+  /// **'Calibrating'**
+  String get reviewStatusCalibrating;
+
+  /// No description provided for @reviewNextAnalysisScheduled.
+  ///
+  /// In en, this message translates to:
+  /// **'Next adaptive review on {date} (min. 3 weigh-ins & 4 calorie days)'**
+  String reviewNextAnalysisScheduled(String date);
+
+  /// No description provided for @weeklyReviewCardHeaderBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly Review'**
+  String get weeklyReviewCardHeaderBadge;
+
+  /// No description provided for @weeklyReviewPendingDefaultExplanation.
+  ///
+  /// In en, this message translates to:
+  /// **'The adaptive engine compares your 7-day trend against your target trajectory.'**
+  String get weeklyReviewPendingDefaultExplanation;
+
+  /// No description provided for @reviewOpenDetailsButton.
+  ///
+  /// In en, this message translates to:
+  /// **'View Review'**
+  String get reviewOpenDetailsButton;
+
+  /// No description provided for @applyRecommendationButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply recommendation'**
+  String get applyRecommendationButton;
+
+  /// No description provided for @weeklyReviewScreenTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly Goal Review'**
+  String get weeklyReviewScreenTitle;
+
+  /// No description provided for @reviewSufficiencyGateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Data Basis (Last 7 Days)'**
+  String get reviewSufficiencyGateTitle;
+
+  /// No description provided for @reviewWeighInsCountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Weigh-ins'**
+  String get reviewWeighInsCountLabel;
+
+  /// No description provided for @reviewLoggedDaysCountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Nutrition Logged Days'**
+  String get reviewLoggedDaysCountLabel;
+
+  /// No description provided for @reviewTrajectoryComparisonTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Trajectory Comparison'**
+  String get reviewTrajectoryComparisonTitle;
+
+  /// No description provided for @reviewObservedRateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Observed Trend'**
+  String get reviewObservedRateLabel;
+
+  /// No description provided for @reviewTargetRateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Planned Rate'**
+  String get reviewTargetRateLabel;
+
+  /// No description provided for @reviewEstimatedTDEELabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimated Maintenance (TDEE)'**
+  String get reviewEstimatedTDEELabel;
+
+  /// No description provided for @reviewRecommendationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Recommended Daily Targets'**
+  String get reviewRecommendationTitle;
+
+  /// No description provided for @reviewActionApplyRecommendation.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply recommended daily targets'**
+  String get reviewActionApplyRecommendation;
+
+  /// No description provided for @reviewActionAdjustTrajectory.
+  ///
+  /// In en, this message translates to:
+  /// **'Adjust goal & trajectory'**
+  String get reviewActionAdjustTrajectory;
+
+  /// No description provided for @reviewActionKeepCurrent.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep current targets'**
+  String get reviewActionKeepCurrent;
+
+  /// No description provided for @reviewDismissedSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Review dismissed. Current targets remain active.'**
+  String get reviewDismissedSnack;
+
+  /// No description provided for @adjustGoalTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Adjust Goal'**
+  String get adjustGoalTitle;
+
+  /// No description provided for @adjustGoalDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Adjust target weight, date, or weekly rate. The remaining variables recalculate synchronously.'**
+  String get adjustGoalDescription;
+
+  /// No description provided for @adjustGoalFixOptionKeepDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Fixed date'**
+  String get adjustGoalFixOptionKeepDate;
+
+  /// No description provided for @adjustGoalFixOptionKeepRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Fixed rate'**
+  String get adjustGoalFixOptionKeepRate;
+
+  /// No description provided for @adjustGoalExtremeRateWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Notice: This rate deviates significantly from standard physiological recommendations.'**
+  String get adjustGoalExtremeRateWarning;
+
+  /// No description provided for @adjustGoalApplyAsSuccessorButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply as successor goal'**
+  String get adjustGoalApplyAsSuccessorButton;
+
+  /// No description provided for @adjustGoalTargetWeightLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Target weight'**
+  String get adjustGoalTargetWeightLabel;
+
+  /// No description provided for @adjustGoalTargetDateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Target date'**
+  String get adjustGoalTargetDateLabel;
+
+  /// No description provided for @adjustGoalWeeklyRateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Planned weekly rate'**
+  String get adjustGoalWeeklyRateLabel;
+
+  /// No description provided for @goalDetailScreenTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Goal Details'**
+  String get goalDetailScreenTitle;
+
+  /// No description provided for @retireGoalDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Retire goal?'**
+  String get retireGoalDialogTitle;
+
+  /// No description provided for @retireGoalDialogContent.
+  ///
+  /// In en, this message translates to:
+  /// **'The goal will be archived and will no longer drive adaptive nutrition. You can reactivate it at any time.'**
+  String get retireGoalDialogContent;
+
+  /// No description provided for @retireGoalConfirmButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Retire goal'**
+  String get retireGoalConfirmButton;
+
+  /// No description provided for @goalRetiredSuccessSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Goal has been retired and archived.'**
+  String get goalRetiredSuccessSnack;
+
+  /// No description provided for @resumeGoalDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reactivate goal?'**
+  String get resumeGoalDialogTitle;
+
+  /// No description provided for @resumeGoalDialogContent.
+  ///
+  /// In en, this message translates to:
+  /// **'This goal will become your active goal again and drive adaptive nutrition.'**
+  String get resumeGoalDialogContent;
+
+  /// No description provided for @resumeGoalConfirmButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Reactivate'**
+  String get resumeGoalConfirmButton;
+
+  /// No description provided for @goalResumedSuccessSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Goal has been reactivated successfully.'**
+  String get goalResumedSuccessSnack;
+
+  /// No description provided for @goalStatusActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get goalStatusActive;
+
+  /// No description provided for @goalStatusRetired.
+  ///
+  /// In en, this message translates to:
+  /// **'Retired'**
+  String get goalStatusRetired;
+
+  /// No description provided for @goalStatusSuperseded.
+  ///
+  /// In en, this message translates to:
+  /// **'Superseded'**
+  String get goalStatusSuperseded;
+
+  /// No description provided for @goalStartedOnLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Started on {date}'**
+  String goalStartedOnLabel(String date);
+
+  /// No description provided for @goalDrivesNutritionBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Drives nutrition'**
+  String get goalDrivesNutritionBadge;
+
+  /// No description provided for @goalDocumentationOnlyBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Documentation only'**
+  String get goalDocumentationOnlyBadge;
+
+  /// No description provided for @goalWaitingForBaselineCalloutTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Baseline measurement required'**
+  String get goalWaitingForBaselineCalloutTitle;
+
+  /// No description provided for @goalWaitingForBaselineCalloutDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'No measurement exists on or before the start date for this goal. Log your first weigh-in to calculate progress and trajectory.'**
+  String get goalWaitingForBaselineCalloutDescription;
+
+  /// No description provided for @recordFirstMeasurementButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Log first measurement'**
+  String get recordFirstMeasurementButton;
+
+  /// No description provided for @goalWeightHistoryChartTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight Trend & Target Line'**
+  String get goalWeightHistoryChartTitle;
+
+  /// No description provided for @goalPersonalMotivationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your Motivation'**
+  String get goalPersonalMotivationTitle;
+
+  /// No description provided for @retireGoalButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Retire goal'**
+  String get retireGoalButton;
+
+  /// No description provided for @resumeGoalButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Reactivate goal'**
+  String get resumeGoalButton;
+
+  /// No description provided for @myGoalsOperativeTargetsBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'Go to daily operating targets (Calories, Macros & Water)'**
+  String get myGoalsOperativeTargetsBanner;
+
+  /// No description provided for @myGoalsActiveGoalSectionHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Active Goal'**
+  String get myGoalsActiveGoalSectionHeader;
+
+  /// No description provided for @myGoalsHistorySectionHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Goal History'**
+  String get myGoalsHistorySectionHeader;
+
+  /// No description provided for @goalsScreenToMyGoalsBannerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Looking for long-term goals?'**
+  String get goalsScreenToMyGoalsBannerTitle;
+
+  /// No description provided for @goalsScreenToMyGoalsBannerSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage your weight trajectories and weekly reviews in \'My Goals\'.'**
+  String get goalsScreenToMyGoalsBannerSubtitle;
+
+  /// No description provided for @dailyOperatingTargetsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily Targets'**
+  String get dailyOperatingTargetsTitle;
+
+  /// No description provided for @dailyOperatingTargetsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Calories, Macronutrients & Water'**
+  String get dailyOperatingTargetsSubtitle;
+
+  /// No description provided for @adjustDailyTargetsButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Adjust daily targets'**
+  String get adjustDailyTargetsButton;
+
+  /// No description provided for @targetCaloriesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily target'**
+  String get targetCaloriesLabel;
+
+  /// No description provided for @goalNotificationSettingsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Goal & Review Notifications'**
+  String get goalNotificationSettingsTitle;
+
+  /// No description provided for @goalNotificationWeeklyReviewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly review ready'**
+  String get goalNotificationWeeklyReviewTitle;
+
+  /// No description provided for @goalNotificationWeeklyReviewSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifies you as soon as a 7-day review is available.'**
+  String get goalNotificationWeeklyReviewSubtitle;
+
+  /// No description provided for @goalNotificationAdaptiveDueTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Adaptive recommendation due'**
+  String get goalNotificationAdaptiveDueTitle;
+
+  /// No description provided for @goalNotificationAdaptiveDueSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Informs you when adjustments to daily targets are available.'**
+  String get goalNotificationAdaptiveDueSubtitle;
+
+  /// No description provided for @goalNotificationTargetDateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Target date guidance'**
+  String get goalNotificationTargetDateTitle;
+
+  /// No description provided for @goalNotificationTargetDateSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Gentle reminder as your target date approaches (no pressure).'**
+  String get goalNotificationTargetDateSubtitle;
+
+  /// No description provided for @goalNotificationPrivacyNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'All notifications are handled purely locally on your device. Private weight or calorie numbers never appear on the lock screen.'**
+  String get goalNotificationPrivacyNotice;
+
+  /// No description provided for @goalMaintainCorridor.
+  ///
+  /// In en, this message translates to:
+  /// **'± 1.0 kg (Maintenance)'**
+  String get goalMaintainCorridor;
+
+  /// No description provided for @goalNeedsFirstMeasurementPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Log your first weigh-in to view progress and trend.'**
+  String get goalNeedsFirstMeasurementPrompt;
+
+  /// No description provided for @goalRemainingDistanceText.
+  ///
+  /// In en, this message translates to:
+  /// **'{distance} remaining'**
+  String goalRemainingDistanceText(String distance);
+
+  /// No description provided for @goalMaintenanceStable.
+  ///
+  /// In en, this message translates to:
+  /// **'Stable in target corridor'**
+  String get goalMaintenanceStable;
+
+  /// No description provided for @goalMaintenanceDrifting.
+  ///
+  /// In en, this message translates to:
+  /// **'Slight deviation from corridor'**
+  String get goalMaintenanceDrifting;
+
+  /// No description provided for @goalNotifyWeeklyReviewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly review ready'**
+  String get goalNotifyWeeklyReviewTitle;
+
+  /// No description provided for @goalNotifyWeeklyReviewSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifies you as soon as a 7-day review is available.'**
+  String get goalNotifyWeeklyReviewSubtitle;
+
+  /// No description provided for @goalNotifyRecommendationDueTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Adaptive recommendation due'**
+  String get goalNotifyRecommendationDueTitle;
+
+  /// No description provided for @goalNotifyRecommendationDueSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Informs you when adjustments to daily targets are available.'**
+  String get goalNotifyRecommendationDueSubtitle;
+
+  /// No description provided for @goalNotifyTargetDateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Target date guidance'**
+  String get goalNotifyTargetDateTitle;
+
+  /// No description provided for @goalNotifyTargetDateSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Gentle reminder as your target date approaches (no pressure).'**
+  String get goalNotifyTargetDateSubtitle;
+
+  /// No description provided for @goalNotifyPrivacyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy & Local Handling'**
+  String get goalNotifyPrivacyTitle;
+
+  /// No description provided for @goalNotifyPrivacyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'All goal and review notifications are handled purely locally on your device. Private weight or calorie numbers never appear on the lock screen.'**
+  String get goalNotifyPrivacyBody;
+
+  /// No description provided for @goalNotificationSettingsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Local notifications for reviews and target dates'**
+  String get goalNotificationSettingsSubtitle;
+
+  /// No description provided for @weeklyGoalReviewNotificationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly review ready'**
+  String get weeklyGoalReviewNotificationTitle;
+
+  /// No description provided for @weeklyGoalReviewNotificationBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your new 7-day review is available in the Nutrition Hub.'**
+  String get weeklyGoalReviewNotificationBody;
+
+  /// No description provided for @goalTargetDateReminderTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Goal target date'**
+  String get goalTargetDateReminderTitle;
+
+  /// No description provided for @goalTargetDateReachedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your target date for \'{goalTitle}\' is today.'**
+  String goalTargetDateReachedBody(String goalTitle);
+
+  /// No description provided for @goalTargetDateApproachingBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your target date for \'{goalTitle}\' is approaching.'**
+  String goalTargetDateApproachingBody(String goalTitle);
+
+  /// No description provided for @back.
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get back;
+
+  /// No description provided for @yes.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes'**
+  String get yes;
+
+  /// No description provided for @no.
+  ///
+  /// In en, this message translates to:
+  /// **'No'**
+  String get no;
+
+  /// No description provided for @retry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get retry;
+
+  /// No description provided for @saving.
+  ///
+  /// In en, this message translates to:
+  /// **'Saving...'**
+  String get saving;
+
+  /// No description provided for @emptyStateMeasurements.
+  ///
+  /// In en, this message translates to:
+  /// **'No measurements recorded yet.'**
+  String get emptyStateMeasurements;
 }
 
 class _AppLocalizationsDelegate

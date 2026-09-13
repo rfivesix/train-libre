@@ -20,6 +20,7 @@ import 'ai_settings_screen.dart';
 import 'appearance_settings_screen.dart';
 import 'developer_settings_screen.dart';
 import 'data_management_screen.dart';
+import 'goal_notification_settings_screen.dart';
 import 'health_export_settings_screen.dart';
 import 'pulse_settings_screen.dart';
 import 'sleep_settings_screen.dart';
@@ -317,6 +318,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     );
                   },
                   tileKey: const Key('settings_appearance_entry'),
+                  wrapInCard: false,
+                ),
+                const Divider(height: 1),
+                _buildNavigationCard(
+                  context: context,
+                  icon: LucideIcons.bell,
+                  title: l10n.goalNotificationSettingsTitle,
+                  subtitle: l10n.goalNotificationSettingsSubtitle,
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            const GoalNotificationSettingsScreen(),
+                      ),
+                    );
+                  },
+                  tileKey: const Key('settings_goal_notifications_entry'),
                   wrapInCard: false,
                 ),
                 const Divider(height: 1),

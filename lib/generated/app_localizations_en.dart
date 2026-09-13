@@ -7001,4 +7001,640 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get progressionAssisted => 'Assistance';
+
+  @override
+  String get createGoalTitle => 'Set New Goal';
+
+  @override
+  String get goalConfirmCreateButton => 'Activate Goal';
+
+  @override
+  String get goalStep1Question => 'What would you like to achieve?';
+
+  @override
+  String get goalStep1Description =>
+      'Choose a direction or describe your milestone in your own words.';
+
+  @override
+  String get goalPresetLoseWeight => 'Lose weight';
+
+  @override
+  String get goalPresetLoseWeightDescription =>
+      'Reduce body fat and target weight in a controlled manner.';
+
+  @override
+  String get goalPresetGainWeight => 'Gain weight';
+
+  @override
+  String get goalPresetGainWeightDescription =>
+      'Build muscle mass and body weight steadily.';
+
+  @override
+  String get goalPresetMaintainWeight => 'Maintain weight';
+
+  @override
+  String get goalPresetMaintainWeightDescription =>
+      'Stabilize body weight within a balanced corridor.';
+
+  @override
+  String get goalPresetRecomposition => 'Body Recomposition';
+
+  @override
+  String get goalPresetRecompositionDescription =>
+      'Lose fat while simultaneously building muscle.';
+
+  @override
+  String get goalPresetCustom => 'Custom Goal';
+
+  @override
+  String get goalPresetCustomDescription =>
+      'Define an open milestone in your own words.';
+
+  @override
+  String get goalCustomTitleLabel => 'Title of your goal';
+
+  @override
+  String get goalCustomTitleHint =>
+      'e.g. Summer shape or half marathon preparation';
+
+  @override
+  String get goalStep2Question => 'How do you want to measure progress?';
+
+  @override
+  String get goalStep2Description =>
+      'Select the primary metric for tracking your goal.';
+
+  @override
+  String get goalMetricWeightTitle => 'Body weight';
+
+  @override
+  String get goalMetricWeightSubtitle =>
+      'Track weight in kg or lbs via regular weigh-ins.';
+
+  @override
+  String get goalMetricBodyFatTitle => 'Body fat percentage';
+
+  @override
+  String get goalMetricBodyFatSubtitle =>
+      'Track body fat percentage over time.';
+
+  @override
+  String get goalMetricCircumferenceTitle => 'Body measurement / Girth';
+
+  @override
+  String get goalMetricCircumferenceSubtitle =>
+      'Track waist or other body measurements.';
+
+  @override
+  String get goalMetricDirectionalOnlyTitle => 'Direction only';
+
+  @override
+  String get goalMetricDirectionalOnlySubtitle =>
+      'Follow the process without a fixed target number.';
+
+  @override
+  String get goalStep3Question => 'Pace & Parameters';
+
+  @override
+  String get goalStep3Description =>
+      'Optionally specify a target value and weekly rate.';
+
+  @override
+  String get goalCustomDirectionPrompt =>
+      'Should this goal drive your nutrition targets?';
+
+  @override
+  String get goalCustomDirectionNone => 'Documentation only';
+
+  @override
+  String get goalTargetValueOptionalLabel => 'Target value (optional)';
+
+  @override
+  String get goalWeeklyRateLabel => 'Planned weekly rate';
+
+  @override
+  String get goalStep4Question => 'Is there a target date?';
+
+  @override
+  String get goalStep4Description =>
+      'A target date is purely optional. Train Libre never puts you under pressure.';
+
+  @override
+  String get goalNoDeadlineOption => 'No target date';
+
+  @override
+  String get goalSelectDatePrompt => 'Select date';
+
+  @override
+  String get goalRemoveDeadlineChip => 'Remove target date';
+
+  @override
+  String get goalStep5Question => 'Start Date & Baseline';
+
+  @override
+  String get goalStep5Description =>
+      'When does or did this goal start? Train Libre automatically looks for the baseline measurement.';
+
+  @override
+  String get goalStartDateLabel => 'Start date';
+
+  @override
+  String get goalBaselineFoundTitle => 'Baseline measurement found';
+
+  @override
+  String get goalBaselineNotFoundTitle => 'No baseline measurement found';
+
+  @override
+  String get goalBaselineNotFoundDescription =>
+      'The goal will start in \'Waiting for measurement\' status until your first weigh-in.';
+
+  @override
+  String get goalStep6Question => 'Why is this important to you?';
+
+  @override
+  String get goalStep6Description =>
+      'Your personal motivation helps you stay focused. Stored purely locally.';
+
+  @override
+  String get goalStepBaselineQuestion => 'Start Date & Baseline Weight';
+
+  @override
+  String get goalStepBaselineDescription =>
+      'When does this goal start? Train Libre uses your weight on this date as the starting baseline.';
+
+  @override
+  String get goalStepTargetWeightQuestion => 'What is your target weight?';
+
+  @override
+  String get goalStepTargetWeightDescription =>
+      'Enter your desired target weight.';
+
+  @override
+  String get goalStepTrajectoryQuestion => 'Plan Pace & Target Date';
+
+  @override
+  String get goalStepTrajectoryDescription =>
+      'Pick a target date or a weekly rate – the other will be calculated interactively in real time.';
+
+  @override
+  String goalEnterBaselineWeightPrompt(String unit) {
+    return 'Enter starting weight ($unit)';
+  }
+
+  @override
+  String goalTargetWeightLabel(String unit) {
+    return 'Target weight ($unit)';
+  }
+
+  @override
+  String get goalWeightDifferenceLabel => 'Planned change';
+
+  @override
+  String get goalPlanByDate => 'Plan by target date';
+
+  @override
+  String get goalPlanByRate => 'Plan by weekly pace';
+
+  @override
+  String get goalEstimatedDailyDelta => 'Estimated daily calorie adjustment';
+
+  @override
+  String goalEstimatedDuration(int weeks) {
+    return 'Duration: $weeks weeks';
+  }
+
+  @override
+  String get goalRateGentle => 'Gentle (0.25 kg/wk)';
+
+  @override
+  String get goalRateModerate => 'Moderate (0.50 kg/wk)';
+
+  @override
+  String get goalRateAthletic => 'Athletic (0.75 kg/wk)';
+
+  @override
+  String get goalRateAggressive => 'Aggressive (1.00 kg/wk)';
+
+  @override
+  String get goalPaceFeedbackSafe =>
+      'Recommended, sustainable pace (0.5% - 1.0% body weight/week).';
+
+  @override
+  String get goalPaceFeedbackAggressive =>
+      'Aggressive pace. Pay close attention to adequate protein and recovery.';
+
+  @override
+  String get goalPaceFeedbackGentle =>
+      'Very gentle pace, very easy to sustain long term.';
+
+  @override
+  String get goalPaceFeedbackMaintain =>
+      'Maintain weight with a balanced energy intake.';
+
+  @override
+  String get goalReasonSuggestionHealth => 'Health & vitality';
+
+  @override
+  String get goalReasonSuggestionFitness => 'Fitness & performance';
+
+  @override
+  String get goalReasonSuggestionShape => 'Comfortable weight & aesthetics';
+
+  @override
+  String get goalReasonSuggestionEvent => 'Athletic competition or event';
+
+  @override
+  String get goalReasonPlaceholder =>
+      'e.g. I want to feel fitter and more agile again...';
+
+  @override
+  String get goalReasonPrivacyNotice =>
+      'Your note stays 100% private on your device and is never shared.';
+
+  @override
+  String get goalStep7Question => 'Review & Activate';
+
+  @override
+  String get goalStep7Description =>
+      'Review your parameters before activating the goal.';
+
+  @override
+  String get goalAreaLabel => 'Goal area';
+
+  @override
+  String get goalStartLabel => 'Baseline';
+
+  @override
+  String get goalWaitingForMeasurementShort => 'Waiting for measurement';
+
+  @override
+  String get goalTargetLabel => 'Target';
+
+  @override
+  String get goalDirectionalOnly => 'Process-driven';
+
+  @override
+  String get goalTargetDateLabel => 'Target date';
+
+  @override
+  String get goalDriverSettingLabel => 'Drives nutrition';
+
+  @override
+  String get noActiveGoalTitle => 'No active goal';
+
+  @override
+  String get noActiveGoalSubtitle =>
+      'Train Libre works completely without preset goals.';
+
+  @override
+  String get noActiveGoalDescription =>
+      'You can set a goal for body weight, body fat, or a custom milestone anytime to enable trajectory tracking and weekly reviews.';
+
+  @override
+  String get createGoalButton => 'Set a goal';
+
+  @override
+  String get goalWaitingForBaselineLabel => 'Waiting for measurement';
+
+  @override
+  String get goalBaselineHeader => 'Start (Baseline)';
+
+  @override
+  String get goalCurrentHeader => 'Current';
+
+  @override
+  String get goalTargetHeader => 'Target';
+
+  @override
+  String get goalProgressSectionTitle => 'Progress & Trajectory';
+
+  @override
+  String goalRemainingDistanceLabel(String distance) {
+    return '$distance remaining';
+  }
+
+  @override
+  String get weekShort => 'week';
+
+  @override
+  String get goalNoTargetDateShort => 'No target date';
+
+  @override
+  String get reviewStatusOnTrack => 'On track';
+
+  @override
+  String get reviewStatusSlower => 'Slower than planned';
+
+  @override
+  String get reviewStatusFaster => 'Faster than planned';
+
+  @override
+  String get reviewStatusCalibrating => 'Calibrating';
+
+  @override
+  String reviewNextAnalysisScheduled(String date) {
+    return 'Next adaptive review on $date (min. 3 weigh-ins & 4 calorie days)';
+  }
+
+  @override
+  String get weeklyReviewCardHeaderBadge => 'Weekly Review';
+
+  @override
+  String get weeklyReviewPendingDefaultExplanation =>
+      'The adaptive engine compares your 7-day trend against your target trajectory.';
+
+  @override
+  String get reviewOpenDetailsButton => 'View Review';
+
+  @override
+  String get applyRecommendationButton => 'Apply recommendation';
+
+  @override
+  String get weeklyReviewScreenTitle => 'Weekly Goal Review';
+
+  @override
+  String get reviewSufficiencyGateTitle => 'Data Basis (Last 7 Days)';
+
+  @override
+  String get reviewWeighInsCountLabel => 'Weigh-ins';
+
+  @override
+  String get reviewLoggedDaysCountLabel => 'Nutrition Logged Days';
+
+  @override
+  String get reviewTrajectoryComparisonTitle => 'Trajectory Comparison';
+
+  @override
+  String get reviewObservedRateLabel => 'Observed Trend';
+
+  @override
+  String get reviewTargetRateLabel => 'Planned Rate';
+
+  @override
+  String get reviewEstimatedTDEELabel => 'Estimated Maintenance (TDEE)';
+
+  @override
+  String get reviewRecommendationTitle => 'Recommended Daily Targets';
+
+  @override
+  String get reviewActionApplyRecommendation =>
+      'Apply recommended daily targets';
+
+  @override
+  String get reviewActionAdjustTrajectory => 'Adjust goal & trajectory';
+
+  @override
+  String get reviewActionKeepCurrent => 'Keep current targets';
+
+  @override
+  String get reviewDismissedSnack =>
+      'Review dismissed. Current targets remain active.';
+
+  @override
+  String get adjustGoalTitle => 'Adjust Goal';
+
+  @override
+  String get adjustGoalDescription =>
+      'Adjust target weight, date, or weekly rate. The remaining variables recalculate synchronously.';
+
+  @override
+  String get adjustGoalFixOptionKeepDate => 'Fixed date';
+
+  @override
+  String get adjustGoalFixOptionKeepRate => 'Fixed rate';
+
+  @override
+  String get adjustGoalExtremeRateWarning =>
+      'Notice: This rate deviates significantly from standard physiological recommendations.';
+
+  @override
+  String get adjustGoalApplyAsSuccessorButton => 'Apply as successor goal';
+
+  @override
+  String get adjustGoalTargetWeightLabel => 'Target weight';
+
+  @override
+  String get adjustGoalTargetDateLabel => 'Target date';
+
+  @override
+  String get adjustGoalWeeklyRateLabel => 'Planned weekly rate';
+
+  @override
+  String get goalDetailScreenTitle => 'Goal Details';
+
+  @override
+  String get retireGoalDialogTitle => 'Retire goal?';
+
+  @override
+  String get retireGoalDialogContent =>
+      'The goal will be archived and will no longer drive adaptive nutrition. You can reactivate it at any time.';
+
+  @override
+  String get retireGoalConfirmButton => 'Retire goal';
+
+  @override
+  String get goalRetiredSuccessSnack => 'Goal has been retired and archived.';
+
+  @override
+  String get resumeGoalDialogTitle => 'Reactivate goal?';
+
+  @override
+  String get resumeGoalDialogContent =>
+      'This goal will become your active goal again and drive adaptive nutrition.';
+
+  @override
+  String get resumeGoalConfirmButton => 'Reactivate';
+
+  @override
+  String get goalResumedSuccessSnack =>
+      'Goal has been reactivated successfully.';
+
+  @override
+  String get goalStatusActive => 'Active';
+
+  @override
+  String get goalStatusRetired => 'Retired';
+
+  @override
+  String get goalStatusSuperseded => 'Superseded';
+
+  @override
+  String goalStartedOnLabel(String date) {
+    return 'Started on $date';
+  }
+
+  @override
+  String get goalDrivesNutritionBadge => 'Drives nutrition';
+
+  @override
+  String get goalDocumentationOnlyBadge => 'Documentation only';
+
+  @override
+  String get goalWaitingForBaselineCalloutTitle =>
+      'Baseline measurement required';
+
+  @override
+  String get goalWaitingForBaselineCalloutDescription =>
+      'No measurement exists on or before the start date for this goal. Log your first weigh-in to calculate progress and trajectory.';
+
+  @override
+  String get recordFirstMeasurementButton => 'Log first measurement';
+
+  @override
+  String get goalWeightHistoryChartTitle => 'Weight Trend & Target Line';
+
+  @override
+  String get goalPersonalMotivationTitle => 'Your Motivation';
+
+  @override
+  String get retireGoalButton => 'Retire goal';
+
+  @override
+  String get resumeGoalButton => 'Reactivate goal';
+
+  @override
+  String get myGoalsOperativeTargetsBanner =>
+      'Go to daily operating targets (Calories, Macros & Water)';
+
+  @override
+  String get myGoalsActiveGoalSectionHeader => 'Active Goal';
+
+  @override
+  String get myGoalsHistorySectionHeader => 'Goal History';
+
+  @override
+  String get goalsScreenToMyGoalsBannerTitle => 'Looking for long-term goals?';
+
+  @override
+  String get goalsScreenToMyGoalsBannerSubtitle =>
+      'Manage your weight trajectories and weekly reviews in \'My Goals\'.';
+
+  @override
+  String get dailyOperatingTargetsTitle => 'Daily Targets';
+
+  @override
+  String get dailyOperatingTargetsSubtitle =>
+      'Calories, Macronutrients & Water';
+
+  @override
+  String get adjustDailyTargetsButton => 'Adjust daily targets';
+
+  @override
+  String get targetCaloriesLabel => 'Daily target';
+
+  @override
+  String get goalNotificationSettingsTitle => 'Goal & Review Notifications';
+
+  @override
+  String get goalNotificationWeeklyReviewTitle => 'Weekly review ready';
+
+  @override
+  String get goalNotificationWeeklyReviewSubtitle =>
+      'Notifies you as soon as a 7-day review is available.';
+
+  @override
+  String get goalNotificationAdaptiveDueTitle => 'Adaptive recommendation due';
+
+  @override
+  String get goalNotificationAdaptiveDueSubtitle =>
+      'Informs you when adjustments to daily targets are available.';
+
+  @override
+  String get goalNotificationTargetDateTitle => 'Target date guidance';
+
+  @override
+  String get goalNotificationTargetDateSubtitle =>
+      'Gentle reminder as your target date approaches (no pressure).';
+
+  @override
+  String get goalNotificationPrivacyNotice =>
+      'All notifications are handled purely locally on your device. Private weight or calorie numbers never appear on the lock screen.';
+
+  @override
+  String get goalMaintainCorridor => '± 1.0 kg (Maintenance)';
+
+  @override
+  String get goalNeedsFirstMeasurementPrompt =>
+      'Log your first weigh-in to view progress and trend.';
+
+  @override
+  String goalRemainingDistanceText(String distance) {
+    return '$distance remaining';
+  }
+
+  @override
+  String get goalMaintenanceStable => 'Stable in target corridor';
+
+  @override
+  String get goalMaintenanceDrifting => 'Slight deviation from corridor';
+
+  @override
+  String get goalNotifyWeeklyReviewTitle => 'Weekly review ready';
+
+  @override
+  String get goalNotifyWeeklyReviewSubtitle =>
+      'Notifies you as soon as a 7-day review is available.';
+
+  @override
+  String get goalNotifyRecommendationDueTitle => 'Adaptive recommendation due';
+
+  @override
+  String get goalNotifyRecommendationDueSubtitle =>
+      'Informs you when adjustments to daily targets are available.';
+
+  @override
+  String get goalNotifyTargetDateTitle => 'Target date guidance';
+
+  @override
+  String get goalNotifyTargetDateSubtitle =>
+      'Gentle reminder as your target date approaches (no pressure).';
+
+  @override
+  String get goalNotifyPrivacyTitle => 'Privacy & Local Handling';
+
+  @override
+  String get goalNotifyPrivacyBody =>
+      'All goal and review notifications are handled purely locally on your device. Private weight or calorie numbers never appear on the lock screen.';
+
+  @override
+  String get goalNotificationSettingsSubtitle =>
+      'Local notifications for reviews and target dates';
+
+  @override
+  String get weeklyGoalReviewNotificationTitle => 'Weekly review ready';
+
+  @override
+  String get weeklyGoalReviewNotificationBody =>
+      'Your new 7-day review is available in the Nutrition Hub.';
+
+  @override
+  String get goalTargetDateReminderTitle => 'Goal target date';
+
+  @override
+  String goalTargetDateReachedBody(String goalTitle) {
+    return 'Your target date for \'$goalTitle\' is today.';
+  }
+
+  @override
+  String goalTargetDateApproachingBody(String goalTitle) {
+    return 'Your target date for \'$goalTitle\' is approaching.';
+  }
+
+  @override
+  String get back => 'Back';
+
+  @override
+  String get yes => 'Yes';
+
+  @override
+  String get no => 'No';
+
+  @override
+  String get retry => 'Retry';
+
+  @override
+  String get saving => 'Saving...';
+
+  @override
+  String get emptyStateMeasurements => 'No measurements recorded yet.';
 }

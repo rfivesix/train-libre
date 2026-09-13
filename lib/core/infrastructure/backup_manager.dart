@@ -308,7 +308,10 @@ class BackupManager {
         userFoodOverrideTranslations:
             await _fetchTable('user_food_override_translations'),
         healthStepSegments: healthStepSegments,
-        offProductsArchive: await _fetchTable('off_products_archive'));
+        offProductsArchive: await _fetchTable('off_products_archive'),
+        userGoals: await _fetchTable('user_goals'),
+        goalEvents: await _fetchTable('goal_events'),
+        goalReviews: await _fetchTable('goal_reviews'));
     final payload = backup.toJson();
     payload['appName'] = currentBackupAppName;
     payload['applicationId'] = currentApplicationId;
@@ -361,6 +364,9 @@ class BackupManager {
     payload['user_food_overrides'] = payload['userFoodOverrides'];
     payload['user_food_override_translations'] =
         payload['userFoodOverrideTranslations'];
+    payload['user_goals'] = payload['userGoals'];
+    payload['goal_events'] = payload['goalEvents'];
+    payload['goal_reviews'] = payload['goalReviews'];
     token?.throwIfCancelled();
 
     onProgress?.call('done', 1.0);
@@ -768,6 +774,9 @@ class BackupManager {
         await dbInst.delete(dbInst.cardioActivities).go();
 
         // Clear general user tables
+        await dbInst.delete(dbInst.goalReviews).go();
+        await dbInst.delete(dbInst.goalEvents).go();
+        await dbInst.delete(dbInst.userGoals).go();
         await dbInst.delete(dbInst.dailyGoalsHistory).go();
         await dbInst.delete(dbInst.supplementSettingsHistory).go();
         await dbInst.customStatement('DELETE FROM health_step_segments');
@@ -1161,6 +1170,12 @@ class BackupManager {
             'user_food_override_translations',
             payload['user_food_override_translations'] ??
                 payload['userFoodOverrideTranslations']);
+        await _importTable('user_goals',
+            payload['user_goals'] ?? payload['userGoals']);
+        await _importTable('goal_events',
+            payload['goal_events'] ?? payload['goalEvents']);
+        await _importTable('goal_reviews',
+            payload['goal_reviews'] ?? payload['goalReviews']);
         token?.throwIfCancelled();
       });
       success = true;

@@ -784,6 +784,64 @@ class UserFoodOverrideTranslations extends Table with HybridId, MetaColumns {
       ];
 }
 
+// 22. UserGoals
+class UserGoals extends Table with HybridId, MetaColumns {
+  TextColumn get userId => text().nullable()();
+  TextColumn get area =>
+      text().withDefault(const Constant('body_composition'))();
+  TextColumn get preset => text()(); // 'loseWeight', 'gainWeight', 'maintainWeight', 'recomposition', 'custom'
+  TextColumn get title => text()();
+  TextColumn get reason => text().nullable()();
+  TextColumn get status =>
+      text().withDefault(const Constant('active'))(); // 'active', 'retired', 'superseded', 'draft'
+  DateTimeColumn get startDate => dateTime()();
+  DateTimeColumn get targetDate => dateTime().nullable()();
+  TextColumn get targetMetric => text().nullable()(); // 'weight', 'body_fat', 'waist', etc.
+  RealColumn get targetValue => real().nullable()();
+  TextColumn get targetUnit => text().nullable()(); // 'kg', 'lbs', '%', 'cm', 'in'
+  RealColumn get desiredWeeklyRateKg => real().nullable()();
+  BoolColumn get isNutritionDriver =>
+      boolean().withDefault(const Constant(false))();
+  TextColumn get predecessorGoalId =>
+      text().nullable().references(UserGoals, #id)();
+  DateTimeColumn get retiredAt => dateTime().nullable()();
+}
+
+// 23. GoalEvents
+class GoalEvents extends Table with HybridId, MetaColumns {
+  TextColumn get goalId =>
+      text().references(UserGoals, #id, onDelete: KeyAction.cascade)();
+  TextColumn get eventType => text()(); // 'created', 'superseded', 'retired', 'resumed'
+  TextColumn get actor =>
+      text().withDefault(const Constant('user'))(); // 'user', 'user_accepted_recommendation', 'engine'
+  DateTimeColumn get occurredAt =>
+      dateTime().withDefault(currentDateAndTime)();
+  TextColumn get recommendationId => text().nullable()();
+  TextColumn get reason => text().nullable()();
+  TextColumn get algorithmVersion => text().nullable()();
+}
+
+// 24. GoalReviews
+class GoalReviews extends Table with HybridId, MetaColumns {
+  TextColumn get goalId =>
+      text().references(UserGoals, #id, onDelete: KeyAction.cascade)();
+  DateTimeColumn get windowStart => dateTime()();
+  DateTimeColumn get windowEnd => dateTime()();
+  TextColumn get status =>
+      text().withDefault(const Constant('pending'))(); // 'pending', 'applied', 'deferred', 'dismissed', 'goal_changed'
+  TextColumn get trajectoryStatus => text().nullable()(); // 'on_track', 'slower', 'faster', 'calibrating'
+  RealColumn get observedRateKgPerWeek => real().nullable()();
+  TextColumn get confidenceLevel => text().nullable()(); // 'high', 'moderate', 'low', 'uncalibrated'
+  RealColumn get tdeeEstimate => real().nullable()();
+  IntColumn get recommendedCalories => integer().nullable()();
+  IntColumn get recommendedProtein => integer().nullable()();
+  IntColumn get recommendedCarbs => integer().nullable()();
+  IntColumn get recommendedFat => integer().nullable()();
+  TextColumn get decision => text().nullable()();
+  TextColumn get algorithmVersion => text()();
+  TextColumn get explanation => text().nullable()();
+}
+
 @DriftDatabase(
   tables: [
     Profiles,
@@ -826,6 +884,9 @@ class UserFoodOverrideTranslations extends Table with HybridId, MetaColumns {
     UserFoodOverrideTranslations,
     OffProductsArchive, // Added
     MealEntries, // Added
+    UserGoals,
+    GoalEvents,
+    GoalReviews,
   ],
 )
 
