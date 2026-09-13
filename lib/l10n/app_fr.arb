@@ -2806,6 +2806,7 @@
   "mealFallbackTitle": "Repas",
   "mealIngredientCount": "{count, plural, =1{1 ingrédient} other{{count} ingrédients}}",
   "mealDetailOptions": "Options",
+  "mealDetailViewMode": "Affichage",
   "mealDetailAddIngredient": "Ajouter un ingrédient",
   "mealDetailSaveAsTemplate": "Enregistrer comme modèle",
   "mealDetailSavedAsTemplate": "Enregistré comme modèle de repas.",

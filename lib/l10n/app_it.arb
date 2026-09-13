@@ -2806,6 +2806,7 @@
   "mealFallbackTitle": "Pasto",
   "mealIngredientCount": "{count, plural, =1{1 ingrediente} other{{count} ingredienti}}",
   "mealDetailOptions": "Opzioni",
+  "mealDetailViewMode": "Visualizza",
   "mealDetailAddIngredient": "Aggiungi ingrediente",
   "mealDetailSaveAsTemplate": "Salva come modello",
   "mealDetailSavedAsTemplate": "Salvato come modello di pasto.",

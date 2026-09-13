@@ -6418,6 +6418,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get mealDetailOptions => 'Options';
 
   @override
+  String get mealDetailViewMode => 'Affichage';
+
+  @override
   String get mealDetailAddIngredient => 'Ajouter un ingrédient';
 
   @override

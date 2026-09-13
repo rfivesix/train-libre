@@ -6312,6 +6312,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mealDetailOptions => 'Options';
 
   @override
+  String get mealDetailViewMode => 'View';
+
+  @override
   String get mealDetailAddIngredient => 'Add ingredient';
 
   @override

@@ -6109,6 +6109,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get mealDetailOptions => 'オプション';
 
   @override
+  String get mealDetailViewMode => '表示';
+
+  @override
   String get mealDetailAddIngredient => '食材を追加';
 
   @override

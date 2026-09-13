@@ -2974,6 +2974,7 @@
     }
   },
   "mealDetailOptions": "Options",
+  "mealDetailViewMode": "View",
   "mealDetailAddIngredient": "Add ingredient",
   "mealDetailSaveAsTemplate": "Save as template",
   "mealDetailSavedAsTemplate": "Saved as a meal template.",

@@ -2805,6 +2805,7 @@
   "mealFallbackTitle": "Mahlzeit",
   "mealIngredientCount": "{count, plural, =1{1 Zutat} other{{count} Zutaten}}",
   "mealDetailOptions": "Optionen",
+  "mealDetailViewMode": "Ansicht",
   "mealDetailAddIngredient": "Zutat hinzufügen",
   "mealDetailSaveAsTemplate": "Als Vorlage speichern",
   "mealDetailSavedAsTemplate": "Als Mahlzeiten-Vorlage gespeichert.",

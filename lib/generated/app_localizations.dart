@@ -11047,6 +11047,12 @@ abstract class AppLocalizations {
   /// **'Options'**
   String get mealDetailOptions;
 
+  /// No description provided for @mealDetailViewMode.
+  ///
+  /// In en, this message translates to:
+  /// **'View'**
+  String get mealDetailViewMode;
+
   /// No description provided for @mealDetailAddIngredient.
   ///
   /// In en, this message translates to:

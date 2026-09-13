@@ -30,6 +30,7 @@ import '../../../services/haptic_feedback_service.dart';
 import 'dialogs/delete_meal_entry_bottom_sheet.dart';
 import 'widgets/meal_photo_widget.dart';
 import 'widgets/meal_review_comparison_card.dart';
+import 'widgets/meal_ingredients_summary.dart';
 import 'general_food_selection_screen.dart';
 import 'food_detail_screen.dart';
 import 'util/meal_moment_format.dart';
@@ -55,6 +56,7 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
   final List<int> _deletedItemIds = [];
   bool _isSaving = false;
   bool _canPop = false;
+  bool _isEditing = false;
   IDiaryRepository? _repo;
 
   @override
@@ -622,6 +624,14 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
           title: _mealEntry.title ?? localizedMealType,
           actions: [
             IconButton(
+              icon: Icon(
+                _isEditing ? LucideIcons.eye : LucideIcons.pencil,
+                size: 20,
+              ),
+              tooltip: _isEditing ? l10n.mealDetailViewMode : l10n.edit,
+              onPressed: () => setState(() => _isEditing = !_isEditing),
+            ),
+            IconButton(
               icon: const Icon(LucideIcons.ellipsis, size: 20),
               tooltip: l10n.mealDetailOptions,
               onPressed: _showOverflowMenu,
@@ -665,7 +675,7 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
                                   key: const ValueKey(
                                       'meal_entry_timestamp_button'),
                                   borderRadius: BorderRadius.circular(8),
-                                  onTap: _pickDateTime,
+                                  onTap: _isEditing ? _pickDateTime : null,
                                   child: Padding(
                                     padding: const EdgeInsets.symmetric(
                                         horizontal: 4, vertical: 2),
@@ -684,14 +694,16 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
                                             ),
                                           ),
                                         ),
-                                        const SizedBox(width: 4),
-                                        Icon(
-                                          LucideIcons.pencil,
-                                          size: 12,
-                                          color: subtitleColor,
-                                          semanticLabel:
-                                              l10n.mealDetailChangeDateTime,
-                                        ),
+                                        if (_isEditing) ...[
+                                          const SizedBox(width: 4),
+                                          Icon(
+                                            LucideIcons.pencil,
+                                            size: 12,
+                                            color: subtitleColor,
+                                            semanticLabel:
+                                                l10n.mealDetailChangeDateTime,
+                                          ),
+                                        ],
                                       ],
                                     ),
                                   ),
@@ -731,57 +743,78 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
 
                         const SizedBox(height: 16),
 
-                        // Ingredients List
+                        // The saved entry opens as a simple receipt. All
+                        // quantities and per-food controls stay behind the
+                        // same explicit edit action as an AI review.
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 20),
-                          child: Column(
-                            children: [
-                              // Same card the review screen uses, so a saved meal
-                              // and a meal being reviewed are one screen with two
-                              // states rather than two things that look alike.
-                              ..._items.asMap().entries.map((entry) {
-                                final idx = entry.key;
-                                final tracked = entry.value;
-                                final factor =
-                                    tracked.entry.quantityInGrams / 100.0;
+                          child: _isEditing
+                              ? Column(
+                                  children: [
+                                    // Same card the review screen uses, so a saved meal
+                                    // and a meal being reviewed are one screen with two
+                                    // states rather than two things that look alike.
+                                    ..._items.asMap().entries.map((entry) {
+                                      final idx = entry.key;
+                                      final tracked = entry.value;
+                                      final factor =
+                                          tracked.entry.quantityInGrams / 100.0;
 
-                                return MealReviewComparisonCard(
-                                  dismissibleKey: ValueKey(
-                                      'meal_item_${tracked.entry.id ?? tracked.item.barcode}_$idx'),
-                                  name: tracked.item.name,
-                                  estimatedGrams: tracked.entry.quantityInGrams,
-                                  // A saved entry carries no open uncertainty; the
-                                  // card hides the chip above 0.7 anyway.
-                                  confidence: 1.0,
-                                  matchedFood: tracked.item,
-                                  issues: const [],
-                                  nutrition: AiNutritionTotals(
-                                    kcal: tracked.item.calories * factor,
-                                    protein: tracked.item.protein * factor,
-                                    carbs: tracked.item.carbs * factor,
-                                    fat: tracked.item.fat * factor,
-                                  ),
-                                  onDismissed: () => _deleteItem(tracked),
-                                  onTap: () => _openItemDetail(tracked),
-                                  onReplace: () => _replaceIngredient(tracked),
-                                  onEditQuantity: () =>
-                                      _showDirectQuantityDialog(tracked),
-                                  onQuickAdjustQuantity: (delta) =>
-                                      _updateQuantity(tracked, delta),
-                                );
-                              }),
+                                      return MealReviewComparisonCard(
+                                        dismissibleKey: ValueKey(
+                                            'meal_item_${tracked.entry.id ?? tracked.item.barcode}_$idx'),
+                                        name: tracked.item.name,
+                                        estimatedGrams:
+                                            tracked.entry.quantityInGrams,
+                                        // A saved entry carries no open uncertainty; the
+                                        // card hides the chip above 0.7 anyway.
+                                        confidence: 1.0,
+                                        matchedFood: tracked.item,
+                                        issues: const [],
+                                        nutrition: AiNutritionTotals(
+                                          kcal: tracked.item.calories * factor,
+                                          protein:
+                                              tracked.item.protein * factor,
+                                          carbs: tracked.item.carbs * factor,
+                                          fat: tracked.item.fat * factor,
+                                        ),
+                                        onDismissed: () => _deleteItem(tracked),
+                                        onTap: () => _openItemDetail(tracked),
+                                        onReplace: () =>
+                                            _replaceIngredient(tracked),
+                                        onEditQuantity: () =>
+                                            _showDirectQuantityDialog(tracked),
+                                        onQuickAdjustQuantity: (delta) =>
+                                            _updateQuantity(tracked, delta),
+                                      );
+                                    }),
 
-                              const SizedBox(height: 8),
+                                    const SizedBox(height: 8),
 
-                              // Add Ingredient Button
-                              AppButton.secondary(
-                                onPressed: _addNewIngredient,
-                                label: l10n.mealDetailAddIngredient,
-                                tooltip: l10n.mealDetailAddIngredient,
-                                icon: LucideIcons.plus,
-                              ),
-                            ],
-                          ),
+                                    // Add Ingredient Button
+                                    AppButton.secondary(
+                                      onPressed: _addNewIngredient,
+                                      label: l10n.mealDetailAddIngredient,
+                                      tooltip: l10n.mealDetailAddIngredient,
+                                      icon: LucideIcons.plus,
+                                    ),
+                                  ],
+                                )
+                              : MealIngredientsSummary(
+                                  ingredients: _items
+                                      .map(
+                                        (item) => MealIngredientSummaryItem(
+                                          name: item.item.name,
+                                          grams: item.entry.quantityInGrams,
+                                          kcal: item.calculatedCalories,
+                                        ),
+                                      )
+                                      .toList(growable: false),
+                                  onEdit: () =>
+                                      setState(() => _isEditing = true),
+                                  onIngredientTap: (index) =>
+                                      _openItemDetail(_items[index]),
+                                ),
                         ),
                       ],
                     ),

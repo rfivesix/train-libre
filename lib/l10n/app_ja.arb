@@ -2806,6 +2806,7 @@
   "mealFallbackTitle": "食事",
   "mealIngredientCount": "{count, plural, other{食材{count}品}}",
   "mealDetailOptions": "オプション",
+  "mealDetailViewMode": "表示",
   "mealDetailAddIngredient": "食材を追加",
   "mealDetailSaveAsTemplate": "テンプレートとして保存",
   "mealDetailSavedAsTemplate": "食事テンプレートとして保存しました。",
