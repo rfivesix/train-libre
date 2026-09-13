@@ -71,6 +71,7 @@ class _VoiceDictationView extends StatefulWidget {
 
 class _VoiceDictationViewState extends State<_VoiceDictationView> {
   final _editController = TextEditingController();
+  final _editFocusNode = FocusNode();
 
   _DictationPhase _phase = _DictationPhase.idle;
   String _liveTranscript = '';
@@ -94,14 +95,32 @@ class _VoiceDictationViewState extends State<_VoiceDictationView> {
     super.initState();
     _editController.text = _baseText;
     _liveTranscript = _baseText;
+    _editFocusNode.addListener(_handleEditFocusChanged);
     unawaited(_loadLocales());
   }
 
   @override
   void dispose() {
     unawaited(VoiceDictationService.instance.cancel());
+    _editFocusNode
+      ..removeListener(_handleEditFocusChanged)
+      ..dispose();
     _editController.dispose();
     super.dispose();
+  }
+
+  /// Leaving the field must also leave edit layout. Otherwise an iOS keyboard
+  /// dismissal leaves the tall transcript editor in place and hides the orb.
+  void _handleEditFocusChanged() {
+    if (!_editFocusNode.hasFocus) _finishEditing();
+  }
+
+  void _finishEditing() {
+    if (!mounted || !_editing) return;
+    setState(() {
+      _liveTranscript = _editController.text;
+      _editing = false;
+    });
   }
 
   Future<void> _loadLocales() async {
@@ -180,6 +199,7 @@ class _VoiceDictationViewState extends State<_VoiceDictationView> {
         if (!mounted) return;
         setState(() => _level = level);
       },
+      onStopped: _handleRecognizerStopped,
     );
 
     if (!mounted) return;
@@ -196,6 +216,16 @@ class _VoiceDictationViewState extends State<_VoiceDictationView> {
       return;
     }
     setState(() => _phase = _DictationPhase.listening);
+    // The native recognizer may have stopped during its startup handshake.
+    // Do not leave the sheet visually recording when iOS has released the mic.
+    if (!VoiceDictationService.instance.isListening) {
+      unawaited(_stop());
+    }
+  }
+
+  void _handleRecognizerStopped() {
+    if (!mounted || _phase != _DictationPhase.listening) return;
+    unawaited(_stop());
   }
 
   String _merge(String spoken) =>
@@ -504,6 +534,9 @@ class _VoiceDictationViewState extends State<_VoiceDictationView> {
 
     final isListening = _phase == _DictationPhase.listening;
     final hasText = _liveTranscript.trim().isNotEmpty;
+    final isTranscriptionInProgress = _phase == _DictationPhase.starting ||
+        _phase == _DictationPhase.listening ||
+        _phase == _DictationPhase.tidying;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -622,6 +655,7 @@ class _VoiceDictationViewState extends State<_VoiceDictationView> {
             child: _editing
                 ? TextField(
                     controller: _editController,
+                    focusNode: _editFocusNode,
                     autofocus: true,
                     maxLines: null,
                     expands: false,
@@ -633,6 +667,7 @@ class _VoiceDictationViewState extends State<_VoiceDictationView> {
                       hintStyle: TextStyle(color: muted),
                     ),
                     onChanged: (value) => _liveTranscript = value,
+                    onTapOutside: (_) => _editFocusNode.unfocus(),
                   )
                 : SingleChildScrollView(
                     child: GestureDetector(
@@ -691,7 +726,9 @@ class _VoiceDictationViewState extends State<_VoiceDictationView> {
         // photo already taken is a real flow — the example hint above literally
         // advertises it — and it would be lost if this only ever sent.
         AppButton.primary(
-          onPressed: () => _finish(analyzeNow: true),
+          onPressed: hasText && !isTranscriptionInProgress
+              ? () => _finish(analyzeNow: true)
+              : null,
           label: widget.analyzeLabel,
           tooltip: widget.analyzeLabel,
         ),

@@ -279,7 +279,7 @@ class _FoodExplorerScreenState extends State<FoodExplorerScreen>
           height: 48,
           width: 48,
           decoration: BoxDecoration(
-            color: const Color(0xFFC9EF00),
+            color: Theme.of(context).colorScheme.primary,
             borderRadius: BorderRadius.circular(14),
           ),
           child: const Icon(
