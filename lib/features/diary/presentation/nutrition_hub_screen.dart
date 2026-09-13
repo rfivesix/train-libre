@@ -12,15 +12,19 @@ import '../../../widgets/common/bottom_content_spacer.dart';
 import '../../../widgets/common/card_morph_route.dart';
 import '../../../widgets/common/common.dart';
 import '../../../widgets/common/summary_card.dart';
+import 'package:provider/provider.dart';
+import '../../analytics/domain/models/chart_data_point.dart';
 import '../../nutrition_recommendation/data/recommendation_service.dart';
 import '../../nutrition_recommendation/presentation/nutrition_recommendation_card.dart';
 import '../../profile/data/goal_repository_impl.dart';
 import '../../profile/domain/models/goal_model.dart';
 import '../../profile/domain/models/goal_progress.dart';
 import '../../profile/domain/repositories/goal_repository.dart';
+import '../../profile/domain/repositories/profile_repository.dart';
+import '../../profile/presentation/goal_detail_screen.dart';
 import '../../profile/presentation/my_goals_screen.dart';
+import '../../profile/presentation/widgets/active_goal_dashboard_widget.dart';
 import '../../profile/presentation/widgets/adaptive_review_card.dart';
-import '../../profile/presentation/widgets/goal_progress_hero_card.dart';
 import '../../supplements/presentation/supplement_hub_screen.dart';
 import 'add_food_screen.dart';
 import 'meal_screen.dart';
@@ -48,6 +52,8 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
   late final IGoalRepository _goalRepository;
   bool _isApplyingRecommendation = false;
 
+  IProfileRepository? _profileRepo;
+
   @override
   void initState() {
     super.initState();
@@ -57,6 +63,7 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    _profileRepo ??= context.read<IProfileRepository>();
     if (_hubDataFuture == null) {
       _hubDataFuture = _loadHubData(refreshIfDue: false);
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -92,9 +99,44 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
     final activeGoal = await _goalRepository.getActiveGoal();
     GoalProgress? activeProgress;
     GoalReviewRecord? pendingReview;
+    List<ChartDataPoint> chartPoints = [];
     if (activeGoal != null) {
       activeProgress = await _goalRepository.getGoalProgress(activeGoal);
       pendingReview = await _goalRepository.getPendingReview(activeGoal.id);
+
+      final profileRepo = _profileRepo;
+      final startDate = activeGoal.startDate.subtract(const Duration(days: 1));
+      final endDate = DateTime.now().add(const Duration(days: 1));
+      if (profileRepo != null) {
+        try {
+          chartPoints = await profileRepo.getChartDataForTypeAndRange(
+            'weight',
+            DateTimeRange(start: startDate, end: endDate),
+          );
+        } catch (_) {
+          chartPoints = [];
+        }
+      }
+
+      final baseline = activeProgress?.baselineValue;
+      if (baseline != null) {
+        if (chartPoints.isEmpty) {
+          chartPoints = [
+            ChartDataPoint(
+              date: activeGoal.startDate,
+              value: baseline,
+            ),
+          ];
+        } else if (chartPoints.first.date.isAfter(activeGoal.startDate)) {
+          chartPoints.insert(
+            0,
+            ChartDataPoint(
+              date: activeGoal.startDate,
+              value: baseline,
+            ),
+          );
+        }
+      }
     }
 
     final recommendationState =
@@ -106,6 +148,7 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
       'activeGoal': activeGoal,
       'activeProgress': activeProgress,
       'pendingReview': pendingReview,
+      'chartPoints': chartPoints,
       'recommendationState': recommendationState,
     };
   }
@@ -227,6 +270,8 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
           final meals = data['meals'] as List<Map<String, dynamic>>;
           final activeGoal = data['activeGoal'] as Goal?;
           final activeProgress = data['activeProgress'] as GoalProgress?;
+          final chartPoints =
+              (data['chartPoints'] as List<ChartDataPoint>?) ?? const [];
           final pendingReview = data['pendingReview'] as GoalReviewRecord?;
           final recommendationState = data['recommendationState']
               as AdaptiveNutritionRecommendationState;
@@ -236,12 +281,25 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
             child: ListView(
               padding: finalPadding,
               children: [
-                // Modul 1: Ziel- & Fortschrittskarte
+                // Modul 1: Ziel- & Fortschrittskarte (Vollständiges Goal-Dashboard)
                 RepaintBoundary(
-                  child: GoalProgressHeroCard(
+                  child: ActiveGoalDashboardWidget(
                     goal: activeGoal,
                     progress: activeProgress,
+                    chartPoints: chartPoints,
                     onRefresh: _refreshData,
+                    bleedChartToEdges: true,
+                    onHeaderTap: activeGoal != null
+                        ? () async {
+                            await Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) =>
+                                    GoalDetailScreen(goalId: activeGoal.id),
+                              ),
+                            );
+                            _refreshData();
+                          }
+                        : null,
                   ),
                 ),
                 const SizedBox(height: DesignConstants.spacingL),
