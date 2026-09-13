@@ -1,0 +1,383 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="WidgetKit (iOS) and Glance/AppWidgetProvider (Android) background snapshots.">
+  <title>Home Screen Widgets (iOS &amp; Cross-Platform Architecture) | Train Libre Documentation</title>
+  <link rel="canonical" href="https://trainlibre.com/docs/developer/ios-home-screen-widgets/">
+
+  <link rel="icon" type="image/png" sizes="32x32" href="../../../favicon.png?v=2">
+  <link rel="apple-touch-icon" sizes="180x180" href="../../../assets/apple-touch-icon.png">
+
+  <!-- Open Graph -->
+  <meta property="og:site_name" content="Train Libre Documentation">
+  <meta property="og:title" content="Home Screen Widgets (iOS &amp; Cross-Platform Architecture) | Train Libre">
+  <meta property="og:description" content="WidgetKit (iOS) and Glance/AppWidgetProvider (Android) background snapshots.">
+  <meta property="og:url" content="https://trainlibre.com/docs/developer/ios-home-screen-widgets/">
+  <meta property="og:type" content="article">
+  <meta property="og:image" content="https://trainlibre.com/assets/og-image.png">
+
+  <!-- KaTeX CSS (CDN primary with local fallback) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+  <link rel="stylesheet" href="../../../katex.min.css">
+
+  <!-- Train Libre Design System & Dedicated Docs Styles -->
+  <link rel="stylesheet" href="../../../style.css">
+  <link rel="stylesheet" href="../../docs.css">
+
+  <!-- KaTeX Auto-render Script -->
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" defer onload="renderMathInElement(document.body, {
+    delimiters: [
+      {left: '$$', right: '$$', display: true},
+      {left: '$', right: '$', display: false}
+    ],
+    throwOnError: false
+  });"></script>
+
+  <!-- Mermaid.js for Architecture Diagrams -->
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      if (typeof mermaid !== "undefined") {
+        const isDark = document.documentElement.getAttribute("data-theme") !== "light";
+        mermaid.initialize({
+          startOnLoad: true,
+          theme: isDark ? "dark" : "default",
+          themeVariables: isDark ? {
+            darkMode: true,
+            background: "#151815",
+            primaryColor: "#1b1f1b",
+            primaryTextColor: "#f4f6f4",
+            primaryBorderColor: "rgba(221, 255, 0, 0.4)",
+            lineColor: "#ddff00",
+            secondaryColor: "#151815",
+            tertiaryColor: "#0e100e"
+          } : {}
+        });
+      }
+    });
+  </script>
+
+  <!-- Prevent Theme Flash -->
+  <script>
+    (function () {
+      const theme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: light)').matches ? "light" : "dark");
+      document.documentElement.setAttribute("data-theme", theme);
+    })();
+  </script>
+</head>
+<body class="docs-body">
+  <div class="page">
+    <!-- Header -->
+    <header class="docs-header">
+      <nav class="docs-nav" aria-label="Documentation navigation">
+        <a class="brand" href="../../../index.html" aria-label="Train Libre Home">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 270.933 270.933" role="img">
+              <path fill="#ddff00"
+                d="M47.621 39.688c-4.385 0-7.939 3.554-7.939 7.939v116.172c0 37.238 30.188 67.472 67.426 67.459l13.482-.006c.15.003.3.005.451.005h89.722c11.367 0 20.518-9.154 20.518-20.525s-9.151-20.525-20.518-20.525h-42.739a7.937 7.937 0 0 1-7.937-7.937v-25.174a7.937 7.937 0 0 1 7.937-7.937l41.159-.001c12.244 0 22.101-9.154 22.1-20.525-.001-11.371-9.859-20.525-22.103-20.525l-41.156.001a7.937 7.937 0 0 1-7.937-7.937V47.627c0-4.385-3.555-7.939-7.939-7.939z" />
+            </svg>
+          </span>
+          <span class="brand-name">Train Libre</span>
+          <span class="docs-badge">Docs</span>
+        </a>
+
+        <div class="nav-links">
+          <a href="../../../index.html" class="nav-link">Website</a>
+          <a class="nav-priority" href="https://github.com/rfivesix/train-libre" target="_blank" rel="noreferrer">GitHub</a>
+        </div>
+
+        <div class="nav-controls">
+          <button id="theme-toggle" class="control-btn" aria-label="Toggle Theme">
+            <svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="5"></circle>
+              <line x1="12" y1="1" x2="12" y2="3"></line>
+              <line x1="12" y1="21" x2="12" y2="23"></line>
+              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+              <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+              <line x1="1" y1="12" x2="3" y2="12"></line>
+              <line x1="21" y1="12" x2="23" y2="12"></line>
+              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+              <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+            </svg>
+            <svg class="moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+            </svg>
+          </button>
+          
+          <button id="sidebar-toggle" class="control-btn mobile-menu-btn" aria-label="Open sidebar menu" aria-expanded="false">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="3" y1="12" x2="21" y2="12"></line>
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+      </nav>
+    </header>
+
+    <!-- Docs Main Layout -->
+    <div class="docs-container">
+      <!-- Left Sidebar -->
+      <aside id="docs-sidebar" class="docs-sidebar" aria-label="Documentation sidebar">
+        <div class="sidebar-header-search">
+          <input type="text" id="sidebar-filter" placeholder="Filter topics..." aria-label="Filter topics in documentation">
+        </div>
+        <div class="sidebar-scroll-area">
+          <div class="sidebar-group"><div class="sidebar-group-title">Overview</div><ul class="sidebar-nav-list">
+<li><a href="../../index.html" class="sidebar-link">Documentation Suite Overview</a></li>
+</ul></div>
+<div class="sidebar-group"><div class="sidebar-group-title">Features &amp; Heuristics</div><ul class="sidebar-nav-list">
+<li><a href="../../features/overview/index.html" class="sidebar-link">Capabilities &amp; Privacy</a></li>
+<li><a href="../../features/sleep-scoring-engine/index.html" class="sidebar-link">Sleep Health Score (SHS v3.5)</a></li>
+<li><a href="../../features/muscle-recovery-model/index.html" class="sidebar-link">Muscle Recovery &amp; Readiness</a></li>
+<li><a href="../../features/bayesian-tdee-estimator/index.html" class="sidebar-link">Bayesian TDEE Estimator</a></li>
+<li><a href="../../features/macro-distribution/index.html" class="sidebar-link">Macronutrient Distribution</a></li>
+<li><a href="../../features/workout-progression-engine/index.html" class="sidebar-link">Workout Progression Engine</a></li>
+<li><a href="../../features/intelligent-workouts/index.html" class="sidebar-link">Estimated 1-Rep Max (e1RM)</a></li>
+<li><a href="../../features/meal-capture-pipeline/index.html" class="sidebar-link">Meal Capture Pipeline</a></li>
+<li><a href="../../features/byok-ai-validation/index.html" class="sidebar-link">BYOK AI Meal Validation</a></li>
+<li><a href="../../features/depth-scale-hint/index.html" class="sidebar-link">Depth Scale Hint (LiDAR)</a></li>
+<li><a href="../../features/health-sync-export/index.html" class="sidebar-link">Native Health Sync &amp; Export</a></li>
+<li><a href="../../features/live-activity-workout/index.html" class="sidebar-link">Live Activity &amp; Workout Session</a></li>
+</ul></div>
+<div class="sidebar-group"><div class="sidebar-group-title">Developer &amp; Architecture</div><ul class="sidebar-nav-list">
+<li><a href="../overview/index.html" class="sidebar-link">Developer Overview &amp; Tests</a></li>
+<li><a href="../architecture/index.html" class="sidebar-link">System Architecture &amp; Wiring</a></li>
+<li><a href="../data-flow-and-state/index.html" class="sidebar-link">Data Flow &amp; State Lifecycle</a></li>
+<li><a href="../localization-architecture/index.html" class="sidebar-link">Localization Architecture</a></li>
+<li><a href="index.html" class="sidebar-link active" aria-current="page">Home Screen Widgets</a></li>
+</ul></div>
+        </div>
+      </aside>
+
+      <!-- Center Article Content -->
+      <main class="docs-main" id="main-content">
+        <div class="docs-breadcrumb" aria-label="Breadcrumb">
+          <a href="../../../index.html">Home</a> <span class="bc-sep">/</span> <a href="../../index.html">Docs</a> <span class="bc-sep">/</span> <span>Developer</span>
+        </div>
+
+        <article class="docs-article">
+          <h1 class="doc-title">Home Screen Widgets (iOS & Cross-Platform Architecture)</h1>
+<p>Train Libre brings glanceable diary, activity, recovery, and workout metrics directly to the user's Home Screen without compromising offline autonomy or data privacy.</p>
+<p>The widget suite is driven by a shared, pure Dart snapshot architecture (<code>lib/features/home_widgets/</code>) that synchronizes state over the <code>trainlibre.widgets/home_screen</code> MethodChannel to native platforms: - <strong>iOS 18+</strong>: Native SwiftUI widgets via WidgetKit in <code>ios/TrainLibreLiveActivity/</code>, sharing data through an App Group container (<code>group.com.rfivesix.trainlibre</code>). - <strong>Android 12+</strong>: Native widgets via Jetpack Glance and custom canvas renderers in <code>android/app/src/main/kotlin/com/rfivesix/trainlibre/widgets/</code>, plus an Android Quick Settings Tile (<code>QuickActionTileService</code>).</p>
+<blockquote><p>Like everything else in Train Libre, widgets run entirely on the device. Widgets read a serialized JSON snapshot written directly by the app into local platform storage — no external server, no network connection, and no background fetch.</p></blockquote>
+<hr class="divider">
+<h2 id="the-widget-family" class="doc-h2">The Widget Family<a href="#the-widget-family" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>The snapshot provides data for six distinct widget surfaces across both platforms:</p>
+<ol class="doc-list">
+<li><strong>Heute im Blick / Today Glance</strong> (<code>.systemMedium</code> on iOS; 4x2 on Android):</li>
+<li>The diary's six-tile nutrition grid rendered 1:1 with <code>NutritionSummaryWidget</code> (Calories, Protein, Water, Carbohydrates, Extra Nutrient [fibre/sugar/salt], and Fat) including progress fills and targets. Tapping opens the diary.</li>
+<li><strong>Schnellzugriff / Quick Actions</strong> (<code>.systemSmall</code> / <code>.systemMedium</code> on iOS; 2x2 / 4x2 on Android):</li>
+<li>Configurable action shortcuts (AI meal capture, barcode scanner, start workout, log measurement, log supplement, add fluid). Tapping directly deep-links to that specific flow. On Android, also available as a Quick Settings Tile.</li>
+<li><strong>Schritte / Steps</strong> (<code>.systemSmall</code> / <code>.systemMedium</code> on iOS; 2x2 / 4x2 on Android):</li>
+<li>Current day's step count against the active daily goal, paired with an hourly/daily bar chart.</li>
+<li><strong>Messwerte / Measurements</strong> (<code>.systemSmall</code> / <code>.systemMedium</code> on iOS; 2x2 / 4x2 on Android):</li>
+<li>User-selected body metric (weight, body fat, waist circumference, etc.) showing the latest reading, change over time, and a historical sparkline chart. Configured via native configuration intents/activities.</li>
+<li><strong>Muskel-Erholung / Muscle Recovery</strong> (<code>.systemSmall</code> / <code>.systemMedium</code> on iOS; 2x2 / 4x2 on Android):</li>
+<li>Heuristic muscle readiness breakdown, showing percentages and counts for <em>Recovering</em>, <em>Ready</em>, and <em>Fresh</em> muscle groups. Tapping navigates to the Recovery Tracker.</li>
+<li><strong>Letztes Workout / Last Workout</strong> (<code>.systemMedium</code> / <code>.systemLarge</code> on iOS; 4x2 / 4x3 on Android):</li>
+<li>Summary of the most recently completed workout session (duration, tonnage, total reps, sets) alongside a rendered muscle heatmap image (<code>last_workout_heatmap_&lt;id&gt;.png</code>).</li>
+</ol>
+<hr class="divider">
+<h2 id="architecture-data-flow" class="doc-h2">Architecture & Data Flow<a href="#architecture-data-flow" class="header-anchor" aria-label="Link to section">#</a></h2>
+<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">text</span><button class="copy-btn" onclick="navigator.clipboard.writeText(this.closest('.code-block-wrapper').querySelector('code').innerText); this.textContent='Copied!'; setTimeout(()=>this.textContent='Copy', 1500);">Copy</button></div><pre><code>Flutter (Source of Truth)                       Native Platform Storage                  Native Widget Renderers
+─────────────────────────                       ───────────────────────                  ───────────────────────
+[Repositories: Diary, Workout, Profile]
+         │
+         ▼
+HomeWidgetSyncService                           iOS: App Group UserDefaults              iOS: WidgetKit Extension
+  (Listens to reactive repository changes,        (suiteName: group.com.rfivesix...)       (TimelineProvider -&gt; SwiftUI)
+   builds HomeWidgetSnapshot JSON)                        │
+         │                                                │
+         ├──MethodChannel (trainlibre.widgets/home_screen)┤
+         │                                                │
+         ▼                                                ▼
+HomeWidgetChannel                               Android: SharedPreferences               Android: Glance &amp; AppWidget
+  .writeSnapshot(json)                            (HomeWidgetStore)                        (HomeWidgetRefresher -&gt; Renderers)
+  .writeSharedFile(heatmapBytes)</code></pre></div>
+<h3 id="snapshot-payload-homewidgetsnapshot-schema-v2" class="doc-h3">Snapshot Payload (<code>HomeWidgetSnapshot</code> Schema v2)<a href="#snapshot-payload-homewidgetsnapshot-schema-v2" class="header-anchor" aria-label="Link to section">#</a></h3>
+<p>The snapshot (<code>HomeWidgetSnapshot</code>) holds <strong>aggregate totals, targets, and presentation metrics only</strong>: - No food names, exact timestamps, or granular user log entries ever reach the shared container. - <code>schemaVersion: 2</code> supports nullable modular sections (<code>recovery</code>, <code>steps</code>, <code>measurements</code>, <code>lastWorkout</code>, <code>tiles</code>). Missing sections gracefully degrade to an empty state rather than causing decoding failures. - <code>rolloverHour</code>: Sent explicitly in the snapshot (default 3 AM) so native timeline providers know when to zero out the nutrition grid without duplicating Dart rollover rules.</p>
+<h3 id="push-based-updates-timeline-budgeting" class="doc-h3">Push-Based Updates & Timeline Budgeting<a href="#push-based-updates-timeline-budgeting" class="header-anchor" aria-label="Link to section">#</a></h3>
+<p>Nutrition and workout data cannot change while the app is closed. A snapshot written on each mutation and on app backgrounding is exact. Polling data that provably did not change would exhaust OS widget reload budgets (WidgetKit budgets ~40–70 reloads per day).</p>
+<p>The synchronization uses <strong>push</strong>: - The app updates the snapshot and requests a timeline reload whenever relevant data changes. - Two timeline entries are scheduled on iOS: the current moment, and the next day rollover (<code>snapshot.zeroed(forDayKey:)</code>), ensuring the widget rolls over cleanly even if the app remains closed past 03:00.</p>
+<hr class="divider">
+<h2 id="where-the-code-lives" class="doc-h2">Where the Code Lives<a href="#where-the-code-lives" class="header-anchor" aria-label="Link to section">#</a></h2>
+<h3 id="cross-platform-dart-layer-libfeatureshomewidgets" class="doc-h3">Cross-Platform Dart Layer (<code>lib/features/home_widgets/</code>)<a href="#cross-platform-dart-layer-libfeatureshomewidgets" class="header-anchor" aria-label="Link to section">#</a></h3>
+<ul class="doc-list">
+<li><code>domain/models/home_widget_snapshot.dart</code>: Schema version 2 snapshot model, tiles, recovery, steps, measurements, and workout structures with JSON serialization.</li>
+<li><code>domain/build_home_widget_snapshot.dart</code>: Pure builder function transforming domain repository entities into the platform snapshot.</li>
+<li><code>data/home_widget_channel.dart</code>: Wraps the <code>trainlibre.widgets/home_screen</code> MethodChannel (writeSnapshot, writeSharedFile, sharedFileExists, clearSnapshot).</li>
+<li><code>application/home_widget_sync_service.dart</code>: Listens to diary, profile, supplement, and workout repositories, building and pushing snapshots.</li>
+<li><code>application/workout_heatmap_publisher.dart</code>: Renders muscle fatigue heatmaps into PNG byte buffers and publishes them to shared storage.</li>
+<li><code>home_widget_deep_link.dart</code>: Unified deep-link parser routing incoming <code>trainlibre://widget/&lt;action&gt;</code> URLs.</li>
+</ul>
+<h3 id="ios-implementation-ios" class="doc-h3">iOS Implementation (<code>ios/</code>)<a href="#ios-implementation-ios" class="header-anchor" aria-label="Link to section">#</a></h3>
+<div class="table-responsive"><table class="doc-table"><thead><tr><th>File</th><th>Role</th></tr></thead><tbody><tr><td><code>ios/LiveActivity/HomeWidgetShared.swift</code></td><td>Snapshot decoding, day maths, Dart-compatible number formatting</td></tr><tr><td><code>ios/LiveActivity/HomeWidgetBridge.swift</code></td><td><code>trainlibre.widgets/home_screen</code> MethodChannel implementation</td></tr><tr><td><code>ios/TrainLibreLiveActivity/TodayGlanceWidget.swift</code></td><td>Nutrition grid widget, configuration intent, timeline provider</td></tr><tr><td><code>ios/TrainLibreLiveActivity/TodayGlanceViews.swift</code></td><td>SwiftUI grid layout and progress bar rendering</td></tr><tr><td><code>ios/TrainLibreLiveActivity/QuickActionsWidget.swift</code></td><td>Quick action launcher widget, configuration intent, tiles</td></tr><tr><td><code>ios/TrainLibreLiveActivity/StepsWidget.swift</code></td><td>Steps counter and bar chart widget</td></tr><tr><td><code>ios/TrainLibreLiveActivity/MeasurementsWidget.swift</code></td><td>Metric tracking and trend line widget</td></tr><tr><td><code>ios/TrainLibreLiveActivity/RecoveryWidget.swift</code></td><td>Muscle readiness pills and breakdown widget</td></tr><tr><td><code>ios/TrainLibreLiveActivity/LastWorkoutWidget.swift</code></td><td>Workout recap and muscle heatmap viewer</td></tr><tr><td><code>ios/TrainLibreLiveActivity/Localizable.xcstrings</code></td><td>Native localization for widget gallery and configuration UI</td></tr></tbody></table></div>
+<h3 id="android-implementation-androidappwidgets" class="doc-h3">Android Implementation (<code>android/app/.../widgets/</code>)<a href="#android-implementation-androidappwidgets" class="header-anchor" aria-label="Link to section">#</a></h3>
+<div class="table-responsive"><table class="doc-table"><thead><tr><th>File</th><th>Role</th></tr></thead><tbody><tr><td><code>HomeWidgetBridge.kt</code></td><td>MethodChannel handling snapshot persistence and file writing</td></tr><tr><td><code>snapshot/HomeWidgetStore.kt</code></td><td>Stores and parses <code>HomeWidgetSnapshot</code> from SharedPreferences</td></tr><tr><td><code>HomeWidgetRefresher.kt</code></td><td>Broadcasts update intents to all active AppWidgets and tile services</td></tr><tr><td><code>TodayGlanceWidget.kt</code></td><td>Nutrition summary widget provider</td></tr><tr><td><code>QuickActionsWidget.kt</code></td><td>Quick action shortcut widget provider</td></tr><tr><td><code>StepsWidget.kt</code></td><td>Step counter widget provider with bar chart</td></tr><tr><td><code>MeasurementsWidget.kt</code></td><td>Measurement widget provider with trend chart</td></tr><tr><td><code>RecoveryWidget.kt</code></td><td>Muscle recovery widget provider</td></tr><tr><td><code>LastWorkoutWidget.kt</code></td><td>Last workout widget provider with heatmap display</td></tr><tr><td><code>charts/*</code></td><td>Custom Canvas chart renderers (<code>MeasurementChartRenderer</code>, <code>StepsBarChartRenderer</code>, etc.)</td></tr><tr><td><code>config/*Activity.kt</code></td><td>Interactive configuration activities for widget instances</td></tr><tr><td><code>tiles/QuickActionTileService.kt</code></td><td>Quick Settings tile for immediate action triggering</td></tr><tr><td><code>WidgetDeepLinks.kt</code></td><td>Native Android deep-link generator</td></tr></tbody></table></div>
+<hr class="divider">
+<h2 id="ios-implementation-details-lessons-learned" class="doc-h2">iOS Implementation Details & Lessons Learned<a href="#ios-implementation-details-lessons-learned" class="header-anchor" aria-label="Link to section">#</a></h2>
+<ol class="doc-list">
+<li><strong><code>Button(intent:)</code> does not work in these widgets</strong>:</li>
+<li>Tiles built with <code>Button(intent: OpenURLIntent(...))</code> render and accept taps, but <code>perform()</code> is not invoked reliably. Instead, SwiftUI <code>Link</code> is handled directly by SpringBoard and works reliably across <code>.systemSmall</code> and <code>.systemMedium</code> on iOS 18+.</li>
+<li><strong><code>GeometryReader</code> layout root constraints</strong>:</li>
+<li><code>GeometryReader</code> has no intrinsic size. Stacking them in a <code>VStack</code> divides height unpredictably. Layouts use <code>ZStack</code> as the root, placing <code>GeometryReader</code> strictly inside fill masks where layout sizes are already settled.</li>
+<li><strong><code>String(format: &quot;%.1f&quot;)</code> vs Dart <code>toStringAsFixed(1)</code></strong>:</li>
+<li>C string formatting breaks exact ties to even numbers, whereas Dart breaks ties away from zero (e.g., 40.25 rounds to 40.2 in C, but 40.3 in Dart). <code>HomeWidgetTile.dartFixed(_:_:)</code> in <code>HomeWidgetShared.swift</code> parses the printed expansion of the double to match Dart's output exactly, verified by unit tests.</li>
+<li><strong>Configuration Intent Restoration</strong>:</li>
+<li>Each quick action slot on iOS uses a dedicated <code>AppEnum</code> (<code>QuickActionSlot1</code> through <code>QuickActionSlot4</code>). This prevents iOS 18 from resetting all parameters when sharing an identical enum type.</li>
+</ol>
+<hr class="divider">
+<h2 id="automated-verification-tests" class="doc-h2">Automated Verification & Tests<a href="#automated-verification-tests" class="header-anchor" aria-label="Link to section">#</a></h2>
+<ul class="doc-list">
+<li><code>test/features/home_widgets/build_home_widget_snapshot_test.dart</code>: Validates snapshot day rollover across 03:00, metric/imperial conversions, color hex mapping, and empty-state fallbacks.</li>
+<li><code>test/features/home_widgets/home_widget_deep_link_test.dart</code>: Validates routing for every action key, unknown keys, malformed URLs, and Live Activity URL isolation.</li>
+<li><code>test/features/home_widgets/workout_heatmap_publisher_test.dart</code>: Tests heatmap rendering and App Group image file writing.</li>
+<li><code>ios/RunnerTests/HomeWidgetSharedTests.swift</code>: Tests Swift snapshot decoding, next-rollover calculation, progress clamping, and Dart-identical number formatting tables.</li>
+</ul>
+<hr class="divider">
+<h2 id="design-considerations-future-refinements" class="doc-h2">Design Considerations & Future Refinements<a href="#design-considerations-future-refinements" class="header-anchor" aria-label="Link to section">#</a></h2>
+<ul class="doc-list">
+<li><strong>Tinted & Clear Home Screen Modes (iOS 18+)</strong>: High-saturation category colors may desaturate under tinted Home Screen settings. Reviewing <code>widgetAccentedRenderingMode</code> behavior on physical hardware remains an aesthetic consideration.</li>
+<li><strong>Direct Interactive Actions</strong>: Quick action shortcuts open the app immediately. Future inline completions (such as logging a fixed water amount without opening the app) can follow the Live Activity command-queue pattern (<code>pendingCommandsKey</code>).</li>
+</ul>
+        </article>
+
+        <nav class="docs-pager" aria-label="Documentation navigation">
+<a href="../localization-architecture/index.html" class="pager-card pager-prev"><span class="pager-label">← Previous</span><span class="pager-title">Localization Architecture</span></a>
+</nav>
+      </main>
+
+      <!-- Right Table of Contents -->
+      <aside class="docs-toc" aria-label="Table of contents"><div class="toc-sticky-box"><div class="toc-heading">On this page</div><ul class="toc-list">
+<li class="toc-item toc-item-l2"><a href="#the-widget-family">The Widget Family</a></li>
+<li class="toc-item toc-item-l2"><a href="#architecture-data-flow">Architecture &amp; Data Flow</a></li>
+<li class="toc-item toc-item-l3"><a href="#snapshot-payload-homewidgetsnapshot-schema-v2">Snapshot Payload (HomeWidgetSnapshot Schema v2)</a></li>
+<li class="toc-item toc-item-l3"><a href="#push-based-updates-timeline-budgeting">Push-Based Updates &amp; Timeline Budgeting</a></li>
+<li class="toc-item toc-item-l2"><a href="#where-the-code-lives">Where the Code Lives</a></li>
+<li class="toc-item toc-item-l3"><a href="#cross-platform-dart-layer-libfeatureshomewidgets">Cross-Platform Dart Layer (lib/features/homewidgets/)</a></li>
+<li class="toc-item toc-item-l3"><a href="#ios-implementation-ios">iOS Implementation (ios/)</a></li>
+<li class="toc-item toc-item-l3"><a href="#android-implementation-androidappwidgets">Android Implementation (android/app/.../widgets/)</a></li>
+<li class="toc-item toc-item-l2"><a href="#ios-implementation-details-lessons-learned">iOS Implementation Details &amp; Lessons Learned</a></li>
+<li class="toc-item toc-item-l2"><a href="#automated-verification-tests">Automated Verification &amp; Tests</a></li>
+<li class="toc-item toc-item-l2"><a href="#design-considerations-future-refinements">Design Considerations &amp; Future Refinements</a></li>
+</ul></div></aside>
+    </div>
+
+    <!-- Footer (100% harmonized with main website footer) -->
+    <footer class="site-footer">
+      <div>
+        <a class="brand" href="../../../index.html" aria-label="Train Libre home">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 270.933 270.933" role="img">
+              <path fill="#ddff00"
+                d="M47.621 39.688c-4.385 0-7.939 3.554-7.939 7.939v116.172c0 37.238 30.188 67.472 67.426 67.459l13.482-.006c.15.003.3.005.451.005h89.722c11.367 0 20.518-9.154 20.518-20.525s-9.151-20.525-20.518-20.525h-42.739a7.937 7.937 0 0 1-7.937-7.937v-25.174a7.937 7.937 0 0 1 7.937-7.937l41.159-.001c12.244 0 22.101-9.154 22.1-20.525-.001-11.371-9.859-20.525-22.103-20.525l-41.156.001a7.937 7.937 0 0 1-7.937-7.937V47.627c0-4.385-3.555-7.939-7.939-7.939z" />
+            </svg>
+          </span>
+          <span>Train Libre</span>
+        </a>
+        <p class="fine-print">Fitness, nutrition, recovery, and pulse features are non-clinical heuristics for healthy individuals tracking performance, not medical advice. They do not apply to medical conditions (such as eating or sleep disorders).</p>
+      </div>
+      <div class="footer-links">
+        <a href="../../index.html">Documentation</a>
+        <a href="../../../privacy.html">Privacy Policy</a>
+        <a href="../../../terms.html">Terms of Service</a>
+        <a href="../../../impressum.html">Imprint</a>
+        <a href="../../../support.html">Support</a>
+        <a href="https://github.com/rfivesix/train-libre" data-link="github" target="_blank" rel="noreferrer">GitHub</a>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Documentation Interactions Script -->
+  <script>
+    // Theme toggle interaction
+    const themeBtn = document.getElementById("theme-toggle");
+    if (themeBtn) {
+      themeBtn.addEventListener("click", () => {
+        const current = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
+        document.documentElement.setAttribute("data-theme", current);
+        localStorage.setItem("theme", current);
+        if (typeof mermaid !== "undefined") {
+          const mNodes = document.querySelectorAll(".mermaid");
+          if (mNodes.length > 0) {
+            mNodes.forEach(node => {
+              if (node.hasAttribute("data-mermaid")) {
+                node.removeAttribute("data-processed");
+                node.innerHTML = node.getAttribute("data-mermaid");
+              }
+            });
+            mermaid.initialize({
+              startOnLoad: false,
+              theme: current === "light" ? "default" : "dark"
+            });
+            mermaid.run();
+          }
+        }
+      });
+    }
+
+    // Mobile sidebar toggle
+    const sidebarToggle = document.getElementById("sidebar-toggle");
+    const sidebar = document.getElementById("docs-sidebar");
+    if (sidebarToggle && sidebar) {
+      sidebarToggle.addEventListener("click", () => {
+        const expanded = sidebar.classList.toggle("open");
+        sidebarToggle.setAttribute("aria-expanded", expanded);
+      });
+
+      document.addEventListener("click", (e) => {
+        if (sidebar.classList.contains("open") && !sidebar.contains(e.target) && !sidebarToggle.contains(e.target)) {
+          sidebar.classList.remove("open");
+          sidebarToggle.setAttribute("aria-expanded", "false");
+        }
+      });
+    }
+
+    // Sidebar filter/search
+    const filterInput = document.getElementById("sidebar-filter");
+    if (filterInput) {
+      filterInput.addEventListener("input", (e) => {
+        const val = e.target.value.toLowerCase().trim();
+        document.querySelectorAll(".sidebar-nav-list li").forEach(li => {
+          const text = li.textContent.toLowerCase();
+          li.style.display = text.includes(val) ? "" : "none";
+        });
+        document.querySelectorAll(".sidebar-group").forEach(group => {
+          const hasVisible = Array.from(group.querySelectorAll("li")).some(li => li.style.display !== "none");
+          group.style.display = hasVisible ? "" : "none";
+        });
+      });
+    }
+
+    // Scroll-spy for Table of Contents
+    const tocItems = document.querySelectorAll(".toc-list a");
+    if (tocItems.length > 0) {
+      const headingElements = Array.from(tocItems).map(a => {
+        const id = a.getAttribute("href").substring(1);
+        return document.getElementById(id);
+      }).filter(Boolean);
+
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const id = entry.target.getAttribute("id");
+            tocItems.forEach(a => {
+              if (a.getAttribute("href") === "#" + id) {
+                a.classList.add("active");
+              } else {
+                a.classList.remove("active");
+              }
+            });
+          }
+        });
+      }, { rootMargin: "0px 0px -70% 0px", threshold: 0.1 });
+
+      headingElements.forEach(h => observer.observe(h));
+    }
+  </script>
+</body>
+</html>

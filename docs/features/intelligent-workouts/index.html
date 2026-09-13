@@ -1,0 +1,345 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Submaximal strength estimation heuristic, assisted &amp; bodyweight load formulas.">
+  <title>Fitness-Oriented Estimated 1-Rep Max (1RM) Heuristic | Train Libre Documentation</title>
+  <link rel="canonical" href="https://trainlibre.com/docs/features/intelligent-workouts/">
+
+  <link rel="icon" type="image/png" sizes="32x32" href="../../../favicon.png?v=2">
+  <link rel="apple-touch-icon" sizes="180x180" href="../../../assets/apple-touch-icon.png">
+
+  <!-- Open Graph -->
+  <meta property="og:site_name" content="Train Libre Documentation">
+  <meta property="og:title" content="Fitness-Oriented Estimated 1-Rep Max (1RM) Heuristic | Train Libre">
+  <meta property="og:description" content="Submaximal strength estimation heuristic, assisted &amp; bodyweight load formulas.">
+  <meta property="og:url" content="https://trainlibre.com/docs/features/intelligent-workouts/">
+  <meta property="og:type" content="article">
+  <meta property="og:image" content="https://trainlibre.com/assets/og-image.png">
+
+  <!-- KaTeX CSS (CDN primary with local fallback) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+  <link rel="stylesheet" href="../../../katex.min.css">
+
+  <!-- Train Libre Design System & Dedicated Docs Styles -->
+  <link rel="stylesheet" href="../../../style.css">
+  <link rel="stylesheet" href="../../docs.css">
+
+  <!-- KaTeX Auto-render Script -->
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" defer onload="renderMathInElement(document.body, {
+    delimiters: [
+      {left: '$$', right: '$$', display: true},
+      {left: '$', right: '$', display: false}
+    ],
+    throwOnError: false
+  });"></script>
+
+  <!-- Mermaid.js for Architecture Diagrams -->
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      if (typeof mermaid !== "undefined") {
+        const isDark = document.documentElement.getAttribute("data-theme") !== "light";
+        mermaid.initialize({
+          startOnLoad: true,
+          theme: isDark ? "dark" : "default",
+          themeVariables: isDark ? {
+            darkMode: true,
+            background: "#151815",
+            primaryColor: "#1b1f1b",
+            primaryTextColor: "#f4f6f4",
+            primaryBorderColor: "rgba(221, 255, 0, 0.4)",
+            lineColor: "#ddff00",
+            secondaryColor: "#151815",
+            tertiaryColor: "#0e100e"
+          } : {}
+        });
+      }
+    });
+  </script>
+
+  <!-- Prevent Theme Flash -->
+  <script>
+    (function () {
+      const theme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: light)').matches ? "light" : "dark");
+      document.documentElement.setAttribute("data-theme", theme);
+    })();
+  </script>
+</head>
+<body class="docs-body">
+  <div class="page">
+    <!-- Header -->
+    <header class="docs-header">
+      <nav class="docs-nav" aria-label="Documentation navigation">
+        <a class="brand" href="../../../index.html" aria-label="Train Libre Home">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 270.933 270.933" role="img">
+              <path fill="#ddff00"
+                d="M47.621 39.688c-4.385 0-7.939 3.554-7.939 7.939v116.172c0 37.238 30.188 67.472 67.426 67.459l13.482-.006c.15.003.3.005.451.005h89.722c11.367 0 20.518-9.154 20.518-20.525s-9.151-20.525-20.518-20.525h-42.739a7.937 7.937 0 0 1-7.937-7.937v-25.174a7.937 7.937 0 0 1 7.937-7.937l41.159-.001c12.244 0 22.101-9.154 22.1-20.525-.001-11.371-9.859-20.525-22.103-20.525l-41.156.001a7.937 7.937 0 0 1-7.937-7.937V47.627c0-4.385-3.555-7.939-7.939-7.939z" />
+            </svg>
+          </span>
+          <span class="brand-name">Train Libre</span>
+          <span class="docs-badge">Docs</span>
+        </a>
+
+        <div class="nav-links">
+          <a href="../../../index.html" class="nav-link">Website</a>
+          <a class="nav-priority" href="https://github.com/rfivesix/train-libre" target="_blank" rel="noreferrer">GitHub</a>
+        </div>
+
+        <div class="nav-controls">
+          <button id="theme-toggle" class="control-btn" aria-label="Toggle Theme">
+            <svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="5"></circle>
+              <line x1="12" y1="1" x2="12" y2="3"></line>
+              <line x1="12" y1="21" x2="12" y2="23"></line>
+              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+              <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+              <line x1="1" y1="12" x2="3" y2="12"></line>
+              <line x1="21" y1="12" x2="23" y2="12"></line>
+              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+              <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+            </svg>
+            <svg class="moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+            </svg>
+          </button>
+          
+          <button id="sidebar-toggle" class="control-btn mobile-menu-btn" aria-label="Open sidebar menu" aria-expanded="false">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="3" y1="12" x2="21" y2="12"></line>
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+      </nav>
+    </header>
+
+    <!-- Docs Main Layout -->
+    <div class="docs-container">
+      <!-- Left Sidebar -->
+      <aside id="docs-sidebar" class="docs-sidebar" aria-label="Documentation sidebar">
+        <div class="sidebar-header-search">
+          <input type="text" id="sidebar-filter" placeholder="Filter topics..." aria-label="Filter topics in documentation">
+        </div>
+        <div class="sidebar-scroll-area">
+          <div class="sidebar-group"><div class="sidebar-group-title">Overview</div><ul class="sidebar-nav-list">
+<li><a href="../../index.html" class="sidebar-link">Documentation Suite Overview</a></li>
+</ul></div>
+<div class="sidebar-group"><div class="sidebar-group-title">Features &amp; Heuristics</div><ul class="sidebar-nav-list">
+<li><a href="../overview/index.html" class="sidebar-link">Capabilities &amp; Privacy</a></li>
+<li><a href="../sleep-scoring-engine/index.html" class="sidebar-link">Sleep Health Score (SHS v3.5)</a></li>
+<li><a href="../muscle-recovery-model/index.html" class="sidebar-link">Muscle Recovery &amp; Readiness</a></li>
+<li><a href="../bayesian-tdee-estimator/index.html" class="sidebar-link">Bayesian TDEE Estimator</a></li>
+<li><a href="../macro-distribution/index.html" class="sidebar-link">Macronutrient Distribution</a></li>
+<li><a href="../workout-progression-engine/index.html" class="sidebar-link">Workout Progression Engine</a></li>
+<li><a href="index.html" class="sidebar-link active" aria-current="page">Estimated 1-Rep Max (e1RM)</a></li>
+<li><a href="../meal-capture-pipeline/index.html" class="sidebar-link">Meal Capture Pipeline</a></li>
+<li><a href="../byok-ai-validation/index.html" class="sidebar-link">BYOK AI Meal Validation</a></li>
+<li><a href="../depth-scale-hint/index.html" class="sidebar-link">Depth Scale Hint (LiDAR)</a></li>
+<li><a href="../health-sync-export/index.html" class="sidebar-link">Native Health Sync &amp; Export</a></li>
+<li><a href="../live-activity-workout/index.html" class="sidebar-link">Live Activity &amp; Workout Session</a></li>
+</ul></div>
+<div class="sidebar-group"><div class="sidebar-group-title">Developer &amp; Architecture</div><ul class="sidebar-nav-list">
+<li><a href="../../developer/overview/index.html" class="sidebar-link">Developer Overview &amp; Tests</a></li>
+<li><a href="../../developer/architecture/index.html" class="sidebar-link">System Architecture &amp; Wiring</a></li>
+<li><a href="../../developer/data-flow-and-state/index.html" class="sidebar-link">Data Flow &amp; State Lifecycle</a></li>
+<li><a href="../../developer/localization-architecture/index.html" class="sidebar-link">Localization Architecture</a></li>
+<li><a href="../../developer/ios-home-screen-widgets/index.html" class="sidebar-link">Home Screen Widgets</a></li>
+</ul></div>
+        </div>
+      </aside>
+
+      <!-- Center Article Content -->
+      <main class="docs-main" id="main-content">
+        <div class="docs-breadcrumb" aria-label="Breadcrumb">
+          <a href="../../../index.html">Home</a> <span class="bc-sep">/</span> <a href="../../index.html">Docs</a> <span class="bc-sep">/</span> <span>Features &amp; Heuristics</span>
+        </div>
+
+        <article class="docs-article">
+          <h1 class="doc-title">Fitness-Oriented Estimated 1-Rep Max (1RM) Heuristic</h1>
+<div class="callout callout-warning"><div class="callout-title"><span class="callout-badge">Disclaimer</span></div><div class="callout-body"><strong>Non-Medical Disclaimer</strong>: This feature is a fitness-oriented, non-clinical heuristic designed for healthy individuals tracking strength performance and training progress. It does not constitute medical, diagnostic, or clinical assessment of physical capacity. All strength estimates, predicted maximums, and record progression metrics are sports-science-inspired abstractions and design choices rather than prescriptive clinical thresholds or absolute measures of structural capacity.</div></div>
+<p>The <strong>Estimated 1-Rep Max (1RM)</strong> model in Train Libre is a submaximal strength estimation heuristic based on the Brzycki equation. It allows users to track their strength capacities and progression over time in a safe manner, avoiding the musculoskeletal stress, joint strain, and safety risks associated with testing true physical failure at absolute maximum loads.</p>
+<hr class="divider">
+<h2 id="1-the-brzycki-equation" class="doc-h2">1. The Brzycki Equation<a href="#1-the-brzycki-equation" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>To estimate 1-rep maximum lift capacity from submaximal training sets, Train Libre evaluates the Brzycki formula:</p>
+<div class="math-block">$$1\text{RM} \approx w_{\text{eff}} \cdot \frac{36}{37 - r}$$</div>
+<p>Where: - <span class="math-inline">$w_{\text{eff}}$</span> is the <strong>effective load placed on the muscle</strong> in kilograms (derived via <code>effectiveSetLoadKg</code>). - <span class="math-inline">$r$</span> is the number of completed repetitions.</p>
+<hr class="divider">
+<h2 id="2-effective-set-load-resolution-effectivesetloadkg" class="doc-h2">2. Effective Set Load Resolution (<code>effectiveSetLoadKg</code>)<a href="#2-effective-set-load-resolution-effectivesetloadkg" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>The nominal weight recorded in the UI cannot always be plugged directly into a strength formula. Train Libre dynamically resolves the true load based on the exercise's tracking type and load mode:</p>
+<h3 id="standard-loaded-exercises" class="doc-h3">Standard Loaded Exercises<a href="#standard-loaded-exercises" class="header-anchor" aria-label="Link to section">#</a></h3>
+<p>For free weights, barbells, dumbbells, and cable stacks where the logged number represents the external load:</p>
+<div class="math-block">$$w_{\text{eff}} = w_{\text{logged}} \quad (\text{if } w_{\text{logged}} > 0)$$</div>
+<h3 id="assisted-resistance-exercises-eg-assisted-pull-up-dip" class="doc-h3">Assisted Resistance Exercises (e.g., Assisted Pull-Up / Dip)<a href="#assisted-resistance-exercises-eg-assisted-pull-up-dip" class="header-anchor" aria-label="Link to section">#</a></h3>
+<p>On assistance machines, the logged number represents the counterweight reducing the user's effort. The actual load lifted by the user is the remaining body mass:</p>
+<div class="math-block">$$w_{\text{eff}} = w_{\text{body}} - w_{\text{logged}}$$</div>
+<ul class="doc-list">
+<li><strong>Integrity Gate</strong>: If the user has never recorded a body weight measurement, <span class="math-inline">$w_{\text{eff}}$</span> returns <code>null</code>. The heuristic strictly refuses to use <span class="math-inline">$w_{\text{logged}}$</span> directly as the load, because doing so would invert the progression curve (a user needing less assistance as they grow stronger would appear to be lifting less weight).</li>
+</ul>
+<h3 id="bodyweight-weighted-bodyweight-exercises-eg-pull-ups-dips-push-ups" class="doc-h3">Bodyweight & Weighted Bodyweight Exercises (e.g., Pull-Ups, Dips, Push-Ups)<a href="#bodyweight-weighted-bodyweight-exercises-eg-pull-ups-dips-push-ups" class="header-anchor" aria-label="Link to section">#</a></h3>
+<p>When moving one's own body, the load combines body mass and any additional ballast:</p>
+<div class="math-block">$$w_{\text{eff}} = w_{\text{body}} + w_{\text{added}}$$</div>
+<ul class="doc-list">
+<li><strong>Missing Measurement Fallback</strong>: If no bodyweight reading exists, only the entered ballast (<span class="math-inline">$w_{\text{added}} > 0$</span>) is counted, rather than silently guessing a generic default.</li>
+</ul>
+<hr class="divider">
+<h2 id="3-historical-bodyweight-dating-bodyweighthistory" class="doc-h2">3. Historical Bodyweight Dating (<code>BodyweightHistory</code>)<a href="#3-historical-bodyweight-dating-bodyweighthistory" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>To ensure progression statistics remain accurate over long training cycles, <strong>historical sets are evaluated at the user's recorded body weight on the day the set was performed, not today's weight</strong>:</p>
+<ul class="doc-list">
+<li><strong>Progression Decoupling</strong>: If a user loses 10 kg during a cutting phase, their past pull-ups did not retroactively become easier. Recomputing historical sessions at today's weight would artificially deflate past tonnage and 1RM records.</li>
+<li><strong>Search Mechanism</strong>: <code>BodyweightHistory.at(date)</code> performs a binary search over chronological weight measurements to identify the most recent reading at or before the workout date.</li>
+<li><strong>No Backward Extrapolation</strong>: If a set was performed before the user's first recorded weight measurement, the system does not extrapolate backwards. It treats bodyweight as unknown to avoid invisible, speculative adjustments to older data.</li>
+</ul>
+<hr class="divider">
+<h2 id="4-repetition-range-constraints" class="doc-h2">4. Repetition Range Constraints<a href="#4-repetition-range-constraints" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>The mathematical linearity of muscle fatigue and rep-to-failure ratios breaks down at higher repetitions due to cardiovascular demands, localized muscular endurance, and shifts in motor unit recruitment.</p>
+<p>Train Libre enforces a strict validity boundary: <em>   <strong>Calculation Window</strong>: <span class="math-inline">$1 \leq r \leq 12$</span>. </em>   <strong>Behavior</strong>: If a set exceeds 12 repetitions (<span class="math-inline">$r > 12$</span>), or if <span class="math-inline">$r \leq 0$</span> or <span class="math-inline">$w_{\text{eff}} \leq 0$</span>, the estimated 1RM calculation returns <code>null</code>. This keeps personal records and progression suggestions grounded in the load-dominant resistance training domain.</p>
+<hr class="divider">
+<h2 id="5-safe-progression-tracking-non-clinical-scope" class="doc-h2">5. Safe Progression Tracking & Non-Clinical Scope<a href="#5-safe-progression-tracking-non-clinical-scope" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>Testing true 1-Rep Maxes requires maximal physical exertion, which poses elevated risks of connective tissue injury and systemic fatigue. Submaximal estimation offers a safe alternative: <em>   <strong>Injury Mitigation</strong>: Enables training in safe, submaximal load ranges (e.g., 70%–85% of 1RM) while maintaining visibility into strength progression. </em>   <strong>Fatigue Management</strong>: Avoids central nervous system (CNS) exhaustion from frequent true-max testing. *   <strong>Non-Clinical Heuristic</strong>: This model is a performance tracking tool and does not account for acute factors such as sleep deprivation, dehydration, or joint soreness. It should be interpreted as an indicative trend rather than an absolute measure of physical capacity.</p>
+<hr class="divider">
+<h2 id="6-scientific-references-sources" class="doc-h2"><a id="evidence" class="anchor-target"></a>6. Scientific References & Sources<a href="#6-scientific-references-sources" class="header-anchor" aria-label="Link to section">#</a></h2>
+<ul class="doc-list">
+<li>Brzycki, M. (1993). <em>Strength Testing—Predicting a One-Rep Max from Reps-to-Fatigue</em>. Journal of Physical Education, Recreation & Dance, 64(1), 88–90.</li>
+<li>Wood, T. M., Maddalozzo, G. F., & Harter, R. A. (2002). <em>Accuracy of Seven Equations for Predicting 1-RM Performance of Apparently Healthy, Sedentary Older Adults</em>. Measurement in Physical Education and Exercise Science, 6(2), 67-94. DOI: <a href="https://doi.org/10.1207/S15327841MPEE0602_1" target="_blank" rel="noopener noreferrer">10.1207/S15327841MPEE0602_1 <span class="ext-icon">↗</span></a></li>
+</ul>
+        </article>
+
+        <nav class="docs-pager" aria-label="Documentation navigation">
+<a href="../workout-progression-engine/index.html" class="pager-card pager-prev"><span class="pager-label">← Previous</span><span class="pager-title">Workout Progression Engine</span></a>
+<a href="../meal-capture-pipeline/index.html" class="pager-card pager-next"><span class="pager-label">Next →</span><span class="pager-title">Meal Capture Pipeline</span></a>
+</nav>
+      </main>
+
+      <!-- Right Table of Contents -->
+      <aside class="docs-toc" aria-label="Table of contents"><div class="toc-sticky-box"><div class="toc-heading">On this page</div><ul class="toc-list">
+<li class="toc-item toc-item-l2"><a href="#1-the-brzycki-equation">1. The Brzycki Equation</a></li>
+<li class="toc-item toc-item-l2"><a href="#2-effective-set-load-resolution-effectivesetloadkg">2. Effective Set Load Resolution (effectiveSetLoadKg)</a></li>
+<li class="toc-item toc-item-l3"><a href="#standard-loaded-exercises">Standard Loaded Exercises</a></li>
+<li class="toc-item toc-item-l3"><a href="#assisted-resistance-exercises-eg-assisted-pull-up-dip">Assisted Resistance Exercises (e.g., Assisted Pull-Up / Dip)</a></li>
+<li class="toc-item toc-item-l3"><a href="#bodyweight-weighted-bodyweight-exercises-eg-pull-ups-dips-push-ups">Bodyweight &amp; Weighted Bodyweight Exercises (e.g., Pull-Ups, Dips, Push-Ups)</a></li>
+<li class="toc-item toc-item-l2"><a href="#3-historical-bodyweight-dating-bodyweighthistory">3. Historical Bodyweight Dating (BodyweightHistory)</a></li>
+<li class="toc-item toc-item-l2"><a href="#4-repetition-range-constraints">4. Repetition Range Constraints</a></li>
+<li class="toc-item toc-item-l2"><a href="#5-safe-progression-tracking-non-clinical-scope">5. Safe Progression Tracking &amp; Non-Clinical Scope</a></li>
+<li class="toc-item toc-item-l2"><a href="#6-scientific-references-sources">6. Scientific References &amp; Sources</a></li>
+</ul></div></aside>
+    </div>
+
+    <!-- Footer (100% harmonized with main website footer) -->
+    <footer class="site-footer">
+      <div>
+        <a class="brand" href="../../../index.html" aria-label="Train Libre home">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 270.933 270.933" role="img">
+              <path fill="#ddff00"
+                d="M47.621 39.688c-4.385 0-7.939 3.554-7.939 7.939v116.172c0 37.238 30.188 67.472 67.426 67.459l13.482-.006c.15.003.3.005.451.005h89.722c11.367 0 20.518-9.154 20.518-20.525s-9.151-20.525-20.518-20.525h-42.739a7.937 7.937 0 0 1-7.937-7.937v-25.174a7.937 7.937 0 0 1 7.937-7.937l41.159-.001c12.244 0 22.101-9.154 22.1-20.525-.001-11.371-9.859-20.525-22.103-20.525l-41.156.001a7.937 7.937 0 0 1-7.937-7.937V47.627c0-4.385-3.555-7.939-7.939-7.939z" />
+            </svg>
+          </span>
+          <span>Train Libre</span>
+        </a>
+        <p class="fine-print">Fitness, nutrition, recovery, and pulse features are non-clinical heuristics for healthy individuals tracking performance, not medical advice. They do not apply to medical conditions (such as eating or sleep disorders).</p>
+      </div>
+      <div class="footer-links">
+        <a href="../../index.html">Documentation</a>
+        <a href="../../../privacy.html">Privacy Policy</a>
+        <a href="../../../terms.html">Terms of Service</a>
+        <a href="../../../impressum.html">Imprint</a>
+        <a href="../../../support.html">Support</a>
+        <a href="https://github.com/rfivesix/train-libre" data-link="github" target="_blank" rel="noreferrer">GitHub</a>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Documentation Interactions Script -->
+  <script>
+    // Theme toggle interaction
+    const themeBtn = document.getElementById("theme-toggle");
+    if (themeBtn) {
+      themeBtn.addEventListener("click", () => {
+        const current = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
+        document.documentElement.setAttribute("data-theme", current);
+        localStorage.setItem("theme", current);
+        if (typeof mermaid !== "undefined") {
+          const mNodes = document.querySelectorAll(".mermaid");
+          if (mNodes.length > 0) {
+            mNodes.forEach(node => {
+              if (node.hasAttribute("data-mermaid")) {
+                node.removeAttribute("data-processed");
+                node.innerHTML = node.getAttribute("data-mermaid");
+              }
+            });
+            mermaid.initialize({
+              startOnLoad: false,
+              theme: current === "light" ? "default" : "dark"
+            });
+            mermaid.run();
+          }
+        }
+      });
+    }
+
+    // Mobile sidebar toggle
+    const sidebarToggle = document.getElementById("sidebar-toggle");
+    const sidebar = document.getElementById("docs-sidebar");
+    if (sidebarToggle && sidebar) {
+      sidebarToggle.addEventListener("click", () => {
+        const expanded = sidebar.classList.toggle("open");
+        sidebarToggle.setAttribute("aria-expanded", expanded);
+      });
+
+      document.addEventListener("click", (e) => {
+        if (sidebar.classList.contains("open") && !sidebar.contains(e.target) && !sidebarToggle.contains(e.target)) {
+          sidebar.classList.remove("open");
+          sidebarToggle.setAttribute("aria-expanded", "false");
+        }
+      });
+    }
+
+    // Sidebar filter/search
+    const filterInput = document.getElementById("sidebar-filter");
+    if (filterInput) {
+      filterInput.addEventListener("input", (e) => {
+        const val = e.target.value.toLowerCase().trim();
+        document.querySelectorAll(".sidebar-nav-list li").forEach(li => {
+          const text = li.textContent.toLowerCase();
+          li.style.display = text.includes(val) ? "" : "none";
+        });
+        document.querySelectorAll(".sidebar-group").forEach(group => {
+          const hasVisible = Array.from(group.querySelectorAll("li")).some(li => li.style.display !== "none");
+          group.style.display = hasVisible ? "" : "none";
+        });
+      });
+    }
+
+    // Scroll-spy for Table of Contents
+    const tocItems = document.querySelectorAll(".toc-list a");
+    if (tocItems.length > 0) {
+      const headingElements = Array.from(tocItems).map(a => {
+        const id = a.getAttribute("href").substring(1);
+        return document.getElementById(id);
+      }).filter(Boolean);
+
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const id = entry.target.getAttribute("id");
+            tocItems.forEach(a => {
+              if (a.getAttribute("href") === "#" + id) {
+                a.classList.add("active");
+              } else {
+                a.classList.remove("active");
+              }
+            });
+          }
+        });
+      }, { rootMargin: "0px 0px -70% 0px", threshold: 0.1 });
+
+      headingElements.forEach(h => observer.observe(h));
+    }
+  </script>
+</body>
+</html>
