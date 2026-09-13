@@ -1,4 +1,8 @@
-# Fitness-Oriented Muscle Recovery & Fatigue Heuristic
+# Fitness-Oriented Muscle Recovery & Fatigue Heuristic — Legacy v1
+
+> **Superseded by [Muscle Recovery & Readiness Model v2](muscle_recovery_model_v2.md).**
+> This file is retained for the historical v1 model and must not be used to
+> interpret current Recovery Tracker calculations.
 
 > **Non-Medical Disclaimer**: This feature is a fitness-oriented, non-clinical heuristic designed for healthy individuals tracking performance and workout recovery. It does not apply to clinical conditions, injury diagnosis, or medical rehabilitation. All recovery timelines, baseline windows (e.g. 24–120 hours), set extensions, and readiness categories are sports-science-inspired abstractions and engineering design choices rather than prescriptive clinical thresholds or direct experimental derivations.
 

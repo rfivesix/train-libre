@@ -711,7 +711,7 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
             technicalTitle: l10n.infoRecoveryTechnicalTitle,
             technicalExplanation: l10n.infoRecoveryTechnicalExplanation,
             markdownAssetPath:
-                'documentation/features/muscle_recovery_model.md',
+                'documentation/features/muscle_recovery_model_v2.md',
             citationUrl:
                 'https://trainlibre.com/docs/features/muscle-recovery-model/#evidence',
             iconColor: Theme.of(context).colorScheme.onSurface,

@@ -1,20 +1,53 @@
-# Muscle Recovery & Readiness Model v2 — Implementation Plan
-
-> **Status: core engine implemented; UI follow-up pending.** This document is
-> the approved replacement plan for `muscle_recovery_model.md`. The existing
-> document remains linked until the recovery-screen redesign has shipped.
+# Muscle Recovery & Readiness Model v2
 
 > **Non-medical disclaimer:** This remains a fitness-oriented, log-based
 > readiness heuristic for healthy people. It is not a measure of biological
 > recovery, an injury-risk prediction, or medical advice. Its purpose is to
 > make recorded training exposure understandable and comparable over time.
 
-## 1. Why a v2 Model Is Needed
+## Quick Overview
 
-The current tracker has useful inputs — completed sets, repetitions, RIR,
-set type, exercise modality, primary/secondary muscle assignments, movement
-patterns, and workout timestamps — but combines them in a way that can
-misrepresent the latest load:
+The tracker converts completed training sets into a muscle-specific,
+time-decaying **residual load**. That residual load becomes one readiness score
+and one matching state:
+
+| Output | Meaning |
+| --- | --- |
+| Last session load | Only the latest workout's calculated dose for this muscle. |
+| Residual load | Latest load plus the diminished remaining effect of recent earlier sessions. |
+| Readiness | A 0–100 log-based estimate derived from residual load. |
+| Recovering | Readiness below 60. |
+| Ready | Readiness from 60 up to, but not including, 85. |
+| Fresh | Readiness of 85 or more. |
+| Data confidence | Based on how much of the latest session has a plausible logged RIR. |
+
+Different muscles keep different baseline decay rates: the current profile
+lets biceps and triceps decay faster than quads, hamstrings, glutes, and lower
+back. Training dose and recency still matter more than the muscle label alone.
+
+### Worked Examples
+
+These examples use the current engineering calibration: 10 repetitions,
+primary role, RIR 2 equals `1.0 × 0.8 × 1.0 = 0.8` load units per set. They
+show the exact behaviour of the model rather than claiming that the displayed
+hours are biological measurements.
+
+| Scenario | Last session load | At session end | After 24 h | After 48 h | Fresh from |
+| --- | ---: | --- | --- | --- | --- |
+| Chest: 3 direct sets × 10 reps at RIR 2 | 2.40 | Residual 2.40, **51**, Recovering | 1.72, **59**, Recovering | 1.23, **67**, Ready | about 122 h |
+| Triceps: 3 secondary sets × 10 reps at RIR 2 | 0.72 | Residual 0.72, **78**, Ready | 0.48, **84**, Ready | 0.32, **89**, Fresh | about 30 h |
+| Chest: today's 1 set × 10 reps at RIR 3, plus a Failure set 13 days ago | 0.70 | Residual 0.71, **78**, Ready | 0.51, **83**, Ready | 0.37, **87**, Fresh | about 45 h |
+
+The third row illustrates the central v2 correction: the old Failure set still
+has a tiny residual effect, but it does not turn today's single RIR-3 set into
+a falsely large "last load" or an all-session high-fatigue flag.
+
+## 1. What Changed from v1
+
+v1 had useful inputs — completed sets, repetitions, RIR, set type, exercise
+modality, primary/secondary muscle assignments, movement patterns, and workout
+timestamps — but combined them in a way that could misrepresent the latest
+load:
 
 - It uses the **latest relevant session time** as the clock, but uses the sum
   of equivalent sets from **all sessions in the 14-day lookback** to extend
@@ -75,9 +108,9 @@ one study.
 | Movement pattern | exercise catalog | Explains the exposure and supports a separate session-demand signal. |
 | Muscle profile | domain configuration | Preserves different baseline recovery kinetics per muscle group. |
 
-The data model already has `exercise_muscles.contribution`, but the shipped
-catalog intentionally leaves it empty. v2 must use it only when populated and
-must otherwise show that fallback role weights were used.
+The data model already has `exercise_muscles.contribution`. v2 uses it when
+populated; the current shipped catalog generally leaves it empty, so the
+explicit fallback role weights apply in ordinary use.
 
 ### 3.2 Eligible sets
 
@@ -109,8 +142,7 @@ Where:
 - `W_role` uses the catalog contribution when it exists. Until then, it uses
   an explicit, conservative fallback: primary `1.0`, secondary `0.3`.
 - `W_effort` is a smooth, capped curve: lower RIR raises exposure gradually;
-  it is not a single `+24 h` step. The exact calibration is decided together
-  with tests and documented before release.
+  it is not a single `+24 h` step.
 - `W_reps` is only a bounded context modifier alongside RIR. Raw repetition
   count and tonnage must not be treated as universal intensity measures:
   five heavy repetitions and twenty light repetitions are not directly
@@ -123,7 +155,7 @@ bounded between `0.8` and `1.1`. These are documented engineering defaults,
 covered by regression tests, and may be recalibrated only alongside an
 explicit evidence and test update.
 
-The model must retain direct and indirect exposure separately in the payload.
+The model retains direct and indirect exposure separately in the payload.
 That lets the UI explain *why* a muscle is affected without claiming that a
 secondary role is identical to direct work.
 
@@ -140,8 +172,8 @@ L_{session,m} = \sum_{s \in session} E_{s,m}
 Small sessions are not discarded. A very small secondary contribution remains
 small, but several relevant exposures can add up over time.
 
-The payload keeps `lastSessionLoad` distinct from any accumulated value. UI
-text must never label a multi-day total as the latest load.
+The payload keeps `lastSessionLoad` distinct from any accumulated value. A
+multi-day total is never labelled as the latest load.
 
 ### 5.2 Residual exposure
 
@@ -182,11 +214,11 @@ Doing both would double count compound movements.
 
 Instead, v2 records movement-pattern exposure in two honest ways:
 
-1. **Explanation:** a muscle card can state that its recent load came from
+1. **Exposure context:** the payload records whether recent load came from
    horizontal pushes, squats, hinges, or direct isolation work.
-2. **Separate session-demand context:** compound, whole-body patterns can
-   contribute to an optional, clearly labelled session-demand indicator. It
-   is not silently added to every muscle's residual exposure.
+2. **No hidden double counting:** a pattern is not silently added to every
+   muscle's residual exposure after primary/secondary roles already allocated
+   that set.
 
 Missing or unclassified patterns lower explanatory detail but do not prevent
 the underlying muscle calculation when roles are known.
@@ -197,22 +229,18 @@ The engine maps residual exposure to a continuous log-based readiness estimate
 and derives the state from that **same score**. This removes the current
 `Fresh at 85/100` contradiction.
 
-The typed result should contain at least:
+The typed result contains:
 
 - `lastSessionAt`, `lastSessionLoad`, `lastSessionDirectLoad`, and
   `lastSessionIndirectLoad`
 - `residualLoad` and its associated readiness score
 - RIR coverage (`setsWithRir / eligibleSets`)
 - direct/indirect and movement-pattern summaries
-- `dataConfidence` with reasons, such as missing RIR, fallback muscle roles,
-  or missing end time
+- `dataConfidence`: high at 80% or more RIR coverage in the latest session,
+  medium from 40% to below 80%, low below 40%, and none without a session
 - state (`recovering`, `ready`, `fresh`) derived from the readiness score
 
-The compact UI should lead with the state, score, and confidence. Technical
-breakdowns remain available on expansion; UI work begins only after the engine
-and tests are accepted.
-
-## 8. Explicit Non-Goals for the First v2 Release
+## 8. Scope Limits
 
 - Do not use RPE as a principal strength-training input. It exists in the
   schema but is not collected through the ordinary strength-set flow.
@@ -224,23 +252,9 @@ and tests are accepted.
   or clinical recovery.
 - Do not add a database migration: v2 can derive its data from existing logs.
 
-## 9. Implementation Sequence
+## 9. Verification Coverage
 
-1. Create a pure `RecoveryLoadEngine` domain service with typed input and
-   typed output. Keep database querying and Flutter UI outside it.
-2. Update recovery retrieval to pass individual sets, role assignments,
-   movement patterns, and end timestamps into the engine.
-3. Add the v2 payload fields while retaining safe parsing defaults for older
-   callers and widgets.
-4. Replace the old fixed-window and 14-day aggregate logic only after the
-   pure-engine tests pass.
-5. Rewrite `muscle_recovery_model.md` from the accepted v2 behaviour and
-   replace this draft as the public documentation source.
-6. Redesign the Recovery Tracker UI around the new typed payload.
-
-## 10. Required Regression Tests
-
-The implementation must cover at least:
+The implementation is covered by deterministic tests for:
 
 1. Readiness and residual load decline monotonically as time passes.
 2. A RIR-0 failure set produces more exposure than otherwise comparable RIR-1,
@@ -258,12 +272,3 @@ The implementation must cover at least:
 11. State boundaries and displayed readiness score always agree.
 12. Legacy exercises without v2 catalog metadata retain their existing safe
     fallback classification.
-
-## 11. Future Optional Signal
-
-After v2 is stable, a voluntary short check-in for local soreness, perceived
-readiness, sleep, or stress can complement the log-only estimate. It must
-remain optional and be presented as a separate self-report signal. Subjective
-well-being measures can be sensitive to acute and chronic training changes,
-but they are complementary rather than a replacement for training data.
-[Saw et al., 2016](https://pubmed.ncbi.nlm.nih.gov/26423706/)

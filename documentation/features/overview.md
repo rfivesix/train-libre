@@ -49,7 +49,7 @@ A sleep analysis engine evaluating overnight recovery across 5 domains (Sleep Du
 
 ### 6. Muscle Recovery Model
 A fitness-oriented piecewise linear decay heuristic designed to estimate readiness scores for individual muscle groups. It accounts for set-weighting based on primary vs. secondary involvement and intensity/RIR-based timeline extensions.
-*   *Learn more in the [**Muscle Recovery Model Documentation**](muscle_recovery_model.md).*
+*   *Learn more in the [**Muscle Recovery & Readiness Model v2 Documentation**](muscle_recovery_model_v2.md).*
 
 ### 7. Estimated 1-Rep Max (1RM) Heuristics
 A physical capacity estimation model that computes estimated maximum strength capabilities from submaximal resistance training loads using the Brzycki formula. It accurately handles effective set loads for assisted exercises (subtracting machine assistance from bodyweight) and bodyweight movements (using historical bodyweight on the day the set was performed), capped within the safe $1 \leq r \leq 12$ repetition window.
