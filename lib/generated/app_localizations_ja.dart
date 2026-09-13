@@ -2690,6 +2690,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get aiReviewNoMatch => '一致しません — タップして検索します';
 
   @override
+  String get aiValidationCandidateSelectionRequired => '保存する前に食材を確認して編集してください。';
+
+  @override
   String aiReviewUncertain(int percent) {
     return '不確か（$percent%）';
   }

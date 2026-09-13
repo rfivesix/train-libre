@@ -306,9 +306,13 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
             (item) => AiMealCandidateItem(
               name: item.suggestion.name,
               grams: item.suggestion.estimatedGrams,
+              servedGrams: item.suggestion.servedGrams,
               confidence: item.suggestion.confidence,
               matchedBarcode:
                   item.matchedFood?.barcode ?? item.suggestion.matchedBarcode,
+              stateHint: item.suggestion.stateHint,
+              catalogSearchTerm: item.suggestion.catalogSearchTerm,
+              searchTerms: item.suggestion.searchTerms,
             ),
           )
           .toList(growable: false),
@@ -323,9 +327,13 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
             suggestion: AiSuggestedItem(
               name: item.candidate.name,
               estimatedGrams: item.candidate.grams,
+              servedGrams: item.candidate.servedGrams,
               confidence: item.candidate.confidence ?? 1.0,
               matchedBarcode: item.match.bestMatch?.barcode ??
                   item.candidate.matchedBarcode,
+              stateHint: item.candidate.stateHint,
+              catalogSearchTerm: item.candidate.catalogSearchTerm,
+              searchTerms: item.candidate.searchTerms,
             ),
             matchedFood: item.match.bestMatch,
             issues: item.issues,
@@ -616,6 +624,17 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
           candidate: _candidateFromReviewItems(),
           mode: AiValidationMode.capture,
         );
+    if (!validation.passed) {
+      if (!mounted) return;
+      setState(() => _isEditing = true);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(l10n.aiValidationCandidateSelectionRequired),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
     final savePlan = AiDiarySavePlan.fromValidation(validation);
     if (!savePlan.canSaveAny) {
       if (!mounted) return;

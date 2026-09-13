@@ -28,7 +28,8 @@ class AiRepairCandidate {
   String toPromptLine() {
     return '  - "$exactName" ($kcalPer100g kcal | '
         'P${proteinPer100g.round()} C${carbsPer100g.round()} '
-        'F${fatPer100g.round()} per 100g) [$source]';
+        'F${fatPer100g.round()} per 100g) [$source]'
+        '${barcode == null || barcode!.isEmpty ? '' : ' [id:$barcode]'}';
   }
 
   /// Creates from a FoodItem.

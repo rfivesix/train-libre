@@ -1098,6 +1098,7 @@
     }
   },
   "aiReviewNoMatch": "Aucune correspondance – appuyez pour rechercher",
+  "aiValidationCandidateSelectionRequired": "Veuillez vérifier et modifier les ingrédients avant d’enregistrer.",
   "aiReviewUncertain": "Incertain ({percent}%)",
   "aiReviewConfidence": "Confiance",
   "aiReviewAddItem": "Ajouter un article manuellement",

@@ -776,8 +776,12 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                 (item) => AiSuggestedItem(
                   name: item.name,
                   estimatedGrams: item.grams,
+                  servedGrams: item.servedGrams,
                   confidence: item.confidence ?? 1.0,
                   matchedBarcode: item.matchedBarcode,
+                  stateHint: item.stateHint,
+                  catalogSearchTerm: item.catalogSearchTerm,
+                  searchTerms: item.searchTerms,
                 ),
               )
               .toList(growable: false),

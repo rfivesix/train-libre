@@ -801,9 +801,15 @@ Please provide an updated analysis incorporating the user's feedback. Return the
 Previous meal capture candidate:
 ${jsonEncode(candidate.items.map((item) => {
               'name': item.name,
+              if (item.servedGrams != null) 'servedGrams': item.servedGrams,
               'estimatedGrams': item.grams,
               if (item.confidence != null) 'confidence': item.confidence,
+              if (item.matchedBarcode != null)
+                'matchedBarcode': item.matchedBarcode,
               if (item.stateHint != null) 'stateHint': item.stateHint,
+              if (item.catalogSearchTerm != null)
+                'catalogSearchTerm': item.catalogSearchTerm,
+              if (item.searchTerms.isNotEmpty) 'searchTerms': item.searchTerms,
             }).toList())}
 
 Deterministic validation feedback:
@@ -826,16 +832,24 @@ Repair the candidate. When database candidates are listed, pick the EXACT name f
     final repaired = await _parseItemsFromContent(raw);
 
     return AiMealCandidate(
-      items: repaired
-          .map(
-            (item) => AiMealCandidateItem(
-              name: item.name,
-              grams: item.estimatedGrams,
-              confidence: item.confidence,
-              matchedBarcode: item.matchedBarcode,
-            ),
-          )
-          .toList(growable: false),
+      items: List.generate(repaired.length, (index) {
+        final item = repaired[index];
+        final previous =
+            index < candidate.items.length ? candidate.items[index] : null;
+        return AiMealCandidateItem(
+          name: item.name,
+          grams: item.estimatedGrams,
+          servedGrams: item.servedGrams ?? previous?.servedGrams,
+          confidence: item.confidence,
+          matchedBarcode: item.matchedBarcode,
+          stateHint: item.stateHint ?? previous?.stateHint,
+          catalogSearchTerm:
+              item.catalogSearchTerm ?? previous?.catalogSearchTerm,
+          searchTerms: item.searchTerms.isNotEmpty
+              ? item.searchTerms
+              : (previous?.searchTerms ?? const []),
+        );
+      }, growable: false),
       context: candidate.context,
     );
   }

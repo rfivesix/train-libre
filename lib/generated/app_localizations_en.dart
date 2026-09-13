@@ -2747,6 +2747,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get aiReviewNoMatch => 'No match — tap to search';
 
   @override
+  String get aiValidationCandidateSelectionRequired =>
+      'Please review and edit the ingredients before saving.';
+
+  @override
   String aiReviewUncertain(int percent) {
     return 'Unsure ($percent%)';
   }

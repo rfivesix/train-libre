@@ -2784,6 +2784,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Aucune correspondance – appuyez pour rechercher';
 
   @override
+  String get aiValidationCandidateSelectionRequired =>
+      'Veuillez vérifier et modifier les ingrédients avant d’enregistrer.';
+
+  @override
   String aiReviewUncertain(int percent) {
     return 'Incertain ($percent%)';
   }

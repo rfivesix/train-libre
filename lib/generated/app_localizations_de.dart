@@ -2760,6 +2760,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get aiReviewNoMatch => 'Kein Treffer — tippe zum Suchen';
 
   @override
+  String get aiValidationCandidateSelectionRequired =>
+      'Bitte prüfe und bearbeite die Zutaten, bevor du speicherst.';
+
+  @override
   String aiReviewUncertain(int percent) {
     return 'Unsicher ($percent%)';
   }

@@ -1098,6 +1098,7 @@
     }
   },
   "aiReviewNoMatch": "一致しません — タップして検索します",
+  "aiValidationCandidateSelectionRequired": "保存する前に食材を確認して編集してください。",
   "aiReviewUncertain": "不確か（{percent}%）",
   "aiReviewConfidence": "自信",
   "aiReviewAddItem": "項目を手動で追加する",

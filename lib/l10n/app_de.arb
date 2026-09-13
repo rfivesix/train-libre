@@ -1098,6 +1098,7 @@
     }
   },
   "aiReviewNoMatch": "Kein Treffer — tippe zum Suchen",
+  "aiValidationCandidateSelectionRequired": "Bitte prüfe und bearbeite die Zutaten, bevor du speicherst.",
   "aiReviewUncertain": "Unsicher ({percent}%)",
   "aiReviewConfidence": "Konfidenz",
   "aiReviewAddItem": "Zutat manuell hinzufügen",

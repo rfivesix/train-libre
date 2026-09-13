@@ -5000,6 +5000,12 @@ abstract class AppLocalizations {
   /// **'No match — tap to search'**
   String get aiReviewNoMatch;
 
+  /// No description provided for @aiValidationCandidateSelectionRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please review and edit the ingredients before saving.'**
+  String get aiValidationCandidateSelectionRequired;
+
   /// No description provided for @aiReviewUncertain.
   ///
   /// In en, this message translates to:

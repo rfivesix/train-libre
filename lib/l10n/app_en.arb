@@ -1097,6 +1097,7 @@
     }
   },
   "aiReviewNoMatch": "No match — tap to search",
+  "aiValidationCandidateSelectionRequired": "Please review and edit the ingredients before saving.",
   "aiReviewUncertain": "Unsure ({percent}%)",
   "@aiReviewUncertain": {
     "placeholders": {
