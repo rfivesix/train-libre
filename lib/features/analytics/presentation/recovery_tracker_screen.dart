@@ -118,6 +118,10 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
   }
 
   double _readinessScore(RecoveryMusclePayload muscle) {
+    final v2Score = muscle.readinessScore;
+    if (v2Score != null && v2Score.isFinite) {
+      return v2Score.clamp(0.0, 100.0).toDouble();
+    }
     return RecoveryDomainService.readinessScore(
       hoursSinceLastSignificantLoad: muscle.hoursSinceLastSignificantLoad,
       recoveringUpperHours: muscle.recoveringUpperHours.toDouble(),

@@ -1,9 +1,8 @@
 # Muscle Recovery & Readiness Model v2 — Implementation Plan
 
-> **Status: planned.** This document is the approved replacement plan for
-> `muscle_recovery_model.md`; it does not describe current app behaviour yet.
-> The existing document remains the source of truth until this plan, its tests,
-> and its UI follow-up have shipped.
+> **Status: core engine implemented; UI follow-up pending.** This document is
+> the approved replacement plan for `muscle_recovery_model.md`. The existing
+> document remains linked until the recovery-screen redesign has shipped.
 
 > **Non-medical disclaimer:** This remains a fitness-oriented, log-based
 > readiness heuristic for healthy people. It is not a measure of biological
@@ -116,6 +115,13 @@ Where:
   count and tonnage must not be treated as universal intensity measures:
   five heavy repetitions and twenty light repetitions are not directly
   comparable from logs alone.
+
+The current core calibration is deliberately modest: primary/secondary
+fallbacks are `1.0`/`0.3`; RIR 0 through 5 maps smoothly from `1.0` to `0.5`
+in `0.1` steps; missing or implausible RIR uses `0.7`; and repetitions are
+bounded between `0.8` and `1.1`. These are documented engineering defaults,
+covered by regression tests, and may be recalibrated only alongside an
+explicit evidence and test update.
 
 The model must retain direct and indirect exposure separately in the payload.
 That lets the UI explain *why* a muscle is affected without claiming that a

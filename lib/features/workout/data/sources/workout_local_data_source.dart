@@ -17,6 +17,7 @@ import '../../domain/parsers/rep_range_parser.dart';
 import '../../domain/classification/set_load.dart';
 import '../../domain/classification/workout_classification.dart';
 import '../../../statistics/domain/recovery_domain_service.dart';
+import '../../../statistics/domain/recovery_load_engine.dart';
 import '../../../../core/media/app_media_store.dart';
 import '../../../../util/muscle_analytics_utils.dart';
 import '../../../../util/perf_debug_timer.dart';

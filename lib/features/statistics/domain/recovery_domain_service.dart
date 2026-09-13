@@ -21,7 +21,25 @@ class RecoveryDomainService {
   static const String overallSeveralRecovering = 'severalRecovering';
   static const String overallInsufficientData = 'insufficientData';
 
-  static const int recoveryLookbackDays = 14;
+  /// Enough history for the slowest residual profile to decay smoothly. This
+  /// is a query horizon, not an abrupt behavioural cutoff.
+  static const int recoveryLookbackDays = 21;
+
+  static const List<String> trackedMuscleGroups = [
+    'chest',
+    'back',
+    'shoulders',
+    'biceps',
+    'triceps',
+    'quads',
+    'hamstrings',
+    'glutes',
+    'calves',
+    'abs',
+    'adductors',
+    'lower back',
+    'forearms',
+  ];
   static const double minimumSignificantEquivalentSets = 1.0;
   static const double highFatigueRirThreshold = 0.5;
   static const double highFatigueRpeThreshold = 8.5;

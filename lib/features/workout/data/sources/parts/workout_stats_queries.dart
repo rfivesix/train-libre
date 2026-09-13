@@ -73,8 +73,12 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
         await dbInstance.select(dbInstance.exerciseTranslations).get();
     final vocabulary = await MuscleVocabulary.load(dbInstance);
 
-    final catalogGroups =
-        <String, ({Set<String> primary, Set<String> secondary})>{};
+    final catalogGroups = <String,
+        ({
+      Set<String> primary,
+      Set<String> secondary,
+      Map<String, double> contributionByGroup,
+    })>{};
     if (!vocabulary.isEmpty) {
       for (final row
           in await dbInstance.select(dbInstance.exerciseMuscles).get()) {
@@ -85,9 +89,24 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
 
         final entry = catalogGroups.putIfAbsent(
           row.exerciseId,
-          () => (primary: <String>{}, secondary: <String>{}),
+          () => (
+            primary: <String>{},
+            secondary: <String>{},
+            contributionByGroup: <String, double>{},
+          ),
         );
         (row.role == 'primary' ? entry.primary : entry.secondary).add(group);
+        final contribution = row.contribution;
+        if (contribution != null && contribution.isFinite) {
+          // Multiple catalogue muscles can collapse into one tracked group
+          // (for example, two quad heads). Preserve the strongest explicit
+          // contribution rather than double-counting that group.
+          final current = entry.contributionByGroup[group];
+          final normalized = contribution.clamp(0.0, 1.0).toDouble();
+          if (current == null || normalized > current) {
+            entry.contributionByGroup[group] = normalized;
+          }
+        }
       }
     }
 
@@ -107,6 +126,7 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
                   .difference(primary)
                   .toList(growable: false),
               movementPattern: exerciseRow.movementPattern,
+              muscleContributions: fromCatalog.contributionByGroup,
             )
           : _profileFromLegacy(
               legacyGroups(exerciseRow.musclesPrimary),
@@ -1197,7 +1217,7 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
     return {...result, 'movementPatterns': movementPatterns};
   }
 
-  /// Recovery analytics based on shared v1 heuristics.
+  /// Recovery analytics based on the v2 residual training-load model.
   Future<Map<String, dynamic>> getRecoveryAnalytics({
     int lookbackDays = RecoveryDomainService.recoveryLookbackDays,
   }) async {
@@ -1233,48 +1253,7 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
       );
 
     final rows = await query.get();
-
-    final Map<String, Map<String, dynamic>> muscleSessionMap = {};
-
-    void addMuscleContribution({
-      required String workoutLogId,
-      required DateTime startTime,
-      required String muscle,
-      required double equivalentSets,
-      required int? rir,
-      required int? rpe,
-    }) {
-      final normalizedMuscle = muscle.trim();
-      if (normalizedMuscle.isEmpty) return;
-
-      final key = '$workoutLogId::$normalizedMuscle';
-      final session = muscleSessionMap.putIfAbsent(
-        key,
-        () => {
-          'muscleGroup': normalizedMuscle,
-          'workoutLogId': workoutLogId,
-          'startTime': startTime,
-          'equivalentSets': 0.0,
-          'rirSum': 0.0,
-          'rirCount': 0,
-          'rpeSum': 0.0,
-          'rpeCount': 0,
-        },
-      );
-
-      session['equivalentSets'] =
-          (session['equivalentSets'] as double) + equivalentSets;
-
-      if (rir != null) {
-        session['rirSum'] = (session['rirSum'] as double) + rir;
-        session['rirCount'] = (session['rirCount'] as int) + 1;
-      }
-
-      if (rpe != null) {
-        session['rpeSum'] = (session['rpeSum'] as double) + rpe;
-        session['rpeCount'] = (session['rpeCount'] as int) + 1;
-      }
-    }
+    final inputs = <RecoverySetLoadInput>[];
 
     for (final row in rows) {
       final logRow = row.readTable(dbInstance.workoutLogs);
@@ -1294,222 +1273,49 @@ extension WorkoutStatsQueries on WorkoutLocalDataSource {
       final primary = profile == null ? <String>{} : profile.primary.toSet();
       final secondary = profile == null ? <String>{} : profile.secondary.toSet()
         ..removeAll(primary);
+      final completedAt = logRow.endTime ?? logRow.startTime;
 
       for (final group in primary) {
-        addMuscleContribution(
+        inputs.add(RecoverySetLoadInput(
           workoutLogId: logRow.id,
-          startTime: logRow.startTime,
-          muscle: group,
-          equivalentSets: 1.0,
+          completedAt: completedAt,
+          muscleGroup: group,
+          role: RecoveryMuscleRole.primary,
+          catalogContribution: profile?.contributionFor(group),
+          movementPattern: profile?.movementPattern ?? exRow?.movementPattern,
+          reps: setRow.reps ?? 0,
+          durationSeconds: setRow.durationSeconds ?? 0,
           rir: setRow.rir,
-          rpe: setRow.rpe,
-        );
+          setType: setRow.setType,
+        ));
       }
 
       for (final group in secondary) {
-        addMuscleContribution(
+        inputs.add(RecoverySetLoadInput(
           workoutLogId: logRow.id,
-          startTime: logRow.startTime,
-          muscle: group,
-          equivalentSets: 0.3,
+          completedAt: completedAt,
+          muscleGroup: group,
+          role: RecoveryMuscleRole.secondary,
+          catalogContribution: profile?.contributionFor(group),
+          movementPattern: profile?.movementPattern ?? exRow?.movementPattern,
+          reps: setRow.reps ?? 0,
+          durationSeconds: setRow.durationSeconds ?? 0,
           rir: setRow.rir,
-          rpe: setRow.rpe,
-        );
+          setType: setRow.setType,
+        ));
       }
     }
 
-    final Map<String, List<Map<String, dynamic>>> significantByMuscle = {};
-
-    // Master tracking array containing all 13 muscle groups.
-    final List<String> masterTrackingArray = [
-      'chest',
-      'back',
-      'shoulders',
-      'biceps',
-      'triceps',
-      'quads',
-      'hamstrings',
-      'glutes',
-      'calves',
-      'abs',
-      'adductors',
-      'lower back',
-      'forearms',
-    ];
-
-    for (final muscle in masterTrackingArray) {
-      significantByMuscle.putIfAbsent(muscle, () => []);
-    }
-
-    for (final session in muscleSessionMap.values) {
-      final eqSets = (session['equivalentSets'] as double);
-      if (eqSets < RecoveryDomainService.minimumSignificantEquivalentSets) {
-        continue;
-      }
-
-      // Already a tracked group — _loadExerciseMuscleLookup resolved it, from
-      // the catalog vocabulary or the legacy alias map. Re-resolving here used
-      // to be the second half of the same lookup; now it would just be a
-      // no-op on its own output.
-      final group = session['muscleGroup'] as String;
-      significantByMuscle.putIfAbsent(group, () => []).add(session);
-    }
-
-    final List<Map<String, dynamic>> muscles = [];
-
-    for (final entry in significantByMuscle.entries) {
-      final muscle = entry.key;
-      final sessions = entry.value;
-
-      if (sessions.isEmpty) {
-        final recoveringUpper = RecoveryDomainService.recoveringUpperHours(
-          highSessionFatigue: false,
-          muscleGroup: muscle,
-          lastEquivalentSets: 0.0,
-        );
-        final readyUpper = RecoveryDomainService.readyUpperHours(
-          highSessionFatigue: false,
-          muscleGroup: muscle,
-          lastEquivalentSets: 0.0,
-        );
-        muscles.add({
-          'muscleGroup': muscle,
-          'state': RecoveryDomainService.stateFresh,
-          'hoursSinceLastSignificantLoad': 999.0,
-          'lastSignificantLoadAt': null,
-          'lastEquivalentSets': 0.0,
-          'avgRir': null,
-          'avgRpe': null,
-          'highSessionFatigue': false,
-          'recoveringUpperHours': recoveringUpper,
-          'readyUpperHours': readyUpper,
-        });
-        continue;
-      }
-
-      sessions.sort(
-        (a, b) =>
-            (b['startTime'] as DateTime).compareTo(a['startTime'] as DateTime),
-      );
-
-      final mostRecentSession = sessions.first;
-      final lastTime = mostRecentSession['startTime'] as DateTime;
-      final hoursSince = now.difference(lastTime).inMinutes / 60.0;
-
-      final totalEquivalentSets = sessions.fold<double>(
-        0.0,
-        (sum, s) => sum + (s['equivalentSets'] as double),
-      );
-
-      final rirCount = mostRecentSession['rirCount'] as int;
-      final rpeCount = mostRecentSession['rpeCount'] as int;
-      final avgRir = rirCount > 0
-          ? (mostRecentSession['rirSum'] as double) / rirCount
-          : null;
-      final avgRpe = rpeCount > 0
-          ? (mostRecentSession['rpeSum'] as double) / rpeCount
-          : null;
-
-      bool highSessionFatigue = RecoveryDomainService.hasHighSessionFatigue(
-        avgRir: avgRir,
-        avgRpe: avgRpe,
-      );
-      for (final s in sessions.skip(1)) {
-        final rc = s['rirCount'] as int;
-        final pc = s['rpeCount'] as int;
-        final r = rc > 0 ? (s['rirSum'] as double) / rc : null;
-        final p = pc > 0 ? (s['rpeSum'] as double) / pc : null;
-        if (RecoveryDomainService.hasHighSessionFatigue(avgRir: r, avgRpe: p)) {
-          highSessionFatigue = true;
-          break;
-        }
-      }
-
-      final recoveringUpper = RecoveryDomainService.recoveringUpperHours(
-        highSessionFatigue: highSessionFatigue,
-        muscleGroup: muscle,
-        lastEquivalentSets: totalEquivalentSets,
-      );
-      final readyUpper = RecoveryDomainService.readyUpperHours(
-        highSessionFatigue: highSessionFatigue,
-        muscleGroup: muscle,
-        lastEquivalentSets: totalEquivalentSets,
-      );
-
-      final state = RecoveryDomainService.muscleState(
-        hoursSinceLastSignificantLoad: hoursSince,
-        highSessionFatigue: highSessionFatigue,
-        muscleGroup: muscle,
-        lastEquivalentSets: totalEquivalentSets,
-      );
-
-      muscles.add({
-        'muscleGroup': muscle,
-        'state': state,
-        'hoursSinceLastSignificantLoad': hoursSince,
-        'lastSignificantLoadAt': lastTime,
-        'lastEquivalentSets': totalEquivalentSets,
-        'avgRir': avgRir,
-        'avgRpe': avgRpe,
-        'highSessionFatigue': highSessionFatigue,
-        'recoveringUpperHours': recoveringUpper,
-        'readyUpperHours': readyUpper,
-      });
-    }
-
-    muscles.sort((a, b) {
-      const stateOrder = {
-        RecoveryDomainService.stateRecovering: 0,
-        RecoveryDomainService.stateReady: 1,
-        RecoveryDomainService.stateFresh: 2,
-      };
-      final stateCmp = (stateOrder[a['state'] as String] ?? 9).compareTo(
-        stateOrder[b['state'] as String] ?? 9,
-      );
-      if (stateCmp != 0) return stateCmp;
-      return ((a['hoursSinceLastSignificantLoad'] as num).toDouble()).compareTo(
-        (b['hoursSinceLastSignificantLoad'] as num).toDouble(),
-      );
-    });
-
-    final hasData = muscles.any((m) => m['lastSignificantLoadAt'] != null);
-
-    final recoveringCount = muscles
-        .where((m) => m['state'] == RecoveryDomainService.stateRecovering)
-        .length;
-    final readyCount = muscles
-        .where((m) => m['state'] == RecoveryDomainService.stateReady)
-        .length;
-    final freshCount = muscles
-        .where((m) => m['state'] == RecoveryDomainService.stateFresh)
-        .length;
-    final total = muscles.length;
-
-    final overallState = RecoveryDomainService.overallState(
-      totalTrackedMuscles: total,
-      recoveringCount: recoveringCount,
-    );
-
-    final result = {
-      'hasData': hasData,
-      'overallState': hasData
-          ? overallState
-          : RecoveryDomainService.overallInsufficientData,
-      'totals': {
-        RecoveryDomainService.stateRecovering: hasData ? recoveringCount : 0,
-        RecoveryDomainService.stateReady: hasData ? readyCount : 0,
-        RecoveryDomainService.stateFresh: hasData ? freshCount : 0,
-        'tracked': hasData ? total : 0,
-      },
-      'muscles': hasData ? muscles : <Map<String, dynamic>>[],
-    };
+    final analysis =
+        const RecoveryLoadEngine().analyze(inputs: inputs, now: now);
+    final result = analysis.toMap();
     PerfDebugTimer.logDuration(
       area: 'db',
       label: 'getRecoveryAnalytics',
       elapsed: stopwatch.elapsed,
       fields: {
         'rows': rows.length,
-        'muscles': muscles.length,
+        'muscles': analysis.muscles.length,
         'range': '${lookbackDays}d',
       },
     );
@@ -2235,10 +2041,15 @@ class _ExerciseMuscleProfile {
   final List<String> primary;
   final List<String> secondary;
   final String? movementPattern;
+  final Map<String, double> muscleContributions;
 
   const _ExerciseMuscleProfile({
     required this.primary,
     required this.secondary,
     this.movementPattern,
+    this.muscleContributions = const {},
   });
+
+  double? contributionFor(String muscleGroup) =>
+      muscleContributions[muscleGroup];
 }
