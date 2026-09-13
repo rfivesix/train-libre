@@ -7,110 +7,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [1.4.0] - 2026-09-11
 
 ### Added
-- **App Store Connect API Key Authentifizierung (Fastlane):** Zentrale JWT-basierte Authentifizierung via `app_store_connect_api_key` in `ios/fastlane/Fastfile` integriert. Löst das Authentifizierungsproblem nach Abschaltung von Apples Web-Session-Login für alle Fastlane-Lanes (`upload_beta`, `upload_screenshots`, `download_metadata`, `upload_metadata`) mit Unterstützung automatischer Schlüsselpfade (`~/.appstoreconnect/private_keys/AuthKey_<ID>.p8`). Precheck-Prüfung für In-App-Käufe bei Store-Uploads deaktiviert, um API-Key-Inkompatibilitäten zu vermeiden. `.p8` und `.env.*` sicher in `.gitignore` aufgenommen.
-- **Muskelgruppen-Analyse – vollständige Übersicht:** Die neue Standardansicht zeigt alle Muskelgruppen und Bewegungsmuster als bestehendes zweispaltiges `ValueSummaryCard`-Grid, einschließlich Nullwerten. Arbeitssets werden standardmäßig als Wochenmittel angezeigt; ein dezenter Umschalter am Ende wechselt bei Bedarf auf Gesamtwerte. Die permanente Verteilungs-Heatmap bleibt über beiden Ansichten sichtbar.
-- **Muskelgruppen-Analyse – Diagrammansicht:** Ein Lucide-Icon in der App-Bar schaltet zur Diagrammansicht. X-Achsenlabels sind bei unterschiedlich langen Namen sauber ausgerichtet und kollisionsfrei platziert.
-- **Trainingsrhythmus:** Der bisherige Konsistenz-Tracker erhielt einen lesbaren Wochenverlauf mit Tooltip-Details, gerundeten Werten, adaptiven Balkenbreiten und ausgedünnten Zeitlabels für lange Zeiträume. Der Trainingskalender lädt unabhängig vom Zeitraumfilter die letzten zwölf Monate, behält beim Filterwechsel seinen sichtbaren Monat und zeigt eine kompakte Intensitätslegende im Kopf.
-- **Bestleistungs-Feed:** Das PR-Dashboard zeigt gefilterte neue Bestleistungen als Kennzahlen und chronologischen Feed mit Datum, e1RM-Vergleich und prozentualem Fortschritt. Eine bestehende Segmentsteuerung wechselt in der Rekordübersicht zwischen zuletzt aufgestellten Rekorden und Bestleistungen nach Wiederholungsbereich.
-- **Training-Vorschauen im Statistik-Hub:** Die drei Einstiegskarten beantworten nun klar getrennte Fragen und beschränken sich jeweils auf eine Hero-Aussage plus Kontext: Trainingsrhythmus zeigt die Gesamtzahl der Workouts über sechs Wochen und den Streak; Bestleistungen zeigt die Anzahl im gewählten Zeitraum sowie den Top-Durchbruch; Muskelgruppen zeigt durchschnittliche Arbeitssätze pro Woche sowie den meisttrainierten Muskel über acht Wochen.
+- **Adaptive workout progression:** Opt in to personalised next-set suggestions that respond to your completed set and the routine's repetition range. Suggestions stay fully editable and support regular, assisted and bodyweight exercises.
+- **Diary navigation:** Browse nearby days from a new, scrollable date strip or open a localised calendar directly from the Diary.
+- **Muscle group analysis:** Explore a complete muscle and movement-pattern overview, including weekly averages, totals and an optional chart view.
+- **Training rhythm:** Follow your weekly training trend with clearer charts, detailed tooltips and a 12-month activity calendar.
+- **Personal records:** Review recent personal records and progress by repetition range in a focused chronological feed.
+- **Documentation hub:** Browse the new searchable Train Libre documentation at [trainlibre.com/docs](https://trainlibre.com/docs/).
 
 ### Changed
-- **Übersichtstitel im Tagebuch:** „Heute im Blick“ heißt nun zeitunabhängig „Auf einen Blick“ beziehungsweise „At a Glance“ und wurde in allen unterstützten Sprachen angepasst.
-- **Muskelgruppen-Analyse – Klarere Einheiten:** Die Grid-Karten zeigen den Zeitraum gesammelt im Abschnitt statt wiederholt auf jeder Karte; die Frequenz bleibt als dezente durchschnittliche Wochenfrequenz sichtbar. Im Hellmodus verwenden die Karten wieder die reguläre weiße Standardoberfläche.
-- **Trainingsrhythmus – Sprache und Daten:** Der Screen heißt nun „Trainingsrhythmus“ in allen Sprachen. „Bewegtes Gewicht“ wurde als Metrik durch den gebräuchlichen Begriff „Volumen“ ersetzt. Tooltips zeigen vollständige Wochenbereiche und geben Trainings als ganze Workout-Anzahl aus.
-- **PR-Dashboard – Informationshierarchie:** Redundante All-Time-Ranglisten wurden zugunsten einer fokussierten Rekordübersicht entfernt. Verbesserungsdaten enthalten nun das Erreichungsdatum; die Hub-Ansicht behält weiterhin ihre Sortierung nach stärkster Verbesserung.
+- **Statistics overview:** Training Rhythm, Personal Records and Muscle Groups now provide clearer at-a-glance summaries before opening their detailed views.
+- **Recovery:** Muscle Recovery is now easier to reach at the top of the Workout tab.
+- **Muscle group data:** Analytics now focus on completed working sets and primary muscles, with movement patterns included where available.
+- **Workout logging:** New working sets and compatible exercises inherit a useful repetition range, while cardio, time and distance exercises remain unaffected.
+- **Workout history:** Exercise history now follows an exercise's stable identity, so renaming an exercise no longer breaks its history.
+- **Documentation links:** In-app citations and legal links now point to the new Train Libre website.
 
 ### Fixed
-- **Diagrammachsen:** Die Trainingsrhythmus-Y-Achse erzeugt keine doppelt gerundeten Tickwerte mehr und nutzt pro Metrik nur den nötigen linken Platz.
-- **Segmentsteuerung:** Der aktive Chip endet jetzt bündig an beiden Seiten der bestehenden Segmentsteuerung.
-
-## [1.4.0-beta.1] - 2026-09-10
-
-### Added
-- **Centralized Documentation Suite (`/docs/`):** Restructured the website documentation into a dedicated, responsive documentation portal (`trainlibre.com/docs/`) with sidebar topic navigation, scroll-spy table of contents, quick topic filter, and KaTeX mathematical formula rendering. Created `tool/build_docs.py` to compile Markdown files directly from `documentation/` as the single source of truth, integrated automated generation into `.github/workflows/deploy-docs.yml`, and added backwards-compatible hash-preserving redirect stubs (`/sleep-score/`, `/recovery/`, `/intelligent-workouts/`, `/adaptive-nutrition/`, `/ai-nutrition/`) ensuring existing in-app deep links (such as `#evidence`) continue working seamlessly while removing outdated calculators.
-- The calendar view is now the default for date-only pickers. Birth-date editing in onboarding and the profile keeps the Cupertino wheel as the intentional exception.
-- The date picker wheel toggle now uses the clearer three-column Lucide icon.
-- The shared date picker now accepts an initial presentation mode. The Diary opens directly in the localized calendar view, while other date-only inputs retain the Cupertino wheel by default.
-- Date-only adaptive pickers now offer a localized calendar view alongside the existing Cupertino wheel. The view uses the same date limits, theme, haptics, and confirmation flow, while date-time pickers remain unchanged.
-
-### Fixed
-- Live-Activity-Vorschläge werden nach abgeschlossener Progressionsberechnung zuverlässig synchronisiert und zeigen vorausgefüllte Werte auf iOS und Android an.
-- **Documentation Builder:** Preserve balanced parentheses in Markdown link destinations so DOI links render with their complete URL.
-- **Documentation Suite Header & Placeholder Fixes:** Fixed token placeholder collisions in `tool/build_docs.py` where italic markdown regex mangled inline code/math tokens. Aligned the Docs header brand element horizontally to match the exact pixel positioning of the main website header. Removed redundant Docs link in Docs header navigation.
-- **Mermaid Diagram Rendering:** Added Mermaid.js support to documentation pages to render architecture and database schema diagrams cleanly in dark and light modes with seamless theme-toggle updating.
-
-### Changed
-- Neu hinzugefügte Arbeitssätze und geeignete neue Übungen übernehmen den vorherigen Wiederholungsbereich beziehungsweise `8–12` als Standard. Cardio-, Zeit-, Distanz- und sonstige nicht passende Übungen bleiben ohne künstlichen Wiederholungsbereich.
-- **Website & Docs Footer Harmonization:** Removed legacy feature links from footers across all site screens (`index.html`, `terms.html`, `privacy.html`, `impressum.html`, `support.html`, `privacy-policy/index.html`) to retain only Documentation, Privacy Policy, Terms of Service, Imprint, Support, and GitHub. Harmonized the Docs footer structure 1:1 with the main website.
-- **Documentation Link Styling:** Enhanced link visibility in documentation articles with persistent accent-toned underlines (`text-underline-offset: 3px`), color inheritance for bold (`strong`) and emphasized (`em`) link texts (resolving white unstyled links), distinctive styling for code links, and interactive external link animations.
-- **In-App Documentation & Legal Links:** Updated all in-app citation and legal URLs across the Flutter app from legacy `rfivesix.github.io/train-libre/` URLs to canonical `https://trainlibre.com/docs/features/.../#evidence` and `https://trainlibre.com/privacy.html` targets.
-
-### Added
-- **Diary date strip:** The Diary header now offers a horizontally scrollable,
-  localized day strip with nearby one-tap dates, a clear calendar-picker
-  button, and haptic feedback when changing the selected day. Its regular
-  layout keeps exactly four day fields, marks today with an accent outline,
-  uses a compact summary-card surface for the calendar, and softly fades the
-  scrollable strip at its edges. Today is the default rightmost date while
-  future days remain reachable without an artificial right boundary; selecting
-  a nearby past date keeps today visible and restores the intended alignment.
-  The automatic alignment now leaves the selected card fully clear of the
-  right-edge fade.
-- **Progression v1.5:** Per-prescription linked/independent policies, real load ladders, confirmed large-step trials and temporary over-rep bridges, overshoot/recalibration and three-session stall reviews, explicit completion states, and assisted/bodyweight/weighted-bodyweight boundaries. The live workout shows one frameless platform-adaptive completion control only for the latest under-target working set, closes it after any acknowledged outcome, and uses a compact close icon for actionable reviews. Target decisions are displayed only on open sets and disappear when that set is completed; reviews derived from the completed result remain recorded for later progression. The load-and-repetition engine and its routine controls now explicitly exclude time, load-and-time, distance-and-time, distance-only and variable-load exercises while retaining their logging, statistics and personal records. Provisional equipment configuration stays hidden until a gym-equipment flow exists. Exceptional history labels and routine policy controls are localized in all five languages. Schema 31 and backup/restore retain versioned configuration, explanations and review decisions.
-- **Live-Workout Progression Integration (`WorkoutProgressionService`, `LiveWorkoutViewModel`, `LiveWorkoutSetRow`):** Pre-fills the double-progression engine's next load suggestion directly into the weight input field of the next open set when training autonomy is set to `suggest`. Pre-filled fields use subtle primary tinting and border styling distinct from focus and error states, and can be typed over immediately without confirmation. Explicit routine weights suppress suggestions completely.
-- **Set Provenance & Override Tracking (`LiveWorkoutViewModel`, `SetLog`):** Completed sets capture provenance metadata (`prescriptionOrigin = 'engine'`, `prescribedWeight`, `prescribedRepMin/Max`, `progressionReason`, `progressionAlgorithmVersion`) along with `prescriptionOverridden` (`false` when accepted as-is, `true` when edited by the user).
-- **Training Autonomy Setting (`TrainingAutonomyService`, `SettingsScreen`):** User preference for progression autonomy (`off` vs. `suggest`) backed by `AppSettings.trainingAutonomyLevel` in SQLite with SharedPreferences fallback. Strictly opt-in (defaults to `off`). Fully localized in German, English, French, Italian, and Japanese.
-- **Double-Progression Engine (`DoubleProgressionEngine`, `nextPrescription`):** Pure domain function deriving next load and repetition prescriptions from past working sets against routine target rep ranges without IO or database dependencies. Supports equipment load increments, reverse progression for assisted exercises, inactivity hold after a 3-week gap, failure sets, and reason tracking for future plateau diagnostics.
-- **Progression Domain Models (`ProgressionOutcome`, `LoadMode`, `ProgressionReason`, `LoadIncrement`, `RepRange`, `ExerciseProgressionHistory`):** Domain structures representing progression outcomes (`raise`, `hold`, `noSuggestion`), load modes, equipment step tables, and machine-readable justification keys.
-- **Prescription-Capture (`SetLog`):** Target values from routine templates (reps, min/max target reps, weight, RIR) are recorded as immutable snapshots on each set log with origin tracking (`none`, `routine`, `engine`) to compare prescribed vs. completed performance.
-- **Rep-Range-Parser (`parseRepRange`):** Parses routine template repetition strings (supporting single values, hyphen and en-dash ranges, whitespace, and rejecting open-ended formats) into structured min/max bounds.
-- **Autonomy & Origin Enums (`AutonomyLevel`, `PrescriptionOrigin`):** Added domain enums representing autonomy levels (`off`, `suggest`, `automatic`) and prescription provenance (`none`, `routine`, `engine`).
-- **Database Schema 30 (`AppDatabase`):** Added 10 prescription snapshot and override tracking columns to `SetLogs`, `targetRepMin` and `targetRepMax` to `RoutineSetTemplates`, and `trainingAutonomyLevel`, `nutritionAutonomyLevel`, and `experienceLevel` to `AppSettings`.
-
-### Changed
-- **Workout hub recovery:** Moved the Muscle Recovery card and Tracker to the
-  top of the Workout tab, under the localized Recovery section. Statistics
-  retains its Recovery section for sleep and pulse insights.
-- **Training coverage:** Muscle Group Analytics now counts completed normal and
-  failure sets only, credits primary muscles without secondary-muscle weighting,
-  and adds a localized movement-pattern view. The screen defaults to the last
-  seven days and remains descriptive without targets or balance judgements.
-  Movement patterns are the third metric below muscle coverage and frequency;
-  unclassified rows are omitted. Custom exercises can now store their movement
-  pattern, force direction, mechanic, laterality and difficulty, all unset by
-  default.
-- **JIT workout progression:** The active live-workout path now calculates only the directly following open working set from the preceding completed set (`progression_v1.8_jit`). Straight-set loads remain in place while repetitions absorb normal fatigue; load changes occur only above or below the authored repetition range. Differing positive routine weights preserve their relative back-off ratio against today's real first set and are rounded before projection. The engine guards short hypertrophy-set outliers, high-repetition Brzycki limits, and assisted exercises without a recorded body weight. Generic equipment floors prevent suggestions below an unloaded barbell or standard machine, cable and dumbbell minimum. Existing workout and backup data remain readable without a database migration.
-- **Atomic workout finalization:** Completing a workout now updates all retained set rows, removes untouched empty rows and generated placeholders, marks the workout completed, and verifies the retained rows in one SQLite transaction. Manually entered open sets are retained. No schema migration is required, so updating an existing device database does not replace or transform user records.
-- **Progression documentation:** Replaced the retired v1.5 policy/review model with the current first-set workflow and aligned e1RM documentation with the Brzycki calculation used by the app.
-- **Progression Simplification Plan:** Added the binding Part 12 alpha correction to the adaptive-engine plan. The next progression iteration uses the first working set as the session e1RM anchor, derives later loads from concrete repetition targets and a single versioned fatigue factor, and removes linked/independent policies, completion reasons, reviews and equipment-configuration controls from the intended workout UX. The plan also makes atomic, verified workout persistence a release blocker after the real-device alpha lost entered exercises and sets.
-- **Exercise History by UUID (`getLastSetsForExercise`, `SetLog.exerciseId`):** Switched exercise history queries from display name matching to stable exercise UUIDs with fallback for legacy rows without an exercise ID. Renaming or catalog merges no longer compromise exercise history.
-- **ExperienceLevel Persistence (`ExperienceLevelService`, `AppSettings`):** Experience level preference moved from `SharedPreferences` to SQLite `AppSettings.experienceLevel` with automatic one-time migration and backup/restore support.
-
-### Fixed
-- **Weight ruler and workout timing:** The Diary weight ruler now provides a
-  selection haptic at every 0.1 kg position. Editing a completed workout's
-  start time now shifts its end time by the same amount, preserving duration;
-  the duration itself can now be edited afterward. Its editable date and
-  duration rows are now frameless and align with the workout title in both
-  colour themes.
-- **Summary-card shadows:** Removed the remaining Light Mode drop shadow from
-  compact `GlassProgressBar` summary-card variants as well as the shared card
-  surface.
-- **Live-workout generated-value inputs:** Editing a suggested weight or repetition no longer
-  replaces its `TextFormField`, so deleting the first character retains keyboard focus. The
-  generated-value cloud is now monochrome—black in light mode and white in dark mode—rather than
-  inheriting the green app accent.
-- **Failure-set RIR:** Marking a live set as failure now automatically records and displays `0` repetitions in reserve. Logging RIR `0` on a normal set does not change its type.
-- **Diary workout discard:** Discarding a running workout from the Diary overlay now clears the active in-memory workout after deleting its database record. The deleted session can no longer be reopened or accidentally finalized again.
-- **PostHog Measurement Log Telemetry (`ProfileLocalDataSource.saveWeightKg`):** Instrumented `FeatureKey.bodyMeasurementLogged` when logging weight entries (such as from the diary screen `WeightCard`), resolving an issue where weigh-ins recorded from the diary did not emit the telemetry event.
-- **Diary Today Placeholders (`DiaryScreen`, `StepsSummaryCard`, `PulseSummaryCard`, `SleepSummaryCard`):** Removed placeholder food entries, placeholder water logs, and simulated skeleton values for steps, pulse, and sleep when viewing today's diary before any data has been recorded.
-- **Live-Workout Automatic Scroll During Exercise (`LiveWorkoutScreen`):** Removed unwanted auto-scrolling when completing sets during an active workout session. Auto-scrolling to the active exercise now only occurs when reopening the workout screen or returning from a Live Activity or background resume.
-- **Live-Workout Rest Completion Banner Styling & Contrast (`LiveWorkoutScreen`):** Increased backdrop blur on the rest timer completion banner (`doneGlass`) to `3.5` (raised from `0.0`) so the glass effect is prominent and visibly frosted against background content. Replaced the yellow accent styling with the completed set green palette (`Color(0xFF1B5E20)` in dark mode, `Color(0xFF81C784)` in light mode) and dynamic high-contrast text and button colors (`Colors.white` in dark mode, `Colors.black` in light mode), resolving illegibility in dark mode.
-- **Auto-Fill Marking for Fabricated Zeros (`LogWorkoutSetUseCase`):** Completing sets where template weight is null (falling back to 0.0 kg) or target repetitions are empty (falling back to 0 reps) now flags `valuesAutoFilled = true` so fabricated defaults are not mistaken for user input.
-
-### Removed
-- **Live-workout progression controls:** Removed linked/independent policy selection, completion-reason controls, progression review cards and the provisional equipment controls from the active routine and workout interfaces.
-- **Obsolete Performance Query:** Removed deprecated `getLastPerformance` method from `WorkoutLoggingQueries`.
+- **Workout completion:** Finishing a workout now saves its retained sets reliably and removes only untouched placeholders.
+- **Diary workouts:** Discarded in-progress workouts can no longer be reopened or finalised accidentally.
+- **Live workouts:** Completing a set no longer unexpectedly scrolls the active exercise out of view.
+- **Diary:** Empty entries for food, water, steps, pulse and sleep are no longer shown for today.
 
 ## [1.3.0] - 2026-09-07
 
