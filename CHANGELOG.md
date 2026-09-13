@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [1.4.1] — 2026-09-14
 
 ### Changed
+- **AI Voice Dictation UI (`voice_dictation_sheet`):** Transposed the transcript field to the top of the sheet for natural readability while dictating, and relocated the recording orb to the bottom for thumb ergonomics. The completion actions ("Analyze text" and "Use this text") are now withheld while recording and tidying, smoothly transitioning in only once transcription is complete, alongside a clear "Record again" retake action.
 - **Recovery Tracker Decision-Focused Muscle Rows (`RecoveryTrackerScreen`):** Each muscle now keeps only its changing values visible: name, numeric readiness, a three-zone readiness scale with a score marker, and compact remaining hours unless it is already fresh. The enclosing section supplies the shared state instead of repeating it on every row. Tapping a row opens a structured text-only evidence panel with latest-session dose and age, remaining forecast(s), and RIR-set coverage; redundant state pills, qualitative fatigue labels, decorative detail icons, and unclear role-ratio details no longer compete with the decision.
 - **Recovery tracker:** Replaced the fixed 14-day aggregate with a per-set, time-decaying residual-load engine. It uses each session's end time, bounded RIR and repetition modifiers, failure-set semantics, direct/indirect muscle roles, supplied catalog contributions where available, and distinct baseline recovery rates per muscle group. The latest session is now reported separately from remaining multi-session load, so old hard sessions no longer masquerade as today's load.
 - **Recovery tracker documentation:** Finalized the current model reference with a quick-output guide, worked calculations, exact calibration boundaries, evidence sources, and verification coverage. The superseded v1 document was removed; Git history retains it when historical comparison is needed.
@@ -16,6 +17,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **AI meal logging:** The meal-type picker remains available in the compact post-scan review, so a recognized meal can be assigned to breakfast, lunch, dinner, or a snack without entering ingredient edit mode.
 
 ### Fixed
+- **AI Voice Dictation Accent & Orb Colors (`voice_dictation_sheet`):** Configured the dictation orb and active listening border to use brand recording red (`brandRedColor`), transitioning smoothly to brand green (`brandAccentColor` / `brandAccentColorLightMode`) during AI tidying instead of blue, and replaced hardcoded lime colors with theme-aware accent colors.
 - **Recovery Readiness Scale Rendering (`RecoveryTrackerScreen`):** The three-state 0–100 scale could collapse to an invisible background while its score marker still rendered. It now uses an explicitly sized, bordered gradient track, so the recovering, ready, and fresh zones remain visible in every card.
 
 ## [1.4.0] - 2026-09-11
