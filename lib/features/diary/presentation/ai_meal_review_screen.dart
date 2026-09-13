@@ -1295,92 +1295,75 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
                 ],
               ),
               child: Row(
-                children: _isEditing
-                    ? [
-                        // Meal type belongs with the editable state. The
-                        // summary keeps the detected meal calm and readable.
-                        Expanded(
-                          flex: 2,
-                          child: PlatformAdaptiveDropdownFormField<String>(
-                            initialValue: _selectedMealType,
-                            decoration: InputDecoration(
-                              border: const OutlineInputBorder(),
-                              contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                                vertical: DesignConstants.spacingS,
-                              ),
-                              isDense: true,
-                            ),
-                            items: [
-                              DropdownMenuItem(
-                                value: 'mealtypeBreakfast',
-                                child: Text(
-                                  l10n.mealtypeBreakfast,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                              DropdownMenuItem(
-                                value: 'mealtypeLunch',
-                                child: Text(
-                                  l10n.mealtypeLunch,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                              DropdownMenuItem(
-                                value: 'mealtypeDinner',
-                                child: Text(
-                                  l10n.mealtypeDinner,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                              DropdownMenuItem(
-                                value: 'mealtypeSnack',
-                                child: Text(
-                                  l10n.mealtypeSnack,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                            ],
-                            onChanged: (v) {
-                              if (v != null) {
-                                setState(() => _selectedMealType = v);
-                              }
-                            },
+                children: [
+                  // Changing the diary meal is a logging decision, not an
+                  // ingredient-editing decision. Keep it available after the
+                  // scan is complete as well as while editing ingredients.
+                  Expanded(
+                    flex: 2,
+                    child: PlatformAdaptiveDropdownFormField<String>(
+                      initialValue: _selectedMealType,
+                      decoration: InputDecoration(
+                        border: const OutlineInputBorder(),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: DesignConstants.spacingS,
+                        ),
+                        isDense: true,
+                      ),
+                      items: [
+                        DropdownMenuItem(
+                          value: 'mealtypeBreakfast',
+                          child: Text(
+                            l10n.mealtypeBreakfast,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        const SizedBox(width: DesignConstants.spacingM),
-                        Expanded(
-                          flex: 3,
-                          child: SizedBox(
-                            height: 48,
-                            child: AppButton.primary(
-                              onPressed: (_items.isNotEmpty &&
-                                      !_isSaving &&
-                                      !_isMatching)
-                                  ? _saveToDiary
-                                  : null,
-                              label: l10n.aiReviewSaveToDiary,
-                              tooltip: l10n.aiReviewSaveToDiary,
-                            ),
+                        DropdownMenuItem(
+                          value: 'mealtypeLunch',
+                          child: Text(
+                            l10n.mealtypeLunch,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                      ]
-                    : [
-                        Expanded(
-                          child: SizedBox(
-                            height: 48,
-                            child: AppButton.primary(
-                              onPressed: (_items.isNotEmpty &&
-                                      !_isSaving &&
-                                      !_isMatching)
-                                  ? _saveToDiary
-                                  : null,
-                              label: l10n.aiReviewSaveToDiary,
-                              tooltip: l10n.aiReviewSaveToDiary,
-                            ),
+                        DropdownMenuItem(
+                          value: 'mealtypeDinner',
+                          child: Text(
+                            l10n.mealtypeDinner,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        DropdownMenuItem(
+                          value: 'mealtypeSnack',
+                          child: Text(
+                            l10n.mealtypeSnack,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                       ],
+                      onChanged: (v) {
+                        if (v != null) {
+                          setState(() => _selectedMealType = v);
+                        }
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: DesignConstants.spacingM),
+                  Expanded(
+                    flex: 3,
+                    child: SizedBox(
+                      height: 48,
+                      child: AppButton.primary(
+                        onPressed:
+                            (_items.isNotEmpty && !_isSaving && !_isMatching)
+                                ? _saveToDiary
+                                : null,
+                        label: l10n.aiReviewSaveToDiary,
+                        tooltip: l10n.aiReviewSaveToDiary,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
