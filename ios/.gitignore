@@ -32,3 +32,12 @@ Runner/GeneratedPluginRegistrant.*
 !default.mode2v3
 !default.pbxuser
 !default.perspectivev3
+
+# Secrets & Local Fastlane Environments
+*.p8
+AuthKey_*.p8
+.env
+.env.*
+.env.local
+fastlane/.env
+fastlane/.env.*

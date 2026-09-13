@@ -1,6 +1,32 @@
 default_platform(:ios)
 
 platform :ios do
+  before_all do
+    # App Store Connect API Key setup (JWT token auth)
+    api_key_id = ENV["APP_STORE_CONNECT_API_KEY_KEY_ID"]
+    issuer_id = ENV["APP_STORE_CONNECT_API_KEY_ISSUER_ID"]
+    key_filepath = ENV["APP_STORE_CONNECT_API_KEY_KEY_FILEPATH"]
+    key_content = ENV["APP_STORE_CONNECT_API_KEY_KEY_CONTENT"]
+
+    if api_key_id && !api_key_id.empty? && issuer_id && !issuer_id.empty?
+      if (key_filepath.nil? || key_filepath.empty?) && (key_content.nil? || key_content.empty?)
+        default_path = File.expand_path("~/.appstoreconnect/private_keys/AuthKey_#{api_key_id}.p8")
+        key_filepath = default_path if File.exist?(default_path)
+      end
+
+      key_filepath = File.expand_path(key_filepath) if key_filepath && !key_filepath.empty?
+
+      app_store_connect_api_key(
+        key_id: api_key_id,
+        issuer_id: issuer_id,
+        key_filepath: key_filepath,
+        key_content: key_content,
+        in_house: false
+      )
+      UI.success("Authenticated via App Store Connect API Key (#{api_key_id})")
+    end
+  end
+
   desc "Upload existing IPA to Apple TestFlight"
   lane :upload_beta do
     project_root = File.expand_path("../../..", __FILE__)
@@ -49,11 +75,13 @@ platform :ios do
     UI.user_error!("No compiled IPA file found in build/ios/ipa/") unless ipa_path
     UI.message("Found compiled IPA for TestFlight at: #{ipa_path}")
 
-    apple_username = ENV["FASTLANE_USER"] || ENV["APPLE_ID"]
+    api_key = lane_context[SharedValues::APP_STORE_CONNECT_API_KEY]
+    apple_username = api_key ? nil : (ENV["FASTLANE_USER"] || ENV["APPLE_ID"])
 
     upload_to_testflight(
       ipa: ipa_path,
       app_identifier: "com.rfivesix.trainlibre",
+      api_key: api_key,
       username: apple_username, 
       apple_id: "6767055511",    
       team_id: "QUXZN5283U",
@@ -67,10 +95,12 @@ platform :ios do
     screenshots_dir = options[:path] || File.expand_path("../screenshots", __FILE__)
     UI.message("Uploading screenshots from: #{screenshots_dir}")
 
-    apple_username = ENV["FASTLANE_USER"] || ENV["APPLE_ID"]
+    api_key = lane_context[SharedValues::APP_STORE_CONNECT_API_KEY]
+    apple_username = api_key ? nil : (ENV["FASTLANE_USER"] || ENV["APPLE_ID"])
 
     upload_to_app_store(
       app_identifier: "com.rfivesix.trainlibre",
+      api_key: api_key,
       username: apple_username,
       app: "6767055511",
       team_id: "QUXZN5283U",
@@ -78,6 +108,8 @@ platform :ios do
       skip_metadata: true,
       screenshots_path: screenshots_dir,
       overwrite_screenshots: true,
+      run_precheck_before_submit: false,
+      precheck_include_in_app_purchases: false,
       force: true
     )
   end
@@ -87,7 +119,8 @@ platform :ios do
     meta_dir = File.expand_path("../metadata", __FILE__)
     UI.message("Downloading metadata to: #{meta_dir}")
 
-    apple_username = ENV["FASTLANE_USER"] || ENV["APPLE_ID"]
+    api_key = lane_context[SharedValues::APP_STORE_CONNECT_API_KEY]
+    apple_username = api_key ? nil : (ENV["FASTLANE_USER"] || ENV["APPLE_ID"])
     user_flag = apple_username ? "--username '#{apple_username}'" : ""
 
     sh("bundle exec fastlane deliver download_metadata --force --metadata_path '#{meta_dir}' --app_identifier 'com.rfivesix.trainlibre' #{user_flag} --team_id 'QUXZN5283U'")
@@ -98,16 +131,20 @@ platform :ios do
     meta_dir = File.expand_path("../metadata", __FILE__)
     UI.message("Uploading metadata from: #{meta_dir}")
 
-    apple_username = ENV["FASTLANE_USER"] || ENV["APPLE_ID"]
+    api_key = lane_context[SharedValues::APP_STORE_CONNECT_API_KEY]
+    apple_username = api_key ? nil : (ENV["FASTLANE_USER"] || ENV["APPLE_ID"])
 
     deliver(
       app_identifier: "com.rfivesix.trainlibre",
+      api_key: api_key,
       username: apple_username,
       app: "6767055511",
       team_id: "QUXZN5283U",
       skip_binary_upload: true,
       skip_screenshots: true,
       metadata_path: meta_dir,
+      run_precheck_before_submit: false,
+      precheck_include_in_app_purchases: false,
       force: true
     )
   end
