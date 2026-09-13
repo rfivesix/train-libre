@@ -67,12 +67,12 @@ Train Libreは医療用アプリではありません。リカバリー推定、
 トレーニングと記録をより分かりやすく: トレーニングリズムでワークアウト、ストリーク、カレンダーを見やすく確認できます。新しい自己ベストは進歩フィードと記録の概要に表示されます。
 
 ## Support URL (Support Web Page URL)
-https://rfivesix.github.io/train-libre/support.html
+https://trainlibre.com/support
 
 ## Marketing URL (Marketing / Product Web Page URL)
-https://rfivesix.github.io/train-libre/
+https://trainlibre.com
 
 ## Privacy Policy URL (Privacy Policy Web Page URL)
-https://rfivesix.github.io/train-libre/privacy-policy/
+https://trainlibre.com/privacy-policy/
 
 ## Copyright (Copyright holder (e.g. 2026 Richard Schotte))

@@ -67,12 +67,12 @@ Muscle groups at a glance: The analysis now offers a complete overview of every 
 A clearer view of training and records: Training Rhythm presents your workouts, streak and calendar more clearly. New personal bests now appear in a progress feed with a record overview.
 
 ## Support URL (Support Web Page URL)
-https://rfivesix.github.io/train-libre/support.html
+https://trainlibre.com/support
 
 ## Marketing URL (Marketing / Product Web Page URL)
-https://rfivesix.github.io/train-libre/
+https://trainlibre.com
 
 ## Privacy Policy URL (Privacy Policy Web Page URL)
-https://rfivesix.github.io/train-libre/privacy-policy/
+https://trainlibre.com/privacy-policy/
 
 ## Copyright (Copyright holder (e.g. 2026 Richard Schotte))

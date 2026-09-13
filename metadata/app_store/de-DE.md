@@ -67,12 +67,12 @@ Muskelgruppen auf einen Blick: Die Analyse bietet jetzt eine vollständige Über
 Training und Rekorde klarer verstehen: Trainingsrhythmus zeigt dir verständlich deine Einheiten, Serie und den Kalender. Deine neuen Bestleistungen erscheinen als Feed mit Fortschritt und Rekordübersicht.
 
 ## Support URL (Support Web Page URL)
-https://rfivesix.github.io/train-libre/
+https://trainlibre.com/support
 
 ## Marketing URL (Marketing / Product Web Page URL)
-https://rfivesix.github.io/train-libre/
+https://trainlibre.com
 
 ## Privacy Policy URL (Privacy Policy Web Page URL)
-https://rfivesix.github.io/train-libre/privacy-policy/
+https://trainlibre.com/privacy-policy/
 
 ## Copyright (Copyright holder (e.g. 2026 Richard Schotte))

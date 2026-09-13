@@ -67,12 +67,12 @@ Gruppi muscolari a colpo d'occhio: l'analisi ora offre una panoramica completa d
 Allenamento e record più chiari: il ritmo di allenamento mostra in modo più leggibile allenamenti, serie e calendario. I nuovi record personali compaiono in un feed dei progressi con una panoramica dei record.
 
 ## Support URL (Support Web Page URL)
-https://rfivesix.github.io/train-libre/support.html
+https://trainlibre.com/support
 
 ## Marketing URL (Marketing / Product Web Page URL)
-https://rfivesix.github.io/train-libre/
+https://trainlibre.com
 
 ## Privacy Policy URL (Privacy Policy Web Page URL)
-https://rfivesix.github.io/train-libre/privacy-policy/
+https://trainlibre.com/privacy-policy/
 
 ## Copyright (Copyright holder (e.g. 2026 Richard Schotte))
