@@ -16,6 +16,32 @@ import 'whats_new_release.dart';
 const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
   'en': <WhatsNewRelease>[
     WhatsNewRelease(
+      version: '1.4.1',
+      releasedOn: '2026-09-14',
+      entries: <WhatsNewEntry>[
+        WhatsNewEntry(
+          icon: LucideIcons.activity,
+          title: 'Smarter Muscle Recovery',
+          body: 'Recovery tracking now uses a time-decaying residual-load model for every single set. Muscle rows show readiness and remaining recovery hours at a glance, and tapping any card reveals detailed session dose and forecast insights.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.mic,
+          title: 'Streamlined Voice Dictation',
+          body: 'The transcript now sits at the top for natural reading while dictating, with the recording button moved to the bottom for comfortable thumb ergonomics. Smooth color transitions guide you from recording to processing.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.utensils,
+          title: 'Cleaner Meal Capture',
+          body: 'Newly captured AI meals now open with compact ingredient cards and instant meal-type selection (breakfast, lunch, dinner, snack) right from the review screen.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.bug,
+          title: 'Visual Polish & Stability',
+          body: 'Fixed a rendering glitch with the readiness scale background in muscle cards and improved overall app stability.',
+        ),
+      ],
+    ),
+    WhatsNewRelease(
       version: '1.4.0',
       releasedOn: '2026-09-11',
       entries: <WhatsNewEntry>[
@@ -178,6 +204,32 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
     ),
   ],
   'de': <WhatsNewRelease>[
+    WhatsNewRelease(
+      version: '1.4.1',
+      releasedOn: '2026-09-14',
+      entries: <WhatsNewEntry>[
+        WhatsNewEntry(
+          icon: LucideIcons.activity,
+          title: 'Präzisere Muskelregeneration',
+          body: 'Die Regenerationsanzeige nutzt jetzt ein zeitdynamisches Belastungsmodell für jeden einzelnen Satz. Die Muskelkarten zeigen Bereitschaft und verbleibende Erholungszeit noch übersichtlicher; ein Tipp öffnet detaillierte Einblicke zu Belastungsdosis und Prognose.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.mic,
+          title: 'Komfortablere Spracheingabe',
+          body: 'Das Diktatfeld sitzt nun ergonomisch oben, während der Aufnahme-Button bequem mit dem Daumen erreichbar ist. Ein flüssiger Farbwechsel von Aufnahme-Rot zu Verarbeitungs-Grün signalisiert den Status.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.utensils,
+          title: 'Aufgeräumte Mahlzeiten-Vorschau',
+          body: 'Neu erkannte KI-Mahlzeiten präsentieren sich mit kompakten Zutatenkarten und direktem Zugriff auf die Mahlzeiten-Kategorie (Frühstück, Mittag, Abendessen, Snack), bevor du sie speicherst.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.bug,
+          title: 'Fehlerbehebungen & Feinschliff',
+          body: 'Ein Darstellungsfehler der Farbskala in den Muskelkarten wurde behoben und die allgemeine Stabilität weiter optimiert.',
+        ),
+      ],
+    ),
     WhatsNewRelease(
       version: '1.4.0',
       releasedOn: '2026-09-11',
@@ -342,6 +394,32 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
   ],
   'fr': <WhatsNewRelease>[
     WhatsNewRelease(
+      version: '1.4.1',
+      releasedOn: '2026-09-14',
+      entries: <WhatsNewEntry>[
+        WhatsNewEntry(
+          icon: LucideIcons.activity,
+          title: 'Récupération musculaire plus précise',
+          body: 'Le suivi de la récupération utilise désormais un modèle de charge résiduelle décroissante par série. Les cartes musculaires affichent la disponibilité et les heures restantes en un coup d’œil ; appuyez sur une carte pour voir les détails de dose et de prévision.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.mic,
+          title: 'Dictée vocale optimisée',
+          body: 'Le texte apparaît désormais en haut pour une lecture naturelle pendant la dictée, avec le bouton d’enregistrement placé en bas à portée de pouce. Des transitions de couleur fluides indiquent l’enregistrement et le traitement.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.utensils,
+          title: 'Aperçu des repas simplifié',
+          body: 'Les repas reconnus par IA s\'ouvrent avec des fiches d\'ingrédients compactes et le choix direct du type de repas (petit-déjeuner, déjeuner, dîner, collation) avant d\'enregistrer.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.bug,
+          title: 'Corrections et stabilité',
+          body: 'Correction d\'un problème d\'affichage de la jauge de récupération et amélioration de la stabilité générale.',
+        ),
+      ],
+    ),
+    WhatsNewRelease(
       version: '1.4.0',
       releasedOn: '2026-09-11',
       entries: <WhatsNewEntry>[
@@ -505,6 +583,32 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
   ],
   'it': <WhatsNewRelease>[
     WhatsNewRelease(
+      version: '1.4.1',
+      releasedOn: '2026-09-14',
+      entries: <WhatsNewEntry>[
+        WhatsNewEntry(
+          icon: LucideIcons.activity,
+          title: 'Recupero muscolare più preciso',
+          body: 'Il monitoraggio del recupero utilizza ora un modello a carico residuo dinamico per ogni singola serie. Le schede muscolari mostrano prontezza e ore di recupero a colpo d\'occhio; toccando una scheda si aprono dettagli su dosaggio e previsioni.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.mic,
+          title: 'Dettatura vocale migliorata',
+          body: 'La trascrizione si trova ora in alto per una lettura naturale, con il pulsante di registrazione posizionato comodamente in basso. Transizioni cromatiche fluide guidano dalla registrazione all\'elaborazione.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.utensils,
+          title: 'Revisione pasti più chiara',
+          body: 'I pasti acquisiti con l\'IA mostrano schede ingredienti compatte e selezione diretta del tipo di pasto (colazione, pranzo, cena, spuntino) prima del salvataggio.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.bug,
+          title: 'Correzioni e rifiniture',
+          body: 'Risolto un problema di visualizzazione della scala di recupero e migliorata la stabilità complessiva.',
+        ),
+      ],
+    ),
+    WhatsNewRelease(
       version: '1.4.0',
       releasedOn: '2026-09-11',
       entries: <WhatsNewEntry>[
@@ -667,6 +771,32 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
     ),
   ],
   'ja': <WhatsNewRelease>[
+    WhatsNewRelease(
+      version: '1.4.1',
+      releasedOn: '2026-09-14',
+      entries: <WhatsNewEntry>[
+        WhatsNewEntry(
+          icon: LucideIcons.activity,
+          title: 'より正確な筋肉回復トラッキング',
+          body: 'セットごとの時間減衰負荷モデルを導入しました。筋肉カードで準備状態と残り回復時間をひと目で確認でき、タップすると直近セッションの負荷や予測の詳細を表示します。',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.mic,
+          title: '音声入力の操作性を改善',
+          body: 'ディクテーション中に読みやすいようテキスト欄を上部に配置し、録音ボタンを下部に配置して親指で操作しやすくしました。録音から処理への色アニメーションも滑らかになりました。',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.utensils,
+          title: 'AI食事レビューの効率化',
+          body: 'AIが認識した食事はコンパクトな食材カードで表示され、保存前に食事タイプ（朝食・昼食・夕食・間食）をスムーズに切り替えられます。',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.bug,
+          title: '不具合修正と安定性の向上',
+          body: '筋肉カードの回復スケール表示の不具合を修正し、全体の安定性を向上させました。',
+        ),
+      ],
+    ),
     WhatsNewRelease(
       version: '1.4.0',
       releasedOn: '2026-09-11',
@@ -835,4 +965,4 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
 const String kWhatsNewFallbackLanguage = 'en';
 
 /// The version this catalog was generated for, taken from pubspec.yaml.
-const String kWhatsNewGeneratedForVersion = '1.4.0';
+const String kWhatsNewGeneratedForVersion = '1.4.1';

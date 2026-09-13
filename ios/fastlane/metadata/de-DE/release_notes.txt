@@ -1,9 +1,7 @@
-Tagebuch nach Datum durchsuchen: Über eine neue, horizontal scrollbare Tagesleiste wechselst du mit einem Tipp zu nahegelegenen Tagen. Wenn du im Tagebuch ein Datum auswählst, öffnet sich direkt der Kalender.
+Präzisere Muskelregeneration: Die Regenerationsanzeige nutzt jetzt ein zeitdynamisches Belastungsmodell für jeden einzelnen Satz. Die Muskelkarten zeigen Bereitschaft und verbleibende Erholungszeit noch übersichtlicher; ein Tipp öffnet detaillierte Einblicke zu Belastungsdosis und Prognose.
 
-Intelligentere Vorschläge für den nächsten Satz: Aktivierst du Trainingsvorschläge in den Einstellungen, kann Train Libre das Gewicht für den nächsten Arbeitssatz anhand deiner letzten Leistung vorausfüllen. Vor dem Speichern kannst du es jederzeit ändern.
+Komfortablere Spracheingabe: Das Diktatfeld sitzt nun ergonomisch oben, während der Aufnahme-Button bequem mit dem Daumen erreichbar ist. Ein flüssiger Farbwechsel von Aufnahme-Rot zu Verarbeitungs-Grün signalisiert den Status.
 
-Regeneration dort, wo du trainierst: Die Muskelregeneration steht jetzt ganz oben im Workout-Tab. Die Muskelgruppen-Analyse zeigt neben Muskelabdeckung und Häufigkeit auch deine Bewegungsmuster.
+Aufgeräumte Mahlzeiten-Vorschau: Neu erkannte KI-Mahlzeiten präsentieren sich mit kompakten Zutatenkarten und direktem Zugriff auf die Mahlzeiten-Kategorie (Frühstück, Mittag, Abendessen, Snack), bevor du sie speicherst.
 
-Muskelgruppen auf einen Blick: Die Analyse bietet jetzt eine vollständige Übersicht aller Muskelgruppen und Bewegungsmuster, eine permanente Verteilungs-Heatmap sowie Wochen- und Gesamtwerte für Arbeitssätze.
-
-Training und Rekorde klarer verstehen: Trainingsrhythmus zeigt dir verständlich deine Einheiten, Serie und den Kalender. Deine neuen Bestleistungen erscheinen als Feed mit Fortschritt und Rekordübersicht.
+Fehlerbehebungen & Feinschliff: Ein Darstellungsfehler der Farbskala in den Muskelkarten wurde behoben und die allgemeine Stabilität weiter optimiert.

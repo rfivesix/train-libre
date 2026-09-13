@@ -56,15 +56,13 @@ OPEN SOURCE & OPEN DATA:
 Built transparently on trusted community catalogues from Open Food Facts and OpenExerciseDB. The full source code is publicly accessible, so our privacy claims can be verified rather than just believed.
 
 ## Release Notes (What's New / Release Notes in this version)
-Browse your diary by date: A new, scrollable day strip lets you jump between nearby days in one tap. The calendar opens directly when you choose a date in the Diary.
+Smarter Muscle Recovery: Recovery tracking now uses a time-decaying residual-load model for every single set. Muscle rows show readiness and remaining recovery hours at a glance, and tapping any card reveals detailed session dose and forecast insights.
 
-Smarter next-set suggestions: When you enable training suggestions in Settings, Train Libre can prefill the next working set with a weight based on your recent performance. You can always change it before logging.
+Streamlined Voice Dictation: The transcript now sits at the top for natural reading while dictating, with the recording button moved to the bottom for comfortable thumb ergonomics. Smooth colour transitions guide you from recording to processing.
 
-Recovery where you train: Muscle Recovery is now at the top of the Workout tab. Muscle Group Analytics also shows your movement patterns alongside muscle coverage and frequency.
+Cleaner Meal Capture: Newly captured AI meals now open with compact ingredient cards and instant meal-type selection (breakfast, lunch, dinner, snack) right from the review screen.
 
-Muscle groups at a glance: The analysis now offers a complete overview of every muscle group and movement pattern, a permanent distribution heatmap, and weekly or total working-set values.
-
-A clearer view of training and records: Training Rhythm presents your workouts, streak and calendar more clearly. New personal bests now appear in a progress feed with a record overview.
+Visual Polish & Stability: Fixed a rendering glitch with the readiness scale background in muscle cards and improved overall app stability.
 
 ## Support URL (Support Web Page URL)
 https://trainlibre.com/support

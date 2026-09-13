@@ -6,6 +6,16 @@
   récente en premier. Ensuite : python3 script/build_whats_new.py --write --sync-store
 -->
 
+## 1.4.1 (2026-09-14)
+
+{activity} Récupération musculaire plus précise : Le suivi de la récupération utilise désormais un modèle de charge résiduelle décroissante par série. Les cartes musculaires affichent la disponibilité et les heures restantes en un coup d’œil ; appuyez sur une carte pour voir les détails de dose et de prévision.
+
+{mic} Dictée vocale optimisée : Le texte apparaît désormais en haut pour une lecture naturelle pendant la dictée, avec le bouton d’enregistrement placé en bas à portée de pouce. Des transitions de couleur fluides indiquent l’enregistrement et le traitement.
+
+{utensils} Aperçu des repas simplifié : Les repas reconnus par IA s'ouvrent avec des fiches d'ingrédients compactes et le choix direct du type de repas (petit-déjeuner, déjeuner, dîner, collation) avant d'enregistrer.
+
+{bug} Corrections et stabilité : Correction d'un problème d'affichage de la jauge de récupération et amélioration de la stabilité générale.
+
 ## 1.4.0 (2026-09-11)
 
 {layout_grid} Parcours ton journal par date : une nouvelle barre de jours défilante te permet d'accéder aux jours proches en un geste. Lorsque tu choisis une date dans le journal, le calendrier s'ouvre directement.

@@ -56,15 +56,13 @@ OPEN SOURCE & DONNÉES OUVERTES :
 Développé de manière transparente à partir des catalogues communautaires de confiance Open Food Facts et OpenExerciseDB. Le code source complet est accessible publiquement : nos promesses de confidentialité se vérifient au lieu de se croire.
 
 ## Release Notes (What's New / Release Notes in this version)
-Parcours ton journal par date: une nouvelle barre de jours défilante te permet d'accéder aux jours proches en un geste. Lorsque tu choisis une date dans le journal, le calendrier s'ouvre directement.
+Récupération musculaire plus précise: Le suivi de la récupération utilise désormais un modèle de charge résiduelle décroissante par série. Les cartes musculaires affichent la disponibilité et les heures restantes en un coup d’œil ; appuyez sur une carte pour voir les détails de dose et de prévision.
 
-Des suggestions plus intelligentes pour la prochaine série: si tu actives les suggestions d'entraînement dans les réglages, Train Libre peut préremplir le poids de ta prochaine série de travail selon tes dernières performances. Tu peux toujours le modifier avant de l'enregistrer.
+Dictée vocale optimisée: Le texte apparaît désormais en haut pour une lecture naturelle pendant la dictée, avec le bouton d’enregistrement placé en bas à portée de pouce. Des transitions de couleur fluides indiquent l’enregistrement et le traitement.
 
-La récupération là où tu t'entraînes: la récupération musculaire se trouve maintenant en haut de l'onglet Entraînement. L'analyse des groupes musculaires affiche aussi tes schémas de mouvement, en plus de la couverture et de la fréquence.
+Aperçu des repas simplifié: Les repas reconnus par IA s'ouvrent avec des fiches d'ingrédients compactes et le choix direct du type de repas (petit-déjeuner, déjeuner, dîner, collation) avant d'enregistrer.
 
-Groupes musculaires en un coup d'œil: l'analyse propose désormais une vue complète de chaque groupe musculaire et schéma de mouvement, une heatmap de répartition permanente et des séries de travail hebdomadaires ou totales.
-
-Entraînement et records plus lisibles: le rythme d'entraînement présente plus clairement tes séances, ta série et ton calendrier. Tes nouvelles meilleures performances apparaissent dans un fil de progression avec une vue des records.
+Corrections et stabilité: Correction d'un problème d'affichage de la jauge de récupération et amélioration de la stabilité générale.
 
 ## Support URL (Support Web Page URL)
 https://trainlibre.com/support
