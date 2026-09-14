@@ -85,7 +85,7 @@ dependencies {
     // backs the per-widget-instance configuration.
     implementation("androidx.glance:glance-appwidget:1.1.1")
     implementation("androidx.glance:glance-material3:1.1.1")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.11.0")
     // 1.16 is the first release carrying setRequestPromotedOngoing, which the
     // workout Live Update needs on Android 16.
     implementation("androidx.core:core-ktx:1.18.0")
