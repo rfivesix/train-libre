@@ -174,8 +174,8 @@ class CalculateDailyNutritionUseCase {
     final List<TrackedSupplement> trackedSupps = [];
 
     for (final s in supplementsForDate) {
-      final hasLog = todaysDoses.containsKey(s.id);
-      if (s.isTracked || hasLog) {
+      final dose = s.id != null ? todaysDoses[s.id] : null;
+      if (s.isTracked || dose != null) {
         var supplementToUse = s;
         if (s.isCaffeine && s.dailyGoal == null && s.dailyLimit == null) {
           supplementToUse = Supplement(
@@ -193,7 +193,7 @@ class CalculateDailyNutritionUseCase {
         trackedSupps.add(
           TrackedSupplement(
             supplement: supplementToUse,
-            totalDosedToday: todaysDoses[s.id] ?? 0.0,
+            totalDosedToday: dose ?? 0.0,
           ),
         );
         if (s.id != null) {
@@ -221,8 +221,8 @@ class CalculateDailyNutritionUseCase {
         caffeineSupplement = s;
       }
 
-      if (unaccountedDoses > 0 && s.id != null &&
-          todaysDoses.containsKey(s.id) &&
+      final dose = s.id != null ? todaysDoses[s.id] : null;
+      if (unaccountedDoses > 0 && dose != null &&
           !trackedSuppIds.contains(s.id)) {
         var supplementToUse = s;
         if (isCaffeine &&
@@ -241,7 +241,7 @@ class CalculateDailyNutritionUseCase {
           );
         }
         trackedSupps.add(
-          TrackedSupplement(supplement: supplementToUse, totalDosedToday: todaysDoses[s.id]!),
+          TrackedSupplement(supplement: supplementToUse, totalDosedToday: dose),
         );
         trackedSuppIds.add(s.id!);
         unaccountedDoses--;
