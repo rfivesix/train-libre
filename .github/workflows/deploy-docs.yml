@@ -9,6 +9,7 @@ on:
       - 'assets/screenshots/**'
       - 'tool/build_docs.py'
       - 'tool/sync_website_screenshots.py'
+      - 'tool/verify_website.py'
       - '.github/workflows/deploy-docs.yml'
   workflow_dispatch:
 
@@ -41,6 +42,9 @@ jobs:
 
       - name: Generate docs from markdown
         run: python3 tool/build_docs.py
+
+      - name: Verify public-site artifacts
+        run: python3 tool/verify_website.py
 
       - name: Deploy docs to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
