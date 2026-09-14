@@ -6,7 +6,9 @@ on:
     paths:
       - 'docs/**'
       - 'documentation/**'
+      - 'assets/screenshots/**'
       - 'tool/build_docs.py'
+      - 'tool/sync_website_screenshots.py'
       - '.github/workflows/deploy-docs.yml'
   workflow_dispatch:
 
@@ -30,6 +32,12 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.x'
+
+      - name: Install website image tools
+        run: python3 -m pip install --disable-pip-version-check Pillow
+
+      - name: Sync landing-page screenshots
+        run: python3 tool/sync_website_screenshots.py
 
       - name: Generate docs from markdown
         run: python3 tool/build_docs.py
