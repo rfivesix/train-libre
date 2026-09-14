@@ -178,21 +178,23 @@ git push origin --tags
 # ------------------------------------------------------------------------------
 # STEP 6: GitHub Release & Asset Upload
 # ------------------------------------------------------------------------------
-GH_FLAGS=()
-if [ "$IS_PRERELEASE" = "true" ]; then
-  GH_FLAGS+=("--prerelease")
-fi
-
 echo "Generating GitHub Release Container as Draft..."
 if gh release view "v$VERSION_NUMBER" >/dev/null 2>&1; then
   gh release delete "v$VERSION_NUMBER" --yes
 fi
 
-gh release create "v$VERSION_NUMBER" \
-  --draft \
-  --title "Release v$VERSION_NUMBER" \
-  --notes-file "$CHANGELOG_TEMP_FILE" \
-  "${GH_FLAGS[@]}"
+if [ "$IS_PRERELEASE" = "true" ]; then
+  gh release create "v$VERSION_NUMBER" \
+    --draft \
+    --title "Release v$VERSION_NUMBER" \
+    --notes-file "$CHANGELOG_TEMP_FILE" \
+    --prerelease
+else
+  gh release create "v$VERSION_NUMBER" \
+    --draft \
+    --title "Release v$VERSION_NUMBER" \
+    --notes-file "$CHANGELOG_TEMP_FILE"
+fi
 
 echo "Uploading Android Binaries to GitHub Release..."
 gh release upload "v$VERSION_NUMBER" build/app/outputs/bundle/release/app-release.aab
