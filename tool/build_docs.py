@@ -14,6 +14,7 @@ import html
 import os
 import re
 import sys
+from xml.sax.saxutils import escape as xml_escape
 from pathlib import Path
 
 # Base paths
@@ -929,6 +930,9 @@ def build_redirect_stub(rel_target: str, canonical_url: str, title: str) -> str:
 <html lang="en">
 <head>
   <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Redirecting to {html.escape(title)} documentation.">
+  <meta name="robots" content="noindex, follow">
   <title>Redirecting to {html.escape(title)} — Train Libre Documentation</title>
   <meta http-equiv="refresh" content="0; url={rel_target}">
   <link rel="canonical" href="{canonical_url}">
@@ -944,6 +948,28 @@ def build_redirect_stub(rel_target: str, canonical_url: str, title: str) -> str:
 </body>
 </html>
 """
+
+
+def write_sitemap(all_items: list[dict]) -> None:
+    """Publish only canonical, indexable pages; redirects are intentionally excluded."""
+    canonical_paths = [
+        "/",
+        "/privacy.html",
+        "/terms.html",
+        "/support.html",
+        "/impressum.html",
+    ] + [item["url"] for item in all_items]
+    entries = "\n".join(
+        f"  <url><loc>https://trainlibre.com{xml_escape(path)}</loc></url>"
+        for path in canonical_paths
+    )
+    sitemap = f'''<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+{entries}
+</urlset>
+'''
+    (DOCS_DIR / "sitemap.xml").write_text(sitemap, encoding="utf-8")
+    print(f"🗺️  Generated sitemap with {len(canonical_paths)} canonical pages")
 
 
 def main():
@@ -1001,6 +1027,23 @@ def main():
         stub_html = build_redirect_stub(rel_target, canonical_url, title)
         stub_file.write_text(stub_html, encoding="utf-8")
         print(f"🔄 Created redirect: /{legacy_folder}/ -> {rel_target}")
+
+    section_redirects = [
+        ("features", OUTPUT_DOCS_DIR / "features" / "overview", "/docs/features/overview/", "Feature Documentation"),
+        ("developer", OUTPUT_DOCS_DIR / "developer" / "overview", "/docs/developer/overview/", "Developer Documentation"),
+    ]
+    for section, target_dir, target_canonical, title in section_redirects:
+        folder_path = OUTPUT_DOCS_DIR / section
+        folder_path.mkdir(parents=True, exist_ok=True)
+        stub_file = folder_path / "index.html"
+        rel_target = os.path.relpath(target_dir, folder_path) + "/"
+        stub_file.write_text(
+            build_redirect_stub(rel_target, f"https://trainlibre.com{target_canonical}", title),
+            encoding="utf-8",
+        )
+        print(f"🔄 Created redirect: /docs/{section}/ -> {rel_target}")
+
+    write_sitemap(all_items)
 
     print("✨ Train Libre Documentation Build Completed Successfully!")
 

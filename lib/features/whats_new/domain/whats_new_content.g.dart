@@ -814,12 +814,14 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
         WhatsNewEntry(
           icon: LucideIcons.heart,
           title: 'トレーニング画面で回復を確認',
-          body: '筋肉の回復状況がワークアウトタブの上部に移動しました。筋肉グループ分析では、カバー率や頻度に加えて動作パターンも確認できます。',
+          body:
+              '筋肉の回復状況がワークアウトタブの上部に移動しました。筋肉グループ分析では、カバー率や頻度に加えて動作パターンも確認できます。',
         ),
         WhatsNewEntry(
           icon: LucideIcons.layout_grid,
           title: '筋肉グループを一目で確認',
-          body: 'すべての筋肉グループと動作パターンの完全な概要、常時表示の分布ヒートマップ、週平均または合計のワーキングセットを確認できます。',
+          body:
+              'すべての筋肉グループと動作パターンの完全な概要、常時表示の分布ヒートマップ、週平均または合計のワーキングセットを確認できます。',
         ),
         WhatsNewEntry(
           icon: LucideIcons.chart_line,

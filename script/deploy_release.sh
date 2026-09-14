@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e
+set -euo pipefail
 
 # ==============================================================================
 # Train Libre Automated Release Script (Android, iOS & GitHub)
@@ -11,6 +11,15 @@ cleanup() {
   rm -f "$CHANGELOG_TEMP_FILE"
 }
 trap cleanup EXIT
+
+# Release builds must not depend on a long-lived Gradle daemon. On macOS the
+# daemon occasionally registers successfully but cannot be reached again over
+# localhost (for example after a network, VPN or Android Studio change). Keep
+# the setting scoped to this script so day-to-day Android Studio builds retain
+# their normal daemon behaviour.
+run_flutter() {
+  GRADLE_OPTS="-Dorg.gradle.daemon=false${GRADLE_OPTS:+ $GRADLE_OPTS}" flutter "$@"
+}
 
 # ------------------------------------------------------------------------------
 # STEP 1: Version & Pre-Release Detection
@@ -56,36 +65,12 @@ done
 # ------------------------------------------------------------------------------
 # STEP 1b: User-Facing Release Notes Preflight
 # ------------------------------------------------------------------------------
-# Verifies that metadata/whats_new/<locale>.md has a section for this version,
-# that the generated in-app catalog is current, and that the App Store notes
-# match. This is the one thing in the release that is easy to forget and
-# impossible to fix after the build, so it asks before continuing.
+# Regenerate derived release-note files first, then verify that every source
+# locale has a section for this version. The Markdown remains the source of
+# truth; a missing translation is intentionally a release-stopping error.
 echo "Checking user-facing release notes for $VERSION_NUMBER..."
-WHATS_NEW_STATUS=0
-python3 script/build_whats_new.py --check || WHATS_NEW_STATUS=$?
-
-if [ "$WHATS_NEW_STATUS" -ne 0 ]; then
-  echo ""
-  echo "------------------------------------------------------------------"
-  echo "The 'What's New' release notes for $VERSION_NUMBER are incomplete."
-  echo ""
-  echo "  1. Edit metadata/whats_new/<locale>.md (see the README there)"
-  echo "  2. Run: python3 script/build_whats_new.py --write --sync-store"
-  echo ""
-  echo "Continuing now ships this version without release notes in the app"
-  echo "and with stale 'What's New' text in the App Store."
-  echo "------------------------------------------------------------------"
-  read -r -p "Continue anyway? [y/N] " WHATS_NEW_ANSWER </dev/tty
-  case "$WHATS_NEW_ANSWER" in
-    [yY]|[yY][eE][sS])
-      echo "Continuing without complete release notes."
-      ;;
-    *)
-      echo "Aborted. Nothing was built, committed or pushed."
-      exit 1
-      ;;
-  esac
-fi
+python3 script/build_whats_new.py --write --sync-store
+python3 script/build_whats_new.py --check
 
 # ------------------------------------------------------------------------------
 # STEP 2: Branch Verification & PR Automation
@@ -123,7 +108,7 @@ fi
 # STEP 3: Clean, Increment pubspec.yaml & Generate All Release Artifacts
 # ------------------------------------------------------------------------------
 echo "Running core build preparation pipeline..."
-flutter clean
+run_flutter clean
 
 OLD_BUILD_NUMBER=${FULL_VERSION#*+}
 NEW_BUILD_NUMBER=$((OLD_BUILD_NUMBER + 1))
@@ -132,24 +117,24 @@ echo "Incrementing build number in pubspec.yaml: $OLD_BUILD_NUMBER -> $NEW_BUILD
 
 sed -i '' "s/version: .*/version: $VERSION_NUMBER+$NEW_BUILD_NUMBER/g" pubspec.yaml
 
-flutter pub get
-flutter gen-l10n
+run_flutter pub get
+run_flutter gen-l10n
 
 echo "Updating iOS deployment target to 14.0 in project..."
 sed -i '' 's/IPHONEOS_DEPLOYMENT_TARGET = 13.0/IPHONEOS_DEPLOYMENT_TARGET = 14.0/g' ios/Runner.xcodeproj/project.pbxproj
 
 echo "Building Android Production Release Artifacts (Build: $NEW_BUILD_NUMBER)..."
-flutter build appbundle --release
-flutter build apk --release --split-per-abi
-flutter build apk --release
+run_flutter build appbundle --release
+run_flutter build apk --release --split-per-abi
+run_flutter build apk --release
 
 # Freshly prepare l10n and CocoaPods infrastructure before building iOS.
 # The updated Podfile enforces iOS 14.0 deployment target across all targets (including Swift packages).
 echo "Regenerating iOS configuration with correct 14.0 deployment target (Version: $IOS_BUILD_NAME)..."
-flutter build ios --config-only --build-name="$IOS_BUILD_NAME" --build-number="$NEW_BUILD_NUMBER"
+run_flutter build ios --config-only --build-name="$IOS_BUILD_NAME" --build-number="$NEW_BUILD_NUMBER"
 
 echo "Building iOS Production Release Artifact (IPA) (Build: $NEW_BUILD_NUMBER, Version: $IOS_BUILD_NAME)..."
-flutter build ipa --release --build-name="$IOS_BUILD_NAME" --build-number="$NEW_BUILD_NUMBER"
+run_flutter build ipa --release --build-name="$IOS_BUILD_NAME" --build-number="$NEW_BUILD_NUMBER"
 
 # ------------------------------------------------------------------------------
 # STEP 4: Changelog Extraction
@@ -193,21 +178,23 @@ git push origin --tags
 # ------------------------------------------------------------------------------
 # STEP 6: GitHub Release & Asset Upload
 # ------------------------------------------------------------------------------
-GH_FLAGS=()
-if [ "$IS_PRERELEASE" = "true" ]; then
-  GH_FLAGS+=("--prerelease")
-fi
-
 echo "Generating GitHub Release Container as Draft..."
 if gh release view "v$VERSION_NUMBER" >/dev/null 2>&1; then
   gh release delete "v$VERSION_NUMBER" --yes
 fi
 
-gh release create "v$VERSION_NUMBER" \
-  --draft \
-  --title "Release v$VERSION_NUMBER" \
-  --notes-file "$CHANGELOG_TEMP_FILE" \
-  "${GH_FLAGS[@]}"
+if [ "$IS_PRERELEASE" = "true" ]; then
+  gh release create "v$VERSION_NUMBER" \
+    --draft \
+    --title "Release v$VERSION_NUMBER" \
+    --notes-file "$CHANGELOG_TEMP_FILE" \
+    --prerelease
+else
+  gh release create "v$VERSION_NUMBER" \
+    --draft \
+    --title "Release v$VERSION_NUMBER" \
+    --notes-file "$CHANGELOG_TEMP_FILE"
+fi
 
 echo "Uploading Android Binaries to GitHub Release..."
 gh release upload "v$VERSION_NUMBER" build/app/outputs/bundle/release/app-release.aab
