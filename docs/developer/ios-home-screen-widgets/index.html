@@ -168,18 +168,12 @@
 <h2 id="the-widget-family" class="doc-h2">The Widget Family<a href="#the-widget-family" class="header-anchor" aria-label="Link to section">#</a></h2>
 <p>The snapshot provides data for six distinct widget surfaces across both platforms:</p>
 <ol class="doc-list">
-<li><strong>Heute im Blick / Today Glance</strong> (<code>.systemMedium</code> on iOS; 4x2 on Android):</li>
-<li>The diary's six-tile nutrition grid rendered 1:1 with <code>NutritionSummaryWidget</code> (Calories, Protein, Water, Carbohydrates, Extra Nutrient [fibre/sugar/salt], and Fat) including progress fills and targets. Tapping opens the diary.</li>
-<li><strong>Schnellzugriff / Quick Actions</strong> (<code>.systemSmall</code> / <code>.systemMedium</code> on iOS; 2x2 / 4x2 on Android):</li>
-<li>Configurable action shortcuts (AI meal capture, barcode scanner, start workout, log measurement, log supplement, add fluid). Tapping directly deep-links to that specific flow. On Android, also available as a Quick Settings Tile.</li>
-<li><strong>Schritte / Steps</strong> (<code>.systemSmall</code> / <code>.systemMedium</code> on iOS; 2x2 / 4x2 on Android):</li>
-<li>Current day's step count against the active daily goal, paired with an hourly/daily bar chart.</li>
-<li><strong>Messwerte / Measurements</strong> (<code>.systemSmall</code> / <code>.systemMedium</code> on iOS; 2x2 / 4x2 on Android):</li>
-<li>User-selected body metric (weight, body fat, waist circumference, etc.) showing the latest reading, change over time, and a historical sparkline chart. Configured via native configuration intents/activities.</li>
-<li><strong>Muskel-Erholung / Muscle Recovery</strong> (<code>.systemSmall</code> / <code>.systemMedium</code> on iOS; 2x2 / 4x2 on Android):</li>
-<li>Heuristic muscle readiness breakdown, showing percentages and counts for <em>Recovering</em>, <em>Ready</em>, and <em>Fresh</em> muscle groups. Tapping navigates to the Recovery Tracker.</li>
-<li><strong>Letztes Workout / Last Workout</strong> (<code>.systemMedium</code> / <code>.systemLarge</code> on iOS; 4x2 / 4x3 on Android):</li>
-<li>Summary of the most recently completed workout session (duration, tonnage, total reps, sets) alongside a rendered muscle heatmap image (<code>last_workout_heatmap_&lt;id&gt;.png</code>).</li>
+<li><strong>Heute im Blick / Today Glance</strong> (<code>.systemMedium</code> on iOS; 4x2 on Android): The diary's six-tile nutrition grid rendered 1:1 with <code>NutritionSummaryWidget</code> (Calories, Protein, Water, Carbohydrates, Extra Nutrient [fibre/sugar/salt], and Fat) including progress fills and targets. Tapping opens the diary.</li>
+<li><strong>Schnellzugriff / Quick Actions</strong> (<code>.systemSmall</code> / <code>.systemMedium</code> on iOS; 2x2 / 4x2 on Android): Configurable action shortcuts (AI meal capture, barcode scanner, start workout, log measurement, log supplement, add fluid). Tapping directly deep-links to that specific flow. On Android, also available as a Quick Settings Tile.</li>
+<li><strong>Schritte / Steps</strong> (<code>.systemSmall</code> / <code>.systemMedium</code> on iOS; 2x2 / 4x2 on Android): Current day's step count against the active daily goal, paired with an hourly/daily bar chart.</li>
+<li><strong>Messwerte / Measurements</strong> (<code>.systemSmall</code> / <code>.systemMedium</code> on iOS; 2x2 / 4x2 on Android): User-selected body metric (weight, body fat, waist circumference, etc.) showing the latest reading, change over time, and a historical sparkline chart. Configured via native configuration intents/activities.</li>
+<li><strong>Muskel-Erholung / Muscle Recovery</strong> (<code>.systemSmall</code> / <code>.systemMedium</code> on iOS; 2x2 / 4x2 on Android): Heuristic muscle readiness breakdown, showing percentages and counts for <em>Recovering</em>, <em>Ready</em>, and <em>Fresh</em> muscle groups. Tapping navigates to the Recovery Tracker.</li>
+<li><strong>Letztes Workout / Last Workout</strong> (<code>.systemMedium</code> / <code>.systemLarge</code> on iOS; 4x2 / 4x3 on Android): Summary of the most recently completed workout session (duration, tonnage, total reps, sets) alongside a rendered muscle heatmap image (<code>last_workout_heatmap_&lt;id&gt;.png</code>).</li>
 </ol>
 <hr class="divider">
 <h2 id="architecture-data-flow" class="doc-h2">Architecture & Data Flow<a href="#architecture-data-flow" class="header-anchor" aria-label="Link to section">#</a></h2>
@@ -221,14 +215,10 @@ HomeWidgetChannel                               Android: SharedPreferences      
 <hr class="divider">
 <h2 id="ios-implementation-details-lessons-learned" class="doc-h2">iOS Implementation Details & Lessons Learned<a href="#ios-implementation-details-lessons-learned" class="header-anchor" aria-label="Link to section">#</a></h2>
 <ol class="doc-list">
-<li><strong><code>Button(intent:)</code> does not work in these widgets</strong>:</li>
-<li>Tiles built with <code>Button(intent: OpenURLIntent(...))</code> render and accept taps, but <code>perform()</code> is not invoked reliably. Instead, SwiftUI <code>Link</code> is handled directly by SpringBoard and works reliably across <code>.systemSmall</code> and <code>.systemMedium</code> on iOS 18+.</li>
-<li><strong><code>GeometryReader</code> layout root constraints</strong>:</li>
-<li><code>GeometryReader</code> has no intrinsic size. Stacking them in a <code>VStack</code> divides height unpredictably. Layouts use <code>ZStack</code> as the root, placing <code>GeometryReader</code> strictly inside fill masks where layout sizes are already settled.</li>
-<li><strong><code>String(format: &quot;%.1f&quot;)</code> vs Dart <code>toStringAsFixed(1)</code></strong>:</li>
-<li>C string formatting breaks exact ties to even numbers, whereas Dart breaks ties away from zero (e.g., 40.25 rounds to 40.2 in C, but 40.3 in Dart). <code>HomeWidgetTile.dartFixed(_:_:)</code> in <code>HomeWidgetShared.swift</code> parses the printed expansion of the double to match Dart's output exactly, verified by unit tests.</li>
-<li><strong>Configuration Intent Restoration</strong>:</li>
-<li>Each quick action slot on iOS uses a dedicated <code>AppEnum</code> (<code>QuickActionSlot1</code> through <code>QuickActionSlot4</code>). This prevents iOS 18 from resetting all parameters when sharing an identical enum type.</li>
+<li><strong><code>Button(intent:)</code> does not work in these widgets</strong>: Tiles built with <code>Button(intent: OpenURLIntent(...))</code> render and accept taps, but <code>perform()</code> is not invoked reliably. Instead, SwiftUI <code>Link</code> is handled directly by SpringBoard and works reliably across <code>.systemSmall</code> and <code>.systemMedium</code> on iOS 18+.</li>
+<li><strong><code>GeometryReader</code> layout root constraints</strong>: <code>GeometryReader</code> has no intrinsic size. Stacking them in a <code>VStack</code> divides height unpredictably. Layouts use <code>ZStack</code> as the root, placing <code>GeometryReader</code> strictly inside fill masks where layout sizes are already settled.</li>
+<li><strong><code>String(format: &quot;%.1f&quot;)</code> vs Dart <code>toStringAsFixed(1)</code></strong>: C string formatting breaks exact ties to even numbers, whereas Dart breaks ties away from zero (e.g., 40.25 rounds to 40.2 in C, but 40.3 in Dart). <code>HomeWidgetTile.dartFixed(_:_:)</code> in <code>HomeWidgetShared.swift</code> parses the printed expansion of the double to match Dart's output exactly, verified by unit tests.</li>
+<li><strong>Configuration Intent Restoration</strong>: Each quick action slot on iOS uses a dedicated <code>AppEnum</code> (<code>QuickActionSlot1</code> through <code>QuickActionSlot4</code>). This prevents iOS 18 from resetting all parameters when sharing an identical enum type.</li>
 </ol>
 <hr class="divider">
 <h2 id="automated-verification-tests" class="doc-h2">Automated Verification & Tests<a href="#automated-verification-tests" class="header-anchor" aria-label="Link to section">#</a></h2>
