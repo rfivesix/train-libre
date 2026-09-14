@@ -9,9 +9,13 @@ class EvaluateFoodSourceUseCase {
   List<FoodItem> execute({
     required List<FoodItem> candidates,
     required String searchTerm,
+    Iterable<String> searchTerms = const [],
     int limit = 5,
   }) {
-    final searchLower = searchTerm.trim().toLowerCase();
+    final searchLowers = <String>{
+      searchTerm.trim().toLowerCase(),
+      ...searchTerms.map((term) => term.trim().toLowerCase()),
+    }..removeWhere((term) => term.isEmpty);
     final items = List<FoodItem>.from(candidates);
 
     items.sort((a, b) {
@@ -21,17 +25,17 @@ class EvaluateFoodSourceUseCase {
         final fullName1 = brand.isEmpty ? name : '$brand $name';
         final fullName2 = brand.isEmpty ? name : '$name $brand';
 
-        if (name == searchLower ||
-            fullName1 == searchLower ||
-            fullName2 == searchLower) {
-          return 0;
-        }
-        if (name.startsWith(searchLower) ||
-            fullName1.startsWith(searchLower) ||
-            fullName2.startsWith(searchLower)) {
-          return 1;
-        }
-        return 2;
+        return searchLowers.map((term) {
+          if (name == term || fullName1 == term || fullName2 == term) {
+            return 0;
+          }
+          if (name.startsWith(term) ||
+              fullName1.startsWith(term) ||
+              fullName2.startsWith(term)) {
+            return 1;
+          }
+          return 2;
+        }).reduce((a, b) => a < b ? a : b);
       }
 
       final sa = score(a);

@@ -6,6 +6,16 @@
   Newest version first. Regenerate with: python3 script/build_whats_new.py
 -->
 
+## 1.4.1 (2026-09-14)
+
+{activity} Smarter Muscle Recovery: Recovery tracking now uses a time-decaying residual-load model for every single set. Muscle rows show readiness and remaining recovery hours at a glance, and tapping any card reveals detailed session dose and forecast insights.
+
+{mic} Streamlined Voice Dictation: The transcript now sits at the top for natural reading while dictating, with the recording button moved to the bottom for comfortable thumb ergonomics. Smooth colour transitions guide you from recording to processing.
+
+{utensils} Cleaner Meal Capture: Newly captured AI meals now open with compact ingredient cards and instant meal-type selection (breakfast, lunch, dinner, snack) right from the review screen.
+
+{bug} Visual Polish & Stability: Fixed a rendering glitch with the readiness scale background in muscle cards and improved overall app stability.
+
 ## 1.4.0 (2026-09-11)
 
 {layout_grid} Browse your diary by date: A new, scrollable day strip lets you jump between nearby days in one tap. The calendar opens directly when you choose a date in the Diary.

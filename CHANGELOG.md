@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.4.1] — 2026-09-14
+
+### Changed
+- **Muscle recovery:** Recovery is now calculated per set with a time-decaying load model, giving each muscle a clearer readiness score and recovery forecast. Compact muscle rows expose the important values first; tap a card for the recent training dose and detailed forecast.
+- **AI voice dictation:** The transcript is easier to read while dictating, the recording control is easier to reach, and recording, processing, retrying, and completion states are clearer.
+- **AI meal capture:** Captured meals now open with a cleaner ingredient review, direct meal-type selection, and more reliable matching between recognised portions and the local nutrition catalogue.
+
+### Fixed
+- **AI Voice Dictation Accent & Orb Colors (`voice_dictation_sheet`):** Configured the dictation orb and active listening border to use brand recording red (`brandRedColor`), transitioning smoothly to brand green (`brandAccentColor` / `brandAccentColorLightMode`) during AI tidying instead of blue, and replaced hardcoded lime colors with theme-aware accent colors.
+- **Recovery Readiness Scale Rendering (`RecoveryTrackerScreen`):** The three-state 0–100 scale could collapse to an invisible background while its score marker still rendered. It now uses an explicitly sized, bordered gradient track, so the recovering, ready, and fresh zones remain visible in every card.
+
 ## [1.4.0] - 2026-09-11
 
 ### Added

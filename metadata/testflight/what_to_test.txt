@@ -1,10 +1,10 @@
-Train Libre 1.4.0
+Train Libre 1.4.1
 
-Please focus your testing on the updated Diary and training experience:
+Please focus your testing on the new Muscle Recovery model and AI capture updates:
 
-• Diary navigation: swipe the date strip below the header, tap nearby days, and select a date using the calendar button.
-• Next-set suggestions: enable Training suggestions in Settings, complete a weighted working set, then check that the following compatible set receives an editable suggested weight.
-• Recovery insights: verify Muscle Recovery appears on the Workout tab and that Movement Patterns is available in Muscle Group Analytics.
+• Muscle Recovery: Check the updated recovery view at the top of the Workout tab. Verify that muscle rows display their readiness score, color-coded scale, and remaining recovery time. Tap any muscle row to inspect the new evidence panel with recent session load and recovery forecast.
+• AI Voice Dictation: Open AI Meal Capture (via Diary + button) and tap the microphone. Verify the transcript appears cleanly at the top while recording, the record button is conveniently placed at the bottom, and status colors transition smoothly.
+• AI Meal Review & Logging: Scan or dictate a meal to review the streamlined ingredient cards, test inline editing, and verify meal type selection (breakfast, lunch, dinner, snack).
 
 Please also report any issues with general stability, layout, and day-to-day use.
 

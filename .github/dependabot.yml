@@ -39,3 +39,21 @@ updates:
       github-actions:
         patterns:
           - "*"
+
+  # Keep the Android build toolchain current in a reviewable PR instead of
+  # discovering an unsupported Gradle/AGP version during a release build.
+  - package-ecosystem: "gradle"
+    directory: "/android"
+    target-branch: "develop"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:15"
+      timezone: "Europe/Berlin"
+    open-pull-requests-limit: 2
+    labels:
+      - "dependencies"
+      - "android"
+      - "gradle"
+    commit-message:
+      prefix: "deps"

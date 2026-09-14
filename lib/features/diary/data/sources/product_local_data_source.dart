@@ -500,16 +500,16 @@ class ProductLocalDataSource {
     // Pass raw search term for relevance scoring in ORDER BY
     final rawSearchLower = keyword.trim().toLowerCase();
     variables.add(Variable.withString(rawSearchLower)); // Exact match (Name)
+    variables
+        .add(Variable.withString(rawSearchLower)); // Exact match (Brand + Name)
+    variables
+        .add(Variable.withString(rawSearchLower)); // Exact match (Name + Brand)
+    variables
+        .add(Variable.withString('$rawSearchLower%')); // Prefix match (Name)
     variables.add(
-        Variable.withString(rawSearchLower)); // Exact match (Brand + Name)
+        Variable.withString('$rawSearchLower%')); // Prefix match (Brand + Name)
     variables.add(
-        Variable.withString(rawSearchLower)); // Exact match (Name + Brand)
-    variables.add(
-        Variable.withString('$rawSearchLower%')); // Prefix match (Name)
-    variables.add(Variable.withString(
-        '$rawSearchLower%')); // Prefix match (Brand + Name)
-    variables.add(Variable.withString(
-        '$rawSearchLower%')); // Prefix match (Name + Brand)
+        Variable.withString('$rawSearchLower%')); // Prefix match (Name + Brand)
 
     final whereClauses = <String>["p.source IN ('user', 'base', 'off')"];
     for (final token in tokens) {
@@ -628,27 +628,33 @@ class ProductLocalDataSource {
   Future<List<FoodItem>> fuzzyMatchForAi(
     String aiName, {
     String? catalogSearchTerm,
+    Iterable<String> searchTerms = const [],
   }) async {
-    final candidates = await searchProducts(aiName);
-    if (catalogSearchTerm != null &&
-        catalogSearchTerm.trim().isNotEmpty &&
-        catalogSearchTerm.trim().toLowerCase() !=
-            aiName.trim().toLowerCase()) {
-      final catalogCandidates = await searchProducts(catalogSearchTerm.trim());
-      for (final extra in catalogCandidates) {
-        if (!candidates
-            .any((c) => c.barcode == extra.barcode && c.id == extra.id)) {
-          candidates.add(extra);
+    final terms = <String>{
+      aiName.trim(),
+      ...searchTerms.map((term) => term.trim()),
+      if (catalogSearchTerm != null) catalogSearchTerm.trim(),
+    }..removeWhere((term) => term.isEmpty);
+    final resultSets = await Future.wait(
+      terms.map(searchProducts),
+    );
+    final candidates = <FoodItem>[];
+    for (final results in resultSets) {
+      for (final food in results) {
+        if (!candidates.any((existing) =>
+            existing.barcode == food.barcode && existing.id == food.id)) {
+          candidates.add(food);
         }
       }
     }
 
     if (candidates.isEmpty) return [];
 
-    const int returnLimit = 5;
+    const int returnLimit = 15;
     return const EvaluateFoodSourceUseCase().execute(
       candidates: candidates,
       searchTerm: aiName,
+      searchTerms: terms,
       limit: returnLimit,
     );
   }

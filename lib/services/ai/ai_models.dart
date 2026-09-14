@@ -152,32 +152,58 @@ class AiSuggestedItem {
   /// Estimated weight in grams.
   int estimatedGrams;
 
+  /// The visible portion when [estimatedGrams] is a raw-equivalent amount.
+  int? servedGrams;
+
   /// Confidence score between 0.0 and 1.0.
   double confidence;
 
   /// Barcode of a matched product in the local database (filled after fuzzy matching).
   String? matchedBarcode;
+  String? stateHint;
+  String? catalogSearchTerm;
+  List<String> searchTerms;
 
   AiSuggestedItem({
     required this.name,
     required this.estimatedGrams,
     required this.confidence,
+    this.servedGrams,
     this.matchedBarcode,
+    this.stateHint,
+    this.catalogSearchTerm,
+    this.searchTerms = const [],
   });
 
   factory AiSuggestedItem.fromJson(Map<String, dynamic> json) {
     return AiSuggestedItem(
       name: json['name'] as String? ?? 'Unknown',
       estimatedGrams: (json['estimatedGrams'] as num?)?.toInt() ?? 100,
+      servedGrams: (json['servedGrams'] as num?)?.toInt(),
       confidence:
           (json['confidence'] as num?)?.toDouble().clamp(0.0, 1.0) ?? 0.5,
+      matchedBarcode: json['matchedBarcode'] as String?,
+      stateHint: json['stateHint'] as String?,
+      catalogSearchTerm: json['catalogSearchTerm'] as String?,
+      searchTerms: (json['searchTerms'] as List?)
+              ?.whereType<String>()
+              .map((term) => term.trim())
+              .where((term) => term.isNotEmpty)
+              .toSet()
+              .toList(growable: false) ??
+          const [],
     );
   }
 
   Map<String, dynamic> toJson() => {
         'name': name,
         'estimatedGrams': estimatedGrams,
+        if (servedGrams != null) 'servedGrams': servedGrams,
         'confidence': confidence,
+        if (matchedBarcode != null) 'matchedBarcode': matchedBarcode,
+        if (stateHint != null) 'stateHint': stateHint,
+        if (catalogSearchTerm != null) 'catalogSearchTerm': catalogSearchTerm,
+        if (searchTerms.isNotEmpty) 'searchTerms': searchTerms,
       };
 }
 

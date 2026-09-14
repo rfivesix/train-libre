@@ -102,8 +102,35 @@ extension RulesLogic on AiMealValidationEngine {
       );
     }
 
-    bool stateMismatch = _hasStateMismatch(item.name, match.bestMatch!.name);
-    if (!stateMismatch && item.stateHint != null) {
+    // A generic name can look like a perfect text match while concealing
+    // radically different nutrition bases (for example dry vs. cooked rice).
+    // Do not silently pick one until the repair pass selects a real database
+    // candidate by barcode.
+    final hasVerifiedCandidate = item.matchedBarcode != null &&
+        item.matchedBarcode == match.bestMatch?.barcode;
+    if (!hasVerifiedCandidate &&
+        _hasMaterialNutritionSpread(match.alternatives)) {
+      issues.add(
+        AiValidationIssue(
+          severity: AiValidationSeverity.warning,
+          code: 'ambiguous_nutrition_match',
+          message:
+              'Plausible database matches have materially different calories per 100g.',
+          itemIndex: index,
+        ),
+      );
+    }
+
+    final usesRawEquivalentForPreparedPortion =
+        item.servedGrams != null &&
+        item.servedGrams != item.grams &&
+        _isPreparedState(item.stateHint);
+    bool stateMismatch = usesRawEquivalentForPreparedPortion
+        ? false
+        : _hasStateMismatch(item.name, match.bestMatch!.name);
+    if (!usesRawEquivalentForPreparedPortion &&
+        !stateMismatch &&
+        item.stateHint != null) {
       final hint = item.stateHint!.toLowerCase();
       final dbName =
           AiMealValidationEngine._normalizeText(match.bestMatch!.name);
@@ -299,6 +326,37 @@ extension RulesLogic on AiMealValidationEngine {
     }
 
     return issues;
+  }
+
+  bool _hasMaterialNutritionSpread(List<FoodItem> alternatives) {
+    final densities = alternatives
+        .map((food) => food.calories.toDouble())
+        .where((kcal) => kcal > 0)
+        .toList(growable: false);
+    if (densities.length < 2) return false;
+
+    final lowest = densities.reduce((a, b) => a < b ? a : b);
+    final highest = densities.reduce((a, b) => a > b ? a : b);
+    // A small recipe/brand variation is normal. A 75%+ spread usually signals
+    // another preparation basis or even another food and merits semantic
+    // selection rather than lexical guessing.
+    return highest / lowest >= 1.75;
+  }
+
+  bool _isPreparedState(String? stateHint) {
+    if (stateHint == null) return false;
+    const preparedStates = {
+      'cooked',
+      'boiled',
+      'gekocht',
+      'fried',
+      'gebraten',
+      'baked',
+      'gebacken',
+      'grilled',
+      'gegrillt',
+    };
+    return preparedStates.contains(stateHint.toLowerCase());
   }
 
   List<AiValidationIssue> _validateMeal({

@@ -29,6 +29,7 @@ class AiMealValidationEngine {
     final fuzzy = await helper.fuzzyMatchForAi(
       item.name,
       catalogSearchTerm: item.catalogSearchTerm,
+      searchTerms: item.searchTerms,
     );
     for (final food in fuzzy) {
       if (!matches.any((existing) => existing.barcode == food.barcode)) {
@@ -95,11 +96,14 @@ class AiMealValidationEngine {
     ];
     final score = _computeValidationScore(allIssues, macroFit);
     final passed = _isGoodEnough(
-      issues: allIssues,
-      score: score,
-      macroFit: macroFit,
-      mode: mode,
-    );
+          issues: allIssues,
+          score: score,
+          macroFit: macroFit,
+          mode: mode,
+        ) &&
+        !allIssues.any(
+          (issue) => issue.code == 'ambiguous_nutrition_match',
+        );
 
     return AiValidationResult(
       candidate: normalized.candidate,
@@ -252,7 +256,8 @@ class AiRepairOrchestrator {
     );
     var repairPasses = 0;
 
-    while (!validation.passed && repairPasses < maxPasses) {
+    while ((!validation.passed || validation.needsSemanticSelection) &&
+        repairPasses < maxPasses) {
       repairPasses += 1;
       candidate = await repairer(candidate, validation, repairPasses);
       validation = await validationEngine.validateMealCandidate(
@@ -262,7 +267,9 @@ class AiRepairOrchestrator {
       );
     }
 
-    final limitReached = !validation.passed && repairPasses >= maxPasses;
+    final limitReached =
+        (!validation.passed || validation.needsSemanticSelection) &&
+            repairPasses >= maxPasses;
     return AiRepairOutcome(
       validation: validation.copyWithRepairMetadata(
         repairPassesUsed: repairPasses,

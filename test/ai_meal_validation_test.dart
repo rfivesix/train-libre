@@ -226,6 +226,79 @@ void main() {
       expect(outcome.validation.passed, isFalse);
       expect(outcome.validation.items.single.candidate.grams, 103);
     });
+
+    test('repairs a materially different nutrition candidate by barcode',
+        () async {
+      final riceCandidates = [
+        food('Rice, dry', barcode: 'rice-dry', kcal: 360),
+        food('Rice, cooked', barcode: 'rice-cooked', kcal: 130),
+      ];
+      final engine = engineWith({
+        'rice': riceCandidates,
+        'rice, dry': riceCandidates,
+      });
+
+      final outcome = await AiRepairOrchestrator(
+        validationEngine: engine,
+      ).run(
+        initialCandidate: const AiMealCandidate(
+          items: [
+            AiMealCandidateItem(
+              name: 'Rice',
+              grams: 65,
+              servedGrams: 180,
+              stateHint: 'cooked',
+              searchTerms: ['Rice', 'dry rice'],
+            ),
+          ],
+        ),
+        mode: AiValidationMode.capture,
+        repairer: (_, __, ___) async => const AiMealCandidate(
+          items: [
+            AiMealCandidateItem(
+              name: 'Rice, dry',
+              grams: 65,
+              servedGrams: 180,
+              stateHint: 'cooked',
+              matchedBarcode: 'rice-dry',
+              searchTerms: ['Rice', 'dry rice'],
+            ),
+          ],
+        ),
+      );
+
+      expect(outcome.repairPassesUsed, 1);
+      expect(outcome.repairLimitReached, isFalse);
+      expect(outcome.validation.needsSemanticSelection, isFalse);
+      expect(
+          outcome.validation.items.single.match.bestMatch!.barcode, 'rice-dry');
+      expect(outcome.validation.items.single.candidate.grams, 65);
+      expect(outcome.validation.items.single.candidate.servedGrams, 180);
+    });
+
+    test('does not trust an invented semantic candidate barcode', () async {
+      final riceCandidates = [
+        food('Rice, dry', barcode: 'rice-dry', kcal: 360),
+        food('Rice, cooked', barcode: 'rice-cooked', kcal: 130),
+      ];
+      final engine = engineWith({'rice': riceCandidates});
+
+      final result = await engine.validateMealCandidate(
+        candidate: const AiMealCandidate(
+          items: [
+            AiMealCandidateItem(
+              name: 'Rice',
+              grams: 65,
+              matchedBarcode: 'invented-id',
+            ),
+          ],
+        ),
+        mode: AiValidationMode.capture,
+      );
+
+      expect(result.needsSemanticSelection, isTrue);
+      expect(result.passed, isFalse);
+    });
   });
 
   group('AiMealContext & AiRepairCandidate models', () {
@@ -260,8 +333,26 @@ void main() {
       expect(candidate.source, 'base');
       expect(
         candidate.toPromptLine(),
-        '  - "Chicken breast" (120 kcal | P24 C0 F2 per 100g) [base]',
+        '  - "Chicken breast" (120 kcal | P24 C0 F2 per 100g) [base] [id:Chicken breast]',
       );
+    });
+
+    test('candidate items preserve raw-equivalent and served quantities', () {
+      const item = AiMealCandidateItem(
+        name: 'Rice',
+        grams: 65,
+        servedGrams: 180,
+        stateHint: 'cooked',
+        searchTerms: ['Rice', 'dry rice'],
+      );
+
+      expect(item.toJson(), {
+        'name': 'Rice',
+        'grams': 65,
+        'servedGrams': 180,
+        'stateHint': 'cooked',
+        'searchTerms': ['Rice', 'dry rice'],
+      });
     });
   });
 
@@ -370,6 +461,34 @@ void main() {
       final issue = result.allIssues
           .firstWhere((issue) => issue.code == 'state_mismatch');
       expect(issue.severity, AiValidationSeverity.error);
+    });
+
+    test('C3: accepts a cooked portion calculated from raw equivalent grams',
+        () async {
+      final engine = engineWith({
+        'chicken raw': [
+          food('Chicken raw', kcal: 110, protein: 23, carbs: 0, fat: 1),
+        ],
+      });
+
+      final result = await engine.validateMealCandidate(
+        candidate: const AiMealCandidate(
+          items: [
+            AiMealCandidateItem(
+              name: 'Chicken raw',
+              servedGrams: 150,
+              grams: 200,
+              stateHint: 'cooked',
+            ),
+          ],
+        ),
+        mode: AiValidationMode.capture,
+      );
+
+      expect(
+        result.allIssues.any((issue) => issue.code == 'state_mismatch'),
+        isFalse,
+      );
     });
   });
 }

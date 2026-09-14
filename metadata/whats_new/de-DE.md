@@ -6,6 +6,16 @@
   Danach ausführen: python3 script/build_whats_new.py --write --sync-store
 -->
 
+## 1.4.1 (2026-09-14)
+
+{activity} Präzisere Muskelregeneration: Die Regenerationsanzeige nutzt jetzt ein zeitdynamisches Belastungsmodell für jeden einzelnen Satz. Die Muskelkarten zeigen Bereitschaft und verbleibende Erholungszeit noch übersichtlicher; ein Tipp öffnet detaillierte Einblicke zu Belastungsdosis und Prognose.
+
+{mic} Komfortablere Spracheingabe: Das Diktatfeld sitzt nun ergonomisch oben, während der Aufnahme-Button bequem mit dem Daumen erreichbar ist. Ein flüssiger Farbwechsel von Aufnahme-Rot zu Verarbeitungs-Grün signalisiert den Status.
+
+{utensils} Aufgeräumte Mahlzeiten-Vorschau: Neu erkannte KI-Mahlzeiten präsentieren sich mit kompakten Zutatenkarten und direktem Zugriff auf die Mahlzeiten-Kategorie (Frühstück, Mittag, Abendessen, Snack), bevor du sie speicherst.
+
+{bug} Fehlerbehebungen & Feinschliff: Ein Darstellungsfehler der Farbskala in den Muskelkarten wurde behoben und die allgemeine Stabilität weiter optimiert.
+
 ## 1.4.0 (2026-09-11)
 
 {layout_grid} Tagebuch nach Datum durchsuchen: Über eine neue, horizontal scrollbare Tagesleiste wechselst du mit einem Tipp zu nahegelegenen Tagen. Wenn du im Tagebuch ein Datum auswählst, öffnet sich direkt der Kalender.

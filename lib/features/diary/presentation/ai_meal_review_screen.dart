@@ -26,6 +26,7 @@ import 'meal_editor_screen.dart';
 import 'meal_analysis_screen.dart';
 import 'widgets/meal_review_comparison_card.dart';
 import 'widgets/meal_review_validation_summary.dart';
+import 'widgets/meal_ingredients_summary.dart';
 import 'widgets/meal_photo_widget.dart';
 import '../../depth_scan/domain/models/depth_scale_facts.dart';
 import '../../depth_scan/platform/depth_scan_channel.dart';
@@ -92,6 +93,7 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
   bool _isRetrying = false;
   bool _isSaving = false;
   bool _isMatching = true;
+  bool _isEditing = false;
   bool _aiWaitingHapticActive = false;
   MealAnalysisController? _analysisController;
   Route<void>? _analysisRoute;
@@ -304,9 +306,13 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
             (item) => AiMealCandidateItem(
               name: item.suggestion.name,
               grams: item.suggestion.estimatedGrams,
+              servedGrams: item.suggestion.servedGrams,
               confidence: item.suggestion.confidence,
               matchedBarcode:
                   item.matchedFood?.barcode ?? item.suggestion.matchedBarcode,
+              stateHint: item.suggestion.stateHint,
+              catalogSearchTerm: item.suggestion.catalogSearchTerm,
+              searchTerms: item.suggestion.searchTerms,
             ),
           )
           .toList(growable: false),
@@ -321,9 +327,13 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
             suggestion: AiSuggestedItem(
               name: item.candidate.name,
               estimatedGrams: item.candidate.grams,
+              servedGrams: item.candidate.servedGrams,
               confidence: item.candidate.confidence ?? 1.0,
               matchedBarcode: item.match.bestMatch?.barcode ??
                   item.candidate.matchedBarcode,
+              stateHint: item.candidate.stateHint,
+              catalogSearchTerm: item.candidate.catalogSearchTerm,
+              searchTerms: item.candidate.searchTerms,
             ),
             matchedFood: item.match.bestMatch,
             issues: item.issues,
@@ -614,6 +624,17 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
           candidate: _candidateFromReviewItems(),
           mode: AiValidationMode.capture,
         );
+    if (!validation.passed) {
+      if (!mounted) return;
+      setState(() => _isEditing = true);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(l10n.aiValidationCandidateSelectionRequired),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
     final savePlan = AiDiarySavePlan.fromValidation(validation);
     if (!savePlan.canSaveAny) {
       if (!mounted) return;
@@ -906,6 +927,16 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
       child: Scaffold(
         appBar: GlobalAppBar(
           title: l10n.aiReviewTitle,
+          actions: [
+            IconButton(
+              icon: Icon(
+                _isEditing ? LucideIcons.eye : LucideIcons.pencil,
+                size: 20,
+              ),
+              tooltip: _isEditing ? l10n.mealDetailViewMode : l10n.edit,
+              onPressed: () => setState(() => _isEditing = !_isEditing),
+            ),
+          ],
         ),
         body: Column(
           children: [
@@ -1096,8 +1127,10 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
 
                   if (_validation != null &&
                       (!_validation!.passed ||
-                          _validation!.allIssues.any((i) =>
-                              i.severity != AiValidationSeverity.info))) ...[
+                          (_isEditing &&
+                              _validation!.allIssues.any((i) =>
+                                  i.severity !=
+                                  AiValidationSeverity.info)))) ...[
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20),
                       child: MealReviewValidationSummary(
@@ -1108,116 +1141,141 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
                     const SizedBox(height: DesignConstants.spacingM),
                   ],
 
-                  // Items list
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Column(
-                      children: [
-                        if (_isMatching)
-                          const Center(
-                            child: Padding(
-                              padding:
-                                  EdgeInsets.all(DesignConstants.spacingXL),
-                              child: CircularProgressIndicator(),
-                            ),
-                          )
-                        else
-                          ..._items.asMap().entries.map((entry) {
-                            final index = entry.key;
-                            final item = entry.value;
-                            return MealReviewComparisonCard(
-                              dismissibleKey: ValueKey(item.hashCode),
-                              name: item.suggestion.name,
-                              estimatedGrams: item.suggestion.estimatedGrams,
-                              confidence: item.suggestion.confidence,
-                              matchedFood: item.matchedFood,
-                              issues: item.issues,
-                              nutrition: item.nutrition,
-                              onDismissed: () => _removeItem(index),
-                              onTap: item.matchedFood != null
-                                  ? () => _inspectFood(index)
-                                  : () => _replaceWithFood(index),
-                              onReplace: () => _replaceWithFood(index),
-                              onEditQuantity: () => _editQuantity(index),
-                              onQuickAdjustQuantity: (delta) =>
-                                  _adjustQuantityBy(index, delta),
-                            );
-                          }),
-
-                        const SizedBox(height: 8),
-
-                        // Add item button (compact, centered)
-                        Center(
-                          child: AppButton.secondary(
-                            onPressed: _addManualItem,
-                            label: l10n.aiReviewAddItem,
-                            tooltip: l10n.aiReviewAddItem,
-                            icon: LucideIcons.plus,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  // Feedback section
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const SizedBox(height: DesignConstants.spacingM),
-                        InkWell(
-                          onTap: () =>
-                              setState(() => _showFeedback = !_showFeedback),
-                          child: Row(
+                    child: _isEditing
+                        ? Column(
                             children: [
-                              Icon(
-                                _showFeedback
-                                    ? LucideIcons.chevron_up
-                                    : LucideIcons.chevron_down,
-                                color: theme.colorScheme.primary,
-                              ),
-                              const SizedBox(width: DesignConstants.spacingS),
-                              Text(
-                                l10n.aiReviewFeedbackSection,
-                                style: theme.textTheme.titleSmall?.copyWith(
-                                  color: theme.colorScheme.primary,
+                              if (_isMatching)
+                                const Center(
+                                  child: Padding(
+                                    padding: EdgeInsets.all(
+                                        DesignConstants.spacingXL),
+                                    child: CircularProgressIndicator(),
+                                  ),
+                                )
+                              else
+                                ..._items.asMap().entries.map((entry) {
+                                  final index = entry.key;
+                                  final item = entry.value;
+                                  return MealReviewComparisonCard(
+                                    dismissibleKey: ValueKey(item.hashCode),
+                                    name: item.suggestion.name,
+                                    estimatedGrams:
+                                        item.suggestion.estimatedGrams,
+                                    confidence: item.suggestion.confidence,
+                                    matchedFood: item.matchedFood,
+                                    issues: item.issues,
+                                    nutrition: item.nutrition,
+                                    onDismissed: () => _removeItem(index),
+                                    onTap: item.matchedFood != null
+                                        ? () => _inspectFood(index)
+                                        : () => _replaceWithFood(index),
+                                    onReplace: () => _replaceWithFood(index),
+                                    onEditQuantity: () => _editQuantity(index),
+                                    onQuickAdjustQuantity: (delta) =>
+                                        _adjustQuantityBy(index, delta),
+                                  );
+                                }),
+
+                              const SizedBox(height: 8),
+
+                              // Add item button (compact, centered)
+                              Center(
+                                child: AppButton.secondary(
+                                  onPressed: _addManualItem,
+                                  label: l10n.aiReviewAddItem,
+                                  tooltip: l10n.aiReviewAddItem,
+                                  icon: LucideIcons.plus,
                                 ),
                               ),
                             ],
+                          )
+                        : MealIngredientsSummary(
+                            ingredients: _items
+                                .map(
+                                  (item) => MealIngredientSummaryItem(
+                                    name: item.suggestion.name,
+                                    grams: item.suggestion.estimatedGrams,
+                                    kcal: item.nutrition.kcalRounded,
+                                  ),
+                                )
+                                .toList(growable: false),
+                            onEdit: () => setState(() => _isEditing = true),
+                            onIngredientTap: (index) {
+                              final item = _items[index];
+                              if (item.matchedFood != null) {
+                                _inspectFood(index);
+                              } else {
+                                _replaceWithFood(index);
+                              }
+                            },
                           ),
-                        ),
-                        if (_showFeedback) ...[
-                          const SizedBox(height: DesignConstants.spacingS),
-                          Wrap(
-                            spacing: 8,
-                            runSpacing: 6,
-                            children: [
-                              _buildFeedbackChip(theme, 'Larger portions'),
-                              _buildFeedbackChip(theme, 'Smaller portions'),
-                              _buildFeedbackChip(theme, 'Separate ingredients'),
-                              _buildFeedbackChip(theme, 'No sauce/dressing'),
-                            ],
-                          ),
-                          const SizedBox(height: DesignConstants.spacingS),
-                          TextField(
-                            controller: _feedbackController,
-                            maxLines: 3,
-                            decoration: InputDecoration(
-                              hintText: l10n.aiReviewFeedbackHint,
-                              border: const OutlineInputBorder(),
+                  ),
+
+                  // Matching diagnostics and retry controls are useful when a
+                  // person explicitly edits, but overwhelm the normal result.
+                  if (_isEditing)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: DesignConstants.spacingM),
+                          InkWell(
+                            onTap: () =>
+                                setState(() => _showFeedback = !_showFeedback),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  _showFeedback
+                                      ? LucideIcons.chevron_up
+                                      : LucideIcons.chevron_down,
+                                  color: theme.colorScheme.primary,
+                                ),
+                                const SizedBox(width: DesignConstants.spacingS),
+                                Text(
+                                  l10n.aiReviewFeedbackSection,
+                                  style: theme.textTheme.titleSmall?.copyWith(
+                                    color: theme.colorScheme.primary,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                          const SizedBox(height: DesignConstants.spacingS),
-                          AppButton.secondary(
-                            onPressed: _isRetrying ? null : _retryWithFeedback,
-                            label: l10n.aiReviewRetryButton,
-                            tooltip: l10n.aiReviewRetryButton,
-                          ),
+                          if (_showFeedback) ...[
+                            const SizedBox(height: DesignConstants.spacingS),
+                            Wrap(
+                              spacing: 8,
+                              runSpacing: 6,
+                              children: [
+                                _buildFeedbackChip(theme, 'Larger portions'),
+                                _buildFeedbackChip(theme, 'Smaller portions'),
+                                _buildFeedbackChip(
+                                    theme, 'Separate ingredients'),
+                                _buildFeedbackChip(theme, 'No sauce/dressing'),
+                              ],
+                            ),
+                            const SizedBox(height: DesignConstants.spacingS),
+                            TextField(
+                              controller: _feedbackController,
+                              maxLines: 3,
+                              decoration: InputDecoration(
+                                hintText: l10n.aiReviewFeedbackHint,
+                                border: const OutlineInputBorder(),
+                              ),
+                            ),
+                            const SizedBox(height: DesignConstants.spacingS),
+                            AppButton.secondary(
+                              onPressed:
+                                  _isRetrying ? null : _retryWithFeedback,
+                              label: l10n.aiReviewRetryButton,
+                              tooltip: l10n.aiReviewRetryButton,
+                            ),
+                          ],
                         ],
-                      ],
+                      ),
                     ),
-                  ),
 
                   const SizedBox(height: 80), // Bottom padding for save button
                 ],
@@ -1238,7 +1296,9 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
               ),
               child: Row(
                 children: [
-                  // Meal-type compact dropdown
+                  // Changing the diary meal is a logging decision, not an
+                  // ingredient-editing decision. Keep it available after the
+                  // scan is complete as well as while editing ingredients.
                   Expanded(
                     flex: 2,
                     child: PlatformAdaptiveDropdownFormField<String>(
@@ -1289,7 +1349,6 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
                     ),
                   ),
                   const SizedBox(width: DesignConstants.spacingM),
-                  // Save button
                   Expanded(
                     flex: 3,
                     child: SizedBox(

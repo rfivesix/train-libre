@@ -35,7 +35,12 @@ extension MatchingLogic on AiMealValidationEngine {
     }
 
     final scored = matches
-        .map((food) => _ScoredFood(food: food, score: _matchScore(query, food)))
+        .map(
+          (food) => _ScoredFood(
+            food: food,
+            score: _matchScore(item, food),
+          ),
+        )
         .toList(growable: false)
       ..sort((a, b) {
         final scoreCompare = b.score.compareTo(a.score);
@@ -70,7 +75,23 @@ extension MatchingLogic on AiMealValidationEngine {
     );
   }
 
-  double _matchScore(String query, FoodItem food) {
+  double _matchScore(AiMealCandidateItem item, FoodItem food) {
+    final queries = <String>{
+      item.name,
+      item.catalogSearchTerm ?? '',
+      ...item.searchTerms,
+    };
+    var bestScore = 0.0;
+    for (final query in queries) {
+      bestScore = AiMealValidationEngine._maxDouble(
+        bestScore,
+        _matchScoreForQuery(query, food),
+      );
+    }
+    return bestScore;
+  }
+
+  double _matchScoreForQuery(String query, FoodItem food) {
     final normalizedQuery = AiMealValidationEngine._normalizeText(query);
     if (normalizedQuery.isEmpty) return 0;
     final names = {

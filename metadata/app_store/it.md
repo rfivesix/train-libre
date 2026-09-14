@@ -56,15 +56,13 @@ OPEN SOURCE E DATI APERTI:
 Sviluppato in modo trasparente sui database aperti e affidabili di Open Food Facts e OpenExerciseDB. Il codice sorgente completo è pubblicamente accessibile: le nostre promesse sulla privacy si verificano, non si prendono per buone.
 
 ## Release Notes (What's New / Release Notes in this version)
-Sfoglia il diario per data: una nuova barra dei giorni scorrevole ti permette di passare ai giorni vicini con un tocco. Quando scegli una data nel diario, il calendario si apre direttamente.
+Recupero muscolare più preciso: Il monitoraggio del recupero utilizza ora un modello a carico residuo dinamico per ogni singola serie. Le schede muscolari mostrano prontezza e ore di recupero a colpo d'occhio; toccando una scheda si aprono dettagli su dosaggio e previsioni.
 
-Suggerimenti più intelligenti per la prossima serie: se attivi i suggerimenti di allenamento nelle Impostazioni, Train Libre può precompilare il peso della prossima serie di lavoro in base alle tue prestazioni recenti. Puoi sempre modificarlo prima di registrarlo.
+Dettatura vocale migliorata: La trascrizione si trova ora in alto per una lettura naturale, con il pulsante di registrazione posizionato comodamente in basso. Transizioni cromatiche fluide guidano dalla registrazione all'elaborazione.
 
-Recupero dove ti alleni: il recupero muscolare ora è in cima alla scheda Allenamento. L'analisi dei gruppi muscolari mostra anche i tuoi schemi di movimento, oltre a copertura e frequenza.
+Revisione pasti più chiara: I pasti acquisiti con l'IA mostrano schede ingredienti compatte e selezione diretta del tipo di pasto (colazione, pranzo, cena, spuntino) prima del salvataggio.
 
-Gruppi muscolari a colpo d'occhio: l'analisi ora offre una panoramica completa di ogni gruppo muscolare e schema di movimento, una heatmap di distribuzione sempre visibile e serie di lavoro settimanali o totali.
-
-Allenamento e record più chiari: il ritmo di allenamento mostra in modo più leggibile allenamenti, serie e calendario. I nuovi record personali compaiono in un feed dei progressi con una panoramica dei record.
+Correzioni e rifiniture: Risolto un problema di visualizzazione della scala di recupero e migliorata la stabilità complessiva.
 
 ## Support URL (Support Web Page URL)
 https://trainlibre.com/support

@@ -2747,6 +2747,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get aiReviewNoMatch => 'No match — tap to search';
 
   @override
+  String get aiValidationCandidateSelectionRequired =>
+      'Please review and edit the ingredients before saving.';
+
+  @override
   String aiReviewUncertain(int percent) {
     return 'Unsure ($percent%)';
   }
@@ -3146,6 +3150,54 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get recoveryStateUnknown => 'Unknown';
+
+  @override
+  String recoveryReadyInHours(int hours) {
+    return 'Expected to be ready in about $hours h';
+  }
+
+  @override
+  String recoveryFreshInHours(int hours) {
+    return 'Expected to be fresh in about $hours h';
+  }
+
+  @override
+  String get recoveryStillRecovering => 'Still recovering';
+
+  @override
+  String get recoveryReadyForNormalTraining => 'Ready for normal training';
+
+  @override
+  String get recoveryFreshForFullTraining => 'Fresh · ready for full training';
+
+  @override
+  String get recoveryDetailLastSession => 'Last session';
+
+  @override
+  String get recoveryDetailForecast => 'Forecast';
+
+  @override
+  String get recoveryDetailRirData => 'RIR data';
+
+  @override
+  String recoveryCompactHours(int hours) {
+    return '≈ $hours h';
+  }
+
+  @override
+  String recoverySessionLoadAndAge(String load, int hours) {
+    return '$load load units · $hours h ago';
+  }
+
+  @override
+  String recoveryLastSessionDetails(String load, int hours) {
+    return 'Last session: $load load units · $hours h ago';
+  }
+
+  @override
+  String recoveryRirCoverage(int covered, int total) {
+    return 'RIR recorded for $covered of $total sets';
+  }
 
   @override
   String recoveryLastLoadedHours(int hours) {
@@ -6310,6 +6362,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get mealDetailOptions => 'Options';
+
+  @override
+  String get mealDetailViewMode => 'View';
 
   @override
   String get mealDetailAddIngredient => 'Add ingredient';

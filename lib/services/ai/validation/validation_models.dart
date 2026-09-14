@@ -57,36 +57,50 @@ class AiMealCandidate {
 
 class AiMealCandidateItem {
   final String name;
+
+  /// Gram amount used against the local nutrition database. For a cooked item
+  /// matched to a raw database entry this is the AI-estimated raw equivalent.
   final int grams;
+
+  /// Portion visible to the user (for example cooked rice on a plate). Kept
+  /// separate from [grams] so validation can reason about both bases.
+  final int? servedGrams;
   final double? confidence;
   final String? matchedBarcode;
   final String? stateHint;
   final String? catalogSearchTerm;
+  final List<String> searchTerms;
 
   const AiMealCandidateItem({
     required this.name,
     required this.grams,
+    this.servedGrams,
     this.confidence,
     this.matchedBarcode,
     this.stateHint,
     this.catalogSearchTerm,
+    this.searchTerms = const [],
   });
 
   AiMealCandidateItem copyWith({
     String? name,
     int? grams,
+    int? servedGrams,
     double? confidence,
     String? matchedBarcode,
     String? stateHint,
     String? catalogSearchTerm,
+    List<String>? searchTerms,
   }) {
     return AiMealCandidateItem(
       name: name ?? this.name,
       grams: grams ?? this.grams,
+      servedGrams: servedGrams ?? this.servedGrams,
       confidence: confidence ?? this.confidence,
       matchedBarcode: matchedBarcode ?? this.matchedBarcode,
       stateHint: stateHint ?? this.stateHint,
       catalogSearchTerm: catalogSearchTerm ?? this.catalogSearchTerm,
+      searchTerms: searchTerms ?? this.searchTerms,
     );
   }
 
@@ -94,10 +108,12 @@ class AiMealCandidateItem {
     return {
       'name': name,
       'grams': grams,
+      if (servedGrams != null) 'servedGrams': servedGrams,
       if (confidence != null) 'confidence': confidence,
       if (matchedBarcode != null) 'matchedBarcode': matchedBarcode,
       if (stateHint != null) 'stateHint': stateHint,
       if (catalogSearchTerm != null) 'catalogSearchTerm': catalogSearchTerm,
+      if (searchTerms.isNotEmpty) 'searchTerms': searchTerms,
     };
   }
 }
@@ -332,6 +348,13 @@ class AiValidationResult {
 
   int get unmatchedItemCount =>
       items.where((item) => item.match.bestMatch == null).length;
+
+  /// A local search found materially different nutrition candidates without a
+  /// verified candidate id. This is safe to save only after a semantic repair
+  /// selects one of the real database products.
+  bool get needsSemanticSelection => allIssues.any(
+        (issue) => issue.code == 'ambiguous_nutrition_match',
+      );
 
   AiValidationResult copyWithRepairMetadata({
     required int repairPassesUsed,

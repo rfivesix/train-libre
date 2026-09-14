@@ -1097,6 +1097,7 @@
     }
   },
   "aiReviewNoMatch": "No match — tap to search",
+  "aiValidationCandidateSelectionRequired": "Please review and edit the ingredients before saving.",
   "aiReviewUncertain": "Unsure ({percent}%)",
   "@aiReviewUncertain": {
     "placeholders": {
@@ -1314,6 +1315,24 @@
   "recoveryStateReady": "Ready",
   "recoveryStateFresh": "Fresh",
   "recoveryStateUnknown": "Unknown",
+  "recoveryReadyInHours": "Expected to be ready in about {hours} h",
+  "@recoveryReadyInHours": {"placeholders": {"hours": {"type": "int"}}},
+  "recoveryFreshInHours": "Expected to be fresh in about {hours} h",
+  "@recoveryFreshInHours": {"placeholders": {"hours": {"type": "int"}}},
+  "recoveryStillRecovering": "Still recovering",
+  "recoveryReadyForNormalTraining": "Ready for normal training",
+  "recoveryFreshForFullTraining": "Fresh · ready for full training",
+  "recoveryDetailLastSession": "Last session",
+  "recoveryDetailForecast": "Forecast",
+  "recoveryDetailRirData": "RIR data",
+  "recoveryCompactHours": "≈ {hours} h",
+  "@recoveryCompactHours": {"placeholders": {"hours": {"type": "int"}}},
+  "recoverySessionLoadAndAge": "{load} load units · {hours} h ago",
+  "@recoverySessionLoadAndAge": {"placeholders": {"load": {"type": "String"}, "hours": {"type": "int"}}},
+  "recoveryLastSessionDetails": "Last session: {load} load units · {hours} h ago",
+  "@recoveryLastSessionDetails": {"placeholders": {"load": {"type": "String"}, "hours": {"type": "int"}}},
+  "recoveryRirCoverage": "RIR recorded for {covered} of {total} sets",
+  "@recoveryRirCoverage": {"placeholders": {"covered": {"type": "int"}, "total": {"type": "int"}}},
   "recoveryLastLoadedHours": "Last significantly loaded: {hours} h ago",
   "@recoveryLastLoadedHours": {
     "placeholders": {
@@ -2974,6 +2993,7 @@
     }
   },
   "mealDetailOptions": "Options",
+  "mealDetailViewMode": "View",
   "mealDetailAddIngredient": "Add ingredient",
   "mealDetailSaveAsTemplate": "Save as template",
   "mealDetailSavedAsTemplate": "Saved as a meal template.",

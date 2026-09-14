@@ -77,6 +77,8 @@ CRITICAL RULES:
 7. CONSOLIDATE duplicate items: if the user mentions or you detect multiple quantities of the same food (e.g. "4 eggs"), return ONE single entry with the total combined weight. Never return duplicate rows for the same food item.
 8. Do NOT estimate, guess, or return any nutritional data (calories, protein, fat, carbs, etc.) inside the items array. The items array must ONLY contain identification and estimated weight. The holistic "mealContext" anchor *does* contain expected macronutrient ranges for the overall meal.
 9. Use SIMPLE, SHORT base food names only. For example, use "Banane" not "Reife Banane", "Ei" not "Gekochtes Ei", "Apfel" not "Grüner Apfel". Keep names as generic and simple as possible to maximize database matching.$langRule
+10. The local food database commonly stores nutrition for RAW or UNPREPARED food. For every photographed or described prepared food, return BOTH the visible served amount and the RAW-EQUIVALENT amount. "servedGrams" is the portion as seen or eaten; "estimatedGrams" is the amount of the raw/unprepared ingredient that should be used for nutrition calculation. Estimate this raw equivalent yourself from the food, its state and preparation. For raw foods the two values are normally the same.
+11. Return 1-3 short "searchTerms" for each item. They must be useful local catalog queries for the underlying ingredient, including a specific variety or raw-form synonym where it improves recall. Do not use recipes or nutrient claims as search terms.
 
 Respond ONLY with a valid JSON object. No markdown, no explanation, no extra text.
 The JSON object must have exactly these two fields:
@@ -89,9 +91,11 @@ The JSON object must have exactly these two fields:
 2. "items": An array where each element has:
    - "name": string (individual food component name in user UI language)
    - "catalogSearchTerm": string or null (optional search keyword in catalog language if different from UI language)
-   - "estimatedGrams": integer (estimated weight in grams)
+   - "servedGrams": integer (visible/eaten portion in grams)
+   - "estimatedGrams": integer (raw-equivalent grams used for database nutrition)
    - "confidence": number (0.0 to 1.0)
    - "stateHint": string or null (e.g. "cooked", "raw", "boiled")
+   - "searchTerms": array of 1-3 short strings for local catalog retrieval
 
 Example response:
 {
@@ -107,8 +111,8 @@ Example response:
     "contextNotes": "Made with 3 eggs and 10g of butter"
   },
   "items": [
-    {"name": "Egg", "catalogSearchTerm": "Oeuf", "estimatedGrams": 150, "confidence": 0.9, "stateHint": "cooked"},
-    {"name": "Butter", "catalogSearchTerm": "Beurre", "estimatedGrams": 10, "confidence": 0.8, "stateHint": "raw"}
+    {"name": "Rice", "catalogSearchTerm": "Riz", "servedGrams": 180, "estimatedGrams": 65, "confidence": 0.82, "stateHint": "cooked", "searchTerms": ["Rice", "Basmati rice", "dry rice"]},
+    {"name": "Butter", "catalogSearchTerm": "Beurre", "servedGrams": 10, "estimatedGrams": 10, "confidence": 0.8, "stateHint": "raw", "searchTerms": ["Butter"]}
   ]
 }
 ''';
@@ -181,14 +185,14 @@ You are repairing an AI meal candidate after deterministic local validation.
 Rules:
 - When CANDIDATES are listed for an item, you MUST pick one of the provided exact names. Do NOT invent new names.
 - If no candidates are listed, use simple, generic, local-database-matchable food names.
-- Adjust estimatedGrams to bring the total meal nutrition closer to the meal context anchor.
+- `servedGrams` is the visible/eaten amount. `estimatedGrams` is the raw-equivalent amount used for nutrition. Keep both plausible for the stated preparation, and revise the raw equivalent when a verified database candidate makes the prior amount implausible.
 - Correct unrealistic quantities.
 - Do not invent or return nutrition values.
 - Respect strict target macros when provided; local code will verify kcal/protein/carbs/fat again.
 - Use low creativity and keep the output deterministic.$langRule$anchorBlock$depthBlock
 
-Return ONLY a valid JSON array:
-[{"name":"Food name","estimatedGrams":100,"confidence":0.8}]
+Return ONLY a valid JSON array. Every item must preserve or return stateHint, servedGrams, estimatedGrams and searchTerms. When selecting a listed candidate, return its exact `matchedBarcode` too:
+[{"name":"Food name","servedGrams":180,"estimatedGrams":65,"confidence":0.8,"stateHint":"cooked","searchTerms":["Food name"],"matchedBarcode":"candidate-id"}]
 No markdown, no explanations, no extra text.''';
   }
 }

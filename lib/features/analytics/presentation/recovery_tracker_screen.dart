@@ -36,6 +36,7 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
 
   final ScrollController _scrollController = ScrollController();
   final Map<String, GlobalKey> _muscleKeys = {};
+  final Set<String> _expandedMuscles = <String>{};
 
   bool _isRecoveringExpanded = false;
   bool _isReadyExpanded = false;
@@ -90,57 +91,21 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
     return StatisticsPresentationFormatter.recoveryStateColor(context, state);
   }
 
-  String _fatigueContextLabel(AppLocalizations l10n, bool highFatigue) {
-    return highFatigue
-        ? l10n.recoveryFatigueContextHigh
-        : l10n.recoveryFatigueContextBaseline;
-  }
-
-  String _explanationForMuscle(
-    AppLocalizations l10n,
-    RecoveryMusclePayload muscle,
-  ) {
-    final rawName = muscle.muscleGroup;
-    final muscleName =
-        StatisticsPresentationFormatter.muscleGroupLabel(l10n, rawName);
-    final hours = muscle.hoursSinceLastSignificantLoad.round();
-    final highFatigue = muscle.highSessionFatigue;
-
-    if (highFatigue) {
-      return l10n.recoveryExplanationWithHighFatigue(muscleName, hours);
-    }
-    return l10n.recoveryExplanationBasic(muscleName, hours);
-  }
-
   bool _shouldHideMuscle(String name) {
     return RecoveryDomainService.shouldHideMuscle(name) ||
         StatisticsPresentationFormatter.isOtherCategoryLabel(name);
   }
 
   double _readinessScore(RecoveryMusclePayload muscle) {
+    final v2Score = muscle.readinessScore;
+    if (v2Score != null && v2Score.isFinite) {
+      return v2Score.clamp(0.0, 100.0).toDouble();
+    }
     return RecoveryDomainService.readinessScore(
       hoursSinceLastSignificantLoad: muscle.hoursSinceLastSignificantLoad,
       recoveringUpperHours: muscle.recoveringUpperHours.toDouble(),
       readyUpperHours: muscle.readyUpperHours.toDouble(),
     );
-  }
-
-  double _lastLoadPressureScore(RecoveryMusclePayload muscle) {
-    return RecoveryDomainService.lastLoadPressureScore(
-      lastEquivalentSets: muscle.lastEquivalentSets,
-      highSessionFatigue: muscle.highSessionFatigue,
-    );
-  }
-
-  String _lastLoadPressureLabel(
-    AppLocalizations l10n,
-    RecoveryMusclePayload muscle,
-  ) {
-    final pressureScore = _lastLoadPressureScore(muscle);
-    final level = RecoveryDomainService.pressureLevelForScore(pressureScore);
-    final levelLabel =
-        StatisticsPresentationFormatter.recoveryPressureLevelLabel(l10n, level);
-    return l10n.recoveryLastLoadPressure(levelLabel);
   }
 
   String _formatEquivalentSets(BuildContext context, double value) {
@@ -149,6 +114,11 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
       ..minimumFractionDigits = 1
       ..maximumFractionDigits = 1;
     return format.format(value);
+  }
+
+  int _hoursUntil(RecoveryMusclePayload muscle, int targetHour) {
+    final remaining = targetHour - muscle.hoursSinceLastSignificantLoad;
+    return remaining <= 0 ? 0 : remaining.ceil();
   }
 
   Color _overallStateColor(BuildContext context, String overallState) {
@@ -248,28 +218,6 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildContextChip(BuildContext context, String text) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: Theme.of(
-          context,
-        ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.35),
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Text(text, style: Theme.of(context).textTheme.bodySmall),
-    );
-  }
-
-  Widget _buildScaleLabel(BuildContext context, String label) {
-    return Text(
-      label,
-      style: Theme.of(context).textTheme.labelSmall?.copyWith(
-            color: Theme.of(context).colorScheme.outline,
-          ),
     );
   }
 
@@ -389,126 +337,279 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
         StatisticsPresentationFormatter.muscleGroupLabel(l10n, rawName);
     final state = muscle.state;
     final stateColor = _stateColor(context, state);
-    final hours = muscle.hoursSinceLastSignificantLoad.round();
-    final highFatigue = muscle.highSessionFatigue;
-    final eqSets = muscle.lastEquivalentSets;
-    final recoveringUpper = muscle.recoveringUpperHours;
-    final readyUpper = muscle.readyUpperHours;
     final readinessScore = _readinessScore(muscle);
-    final readinessColor = stateColor;
-
     final key = _muscleKeys.putIfAbsent(rawName, () => GlobalKey());
+    final isExpanded = _expandedMuscles.contains(rawName);
+    final hasDetails = muscle.lastSignificantLoadAt != null;
+    final lastSessionLoad = muscle.lastSessionLoad ?? muscle.lastEquivalentSets;
+    final lastSessionHours = muscle.hoursSinceLastSignificantLoad.round();
+    final remainingHours = switch (state) {
+      RecoveryDomainService.stateRecovering =>
+        _hoursUntil(muscle, muscle.recoveringUpperHours),
+      RecoveryDomainService.stateReady =>
+        _hoursUntil(muscle, muscle.readyUpperHours),
+      _ => null,
+    };
 
-    return Column(
+    return InkWell(
       key: key,
+      onTap: hasDetails
+          ? () => setState(() {
+                if (isExpanded) {
+                  _expandedMuscles.remove(rawName);
+                } else {
+                  _expandedMuscles.add(rawName);
+                }
+              })
+          : null,
+      borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: DesignConstants.spacingS),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    muscleName,
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                  ),
+                ),
+                Text(
+                  readinessScore.toStringAsFixed(0),
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        color: stateColor,
+                        fontWeight: FontWeight.w800,
+                      ),
+                ),
+                if (hasDetails) ...[
+                  const SizedBox(width: DesignConstants.spacingS),
+                  AnimatedRotation(
+                    turns: isExpanded ? 0.5 : 0,
+                    duration: const Duration(milliseconds: 180),
+                    child: Icon(
+                      LucideIcons.chevron_down,
+                      size: 18,
+                      color: Theme.of(context).colorScheme.outline,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+            const SizedBox(height: DesignConstants.spacingS),
+            Row(
+              children: [
+                Expanded(
+                  child: _buildReadinessScale(
+                    context,
+                    readinessScore: readinessScore,
+                    markerColor: stateColor,
+                  ),
+                ),
+                if (remainingHours != null) ...[
+                  const SizedBox(width: DesignConstants.spacingM),
+                  Icon(
+                    Icons.schedule_rounded,
+                    size: 16,
+                    color: Theme.of(context).colorScheme.outline,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    l10n.recoveryCompactHours(remainingHours),
+                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                          color: Theme.of(context).colorScheme.outline,
+                          fontWeight: FontWeight.w800,
+                        ),
+                  ),
+                ],
+              ],
+            ),
+            AnimatedSize(
+              duration: _expandDuration,
+              curve: Curves.easeOutCubic,
+              alignment: Alignment.topCenter,
+              child: isExpanded
+                  ? Padding(
+                      padding: const EdgeInsets.only(
+                        top: DesignConstants.spacingM,
+                      ),
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(DesignConstants.spacingM),
+                        decoration: BoxDecoration(
+                          color: stateColor.withValues(alpha: 0.08),
+                          borderRadius: BorderRadius.circular(
+                            DesignConstants.borderRadiusM,
+                          ),
+                          border: Border.all(
+                            color: stateColor.withValues(alpha: 0.18),
+                          ),
+                        ),
+                        child: Column(
+                          children: [
+                            _buildRecoveryDetailRow(
+                              context,
+                              title: l10n.recoveryDetailLastSession,
+                              value: l10n.recoverySessionLoadAndAge(
+                                _formatEquivalentSets(context, lastSessionLoad),
+                                lastSessionHours,
+                              ),
+                            ),
+                            if (state != RecoveryDomainService.stateFresh) ...[
+                              const Padding(
+                                padding: EdgeInsets.symmetric(
+                                  vertical: DesignConstants.spacingS,
+                                ),
+                                child: Divider(height: 1),
+                              ),
+                              _buildRecoveryDetailRow(
+                                context,
+                                title: l10n.recoveryDetailForecast,
+                                value: state ==
+                                        RecoveryDomainService.stateRecovering
+                                    ? '${l10n.recoveryReadyInHours(_hoursUntil(muscle, muscle.recoveringUpperHours))}\n${l10n.recoveryFreshInHours(_hoursUntil(muscle, muscle.readyUpperHours))}'
+                                    : l10n.recoveryFreshInHours(
+                                        _hoursUntil(
+                                          muscle,
+                                          muscle.readyUpperHours,
+                                        ),
+                                      ),
+                              ),
+                            ],
+                            if (muscle.eligibleSetCount > 0) ...[
+                              const Padding(
+                                padding: EdgeInsets.symmetric(
+                                  vertical: DesignConstants.spacingS,
+                                ),
+                                child: Divider(height: 1),
+                              ),
+                              _buildRecoveryDetailRow(
+                                context,
+                                title: l10n.recoveryDetailRirData,
+                                value: l10n.recoveryRirCoverage(
+                                  muscle.setsWithRir,
+                                  muscle.eligibleSetCount,
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                    )
+                  : const SizedBox(width: double.infinity),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildReadinessScale(
+    BuildContext context, {
+    required double readinessScore,
+    required Color markerColor,
+  }) {
+    final theme = Theme.of(context);
+    final markerPosition = readinessScore.clamp(0.0, 100.0) / 100;
+
+    return SizedBox(
+      height: 16,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final markerLeft = (constraints.maxWidth * markerPosition - 7)
+              .clamp(0.0, constraints.maxWidth - 14)
+              .toDouble();
+          return Stack(
+            fit: StackFit.expand,
+            clipBehavior: Clip.none,
+            children: [
+              Positioned(
+                left: 0,
+                right: 0,
+                top: 3,
+                child: Container(
+                  height: 10,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(999),
+                    border: Border.all(
+                      color: theme.colorScheme.outline.withValues(alpha: 0.2),
+                    ),
+                    gradient: LinearGradient(
+                      colors: [
+                        Colors.orange.withValues(alpha: 0.38),
+                        Colors.orange.withValues(alpha: 0.38),
+                        Colors.blue.withValues(alpha: 0.34),
+                        Colors.blue.withValues(alpha: 0.34),
+                        Colors.green.withValues(alpha: 0.36),
+                        Colors.green.withValues(alpha: 0.36),
+                      ],
+                      stops: const [0, 0.6, 0.6, 0.85, 0.85, 1],
+                    ),
+                  ),
+                ),
+              ),
+              Positioned(
+                left: markerLeft,
+                top: 1,
+                child: Container(
+                  width: 14,
+                  height: 14,
+                  decoration: BoxDecoration(
+                    color: markerColor,
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: theme.colorScheme.surface,
+                      width: 2,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: markerColor.withValues(alpha: 0.35),
+                        blurRadius: 5,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildRecoveryDetailRow(
+    BuildContext context, {
+    required String title,
+    required String value,
+  }) {
+    final theme = Theme.of(context);
+    return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            Expanded(
-              child: Text(
-                muscleName,
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-              ),
-            ),
-            Container(
-              padding: const EdgeInsets.symmetric(
-                  horizontal: 10, vertical: DesignConstants.spacingXS),
-              decoration: BoxDecoration(
-                color: stateColor.withValues(alpha: 0.14),
-                borderRadius: BorderRadius.circular(999),
-              ),
-              child: Text(
-                _stateLabel(l10n, state),
-                style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                      color: stateColor,
-                      fontWeight: FontWeight.w700,
-                    ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 6),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            _buildContextChip(
-              context,
-              l10n.recoveryRecentLoad(_formatEquivalentSets(context, eqSets)),
-            ),
-            _buildContextChip(
-              context,
-              l10n.recoveryLastLoadedHours(hours),
-            ),
-            _buildContextChip(
-              context,
-              _fatigueContextLabel(l10n, highFatigue),
-            ),
-            _buildContextChip(
-              context,
-              _lastLoadPressureLabel(l10n, muscle),
-            ),
-          ],
-        ),
-        const SizedBox(height: DesignConstants.spacingS),
-        Row(
-          children: [
-            Text(
-              l10n.recoveryReadinessLabel,
-              style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.outline,
-                    fontWeight: FontWeight.w600,
-                  ),
-            ),
-            const Spacer(),
-            Text(
-              readinessScore.toStringAsFixed(0),
-              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    color: readinessColor,
-                    fontWeight: FontWeight.w700,
-                  ),
-            ),
-          ],
-        ),
-        const SizedBox(height: DesignConstants.spacingXS),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(999),
-          child: LinearProgressIndicator(
-            value: readinessScore / 100,
-            minHeight: 8,
-            color: readinessColor,
-            backgroundColor:
-                Theme.of(context).colorScheme.surfaceContainerHighest,
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.only(top: DesignConstants.spacingXS),
-          child: Row(
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildScaleLabel(context, '0'),
-              const Spacer(),
-              _buildScaleLabel(context, '50'),
-              const Spacer(),
-              _buildScaleLabel(context, '100'),
+              Text(
+                title,
+                style: theme.textTheme.labelMedium?.copyWith(
+                  color: theme.colorScheme.outline,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                value,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurface,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ],
           ),
-        ),
-        const SizedBox(height: 2),
-        Text(
-          l10n.recoveryCurrentWindow(recoveringUpper, readyUpper),
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.outline,
-              ),
-        ),
-        const SizedBox(height: 6),
-        Text(
-          _explanationForMuscle(l10n, muscle),
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.outline,
-              ),
         ),
       ],
     );
@@ -547,30 +648,36 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
                   children: [
                     Row(
                       children: [
-                        Container(
-                          width: 12,
-                          height: 12,
-                          decoration: BoxDecoration(
-                            color: color,
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: color.withValues(alpha: 0.4),
-                                blurRadius: 4,
-                                spreadRadius: 1,
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(width: DesignConstants.spacingM),
                         Expanded(
                           child: Text(
-                            '$title (${muscles.length})',
+                            title,
                             style: Theme.of(context)
                                 .textTheme
                                 .titleMedium
                                 ?.copyWith(
                                   fontWeight: FontWeight.bold,
+                                ),
+                          ),
+                        ),
+                        Container(
+                          constraints: const BoxConstraints(minWidth: 28),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: DesignConstants.spacingS,
+                            vertical: 3,
+                          ),
+                          decoration: BoxDecoration(
+                            color: color.withValues(alpha: 0.14),
+                            borderRadius: BorderRadius.circular(999),
+                          ),
+                          child: Text(
+                            '${muscles.length}',
+                            textAlign: TextAlign.center,
+                            style: Theme.of(context)
+                                .textTheme
+                                .labelMedium
+                                ?.copyWith(
+                                  color: color,
+                                  fontWeight: FontWeight.w800,
                                 ),
                           ),
                         ),
@@ -587,8 +694,8 @@ class _RecoveryTrackerScreenState extends State<RecoveryTrackerScreen> {
                     ),
                     Padding(
                       padding: const EdgeInsets.only(
-                          top: DesignConstants.spacingS,
-                          left: DesignConstants.spacingXL),
+                        top: DesignConstants.spacingS,
+                      ),
                       child: Wrap(
                         spacing: 6.0,
                         runSpacing: 4.0,

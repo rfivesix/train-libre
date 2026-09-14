@@ -39,7 +39,7 @@ To maintain data integrity and prevent AI hallucination of nutritional values, t
 
 1.  **Macro/Calorie Ban**: The AI is strictly prohibited from estimating, guessing, or returning any nutritional numbers (calories, protein, carbs, fat). Nutritional calculations are resolved deterministically by Train Libre using its local database.
 2.  **Decomposition Rule**: The AI must break down every composite meal into its basic, atomic components. For example, "Spaghetti Bolognese" must be decomposed into: *spaghetti, beef mince, tomatoes, onions, garlic, olive oil, parmesan cheese*.
-3.  **Short Base Names**: Ingredient names must be returned in their simplest, generic forms (e.g., "Apfel" instead of "Grüner Apfel", "Ei" instead of "Großes gekochtes Ei") to maximize local database match rates.
+3.  **Short Base Names with Retrieval Variants**: Ingredient names remain simple and generic (e.g., "Apfel" instead of "Grüner Apfel"), but every item also carries one to three concise `searchTerms`. Those variants can name a variety, a raw-form synonym, or another useful catalog spelling without making the user-facing name noisy.
 4.  **Consolidation**: Duplicate items must be consolidated before returning (e.g., if the user describes eating 3 eggs, the AI must return a single entry for "Egg" with a combined weight).
 5.  **Holistic Context Anchor (`mealContext`)**: The system requests and structures a `mealContext` block, establishing a culinary baseline for validation:
     *   `dishType`: Name of the identified dish.
@@ -48,9 +48,10 @@ To maintain data integrity and prevent AI hallucination of nutritional values, t
     *   `cookingMethod`: Overall preparation method of the dish.
     *   `contextNotes`: Free-text culinary details.
 6.  **Dual-Language Catalog Search**: The app language and the installed food catalog's language are not always the same (a German UI on a French Open Food Facts catalog). When they differ, each item may additionally carry a `catalogSearchTerm` in the catalog language, so the local matcher can search the catalog in its own language while the user still reads the item in theirs.
-7.  **Output Constancy**: The output format is restricted to a structured JSON object with exactly two fields:
+7.  **Raw-Equivalent Nutrition Amounts**: The local catalog often supplies nutrition for raw or unprepared ingredients. For a photographed prepared food, the model returns both `servedGrams` (the visible/eaten portion) and `estimatedGrams` (its estimated raw equivalent). Train Libre uses only `estimatedGrams` for the local nutrition calculation. The model never supplies calories or macros.
+8.  **Output Constancy**: The output format is restricted to a structured JSON object with exactly two fields:
     *   `mealContext`: The holistic culinary anchors described above.
-    *   `items`: A list of food components, each with `name`, optional `catalogSearchTerm`, `estimatedGrams`, `confidence` and `stateHint`.
+    *   `items`: A list of food components, each with `name`, optional `catalogSearchTerm`, `searchTerms`, `servedGrams`, raw-equivalent `estimatedGrams`, `confidence` and `stateHint`.
 
 ### Optional Prompt Blocks
 Two blocks are prepended to the system prompt only when the corresponding data exists:
@@ -71,7 +72,7 @@ Once the AI returns its JSON list, the raw suggestions are processed by the loca
 Before evaluating database matches, the engine normalizes all text tokens and checks for duplicates. If duplicate ingredients are detected, they are automatically merged: the weights are summed, and the maximum confidence is retained.
 
 ### Database Matching & Quality Classification
-The engine matches ingredients against the local SQLite database using fuzzy string matching and barcodes:
+The engine matches ingredients against the local SQLite database using barcodes and a union of local queries: the canonical name, optional catalog-language term, and the model-provided `searchTerms`. This broadens recall without another provider request or any additional BYOK token use. Candidate ranking rewards the best textual match from any of those terms; it does not treat the first returned database row as authoritative.
 *   **Exact Match (Score ≥ 0.95)**: Perfect textual alignment or matching barcode.
 *   **Strong Match (Score ≥ 0.78)**: Excellent alignment (e.g., token overlaps).
 *   **Partial Match (Score ≥ 0.55)**: Moderate overlap (triggers an information warning).
@@ -93,6 +94,7 @@ Once an item is matched, the matched database entry is checked as well:
 *   `implausible_food_density`: the matched entry exceeds 950 kcal per 100 g.
 *   `macro_energy_mismatch`: the entry's macros imply more than 180 kcal above its stated calories.
 *   `implausible_item_nutrition`: this portion alone exceeds 2500 kcal, 250 g protein, 500 g carbs or 220 g fat.
+*   `ambiguous_nutrition_match`: plausible local candidates differ by at least 75% in kcal per 100 g and no verified candidate barcode has been selected. This triggers semantic candidate selection in the repair loop even when the lexical match itself looks strong.
 
 ### Meal-Level Validation Rules
 Beyond the individual items, the assembled meal is checked as a whole:
@@ -121,22 +123,21 @@ Compares the matched database macronutrient distribution against the expected ma
 ### C3: Cooking State Mismatch Check
 Detects preparation state discrepancies between the AI's parsed item and the matched database entry (e.g., a "raw chicken breast" matched to "cooked chicken breast"). Both sides are read for raw and cooked markers in German and English (`raw`/`roh`, `cooked`/`gekocht`, `fried`/`gebraten`, `baked`/`gebacken`, `boiled`, `zubereitet`):
 *   **Warning (`state_mismatch`)**: Raised when the state hint and the matched entry do not clearly agree.
-*   **Error (same `state_mismatch` code, escalated severity)**: Raised when the two directly contradict each other — a raw hint on a cooked database entry or vice versa — because that is the case where the caloric density is systematically wrong.
+*   **Error (same `state_mismatch` code, escalated severity)**: Raised when the two directly contradict each other — a raw hint on a cooked database entry or vice versa — because that is the case where the caloric density is systematically wrong. A prepared visible portion with a distinct `estimatedGrams` raw equivalent is an intentional conversion, not a mismatch.
 
-### C4: Portion Density Anomaly Detection
-Checks for implausible ingredient quantities based on standard portion densities:
-*   **Warning (`implausible_portion_density`)**: Raised if the matched database product density deviates significantly, meaning the effective portion density is > 2x or < 0.5x of the default database product density, indicating potential gram calculation anomalies.
+### C4: Prepared Portion versus Raw Database Basis
+`servedGrams` and `estimatedGrams` are deliberately distinct. A plate photo of cooked rice may show 180 g while the selected raw-rice entry must be calculated from an AI-estimated 65 g raw equivalent. The model is responsible for estimating that conversion from the image and meal context; Train Libre verifies the resulting nutrition only against real local candidate data. No fixed yield table is imposed, because preparation can vary materially between meals.
 
 ---
 
-## 5. The "Top-N Fuzzy Alternatives" Candidate Selection System
+## 5. Multi-Query Candidate Selection and Semantic Repair
 
 When a validation issue or match anomaly occurs, Train Libre does not let the LLM blindly guess replacements. Instead, the local Dart engine uses a **Candidate Selection** model:
 
-1.  **Local Database Querying**: The `ProductLocalDataSource` queries the SQLite database via `fuzzyMatchCandidatesForRepair`, pulling the top 5 to 10 closest fuzzy matches using Jaro-Winkler string similarity.
-2.  **State-Aware Re-ranking**: Candidates are re-ranked based on preparation state matches (e.g., prioritising cooked or grilled items if a cooking hint is present).
-3.  **Prompt Menu Injection**: These database candidates (including their exact database names, calories, and macronutrient distributions) are structured as a selection menu and injected directly into the repair prompt payload under a `CANDIDATES` block.
-4.  **Semantic Selection**: The LLM acts as a semantic selector rather than an estimator, choosing the mathematically and culinary-wise best-fitting database candidate.
+1.  **Local Multi-Query Retrieval**: `ProductLocalDataSource` queries the canonical name, catalog-language term and `searchTerms`, merges duplicates, and retains the top local alternatives.
+2.  **Nutrition-Spread Gate**: If candidates have materially different kcal per 100 g, a textually plausible result is not accepted merely because its name is close.
+3.  **Prompt Menu Injection**: The repair prompt receives real candidate names, calories, macros and a stable candidate barcode.
+4.  **Semantic Selection with a Real ID**: The LLM chooses a candidate barcode from that menu and may revise the raw-equivalent grams. The parser preserves the served amount, preparation state and search variants across every repair pass. An unknown or invented barcode cannot become a verified match.
 
 ---
 
@@ -161,8 +162,8 @@ To recover from invalid JSON formats, incorrect ingredient portions, or missing 
                            (Yes)                (No)
                             /                     \
                    [Re-request LLM]       [Fail Validation]
-               (Injects Top-N Candidates &
-                Holistic mealContext Anchor)
+               (Injects real candidates, their IDs,
+                nutrition data & mealContext Anchor)
 ```
 
 ### 1. Scoring Formula
@@ -178,9 +179,10 @@ The result is clamped to the 0–100 range.
 A candidate only passes validation if:
 *   The overall score is **≥ 70**.
 *   There are **zero critical errors** (e.g., no `all_items_unmatched`, no `anchor_kcal_extreme`, no `invalid_quantity`).
+*   Materially different nutrition candidates have been resolved to a verified local barcode.
 
 ### 3. Repair Feedback Generation
-If the candidate fails, the engine generates a structured feedback block detailing the precise index of the offending items and the error codes (e.g., `state_mismatch`, `anchor_kcal_extreme`). The orchestrator submits this log alongside the list of verified **Top-N Database Candidates** and the **`mealContext`** back to the LLM. The loop runs for a maximum of **3 passes** before returning a final failed validation status.
+If the candidate fails **or requires semantic selection because candidate nutrition differs materially**, the engine generates a structured feedback block detailing the precise index of the offending items and the error codes (e.g., `state_mismatch`, `ambiguous_nutrition_match`, `anchor_kcal_extreme`). The orchestrator submits this log alongside verified local candidates, their stable IDs, and the `mealContext` back to the LLM. Every repaired response enters the same local validation again. The loop runs for a maximum of **3 passes** before returning the latest validated result.
 
 ---
 

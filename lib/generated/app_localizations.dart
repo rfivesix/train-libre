@@ -5000,6 +5000,12 @@ abstract class AppLocalizations {
   /// **'No match — tap to search'**
   String get aiReviewNoMatch;
 
+  /// No description provided for @aiValidationCandidateSelectionRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please review and edit the ingredients before saving.'**
+  String get aiValidationCandidateSelectionRequired;
+
   /// No description provided for @aiReviewUncertain.
   ///
   /// In en, this message translates to:
@@ -5632,6 +5638,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Unknown'**
   String get recoveryStateUnknown;
+
+  /// No description provided for @recoveryReadyInHours.
+  ///
+  /// In en, this message translates to:
+  /// **'Expected to be ready in about {hours} h'**
+  String recoveryReadyInHours(int hours);
+
+  /// No description provided for @recoveryFreshInHours.
+  ///
+  /// In en, this message translates to:
+  /// **'Expected to be fresh in about {hours} h'**
+  String recoveryFreshInHours(int hours);
+
+  /// No description provided for @recoveryStillRecovering.
+  ///
+  /// In en, this message translates to:
+  /// **'Still recovering'**
+  String get recoveryStillRecovering;
+
+  /// No description provided for @recoveryReadyForNormalTraining.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready for normal training'**
+  String get recoveryReadyForNormalTraining;
+
+  /// No description provided for @recoveryFreshForFullTraining.
+  ///
+  /// In en, this message translates to:
+  /// **'Fresh · ready for full training'**
+  String get recoveryFreshForFullTraining;
+
+  /// No description provided for @recoveryDetailLastSession.
+  ///
+  /// In en, this message translates to:
+  /// **'Last session'**
+  String get recoveryDetailLastSession;
+
+  /// No description provided for @recoveryDetailForecast.
+  ///
+  /// In en, this message translates to:
+  /// **'Forecast'**
+  String get recoveryDetailForecast;
+
+  /// No description provided for @recoveryDetailRirData.
+  ///
+  /// In en, this message translates to:
+  /// **'RIR data'**
+  String get recoveryDetailRirData;
+
+  /// No description provided for @recoveryCompactHours.
+  ///
+  /// In en, this message translates to:
+  /// **'≈ {hours} h'**
+  String recoveryCompactHours(int hours);
+
+  /// No description provided for @recoverySessionLoadAndAge.
+  ///
+  /// In en, this message translates to:
+  /// **'{load} load units · {hours} h ago'**
+  String recoverySessionLoadAndAge(String load, int hours);
+
+  /// No description provided for @recoveryLastSessionDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Last session: {load} load units · {hours} h ago'**
+  String recoveryLastSessionDetails(String load, int hours);
+
+  /// No description provided for @recoveryRirCoverage.
+  ///
+  /// In en, this message translates to:
+  /// **'RIR recorded for {covered} of {total} sets'**
+  String recoveryRirCoverage(int covered, int total);
 
   /// No description provided for @recoveryLastLoadedHours.
   ///
@@ -11046,6 +11124,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Options'**
   String get mealDetailOptions;
+
+  /// No description provided for @mealDetailViewMode.
+  ///
+  /// In en, this message translates to:
+  /// **'View'**
+  String get mealDetailViewMode;
 
   /// No description provided for @mealDetailAddIngredient.
   ///

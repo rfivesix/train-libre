@@ -6,6 +6,16 @@
   Poi esegui: python3 script/build_whats_new.py --write --sync-store
 -->
 
+## 1.4.1 (2026-09-14)
+
+{activity} Recupero muscolare più preciso: Il monitoraggio del recupero utilizza ora un modello a carico residuo dinamico per ogni singola serie. Le schede muscolari mostrano prontezza e ore di recupero a colpo d'occhio; toccando una scheda si aprono dettagli su dosaggio e previsioni.
+
+{mic} Dettatura vocale migliorata: La trascrizione si trova ora in alto per una lettura naturale, con il pulsante di registrazione posizionato comodamente in basso. Transizioni cromatiche fluide guidano dalla registrazione all'elaborazione.
+
+{utensils} Revisione pasti più chiara: I pasti acquisiti con l'IA mostrano schede ingredienti compatte e selezione diretta del tipo di pasto (colazione, pranzo, cena, spuntino) prima del salvataggio.
+
+{bug} Correzioni e rifiniture: Risolto un problema di visualizzazione della scala di recupero e migliorata la stabilità complessiva.
+
 ## 1.4.0 (2026-09-11)
 
 {layout_grid} Sfoglia il diario per data: una nuova barra dei giorni scorrevole ti permette di passare ai giorni vicini con un tocco. Quando scegli una data nel diario, il calendario si apre direttamente.

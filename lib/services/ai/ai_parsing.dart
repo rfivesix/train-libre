@@ -1,5 +1,15 @@
 part of '../ai_service.dart';
 
+List<String> _parseSearchTerms(dynamic raw) {
+  if (raw is! List) return const [];
+  return raw
+      .whereType<String>()
+      .map((term) => term.trim())
+      .where((term) => term.isNotEmpty)
+      .toSet()
+      .toList(growable: false);
+}
+
 extension AiParsing on AiService {
   /// Extracts the meal candidate (holistic context and items) from the AI response off the main thread.
   Future<AiMealCandidate> _parseMealCandidateFromContent(String content) async {
@@ -30,8 +40,11 @@ extension AiParsing on AiService {
                     name: (e['name'] as String?) ?? '',
                     grams: (e['estimatedGrams'] as num?)?.toInt() ?? 0,
                     confidence: (e['confidence'] as num?)?.toDouble(),
+                    servedGrams: (e['servedGrams'] as num?)?.toInt(),
+                    matchedBarcode: e['matchedBarcode'] as String?,
                     stateHint: e['stateHint'] as String?,
                     catalogSearchTerm: e['catalogSearchTerm'] as String?,
+                    searchTerms: _parseSearchTerms(e['searchTerms']),
                   ))
               .toList();
           return AiMealCandidate(
@@ -47,8 +60,11 @@ extension AiParsing on AiService {
                   name: (e['name'] as String?) ?? '',
                   grams: (e['estimatedGrams'] as num?)?.toInt() ?? 0,
                   confidence: (e['confidence'] as num?)?.toDouble(),
+                  servedGrams: (e['servedGrams'] as num?)?.toInt(),
+                  matchedBarcode: e['matchedBarcode'] as String?,
                   stateHint: e['stateHint'] as String?,
                   catalogSearchTerm: e['catalogSearchTerm'] as String?,
+                  searchTerms: _parseSearchTerms(e['searchTerms']),
                 ))
             .toList();
         return AiMealCandidate(items: items);
@@ -74,8 +90,11 @@ extension AiParsing on AiService {
                     name: (e['name'] as String?) ?? '',
                     grams: (e['estimatedGrams'] as num?)?.toInt() ?? 0,
                     confidence: (e['confidence'] as num?)?.toDouble(),
+                    servedGrams: (e['servedGrams'] as num?)?.toInt(),
+                    matchedBarcode: e['matchedBarcode'] as String?,
                     stateHint: e['stateHint'] as String?,
                     catalogSearchTerm: e['catalogSearchTerm'] as String?,
+                    searchTerms: _parseSearchTerms(e['searchTerms']),
                   ))
               .toList();
           return AiMealCandidate(
@@ -97,8 +116,11 @@ extension AiParsing on AiService {
                   name: (e['name'] as String?) ?? '',
                   grams: (e['estimatedGrams'] as num?)?.toInt() ?? 0,
                   confidence: (e['confidence'] as num?)?.toDouble(),
+                  servedGrams: (e['servedGrams'] as num?)?.toInt(),
+                  matchedBarcode: e['matchedBarcode'] as String?,
                   stateHint: e['stateHint'] as String?,
                   catalogSearchTerm: e['catalogSearchTerm'] as String?,
+                  searchTerms: _parseSearchTerms(e['searchTerms']),
                 ))
             .toList();
         return AiMealCandidate(items: items);

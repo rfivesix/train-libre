@@ -234,19 +234,6 @@ class _VoiceDictationViewState extends State<_VoiceDictationView> {
   /// Already 0 to 1 — `VoiceDictationService` normalises the platform scale.
   double get _normalizedLevel => _level.clamp(0.0, 1.0);
 
-  /// The accent's opposite hue, lifted enough to stay legible on a dark sheet.
-  ///
-  /// Tidying and listening looked identical: same shape, same colour, only the
-  /// caption underneath differed. Flipping the hue makes the state change
-  /// unmistakable without inventing a second animation.
-  Color _complementOf(Color accent) {
-    final hsl = HSLColor.fromColor(accent);
-    return hsl
-        .withHue((hsl.hue + 180) % 360)
-        .withSaturation(hsl.saturation.clamp(0.7, 1.0))
-        .withLightness(0.62)
-        .toColor();
-  }
 
   /// True while the cloud should be a cloud rather than a resting circle.
   bool get _isRecordingShape =>
@@ -388,11 +375,15 @@ class _VoiceDictationViewState extends State<_VoiceDictationView> {
 
   Widget _languageTile(BuildContext ctx, String? id, String label) {
     final isSelected = id == null ? _localeId == null : _localeId == id;
+    final isDark = Theme.of(ctx).brightness == Brightness.dark;
+    final accent = isDark
+        ? DesignConstants.brandAccentColor
+        : DesignConstants.brandAccentColorLightMode;
     return ListTile(
       dense: true,
       title: Text(label),
       trailing: isSelected
-          ? const Icon(LucideIcons.check, size: 18, color: Color(0xFFC9EF00))
+          ? Icon(LucideIcons.check, size: 18, color: accent)
           : null,
       onTap: () => Navigator.of(ctx).pop(id ?? _systemSentinel),
     );
@@ -404,7 +395,7 @@ class _VoiceDictationViewState extends State<_VoiceDictationView> {
     VoiceTranscriptSummary summary,
     Color ink,
     Color muted,
-    Color lime,
+    Color accentColor,
   ) {
     final l10n = AppLocalizations.of(context)!;
 
@@ -425,8 +416,10 @@ class _VoiceDictationViewState extends State<_VoiceDictationView> {
                       child: Container(
                         width: 6,
                         height: 6,
-                        decoration:
-                            BoxDecoration(color: lime, shape: BoxShape.circle),
+                        decoration: BoxDecoration(
+                          color: accentColor,
+                          shape: BoxShape.circle,
+                        ),
                       ),
                     ),
                     Expanded(
@@ -523,6 +516,195 @@ class _VoiceDictationViewState extends State<_VoiceDictationView> {
         _DictationPhase.done => l10n.voiceRetake,
       };
 
+  Widget _buildRecordingControls(
+    BuildContext context,
+    AppLocalizations l10n,
+    Color ink,
+    Color muted,
+    Color accentColor,
+    ThemeData theme,
+  ) {
+    if (_editing) {
+      return KeyedSubtree(
+        key: const ValueKey('editing_compact_controls'),
+        child: Padding(
+          padding:
+              const EdgeInsets.symmetric(vertical: DesignConstants.spacingS),
+          child: Align(
+            alignment: Alignment.centerRight,
+            child: TextButton(
+              onPressed: _finishEditing,
+              style: TextButton.styleFrom(foregroundColor: ink),
+              child: Text(
+                l10n.doneButtonLabel,
+                style: const TextStyle(fontWeight: FontWeight.w700),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return KeyedSubtree(
+      key: const ValueKey('recording_controls'),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 240),
+            child: Text(
+              _statusFor(l10n),
+              key: ValueKey(_phase),
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontFamily: 'Plus Jakarta Sans',
+                fontWeight: FontWeight.w700,
+                fontSize: 16,
+                color: ink,
+              ),
+            ),
+          ),
+          const SizedBox(height: 6),
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 240),
+            child: _phase == _DictationPhase.idle
+                ? Text(
+                    widget.exampleHint,
+                    key: const ValueKey('hint'),
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontFamily: 'Plus Jakarta Sans',
+                      fontWeight: FontWeight.w500,
+                      fontSize: 12.5,
+                      color: muted,
+                    ),
+                  )
+                : const SizedBox(height: 16, key: ValueKey('empty_hint')),
+          ),
+          if (VoiceDictationService.instance.lastRunUsedNetwork) ...[
+            const SizedBox(height: 8),
+            Text(
+              l10n.voiceNetworkNotice,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 11.5,
+                color: Colors.orange.withValues(alpha: 0.9),
+              ),
+            ),
+          ],
+          const SizedBox(height: DesignConstants.spacingM),
+          SizedBox(
+            height: 170,
+            child: Center(
+              child: AiNeuralCloudOrbWidget(
+                size: 170,
+                onTap: _toggleRecording,
+                accentColor: _phase == _DictationPhase.tidying
+                    ? accentColor
+                    : DesignConstants.brandRedColor,
+                morph: _isRecordingShape ? 1.0 : 0.0,
+                energy: _isRecordingShape ? _normalizedLevel : 0.0,
+                flowSpeed: 0.55,
+                tint: _isRecordingShape ? 0.4 : 0.0,
+                tintEnergyGain: _isRecordingShape ? 0.4 : 0.0,
+                showAmbientGlow: true,
+              ),
+            ),
+          ),
+          const SizedBox(height: DesignConstants.spacingM),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDoneActions(
+    BuildContext context,
+    AppLocalizations l10n,
+    Color ink,
+    Color muted,
+    Color accentColor,
+  ) {
+    return KeyedSubtree(
+      key: const ValueKey('done_actions'),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (_cleanedSomething) ...[
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(LucideIcons.sparkles, size: 13, color: accentColor),
+                const SizedBox(width: 6),
+                Text(
+                  l10n.voiceCleanedNotice,
+                  style: TextStyle(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w600,
+                    color: accentColor,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: DesignConstants.spacingM),
+          ],
+          AppButton.primary(
+            onPressed: () => _finish(analyzeNow: true),
+            label: widget.analyzeLabel,
+            tooltip: widget.analyzeLabel,
+          ),
+          const SizedBox(height: 6),
+          Row(
+            children: [
+              Expanded(
+                child: TextButton.icon(
+                  onPressed: () {
+                    HapticFeedbackService.instance.lightImpact();
+                    _start();
+                  },
+                  icon: const Icon(LucideIcons.rotate_ccw, size: 15),
+                  label: Text(
+                    l10n.voiceRetake,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13,
+                    ),
+                  ),
+                  style: TextButton.styleFrom(
+                    foregroundColor: muted,
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                  ),
+                ),
+              ),
+              Container(
+                width: 1,
+                height: 14,
+                color: muted.withValues(alpha: 0.2),
+              ),
+              Expanded(
+                child: TextButton(
+                  onPressed: () => _finish(analyzeNow: false),
+                  style: TextButton.styleFrom(
+                    foregroundColor: muted,
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                  ),
+                  child: Text(
+                    l10n.voiceApplyText,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: DesignConstants.spacingS),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -530,19 +712,18 @@ class _VoiceDictationViewState extends State<_VoiceDictationView> {
     final isDark = theme.brightness == Brightness.dark;
     final ink = isDark ? Colors.white : const Color(0xFF12120F);
     final muted = ink.withValues(alpha: 0.6);
-    const lime = Color(0xFFC9EF00);
+    final accentColor = isDark
+        ? DesignConstants.brandAccentColor
+        : DesignConstants.brandAccentColorLightMode;
 
     final isListening = _phase == _DictationPhase.listening;
     final hasText = _liveTranscript.trim().isNotEmpty;
-    final isTranscriptionInProgress = _phase == _DictationPhase.starting ||
-        _phase == _DictationPhase.listening ||
-        _phase == _DictationPhase.tidying;
+    final isDone = _phase == _DictationPhase.done && hasText;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // Language chip — the one control that has to be reachable before
-        // speaking, because getting it wrong wastes the whole recording.
+        // Language chip — reachable before speaking so language is correct.
         Align(
           alignment: Alignment.center,
           child: TextButton.icon(
@@ -557,86 +738,10 @@ class _VoiceDictationViewState extends State<_VoiceDictationView> {
             style: TextButton.styleFrom(foregroundColor: muted),
           ),
         ),
+        const SizedBox(height: DesignConstants.spacingS),
 
-        // The orb doubles as the record button: tap once to start, once to
-        // stop. Holding meant a one-handed user could not do anything else,
-        // and a slipped finger silently ended the sentence.
-        //
-        // It stands down while the transcript is being edited: the keyboard
-        // takes most of the sheet, and the text is what matters then.
-        if (!_editing)
-          Expanded(
-            flex: 4,
-            child: Center(
-              // No wrapper gesture detector: the orb has its own, and an outer
-              // one loses the arena to it — which is exactly why tapping only
-              // recoloured the cloud and never started the recording.
-              child: AiNeuralCloudOrbWidget(
-                size: 210,
-                onTap: _toggleRecording,
-                accentColor: _phase == _DictationPhase.tidying
-                    ? _complementOf(theme.colorScheme.primary)
-                    : null,
-                // A calm circle until there is something to listen to, then the
-                // cloud forms; it swells and flows faster with the voice.
-                morph: _isRecordingShape ? 1.0 : 0.0,
-                energy: _isRecordingShape ? _normalizedLevel : 0.0,
-                // Calmer than the analysis screen: this one is waiting for the
-                // user, not working on something.
-                flowSpeed: 0.55,
-                // Listening but silent sits at dye step 2; a voice lifts it to
-                // step 3 or 4 depending on how loud it is. Going all the way to
-                // full accent while nothing is being said left no headroom to
-                // show that anything had been heard.
-                tint: _isRecordingShape ? 0.4 : 0.0,
-                tintEnergyGain: _isRecordingShape ? 0.4 : 0.0,
-                showAmbientGlow: true,
-              ),
-            ),
-          ),
-
-        AnimatedSwitcher(
-          duration: const Duration(milliseconds: 280),
-          child: Text(
-            _statusFor(l10n),
-            key: ValueKey(_phase),
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontFamily: 'Plus Jakarta Sans',
-              fontWeight: FontWeight.w700,
-              fontSize: 16,
-              color: ink,
-            ),
-          ),
-        ),
-        const SizedBox(height: 6),
-        Text(
-          widget.exampleHint,
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            fontFamily: 'Plus Jakarta Sans',
-            fontWeight: FontWeight.w500,
-            fontSize: 12.5,
-            color: muted,
-          ),
-        ),
-        if (VoiceDictationService.instance.lastRunUsedNetwork) ...[
-          const SizedBox(height: 8),
-          Text(
-            l10n.voiceNetworkNotice,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 11.5,
-              color: Colors.orange.withValues(alpha: 0.9),
-            ),
-          ),
-        ],
-
-        const SizedBox(height: DesignConstants.spacingL),
-
-        // Transcript: revealed as it is spoken, editable once it is finished.
+        // Transcript card: positioned in the upper portion for primary readability.
         Expanded(
-          flex: 5,
           child: Container(
             width: double.infinity,
             padding: const EdgeInsets.all(16),
@@ -648,26 +753,53 @@ class _VoiceDictationViewState extends State<_VoiceDictationView> {
                   BorderRadius.circular(DesignConstants.borderRadiusL),
               border: Border.all(
                 color: isListening
-                    ? lime.withValues(alpha: 0.6)
+                    ? DesignConstants.brandRedColor.withValues(alpha: 0.6)
                     : ink.withValues(alpha: 0.12),
               ),
             ),
             child: _editing
-                ? TextField(
-                    controller: _editController,
-                    focusNode: _editFocusNode,
-                    autofocus: true,
-                    maxLines: null,
-                    expands: false,
-                    keyboardType: TextInputType.multiline,
-                    textCapitalization: TextCapitalization.sentences,
-                    style: TextStyle(fontSize: 17, height: 1.4, color: ink),
-                    decoration: InputDecoration.collapsed(
-                      hintText: l10n.voiceTranscriptHint,
-                      hintStyle: TextStyle(color: muted),
-                    ),
-                    onChanged: (value) => _liveTranscript = value,
-                    onTapOutside: (_) => _editFocusNode.unfocus(),
+                ? Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          TextButton(
+                            onPressed: _finishEditing,
+                            style: TextButton.styleFrom(
+                              foregroundColor: ink,
+                              visualDensity: VisualDensity.compact,
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 8),
+                            ),
+                            child: Text(
+                              l10n.doneButtonLabel,
+                              style: const TextStyle(
+                                  fontWeight: FontWeight.w700, fontSize: 13),
+                            ),
+                          ),
+                        ],
+                      ),
+                      Expanded(
+                        child: TextField(
+                          controller: _editController,
+                          focusNode: _editFocusNode,
+                          autofocus: true,
+                          maxLines: null,
+                          expands: true,
+                          textAlignVertical: TextAlignVertical.top,
+                          keyboardType: TextInputType.multiline,
+                          textCapitalization: TextCapitalization.sentences,
+                          style: TextStyle(
+                              fontSize: 17, height: 1.4, color: ink),
+                          decoration: InputDecoration.collapsed(
+                            hintText: l10n.voiceTranscriptHint,
+                            hintStyle: TextStyle(color: muted),
+                          ),
+                          onChanged: (value) => _liveTranscript = value,
+                          onTapOutside: (_) => _editFocusNode.unfocus(),
+                        ),
+                      ),
+                    ],
                   )
                 : SingleChildScrollView(
                     child: GestureDetector(
@@ -679,7 +811,7 @@ class _VoiceDictationViewState extends State<_VoiceDictationView> {
                           : null,
                       behavior: HitTestBehavior.opaque,
                       child: _summary != null
-                          ? _buildBullets(_summary!, ink, muted, lime)
+                          ? _buildBullets(_summary!, ink, muted, accentColor)
                           : AnimatedTranscriptText(
                               text: _liveTranscript,
                               placeholder: _phase == _DictationPhase.done
@@ -700,48 +832,27 @@ class _VoiceDictationViewState extends State<_VoiceDictationView> {
           ),
         ),
 
-        if (_cleanedSomething) ...[
-          const SizedBox(height: 8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(LucideIcons.sparkles, size: 13, color: lime),
-              const SizedBox(width: 6),
-              Text(
-                l10n.voiceCleanedNotice,
-                style: const TextStyle(
-                  fontSize: 11.5,
-                  fontWeight: FontWeight.w600,
-                  color: lime,
-                ),
-              ),
-            ],
-          ),
-        ],
+        const SizedBox(height: DesignConstants.spacingM),
 
-        const SizedBox(height: DesignConstants.spacingL),
-        // Analysing is what nearly everyone wants next, so it is the one
-        // prominent action. Handing the text back stays available as a quiet
-        // second option rather than disappearing: dictating a note *onto* a
-        // photo already taken is a real flow — the example hint above literally
-        // advertises it — and it would be lost if this only ever sent.
-        AppButton.primary(
-          onPressed: hasText && !isTranscriptionInProgress
-              ? () => _finish(analyzeNow: true)
-              : null,
-          label: widget.analyzeLabel,
-          tooltip: widget.analyzeLabel,
+        // Bottom area:
+        // Shows the recording orb while dictating/processing, and transitions
+        // to the action buttons ("Analyze text" / "Use this text" / "Record again")
+        // once transcription and cleanup have finished.
+        AnimatedSwitcher(
+          duration: const Duration(milliseconds: 300),
+          switchInCurve: Curves.easeOutCubic,
+          switchOutCurve: Curves.easeInCubic,
+          child: isDone
+              ? _buildDoneActions(context, l10n, ink, muted, accentColor)
+              : _buildRecordingControls(
+                  context,
+                  l10n,
+                  ink,
+                  muted,
+                  accentColor,
+                  theme,
+                ),
         ),
-        const SizedBox(height: 4),
-        TextButton(
-          onPressed: () => _finish(analyzeNow: false),
-          style: TextButton.styleFrom(foregroundColor: muted),
-          child: Text(
-            l10n.voiceApplyText,
-            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
-          ),
-        ),
-        const SizedBox(height: DesignConstants.spacingS),
       ],
     );
   }

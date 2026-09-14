@@ -480,8 +480,7 @@ Future&lt;List&lt;Exercise&gt;&gt; searchExercises({
    </code></pre></div>
 <p>This compiles classes in <code>lib/generated/app_localizations.dart</code> and automatically populates <code>AppLocalizations.supportedLocales</code> with <code>Locale(&#x27;ja&#x27;)</code>, <code>Locale(&#x27;fr&#x27;)</code>, and <code>Locale(&#x27;it&#x27;)</code>. No routing configuration updates are required since <code>lib/main.dart</code> binds directly to <code>AppLocalizations.supportedLocales</code>.</p>
 <ol class="doc-list">
-<li><strong>Expand Locale Picker</strong>:</li>
-<li>Update <code>lib/services/base_food_language_service.dart</code> and <code>lib/services/ai_matching_language_service.dart</code> enums to register the new languages:</li>
+<li><strong>Expand Locale Picker</strong>: Update <code>lib/services/base_food_language_service.dart</code> and <code>lib/services/ai_matching_language_service.dart</code> enums to register the new languages:</li>
 </ol>
 <div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">dart</span><button class="copy-btn" onclick="navigator.clipboard.writeText(this.closest('.code-block-wrapper').querySelector('code').innerText); this.textContent='Copied!'; setTimeout(()=>this.textContent='Copy', 1500);">Copy</button></div><pre><code class="language-dart">   enum BaseFoodLanguage { auto, en, de, ja, fr, it }
    </code></pre></div>
@@ -670,16 +669,14 @@ COUNTRY_CONFIG: Dict[str, Dict[str, Any]] = {
 <li>Open <a href="https://github.com/rfivesix/train-libre/blob/main/lib/services/base_food_language_service.dart" target="_blank" rel="noopener noreferrer">base_food_language_service.dart <span class="ext-icon">↗</span></a>. Add <code>es</code> to <code>BaseFoodLanguage</code> enum.</li>
 <li>Open <a href="https://github.com/rfivesix/train-libre/blob/main/lib/services/ai_matching_language_service.dart" target="_blank" rel="noopener noreferrer">ai_matching_language_service.dart <span class="ext-icon">↗</span></a>. Add <code>es</code> to <code>AiMatchingLanguage</code> enum.</li>
 <li>Open <a href="https://github.com/rfivesix/train-libre/blob/main/lib/features/settings/presentation/settings_screen.dart" target="_blank" rel="noopener noreferrer">settings_screen.dart <span class="ext-icon">↗</span></a>.</li>
-<li>In <code>_baseFoodLanguageLabel</code> function, add a mapper case returning your newly added ARB string label:</li>
-<li><code>BaseFoodLanguage.es =&gt; l10n.settingsBaseFoodLanguageSpanish,</code></li>
+<li>In <code>_baseFoodLanguageLabel</code> function, add a mapper case returning your newly added ARB string label: <code>BaseFoodLanguage.es =&gt; l10n.settingsBaseFoodLanguageSpanish,</code></li>
 <li>Register the new UI label key in both <code>app_en.arb</code> and the new <code>app_es.arb</code> (e.g. <code>&quot;settingsBaseFoodLanguageSpanish&quot;: &quot;Spanish (Español)&quot;</code>).</li>
 </ol>
 <h3 id="step-3-map-data-pipelines" class="doc-h3">Step 3: Map Data Pipelines<a href="#step-3-map-data-pipelines" class="header-anchor" aria-label="Link to section">#</a></h3>
 <ul class="doc-list">
 <li><strong>For wger (exercises)</strong>:</li>
 <li>Open <a href="https://github.com/rfivesix/train-libre/blob/main/script/create_wger_exercise_db.py" target="_blank" rel="noopener noreferrer">create_wger_exercise_db.py <span class="ext-icon">↗</span></a>.</li>
-<li>Locate the <code>LANGUAGE_ID_MAP</code>. Look up wger's API language ID for Spanish (which is <code>3</code>) and add it to the map:</li>
-<li><code>3: &quot;es&quot;</code></li>
+<li>Locate the <code>LANGUAGE_ID_MAP</code>. Look up wger's API language ID for Spanish (which is <code>3</code>) and add it to the map: <code>3: &quot;es&quot;</code></li>
 <li><strong>For Open Food Facts (food)</strong>:</li>
 <li>Open <a href="https://github.com/rfivesix/train-libre/blob/main/script/create_off_food_db.py" target="_blank" rel="noopener noreferrer">create_off_food_db.py <span class="ext-icon">↗</span></a>.</li>
 <li>Add <code>es</code> to the <code>COUNTRY_CONFIG</code> map under country key <code>es</code> (Spain) or <code>mx</code> (Mexico) containing preferred languages list and country tags:</li>

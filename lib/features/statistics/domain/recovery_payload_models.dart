@@ -32,6 +32,15 @@ class RecoveryMusclePayload {
   final bool highSessionFatigue;
   final int recoveringUpperHours;
   final int readyUpperHours;
+  final double? readinessScore;
+  final double? lastSessionLoad;
+  final double? lastSessionDirectLoad;
+  final double? lastSessionIndirectLoad;
+  final double? residualLoad;
+  final int eligibleSetCount;
+  final int setsWithRir;
+  final String dataConfidence;
+  final List<String> movementPatterns;
 
   const RecoveryMusclePayload({
     required this.muscleGroup,
@@ -44,6 +53,15 @@ class RecoveryMusclePayload {
     required this.highSessionFatigue,
     required this.recoveringUpperHours,
     required this.readyUpperHours,
+    this.readinessScore,
+    this.lastSessionLoad,
+    this.lastSessionDirectLoad,
+    this.lastSessionIndirectLoad,
+    this.residualLoad,
+    this.eligibleSetCount = 0,
+    this.setsWithRir = 0,
+    this.dataConfidence = 'none',
+    this.movementPatterns = const [],
   });
 
   factory RecoveryMusclePayload.fromMap(Map<String, dynamic> data) {
@@ -60,6 +78,19 @@ class RecoveryMusclePayload {
       recoveringUpperHours:
           (data['recoveringUpperHours'] as num?)?.toInt() ?? 48,
       readyUpperHours: (data['readyUpperHours'] as num?)?.toInt() ?? 72,
+      readinessScore: (data['readinessScore'] as num?)?.toDouble(),
+      lastSessionLoad: (data['lastSessionLoad'] as num?)?.toDouble(),
+      lastSessionDirectLoad:
+          (data['lastSessionDirectLoad'] as num?)?.toDouble(),
+      lastSessionIndirectLoad:
+          (data['lastSessionIndirectLoad'] as num?)?.toDouble(),
+      residualLoad: (data['residualLoad'] as num?)?.toDouble(),
+      eligibleSetCount: (data['eligibleSetCount'] as num?)?.toInt() ?? 0,
+      setsWithRir: (data['setsWithRir'] as num?)?.toInt() ?? 0,
+      dataConfidence: data['dataConfidence'] as String? ?? 'none',
+      movementPatterns: (data['movementPatterns'] as List<dynamic>? ?? const [])
+          .map((pattern) => pattern.toString())
+          .toList(growable: false),
     );
   }
 
