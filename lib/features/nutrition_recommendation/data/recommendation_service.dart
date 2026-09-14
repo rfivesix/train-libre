@@ -19,7 +19,6 @@ import 'recommendation_scheduler.dart';
 import '../../profile/domain/models/goal_model.dart';
 import '../../profile/domain/repositories/goal_repository.dart';
 import '../../profile/data/goal_repository_impl.dart';
-import '../../profile/domain/services/goal_trajectory_calculator.dart';
 
 class AdaptiveNutritionRecommendationState {
   final BodyweightGoal goal;
@@ -128,14 +127,21 @@ class AdaptiveNutritionRecommendationService {
     if (activeGoal != null && activeGoal.isNutritionDriver) {
       if (activeGoal.targetValue != null && activeGoal.targetDate != null) {
         final progress = await _goalRepository.getGoalProgress(activeGoal);
-        final baseline = progress?.baselineValue;
-        if (baseline != null) {
-          return GoalTrajectoryCalculator.calculateWeeklyRate(
-            startWeight: baseline,
-            targetWeight: activeGoal.targetValue!,
-            startDate: activeGoal.startDate,
-            targetDate: activeGoal.targetDate!,
-          );
+        final currentWeight = progress?.currentValue ?? progress?.baselineValue;
+        if (currentWeight != null) {
+          final now = DateTime.now();
+          final remainingDays = activeGoal.targetDate!.difference(now).inDays;
+          if (remainingDays >= 7) {
+            final weeks = remainingDays / 7.0;
+            final remainingDelta = activeGoal.targetValue! - currentWeight;
+            final calculatedRate = remainingDelta / weeks;
+            if (activeGoal.preset == GoalPreset.loseWeight) {
+              return calculatedRate.clamp(-1.0, -0.1);
+            } else if (activeGoal.preset == GoalPreset.gainWeight) {
+              return calculatedRate.clamp(0.05, 0.5);
+            }
+            return calculatedRate;
+          }
         }
       }
       if (activeGoal.desiredWeeklyRateKg != null) {
@@ -240,8 +246,8 @@ class AdaptiveNutritionRecommendationService {
     }
 
     final results = await Future.wait<dynamic>([
-      _repository.getGoal(),
-      _repository.getTargetRateKgPerWeek(),
+      getGoal(),
+      getTargetRateKgPerWeek(),
       _repository.getLatestRecommendationSnapshot(),
       _repository.getLatestAppliedRecommendation(),
       _repository.getLastGeneratedDueWeekKey(),
@@ -309,8 +315,8 @@ class AdaptiveNutritionRecommendationService {
         await _repository.getExtraCardioHoursOption();
 
     final results = await Future.wait<dynamic>([
-      _repository.getGoal(),
-      _repository.getTargetRateKgPerWeek(),
+      getGoal(),
+      getTargetRateKgPerWeek(),
       _inputAdapter.buildInput(
         now: stableWindowEndDay,
         declaredActivityLevel: priorActivityLevel,
@@ -593,6 +599,12 @@ class AdaptiveNutritionRecommendationService {
 
     final activeGoal = await _goalRepository.getActiveGoal();
     if (activeGoal != null) {
+      if (activeGoal.isNutritionDriver) {
+        await _goalRepository.updateGoalWeeklyRate(
+          activeGoal.id,
+          recommendation.targetRateKgPerWeek,
+        );
+      }
       final pendingReview = await _goalRepository.getPendingReview(activeGoal.id);
       if (pendingReview != null) {
         await _goalRepository.updateReviewStatus(

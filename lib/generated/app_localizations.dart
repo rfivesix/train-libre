@@ -12610,7 +12610,7 @@ abstract class AppLocalizations {
   /// No description provided for @goalEstimatedDailyDelta.
   ///
   /// In en, this message translates to:
-  /// **'Estimated daily calorie adjustment'**
+  /// **'Daily calorie adjustment'**
   String get goalEstimatedDailyDelta;
 
   /// No description provided for @goalEstimatedDuration.
@@ -12642,6 +12642,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Aggressive (1.00 kg/wk)'**
   String get goalRateAggressive;
+
+  /// No description provided for @goalRateCustom.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom pace (slider)'**
+  String get goalRateCustom;
+
+  /// No description provided for @goalDurationCustom.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom target date...'**
+  String get goalDurationCustom;
 
   /// No description provided for @goalPaceFeedbackSafe.
   ///
@@ -12690,6 +12702,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Athletic competition or event'**
   String get goalReasonSuggestionEvent;
+
+  /// No description provided for @goalReasonSuggestionEnergy.
+  ///
+  /// In en, this message translates to:
+  /// **'More daily energy'**
+  String get goalReasonSuggestionEnergy;
+
+  /// No description provided for @goalReasonSuggestionStrength.
+  ///
+  /// In en, this message translates to:
+  /// **'Strength & muscle building'**
+  String get goalReasonSuggestionStrength;
+
+  /// No description provided for @goalReasonSuggestionConfidence.
+  ///
+  /// In en, this message translates to:
+  /// **'Confidence & well-being'**
+  String get goalReasonSuggestionConfidence;
+
+  /// No description provided for @goalReasonSuggestionLongevity.
+  ///
+  /// In en, this message translates to:
+  /// **'Longevity & prevention'**
+  String get goalReasonSuggestionLongevity;
+
+  /// No description provided for @goalReasonSuggestionHabits.
+  ///
+  /// In en, this message translates to:
+  /// **'Healthy routine & discipline'**
+  String get goalReasonSuggestionHabits;
+
+  /// No description provided for @goalReasonSuggestionClothing.
+  ///
+  /// In en, this message translates to:
+  /// **'Feel great in clothes'**
+  String get goalReasonSuggestionClothing;
 
   /// No description provided for @goalReasonPlaceholder.
   ///
@@ -12996,6 +13044,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Apply as successor goal'**
   String get adjustGoalApplyAsSuccessorButton;
+
+  /// No description provided for @adjustGoalConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply as successor goal?'**
+  String get adjustGoalConfirmTitle;
+
+  /// No description provided for @adjustGoalConfirmContent.
+  ///
+  /// In en, this message translates to:
+  /// **'This will archive your current goal trajectory and start an updated goal phase with the new targets.'**
+  String get adjustGoalConfirmContent;
+
+  /// No description provided for @adjustGoalConfirmButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply'**
+  String get adjustGoalConfirmButton;
 
   /// No description provided for @adjustGoalTargetWeightLabel.
   ///

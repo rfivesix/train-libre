@@ -14,6 +14,7 @@ import '../domain/models/goal_progress.dart';
 import '../domain/repositories/goal_repository.dart';
 import '../domain/repositories/profile_repository.dart';
 import '../data/goal_repository_impl.dart';
+import '../../app/presentation/widgets/glass_bottom_menu.dart';
 import 'widgets/active_goal_dashboard_widget.dart';
 import 'widgets/goal_adjustment_sheet.dart';
 
@@ -111,15 +112,11 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
 
   Future<void> _openAdjustmentSheet(Goal goal, GoalProgress? progress) async {
     final startWeight = progress?.currentValue ?? progress?.baselineValue ?? 75.0;
-    final result = await showModalBottomSheet<bool>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) => GoalAdjustmentSheet(
-        goal: goal,
-        startWeightKg: startWeight,
-        repository: _goalRepository,
-      ),
+    final result = await GoalAdjustmentSheet.show(
+      context,
+      goal: goal,
+      startWeightKg: startWeight,
+      repository: _goalRepository,
     );
 
     if (result == true && mounted) {
@@ -129,22 +126,11 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
 
   Future<void> _retireGoal(Goal goal) async {
     final l10n = AppLocalizations.of(context)!;
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(l10n.retireGoalDialogTitle),
-        content: Text(l10n.retireGoalDialogContent),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: Text(l10n.cancel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            child: Text(l10n.retireGoalConfirmButton),
-          ),
-        ],
-      ),
+    final confirmed = await showDeleteConfirmation(
+      context,
+      title: l10n.retireGoalDialogTitle,
+      content: l10n.retireGoalDialogContent,
+      confirmLabel: l10n.retireGoalConfirmButton,
     );
 
     if (confirmed == true && mounted) {
@@ -160,22 +146,11 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
 
   Future<void> _resumeGoal(Goal goal) async {
     final l10n = AppLocalizations.of(context)!;
-    final confirmed = await showDialog<bool>(
+    final confirmed = await showGlassConfirmation(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(l10n.resumeGoalDialogTitle),
-        content: Text(l10n.resumeGoalDialogContent),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: Text(l10n.cancel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            child: Text(l10n.resumeGoalConfirmButton),
-          ),
-        ],
-      ),
+      title: l10n.resumeGoalDialogTitle,
+      content: l10n.resumeGoalDialogContent,
+      confirmLabel: l10n.resumeGoalConfirmButton,
     );
 
     if (confirmed == true && mounted) {

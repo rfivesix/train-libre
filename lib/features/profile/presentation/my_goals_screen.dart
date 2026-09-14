@@ -214,15 +214,11 @@ class _MyGoalsScreenState extends State<MyGoalsScreen> {
                             final startWeight = activeProgress?.currentValue ??
                                 activeProgress?.baselineValue ??
                                 75.0;
-                            final result = await showModalBottomSheet<bool>(
-                              context: context,
-                              isScrollControlled: true,
-                              backgroundColor: Colors.transparent,
-                              builder: (ctx) => GoalAdjustmentSheet(
-                                goal: activeGoal,
-                                startWeightKg: startWeight,
-                                repository: _goalRepository,
-                              ),
+                            final result = await GoalAdjustmentSheet.show(
+                              context,
+                              goal: activeGoal,
+                              startWeightKg: startWeight,
+                              repository: _goalRepository,
                             );
                             if (result == true && mounted) {
                               _loadData();

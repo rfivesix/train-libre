@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../../../../generated/app_localizations.dart';
 import '../../../../services/haptic_feedback_service.dart';
 import '../../../../util/design_constants.dart';
@@ -6,6 +7,7 @@ import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../../widgets/common/glass_border_painter.dart';
 import '../../../../widgets/common/app_button.dart';
+import '../../../../widgets/common/app_ruler_picker.dart';
 
 /// Represents an action item within a [showGlassBottomMenu].
 class GlassMenuAction {
@@ -561,6 +563,317 @@ Future<bool> showDeleteConfirmation(
 
   return result ?? false;
 }
+
+/// A reusable confirmation modal in glass style.
+/// Returns true when the action is confirmed.
+Future<bool> showGlassConfirmation({
+  required BuildContext context,
+  required String title,
+  required String content,
+  required String confirmLabel,
+  bool isDanger = false,
+}) async {
+  final l10n = AppLocalizations.of(context)!;
+
+  final result = await showGlassBottomMenu<bool>(
+    context: context,
+    title: title,
+    contentBuilder: (ctx, close) {
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: DesignConstants.spacingS,
+            ),
+            child: Text(
+              content,
+              textAlign: TextAlign.center,
+              style: Theme.of(ctx).textTheme.bodyMedium,
+            ),
+          ),
+          const SizedBox(height: DesignConstants.spacingXL),
+          Row(
+            children: [
+              Expanded(
+                child: AppButton.secondary(
+                  onPressed: () {
+                    Navigator.of(ctx).pop(false);
+                  },
+                  label: l10n.cancel,
+                  tooltip: l10n.cancel,
+                ),
+              ),
+              const SizedBox(width: DesignConstants.spacingM),
+              Expanded(
+                child: isDanger
+                    ? AppButton.danger(
+                        onPressed: () {
+                          Navigator.of(ctx).pop(true);
+                        },
+                        label: confirmLabel,
+                        tooltip: confirmLabel,
+                      )
+                    : AppButton.primary(
+                        onPressed: () {
+                          Navigator.of(ctx).pop(true);
+                        },
+                        label: confirmLabel,
+                        tooltip: confirmLabel,
+                      ),
+              ),
+            ],
+          ),
+        ],
+      );
+    },
+  );
+
+  return result ?? false;
+}
+
+/// A reusable number input modal in glass style.
+/// Returns the parsed number when submitted, or null if canceled.
+Future<double?> showGlassNumberInput({
+  required BuildContext context,
+  required String title,
+  required double initialValue,
+  String? unitSuffix,
+  int decimalDigits = 1,
+  bool allowNegative = false,
+}) async {
+  final l10n = AppLocalizations.of(context)!;
+  final controller = TextEditingController(
+    text: initialValue.toStringAsFixed(decimalDigits),
+  );
+
+  return showGlassBottomMenu<double>(
+    context: context,
+    title: title,
+    contentBuilder: (ctx, close) {
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: DesignConstants.spacingS,
+            ),
+            child: TextField(
+              controller: controller,
+              keyboardType: TextInputType.numberWithOptions(
+                decimal: true,
+                signed: allowNegative,
+              ),
+              autofocus: true,
+              textAlign: TextAlign.center,
+              style: Theme.of(ctx).textTheme.headlineMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+              decoration: InputDecoration(
+                suffixText: unitSuffix,
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: DesignConstants.spacingM,
+                  vertical: DesignConstants.spacingM,
+                ),
+                border: OutlineInputBorder(
+                  borderRadius:
+                      BorderRadius.circular(DesignConstants.borderRadiusM),
+                ),
+              ),
+              onSubmitted: (text) {
+                final val = double.tryParse(text.trim().replaceAll(',', '.'));
+                Navigator.of(ctx).pop(val);
+              },
+            ),
+          ),
+          const SizedBox(height: DesignConstants.spacingXL),
+          Row(
+            children: [
+              Expanded(
+                child: AppButton.secondary(
+                  onPressed: () {
+                    Navigator.of(ctx).pop(null);
+                  },
+                  label: l10n.cancel,
+                  tooltip: l10n.cancel,
+                ),
+              ),
+              const SizedBox(width: DesignConstants.spacingM),
+              Expanded(
+                child: AppButton.primary(
+                  onPressed: () {
+                    final val = double.tryParse(
+                      controller.text.trim().replaceAll(',', '.'),
+                    );
+                    Navigator.of(ctx).pop(val);
+                  },
+                  label: l10n.save,
+                  tooltip: l10n.save,
+                ),
+              ),
+            ],
+          ),
+        ],
+      );
+    },
+  );
+}
+
+/// Shows a tactile liquid glass number input sheet with a horizontal ruler slider.
+Future<double?> showGlassRulerInput({
+  required BuildContext context,
+  required String title,
+  required double initialValue,
+  required double minValue,
+  required double maxValue,
+  required double step,
+  required double pixelsPerUnit,
+  required double majorInterval,
+  required double minorInterval,
+  required int fractionDigits,
+  required String unit,
+  String? label,
+  bool allowNegative = false,
+}) async {
+  final l10n = AppLocalizations.of(context)!;
+  double currentValue = initialValue.clamp(minValue, maxValue);
+
+  return showGlassBottomMenu<double>(
+    context: context,
+    title: title,
+    contentBuilder: (ctx, close) {
+      return StatefulBuilder(
+        builder: (ctx, setSheetState) {
+          final formatStr = fractionDigits == 1 ? '0.0' : '0.00';
+          final formatted = NumberFormat(formatStr).format(currentValue);
+
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: DesignConstants.spacingS),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.baseline,
+                textBaseline: TextBaseline.alphabetic,
+                children: [
+                  Text(
+                    formatted,
+                    style: Theme.of(ctx).textTheme.displaySmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(ctx).colorScheme.onSurface,
+                        ),
+                  ),
+                  const SizedBox(width: DesignConstants.spacingS),
+                  Text(
+                    unit,
+                    style: Theme.of(ctx).textTheme.titleMedium?.copyWith(
+                          color: Theme.of(ctx)
+                              .colorScheme
+                              .onSurface
+                              .withValues(alpha: 0.6),
+                          fontWeight: FontWeight.w600,
+                        ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: DesignConstants.spacingM),
+              AppRulerPicker(
+                value: currentValue,
+                minValue: minValue,
+                maxValue: maxValue,
+                step: step,
+                pixelsPerUnit: pixelsPerUnit,
+                majorInterval: majorInterval,
+                minorInterval: minorInterval,
+                fractionDigits: fractionDigits,
+                label: label ?? title,
+                unit: unit,
+                onChanged: (val) {
+                  setSheetState(() {
+                    currentValue = val;
+                  });
+                },
+              ),
+              const SizedBox(height: DesignConstants.spacingXL),
+              Row(
+                children: [
+                  Expanded(
+                    child: AppButton.secondary(
+                      onPressed: () {
+                        Navigator.of(ctx).pop(null);
+                      },
+                      label: l10n.cancel,
+                      tooltip: l10n.cancel,
+                    ),
+                  ),
+                  const SizedBox(width: DesignConstants.spacingM),
+                  Expanded(
+                    child: AppButton.primary(
+                      onPressed: () {
+                        Navigator.of(ctx).pop(currentValue);
+                      },
+                      label: l10n.save,
+                      tooltip: l10n.save,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          );
+        },
+      );
+    },
+  );
+}
+
+/// Convenience glass sheet to edit body weight with an interactive ruler.
+Future<double?> showGlassWeightRulerInput({
+  required BuildContext context,
+  required String title,
+  required double initialValue,
+  required bool imperial,
+  String? unit,
+}) {
+  return showGlassRulerInput(
+    context: context,
+    title: title,
+    initialValue: initialValue,
+    minValue: imperial ? 55.0 : 25.0,
+    maxValue: imperial ? 570.0 : 260.0,
+    step: imperial ? 0.2 : 0.1,
+    pixelsPerUnit: imperial ? 35.0 : 70.0,
+    majorInterval: imperial ? 5.0 : 1.0,
+    minorInterval: imperial ? 1.0 : 0.5,
+    fractionDigits: 1,
+    unit: unit ?? (imperial ? 'lbs' : 'kg'),
+  );
+}
+
+/// Convenience glass sheet to edit weekly rate / pace with an interactive ruler.
+Future<double?> showGlassRateRulerInput({
+  required BuildContext context,
+  required String title,
+  required double initialValue,
+  required bool imperial,
+  String? unit,
+  bool allowNegative = true,
+}) {
+  return showGlassRulerInput(
+    context: context,
+    title: title,
+    initialValue: initialValue,
+    minValue: 0.05,
+    maxValue: imperial ? 4.50 : 2.00,
+    step: imperial ? 0.10 : 0.05,
+    pixelsPerUnit: imperial ? 140.0 : 260.0,
+    majorInterval: imperial ? 0.50 : 0.25,
+    minorInterval: imperial ? 0.10 : 0.05,
+    fractionDigits: 2,
+    unit: unit ?? (imperial ? 'lbs/wk' : 'kg/Wo.'),
+    allowNegative: allowNegative,
+  );
+}
+
 
 /// Represents the user's choice when there is an active workout conflict.
 enum ActiveWorkoutConflictResult {

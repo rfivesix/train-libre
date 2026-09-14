@@ -7196,7 +7196,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get goalPlanByRate => 'Plan by weekly pace';
 
   @override
-  String get goalEstimatedDailyDelta => 'Estimated daily calorie adjustment';
+  String get goalEstimatedDailyDelta => 'Daily calorie adjustment';
 
   @override
   String goalEstimatedDuration(int weeks) {
@@ -7214,6 +7214,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get goalRateAggressive => 'Aggressive (1.00 kg/wk)';
+
+  @override
+  String get goalRateCustom => 'Custom pace (slider)';
+
+  @override
+  String get goalDurationCustom => 'Custom target date...';
 
   @override
   String get goalPaceFeedbackSafe =>
@@ -7242,6 +7248,24 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get goalReasonSuggestionEvent => 'Athletic competition or event';
+
+  @override
+  String get goalReasonSuggestionEnergy => 'More daily energy';
+
+  @override
+  String get goalReasonSuggestionStrength => 'Strength & muscle building';
+
+  @override
+  String get goalReasonSuggestionConfidence => 'Confidence & well-being';
+
+  @override
+  String get goalReasonSuggestionLongevity => 'Longevity & prevention';
+
+  @override
+  String get goalReasonSuggestionHabits => 'Healthy routine & discipline';
+
+  @override
+  String get goalReasonSuggestionClothing => 'Feel great in clothes';
 
   @override
   String get goalReasonPlaceholder =>
@@ -7409,6 +7433,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get adjustGoalApplyAsSuccessorButton => 'Apply as successor goal';
+
+  @override
+  String get adjustGoalConfirmTitle => 'Apply as successor goal?';
+
+  @override
+  String get adjustGoalConfirmContent =>
+      'This will archive your current goal trajectory and start an updated goal phase with the new targets.';
+
+  @override
+  String get adjustGoalConfirmButton => 'Apply';
 
   @override
   String get adjustGoalTargetWeightLabel => 'Target weight';

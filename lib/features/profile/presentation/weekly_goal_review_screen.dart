@@ -160,15 +160,11 @@ class _WeeklyGoalReviewScreenState extends State<WeeklyGoalReviewScreen> {
         progress?.currentValue ?? progress?.baselineValue ?? 75.0;
 
     if (!mounted) return;
-    final adjusted = await showModalBottomSheet<bool>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) => GoalAdjustmentSheet(
-        goal: widget.goal,
-        startWeightKg: startWeight,
-        repository: _goalRepository,
-      ),
+    final adjusted = await GoalAdjustmentSheet.show(
+      context,
+      goal: widget.goal,
+      startWeightKg: startWeight,
+      repository: _goalRepository,
     );
 
     if (adjusted == true && mounted) {

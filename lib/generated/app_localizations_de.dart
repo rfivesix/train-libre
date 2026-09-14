@@ -7251,7 +7251,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get goalPlanByRate => 'Nach Wochenrate planen';
 
   @override
-  String get goalEstimatedDailyDelta => 'Geschätzte tägliche Kalorienanpassung';
+  String get goalEstimatedDailyDelta => 'Tägliche Kalorienanpassung';
 
   @override
   String goalEstimatedDuration(int weeks) {
@@ -7269,6 +7269,12 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get goalRateAggressive => 'Ambitioniert (1.00 kg/Woche)';
+
+  @override
+  String get goalRateCustom => 'Benutzerdefiniertes Tempo (Schieberegler)';
+
+  @override
+  String get goalDurationCustom => 'Zieldatum im Kalender wählen...';
 
   @override
   String get goalPaceFeedbackSafe =>
@@ -7297,6 +7303,25 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get goalReasonSuggestionEvent => 'Wettkampf & Event';
+
+  @override
+  String get goalReasonSuggestionEnergy => 'Mehr Energie im Alltag';
+
+  @override
+  String get goalReasonSuggestionStrength => 'Kraft & Muskelaufbau';
+
+  @override
+  String get goalReasonSuggestionConfidence =>
+      'Selbstbewusstsein & Wohlbefinden';
+
+  @override
+  String get goalReasonSuggestionLongevity => 'Langlebigkeit & Vorsorge';
+
+  @override
+  String get goalReasonSuggestionHabits => 'Gesunde Routine & Disziplin';
+
+  @override
+  String get goalReasonSuggestionClothing => 'Kleidung passt wieder perfekt';
 
   @override
   String get goalReasonPlaceholder =>
@@ -7464,6 +7489,16 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get adjustGoalApplyAsSuccessorButton => 'Als Nachfolgeziel übernehmen';
+
+  @override
+  String get adjustGoalConfirmTitle => 'Als Nachfolgeziel übernehmen?';
+
+  @override
+  String get adjustGoalConfirmContent =>
+      'Dadurch wird der bisherige Zielverlauf archiviert und eine neue Zielphase mit den angepassten Parametern gestartet.';
+
+  @override
+  String get adjustGoalConfirmButton => 'Übernehmen';
 
   @override
   String get adjustGoalTargetWeightLabel => 'Zielgewicht';

@@ -58,6 +58,9 @@ abstract class IGoalRepository {
   /// Updates the status of a review (e.g. 'applied', 'dismissed', 'deferred').
   Future<void> updateReviewStatus(String reviewId, String status, {String? decision});
 
+  /// Updates the target weekly rate of an active goal.
+  Future<void> updateGoalWeeklyRate(String goalId, double weeklyRateKg);
+
   /// Gets the audit log events for a goal.
   Future<List<GoalEvent>> getGoalEvents(String goalId);
 }

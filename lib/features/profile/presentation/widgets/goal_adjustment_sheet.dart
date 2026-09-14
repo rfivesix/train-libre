@@ -9,7 +9,9 @@ import '../../../../generated/app_localizations.dart';
 import '../../../../services/unit_service.dart';
 import '../../../../util/design_constants.dart';
 import '../../../../widgets/common/app_button.dart';
+import '../../../../widgets/common/app_segmented_control.dart';
 import '../../../../widgets/common/platform_adaptive_pickers.dart';
+import '../../../app/presentation/widgets/glass_bottom_menu.dart';
 import '../../domain/models/goal_model.dart';
 import '../../domain/repositories/goal_repository.dart';
 import '../../domain/services/goal_trajectory_calculator.dart';
@@ -23,13 +25,37 @@ class GoalAdjustmentSheet extends StatefulWidget {
   final Goal goal;
   final double startWeightKg;
   final IGoalRepository repository;
+  final VoidCallback? onSaved;
 
   const GoalAdjustmentSheet({
     super.key,
     required this.goal,
     required this.startWeightKg,
     required this.repository,
+    this.onSaved,
   });
+
+  /// Shows the Goal Adjustment sheet within the app's standard liquid glass bottom menu.
+  static Future<bool?> show(
+    BuildContext context, {
+    required Goal goal,
+    required double startWeightKg,
+    required IGoalRepository repository,
+  }) {
+    final l10n = AppLocalizations.of(context)!;
+    return showGlassBottomMenu<bool>(
+      context: context,
+      title: l10n.adjustGoalTitle,
+      contentBuilder: (ctx, close) => SingleChildScrollView(
+        child: GoalAdjustmentSheet(
+          goal: goal,
+          startWeightKg: startWeightKg,
+          repository: repository,
+          onSaved: () => Navigator.of(ctx).pop(true),
+        ),
+      ),
+    );
+  }
 
   @override
   State<GoalAdjustmentSheet> createState() => _GoalAdjustmentSheetState();
@@ -116,6 +142,19 @@ class _GoalAdjustmentSheetState extends State<GoalAdjustmentSheet> {
     });
   }
 
+  Future<void> _confirmAndSave() async {
+    final l10n = AppLocalizations.of(context)!;
+    final confirmed = await showGlassConfirmation(
+      context: context,
+      title: l10n.adjustGoalConfirmTitle,
+      content: l10n.adjustGoalConfirmContent,
+      confirmLabel: l10n.adjustGoalConfirmButton,
+    );
+    if (confirmed == true) {
+      await _saveAdjustment();
+    }
+  }
+
   Future<void> _saveAdjustment() async {
     if (_isSaving) return;
     setState(() => _isSaving = true);
@@ -129,7 +168,11 @@ class _GoalAdjustmentSheetState extends State<GoalAdjustmentSheet> {
         reason: 'Trajektorie angepasst',
       );
       if (!mounted) return;
-      Navigator.of(context).pop(true);
+      if (widget.onSaved != null) {
+        widget.onSaved!();
+      } else {
+        Navigator.of(context).pop(true);
+      }
     } catch (e) {
       if (!mounted) return;
       setState(() => _isSaving = false);
@@ -161,142 +204,96 @@ class _GoalAdjustmentSheetState extends State<GoalAdjustmentSheet> {
 
     final isSafe = GoalTrajectoryCalculator.isRateSafe(_weeklyRateKg);
 
-    return Container(
-      padding: EdgeInsets.only(
-        top: DesignConstants.spacingL,
-        left: DesignConstants.spacingL,
-        right: DesignConstants.spacingL,
-        bottom: MediaQuery.of(context).viewInsets.bottom +
-            DesignConstants.spacingL +
-            16,
-      ),
-      decoration: BoxDecoration(
-        color: theme.scaffoldBackgroundColor,
-        borderRadius: const BorderRadius.vertical(
-          top: Radius.circular(DesignConstants.borderRadiusL),
-        ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: DesignConstants.spacingS,
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                l10n.adjustGoalTitle,
-                style: theme.textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              IconButton(
-                icon: const Icon(LucideIcons.x),
-                onPressed: () => Navigator.of(context).pop(),
-              ),
-            ],
-          ),
-          const SizedBox(height: DesignConstants.spacingS),
           Text(
             l10n.adjustGoalDescription,
+            textAlign: TextAlign.center,
             style: theme.textTheme.bodyMedium?.copyWith(
               color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
             ),
           ),
           const SizedBox(height: DesignConstants.spacingL),
 
-          // Strategy Selector: Keep Date vs Keep Rate
-          Text(
-            l10n.adjustGoalTitle,
-            style: theme.textTheme.labelMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 6),
-          SegmentedButton<AdjustmentFixOption>(
-            segments: [
-              ButtonSegment(
-                value: AdjustmentFixOption.keepDate,
-                label: Text(l10n.adjustGoalFixOptionKeepDate),
-                icon: const Icon(LucideIcons.calendar),
-              ),
-              ButtonSegment(
-                value: AdjustmentFixOption.keepRate,
-                label: Text(l10n.adjustGoalFixOptionKeepRate),
-                icon: const Icon(LucideIcons.gauge),
-              ),
-            ],
-            selected: {_fixOption},
-            onSelectionChanged: (set) {
-              if (set.isNotEmpty) setState(() => _fixOption = set.first);
+          // Strategy Selector: Fixed Date vs Fixed Rate (Clean Apple HIG segment control, no emojis)
+          AppSegmentedControl<AdjustmentFixOption>(
+            children: {
+              AdjustmentFixOption.keepDate: l10n.adjustGoalFixOptionKeepDate,
+              AdjustmentFixOption.keepRate: l10n.adjustGoalFixOptionKeepRate,
+            },
+            groupValue: _fixOption,
+            onValueChanged: (val) {
+              setState(() => _fixOption = val);
             },
           ),
           const SizedBox(height: DesignConstants.spacingL),
 
-          // Target Weight Row
+          // Target Weight Row (No emojis/icons, opens glass number input)
           ListTile(
             contentPadding: EdgeInsets.zero,
-            leading: Icon(LucideIcons.scale, color: theme.colorScheme.primary),
             title: Text(l10n.adjustGoalTargetWeightLabel),
-            trailing: Text(
-              '${displayWeight.toStringAsFixed(1)} $unitStr',
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  '${displayWeight.toStringAsFixed(1)} $unitStr',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(width: 4),
+                Icon(
+                  LucideIcons.chevron_right,
+                  size: 18,
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
+                ),
+              ],
             ),
             onTap: () async {
-              final newWeight = await showDialog<double>(
+              final newDisplayWeight = await showGlassWeightRulerInput(
                 context: context,
-                builder: (ctx) {
-                  final ctrl = TextEditingController(
-                    text: displayWeight.toStringAsFixed(1),
-                  );
-                  return AlertDialog(
-                    title: Text(l10n.adjustGoalTargetWeightLabel),
-                    content: TextField(
-                      controller: ctrl,
-                      keyboardType: const TextInputType.numberWithOptions(
-                        decimal: true,
-                      ),
-                      autofocus: true,
-                    ),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.of(ctx).pop(),
-                        child: Text(l10n.cancel),
-                      ),
-                      TextButton(
-                        onPressed: () {
-                          final val = double.tryParse(ctrl.text.trim());
-                          if (val != null) {
-                            final metric = unitService.convertToMetric(
-                              val,
-                              UnitDimension.weight,
-                            );
-                            Navigator.of(ctx).pop(metric);
-                          }
-                        },
-                        child: Text(l10n.save),
-                      ),
-                    ],
-                  );
-                },
+                title: l10n.adjustGoalTargetWeightLabel,
+                initialValue: displayWeight,
+                imperial: unitService.isImperial,
+                unit: unitStr,
               );
-              if (newWeight != null) _onWeightChanged(newWeight);
+              if (newDisplayWeight != null && newDisplayWeight > 0) {
+                final metric = unitService.convertToMetric(
+                  newDisplayWeight,
+                  UnitDimension.weight,
+                );
+                _onWeightChanged(metric);
+              }
             },
           ),
           const Divider(height: 1),
 
-          // Target Date Row
+          // Target Date Row (No emojis/icons, opens glass date picker)
           ListTile(
             contentPadding: EdgeInsets.zero,
-            leading:
-                Icon(LucideIcons.calendar, color: theme.colorScheme.primary),
-            title: Text(l10n.goalTargetDateLabel),
-            trailing: Text(
-              dateFormat.format(_targetDate),
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+            title: Text(l10n.adjustGoalTargetDateLabel),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  dateFormat.format(_targetDate),
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(width: 4),
+                Icon(
+                  LucideIcons.chevron_right,
+                  size: 18,
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
+                ),
+              ],
             ),
             onTap: () async {
               final picked = await showAdaptiveDatePicker(
@@ -310,64 +307,52 @@ class _GoalAdjustmentSheetState extends State<GoalAdjustmentSheet> {
           ),
           const Divider(height: 1),
 
-          // Weekly Rate Row
+          // Weekly Rate Row (No emojis/icons, opens glass rate ruler input)
           ListTile(
             contentPadding: EdgeInsets.zero,
-            leading: Icon(LucideIcons.gauge, color: theme.colorScheme.primary),
-            title: Text(l10n.goalWeeklyRateLabel),
-            trailing: Text(
-              '${displayRate >= 0 ? '+' : ''}${displayRate.toStringAsFixed(2)} $unitStr/${l10n.weekShort}',
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: isSafe ? null : Colors.orange,
-              ),
+            title: Text(l10n.adjustGoalWeeklyRateLabel),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  '${displayRate >= 0 ? '+' : ''}${displayRate.toStringAsFixed(2)} $unitStr/${l10n.weekShort}',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: isSafe ? null : Colors.orange,
+                  ),
+                ),
+                const SizedBox(width: 4),
+                Icon(
+                  LucideIcons.chevron_right,
+                  size: 18,
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
+                ),
+              ],
             ),
             onTap: () async {
-              final newRate = await showDialog<double>(
+              final isNegative = displayRate < 0;
+              final newDisplayRate = await showGlassRateRulerInput(
                 context: context,
-                builder: (ctx) {
-                  final ctrl = TextEditingController(
-                    text: displayRate.toStringAsFixed(2),
-                  );
-                  return AlertDialog(
-                    title: Text(l10n.goalWeeklyRateLabel),
-                    content: TextField(
-                      controller: ctrl,
-                      keyboardType: const TextInputType.numberWithOptions(
-                        decimal: true,
-                        signed: true,
-                      ),
-                      autofocus: true,
-                    ),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.of(ctx).pop(),
-                        child: Text(l10n.cancel),
-                      ),
-                      TextButton(
-                        onPressed: () {
-                          final val = double.tryParse(ctrl.text.trim());
-                          if (val != null) {
-                            final metric = unitService.convertToMetric(
-                              val,
-                              UnitDimension.weight,
-                            );
-                            Navigator.of(ctx).pop(metric);
-                          }
-                        },
-                        child: Text(l10n.save),
-                      ),
-                    ],
-                  );
-                },
+                title: l10n.adjustGoalWeeklyRateLabel,
+                initialValue: displayRate.abs(),
+                imperial: unitService.isImperial,
+                unit: '$unitStr/${l10n.weekShort}',
+                allowNegative: false,
               );
-              if (newRate != null) _onRateChanged(newRate);
+              if (newDisplayRate != null) {
+                final signedRate = isNegative ? -newDisplayRate : newDisplayRate;
+                final metric = unitService.convertToMetric(
+                  signedRate,
+                  UnitDimension.weight,
+                );
+                _onRateChanged(metric);
+              }
             },
           ),
           const Divider(height: 1),
-          const SizedBox(height: DesignConstants.spacingM),
 
-          if (!isSafe)
+          if (!isSafe) ...[
+            const SizedBox(height: DesignConstants.spacingM),
             Container(
               padding: const EdgeInsets.all(DesignConstants.spacingM),
               decoration: BoxDecoration(
@@ -377,7 +362,8 @@ class _GoalAdjustmentSheetState extends State<GoalAdjustmentSheet> {
               ),
               child: Row(
                 children: [
-                  const Icon(LucideIcons.triangle_alert, color: Colors.orange, size: 20),
+                  const Icon(LucideIcons.triangle_alert,
+                      color: Colors.orange, size: 20),
                   const SizedBox(width: DesignConstants.spacingM),
                   Expanded(
                     child: Text(
@@ -390,17 +376,15 @@ class _GoalAdjustmentSheetState extends State<GoalAdjustmentSheet> {
                 ],
               ),
             ),
+          ],
 
           const SizedBox(height: DesignConstants.spacingXL),
-          SizedBox(
-            width: double.infinity,
-            child: AppButton.primary(
-              label: _isSaving
-                  ? '...'
-                  : l10n.adjustGoalApplyAsSuccessorButton,
-              tooltip: l10n.adjustGoalApplyAsSuccessorButton,
-              onPressed: _isSaving ? null : _saveAdjustment,
-            ),
+          AppButton.primary(
+            label: _isSaving
+                ? '...'
+                : l10n.adjustGoalApplyAsSuccessorButton,
+            tooltip: l10n.adjustGoalApplyAsSuccessorButton,
+            onPressed: _isSaving ? null : _confirmAndSave,
           ),
         ],
       ),

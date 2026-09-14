@@ -7295,7 +7295,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get goalPlanByRate => 'Plan by weekly pace';
 
   @override
-  String get goalEstimatedDailyDelta => 'Estimated daily calorie adjustment';
+  String get goalEstimatedDailyDelta => 'Daily calorie adjustment';
 
   @override
   String goalEstimatedDuration(int weeks) {
@@ -7315,6 +7315,12 @@ class AppLocalizationsIt extends AppLocalizations {
   String get goalRateAggressive => 'Aggressive (1.00 kg/wk)';
 
   @override
+  String get goalRateCustom => 'Ritmo personalizzato (cursore)';
+
+  @override
+  String get goalDurationCustom => 'Data obiettivo nel calendario...';
+
+  @override
   String get goalPaceFeedbackSafe =>
       'Recommended, sustainable pace (0.5% - 1.0% body weight/week).';
 
@@ -7331,16 +7337,36 @@ class AppLocalizationsIt extends AppLocalizations {
       'Maintain weight with a balanced energy intake.';
 
   @override
-  String get goalReasonSuggestionHealth => 'Health & vitality';
+  String get goalReasonSuggestionHealth => 'Salute & vitalità';
 
   @override
-  String get goalReasonSuggestionFitness => 'Fitness & performance';
+  String get goalReasonSuggestionFitness => 'Fitness & prestazioni';
 
   @override
-  String get goalReasonSuggestionShape => 'Comfortable weight & aesthetics';
+  String get goalReasonSuggestionShape => 'Peso forma & estetica';
 
   @override
-  String get goalReasonSuggestionEvent => 'Athletic competition or event';
+  String get goalReasonSuggestionEvent => 'Gara & evento';
+
+  @override
+  String get goalReasonSuggestionEnergy => 'Più energia ogni giorno';
+
+  @override
+  String get goalReasonSuggestionStrength => 'Forza & massa muscolare';
+
+  @override
+  String get goalReasonSuggestionConfidence =>
+      'Fiducia in se stessi & benessere';
+
+  @override
+  String get goalReasonSuggestionLongevity => 'Longevità & salute';
+
+  @override
+  String get goalReasonSuggestionHabits => 'Abitudini sane & disciplina';
+
+  @override
+  String get goalReasonSuggestionClothing =>
+      'Sentirsi a proprio agio nei vestiti';
 
   @override
   String get goalReasonPlaceholder =>
@@ -7509,6 +7535,16 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get adjustGoalApplyAsSuccessorButton =>
       'Applica come obiettivo successivo';
+
+  @override
+  String get adjustGoalConfirmTitle => 'Applicare come obiettivo successivo?';
+
+  @override
+  String get adjustGoalConfirmContent =>
+      'Questo archivierà la traiettoria attuale e avvierà una nuova fase con i parametri modificati.';
+
+  @override
+  String get adjustGoalConfirmButton => 'Applica';
 
   @override
   String get adjustGoalTargetWeightLabel => 'Peso obiettivo';

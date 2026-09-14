@@ -24,11 +24,7 @@
     "goalPaceFeedbackSafe",
     "goalPaceFeedbackAggressive",
     "goalPaceFeedbackGentle",
-    "goalPaceFeedbackMaintain",
-    "goalReasonSuggestionHealth",
-    "goalReasonSuggestionFitness",
-    "goalReasonSuggestionShape",
-    "goalReasonSuggestionEvent"
+    "goalPaceFeedbackMaintain"
   ],
 
   "it": [
@@ -52,11 +48,7 @@
     "goalPaceFeedbackSafe",
     "goalPaceFeedbackAggressive",
     "goalPaceFeedbackGentle",
-    "goalPaceFeedbackMaintain",
-    "goalReasonSuggestionHealth",
-    "goalReasonSuggestionFitness",
-    "goalReasonSuggestionShape",
-    "goalReasonSuggestionEvent"
+    "goalPaceFeedbackMaintain"
   ],
 
   "ja": [
@@ -80,10 +72,6 @@
     "goalPaceFeedbackSafe",
     "goalPaceFeedbackAggressive",
     "goalPaceFeedbackGentle",
-    "goalPaceFeedbackMaintain",
-    "goalReasonSuggestionHealth",
-    "goalReasonSuggestionFitness",
-    "goalReasonSuggestionShape",
-    "goalReasonSuggestionEvent"
+    "goalPaceFeedbackMaintain"
   ]
 }

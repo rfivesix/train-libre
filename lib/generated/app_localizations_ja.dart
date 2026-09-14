@@ -6950,7 +6950,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get goalPlanByRate => 'Plan by weekly pace';
 
   @override
-  String get goalEstimatedDailyDelta => 'Estimated daily calorie adjustment';
+  String get goalEstimatedDailyDelta => 'Daily calorie adjustment';
 
   @override
   String goalEstimatedDuration(int weeks) {
@@ -6970,6 +6970,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get goalRateAggressive => 'Aggressive (1.00 kg/wk)';
 
   @override
+  String get goalRateCustom => 'カスタムペース（スライダー）';
+
+  @override
+  String get goalDurationCustom => 'カレンダーで期日を選択...';
+
+  @override
   String get goalPaceFeedbackSafe =>
       'Recommended, sustainable pace (0.5% - 1.0% body weight/week).';
 
@@ -6986,16 +6992,34 @@ class AppLocalizationsJa extends AppLocalizations {
       'Maintain weight with a balanced energy intake.';
 
   @override
-  String get goalReasonSuggestionHealth => 'Health & vitality';
+  String get goalReasonSuggestionHealth => '健康と活力';
 
   @override
-  String get goalReasonSuggestionFitness => 'Fitness & performance';
+  String get goalReasonSuggestionFitness => 'フィットネスとパフォーマンス';
 
   @override
-  String get goalReasonSuggestionShape => 'Comfortable weight & aesthetics';
+  String get goalReasonSuggestionShape => '理想の体型とスタイル';
 
   @override
-  String get goalReasonSuggestionEvent => 'Athletic competition or event';
+  String get goalReasonSuggestionEvent => '大会やイベントに向けて';
+
+  @override
+  String get goalReasonSuggestionEnergy => '日々の活力を高める';
+
+  @override
+  String get goalReasonSuggestionStrength => '筋力と筋肥大';
+
+  @override
+  String get goalReasonSuggestionConfidence => '自信とウェルビーイング';
+
+  @override
+  String get goalReasonSuggestionLongevity => '長寿と健康維持';
+
+  @override
+  String get goalReasonSuggestionHabits => '健康的な習慣と自制心';
+
+  @override
+  String get goalReasonSuggestionClothing => '服をすっきりと着こなす';
 
   @override
   String get goalReasonPlaceholder => '例: 体を軽くして、もっと軽快に動けるようになりたい...';
@@ -7159,6 +7183,16 @@ class AppLocalizationsJa extends AppLocalizations {
   String get adjustGoalApplyAsSuccessorButton => '後続の目標として適用';
 
   @override
+  String get adjustGoalConfirmTitle => '後続の目標として適用しますか？';
+
+  @override
+  String get adjustGoalConfirmContent =>
+      '現在の目標の推移はアーカイブされ、更新された目標フェーズが新しく開始されます。';
+
+  @override
+  String get adjustGoalConfirmButton => '適用';
+
+  @override
   String get adjustGoalTargetWeightLabel => '目標体重';
 
   @override
@@ -7168,7 +7202,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get adjustGoalWeeklyRateLabel => '計画された週間ペース';
 
   @override
-  String get goalDetailScreenTitle => '目標詳細';
+  String get goalDetailScreenTitle => '目標の詳細';
 
   @override
   String get retireGoalDialogTitle => '目標を終了しますか？';

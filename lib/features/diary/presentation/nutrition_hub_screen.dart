@@ -22,7 +22,6 @@ import '../../profile/domain/models/goal_progress.dart';
 import '../../profile/domain/repositories/goal_repository.dart';
 import '../../profile/domain/repositories/profile_repository.dart';
 import '../../profile/presentation/goal_detail_screen.dart';
-import '../../profile/presentation/my_goals_screen.dart';
 import '../../profile/presentation/widgets/active_goal_dashboard_widget.dart';
 import '../../profile/presentation/widgets/adaptive_review_card.dart';
 import '../../supplements/presentation/supplement_hub_screen.dart';
@@ -322,6 +321,7 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
                 ],
 
                 // Modul 3: Adaptive Nutrition Recommendations (1:1)
+                AppSectionHeader(title: l10n.adaptiveRecommendationCardTitle),
                 RepaintBoundary(
                   child: _buildGoalsAndRecommendationCard(
                     context,
@@ -458,38 +458,20 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
     BuildContext context,
     AdaptiveNutritionRecommendationState recommendationState,
   ) {
-    final l10n = AppLocalizations.of(context)!;
-    return Column(
-      children: [
-        NutritionRecommendationCard(
-          goal: recommendationState.goal,
-          targetRateKgPerWeek: recommendationState.targetRateKgPerWeek,
-          recommendation: recommendationState.latestGeneratedRecommendation,
-          maintenanceEstimate: recommendationState.latestMaintenanceEstimate,
-          generatedAt: recommendationState.latestGeneratedAt,
-          nextAdaptiveRecommendationDueAt:
-              recommendationState.nextAdaptiveRecommendationDueAt,
-          isAdaptiveRecommendationDueNow:
-              recommendationState.isAdaptiveRecommendationDueNow,
-          isRecalculating: _isRecalculatingRecommendation,
-          isApplying: _isApplyingRecommendation,
-          onRecalculate: _recalculateRecommendationNow,
-          onApply: _applyRecommendation,
-        ),
-        const SizedBox(height: 10),
-        Align(
-          alignment: Alignment.centerLeft,
-          child: AppButton.primary(
-            onPressed: () {
-              Navigator.of(
-                context,
-              ).push(MaterialPageRoute(builder: (_) => const MyGoalsScreen()));
-            },
-            label: l10n.my_goals,
-            tooltip: l10n.my_goals,
-          ),
-        ),
-      ],
+    return NutritionRecommendationCard(
+      goal: recommendationState.goal,
+      targetRateKgPerWeek: recommendationState.targetRateKgPerWeek,
+      recommendation: recommendationState.latestGeneratedRecommendation,
+      maintenanceEstimate: recommendationState.latestMaintenanceEstimate,
+      generatedAt: recommendationState.latestGeneratedAt,
+      nextAdaptiveRecommendationDueAt:
+          recommendationState.nextAdaptiveRecommendationDueAt,
+      isAdaptiveRecommendationDueNow:
+          recommendationState.isAdaptiveRecommendationDueNow,
+      isRecalculating: _isRecalculatingRecommendation,
+      isApplying: _isApplyingRecommendation,
+      onRecalculate: _recalculateRecommendationNow,
+      onApply: _applyRecommendation,
     );
   }
 

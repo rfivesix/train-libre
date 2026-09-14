@@ -392,6 +392,16 @@ class GoalRepositoryImpl implements IGoalRepository {
   }
 
   @override
+  Future<void> updateGoalWeeklyRate(String goalId, double weeklyRateKg) async {
+    final now = DateTime.now();
+    await (_db.update(_db.userGoals)..where((t) => t.id.equals(goalId)))
+        .write(db.UserGoalsCompanion(
+      desiredWeeklyRateKg: drift.Value(weeklyRateKg),
+      updatedAt: drift.Value(now),
+    ));
+  }
+
+  @override
   Future<List<GoalEvent>> getGoalEvents(String goalId) async {
     final query = _db.select(_db.goalEvents)
       ..where((t) => t.goalId.equals(goalId))

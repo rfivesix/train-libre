@@ -12,9 +12,13 @@ import '../../../generated/app_localizations.dart';
 import '../../../services/unit_service.dart';
 import '../../../util/design_constants.dart';
 import '../../../widgets/common/app_button.dart';
+import '../../../widgets/common/app_ruler_picker.dart';
+import '../../../widgets/common/app_segmented_control.dart';
 import '../../../widgets/common/global_app_bar.dart';
+import '../../../widgets/common/platform_adaptive_dropdown.dart';
 import '../../../widgets/common/platform_adaptive_pickers.dart';
 import '../../../widgets/common/summary_card.dart';
+import '../../../widgets/common/value_summary_card.dart';
 import '../data/goal_repository_impl.dart';
 import '../domain/models/goal_model.dart';
 import '../domain/repositories/goal_repository.dart';
@@ -49,10 +53,13 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
 
   // Step 2: Zielgewicht
   final _targetWeightController = TextEditingController();
+  bool _showManualTargetWeightInput = false;
 
   // Step 3: Tempo & Zieldatum (Interaktiver Planer)
   DateTime? _targetDate;
   double _weeklyRateKg = 0.50; // positive magnitude
+  String _selectedRatePreset = 'moderate'; // 'gentle', 'moderate', 'athletic', 'aggressive', 'custom'
+  String _selectedDurationPreset = 'custom'; // '8', '12', '16', '24', 'custom'
 
   // Step 4: Motivation
   final _reasonController = TextEditingController();
@@ -118,9 +125,15 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
       return _detectedBaselineWeight;
     }
     final text = _baselineWeightController.text.trim();
-    if (text.isEmpty) return _detectedBaselineWeight;
+    if (text.isEmpty) {
+      return _detectedBaselineWeight ??
+          unitService.convertToMetric(75.0, UnitDimension.weight);
+    }
     final parsed = double.tryParse(text.replaceAll(',', '.'));
-    if (parsed == null || parsed <= 0) return _detectedBaselineWeight;
+    if (parsed == null || parsed <= 0) {
+      return _detectedBaselineWeight ??
+          unitService.convertToMetric(75.0, UnitDimension.weight);
+    }
     return unitService.convertToMetric(parsed, UnitDimension.weight);
   }
 
@@ -139,7 +152,8 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
     return (t - b).abs();
   }
 
-  void _onTargetDateChanged(DateTime newDate, UnitService unitService) {
+  void _onTargetDateChanged(DateTime newDate, UnitService unitService,
+      {String? durationPreset}) {
     setState(() {
       _targetDate = newDate;
       final delta = _getDeltaKg(unitService);
@@ -148,10 +162,17 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
         final weeks = days / 7.0;
         _weeklyRateKg = (delta / weeks).clamp(0.05, 2.0);
       }
+      if (durationPreset != null) {
+        _selectedDurationPreset = durationPreset;
+      } else {
+        _syncDurationPreset();
+      }
+      _syncRatePreset();
     });
   }
 
-  void _onWeeklyRateChanged(double newRate, UnitService unitService) {
+  void _onWeeklyRateChanged(double newRate, UnitService unitService,
+      {String? ratePreset}) {
     setState(() {
       _weeklyRateKg = newRate;
       final delta = _getDeltaKg(unitService);
@@ -160,7 +181,47 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
         final days = (weeks * 7).round();
         _targetDate = _startDate.add(Duration(days: max(7, days)));
       }
+      if (ratePreset != null) {
+        _selectedRatePreset = ratePreset;
+      } else {
+        _syncRatePreset();
+      }
+      _syncDurationPreset();
     });
+  }
+
+  void _syncRatePreset() {
+    if ((_weeklyRateKg - 0.25).abs() < 0.03) {
+      _selectedRatePreset = 'gentle';
+    } else if ((_weeklyRateKg - 0.50).abs() < 0.03) {
+      _selectedRatePreset = 'moderate';
+    } else if ((_weeklyRateKg - 0.75).abs() < 0.03) {
+      _selectedRatePreset = 'athletic';
+    } else if ((_weeklyRateKg - 1.00).abs() < 0.03) {
+      _selectedRatePreset = 'aggressive';
+    } else {
+      _selectedRatePreset = 'custom';
+    }
+  }
+
+  void _syncDurationPreset() {
+    if (_targetDate == null) {
+      _selectedDurationPreset = 'custom';
+      return;
+    }
+    final days = _targetDate!.difference(_startDate).inDays;
+    final weeks = (days / 7).round();
+    if (weeks == 8 && (days - 56).abs() <= 3) {
+      _selectedDurationPreset = '8';
+    } else if (weeks == 12 && (days - 84).abs() <= 3) {
+      _selectedDurationPreset = '12';
+    } else if (weeks == 16 && (days - 112).abs() <= 3) {
+      _selectedDurationPreset = '16';
+    } else if (weeks == 24 && (days - 168).abs() <= 3) {
+      _selectedDurationPreset = '24';
+    } else {
+      _selectedDurationPreset = 'custom';
+    }
   }
 
   void _nextStep() {
@@ -505,29 +566,15 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
             ),
           ),
           const SizedBox(height: 8),
-          SegmentedButton<String>(
-            segments: [
-              ButtonSegment(
-                value: 'lose',
-                label: Text(l10n.goalPresetLoseWeight),
-                icon: const Icon(LucideIcons.trending_down, size: 16),
-              ),
-              ButtonSegment(
-                value: 'gain',
-                label: Text(l10n.goalPresetGainWeight),
-                icon: const Icon(LucideIcons.trending_up, size: 16),
-              ),
-              ButtonSegment(
-                value: 'maintain',
-                label: Text(l10n.goalPresetMaintainWeight),
-                icon: const Icon(LucideIcons.scale, size: 16),
-              ),
-            ],
-            selected: {_customDirection},
-            onSelectionChanged: (set) {
-              if (set.isNotEmpty) {
-                setState(() => _customDirection = set.first);
-              }
+          AppSegmentedControl<String>(
+            children: {
+              'lose': l10n.goalPresetLoseWeight,
+              'gain': l10n.goalPresetGainWeight,
+              'maintain': l10n.goalPresetMaintainWeight,
+            },
+            groupValue: _customDirection,
+            onValueChanged: (val) {
+              setState(() => _customDirection = val);
             },
           ),
         ],
@@ -738,19 +785,26 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
                     ],
                   ),
                   const SizedBox(height: DesignConstants.spacingM),
-                  TextField(
-                    controller: _baselineWeightController,
-                    keyboardType:
-                        const TextInputType.numberWithOptions(decimal: true),
-                    decoration: InputDecoration(
-                      labelText: l10n.goalStartLabel,
-                      suffixText: unitStr,
-                      hintText: 'z.B. 80.0',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(
-                            DesignConstants.borderRadiusM),
+                  Center(
+                    child: Text(
+                      '${(double.tryParse(_baselineWeightController.text.replaceAll(',', '.')) ?? 75.0).toStringAsFixed(1)} $unitStr',
+                      style: theme.textTheme.headlineMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
+                  ),
+                  const SizedBox(height: DesignConstants.spacingS),
+                  AppRulerPicker.weight(
+                    value: double.tryParse(_baselineWeightController.text
+                            .replaceAll(',', '.')) ??
+                        75.0,
+                    imperial: unitService.isImperial,
+                    onChanged: (val) {
+                      setState(() {
+                        _baselineWeightController.text =
+                            val.toStringAsFixed(1);
+                      });
+                    },
                   ),
                 ],
               ),
@@ -804,76 +858,94 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
         ),
         const SizedBox(height: DesignConstants.spacingL),
 
-        TextField(
-          controller: _targetWeightController,
-          keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          onChanged: (_) => setState(() {}),
-          decoration: InputDecoration(
-            labelText: l10n.goalTargetWeightLabel(unitStr),
-            suffixText: unitStr,
-            prefixIcon: const Icon(LucideIcons.target),
-            border: OutlineInputBorder(
-              borderRadius:
-                  BorderRadius.circular(DesignConstants.borderRadiusM),
+        SummaryCard(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: DesignConstants.spacingM,
+              vertical: DesignConstants.spacingL,
+            ),
+            child: Column(
+              children: [
+                Text(
+                  l10n.goalTargetWeightLabel(unitStr),
+                  style: theme.textTheme.labelMedium?.copyWith(
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+                  ),
+                ),
+                const SizedBox(height: DesignConstants.spacingS),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.baseline,
+                  textBaseline: TextBaseline.alphabetic,
+                  children: [
+                    Text(
+                      targetDisp?.toStringAsFixed(1) ?? '--',
+                      style: theme.textTheme.displayMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: theme.colorScheme.primary,
+                      ),
+                    ),
+                    const SizedBox(width: DesignConstants.spacingS),
+                    Text(
+                      unitStr,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        color:
+                            theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(width: DesignConstants.spacingS),
+                    IconButton(
+                      icon: Icon(
+                        _showManualTargetWeightInput
+                            ? LucideIcons.sliders_horizontal
+                            : LucideIcons.pencil,
+                        size: 20,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _showManualTargetWeightInput =
+                              !_showManualTargetWeightInput;
+                        });
+                      },
+                    ),
+                  ],
+                ),
+                if (_showManualTargetWeightInput) ...[
+                  const SizedBox(height: DesignConstants.spacingM),
+                  TextField(
+                    controller: _targetWeightController,
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
+                    autofocus: true,
+                    textAlign: TextAlign.center,
+                    onChanged: (_) => setState(() {}),
+                    decoration: InputDecoration(
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 8),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(
+                            DesignConstants.borderRadiusM),
+                      ),
+                    ),
+                  ),
+                ],
+                const SizedBox(height: DesignConstants.spacingM),
+                AppRulerPicker.weight(
+                  value: targetDisp ?? (baselineDisp ?? 75.0),
+                  imperial: unitService.isImperial,
+                  onChanged: (newWeight) {
+                    setState(() {
+                      _targetWeightController.text =
+                          newWeight.toStringAsFixed(1);
+                    });
+                  },
+                ),
+              ],
             ),
           ),
         ),
-        const SizedBox(height: DesignConstants.spacingL),
-
-        // Live Delta / Calculation Card
-        if (baselineDisp != null && targetDisp != null && deltaDisp != null) ...[
-          SummaryCard(
-            child: Padding(
-              padding: DesignConstants.cardPadding,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        l10n.goalWeightDifferenceLabel,
-                        style: theme.textTheme.labelMedium?.copyWith(
-                          color: theme.colorScheme.onSurface
-                              .withValues(alpha: 0.7),
-                        ),
-                      ),
-                      Text(
-                        '${deltaDisp >= 0 ? '+' : ''}${deltaDisp.toStringAsFixed(1)} $unitStr',
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: deltaDisp == 0
-                              ? theme.colorScheme.primary
-                              : (deltaDisp < 0
-                                  ? Colors.blueAccent
-                                  : Colors.orange),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        '${l10n.goalBaselineHeader}: ${baselineDisp.toStringAsFixed(1)} $unitStr',
-                        style: theme.textTheme.bodySmall,
-                      ),
-                      const Icon(LucideIcons.arrow_right, size: 14),
-                      Text(
-                        '${l10n.goalTargetHeader}: ${targetDisp.toStringAsFixed(1)} $unitStr',
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: DesignConstants.spacingM),
-        ],
+        const SizedBox(height: DesignConstants.spacingM),
 
         // Quick adjustment chips
         if (!isMaintain && baselineDisp != null) ...[
@@ -906,6 +978,40 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
                       },
                     );
                   }).toList(),
+          ),
+          const SizedBox(height: DesignConstants.spacingM),
+        ],
+
+        // 3-Column Summary Cards: Baseline, Planned Delta, Target
+        if (baselineDisp != null && targetDisp != null && deltaDisp != null) ...[
+          Row(
+            children: [
+              Expanded(
+                child: ValueSummaryCard(
+                  label: l10n.goalBaselineHeader,
+                  value: '${baselineDisp.toStringAsFixed(1)} $unitStr',
+                ),
+              ),
+              const SizedBox(width: DesignConstants.spacingS),
+              Expanded(
+                child: ValueSummaryCard(
+                  label: l10n.goalWeightDifferenceLabel,
+                  value:
+                      '${deltaDisp >= 0 ? '+' : ''}${deltaDisp.toStringAsFixed(1)} $unitStr',
+                  valueColor: deltaDisp == 0
+                      ? theme.colorScheme.primary
+                      : (deltaDisp < 0 ? Colors.green : Colors.orange),
+                ),
+              ),
+              const SizedBox(width: DesignConstants.spacingS),
+              Expanded(
+                child: ValueSummaryCard(
+                  label: l10n.goalTargetHeader,
+                  value: '${targetDisp.toStringAsFixed(1)} $unitStr',
+                  valueColor: theme.colorScheme.primary,
+                ),
+              ),
+            ],
           ),
         ],
       ],
@@ -990,90 +1096,7 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
           ),
           const SizedBox(height: DesignConstants.spacingL),
         ] else ...[
-          // Control 1: Weekly Rate Slider & Quick Chips
-          Text(
-            '${l10n.goalWeeklyRateLabel}: ${_weeklyRateKg.toStringAsFixed(2)} $unitStr / ${l10n.weekShort}',
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          Slider(
-            value: _weeklyRateKg.clamp(0.10, 1.25),
-            min: 0.10,
-            max: 1.25,
-            divisions: 23,
-            label: '${_weeklyRateKg.toStringAsFixed(2)} $unitStr',
-            onChanged: (val) => _onWeeklyRateChanged(val, unitService),
-          ),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              ActionChip(
-                label: Text(l10n.goalRateGentle),
-                onPressed: () => _onWeeklyRateChanged(0.25, unitService),
-              ),
-              ActionChip(
-                label: Text(l10n.goalRateModerate),
-                onPressed: () => _onWeeklyRateChanged(0.50, unitService),
-              ),
-              ActionChip(
-                label: Text(l10n.goalRateAthletic),
-                onPressed: () => _onWeeklyRateChanged(0.75, unitService),
-              ),
-              ActionChip(
-                label: Text(l10n.goalRateAggressive),
-                onPressed: () => _onWeeklyRateChanged(1.00, unitService),
-              ),
-            ],
-          ),
-          const SizedBox(height: DesignConstants.spacingL),
-
-          // Control 2: Target Date Picker & Quick Duration Chips
-          ListTile(
-            contentPadding: EdgeInsets.zero,
-            leading: Icon(LucideIcons.calendar,
-                color: theme.colorScheme.primary),
-            title: Text(
-              _targetDate != null
-                  ? dateFormat.format(_targetDate!)
-                  : l10n.goalNoDeadlineOption,
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            subtitle: Text(l10n.goalTargetDateLabel),
-            trailing: const Icon(LucideIcons.chevron_right),
-            onTap: () async {
-              final picked = await showAdaptiveDatePicker(
-                context: context,
-                initialDate: _targetDate ??
-                    _startDate.add(const Duration(days: 84)),
-                firstDate: _startDate.add(const Duration(days: 7)),
-                lastDate: _startDate.add(const Duration(days: 730)),
-              );
-              if (picked != null) {
-                _onTargetDateChanged(picked, unitService);
-              }
-            },
-          ),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [8, 12, 16, 24].map((w) {
-              return ActionChip(
-                label: Text(l10n.goalEstimatedDuration(w)),
-                onPressed: () {
-                  final newDate =
-                      _startDate.add(Duration(days: w * 7));
-                  _onTargetDateChanged(newDate, unitService);
-                },
-              );
-            }).toList(),
-          ),
-          const SizedBox(height: DesignConstants.spacingL),
-
-          // Live Interactive Trajectory Summary Card
+          // 1. Live Interactive Trajectory Summary Card (Hero at the Top)
           SummaryCard(
             child: Padding(
               padding: DesignConstants.cardPadding,
@@ -1085,36 +1108,41 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
                     children: [
                       Text(
                         l10n.goalEstimatedDuration(weeks),
-                        style: theme.textTheme.titleSmall?.copyWith(
+                        style: theme.textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       if (_targetDate != null)
                         Text(
                           dateFormat.format(_targetDate!),
-                          style: theme.textTheme.titleSmall?.copyWith(
+                          style: theme.textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.bold,
                             color: theme.colorScheme.primary,
                           ),
                         ),
                     ],
                   ),
-                  const SizedBox(height: DesignConstants.spacingS),
+                  const SizedBox(height: DesignConstants.spacingM),
                   const Divider(height: 1),
-                  const SizedBox(height: DesignConstants.spacingS),
+                  const SizedBox(height: DesignConstants.spacingM),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        l10n.goalEstimatedDailyDelta,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurface
-                              .withValues(alpha: 0.7),
+                      Expanded(
+                        child: Text(
+                          l10n.goalEstimatedDailyDelta,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: theme.colorScheme.onSurface
+                                .withValues(alpha: 0.7),
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
+                      const SizedBox(width: DesignConstants.spacingS),
                       Text(
-                        '${isLosing ? '-' : '+'}$dailyCalorieImpact kcal / Tag',
-                        style: theme.textTheme.bodySmall?.copyWith(
+                        '${isLosing ? '-' : '+'}$dailyCalorieImpact ${l10n.analyticsKcalPerDay}',
+                        style: theme.textTheme.titleSmall?.copyWith(
                           fontWeight: FontWeight.bold,
                           color: isLosing
                               ? Colors.orangeAccent
@@ -1132,7 +1160,7 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
                             : (_weeklyRateKg < 0.3
                                 ? LucideIcons.info
                                 : LucideIcons.circle_check),
-                        size: 16,
+                        size: 18,
                         color: _weeklyRateKg > 1.0
                             ? Colors.orange
                             : (_weeklyRateKg < 0.3
@@ -1147,9 +1175,9 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
                               : (_weeklyRateKg < 0.3
                                   ? l10n.goalPaceFeedbackGentle
                                   : l10n.goalPaceFeedbackSafe),
-                          style: theme.textTheme.labelSmall?.copyWith(
+                          style: theme.textTheme.bodySmall?.copyWith(
                             color: theme.colorScheme.onSurface
-                                .withValues(alpha: 0.8),
+                                .withValues(alpha: 0.85),
                           ),
                         ),
                       ),
@@ -1159,6 +1187,169 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
               ),
             ),
           ),
+          const SizedBox(height: DesignConstants.spacingL),
+
+          // 2. Control: Pace Selection with Dropdown & Custom Ruler
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                l10n.goalWeeklyRateLabel,
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              Text(
+                '${_weeklyRateKg.toStringAsFixed(2)} $unitStr / ${l10n.weekShort}',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: theme.colorScheme.primary,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: DesignConstants.spacingS),
+          PlatformAdaptiveDropdownFormField<String>(
+            key: ValueKey('rate_dropdown_$_selectedRatePreset'),
+            value: _selectedRatePreset,
+            items: [
+              DropdownMenuItem(
+                value: 'gentle',
+                child: Text(l10n.goalRateGentle),
+              ),
+              DropdownMenuItem(
+                value: 'moderate',
+                child: Text(l10n.goalRateModerate),
+              ),
+              DropdownMenuItem(
+                value: 'athletic',
+                child: Text(l10n.goalRateAthletic),
+              ),
+              DropdownMenuItem(
+                value: 'aggressive',
+                child: Text(l10n.goalRateAggressive),
+              ),
+              DropdownMenuItem(
+                value: 'custom',
+                child: Text(l10n.goalRateCustom),
+              ),
+            ],
+            onChanged: (val) {
+              if (val == null) return;
+              if (val == 'gentle') {
+                _onWeeklyRateChanged(0.25, unitService, ratePreset: 'gentle');
+              } else if (val == 'moderate') {
+                _onWeeklyRateChanged(0.50, unitService, ratePreset: 'moderate');
+              } else if (val == 'athletic') {
+                _onWeeklyRateChanged(0.75, unitService, ratePreset: 'athletic');
+              } else if (val == 'aggressive') {
+                _onWeeklyRateChanged(1.00, unitService, ratePreset: 'aggressive');
+              } else {
+                setState(() => _selectedRatePreset = 'custom');
+              }
+            },
+          ),
+          if (_selectedRatePreset == 'custom') ...[
+            const SizedBox(height: DesignConstants.spacingM),
+            AppRulerPicker.rate(
+              value: _weeklyRateKg,
+              imperial: unitService.isImperial,
+              onChanged: (val) => _onWeeklyRateChanged(val, unitService,
+                  ratePreset: 'custom'),
+              unit: unitStr,
+            ),
+          ],
+          const SizedBox(height: DesignConstants.spacingL),
+
+          // 3. Control: Target Date & Duration Selection with Dropdown
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                l10n.goalTargetDateLabel,
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              if (_targetDate != null)
+                Text(
+                  dateFormat.format(_targetDate!),
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.primary,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: DesignConstants.spacingS),
+          PlatformAdaptiveDropdownFormField<String>(
+            key: ValueKey('duration_dropdown_$_selectedDurationPreset'),
+            value: _selectedDurationPreset,
+            items: [
+              DropdownMenuItem(
+                value: '8',
+                child: Text(l10n.goalEstimatedDuration(8)),
+              ),
+              DropdownMenuItem(
+                value: '12',
+                child: Text(l10n.goalEstimatedDuration(12)),
+              ),
+              DropdownMenuItem(
+                value: '16',
+                child: Text(l10n.goalEstimatedDuration(16)),
+              ),
+              DropdownMenuItem(
+                value: '24',
+                child: Text(l10n.goalEstimatedDuration(24)),
+              ),
+              DropdownMenuItem(
+                value: 'custom',
+                child: Text(l10n.goalDurationCustom),
+              ),
+            ],
+            onChanged: (val) {
+              if (val == null) return;
+              if (val == 'custom') {
+                setState(() => _selectedDurationPreset = 'custom');
+              } else {
+                final w = int.tryParse(val) ?? 12;
+                final newDate = _startDate.add(Duration(days: w * 7));
+                _onTargetDateChanged(newDate, unitService, durationPreset: val);
+              }
+            },
+          ),
+          if (_selectedDurationPreset == 'custom') ...[
+            const SizedBox(height: DesignConstants.spacingM),
+            SummaryCard(
+              child: ListTile(
+                leading: Icon(LucideIcons.calendar,
+                    color: theme.colorScheme.primary),
+                title: Text(
+                  _targetDate != null
+                      ? dateFormat.format(_targetDate!)
+                      : l10n.goalNoDeadlineOption,
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                subtitle: Text(l10n.goalTargetDateLabel),
+                trailing: const Icon(LucideIcons.chevron_right, size: 18),
+                onTap: () async {
+                  final picked = await showAdaptiveDatePicker(
+                    context: context,
+                    initialDate: _targetDate ??
+                        _startDate.add(const Duration(days: 84)),
+                    firstDate: _startDate.add(const Duration(days: 7)),
+                    lastDate: _startDate.add(const Duration(days: 730)),
+                  );
+                  if (picked != null) {
+                    _onTargetDateChanged(picked, unitService,
+                        durationPreset: 'custom');
+                  }
+                },
+              ),
+            ),
+          ],
         ],
       ],
     );
@@ -1189,48 +1380,53 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
         ),
         const SizedBox(height: DesignConstants.spacingL),
 
-        // Quick suggestion chips
+        // Quick suggestion catalog without emojis (compact, multiple per line)
         Wrap(
-          spacing: 8,
-          runSpacing: 8,
+          spacing: 6,
+          runSpacing: 6,
           children: [
-            ActionChip(
-              avatar: const Icon(LucideIcons.heart_pulse, size: 14),
-              label: Text(l10n.goalReasonSuggestionHealth),
+            l10n.goalReasonSuggestionHealth,
+            l10n.goalReasonSuggestionFitness,
+            l10n.goalReasonSuggestionShape,
+            l10n.goalReasonSuggestionEnergy,
+            l10n.goalReasonSuggestionStrength,
+            l10n.goalReasonSuggestionConfidence,
+            l10n.goalReasonSuggestionEvent,
+            l10n.goalReasonSuggestionLongevity,
+            l10n.goalReasonSuggestionHabits,
+            l10n.goalReasonSuggestionClothing,
+          ].map((suggestion) {
+            final isSelected = _reasonController.text.trim() == suggestion;
+            return ActionChip(
+              visualDensity: VisualDensity.compact,
+              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 0),
+              label: Text(
+                suggestion,
+                style: theme.textTheme.labelMedium?.copyWith(
+                  fontWeight:
+                      isSelected ? FontWeight.bold : FontWeight.normal,
+                  color: isSelected
+                      ? theme.colorScheme.primary
+                      : theme.colorScheme.onSurface,
+                ),
+              ),
+              side: isSelected
+                  ? BorderSide(color: theme.colorScheme.primary, width: 1.5)
+                  : BorderSide(
+                      color: theme.colorScheme.onSurface
+                          .withValues(alpha: 0.15),
+                    ),
+              backgroundColor: isSelected
+                  ? theme.colorScheme.primary.withValues(alpha: 0.15)
+                  : null,
               onPressed: () {
                 setState(() {
-                  _reasonController.text = l10n.goalReasonSuggestionHealth;
+                  _reasonController.text = suggestion;
                 });
               },
-            ),
-            ActionChip(
-              avatar: const Icon(LucideIcons.biceps_flexed, size: 14),
-              label: Text(l10n.goalReasonSuggestionFitness),
-              onPressed: () {
-                setState(() {
-                  _reasonController.text = l10n.goalReasonSuggestionFitness;
-                });
-              },
-            ),
-            ActionChip(
-              avatar: const Icon(LucideIcons.sparkles, size: 14),
-              label: Text(l10n.goalReasonSuggestionShape),
-              onPressed: () {
-                setState(() {
-                  _reasonController.text = l10n.goalReasonSuggestionShape;
-                });
-              },
-            ),
-            ActionChip(
-              avatar: const Icon(LucideIcons.trophy, size: 14),
-              label: Text(l10n.goalReasonSuggestionEvent),
-              onPressed: () {
-                setState(() {
-                  _reasonController.text = l10n.goalReasonSuggestionEvent;
-                });
-              },
-            ),
-          ],
+            );
+          }).toList(),
         ),
         const SizedBox(height: DesignConstants.spacingM),
 
