@@ -108,6 +108,8 @@ class UnitService extends ChangeNotifier {
     };
   }
 
+  String unitString(UnitDimension dimension) => suffixFor(dimension);
+
   String metricSuffixFor(UnitDimension dimension) {
     return switch (dimension) {
       UnitDimension.weight => 'kg',

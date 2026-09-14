@@ -6771,4 +6771,637 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get progressionAssisted => '補助';
+
+  @override
+  String get createGoalTitle => '新しい目標を設定';
+
+  @override
+  String get goalConfirmCreateButton => '目標を開始する';
+
+  @override
+  String get goalStep1Question => 'どのような目標ですか？';
+
+  @override
+  String get goalStep1Description => '方向性を選択するか、自分の言葉で自由に目標を記述してください。';
+
+  @override
+  String get goalPresetLoseWeight => '減量';
+
+  @override
+  String get goalPresetLoseWeightDescription => '体脂肪を減らし、計画的に体重を落とします。';
+
+  @override
+  String get goalPresetGainWeight => '増量';
+
+  @override
+  String get goalPresetGainWeightDescription => '筋肉量を増やし、着実に体重を増やします。';
+
+  @override
+  String get goalPresetMaintainWeight => '体重維持';
+
+  @override
+  String get goalPresetMaintainWeightDescription => '安定した許容範囲内で現在の体重をキープします。';
+
+  @override
+  String get goalPresetRecomposition => 'ボディリポジション';
+
+  @override
+  String get goalPresetRecompositionDescription => '体脂肪を落としながら同時に筋肉をつけます。';
+
+  @override
+  String get goalPresetCustom => 'カスタム目標';
+
+  @override
+  String get goalPresetCustomDescription => '自由な言葉でオリジナルの目標を設定します。';
+
+  @override
+  String get goalCustomTitleLabel => '目標のタイトル';
+
+  @override
+  String get goalCustomTitleHint => '例: 夏に向けたシェイプアップ、ハーフマラソン完走';
+
+  @override
+  String get goalStep2Question => 'どのように進捗を測りますか？';
+
+  @override
+  String get goalStep2Description => '目標に最適な測定指標を選択してください。';
+
+  @override
+  String get goalMetricWeightTitle => '体重';
+
+  @override
+  String get goalMetricWeightSubtitle => '定期的な測定によりkgまたはlbsで記録します。';
+
+  @override
+  String get goalMetricBodyFatTitle => '体脂肪率（%）';
+
+  @override
+  String get goalMetricBodyFatSubtitle => '体脂肪率の推移を記録します。';
+
+  @override
+  String get goalMetricCircumferenceTitle => '周囲径 / ウエストサイズ';
+
+  @override
+  String get goalMetricCircumferenceSubtitle => 'ウエストなどのサイズ変化を追跡します。';
+
+  @override
+  String get goalMetricDirectionalOnlyTitle => '方向性のみ指定';
+
+  @override
+  String get goalMetricDirectionalOnlySubtitle => '具体的な数値目標を決めず、プロセスを継続します。';
+
+  @override
+  String get goalStep3Question => 'ペースと詳細設定';
+
+  @override
+  String get goalStep3Description => '目標値や希望の週間ペースを任意で設定できます。';
+
+  @override
+  String get goalCustomDirectionPrompt => 'この目標で毎日の食事目標を自動調整しますか？';
+
+  @override
+  String get goalCustomDirectionNone => '記録・ドキュメントのみ';
+
+  @override
+  String get goalTargetValueOptionalLabel => '目標値（任意）';
+
+  @override
+  String get goalWeeklyRateLabel => '計画された週間ペース';
+
+  @override
+  String get goalStep4Question => '目標期日はありますか？';
+
+  @override
+  String get goalStep4Description => '期日の設定は完全に任意です。焦る必要はありません。';
+
+  @override
+  String get goalNoDeadlineOption => '期日なし';
+
+  @override
+  String get goalSelectDatePrompt => '日付を選択';
+
+  @override
+  String get goalRemoveDeadlineChip => '期日を削除';
+
+  @override
+  String get goalStep5Question => '開始日と基準値';
+
+  @override
+  String get goalStep5Description => 'この目標はいつから始めますか？基準となる測定値を自動検索します。';
+
+  @override
+  String get goalStartDateLabel => '開始日';
+
+  @override
+  String get goalBaselineFoundTitle => '基準測定値が見つかりました';
+
+  @override
+  String get goalBaselineNotFoundTitle => '基準測定値がありません';
+
+  @override
+  String get goalBaselineNotFoundDescription =>
+      '最初の体重を記録するまで、この目標は「測定待ち」状態で開始されます。';
+
+  @override
+  String get goalStep6Question => 'なぜこの目標を目指しますか？';
+
+  @override
+  String get goalStep6Description =>
+      '自分だけの動機を記録しておくことで、意欲を維持できます。端末内のみに保存されます。';
+
+  @override
+  String get goalStepBaselineQuestion => 'Start Date & Baseline Weight';
+
+  @override
+  String get goalStepBaselineDescription =>
+      'When does this goal start? Train Libre uses your weight on this date as the starting baseline.';
+
+  @override
+  String get goalStepTargetWeightQuestion => 'What is your target weight?';
+
+  @override
+  String get goalStepTargetWeightDescription =>
+      'Enter your desired target weight.';
+
+  @override
+  String get goalStepTrajectoryQuestion => 'Plan Pace & Target Date';
+
+  @override
+  String get goalStepTrajectoryDescription =>
+      'Pick a target date or a weekly rate – the other will be calculated interactively in real time.';
+
+  @override
+  String goalEnterBaselineWeightPrompt(String unit) {
+    return 'Enter starting weight ($unit)';
+  }
+
+  @override
+  String goalTargetWeightLabel(String unit) {
+    return 'Target weight ($unit)';
+  }
+
+  @override
+  String get goalWeightDifferenceLabel => 'Planned change';
+
+  @override
+  String get goalPlanByDate => 'Plan by target date';
+
+  @override
+  String get goalPlanByRate => 'Plan by weekly pace';
+
+  @override
+  String get goalEstimatedDailyDelta => 'Daily calorie adjustment';
+
+  @override
+  String goalEstimatedDuration(int weeks) {
+    return 'Duration: $weeks weeks';
+  }
+
+  @override
+  String get goalRateGentle => 'Gentle (0.25 kg/wk)';
+
+  @override
+  String get goalRateModerate => 'Moderate (0.50 kg/wk)';
+
+  @override
+  String get goalRateAthletic => 'Athletic (0.75 kg/wk)';
+
+  @override
+  String get goalRateAggressive => 'Aggressive (1.00 kg/wk)';
+
+  @override
+  String get goalRateCustom => 'カスタムペース（スライダー）';
+
+  @override
+  String get goalDurationCustom => 'カレンダーで期日を選択...';
+
+  @override
+  String get goalPaceFeedbackSafe =>
+      'Recommended, sustainable pace (0.5% - 1.0% body weight/week).';
+
+  @override
+  String get goalPaceFeedbackAggressive =>
+      'Aggressive pace. Pay close attention to adequate protein and recovery.';
+
+  @override
+  String get goalPaceFeedbackGentle =>
+      'Very gentle pace, very easy to sustain long term.';
+
+  @override
+  String get goalPaceFeedbackMaintain =>
+      'Maintain weight with a balanced energy intake.';
+
+  @override
+  String get goalReasonSuggestionHealth => '健康と活力';
+
+  @override
+  String get goalReasonSuggestionFitness => 'フィットネスとパフォーマンス';
+
+  @override
+  String get goalReasonSuggestionShape => '理想の体型とスタイル';
+
+  @override
+  String get goalReasonSuggestionEvent => '大会やイベントに向けて';
+
+  @override
+  String get goalReasonSuggestionEnergy => '日々の活力を高める';
+
+  @override
+  String get goalReasonSuggestionStrength => '筋力と筋肥大';
+
+  @override
+  String get goalReasonSuggestionConfidence => '自信とウェルビーイング';
+
+  @override
+  String get goalReasonSuggestionLongevity => '長寿と健康維持';
+
+  @override
+  String get goalReasonSuggestionHabits => '健康的な習慣と自制心';
+
+  @override
+  String get goalReasonSuggestionClothing => '服をすっきりと着こなす';
+
+  @override
+  String get goalReasonPlaceholder => '例: 体を軽くして、もっと軽快に動けるようになりたい...';
+
+  @override
+  String get goalReasonPrivacyNotice => 'メモは完全に端末内にのみ保存され、外部に共有されることはありません。';
+
+  @override
+  String get goalStep7Question => '確認と開始';
+
+  @override
+  String get goalStep7Description => '内容を確認し、目標をアクティブにしてください。';
+
+  @override
+  String get goalAreaLabel => '目標カテゴリ';
+
+  @override
+  String get goalStartLabel => '開始時の基準値';
+
+  @override
+  String get goalWaitingForMeasurementShort => '測定待ち';
+
+  @override
+  String get goalTargetLabel => '目標値';
+
+  @override
+  String get goalDirectionalOnly => 'プロセス重視';
+
+  @override
+  String get goalTargetDateLabel => '目標期日';
+
+  @override
+  String get goalDriverSettingLabel => '栄養プランに連動';
+
+  @override
+  String get noActiveGoalTitle => 'アクティブな目標はありません';
+
+  @override
+  String get noActiveGoalSubtitle => 'Train Libreは目標設定なしでも完全に動作します。';
+
+  @override
+  String get noActiveGoalDescription =>
+      '体重、体脂肪、またはカスタム目標をいつでも設定して、軌跡追跡と週間レビューを有効にできます。';
+
+  @override
+  String get createGoalButton => '目標を設定する';
+
+  @override
+  String get goalWaitingForBaselineLabel => '測定待ち';
+
+  @override
+  String get goalBaselineHeader => '開始（基準値）';
+
+  @override
+  String get goalCurrentHeader => '現在';
+
+  @override
+  String get goalTargetHeader => '目標';
+
+  @override
+  String get goalProgressSectionTitle => '進捗';
+
+  @override
+  String goalRemainingDistanceLabel(String distance) {
+    return '残り $distance';
+  }
+
+  @override
+  String get weekShort => '週';
+
+  @override
+  String get goalNoTargetDateShort => '期日なし';
+
+  @override
+  String get reviewStatusOnTrack => '順調';
+
+  @override
+  String get reviewStatusSlower => '予定より遅れ気味';
+
+  @override
+  String get reviewStatusFaster => '予定より早め';
+
+  @override
+  String get reviewStatusCalibrating => '測定・調整中';
+
+  @override
+  String reviewNextAnalysisScheduled(String date) {
+    return '次回のアダプティブ分析: $date（最低3回の測定と4日分の記録が必要）';
+  }
+
+  @override
+  String get weeklyReviewCardHeaderBadge => '週間レビュー';
+
+  @override
+  String get weeklyReviewPendingDefaultExplanation =>
+      'アダプティブエンジンが7日間のトレンドと目標の軌跡を比較します。';
+
+  @override
+  String get reviewOpenDetailsButton => 'レビューを見る';
+
+  @override
+  String get applyRecommendationButton => '推奨を適用';
+
+  @override
+  String get weeklyReviewScreenTitle => '週次目標レビュー';
+
+  @override
+  String get reviewSufficiencyGateTitle => '過去7日間のデータ基盤';
+
+  @override
+  String get reviewWeighInsCountLabel => '体重測定';
+
+  @override
+  String get reviewLoggedDaysCountLabel => '食事記録日数';
+
+  @override
+  String get reviewTrajectoryComparisonTitle => '軌跡の比較';
+
+  @override
+  String get reviewObservedRateLabel => '観測されたトレンド';
+
+  @override
+  String get reviewTargetRateLabel => '計画されたペース';
+
+  @override
+  String get reviewEstimatedTDEELabel => '推定維持カロリー（TDEE）';
+
+  @override
+  String get reviewRecommendationTitle => '推奨される日次目標';
+
+  @override
+  String get reviewActionApplyRecommendation => '推奨される日次目標を適用する';
+
+  @override
+  String get reviewActionAdjustTrajectory => '目標と軌跡を調整する';
+
+  @override
+  String get reviewActionKeepCurrent => '現在の値を維持する';
+
+  @override
+  String get reviewDismissedSnack => 'レビューを閉じました。現在の目標値が維持されます。';
+
+  @override
+  String get adjustGoalTitle => '目標を調整';
+
+  @override
+  String get adjustGoalDescription =>
+      '目標体重、期日、または週間ペースを調整します。他の変数は同期して再計算されます。';
+
+  @override
+  String get adjustGoalFixOptionKeepDate => '期日を固定';
+
+  @override
+  String get adjustGoalFixOptionKeepRate => 'ペースを固定';
+
+  @override
+  String get adjustGoalExtremeRateWarning =>
+      '注意: このペースは生理学的に推奨される一般的な基準から大きく乖離しています。';
+
+  @override
+  String get adjustGoalApplyAsSuccessorButton => '後続の目標として適用';
+
+  @override
+  String get adjustGoalConfirmTitle => '後続の目標として適用しますか？';
+
+  @override
+  String get adjustGoalConfirmContent =>
+      '現在の目標の推移はアーカイブされ、更新された目標フェーズが新しく開始されます。';
+
+  @override
+  String get adjustGoalConfirmButton => '適用';
+
+  @override
+  String get adjustGoalTargetWeightLabel => '目標体重';
+
+  @override
+  String get adjustGoalTargetDateLabel => '目標期日';
+
+  @override
+  String get adjustGoalWeeklyRateLabel => '計画された週間ペース';
+
+  @override
+  String get goalDetailScreenTitle => '目標の詳細';
+
+  @override
+  String get retireGoalDialogTitle => '目標を終了しますか？';
+
+  @override
+  String get retireGoalDialogContent =>
+      '目標はアーカイブされ、アダプティブ栄養の基準としては使用されなくなります。後でいつでも再開できます。';
+
+  @override
+  String get retireGoalConfirmButton => '目標を終了';
+
+  @override
+  String get goalRetiredSuccessSnack => '目標が終了され、アーカイブされました。';
+
+  @override
+  String get resumeGoalDialogTitle => '目標を再開しますか？';
+
+  @override
+  String get resumeGoalDialogContent => 'この目標が再びアクティブになり、栄養プランを調整します。';
+
+  @override
+  String get resumeGoalConfirmButton => '再開する';
+
+  @override
+  String get goalResumedSuccessSnack => '目標が正常に再開されました。';
+
+  @override
+  String get goalStatusActive => '進行中';
+
+  @override
+  String get goalStatusRetired => '終了';
+
+  @override
+  String get goalStatusSuperseded => '更新済';
+
+  @override
+  String goalStartedOnLabel(String date) {
+    return '$date に開始';
+  }
+
+  @override
+  String get goalDrivesNutritionBadge => '栄養プランに連動';
+
+  @override
+  String get goalDocumentationOnlyBadge => '記録のみ';
+
+  @override
+  String get goalWaitingForBaselineCalloutTitle => '基準となる測定値が必要です';
+
+  @override
+  String get goalWaitingForBaselineCalloutDescription =>
+      'この目標の開始日以前の測定データがありません。進捗と軌跡を計算するために、最初の体重を記録してください。';
+
+  @override
+  String get recordFirstMeasurementButton => '最初の測定を記録する';
+
+  @override
+  String get goalWeightHistoryChartTitle => '体重の推移と目標ライン';
+
+  @override
+  String get goalPersonalMotivationTitle => '設定した動機・理由';
+
+  @override
+  String get retireGoalButton => '目標を終了';
+
+  @override
+  String get resumeGoalButton => '目標を再開';
+
+  @override
+  String get myGoalsOperativeTargetsBanner => '日々の目標値へ（カロリー・マクロ・水分）';
+
+  @override
+  String get myGoalsActiveGoalSectionHeader => 'アクティブな目標';
+
+  @override
+  String get myGoalsHistorySectionHeader => '過去の目標履歴';
+
+  @override
+  String get goalsScreenToMyGoalsBannerTitle => '長期的な目標をお探しですか？';
+
+  @override
+  String get goalsScreenToMyGoalsBannerSubtitle => '「マイゴール」で体重の軌跡とレビューを管理できます。';
+
+  @override
+  String get dailyOperatingTargetsTitle => '日次目標';
+
+  @override
+  String get dailyOperatingTargetsSubtitle => 'カロリー、主要栄養素、水分';
+
+  @override
+  String get adjustDailyTargetsButton => '日次目標を変更';
+
+  @override
+  String get targetCaloriesLabel => '日次目標';
+
+  @override
+  String get goalNotificationSettingsTitle => '目標とレビューの通知';
+
+  @override
+  String get goalNotificationWeeklyReviewTitle => '週間レビューの準備完了';
+
+  @override
+  String get goalNotificationWeeklyReviewSubtitle => '7日間の分析が利用可能になったときに通知します。';
+
+  @override
+  String get goalNotificationAdaptiveDueTitle => '新しい推奨の更新時';
+
+  @override
+  String get goalNotificationAdaptiveDueSubtitle => '日次目標の調整が推奨されたときに通知します。';
+
+  @override
+  String get goalNotificationTargetDateTitle => '目標期日のリマインダー';
+
+  @override
+  String get goalNotificationTargetDateSubtitle => '期日が近づいた際の穏やかな通知（プレッシャーなし）。';
+
+  @override
+  String get goalNotificationPrivacyNotice =>
+      '通知はすべて端末内で処理されます。体重やカロリーなどのプライベートな数値がロック画面に表示されることはありません。';
+
+  @override
+  String get goalMaintainCorridor => '± 1.0 kg (維持範囲)';
+
+  @override
+  String get goalNeedsFirstMeasurementPrompt => '最初の体重を記録して、進捗とトレンドを表示しましょう。';
+
+  @override
+  String goalRemainingDistanceText(String distance) {
+    return '残り $distance';
+  }
+
+  @override
+  String get goalMaintenanceStable => '目標範囲内で安定';
+
+  @override
+  String get goalMaintenanceDrifting => '目標範囲からわずかに乖離';
+
+  @override
+  String get goalNotifyWeeklyReviewTitle => '週間レビューの準備完了';
+
+  @override
+  String get goalNotifyWeeklyReviewSubtitle => '7日間の分析が利用可能になったときに通知します。';
+
+  @override
+  String get goalNotifyRecommendationDueTitle => '新しい推奨の更新時';
+
+  @override
+  String get goalNotifyRecommendationDueSubtitle => '日次目標の調整が推奨されたときに通知します。';
+
+  @override
+  String get goalNotifyTargetDateTitle => '目標期日のリマインダー';
+
+  @override
+  String get goalNotifyTargetDateSubtitle => '期日が近づいた際の穏やかな通知（プレッシャーなし）。';
+
+  @override
+  String get goalNotifyPrivacyTitle => 'プライバシーとローカル処理';
+
+  @override
+  String get goalNotifyPrivacyBody =>
+      '通知はすべて端末内で処理されます。体重やカロリーなどのプライベートな数値がロック画面に表示されることはありません。';
+
+  @override
+  String get goalNotificationSettingsSubtitle => 'レビューや期日に関するローカル通知';
+
+  @override
+  String get weeklyGoalReviewNotificationTitle => '週間レビューの準備完了';
+
+  @override
+  String get weeklyGoalReviewNotificationBody => '新しい7日間の分析が栄養ハブで確認できます。';
+
+  @override
+  String get goalTargetDateReminderTitle => '目標期日のお知らせ';
+
+  @override
+  String goalTargetDateReachedBody(String goalTitle) {
+    return '「$goalTitle」の目標期日は本日です。';
+  }
+
+  @override
+  String goalTargetDateApproachingBody(String goalTitle) {
+    return '「$goalTitle」の目標期日が近づいています。';
+  }
+
+  @override
+  String get back => '戻る';
+
+  @override
+  String get yes => 'はい';
+
+  @override
+  String get no => 'いいえ';
+
+  @override
+  String get retry => '再試行';
+
+  @override
+  String get saving => '保存中...';
+
+  @override
+  String get emptyStateMeasurements => '測定データがまだ記録されていません。';
 }

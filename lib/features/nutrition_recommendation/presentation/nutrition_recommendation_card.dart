@@ -279,6 +279,8 @@ class _GeneratedRecommendationContent extends StatelessWidget {
             ),
           ),
         const SizedBox(height: DesignConstants.spacingM),
+        _MacroTargetGrid(recommendation: recommendation),
+        const SizedBox(height: DesignConstants.spacingL),
         Text(
           l10n.adaptiveRecommendationMaintenanceLabel,
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
@@ -316,8 +318,6 @@ class _GeneratedRecommendationContent extends StatelessWidget {
               ),
             ),
         ],
-        const SizedBox(height: DesignConstants.spacingS),
-        _MacroTargetGrid(recommendation: recommendation),
         const SizedBox(height: DesignConstants.spacingS),
         _RecommendationContextPanel(
           dataBasisLine: l10n.adaptiveRecommendationDataBasisLine(
@@ -627,6 +627,7 @@ class _MacroTargetGrid extends StatelessWidget {
                 fontWeight: FontWeight.bold,
               ),
         ),
+        const SizedBox(height: DesignConstants.spacingS),
         LayoutBuilder(
           builder: (context, constraints) {
             final crossAxisCount = constraints.maxWidth < 430 ? 2 : 4;

@@ -23218,6 +23218,2501 @@ class UserFoodOverrideTranslationsCompanion
   }
 }
 
+class $UserGoalsTable extends UserGoals
+    with TableInfo<$UserGoalsTable, UserGoal> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $UserGoalsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _localIdMeta =
+      const VerificationMeta('localId');
+  @override
+  late final GeneratedColumn<int> localId = GeneratedColumn<int>(
+      'local_id', aliasedName, false,
+      hasAutoIncrement: true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+      'id', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'),
+      clientDefault: () => const Uuid().v4());
+  static const VerificationMeta _createdAtMeta =
+      const VerificationMeta('createdAt');
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+      'created_at', aliasedName, false,
+      type: DriftSqlType.dateTime,
+      requiredDuringInsert: false,
+      defaultValue: currentDateAndTime);
+  static const VerificationMeta _updatedAtMeta =
+      const VerificationMeta('updatedAt');
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+      'updated_at', aliasedName, false,
+      type: DriftSqlType.dateTime,
+      requiredDuringInsert: false,
+      defaultValue: currentDateAndTime);
+  static const VerificationMeta _deletedAtMeta =
+      const VerificationMeta('deletedAt');
+  @override
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+      'deleted_at', aliasedName, true,
+      type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
+  @override
+  late final GeneratedColumn<String> userId = GeneratedColumn<String>(
+      'user_id', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _areaMeta = const VerificationMeta('area');
+  @override
+  late final GeneratedColumn<String> area = GeneratedColumn<String>(
+      'area', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultValue: const Constant('body_composition'));
+  static const VerificationMeta _presetMeta = const VerificationMeta('preset');
+  @override
+  late final GeneratedColumn<String> preset = GeneratedColumn<String>(
+      'preset', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _titleMeta = const VerificationMeta('title');
+  @override
+  late final GeneratedColumn<String> title = GeneratedColumn<String>(
+      'title', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _reasonMeta = const VerificationMeta('reason');
+  @override
+  late final GeneratedColumn<String> reason = GeneratedColumn<String>(
+      'reason', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<String> status = GeneratedColumn<String>(
+      'status', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultValue: const Constant('active'));
+  static const VerificationMeta _startDateMeta =
+      const VerificationMeta('startDate');
+  @override
+  late final GeneratedColumn<DateTime> startDate = GeneratedColumn<DateTime>(
+      'start_date', aliasedName, false,
+      type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  static const VerificationMeta _targetDateMeta =
+      const VerificationMeta('targetDate');
+  @override
+  late final GeneratedColumn<DateTime> targetDate = GeneratedColumn<DateTime>(
+      'target_date', aliasedName, true,
+      type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  static const VerificationMeta _targetMetricMeta =
+      const VerificationMeta('targetMetric');
+  @override
+  late final GeneratedColumn<String> targetMetric = GeneratedColumn<String>(
+      'target_metric', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _targetValueMeta =
+      const VerificationMeta('targetValue');
+  @override
+  late final GeneratedColumn<double> targetValue = GeneratedColumn<double>(
+      'target_value', aliasedName, true,
+      type: DriftSqlType.double, requiredDuringInsert: false);
+  static const VerificationMeta _targetUnitMeta =
+      const VerificationMeta('targetUnit');
+  @override
+  late final GeneratedColumn<String> targetUnit = GeneratedColumn<String>(
+      'target_unit', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _desiredWeeklyRateKgMeta =
+      const VerificationMeta('desiredWeeklyRateKg');
+  @override
+  late final GeneratedColumn<double> desiredWeeklyRateKg =
+      GeneratedColumn<double>('desired_weekly_rate_kg', aliasedName, true,
+          type: DriftSqlType.double, requiredDuringInsert: false);
+  static const VerificationMeta _isNutritionDriverMeta =
+      const VerificationMeta('isNutritionDriver');
+  @override
+  late final GeneratedColumn<bool> isNutritionDriver = GeneratedColumn<bool>(
+      'is_nutrition_driver', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'CHECK ("is_nutrition_driver" IN (0, 1))'),
+      defaultValue: const Constant(false));
+  static const VerificationMeta _predecessorGoalIdMeta =
+      const VerificationMeta('predecessorGoalId');
+  @override
+  late final GeneratedColumn<String> predecessorGoalId =
+      GeneratedColumn<String>('predecessor_goal_id', aliasedName, true,
+          type: DriftSqlType.string,
+          requiredDuringInsert: false,
+          defaultConstraints:
+              GeneratedColumn.constraintIsAlways('REFERENCES user_goals (id)'));
+  static const VerificationMeta _retiredAtMeta =
+      const VerificationMeta('retiredAt');
+  @override
+  late final GeneratedColumn<DateTime> retiredAt = GeneratedColumn<DateTime>(
+      'retired_at', aliasedName, true,
+      type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  @override
+  List<GeneratedColumn> get $columns => [
+        localId,
+        id,
+        createdAt,
+        updatedAt,
+        deletedAt,
+        userId,
+        area,
+        preset,
+        title,
+        reason,
+        status,
+        startDate,
+        targetDate,
+        targetMetric,
+        targetValue,
+        targetUnit,
+        desiredWeeklyRateKg,
+        isNutritionDriver,
+        predecessorGoalId,
+        retiredAt
+      ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'user_goals';
+  @override
+  VerificationContext validateIntegrity(Insertable<UserGoal> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('local_id')) {
+      context.handle(_localIdMeta,
+          localId.isAcceptableOrUnknown(data['local_id']!, _localIdMeta));
+    }
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(_createdAtMeta,
+          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(_updatedAtMeta,
+          updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta));
+    }
+    if (data.containsKey('deleted_at')) {
+      context.handle(_deletedAtMeta,
+          deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta));
+    }
+    if (data.containsKey('user_id')) {
+      context.handle(_userIdMeta,
+          userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta));
+    }
+    if (data.containsKey('area')) {
+      context.handle(
+          _areaMeta, area.isAcceptableOrUnknown(data['area']!, _areaMeta));
+    }
+    if (data.containsKey('preset')) {
+      context.handle(_presetMeta,
+          preset.isAcceptableOrUnknown(data['preset']!, _presetMeta));
+    } else if (isInserting) {
+      context.missing(_presetMeta);
+    }
+    if (data.containsKey('title')) {
+      context.handle(
+          _titleMeta, title.isAcceptableOrUnknown(data['title']!, _titleMeta));
+    } else if (isInserting) {
+      context.missing(_titleMeta);
+    }
+    if (data.containsKey('reason')) {
+      context.handle(_reasonMeta,
+          reason.isAcceptableOrUnknown(data['reason']!, _reasonMeta));
+    }
+    if (data.containsKey('status')) {
+      context.handle(_statusMeta,
+          status.isAcceptableOrUnknown(data['status']!, _statusMeta));
+    }
+    if (data.containsKey('start_date')) {
+      context.handle(_startDateMeta,
+          startDate.isAcceptableOrUnknown(data['start_date']!, _startDateMeta));
+    } else if (isInserting) {
+      context.missing(_startDateMeta);
+    }
+    if (data.containsKey('target_date')) {
+      context.handle(
+          _targetDateMeta,
+          targetDate.isAcceptableOrUnknown(
+              data['target_date']!, _targetDateMeta));
+    }
+    if (data.containsKey('target_metric')) {
+      context.handle(
+          _targetMetricMeta,
+          targetMetric.isAcceptableOrUnknown(
+              data['target_metric']!, _targetMetricMeta));
+    }
+    if (data.containsKey('target_value')) {
+      context.handle(
+          _targetValueMeta,
+          targetValue.isAcceptableOrUnknown(
+              data['target_value']!, _targetValueMeta));
+    }
+    if (data.containsKey('target_unit')) {
+      context.handle(
+          _targetUnitMeta,
+          targetUnit.isAcceptableOrUnknown(
+              data['target_unit']!, _targetUnitMeta));
+    }
+    if (data.containsKey('desired_weekly_rate_kg')) {
+      context.handle(
+          _desiredWeeklyRateKgMeta,
+          desiredWeeklyRateKg.isAcceptableOrUnknown(
+              data['desired_weekly_rate_kg']!, _desiredWeeklyRateKgMeta));
+    }
+    if (data.containsKey('is_nutrition_driver')) {
+      context.handle(
+          _isNutritionDriverMeta,
+          isNutritionDriver.isAcceptableOrUnknown(
+              data['is_nutrition_driver']!, _isNutritionDriverMeta));
+    }
+    if (data.containsKey('predecessor_goal_id')) {
+      context.handle(
+          _predecessorGoalIdMeta,
+          predecessorGoalId.isAcceptableOrUnknown(
+              data['predecessor_goal_id']!, _predecessorGoalIdMeta));
+    }
+    if (data.containsKey('retired_at')) {
+      context.handle(_retiredAtMeta,
+          retiredAt.isAcceptableOrUnknown(data['retired_at']!, _retiredAtMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {localId};
+  @override
+  UserGoal map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return UserGoal(
+      localId: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}local_id'])!,
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
+      createdAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
+      updatedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}updated_at'])!,
+      deletedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}deleted_at']),
+      userId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}user_id']),
+      area: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}area'])!,
+      preset: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}preset'])!,
+      title: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}title'])!,
+      reason: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}reason']),
+      status: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}status'])!,
+      startDate: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}start_date'])!,
+      targetDate: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}target_date']),
+      targetMetric: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}target_metric']),
+      targetValue: attachedDatabase.typeMapping
+          .read(DriftSqlType.double, data['${effectivePrefix}target_value']),
+      targetUnit: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}target_unit']),
+      desiredWeeklyRateKg: attachedDatabase.typeMapping.read(
+          DriftSqlType.double,
+          data['${effectivePrefix}desired_weekly_rate_kg']),
+      isNutritionDriver: attachedDatabase.typeMapping.read(
+          DriftSqlType.bool, data['${effectivePrefix}is_nutrition_driver'])!,
+      predecessorGoalId: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}predecessor_goal_id']),
+      retiredAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}retired_at']),
+    );
+  }
+
+  @override
+  $UserGoalsTable createAlias(String alias) {
+    return $UserGoalsTable(attachedDatabase, alias);
+  }
+}
+
+class UserGoal extends DataClass implements Insertable<UserGoal> {
+  final int localId;
+  final String id;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final DateTime? deletedAt;
+  final String? userId;
+  final String area;
+  final String preset;
+  final String title;
+  final String? reason;
+  final String status;
+  final DateTime startDate;
+  final DateTime? targetDate;
+  final String? targetMetric;
+  final double? targetValue;
+  final String? targetUnit;
+  final double? desiredWeeklyRateKg;
+  final bool isNutritionDriver;
+  final String? predecessorGoalId;
+  final DateTime? retiredAt;
+  const UserGoal(
+      {required this.localId,
+      required this.id,
+      required this.createdAt,
+      required this.updatedAt,
+      this.deletedAt,
+      this.userId,
+      required this.area,
+      required this.preset,
+      required this.title,
+      this.reason,
+      required this.status,
+      required this.startDate,
+      this.targetDate,
+      this.targetMetric,
+      this.targetValue,
+      this.targetUnit,
+      this.desiredWeeklyRateKg,
+      required this.isNutritionDriver,
+      this.predecessorGoalId,
+      this.retiredAt});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['local_id'] = Variable<int>(localId);
+    map['id'] = Variable<String>(id);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
+    if (!nullToAbsent || userId != null) {
+      map['user_id'] = Variable<String>(userId);
+    }
+    map['area'] = Variable<String>(area);
+    map['preset'] = Variable<String>(preset);
+    map['title'] = Variable<String>(title);
+    if (!nullToAbsent || reason != null) {
+      map['reason'] = Variable<String>(reason);
+    }
+    map['status'] = Variable<String>(status);
+    map['start_date'] = Variable<DateTime>(startDate);
+    if (!nullToAbsent || targetDate != null) {
+      map['target_date'] = Variable<DateTime>(targetDate);
+    }
+    if (!nullToAbsent || targetMetric != null) {
+      map['target_metric'] = Variable<String>(targetMetric);
+    }
+    if (!nullToAbsent || targetValue != null) {
+      map['target_value'] = Variable<double>(targetValue);
+    }
+    if (!nullToAbsent || targetUnit != null) {
+      map['target_unit'] = Variable<String>(targetUnit);
+    }
+    if (!nullToAbsent || desiredWeeklyRateKg != null) {
+      map['desired_weekly_rate_kg'] = Variable<double>(desiredWeeklyRateKg);
+    }
+    map['is_nutrition_driver'] = Variable<bool>(isNutritionDriver);
+    if (!nullToAbsent || predecessorGoalId != null) {
+      map['predecessor_goal_id'] = Variable<String>(predecessorGoalId);
+    }
+    if (!nullToAbsent || retiredAt != null) {
+      map['retired_at'] = Variable<DateTime>(retiredAt);
+    }
+    return map;
+  }
+
+  UserGoalsCompanion toCompanion(bool nullToAbsent) {
+    return UserGoalsCompanion(
+      localId: Value(localId),
+      id: Value(id),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
+      userId:
+          userId == null && nullToAbsent ? const Value.absent() : Value(userId),
+      area: Value(area),
+      preset: Value(preset),
+      title: Value(title),
+      reason:
+          reason == null && nullToAbsent ? const Value.absent() : Value(reason),
+      status: Value(status),
+      startDate: Value(startDate),
+      targetDate: targetDate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(targetDate),
+      targetMetric: targetMetric == null && nullToAbsent
+          ? const Value.absent()
+          : Value(targetMetric),
+      targetValue: targetValue == null && nullToAbsent
+          ? const Value.absent()
+          : Value(targetValue),
+      targetUnit: targetUnit == null && nullToAbsent
+          ? const Value.absent()
+          : Value(targetUnit),
+      desiredWeeklyRateKg: desiredWeeklyRateKg == null && nullToAbsent
+          ? const Value.absent()
+          : Value(desiredWeeklyRateKg),
+      isNutritionDriver: Value(isNutritionDriver),
+      predecessorGoalId: predecessorGoalId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(predecessorGoalId),
+      retiredAt: retiredAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(retiredAt),
+    );
+  }
+
+  factory UserGoal.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return UserGoal(
+      localId: serializer.fromJson<int>(json['localId']),
+      id: serializer.fromJson<String>(json['id']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+      userId: serializer.fromJson<String?>(json['userId']),
+      area: serializer.fromJson<String>(json['area']),
+      preset: serializer.fromJson<String>(json['preset']),
+      title: serializer.fromJson<String>(json['title']),
+      reason: serializer.fromJson<String?>(json['reason']),
+      status: serializer.fromJson<String>(json['status']),
+      startDate: serializer.fromJson<DateTime>(json['startDate']),
+      targetDate: serializer.fromJson<DateTime?>(json['targetDate']),
+      targetMetric: serializer.fromJson<String?>(json['targetMetric']),
+      targetValue: serializer.fromJson<double?>(json['targetValue']),
+      targetUnit: serializer.fromJson<String?>(json['targetUnit']),
+      desiredWeeklyRateKg:
+          serializer.fromJson<double?>(json['desiredWeeklyRateKg']),
+      isNutritionDriver: serializer.fromJson<bool>(json['isNutritionDriver']),
+      predecessorGoalId:
+          serializer.fromJson<String?>(json['predecessorGoalId']),
+      retiredAt: serializer.fromJson<DateTime?>(json['retiredAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'localId': serializer.toJson<int>(localId),
+      'id': serializer.toJson<String>(id),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+      'userId': serializer.toJson<String?>(userId),
+      'area': serializer.toJson<String>(area),
+      'preset': serializer.toJson<String>(preset),
+      'title': serializer.toJson<String>(title),
+      'reason': serializer.toJson<String?>(reason),
+      'status': serializer.toJson<String>(status),
+      'startDate': serializer.toJson<DateTime>(startDate),
+      'targetDate': serializer.toJson<DateTime?>(targetDate),
+      'targetMetric': serializer.toJson<String?>(targetMetric),
+      'targetValue': serializer.toJson<double?>(targetValue),
+      'targetUnit': serializer.toJson<String?>(targetUnit),
+      'desiredWeeklyRateKg': serializer.toJson<double?>(desiredWeeklyRateKg),
+      'isNutritionDriver': serializer.toJson<bool>(isNutritionDriver),
+      'predecessorGoalId': serializer.toJson<String?>(predecessorGoalId),
+      'retiredAt': serializer.toJson<DateTime?>(retiredAt),
+    };
+  }
+
+  UserGoal copyWith(
+          {int? localId,
+          String? id,
+          DateTime? createdAt,
+          DateTime? updatedAt,
+          Value<DateTime?> deletedAt = const Value.absent(),
+          Value<String?> userId = const Value.absent(),
+          String? area,
+          String? preset,
+          String? title,
+          Value<String?> reason = const Value.absent(),
+          String? status,
+          DateTime? startDate,
+          Value<DateTime?> targetDate = const Value.absent(),
+          Value<String?> targetMetric = const Value.absent(),
+          Value<double?> targetValue = const Value.absent(),
+          Value<String?> targetUnit = const Value.absent(),
+          Value<double?> desiredWeeklyRateKg = const Value.absent(),
+          bool? isNutritionDriver,
+          Value<String?> predecessorGoalId = const Value.absent(),
+          Value<DateTime?> retiredAt = const Value.absent()}) =>
+      UserGoal(
+        localId: localId ?? this.localId,
+        id: id ?? this.id,
+        createdAt: createdAt ?? this.createdAt,
+        updatedAt: updatedAt ?? this.updatedAt,
+        deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+        userId: userId.present ? userId.value : this.userId,
+        area: area ?? this.area,
+        preset: preset ?? this.preset,
+        title: title ?? this.title,
+        reason: reason.present ? reason.value : this.reason,
+        status: status ?? this.status,
+        startDate: startDate ?? this.startDate,
+        targetDate: targetDate.present ? targetDate.value : this.targetDate,
+        targetMetric:
+            targetMetric.present ? targetMetric.value : this.targetMetric,
+        targetValue: targetValue.present ? targetValue.value : this.targetValue,
+        targetUnit: targetUnit.present ? targetUnit.value : this.targetUnit,
+        desiredWeeklyRateKg: desiredWeeklyRateKg.present
+            ? desiredWeeklyRateKg.value
+            : this.desiredWeeklyRateKg,
+        isNutritionDriver: isNutritionDriver ?? this.isNutritionDriver,
+        predecessorGoalId: predecessorGoalId.present
+            ? predecessorGoalId.value
+            : this.predecessorGoalId,
+        retiredAt: retiredAt.present ? retiredAt.value : this.retiredAt,
+      );
+  UserGoal copyWithCompanion(UserGoalsCompanion data) {
+    return UserGoal(
+      localId: data.localId.present ? data.localId.value : this.localId,
+      id: data.id.present ? data.id.value : this.id,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+      userId: data.userId.present ? data.userId.value : this.userId,
+      area: data.area.present ? data.area.value : this.area,
+      preset: data.preset.present ? data.preset.value : this.preset,
+      title: data.title.present ? data.title.value : this.title,
+      reason: data.reason.present ? data.reason.value : this.reason,
+      status: data.status.present ? data.status.value : this.status,
+      startDate: data.startDate.present ? data.startDate.value : this.startDate,
+      targetDate:
+          data.targetDate.present ? data.targetDate.value : this.targetDate,
+      targetMetric: data.targetMetric.present
+          ? data.targetMetric.value
+          : this.targetMetric,
+      targetValue:
+          data.targetValue.present ? data.targetValue.value : this.targetValue,
+      targetUnit:
+          data.targetUnit.present ? data.targetUnit.value : this.targetUnit,
+      desiredWeeklyRateKg: data.desiredWeeklyRateKg.present
+          ? data.desiredWeeklyRateKg.value
+          : this.desiredWeeklyRateKg,
+      isNutritionDriver: data.isNutritionDriver.present
+          ? data.isNutritionDriver.value
+          : this.isNutritionDriver,
+      predecessorGoalId: data.predecessorGoalId.present
+          ? data.predecessorGoalId.value
+          : this.predecessorGoalId,
+      retiredAt: data.retiredAt.present ? data.retiredAt.value : this.retiredAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('UserGoal(')
+          ..write('localId: $localId, ')
+          ..write('id: $id, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('userId: $userId, ')
+          ..write('area: $area, ')
+          ..write('preset: $preset, ')
+          ..write('title: $title, ')
+          ..write('reason: $reason, ')
+          ..write('status: $status, ')
+          ..write('startDate: $startDate, ')
+          ..write('targetDate: $targetDate, ')
+          ..write('targetMetric: $targetMetric, ')
+          ..write('targetValue: $targetValue, ')
+          ..write('targetUnit: $targetUnit, ')
+          ..write('desiredWeeklyRateKg: $desiredWeeklyRateKg, ')
+          ..write('isNutritionDriver: $isNutritionDriver, ')
+          ..write('predecessorGoalId: $predecessorGoalId, ')
+          ..write('retiredAt: $retiredAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+      localId,
+      id,
+      createdAt,
+      updatedAt,
+      deletedAt,
+      userId,
+      area,
+      preset,
+      title,
+      reason,
+      status,
+      startDate,
+      targetDate,
+      targetMetric,
+      targetValue,
+      targetUnit,
+      desiredWeeklyRateKg,
+      isNutritionDriver,
+      predecessorGoalId,
+      retiredAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is UserGoal &&
+          other.localId == this.localId &&
+          other.id == this.id &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt &&
+          other.deletedAt == this.deletedAt &&
+          other.userId == this.userId &&
+          other.area == this.area &&
+          other.preset == this.preset &&
+          other.title == this.title &&
+          other.reason == this.reason &&
+          other.status == this.status &&
+          other.startDate == this.startDate &&
+          other.targetDate == this.targetDate &&
+          other.targetMetric == this.targetMetric &&
+          other.targetValue == this.targetValue &&
+          other.targetUnit == this.targetUnit &&
+          other.desiredWeeklyRateKg == this.desiredWeeklyRateKg &&
+          other.isNutritionDriver == this.isNutritionDriver &&
+          other.predecessorGoalId == this.predecessorGoalId &&
+          other.retiredAt == this.retiredAt);
+}
+
+class UserGoalsCompanion extends UpdateCompanion<UserGoal> {
+  final Value<int> localId;
+  final Value<String> id;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<DateTime?> deletedAt;
+  final Value<String?> userId;
+  final Value<String> area;
+  final Value<String> preset;
+  final Value<String> title;
+  final Value<String?> reason;
+  final Value<String> status;
+  final Value<DateTime> startDate;
+  final Value<DateTime?> targetDate;
+  final Value<String?> targetMetric;
+  final Value<double?> targetValue;
+  final Value<String?> targetUnit;
+  final Value<double?> desiredWeeklyRateKg;
+  final Value<bool> isNutritionDriver;
+  final Value<String?> predecessorGoalId;
+  final Value<DateTime?> retiredAt;
+  const UserGoalsCompanion({
+    this.localId = const Value.absent(),
+    this.id = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.userId = const Value.absent(),
+    this.area = const Value.absent(),
+    this.preset = const Value.absent(),
+    this.title = const Value.absent(),
+    this.reason = const Value.absent(),
+    this.status = const Value.absent(),
+    this.startDate = const Value.absent(),
+    this.targetDate = const Value.absent(),
+    this.targetMetric = const Value.absent(),
+    this.targetValue = const Value.absent(),
+    this.targetUnit = const Value.absent(),
+    this.desiredWeeklyRateKg = const Value.absent(),
+    this.isNutritionDriver = const Value.absent(),
+    this.predecessorGoalId = const Value.absent(),
+    this.retiredAt = const Value.absent(),
+  });
+  UserGoalsCompanion.insert({
+    this.localId = const Value.absent(),
+    this.id = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.userId = const Value.absent(),
+    this.area = const Value.absent(),
+    required String preset,
+    required String title,
+    this.reason = const Value.absent(),
+    this.status = const Value.absent(),
+    required DateTime startDate,
+    this.targetDate = const Value.absent(),
+    this.targetMetric = const Value.absent(),
+    this.targetValue = const Value.absent(),
+    this.targetUnit = const Value.absent(),
+    this.desiredWeeklyRateKg = const Value.absent(),
+    this.isNutritionDriver = const Value.absent(),
+    this.predecessorGoalId = const Value.absent(),
+    this.retiredAt = const Value.absent(),
+  })  : preset = Value(preset),
+        title = Value(title),
+        startDate = Value(startDate);
+  static Insertable<UserGoal> custom({
+    Expression<int>? localId,
+    Expression<String>? id,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<DateTime>? deletedAt,
+    Expression<String>? userId,
+    Expression<String>? area,
+    Expression<String>? preset,
+    Expression<String>? title,
+    Expression<String>? reason,
+    Expression<String>? status,
+    Expression<DateTime>? startDate,
+    Expression<DateTime>? targetDate,
+    Expression<String>? targetMetric,
+    Expression<double>? targetValue,
+    Expression<String>? targetUnit,
+    Expression<double>? desiredWeeklyRateKg,
+    Expression<bool>? isNutritionDriver,
+    Expression<String>? predecessorGoalId,
+    Expression<DateTime>? retiredAt,
+  }) {
+    return RawValuesInsertable({
+      if (localId != null) 'local_id': localId,
+      if (id != null) 'id': id,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+      if (userId != null) 'user_id': userId,
+      if (area != null) 'area': area,
+      if (preset != null) 'preset': preset,
+      if (title != null) 'title': title,
+      if (reason != null) 'reason': reason,
+      if (status != null) 'status': status,
+      if (startDate != null) 'start_date': startDate,
+      if (targetDate != null) 'target_date': targetDate,
+      if (targetMetric != null) 'target_metric': targetMetric,
+      if (targetValue != null) 'target_value': targetValue,
+      if (targetUnit != null) 'target_unit': targetUnit,
+      if (desiredWeeklyRateKg != null)
+        'desired_weekly_rate_kg': desiredWeeklyRateKg,
+      if (isNutritionDriver != null) 'is_nutrition_driver': isNutritionDriver,
+      if (predecessorGoalId != null) 'predecessor_goal_id': predecessorGoalId,
+      if (retiredAt != null) 'retired_at': retiredAt,
+    });
+  }
+
+  UserGoalsCompanion copyWith(
+      {Value<int>? localId,
+      Value<String>? id,
+      Value<DateTime>? createdAt,
+      Value<DateTime>? updatedAt,
+      Value<DateTime?>? deletedAt,
+      Value<String?>? userId,
+      Value<String>? area,
+      Value<String>? preset,
+      Value<String>? title,
+      Value<String?>? reason,
+      Value<String>? status,
+      Value<DateTime>? startDate,
+      Value<DateTime?>? targetDate,
+      Value<String?>? targetMetric,
+      Value<double?>? targetValue,
+      Value<String?>? targetUnit,
+      Value<double?>? desiredWeeklyRateKg,
+      Value<bool>? isNutritionDriver,
+      Value<String?>? predecessorGoalId,
+      Value<DateTime?>? retiredAt}) {
+    return UserGoalsCompanion(
+      localId: localId ?? this.localId,
+      id: id ?? this.id,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      deletedAt: deletedAt ?? this.deletedAt,
+      userId: userId ?? this.userId,
+      area: area ?? this.area,
+      preset: preset ?? this.preset,
+      title: title ?? this.title,
+      reason: reason ?? this.reason,
+      status: status ?? this.status,
+      startDate: startDate ?? this.startDate,
+      targetDate: targetDate ?? this.targetDate,
+      targetMetric: targetMetric ?? this.targetMetric,
+      targetValue: targetValue ?? this.targetValue,
+      targetUnit: targetUnit ?? this.targetUnit,
+      desiredWeeklyRateKg: desiredWeeklyRateKg ?? this.desiredWeeklyRateKg,
+      isNutritionDriver: isNutritionDriver ?? this.isNutritionDriver,
+      predecessorGoalId: predecessorGoalId ?? this.predecessorGoalId,
+      retiredAt: retiredAt ?? this.retiredAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (localId.present) {
+      map['local_id'] = Variable<int>(localId.value);
+    }
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
+    if (userId.present) {
+      map['user_id'] = Variable<String>(userId.value);
+    }
+    if (area.present) {
+      map['area'] = Variable<String>(area.value);
+    }
+    if (preset.present) {
+      map['preset'] = Variable<String>(preset.value);
+    }
+    if (title.present) {
+      map['title'] = Variable<String>(title.value);
+    }
+    if (reason.present) {
+      map['reason'] = Variable<String>(reason.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(status.value);
+    }
+    if (startDate.present) {
+      map['start_date'] = Variable<DateTime>(startDate.value);
+    }
+    if (targetDate.present) {
+      map['target_date'] = Variable<DateTime>(targetDate.value);
+    }
+    if (targetMetric.present) {
+      map['target_metric'] = Variable<String>(targetMetric.value);
+    }
+    if (targetValue.present) {
+      map['target_value'] = Variable<double>(targetValue.value);
+    }
+    if (targetUnit.present) {
+      map['target_unit'] = Variable<String>(targetUnit.value);
+    }
+    if (desiredWeeklyRateKg.present) {
+      map['desired_weekly_rate_kg'] =
+          Variable<double>(desiredWeeklyRateKg.value);
+    }
+    if (isNutritionDriver.present) {
+      map['is_nutrition_driver'] = Variable<bool>(isNutritionDriver.value);
+    }
+    if (predecessorGoalId.present) {
+      map['predecessor_goal_id'] = Variable<String>(predecessorGoalId.value);
+    }
+    if (retiredAt.present) {
+      map['retired_at'] = Variable<DateTime>(retiredAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('UserGoalsCompanion(')
+          ..write('localId: $localId, ')
+          ..write('id: $id, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('userId: $userId, ')
+          ..write('area: $area, ')
+          ..write('preset: $preset, ')
+          ..write('title: $title, ')
+          ..write('reason: $reason, ')
+          ..write('status: $status, ')
+          ..write('startDate: $startDate, ')
+          ..write('targetDate: $targetDate, ')
+          ..write('targetMetric: $targetMetric, ')
+          ..write('targetValue: $targetValue, ')
+          ..write('targetUnit: $targetUnit, ')
+          ..write('desiredWeeklyRateKg: $desiredWeeklyRateKg, ')
+          ..write('isNutritionDriver: $isNutritionDriver, ')
+          ..write('predecessorGoalId: $predecessorGoalId, ')
+          ..write('retiredAt: $retiredAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $GoalEventsTable extends GoalEvents
+    with TableInfo<$GoalEventsTable, GoalEvent> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $GoalEventsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _localIdMeta =
+      const VerificationMeta('localId');
+  @override
+  late final GeneratedColumn<int> localId = GeneratedColumn<int>(
+      'local_id', aliasedName, false,
+      hasAutoIncrement: true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+      'id', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'),
+      clientDefault: () => const Uuid().v4());
+  static const VerificationMeta _createdAtMeta =
+      const VerificationMeta('createdAt');
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+      'created_at', aliasedName, false,
+      type: DriftSqlType.dateTime,
+      requiredDuringInsert: false,
+      defaultValue: currentDateAndTime);
+  static const VerificationMeta _updatedAtMeta =
+      const VerificationMeta('updatedAt');
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+      'updated_at', aliasedName, false,
+      type: DriftSqlType.dateTime,
+      requiredDuringInsert: false,
+      defaultValue: currentDateAndTime);
+  static const VerificationMeta _deletedAtMeta =
+      const VerificationMeta('deletedAt');
+  @override
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+      'deleted_at', aliasedName, true,
+      type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  static const VerificationMeta _goalIdMeta = const VerificationMeta('goalId');
+  @override
+  late final GeneratedColumn<String> goalId = GeneratedColumn<String>(
+      'goal_id', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'REFERENCES user_goals (id) ON DELETE CASCADE'));
+  static const VerificationMeta _eventTypeMeta =
+      const VerificationMeta('eventType');
+  @override
+  late final GeneratedColumn<String> eventType = GeneratedColumn<String>(
+      'event_type', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _actorMeta = const VerificationMeta('actor');
+  @override
+  late final GeneratedColumn<String> actor = GeneratedColumn<String>(
+      'actor', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultValue: const Constant('user'));
+  static const VerificationMeta _occurredAtMeta =
+      const VerificationMeta('occurredAt');
+  @override
+  late final GeneratedColumn<DateTime> occurredAt = GeneratedColumn<DateTime>(
+      'occurred_at', aliasedName, false,
+      type: DriftSqlType.dateTime,
+      requiredDuringInsert: false,
+      defaultValue: currentDateAndTime);
+  static const VerificationMeta _recommendationIdMeta =
+      const VerificationMeta('recommendationId');
+  @override
+  late final GeneratedColumn<String> recommendationId = GeneratedColumn<String>(
+      'recommendation_id', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _reasonMeta = const VerificationMeta('reason');
+  @override
+  late final GeneratedColumn<String> reason = GeneratedColumn<String>(
+      'reason', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _algorithmVersionMeta =
+      const VerificationMeta('algorithmVersion');
+  @override
+  late final GeneratedColumn<String> algorithmVersion = GeneratedColumn<String>(
+      'algorithm_version', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  @override
+  List<GeneratedColumn> get $columns => [
+        localId,
+        id,
+        createdAt,
+        updatedAt,
+        deletedAt,
+        goalId,
+        eventType,
+        actor,
+        occurredAt,
+        recommendationId,
+        reason,
+        algorithmVersion
+      ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'goal_events';
+  @override
+  VerificationContext validateIntegrity(Insertable<GoalEvent> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('local_id')) {
+      context.handle(_localIdMeta,
+          localId.isAcceptableOrUnknown(data['local_id']!, _localIdMeta));
+    }
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(_createdAtMeta,
+          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(_updatedAtMeta,
+          updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta));
+    }
+    if (data.containsKey('deleted_at')) {
+      context.handle(_deletedAtMeta,
+          deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta));
+    }
+    if (data.containsKey('goal_id')) {
+      context.handle(_goalIdMeta,
+          goalId.isAcceptableOrUnknown(data['goal_id']!, _goalIdMeta));
+    } else if (isInserting) {
+      context.missing(_goalIdMeta);
+    }
+    if (data.containsKey('event_type')) {
+      context.handle(_eventTypeMeta,
+          eventType.isAcceptableOrUnknown(data['event_type']!, _eventTypeMeta));
+    } else if (isInserting) {
+      context.missing(_eventTypeMeta);
+    }
+    if (data.containsKey('actor')) {
+      context.handle(
+          _actorMeta, actor.isAcceptableOrUnknown(data['actor']!, _actorMeta));
+    }
+    if (data.containsKey('occurred_at')) {
+      context.handle(
+          _occurredAtMeta,
+          occurredAt.isAcceptableOrUnknown(
+              data['occurred_at']!, _occurredAtMeta));
+    }
+    if (data.containsKey('recommendation_id')) {
+      context.handle(
+          _recommendationIdMeta,
+          recommendationId.isAcceptableOrUnknown(
+              data['recommendation_id']!, _recommendationIdMeta));
+    }
+    if (data.containsKey('reason')) {
+      context.handle(_reasonMeta,
+          reason.isAcceptableOrUnknown(data['reason']!, _reasonMeta));
+    }
+    if (data.containsKey('algorithm_version')) {
+      context.handle(
+          _algorithmVersionMeta,
+          algorithmVersion.isAcceptableOrUnknown(
+              data['algorithm_version']!, _algorithmVersionMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {localId};
+  @override
+  GoalEvent map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return GoalEvent(
+      localId: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}local_id'])!,
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
+      createdAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
+      updatedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}updated_at'])!,
+      deletedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}deleted_at']),
+      goalId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}goal_id'])!,
+      eventType: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}event_type'])!,
+      actor: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}actor'])!,
+      occurredAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}occurred_at'])!,
+      recommendationId: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}recommendation_id']),
+      reason: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}reason']),
+      algorithmVersion: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}algorithm_version']),
+    );
+  }
+
+  @override
+  $GoalEventsTable createAlias(String alias) {
+    return $GoalEventsTable(attachedDatabase, alias);
+  }
+}
+
+class GoalEvent extends DataClass implements Insertable<GoalEvent> {
+  final int localId;
+  final String id;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final DateTime? deletedAt;
+  final String goalId;
+  final String eventType;
+  final String actor;
+  final DateTime occurredAt;
+  final String? recommendationId;
+  final String? reason;
+  final String? algorithmVersion;
+  const GoalEvent(
+      {required this.localId,
+      required this.id,
+      required this.createdAt,
+      required this.updatedAt,
+      this.deletedAt,
+      required this.goalId,
+      required this.eventType,
+      required this.actor,
+      required this.occurredAt,
+      this.recommendationId,
+      this.reason,
+      this.algorithmVersion});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['local_id'] = Variable<int>(localId);
+    map['id'] = Variable<String>(id);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
+    map['goal_id'] = Variable<String>(goalId);
+    map['event_type'] = Variable<String>(eventType);
+    map['actor'] = Variable<String>(actor);
+    map['occurred_at'] = Variable<DateTime>(occurredAt);
+    if (!nullToAbsent || recommendationId != null) {
+      map['recommendation_id'] = Variable<String>(recommendationId);
+    }
+    if (!nullToAbsent || reason != null) {
+      map['reason'] = Variable<String>(reason);
+    }
+    if (!nullToAbsent || algorithmVersion != null) {
+      map['algorithm_version'] = Variable<String>(algorithmVersion);
+    }
+    return map;
+  }
+
+  GoalEventsCompanion toCompanion(bool nullToAbsent) {
+    return GoalEventsCompanion(
+      localId: Value(localId),
+      id: Value(id),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
+      goalId: Value(goalId),
+      eventType: Value(eventType),
+      actor: Value(actor),
+      occurredAt: Value(occurredAt),
+      recommendationId: recommendationId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(recommendationId),
+      reason:
+          reason == null && nullToAbsent ? const Value.absent() : Value(reason),
+      algorithmVersion: algorithmVersion == null && nullToAbsent
+          ? const Value.absent()
+          : Value(algorithmVersion),
+    );
+  }
+
+  factory GoalEvent.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return GoalEvent(
+      localId: serializer.fromJson<int>(json['localId']),
+      id: serializer.fromJson<String>(json['id']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+      goalId: serializer.fromJson<String>(json['goalId']),
+      eventType: serializer.fromJson<String>(json['eventType']),
+      actor: serializer.fromJson<String>(json['actor']),
+      occurredAt: serializer.fromJson<DateTime>(json['occurredAt']),
+      recommendationId: serializer.fromJson<String?>(json['recommendationId']),
+      reason: serializer.fromJson<String?>(json['reason']),
+      algorithmVersion: serializer.fromJson<String?>(json['algorithmVersion']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'localId': serializer.toJson<int>(localId),
+      'id': serializer.toJson<String>(id),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+      'goalId': serializer.toJson<String>(goalId),
+      'eventType': serializer.toJson<String>(eventType),
+      'actor': serializer.toJson<String>(actor),
+      'occurredAt': serializer.toJson<DateTime>(occurredAt),
+      'recommendationId': serializer.toJson<String?>(recommendationId),
+      'reason': serializer.toJson<String?>(reason),
+      'algorithmVersion': serializer.toJson<String?>(algorithmVersion),
+    };
+  }
+
+  GoalEvent copyWith(
+          {int? localId,
+          String? id,
+          DateTime? createdAt,
+          DateTime? updatedAt,
+          Value<DateTime?> deletedAt = const Value.absent(),
+          String? goalId,
+          String? eventType,
+          String? actor,
+          DateTime? occurredAt,
+          Value<String?> recommendationId = const Value.absent(),
+          Value<String?> reason = const Value.absent(),
+          Value<String?> algorithmVersion = const Value.absent()}) =>
+      GoalEvent(
+        localId: localId ?? this.localId,
+        id: id ?? this.id,
+        createdAt: createdAt ?? this.createdAt,
+        updatedAt: updatedAt ?? this.updatedAt,
+        deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+        goalId: goalId ?? this.goalId,
+        eventType: eventType ?? this.eventType,
+        actor: actor ?? this.actor,
+        occurredAt: occurredAt ?? this.occurredAt,
+        recommendationId: recommendationId.present
+            ? recommendationId.value
+            : this.recommendationId,
+        reason: reason.present ? reason.value : this.reason,
+        algorithmVersion: algorithmVersion.present
+            ? algorithmVersion.value
+            : this.algorithmVersion,
+      );
+  GoalEvent copyWithCompanion(GoalEventsCompanion data) {
+    return GoalEvent(
+      localId: data.localId.present ? data.localId.value : this.localId,
+      id: data.id.present ? data.id.value : this.id,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+      goalId: data.goalId.present ? data.goalId.value : this.goalId,
+      eventType: data.eventType.present ? data.eventType.value : this.eventType,
+      actor: data.actor.present ? data.actor.value : this.actor,
+      occurredAt:
+          data.occurredAt.present ? data.occurredAt.value : this.occurredAt,
+      recommendationId: data.recommendationId.present
+          ? data.recommendationId.value
+          : this.recommendationId,
+      reason: data.reason.present ? data.reason.value : this.reason,
+      algorithmVersion: data.algorithmVersion.present
+          ? data.algorithmVersion.value
+          : this.algorithmVersion,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('GoalEvent(')
+          ..write('localId: $localId, ')
+          ..write('id: $id, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('goalId: $goalId, ')
+          ..write('eventType: $eventType, ')
+          ..write('actor: $actor, ')
+          ..write('occurredAt: $occurredAt, ')
+          ..write('recommendationId: $recommendationId, ')
+          ..write('reason: $reason, ')
+          ..write('algorithmVersion: $algorithmVersion')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+      localId,
+      id,
+      createdAt,
+      updatedAt,
+      deletedAt,
+      goalId,
+      eventType,
+      actor,
+      occurredAt,
+      recommendationId,
+      reason,
+      algorithmVersion);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is GoalEvent &&
+          other.localId == this.localId &&
+          other.id == this.id &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt &&
+          other.deletedAt == this.deletedAt &&
+          other.goalId == this.goalId &&
+          other.eventType == this.eventType &&
+          other.actor == this.actor &&
+          other.occurredAt == this.occurredAt &&
+          other.recommendationId == this.recommendationId &&
+          other.reason == this.reason &&
+          other.algorithmVersion == this.algorithmVersion);
+}
+
+class GoalEventsCompanion extends UpdateCompanion<GoalEvent> {
+  final Value<int> localId;
+  final Value<String> id;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<DateTime?> deletedAt;
+  final Value<String> goalId;
+  final Value<String> eventType;
+  final Value<String> actor;
+  final Value<DateTime> occurredAt;
+  final Value<String?> recommendationId;
+  final Value<String?> reason;
+  final Value<String?> algorithmVersion;
+  const GoalEventsCompanion({
+    this.localId = const Value.absent(),
+    this.id = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.goalId = const Value.absent(),
+    this.eventType = const Value.absent(),
+    this.actor = const Value.absent(),
+    this.occurredAt = const Value.absent(),
+    this.recommendationId = const Value.absent(),
+    this.reason = const Value.absent(),
+    this.algorithmVersion = const Value.absent(),
+  });
+  GoalEventsCompanion.insert({
+    this.localId = const Value.absent(),
+    this.id = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    required String goalId,
+    required String eventType,
+    this.actor = const Value.absent(),
+    this.occurredAt = const Value.absent(),
+    this.recommendationId = const Value.absent(),
+    this.reason = const Value.absent(),
+    this.algorithmVersion = const Value.absent(),
+  })  : goalId = Value(goalId),
+        eventType = Value(eventType);
+  static Insertable<GoalEvent> custom({
+    Expression<int>? localId,
+    Expression<String>? id,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<DateTime>? deletedAt,
+    Expression<String>? goalId,
+    Expression<String>? eventType,
+    Expression<String>? actor,
+    Expression<DateTime>? occurredAt,
+    Expression<String>? recommendationId,
+    Expression<String>? reason,
+    Expression<String>? algorithmVersion,
+  }) {
+    return RawValuesInsertable({
+      if (localId != null) 'local_id': localId,
+      if (id != null) 'id': id,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+      if (goalId != null) 'goal_id': goalId,
+      if (eventType != null) 'event_type': eventType,
+      if (actor != null) 'actor': actor,
+      if (occurredAt != null) 'occurred_at': occurredAt,
+      if (recommendationId != null) 'recommendation_id': recommendationId,
+      if (reason != null) 'reason': reason,
+      if (algorithmVersion != null) 'algorithm_version': algorithmVersion,
+    });
+  }
+
+  GoalEventsCompanion copyWith(
+      {Value<int>? localId,
+      Value<String>? id,
+      Value<DateTime>? createdAt,
+      Value<DateTime>? updatedAt,
+      Value<DateTime?>? deletedAt,
+      Value<String>? goalId,
+      Value<String>? eventType,
+      Value<String>? actor,
+      Value<DateTime>? occurredAt,
+      Value<String?>? recommendationId,
+      Value<String?>? reason,
+      Value<String?>? algorithmVersion}) {
+    return GoalEventsCompanion(
+      localId: localId ?? this.localId,
+      id: id ?? this.id,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      deletedAt: deletedAt ?? this.deletedAt,
+      goalId: goalId ?? this.goalId,
+      eventType: eventType ?? this.eventType,
+      actor: actor ?? this.actor,
+      occurredAt: occurredAt ?? this.occurredAt,
+      recommendationId: recommendationId ?? this.recommendationId,
+      reason: reason ?? this.reason,
+      algorithmVersion: algorithmVersion ?? this.algorithmVersion,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (localId.present) {
+      map['local_id'] = Variable<int>(localId.value);
+    }
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
+    if (goalId.present) {
+      map['goal_id'] = Variable<String>(goalId.value);
+    }
+    if (eventType.present) {
+      map['event_type'] = Variable<String>(eventType.value);
+    }
+    if (actor.present) {
+      map['actor'] = Variable<String>(actor.value);
+    }
+    if (occurredAt.present) {
+      map['occurred_at'] = Variable<DateTime>(occurredAt.value);
+    }
+    if (recommendationId.present) {
+      map['recommendation_id'] = Variable<String>(recommendationId.value);
+    }
+    if (reason.present) {
+      map['reason'] = Variable<String>(reason.value);
+    }
+    if (algorithmVersion.present) {
+      map['algorithm_version'] = Variable<String>(algorithmVersion.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('GoalEventsCompanion(')
+          ..write('localId: $localId, ')
+          ..write('id: $id, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('goalId: $goalId, ')
+          ..write('eventType: $eventType, ')
+          ..write('actor: $actor, ')
+          ..write('occurredAt: $occurredAt, ')
+          ..write('recommendationId: $recommendationId, ')
+          ..write('reason: $reason, ')
+          ..write('algorithmVersion: $algorithmVersion')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $GoalReviewsTable extends GoalReviews
+    with TableInfo<$GoalReviewsTable, GoalReview> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $GoalReviewsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _localIdMeta =
+      const VerificationMeta('localId');
+  @override
+  late final GeneratedColumn<int> localId = GeneratedColumn<int>(
+      'local_id', aliasedName, false,
+      hasAutoIncrement: true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+      'id', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'),
+      clientDefault: () => const Uuid().v4());
+  static const VerificationMeta _createdAtMeta =
+      const VerificationMeta('createdAt');
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+      'created_at', aliasedName, false,
+      type: DriftSqlType.dateTime,
+      requiredDuringInsert: false,
+      defaultValue: currentDateAndTime);
+  static const VerificationMeta _updatedAtMeta =
+      const VerificationMeta('updatedAt');
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+      'updated_at', aliasedName, false,
+      type: DriftSqlType.dateTime,
+      requiredDuringInsert: false,
+      defaultValue: currentDateAndTime);
+  static const VerificationMeta _deletedAtMeta =
+      const VerificationMeta('deletedAt');
+  @override
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+      'deleted_at', aliasedName, true,
+      type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  static const VerificationMeta _goalIdMeta = const VerificationMeta('goalId');
+  @override
+  late final GeneratedColumn<String> goalId = GeneratedColumn<String>(
+      'goal_id', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'REFERENCES user_goals (id) ON DELETE CASCADE'));
+  static const VerificationMeta _windowStartMeta =
+      const VerificationMeta('windowStart');
+  @override
+  late final GeneratedColumn<DateTime> windowStart = GeneratedColumn<DateTime>(
+      'window_start', aliasedName, false,
+      type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  static const VerificationMeta _windowEndMeta =
+      const VerificationMeta('windowEnd');
+  @override
+  late final GeneratedColumn<DateTime> windowEnd = GeneratedColumn<DateTime>(
+      'window_end', aliasedName, false,
+      type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<String> status = GeneratedColumn<String>(
+      'status', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultValue: const Constant('pending'));
+  static const VerificationMeta _trajectoryStatusMeta =
+      const VerificationMeta('trajectoryStatus');
+  @override
+  late final GeneratedColumn<String> trajectoryStatus = GeneratedColumn<String>(
+      'trajectory_status', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _observedRateKgPerWeekMeta =
+      const VerificationMeta('observedRateKgPerWeek');
+  @override
+  late final GeneratedColumn<double> observedRateKgPerWeek =
+      GeneratedColumn<double>('observed_rate_kg_per_week', aliasedName, true,
+          type: DriftSqlType.double, requiredDuringInsert: false);
+  static const VerificationMeta _confidenceLevelMeta =
+      const VerificationMeta('confidenceLevel');
+  @override
+  late final GeneratedColumn<String> confidenceLevel = GeneratedColumn<String>(
+      'confidence_level', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _tdeeEstimateMeta =
+      const VerificationMeta('tdeeEstimate');
+  @override
+  late final GeneratedColumn<double> tdeeEstimate = GeneratedColumn<double>(
+      'tdee_estimate', aliasedName, true,
+      type: DriftSqlType.double, requiredDuringInsert: false);
+  static const VerificationMeta _recommendedCaloriesMeta =
+      const VerificationMeta('recommendedCalories');
+  @override
+  late final GeneratedColumn<int> recommendedCalories = GeneratedColumn<int>(
+      'recommended_calories', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
+  static const VerificationMeta _recommendedProteinMeta =
+      const VerificationMeta('recommendedProtein');
+  @override
+  late final GeneratedColumn<int> recommendedProtein = GeneratedColumn<int>(
+      'recommended_protein', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
+  static const VerificationMeta _recommendedCarbsMeta =
+      const VerificationMeta('recommendedCarbs');
+  @override
+  late final GeneratedColumn<int> recommendedCarbs = GeneratedColumn<int>(
+      'recommended_carbs', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
+  static const VerificationMeta _recommendedFatMeta =
+      const VerificationMeta('recommendedFat');
+  @override
+  late final GeneratedColumn<int> recommendedFat = GeneratedColumn<int>(
+      'recommended_fat', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
+  static const VerificationMeta _decisionMeta =
+      const VerificationMeta('decision');
+  @override
+  late final GeneratedColumn<String> decision = GeneratedColumn<String>(
+      'decision', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _algorithmVersionMeta =
+      const VerificationMeta('algorithmVersion');
+  @override
+  late final GeneratedColumn<String> algorithmVersion = GeneratedColumn<String>(
+      'algorithm_version', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _explanationMeta =
+      const VerificationMeta('explanation');
+  @override
+  late final GeneratedColumn<String> explanation = GeneratedColumn<String>(
+      'explanation', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  @override
+  List<GeneratedColumn> get $columns => [
+        localId,
+        id,
+        createdAt,
+        updatedAt,
+        deletedAt,
+        goalId,
+        windowStart,
+        windowEnd,
+        status,
+        trajectoryStatus,
+        observedRateKgPerWeek,
+        confidenceLevel,
+        tdeeEstimate,
+        recommendedCalories,
+        recommendedProtein,
+        recommendedCarbs,
+        recommendedFat,
+        decision,
+        algorithmVersion,
+        explanation
+      ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'goal_reviews';
+  @override
+  VerificationContext validateIntegrity(Insertable<GoalReview> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('local_id')) {
+      context.handle(_localIdMeta,
+          localId.isAcceptableOrUnknown(data['local_id']!, _localIdMeta));
+    }
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(_createdAtMeta,
+          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(_updatedAtMeta,
+          updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta));
+    }
+    if (data.containsKey('deleted_at')) {
+      context.handle(_deletedAtMeta,
+          deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta));
+    }
+    if (data.containsKey('goal_id')) {
+      context.handle(_goalIdMeta,
+          goalId.isAcceptableOrUnknown(data['goal_id']!, _goalIdMeta));
+    } else if (isInserting) {
+      context.missing(_goalIdMeta);
+    }
+    if (data.containsKey('window_start')) {
+      context.handle(
+          _windowStartMeta,
+          windowStart.isAcceptableOrUnknown(
+              data['window_start']!, _windowStartMeta));
+    } else if (isInserting) {
+      context.missing(_windowStartMeta);
+    }
+    if (data.containsKey('window_end')) {
+      context.handle(_windowEndMeta,
+          windowEnd.isAcceptableOrUnknown(data['window_end']!, _windowEndMeta));
+    } else if (isInserting) {
+      context.missing(_windowEndMeta);
+    }
+    if (data.containsKey('status')) {
+      context.handle(_statusMeta,
+          status.isAcceptableOrUnknown(data['status']!, _statusMeta));
+    }
+    if (data.containsKey('trajectory_status')) {
+      context.handle(
+          _trajectoryStatusMeta,
+          trajectoryStatus.isAcceptableOrUnknown(
+              data['trajectory_status']!, _trajectoryStatusMeta));
+    }
+    if (data.containsKey('observed_rate_kg_per_week')) {
+      context.handle(
+          _observedRateKgPerWeekMeta,
+          observedRateKgPerWeek.isAcceptableOrUnknown(
+              data['observed_rate_kg_per_week']!, _observedRateKgPerWeekMeta));
+    }
+    if (data.containsKey('confidence_level')) {
+      context.handle(
+          _confidenceLevelMeta,
+          confidenceLevel.isAcceptableOrUnknown(
+              data['confidence_level']!, _confidenceLevelMeta));
+    }
+    if (data.containsKey('tdee_estimate')) {
+      context.handle(
+          _tdeeEstimateMeta,
+          tdeeEstimate.isAcceptableOrUnknown(
+              data['tdee_estimate']!, _tdeeEstimateMeta));
+    }
+    if (data.containsKey('recommended_calories')) {
+      context.handle(
+          _recommendedCaloriesMeta,
+          recommendedCalories.isAcceptableOrUnknown(
+              data['recommended_calories']!, _recommendedCaloriesMeta));
+    }
+    if (data.containsKey('recommended_protein')) {
+      context.handle(
+          _recommendedProteinMeta,
+          recommendedProtein.isAcceptableOrUnknown(
+              data['recommended_protein']!, _recommendedProteinMeta));
+    }
+    if (data.containsKey('recommended_carbs')) {
+      context.handle(
+          _recommendedCarbsMeta,
+          recommendedCarbs.isAcceptableOrUnknown(
+              data['recommended_carbs']!, _recommendedCarbsMeta));
+    }
+    if (data.containsKey('recommended_fat')) {
+      context.handle(
+          _recommendedFatMeta,
+          recommendedFat.isAcceptableOrUnknown(
+              data['recommended_fat']!, _recommendedFatMeta));
+    }
+    if (data.containsKey('decision')) {
+      context.handle(_decisionMeta,
+          decision.isAcceptableOrUnknown(data['decision']!, _decisionMeta));
+    }
+    if (data.containsKey('algorithm_version')) {
+      context.handle(
+          _algorithmVersionMeta,
+          algorithmVersion.isAcceptableOrUnknown(
+              data['algorithm_version']!, _algorithmVersionMeta));
+    } else if (isInserting) {
+      context.missing(_algorithmVersionMeta);
+    }
+    if (data.containsKey('explanation')) {
+      context.handle(
+          _explanationMeta,
+          explanation.isAcceptableOrUnknown(
+              data['explanation']!, _explanationMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {localId};
+  @override
+  GoalReview map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return GoalReview(
+      localId: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}local_id'])!,
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
+      createdAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
+      updatedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}updated_at'])!,
+      deletedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}deleted_at']),
+      goalId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}goal_id'])!,
+      windowStart: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}window_start'])!,
+      windowEnd: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}window_end'])!,
+      status: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}status'])!,
+      trajectoryStatus: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}trajectory_status']),
+      observedRateKgPerWeek: attachedDatabase.typeMapping.read(
+          DriftSqlType.double,
+          data['${effectivePrefix}observed_rate_kg_per_week']),
+      confidenceLevel: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}confidence_level']),
+      tdeeEstimate: attachedDatabase.typeMapping
+          .read(DriftSqlType.double, data['${effectivePrefix}tdee_estimate']),
+      recommendedCalories: attachedDatabase.typeMapping.read(
+          DriftSqlType.int, data['${effectivePrefix}recommended_calories']),
+      recommendedProtein: attachedDatabase.typeMapping.read(
+          DriftSqlType.int, data['${effectivePrefix}recommended_protein']),
+      recommendedCarbs: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}recommended_carbs']),
+      recommendedFat: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}recommended_fat']),
+      decision: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}decision']),
+      algorithmVersion: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}algorithm_version'])!,
+      explanation: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}explanation']),
+    );
+  }
+
+  @override
+  $GoalReviewsTable createAlias(String alias) {
+    return $GoalReviewsTable(attachedDatabase, alias);
+  }
+}
+
+class GoalReview extends DataClass implements Insertable<GoalReview> {
+  final int localId;
+  final String id;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final DateTime? deletedAt;
+  final String goalId;
+  final DateTime windowStart;
+  final DateTime windowEnd;
+  final String status;
+  final String? trajectoryStatus;
+  final double? observedRateKgPerWeek;
+  final String? confidenceLevel;
+  final double? tdeeEstimate;
+  final int? recommendedCalories;
+  final int? recommendedProtein;
+  final int? recommendedCarbs;
+  final int? recommendedFat;
+  final String? decision;
+  final String algorithmVersion;
+  final String? explanation;
+  const GoalReview(
+      {required this.localId,
+      required this.id,
+      required this.createdAt,
+      required this.updatedAt,
+      this.deletedAt,
+      required this.goalId,
+      required this.windowStart,
+      required this.windowEnd,
+      required this.status,
+      this.trajectoryStatus,
+      this.observedRateKgPerWeek,
+      this.confidenceLevel,
+      this.tdeeEstimate,
+      this.recommendedCalories,
+      this.recommendedProtein,
+      this.recommendedCarbs,
+      this.recommendedFat,
+      this.decision,
+      required this.algorithmVersion,
+      this.explanation});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['local_id'] = Variable<int>(localId);
+    map['id'] = Variable<String>(id);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
+    map['goal_id'] = Variable<String>(goalId);
+    map['window_start'] = Variable<DateTime>(windowStart);
+    map['window_end'] = Variable<DateTime>(windowEnd);
+    map['status'] = Variable<String>(status);
+    if (!nullToAbsent || trajectoryStatus != null) {
+      map['trajectory_status'] = Variable<String>(trajectoryStatus);
+    }
+    if (!nullToAbsent || observedRateKgPerWeek != null) {
+      map['observed_rate_kg_per_week'] =
+          Variable<double>(observedRateKgPerWeek);
+    }
+    if (!nullToAbsent || confidenceLevel != null) {
+      map['confidence_level'] = Variable<String>(confidenceLevel);
+    }
+    if (!nullToAbsent || tdeeEstimate != null) {
+      map['tdee_estimate'] = Variable<double>(tdeeEstimate);
+    }
+    if (!nullToAbsent || recommendedCalories != null) {
+      map['recommended_calories'] = Variable<int>(recommendedCalories);
+    }
+    if (!nullToAbsent || recommendedProtein != null) {
+      map['recommended_protein'] = Variable<int>(recommendedProtein);
+    }
+    if (!nullToAbsent || recommendedCarbs != null) {
+      map['recommended_carbs'] = Variable<int>(recommendedCarbs);
+    }
+    if (!nullToAbsent || recommendedFat != null) {
+      map['recommended_fat'] = Variable<int>(recommendedFat);
+    }
+    if (!nullToAbsent || decision != null) {
+      map['decision'] = Variable<String>(decision);
+    }
+    map['algorithm_version'] = Variable<String>(algorithmVersion);
+    if (!nullToAbsent || explanation != null) {
+      map['explanation'] = Variable<String>(explanation);
+    }
+    return map;
+  }
+
+  GoalReviewsCompanion toCompanion(bool nullToAbsent) {
+    return GoalReviewsCompanion(
+      localId: Value(localId),
+      id: Value(id),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
+      goalId: Value(goalId),
+      windowStart: Value(windowStart),
+      windowEnd: Value(windowEnd),
+      status: Value(status),
+      trajectoryStatus: trajectoryStatus == null && nullToAbsent
+          ? const Value.absent()
+          : Value(trajectoryStatus),
+      observedRateKgPerWeek: observedRateKgPerWeek == null && nullToAbsent
+          ? const Value.absent()
+          : Value(observedRateKgPerWeek),
+      confidenceLevel: confidenceLevel == null && nullToAbsent
+          ? const Value.absent()
+          : Value(confidenceLevel),
+      tdeeEstimate: tdeeEstimate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(tdeeEstimate),
+      recommendedCalories: recommendedCalories == null && nullToAbsent
+          ? const Value.absent()
+          : Value(recommendedCalories),
+      recommendedProtein: recommendedProtein == null && nullToAbsent
+          ? const Value.absent()
+          : Value(recommendedProtein),
+      recommendedCarbs: recommendedCarbs == null && nullToAbsent
+          ? const Value.absent()
+          : Value(recommendedCarbs),
+      recommendedFat: recommendedFat == null && nullToAbsent
+          ? const Value.absent()
+          : Value(recommendedFat),
+      decision: decision == null && nullToAbsent
+          ? const Value.absent()
+          : Value(decision),
+      algorithmVersion: Value(algorithmVersion),
+      explanation: explanation == null && nullToAbsent
+          ? const Value.absent()
+          : Value(explanation),
+    );
+  }
+
+  factory GoalReview.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return GoalReview(
+      localId: serializer.fromJson<int>(json['localId']),
+      id: serializer.fromJson<String>(json['id']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+      goalId: serializer.fromJson<String>(json['goalId']),
+      windowStart: serializer.fromJson<DateTime>(json['windowStart']),
+      windowEnd: serializer.fromJson<DateTime>(json['windowEnd']),
+      status: serializer.fromJson<String>(json['status']),
+      trajectoryStatus: serializer.fromJson<String?>(json['trajectoryStatus']),
+      observedRateKgPerWeek:
+          serializer.fromJson<double?>(json['observedRateKgPerWeek']),
+      confidenceLevel: serializer.fromJson<String?>(json['confidenceLevel']),
+      tdeeEstimate: serializer.fromJson<double?>(json['tdeeEstimate']),
+      recommendedCalories:
+          serializer.fromJson<int?>(json['recommendedCalories']),
+      recommendedProtein: serializer.fromJson<int?>(json['recommendedProtein']),
+      recommendedCarbs: serializer.fromJson<int?>(json['recommendedCarbs']),
+      recommendedFat: serializer.fromJson<int?>(json['recommendedFat']),
+      decision: serializer.fromJson<String?>(json['decision']),
+      algorithmVersion: serializer.fromJson<String>(json['algorithmVersion']),
+      explanation: serializer.fromJson<String?>(json['explanation']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'localId': serializer.toJson<int>(localId),
+      'id': serializer.toJson<String>(id),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+      'goalId': serializer.toJson<String>(goalId),
+      'windowStart': serializer.toJson<DateTime>(windowStart),
+      'windowEnd': serializer.toJson<DateTime>(windowEnd),
+      'status': serializer.toJson<String>(status),
+      'trajectoryStatus': serializer.toJson<String?>(trajectoryStatus),
+      'observedRateKgPerWeek':
+          serializer.toJson<double?>(observedRateKgPerWeek),
+      'confidenceLevel': serializer.toJson<String?>(confidenceLevel),
+      'tdeeEstimate': serializer.toJson<double?>(tdeeEstimate),
+      'recommendedCalories': serializer.toJson<int?>(recommendedCalories),
+      'recommendedProtein': serializer.toJson<int?>(recommendedProtein),
+      'recommendedCarbs': serializer.toJson<int?>(recommendedCarbs),
+      'recommendedFat': serializer.toJson<int?>(recommendedFat),
+      'decision': serializer.toJson<String?>(decision),
+      'algorithmVersion': serializer.toJson<String>(algorithmVersion),
+      'explanation': serializer.toJson<String?>(explanation),
+    };
+  }
+
+  GoalReview copyWith(
+          {int? localId,
+          String? id,
+          DateTime? createdAt,
+          DateTime? updatedAt,
+          Value<DateTime?> deletedAt = const Value.absent(),
+          String? goalId,
+          DateTime? windowStart,
+          DateTime? windowEnd,
+          String? status,
+          Value<String?> trajectoryStatus = const Value.absent(),
+          Value<double?> observedRateKgPerWeek = const Value.absent(),
+          Value<String?> confidenceLevel = const Value.absent(),
+          Value<double?> tdeeEstimate = const Value.absent(),
+          Value<int?> recommendedCalories = const Value.absent(),
+          Value<int?> recommendedProtein = const Value.absent(),
+          Value<int?> recommendedCarbs = const Value.absent(),
+          Value<int?> recommendedFat = const Value.absent(),
+          Value<String?> decision = const Value.absent(),
+          String? algorithmVersion,
+          Value<String?> explanation = const Value.absent()}) =>
+      GoalReview(
+        localId: localId ?? this.localId,
+        id: id ?? this.id,
+        createdAt: createdAt ?? this.createdAt,
+        updatedAt: updatedAt ?? this.updatedAt,
+        deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+        goalId: goalId ?? this.goalId,
+        windowStart: windowStart ?? this.windowStart,
+        windowEnd: windowEnd ?? this.windowEnd,
+        status: status ?? this.status,
+        trajectoryStatus: trajectoryStatus.present
+            ? trajectoryStatus.value
+            : this.trajectoryStatus,
+        observedRateKgPerWeek: observedRateKgPerWeek.present
+            ? observedRateKgPerWeek.value
+            : this.observedRateKgPerWeek,
+        confidenceLevel: confidenceLevel.present
+            ? confidenceLevel.value
+            : this.confidenceLevel,
+        tdeeEstimate:
+            tdeeEstimate.present ? tdeeEstimate.value : this.tdeeEstimate,
+        recommendedCalories: recommendedCalories.present
+            ? recommendedCalories.value
+            : this.recommendedCalories,
+        recommendedProtein: recommendedProtein.present
+            ? recommendedProtein.value
+            : this.recommendedProtein,
+        recommendedCarbs: recommendedCarbs.present
+            ? recommendedCarbs.value
+            : this.recommendedCarbs,
+        recommendedFat:
+            recommendedFat.present ? recommendedFat.value : this.recommendedFat,
+        decision: decision.present ? decision.value : this.decision,
+        algorithmVersion: algorithmVersion ?? this.algorithmVersion,
+        explanation: explanation.present ? explanation.value : this.explanation,
+      );
+  GoalReview copyWithCompanion(GoalReviewsCompanion data) {
+    return GoalReview(
+      localId: data.localId.present ? data.localId.value : this.localId,
+      id: data.id.present ? data.id.value : this.id,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+      goalId: data.goalId.present ? data.goalId.value : this.goalId,
+      windowStart:
+          data.windowStart.present ? data.windowStart.value : this.windowStart,
+      windowEnd: data.windowEnd.present ? data.windowEnd.value : this.windowEnd,
+      status: data.status.present ? data.status.value : this.status,
+      trajectoryStatus: data.trajectoryStatus.present
+          ? data.trajectoryStatus.value
+          : this.trajectoryStatus,
+      observedRateKgPerWeek: data.observedRateKgPerWeek.present
+          ? data.observedRateKgPerWeek.value
+          : this.observedRateKgPerWeek,
+      confidenceLevel: data.confidenceLevel.present
+          ? data.confidenceLevel.value
+          : this.confidenceLevel,
+      tdeeEstimate: data.tdeeEstimate.present
+          ? data.tdeeEstimate.value
+          : this.tdeeEstimate,
+      recommendedCalories: data.recommendedCalories.present
+          ? data.recommendedCalories.value
+          : this.recommendedCalories,
+      recommendedProtein: data.recommendedProtein.present
+          ? data.recommendedProtein.value
+          : this.recommendedProtein,
+      recommendedCarbs: data.recommendedCarbs.present
+          ? data.recommendedCarbs.value
+          : this.recommendedCarbs,
+      recommendedFat: data.recommendedFat.present
+          ? data.recommendedFat.value
+          : this.recommendedFat,
+      decision: data.decision.present ? data.decision.value : this.decision,
+      algorithmVersion: data.algorithmVersion.present
+          ? data.algorithmVersion.value
+          : this.algorithmVersion,
+      explanation:
+          data.explanation.present ? data.explanation.value : this.explanation,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('GoalReview(')
+          ..write('localId: $localId, ')
+          ..write('id: $id, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('goalId: $goalId, ')
+          ..write('windowStart: $windowStart, ')
+          ..write('windowEnd: $windowEnd, ')
+          ..write('status: $status, ')
+          ..write('trajectoryStatus: $trajectoryStatus, ')
+          ..write('observedRateKgPerWeek: $observedRateKgPerWeek, ')
+          ..write('confidenceLevel: $confidenceLevel, ')
+          ..write('tdeeEstimate: $tdeeEstimate, ')
+          ..write('recommendedCalories: $recommendedCalories, ')
+          ..write('recommendedProtein: $recommendedProtein, ')
+          ..write('recommendedCarbs: $recommendedCarbs, ')
+          ..write('recommendedFat: $recommendedFat, ')
+          ..write('decision: $decision, ')
+          ..write('algorithmVersion: $algorithmVersion, ')
+          ..write('explanation: $explanation')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+      localId,
+      id,
+      createdAt,
+      updatedAt,
+      deletedAt,
+      goalId,
+      windowStart,
+      windowEnd,
+      status,
+      trajectoryStatus,
+      observedRateKgPerWeek,
+      confidenceLevel,
+      tdeeEstimate,
+      recommendedCalories,
+      recommendedProtein,
+      recommendedCarbs,
+      recommendedFat,
+      decision,
+      algorithmVersion,
+      explanation);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is GoalReview &&
+          other.localId == this.localId &&
+          other.id == this.id &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt &&
+          other.deletedAt == this.deletedAt &&
+          other.goalId == this.goalId &&
+          other.windowStart == this.windowStart &&
+          other.windowEnd == this.windowEnd &&
+          other.status == this.status &&
+          other.trajectoryStatus == this.trajectoryStatus &&
+          other.observedRateKgPerWeek == this.observedRateKgPerWeek &&
+          other.confidenceLevel == this.confidenceLevel &&
+          other.tdeeEstimate == this.tdeeEstimate &&
+          other.recommendedCalories == this.recommendedCalories &&
+          other.recommendedProtein == this.recommendedProtein &&
+          other.recommendedCarbs == this.recommendedCarbs &&
+          other.recommendedFat == this.recommendedFat &&
+          other.decision == this.decision &&
+          other.algorithmVersion == this.algorithmVersion &&
+          other.explanation == this.explanation);
+}
+
+class GoalReviewsCompanion extends UpdateCompanion<GoalReview> {
+  final Value<int> localId;
+  final Value<String> id;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<DateTime?> deletedAt;
+  final Value<String> goalId;
+  final Value<DateTime> windowStart;
+  final Value<DateTime> windowEnd;
+  final Value<String> status;
+  final Value<String?> trajectoryStatus;
+  final Value<double?> observedRateKgPerWeek;
+  final Value<String?> confidenceLevel;
+  final Value<double?> tdeeEstimate;
+  final Value<int?> recommendedCalories;
+  final Value<int?> recommendedProtein;
+  final Value<int?> recommendedCarbs;
+  final Value<int?> recommendedFat;
+  final Value<String?> decision;
+  final Value<String> algorithmVersion;
+  final Value<String?> explanation;
+  const GoalReviewsCompanion({
+    this.localId = const Value.absent(),
+    this.id = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.goalId = const Value.absent(),
+    this.windowStart = const Value.absent(),
+    this.windowEnd = const Value.absent(),
+    this.status = const Value.absent(),
+    this.trajectoryStatus = const Value.absent(),
+    this.observedRateKgPerWeek = const Value.absent(),
+    this.confidenceLevel = const Value.absent(),
+    this.tdeeEstimate = const Value.absent(),
+    this.recommendedCalories = const Value.absent(),
+    this.recommendedProtein = const Value.absent(),
+    this.recommendedCarbs = const Value.absent(),
+    this.recommendedFat = const Value.absent(),
+    this.decision = const Value.absent(),
+    this.algorithmVersion = const Value.absent(),
+    this.explanation = const Value.absent(),
+  });
+  GoalReviewsCompanion.insert({
+    this.localId = const Value.absent(),
+    this.id = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    required String goalId,
+    required DateTime windowStart,
+    required DateTime windowEnd,
+    this.status = const Value.absent(),
+    this.trajectoryStatus = const Value.absent(),
+    this.observedRateKgPerWeek = const Value.absent(),
+    this.confidenceLevel = const Value.absent(),
+    this.tdeeEstimate = const Value.absent(),
+    this.recommendedCalories = const Value.absent(),
+    this.recommendedProtein = const Value.absent(),
+    this.recommendedCarbs = const Value.absent(),
+    this.recommendedFat = const Value.absent(),
+    this.decision = const Value.absent(),
+    required String algorithmVersion,
+    this.explanation = const Value.absent(),
+  })  : goalId = Value(goalId),
+        windowStart = Value(windowStart),
+        windowEnd = Value(windowEnd),
+        algorithmVersion = Value(algorithmVersion);
+  static Insertable<GoalReview> custom({
+    Expression<int>? localId,
+    Expression<String>? id,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<DateTime>? deletedAt,
+    Expression<String>? goalId,
+    Expression<DateTime>? windowStart,
+    Expression<DateTime>? windowEnd,
+    Expression<String>? status,
+    Expression<String>? trajectoryStatus,
+    Expression<double>? observedRateKgPerWeek,
+    Expression<String>? confidenceLevel,
+    Expression<double>? tdeeEstimate,
+    Expression<int>? recommendedCalories,
+    Expression<int>? recommendedProtein,
+    Expression<int>? recommendedCarbs,
+    Expression<int>? recommendedFat,
+    Expression<String>? decision,
+    Expression<String>? algorithmVersion,
+    Expression<String>? explanation,
+  }) {
+    return RawValuesInsertable({
+      if (localId != null) 'local_id': localId,
+      if (id != null) 'id': id,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+      if (goalId != null) 'goal_id': goalId,
+      if (windowStart != null) 'window_start': windowStart,
+      if (windowEnd != null) 'window_end': windowEnd,
+      if (status != null) 'status': status,
+      if (trajectoryStatus != null) 'trajectory_status': trajectoryStatus,
+      if (observedRateKgPerWeek != null)
+        'observed_rate_kg_per_week': observedRateKgPerWeek,
+      if (confidenceLevel != null) 'confidence_level': confidenceLevel,
+      if (tdeeEstimate != null) 'tdee_estimate': tdeeEstimate,
+      if (recommendedCalories != null)
+        'recommended_calories': recommendedCalories,
+      if (recommendedProtein != null) 'recommended_protein': recommendedProtein,
+      if (recommendedCarbs != null) 'recommended_carbs': recommendedCarbs,
+      if (recommendedFat != null) 'recommended_fat': recommendedFat,
+      if (decision != null) 'decision': decision,
+      if (algorithmVersion != null) 'algorithm_version': algorithmVersion,
+      if (explanation != null) 'explanation': explanation,
+    });
+  }
+
+  GoalReviewsCompanion copyWith(
+      {Value<int>? localId,
+      Value<String>? id,
+      Value<DateTime>? createdAt,
+      Value<DateTime>? updatedAt,
+      Value<DateTime?>? deletedAt,
+      Value<String>? goalId,
+      Value<DateTime>? windowStart,
+      Value<DateTime>? windowEnd,
+      Value<String>? status,
+      Value<String?>? trajectoryStatus,
+      Value<double?>? observedRateKgPerWeek,
+      Value<String?>? confidenceLevel,
+      Value<double?>? tdeeEstimate,
+      Value<int?>? recommendedCalories,
+      Value<int?>? recommendedProtein,
+      Value<int?>? recommendedCarbs,
+      Value<int?>? recommendedFat,
+      Value<String?>? decision,
+      Value<String>? algorithmVersion,
+      Value<String?>? explanation}) {
+    return GoalReviewsCompanion(
+      localId: localId ?? this.localId,
+      id: id ?? this.id,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      deletedAt: deletedAt ?? this.deletedAt,
+      goalId: goalId ?? this.goalId,
+      windowStart: windowStart ?? this.windowStart,
+      windowEnd: windowEnd ?? this.windowEnd,
+      status: status ?? this.status,
+      trajectoryStatus: trajectoryStatus ?? this.trajectoryStatus,
+      observedRateKgPerWeek:
+          observedRateKgPerWeek ?? this.observedRateKgPerWeek,
+      confidenceLevel: confidenceLevel ?? this.confidenceLevel,
+      tdeeEstimate: tdeeEstimate ?? this.tdeeEstimate,
+      recommendedCalories: recommendedCalories ?? this.recommendedCalories,
+      recommendedProtein: recommendedProtein ?? this.recommendedProtein,
+      recommendedCarbs: recommendedCarbs ?? this.recommendedCarbs,
+      recommendedFat: recommendedFat ?? this.recommendedFat,
+      decision: decision ?? this.decision,
+      algorithmVersion: algorithmVersion ?? this.algorithmVersion,
+      explanation: explanation ?? this.explanation,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (localId.present) {
+      map['local_id'] = Variable<int>(localId.value);
+    }
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
+    if (goalId.present) {
+      map['goal_id'] = Variable<String>(goalId.value);
+    }
+    if (windowStart.present) {
+      map['window_start'] = Variable<DateTime>(windowStart.value);
+    }
+    if (windowEnd.present) {
+      map['window_end'] = Variable<DateTime>(windowEnd.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(status.value);
+    }
+    if (trajectoryStatus.present) {
+      map['trajectory_status'] = Variable<String>(trajectoryStatus.value);
+    }
+    if (observedRateKgPerWeek.present) {
+      map['observed_rate_kg_per_week'] =
+          Variable<double>(observedRateKgPerWeek.value);
+    }
+    if (confidenceLevel.present) {
+      map['confidence_level'] = Variable<String>(confidenceLevel.value);
+    }
+    if (tdeeEstimate.present) {
+      map['tdee_estimate'] = Variable<double>(tdeeEstimate.value);
+    }
+    if (recommendedCalories.present) {
+      map['recommended_calories'] = Variable<int>(recommendedCalories.value);
+    }
+    if (recommendedProtein.present) {
+      map['recommended_protein'] = Variable<int>(recommendedProtein.value);
+    }
+    if (recommendedCarbs.present) {
+      map['recommended_carbs'] = Variable<int>(recommendedCarbs.value);
+    }
+    if (recommendedFat.present) {
+      map['recommended_fat'] = Variable<int>(recommendedFat.value);
+    }
+    if (decision.present) {
+      map['decision'] = Variable<String>(decision.value);
+    }
+    if (algorithmVersion.present) {
+      map['algorithm_version'] = Variable<String>(algorithmVersion.value);
+    }
+    if (explanation.present) {
+      map['explanation'] = Variable<String>(explanation.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('GoalReviewsCompanion(')
+          ..write('localId: $localId, ')
+          ..write('id: $id, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('goalId: $goalId, ')
+          ..write('windowStart: $windowStart, ')
+          ..write('windowEnd: $windowEnd, ')
+          ..write('status: $status, ')
+          ..write('trajectoryStatus: $trajectoryStatus, ')
+          ..write('observedRateKgPerWeek: $observedRateKgPerWeek, ')
+          ..write('confidenceLevel: $confidenceLevel, ')
+          ..write('tdeeEstimate: $tdeeEstimate, ')
+          ..write('recommendedCalories: $recommendedCalories, ')
+          ..write('recommendedProtein: $recommendedProtein, ')
+          ..write('recommendedCarbs: $recommendedCarbs, ')
+          ..write('recommendedFat: $recommendedFat, ')
+          ..write('decision: $decision, ')
+          ..write('algorithmVersion: $algorithmVersion, ')
+          ..write('explanation: $explanation')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -23279,6 +25774,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
       $ExerciseAliasesTable(this);
   late final $UserFoodOverrideTranslationsTable userFoodOverrideTranslations =
       $UserFoodOverrideTranslationsTable(this);
+  late final $UserGoalsTable userGoals = $UserGoalsTable(this);
+  late final $GoalEventsTable goalEvents = $GoalEventsTable(this);
+  late final $GoalReviewsTable goalReviews = $GoalReviewsTable(this);
   late final Index idxNutritionConsumedAt = Index('idx_nutrition_consumed_at',
       'CREATE INDEX idx_nutrition_consumed_at ON nutrition_logs (consumed_at)');
   late final Index idxFluidConsumedAt = Index('idx_fluid_consumed_at',
@@ -23331,6 +25829,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         catalogLanguages,
         exerciseAliases,
         userFoodOverrideTranslations,
+        userGoals,
+        goalEvents,
+        goalReviews,
         idxNutritionConsumedAt,
         idxFluidConsumedAt,
         idxMealEntriesConsumedAt
@@ -23443,6 +25944,20 @@ abstract class _$AppDatabase extends GeneratedDatabase {
             result: [
               TableUpdate('user_food_override_translations',
                   kind: UpdateKind.delete),
+            ],
+          ),
+          WritePropagation(
+            on: TableUpdateQuery.onTableName('user_goals',
+                limitUpdateKind: UpdateKind.delete),
+            result: [
+              TableUpdate('goal_events', kind: UpdateKind.delete),
+            ],
+          ),
+          WritePropagation(
+            on: TableUpdateQuery.onTableName('user_goals',
+                limitUpdateKind: UpdateKind.delete),
+            result: [
+              TableUpdate('goal_reviews', kind: UpdateKind.delete),
             ],
           ),
         ],
@@ -38437,6 +40952,1536 @@ typedef $$UserFoodOverrideTranslationsTableProcessedTableManager
         ),
         UserFoodOverrideTranslation,
         PrefetchHooks Function({bool userFoodOverrideId})>;
+typedef $$UserGoalsTableCreateCompanionBuilder = UserGoalsCompanion Function({
+  Value<int> localId,
+  Value<String> id,
+  Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
+  Value<DateTime?> deletedAt,
+  Value<String?> userId,
+  Value<String> area,
+  required String preset,
+  required String title,
+  Value<String?> reason,
+  Value<String> status,
+  required DateTime startDate,
+  Value<DateTime?> targetDate,
+  Value<String?> targetMetric,
+  Value<double?> targetValue,
+  Value<String?> targetUnit,
+  Value<double?> desiredWeeklyRateKg,
+  Value<bool> isNutritionDriver,
+  Value<String?> predecessorGoalId,
+  Value<DateTime?> retiredAt,
+});
+typedef $$UserGoalsTableUpdateCompanionBuilder = UserGoalsCompanion Function({
+  Value<int> localId,
+  Value<String> id,
+  Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
+  Value<DateTime?> deletedAt,
+  Value<String?> userId,
+  Value<String> area,
+  Value<String> preset,
+  Value<String> title,
+  Value<String?> reason,
+  Value<String> status,
+  Value<DateTime> startDate,
+  Value<DateTime?> targetDate,
+  Value<String?> targetMetric,
+  Value<double?> targetValue,
+  Value<String?> targetUnit,
+  Value<double?> desiredWeeklyRateKg,
+  Value<bool> isNutritionDriver,
+  Value<String?> predecessorGoalId,
+  Value<DateTime?> retiredAt,
+});
+
+final class $$UserGoalsTableReferences
+    extends BaseReferences<_$AppDatabase, $UserGoalsTable, UserGoal> {
+  $$UserGoalsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $UserGoalsTable _predecessorGoalIdTable(_$AppDatabase db) =>
+      db.userGoals
+          .createAlias('user_goals__predecessor_goal_id__user_goals__id');
+
+  $$UserGoalsTableProcessedTableManager? get predecessorGoalId {
+    final $_column = $_itemColumn<String>('predecessor_goal_id');
+    if ($_column == null) return null;
+    final manager = $$UserGoalsTableTableManager($_db, $_db.userGoals)
+        .filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_predecessorGoalIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: [item]));
+  }
+
+  static MultiTypedResultKey<$GoalEventsTable, List<GoalEvent>>
+      _goalEventsRefsTable(_$AppDatabase db) =>
+          MultiTypedResultKey.fromTable(db.goalEvents,
+              aliasName: 'user_goals__id__goal_events__goal_id');
+
+  $$GoalEventsTableProcessedTableManager get goalEventsRefs {
+    final manager = $$GoalEventsTableTableManager($_db, $_db.goalEvents)
+        .filter((f) => f.goalId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_goalEventsRefsTable($_db));
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: cache));
+  }
+
+  static MultiTypedResultKey<$GoalReviewsTable, List<GoalReview>>
+      _goalReviewsRefsTable(_$AppDatabase db) =>
+          MultiTypedResultKey.fromTable(db.goalReviews,
+              aliasName: 'user_goals__id__goal_reviews__goal_id');
+
+  $$GoalReviewsTableProcessedTableManager get goalReviewsRefs {
+    final manager = $$GoalReviewsTableTableManager($_db, $_db.goalReviews)
+        .filter((f) => f.goalId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_goalReviewsRefsTable($_db));
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: cache));
+  }
+}
+
+class $$UserGoalsTableFilterComposer
+    extends Composer<_$AppDatabase, $UserGoalsTable> {
+  $$UserGoalsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get localId => $composableBuilder(
+      column: $table.localId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+      column: $table.deletedAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get userId => $composableBuilder(
+      column: $table.userId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get area => $composableBuilder(
+      column: $table.area, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get preset => $composableBuilder(
+      column: $table.preset, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get title => $composableBuilder(
+      column: $table.title, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get reason => $composableBuilder(
+      column: $table.reason, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get status => $composableBuilder(
+      column: $table.status, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get startDate => $composableBuilder(
+      column: $table.startDate, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get targetDate => $composableBuilder(
+      column: $table.targetDate, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get targetMetric => $composableBuilder(
+      column: $table.targetMetric, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<double> get targetValue => $composableBuilder(
+      column: $table.targetValue, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get targetUnit => $composableBuilder(
+      column: $table.targetUnit, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<double> get desiredWeeklyRateKg => $composableBuilder(
+      column: $table.desiredWeeklyRateKg,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get isNutritionDriver => $composableBuilder(
+      column: $table.isNutritionDriver,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get retiredAt => $composableBuilder(
+      column: $table.retiredAt, builder: (column) => ColumnFilters(column));
+
+  $$UserGoalsTableFilterComposer get predecessorGoalId {
+    final $$UserGoalsTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.predecessorGoalId,
+        referencedTable: $db.userGoals,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$UserGoalsTableFilterComposer(
+              $db: $db,
+              $table: $db.userGoals,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+
+  Expression<bool> goalEventsRefs(
+      Expression<bool> Function($$GoalEventsTableFilterComposer f) f) {
+    final $$GoalEventsTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.goalEvents,
+        getReferencedColumn: (t) => t.goalId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$GoalEventsTableFilterComposer(
+              $db: $db,
+              $table: $db.goalEvents,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
+
+  Expression<bool> goalReviewsRefs(
+      Expression<bool> Function($$GoalReviewsTableFilterComposer f) f) {
+    final $$GoalReviewsTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.goalReviews,
+        getReferencedColumn: (t) => t.goalId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$GoalReviewsTableFilterComposer(
+              $db: $db,
+              $table: $db.goalReviews,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
+}
+
+class $$UserGoalsTableOrderingComposer
+    extends Composer<_$AppDatabase, $UserGoalsTable> {
+  $$UserGoalsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get localId => $composableBuilder(
+      column: $table.localId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+      column: $table.deletedAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get userId => $composableBuilder(
+      column: $table.userId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get area => $composableBuilder(
+      column: $table.area, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get preset => $composableBuilder(
+      column: $table.preset, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get title => $composableBuilder(
+      column: $table.title, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get reason => $composableBuilder(
+      column: $table.reason, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get status => $composableBuilder(
+      column: $table.status, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get startDate => $composableBuilder(
+      column: $table.startDate, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get targetDate => $composableBuilder(
+      column: $table.targetDate, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get targetMetric => $composableBuilder(
+      column: $table.targetMetric,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<double> get targetValue => $composableBuilder(
+      column: $table.targetValue, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get targetUnit => $composableBuilder(
+      column: $table.targetUnit, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<double> get desiredWeeklyRateKg => $composableBuilder(
+      column: $table.desiredWeeklyRateKg,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get isNutritionDriver => $composableBuilder(
+      column: $table.isNutritionDriver,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get retiredAt => $composableBuilder(
+      column: $table.retiredAt, builder: (column) => ColumnOrderings(column));
+
+  $$UserGoalsTableOrderingComposer get predecessorGoalId {
+    final $$UserGoalsTableOrderingComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.predecessorGoalId,
+        referencedTable: $db.userGoals,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$UserGoalsTableOrderingComposer(
+              $db: $db,
+              $table: $db.userGoals,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$UserGoalsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $UserGoalsTable> {
+  $$UserGoalsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get localId =>
+      $composableBuilder(column: $table.localId, builder: (column) => column);
+
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+
+  GeneratedColumn<String> get userId =>
+      $composableBuilder(column: $table.userId, builder: (column) => column);
+
+  GeneratedColumn<String> get area =>
+      $composableBuilder(column: $table.area, builder: (column) => column);
+
+  GeneratedColumn<String> get preset =>
+      $composableBuilder(column: $table.preset, builder: (column) => column);
+
+  GeneratedColumn<String> get title =>
+      $composableBuilder(column: $table.title, builder: (column) => column);
+
+  GeneratedColumn<String> get reason =>
+      $composableBuilder(column: $table.reason, builder: (column) => column);
+
+  GeneratedColumn<String> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get startDate =>
+      $composableBuilder(column: $table.startDate, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get targetDate => $composableBuilder(
+      column: $table.targetDate, builder: (column) => column);
+
+  GeneratedColumn<String> get targetMetric => $composableBuilder(
+      column: $table.targetMetric, builder: (column) => column);
+
+  GeneratedColumn<double> get targetValue => $composableBuilder(
+      column: $table.targetValue, builder: (column) => column);
+
+  GeneratedColumn<String> get targetUnit => $composableBuilder(
+      column: $table.targetUnit, builder: (column) => column);
+
+  GeneratedColumn<double> get desiredWeeklyRateKg => $composableBuilder(
+      column: $table.desiredWeeklyRateKg, builder: (column) => column);
+
+  GeneratedColumn<bool> get isNutritionDriver => $composableBuilder(
+      column: $table.isNutritionDriver, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get retiredAt =>
+      $composableBuilder(column: $table.retiredAt, builder: (column) => column);
+
+  $$UserGoalsTableAnnotationComposer get predecessorGoalId {
+    final $$UserGoalsTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.predecessorGoalId,
+        referencedTable: $db.userGoals,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$UserGoalsTableAnnotationComposer(
+              $db: $db,
+              $table: $db.userGoals,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+
+  Expression<T> goalEventsRefs<T extends Object>(
+      Expression<T> Function($$GoalEventsTableAnnotationComposer a) f) {
+    final $$GoalEventsTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.goalEvents,
+        getReferencedColumn: (t) => t.goalId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$GoalEventsTableAnnotationComposer(
+              $db: $db,
+              $table: $db.goalEvents,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
+
+  Expression<T> goalReviewsRefs<T extends Object>(
+      Expression<T> Function($$GoalReviewsTableAnnotationComposer a) f) {
+    final $$GoalReviewsTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.goalReviews,
+        getReferencedColumn: (t) => t.goalId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$GoalReviewsTableAnnotationComposer(
+              $db: $db,
+              $table: $db.goalReviews,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
+}
+
+class $$UserGoalsTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $UserGoalsTable,
+    UserGoal,
+    $$UserGoalsTableFilterComposer,
+    $$UserGoalsTableOrderingComposer,
+    $$UserGoalsTableAnnotationComposer,
+    $$UserGoalsTableCreateCompanionBuilder,
+    $$UserGoalsTableUpdateCompanionBuilder,
+    (UserGoal, $$UserGoalsTableReferences),
+    UserGoal,
+    PrefetchHooks Function(
+        {bool predecessorGoalId, bool goalEventsRefs, bool goalReviewsRefs})> {
+  $$UserGoalsTableTableManager(_$AppDatabase db, $UserGoalsTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$UserGoalsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$UserGoalsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$UserGoalsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<int> localId = const Value.absent(),
+            Value<String> id = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+            Value<DateTime> updatedAt = const Value.absent(),
+            Value<DateTime?> deletedAt = const Value.absent(),
+            Value<String?> userId = const Value.absent(),
+            Value<String> area = const Value.absent(),
+            Value<String> preset = const Value.absent(),
+            Value<String> title = const Value.absent(),
+            Value<String?> reason = const Value.absent(),
+            Value<String> status = const Value.absent(),
+            Value<DateTime> startDate = const Value.absent(),
+            Value<DateTime?> targetDate = const Value.absent(),
+            Value<String?> targetMetric = const Value.absent(),
+            Value<double?> targetValue = const Value.absent(),
+            Value<String?> targetUnit = const Value.absent(),
+            Value<double?> desiredWeeklyRateKg = const Value.absent(),
+            Value<bool> isNutritionDriver = const Value.absent(),
+            Value<String?> predecessorGoalId = const Value.absent(),
+            Value<DateTime?> retiredAt = const Value.absent(),
+          }) =>
+              UserGoalsCompanion(
+            localId: localId,
+            id: id,
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+            deletedAt: deletedAt,
+            userId: userId,
+            area: area,
+            preset: preset,
+            title: title,
+            reason: reason,
+            status: status,
+            startDate: startDate,
+            targetDate: targetDate,
+            targetMetric: targetMetric,
+            targetValue: targetValue,
+            targetUnit: targetUnit,
+            desiredWeeklyRateKg: desiredWeeklyRateKg,
+            isNutritionDriver: isNutritionDriver,
+            predecessorGoalId: predecessorGoalId,
+            retiredAt: retiredAt,
+          ),
+          createCompanionCallback: ({
+            Value<int> localId = const Value.absent(),
+            Value<String> id = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+            Value<DateTime> updatedAt = const Value.absent(),
+            Value<DateTime?> deletedAt = const Value.absent(),
+            Value<String?> userId = const Value.absent(),
+            Value<String> area = const Value.absent(),
+            required String preset,
+            required String title,
+            Value<String?> reason = const Value.absent(),
+            Value<String> status = const Value.absent(),
+            required DateTime startDate,
+            Value<DateTime?> targetDate = const Value.absent(),
+            Value<String?> targetMetric = const Value.absent(),
+            Value<double?> targetValue = const Value.absent(),
+            Value<String?> targetUnit = const Value.absent(),
+            Value<double?> desiredWeeklyRateKg = const Value.absent(),
+            Value<bool> isNutritionDriver = const Value.absent(),
+            Value<String?> predecessorGoalId = const Value.absent(),
+            Value<DateTime?> retiredAt = const Value.absent(),
+          }) =>
+              UserGoalsCompanion.insert(
+            localId: localId,
+            id: id,
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+            deletedAt: deletedAt,
+            userId: userId,
+            area: area,
+            preset: preset,
+            title: title,
+            reason: reason,
+            status: status,
+            startDate: startDate,
+            targetDate: targetDate,
+            targetMetric: targetMetric,
+            targetValue: targetValue,
+            targetUnit: targetUnit,
+            desiredWeeklyRateKg: desiredWeeklyRateKg,
+            isNutritionDriver: isNutritionDriver,
+            predecessorGoalId: predecessorGoalId,
+            retiredAt: retiredAt,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (
+                    e.readTable<$UserGoalsTable, UserGoal>(table),
+                    $$UserGoalsTableReferences(db, table, e)
+                  ))
+              .toList(),
+          prefetchHooksCallback: (
+              {predecessorGoalId = false,
+              goalEventsRefs = false,
+              goalReviewsRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [
+                if (goalEventsRefs) db.goalEvents,
+                if (goalReviewsRefs) db.goalReviews
+              ],
+              addJoins: <
+                  T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic>>(state) {
+                if (predecessorGoalId) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.predecessorGoalId,
+                    referencedTable:
+                        $$UserGoalsTableReferences._predecessorGoalIdTable(db),
+                    referencedColumn: $$UserGoalsTableReferences
+                        ._predecessorGoalIdTable(db)
+                        .id,
+                  ) as T;
+                }
+
+                return state;
+              },
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (goalEventsRefs)
+                    await $_getPrefetchedData<UserGoal, $UserGoalsTable,
+                            GoalEvent>(
+                        currentTable: table,
+                        referencedTable:
+                            $$UserGoalsTableReferences._goalEventsRefsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$UserGoalsTableReferences(db, table, p0)
+                                .goalEventsRefs,
+                        referencedItemsForCurrentItem: (item,
+                                referencedItems) =>
+                            referencedItems.where((e) => e.goalId == item.id),
+                        typedResults: items),
+                  if (goalReviewsRefs)
+                    await $_getPrefetchedData<UserGoal, $UserGoalsTable,
+                            GoalReview>(
+                        currentTable: table,
+                        referencedTable: $$UserGoalsTableReferences
+                            ._goalReviewsRefsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$UserGoalsTableReferences(db, table, p0)
+                                .goalReviewsRefs,
+                        referencedItemsForCurrentItem: (item,
+                                referencedItems) =>
+                            referencedItems.where((e) => e.goalId == item.id),
+                        typedResults: items)
+                ];
+              },
+            );
+          },
+        ));
+}
+
+typedef $$UserGoalsTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $UserGoalsTable,
+    UserGoal,
+    $$UserGoalsTableFilterComposer,
+    $$UserGoalsTableOrderingComposer,
+    $$UserGoalsTableAnnotationComposer,
+    $$UserGoalsTableCreateCompanionBuilder,
+    $$UserGoalsTableUpdateCompanionBuilder,
+    (UserGoal, $$UserGoalsTableReferences),
+    UserGoal,
+    PrefetchHooks Function(
+        {bool predecessorGoalId, bool goalEventsRefs, bool goalReviewsRefs})>;
+typedef $$GoalEventsTableCreateCompanionBuilder = GoalEventsCompanion Function({
+  Value<int> localId,
+  Value<String> id,
+  Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
+  Value<DateTime?> deletedAt,
+  required String goalId,
+  required String eventType,
+  Value<String> actor,
+  Value<DateTime> occurredAt,
+  Value<String?> recommendationId,
+  Value<String?> reason,
+  Value<String?> algorithmVersion,
+});
+typedef $$GoalEventsTableUpdateCompanionBuilder = GoalEventsCompanion Function({
+  Value<int> localId,
+  Value<String> id,
+  Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
+  Value<DateTime?> deletedAt,
+  Value<String> goalId,
+  Value<String> eventType,
+  Value<String> actor,
+  Value<DateTime> occurredAt,
+  Value<String?> recommendationId,
+  Value<String?> reason,
+  Value<String?> algorithmVersion,
+});
+
+final class $$GoalEventsTableReferences
+    extends BaseReferences<_$AppDatabase, $GoalEventsTable, GoalEvent> {
+  $$GoalEventsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $UserGoalsTable _goalIdTable(_$AppDatabase db) =>
+      db.userGoals.createAlias('goal_events__goal_id__user_goals__id');
+
+  $$UserGoalsTableProcessedTableManager get goalId {
+    final $_column = $_itemColumn<String>('goal_id')!;
+
+    final manager = $$UserGoalsTableTableManager($_db, $_db.userGoals)
+        .filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_goalIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: [item]));
+  }
+}
+
+class $$GoalEventsTableFilterComposer
+    extends Composer<_$AppDatabase, $GoalEventsTable> {
+  $$GoalEventsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get localId => $composableBuilder(
+      column: $table.localId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+      column: $table.deletedAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get eventType => $composableBuilder(
+      column: $table.eventType, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get actor => $composableBuilder(
+      column: $table.actor, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get occurredAt => $composableBuilder(
+      column: $table.occurredAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get recommendationId => $composableBuilder(
+      column: $table.recommendationId,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get reason => $composableBuilder(
+      column: $table.reason, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get algorithmVersion => $composableBuilder(
+      column: $table.algorithmVersion,
+      builder: (column) => ColumnFilters(column));
+
+  $$UserGoalsTableFilterComposer get goalId {
+    final $$UserGoalsTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.goalId,
+        referencedTable: $db.userGoals,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$UserGoalsTableFilterComposer(
+              $db: $db,
+              $table: $db.userGoals,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$GoalEventsTableOrderingComposer
+    extends Composer<_$AppDatabase, $GoalEventsTable> {
+  $$GoalEventsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get localId => $composableBuilder(
+      column: $table.localId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+      column: $table.deletedAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get eventType => $composableBuilder(
+      column: $table.eventType, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get actor => $composableBuilder(
+      column: $table.actor, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get occurredAt => $composableBuilder(
+      column: $table.occurredAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get recommendationId => $composableBuilder(
+      column: $table.recommendationId,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get reason => $composableBuilder(
+      column: $table.reason, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get algorithmVersion => $composableBuilder(
+      column: $table.algorithmVersion,
+      builder: (column) => ColumnOrderings(column));
+
+  $$UserGoalsTableOrderingComposer get goalId {
+    final $$UserGoalsTableOrderingComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.goalId,
+        referencedTable: $db.userGoals,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$UserGoalsTableOrderingComposer(
+              $db: $db,
+              $table: $db.userGoals,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$GoalEventsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $GoalEventsTable> {
+  $$GoalEventsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get localId =>
+      $composableBuilder(column: $table.localId, builder: (column) => column);
+
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+
+  GeneratedColumn<String> get eventType =>
+      $composableBuilder(column: $table.eventType, builder: (column) => column);
+
+  GeneratedColumn<String> get actor =>
+      $composableBuilder(column: $table.actor, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get occurredAt => $composableBuilder(
+      column: $table.occurredAt, builder: (column) => column);
+
+  GeneratedColumn<String> get recommendationId => $composableBuilder(
+      column: $table.recommendationId, builder: (column) => column);
+
+  GeneratedColumn<String> get reason =>
+      $composableBuilder(column: $table.reason, builder: (column) => column);
+
+  GeneratedColumn<String> get algorithmVersion => $composableBuilder(
+      column: $table.algorithmVersion, builder: (column) => column);
+
+  $$UserGoalsTableAnnotationComposer get goalId {
+    final $$UserGoalsTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.goalId,
+        referencedTable: $db.userGoals,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$UserGoalsTableAnnotationComposer(
+              $db: $db,
+              $table: $db.userGoals,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$GoalEventsTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $GoalEventsTable,
+    GoalEvent,
+    $$GoalEventsTableFilterComposer,
+    $$GoalEventsTableOrderingComposer,
+    $$GoalEventsTableAnnotationComposer,
+    $$GoalEventsTableCreateCompanionBuilder,
+    $$GoalEventsTableUpdateCompanionBuilder,
+    (GoalEvent, $$GoalEventsTableReferences),
+    GoalEvent,
+    PrefetchHooks Function({bool goalId})> {
+  $$GoalEventsTableTableManager(_$AppDatabase db, $GoalEventsTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$GoalEventsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$GoalEventsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$GoalEventsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<int> localId = const Value.absent(),
+            Value<String> id = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+            Value<DateTime> updatedAt = const Value.absent(),
+            Value<DateTime?> deletedAt = const Value.absent(),
+            Value<String> goalId = const Value.absent(),
+            Value<String> eventType = const Value.absent(),
+            Value<String> actor = const Value.absent(),
+            Value<DateTime> occurredAt = const Value.absent(),
+            Value<String?> recommendationId = const Value.absent(),
+            Value<String?> reason = const Value.absent(),
+            Value<String?> algorithmVersion = const Value.absent(),
+          }) =>
+              GoalEventsCompanion(
+            localId: localId,
+            id: id,
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+            deletedAt: deletedAt,
+            goalId: goalId,
+            eventType: eventType,
+            actor: actor,
+            occurredAt: occurredAt,
+            recommendationId: recommendationId,
+            reason: reason,
+            algorithmVersion: algorithmVersion,
+          ),
+          createCompanionCallback: ({
+            Value<int> localId = const Value.absent(),
+            Value<String> id = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+            Value<DateTime> updatedAt = const Value.absent(),
+            Value<DateTime?> deletedAt = const Value.absent(),
+            required String goalId,
+            required String eventType,
+            Value<String> actor = const Value.absent(),
+            Value<DateTime> occurredAt = const Value.absent(),
+            Value<String?> recommendationId = const Value.absent(),
+            Value<String?> reason = const Value.absent(),
+            Value<String?> algorithmVersion = const Value.absent(),
+          }) =>
+              GoalEventsCompanion.insert(
+            localId: localId,
+            id: id,
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+            deletedAt: deletedAt,
+            goalId: goalId,
+            eventType: eventType,
+            actor: actor,
+            occurredAt: occurredAt,
+            recommendationId: recommendationId,
+            reason: reason,
+            algorithmVersion: algorithmVersion,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (
+                    e.readTable<$GoalEventsTable, GoalEvent>(table),
+                    $$GoalEventsTableReferences(db, table, e)
+                  ))
+              .toList(),
+          prefetchHooksCallback: ({goalId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins: <
+                  T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic>>(state) {
+                if (goalId) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.goalId,
+                    referencedTable:
+                        $$GoalEventsTableReferences._goalIdTable(db),
+                    referencedColumn:
+                        $$GoalEventsTableReferences._goalIdTable(db).id,
+                  ) as T;
+                }
+
+                return state;
+              },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ));
+}
+
+typedef $$GoalEventsTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $GoalEventsTable,
+    GoalEvent,
+    $$GoalEventsTableFilterComposer,
+    $$GoalEventsTableOrderingComposer,
+    $$GoalEventsTableAnnotationComposer,
+    $$GoalEventsTableCreateCompanionBuilder,
+    $$GoalEventsTableUpdateCompanionBuilder,
+    (GoalEvent, $$GoalEventsTableReferences),
+    GoalEvent,
+    PrefetchHooks Function({bool goalId})>;
+typedef $$GoalReviewsTableCreateCompanionBuilder = GoalReviewsCompanion
+    Function({
+  Value<int> localId,
+  Value<String> id,
+  Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
+  Value<DateTime?> deletedAt,
+  required String goalId,
+  required DateTime windowStart,
+  required DateTime windowEnd,
+  Value<String> status,
+  Value<String?> trajectoryStatus,
+  Value<double?> observedRateKgPerWeek,
+  Value<String?> confidenceLevel,
+  Value<double?> tdeeEstimate,
+  Value<int?> recommendedCalories,
+  Value<int?> recommendedProtein,
+  Value<int?> recommendedCarbs,
+  Value<int?> recommendedFat,
+  Value<String?> decision,
+  required String algorithmVersion,
+  Value<String?> explanation,
+});
+typedef $$GoalReviewsTableUpdateCompanionBuilder = GoalReviewsCompanion
+    Function({
+  Value<int> localId,
+  Value<String> id,
+  Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
+  Value<DateTime?> deletedAt,
+  Value<String> goalId,
+  Value<DateTime> windowStart,
+  Value<DateTime> windowEnd,
+  Value<String> status,
+  Value<String?> trajectoryStatus,
+  Value<double?> observedRateKgPerWeek,
+  Value<String?> confidenceLevel,
+  Value<double?> tdeeEstimate,
+  Value<int?> recommendedCalories,
+  Value<int?> recommendedProtein,
+  Value<int?> recommendedCarbs,
+  Value<int?> recommendedFat,
+  Value<String?> decision,
+  Value<String> algorithmVersion,
+  Value<String?> explanation,
+});
+
+final class $$GoalReviewsTableReferences
+    extends BaseReferences<_$AppDatabase, $GoalReviewsTable, GoalReview> {
+  $$GoalReviewsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $UserGoalsTable _goalIdTable(_$AppDatabase db) =>
+      db.userGoals.createAlias('goal_reviews__goal_id__user_goals__id');
+
+  $$UserGoalsTableProcessedTableManager get goalId {
+    final $_column = $_itemColumn<String>('goal_id')!;
+
+    final manager = $$UserGoalsTableTableManager($_db, $_db.userGoals)
+        .filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_goalIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: [item]));
+  }
+}
+
+class $$GoalReviewsTableFilterComposer
+    extends Composer<_$AppDatabase, $GoalReviewsTable> {
+  $$GoalReviewsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get localId => $composableBuilder(
+      column: $table.localId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+      column: $table.deletedAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get windowStart => $composableBuilder(
+      column: $table.windowStart, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get windowEnd => $composableBuilder(
+      column: $table.windowEnd, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get status => $composableBuilder(
+      column: $table.status, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get trajectoryStatus => $composableBuilder(
+      column: $table.trajectoryStatus,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<double> get observedRateKgPerWeek => $composableBuilder(
+      column: $table.observedRateKgPerWeek,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get confidenceLevel => $composableBuilder(
+      column: $table.confidenceLevel,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<double> get tdeeEstimate => $composableBuilder(
+      column: $table.tdeeEstimate, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get recommendedCalories => $composableBuilder(
+      column: $table.recommendedCalories,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get recommendedProtein => $composableBuilder(
+      column: $table.recommendedProtein,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get recommendedCarbs => $composableBuilder(
+      column: $table.recommendedCarbs,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get recommendedFat => $composableBuilder(
+      column: $table.recommendedFat,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get decision => $composableBuilder(
+      column: $table.decision, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get algorithmVersion => $composableBuilder(
+      column: $table.algorithmVersion,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get explanation => $composableBuilder(
+      column: $table.explanation, builder: (column) => ColumnFilters(column));
+
+  $$UserGoalsTableFilterComposer get goalId {
+    final $$UserGoalsTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.goalId,
+        referencedTable: $db.userGoals,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$UserGoalsTableFilterComposer(
+              $db: $db,
+              $table: $db.userGoals,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$GoalReviewsTableOrderingComposer
+    extends Composer<_$AppDatabase, $GoalReviewsTable> {
+  $$GoalReviewsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get localId => $composableBuilder(
+      column: $table.localId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+      column: $table.deletedAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get windowStart => $composableBuilder(
+      column: $table.windowStart, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get windowEnd => $composableBuilder(
+      column: $table.windowEnd, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get status => $composableBuilder(
+      column: $table.status, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get trajectoryStatus => $composableBuilder(
+      column: $table.trajectoryStatus,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<double> get observedRateKgPerWeek => $composableBuilder(
+      column: $table.observedRateKgPerWeek,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get confidenceLevel => $composableBuilder(
+      column: $table.confidenceLevel,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<double> get tdeeEstimate => $composableBuilder(
+      column: $table.tdeeEstimate,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get recommendedCalories => $composableBuilder(
+      column: $table.recommendedCalories,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get recommendedProtein => $composableBuilder(
+      column: $table.recommendedProtein,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get recommendedCarbs => $composableBuilder(
+      column: $table.recommendedCarbs,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get recommendedFat => $composableBuilder(
+      column: $table.recommendedFat,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get decision => $composableBuilder(
+      column: $table.decision, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get algorithmVersion => $composableBuilder(
+      column: $table.algorithmVersion,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get explanation => $composableBuilder(
+      column: $table.explanation, builder: (column) => ColumnOrderings(column));
+
+  $$UserGoalsTableOrderingComposer get goalId {
+    final $$UserGoalsTableOrderingComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.goalId,
+        referencedTable: $db.userGoals,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$UserGoalsTableOrderingComposer(
+              $db: $db,
+              $table: $db.userGoals,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$GoalReviewsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $GoalReviewsTable> {
+  $$GoalReviewsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get localId =>
+      $composableBuilder(column: $table.localId, builder: (column) => column);
+
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get windowStart => $composableBuilder(
+      column: $table.windowStart, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get windowEnd =>
+      $composableBuilder(column: $table.windowEnd, builder: (column) => column);
+
+  GeneratedColumn<String> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<String> get trajectoryStatus => $composableBuilder(
+      column: $table.trajectoryStatus, builder: (column) => column);
+
+  GeneratedColumn<double> get observedRateKgPerWeek => $composableBuilder(
+      column: $table.observedRateKgPerWeek, builder: (column) => column);
+
+  GeneratedColumn<String> get confidenceLevel => $composableBuilder(
+      column: $table.confidenceLevel, builder: (column) => column);
+
+  GeneratedColumn<double> get tdeeEstimate => $composableBuilder(
+      column: $table.tdeeEstimate, builder: (column) => column);
+
+  GeneratedColumn<int> get recommendedCalories => $composableBuilder(
+      column: $table.recommendedCalories, builder: (column) => column);
+
+  GeneratedColumn<int> get recommendedProtein => $composableBuilder(
+      column: $table.recommendedProtein, builder: (column) => column);
+
+  GeneratedColumn<int> get recommendedCarbs => $composableBuilder(
+      column: $table.recommendedCarbs, builder: (column) => column);
+
+  GeneratedColumn<int> get recommendedFat => $composableBuilder(
+      column: $table.recommendedFat, builder: (column) => column);
+
+  GeneratedColumn<String> get decision =>
+      $composableBuilder(column: $table.decision, builder: (column) => column);
+
+  GeneratedColumn<String> get algorithmVersion => $composableBuilder(
+      column: $table.algorithmVersion, builder: (column) => column);
+
+  GeneratedColumn<String> get explanation => $composableBuilder(
+      column: $table.explanation, builder: (column) => column);
+
+  $$UserGoalsTableAnnotationComposer get goalId {
+    final $$UserGoalsTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.goalId,
+        referencedTable: $db.userGoals,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$UserGoalsTableAnnotationComposer(
+              $db: $db,
+              $table: $db.userGoals,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$GoalReviewsTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $GoalReviewsTable,
+    GoalReview,
+    $$GoalReviewsTableFilterComposer,
+    $$GoalReviewsTableOrderingComposer,
+    $$GoalReviewsTableAnnotationComposer,
+    $$GoalReviewsTableCreateCompanionBuilder,
+    $$GoalReviewsTableUpdateCompanionBuilder,
+    (GoalReview, $$GoalReviewsTableReferences),
+    GoalReview,
+    PrefetchHooks Function({bool goalId})> {
+  $$GoalReviewsTableTableManager(_$AppDatabase db, $GoalReviewsTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$GoalReviewsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$GoalReviewsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$GoalReviewsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<int> localId = const Value.absent(),
+            Value<String> id = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+            Value<DateTime> updatedAt = const Value.absent(),
+            Value<DateTime?> deletedAt = const Value.absent(),
+            Value<String> goalId = const Value.absent(),
+            Value<DateTime> windowStart = const Value.absent(),
+            Value<DateTime> windowEnd = const Value.absent(),
+            Value<String> status = const Value.absent(),
+            Value<String?> trajectoryStatus = const Value.absent(),
+            Value<double?> observedRateKgPerWeek = const Value.absent(),
+            Value<String?> confidenceLevel = const Value.absent(),
+            Value<double?> tdeeEstimate = const Value.absent(),
+            Value<int?> recommendedCalories = const Value.absent(),
+            Value<int?> recommendedProtein = const Value.absent(),
+            Value<int?> recommendedCarbs = const Value.absent(),
+            Value<int?> recommendedFat = const Value.absent(),
+            Value<String?> decision = const Value.absent(),
+            Value<String> algorithmVersion = const Value.absent(),
+            Value<String?> explanation = const Value.absent(),
+          }) =>
+              GoalReviewsCompanion(
+            localId: localId,
+            id: id,
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+            deletedAt: deletedAt,
+            goalId: goalId,
+            windowStart: windowStart,
+            windowEnd: windowEnd,
+            status: status,
+            trajectoryStatus: trajectoryStatus,
+            observedRateKgPerWeek: observedRateKgPerWeek,
+            confidenceLevel: confidenceLevel,
+            tdeeEstimate: tdeeEstimate,
+            recommendedCalories: recommendedCalories,
+            recommendedProtein: recommendedProtein,
+            recommendedCarbs: recommendedCarbs,
+            recommendedFat: recommendedFat,
+            decision: decision,
+            algorithmVersion: algorithmVersion,
+            explanation: explanation,
+          ),
+          createCompanionCallback: ({
+            Value<int> localId = const Value.absent(),
+            Value<String> id = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+            Value<DateTime> updatedAt = const Value.absent(),
+            Value<DateTime?> deletedAt = const Value.absent(),
+            required String goalId,
+            required DateTime windowStart,
+            required DateTime windowEnd,
+            Value<String> status = const Value.absent(),
+            Value<String?> trajectoryStatus = const Value.absent(),
+            Value<double?> observedRateKgPerWeek = const Value.absent(),
+            Value<String?> confidenceLevel = const Value.absent(),
+            Value<double?> tdeeEstimate = const Value.absent(),
+            Value<int?> recommendedCalories = const Value.absent(),
+            Value<int?> recommendedProtein = const Value.absent(),
+            Value<int?> recommendedCarbs = const Value.absent(),
+            Value<int?> recommendedFat = const Value.absent(),
+            Value<String?> decision = const Value.absent(),
+            required String algorithmVersion,
+            Value<String?> explanation = const Value.absent(),
+          }) =>
+              GoalReviewsCompanion.insert(
+            localId: localId,
+            id: id,
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+            deletedAt: deletedAt,
+            goalId: goalId,
+            windowStart: windowStart,
+            windowEnd: windowEnd,
+            status: status,
+            trajectoryStatus: trajectoryStatus,
+            observedRateKgPerWeek: observedRateKgPerWeek,
+            confidenceLevel: confidenceLevel,
+            tdeeEstimate: tdeeEstimate,
+            recommendedCalories: recommendedCalories,
+            recommendedProtein: recommendedProtein,
+            recommendedCarbs: recommendedCarbs,
+            recommendedFat: recommendedFat,
+            decision: decision,
+            algorithmVersion: algorithmVersion,
+            explanation: explanation,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (
+                    e.readTable<$GoalReviewsTable, GoalReview>(table),
+                    $$GoalReviewsTableReferences(db, table, e)
+                  ))
+              .toList(),
+          prefetchHooksCallback: ({goalId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins: <
+                  T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic>>(state) {
+                if (goalId) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.goalId,
+                    referencedTable:
+                        $$GoalReviewsTableReferences._goalIdTable(db),
+                    referencedColumn:
+                        $$GoalReviewsTableReferences._goalIdTable(db).id,
+                  ) as T;
+                }
+
+                return state;
+              },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ));
+}
+
+typedef $$GoalReviewsTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $GoalReviewsTable,
+    GoalReview,
+    $$GoalReviewsTableFilterComposer,
+    $$GoalReviewsTableOrderingComposer,
+    $$GoalReviewsTableAnnotationComposer,
+    $$GoalReviewsTableCreateCompanionBuilder,
+    $$GoalReviewsTableUpdateCompanionBuilder,
+    (GoalReview, $$GoalReviewsTableReferences),
+    GoalReview,
+    PrefetchHooks Function({bool goalId})>;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -38524,4 +42569,10 @@ class $AppDatabaseManager {
       get userFoodOverrideTranslations =>
           $$UserFoodOverrideTranslationsTableTableManager(
               _db, _db.userFoodOverrideTranslations);
+  $$UserGoalsTableTableManager get userGoals =>
+      $$UserGoalsTableTableManager(_db, _db.userGoals);
+  $$GoalEventsTableTableManager get goalEvents =>
+      $$GoalEventsTableTableManager(_db, _db.goalEvents);
+  $$GoalReviewsTableTableManager get goalReviews =>
+      $$GoalReviewsTableTableManager(_db, _db.goalReviews);
 }

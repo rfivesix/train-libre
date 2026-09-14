@@ -1,28 +1,45 @@
-// lib/screens/nutrition_hub_screen.dart
+// lib/features/diary/presentation/nutrition_hub_screen.dart
+
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
+
 import '../../../data/database_helper.dart';
 import '../../../generated/app_localizations.dart';
-import 'add_food_screen.dart';
-import 'meal_screen.dart';
-import '../../profile/presentation/goals_screen.dart';
-import '../../supplements/presentation/supplement_hub_screen.dart';
 import '../../../util/design_constants.dart';
+import '../../../widgets/common/app_button.dart';
 import '../../../widgets/common/bottom_content_spacer.dart';
 import '../../../widgets/common/card_morph_route.dart';
 import '../../../widgets/common/common.dart';
 import '../../../widgets/common/summary_card.dart';
+import 'package:provider/provider.dart';
+import '../../analytics/domain/models/chart_data_point.dart';
 import '../../nutrition_recommendation/data/recommendation_service.dart';
 import '../../nutrition_recommendation/presentation/nutrition_recommendation_card.dart';
-import 'package:flutter_lucide/flutter_lucide.dart';
-import '../../../widgets/common/app_button.dart';
-import 'dart:async';
+import '../../profile/data/goal_repository_impl.dart';
+import '../../profile/domain/models/goal_model.dart';
+import '../../profile/domain/models/goal_progress.dart';
+import '../../profile/domain/repositories/goal_repository.dart';
+import '../../profile/domain/repositories/profile_repository.dart';
+import '../../profile/presentation/goal_detail_screen.dart';
+import '../../profile/presentation/widgets/active_goal_dashboard_widget.dart';
+import '../../profile/presentation/widgets/adaptive_review_card.dart';
+import '../../supplements/presentation/supplement_hub_screen.dart';
+import 'add_food_screen.dart';
+import 'meal_screen.dart';
 
-/// A portal for overviewing nutrition and meal planning.
+/// A portal for overviewing nutrition, progress, and meal planning.
 ///
-/// Displays general targets, recommendations based on recent logs,
-/// and quick access to meal management and supplement tracking.
+/// Designed as a coherent progress dashboard featuring:
+/// 1. Status & Active Goal / Trajectory
+/// 2. Adaptive Review & Recommendations
+/// 3. Daily Operating Targets
+/// 4. Saved Meals
+/// 5. Tools & Library
 class NutritionHubScreen extends StatefulWidget {
-  const NutritionHubScreen({super.key});
+  final IGoalRepository? goalRepository;
+
+  const NutritionHubScreen({super.key, this.goalRepository});
 
   @override
   State<NutritionHubScreen> createState() => _NutritionHubScreenState();
@@ -31,14 +48,22 @@ class NutritionHubScreen extends StatefulWidget {
 class _NutritionHubScreenState extends State<NutritionHubScreen> {
   Future<Map<String, dynamic>>? _hubDataFuture;
   final _recommendationService = AdaptiveNutritionRecommendationService();
-  bool _isRecalculatingRecommendation = false;
+  late final IGoalRepository _goalRepository;
   bool _isApplyingRecommendation = false;
+
+  IProfileRepository? _profileRepo;
+
+  @override
+  void initState() {
+    super.initState();
+    _goalRepository = widget.goalRepository ?? GoalRepositoryImpl();
+  }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    _profileRepo ??= context.read<IProfileRepository>();
     if (_hubDataFuture == null) {
-      // Instant load of cached state first for 120 FPS navigation
       _hubDataFuture = _loadHubData(refreshIfDue: false);
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _checkBackgroundRecommendationDue();
@@ -50,7 +75,6 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
     if (!mounted) return;
     final state = await _recommendationService.loadState(refreshIfDue: false);
     if (state.isAdaptiveRecommendationDueNow) {
-      // Offloaded to background Isolate via compute()
       await _recommendationService.refreshRecommendationIfDue();
       if (mounted) {
         setState(() {
@@ -61,7 +85,6 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
   }
 
   Future<void> _refreshData() async {
-    // Called by RefreshIndicator to reload data.
     setState(() {
       _hubDataFuture = _loadHubData(refreshIfDue: true);
     });
@@ -70,14 +93,61 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
   Future<Map<String, dynamic>> _loadHubData({bool refreshIfDue = false}) async {
     final today = DateTime.now();
     final goals = await DatabaseHelper.instance.getGoalsForDate(today);
-    final targetCalories = goals?.targetCalories ?? 2500;
     final meals = await DatabaseHelper.instance.getMeals();
+
+    final activeGoal = await _goalRepository.getActiveGoal();
+    GoalProgress? activeProgress;
+    GoalReviewRecord? pendingReview;
+    List<ChartDataPoint> chartPoints = [];
+    if (activeGoal != null) {
+      activeProgress = await _goalRepository.getGoalProgress(activeGoal);
+      pendingReview = await _goalRepository.getPendingReview(activeGoal.id);
+
+      final profileRepo = _profileRepo;
+      final startDate = activeGoal.startDate.subtract(const Duration(days: 1));
+      final endDate = DateTime.now().add(const Duration(days: 1));
+      if (profileRepo != null) {
+        try {
+          chartPoints = await profileRepo.getChartDataForTypeAndRange(
+            'weight',
+            DateTimeRange(start: startDate, end: endDate),
+          );
+        } catch (_) {
+          chartPoints = [];
+        }
+      }
+
+      final baseline = activeProgress?.baselineValue;
+      if (baseline != null) {
+        if (chartPoints.isEmpty) {
+          chartPoints = [
+            ChartDataPoint(
+              date: activeGoal.startDate,
+              value: baseline,
+            ),
+          ];
+        } else if (chartPoints.first.date.isAfter(activeGoal.startDate)) {
+          chartPoints.insert(
+            0,
+            ChartDataPoint(
+              date: activeGoal.startDate,
+              value: baseline,
+            ),
+          );
+        }
+      }
+    }
+
     final recommendationState =
         await _recommendationService.loadState(refreshIfDue: refreshIfDue);
 
     return {
       'meals': meals,
-      'targetCalories': targetCalories,
+      'dailyGoals': goals,
+      'activeGoal': activeGoal,
+      'activeProgress': activeProgress,
+      'pendingReview': pendingReview,
+      'chartPoints': chartPoints,
       'recommendationState': recommendationState,
     };
   }
@@ -85,42 +155,39 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
   Future<void> _applyRecommendation() async {
     if (_isApplyingRecommendation) return;
     setState(() => _isApplyingRecommendation = true);
+
     final applied =
         await _recommendationService.applyLatestRecommendationToActiveTargets();
     if (!mounted) return;
     setState(() => _isApplyingRecommendation = false);
 
+    final l10n = AppLocalizations.of(context)!;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
           applied
-              ? AppLocalizations.of(context)!
-                  .adaptiveRecommendationAppliedToGoalsSnack
-              : AppLocalizations.of(context)!
-                  .adaptiveRecommendationNotAvailableSnack,
+              ? l10n.adaptiveRecommendationAppliedToGoalsSnack
+              : l10n.adaptiveRecommendationNotAvailableSnack,
         ),
       ),
     );
     await _refreshData();
   }
 
+  bool _isRecalculatingRecommendation = false;
+
   Future<void> _recalculateRecommendationNow() async {
     if (_isRecalculatingRecommendation) return;
     setState(() => _isRecalculatingRecommendation = true);
 
-    final recalculated =
-        await _recommendationService.recalculateRecommendationNow();
+    await _recommendationService.recalculateRecommendationNow();
     if (!mounted) return;
     setState(() => _isRecalculatingRecommendation = false);
 
     final l10n = AppLocalizations.of(context)!;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(
-          recalculated == null
-              ? l10n.adaptiveRecommendationNotAvailableSnack
-              : l10n.adaptiveRecommendationRecalculatedSnack,
-        ),
+        content: Text(l10n.adaptiveRecommendationRecalculatedSnack),
       ),
     );
     await _refreshData();
@@ -177,17 +244,10 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
-    final double appBarHeight = MediaQuery.of(
-      context,
-    ).padding.top; // + kToolbarHeight;
+    final double appBarHeight = MediaQuery.of(context).padding.top;
 
-    // 2. Get your base padding from your design constants
-    const EdgeInsets basePadding = DesignConstants
-        .cardPadding; // This is EdgeInsets.all(DesignConstants.spacingL)
-
-    // 3. Create the final combined padding
+    const EdgeInsets basePadding = DesignConstants.cardPadding;
     final EdgeInsets finalPadding = basePadding.copyWith(
-      // Take the original top value (16.0) and add the app bar height
       top: basePadding.top + appBarHeight,
     );
 
@@ -196,12 +256,6 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
       body: FutureBuilder<Map<String, dynamic>>(
         future: _hubDataFuture,
         builder: (context, snapshot) {
-          // Only on the very first load. A reload keeps the data it already
-          // has — `AsyncSnapshot.inState` carries it across the new future —
-          // so the cards stay put instead of being replaced by a spinner. The
-          // reload runs while a morph back into one of those cards is still in
-          // flight, and swapping the whole subtree out mid-flight both breaks
-          // the animation and deactivates the card the route is drawing.
           if (snapshot.connectionState == ConnectionState.waiting &&
               !snapshot.hasData) {
             return const Center(child: CircularProgressIndicator());
@@ -213,7 +267,11 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
 
           final data = snapshot.data!;
           final meals = data['meals'] as List<Map<String, dynamic>>;
-          final targetCalories = data['targetCalories'] as int;
+          final activeGoal = data['activeGoal'] as Goal?;
+          final activeProgress = data['activeProgress'] as GoalProgress?;
+          final chartPoints =
+              (data['chartPoints'] as List<ChartDataPoint>?) ?? const [];
+          final pendingReview = data['pendingReview'] as GoalReviewRecord?;
           final recommendationState = data['recommendationState']
               as AdaptiveNutritionRecommendationState;
 
@@ -222,17 +280,57 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
             child: ListView(
               padding: finalPadding,
               children: [
-                AppSectionHeader(
-                    isFirst: true,
-                    title: l10n.adaptiveRecommendationCardTitle.toUpperCase()),
+                // Modul 1: Ziel- & Fortschrittskarte (Vollständiges Goal-Dashboard)
+                RepaintBoundary(
+                  child: ActiveGoalDashboardWidget(
+                    goal: activeGoal,
+                    progress: activeProgress,
+                    chartPoints: chartPoints,
+                    onRefresh: _refreshData,
+                    bleedChartToEdges: true,
+                    onHeaderTap: activeGoal != null
+                        ? () async {
+                            await Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) =>
+                                    GoalDetailScreen(goalId: activeGoal.id),
+                              ),
+                            );
+                            _refreshData();
+                          }
+                        : null,
+                  ),
+                ),
+                const SizedBox(height: DesignConstants.spacingL),
+
+                // Modul 2: Wöchentlicher Review (falls fällig oder ausstehend)
+                if (pendingReview != null) ...[
+                  RepaintBoundary(
+                    child: AdaptiveReviewCard(
+                      activeGoal: activeGoal,
+                      pendingReview: pendingReview,
+                      isRecommendationDue:
+                          recommendationState.isAdaptiveRecommendationDueNow,
+                      nextDueAt:
+                          recommendationState.nextAdaptiveRecommendationDueAt,
+                      onApply: _applyRecommendation,
+                      onRefresh: _refreshData,
+                    ),
+                  ),
+                  const SizedBox(height: DesignConstants.spacingL),
+                ],
+
+                // Modul 3: Adaptive Nutrition Recommendations (1:1)
+                AppSectionHeader(title: l10n.adaptiveRecommendationCardTitle),
                 RepaintBoundary(
                   child: _buildGoalsAndRecommendationCard(
                     context,
                     recommendationState,
-                    targetCalories,
                   ),
                 ),
                 const SizedBox(height: DesignConstants.spacingXL),
+
+                // Modul 4: Gespeicherte Mahlzeiten
                 AppSectionHeader(title: l10n.nutritionSectionMyMeals),
                 RepaintBoundary(
                   child: SizedBox(
@@ -286,6 +384,8 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
                   ),
                 ),
                 const SizedBox(height: DesignConstants.spacingXL),
+
+                // Modul 5: Werkzeuge & Bibliothek
                 AppSectionHeader(title: l10n.nutritionSectionToolsAndLibrary),
                 RepaintBoundary(
                   child: Builder(
@@ -357,39 +457,21 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
   Widget _buildGoalsAndRecommendationCard(
     BuildContext context,
     AdaptiveNutritionRecommendationState recommendationState,
-    int targetCalories,
   ) {
-    return Column(
-      children: [
-        NutritionRecommendationCard(
-          goal: recommendationState.goal,
-          targetRateKgPerWeek: recommendationState.targetRateKgPerWeek,
-          recommendation: recommendationState.latestGeneratedRecommendation,
-          maintenanceEstimate: recommendationState.latestMaintenanceEstimate,
-          generatedAt: recommendationState.latestGeneratedAt,
-          nextAdaptiveRecommendationDueAt:
-              recommendationState.nextAdaptiveRecommendationDueAt,
-          isAdaptiveRecommendationDueNow:
-              recommendationState.isAdaptiveRecommendationDueNow,
-          isRecalculating: _isRecalculatingRecommendation,
-          isApplying: _isApplyingRecommendation,
-          onRecalculate: _recalculateRecommendationNow,
-          onApply: _applyRecommendation,
-        ),
-        const SizedBox(height: 10),
-        Align(
-          alignment: Alignment.centerLeft,
-          child: AppButton.primary(
-            onPressed: () {
-              Navigator.of(
-                context,
-              ).push(MaterialPageRoute(builder: (_) => const GoalsScreen()));
-            },
-            label: AppLocalizations.of(context)!.my_goals,
-            tooltip: AppLocalizations.of(context)!.my_goals,
-          ),
-        ),
-      ],
+    return NutritionRecommendationCard(
+      goal: recommendationState.goal,
+      targetRateKgPerWeek: recommendationState.targetRateKgPerWeek,
+      recommendation: recommendationState.latestGeneratedRecommendation,
+      maintenanceEstimate: recommendationState.latestMaintenanceEstimate,
+      generatedAt: recommendationState.latestGeneratedAt,
+      nextAdaptiveRecommendationDueAt:
+          recommendationState.nextAdaptiveRecommendationDueAt,
+      isAdaptiveRecommendationDueNow:
+          recommendationState.isAdaptiveRecommendationDueNow,
+      isRecalculating: _isRecalculatingRecommendation,
+      isApplying: _isApplyingRecommendation,
+      onRecalculate: _recalculateRecommendationNow,
+      onApply: _applyRecommendation,
     );
   }
 
@@ -456,10 +538,12 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
                         children: [
                           Text(
                             meal['name'] as String,
-                            style:
-                                Theme.of(context).textTheme.titleMedium?.copyWith(
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleMedium
+                                ?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -502,10 +586,12 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
                       children: [
                         Text(
                           meal['name'] as String,
-                          style:
-                              Theme.of(context).textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleMedium
+                              ?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),

@@ -1,5 +1,77 @@
 {
   "de": [
     "workoutPhotoRemoveConfirm"
+  ],
+
+  "fr": [
+    "goalStepBaselineQuestion",
+    "goalStepBaselineDescription",
+    "goalStepTargetWeightQuestion",
+    "goalStepTargetWeightDescription",
+    "goalStepTrajectoryQuestion",
+    "goalStepTrajectoryDescription",
+    "goalEnterBaselineWeightPrompt",
+    "goalTargetWeightLabel",
+    "goalWeightDifferenceLabel",
+    "goalPlanByDate",
+    "goalPlanByRate",
+    "goalEstimatedDailyDelta",
+    "goalEstimatedDuration",
+    "goalRateGentle",
+    "goalRateModerate",
+    "goalRateAthletic",
+    "goalRateAggressive",
+    "goalPaceFeedbackSafe",
+    "goalPaceFeedbackAggressive",
+    "goalPaceFeedbackGentle",
+    "goalPaceFeedbackMaintain"
+  ],
+
+  "it": [
+    "goalStepBaselineQuestion",
+    "goalStepBaselineDescription",
+    "goalStepTargetWeightQuestion",
+    "goalStepTargetWeightDescription",
+    "goalStepTrajectoryQuestion",
+    "goalStepTrajectoryDescription",
+    "goalEnterBaselineWeightPrompt",
+    "goalTargetWeightLabel",
+    "goalWeightDifferenceLabel",
+    "goalPlanByDate",
+    "goalPlanByRate",
+    "goalEstimatedDailyDelta",
+    "goalEstimatedDuration",
+    "goalRateGentle",
+    "goalRateModerate",
+    "goalRateAthletic",
+    "goalRateAggressive",
+    "goalPaceFeedbackSafe",
+    "goalPaceFeedbackAggressive",
+    "goalPaceFeedbackGentle",
+    "goalPaceFeedbackMaintain"
+  ],
+
+  "ja": [
+    "goalStepBaselineQuestion",
+    "goalStepBaselineDescription",
+    "goalStepTargetWeightQuestion",
+    "goalStepTargetWeightDescription",
+    "goalStepTrajectoryQuestion",
+    "goalStepTrajectoryDescription",
+    "goalEnterBaselineWeightPrompt",
+    "goalTargetWeightLabel",
+    "goalWeightDifferenceLabel",
+    "goalPlanByDate",
+    "goalPlanByRate",
+    "goalEstimatedDailyDelta",
+    "goalEstimatedDuration",
+    "goalRateGentle",
+    "goalRateModerate",
+    "goalRateAthletic",
+    "goalRateAggressive",
+    "goalPaceFeedbackSafe",
+    "goalPaceFeedbackAggressive",
+    "goalPaceFeedbackGentle",
+    "goalPaceFeedbackMaintain"
   ]
 }

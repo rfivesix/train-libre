@@ -26,9 +26,7 @@ class AppButton extends StatefulWidget {
     this.icon,
     this.isLoading = false,
     this.size = AppButtonSize.regular,
-  })  : assert(tooltip != null || semanticsLabel != null,
-            'Either tooltip or semanticsLabel must be provided'),
-        variant = AppButtonVariant.primary;
+  })  : variant = AppButtonVariant.primary;
 
   const AppButton.secondary({
     super.key,
@@ -39,9 +37,7 @@ class AppButton extends StatefulWidget {
     this.icon,
     this.isLoading = false,
     this.size = AppButtonSize.regular,
-  })  : assert(tooltip != null || semanticsLabel != null,
-            'Either tooltip or semanticsLabel must be provided'),
-        variant = AppButtonVariant.secondary;
+  })  : variant = AppButtonVariant.secondary;
 
   const AppButton.danger({
     super.key,
@@ -52,9 +48,7 @@ class AppButton extends StatefulWidget {
     this.icon,
     this.isLoading = false,
     this.size = AppButtonSize.regular,
-  })  : assert(tooltip != null || semanticsLabel != null,
-            'Either tooltip or semanticsLabel must be provided'),
-        variant = AppButtonVariant.danger;
+  })  : variant = AppButtonVariant.danger;
 
   @override
   State<AppButton> createState() => _AppButtonState();

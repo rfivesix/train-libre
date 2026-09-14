@@ -9,6 +9,7 @@ import '../../../data/drift_database.dart' as db; // Access to Profile class
 import '../../../generated/app_localizations.dart';
 import '../../settings/presentation/settings_screen.dart';
 import 'goals_screen.dart';
+import 'my_goals_screen.dart';
 import '../../../services/profile_service.dart';
 import '../../../services/unit_service.dart';
 import '../../app/presentation/about_screen.dart';
@@ -438,6 +439,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   icon: LucideIcons.flag,
                   title: l10n.my_goals,
                   subtitle: l10n.my_goals_description,
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const MyGoalsScreen(),
+                      ),
+                    );
+                  },
+                ),
+                _buildNavigationCard(
+                  icon: LucideIcons.sliders_horizontal,
+                  title: l10n.dailyOperatingTargetsTitle,
+                  subtitle: l10n.dailyOperatingTargetsSubtitle,
                   onTap: () {
                     Navigator.of(context).push(
                       MaterialPageRoute(

@@ -50,6 +50,8 @@ import 'features/profile/domain/repositories/profile_repository.dart';
 import 'data/drift_database.dart' as db;
 import 'data/database_helper.dart';
 import 'features/profile/data/profile_repository.dart';
+import 'features/profile/domain/repositories/goal_repository.dart';
+import 'features/profile/data/goal_repository_impl.dart';
 import 'features/diary/data/sources/diary_local_data_source.dart';
 import 'features/workout/data/sources/workout_local_data_source.dart';
 import 'features/exercise_catalog/data/sources/exercise_catalog_local_data_source.dart';
@@ -89,10 +91,10 @@ void callbackDispatcher() {
       // via the stream in LocalNotificationService.
       await service.refreshRecommendationIfDue();
 
-      return Future.value(true);
+      return true;
     } catch (e) {
       debugPrint("Background task error: $e");
-      return Future.value(false);
+      return false;
     }
   });
 }
@@ -241,6 +243,9 @@ void main() async {
             create: (_) => ProfileRepository(
               localDataSource: profileLocalDataSource,
             ),
+          ),
+          Provider<IGoalRepository>(
+            create: (_) => GoalRepositoryImpl(),
           ),
           ChangeNotifierProvider.value(value: workoutSessionManager),
           ChangeNotifierProvider.value(value: trainingAutonomyService),

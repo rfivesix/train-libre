@@ -17,11 +17,17 @@ class LocalNotificationService {
   static const int restTimerNotificationId = 8801;
   static const int adaptiveRecommendationDueNotificationId = 8802;
   static const int tdeeRecalculationNotificationId = 8803;
+  static const int weeklyGoalReviewNotificationId = 8804;
+  static const int goalTargetDateNotificationId = 8805;
   static const String _restChannelId = 'rest_timer_channel';
   static const String _adaptiveRecommendationChannelId =
       'adaptive_recommendation_channel';
   static const String _tdeeRecalculationChannelId =
       'tdee_recalculation_channel';
+  static const String _weeklyGoalReviewChannelId =
+      'weekly_goal_review_channel';
+  static const String _goalTargetDateChannelId =
+      'goal_target_date_channel';
 
   StreamSubscription<AdaptiveRecommendationSnapshot>? _tdeeSubscription;
 
@@ -293,4 +299,86 @@ class LocalNotificationService {
       notificationDetails: _tdeeRecalculationNotificationDetails(),
     );
   }
+
+  NotificationDetails _weeklyGoalReviewNotificationDetails() {
+    return const NotificationDetails(
+      android: AndroidNotificationDetails(
+        _weeklyGoalReviewChannelId,
+        'Weekly Goal Review',
+        channelDescription:
+            'Alerts when a weekly trajectory review is ready.',
+        importance: Importance.max,
+        priority: Priority.high,
+        playSound: true,
+      ),
+      iOS: DarwinNotificationDetails(presentAlert: true, presentSound: true),
+      macOS: DarwinNotificationDetails(presentAlert: true, presentSound: true),
+    );
+  }
+
+  Future<void> showWeeklyGoalReviewNotification() async {
+    final prefs = await SharedPreferences.getInstance();
+    final enabled = prefs.getBool('notify_weekly_goal_review') ?? true;
+    if (!enabled) return;
+
+    if (!_isInitialized) await initialize();
+    if (!_isInitialized) return;
+
+    final locale = WidgetsBinding.instance.platformDispatcher.locale;
+    final l10n = lookupAppLocalizations(locale);
+
+    await _plugin.show(
+      id: weeklyGoalReviewNotificationId,
+      title: l10n.weeklyGoalReviewNotificationTitle,
+      body: l10n.weeklyGoalReviewNotificationBody,
+      notificationDetails: _weeklyGoalReviewNotificationDetails(),
+    );
+  }
+
+  NotificationDetails _goalTargetDateNotificationDetails() {
+    return const NotificationDetails(
+      android: AndroidNotificationDetails(
+        _goalTargetDateChannelId,
+        'Goal Target Date',
+        channelDescription:
+            'Calm reminder when a goal target date approaches or is reached.',
+        importance: Importance.defaultImportance,
+        priority: Priority.defaultPriority,
+        playSound: true,
+      ),
+      iOS: DarwinNotificationDetails(presentAlert: true, presentSound: true),
+      macOS: DarwinNotificationDetails(presentAlert: true, presentSound: true),
+    );
+  }
+
+  Future<void> showGoalTargetDateReminderNotification({
+    required String goalTitle,
+    bool isDueToday = false,
+  }) async {
+    final prefs = await SharedPreferences.getInstance();
+    final enabled = prefs.getBool('notify_goal_target_date') ?? false;
+    if (!enabled) return;
+
+    if (!_isInitialized) await initialize();
+    if (!_isInitialized) return;
+
+    final locale = WidgetsBinding.instance.platformDispatcher.locale;
+    final l10n = lookupAppLocalizations(locale);
+
+    await _plugin.show(
+      id: goalTargetDateNotificationId,
+      title: l10n.goalTargetDateReminderTitle,
+      body: isDueToday
+          ? l10n.goalTargetDateReachedBody(goalTitle)
+          : l10n.goalTargetDateApproachingBody(goalTitle),
+      notificationDetails: _goalTargetDateNotificationDetails(),
+    );
+  }
+
+  Future<void> cancelGoalNotifications() async {
+    if (!_isInitialized) return;
+    await _plugin.cancel(id: weeklyGoalReviewNotificationId);
+    await _plugin.cancel(id: goalTargetDateNotificationId);
+  }
 }
+
