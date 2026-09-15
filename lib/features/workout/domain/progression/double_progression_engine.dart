@@ -52,23 +52,38 @@ class DoubleProgressionEngine {
     }
 
     // Sort sessions chronologically by the latest set in each session to find the last session.
+    // BOLT OPTIMIZATION: Avoided intermediate map/reduce allocations when finding the latest date
     final sortedSessions = sessionMap.values.toList()
       ..sort((a, b) {
-        final aLatest =
-            a.map((s) => s.performedAt).reduce((x, y) => x.isAfter(y) ? x : y);
-        final bLatest =
-            b.map((s) => s.performedAt).reduce((x, y) => x.isAfter(y) ? x : y);
+        DateTime aLatest = a[0].performedAt;
+        for (var i = 1; i < a.length; i++) {
+          if (a[i].performedAt.isAfter(aLatest)) aLatest = a[i].performedAt;
+        }
+        DateTime bLatest = b[0].performedAt;
+        for (var i = 1; i < b.length; i++) {
+          if (b[i].performedAt.isAfter(bLatest)) bLatest = b[i].performedAt;
+        }
         return aLatest.compareTo(bLatest);
       });
 
     final lastSessionSets = sortedSessions.last;
-    final lastSessionDate = lastSessionSets
-        .map((s) => s.performedAt)
-        .reduce((a, b) => a.isAfter(b) ? a : b);
+    // BOLT OPTIMIZATION: Avoided intermediate map/reduce allocations when finding the latest date
+    DateTime lastSessionDate = lastSessionSets[0].performedAt;
+    for (var i = 1; i < lastSessionSets.length; i++) {
+      if (lastSessionSets[i].performedAt.isAfter(lastSessionDate)) {
+        lastSessionDate = lastSessionSets[i].performedAt;
+      }
+    }
 
     // Rule 9: Determine baseline working load from the last session.
-    final weights =
-        lastSessionSets.map((s) => s.weight).whereType<double>().toList();
+    // BOLT OPTIMIZATION: Avoided intermediate map/whereType allocations when finding weights
+    final weights = <double>[];
+    for (var i = 0; i < lastSessionSets.length; i++) {
+      final weight = lastSessionSets[i].weight;
+      if (weight != null) {
+        weights.add(weight);
+      }
+    }
 
     if (weights.isEmpty) {
       return const ProgressionSuggestion(
@@ -160,10 +175,10 @@ class DoubleProgressionEngine {
     DateTime? now,
   }) {
     ProgressionSuggestion absent(String reason) => ProgressionSuggestion(
-          outcome: ProgressionOutcome.noSuggestion,
-          reason: reason,
-          algorithmVersion: algorithmVersion,
-        );
+      outcome: ProgressionOutcome.noSuggestion,
+      reason: reason,
+      algorithmVersion: algorithmVersion,
+    );
 
     if (positions.isEmpty) return const [];
     if (history.isEmpty) {
@@ -182,11 +197,19 @@ class DoubleProgressionEngine {
           : '${set.performedAt.year}-${set.performedAt.month}-${set.performedAt.day}';
       sessions.putIfAbsent(key, () => []).add(set);
     }
+    // BOLT OPTIMIZATION: Avoided intermediate map/reduce allocations when finding the latest date
     final orderedSessions = sessions.values.toList()
       ..sort((left, right) {
-        DateTime latest(List<ProgressionSetEntry> session) => session
-            .map((entry) => entry.performedAt)
-            .reduce((a, b) => a.isAfter(b) ? a : b);
+        DateTime latest(List<ProgressionSetEntry> session) {
+          DateTime maxDate = session[0].performedAt;
+          for (var i = 1; i < session.length; i++) {
+            if (session[i].performedAt.isAfter(maxDate)) {
+              maxDate = session[i].performedAt;
+            }
+          }
+          return maxDate;
+        }
+
         return latest(left).compareTo(latest(right));
       });
     final lastSession = List<ProgressionSetEntry>.from(orderedSessions.last)
@@ -196,14 +219,20 @@ class DoubleProgressionEngine {
             ? order
             : left.performedAt.compareTo(right.performedAt);
       });
-    final lastSessionDate = lastSession
-        .map((entry) => entry.performedAt)
-        .reduce((a, b) => a.isAfter(b) ? a : b);
+    // BOLT OPTIMIZATION: Avoided intermediate map/reduce allocations when finding the latest date
+    DateTime lastSessionDate = lastSession[0].performedAt;
+    for (var i = 1; i < lastSession.length; i++) {
+      if (lastSession[i].performedAt.isAfter(lastSessionDate)) {
+        lastSessionDate = lastSession[i].performedAt;
+      }
+    }
 
     if ((now ?? DateTime.now()).difference(lastSessionDate) >
         const Duration(days: 21)) {
       return List.filled(
-          positions.length, absent(ProgressionReason.breakExceededThreeWeeks));
+        positions.length,
+        absent(ProgressionReason.breakExceededThreeWeeks),
+      );
     }
 
     // A raise is deliberately a whole-exercise decision. We only have enough
@@ -211,7 +240,8 @@ class DoubleProgressionEngine {
     // set, a range and an honest performance at its own range maximum.
     final hasCompleteComparableSession =
         lastSession.isNotEmpty && lastSession.length <= positions.length;
-    final allToppedOut = hasCompleteComparableSession &&
+    final allToppedOut =
+        hasCompleteComparableSession &&
         List.generate(lastSession.length, (index) {
           final range = positions[index].range;
           final previous = lastSession[index];
@@ -247,15 +277,17 @@ class DoubleProgressionEngine {
       final reason = range == null
           ? ProgressionReason.noRepRange
           : previous.valuesAutoFilled
-              ? ProgressionReason.autoFilledSets
-              : (previous.reps ?? 0) < range.min
-                  ? ProgressionReason.repsBelowRangeMin
-                  : ProgressionReason.repsInRangeNotToppedOut;
+          ? ProgressionReason.autoFilledSets
+          : (previous.reps ?? 0) < range.min
+          ? ProgressionReason.repsBelowRangeMin
+          : ProgressionReason.repsInRangeNotToppedOut;
       return ProgressionSuggestion(
         outcome: ProgressionOutcome.hold,
         targetWeight: previous.weight,
-        targetReps:
-            nextSuggestedReps(previousReps: previous.reps, range: range),
+        targetReps: nextSuggestedReps(
+          previousReps: previous.reps,
+          range: range,
+        ),
         reason: reason,
         algorithmVersion: algorithmVersion,
       );
@@ -270,14 +302,13 @@ ProgressionSuggestion nextPrescription({
   required LoadIncrement increment,
   required LoadMode loadMode,
   DateTime? now,
-}) =>
-    DoubleProgressionEngine.nextPrescription(
-      history: history,
-      range: range,
-      increment: increment,
-      loadMode: loadMode,
-      now: now,
-    );
+}) => DoubleProgressionEngine.nextPrescription(
+  history: history,
+  range: range,
+  increment: increment,
+  loadMode: loadMode,
+  now: now,
+);
 
 /// Position-aware progression used by the live-workout flow.
 List<ProgressionSuggestion> nextPrescriptions({
@@ -286,11 +317,10 @@ List<ProgressionSuggestion> nextPrescriptions({
   required LoadIncrement increment,
   required LoadMode loadMode,
   DateTime? now,
-}) =>
-    DoubleProgressionEngine.nextPrescriptions(
-      history: history,
-      positions: positions,
-      increment: increment,
-      loadMode: loadMode,
-      now: now,
-    );
+}) => DoubleProgressionEngine.nextPrescriptions(
+  history: history,
+  positions: positions,
+  increment: increment,
+  loadMode: loadMode,
+  now: now,
+);
