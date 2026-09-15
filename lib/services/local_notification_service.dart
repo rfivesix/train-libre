@@ -7,6 +7,9 @@ import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 import '../features/nutrition_recommendation/data/recommendation_repository.dart';
 import '../features/nutrition_recommendation/domain/adaptive_recommendation_snapshot.dart';
+import '../features/profile/data/goal_repository_impl.dart';
+import '../features/profile/domain/models/goal_model.dart';
+import 'notification_navigation.dart';
 
 /// Handles local notification setup and rest timer notifications.
 class LocalNotificationService {
@@ -24,10 +27,8 @@ class LocalNotificationService {
       'adaptive_recommendation_channel';
   static const String _tdeeRecalculationChannelId =
       'tdee_recalculation_channel';
-  static const String _weeklyGoalReviewChannelId =
-      'weekly_goal_review_channel';
-  static const String _goalTargetDateChannelId =
-      'goal_target_date_channel';
+  static const String _weeklyGoalReviewChannelId = 'weekly_goal_review_channel';
+  static const String _goalTargetDateChannelId = 'goal_target_date_channel';
 
   StreamSubscription<AdaptiveRecommendationSnapshot>? _tdeeSubscription;
 
@@ -35,6 +36,18 @@ class LocalNotificationService {
       FlutterLocalNotificationsPlugin();
 
   bool _isInitialized = false;
+  final StreamController<AppNotificationPayload> _notificationTapController =
+      StreamController<AppNotificationPayload>.broadcast();
+  AppNotificationPayload? _pendingNotificationTap;
+
+  Stream<AppNotificationPayload> get notificationTaps =>
+      _notificationTapController.stream;
+
+  AppNotificationPayload? takePendingNotificationTap() {
+    final value = _pendingNotificationTap;
+    _pendingNotificationTap = null;
+    return value;
+  }
 
   Future<void> initialize() async {
     if (_isInitialized) return;
@@ -50,7 +63,16 @@ class LocalNotificationService {
         macOS: darwinSettings,
       );
 
-      await _plugin.initialize(settings: settings);
+      await _plugin.initialize(
+        settings: settings,
+        onDidReceiveNotificationResponse: _onNotificationResponse,
+      );
+      final launchDetails = await _plugin.getNotificationAppLaunchDetails();
+      if (launchDetails?.didNotificationLaunchApp == true) {
+        _recordNotificationTap(
+          launchDetails?.notificationResponse?.payload,
+        );
+      }
       await _requestPermissions();
       tz.initializeTimeZones();
 
@@ -70,6 +92,17 @@ class LocalNotificationService {
     } catch (e) {
       debugPrint('LocalNotificationService failed to initialize: $e');
     }
+  }
+
+  void _onNotificationResponse(NotificationResponse response) {
+    _recordNotificationTap(response.payload);
+  }
+
+  void _recordNotificationTap(String? rawPayload) {
+    final payload = AppNotificationPayload.tryParse(rawPayload);
+    if (payload == null) return;
+    _pendingNotificationTap = payload;
+    _notificationTapController.add(payload);
   }
 
   Future<void> _requestPermissions() async {
@@ -234,15 +267,22 @@ class LocalNotificationService {
   }
 
   Future<void> showAdaptiveRecommendationDueNotification() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (!(prefs.getBool('notify_adaptive_recommendation') ?? true)) return;
     if (!_isInitialized) await initialize();
     if (!_isInitialized) return;
     final texts = _localizedAdaptiveRecommendationDueTexts();
+    final activeGoal = await GoalRepositoryImpl().getActiveGoal();
 
     await _plugin.show(
       id: adaptiveRecommendationDueNotificationId,
       title: texts.title,
       body: texts.body,
       notificationDetails: _adaptiveRecommendationNotificationDetails(),
+      payload: AppNotificationPayload(
+        type: AppNotificationType.adaptiveRecommendation,
+        goalId: activeGoal?.id,
+      ).encode(),
     );
   }
 
@@ -283,6 +323,8 @@ class LocalNotificationService {
     required int carbs,
     required int fat,
   }) async {
+    final prefs = await SharedPreferences.getInstance();
+    if (!(prefs.getBool('notify_adaptive_recommendation') ?? true)) return;
     if (!_isInitialized) await initialize();
     if (!_isInitialized) return;
     final texts = _localizedTdeeRecalculationTexts(
@@ -291,12 +333,17 @@ class LocalNotificationService {
       carbs: carbs,
       fat: fat,
     );
+    final activeGoal = await GoalRepositoryImpl().getActiveGoal();
 
     await _plugin.show(
       id: tdeeRecalculationNotificationId,
       title: texts.title,
       body: texts.body,
       notificationDetails: _tdeeRecalculationNotificationDetails(),
+      payload: AppNotificationPayload(
+        type: AppNotificationType.adaptiveRecommendation,
+        goalId: activeGoal?.id,
+      ).encode(),
     );
   }
 
@@ -305,8 +352,7 @@ class LocalNotificationService {
       android: AndroidNotificationDetails(
         _weeklyGoalReviewChannelId,
         'Weekly Goal Review',
-        channelDescription:
-            'Alerts when a weekly trajectory review is ready.',
+        channelDescription: 'Alerts when a weekly trajectory review is ready.',
         importance: Importance.max,
         priority: Priority.high,
         playSound: true,
@@ -316,23 +362,36 @@ class LocalNotificationService {
     );
   }
 
-  Future<void> showWeeklyGoalReviewNotification() async {
+  Future<bool> showWeeklyGoalReviewNotification({
+    required String goalId,
+    required String reviewId,
+  }) async {
     final prefs = await SharedPreferences.getInstance();
     final enabled = prefs.getBool('notify_weekly_goal_review') ?? true;
-    if (!enabled) return;
+    if (!enabled) return false;
 
     if (!_isInitialized) await initialize();
-    if (!_isInitialized) return;
+    if (!_isInitialized) return false;
 
     final locale = WidgetsBinding.instance.platformDispatcher.locale;
     final l10n = lookupAppLocalizations(locale);
 
-    await _plugin.show(
-      id: weeklyGoalReviewNotificationId,
-      title: l10n.weeklyGoalReviewNotificationTitle,
-      body: l10n.weeklyGoalReviewNotificationBody,
-      notificationDetails: _weeklyGoalReviewNotificationDetails(),
-    );
+    try {
+      await _plugin.show(
+        id: notificationIdForReview(reviewId),
+        title: l10n.weeklyGoalReviewNotificationTitle,
+        body: l10n.weeklyGoalReviewNotificationBody,
+        notificationDetails: _weeklyGoalReviewNotificationDetails(),
+        payload: AppNotificationPayload(
+          type: AppNotificationType.weeklyGoalReview,
+          goalId: goalId,
+          reviewId: reviewId,
+        ).encode(),
+      );
+      return true;
+    } catch (_) {
+      return false;
+    }
   }
 
   NotificationDetails _goalTargetDateNotificationDetails() {
@@ -352,6 +411,7 @@ class LocalNotificationService {
   }
 
   Future<void> showGoalTargetDateReminderNotification({
+    required String goalId,
     required String goalTitle,
     bool isDueToday = false,
   }) async {
@@ -366,19 +426,191 @@ class LocalNotificationService {
     final l10n = lookupAppLocalizations(locale);
 
     await _plugin.show(
-      id: goalTargetDateNotificationId,
+      id: notificationIdForGoalTargetDate(goalId, isDueToday: isDueToday),
       title: l10n.goalTargetDateReminderTitle,
       body: isDueToday
           ? l10n.goalTargetDateReachedBody(goalTitle)
           : l10n.goalTargetDateApproachingBody(goalTitle),
       notificationDetails: _goalTargetDateNotificationDetails(),
+      payload: AppNotificationPayload(
+        type: AppNotificationType.goalTargetDate,
+        goalId: goalId,
+      ).encode(),
     );
   }
 
-  Future<void> cancelGoalNotifications() async {
+  Future<bool> scheduleGoalTargetDateNotifications({
+    required Goal goal,
+  }) async {
+    final targetDate = goal.targetDate;
+    if (!goal.isActive || targetDate == null) {
+      await cancelGoalTargetDateNotifications(goalId: goal.id);
+      return false;
+    }
+    final prefs = await SharedPreferences.getInstance();
+    if (!(prefs.getBool('notify_goal_target_date') ?? false)) {
+      await cancelGoalTargetDateNotifications(goalId: goal.id);
+      return false;
+    }
+    if (!_isInitialized) await initialize();
+    if (!_isInitialized) return false;
+
+    final locale = WidgetsBinding.instance.platformDispatcher.locale;
+    final l10n = lookupAppLocalizations(locale);
+    final payload = AppNotificationPayload(
+      type: AppNotificationType.goalTargetDate,
+      goalId: goal.id,
+    ).encode();
+    final targetDay =
+        DateTime(targetDate.year, targetDate.month, targetDate.day);
+    final reminders = <({DateTime when, bool dueToday})>[
+      (when: targetDay.subtract(const Duration(days: 7)), dueToday: false),
+      (when: targetDay, dueToday: true),
+    ];
+    var scheduled = false;
+    for (final reminder in reminders) {
+      final localWhen = DateTime(
+        reminder.when.year,
+        reminder.when.month,
+        reminder.when.day,
+        9,
+      );
+      final id = notificationIdForGoalTargetDate(
+        goal.id,
+        isDueToday: reminder.dueToday,
+      );
+      await _plugin.cancel(id: id);
+      if (!localWhen.isAfter(DateTime.now())) continue;
+      final when = tz.TZDateTime.from(localWhen.toUtc(), tz.local);
+      try {
+        await _scheduleGoalNotification(
+          id: id,
+          when: when,
+          title: l10n.goalTargetDateReminderTitle,
+          body: reminder.dueToday
+              ? l10n.goalTargetDateReachedBody(goal.title)
+              : l10n.goalTargetDateApproachingBody(goal.title),
+          payload: payload,
+        );
+        scheduled = true;
+      } catch (_) {
+        // Permission denial and unsupported exact alarms must never prevent
+        // goal/review persistence or app startup.
+      }
+    }
+    return scheduled;
+  }
+
+  Future<void> _scheduleGoalNotification({
+    required int id,
+    required tz.TZDateTime when,
+    required String title,
+    required String body,
+    required String payload,
+  }) async {
+    try {
+      await _plugin.zonedSchedule(
+        id: id,
+        title: title,
+        body: body,
+        scheduledDate: when,
+        notificationDetails: _goalTargetDateNotificationDetails(),
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        payload: payload,
+      );
+    } catch (_) {
+      await _plugin.zonedSchedule(
+        id: id,
+        title: title,
+        body: body,
+        scheduledDate: when,
+        notificationDetails: _goalTargetDateNotificationDetails(),
+        androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+        payload: payload,
+      );
+    }
+  }
+
+  Future<void> cancelGoalNotifications({required String goalId}) async {
     if (!_isInitialized) return;
-    await _plugin.cancel(id: weeklyGoalReviewNotificationId);
-    await _plugin.cancel(id: goalTargetDateNotificationId);
+    await cancelGoalTargetDateNotifications(goalId: goalId);
+    try {
+      final active = await _plugin.getActiveNotifications();
+      for (final notification in active) {
+        final id = notification.id;
+        if (AppNotificationPayload.tryParse(notification.payload)?.goalId ==
+                goalId &&
+            id != null) {
+          await _plugin.cancel(id: id);
+        }
+      }
+    } catch (_) {
+      // Active-notification enumeration is not implemented by every desktop
+      // platform. Stable target-date IDs are still cancelled.
+    }
+  }
+
+  Future<void> cancelGoalTargetDateNotifications({
+    required String goalId,
+  }) async {
+    if (!_isInitialized) return;
+    await _plugin.cancel(
+      id: notificationIdForGoalTargetDate(goalId, isDueToday: false),
+    );
+    await _plugin.cancel(
+      id: notificationIdForGoalTargetDate(goalId, isDueToday: true),
+    );
+    try {
+      final scheduled = await _plugin.pendingNotificationRequests();
+      for (final notification in scheduled) {
+        final payload = AppNotificationPayload.tryParse(notification.payload);
+        if (payload?.goalId == goalId &&
+            payload?.type == AppNotificationType.goalTargetDate) {
+          await _plugin.cancel(id: notification.id);
+        }
+      }
+    } catch (_) {
+      // Pending-request enumeration is not implemented by every platform.
+    }
+  }
+
+  Future<void> cancelAdaptiveRecommendationNotifications() async {
+    if (!_isInitialized) return;
+    await _plugin.cancel(id: adaptiveRecommendationDueNotificationId);
+    await _plugin.cancel(id: tdeeRecalculationNotificationId);
+  }
+
+  Future<void> cancelWeeklyReviewNotifications({required String goalId}) async {
+    if (!_isInitialized) return;
+    try {
+      final active = await _plugin.getActiveNotifications();
+      for (final notification in active) {
+        final id = notification.id;
+        final payload = AppNotificationPayload.tryParse(notification.payload);
+        if (payload?.goalId == goalId &&
+            payload?.type == AppNotificationType.weeklyGoalReview &&
+            id != null) {
+          await _plugin.cancel(id: id);
+        }
+      }
+    } catch (_) {}
+  }
+
+  static int notificationIdForReview(String reviewId) =>
+      100000000 + (_stableHash(reviewId) % 100000000);
+
+  static int notificationIdForGoalTargetDate(
+    String goalId, {
+    required bool isDueToday,
+  }) =>
+      (isDueToday ? 300000000 : 200000000) + (_stableHash(goalId) % 100000000);
+
+  static int _stableHash(String value) {
+    var hash = 0x811c9dc5;
+    for (final codeUnit in value.codeUnits) {
+      hash ^= codeUnit;
+      hash = (hash * 0x01000193) & 0x7fffffff;
+    }
+    return hash;
   }
 }
-

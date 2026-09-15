@@ -14,6 +14,7 @@ import '../../../../widgets/common/platform_adaptive_pickers.dart';
 import '../../../app/presentation/widgets/glass_bottom_menu.dart';
 import '../../domain/models/goal_model.dart';
 import '../../domain/repositories/goal_repository.dart';
+import '../../domain/services/goal_notification_orchestrator.dart';
 import '../../domain/services/goal_trajectory_calculator.dart';
 
 enum AdjustmentFixOption {
@@ -26,6 +27,10 @@ class GoalAdjustmentSheet extends StatefulWidget {
   final double startWeightKg;
   final IGoalRepository repository;
   final VoidCallback? onSaved;
+  final DateTime? recommendedTargetDate;
+  final double? recommendedWeeklyRateKg;
+  final bool embedded;
+  final bool showSaveButton;
 
   const GoalAdjustmentSheet({
     super.key,
@@ -33,6 +38,10 @@ class GoalAdjustmentSheet extends StatefulWidget {
     required this.startWeightKg,
     required this.repository,
     this.onSaved,
+    this.recommendedTargetDate,
+    this.recommendedWeeklyRateKg,
+    this.embedded = false,
+    this.showSaveButton = true,
   });
 
   /// Shows the Goal Adjustment sheet within the app's standard liquid glass bottom menu.
@@ -58,27 +67,30 @@ class GoalAdjustmentSheet extends StatefulWidget {
   }
 
   @override
-  State<GoalAdjustmentSheet> createState() => _GoalAdjustmentSheetState();
+  State<GoalAdjustmentSheet> createState() => GoalAdjustmentSheetState();
 }
 
-class _GoalAdjustmentSheetState extends State<GoalAdjustmentSheet> {
+class GoalAdjustmentSheetState extends State<GoalAdjustmentSheet> {
   late double _targetWeightKg;
   late DateTime _targetDate;
   late double _weeklyRateKg;
+  late DateTime _adjustmentDate;
   AdjustmentFixOption _fixOption = AdjustmentFixOption.keepDate;
   bool _isSaving = false;
 
   @override
   void initState() {
     super.initState();
+    final now = DateTime.now();
+    _adjustmentDate = DateTime(now.year, now.month, now.day);
     _targetWeightKg = widget.goal.targetValue ?? widget.startWeightKg;
-    _targetDate = widget.goal.targetDate ??
-        DateTime.now().add(const Duration(days: 90));
+    _targetDate =
+        widget.goal.targetDate ?? DateTime.now().add(const Duration(days: 90));
     _weeklyRateKg = widget.goal.desiredWeeklyRateKg ??
         GoalTrajectoryCalculator.calculateWeeklyRate(
           startWeight: widget.startWeightKg,
           targetWeight: _targetWeightKg,
-          startDate: widget.goal.startDate,
+          startDate: _adjustmentDate,
           targetDate: _targetDate,
         );
   }
@@ -90,7 +102,7 @@ class _GoalAdjustmentSheetState extends State<GoalAdjustmentSheet> {
         final res = GoalTrajectoryCalculator.onWeightChangedKeepDate(
           startWeight: widget.startWeightKg,
           newTargetWeight: _targetWeightKg,
-          startDate: widget.goal.startDate,
+          startDate: _adjustmentDate,
           fixedTargetDate: _targetDate,
         );
         _weeklyRateKg = res.weeklyRateKg;
@@ -98,7 +110,7 @@ class _GoalAdjustmentSheetState extends State<GoalAdjustmentSheet> {
         final res = GoalTrajectoryCalculator.onWeightChangedKeepRate(
           startWeight: widget.startWeightKg,
           newTargetWeight: _targetWeightKg,
-          startDate: widget.goal.startDate,
+          startDate: _adjustmentDate,
           fixedWeeklyRate: _weeklyRateKg,
         );
         _targetDate = res.targetDate;
@@ -112,7 +124,7 @@ class _GoalAdjustmentSheetState extends State<GoalAdjustmentSheet> {
       final res = GoalTrajectoryCalculator.onDateChangedKeepWeight(
         startWeight: widget.startWeightKg,
         fixedTargetWeight: _targetWeightKg,
-        startDate: widget.goal.startDate,
+        startDate: _adjustmentDate,
         newTargetDate: _targetDate,
       );
       _weeklyRateKg = res.weeklyRateKg;
@@ -125,7 +137,7 @@ class _GoalAdjustmentSheetState extends State<GoalAdjustmentSheet> {
       if (_fixOption == AdjustmentFixOption.keepDate) {
         final res = GoalTrajectoryCalculator.onRateChangedKeepDate(
           startWeight: widget.startWeightKg,
-          startDate: widget.goal.startDate,
+          startDate: _adjustmentDate,
           fixedTargetDate: _targetDate,
           newWeeklyRate: _weeklyRateKg,
         );
@@ -134,7 +146,7 @@ class _GoalAdjustmentSheetState extends State<GoalAdjustmentSheet> {
         final res = GoalTrajectoryCalculator.onRateChangedKeepWeight(
           startWeight: widget.startWeightKg,
           fixedTargetWeight: _targetWeightKg,
-          startDate: widget.goal.startDate,
+          startDate: _adjustmentDate,
           newWeeklyRate: _weeklyRateKg,
         );
         _targetDate = res.targetDate;
@@ -155,23 +167,49 @@ class _GoalAdjustmentSheetState extends State<GoalAdjustmentSheet> {
     }
   }
 
+  Future<void> confirmAndSave() => _confirmAndSave();
+
+  Future<void> acceptRecommendedAndSave() async {
+    final recommendedDate = widget.recommendedTargetDate;
+    final recommendedRate = widget.recommendedWeeklyRateKg;
+    if (recommendedDate != null && recommendedRate != null) {
+      setState(() {
+        _fixOption = recommendationKeepsDateForSave
+            ? AdjustmentFixOption.keepDate
+            : AdjustmentFixOption.keepRate;
+        _weeklyRateKg = recommendedRate;
+        _targetDate = recommendedDate;
+      });
+    }
+    await _confirmAndSave();
+  }
+
+  bool get recommendationKeepsDateForSave =>
+      widget.goal.targetDate != null &&
+      widget.recommendedTargetDate != null &&
+      DateUtils.isSameDay(widget.goal.targetDate, widget.recommendedTargetDate);
+
   Future<void> _saveAdjustment() async {
     if (_isSaving) return;
     setState(() => _isSaving = true);
 
     try {
-      await widget.repository.supersedeGoal(
+      await widget.repository.reviseGoal(
         currentGoal: widget.goal,
         targetValue: _targetWeightKg,
         targetDate: _targetDate,
         desiredWeeklyRateKg: _weeklyRateKg,
+        anchorValue: widget.startWeightKg,
         reason: 'Trajektorie angepasst',
       );
+      final notifications =
+          GoalNotificationOrchestrator(goalRepository: widget.repository);
+      await notifications.synchronize();
       if (!mounted) return;
       if (widget.onSaved != null) {
         widget.onSaved!();
       } else {
-        Navigator.of(context).pop(true);
+        if (!widget.embedded) Navigator.of(context).pop(true);
       }
     } catch (e) {
       if (!mounted) return;
@@ -200,9 +238,21 @@ class _GoalAdjustmentSheetState extends State<GoalAdjustmentSheet> {
       _weeklyRateKg,
       UnitDimension.weight,
     );
+    final recommendedDisplayRate = widget.recommendedWeeklyRateKg == null
+        ? null
+        : unitService.convertDisplayValue(
+            widget.recommendedWeeklyRateKg!,
+            UnitDimension.weight,
+          );
     final unitStr = unitService.unitString(UnitDimension.weight);
 
     final isSafe = GoalTrajectoryCalculator.isRateSafe(_weeklyRateKg);
+    final recommendationKeepsDate = widget.goal.targetDate != null &&
+        widget.recommendedTargetDate != null &&
+        DateUtils.isSameDay(
+          widget.goal.targetDate,
+          widget.recommendedTargetDate,
+        );
 
     return Padding(
       padding: const EdgeInsets.symmetric(
@@ -212,14 +262,70 @@ class _GoalAdjustmentSheetState extends State<GoalAdjustmentSheet> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(
-            l10n.adjustGoalDescription,
-            textAlign: TextAlign.center,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+          if (!widget.embedded) ...[
+            Text(
+              l10n.adjustGoalDescription,
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+              ),
             ),
-          ),
-          const SizedBox(height: DesignConstants.spacingL),
+            const SizedBox(height: DesignConstants.spacingL),
+          ],
+
+          if (widget.recommendedTargetDate != null &&
+              widget.recommendedWeeklyRateKg != null) ...[
+            Container(
+              padding: const EdgeInsets.all(DesignConstants.spacingM),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.primary.withValues(alpha: 0.10),
+                borderRadius:
+                    BorderRadius.circular(DesignConstants.borderRadiusM),
+                border: Border.all(
+                  color: theme.colorScheme.primary.withValues(alpha: 0.25),
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    l10n.adjustGoalRecommendedTitle,
+                    style: theme.textTheme.labelLarge?.copyWith(
+                      color: theme.colorScheme.primary,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: DesignConstants.spacingXS),
+                  Text(
+                    recommendationKeepsDate
+                        ? l10n.adjustGoalRecommendedKeepDatePlan(
+                            dateFormat.format(widget.recommendedTargetDate!),
+                            '${recommendedDisplayRate! >= 0 ? '+' : ''}${recommendedDisplayRate.toStringAsFixed(2)} $unitStr/${l10n.weekShort}',
+                          )
+                        : l10n.adjustGoalRecommendedPlan(
+                            dateFormat.format(widget.recommendedTargetDate!),
+                            '${recommendedDisplayRate! >= 0 ? '+' : ''}${recommendedDisplayRate.toStringAsFixed(2)} $unitStr/${l10n.weekShort}',
+                          ),
+                    style: theme.textTheme.bodyMedium,
+                  ),
+                  const SizedBox(height: DesignConstants.spacingM),
+                  AppButton.secondary(
+                    label: l10n.adjustGoalSelectRecommendedPlan,
+                    onPressed: () {
+                      setState(() {
+                        _fixOption = recommendationKeepsDate
+                            ? AdjustmentFixOption.keepDate
+                            : AdjustmentFixOption.keepRate;
+                        _weeklyRateKg = widget.recommendedWeeklyRateKg!;
+                        _targetDate = widget.recommendedTargetDate!;
+                      });
+                    },
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: DesignConstants.spacingL),
+          ],
 
           // Strategy Selector: Fixed Date vs Fixed Rate (Clean Apple HIG segment control, no emojis)
           AppSegmentedControl<AdjustmentFixOption>(
@@ -340,7 +446,8 @@ class _GoalAdjustmentSheetState extends State<GoalAdjustmentSheet> {
                 allowNegative: false,
               );
               if (newDisplayRate != null) {
-                final signedRate = isNegative ? -newDisplayRate : newDisplayRate;
+                final signedRate =
+                    isNegative ? -newDisplayRate : newDisplayRate;
                 final metric = unitService.convertToMetric(
                   signedRate,
                   UnitDimension.weight,
@@ -378,14 +485,14 @@ class _GoalAdjustmentSheetState extends State<GoalAdjustmentSheet> {
             ),
           ],
 
-          const SizedBox(height: DesignConstants.spacingXL),
-          AppButton.primary(
-            label: _isSaving
-                ? '...'
-                : l10n.adjustGoalApplyAsSuccessorButton,
-            tooltip: l10n.adjustGoalApplyAsSuccessorButton,
-            onPressed: _isSaving ? null : _confirmAndSave,
-          ),
+          if (widget.showSaveButton) ...[
+            const SizedBox(height: DesignConstants.spacingXL),
+            AppButton.primary(
+              label: _isSaving ? '...' : l10n.adjustGoalUpdatePlanButton,
+              tooltip: l10n.adjustGoalUpdatePlanButton,
+              onPressed: _isSaving ? null : _confirmAndSave,
+            ),
+          ],
         ],
       ),
     );

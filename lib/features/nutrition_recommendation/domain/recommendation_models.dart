@@ -58,6 +58,7 @@ class RecommendationGenerationInput {
   final double? smoothedWeightSlopeKgPerWeek;
   final double avgLoggedCalories;
   final double currentWeightKg;
+  final double? smoothedCurrentWeightKg;
   final int priorMaintenanceCalories;
   final int? activeTargetCalories;
   final List<String> qualityFlags;
@@ -71,6 +72,7 @@ class RecommendationGenerationInput {
     required this.smoothedWeightSlopeKgPerWeek,
     required this.avgLoggedCalories,
     required this.currentWeightKg,
+    this.smoothedCurrentWeightKg,
     required this.priorMaintenanceCalories,
     required this.activeTargetCalories,
     this.qualityFlags = const [],

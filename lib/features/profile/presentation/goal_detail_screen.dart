@@ -14,6 +14,7 @@ import '../domain/models/goal_progress.dart';
 import '../domain/repositories/goal_repository.dart';
 import '../domain/repositories/profile_repository.dart';
 import '../data/goal_repository_impl.dart';
+import '../domain/services/goal_notification_orchestrator.dart';
 import '../../app/presentation/widgets/glass_bottom_menu.dart';
 import 'widgets/active_goal_dashboard_widget.dart';
 import 'widgets/goal_adjustment_sheet.dart';
@@ -109,9 +110,9 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
     };
   }
 
-
   Future<void> _openAdjustmentSheet(Goal goal, GoalProgress? progress) async {
-    final startWeight = progress?.currentValue ?? progress?.baselineValue ?? 75.0;
+    final startWeight =
+        progress?.currentValue ?? progress?.baselineValue ?? 75.0;
     final result = await GoalAdjustmentSheet.show(
       context,
       goal: goal,
@@ -134,7 +135,10 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
     );
 
     if (confirmed == true && mounted) {
-      await _goalRepository.retireGoal(goal.id, reason: 'Nutzer hat Ziel beendet');
+      await _goalRepository.retireGoal(goal.id,
+          reason: 'Nutzer hat Ziel beendet');
+      await GoalNotificationOrchestrator(goalRepository: _goalRepository)
+          .goalBecameInactive(goal.id);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(l10n.goalRetiredSuccessSnack)),
@@ -154,7 +158,14 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
     );
 
     if (confirmed == true && mounted) {
+      final previouslyActive = await _goalRepository.getActiveGoal();
       await _goalRepository.resumeGoal(goal.id);
+      final notifications =
+          GoalNotificationOrchestrator(goalRepository: _goalRepository);
+      if (previouslyActive != null && previouslyActive.id != goal.id) {
+        await notifications.goalBecameInactive(previouslyActive.id);
+      }
+      await notifications.synchronize();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(l10n.goalResumedSuccessSnack)),

@@ -789,16 +789,19 @@ class UserGoals extends Table with HybridId, MetaColumns {
   TextColumn get userId => text().nullable()();
   TextColumn get area =>
       text().withDefault(const Constant('body_composition'))();
-  TextColumn get preset => text()(); // 'loseWeight', 'gainWeight', 'maintainWeight', 'recomposition', 'custom'
+  TextColumn get preset =>
+      text()(); // 'loseWeight', 'gainWeight', 'maintainWeight', 'recomposition', 'custom'
   TextColumn get title => text()();
   TextColumn get reason => text().nullable()();
-  TextColumn get status =>
-      text().withDefault(const Constant('active'))(); // 'active', 'retired', 'superseded', 'draft'
+  TextColumn get status => text().withDefault(
+      const Constant('active'))(); // 'active', 'retired', 'superseded', 'draft'
   DateTimeColumn get startDate => dateTime()();
   DateTimeColumn get targetDate => dateTime().nullable()();
-  TextColumn get targetMetric => text().nullable()(); // 'weight', 'body_fat', 'waist', etc.
+  TextColumn get targetMetric =>
+      text().nullable()(); // 'weight', 'body_fat', 'waist', etc.
   RealColumn get targetValue => real().nullable()();
-  TextColumn get targetUnit => text().nullable()(); // 'kg', 'lbs', '%', 'cm', 'in'
+  TextColumn get targetUnit =>
+      text().nullable()(); // 'kg', 'lbs', '%', 'cm', 'in'
   RealColumn get desiredWeeklyRateKg => real().nullable()();
   BoolColumn get isNutritionDriver =>
       boolean().withDefault(const Constant(false))();
@@ -811,11 +814,11 @@ class UserGoals extends Table with HybridId, MetaColumns {
 class GoalEvents extends Table with HybridId, MetaColumns {
   TextColumn get goalId =>
       text().references(UserGoals, #id, onDelete: KeyAction.cascade)();
-  TextColumn get eventType => text()(); // 'created', 'superseded', 'retired', 'resumed'
-  TextColumn get actor =>
-      text().withDefault(const Constant('user'))(); // 'user', 'user_accepted_recommendation', 'engine'
-  DateTimeColumn get occurredAt =>
-      dateTime().withDefault(currentDateAndTime)();
+  TextColumn get eventType =>
+      text()(); // 'created', 'superseded', 'retired', 'resumed'
+  TextColumn get actor => text().withDefault(const Constant(
+      'user'))(); // 'user', 'user_accepted_recommendation', 'engine'
+  DateTimeColumn get occurredAt => dateTime().withDefault(currentDateAndTime)();
   TextColumn get recommendationId => text().nullable()();
   TextColumn get reason => text().nullable()();
   TextColumn get algorithmVersion => text().nullable()();
@@ -827,11 +830,13 @@ class GoalReviews extends Table with HybridId, MetaColumns {
       text().references(UserGoals, #id, onDelete: KeyAction.cascade)();
   DateTimeColumn get windowStart => dateTime()();
   DateTimeColumn get windowEnd => dateTime()();
-  TextColumn get status =>
-      text().withDefault(const Constant('pending'))(); // 'pending', 'applied', 'deferred', 'dismissed', 'goal_changed'
-  TextColumn get trajectoryStatus => text().nullable()(); // 'on_track', 'slower', 'faster', 'calibrating'
+  TextColumn get status => text().withDefault(const Constant(
+      'pending'))(); // 'pending', 'applied', 'deferred', 'dismissed', 'goal_changed'
+  TextColumn get trajectoryStatus =>
+      text().nullable()(); // 'on_track', 'slower', 'faster', 'calibrating'
   RealColumn get observedRateKgPerWeek => real().nullable()();
-  TextColumn get confidenceLevel => text().nullable()(); // 'high', 'moderate', 'low', 'uncalibrated'
+  TextColumn get confidenceLevel =>
+      text().nullable()(); // 'high', 'moderate', 'low', 'uncalibrated'
   RealColumn get tdeeEstimate => real().nullable()();
   IntColumn get recommendedCalories => integer().nullable()();
   IntColumn get recommendedProtein => integer().nullable()();
@@ -840,6 +845,7 @@ class GoalReviews extends Table with HybridId, MetaColumns {
   TextColumn get decision => text().nullable()();
   TextColumn get algorithmVersion => text()();
   TextColumn get explanation => text().nullable()();
+  TextColumn get assessmentJson => text().nullable()();
 }
 
 @DriftDatabase(
@@ -895,7 +901,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
-  int get schemaVersion => 31;
+  int get schemaVersion => 33;
 
   /// Adds whatever the file is missing compared to the generated tables.
   ///
@@ -997,6 +1003,9 @@ class AppDatabase extends _$AppDatabase {
           );
           await customStatement(
             'CREATE INDEX IF NOT EXISTS idx_nutrition_logs_meal_entry_id ON nutrition_logs (meal_entry_id);',
+          );
+          await customStatement(
+            'CREATE UNIQUE INDEX IF NOT EXISTS idx_goal_reviews_window ON goal_reviews (goal_id, window_start, window_end);',
           );
         },
         onUpgrade: (Migrator m, int from, int to) async {
@@ -1570,6 +1579,25 @@ class AppDatabase extends _$AppDatabase {
                   this, setLogs.actualTableName, 'progression_data')) {
                 await m.addColumn(setLogs, setLogs.progressionData);
               }
+            }
+            if (from < 32) {
+              // Keep the newest row if a development build managed to create
+              // duplicates before window-level idempotency was enforced.
+              await customStatement('''
+                DELETE FROM goal_reviews
+                WHERE local_id NOT IN (
+                  SELECT MAX(local_id) FROM goal_reviews
+                  GROUP BY goal_id, window_start, window_end
+                );
+              ''');
+              await customStatement(
+                'CREATE UNIQUE INDEX IF NOT EXISTS idx_goal_reviews_window ON goal_reviews (goal_id, window_start, window_end);',
+              );
+            }
+            if (from < 33 &&
+                !await _columnExists(
+                    this, goalReviews.actualTableName, 'assessment_json')) {
+              await m.addColumn(goalReviews, goalReviews.assessmentJson);
             }
             unawaited(TelemetryService.instance.trackDbMigrationStatus(
               fromVersion: from,

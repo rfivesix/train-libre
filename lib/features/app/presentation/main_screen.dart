@@ -59,6 +59,11 @@ import '../../onboarding/presentation/widgets/app_tour_overlay.dart';
 import '../../../widgets/common/app_button.dart';
 import '../../home_widgets/application/home_widget_sync_service.dart';
 import '../../home_widgets/home_widget_deep_link.dart';
+import '../../../services/local_notification_service.dart';
+import '../../../services/notification_navigation.dart';
+import '../../profile/data/goal_repository_impl.dart';
+import '../../profile/presentation/goal_detail_screen.dart';
+import '../../profile/presentation/weekly_goal_review_screen.dart';
 
 /// The root scaffold containing the main navigation structure.
 ///
@@ -108,6 +113,7 @@ class _MainScreenState extends State<MainScreen>
   late final AnimationController _menuController;
   final StepsAggregationRepository _stepsRepository =
       HealthStepsAggregationRepository();
+  StreamSubscription<AppNotificationPayload>? _notificationTapSubscription;
 
   ThemeService get themeService =>
       Provider.of<ThemeService>(context, listen: false);
@@ -150,6 +156,9 @@ class _MainScreenState extends State<MainScreen>
       duration: const Duration(milliseconds: 400),
     );
     MainScreen.drainPendingWidgetAction = _drainPendingWidgetAction;
+    _notificationTapSubscription = LocalNotificationService
+        .instance.notificationTaps
+        .listen(_handleNotificationTap);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       unawaited(_runStartupPrompts());
       if (_currentIndex >= 0 && _currentIndex < _tabScreenNames.length) {
@@ -161,6 +170,9 @@ class _MainScreenState extends State<MainScreen>
       // Cold launch from a widget: the deep link arrived before this screen
       // existed, so the action was parked rather than run.
       _drainPendingWidgetAction();
+      final pendingTap =
+          LocalNotificationService.instance.takePendingNotificationTap();
+      if (pendingTap != null) unawaited(_handleNotificationTap(pendingTap));
       // First population, so a freshly added widget is not stuck on placeholders
       // until the user happens to log something.
       refreshHomeWidgets();
@@ -187,6 +199,28 @@ class _MainScreenState extends State<MainScreen>
     }
 
     _executeAddMenuAction(action);
+  }
+
+  Future<void> _handleNotificationTap(AppNotificationPayload payload) async {
+    LocalNotificationService.instance.takePendingNotificationTap();
+    final destination =
+        await AppNotificationRouter(GoalRepositoryImpl()).resolve(payload);
+    if (!mounted) return;
+    switch (destination) {
+      case NutritionHubNotificationDestination():
+        _onNavigationTapped(3);
+        return;
+      case GoalDetailNotificationDestination(:final goal):
+        await Navigator.of(context).push(MaterialPageRoute(
+          builder: (_) => GoalDetailScreen(goalId: goal.id),
+        ));
+        return;
+      case WeeklyReviewNotificationDestination(:final goal, :final review):
+        await Navigator.of(context).push(MaterialPageRoute(
+          builder: (_) => WeeklyGoalReviewScreen(goal: goal, review: review),
+        ));
+        return;
+    }
   }
 
   @override
@@ -267,6 +301,7 @@ class _MainScreenState extends State<MainScreen>
   @override
   void dispose() {
     _widgetRefreshTimer?.cancel();
+    _notificationTapSubscription?.cancel();
     WidgetsBinding.instance.removeObserver(this);
     if (_isRouteObserverAttached) {
       appRouteObserver.unsubscribe(this);

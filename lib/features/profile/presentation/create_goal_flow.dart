@@ -22,6 +22,7 @@ import '../../../widgets/common/value_summary_card.dart';
 import '../data/goal_repository_impl.dart';
 import '../domain/models/goal_model.dart';
 import '../domain/repositories/goal_repository.dart';
+import '../domain/services/goal_notification_orchestrator.dart';
 
 class CreateGoalFlow extends StatefulWidget {
   final IGoalRepository? repository;
@@ -58,7 +59,8 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
   // Step 3: Tempo & Zieldatum (Interaktiver Planer)
   DateTime? _targetDate;
   double _weeklyRateKg = 0.50; // positive magnitude
-  String _selectedRatePreset = 'moderate'; // 'gentle', 'moderate', 'athletic', 'aggressive', 'custom'
+  String _selectedRatePreset =
+      'moderate'; // 'gentle', 'moderate', 'athletic', 'aggressive', 'custom'
   String _selectedDurationPreset = 'custom'; // '8', '12', '16', '24', 'custom'
 
   // Step 4: Motivation
@@ -377,6 +379,7 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
     }
 
     try {
+      final previouslyActive = await _repository.getActiveGoal();
       await _repository.createGoal(
         preset: _preset,
         title: title,
@@ -391,6 +394,12 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
         desiredWeeklyRateKg: signedWeeklyRateKg,
         isNutritionDriver: _isNutritionDriver,
       );
+      final notifications =
+          GoalNotificationOrchestrator(goalRepository: _repository);
+      if (previouslyActive != null) {
+        await notifications.goalBecameInactive(previouslyActive.id);
+      }
+      await notifications.synchronize();
 
       if (!mounted) return;
       Navigator.of(context).pop(true);
@@ -801,8 +810,7 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
                     imperial: unitService.isImperial,
                     onChanged: (val) {
                       setState(() {
-                        _baselineWeightController.text =
-                            val.toStringAsFixed(1);
+                        _baselineWeightController.text = val.toStringAsFixed(1);
                       });
                     },
                   ),
@@ -953,11 +961,13 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
             spacing: 8,
             runSpacing: 8,
             children: (_preset == GoalPreset.gainWeight ||
-                    (_preset == GoalPreset.custom && _customDirection == 'gain'))
+                    (_preset == GoalPreset.custom &&
+                        _customDirection == 'gain'))
                 ? [2.0, 4.0, 6.0, 8.0].map((delta) {
                     final target = baselineDisp + delta;
                     return ActionChip(
-                      label: Text('+$delta $unitStr (${target.toStringAsFixed(1)})'),
+                      label: Text(
+                          '+$delta $unitStr (${target.toStringAsFixed(1)})'),
                       onPressed: () {
                         setState(() {
                           _targetWeightController.text =
@@ -969,7 +979,8 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
                 : [2.0, 5.0, 10.0, 15.0].map((delta) {
                     final target = max(30.0, baselineDisp - delta);
                     return ActionChip(
-                      label: Text('-$delta $unitStr (${target.toStringAsFixed(1)})'),
+                      label: Text(
+                          '-$delta $unitStr (${target.toStringAsFixed(1)})'),
                       onPressed: () {
                         setState(() {
                           _targetWeightController.text =
@@ -983,7 +994,9 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
         ],
 
         // 3-Column Summary Cards: Baseline, Planned Delta, Target
-        if (baselineDisp != null && targetDisp != null && deltaDisp != null) ...[
+        if (baselineDisp != null &&
+            targetDisp != null &&
+            deltaDisp != null) ...[
           Row(
             children: [
               Expanded(
@@ -1060,7 +1073,6 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
           ),
         ),
         const SizedBox(height: DesignConstants.spacingL),
-
         if (isMaintain) ...[
           SummaryCard(
             child: Padding(
@@ -1243,7 +1255,8 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
               } else if (val == 'athletic') {
                 _onWeeklyRateChanged(0.75, unitService, ratePreset: 'athletic');
               } else if (val == 'aggressive') {
-                _onWeeklyRateChanged(1.00, unitService, ratePreset: 'aggressive');
+                _onWeeklyRateChanged(1.00, unitService,
+                    ratePreset: 'aggressive');
               } else {
                 setState(() => _selectedRatePreset = 'custom');
               }
@@ -1254,8 +1267,8 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
             AppRulerPicker.rate(
               value: _weeklyRateKg,
               imperial: unitService.isImperial,
-              onChanged: (val) => _onWeeklyRateChanged(val, unitService,
-                  ratePreset: 'custom'),
+              onChanged: (val) =>
+                  _onWeeklyRateChanged(val, unitService, ratePreset: 'custom'),
               unit: unitStr,
             ),
           ],
@@ -1337,8 +1350,8 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
                 onTap: () async {
                   final picked = await showAdaptiveDatePicker(
                     context: context,
-                    initialDate: _targetDate ??
-                        _startDate.add(const Duration(days: 84)),
+                    initialDate:
+                        _targetDate ?? _startDate.add(const Duration(days: 84)),
                     firstDate: _startDate.add(const Duration(days: 7)),
                     lastDate: _startDate.add(const Duration(days: 730)),
                   );
@@ -1404,8 +1417,7 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
               label: Text(
                 suggestion,
                 style: theme.textTheme.labelMedium?.copyWith(
-                  fontWeight:
-                      isSelected ? FontWeight.bold : FontWeight.normal,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                   color: isSelected
                       ? theme.colorScheme.primary
                       : theme.colorScheme.onSurface,
@@ -1414,8 +1426,8 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
               side: isSelected
                   ? BorderSide(color: theme.colorScheme.primary, width: 1.5)
                   : BorderSide(
-                      color: theme.colorScheme.onSurface
-                          .withValues(alpha: 0.15),
+                      color:
+                          theme.colorScheme.onSurface.withValues(alpha: 0.15),
                     ),
               backgroundColor: isSelected
                   ? theme.colorScheme.primary.withValues(alpha: 0.15)
@@ -1558,7 +1570,8 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
                 _buildReviewRow(
                   context,
                   label: l10n.goalWeeklyRateLabel,
-                  value: '${_weeklyRateKg.toStringAsFixed(2)} $unitStr / ${l10n.weekShort}',
+                  value:
+                      '${_weeklyRateKg.toStringAsFixed(2)} $unitStr / ${l10n.weekShort}',
                   icon: LucideIcons.gauge,
                 ),
                 const Divider(height: DesignConstants.spacingL),

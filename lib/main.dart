@@ -70,6 +70,7 @@ import 'package:workmanager/workmanager.dart';
 import 'features/nutrition_recommendation/data/recommendation_service.dart';
 import 'services/ai_service.dart';
 import 'services/local_notification_service.dart';
+import 'features/profile/domain/services/goal_notification_orchestrator.dart';
 import 'services/telemetry/telemetry_service.dart';
 
 @pragma('vm:entry-point')
@@ -90,6 +91,9 @@ void callbackDispatcher() {
       // Attempt to generate/refresh if due, which will also notify the user
       // via the stream in LocalNotificationService.
       await service.refreshRecommendationIfDue();
+      await GoalNotificationOrchestrator(
+        goalRepository: GoalRepositoryImpl(database: database),
+      ).synchronize();
 
       return true;
     } catch (e) {

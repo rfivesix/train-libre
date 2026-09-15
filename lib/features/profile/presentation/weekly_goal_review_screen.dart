@@ -12,10 +12,12 @@ import '../../../util/design_constants.dart';
 import '../../../widgets/common/app_button.dart';
 import '../../../widgets/common/bottom_content_spacer.dart';
 import '../../../widgets/common/global_app_bar.dart';
-import '../../../widgets/common/summary_card.dart';
+import '../../../widgets/common/app_section_header.dart';
+import '../../../widgets/common/value_summary_card.dart';
 import '../../nutrition_recommendation/data/recommendation_service.dart';
 import '../domain/models/goal_model.dart';
 import '../domain/repositories/goal_repository.dart';
+import '../domain/services/goal_trajectory_calculator.dart';
 import '../data/goal_repository_impl.dart';
 import 'widgets/goal_adjustment_sheet.dart';
 
@@ -43,6 +45,8 @@ class _WeeklyGoalReviewScreenState extends State<WeeklyGoalReviewScreen> {
   int _loggedIntakeDaysCount = 0;
   bool _isLoading = true;
   bool _isApplying = false;
+  double? _currentWeightKg;
+  final _adjustmentKey = GlobalKey<GoalAdjustmentSheetState>();
 
   @override
   void initState() {
@@ -54,6 +58,8 @@ class _WeeklyGoalReviewScreenState extends State<WeeklyGoalReviewScreen> {
   }
 
   Future<void> _initReview() async {
+    final progress = await _goalRepository.getGoalProgress(widget.goal);
+    _currentWeightKg = progress?.currentValue ?? progress?.baselineValue;
     if (_review == null) {
       final pending = await _goalRepository.getPendingReview(widget.goal.id);
       _review = pending;
@@ -69,13 +75,16 @@ class _WeeklyGoalReviewScreenState extends State<WeeklyGoalReviewScreen> {
         final weights = await (db.select(db.measurements)
               ..where((t) => t.type.equals('weight')))
             .get();
-        _weightObservationCount = weights.where((m) =>
-            !m.date.isBefore(start) && !m.date.isAfter(end)).length;
+        _weightObservationCount = weights
+            .where((m) => !m.date.isBefore(start) && !m.date.isAfter(end))
+            .length;
 
         final logs = await db.select(db.nutritionLogs).get();
         final days = logs
-            .where((l) => !l.consumedAt.isBefore(start) && !l.consumedAt.isAfter(end))
-            .map((l) => '${l.consumedAt.year}-${l.consumedAt.month}-${l.consumedAt.day}')
+            .where((l) =>
+                !l.consumedAt.isBefore(start) && !l.consumedAt.isAfter(end))
+            .map((l) =>
+                '${l.consumedAt.year}-${l.consumedAt.month}-${l.consumedAt.day}')
             .toSet();
         _loggedIntakeDaysCount = days.length;
       } catch (_) {}
@@ -88,10 +97,15 @@ class _WeeklyGoalReviewScreenState extends State<WeeklyGoalReviewScreen> {
 
   Color _statusColor(String? status, ThemeData theme) {
     switch (status) {
+      case 'on_trajectory':
+      case 'target_reached':
       case 'on_track':
         return Colors.green;
+      case 'behind':
+      case 'target_date_needs_review':
       case 'slower':
         return Colors.orange;
+      case 'ahead':
       case 'faster':
         return Colors.blue;
       case 'calibrating':
@@ -103,6 +117,15 @@ class _WeeklyGoalReviewScreenState extends State<WeeklyGoalReviewScreen> {
   String _statusLabel(BuildContext context, String? status) {
     final l10n = AppLocalizations.of(context)!;
     switch (status) {
+      case 'behind':
+        return l10n.reviewStatusBehind;
+      case 'ahead':
+        return l10n.reviewStatusAhead;
+      case 'target_reached':
+        return l10n.reviewStatusTargetReached;
+      case 'target_date_needs_review':
+        return l10n.reviewStatusTargetDateNeedsReview;
+      case 'on_trajectory':
       case 'on_track':
         return l10n.reviewStatusOnTrack;
       case 'slower':
@@ -115,12 +138,44 @@ class _WeeklyGoalReviewScreenState extends State<WeeklyGoalReviewScreen> {
     }
   }
 
+  String _momentumLabel(BuildContext context, String? status) {
+    final l10n = AppLocalizations.of(context)!;
+    return switch (status) {
+      'matching_plan' => l10n.reviewMomentumMatchingPlan,
+      'catching_up' => l10n.reviewMomentumCatchingUp,
+      'falling_further_behind' => l10n.reviewMomentumFallingBehind,
+      'moving_faster' => l10n.reviewMomentumMovingFaster,
+      'moving_slower' => l10n.reviewMomentumMovingSlower,
+      _ => l10n.reviewMomentumUnclear,
+    };
+  }
+
+  String _nutritionExplanation(BuildContext context, String? action) {
+    final l10n = AppLocalizations.of(context)!;
+    return switch (action) {
+      'adjust_targets' => l10n.reviewNutritionAdjustTargets,
+      'keep_targets_intake_differs' =>
+        l10n.reviewNutritionKeepTargetsIntakeDiffers,
+      'trajectory_change_needed' => l10n.reviewNutritionTrajectoryChangeNeeded,
+      'insufficient_data' => l10n.reviewNutritionInsufficientData,
+      _ => l10n.reviewNutritionKeepTargets,
+    };
+  }
+
   Future<void> _applyRecommendation() async {
     if (_isApplying) return;
     setState(() => _isApplying = true);
 
     final applied =
         await _recommendationService.applyLatestRecommendationToActiveTargets();
+    final review = _review;
+    if (applied && review != null) {
+      await _goalRepository.updateReviewStatus(
+        review.id,
+        'applied',
+        decision: 'apply_recommendation',
+      );
+    }
     if (!mounted) return;
     setState(() => _isApplying = false);
 
@@ -134,7 +189,7 @@ class _WeeklyGoalReviewScreenState extends State<WeeklyGoalReviewScreen> {
         ),
       ),
     );
-    Navigator.of(context).pop(true);
+    if (applied) Navigator.of(context).pop(true);
   }
 
   Future<void> _dismissReview() async {
@@ -152,24 +207,6 @@ class _WeeklyGoalReviewScreenState extends State<WeeklyGoalReviewScreen> {
       SnackBar(content: Text(l10n.reviewDismissedSnack)),
     );
     Navigator.of(context).pop(false);
-  }
-
-  Future<void> _openGoalAdjustment() async {
-    final progress = await _goalRepository.getGoalProgress(widget.goal);
-    final startWeight =
-        progress?.currentValue ?? progress?.baselineValue ?? 75.0;
-
-    if (!mounted) return;
-    final adjusted = await GoalAdjustmentSheet.show(
-      context,
-      goal: widget.goal,
-      startWeightKg: startWeight,
-      repository: _goalRepository,
-    );
-
-    if (adjusted == true && mounted) {
-      Navigator.of(context).pop(true);
-    }
   }
 
   @override
@@ -190,8 +227,17 @@ class _WeeklyGoalReviewScreenState extends State<WeeklyGoalReviewScreen> {
     }
 
     final review = _review;
-    final statusColor = _statusColor(review?.trajectoryStatus, theme);
-    final statusLabel = _statusLabel(context, review?.trajectoryStatus);
+    final assessment = review?.assessment;
+    final primaryStatus = assessment?.overallStatus ?? review?.trajectoryStatus;
+    final statusColor = _statusColor(primaryStatus, theme);
+    final statusLabel = _statusLabel(context, primaryStatus);
+    final recommendedRate = _recommendedRate(assessment);
+    final recommendedDate = _recommendedDate(
+      assessment: assessment,
+      rateKgPerWeek: recommendedRate,
+    );
+    final hasAdjustmentEditor =
+        _currentWeightKg != null && widget.goal.targetValue != null;
 
     return Scaffold(
       appBar: GlobalAppBar(
@@ -201,7 +247,8 @@ class _WeeklyGoalReviewScreenState extends State<WeeklyGoalReviewScreen> {
         padding: DesignConstants.cardPadding,
         children: [
           // Header card with evaluation verdict and date range
-          SummaryCard(
+          Container(
+            alignment: Alignment.centerLeft,
             child: Padding(
               padding: DesignConstants.cardPadding,
               child: Column(
@@ -241,8 +288,16 @@ class _WeeklyGoalReviewScreenState extends State<WeeklyGoalReviewScreen> {
                   ),
                   const SizedBox(height: DesignConstants.spacingM),
                   Text(
-                    review?.explanation ??
-                        l10n.weeklyReviewPendingDefaultExplanation,
+                    assessment == null
+                        ? review?.explanation ??
+                            l10n.weeklyReviewPendingDefaultExplanation
+                        : l10n.reviewOverallSummary(
+                            statusLabel,
+                            _momentumLabel(
+                              context,
+                              assessment.recentMomentumStatus,
+                            ),
+                          ),
                     style: theme.textTheme.bodyLarge?.copyWith(
                       height: 1.4,
                     ),
@@ -253,113 +308,129 @@ class _WeeklyGoalReviewScreenState extends State<WeeklyGoalReviewScreen> {
           ),
           const SizedBox(height: DesignConstants.spacingL),
 
-          // Sufficiency Gate Status
-          SummaryCard(
-            child: Padding(
-              padding: DesignConstants.cardPadding,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    l10n.reviewSufficiencyGateTitle,
-                    style: theme.textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: DesignConstants.spacingM),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildGateMetric(
-                          context,
-                          label: l10n.reviewWeighInsCountLabel,
-                          value: '$_weightObservationCount / 3',
-                          isMet: _weightObservationCount >= 3,
-                        ),
-                      ),
-                      const SizedBox(width: DesignConstants.spacingM),
-                      Expanded(
-                        child: _buildGateMetric(
-                          context,
-                          label: l10n.reviewLoggedDaysCountLabel,
-                          value: '$_loggedIntakeDaysCount / 4',
-                          isMet: _loggedIntakeDaysCount >= 4,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: DesignConstants.spacingL),
-
-          // Trajectory Comparison: Observed Rate vs Target Rate
-          if (review?.observedRateKgPerWeek != null ||
-              widget.goal.desiredWeeklyRateKg != null) ...[
-            SummaryCard(
+          if (assessment?.expectedValue != null ||
+              assessment?.currentSmoothedValue != null) ...[
+            Container(
+              alignment: Alignment.centerLeft,
               child: Padding(
                 padding: DesignConstants.cardPadding,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      l10n.reviewTrajectoryComparisonTitle,
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
+                    AppSectionHeader(title: l10n.reviewPlanVsRealityTitle),
+                    const SizedBox(height: DesignConstants.spacingM),
+                    _buildValueRow(
+                      context,
+                      l10n.reviewExpectedByNowLabel,
+                      _formatWeight(assessment?.expectedValue, unitService),
+                    ),
+                    const SizedBox(height: DesignConstants.spacingS),
+                    _buildValueRow(
+                      context,
+                      l10n.reviewSmoothedCurrentLabel,
+                      _formatWeight(
+                        assessment?.currentSmoothedValue,
+                        unitService,
                       ),
+                    ),
+                    const Divider(height: DesignConstants.spacingL),
+                    _buildValueRow(
+                      context,
+                      l10n.reviewTrajectoryGapLabel,
+                      _formatWeight(assessment?.trajectoryGap, unitService,
+                          signed: true),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: DesignConstants.spacingL),
+          ],
+
+          if (_currentWeightKg != null && widget.goal.targetValue != null) ...[
+            const Divider(height: DesignConstants.spacingXL),
+            AppSectionHeader(title: l10n.adjustGoalTitle),
+            const SizedBox(height: DesignConstants.spacingXS),
+            Text(
+              l10n.adjustGoalDescription,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+              ),
+            ),
+            const SizedBox(height: DesignConstants.spacingL),
+            GoalAdjustmentSheet(
+              key: _adjustmentKey,
+              goal: widget.goal,
+              startWeightKg: _currentWeightKg!,
+              repository: _goalRepository,
+              embedded: true,
+              recommendedTargetDate: recommendedDate,
+              recommendedWeeklyRateKg: recommendedRate,
+              showSaveButton: false,
+              onSaved: () => Navigator.of(context).pop(true),
+            ),
+            const SizedBox(height: DesignConstants.spacingXL),
+          ],
+
+          // Trajectory Comparison: Observed Rate vs Target Rate
+          if (review?.observedRateKgPerWeek != null ||
+              widget.goal.desiredWeeklyRateKg != null) ...[
+            Container(
+              alignment: Alignment.centerLeft,
+              child: Padding(
+                padding: DesignConstants.cardPadding,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    AppSectionHeader(
+                      title: l10n.reviewTrajectoryComparisonTitle,
                     ),
                     const SizedBox(height: DesignConstants.spacingM),
                     Row(
                       children: [
                         Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                l10n.reviewObservedRateLabel,
-                                style: theme.textTheme.labelSmall?.copyWith(
-                                  color: theme.colorScheme.onSurface
-                                      .withValues(alpha: 0.6),
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                review?.observedRateKgPerWeek != null
-                                    ? '${review!.observedRateKgPerWeek! >= 0 ? "+" : ""}${unitService.convertDisplayValue(review.observedRateKgPerWeek!, UnitDimension.weight).toStringAsFixed(2)} ${unitService.unitString(UnitDimension.weight)}/${l10n.weekShort}'
-                                    : '--',
-                                style: theme.textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
+                          child: ValueSummaryCard(
+                            label: l10n.reviewObservedRateLabel,
+                            value: _formatRate(
+                              review?.observedRateKgPerWeek,
+                              unitService,
+                              l10n,
+                            ),
                           ),
                         ),
+                        const SizedBox(width: DesignConstants.spacingS),
                         Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                l10n.reviewTargetRateLabel,
-                                style: theme.textTheme.labelSmall?.copyWith(
-                                  color: theme.colorScheme.onSurface
-                                      .withValues(alpha: 0.6),
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                widget.goal.desiredWeeklyRateKg != null
-                                    ? '${widget.goal.desiredWeeklyRateKg! >= 0 ? "+" : ""}${unitService.convertDisplayValue(widget.goal.desiredWeeklyRateKg!, UnitDimension.weight).toStringAsFixed(2)} ${unitService.unitString(UnitDimension.weight)}/${l10n.weekShort}'
-                                    : '--',
-                                style: theme.textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
+                          child: ValueSummaryCard(
+                            label: l10n.reviewTargetRateLabel,
+                            value: _formatRate(
+                              assessment?.plannedRateKgPerWeek ??
+                                  widget.goal.desiredWeeklyRateKg,
+                              unitService,
+                              l10n,
+                            ),
                           ),
                         ),
                       ],
                     ),
+                    if (assessment?.requiredRemainingRateKgPerWeek != null) ...[
+                      const Divider(height: DesignConstants.spacingL),
+                      ValueSummaryCard(
+                        label: l10n.reviewRequiredRateLabel,
+                        value: _formatRate(
+                          assessment?.requiredRemainingRateKgPerWeek,
+                          unitService,
+                          l10n,
+                        ),
+                      ),
+                    ],
+                    if (assessment?.projectedTargetDate != null) ...[
+                      const SizedBox(height: DesignConstants.spacingS),
+                      ValueSummaryCard(
+                        label: l10n.reviewProjectedDateLabel,
+                        value:
+                            dateFormat.format(assessment!.projectedTargetDate!),
+                      ),
+                    ],
                     if (review?.tdeeEstimate != null) ...[
                       const Divider(height: DesignConstants.spacingL),
                       Row(
@@ -388,9 +459,21 @@ class _WeeklyGoalReviewScreenState extends State<WeeklyGoalReviewScreen> {
             const SizedBox(height: DesignConstants.spacingL),
           ],
 
+          if (assessment != null) ...[
+            Text(
+              _nutritionExplanation(context, assessment.nutritionAction),
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.75),
+                height: 1.35,
+              ),
+            ),
+            const SizedBox(height: DesignConstants.spacingL),
+          ],
+
           // Recommended Targets
           if (review?.recommendedCalories != null) ...[
-            SummaryCard(
+            Container(
+              alignment: Alignment.centerLeft,
               child: Padding(
                 padding: DesignConstants.cardPadding,
                 child: Column(
@@ -439,8 +522,7 @@ class _WeeklyGoalReviewScreenState extends State<WeeklyGoalReviewScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(l10n.carbs,
-                              style: theme.textTheme.bodyMedium),
+                          Text(l10n.carbs, style: theme.textTheme.bodyMedium),
                           Text(
                             '${review.recommendedCarbs} g',
                             style: theme.textTheme.bodyMedium?.copyWith(
@@ -472,29 +554,56 @@ class _WeeklyGoalReviewScreenState extends State<WeeklyGoalReviewScreen> {
             const SizedBox(height: DesignConstants.spacingXL),
           ],
 
-          // The 3 Explicit Actions
+          // Data basis is deliberately secondary and stays at the bottom.
+          Container(
+            alignment: Alignment.centerLeft,
+            child: Padding(
+              padding: DesignConstants.cardPadding,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  AppSectionHeader(title: l10n.reviewSufficiencyGateTitle),
+                  const SizedBox(height: DesignConstants.spacingM),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildGateMetric(
+                          context,
+                          label: l10n.reviewWeighInsCountLabel,
+                          value: '$_weightObservationCount / 3',
+                          isMet: _weightObservationCount >= 3,
+                        ),
+                      ),
+                      const SizedBox(width: DesignConstants.spacingM),
+                      Expanded(
+                        child: _buildGateMetric(
+                          context,
+                          label: l10n.reviewLoggedDaysCountLabel,
+                          value: '$_loggedIntakeDaysCount / 4',
+                          isMet: _loggedIntakeDaysCount >= 4,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: DesignConstants.spacingL),
+
+          // Nutrition actions remain separate from trajectory changes.
           if (review?.recommendedCalories != null) ...[
             SizedBox(
               width: double.infinity,
               child: AppButton.primary(
-                label: _isApplying
-                    ? '...'
-                    : l10n.reviewActionApplyRecommendation,
+                label:
+                    _isApplying ? '...' : l10n.reviewActionApplyRecommendation,
                 tooltip: l10n.reviewActionApplyRecommendation,
                 onPressed: _isApplying ? null : _applyRecommendation,
               ),
             ),
             const SizedBox(height: DesignConstants.spacingM),
           ],
-          SizedBox(
-            width: double.infinity,
-            child: AppButton.secondary(
-              label: l10n.reviewActionAdjustTrajectory,
-              tooltip: l10n.reviewActionAdjustTrajectory,
-              onPressed: _openGoalAdjustment,
-            ),
-          ),
-          const SizedBox(height: DesignConstants.spacingM),
           SizedBox(
             width: double.infinity,
             child: TextButton(
@@ -505,6 +614,26 @@ class _WeeklyGoalReviewScreenState extends State<WeeklyGoalReviewScreen> {
           const BottomContentSpacer(),
         ],
       ),
+      bottomNavigationBar: hasAdjustmentEditor
+          ? SafeArea(
+              minimum: const EdgeInsets.fromLTRB(
+                DesignConstants.spacingM,
+                DesignConstants.spacingS,
+                DesignConstants.spacingM,
+                DesignConstants.spacingM,
+              ),
+              child: AppButton.primary(
+                label: recommendedDate != null && recommendedRate != null
+                    ? l10n.adjustGoalAcceptRecommendationAndUpdatePlan
+                    : l10n.adjustGoalUpdatePlanButton,
+                tooltip: l10n.adjustGoalUpdatePlanButton,
+                onPressed: () => recommendedDate != null &&
+                        recommendedRate != null
+                    ? _adjustmentKey.currentState?.acceptRecommendedAndSave()
+                    : _adjustmentKey.currentState?.confirmAndSave(),
+              ),
+            )
+          : null,
     );
   }
 
@@ -553,6 +682,102 @@ class _WeeklyGoalReviewScreenState extends State<WeeklyGoalReviewScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildValueRow(BuildContext context, String label, String value) {
+    final theme = Theme.of(context);
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Flexible(
+          child: Text(label, style: theme.textTheme.bodyMedium),
+        ),
+        const SizedBox(width: DesignConstants.spacingM),
+        Text(
+          value,
+          style: theme.textTheme.titleSmall?.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ],
+    );
+  }
+
+  String _formatWeight(
+    double? value,
+    UnitService unitService, {
+    bool signed = false,
+  }) {
+    if (value == null) return '--';
+    final converted = unitService.convertDisplayValue(
+      value,
+      UnitDimension.weight,
+    );
+    final prefix = signed && converted > 0 ? '+' : '';
+    return '$prefix${converted.toStringAsFixed(1)} ${unitService.unitString(UnitDimension.weight)}';
+  }
+
+  String _formatRate(
+    double? value,
+    UnitService unitService,
+    AppLocalizations l10n,
+  ) {
+    if (value == null) return '--';
+    final converted = unitService.convertDisplayValue(
+      value,
+      UnitDimension.weight,
+    );
+    return '${converted >= 0 ? "+" : ""}${converted.toStringAsFixed(2)} ${unitService.unitString(UnitDimension.weight)}/${l10n.weekShort}';
+  }
+
+  double? _recommendedRate(GoalReviewAssessment? assessment) {
+    if (assessment == null ||
+        (assessment.overallStatus != 'behind' &&
+            assessment.overallStatus != 'target_date_needs_review')) {
+      return null;
+    }
+    final planned =
+        assessment.plannedRateKgPerWeek ?? widget.goal.desiredWeeklyRateKg;
+    final required = assessment.requiredRemainingRateKgPerWeek;
+    if (required != null &&
+        required != 0 &&
+        GoalTrajectoryCalculator.isRateSafe(required)) {
+      return required;
+    }
+    if (planned == null || planned == 0) return null;
+    return planned.clamp(
+      GoalTrajectoryCalculator.maxSafeLossRateKgPerWeek,
+      GoalTrajectoryCalculator.maxSafeGainRateKgPerWeek,
+    );
+  }
+
+  DateTime? _recommendedDate({
+    required GoalReviewAssessment? assessment,
+    required double? rateKgPerWeek,
+  }) {
+    final current = _currentWeightKg;
+    final target = widget.goal.targetValue;
+    if (assessment == null ||
+        current == null ||
+        target == null ||
+        rateKgPerWeek == null ||
+        rateKgPerWeek == 0 ||
+        (target - current).sign != rateKgPerWeek.sign) {
+      return null;
+    }
+    final required = assessment.requiredRemainingRateKgPerWeek;
+    if (required != null &&
+        (required - rateKgPerWeek).abs() < 0.0001 &&
+        widget.goal.targetDate != null) {
+      return widget.goal.targetDate;
+    }
+    final now = DateTime.now();
+    return GoalTrajectoryCalculator.calculateTargetDate(
+      startWeight: current,
+      targetWeight: target,
+      startDate: DateTime(now.year, now.month, now.day),
+      weeklyRateKg: rateKgPerWeek,
     );
   }
 }

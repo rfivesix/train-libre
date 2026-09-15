@@ -8,6 +8,9 @@ import '../../../generated/app_localizations.dart';
 import '../../../util/design_constants.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/summary_card.dart';
+import '../../../services/local_notification_service.dart';
+import '../../profile/data/goal_repository_impl.dart';
+import '../../profile/domain/services/goal_notification_orchestrator.dart';
 
 class GoalNotificationSettingsScreen extends StatefulWidget {
   const GoalNotificationSettingsScreen({super.key});
@@ -34,8 +37,7 @@ class _GoalNotificationSettingsScreenState
     final prefs = await SharedPreferences.getInstance();
     if (!mounted) return;
     setState(() {
-      _weeklyReviewEnabled =
-          prefs.getBool('notify_weekly_goal_review') ?? true;
+      _weeklyReviewEnabled = prefs.getBool('notify_weekly_goal_review') ?? true;
       _recommendationDueEnabled =
           prefs.getBool('notify_adaptive_recommendation') ?? true;
       _targetDateReminderEnabled =
@@ -47,6 +49,22 @@ class _GoalNotificationSettingsScreenState
   Future<void> _saveSetting(String key, bool value) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(key, value);
+    final repository = GoalRepositoryImpl();
+    final activeGoal = await repository.getActiveGoal();
+    if (key == 'notify_adaptive_recommendation' && !value) {
+      await LocalNotificationService.instance
+          .cancelAdaptiveRecommendationNotifications();
+      return;
+    }
+    if (key == 'notify_weekly_goal_review' && !value && activeGoal != null) {
+      await LocalNotificationService.instance
+          .cancelWeeklyReviewNotifications(goalId: activeGoal.id);
+      return;
+    }
+    if (activeGoal != null) {
+      await GoalNotificationOrchestrator(goalRepository: repository)
+          .synchronize();
+    }
   }
 
   @override
@@ -80,7 +98,8 @@ class _GoalNotificationSettingsScreenState
                         subtitle: Text(
                           l10n.goalNotifyWeeklyReviewSubtitle,
                           style: theme.textTheme.bodyMedium?.copyWith(
-                            color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+                            color: theme.colorScheme.onSurface
+                                .withValues(alpha: 0.7),
                           ),
                         ),
                         value: _weeklyReviewEnabled,
@@ -104,7 +123,8 @@ class _GoalNotificationSettingsScreenState
                         subtitle: Text(
                           l10n.goalNotifyRecommendationDueSubtitle,
                           style: theme.textTheme.bodyMedium?.copyWith(
-                            color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+                            color: theme.colorScheme.onSurface
+                                .withValues(alpha: 0.7),
                           ),
                         ),
                         value: _recommendationDueEnabled,
@@ -128,7 +148,8 @@ class _GoalNotificationSettingsScreenState
                         subtitle: Text(
                           l10n.goalNotifyTargetDateSubtitle,
                           style: theme.textTheme.bodyMedium?.copyWith(
-                            color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+                            color: theme.colorScheme.onSurface
+                                .withValues(alpha: 0.7),
                           ),
                         ),
                         value: _targetDateReminderEnabled,
@@ -167,7 +188,8 @@ class _GoalNotificationSettingsScreenState
                               Text(
                                 l10n.goalNotifyPrivacyBody,
                                 style: theme.textTheme.bodySmall?.copyWith(
-                                  color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+                                  color: theme.colorScheme.onSurface
+                                      .withValues(alpha: 0.7),
                                   height: 1.4,
                                 ),
                               ),

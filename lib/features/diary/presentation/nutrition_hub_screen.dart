@@ -20,6 +20,7 @@ import '../../profile/data/goal_repository_impl.dart';
 import '../../profile/domain/models/goal_model.dart';
 import '../../profile/domain/models/goal_progress.dart';
 import '../../profile/domain/repositories/goal_repository.dart';
+import '../../profile/domain/services/goal_notification_orchestrator.dart';
 import '../../profile/domain/repositories/profile_repository.dart';
 import '../../profile/presentation/goal_detail_screen.dart';
 import '../../profile/presentation/widgets/active_goal_dashboard_widget.dart';
@@ -95,6 +96,8 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
     final goals = await DatabaseHelper.instance.getGoalsForDate(today);
     final meals = await DatabaseHelper.instance.getMeals();
 
+    await GoalNotificationOrchestrator(goalRepository: _goalRepository)
+        .synchronize();
     final activeGoal = await _goalRepository.getActiveGoal();
     GoalProgress? activeProgress;
     GoalReviewRecord? pendingReview;
@@ -586,12 +589,10 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
                       children: [
                         Text(
                           meal['name'] as String,
-                          style: Theme.of(context)
-                              .textTheme
-                              .titleMedium
-                              ?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),

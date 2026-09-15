@@ -7356,6 +7356,41 @@ class AppLocalizationsEn extends AppLocalizations {
   String get reviewStatusCalibrating => 'Calibrating';
 
   @override
+  String get reviewStatusBehind => 'Behind plan';
+
+  @override
+  String get reviewStatusAhead => 'Ahead of plan';
+
+  @override
+  String get reviewStatusTargetReached => 'Target reached';
+
+  @override
+  String get reviewStatusTargetDateNeedsReview => 'Target date needs review';
+
+  @override
+  String reviewOverallSummary(String overall, String momentum) {
+    return 'Overall: $overall. Last 7 days: $momentum.';
+  }
+
+  @override
+  String get reviewMomentumMatchingPlan => 'matching the plan';
+
+  @override
+  String get reviewMomentumCatchingUp => 'catching up';
+
+  @override
+  String get reviewMomentumFallingBehind => 'falling further behind';
+
+  @override
+  String get reviewMomentumMovingFaster => 'moving faster';
+
+  @override
+  String get reviewMomentumMovingSlower => 'moving slower';
+
+  @override
+  String get reviewMomentumUnclear => 'not yet clear';
+
+  @override
   String reviewNextAnalysisScheduled(String date) {
     return 'Next adaptive review on $date (min. 3 weigh-ins & 4 calorie days)';
   }
@@ -7387,6 +7422,44 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get reviewTrajectoryComparisonTitle => 'Trajectory Comparison';
+
+  @override
+  String get reviewPlanVsRealityTitle => 'Plan vs. reality';
+
+  @override
+  String get reviewExpectedByNowLabel => 'Expected by now';
+
+  @override
+  String get reviewSmoothedCurrentLabel => 'Smoothed current';
+
+  @override
+  String get reviewTrajectoryGapLabel => 'Gap to plan';
+
+  @override
+  String get reviewRequiredRateLabel => 'Needed from now';
+
+  @override
+  String get reviewProjectedDateLabel => 'Projected target date';
+
+  @override
+  String get reviewNutritionAdjustTargets =>
+      'Your logged intake is consistent enough to calculate adjusted daily targets.';
+
+  @override
+  String get reviewNutritionKeepTargetsIntakeDiffers =>
+      'Your current targets still fit. Your logged intake differs from them, so changing the plan would not solve the main deviation.';
+
+  @override
+  String get reviewNutritionKeepTargets =>
+      'No change to your daily targets is recommended this week.';
+
+  @override
+  String get reviewNutritionTrajectoryChangeNeeded =>
+      'The rate needed to keep the current date is not a sensible nutrition adjustment. Change the goal, rate, or date instead.';
+
+  @override
+  String get reviewNutritionInsufficientData =>
+      'Keep logging normally. There is not enough recent data for a reliable nutrition adjustment yet.';
 
   @override
   String get reviewObservedRateLabel => 'Observed Trend';
@@ -7435,11 +7508,34 @@ class AppLocalizationsEn extends AppLocalizations {
   String get adjustGoalApplyAsSuccessorButton => 'Apply as successor goal';
 
   @override
-  String get adjustGoalConfirmTitle => 'Apply as successor goal?';
+  String get adjustGoalConfirmTitle => 'Update plan?';
 
   @override
   String get adjustGoalConfirmContent =>
-      'This will archive your current goal trajectory and start an updated goal phase with the new targets.';
+      'Your existing progress and all measurements remain intact. The revised trajectory starts today.';
+
+  @override
+  String get adjustGoalUpdatePlanButton => 'Update plan';
+
+  @override
+  String get adjustGoalAcceptRecommendationAndUpdatePlan =>
+      'Accept recommendation and update plan';
+
+  @override
+  String get adjustGoalRecommendedTitle => 'Recommended adjustment';
+
+  @override
+  String adjustGoalRecommendedPlan(String date, String rate) {
+    return 'Keep a realistic pace and move the target date to $date ($rate).';
+  }
+
+  @override
+  String adjustGoalRecommendedKeepDatePlan(String date, String rate) {
+    return 'Keep the $date target date and adjust the pace to $rate.';
+  }
+
+  @override
+  String get adjustGoalSelectRecommendedPlan => 'Select recommendation';
 
   @override
   String get adjustGoalConfirmButton => 'Apply';

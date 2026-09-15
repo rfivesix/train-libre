@@ -7106,6 +7106,41 @@ class AppLocalizationsJa extends AppLocalizations {
   String get reviewStatusCalibrating => '測定・調整中';
 
   @override
+  String get reviewStatusBehind => '計画より遅れています';
+
+  @override
+  String get reviewStatusAhead => '計画より進んでいます';
+
+  @override
+  String get reviewStatusTargetReached => '目標達成';
+
+  @override
+  String get reviewStatusTargetDateNeedsReview => '目標日の見直しが必要です';
+
+  @override
+  String reviewOverallSummary(String overall, String momentum) {
+    return '全体の推移：$overall。直近7日間：$momentum。';
+  }
+
+  @override
+  String get reviewMomentumMatchingPlan => '計画どおり';
+
+  @override
+  String get reviewMomentumCatchingUp => '遅れを取り戻しています';
+
+  @override
+  String get reviewMomentumFallingBehind => 'さらに遅れています';
+
+  @override
+  String get reviewMomentumMovingFaster => 'より速く進んでいます';
+
+  @override
+  String get reviewMomentumMovingSlower => 'よりゆっくり進んでいます';
+
+  @override
+  String get reviewMomentumUnclear => 'まだ判断できません';
+
+  @override
   String reviewNextAnalysisScheduled(String date) {
     return '次回のアダプティブ分析: $date（最低3回の測定と4日分の記録が必要）';
   }
@@ -7137,6 +7172,42 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get reviewTrajectoryComparisonTitle => '軌跡の比較';
+
+  @override
+  String get reviewPlanVsRealityTitle => '計画と実績';
+
+  @override
+  String get reviewExpectedByNowLabel => '現時点の計画値';
+
+  @override
+  String get reviewSmoothedCurrentLabel => '現在の平滑値';
+
+  @override
+  String get reviewTrajectoryGapLabel => '計画との差';
+
+  @override
+  String get reviewRequiredRateLabel => '今後必要なペース';
+
+  @override
+  String get reviewProjectedDateLabel => '予測目標日';
+
+  @override
+  String get reviewNutritionAdjustTargets => '食事記録は、1日の目標を調整するのに十分です。';
+
+  @override
+  String get reviewNutritionKeepTargetsIntakeDiffers =>
+      '現在の目標は引き続き適切です。記録した摂取量との差が主因なので、計画変更だけでは解決しません。';
+
+  @override
+  String get reviewNutritionKeepTargets => '今週は1日の目標を変更する必要はありません。';
+
+  @override
+  String get reviewNutritionTrajectoryChangeNeeded =>
+      '現在の期日を守るために必要なペースは、適切な栄養調整の範囲ではありません。目標、ペース、または日付を変更してください。';
+
+  @override
+  String get reviewNutritionInsufficientData =>
+      '通常どおり記録を続けてください。信頼できる栄養調整には、まだ直近のデータが足りません。';
 
   @override
   String get reviewObservedRateLabel => '観測されたトレンド';
@@ -7183,11 +7254,32 @@ class AppLocalizationsJa extends AppLocalizations {
   String get adjustGoalApplyAsSuccessorButton => '後続の目標として適用';
 
   @override
-  String get adjustGoalConfirmTitle => '後続の目標として適用しますか？';
+  String get adjustGoalConfirmTitle => '計画を更新しますか？';
 
   @override
-  String get adjustGoalConfirmContent =>
-      '現在の目標の推移はアーカイブされ、更新された目標フェーズが新しく開始されます。';
+  String get adjustGoalConfirmContent => 'これまでの進捗と測定値はすべて保持され、新しい軌跡は今日から始まります。';
+
+  @override
+  String get adjustGoalUpdatePlanButton => '計画を更新';
+
+  @override
+  String get adjustGoalAcceptRecommendationAndUpdatePlan => '推奨案を受け入れて計画を更新';
+
+  @override
+  String get adjustGoalRecommendedTitle => '推奨される調整';
+
+  @override
+  String adjustGoalRecommendedPlan(String date, String rate) {
+    return '現実的なペースを維持し、目標日を$dateに変更します（$rate）。';
+  }
+
+  @override
+  String adjustGoalRecommendedKeepDatePlan(String date, String rate) {
+    return '目標日$dateを維持し、ペースを$rateに調整します。';
+  }
+
+  @override
+  String get adjustGoalSelectRecommendedPlan => '推奨案を選択';
 
   @override
   String get adjustGoalConfirmButton => '適用';

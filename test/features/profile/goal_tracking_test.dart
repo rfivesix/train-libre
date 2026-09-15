@@ -147,6 +147,76 @@ void main() {
     });
   });
 
+  group('WeeklyGoalTrajectoryAssessmentService', () {
+    test('reports behind overall while a fast recent week is catching up', () {
+      final goal = Goal(
+        id: 'gain-goal',
+        preset: GoalPreset.gainWeight,
+        title: 'Gain weight',
+        status: GoalStatus.active,
+        startDate: DateTime(2026, 7, 1),
+        targetDate: DateTime(2026, 11, 3),
+        targetValue: 100,
+        desiredWeeklyRateKg: 0.5,
+        createdAt: DateTime(2026, 7, 1),
+        updatedAt: DateTime(2026, 7, 1),
+      );
+
+      final assessment = WeeklyGoalTrajectoryAssessmentService.evaluate(
+        goal: goal,
+        baselineDate: DateTime(2026, 7, 1),
+        baselineValue: 89.5,
+        reviewDate: DateTime(2026, 9, 8),
+        currentSmoothedValue: 90.7,
+        recentRateKgPerWeek: 1.689,
+        operatingRateKgPerWeek: 0.2,
+        weightObservationCount: 5,
+        nutritionLoggedDays: 7,
+        averageLoggedCalories: 2800,
+        currentCalories: 2800,
+      );
+
+      expect(assessment.overallStatus, 'behind');
+      expect(assessment.recentMomentumStatus, 'catching_up');
+      expect(assessment.expectedValue, closeTo(95.3, 0.1));
+      expect(assessment.currentSmoothedValue, 90.7);
+      expect(assessment.requiredRemainingRateKgPerWeek, greaterThan(1));
+      expect(assessment.nutritionAction, 'trajectory_change_needed');
+    });
+
+    test('keeps targets when logged intake explains being behind', () {
+      final goal = Goal(
+        id: 'loss-goal',
+        preset: GoalPreset.loseWeight,
+        title: 'Lose weight',
+        status: GoalStatus.active,
+        startDate: DateTime(2026, 1, 1),
+        targetDate: DateTime(2026, 4, 1),
+        targetValue: 75,
+        desiredWeeklyRateKg: -0.5,
+        createdAt: DateTime(2026, 1, 1),
+        updatedAt: DateTime(2026, 1, 1),
+      );
+
+      final assessment = WeeklyGoalTrajectoryAssessmentService.evaluate(
+        goal: goal,
+        baselineDate: DateTime(2026, 1, 1),
+        baselineValue: 80,
+        reviewDate: DateTime(2026, 2, 1),
+        currentSmoothedValue: 79,
+        recentRateKgPerWeek: -0.2,
+        operatingRateKgPerWeek: -0.2,
+        weightObservationCount: 4,
+        nutritionLoggedDays: 6,
+        averageLoggedCalories: 2250,
+        currentCalories: 2000,
+      );
+
+      expect(assessment.overallStatus, 'behind');
+      expect(assessment.nutritionAction, 'keep_targets_intake_differs');
+    });
+  });
+
   group('GoalProgress', () {
     test('calculates correct progress percentage for weight loss', () {
       final goal = Goal(

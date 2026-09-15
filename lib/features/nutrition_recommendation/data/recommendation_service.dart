@@ -60,6 +60,7 @@ class AdaptiveNutritionRecommendationService {
   final DatabaseHelper _databaseHelper;
   final BayesianNutritionRecommendationEngine _bayesianEngine;
   final AdaptiveRecommendationDueNotifier _dueNotifier;
+  final AdaptiveRecommendationNotificationPreference _notificationPreference;
   final IGoalRepository _goalRepository;
 
   AdaptiveNutritionRecommendationService({
@@ -68,6 +69,7 @@ class AdaptiveNutritionRecommendationService {
     DatabaseHelper? databaseHelper,
     BayesianNutritionRecommendationEngine? bayesianEngine,
     AdaptiveRecommendationDueNotifier? dueNotifier,
+    AdaptiveRecommendationNotificationPreference? notificationPreference,
     IGoalRepository? goalRepository,
   })  : _repository = repository ?? RecommendationRepository(),
         _databaseHelper = databaseHelper ?? DatabaseHelper.instance,
@@ -75,6 +77,8 @@ class AdaptiveNutritionRecommendationService {
             bayesianEngine ?? const BayesianNutritionRecommendationEngine(),
         _dueNotifier =
             dueNotifier ?? const LocalAdaptiveRecommendationDueNotifier(),
+        _notificationPreference = notificationPreference ??
+            const SharedPreferencesAdaptiveRecommendationNotificationPreference(),
         _goalRepository = goalRepository ??
             GoalRepositoryImpl(database: databaseHelper?.dbInstance),
         _inputAdapter = inputAdapter ??
@@ -113,8 +117,12 @@ class AdaptiveNutritionRecommendationService {
           return BodyweightGoal.maintainWeight;
         case GoalPreset.custom:
           if (activeGoal.desiredWeeklyRateKg != null) {
-            if (activeGoal.desiredWeeklyRateKg! < 0) return BodyweightGoal.loseWeight;
-            if (activeGoal.desiredWeeklyRateKg! > 0) return BodyweightGoal.gainWeight;
+            if (activeGoal.desiredWeeklyRateKg! < 0) {
+              return BodyweightGoal.loseWeight;
+            }
+            if (activeGoal.desiredWeeklyRateKg! > 0) {
+              return BodyweightGoal.gainWeight;
+            }
           }
           return BodyweightGoal.maintainWeight;
       }
@@ -225,6 +233,13 @@ class AdaptiveNutritionRecommendationService {
     final lastNotifiedDueWeekKey =
         await _repository.getLastDueNotificationWeekKey();
     if (lastNotifiedDueWeekKey == dueWeekKey) {
+      return false;
+    }
+
+    if (!await _notificationPreference.isEnabled()) {
+      // Consume the due event while notifications are disabled so enabling the
+      // setting later only affects future weeks.
+      await _repository.setLastDueNotificationWeekKey(dueWeekKey);
       return false;
     }
 
@@ -599,13 +614,8 @@ class AdaptiveNutritionRecommendationService {
 
     final activeGoal = await _goalRepository.getActiveGoal();
     if (activeGoal != null) {
-      if (activeGoal.isNutritionDriver) {
-        await _goalRepository.updateGoalWeeklyRate(
-          activeGoal.id,
-          recommendation.targetRateKgPerWeek,
-        );
-      }
-      final pendingReview = await _goalRepository.getPendingReview(activeGoal.id);
+      final pendingReview =
+          await _goalRepository.getPendingReview(activeGoal.id);
       if (pendingReview != null) {
         await _goalRepository.updateReviewStatus(
           pendingReview.id,
@@ -720,11 +730,12 @@ class AdaptiveNutritionRecommendationService {
       final effectiveSampleSize = est.effectiveSampleSize;
       final hasSlope = summary.smoothedWeightSlopeKgPerWeek != null ||
           est.observedWeightSlopeKgPerWeek != null;
-      final hasIntake = summary.avgLoggedCalories > 0 ||
-          est.observedIntakeCalories != null;
-      final isPriorOnly = est.priorSource == BayesianPriorSource.profilePriorBootstrap ||
-          summary.qualityFlags.contains('onboarding_prior_only') ||
-          summary.qualityFlags.contains('bayesian_intake_unavailable');
+      final hasIntake =
+          summary.avgLoggedCalories > 0 || est.observedIntakeCalories != null;
+      final isPriorOnly =
+          est.priorSource == BayesianPriorSource.profilePriorBootstrap ||
+              summary.qualityFlags.contains('onboarding_prior_only') ||
+              summary.qualityFlags.contains('bayesian_intake_unavailable');
 
       unawaited(TelemetryService.instance.trackRecommendationGenerated(
         weightLogCount: summary.weightLogCount,
@@ -803,4 +814,3 @@ BayesianNutritionRecommendationResult _generateBayesianRecommendationIsolate(
     ),
   );
 }
-

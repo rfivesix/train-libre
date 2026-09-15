@@ -12901,6 +12901,72 @@ abstract class AppLocalizations {
   /// **'Calibrating'**
   String get reviewStatusCalibrating;
 
+  /// No description provided for @reviewStatusBehind.
+  ///
+  /// In en, this message translates to:
+  /// **'Behind plan'**
+  String get reviewStatusBehind;
+
+  /// No description provided for @reviewStatusAhead.
+  ///
+  /// In en, this message translates to:
+  /// **'Ahead of plan'**
+  String get reviewStatusAhead;
+
+  /// No description provided for @reviewStatusTargetReached.
+  ///
+  /// In en, this message translates to:
+  /// **'Target reached'**
+  String get reviewStatusTargetReached;
+
+  /// No description provided for @reviewStatusTargetDateNeedsReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Target date needs review'**
+  String get reviewStatusTargetDateNeedsReview;
+
+  /// No description provided for @reviewOverallSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Overall: {overall}. Last 7 days: {momentum}.'**
+  String reviewOverallSummary(String overall, String momentum);
+
+  /// No description provided for @reviewMomentumMatchingPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'matching the plan'**
+  String get reviewMomentumMatchingPlan;
+
+  /// No description provided for @reviewMomentumCatchingUp.
+  ///
+  /// In en, this message translates to:
+  /// **'catching up'**
+  String get reviewMomentumCatchingUp;
+
+  /// No description provided for @reviewMomentumFallingBehind.
+  ///
+  /// In en, this message translates to:
+  /// **'falling further behind'**
+  String get reviewMomentumFallingBehind;
+
+  /// No description provided for @reviewMomentumMovingFaster.
+  ///
+  /// In en, this message translates to:
+  /// **'moving faster'**
+  String get reviewMomentumMovingFaster;
+
+  /// No description provided for @reviewMomentumMovingSlower.
+  ///
+  /// In en, this message translates to:
+  /// **'moving slower'**
+  String get reviewMomentumMovingSlower;
+
+  /// No description provided for @reviewMomentumUnclear.
+  ///
+  /// In en, this message translates to:
+  /// **'not yet clear'**
+  String get reviewMomentumUnclear;
+
   /// No description provided for @reviewNextAnalysisScheduled.
   ///
   /// In en, this message translates to:
@@ -12960,6 +13026,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Trajectory Comparison'**
   String get reviewTrajectoryComparisonTitle;
+
+  /// No description provided for @reviewPlanVsRealityTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan vs. reality'**
+  String get reviewPlanVsRealityTitle;
+
+  /// No description provided for @reviewExpectedByNowLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Expected by now'**
+  String get reviewExpectedByNowLabel;
+
+  /// No description provided for @reviewSmoothedCurrentLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Smoothed current'**
+  String get reviewSmoothedCurrentLabel;
+
+  /// No description provided for @reviewTrajectoryGapLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Gap to plan'**
+  String get reviewTrajectoryGapLabel;
+
+  /// No description provided for @reviewRequiredRateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Needed from now'**
+  String get reviewRequiredRateLabel;
+
+  /// No description provided for @reviewProjectedDateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Projected target date'**
+  String get reviewProjectedDateLabel;
+
+  /// No description provided for @reviewNutritionAdjustTargets.
+  ///
+  /// In en, this message translates to:
+  /// **'Your logged intake is consistent enough to calculate adjusted daily targets.'**
+  String get reviewNutritionAdjustTargets;
+
+  /// No description provided for @reviewNutritionKeepTargetsIntakeDiffers.
+  ///
+  /// In en, this message translates to:
+  /// **'Your current targets still fit. Your logged intake differs from them, so changing the plan would not solve the main deviation.'**
+  String get reviewNutritionKeepTargetsIntakeDiffers;
+
+  /// No description provided for @reviewNutritionKeepTargets.
+  ///
+  /// In en, this message translates to:
+  /// **'No change to your daily targets is recommended this week.'**
+  String get reviewNutritionKeepTargets;
+
+  /// No description provided for @reviewNutritionTrajectoryChangeNeeded.
+  ///
+  /// In en, this message translates to:
+  /// **'The rate needed to keep the current date is not a sensible nutrition adjustment. Change the goal, rate, or date instead.'**
+  String get reviewNutritionTrajectoryChangeNeeded;
+
+  /// No description provided for @reviewNutritionInsufficientData.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep logging normally. There is not enough recent data for a reliable nutrition adjustment yet.'**
+  String get reviewNutritionInsufficientData;
 
   /// No description provided for @reviewObservedRateLabel.
   ///
@@ -13048,14 +13180,50 @@ abstract class AppLocalizations {
   /// No description provided for @adjustGoalConfirmTitle.
   ///
   /// In en, this message translates to:
-  /// **'Apply as successor goal?'**
+  /// **'Update plan?'**
   String get adjustGoalConfirmTitle;
 
   /// No description provided for @adjustGoalConfirmContent.
   ///
   /// In en, this message translates to:
-  /// **'This will archive your current goal trajectory and start an updated goal phase with the new targets.'**
+  /// **'Your existing progress and all measurements remain intact. The revised trajectory starts today.'**
   String get adjustGoalConfirmContent;
+
+  /// No description provided for @adjustGoalUpdatePlanButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Update plan'**
+  String get adjustGoalUpdatePlanButton;
+
+  /// No description provided for @adjustGoalAcceptRecommendationAndUpdatePlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Accept recommendation and update plan'**
+  String get adjustGoalAcceptRecommendationAndUpdatePlan;
+
+  /// No description provided for @adjustGoalRecommendedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Recommended adjustment'**
+  String get adjustGoalRecommendedTitle;
+
+  /// No description provided for @adjustGoalRecommendedPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep a realistic pace and move the target date to {date} ({rate}).'**
+  String adjustGoalRecommendedPlan(String date, String rate);
+
+  /// No description provided for @adjustGoalRecommendedKeepDatePlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep the {date} target date and adjust the pace to {rate}.'**
+  String adjustGoalRecommendedKeepDatePlan(String date, String rate);
+
+  /// No description provided for @adjustGoalSelectRecommendedPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Select recommendation'**
+  String get adjustGoalSelectRecommendedPlan;
 
   /// No description provided for @adjustGoalConfirmButton.
   ///

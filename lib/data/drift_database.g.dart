@@ -24884,6 +24884,12 @@ class $GoalReviewsTable extends GoalReviews
   late final GeneratedColumn<String> explanation = GeneratedColumn<String>(
       'explanation', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _assessmentJsonMeta =
+      const VerificationMeta('assessmentJson');
+  @override
+  late final GeneratedColumn<String> assessmentJson = GeneratedColumn<String>(
+      'assessment_json', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns => [
         localId,
@@ -24905,7 +24911,8 @@ class $GoalReviewsTable extends GoalReviews
         recommendedFat,
         decision,
         algorithmVersion,
-        explanation
+        explanation,
+        assessmentJson
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -25026,6 +25033,12 @@ class $GoalReviewsTable extends GoalReviews
           explanation.isAcceptableOrUnknown(
               data['explanation']!, _explanationMeta));
     }
+    if (data.containsKey('assessment_json')) {
+      context.handle(
+          _assessmentJsonMeta,
+          assessmentJson.isAcceptableOrUnknown(
+              data['assessment_json']!, _assessmentJsonMeta));
+    }
     return context;
   }
 
@@ -25076,6 +25089,8 @@ class $GoalReviewsTable extends GoalReviews
           DriftSqlType.string, data['${effectivePrefix}algorithm_version'])!,
       explanation: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}explanation']),
+      assessmentJson: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}assessment_json']),
     );
   }
 
@@ -25106,6 +25121,7 @@ class GoalReview extends DataClass implements Insertable<GoalReview> {
   final String? decision;
   final String algorithmVersion;
   final String? explanation;
+  final String? assessmentJson;
   const GoalReview(
       {required this.localId,
       required this.id,
@@ -25126,7 +25142,8 @@ class GoalReview extends DataClass implements Insertable<GoalReview> {
       this.recommendedFat,
       this.decision,
       required this.algorithmVersion,
-      this.explanation});
+      this.explanation,
+      this.assessmentJson});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -25172,6 +25189,9 @@ class GoalReview extends DataClass implements Insertable<GoalReview> {
     map['algorithm_version'] = Variable<String>(algorithmVersion);
     if (!nullToAbsent || explanation != null) {
       map['explanation'] = Variable<String>(explanation);
+    }
+    if (!nullToAbsent || assessmentJson != null) {
+      map['assessment_json'] = Variable<String>(assessmentJson);
     }
     return map;
   }
@@ -25220,6 +25240,9 @@ class GoalReview extends DataClass implements Insertable<GoalReview> {
       explanation: explanation == null && nullToAbsent
           ? const Value.absent()
           : Value(explanation),
+      assessmentJson: assessmentJson == null && nullToAbsent
+          ? const Value.absent()
+          : Value(assessmentJson),
     );
   }
 
@@ -25249,6 +25272,7 @@ class GoalReview extends DataClass implements Insertable<GoalReview> {
       decision: serializer.fromJson<String?>(json['decision']),
       algorithmVersion: serializer.fromJson<String>(json['algorithmVersion']),
       explanation: serializer.fromJson<String?>(json['explanation']),
+      assessmentJson: serializer.fromJson<String?>(json['assessmentJson']),
     );
   }
   @override
@@ -25276,6 +25300,7 @@ class GoalReview extends DataClass implements Insertable<GoalReview> {
       'decision': serializer.toJson<String?>(decision),
       'algorithmVersion': serializer.toJson<String>(algorithmVersion),
       'explanation': serializer.toJson<String?>(explanation),
+      'assessmentJson': serializer.toJson<String?>(assessmentJson),
     };
   }
 
@@ -25299,7 +25324,8 @@ class GoalReview extends DataClass implements Insertable<GoalReview> {
           Value<int?> recommendedFat = const Value.absent(),
           Value<String?> decision = const Value.absent(),
           String? algorithmVersion,
-          Value<String?> explanation = const Value.absent()}) =>
+          Value<String?> explanation = const Value.absent(),
+          Value<String?> assessmentJson = const Value.absent()}) =>
       GoalReview(
         localId: localId ?? this.localId,
         id: id ?? this.id,
@@ -25335,6 +25361,8 @@ class GoalReview extends DataClass implements Insertable<GoalReview> {
         decision: decision.present ? decision.value : this.decision,
         algorithmVersion: algorithmVersion ?? this.algorithmVersion,
         explanation: explanation.present ? explanation.value : this.explanation,
+        assessmentJson:
+            assessmentJson.present ? assessmentJson.value : this.assessmentJson,
       );
   GoalReview copyWithCompanion(GoalReviewsCompanion data) {
     return GoalReview(
@@ -25378,6 +25406,9 @@ class GoalReview extends DataClass implements Insertable<GoalReview> {
           : this.algorithmVersion,
       explanation:
           data.explanation.present ? data.explanation.value : this.explanation,
+      assessmentJson: data.assessmentJson.present
+          ? data.assessmentJson.value
+          : this.assessmentJson,
     );
   }
 
@@ -25403,33 +25434,36 @@ class GoalReview extends DataClass implements Insertable<GoalReview> {
           ..write('recommendedFat: $recommendedFat, ')
           ..write('decision: $decision, ')
           ..write('algorithmVersion: $algorithmVersion, ')
-          ..write('explanation: $explanation')
+          ..write('explanation: $explanation, ')
+          ..write('assessmentJson: $assessmentJson')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(
-      localId,
-      id,
-      createdAt,
-      updatedAt,
-      deletedAt,
-      goalId,
-      windowStart,
-      windowEnd,
-      status,
-      trajectoryStatus,
-      observedRateKgPerWeek,
-      confidenceLevel,
-      tdeeEstimate,
-      recommendedCalories,
-      recommendedProtein,
-      recommendedCarbs,
-      recommendedFat,
-      decision,
-      algorithmVersion,
-      explanation);
+  int get hashCode => Object.hashAll([
+        localId,
+        id,
+        createdAt,
+        updatedAt,
+        deletedAt,
+        goalId,
+        windowStart,
+        windowEnd,
+        status,
+        trajectoryStatus,
+        observedRateKgPerWeek,
+        confidenceLevel,
+        tdeeEstimate,
+        recommendedCalories,
+        recommendedProtein,
+        recommendedCarbs,
+        recommendedFat,
+        decision,
+        algorithmVersion,
+        explanation,
+        assessmentJson
+      ]);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -25453,7 +25487,8 @@ class GoalReview extends DataClass implements Insertable<GoalReview> {
           other.recommendedFat == this.recommendedFat &&
           other.decision == this.decision &&
           other.algorithmVersion == this.algorithmVersion &&
-          other.explanation == this.explanation);
+          other.explanation == this.explanation &&
+          other.assessmentJson == this.assessmentJson);
 }
 
 class GoalReviewsCompanion extends UpdateCompanion<GoalReview> {
@@ -25477,6 +25512,7 @@ class GoalReviewsCompanion extends UpdateCompanion<GoalReview> {
   final Value<String?> decision;
   final Value<String> algorithmVersion;
   final Value<String?> explanation;
+  final Value<String?> assessmentJson;
   const GoalReviewsCompanion({
     this.localId = const Value.absent(),
     this.id = const Value.absent(),
@@ -25498,6 +25534,7 @@ class GoalReviewsCompanion extends UpdateCompanion<GoalReview> {
     this.decision = const Value.absent(),
     this.algorithmVersion = const Value.absent(),
     this.explanation = const Value.absent(),
+    this.assessmentJson = const Value.absent(),
   });
   GoalReviewsCompanion.insert({
     this.localId = const Value.absent(),
@@ -25520,6 +25557,7 @@ class GoalReviewsCompanion extends UpdateCompanion<GoalReview> {
     this.decision = const Value.absent(),
     required String algorithmVersion,
     this.explanation = const Value.absent(),
+    this.assessmentJson = const Value.absent(),
   })  : goalId = Value(goalId),
         windowStart = Value(windowStart),
         windowEnd = Value(windowEnd),
@@ -25545,6 +25583,7 @@ class GoalReviewsCompanion extends UpdateCompanion<GoalReview> {
     Expression<String>? decision,
     Expression<String>? algorithmVersion,
     Expression<String>? explanation,
+    Expression<String>? assessmentJson,
   }) {
     return RawValuesInsertable({
       if (localId != null) 'local_id': localId,
@@ -25569,6 +25608,7 @@ class GoalReviewsCompanion extends UpdateCompanion<GoalReview> {
       if (decision != null) 'decision': decision,
       if (algorithmVersion != null) 'algorithm_version': algorithmVersion,
       if (explanation != null) 'explanation': explanation,
+      if (assessmentJson != null) 'assessment_json': assessmentJson,
     });
   }
 
@@ -25592,7 +25632,8 @@ class GoalReviewsCompanion extends UpdateCompanion<GoalReview> {
       Value<int?>? recommendedFat,
       Value<String?>? decision,
       Value<String>? algorithmVersion,
-      Value<String?>? explanation}) {
+      Value<String?>? explanation,
+      Value<String?>? assessmentJson}) {
     return GoalReviewsCompanion(
       localId: localId ?? this.localId,
       id: id ?? this.id,
@@ -25615,6 +25656,7 @@ class GoalReviewsCompanion extends UpdateCompanion<GoalReview> {
       decision: decision ?? this.decision,
       algorithmVersion: algorithmVersion ?? this.algorithmVersion,
       explanation: explanation ?? this.explanation,
+      assessmentJson: assessmentJson ?? this.assessmentJson,
     );
   }
 
@@ -25682,6 +25724,9 @@ class GoalReviewsCompanion extends UpdateCompanion<GoalReview> {
     if (explanation.present) {
       map['explanation'] = Variable<String>(explanation.value);
     }
+    if (assessmentJson.present) {
+      map['assessment_json'] = Variable<String>(assessmentJson.value);
+    }
     return map;
   }
 
@@ -25707,7 +25752,8 @@ class GoalReviewsCompanion extends UpdateCompanion<GoalReview> {
           ..write('recommendedFat: $recommendedFat, ')
           ..write('decision: $decision, ')
           ..write('algorithmVersion: $algorithmVersion, ')
-          ..write('explanation: $explanation')
+          ..write('explanation: $explanation, ')
+          ..write('assessmentJson: $assessmentJson')
           ..write(')'))
         .toString();
   }
@@ -41994,6 +42040,7 @@ typedef $$GoalReviewsTableCreateCompanionBuilder = GoalReviewsCompanion
   Value<String?> decision,
   required String algorithmVersion,
   Value<String?> explanation,
+  Value<String?> assessmentJson,
 });
 typedef $$GoalReviewsTableUpdateCompanionBuilder = GoalReviewsCompanion
     Function({
@@ -42017,6 +42064,7 @@ typedef $$GoalReviewsTableUpdateCompanionBuilder = GoalReviewsCompanion
   Value<String?> decision,
   Value<String> algorithmVersion,
   Value<String?> explanation,
+  Value<String?> assessmentJson,
 });
 
 final class $$GoalReviewsTableReferences
@@ -42111,6 +42159,10 @@ class $$GoalReviewsTableFilterComposer
 
   ColumnFilters<String> get explanation => $composableBuilder(
       column: $table.explanation, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get assessmentJson => $composableBuilder(
+      column: $table.assessmentJson,
+      builder: (column) => ColumnFilters(column));
 
   $$UserGoalsTableFilterComposer get goalId {
     final $$UserGoalsTableFilterComposer composer = $composerBuilder(
@@ -42208,6 +42260,10 @@ class $$GoalReviewsTableOrderingComposer
   ColumnOrderings<String> get explanation => $composableBuilder(
       column: $table.explanation, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<String> get assessmentJson => $composableBuilder(
+      column: $table.assessmentJson,
+      builder: (column) => ColumnOrderings(column));
+
   $$UserGoalsTableOrderingComposer get goalId {
     final $$UserGoalsTableOrderingComposer composer = $composerBuilder(
         composer: this,
@@ -42295,6 +42351,9 @@ class $$GoalReviewsTableAnnotationComposer
   GeneratedColumn<String> get explanation => $composableBuilder(
       column: $table.explanation, builder: (column) => column);
 
+  GeneratedColumn<String> get assessmentJson => $composableBuilder(
+      column: $table.assessmentJson, builder: (column) => column);
+
   $$UserGoalsTableAnnotationComposer get goalId {
     final $$UserGoalsTableAnnotationComposer composer = $composerBuilder(
         composer: this,
@@ -42359,6 +42418,7 @@ class $$GoalReviewsTableTableManager extends RootTableManager<
             Value<String?> decision = const Value.absent(),
             Value<String> algorithmVersion = const Value.absent(),
             Value<String?> explanation = const Value.absent(),
+            Value<String?> assessmentJson = const Value.absent(),
           }) =>
               GoalReviewsCompanion(
             localId: localId,
@@ -42381,6 +42441,7 @@ class $$GoalReviewsTableTableManager extends RootTableManager<
             decision: decision,
             algorithmVersion: algorithmVersion,
             explanation: explanation,
+            assessmentJson: assessmentJson,
           ),
           createCompanionCallback: ({
             Value<int> localId = const Value.absent(),
@@ -42403,6 +42464,7 @@ class $$GoalReviewsTableTableManager extends RootTableManager<
             Value<String?> decision = const Value.absent(),
             required String algorithmVersion,
             Value<String?> explanation = const Value.absent(),
+            Value<String?> assessmentJson = const Value.absent(),
           }) =>
               GoalReviewsCompanion.insert(
             localId: localId,
@@ -42425,6 +42487,7 @@ class $$GoalReviewsTableTableManager extends RootTableManager<
             decision: decision,
             algorithmVersion: algorithmVersion,
             explanation: explanation,
+            assessmentJson: assessmentJson,
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (

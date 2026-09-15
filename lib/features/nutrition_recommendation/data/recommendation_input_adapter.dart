@@ -138,6 +138,8 @@ class RecommendationInputAdapter {
       smoothedWeightSlopeKgPerWeek: weightSlopeKgPerWeek,
       avgLoggedCalories: avgLoggedCalories,
       currentWeightKg: currentWeightKg,
+      smoothedCurrentWeightKg:
+          smoothedWeightSeries.isEmpty ? null : smoothedWeightSeries.last.value,
       priorMaintenanceCalories: priorMaintenanceCalories,
       activeTargetCalories: activeGoals?.targetCalories,
       qualityFlags: qualityFlags,

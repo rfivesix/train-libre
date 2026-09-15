@@ -18,6 +18,8 @@ import 'package:train_libre/features/nutrition_recommendation/domain/recommendat
 import 'package:train_libre/features/diary/domain/models/food_entry.dart';
 import 'package:train_libre/features/profile/domain/models/measurement.dart';
 import 'package:train_libre/features/profile/domain/models/measurement_session.dart';
+import 'package:train_libre/features/profile/data/goal_repository_impl.dart';
+import 'package:train_libre/features/profile/domain/models/goal_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
@@ -338,6 +340,17 @@ void main() {
 
     test('refresh does not overwrite active goals until explicit apply',
         () async {
+      final goalRepository = GoalRepositoryImpl(database: database);
+      final goal = await goalRepository.createGoal(
+        preset: GoalPreset.gainWeight,
+        title: 'Gain',
+        startDate: DateTime(2026, 3, 16),
+        targetDate: DateTime(2026, 8, 1),
+        targetMetric: 'weight',
+        targetValue: 88,
+        targetUnit: 'kg',
+        desiredWeeklyRateKg: 0.3,
+      );
       final monday = DateTime(2026, 4, 6, 10, 0);
       final beforeRefreshSettings = await dbHelper.getAppSettings();
       expect(beforeRefreshSettings, isNotNull);
@@ -363,6 +376,10 @@ void main() {
       expect(
         afterApplySettings.targetProtein,
         recommendation.recommendedProteinGrams,
+      );
+      expect(
+        (await goalRepository.getGoalById(goal.id))!.desiredWeeklyRateKg,
+        0.3,
       );
     });
 
@@ -487,6 +504,38 @@ void main() {
       expect(dueNotifier.notifications, hasLength(2));
       expect(dueNotifier.notifications[0].dueWeekKey, '2026-04-06');
       expect(dueNotifier.notifications[1].dueWeekKey, '2026-04-13');
+    });
+
+    test('disabled adaptive notifications are consumed, not replayed',
+        () async {
+      final preference = _FakeNotificationPreference(false);
+      final gatedService = AdaptiveNutritionRecommendationService(
+        repository: repository,
+        databaseHelper: dbHelper,
+        dueNotifier: dueNotifier,
+        notificationPreference: preference,
+      );
+
+      expect(
+        await gatedService.notifyIfNewRecommendationDue(
+          now: DateTime(2026, 4, 6, 8),
+        ),
+        isFalse,
+      );
+      preference.enabled = true;
+      expect(
+        await gatedService.notifyIfNewRecommendationDue(
+          now: DateTime(2026, 4, 8, 8),
+        ),
+        isFalse,
+      );
+      expect(
+        await gatedService.notifyIfNewRecommendationDue(
+          now: DateTime(2026, 4, 13, 8),
+        ),
+        isTrue,
+      );
+      expect(dueNotifier.notifications.single.dueWeekKey, '2026-04-13');
     });
 
     test(
@@ -745,4 +794,13 @@ class _FakeDueNotifier implements AdaptiveRecommendationDueNotifier {
   }) async {
     notifications.add((dueWeekKey: dueWeekKey, dueAt: dueAt));
   }
+}
+
+class _FakeNotificationPreference
+    implements AdaptiveRecommendationNotificationPreference {
+  bool enabled;
+  _FakeNotificationPreference(this.enabled);
+
+  @override
+  Future<bool> isEnabled() async => enabled;
 }

@@ -12,6 +12,8 @@ import '../../workout/presentation/live_workout_view_model.dart';
 import 'main_screen.dart';
 import '../../onboarding/presentation/onboarding_screen.dart';
 import '../../nutrition_recommendation/data/recommendation_service.dart';
+import '../../profile/data/goal_repository_impl.dart';
+import '../../profile/domain/services/goal_notification_orchestrator.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
@@ -161,9 +163,9 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
     final tasks = <Future<void>>[
       StartupTrace.instance
           .measure(
-            'standard_supplements',
-            DatabaseHelper.instance.ensureStandardSupplements,
-          )
+        'standard_supplements',
+        DatabaseHelper.instance.ensureStandardSupplements,
+      )
           .catchError((e) {
         debugPrint("Standard supplement setup failed: $e");
       }),
@@ -182,12 +184,15 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
         'notifications_init',
         () async {
           await LocalNotificationService.instance.initialize();
-          unawaited(AdaptiveNutritionRecommendationService()
-              .refreshRecommendationIfDue()
-              .catchError((e) {
-            debugPrint("Startup recommendation check failed: $e");
-            return null;
-          }));
+          try {
+            await AdaptiveNutritionRecommendationService()
+                .refreshRecommendationIfDue();
+            await GoalNotificationOrchestrator(
+              goalRepository: GoalRepositoryImpl(),
+            ).synchronize();
+          } catch (e) {
+            debugPrint("Startup goal/recommendation check failed: $e");
+          }
         },
       ).catchError((e) {
         debugPrint("Local notification initialization failed: $e");
@@ -195,9 +200,9 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
       if (workoutSessionManager != null)
         StartupTrace.instance
             .measure(
-              'workout_restore',
-              workoutSessionManager.tryRestoreSession,
-            )
+          'workout_restore',
+          workoutSessionManager.tryRestoreSession,
+        )
             .catchError((e) {
           debugPrint("Workout session restore failed: $e");
         }),

@@ -7476,6 +7476,41 @@ class AppLocalizationsFr extends AppLocalizations {
   String get reviewStatusCalibrating => 'En cours de calibrage';
 
   @override
+  String get reviewStatusBehind => 'En retard sur le plan';
+
+  @override
+  String get reviewStatusAhead => 'En avance sur le plan';
+
+  @override
+  String get reviewStatusTargetReached => 'Objectif atteint';
+
+  @override
+  String get reviewStatusTargetDateNeedsReview => 'Date cible à revoir';
+
+  @override
+  String reviewOverallSummary(String overall, String momentum) {
+    return 'Trajectoire globale : $overall. 7 derniers jours : $momentum.';
+  }
+
+  @override
+  String get reviewMomentumMatchingPlan => 'conforme au plan';
+
+  @override
+  String get reviewMomentumCatchingUp => 'vous rattrapez le retard';
+
+  @override
+  String get reviewMomentumFallingBehind => 'vous prenez davantage de retard';
+
+  @override
+  String get reviewMomentumMovingFaster => 'progression plus rapide';
+
+  @override
+  String get reviewMomentumMovingSlower => 'progression plus lente';
+
+  @override
+  String get reviewMomentumUnclear => 'pas encore clair';
+
+  @override
   String reviewNextAnalysisScheduled(String date) {
     return 'Prochaine analyse adaptative le $date (min. 3 pesées & 4 jours de calories)';
   }
@@ -7507,6 +7542,44 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get reviewTrajectoryComparisonTitle => 'Comparaison des trajectoires';
+
+  @override
+  String get reviewPlanVsRealityTitle => 'Plan et réalité';
+
+  @override
+  String get reviewExpectedByNowLabel => 'Prévu à ce jour';
+
+  @override
+  String get reviewSmoothedCurrentLabel => 'Valeur actuelle lissée';
+
+  @override
+  String get reviewTrajectoryGapLabel => 'Écart au plan';
+
+  @override
+  String get reviewRequiredRateLabel => 'Rythme nécessaire désormais';
+
+  @override
+  String get reviewProjectedDateLabel => 'Date cible estimée';
+
+  @override
+  String get reviewNutritionAdjustTargets =>
+      'Votre journal alimentaire est suffisamment complet pour calculer de nouveaux objectifs quotidiens.';
+
+  @override
+  String get reviewNutritionKeepTargetsIntakeDiffers =>
+      'Vos objectifs actuels restent adaptés. Votre apport enregistré en diffère ; modifier le plan ne corrigerait donc pas la cause principale.';
+
+  @override
+  String get reviewNutritionKeepTargets =>
+      'Aucune modification de vos objectifs quotidiens n\'est recommandée cette semaine.';
+
+  @override
+  String get reviewNutritionTrajectoryChangeNeeded =>
+      'Le rythme nécessaire pour conserver cette date n\'est pas un ajustement nutritionnel raisonnable. Modifiez plutôt l\'objectif, le rythme ou la date.';
+
+  @override
+  String get reviewNutritionInsufficientData =>
+      'Continuez simplement à enregistrer vos données. Elles sont encore insuffisantes pour un ajustement nutritionnel fiable.';
 
   @override
   String get reviewObservedRateLabel => 'Tendance observée';
@@ -7557,11 +7630,35 @@ class AppLocalizationsFr extends AppLocalizations {
       'Appliquer comme objectif successeur';
 
   @override
-  String get adjustGoalConfirmTitle => 'Appliquer comme objectif successeur ?';
+  String get adjustGoalConfirmTitle => 'Mettre à jour le plan ?';
 
   @override
   String get adjustGoalConfirmContent =>
-      'Cela archivera la trajectoire actuelle et lancera une nouvelle phase avec les paramètres modifiés.';
+      'Votre progression et toutes vos mesures restent intactes. La nouvelle trajectoire commence aujourd\'hui.';
+
+  @override
+  String get adjustGoalUpdatePlanButton => 'Mettre à jour le plan';
+
+  @override
+  String get adjustGoalAcceptRecommendationAndUpdatePlan =>
+      'Accepter la recommandation et mettre à jour le plan';
+
+  @override
+  String get adjustGoalRecommendedTitle => 'Ajustement recommandé';
+
+  @override
+  String adjustGoalRecommendedPlan(String date, String rate) {
+    return 'Conserver un rythme réaliste et déplacer la date cible au $date ($rate).';
+  }
+
+  @override
+  String adjustGoalRecommendedKeepDatePlan(String date, String rate) {
+    return 'Conserver la date cible du $date et ajuster le rythme à $rate.';
+  }
+
+  @override
+  String get adjustGoalSelectRecommendedPlan =>
+      'Sélectionner la recommandation';
 
   @override
   String get adjustGoalConfirmButton => 'Appliquer';
