@@ -197,6 +197,15 @@ class AdaptiveNutritionRecommendationService {
     return refreshRecommendationIfDue(now: now, force: true);
   }
 
+  /// Recalculates the adaptive recommendation immediately AND applies it to active targets.
+  Future<NutritionRecommendation?> recalculateAndApply({
+    DateTime? now,
+  }) async {
+    final recommendation = await recalculateRecommendationNow(now: now);
+    await applyLatestRecommendationToActiveTargets();
+    return recommendation;
+  }
+
   /// Scheduler-oriented notification hook.
   ///
   /// Notification is sent only when all conditions are true:

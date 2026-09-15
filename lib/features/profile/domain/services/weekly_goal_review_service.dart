@@ -72,13 +72,19 @@ class WeeklyGoalTrajectoryAssessmentService {
       }
     }
 
+    final sufficient = weightObservationCount >=
+            WeeklyGoalReviewService.minWeightObservationsForReview &&
+        nutritionLoggedDays >=
+            WeeklyGoalReviewService.minLoggedIntakeDaysForReview &&
+        recentRateKgPerWeek != null;
+
     final rateDifference = recentRateKgPerWeek == null || plannedRate == null
         ? null
         : direction == 0
             ? recentRateKgPerWeek.abs() - plannedRate.abs()
             : direction * (recentRateKgPerWeek - plannedRate);
     String momentum = 'unclear';
-    if (rateDifference != null) {
+    if (rateDifference != null && sufficient) {
       if (rateDifference.abs() <
           WeeklyGoalReviewService.minDivergenceThresholdKgPerWeek) {
         momentum = 'matching_plan';
@@ -107,12 +113,6 @@ class WeeklyGoalTrajectoryAssessmentService {
       final weeks = (target - currentSmoothedValue) / operatingRateKgPerWeek;
       projectedDate = reviewDate.add(Duration(days: (weeks * 7).round()));
     }
-
-    final sufficient = weightObservationCount >=
-            WeeklyGoalReviewService.minWeightObservationsForReview &&
-        nutritionLoggedDays >=
-            WeeklyGoalReviewService.minLoggedIntakeDaysForReview &&
-        recentRateKgPerWeek != null;
     final requiredRateIsSafe = requiredRate == null ||
         GoalTrajectoryCalculator.isRateSafe(requiredRate);
     final calorieTolerance = math.max(100.0, (currentCalories ?? 0) * 0.05);

@@ -105,21 +105,53 @@ class LocalNotificationService {
     _notificationTapController.add(payload);
   }
 
+  Future<bool> requestNotificationPermissions() async {
+    final android = _plugin.resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin>();
+    final androidGranted = await android?.requestNotificationsPermission();
+
+    final ios = _plugin.resolvePlatformSpecificImplementation<
+        IOSFlutterLocalNotificationsPlugin>();
+    final iosGranted = await ios?.requestPermissions(
+      alert: true,
+      badge: true,
+      sound: true,
+    );
+
+    final macOs = _plugin.resolvePlatformSpecificImplementation<
+        MacOSFlutterLocalNotificationsPlugin>();
+    final macOsGranted = await macOs?.requestPermissions(
+      alert: true,
+      badge: true,
+      sound: true,
+    );
+
+    return androidGranted ?? iosGranted ?? macOsGranted ?? true;
+  }
+
+  Future<bool?> areNotificationsEnabled() async {
+    final android = _plugin.resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin>();
+    if (android != null) {
+      return await android.areNotificationsEnabled();
+    }
+    final ios = _plugin.resolvePlatformSpecificImplementation<
+        IOSFlutterLocalNotificationsPlugin>();
+    if (ios != null) {
+      final permissions = await ios.checkPermissions();
+      return permissions?.isEnabled;
+    }
+    final macOs = _plugin.resolvePlatformSpecificImplementation<
+        MacOSFlutterLocalNotificationsPlugin>();
+    if (macOs != null) {
+      final permissions = await macOs.checkPermissions();
+      return permissions?.isEnabled;
+    }
+    return true;
+  }
+
   Future<void> _requestPermissions() async {
-    await _plugin
-        .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>()
-        ?.requestNotificationsPermission();
-
-    await _plugin
-        .resolvePlatformSpecificImplementation<
-            IOSFlutterLocalNotificationsPlugin>()
-        ?.requestPermissions(alert: true, badge: true, sound: true);
-
-    await _plugin
-        .resolvePlatformSpecificImplementation<
-            MacOSFlutterLocalNotificationsPlugin>()
-        ?.requestPermissions(alert: true, badge: true, sound: true);
+    await requestNotificationPermissions();
   }
 
   NotificationDetails _restNotificationDetails(bool hapticsEnabled) {
@@ -134,9 +166,19 @@ class LocalNotificationService {
         enableVibration: hapticsEnabled,
       ),
       iOS: const DarwinNotificationDetails(
-          presentAlert: true, presentSound: true),
+        presentAlert: true,
+        presentBanner: true,
+        presentSound: true,
+        presentBadge: true,
+        presentList: true,
+      ),
       macOS: const DarwinNotificationDetails(
-          presentAlert: true, presentSound: true),
+        presentAlert: true,
+        presentBanner: true,
+        presentSound: true,
+        presentBadge: true,
+        presentList: true,
+      ),
     );
   }
 
@@ -150,8 +192,20 @@ class LocalNotificationService {
         priority: Priority.high,
         playSound: true,
       ),
-      iOS: DarwinNotificationDetails(presentAlert: true, presentSound: true),
-      macOS: DarwinNotificationDetails(presentAlert: true, presentSound: true),
+      iOS: DarwinNotificationDetails(
+        presentAlert: true,
+        presentBanner: true,
+        presentSound: true,
+        presentBadge: true,
+        presentList: true,
+      ),
+      macOS: DarwinNotificationDetails(
+        presentAlert: true,
+        presentBanner: true,
+        presentSound: true,
+        presentBadge: true,
+        presentList: true,
+      ),
     );
   }
 
@@ -266,24 +320,64 @@ class LocalNotificationService {
     await _plugin.cancel(id: restTimerNotificationId);
   }
 
-  Future<void> showAdaptiveRecommendationDueNotification() async {
+  Future<bool> showAdaptiveRecommendationDueNotification({
+    bool ignorePreferences = false,
+    Duration? delay,
+  }) async {
     final prefs = await SharedPreferences.getInstance();
-    if (!(prefs.getBool('notify_adaptive_recommendation') ?? true)) return;
+    if (!(prefs.getBool('notify_adaptive_recommendation') ?? true) &&
+        !ignorePreferences) {
+      return false;
+    }
     if (!_isInitialized) await initialize();
-    if (!_isInitialized) return;
+    if (!_isInitialized) return false;
     final texts = _localizedAdaptiveRecommendationDueTexts();
     final activeGoal = await GoalRepositoryImpl().getActiveGoal();
 
-    await _plugin.show(
-      id: adaptiveRecommendationDueNotificationId,
-      title: texts.title,
-      body: texts.body,
-      notificationDetails: _adaptiveRecommendationNotificationDetails(),
-      payload: AppNotificationPayload(
+    try {
+      final details = _adaptiveRecommendationNotificationDetails();
+      final payload = AppNotificationPayload(
         type: AppNotificationType.adaptiveRecommendation,
         goalId: activeGoal?.id,
-      ).encode(),
-    );
+      ).encode();
+
+      if (delay != null && delay.inSeconds > 0) {
+        final scheduledDate = tz.TZDateTime.now(tz.local).add(delay);
+        try {
+          await _plugin.zonedSchedule(
+            id: adaptiveRecommendationDueNotificationId,
+            title: texts.title,
+            body: texts.body,
+            scheduledDate: scheduledDate,
+            notificationDetails: details,
+            androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+            payload: payload,
+          );
+        } catch (_) {
+          await _plugin.zonedSchedule(
+            id: adaptiveRecommendationDueNotificationId,
+            title: texts.title,
+            body: texts.body,
+            scheduledDate: scheduledDate,
+            notificationDetails: details,
+            androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+            payload: payload,
+          );
+        }
+      } else {
+        await _plugin.show(
+          id: adaptiveRecommendationDueNotificationId,
+          title: texts.title,
+          body: texts.body,
+          notificationDetails: details,
+          payload: payload,
+        );
+      }
+      return true;
+    } catch (e, st) {
+      debugPrint('LocalNotificationService: showAdaptiveRecommendationDueNotification failed: $e\n$st');
+      return false;
+    }
   }
 
   NotificationDetails _tdeeRecalculationNotificationDetails() {
@@ -297,8 +391,20 @@ class LocalNotificationService {
         priority: Priority.high,
         playSound: true,
       ),
-      iOS: DarwinNotificationDetails(presentAlert: true, presentSound: true),
-      macOS: DarwinNotificationDetails(presentAlert: true, presentSound: true),
+      iOS: DarwinNotificationDetails(
+        presentAlert: true,
+        presentBanner: true,
+        presentSound: true,
+        presentBadge: true,
+        presentList: true,
+      ),
+      macOS: DarwinNotificationDetails(
+        presentAlert: true,
+        presentBanner: true,
+        presentSound: true,
+        presentBadge: true,
+        presentList: true,
+      ),
     );
   }
 
@@ -357,18 +463,32 @@ class LocalNotificationService {
         priority: Priority.high,
         playSound: true,
       ),
-      iOS: DarwinNotificationDetails(presentAlert: true, presentSound: true),
-      macOS: DarwinNotificationDetails(presentAlert: true, presentSound: true),
+      iOS: DarwinNotificationDetails(
+        presentAlert: true,
+        presentBanner: true,
+        presentSound: true,
+        presentBadge: true,
+        presentList: true,
+      ),
+      macOS: DarwinNotificationDetails(
+        presentAlert: true,
+        presentBanner: true,
+        presentSound: true,
+        presentBadge: true,
+        presentList: true,
+      ),
     );
   }
 
   Future<bool> showWeeklyGoalReviewNotification({
     required String goalId,
     required String reviewId,
+    bool ignorePreferences = false,
+    Duration? delay,
   }) async {
     final prefs = await SharedPreferences.getInstance();
     final enabled = prefs.getBool('notify_weekly_goal_review') ?? true;
-    if (!enabled) return false;
+    if (!enabled && !ignorePreferences) return false;
 
     if (!_isInitialized) await initialize();
     if (!_isInitialized) return false;
@@ -377,19 +497,49 @@ class LocalNotificationService {
     final l10n = lookupAppLocalizations(locale);
 
     try {
-      await _plugin.show(
-        id: notificationIdForReview(reviewId),
-        title: l10n.weeklyGoalReviewNotificationTitle,
-        body: l10n.weeklyGoalReviewNotificationBody,
-        notificationDetails: _weeklyGoalReviewNotificationDetails(),
-        payload: AppNotificationPayload(
-          type: AppNotificationType.weeklyGoalReview,
-          goalId: goalId,
-          reviewId: reviewId,
-        ).encode(),
-      );
+      final id = notificationIdForReview(reviewId);
+      final details = _weeklyGoalReviewNotificationDetails();
+      final payload = AppNotificationPayload(
+        type: AppNotificationType.weeklyGoalReview,
+        goalId: goalId,
+        reviewId: reviewId,
+      ).encode();
+
+      if (delay != null && delay.inSeconds > 0) {
+        final scheduledDate = tz.TZDateTime.now(tz.local).add(delay);
+        try {
+          await _plugin.zonedSchedule(
+            id: id,
+            title: l10n.weeklyGoalReviewNotificationTitle,
+            body: l10n.weeklyGoalReviewNotificationBody,
+            scheduledDate: scheduledDate,
+            notificationDetails: details,
+            androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+            payload: payload,
+          );
+        } catch (_) {
+          await _plugin.zonedSchedule(
+            id: id,
+            title: l10n.weeklyGoalReviewNotificationTitle,
+            body: l10n.weeklyGoalReviewNotificationBody,
+            scheduledDate: scheduledDate,
+            notificationDetails: details,
+            androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+            payload: payload,
+          );
+        }
+      } else {
+        await _plugin.show(
+          id: id,
+          title: l10n.weeklyGoalReviewNotificationTitle,
+          body: l10n.weeklyGoalReviewNotificationBody,
+          notificationDetails: details,
+          payload: payload,
+        );
+      }
       return true;
-    } catch (_) {
+    } catch (e, st) {
+      debugPrint('LocalNotificationService: showWeeklyGoalReviewNotification failed: $e\n$st');
       return false;
     }
   }
@@ -405,38 +555,90 @@ class LocalNotificationService {
         priority: Priority.defaultPriority,
         playSound: true,
       ),
-      iOS: DarwinNotificationDetails(presentAlert: true, presentSound: true),
-      macOS: DarwinNotificationDetails(presentAlert: true, presentSound: true),
+      iOS: DarwinNotificationDetails(
+        presentAlert: true,
+        presentBanner: true,
+        presentSound: true,
+        presentBadge: true,
+        presentList: true,
+      ),
+      macOS: DarwinNotificationDetails(
+        presentAlert: true,
+        presentBanner: true,
+        presentSound: true,
+        presentBadge: true,
+        presentList: true,
+      ),
     );
   }
 
-  Future<void> showGoalTargetDateReminderNotification({
+  Future<bool> showGoalTargetDateReminderNotification({
     required String goalId,
     required String goalTitle,
     bool isDueToday = false,
+    bool ignorePreferences = false,
+    Duration? delay,
   }) async {
     final prefs = await SharedPreferences.getInstance();
     final enabled = prefs.getBool('notify_goal_target_date') ?? false;
-    if (!enabled) return;
+    if (!enabled && !ignorePreferences) return false;
 
     if (!_isInitialized) await initialize();
-    if (!_isInitialized) return;
+    if (!_isInitialized) return false;
 
     final locale = WidgetsBinding.instance.platformDispatcher.locale;
     final l10n = lookupAppLocalizations(locale);
 
-    await _plugin.show(
-      id: notificationIdForGoalTargetDate(goalId, isDueToday: isDueToday),
-      title: l10n.goalTargetDateReminderTitle,
-      body: isDueToday
-          ? l10n.goalTargetDateReachedBody(goalTitle)
-          : l10n.goalTargetDateApproachingBody(goalTitle),
-      notificationDetails: _goalTargetDateNotificationDetails(),
-      payload: AppNotificationPayload(
+    final title = l10n.goalTargetDateReminderTitle;
+    final body = isDueToday
+        ? l10n.goalTargetDateReachedBody(goalTitle)
+        : l10n.goalTargetDateApproachingBody(goalTitle);
+
+    try {
+      final id = notificationIdForGoalTargetDate(goalId, isDueToday: isDueToday);
+      final details = _goalTargetDateNotificationDetails();
+      final payload = AppNotificationPayload(
         type: AppNotificationType.goalTargetDate,
         goalId: goalId,
-      ).encode(),
-    );
+      ).encode();
+
+      if (delay != null && delay.inSeconds > 0) {
+        final scheduledDate = tz.TZDateTime.now(tz.local).add(delay);
+        try {
+          await _plugin.zonedSchedule(
+            id: id,
+            title: title,
+            body: body,
+            scheduledDate: scheduledDate,
+            notificationDetails: details,
+            androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+            payload: payload,
+          );
+        } catch (_) {
+          await _plugin.zonedSchedule(
+            id: id,
+            title: title,
+            body: body,
+            scheduledDate: scheduledDate,
+            notificationDetails: details,
+            androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+            payload: payload,
+          );
+        }
+      } else {
+        await _plugin.show(
+          id: id,
+          title: title,
+          body: body,
+          notificationDetails: details,
+          payload: payload,
+        );
+      }
+      return true;
+    } catch (e, st) {
+      debugPrint('LocalNotificationService: showGoalTargetDateReminderNotification failed: $e\n$st');
+      return false;
+    }
   }
 
   Future<bool> scheduleGoalTargetDateNotifications({

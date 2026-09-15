@@ -727,6 +727,25 @@ void main() {
           recommendation!.recommendedCalories);
       expect(broadcasted.dueWeekKey, '2026-04-06');
     });
+
+    test(
+        'recalculateAndApply recomputes recommendation and updates active targets',
+        () async {
+      final monday = DateTime(2026, 4, 6, 10, 0);
+      final recommendation = await service.recalculateAndApply(now: monday);
+
+      expect(recommendation, isNotNull);
+      final applied = await repository.getLatestAppliedRecommendation();
+      expect(applied, isNotNull);
+      expect(applied?.recommendedCalories,
+          recommendation?.recommendedCalories);
+
+      final settings = await dbHelper.getAppSettings();
+      expect(settings?.targetCalories, recommendation?.recommendedCalories);
+      expect(settings?.targetProtein, recommendation?.recommendedProteinGrams);
+      expect(settings?.targetCarbs, recommendation?.recommendedCarbsGrams);
+      expect(settings?.targetFat, recommendation?.recommendedFatGrams);
+    });
   });
 }
 

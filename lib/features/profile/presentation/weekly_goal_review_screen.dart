@@ -25,12 +25,14 @@ class WeeklyGoalReviewScreen extends StatefulWidget {
   final Goal goal;
   final GoalReviewRecord? review;
   final IGoalRepository? repository;
+  final AdaptiveNutritionRecommendationService? recommendationService;
 
   const WeeklyGoalReviewScreen({
     super.key,
     required this.goal,
     this.review,
     this.repository,
+    this.recommendationService,
   });
 
   @override
@@ -52,7 +54,8 @@ class _WeeklyGoalReviewScreenState extends State<WeeklyGoalReviewScreen> {
   void initState() {
     super.initState();
     _goalRepository = widget.repository ?? GoalRepositoryImpl();
-    _recommendationService = AdaptiveNutritionRecommendationService();
+    _recommendationService =
+        widget.recommendationService ?? AdaptiveNutritionRecommendationService();
     _review = widget.review;
     _initReview();
   }
@@ -166,47 +169,104 @@ class _WeeklyGoalReviewScreenState extends State<WeeklyGoalReviewScreen> {
     if (_isApplying) return;
     setState(() => _isApplying = true);
 
-    final applied =
-        await _recommendationService.applyLatestRecommendationToActiveTargets();
-    final review = _review;
-    if (applied && review != null) {
-      await _goalRepository.updateReviewStatus(
-        review.id,
-        'applied',
-        decision: 'apply_recommendation',
-      );
-    }
-    if (!mounted) return;
-    setState(() => _isApplying = false);
-
-    final l10n = AppLocalizations.of(context)!;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          applied
-              ? l10n.adaptiveRecommendationAppliedToGoalsSnack
-              : l10n.adaptiveRecommendationNotAvailableSnack,
+    try {
+      final rec = await _recommendationService.recalculateAndApply();
+      final review = _review;
+      if (rec != null && review != null) {
+        await _goalRepository.updateReviewStatus(
+          review.id,
+          'applied',
+          decision: 'apply_recommendation',
+        );
+      }
+      if (!mounted) return;
+      final l10n = AppLocalizations.of(context)!;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            rec != null
+                ? l10n.adaptiveRecommendationAppliedToGoalsSnack
+                : l10n.adaptiveRecommendationNotAvailableSnack,
+          ),
         ),
-      ),
-    );
-    if (applied) Navigator.of(context).pop(true);
+      );
+      if (rec != null) Navigator.of(context).pop(true);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Fehler beim Anwenden: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isApplying = false);
+    }
   }
 
   Future<void> _dismissReview() async {
-    final review = _review;
-    if (review != null) {
-      await _goalRepository.updateReviewStatus(
-        review.id,
-        'dismissed',
-        decision: 'keep_current',
+    if (_isApplying) return;
+    setState(() => _isApplying = true);
+
+    try {
+      await _recommendationService.recalculateAndApply();
+      final review = _review;
+      if (review != null) {
+        await _goalRepository.updateReviewStatus(
+          review.id,
+          'dismissed',
+          decision: 'keep_current',
+        );
+      }
+      if (!mounted) return;
+      final l10n = AppLocalizations.of(context)!;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.reviewDismissedSnack)),
       );
+      Navigator.of(context).pop(false);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Fehler beim Aktualisieren: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isApplying = false);
     }
-    if (!mounted) return;
-    final l10n = AppLocalizations.of(context)!;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(l10n.reviewDismissedSnack)),
-    );
-    Navigator.of(context).pop(false);
+  }
+
+  Future<void> _onAdjustmentSaved() async {
+    if (_isApplying) return;
+    setState(() => _isApplying = true);
+    try {
+      final rec = await _recommendationService.recalculateAndApply();
+      final review = _review;
+      if (rec != null && review != null) {
+        await _goalRepository.updateReviewStatus(
+          review.id,
+          'applied',
+          decision: 'plan_adjusted',
+        );
+      }
+      if (!mounted) return;
+      final l10n = AppLocalizations.of(context)!;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            rec != null
+                ? l10n.adaptiveRecommendationAppliedToGoalsSnack
+                : l10n.adaptiveRecommendationNotAvailableSnack,
+          ),
+        ),
+      );
+      Navigator.of(context).pop(true);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Fehler beim Anpassen: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isApplying = false);
+    }
   }
 
   @override
@@ -367,7 +427,7 @@ class _WeeklyGoalReviewScreenState extends State<WeeklyGoalReviewScreen> {
               recommendedTargetDate: recommendedDate,
               recommendedWeeklyRateKg: recommendedRate,
               showSaveButton: false,
-              onSaved: () => Navigator.of(context).pop(true),
+              onSaved: _onAdjustmentSaved,
             ),
             const SizedBox(height: DesignConstants.spacingXL),
           ],
@@ -607,8 +667,14 @@ class _WeeklyGoalReviewScreenState extends State<WeeklyGoalReviewScreen> {
           SizedBox(
             width: double.infinity,
             child: TextButton(
-              onPressed: _dismissReview,
-              child: Text(l10n.reviewActionKeepCurrent),
+              onPressed: _isApplying ? null : _dismissReview,
+              child: _isApplying
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : Text(l10n.reviewActionKeepCurrent),
             ),
           ),
           const BottomContentSpacer(),
@@ -623,14 +689,18 @@ class _WeeklyGoalReviewScreenState extends State<WeeklyGoalReviewScreen> {
                 DesignConstants.spacingM,
               ),
               child: AppButton.primary(
-                label: recommendedDate != null && recommendedRate != null
-                    ? l10n.adjustGoalAcceptRecommendationAndUpdatePlan
-                    : l10n.adjustGoalUpdatePlanButton,
+                label: _isApplying
+                    ? '...'
+                    : (recommendedDate != null && recommendedRate != null
+                        ? l10n.adjustGoalAcceptRecommendationAndUpdatePlan
+                        : l10n.adjustGoalUpdatePlanButton),
                 tooltip: l10n.adjustGoalUpdatePlanButton,
-                onPressed: () => recommendedDate != null &&
-                        recommendedRate != null
-                    ? _adjustmentKey.currentState?.acceptRecommendedAndSave()
-                    : _adjustmentKey.currentState?.confirmAndSave(),
+                onPressed: _isApplying
+                    ? null
+                    : () => recommendedDate != null &&
+                            recommendedRate != null
+                        ? _adjustmentKey.currentState?.acceptRecommendedAndSave()
+                        : _adjustmentKey.currentState?.confirmAndSave(),
               ),
             )
           : null,
