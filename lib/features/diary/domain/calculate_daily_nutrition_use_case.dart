@@ -174,8 +174,10 @@ class CalculateDailyNutritionUseCase {
     final List<TrackedSupplement> trackedSupps = [];
 
     for (final s in supplementsForDate) {
-      final hasLog = todaysDoses.containsKey(s.id);
-      if (s.isTracked || hasLog) {
+      // BOLT OPTIMIZATION: Replaced map.containsKey() followed by map[] indexing
+      // with a single direct lookup to avoid redundant hash lookups and closure allocations
+      final double? dose = todaysDoses[s.id];
+      if (s.isTracked || dose != null) {
         var supplementToUse = s;
         if (s.isCaffeine && s.dailyGoal == null && s.dailyLimit == null) {
           supplementToUse = Supplement(
@@ -193,7 +195,7 @@ class CalculateDailyNutritionUseCase {
         trackedSupps.add(
           TrackedSupplement(
             supplement: supplementToUse,
-            totalDosedToday: todaysDoses[s.id] ?? 0.0,
+            totalDosedToday: dose ?? 0.0,
           ),
         );
         if (s.id != null) {
@@ -221,30 +223,33 @@ class CalculateDailyNutritionUseCase {
         caffeineSupplement = s;
       }
 
-      if (unaccountedDoses > 0 && s.id != null &&
-          todaysDoses.containsKey(s.id) &&
-          !trackedSuppIds.contains(s.id)) {
-        var supplementToUse = s;
-        if (isCaffeine &&
-            s.dailyGoal == null &&
-            s.dailyLimit == null) {
-          supplementToUse = Supplement(
-            id: s.id,
-            code: s.code,
-            name: s.name,
-            defaultDose: s.defaultDose,
-            unit: s.unit,
-            dailyLimit: targetCaffeineDouble,
-            notes: s.notes,
-            isBuiltin: s.isBuiltin,
-            isTracked: s.isTracked,
+      if (unaccountedDoses > 0 && s.id != null && !trackedSuppIds.contains(s.id)) {
+        // BOLT OPTIMIZATION: Replaced map.containsKey() followed by map[] indexing
+        // with a single direct lookup to avoid redundant hash lookups
+        final double? dose = todaysDoses[s.id];
+        if (dose != null) {
+          var supplementToUse = s;
+          if (isCaffeine &&
+              s.dailyGoal == null &&
+              s.dailyLimit == null) {
+            supplementToUse = Supplement(
+              id: s.id,
+              code: s.code,
+              name: s.name,
+              defaultDose: s.defaultDose,
+              unit: s.unit,
+              dailyLimit: targetCaffeineDouble,
+              notes: s.notes,
+              isBuiltin: s.isBuiltin,
+              isTracked: s.isTracked,
+            );
+          }
+          trackedSupps.add(
+            TrackedSupplement(supplement: supplementToUse, totalDosedToday: dose),
           );
+          trackedSuppIds.add(s.id!);
+          unaccountedDoses--;
         }
-        trackedSupps.add(
-          TrackedSupplement(supplement: supplementToUse, totalDosedToday: todaysDoses[s.id]!),
-        );
-        trackedSuppIds.add(s.id!);
-        unaccountedDoses--;
       }
     }
 
