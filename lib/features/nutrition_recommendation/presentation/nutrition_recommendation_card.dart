@@ -329,8 +329,8 @@ class _GeneratedRecommendationContent extends StatelessWidget {
             l10n,
             recommendation,
           ),
-          effectiveEnergyDensity:
-              recommendation.inputSummary.phaseEffectiveKcalPerKg,
+          trajectoryCorrectionCalories:
+              recommendation.trajectoryCorrectionCalories,
           calculatedAtLine: l10n.adaptiveRecommendationCalculatedAtLine(
             formattedGeneratedAt,
           ),
@@ -689,13 +689,13 @@ class _MacroTarget {
 class _RecommendationContextPanel extends StatelessWidget {
   final String dataBasisLine;
   final String dataBasisMessage;
-  final double? effectiveEnergyDensity;
+  final int trajectoryCorrectionCalories;
   final String calculatedAtLine;
 
   const _RecommendationContextPanel({
     required this.dataBasisLine,
     required this.dataBasisMessage,
-    this.effectiveEnergyDensity,
+    required this.trajectoryCorrectionCalories,
     required this.calculatedAtLine,
   });
 
@@ -720,20 +720,19 @@ class _RecommendationContextPanel extends StatelessWidget {
           text: dataBasisMessage,
           key: const Key('adaptive_recommendation_data_basis_message'),
         ),
-        if (effectiveEnergyDensity != null) ...[
+        if (trajectoryCorrectionCalories != 0) ...[
           const SizedBox(height: DesignConstants.spacingS),
-          SizedBox(
-            width: double.infinity,
-            child: ValueSummaryCard(
-              label: l10n.adaptiveRecommendationEnergyDensityLabel,
-              value: l10n.adaptiveRecommendationEnergyDensityValue(
-                effectiveEnergyDensity!.round(),
-              ),
+          _DetailLine(
+            text: l10n.adaptiveRecommendationTrajectoryCorrectionLine(
+              trajectoryCorrectionCalories > 0
+                  ? '+$trajectoryCorrectionCalories'
+                  : '$trajectoryCorrectionCalories',
             ),
+            key: const Key('adaptive_recommendation_trajectory_correction'),
           ),
           const SizedBox(height: DesignConstants.spacingXS),
           _DetailLine(
-            text: l10n.adaptiveRecommendationEnergyDensityExplanation,
+            text: l10n.adaptiveRecommendationTrajectoryCorrectionExplanation,
           ),
         ],
       ],

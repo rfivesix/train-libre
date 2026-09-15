@@ -8364,23 +8364,17 @@ abstract class AppLocalizations {
   /// **'Data quality'**
   String get adaptiveRecommendationDataQualityLabel;
 
-  /// No description provided for @adaptiveRecommendationEnergyDensityLabel.
+  /// No description provided for @adaptiveRecommendationTrajectoryCorrectionLine.
   ///
   /// In en, this message translates to:
-  /// **'Effective energy density'**
-  String get adaptiveRecommendationEnergyDensityLabel;
+  /// **'Trajectory adjustment: {value} kcal/day'**
+  String adaptiveRecommendationTrajectoryCorrectionLine(String value);
 
-  /// No description provided for @adaptiveRecommendationEnergyDensityValue.
+  /// No description provided for @adaptiveRecommendationTrajectoryCorrectionExplanation.
   ///
   /// In en, this message translates to:
-  /// **'{value} kcal/kg'**
-  String adaptiveRecommendationEnergyDensityValue(int value);
-
-  /// No description provided for @adaptiveRecommendationEnergyDensityExplanation.
-  ///
-  /// In en, this message translates to:
-  /// **'Dynamic value based on weight and water-loss ratio'**
-  String get adaptiveRecommendationEnergyDensityExplanation;
+  /// **'A bounded adjustment is helping bring your recent weight-change rate back toward your goal.'**
+  String get adaptiveRecommendationTrajectoryCorrectionExplanation;
 
   /// No description provided for @adaptiveRecommendationRecalculateNowAction.
   ///
@@ -9693,7 +9687,7 @@ abstract class AppLocalizations {
   /// No description provided for @infoTdeeKeyPoints.
   ///
   /// In en, this message translates to:
-  /// **'• Smooths out daily weight fluctuations using a recursive trend model.\n• Uses a Bayesian-inspired approach to adapt weekly targets conservatively.\n• Alerts you if your logging consistency is too sparse for high-confidence updates.'**
+  /// **'• Uses your latest 14 days of weight and intake logs to estimate maintenance.\n• Treats early phase-change weight fluctuations as extra uncertainty.\n• Uses a separate bounded adjustment when your rate persistently differs from your goal.'**
   String get infoTdeeKeyPoints;
 
   /// No description provided for @infoTdeeTechnicalTitle.
@@ -9705,7 +9699,7 @@ abstract class AppLocalizations {
   /// No description provided for @infoTdeeTechnicalExplanation.
   ///
   /// In en, this message translates to:
-  /// **'Rather than relying on static formulas, Train Libre models your metabolism as a dynamic \'hidden state\' estimated recursively. Daily observed maintenance is computed by adjusting intake against body mass changes. A process noise coefficient is added on unlogged days to increase the estimation uncertainty, which dampens updates and prevents skewing from short-term water retention.'**
+  /// **'Train Libre estimates maintenance as a dynamic hidden state with a recursive Kalman filter. Weekly process uncertainty lets the estimate follow real metabolic changes, while observation uncertainty limits reactions to water weight and incomplete logs. A separate capped trajectory controller may adjust the calorie target after two consistent rate errors without changing the maintenance estimate.'**
   String get infoTdeeTechnicalExplanation;
 
   /// No description provided for @infoRecoveryTitle.

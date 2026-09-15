@@ -211,6 +211,78 @@ void main() {
       );
     });
 
+    test(
+        'algorithm upgrade recomputes once without applying targets or carrying old calibration history',
+        () async {
+      const legacyVersion =
+          'tdee_adaptive_recommendation_1_1_bayesian_recursive';
+      const dueWeekKey = '2026-04-06';
+      final legacyRecommendation = _recommendationForDueWeek(
+        dueWeekKey,
+        algorithmVersion: legacyVersion,
+      );
+      await repository.saveLatestRecommendationSnapshot(
+        snapshot: AdaptiveRecommendationSnapshot(
+          recommendation: legacyRecommendation,
+          maintenanceEstimate: _estimateForDueWeek(dueWeekKey),
+          dueWeekKey: dueWeekKey,
+          algorithmVersion: legacyVersion,
+        ),
+      );
+      await repository.saveLatestEstimatorState(
+        state: const BayesianEstimatorState(
+          posteriorMeanCalories: 2400,
+          posteriorVarianceCalories2: 32400,
+          lastDueWeekKey: dueWeekKey,
+          lastPriorMeanCalories: 2350,
+          lastPriorVarianceCalories2: 48400,
+          lastPriorSource: BayesianPriorSource.profilePriorBootstrap,
+          lastObservationUsed: true,
+          recentPosteriorMeansCalories: <double>[2300, 2350, 2400],
+          recentObservationResidualsCalories: <double>[80, 90, 100],
+          recentObservationImpliedMaintenanceCalories: <double>[
+            2380,
+            2440,
+            2500,
+          ],
+        ),
+      );
+      await repository.saveLatestAppliedRecommendation(
+        recommendation: legacyRecommendation,
+      );
+
+      final upgraded = await service.refreshRecommendationIfDue(
+        now: DateTime(2026, 4, 6, 12),
+      );
+      final upgradedSnapshot =
+          await repository.getLatestRecommendationSnapshot();
+      final upgradedState = await repository.getLatestEstimatorState();
+      final applied = await repository.getLatestAppliedRecommendation();
+      final settings = await dbHelper.getAppSettings();
+
+      expect(upgraded, isNotNull);
+      expect(upgraded!.algorithmVersion,
+          AdaptiveNutritionRecommendationService.algorithmVersion);
+      expect(upgraded.trajectoryCorrectionCalories, 0);
+      expect(upgraded.trajectoryCorrectionStatus, startsWith('inactive_'));
+      expect(upgradedSnapshot!.algorithmVersion,
+          AdaptiveNutritionRecommendationService.algorithmVersion);
+      expect(upgradedState!.recentPosteriorMeansCalories, isEmpty);
+      expect(upgradedState.recentObservationResidualsCalories, isEmpty);
+      expect(
+        upgradedState.recentObservationImpliedMaintenanceCalories,
+        isEmpty,
+      );
+      expect(applied!.algorithmVersion, legacyVersion);
+      expect(applied.recommendedCalories, 2400);
+      expect(settings!.targetCalories, 2400);
+
+      final replay = await service.refreshRecommendationIfDue(
+        now: DateTime(2026, 4, 8, 12),
+      );
+      expect(replay!.generatedAt, upgraded.generatedAt);
+    });
+
     test('recursive state is restored and chained across service restart',
         () async {
       final first = await service.refreshRecommendationIfDue(
@@ -737,8 +809,7 @@ void main() {
       expect(recommendation, isNotNull);
       final applied = await repository.getLatestAppliedRecommendation();
       expect(applied, isNotNull);
-      expect(applied?.recommendedCalories,
-          recommendation?.recommendedCalories);
+      expect(applied?.recommendedCalories, recommendation?.recommendedCalories);
 
       final settings = await dbHelper.getAppSettings();
       expect(settings?.targetCalories, recommendation?.recommendedCalories);
@@ -749,7 +820,11 @@ void main() {
   });
 }
 
-NutritionRecommendation _recommendationForDueWeek(String dueWeekKey) {
+NutritionRecommendation _recommendationForDueWeek(
+  String dueWeekKey, {
+  String algorithmVersion =
+      AdaptiveNutritionRecommendationService.algorithmVersion,
+}) {
   return NutritionRecommendation(
     recommendedCalories: 2400,
     recommendedProteinGrams: 170,
@@ -763,7 +838,7 @@ NutritionRecommendation _recommendationForDueWeek(String dueWeekKey) {
     generatedAt: DateTime(2026, 4, 6, 10, 0),
     windowStart: DateTime(2026, 3, 16),
     windowEnd: DateTime(2026, 4, 5, 23, 59, 59),
-    algorithmVersion: AdaptiveNutritionRecommendationService.algorithmVersion,
+    algorithmVersion: algorithmVersion,
     inputSummary: const RecommendationInputSummary(
       windowDays: 21,
       weightLogCount: 9,

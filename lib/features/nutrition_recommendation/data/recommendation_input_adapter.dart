@@ -12,6 +12,8 @@ import '../domain/recommendation_models.dart';
 
 class RecommendationInputAdapter {
   static const int defaultPriorStepsLookbackDays = 21;
+  static const int adaptiveLookbackDays = 14;
+  static const double weightEwmaAlpha = 0.35;
 
   final DatabaseHelper _databaseHelper;
 
@@ -29,7 +31,7 @@ class RecommendationInputAdapter {
 
   Future<RecommendationGenerationInput> buildInput({
     required DateTime now,
-    int rollingWindowDays = 21,
+    int rollingWindowDays = adaptiveLookbackDays,
     PriorActivityLevel declaredActivityLevel = PriorActivityLevel.moderate,
     ExtraCardioHoursOption extraCardioHoursOption = ExtraCardioHoursOption.h0,
   }) async {
@@ -83,7 +85,7 @@ class RecommendationInputAdapter {
 
     final smoothedWeightSeries = _ewma(
       sortedWeightSeries,
-      alpha: 0.35,
+      alpha: weightEwmaAlpha,
     );
     final weightSlopeKgPerWeek =
         _trendSlopeKgPerWeek(smoothedWeightSeries, sortedWeightSeries);

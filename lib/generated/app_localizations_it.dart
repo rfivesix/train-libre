@@ -4827,17 +4827,13 @@ class AppLocalizationsIt extends AppLocalizations {
   String get adaptiveRecommendationDataQualityLabel => 'Qualità dei dati';
 
   @override
-  String get adaptiveRecommendationEnergyDensityLabel =>
-      'Densità energetica effettiva';
-
-  @override
-  String adaptiveRecommendationEnergyDensityValue(int value) {
-    return '$value kcal/kg';
+  String adaptiveRecommendationTrajectoryCorrectionLine(String value) {
+    return 'Correzione della traiettoria: $value kcal/giorno';
   }
 
   @override
-  String get adaptiveRecommendationEnergyDensityExplanation =>
-      'Valore dinamico basato sul rapporto tra peso e perdita di acqua';
+  String get adaptiveRecommendationTrajectoryCorrectionExplanation =>
+      'Una correzione limitata aiuta a riportare il recente ritmo di variazione del peso verso l\'obiettivo.';
 
   @override
   String get adaptiveRecommendationRecalculateNowAction => 'Ricalcola ora';
@@ -5596,7 +5592,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get infoTdeeKeyPoints =>
-      '• Appiana le fluttuazioni giornaliere del peso utilizzando un modello di trend ricorsivo.\n• Utilizza un approccio di ispirazione bayesiana per adattare in modo conservativo gli obiettivi settimanali.\n• Avvisa se la coerenza della registrazione è troppo scarsa per aggiornamenti ad alta affidabilità.';
+      '• Usa gli ultimi 14 giorni di peso e alimentazione per stimare il mantenimento.\n• Tratta le prime fluttuazioni dopo un cambio di fase come incertezza aggiuntiva.\n• Usa una correzione separata e limitata quando il ritmo si discosta in modo persistente dall\'obiettivo.';
 
   @override
   String get infoTdeeTechnicalTitle =>
@@ -5604,7 +5600,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get infoTdeeTechnicalExplanation =>
-      'Piuttosto che fare affidamento su formule statiche, Train Libre modella il tuo metabolismo come uno \"stato nascosto\" dinamico stimato ricorsivamente. Il mantenimento giornaliero osservato viene calcolato aggiustando l\'assunzione rispetto ai cambiamenti della massa corporea. Un coefficiente di rumore del processo viene aggiunto nei giorni non registrati per aumentare l’incertezza della stima, che smorza gli aggiornamenti e previene la distorsione dovuta alla ritenzione idrica a breve termine.';
+      'Train Libre stima il mantenimento come stato nascosto dinamico con un filtro di Kalman ricorsivo. L\'incertezza settimanale del processo permette di seguire i reali cambiamenti metabolici, mentre l\'incertezza dell\'osservazione limita le reazioni al peso dell\'acqua e ai registri incompleti. Dopo due errori di ritmo coerenti, un controller separato e limitato può correggere l\'obiettivo calorico senza modificare la stima del mantenimento.';
 
   @override
   String get infoRecoveryTitle => 'Stima del recupero muscolare';

@@ -2181,16 +2181,15 @@
   "adaptiveRecommendationMacroTargetsLabel": "推奨ターゲット",
   "adaptiveRecommendationTargetCaloriesLabel": "目標kcal",
   "adaptiveRecommendationDataQualityLabel": "データ品質",
-  "adaptiveRecommendationEnergyDensityLabel": "実効エネルギー密度",
-  "adaptiveRecommendationEnergyDensityValue": "{value} kcal/kg",
-  "@adaptiveRecommendationEnergyDensityValue": {
+  "adaptiveRecommendationTrajectoryCorrectionLine": "軌道調整: {value} kcal/日",
+  "@adaptiveRecommendationTrajectoryCorrectionLine": {
     "placeholders": {
       "value": {
-        "type": "int"
+        "type": "String"
       }
     }
   },
-  "adaptiveRecommendationEnergyDensityExplanation": "体重と水分損失の比率に基づく動的な値です",
+  "adaptiveRecommendationTrajectoryCorrectionExplanation": "上限付きの調整により、最近の体重変化率を目標へ近づけます。",
   "adaptiveRecommendationRecalculateNowAction": "今すぐ再計算してください",
   "adaptiveRecommendationRecalculating": "再計算中...",
   "adaptiveRecommendationApplying": "申請中...",
@@ -2463,9 +2462,9 @@
   "sleepBannerDefaultPenalty": "臨床的保護ブレーキが作動中: 睡眠量が最適ではなかった (6 時間未満) か、概日タイミング (入眠) が大きくずれていました。合計スコアには制限があります。",
   "infoTdeeTitle": "適応型カロリーと TDEE 推定ツール",
   "infoTdeeExplanation": "プロフィール、記録された食事、体重の変化に基づいて、1 日の総エネルギー消費量 (TDEE) を推定します。",
-  "infoTdeeKeyPoints": "• 再帰的傾向モデルを使用して毎日の体重変動を平準化します。\n• ベイジアンにヒントを得たアプローチを使用して、毎週の目標を保守的に調整します。\n• ログの整合性が希薄すぎて、信頼性の高い更新ができない場合に警告を発します。",
+  "infoTdeeKeyPoints": "• 直近14日間の体重と摂取量の記録から維持カロリーを推定します。\n• フェーズ変更直後の体重変動は追加の不確実性として扱います。\n• 変化率が継続的に目標から外れた場合は、別の上限付き調整を使用します。",
   "infoTdeeTechnicalTitle": "ベイジアン再帰フィルタリングと代謝平滑化",
-  "infoTdeeTechnicalExplanation": "Train Libre は、静的な公式に依存するのではなく、再帰的に推定される動的な「隠れた状態」として代謝をモデル化します。毎日観察される維持量は、体重の変化に対して摂取量を調整することによって計算されます。ログが記録されていない日にプロセス ノイズ係数が追加され、推定の不確実性が増加します。これにより、更新が抑制され、短期的な水の滞留による歪みが防止されます。",
+  "infoTdeeTechnicalExplanation": "Train Libre は、再帰カルマンフィルターを使って維持カロリーを動的な隠れ状態として推定します。週ごとのプロセス不確実性により実際の代謝変化へ追従し、観測不確実性により水分体重や不完全な記録への過剰反応を抑えます。同じ方向の変化率エラーが2回続いた場合、別の上限付きコントローラーが維持カロリー推定を変えずに目標カロリーを調整できます。",
   "infoRecoveryTitle": "筋肉回復推定ツール",
   "infoRecoveryExplanation": "トレーニング量、強度、失敗への近さに基づいて、筋肉固有の準備状況と回復曲線を推定します。",
   "infoRecoveryKeyPoints": "• 重複する筋肉ストレスを考慮します (胸部、上腕三頭筋、肩のベンチプレス数など)。\n• RIR/RPE に基づいて回復速度を調整し、障害が発生するセットのウィンドウを拡張します。\n• 筋肉グループのサイズと代謝特性に基づいてベースライン回復ウィンドウを調整します。",

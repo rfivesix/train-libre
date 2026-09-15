@@ -547,7 +547,8 @@ void main() {
     );
   });
 
-  testWidgets('renders effective energy density when present', (tester) async {
+  testWidgets('renders active trajectory correction and hides energy density',
+      (tester) async {
     final recommendation = _recommendation().copyWith(
       inputSummary: RecommendationInputSummary(
         windowDays: 21,
@@ -557,6 +558,9 @@ void main() {
         avgLoggedCalories: 2500,
         phaseEffectiveKcalPerKg: 5938.4,
       ),
+      trajectoryCorrectionCalories: 80,
+      trajectoryRateErrorKgPerWeek: 0.14,
+      trajectoryCorrectionStatus: 'active',
     );
 
     await tester.pumpWidget(
@@ -584,15 +588,14 @@ void main() {
     final context = tester.element(find.byType(NutritionRecommendationCard));
     final l10n = AppLocalizations.of(context)!;
 
+    expect(find.textContaining('5938'), findsNothing);
     expect(
-        find.text(l10n.adaptiveRecommendationEnergyDensityLabel),
-        findsOneWidget);
-    expect(find.text(l10n.adaptiveRecommendationEnergyDensityValue(5938)),
-        findsOneWidget);
-    expect(
-      find.text(l10n.adaptiveRecommendationEnergyDensityExplanation),
+      find.text(l10n.adaptiveRecommendationTrajectoryCorrectionLine('+80')),
       findsOneWidget,
     );
+    expect(
+        find.text(l10n.adaptiveRecommendationTrajectoryCorrectionExplanation),
+        findsOneWidget);
   });
 }
 
@@ -705,6 +708,9 @@ extension on NutritionRecommendation {
     RecommendationInputSummary? inputSummary,
     int? baselineCalories,
     String? dueWeekKey,
+    int? trajectoryCorrectionCalories,
+    double? trajectoryRateErrorKgPerWeek,
+    String? trajectoryCorrectionStatus,
   }) {
     return NutritionRecommendation(
       recommendedCalories: recommendedCalories ?? this.recommendedCalories,
@@ -726,6 +732,12 @@ extension on NutritionRecommendation {
       inputSummary: inputSummary ?? this.inputSummary,
       baselineCalories: baselineCalories ?? this.baselineCalories,
       dueWeekKey: dueWeekKey ?? this.dueWeekKey,
+      trajectoryCorrectionCalories:
+          trajectoryCorrectionCalories ?? this.trajectoryCorrectionCalories,
+      trajectoryRateErrorKgPerWeek:
+          trajectoryRateErrorKgPerWeek ?? this.trajectoryRateErrorKgPerWeek,
+      trajectoryCorrectionStatus:
+          trajectoryCorrectionStatus ?? this.trajectoryCorrectionStatus,
     );
   }
 }

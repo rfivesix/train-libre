@@ -2181,16 +2181,15 @@
   "adaptiveRecommendationMacroTargetsLabel": "Obiettivi consigliati",
   "adaptiveRecommendationTargetCaloriesLabel": "Obiettivo kcal",
   "adaptiveRecommendationDataQualityLabel": "Qualità dei dati",
-  "adaptiveRecommendationEnergyDensityLabel": "Densità energetica effettiva",
-  "adaptiveRecommendationEnergyDensityValue": "{value} kcal/kg",
-  "@adaptiveRecommendationEnergyDensityValue": {
+  "adaptiveRecommendationTrajectoryCorrectionLine": "Correzione della traiettoria: {value} kcal/giorno",
+  "@adaptiveRecommendationTrajectoryCorrectionLine": {
     "placeholders": {
       "value": {
-        "type": "int"
+        "type": "String"
       }
     }
   },
-  "adaptiveRecommendationEnergyDensityExplanation": "Valore dinamico basato sul rapporto tra peso e perdita di acqua",
+  "adaptiveRecommendationTrajectoryCorrectionExplanation": "Una correzione limitata aiuta a riportare il recente ritmo di variazione del peso verso l'obiettivo.",
   "adaptiveRecommendationRecalculateNowAction": "Ricalcola ora",
   "adaptiveRecommendationRecalculating": "Ricalcolo in corso...",
   "adaptiveRecommendationApplying": "Applicazione...",
@@ -2463,9 +2462,9 @@
   "sleepBannerDefaultPenalty": "Freno protettivo clinico attivo: il volume del sonno non era ottimale (<6 ore) o i tempi circadiani (inizio del sonno) erano notevolmente spostati. Il punteggio totale è stato limitato.",
   "infoTdeeTitle": "Stima adattiva delle calorie e del TDEE",
   "infoTdeeExplanation": "Stima la tua spesa energetica giornaliera totale (TDEE) in base al tuo profilo, ai pasti registrati e alle variazioni di peso corporeo.",
-  "infoTdeeKeyPoints": "• Appiana le fluttuazioni giornaliere del peso utilizzando un modello di trend ricorsivo.\n• Utilizza un approccio di ispirazione bayesiana per adattare in modo conservativo gli obiettivi settimanali.\n• Avvisa se la coerenza della registrazione è troppo scarsa per aggiornamenti ad alta affidabilità.",
+  "infoTdeeKeyPoints": "• Usa gli ultimi 14 giorni di peso e alimentazione per stimare il mantenimento.\n• Tratta le prime fluttuazioni dopo un cambio di fase come incertezza aggiuntiva.\n• Usa una correzione separata e limitata quando il ritmo si discosta in modo persistente dall'obiettivo.",
   "infoTdeeTechnicalTitle": "Filtraggio ricorsivo bayesiano e livellamento metabolico",
-  "infoTdeeTechnicalExplanation": "Piuttosto che fare affidamento su formule statiche, Train Libre modella il tuo metabolismo come uno \"stato nascosto\" dinamico stimato ricorsivamente. Il mantenimento giornaliero osservato viene calcolato aggiustando l'assunzione rispetto ai cambiamenti della massa corporea. Un coefficiente di rumore del processo viene aggiunto nei giorni non registrati per aumentare l’incertezza della stima, che smorza gli aggiornamenti e previene la distorsione dovuta alla ritenzione idrica a breve termine.",
+  "infoTdeeTechnicalExplanation": "Train Libre stima il mantenimento come stato nascosto dinamico con un filtro di Kalman ricorsivo. L'incertezza settimanale del processo permette di seguire i reali cambiamenti metabolici, mentre l'incertezza dell'osservazione limita le reazioni al peso dell'acqua e ai registri incompleti. Dopo due errori di ritmo coerenti, un controller separato e limitato può correggere l'obiettivo calorico senza modificare la stima del mantenimento.",
   "infoRecoveryTitle": "Stima del recupero muscolare",
   "infoRecoveryExplanation": "Stima le curve di preparazione e recupero specifiche del muscolo in base al volume di allenamento, all'intensità e alla prossimità al cedimento.",
   "infoRecoveryKeyPoints": "• Tiene conto dello stress muscolare sovrapposto (ad esempio, la distensione su panca conta per petto, tricipiti e spalle).\n• Ridimensiona la velocità di recupero in base a RIR/RPE ed estende la finestra per i set portati al fallimento.\n• Calibra le finestre di recupero di base in base alle dimensioni del gruppo muscolare e alle proprietà metaboliche.",

@@ -113,6 +113,15 @@ void main() {
       expect(input.qualityFlags, contains('unresolved_food_calories'));
     });
 
+    test('buildInput defaults to a 14-day adaptive lookback', () async {
+      final now = DateTime(2026, 4, 14, 12);
+
+      final input = await adapter.buildInput(now: now);
+
+      expect(input.windowStart, DateTime(2026, 4, 1));
+      expect(input.windowEnd, DateTime(2026, 4, 14, 23, 59, 59));
+    });
+
     test('estimate prior differentiates same bodyweight by body-fat percent',
         () {
       final profile = _profile(

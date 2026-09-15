@@ -4756,17 +4756,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get adaptiveRecommendationDataQualityLabel => 'Data quality';
 
   @override
-  String get adaptiveRecommendationEnergyDensityLabel =>
-      'Effective energy density';
-
-  @override
-  String adaptiveRecommendationEnergyDensityValue(int value) {
-    return '$value kcal/kg';
+  String adaptiveRecommendationTrajectoryCorrectionLine(String value) {
+    return 'Trajectory adjustment: $value kcal/day';
   }
 
   @override
-  String get adaptiveRecommendationEnergyDensityExplanation =>
-      'Dynamic value based on weight and water-loss ratio';
+  String get adaptiveRecommendationTrajectoryCorrectionExplanation =>
+      'A bounded adjustment is helping bring your recent weight-change rate back toward your goal.';
 
   @override
   String get adaptiveRecommendationRecalculateNowAction => 'Recalculate now';
@@ -5510,7 +5506,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get infoTdeeKeyPoints =>
-      '• Smooths out daily weight fluctuations using a recursive trend model.\n• Uses a Bayesian-inspired approach to adapt weekly targets conservatively.\n• Alerts you if your logging consistency is too sparse for high-confidence updates.';
+      '• Uses your latest 14 days of weight and intake logs to estimate maintenance.\n• Treats early phase-change weight fluctuations as extra uncertainty.\n• Uses a separate bounded adjustment when your rate persistently differs from your goal.';
 
   @override
   String get infoTdeeTechnicalTitle =>
@@ -5518,7 +5514,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get infoTdeeTechnicalExplanation =>
-      'Rather than relying on static formulas, Train Libre models your metabolism as a dynamic \'hidden state\' estimated recursively. Daily observed maintenance is computed by adjusting intake against body mass changes. A process noise coefficient is added on unlogged days to increase the estimation uncertainty, which dampens updates and prevents skewing from short-term water retention.';
+      'Train Libre estimates maintenance as a dynamic hidden state with a recursive Kalman filter. Weekly process uncertainty lets the estimate follow real metabolic changes, while observation uncertainty limits reactions to water weight and incomplete logs. A separate capped trajectory controller may adjust the calorie target after two consistent rate errors without changing the maintenance estimate.';
 
   @override
   String get infoRecoveryTitle => 'Muscle Recovery Estimator';

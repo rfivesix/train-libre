@@ -4792,17 +4792,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get adaptiveRecommendationDataQualityLabel => 'Datenqualität';
 
   @override
-  String get adaptiveRecommendationEnergyDensityLabel =>
-      'Effektive Energiedichte';
-
-  @override
-  String adaptiveRecommendationEnergyDensityValue(int value) {
-    return '$value kcal/kg';
+  String adaptiveRecommendationTrajectoryCorrectionLine(String value) {
+    return 'Verlaufsanpassung: $value kcal/Tag';
   }
 
   @override
-  String get adaptiveRecommendationEnergyDensityExplanation =>
-      'Dynamischer Wert basierend auf Gewichts- und Wasserverlust-Ratio';
+  String get adaptiveRecommendationTrajectoryCorrectionExplanation =>
+      'Eine begrenzte Anpassung hilft dabei, deine aktuelle Gewichtsrate wieder an dein Ziel heranzuführen.';
 
   @override
   String get adaptiveRecommendationRecalculateNowAction =>
@@ -5556,14 +5552,14 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get infoTdeeKeyPoints =>
-      '• Gleicht tägliche Gewichtsschwankungen (Wasser, Glykogen) mithilfe eines gleitenden Durchschnitts aus.\n• Verwendet ein Bayes-inspiriertes rekursives Modell, das wöchentliche Ziele konservativ anpasst, um Überreaktionen zu vermeiden.\n• Warnt dich, wenn deine Protokolle unvollständig oder unregelmäßig sind.';
+      '• Nutzt deine letzten 14 Tage mit Gewichts- und Intake-Logs zur Schätzung des Erhaltungsbedarfs.\n• Behandelt frühe Gewichtsschwankungen nach einem Phasenwechsel als zusätzliche Unsicherheit.\n• Nutzt eine separate begrenzte Anpassung, wenn deine Rate dauerhaft vom Ziel abweicht.';
 
   @override
   String get infoTdeeTechnicalTitle => 'Bayes-Filter & metabolisches Smoothing';
 
   @override
   String get infoTdeeTechnicalExplanation =>
-      'Train Libre modelliert deinen Stoffwechsel rekursiv als dynamischen Zustand über eine Bayes-Filter-Schleife. Der beobachtete tägliche Erhaltungsbedarf wird über die Kernroutine berechnet, wobei Änderungen des gleitenden Gewichtstrends berücksichtigt werden. An unprotokollierten Tagen wird ein Prozessrauschen-Koeffizient injiziert, um die Vertrauensgrenzen aufzuweiten. Dies dämpft nachfolgende Filter-Updates und verhindert eine Verzerrung der Stoffwechselberechnung durch kurzzeitige Wassereinlagerungen.';
+      'Train Libre schätzt den Erhaltungsbedarf mit einem rekursiven Kalman-Filter als dynamischen verborgenen Zustand. Wöchentliche Prozessunsicherheit lässt die Schätzung realen Stoffwechseländerungen folgen, während Beobachtungsunsicherheit Reaktionen auf Wassergewicht und unvollständige Logs begrenzt. Nach zwei gleichgerichteten Ratenabweichungen kann ein separater gedeckelter Regler das Kalorienziel anpassen, ohne die Erhaltungsschätzung zu verändern.';
 
   @override
   String get infoRecoveryTitle => 'Muskelregenerations-Rechner';

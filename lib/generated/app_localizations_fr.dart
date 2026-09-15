@@ -4835,17 +4835,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get adaptiveRecommendationDataQualityLabel => 'Qualité des données';
 
   @override
-  String get adaptiveRecommendationEnergyDensityLabel =>
-      'Densité énergétique effective';
-
-  @override
-  String adaptiveRecommendationEnergyDensityValue(int value) {
-    return '$value kcal/kg';
+  String adaptiveRecommendationTrajectoryCorrectionLine(String value) {
+    return 'Ajustement de trajectoire : $value kcal/jour';
   }
 
   @override
-  String get adaptiveRecommendationEnergyDensityExplanation =>
-      'Valeur dynamique basée sur le poids et le ratio de perte d’eau';
+  String get adaptiveRecommendationTrajectoryCorrectionExplanation =>
+      'Un ajustement limité aide à ramener votre rythme récent de variation du poids vers votre objectif.';
 
   @override
   String get adaptiveRecommendationRecalculateNowAction =>
@@ -5606,7 +5602,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get infoTdeeKeyPoints =>
-      '• Lisse les fluctuations de poids quotidiennes à l\'aide d\'un modèle de tendance récursif.\n• Utilise une approche d\'inspiration bayésienne pour adapter les objectifs hebdomadaires de manière conservatrice.\n• Vous alerte si la cohérence de votre journalisation est trop rare pour des mises à jour de haute confiance.';
+      '• Utilise vos 14 derniers jours de poids et d\'apports pour estimer le maintien.\n• Traite les premières fluctuations après un changement de phase comme une incertitude supplémentaire.\n• Utilise un ajustement séparé et limité si votre rythme s\'écarte durablement de l\'objectif.';
 
   @override
   String get infoTdeeTechnicalTitle =>
@@ -5614,7 +5610,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get infoTdeeTechnicalExplanation =>
-      'Plutôt que de s\'appuyer sur des formules statiques, Train Libre modélise votre métabolisme comme un « état caché » dynamique estimé de manière récursive. L\'entretien quotidien observé est calculé en ajustant l\'apport en fonction des changements de masse corporelle. Un coefficient de bruit de processus est ajouté les jours non enregistrés pour augmenter l\'incertitude de l\'estimation, ce qui atténue les mises à jour et empêche les distorsions dues à la rétention d\'eau à court terme.';
+      'Train Libre estime le maintien comme un état caché dynamique avec un filtre de Kalman récursif. L\'incertitude hebdomadaire du processus permet de suivre les changements métaboliques réels, tandis que l\'incertitude d\'observation limite les réactions au poids d\'eau et aux journaux incomplets. Après deux écarts de rythme cohérents, un contrôleur séparé et plafonné peut ajuster l\'objectif calorique sans modifier l\'estimation du maintien.';
 
   @override
   String get infoRecoveryTitle => 'Estimateur de récupération musculaire';

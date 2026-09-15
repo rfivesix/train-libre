@@ -4608,16 +4608,13 @@ class AppLocalizationsJa extends AppLocalizations {
   String get adaptiveRecommendationDataQualityLabel => 'データ品質';
 
   @override
-  String get adaptiveRecommendationEnergyDensityLabel => '実効エネルギー密度';
-
-  @override
-  String adaptiveRecommendationEnergyDensityValue(int value) {
-    return '$value kcal/kg';
+  String adaptiveRecommendationTrajectoryCorrectionLine(String value) {
+    return '軌道調整: $value kcal/日';
   }
 
   @override
-  String get adaptiveRecommendationEnergyDensityExplanation =>
-      '体重と水分損失の比率に基づく動的な値です';
+  String get adaptiveRecommendationTrajectoryCorrectionExplanation =>
+      '上限付きの調整により、最近の体重変化率を目標へ近づけます。';
 
   @override
   String get adaptiveRecommendationRecalculateNowAction => '今すぐ再計算してください';
@@ -5335,14 +5332,14 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get infoTdeeKeyPoints =>
-      '• 再帰的傾向モデルを使用して毎日の体重変動を平準化します。\n• ベイジアンにヒントを得たアプローチを使用して、毎週の目標を保守的に調整します。\n• ログの整合性が希薄すぎて、信頼性の高い更新ができない場合に警告を発します。';
+      '• 直近14日間の体重と摂取量の記録から維持カロリーを推定します。\n• フェーズ変更直後の体重変動は追加の不確実性として扱います。\n• 変化率が継続的に目標から外れた場合は、別の上限付き調整を使用します。';
 
   @override
   String get infoTdeeTechnicalTitle => 'ベイジアン再帰フィルタリングと代謝平滑化';
 
   @override
   String get infoTdeeTechnicalExplanation =>
-      'Train Libre は、静的な公式に依存するのではなく、再帰的に推定される動的な「隠れた状態」として代謝をモデル化します。毎日観察される維持量は、体重の変化に対して摂取量を調整することによって計算されます。ログが記録されていない日にプロセス ノイズ係数が追加され、推定の不確実性が増加します。これにより、更新が抑制され、短期的な水の滞留による歪みが防止されます。';
+      'Train Libre は、再帰カルマンフィルターを使って維持カロリーを動的な隠れ状態として推定します。週ごとのプロセス不確実性により実際の代謝変化へ追従し、観測不確実性により水分体重や不完全な記録への過剰反応を抑えます。同じ方向の変化率エラーが2回続いた場合、別の上限付きコントローラーが維持カロリー推定を変えずに目標カロリーを調整できます。';
 
   @override
   String get infoRecoveryTitle => '筋肉回復推定ツール';

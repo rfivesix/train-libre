@@ -322,6 +322,8 @@ class BayesianTdeeEstimator {
         'observationCompletenessMultiplier':
             observationModel.completenessMultiplier,
         'observationQualityMultiplier': observationModel.qualityMultiplier,
+        'observationPhaseVarianceMultiplier':
+            observationModel.phaseVarianceMultiplier,
         'residualBiasMeanCalories': residualBiasSummary.meanResidualCalories,
         'residualBiasObservationCount': residualBiasSummary.observationCount,
         'residualBiasStatus': residualBiasSummary.status.name,

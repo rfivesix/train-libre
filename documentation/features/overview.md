@@ -26,7 +26,7 @@ To achieve true user privacy and data ownership, the application enforces the fo
 The core computational modules of Train Libre are split into isolated, mathematically transparent features:
 
 ### 1. Bayesian TDEE Estimator
-A mathematical engine utilizing a recursive Kalman Filter. It combines daily bodyweight slope calculations with logged calorie intakes to predict the user's Total Daily Energy Expenditure (TDEE). By applying Bayesian priors and calculating real-time observation variance, the system adjusts calorie recommendations while automatically penalizing poor-quality or sparse data.
+A mathematical engine utilizing a recursive Kalman filter. It combines a recent 14-day bodyweight trend with logged calorie intake to estimate Total Daily Energy Expenditure (TDEE), increases observation uncertainty around diet-phase transitions, and uses a separate bounded controller for persistent goal-rate divergence. Poor-quality or sparse data reduces trust and suppresses trajectory corrections.
 *   *Learn more in the [**Bayesian TDEE Estimator Documentation**](bayesian_tdee_estimator.md).*
 
 ### 2. Macronutrient Distribution

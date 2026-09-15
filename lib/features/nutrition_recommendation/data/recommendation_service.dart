@@ -51,8 +51,9 @@ class AdaptiveNutritionRecommendationService {
   /// `AdaptiveRecommendationSnapshot.isFreshFor`).
   ///
   /// `1_1` moved fat off its floor onto a goal-dependent g/kg target.
+  /// `1_2` separates latent TDEE estimation from bounded trajectory control.
   static const String algorithmVersion =
-      'tdee_adaptive_recommendation_1_1_bayesian_recursive';
+      'tdee_adaptive_recommendation_1_2_dual_loop';
   static const int _phaseChangeConfirmationWindowDays = 7;
 
   final RecommendationRepository _repository;
@@ -322,10 +323,13 @@ class AdaptiveNutritionRecommendationService {
     ]);
     final latestSnapshot = latestContext[0] as AdaptiveRecommendationSnapshot?;
     final latestRecursiveState = latestContext[1] as BayesianEstimatorState?;
+    final algorithmChanged = latestSnapshot != null &&
+        latestSnapshot.algorithmVersion != algorithmVersion;
     final lastGeneratedDueWeekKey = latestSnapshot?.dueWeekKey ??
         await _repository.getLastGeneratedDueWeekKey();
 
     if (!force &&
+        !algorithmChanged &&
         !RecommendationScheduler.shouldGenerateForWeek(
           dueWeekKey: dueWeekKey,
           lastGeneratedDueWeekKey: lastGeneratedDueWeekKey,
@@ -357,6 +361,9 @@ class AdaptiveNutritionRecommendationService {
       anchorDay: phaseAnchorDay,
     );
     final previousRecommendation = latestSnapshot?.recommendation;
+    final recursiveState = algorithmChanged
+        ? _prepareRecursiveStateForAlgorithmUpgrade(latestRecursiveState)
+        : latestRecursiveState;
 
     final result = await compute(
       _generateBayesianRecommendationIsolate,
@@ -368,7 +375,7 @@ class AdaptiveNutritionRecommendationService {
         generatedAt: effectiveNow,
         algorithmVersion: algorithmVersion,
         dueWeekKey: dueWeekKey,
-        recursiveState: latestRecursiveState,
+        recursiveState: recursiveState,
         previousRecommendation: previousRecommendation,
         phaseTrackingState: phaseTrackingState,
         phaseAnchorDay: phaseAnchorDay,
@@ -389,6 +396,29 @@ class AdaptiveNutritionRecommendationService {
     _trackRecommendationTelemetry(result);
 
     return result.recommendation;
+  }
+
+  BayesianEstimatorState? _prepareRecursiveStateForAlgorithmUpgrade(
+    BayesianEstimatorState? state,
+  ) {
+    if (state == null || !state.isValid) {
+      return state;
+    }
+    return BayesianEstimatorState(
+      posteriorMeanCalories: state.posteriorMeanCalories,
+      posteriorVarianceCalories2: state.posteriorVarianceCalories2,
+      lastDueWeekKey: state.lastDueWeekKey,
+      lastPriorMeanCalories: state.lastPriorMeanCalories,
+      lastPriorVarianceCalories2: state.lastPriorVarianceCalories2,
+      lastPriorSource: state.lastPriorSource,
+      lastObservationUsed: state.lastObservationUsed,
+      // These histories were produced by the previous observation equation.
+      // Preserve the recursive prior, but restart adaptive noise calibration so
+      // old ramp-derived residuals cannot bias the new fixed-density model.
+      recentPosteriorMeansCalories: const <double>[],
+      recentObservationResidualsCalories: const <double>[],
+      recentObservationImpliedMaintenanceCalories: const <double>[],
+    );
   }
 
   Future<NutritionRecommendation> generateOnboardingRecommendation({

@@ -96,6 +96,9 @@ class NutritionRecommendation {
   final RecommendationInputSummary inputSummary;
   final int? baselineCalories;
   final String? dueWeekKey;
+  final int trajectoryCorrectionCalories;
+  final double? trajectoryRateErrorKgPerWeek;
+  final String trajectoryCorrectionStatus;
 
   const NutritionRecommendation({
     required this.recommendedCalories,
@@ -114,6 +117,9 @@ class NutritionRecommendation {
     required this.inputSummary,
     required this.baselineCalories,
     required this.dueWeekKey,
+    this.trajectoryCorrectionCalories = 0,
+    this.trajectoryRateErrorKgPerWeek,
+    this.trajectoryCorrectionStatus = 'inactive',
   });
 
   Map<String, dynamic> toJson() {
@@ -134,6 +140,9 @@ class NutritionRecommendation {
       'inputSummary': inputSummary.toJson(),
       'baselineCalories': baselineCalories,
       'dueWeekKey': dueWeekKey,
+      'trajectoryCorrectionCalories': trajectoryCorrectionCalories,
+      'trajectoryRateErrorKgPerWeek': trajectoryRateErrorKgPerWeek,
+      'trajectoryCorrectionStatus': trajectoryCorrectionStatus,
     };
   }
 
@@ -175,6 +184,12 @@ class NutritionRecommendation {
       ),
       baselineCalories: json['baselineCalories'] as int?,
       dueWeekKey: json['dueWeekKey'] as String?,
+      trajectoryCorrectionCalories:
+          json['trajectoryCorrectionCalories'] as int? ?? 0,
+      trajectoryRateErrorKgPerWeek:
+          (json['trajectoryRateErrorKgPerWeek'] as num?)?.toDouble(),
+      trajectoryCorrectionStatus:
+          json['trajectoryCorrectionStatus'] as String? ?? 'inactive',
     );
   }
 }

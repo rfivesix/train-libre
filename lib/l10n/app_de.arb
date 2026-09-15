@@ -2180,16 +2180,15 @@
   "adaptiveRecommendationMacroTargetsLabel": "Empfohlene Ziele",
   "adaptiveRecommendationTargetCaloriesLabel": "Ziel-kcal",
   "adaptiveRecommendationDataQualityLabel": "Datenqualität",
-  "adaptiveRecommendationEnergyDensityLabel": "Effektive Energiedichte",
-  "adaptiveRecommendationEnergyDensityValue": "{value} kcal/kg",
-  "@adaptiveRecommendationEnergyDensityValue": {
+  "adaptiveRecommendationTrajectoryCorrectionLine": "Verlaufsanpassung: {value} kcal/Tag",
+  "@adaptiveRecommendationTrajectoryCorrectionLine": {
     "placeholders": {
       "value": {
-        "type": "int"
+        "type": "String"
       }
     }
   },
-  "adaptiveRecommendationEnergyDensityExplanation": "Dynamischer Wert basierend auf Gewichts- und Wasserverlust-Ratio",
+  "adaptiveRecommendationTrajectoryCorrectionExplanation": "Eine begrenzte Anpassung hilft dabei, deine aktuelle Gewichtsrate wieder an dein Ziel heranzuführen.",
   "adaptiveRecommendationRecalculateNowAction": "Jetzt neu berechnen",
   "adaptiveRecommendationRecalculating": "Wird neu berechnet...",
   "adaptiveRecommendationApplying": "Wird angewendet...",
@@ -2462,9 +2461,9 @@
   "sleepBannerDefaultPenalty": "Klinische Schutzbremse aktiv: Dein Schlafvolumen war suboptimal (<6h) oder das zirkadiane Timing (Einschlafzeitpunkt) war stark verschoben. Der Gesamtwert wurde limitiert.",
   "infoTdeeTitle": "Adaptiver Kalorien- & TDEE-Schätzer",
   "infoTdeeExplanation": "Schätzt deine täglichen Erhaltungskalorien (TDEE) basierend auf deinem Profil, deinen protokollierten Mahlzeiten und deinen Körpergewichtsänderungen.",
-  "infoTdeeKeyPoints": "• Gleicht tägliche Gewichtsschwankungen (Wasser, Glykogen) mithilfe eines gleitenden Durchschnitts aus.\n• Verwendet ein Bayes-inspiriertes rekursives Modell, das wöchentliche Ziele konservativ anpasst, um Überreaktionen zu vermeiden.\n• Warnt dich, wenn deine Protokolle unvollständig oder unregelmäßig sind.",
+  "infoTdeeKeyPoints": "• Nutzt deine letzten 14 Tage mit Gewichts- und Intake-Logs zur Schätzung des Erhaltungsbedarfs.\n• Behandelt frühe Gewichtsschwankungen nach einem Phasenwechsel als zusätzliche Unsicherheit.\n• Nutzt eine separate begrenzte Anpassung, wenn deine Rate dauerhaft vom Ziel abweicht.",
   "infoTdeeTechnicalTitle": "Bayes-Filter & metabolisches Smoothing",
-  "infoTdeeTechnicalExplanation": "Train Libre modelliert deinen Stoffwechsel rekursiv als dynamischen Zustand über eine Bayes-Filter-Schleife. Der beobachtete tägliche Erhaltungsbedarf wird über die Kernroutine berechnet, wobei Änderungen des gleitenden Gewichtstrends berücksichtigt werden. An unprotokollierten Tagen wird ein Prozessrauschen-Koeffizient injiziert, um die Vertrauensgrenzen aufzuweiten. Dies dämpft nachfolgende Filter-Updates und verhindert eine Verzerrung der Stoffwechselberechnung durch kurzzeitige Wassereinlagerungen.",
+  "infoTdeeTechnicalExplanation": "Train Libre schätzt den Erhaltungsbedarf mit einem rekursiven Kalman-Filter als dynamischen verborgenen Zustand. Wöchentliche Prozessunsicherheit lässt die Schätzung realen Stoffwechseländerungen folgen, während Beobachtungsunsicherheit Reaktionen auf Wassergewicht und unvollständige Logs begrenzt. Nach zwei gleichgerichteten Ratenabweichungen kann ein separater gedeckelter Regler das Kalorienziel anpassen, ohne die Erhaltungsschätzung zu verändern.",
   "infoRecoveryTitle": "Muskelregenerations-Rechner",
   "infoRecoveryExplanation": "Schätzt die muskelspezifische Bereitschaft und deine Regenerationskurven basierend auf deinem Trainingsvolumen, der Intensität und der Nähe zum Muskelversagen.",
   "infoRecoveryKeyPoints": "• Berücksichtigt überlappende Muskelbelastungen (z. B. wird Bankdrücken der Brust, dem Trizeps und der vorderen Schulter angerechnet).\n• Skaliert die Regenerationsgeschwindigkeit basierend auf RIR/RPE und verlängert das Fenster bei Sätzen bis zum Muskelversagen.\n• Kalibriert die Basis-Erholungszeit je nach Größe der Muskelgruppe.",

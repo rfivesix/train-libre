@@ -2186,16 +2186,15 @@
   "adaptiveRecommendationMacroTargetsLabel": "Recommended targets",
   "adaptiveRecommendationTargetCaloriesLabel": "Target kcal",
   "adaptiveRecommendationDataQualityLabel": "Data quality",
-  "adaptiveRecommendationEnergyDensityLabel": "Effective energy density",
-  "adaptiveRecommendationEnergyDensityValue": "{value} kcal/kg",
-  "@adaptiveRecommendationEnergyDensityValue": {
+  "adaptiveRecommendationTrajectoryCorrectionLine": "Trajectory adjustment: {value} kcal/day",
+  "@adaptiveRecommendationTrajectoryCorrectionLine": {
     "placeholders": {
       "value": {
-        "type": "int"
+        "type": "String"
       }
     }
   },
-  "adaptiveRecommendationEnergyDensityExplanation": "Dynamic value based on weight and water-loss ratio",
+  "adaptiveRecommendationTrajectoryCorrectionExplanation": "A bounded adjustment is helping bring your recent weight-change rate back toward your goal.",
   "adaptiveRecommendationRecalculateNowAction": "Recalculate now",
   "adaptiveRecommendationRecalculating": "Recalculating...",
   "adaptiveRecommendationApplying": "Applying...",
@@ -2467,9 +2466,9 @@
   "sleepBannerDefaultPenalty": "Clinical protective brake active: Your sleep volume was suboptimal (<6h) or circadian timing (sleep onset) was severely shifted. The total score has been limited.",
   "infoTdeeTitle": "Adaptive Calorie & TDEE Estimator",
   "infoTdeeExplanation": "Estimates your Total Daily Energy Expenditure (TDEE) based on your profile, logged meals, and bodyweight changes.",
-  "infoTdeeKeyPoints": "• Smooths out daily weight fluctuations using a recursive trend model.\n• Uses a Bayesian-inspired approach to adapt weekly targets conservatively.\n• Alerts you if your logging consistency is too sparse for high-confidence updates.",
+  "infoTdeeKeyPoints": "• Uses your latest 14 days of weight and intake logs to estimate maintenance.\n• Treats early phase-change weight fluctuations as extra uncertainty.\n• Uses a separate bounded adjustment when your rate persistently differs from your goal.",
   "infoTdeeTechnicalTitle": "Bayesian Recursive Filtering & Metabolic Smoothing",
-  "infoTdeeTechnicalExplanation": "Rather than relying on static formulas, Train Libre models your metabolism as a dynamic 'hidden state' estimated recursively. Daily observed maintenance is computed by adjusting intake against body mass changes. A process noise coefficient is added on unlogged days to increase the estimation uncertainty, which dampens updates and prevents skewing from short-term water retention.",
+  "infoTdeeTechnicalExplanation": "Train Libre estimates maintenance as a dynamic hidden state with a recursive Kalman filter. Weekly process uncertainty lets the estimate follow real metabolic changes, while observation uncertainty limits reactions to water weight and incomplete logs. A separate capped trajectory controller may adjust the calorie target after two consistent rate errors without changing the maintenance estimate.",
   "infoRecoveryTitle": "Muscle Recovery Estimator",
   "infoRecoveryExplanation": "Estimates muscle-specific readiness and recovery curves based on training volume, intensity, and proximity to failure.",
   "infoRecoveryKeyPoints": "• Accounts for overlapping muscle stress (e.g., Bench Press counts for Chest, Triceps, and Shoulders).\n• Scales recovery speed based on RIR/RPE and extends the window for sets taken to failure.\n• Calibrates baseline recovery windows based on muscle group size and metabolic properties.",

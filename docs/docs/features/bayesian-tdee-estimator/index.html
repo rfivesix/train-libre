@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Kalman filter and Bayesian recursive estimation for adaptive calorie targets.">
-  <title>Fitness-Oriented Bayesian TDEE Estimator &amp; Adaptive Diet Phase Engine | Train Libre Documentation</title>
+  <title>Fitness-Oriented Bayesian TDEE Estimator &amp; Adaptive Calorie Controller | Train Libre Documentation</title>
   <link rel="canonical" href="https://trainlibre.com/docs/features/bayesian-tdee-estimator/">
 
   <link rel="icon" type="image/png" sizes="32x32" href="../../../favicon.png?v=2">
@@ -12,7 +12,7 @@
 
   <!-- Open Graph -->
   <meta property="og:site_name" content="Train Libre Documentation">
-  <meta property="og:title" content="Fitness-Oriented Bayesian TDEE Estimator &amp; Adaptive Diet Phase Engine | Train Libre">
+  <meta property="og:title" content="Fitness-Oriented Bayesian TDEE Estimator &amp; Adaptive Calorie Controller | Train Libre">
   <meta property="og:description" content="Kalman filter and Bayesian recursive estimation for adaptive calorie targets.">
   <meta property="og:url" content="https://trainlibre.com/docs/features/bayesian-tdee-estimator/">
   <meta property="og:type" content="article">
@@ -160,99 +160,88 @@
         </div>
 
         <article class="docs-article">
-          <h1 class="doc-title">Fitness-Oriented Bayesian TDEE Estimator & Adaptive Diet Phase Engine</h1>
-<div class="callout callout-warning"><div class="callout-title"><span class="callout-badge">Disclaimer</span></div><div class="callout-body"><strong>Non-Medical Disclaimer</strong>: This feature is a fitness-oriented, non-clinical heuristic designed for healthy individuals tracking performance and dietary habits. It is not intended for clinical use, diagnostics, or managing medical conditions (such as eating disorders or endocrine/metabolic diseases). All calorie estimates, adaptive calculations, and target adjustment suggestions are sports-science-inspired abstractions and engineering design choices rather than prescriptive clinical thresholds or direct experimental derivations.</div></div>
-<p>The <strong>Bayesian TDEE Estimator</strong> is the mathematical foundation of Train Libre's adaptive diet recommendations. It runs entirely on-device, implementing a customized one-dimensional <strong>Recursive Kalman Filter</strong> to estimate a user's latent Total Daily Energy Expenditure (TDEE). Unlike simple moving averages or static calculators, this estimator models metabolic changes dynamically, using a simplified dynamic energy balance heuristic inspired by Hall’s mathematical models of human body weight change and energy imbalance. It assigns mathematical certainty to logging habits, scales observation variance based on logging completeness, and automatically manages calorie target changes.</p>
+          <h1 class="doc-title">Fitness-Oriented Bayesian TDEE Estimator & Adaptive Calorie Controller</h1>
+<div class="callout callout-warning"><div class="callout-title"><span class="callout-badge">Disclaimer</span></div><div class="callout-body"><strong>Non-Medical Disclaimer</strong>: This feature is a fitness-oriented, non-clinical heuristic for healthy individuals tracking performance and dietary habits. It is not intended for diagnosis, treatment, eating-disorder management, or endocrine and metabolic conditions. Users should consult a qualified healthcare professional before making medically significant dietary changes.</div></div>
+<p>Train Libre separates two related jobs:</p>
+<ol class="doc-list">
+<li>A one-dimensional recursive Kalman filter estimates latent Total Daily Energy Expenditure (TDEE).</li>
+<li>A bounded trajectory controller may temporarily adjust the calorie target when measured bodyweight change persistently differs from the selected goal rate.</li>
+</ol>
+<p>The controller never changes the displayed maintenance estimate or its uncertainty range. All calculations run locally on the device.</p>
 <hr class="divider">
-<h2 id="1-the-observation-model" class="doc-h2">1. The Observation Model<a href="#1-the-observation-model" class="header-anchor" aria-label="Link to section">#</a></h2>
-<p>At any given week <em>t</em>, the estimator receives a logging context containing the user's average calorie intake, bodyweight readings, and active diet phase. It computes an <strong>Observed Maintenance</strong> value (<em>M_t</em>) by adjusting average calorie intake against body mass change:</p>
-<div class="math-block">$$M_t = \text{avgLoggedCalories}_t - \left(\text{smoothedWeightSlopeKgPerWeek}_t \cdot \frac{\text{kcalPerKg}_t}{7}\right)$$</div>
-<h3 id="dynamic-kcalkg-scaling-ramp-model" class="doc-h3">Dynamic Kcal/Kg Scaling (Ramp Model)<a href="#dynamic-kcalkg-scaling-ramp-model" class="header-anchor" aria-label="Link to section">#</a></h3>
-<p>The energetic value of bodyweight changes (<em>kcalPerKg</em>) is not static. During transitions to new diet phases, water weight fluctuations and metabolic adaptations skew short-term readings. To compensate, Train Libre implements a <strong>9-Week Linear Ramp</strong>:</p>
-<ul class="doc-list">
-<li><strong>Week 1</strong>: Starts at a highly conservative baseline:</li>
-</ul>
-<div class="math-block">$$\text{kcalPerKg} = 3000 \text{ kcal/kg}$$</div>
-<ul class="doc-list">
-<li><strong>Weeks 2 to 8</strong>: Linear transition toward the mature baseline:</li>
-</ul>
-<div class="math-block">$$\text{kcalPerKg}_t = 3000 + (7700 - 3000) \cdot \left(\frac{t_{\text{weeks}} - 1}{8}\right)$$</div>
-<ul class="doc-list">
-<li><strong>Week 9+ (Mature)</strong>: Scales to the physiological standard:</li>
-</ul>
-<div class="math-block">$$\text{kcalPerKg} = 7700 \text{ kcal/kg}$$</div>
-<p><em>Note: The 3000→7700 kcal/kg 9-week linear ramp is an engineering safeguard and modeling abstraction to attenuate early water-driven weight changes; it is not directly specified in any single study but is chosen to be conservative relative to empirically observed weight change energy densities.</em></p>
-<p>This linear transition prevents sudden, massive adjustments to calorie recommendations during the initial, highly volatile weeks of a new diet phase.</p>
+<h2 id="1-input-window-and-weight-trend" class="doc-h2">1. Input Window and Weight Trend<a href="#1-input-window-and-weight-trend" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>Weekly recommendations use the latest <strong>14 days</strong> of available intake and bodyweight logs. Daily weights are smoothed with an exponentially weighted moving average:</p>
+<div class="math-block">$$S_d = 0.35W_d + 0.65S_{d-1}$$</div>
+<p>A linear regression over the smoothed series produces the weekly bodyweight slope. Logged calories are averaged over logged intake days in the same window. Sparse logs remain usable, but receive larger observation variance and may suppress trajectory correction.</p>
+<p>Because weekly evaluations use overlapping 14-day windows, adjacent observations are correlated. The estimator therefore uses conservative uncertainty, bounded gain, and target-adjustment limits rather than treating each result as an independent laboratory measurement.</p>
 <hr class="divider">
-<h2 id="2-mathematical-modeling-of-uncertainty-observation-variance" class="doc-h2">2. Mathematical Modeling of Uncertainty (Observation Variance)<a href="#2-mathematical-modeling-of-uncertainty-observation-variance" class="header-anchor" aria-label="Link to section">#</a></h2>
-<p>A Kalman Filter relies on the ratio of system process noise to observation noise to adjust its update weight (Kalman Gain). Train Libre computes the <strong>Observation Variance</strong> (<em>R_t</em>) dynamically for each logging cycle based on data density and accuracy.</p>
-<p><em>Note: Numeric values for base model error, day-to-day logging noise, and slope deviations are heuristic engineering parameters and modeling abstractions calibrated from the variability reported in free-living energy intake modeling studies rather than formal inferential statistics from a single paper.</em></p>
-<h3 id="step-21-reference-variance-vref" class="doc-h3">Step 2.1: Reference Variance (<em>V_ref</em>)<a href="#step-21-reference-variance-vref" class="header-anchor" aria-label="Link to section">#</a></h3>
-<p>The baseline uncertainty is a combination of three independent standard error sources:</p>
+<h2 id="2-maintenance-observation-model" class="doc-h2">2. Maintenance Observation Model<a href="#2-maintenance-observation-model" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>For week <span class="math-inline">$t$</span>, observed maintenance is:</p>
+<div class="math-block">$$M_t = \text{avgLoggedCalories}_t - \left(\text{smoothedWeightSlopeKgPerWeek}_t \cdot \frac{7700}{7}\right)$$</div>
+<p>The conversion coefficient is fixed at <strong>7,700 kcal/kg</strong>. This is a population-level engineering approximation, not a claim that every kilogram of short-term scale change represents identical tissue composition.</p>
+<p>Earlier versions changed this coefficient from 3,000 to 7,700 during the first nine phase weeks. That approach biased the observation itself. The current model keeps the observation equation stable and represents early water-weight uncertainty through observation variance instead.</p>
+<hr class="divider">
+<h2 id="3-observation-variance" class="doc-h2">3. Observation Variance<a href="#3-observation-variance" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>The reference variance combines independent heuristic uncertainty sources:</p>
 <div class="math-block">$$V_{\text{ref}} = V_{\text{base}} + V_{\text{intake}} + V_{\text{slope}}$$</div>
-<p>Where: <em>   <strong>Base Model Mismatch (</em>V_base*)</strong>: Represents residual model error under ideal logging conditions (default standard deviation: 120 kcal/day):</p>
-<div class="math-block">$$V_{\text{base}} = 120^2 = 14400$$</div>
-<ul class="doc-list">
-<li><strong>Intake Day-to-Day Error (<em>V_intake</em>)</strong>: Models the standard error of food logs over the window (default day-to-day deviation: 320 kcal/day):</li>
-</ul>
+<div class="math-block">$$V_{\text{base}} = 120^2$$</div>
 <div class="math-block">$$V_{\text{intake}} = \left(\frac{320}{\sqrt{\text{intakeLoggedDays}}}\right)^2$$</div>
+<div class="math-block">$$V_{\text{slope}} = \left(\frac{0.55 \cdot \frac{7700}{7}}{\sqrt{\max(\text{weightLogCount}-1,1)}}\right)^2$$</div>
+<p>With complete daily logging, the unpenalized reference variance is approximately:</p>
+<div class="table-responsive"><table class="doc-table"><thead><tr><th style="text-align:right">Window</th><th style="text-align:right">Approximate variance</th><th style="text-align:right">Standard deviation</th></tr></thead><tbody><tr><td style="text-align:right">7 days</td><td style="text-align:right">90,000 kcal²/day²</td><td style="text-align:right">300 kcal/day</td></tr><tr><td style="text-align:right">14 days</td><td style="text-align:right">50,000 kcal²/day²</td><td style="text-align:right">224 kcal/day</td></tr><tr><td style="text-align:right">21 days</td><td style="text-align:right">38,000 kcal²/day²</td><td style="text-align:right">194 kcal/day</td></tr></tbody></table></div>
+<p>Completeness and quality penalties remain multiplicative:</p>
+<div class="math-block">$$M_{\text{comp}} = \frac{1}{\sqrt{\text{intakeCompleteness}\cdot\text{weightCompleteness}}}$$</div>
+<div class="math-block">$$R_t = V_{\text{ref}}\cdot M_{\text{phase}}\cdot M_{\text{comp}}^2\cdot M_{\text{qual}}^2$$</div>
+<p>Phase-transition uncertainty is:</p>
+<div class="table-responsive"><table class="doc-table"><thead><tr><th>Confirmed phase age</th><th style="text-align:right"><span class="math-inline">$M_{\text{phase}}$</span></th></tr></thead><tbody><tr><td>Days 1–7</td><td style="text-align:right">2.25</td></tr><tr><td>Days 8–14</td><td style="text-align:right">1.50</td></tr><tr><td>Day 15+</td><td style="text-align:right">1.00</td></tr></tbody></table></div>
+<p>This lowers trust in early phase observations without changing their direction or implied maintenance value.</p>
+<hr class="divider">
+<h2 id="4-recursive-kalman-filter" class="doc-h2">4. Recursive Kalman Filter<a href="#4-recursive-kalman-filter" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>The latent state <span class="math-inline">$X_t$</span> is maintenance calories in kcal/day. The default weekly process standard deviation is 60 kcal/day, so:</p>
+<div class="math-block">$$Q = 60^2 = 3600$$</div>
+<p>Prediction:</p>
+<div class="math-block">$$X_{t|t-1}=X_{t-1}$$</div>
+<div class="math-block">$$P_{t|t-1}=\min(P_{t-1}+Q\Delta t,V_{\text{cap}})$$</div>
+<p>Correction:</p>
+<div class="math-block">$$K_t=\frac{P_{t|t-1}}{P_{t|t-1}+R_t}$$</div>
+<div class="math-block">$$X_t=X_{t|t-1}+K_t(M_t-X_{t|t-1})$$</div>
+<div class="math-block">$$P_t=(1-K_t)P_{t|t-1}$$</div>
+<p>For typical dense-data observation variance, the steady-state gain is approximately 0.24–0.28. This allows meaningful adaptation while keeping isolated water-weight changes from directly controlling the estimate. Maintenance remains clamped between 1,200 and 5,000 kcal/day.</p>
+<hr class="divider">
+<h2 id="5-history-based-noise-calibration" class="doc-h2">5. History-Based Noise Calibration<a href="#5-history-based-noise-calibration" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>Train Libre retains up to eight weekly posterior, residual, and implied-maintenance values. Residual variance can scale <span class="math-inline">$R$</span>, while posterior movement can scale <span class="math-inline">$Q$</span>, within conservative bounds.</p>
+<p>This calibration models changing signal quality. It is not driven by target-rate error: being behind a goal does not itself prove that latent TDEE became more volatile.</p>
+<p>After an algorithm upgrade that changes the observation equation, the current posterior and covariance are retained, but old calibration histories are cleared so incompatible residual regimes are not mixed.</p>
+<hr class="divider">
+<h2 id="6-bounded-trajectory-controller" class="doc-h2">6. Bounded Trajectory Controller<a href="#6-bounded-trajectory-controller" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>The calorie target begins with the posterior maintenance estimate plus the selected goal-rate adjustment:</p>
+<div class="math-block">$$C_{\text{base}} = X_t + \text{targetRate}\cdot\frac{7700}{7}$$</div>
+<p>When two consecutive eligible observations show rate error beyond the deadband and in the same direction, the controller calculates:</p>
+<div class="math-block">$$e_t=\text{targetRate}-\text{observedRate}$$</div>
+<div class="math-block">$$C_{\text{trajectory}}=\operatorname{clip}\left(0.65\cdot1100\cdot e_t,-150,150\right)$$</div>
+<p>The correction may change by at most 100 kcal/day between weekly recommendations. The final target is:</p>
+<div class="math-block">$$C_t=C_{\text{base}}+C_{\text{trajectory}}$$</div>
+<p>The controller is disabled when:</p>
 <ul class="doc-list">
-<li><strong>Weight Slope Error (<em>V_slope</em>)</strong>: Models the standard error of the linear weight trend based on weight reading density (default trend deviation: 0.55 kg/week):</li>
+<li>the rate error is within ±0.05 kg/week;</li>
+<li>fewer than 14 usable days, 10 intake days, or 7 weights are present;</li>
+<li>food calories are unresolved;</li>
+<li>a phase change is pending or the confirmed phase is younger than 15 days;</li>
+<li>the goal or target rate changed;</li>
+<li>no compatible prior recommendation exists.</li>
 </ul>
-<div class="math-block">$$V_{\text{slope}} = \left(\frac{0.55 \cdot \frac{\text{kcalPerKg}}{7}}{\sqrt{\text{weightLogCount} - 1}}\right)^2$$</div>
-<h3 id="step-22-completeness-penalty-multiplier-mcomp" class="doc-h3">Step 2.2: Completeness Penalty Multiplier (<em>M_comp</em>)<a href="#step-22-completeness-penalty-multiplier-mcomp" class="header-anchor" aria-label="Link to section">#</a></h3>
-<p>If the user logs sparsely, the uncertainty of the observation must be penalized. Train Libre calculates localized completeness coefficients clamped between 0.05 and 1.0:</p>
-<div class="math-block">$$\text{intakeCompleteness} = \text{clamp}\left(\frac{\text{intakeLoggedDays}}{\text{windowDays}}, 0.05, 1.0\right)$$</div>
-<div class="math-block">$$\text{weightCompleteness} = \text{clamp}\left(\frac{\text{weightLogCount} - 1}{\text{windowDays} - 1}, 0.05, 1.0\right)$$</div>
-<p>The completeness multiplier <em>M_comp</em> scales observation variance quadratically:</p>
-<div class="math-block">$$M_{\text{comp}} = \frac{1}{\sqrt{\text{intakeCompleteness} \cdot \text{weightCompleteness}}}$$</div>
-<h3 id="step-23-data-quality-multipliers-mqual" class="doc-h3">Step 2.3: Data Quality Multipliers (<em>M_qual</em>)<a href="#step-23-data-quality-multipliers-mqual" class="header-anchor" aria-label="Link to section">#</a></h3>
-<p>The engine applies multiplicative penalties for sparse data or unresolved logs: <em>   <strong>Sparse Intake Penalty</strong>: If </em>intakeLoggedDays<em> < 5, apply a multiplier of 1.12. </em>   <strong>Sparse Weight Penalty</strong>: If <em>weightLogCount</em> < 5, apply a multiplier of 1.10. *   <strong>Unresolved Food Calories</strong>: If the user logged custom food items with unlinked or incomplete nutritional profiles, apply a multiplier of 1.30.</p>
-<h3 id="final-combined-observation-variance-rt" class="doc-h3">Final Combined Observation Variance (<em>R_t</em>)<a href="#final-combined-observation-variance-rt" class="header-anchor" aria-label="Link to section">#</a></h3>
-<div class="math-block">$$R_t = V_{\text{ref}} \cdot M_{\text{comp}}^2 \cdot M_{\text{qual}}^2$$</div>
-<p>Sparse logging or unlinked foods rapidly balloon <em>R_t</em>, signaling the filter to discount the current week's observation and lean heavily on the prior estimate.</p>
+<p>Onboarding and profile-prior-only recommendations always use zero trajectory correction.</p>
 <hr class="divider">
-<h2 id="3-the-kalman-filter-update-equations" class="doc-h2">3. The Kalman Filter Update Equations<a href="#3-the-kalman-filter-update-equations" class="header-anchor" aria-label="Link to section">#</a></h2>
-<p>At each logging cycle, the filter runs a prediction step followed by a correction step.</p>
-<h3 id="step-31-the-prediction-step" class="doc-h3">Step 3.1: The Prediction Step<a href="#step-31-the-prediction-step" class="header-anchor" aria-label="Link to section">#</a></h3>
-<p>The system state moves forward in time. The prior mean remains constant, but the state uncertainty (<em>P</em>) increases due to metabolic drift (process noise <em>Q</em> = 40² = 1600 kcal²/week):</p>
-<div class="math-block">$$X_{t|t-1} = X_{t-1}$$</div>
-<div class="math-block">$$P_{t|t-1} = \min\left(P_{t-1} + Q \cdot \Delta t, \, V_{\text{cap}}\right)$$</div>
-<p>Where Δ<em>t</em> is the number of weeks elapsed since the last observation, and the variance cap <em>V_cap</em> = 10 · <em>V_ref</em> bounds maximum uncertainty.</p>
-<h3 id="step-32-the-correction-step-kalman-gain" class="doc-h3">Step 3.2: The Correction Step (Kalman Gain)<a href="#step-32-the-correction-step-kalman-gain" class="header-anchor" aria-label="Link to section">#</a></h3>
-<p>If an observation is available (i.e., both intake and weight were logged), the filter computes the <strong>Kalman Gain</strong> (<em>K_t</em>) and updates the posterior state:</p>
-<div class="math-block">$$K_t = \frac{P_{t|t-1}}{P_{t|t-1} + R_t}$$</div>
-<div class="math-block">$$X_t = X_{t|t-1} + K_t \cdot \left(M_t - X_{t|t-1}\right)$$</div>
-<div class="math-block">$$P_t = (1 - K_t) \cdot P_{t|t-1}$$</div>
-<h3 id="step-33-clamping-bounds" class="doc-h3">Step 3.3: Clamping & Bounds<a href="#step-33-clamping-bounds" class="header-anchor" aria-label="Link to section">#</a></h3>
-<p>To maintain physiological safety, the posterior mean <em>X_t</em> is strictly clamped:</p>
-<div class="math-block">$$\text{clamp}(X_t, \, 1200\text{ kcal}, \, 5000\text{ kcal})$$</div>
-<p>Posterior variance is kept above a floor of 1.0:</p>
-<div class="math-block">$$\text{clamp}(P_t, \, 1.0, \, V_{\text{cap}})$$</div>
-<h3 id="step-34-handover-to-the-macronutrient-distribution" class="doc-h3">Step 3.4: Handover to the Macronutrient Distribution<a href="#step-34-handover-to-the-macronutrient-distribution" class="header-anchor" aria-label="Link to section">#</a></h3>
-<p>The clamped posterior is the end of this document's scope. The calorie target derived from it — the posterior plus the goal's rate adjustment — is handed to a separate, deterministic stage that resolves it into protein, carbohydrate, and fat. That stage observes no logging history and holds no state; it is a pure function of the calorie target, body weight, and goal. See the <a href="../macro-distribution/index.html"><strong>Macronutrient Distribution Documentation</strong></a>.</p>
+<h2 id="7-persistence-and-existing-users" class="doc-h2">7. Persistence and Existing Users<a href="#7-persistence-and-existing-users" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>Recommendations are versioned. When the algorithm version changes, an existing user receives one deterministic recalculation, including during the same due week. The estimator replays the stored pre-update prior so the same observation is not applied twice.</p>
+<p>Generated recommendations never overwrite active calorie and macro goals by themselves. Existing active targets remain unchanged until the user explicitly applies the new recommendation, except in workflows where the user has already chosen a recalculate-and-apply action.</p>
+<p>Legacy recommendation JSON remains readable. Missing controller fields decode as an inactive zero-calorie correction.</p>
 <hr class="divider">
-<h2 id="4-history-based-adaptive-calibration" class="doc-h2">4. History-Based Adaptive Calibration<a href="#4-history-based-adaptive-calibration" class="header-anchor" aria-label="Link to section">#</a></h2>
-<p>To accommodate individual logging variance, Train Libre maintains a rolling 8-week history of posterior means, observation residuals, and implied maintenance logs to perform on-the-fly calibration of <em>Q</em> and <em>R</em>.</p>
-<h3 id="observation-noise-calibration-rscale" class="doc-h3">Observation Noise Calibration (<em>R_scale</em>)<a href="#observation-noise-calibration-rscale" class="header-anchor" aria-label="Link to section">#</a></h3>
-<p>If the user's historical residuals differ wildly from predictions, the base observation noise is scaled dynamically:</p>
-<div class="math-block">$$\text{residualVariance} = \frac{1}{N-1} \sum_{i=1}^N (e_i - \bar{e})^2$$</div>
-<div class="math-block">$$R_{\text{scale}} = \text{clamp}\left(\frac{\text{residualVariance}}{R_{\text{base}}}, \, 0.50, \, 2.60\right)$$</div>
-<h3 id="latent-process-noise-calibration-qscale" class="doc-h3">Latent Process Noise Calibration (<em>Q_scale</em>)<a href="#latent-process-noise-calibration-qscale" class="header-anchor" aria-label="Link to section">#</a></h3>
-<p>If the user's actual calculated TDEE is shifting rapidly week-to-week, the process noise <em>Q</em> (metabolic drift) is increased to allow faster filter tracking:</p>
-<div class="math-block">$$\text{weeklyRmsDelta} = \sqrt{\frac{1}{N-1} \sum_{i=2}^N (X_i - X_{i-1})^2}$$</div>
-<div class="math-block">$$Q_{\text{scale}} = \text{clamp}\left(\left(\frac{\text{weeklyRmsDelta}}{40}\right)^2, \, 0.60, \, 1.90\right)$$</div>
+<h2 id="8-confidence-and-safety-interpretation" class="doc-h2">8. Confidence and Safety Interpretation<a href="#8-confidence-and-safety-interpretation" class="header-anchor" aria-label="Link to section">#</a></h2>
+<p>Confidence labels describe the strength of the recent data basis, not a clinical probability. Sparse observations increase variance and can prevent controller activation. The interface keeps estimated maintenance, its likely range, and the final recommended target visually distinct.</p>
+<p>The estimator cannot distinguish all causes of weight change. Sodium, glycogen, hydration, creatine, gastrointestinal contents, menstrual-cycle effects, logging bias, and tissue composition can all affect short-term inference.</p>
 <hr class="divider">
-<h2 id="5-residual-variance-bias-stabilization-heuristic" class="doc-h2">5. Residual Variance Bias & Stabilization Heuristic<a href="#5-residual-variance-bias-stabilization-heuristic" class="header-anchor" aria-label="Link to section">#</a></h2>
-<h3 id="residual-bias-indicators" class="doc-h3">Residual Bias Indicators<a href="#residual-bias-indicators" class="header-anchor" aria-label="Link to section">#</a></h3>
-<p>The estimator summarizes the 8-week history of residuals (<em>e_t</em> = <em>M_t</em> - <em>X_{t|t-1}</em>) to check for persistent systematic bias. These indicators are data-quality suggestions rather than metabolic or clinical diagnostics: <em>   <strong>Potential Logging Variance Indicator (data-quality hint, not a metabolic diagnosis)</strong>: If the mean residual is > +40 kcal/day, the user's logs may be under-reporting portion sizes or overestimating calorie burns. </em>   <strong>Potential Logging Variance Indicator (data-quality hint, not a metabolic diagnosis)</strong>: If the mean residual is < -40 kcal/day, the user's logs may be over-reporting portion sizes.</p>
-<h3 id="confidence-ratings" class="doc-h3">Confidence Ratings<a href="#confidence-ratings" class="header-anchor" aria-label="Link to section">#</a></h3>
-<p>Recommendations are given an interpretative confidence rating based on logging history and uncertainty: 1.  <strong>High Confidence</strong>: Logging history ≥ 21 days, effective sample size ≥ 10, and posterior variance ≤ 25% of the variance cap. 2.  <strong>Medium Confidence</strong>: Logging history ≥ 14 days, effective sample size ≥ 7, and posterior variance ≤ 45% of the variance cap. 3.  <strong>Low Confidence</strong>: Logging history ≥ 7 days, effective sample size ≥ 4, and posterior variance ≤ 70% of the variance cap. 4.  <strong>Not Enough Data</strong>: Assigned if the above conditions are unmet, or during the initial stabilization bootstrap phase.</p>
-<hr class="divider">
-<h2 id="6-non-clinical-heuristic-disclaimer" class="doc-h2">6. Non-Clinical Heuristic Disclaimer<a href="#6-non-clinical-heuristic-disclaimer" class="header-anchor" aria-label="Link to section">#</a></h2>
-<p>The Bayesian TDEE Estimator is a sports-science-inspired, non-clinical fitness heuristic based on thermodynamic energy balance concepts and recursive filtering. While highly stable for healthy individuals tracking physical performance, it is not a diagnostic tool and does not apply to clinical conditions (such as eating disorders, endocrine disorders, or metabolic pathologies). The underlying mathematical model is based on healthy population averages and may not apply to individuals with metabolic or medical concerns. Users should consult a qualified healthcare professional before making changes to their caloric intake.</p>
-<hr class="divider">
-<h2 id="7-scientific-references-sources" class="doc-h2"><a id="evidence" class="anchor-target"></a>7. Scientific References & Sources<a href="#7-scientific-references-sources" class="header-anchor" aria-label="Link to section">#</a></h2>
+<h2 id="9-scientific-references-sources" class="doc-h2"><a id="evidence" class="anchor-target"></a>9. Scientific References & Sources<a href="#9-scientific-references-sources" class="header-anchor" aria-label="Link to section">#</a></h2>
 <ul class="doc-list">
 <li>Hall, K. D. (2008) — <em>The dynamics of human body weight change</em>. DOI: <a href="https://doi.org/10.1371/journal.pcbi.1000045" target="_blank" rel="noopener noreferrer">10.1371/journal.pcbi.1000045 <span class="ext-icon">↗</span></a></li>
 <li>Hall et al. (2011) — <em>Quantification of the effect of energy imbalance on bodyweight</em>. DOI: <a href="https://doi.org/10.1016/S0140-6736(11)60812-X" target="_blank" rel="noopener noreferrer">10.1016/S0140-6736(11)60812-X <span class="ext-icon">↗</span></a></li>
@@ -272,26 +261,15 @@
 
       <!-- Right Table of Contents -->
       <aside class="docs-toc" aria-label="Table of contents"><div class="toc-sticky-box"><div class="toc-heading">On this page</div><ul class="toc-list">
-<li class="toc-item toc-item-l2"><a href="#1-the-observation-model">1. The Observation Model</a></li>
-<li class="toc-item toc-item-l3"><a href="#dynamic-kcalkg-scaling-ramp-model">Dynamic Kcal/Kg Scaling (Ramp Model)</a></li>
-<li class="toc-item toc-item-l2"><a href="#2-mathematical-modeling-of-uncertainty-observation-variance">2. Mathematical Modeling of Uncertainty (Observation Variance)</a></li>
-<li class="toc-item toc-item-l3"><a href="#step-21-reference-variance-vref">Step 2.1: Reference Variance (Vref)</a></li>
-<li class="toc-item toc-item-l3"><a href="#step-22-completeness-penalty-multiplier-mcomp">Step 2.2: Completeness Penalty Multiplier (Mcomp)</a></li>
-<li class="toc-item toc-item-l3"><a href="#step-23-data-quality-multipliers-mqual">Step 2.3: Data Quality Multipliers (Mqual)</a></li>
-<li class="toc-item toc-item-l3"><a href="#final-combined-observation-variance-rt">Final Combined Observation Variance (Rt)</a></li>
-<li class="toc-item toc-item-l2"><a href="#3-the-kalman-filter-update-equations">3. The Kalman Filter Update Equations</a></li>
-<li class="toc-item toc-item-l3"><a href="#step-31-the-prediction-step">Step 3.1: The Prediction Step</a></li>
-<li class="toc-item toc-item-l3"><a href="#step-32-the-correction-step-kalman-gain">Step 3.2: The Correction Step (Kalman Gain)</a></li>
-<li class="toc-item toc-item-l3"><a href="#step-33-clamping-bounds">Step 3.3: Clamping &amp; Bounds</a></li>
-<li class="toc-item toc-item-l3"><a href="#step-34-handover-to-the-macronutrient-distribution">Step 3.4: Handover to the Macronutrient Distribution</a></li>
-<li class="toc-item toc-item-l2"><a href="#4-history-based-adaptive-calibration">4. History-Based Adaptive Calibration</a></li>
-<li class="toc-item toc-item-l3"><a href="#observation-noise-calibration-rscale">Observation Noise Calibration (Rscale)</a></li>
-<li class="toc-item toc-item-l3"><a href="#latent-process-noise-calibration-qscale">Latent Process Noise Calibration (Qscale)</a></li>
-<li class="toc-item toc-item-l2"><a href="#5-residual-variance-bias-stabilization-heuristic">5. Residual Variance Bias &amp; Stabilization Heuristic</a></li>
-<li class="toc-item toc-item-l3"><a href="#residual-bias-indicators">Residual Bias Indicators</a></li>
-<li class="toc-item toc-item-l3"><a href="#confidence-ratings">Confidence Ratings</a></li>
-<li class="toc-item toc-item-l2"><a href="#6-non-clinical-heuristic-disclaimer">6. Non-Clinical Heuristic Disclaimer</a></li>
-<li class="toc-item toc-item-l2"><a href="#7-scientific-references-sources">7. Scientific References &amp; Sources</a></li>
+<li class="toc-item toc-item-l2"><a href="#1-input-window-and-weight-trend">1. Input Window and Weight Trend</a></li>
+<li class="toc-item toc-item-l2"><a href="#2-maintenance-observation-model">2. Maintenance Observation Model</a></li>
+<li class="toc-item toc-item-l2"><a href="#3-observation-variance">3. Observation Variance</a></li>
+<li class="toc-item toc-item-l2"><a href="#4-recursive-kalman-filter">4. Recursive Kalman Filter</a></li>
+<li class="toc-item toc-item-l2"><a href="#5-history-based-noise-calibration">5. History-Based Noise Calibration</a></li>
+<li class="toc-item toc-item-l2"><a href="#6-bounded-trajectory-controller">6. Bounded Trajectory Controller</a></li>
+<li class="toc-item toc-item-l2"><a href="#7-persistence-and-existing-users">7. Persistence and Existing Users</a></li>
+<li class="toc-item toc-item-l2"><a href="#8-confidence-and-safety-interpretation">8. Confidence and Safety Interpretation</a></li>
+<li class="toc-item toc-item-l2"><a href="#9-scientific-references-sources">9. Scientific References &amp; Sources</a></li>
 </ul></div></aside>
     </div>
 
