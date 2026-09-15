@@ -58,7 +58,8 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
   // Step 3: Tempo & Zieldatum (Interaktiver Planer)
   DateTime? _targetDate;
   double _weeklyRateKg = 0.50; // positive magnitude
-  String _selectedRatePreset = 'moderate'; // 'gentle', 'moderate', 'athletic', 'aggressive', 'custom'
+  String _selectedRatePreset =
+      'moderate'; // 'gentle', 'moderate', 'athletic', 'aggressive', 'custom'
   String _selectedDurationPreset = 'custom'; // '8', '12', '16', '24', 'custom'
 
   // Step 4: Motivation
@@ -96,15 +97,18 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
     );
 
     final database = DatabaseHelper.instance.dbInstance;
-    final allMeasurements = await (database.select(database.measurements)
-          ..where((t) => t.type.equals('weight')))
-        .get();
-    final valid = allMeasurements
-        .where((m) =>
-            m.date.isBefore(startEndOfDay) ||
-            m.date.isAtSameMomentAs(startEndOfDay))
-        .toList()
-      ..sort((a, b) => b.date.compareTo(a.date));
+    final allMeasurements = await (database.select(
+      database.measurements,
+    )..where((t) => t.type.equals('weight'))).get();
+    final valid =
+        allMeasurements
+            .where(
+              (m) =>
+                  m.date.isBefore(startEndOfDay) ||
+                  m.date.isAtSameMomentAs(startEndOfDay),
+            )
+            .toList()
+          ..sort((a, b) => b.date.compareTo(a.date));
     final row = valid.firstOrNull;
 
     if (!mounted) return;
@@ -113,8 +117,10 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
       _detectedBaselineWeight = row?.value;
       _detectedBaselineDate = row?.date;
       if (row?.value != null && _baselineWeightController.text.isEmpty) {
-        final disp =
-            unitService.convertDisplayValue(row!.value, UnitDimension.weight);
+        final disp = unitService.convertDisplayValue(
+          row!.value,
+          UnitDimension.weight,
+        );
         _baselineWeightController.text = disp.toStringAsFixed(1);
       }
     });
@@ -152,8 +158,11 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
     return (t - b).abs();
   }
 
-  void _onTargetDateChanged(DateTime newDate, UnitService unitService,
-      {String? durationPreset}) {
+  void _onTargetDateChanged(
+    DateTime newDate,
+    UnitService unitService, {
+    String? durationPreset,
+  }) {
     setState(() {
       _targetDate = newDate;
       final delta = _getDeltaKg(unitService);
@@ -171,8 +180,11 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
     });
   }
 
-  void _onWeeklyRateChanged(double newRate, UnitService unitService,
-      {String? ratePreset}) {
+  void _onWeeklyRateChanged(
+    double newRate,
+    UnitService unitService, {
+    String? ratePreset,
+  }) {
     setState(() {
       _weeklyRateKg = newRate;
       final delta = _getDeltaKg(unitService);
@@ -250,18 +262,24 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
 
       // Pre-fill target weight if empty
       if (_targetWeightController.text.trim().isEmpty) {
-        final dispBase =
-            unitService.convertDisplayValue(baseline, UnitDimension.weight);
+        final dispBase = unitService.convertDisplayValue(
+          baseline,
+          UnitDimension.weight,
+        );
         if (_preset == GoalPreset.loseWeight ||
             (_preset == GoalPreset.custom && _customDirection == 'lose')) {
-          final diff =
-              unitService.convertDisplayValue(5.0, UnitDimension.weight);
+          final diff = unitService.convertDisplayValue(
+            5.0,
+            UnitDimension.weight,
+          );
           final targetDisp = max(30.0, dispBase - diff);
           _targetWeightController.text = targetDisp.toStringAsFixed(1);
         } else if (_preset == GoalPreset.gainWeight ||
             (_preset == GoalPreset.custom && _customDirection == 'gain')) {
-          final diff =
-              unitService.convertDisplayValue(3.0, UnitDimension.weight);
+          final diff = unitService.convertDisplayValue(
+            3.0,
+            UnitDimension.weight,
+          );
           _targetWeightController.text = (dispBase + diff).toStringAsFixed(1);
         } else {
           _targetWeightController.text = dispBase.toStringAsFixed(1);
@@ -352,7 +370,9 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
     if (_detectedBaselineWeight == null && baselineKg != null) {
       try {
         final database = DatabaseHelper.instance.dbInstance;
-        await database.into(database.measurements).insert(
+        await database
+            .into(database.measurements)
+            .insert(
               db.MeasurementsCompanion.insert(
                 date: _startDate,
                 type: 'weight',
@@ -412,6 +432,7 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
       appBar: GlobalAppBar(
         title: l10n.createGoalTitle,
         leading: IconButton(
+          tooltip: MaterialLocalizations.of(context).backButtonTooltip,
           icon: const Icon(LucideIcons.arrow_left),
           onPressed: _previousStep,
         ),
@@ -448,14 +469,14 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
                     child: AppButton.primary(
                       label: _currentStep == _totalSteps - 1
                           ? (_isSaving
-                              ? l10n.saving
-                              : l10n.goalConfirmCreateButton)
+                                ? l10n.saving
+                                : l10n.goalConfirmCreateButton)
                           : l10n.continueButton,
                       onPressed: _isSaving
                           ? null
                           : (_currentStep == _totalSteps - 1
-                              ? _submitGoal
-                              : _nextStep),
+                                ? _submitGoal
+                                : _nextStep),
                     ),
                   ),
                 ],
@@ -553,8 +574,9 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
               labelText: l10n.goalCustomTitleLabel,
               hintText: l10n.goalCustomTitleHint,
               border: OutlineInputBorder(
-                borderRadius:
-                    BorderRadius.circular(DesignConstants.borderRadiusM),
+                borderRadius: BorderRadius.circular(
+                  DesignConstants.borderRadiusM,
+                ),
               ),
             ),
           ),
@@ -633,8 +655,9 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
                     Text(
                       subtitle,
                       style: theme.textTheme.bodySmall?.copyWith(
-                        color:
-                            theme.colorScheme.onSurface.withValues(alpha: 0.7),
+                        color: theme.colorScheme.onSurface.withValues(
+                          alpha: 0.7,
+                        ),
                       ),
                     ),
                   ],
@@ -684,8 +707,10 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
         // Start Date Picker
         ListTile(
           contentPadding: EdgeInsets.zero,
-          leading:
-              Icon(LucideIcons.calendar_days, color: theme.colorScheme.primary),
+          leading: Icon(
+            LucideIcons.calendar_days,
+            color: theme.colorScheme.primary,
+          ),
           title: Text(
             dateFormat.format(_startDate),
             style: theme.textTheme.titleMedium?.copyWith(
@@ -716,8 +741,11 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
               padding: DesignConstants.cardPadding,
               child: Row(
                 children: [
-                  const Icon(LucideIcons.circle_check,
-                      color: Colors.green, size: 28),
+                  const Icon(
+                    LucideIcons.circle_check,
+                    color: Colors.green,
+                    size: 28,
+                  ),
                   const SizedBox(width: DesignConstants.spacingM),
                   Expanded(
                     child: Column(
@@ -762,8 +790,11 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
                 children: [
                   Row(
                     children: [
-                      Icon(LucideIcons.scale,
-                          color: theme.colorScheme.primary, size: 24),
+                      Icon(
+                        LucideIcons.scale,
+                        color: theme.colorScheme.primary,
+                        size: 24,
+                      ),
                       const SizedBox(width: DesignConstants.spacingM),
                       Expanded(
                         child: Text(
@@ -795,14 +826,15 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
                   ),
                   const SizedBox(height: DesignConstants.spacingS),
                   AppRulerPicker.weight(
-                    value: double.tryParse(_baselineWeightController.text
-                            .replaceAll(',', '.')) ??
+                    value:
+                        double.tryParse(
+                          _baselineWeightController.text.replaceAll(',', '.'),
+                        ) ??
                         75.0,
                     imperial: unitService.isImperial,
                     onChanged: (val) {
                       setState(() {
-                        _baselineWeightController.text =
-                            val.toStringAsFixed(1);
+                        _baselineWeightController.text = val.toStringAsFixed(1);
                       });
                     },
                   ),
@@ -836,7 +868,8 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
         ? (targetDisp - baselineDisp)
         : null;
 
-    final isMaintain = _preset == GoalPreset.maintainWeight ||
+    final isMaintain =
+        _preset == GoalPreset.maintainWeight ||
         _preset == GoalPreset.recomposition ||
         (_preset == GoalPreset.custom && _customDirection == 'maintain');
 
@@ -889,13 +922,17 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
                     Text(
                       unitStr,
                       style: theme.textTheme.titleMedium?.copyWith(
-                        color:
-                            theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                        color: theme.colorScheme.onSurface.withValues(
+                          alpha: 0.6,
+                        ),
                         fontWeight: FontWeight.w600,
                       ),
                     ),
                     const SizedBox(width: DesignConstants.spacingS),
                     IconButton(
+                      tooltip: _showManualTargetWeightInput
+                          ? l10n.cancel
+                          : l10n.edit,
                       icon: Icon(
                         _showManualTargetWeightInput
                             ? LucideIcons.sliders_horizontal
@@ -915,17 +952,21 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
                   const SizedBox(height: DesignConstants.spacingM),
                   TextField(
                     controller: _targetWeightController,
-                    keyboardType:
-                        const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
                     autofocus: true,
                     textAlign: TextAlign.center,
                     onChanged: (_) => setState(() {}),
                     decoration: InputDecoration(
                       contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 8),
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(
-                            DesignConstants.borderRadiusM),
+                          DesignConstants.borderRadiusM,
+                        ),
                       ),
                     ),
                   ),
@@ -936,8 +977,9 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
                   imperial: unitService.isImperial,
                   onChanged: (newWeight) {
                     setState(() {
-                      _targetWeightController.text =
-                          newWeight.toStringAsFixed(1);
+                      _targetWeightController.text = newWeight.toStringAsFixed(
+                        1,
+                      );
                     });
                   },
                 ),
@@ -952,16 +994,21 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
           Wrap(
             spacing: 8,
             runSpacing: 8,
-            children: (_preset == GoalPreset.gainWeight ||
-                    (_preset == GoalPreset.custom && _customDirection == 'gain'))
+            children:
+                (_preset == GoalPreset.gainWeight ||
+                    (_preset == GoalPreset.custom &&
+                        _customDirection == 'gain'))
                 ? [2.0, 4.0, 6.0, 8.0].map((delta) {
                     final target = baselineDisp + delta;
                     return ActionChip(
-                      label: Text('+$delta $unitStr (${target.toStringAsFixed(1)})'),
+                      label: Text(
+                        '+$delta $unitStr (${target.toStringAsFixed(1)})',
+                      ),
                       onPressed: () {
                         setState(() {
-                          _targetWeightController.text =
-                              target.toStringAsFixed(1);
+                          _targetWeightController.text = target.toStringAsFixed(
+                            1,
+                          );
                         });
                       },
                     );
@@ -969,11 +1016,14 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
                 : [2.0, 5.0, 10.0, 15.0].map((delta) {
                     final target = max(30.0, baselineDisp - delta);
                     return ActionChip(
-                      label: Text('-$delta $unitStr (${target.toStringAsFixed(1)})'),
+                      label: Text(
+                        '-$delta $unitStr (${target.toStringAsFixed(1)})',
+                      ),
                       onPressed: () {
                         setState(() {
-                          _targetWeightController.text =
-                              target.toStringAsFixed(1);
+                          _targetWeightController.text = target.toStringAsFixed(
+                            1,
+                          );
                         });
                       },
                     );
@@ -983,7 +1033,9 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
         ],
 
         // 3-Column Summary Cards: Baseline, Planned Delta, Target
-        if (baselineDisp != null && targetDisp != null && deltaDisp != null) ...[
+        if (baselineDisp != null &&
+            targetDisp != null &&
+            deltaDisp != null) ...[
           Row(
             children: [
               Expanded(
@@ -1036,7 +1088,8 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
     // Daily Calorie impact estimate
     // ~7700 kcal per kg of fat mass
     final dailyCalorieImpact = (_weeklyRateKg * 7700 / 7).round();
-    final isLosing = _preset == GoalPreset.loseWeight ||
+    final isLosing =
+        _preset == GoalPreset.loseWeight ||
         (_preset == GoalPreset.custom && _customDirection == 'lose');
 
     final int weeks = _targetDate != null
@@ -1083,8 +1136,9 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
                         Text(
                           l10n.goalPaceFeedbackMaintain,
                           style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurface
-                                .withValues(alpha: 0.7),
+                            color: theme.colorScheme.onSurface.withValues(
+                              alpha: 0.7,
+                            ),
                           ),
                         ),
                       ],
@@ -1132,8 +1186,9 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
                         child: Text(
                           l10n.goalEstimatedDailyDelta,
                           style: theme.textTheme.bodyMedium?.copyWith(
-                            color: theme.colorScheme.onSurface
-                                .withValues(alpha: 0.7),
+                            color: theme.colorScheme.onSurface.withValues(
+                              alpha: 0.7,
+                            ),
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -1158,14 +1213,14 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
                         _weeklyRateKg > 1.0
                             ? LucideIcons.triangle_alert
                             : (_weeklyRateKg < 0.3
-                                ? LucideIcons.info
-                                : LucideIcons.circle_check),
+                                  ? LucideIcons.info
+                                  : LucideIcons.circle_check),
                         size: 18,
                         color: _weeklyRateKg > 1.0
                             ? Colors.orange
                             : (_weeklyRateKg < 0.3
-                                ? Colors.blue
-                                : Colors.green),
+                                  ? Colors.blue
+                                  : Colors.green),
                       ),
                       const SizedBox(width: DesignConstants.spacingS),
                       Expanded(
@@ -1173,11 +1228,12 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
                           _weeklyRateKg > 1.0
                               ? l10n.goalPaceFeedbackAggressive
                               : (_weeklyRateKg < 0.3
-                                  ? l10n.goalPaceFeedbackGentle
-                                  : l10n.goalPaceFeedbackSafe),
+                                    ? l10n.goalPaceFeedbackGentle
+                                    : l10n.goalPaceFeedbackSafe),
                           style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurface
-                                .withValues(alpha: 0.85),
+                            color: theme.colorScheme.onSurface.withValues(
+                              alpha: 0.85,
+                            ),
                           ),
                         ),
                       ),
@@ -1243,7 +1299,11 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
               } else if (val == 'athletic') {
                 _onWeeklyRateChanged(0.75, unitService, ratePreset: 'athletic');
               } else if (val == 'aggressive') {
-                _onWeeklyRateChanged(1.00, unitService, ratePreset: 'aggressive');
+                _onWeeklyRateChanged(
+                  1.00,
+                  unitService,
+                  ratePreset: 'aggressive',
+                );
               } else {
                 setState(() => _selectedRatePreset = 'custom');
               }
@@ -1254,8 +1314,8 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
             AppRulerPicker.rate(
               value: _weeklyRateKg,
               imperial: unitService.isImperial,
-              onChanged: (val) => _onWeeklyRateChanged(val, unitService,
-                  ratePreset: 'custom'),
+              onChanged: (val) =>
+                  _onWeeklyRateChanged(val, unitService, ratePreset: 'custom'),
               unit: unitStr,
             ),
           ],
@@ -1322,8 +1382,10 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
             const SizedBox(height: DesignConstants.spacingM),
             SummaryCard(
               child: ListTile(
-                leading: Icon(LucideIcons.calendar,
-                    color: theme.colorScheme.primary),
+                leading: Icon(
+                  LucideIcons.calendar,
+                  color: theme.colorScheme.primary,
+                ),
                 title: Text(
                   _targetDate != null
                       ? dateFormat.format(_targetDate!)
@@ -1337,14 +1399,17 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
                 onTap: () async {
                   final picked = await showAdaptiveDatePicker(
                     context: context,
-                    initialDate: _targetDate ??
-                        _startDate.add(const Duration(days: 84)),
+                    initialDate:
+                        _targetDate ?? _startDate.add(const Duration(days: 84)),
                     firstDate: _startDate.add(const Duration(days: 7)),
                     lastDate: _startDate.add(const Duration(days: 730)),
                   );
                   if (picked != null) {
-                    _onTargetDateChanged(picked, unitService,
-                        durationPreset: 'custom');
+                    _onTargetDateChanged(
+                      picked,
+                      unitService,
+                      durationPreset: 'custom',
+                    );
                   }
                 },
               ),
@@ -1384,49 +1449,55 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
         Wrap(
           spacing: 6,
           runSpacing: 6,
-          children: [
-            l10n.goalReasonSuggestionHealth,
-            l10n.goalReasonSuggestionFitness,
-            l10n.goalReasonSuggestionShape,
-            l10n.goalReasonSuggestionEnergy,
-            l10n.goalReasonSuggestionStrength,
-            l10n.goalReasonSuggestionConfidence,
-            l10n.goalReasonSuggestionEvent,
-            l10n.goalReasonSuggestionLongevity,
-            l10n.goalReasonSuggestionHabits,
-            l10n.goalReasonSuggestionClothing,
-          ].map((suggestion) {
-            final isSelected = _reasonController.text.trim() == suggestion;
-            return ActionChip(
-              visualDensity: VisualDensity.compact,
-              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 0),
-              label: Text(
-                suggestion,
-                style: theme.textTheme.labelMedium?.copyWith(
-                  fontWeight:
-                      isSelected ? FontWeight.bold : FontWeight.normal,
-                  color: isSelected
-                      ? theme.colorScheme.primary
-                      : theme.colorScheme.onSurface,
-                ),
-              ),
-              side: isSelected
-                  ? BorderSide(color: theme.colorScheme.primary, width: 1.5)
-                  : BorderSide(
-                      color: theme.colorScheme.onSurface
-                          .withValues(alpha: 0.15),
+          children:
+              [
+                l10n.goalReasonSuggestionHealth,
+                l10n.goalReasonSuggestionFitness,
+                l10n.goalReasonSuggestionShape,
+                l10n.goalReasonSuggestionEnergy,
+                l10n.goalReasonSuggestionStrength,
+                l10n.goalReasonSuggestionConfidence,
+                l10n.goalReasonSuggestionEvent,
+                l10n.goalReasonSuggestionLongevity,
+                l10n.goalReasonSuggestionHabits,
+                l10n.goalReasonSuggestionClothing,
+              ].map((suggestion) {
+                final isSelected = _reasonController.text.trim() == suggestion;
+                return ActionChip(
+                  visualDensity: VisualDensity.compact,
+                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 0,
+                  ),
+                  label: Text(
+                    suggestion,
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      fontWeight: isSelected
+                          ? FontWeight.bold
+                          : FontWeight.normal,
+                      color: isSelected
+                          ? theme.colorScheme.primary
+                          : theme.colorScheme.onSurface,
                     ),
-              backgroundColor: isSelected
-                  ? theme.colorScheme.primary.withValues(alpha: 0.15)
-                  : null,
-              onPressed: () {
-                setState(() {
-                  _reasonController.text = suggestion;
-                });
-              },
-            );
-          }).toList(),
+                  ),
+                  side: isSelected
+                      ? BorderSide(color: theme.colorScheme.primary, width: 1.5)
+                      : BorderSide(
+                          color: theme.colorScheme.onSurface.withValues(
+                            alpha: 0.15,
+                          ),
+                        ),
+                  backgroundColor: isSelected
+                      ? theme.colorScheme.primary.withValues(alpha: 0.15)
+                      : null,
+                  onPressed: () {
+                    setState(() {
+                      _reasonController.text = suggestion;
+                    });
+                  },
+                );
+              }).toList(),
         ),
         const SizedBox(height: DesignConstants.spacingM),
 
@@ -1445,8 +1516,9 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
               hintText: l10n.goalReasonPlaceholder,
               filled: true,
               border: OutlineInputBorder(
-                borderRadius:
-                    BorderRadius.circular(DesignConstants.borderRadiusM),
+                borderRadius: BorderRadius.circular(
+                  DesignConstants.borderRadiusM,
+                ),
               ),
             ),
           ),
@@ -1558,7 +1630,8 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
                 _buildReviewRow(
                   context,
                   label: l10n.goalWeeklyRateLabel,
-                  value: '${_weeklyRateKg.toStringAsFixed(2)} $unitStr / ${l10n.weekShort}',
+                  value:
+                      '${_weeklyRateKg.toStringAsFixed(2)} $unitStr / ${l10n.weekShort}',
                   icon: LucideIcons.gauge,
                 ),
                 const Divider(height: DesignConstants.spacingL),
