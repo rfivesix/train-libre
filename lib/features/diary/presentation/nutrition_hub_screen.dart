@@ -291,6 +291,11 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
                     progress: activeProgress,
                     chartPoints: chartPoints,
                     onRefresh: _refreshData,
+                    onBaselineRecorded: () async {
+                      await _goalRepository
+                          .captureMissingBaseline(activeGoal!.id);
+                      await _refreshData();
+                    },
                     bleedChartToEdges: true,
                     onHeaderTap: activeGoal != null
                         ? () async {

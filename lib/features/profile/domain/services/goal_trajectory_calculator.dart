@@ -51,7 +51,9 @@ class GoalTrajectoryCalculator {
     required DateTime startDate,
     required double weeklyRateKg,
   }) {
-    if (weeklyRateKg.abs() < 0.001) return startDate.add(const Duration(days: 90));
+    if (weeklyRateKg.abs() < 0.001) {
+      return startDate.add(const Duration(days: 90));
+    }
     final delta = targetWeight - startWeight;
     final weeks = delta / weeklyRateKg;
     final days = (weeks * 7.0).round().clamp(minGoalDurationDays, 365 * 5);
@@ -200,9 +202,9 @@ class GoalTrajectoryCalculator {
     final safe = isRateSafe(weeklyRateKg);
     String? warning;
     if (weeklyRateKg < maxSafeLossRateKgPerWeek) {
-      warning = 'Die berechnete Abnahmerate ist sehr steil (über 1,5 kg/Woche). Ein moderateres Tempo schützt Muskelmasse.';
+      warning = 'loss_rate_too_steep';
     } else if (weeklyRateKg > maxSafeGainRateKgPerWeek) {
-      warning = 'Die berechnete Zunahmerate ist sehr hoch (über 0,75 kg/Woche). Ein moderateres Tempo minimiert Fettaufbau.';
+      warning = 'gain_rate_too_steep';
     }
     return TrajectoryRecalculationResult(
       targetWeight: targetWeight,

@@ -60,6 +60,8 @@ class LocalGoalNotificationScheduler implements GoalNotificationScheduler {
       _service.showWeeklyGoalReviewNotification(
         goalId: goal.id,
         reviewId: review.id,
+        goalTitle: goal.title,
+        recommendedCalories: review.recommendedCalories,
       );
 
   @override

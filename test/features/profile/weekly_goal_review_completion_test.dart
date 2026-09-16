@@ -5,7 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:train_libre/data/database_helper.dart';
-import 'package:train_libre/data/drift_database.dart' hide WorkoutLog, SetLog, Routine, Exercise;
+import 'package:train_libre/data/drift_database.dart'
+    hide WorkoutLog, SetLog, Routine, Exercise;
 import 'package:train_libre/features/exercise_catalog/domain/models/exercise.dart';
 import 'package:train_libre/features/nutrition_recommendation/data/recommendation_service.dart';
 import 'package:train_libre/features/nutrition_recommendation/domain/confidence_models.dart';
@@ -103,7 +104,8 @@ class _FakeWorkoutRepository implements IWorkoutRepository {
   Future<void> updateWorkoutLogPhotos(int logId, List<String> paths) async {}
 }
 
-class _MockRecommendationService extends AdaptiveNutritionRecommendationService {
+class _MockRecommendationService
+    extends AdaptiveNutritionRecommendationService {
   int recalculateAndApplyCalls = 0;
   final NutritionRecommendation? resultToReturn;
 
@@ -130,6 +132,8 @@ void main() {
     repository = GoalRepositoryImpl(database: database);
 
     testGoal = await repository.createGoal(
+      baselineValueKg: 80,
+      baselineDate: DateTime(2026, 1, 1),
       preset: GoalPreset.loseWeight,
       title: 'Abnehmen',
       startDate: DateTime(2026, 1, 1),
@@ -234,11 +238,19 @@ void main() {
       await tester.pump(const Duration(milliseconds: 100));
     }
 
-    // Find the "Bisherige Werte beibehalten" button
-    final keepCurrentButton = find.text('Bisherige Werte beibehalten');
+    final keepCurrentButton =
+        find.text('Ziel beibehalten und Tagesziele aktualisieren');
     expect(keepCurrentButton, findsOneWidget);
 
     await tester.tap(keepCurrentButton);
+    await tester.pumpAndSettle();
+    expect(
+      find.text('Ziel beibehalten und Tagesziele aktualisieren?'),
+      findsOneWidget,
+    );
+    await tester.tap(
+      find.text('Ziel beibehalten und Tagesziele aktualisieren').last,
+    );
     for (int i = 0; i < 5; i++) {
       await tester.pump(const Duration(milliseconds: 100));
     }

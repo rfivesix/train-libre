@@ -455,7 +455,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     Navigator.of(context).push(
                       MaterialPageRoute(
                         builder: (context) =>
-                            GoalsScreen(repository: _repository),
+                            DailyTargetsScreen(repository: _repository),
                       ),
                     );
                   },

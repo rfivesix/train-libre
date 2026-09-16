@@ -66,7 +66,7 @@ void main() {
       expect(find.byType(AppSegmentedControl<String>), findsOneWidget);
     });
 
-    testWidgets('Step 2 combines baseline and target weight pickers',
+    testWidgets('Step 1 requires an explicit baseline without a 75 kg fallback',
         (tester) async {
       tester.view.physicalSize = const Size(800, 1600);
       tester.view.devicePixelRatio = 1.0;
@@ -79,19 +79,22 @@ void main() {
       await tester.tap(find.text('Continue'));
       await tester.pumpAndSettle();
 
-      // Switch to manual baseline if button exists
-      final switchManual = find.text('Enter manually instead');
-      if (switchManual.evaluate().isNotEmpty) {
-        await tester.tap(switchManual);
-        await tester.pumpAndSettle();
-      }
-
-      expect(find.text('Your starting point and destination'), findsOneWidget);
-      expect(find.byType(AppRulerPicker), findsNWidgets(2));
+      expect(
+          find.byKey(const Key('goal_inline_baseline_input')), findsOneWidget);
+      expect(find.textContaining('75.0'), findsNothing);
+      await tester.enterText(
+        find.byKey(const Key('goal_inline_baseline_input')),
+        '80.0',
+      );
+      await tester.tap(find.text('Continue'));
+      await tester.pumpAndSettle();
+      expect(find.text('How do you want to plan?'), findsOneWidget);
+      expect(find.text('Open goal'), findsOneWidget);
+      expect(find.text('Weekly rate'), findsOneWidget);
+      expect(find.text('Target weight'), findsOneWidget);
     });
 
-    testWidgets(
-        'Step 3 shows trajectory card, pace dropdown, and duration dropdown',
+    testWidgets('Step 3 shows the controls for the selected weekly-rate mode',
         (tester) async {
       tester.view.physicalSize = const Size(800, 1600);
       tester.view.devicePixelRatio = 1.0;
@@ -104,25 +107,16 @@ void main() {
       await tester.tap(find.text('Continue'));
       await tester.pumpAndSettle();
 
-      // Step 1: switch to manual if button exists
-      final switchManual = find.text('Enter manually instead');
-      if (switchManual.evaluate().isNotEmpty) {
-        await tester.tap(switchManual);
-        await tester.pumpAndSettle();
-      }
-
-      // Combined starting point/target -> realistic plan
+      await tester.enterText(
+        find.byKey(const Key('goal_inline_baseline_input')),
+        '80.0',
+      );
       await tester.tap(find.text('Continue'));
       await tester.pumpAndSettle();
-
-      // Step 3 questions
-      expect(find.text('Plan Pace & Target Date'), findsOneWidget);
-
-      // Verify dropdown keys exist
-      expect(
-          find.byKey(const ValueKey('rate_dropdown_moderate')), findsOneWidget);
-      expect(find.byKey(const ValueKey('duration_dropdown_custom')),
-          findsOneWidget);
+      await tester.tap(find.text('Continue'));
+      await tester.pumpAndSettle();
+      expect(find.text('Weekly rate'), findsWidgets);
+      expect(find.byType(AppRulerPicker), findsOneWidget);
     });
 
     testWidgets('motivation is the final step and contains activation preview',
@@ -133,6 +127,12 @@ void main() {
 
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pumpAndSettle();
+      await tester.tap(find.text('Continue'));
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.byKey(const Key('goal_inline_baseline_input')),
+        '80.0',
+      );
       await tester.tap(find.text('Continue'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Continue'));

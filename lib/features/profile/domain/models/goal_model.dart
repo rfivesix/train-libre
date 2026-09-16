@@ -53,6 +53,18 @@ enum GoalPreset {
   String get key => name;
 }
 
+enum GoalTrackingMode {
+  open,
+  weeklyRate,
+  targetWeight;
+
+  static GoalTrackingMode fromString(String? value) => switch (value) {
+        'open' => GoalTrackingMode.open,
+        'targetWeight' => GoalTrackingMode.targetWeight,
+        _ => GoalTrackingMode.weeklyRate,
+      };
+}
+
 class Goal {
   final String id;
   final String? userId;
@@ -62,6 +74,10 @@ class Goal {
   final String? reason;
   final GoalStatus status;
   final DateTime startDate;
+  final GoalTrackingMode trackingMode;
+  final String? baselineMeasurementId;
+  final double? baselineValueKg;
+  final DateTime? baselineDate;
   final DateTime? targetDate;
   final String? targetMetric;
   final double? targetValue;
@@ -82,6 +98,10 @@ class Goal {
     this.reason,
     this.status = GoalStatus.active,
     required this.startDate,
+    this.trackingMode = GoalTrackingMode.weeklyRate,
+    this.baselineMeasurementId,
+    this.baselineValueKg,
+    this.baselineDate,
     this.targetDate,
     this.targetMetric,
     this.targetValue,
@@ -120,6 +140,10 @@ class Goal {
     String? reason,
     GoalStatus? status,
     DateTime? startDate,
+    GoalTrackingMode? trackingMode,
+    String? baselineMeasurementId,
+    double? baselineValueKg,
+    DateTime? baselineDate,
     DateTime? targetDate,
     String? targetMetric,
     double? targetValue,
@@ -140,6 +164,11 @@ class Goal {
       reason: reason ?? this.reason,
       status: status ?? this.status,
       startDate: startDate ?? this.startDate,
+      trackingMode: trackingMode ?? this.trackingMode,
+      baselineMeasurementId:
+          baselineMeasurementId ?? this.baselineMeasurementId,
+      baselineValueKg: baselineValueKg ?? this.baselineValueKg,
+      baselineDate: baselineDate ?? this.baselineDate,
       targetDate: targetDate ?? this.targetDate,
       targetMetric: targetMetric ?? this.targetMetric,
       targetValue: targetValue ?? this.targetValue,
@@ -163,6 +192,10 @@ class Goal {
       'reason': reason,
       'status': status.key,
       'start_date': startDate.toIso8601String(),
+      'tracking_mode': trackingMode.name,
+      'baseline_measurement_id': baselineMeasurementId,
+      'baseline_value_kg': baselineValueKg,
+      'baseline_date': baselineDate?.toIso8601String(),
       'target_date': targetDate?.toIso8601String(),
       'target_metric': targetMetric,
       'target_value': targetValue,
@@ -186,6 +219,13 @@ class Goal {
       reason: map['reason'] as String?,
       status: GoalStatus.fromString(map['status'] as String),
       startDate: DateTime.parse(map['start_date'] as String),
+      trackingMode:
+          GoalTrackingMode.fromString(map['tracking_mode'] as String?),
+      baselineMeasurementId: map['baseline_measurement_id'] as String?,
+      baselineValueKg: (map['baseline_value_kg'] as num?)?.toDouble(),
+      baselineDate: map['baseline_date'] == null
+          ? null
+          : DateTime.parse(map['baseline_date'] as String),
       targetDate: map['target_date'] != null
           ? DateTime.parse(map['target_date'] as String)
           : null,

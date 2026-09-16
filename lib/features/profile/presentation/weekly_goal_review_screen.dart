@@ -194,8 +194,9 @@ class _WeeklyGoalReviewScreenState extends State<WeeklyGoalReviewScreen> {
       if (rec != null) Navigator.of(context).pop(true);
     } catch (e) {
       if (mounted) {
+        final l10n = AppLocalizations.of(context)!;
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Fehler beim Anwenden: $e')),
+          SnackBar(content: Text(l10n.reviewActionError(e.toString()))),
         );
       }
     } finally {
@@ -205,6 +206,25 @@ class _WeeklyGoalReviewScreenState extends State<WeeklyGoalReviewScreen> {
 
   Future<void> _dismissReview() async {
     if (_isApplying) return;
+    final l10n = AppLocalizations.of(context)!;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.reviewKeepAndApplyTitle),
+        content: Text(l10n.reviewKeepAndApplyBody),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(l10n.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(l10n.reviewActionKeepCurrent),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
     setState(() => _isApplying = true);
 
     try {
@@ -214,11 +234,10 @@ class _WeeklyGoalReviewScreenState extends State<WeeklyGoalReviewScreen> {
         await _goalRepository.updateReviewStatus(
           review.id,
           'dismissed',
-          decision: 'keep_current',
+          decision: 'keep_goal_and_update_targets',
         );
       }
       if (!mounted) return;
-      final l10n = AppLocalizations.of(context)!;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(l10n.reviewDismissedSnack)),
       );
@@ -226,7 +245,7 @@ class _WeeklyGoalReviewScreenState extends State<WeeklyGoalReviewScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Fehler beim Aktualisieren: $e')),
+          SnackBar(content: Text(l10n.reviewActionError(e.toString()))),
         );
       }
     } finally {
@@ -261,8 +280,9 @@ class _WeeklyGoalReviewScreenState extends State<WeeklyGoalReviewScreen> {
       Navigator.of(context).pop(true);
     } catch (e) {
       if (mounted) {
+        final l10n = AppLocalizations.of(context)!;
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Fehler beim Anpassen: $e')),
+          SnackBar(content: Text(l10n.reviewActionError(e.toString()))),
         );
       }
     } finally {
@@ -348,8 +368,7 @@ class _WeeklyGoalReviewScreenState extends State<WeeklyGoalReviewScreen> {
                 const SizedBox(height: DesignConstants.spacingM),
                 Text(
                   assessment == null
-                      ? review?.explanation ??
-                          l10n.weeklyReviewPendingDefaultExplanation
+                      ? l10n.weeklyReviewPendingDefaultExplanation
                       : l10n.reviewOverallSummary(
                           statusLabel,
                           _momentumLabel(

@@ -414,6 +414,8 @@ void main() {
         () async {
       final goalRepository = GoalRepositoryImpl(database: database);
       final goal = await goalRepository.createGoal(
+        baselineValueKg: 80,
+        baselineDate: DateTime(2026, 1, 1),
         preset: GoalPreset.gainWeight,
         title: 'Gain',
         startDate: DateTime(2026, 3, 16),
@@ -691,24 +693,22 @@ void main() {
       );
     });
 
-    test('onboarding bootstrap handles missing optional profile inputs safely',
-        () async {
-      final recommendation = await service.generateOnboardingRecommendation(
-        goal: BodyweightGoal.maintainWeight,
-        targetRateKgPerWeek: 0,
-        weightKg: null,
-        heightCm: null,
-        birthday: null,
-        gender: null,
-        bodyFatPercent: null,
-        declaredActivityLevel: null,
-        extraCardioHoursOption: null,
-        now: DateTime(2026, 4, 5, 9, 0),
+    test('onboarding bootstrap requires a measured weight', () async {
+      await expectLater(
+        service.generateOnboardingRecommendation(
+          goal: BodyweightGoal.maintainWeight,
+          targetRateKgPerWeek: 0,
+          weightKg: null,
+          heightCm: null,
+          birthday: null,
+          gender: null,
+          bodyFatPercent: null,
+          declaredActivityLevel: null,
+          extraCardioHoursOption: null,
+          now: DateTime(2026, 4, 5, 9, 0),
+        ),
+        throwsArgumentError,
       );
-
-      expect(recommendation.recommendedCalories, greaterThan(0));
-      expect(recommendation.estimatedMaintenanceCalories, greaterThan(0));
-      expect(recommendation.dueWeekKey, '2026-03-30');
     });
 
     test(

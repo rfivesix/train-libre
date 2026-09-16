@@ -75,6 +75,8 @@ class GoalAdjustmentSheetState extends State<GoalAdjustmentSheet> {
   late DateTime _targetDate;
   late double _weeklyRateKg;
   late DateTime _adjustmentDate;
+  late GoalTrackingMode _trackingMode;
+  late bool _hasTargetDate;
   AdjustmentFixOption _fixOption = AdjustmentFixOption.keepDate;
   bool _isSaving = false;
 
@@ -83,16 +85,29 @@ class GoalAdjustmentSheetState extends State<GoalAdjustmentSheet> {
     super.initState();
     final now = DateTime.now();
     _adjustmentDate = DateTime(now.year, now.month, now.day);
+    _trackingMode = widget.goal.preset == GoalPreset.recomposition
+        ? GoalTrackingMode.open
+        : widget.goal.preset == GoalPreset.maintainWeight &&
+                widget.goal.trackingMode == GoalTrackingMode.weeklyRate
+            ? GoalTrackingMode.open
+            : widget.goal.trackingMode;
+    _hasTargetDate = widget.goal.targetDate != null;
     _targetWeightKg = widget.goal.targetValue ?? widget.startWeightKg;
     _targetDate =
         widget.goal.targetDate ?? DateTime.now().add(const Duration(days: 90));
     _weeklyRateKg = widget.goal.desiredWeeklyRateKg ??
-        GoalTrajectoryCalculator.calculateWeeklyRate(
-          startWeight: widget.startWeightKg,
-          targetWeight: _targetWeightKg,
-          startDate: _adjustmentDate,
-          targetDate: _targetDate,
-        );
+        (widget.goal.targetValue != null
+            ? GoalTrajectoryCalculator.calculateWeeklyRate(
+                startWeight: widget.startWeightKg,
+                targetWeight: _targetWeightKg,
+                startDate: _adjustmentDate,
+                targetDate: _targetDate,
+              )
+            : switch (widget.goal.preset) {
+                GoalPreset.loseWeight => -0.50,
+                GoalPreset.gainWeight => 0.25,
+                _ => 0.0,
+              });
   }
 
   void _onWeightChanged(double newWeight) {
@@ -191,16 +206,24 @@ class GoalAdjustmentSheetState extends State<GoalAdjustmentSheet> {
 
   Future<void> _saveAdjustment() async {
     if (_isSaving) return;
+    final l10n = AppLocalizations.of(context)!;
     setState(() => _isSaving = true);
 
     try {
       await widget.repository.reviseGoal(
         currentGoal: widget.goal,
-        targetValue: _targetWeightKg,
-        targetDate: _targetDate,
-        desiredWeeklyRateKg: _weeklyRateKg,
+        trackingMode: _trackingMode,
+        targetValue: _trackingMode == GoalTrackingMode.targetWeight
+            ? _targetWeightKg
+            : null,
+        targetDate:
+            _trackingMode == GoalTrackingMode.targetWeight && _hasTargetDate
+                ? _targetDate
+                : null,
+        desiredWeeklyRateKg:
+            _trackingMode == GoalTrackingMode.weeklyRate ? _weeklyRateKg : null,
         anchorValue: widget.startWeightKg,
-        reason: 'Trajektorie angepasst',
+        reason: 'Goal planning mode or trajectory adjusted',
       );
       final notifications =
           GoalNotificationOrchestrator(goalRepository: widget.repository);
@@ -215,7 +238,7 @@ class GoalAdjustmentSheetState extends State<GoalAdjustmentSheet> {
       if (!mounted) return;
       setState(() => _isSaving = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Fehler beim Anpassen: $e')),
+        SnackBar(content: Text(l10n.goalAdjustError(e.toString()))),
       );
     }
   }
@@ -273,7 +296,30 @@ class GoalAdjustmentSheetState extends State<GoalAdjustmentSheet> {
             const SizedBox(height: DesignConstants.spacingL),
           ],
 
-          if (widget.recommendedTargetDate != null &&
+          AppSegmentedControl<GoalTrackingMode>(
+            children: {
+              GoalTrackingMode.open: l10n.goalTrackingModeOpen,
+              if (widget.goal.preset != GoalPreset.recomposition &&
+                  widget.goal.preset != GoalPreset.maintainWeight)
+                GoalTrackingMode.weeklyRate: l10n.goalTrackingModeWeeklyRate,
+              if (widget.goal.preset != GoalPreset.recomposition)
+                GoalTrackingMode.targetWeight:
+                    l10n.goalTrackingModeTargetWeight,
+            },
+            groupValue: _trackingMode,
+            onValueChanged: (mode) => setState(() => _trackingMode = mode),
+          ),
+          const SizedBox(height: DesignConstants.spacingL),
+
+          if (_trackingMode == GoalTrackingMode.open) ...[
+            Text(
+              l10n.goalTrackingOpenReady,
+              style: theme.textTheme.bodyMedium,
+            ),
+          ],
+
+          if (_trackingMode == GoalTrackingMode.targetWeight &&
+              widget.recommendedTargetDate != null &&
               widget.recommendedWeeklyRateKg != null) ...[
             Container(
               padding: const EdgeInsets.all(DesignConstants.spacingM),
@@ -328,137 +374,157 @@ class GoalAdjustmentSheetState extends State<GoalAdjustmentSheet> {
           ],
 
           // Strategy Selector: Fixed Date vs Fixed Rate (Clean Apple HIG segment control, no emojis)
-          AppSegmentedControl<AdjustmentFixOption>(
-            children: {
-              AdjustmentFixOption.keepDate: l10n.adjustGoalFixOptionKeepDate,
-              AdjustmentFixOption.keepRate: l10n.adjustGoalFixOptionKeepRate,
-            },
-            groupValue: _fixOption,
-            onValueChanged: (val) {
-              setState(() => _fixOption = val);
-            },
-          ),
-          const SizedBox(height: DesignConstants.spacingL),
+          if (_trackingMode == GoalTrackingMode.targetWeight && _hasTargetDate)
+            AppSegmentedControl<AdjustmentFixOption>(
+              children: {
+                AdjustmentFixOption.keepDate: l10n.adjustGoalFixOptionKeepDate,
+                AdjustmentFixOption.keepRate: l10n.adjustGoalFixOptionKeepRate,
+              },
+              groupValue: _fixOption,
+              onValueChanged: (val) {
+                setState(() => _fixOption = val);
+              },
+            ),
+          if (_trackingMode == GoalTrackingMode.targetWeight && _hasTargetDate)
+            const SizedBox(height: DesignConstants.spacingL),
 
           // Target Weight Row (No emojis/icons, opens glass number input)
-          ListTile(
-            contentPadding: EdgeInsets.zero,
-            title: Text(l10n.adjustGoalTargetWeightLabel),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  '${displayWeight.toStringAsFixed(1)} $unitStr',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
+          if (_trackingMode == GoalTrackingMode.targetWeight)
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              title: Text(l10n.adjustGoalTargetWeightLabel),
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    '${displayWeight.toStringAsFixed(1)} $unitStr',
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
-                const SizedBox(width: 4),
-                Icon(
-                  LucideIcons.chevron_right,
-                  size: 18,
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
-                ),
-              ],
-            ),
-            onTap: () async {
-              final newDisplayWeight = await showGlassWeightRulerInput(
-                context: context,
-                title: l10n.adjustGoalTargetWeightLabel,
-                initialValue: displayWeight,
-                imperial: unitService.isImperial,
-                unit: unitStr,
-              );
-              if (newDisplayWeight != null && newDisplayWeight > 0) {
-                final metric = unitService.convertToMetric(
-                  newDisplayWeight,
-                  UnitDimension.weight,
+                  const SizedBox(width: 4),
+                  Icon(
+                    LucideIcons.chevron_right,
+                    size: 18,
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
+                  ),
+                ],
+              ),
+              onTap: () async {
+                final newDisplayWeight = await showGlassWeightRulerInput(
+                  context: context,
+                  title: l10n.adjustGoalTargetWeightLabel,
+                  initialValue: displayWeight,
+                  imperial: unitService.isImperial,
+                  unit: unitStr,
                 );
-                _onWeightChanged(metric);
-              }
-            },
-          ),
-          const Divider(height: 1),
+                if (newDisplayWeight != null && newDisplayWeight > 0) {
+                  final metric = unitService.convertToMetric(
+                    newDisplayWeight,
+                    UnitDimension.weight,
+                  );
+                  _onWeightChanged(metric);
+                }
+              },
+            ),
+          if (_trackingMode == GoalTrackingMode.targetWeight)
+            const Divider(height: 1),
 
           // Target Date Row (No emojis/icons, opens glass date picker)
-          ListTile(
-            contentPadding: EdgeInsets.zero,
-            title: Text(l10n.adjustGoalTargetDateLabel),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  dateFormat.format(_targetDate),
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
+          if (_trackingMode == GoalTrackingMode.targetWeight)
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              title: Text(l10n.adjustGoalTargetDateLabel),
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    _hasTargetDate
+                        ? dateFormat.format(_targetDate)
+                        : l10n.goalNoDeadlineOption,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
-                const SizedBox(width: 4),
-                Icon(
-                  LucideIcons.chevron_right,
-                  size: 18,
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
-                ),
-              ],
+                  const SizedBox(width: 4),
+                  if (_hasTargetDate)
+                    IconButton(
+                      tooltip: l10n.delete,
+                      icon: const Icon(LucideIcons.x, size: 18),
+                      onPressed: () => setState(() => _hasTargetDate = false),
+                    )
+                  else
+                    Icon(
+                      LucideIcons.chevron_right,
+                      size: 18,
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
+                    ),
+                ],
+              ),
+              onTap: () async {
+                final picked = await showAdaptiveDatePicker(
+                  context: context,
+                  initialDate: _targetDate,
+                  firstDate: DateTime.now(),
+                  lastDate: DateTime.now().add(const Duration(days: 365 * 5)),
+                );
+                if (picked != null) {
+                  _hasTargetDate = true;
+                  _onDateChanged(picked);
+                }
+              },
             ),
-            onTap: () async {
-              final picked = await showAdaptiveDatePicker(
-                context: context,
-                initialDate: _targetDate,
-                firstDate: DateTime.now(),
-                lastDate: DateTime.now().add(const Duration(days: 365 * 5)),
-              );
-              if (picked != null) _onDateChanged(picked);
-            },
-          ),
-          const Divider(height: 1),
+          if (_trackingMode == GoalTrackingMode.targetWeight)
+            const Divider(height: 1),
 
           // Weekly Rate Row (No emojis/icons, opens glass rate ruler input)
-          ListTile(
-            contentPadding: EdgeInsets.zero,
-            title: Text(l10n.adjustGoalWeeklyRateLabel),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  '${displayRate >= 0 ? '+' : ''}${displayRate.toStringAsFixed(2)} $unitStr/${l10n.weekShort}',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: isSafe ? null : Colors.orange,
+          if (_trackingMode == GoalTrackingMode.weeklyRate)
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              title: Text(l10n.adjustGoalWeeklyRateLabel),
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    '${displayRate >= 0 ? '+' : ''}${displayRate.toStringAsFixed(2)} $unitStr/${l10n.weekShort}',
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: isSafe ? null : Colors.orange,
+                    ),
                   ),
-                ),
-                const SizedBox(width: 4),
-                Icon(
-                  LucideIcons.chevron_right,
-                  size: 18,
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
-                ),
-              ],
-            ),
-            onTap: () async {
-              final isNegative = displayRate < 0;
-              final newDisplayRate = await showGlassRateRulerInput(
-                context: context,
-                title: l10n.adjustGoalWeeklyRateLabel,
-                initialValue: displayRate.abs(),
-                imperial: unitService.isImperial,
-                unit: '$unitStr/${l10n.weekShort}',
-                allowNegative: false,
-              );
-              if (newDisplayRate != null) {
-                final signedRate =
-                    isNegative ? -newDisplayRate : newDisplayRate;
-                final metric = unitService.convertToMetric(
-                  signedRate,
-                  UnitDimension.weight,
+                  const SizedBox(width: 4),
+                  Icon(
+                    LucideIcons.chevron_right,
+                    size: 18,
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
+                  ),
+                ],
+              ),
+              onTap: () async {
+                final isNegative = displayRate < 0;
+                final newDisplayRate = await showGlassRateRulerInput(
+                  context: context,
+                  title: l10n.adjustGoalWeeklyRateLabel,
+                  initialValue: displayRate.abs(),
+                  imperial: unitService.isImperial,
+                  unit: '$unitStr/${l10n.weekShort}',
+                  allowNegative: false,
                 );
-                _onRateChanged(metric);
-              }
-            },
-          ),
-          const Divider(height: 1),
+                if (newDisplayRate != null) {
+                  final signedRate =
+                      isNegative ? -newDisplayRate : newDisplayRate;
+                  final metric = unitService.convertToMetric(
+                    signedRate,
+                    UnitDimension.weight,
+                  );
+                  _onRateChanged(metric);
+                }
+              },
+            ),
+          if (_trackingMode == GoalTrackingMode.weeklyRate)
+            const Divider(height: 1),
 
-          if (!isSafe) ...[
+          if (_trackingMode == GoalTrackingMode.weeklyRate && !isSafe) ...[
             const SizedBox(height: DesignConstants.spacingM),
             Container(
               padding: const EdgeInsets.all(DesignConstants.spacingM),

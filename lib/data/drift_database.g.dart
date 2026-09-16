@@ -23304,6 +23304,35 @@ class $UserGoalsTable extends UserGoals
   late final GeneratedColumn<DateTime> startDate = GeneratedColumn<DateTime>(
       'start_date', aliasedName, false,
       type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  static const VerificationMeta _trackingModeMeta =
+      const VerificationMeta('trackingMode');
+  @override
+  late final GeneratedColumn<String> trackingMode = GeneratedColumn<String>(
+      'tracking_mode', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultValue: const Constant('weeklyRate'));
+  static const VerificationMeta _baselineMeasurementIdMeta =
+      const VerificationMeta('baselineMeasurementId');
+  @override
+  late final GeneratedColumn<String> baselineMeasurementId =
+      GeneratedColumn<String>('baseline_measurement_id', aliasedName, true,
+          type: DriftSqlType.string,
+          requiredDuringInsert: false,
+          defaultConstraints: GeneratedColumn.constraintIsAlways(
+              'REFERENCES measurements (id) ON DELETE SET NULL'));
+  static const VerificationMeta _baselineValueKgMeta =
+      const VerificationMeta('baselineValueKg');
+  @override
+  late final GeneratedColumn<double> baselineValueKg = GeneratedColumn<double>(
+      'baseline_value_kg', aliasedName, true,
+      type: DriftSqlType.double, requiredDuringInsert: false);
+  static const VerificationMeta _baselineDateMeta =
+      const VerificationMeta('baselineDate');
+  @override
+  late final GeneratedColumn<DateTime> baselineDate = GeneratedColumn<DateTime>(
+      'baseline_date', aliasedName, true,
+      type: DriftSqlType.dateTime, requiredDuringInsert: false);
   static const VerificationMeta _targetDateMeta =
       const VerificationMeta('targetDate');
   @override
@@ -23373,6 +23402,10 @@ class $UserGoalsTable extends UserGoals
         reason,
         status,
         startDate,
+        trackingMode,
+        baselineMeasurementId,
+        baselineValueKg,
+        baselineDate,
         targetDate,
         targetMetric,
         targetValue,
@@ -23444,6 +23477,30 @@ class $UserGoalsTable extends UserGoals
           startDate.isAcceptableOrUnknown(data['start_date']!, _startDateMeta));
     } else if (isInserting) {
       context.missing(_startDateMeta);
+    }
+    if (data.containsKey('tracking_mode')) {
+      context.handle(
+          _trackingModeMeta,
+          trackingMode.isAcceptableOrUnknown(
+              data['tracking_mode']!, _trackingModeMeta));
+    }
+    if (data.containsKey('baseline_measurement_id')) {
+      context.handle(
+          _baselineMeasurementIdMeta,
+          baselineMeasurementId.isAcceptableOrUnknown(
+              data['baseline_measurement_id']!, _baselineMeasurementIdMeta));
+    }
+    if (data.containsKey('baseline_value_kg')) {
+      context.handle(
+          _baselineValueKgMeta,
+          baselineValueKg.isAcceptableOrUnknown(
+              data['baseline_value_kg']!, _baselineValueKgMeta));
+    }
+    if (data.containsKey('baseline_date')) {
+      context.handle(
+          _baselineDateMeta,
+          baselineDate.isAcceptableOrUnknown(
+              data['baseline_date']!, _baselineDateMeta));
     }
     if (data.containsKey('target_date')) {
       context.handle(
@@ -23524,6 +23581,15 @@ class $UserGoalsTable extends UserGoals
           .read(DriftSqlType.string, data['${effectivePrefix}status'])!,
       startDate: attachedDatabase.typeMapping
           .read(DriftSqlType.dateTime, data['${effectivePrefix}start_date'])!,
+      trackingMode: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}tracking_mode'])!,
+      baselineMeasurementId: attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}baseline_measurement_id']),
+      baselineValueKg: attachedDatabase.typeMapping.read(
+          DriftSqlType.double, data['${effectivePrefix}baseline_value_kg']),
+      baselineDate: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}baseline_date']),
       targetDate: attachedDatabase.typeMapping
           .read(DriftSqlType.dateTime, data['${effectivePrefix}target_date']),
       targetMetric: attachedDatabase.typeMapping
@@ -23563,6 +23629,10 @@ class UserGoal extends DataClass implements Insertable<UserGoal> {
   final String? reason;
   final String status;
   final DateTime startDate;
+  final String trackingMode;
+  final String? baselineMeasurementId;
+  final double? baselineValueKg;
+  final DateTime? baselineDate;
   final DateTime? targetDate;
   final String? targetMetric;
   final double? targetValue;
@@ -23584,6 +23654,10 @@ class UserGoal extends DataClass implements Insertable<UserGoal> {
       this.reason,
       required this.status,
       required this.startDate,
+      required this.trackingMode,
+      this.baselineMeasurementId,
+      this.baselineValueKg,
+      this.baselineDate,
       this.targetDate,
       this.targetMetric,
       this.targetValue,
@@ -23613,6 +23687,16 @@ class UserGoal extends DataClass implements Insertable<UserGoal> {
     }
     map['status'] = Variable<String>(status);
     map['start_date'] = Variable<DateTime>(startDate);
+    map['tracking_mode'] = Variable<String>(trackingMode);
+    if (!nullToAbsent || baselineMeasurementId != null) {
+      map['baseline_measurement_id'] = Variable<String>(baselineMeasurementId);
+    }
+    if (!nullToAbsent || baselineValueKg != null) {
+      map['baseline_value_kg'] = Variable<double>(baselineValueKg);
+    }
+    if (!nullToAbsent || baselineDate != null) {
+      map['baseline_date'] = Variable<DateTime>(baselineDate);
+    }
     if (!nullToAbsent || targetDate != null) {
       map['target_date'] = Variable<DateTime>(targetDate);
     }
@@ -23656,6 +23740,16 @@ class UserGoal extends DataClass implements Insertable<UserGoal> {
           reason == null && nullToAbsent ? const Value.absent() : Value(reason),
       status: Value(status),
       startDate: Value(startDate),
+      trackingMode: Value(trackingMode),
+      baselineMeasurementId: baselineMeasurementId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(baselineMeasurementId),
+      baselineValueKg: baselineValueKg == null && nullToAbsent
+          ? const Value.absent()
+          : Value(baselineValueKg),
+      baselineDate: baselineDate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(baselineDate),
       targetDate: targetDate == null && nullToAbsent
           ? const Value.absent()
           : Value(targetDate),
@@ -23697,6 +23791,11 @@ class UserGoal extends DataClass implements Insertable<UserGoal> {
       reason: serializer.fromJson<String?>(json['reason']),
       status: serializer.fromJson<String>(json['status']),
       startDate: serializer.fromJson<DateTime>(json['startDate']),
+      trackingMode: serializer.fromJson<String>(json['trackingMode']),
+      baselineMeasurementId:
+          serializer.fromJson<String?>(json['baselineMeasurementId']),
+      baselineValueKg: serializer.fromJson<double?>(json['baselineValueKg']),
+      baselineDate: serializer.fromJson<DateTime?>(json['baselineDate']),
       targetDate: serializer.fromJson<DateTime?>(json['targetDate']),
       targetMetric: serializer.fromJson<String?>(json['targetMetric']),
       targetValue: serializer.fromJson<double?>(json['targetValue']),
@@ -23725,6 +23824,11 @@ class UserGoal extends DataClass implements Insertable<UserGoal> {
       'reason': serializer.toJson<String?>(reason),
       'status': serializer.toJson<String>(status),
       'startDate': serializer.toJson<DateTime>(startDate),
+      'trackingMode': serializer.toJson<String>(trackingMode),
+      'baselineMeasurementId':
+          serializer.toJson<String?>(baselineMeasurementId),
+      'baselineValueKg': serializer.toJson<double?>(baselineValueKg),
+      'baselineDate': serializer.toJson<DateTime?>(baselineDate),
       'targetDate': serializer.toJson<DateTime?>(targetDate),
       'targetMetric': serializer.toJson<String?>(targetMetric),
       'targetValue': serializer.toJson<double?>(targetValue),
@@ -23749,6 +23853,10 @@ class UserGoal extends DataClass implements Insertable<UserGoal> {
           Value<String?> reason = const Value.absent(),
           String? status,
           DateTime? startDate,
+          String? trackingMode,
+          Value<String?> baselineMeasurementId = const Value.absent(),
+          Value<double?> baselineValueKg = const Value.absent(),
+          Value<DateTime?> baselineDate = const Value.absent(),
           Value<DateTime?> targetDate = const Value.absent(),
           Value<String?> targetMetric = const Value.absent(),
           Value<double?> targetValue = const Value.absent(),
@@ -23770,6 +23878,15 @@ class UserGoal extends DataClass implements Insertable<UserGoal> {
         reason: reason.present ? reason.value : this.reason,
         status: status ?? this.status,
         startDate: startDate ?? this.startDate,
+        trackingMode: trackingMode ?? this.trackingMode,
+        baselineMeasurementId: baselineMeasurementId.present
+            ? baselineMeasurementId.value
+            : this.baselineMeasurementId,
+        baselineValueKg: baselineValueKg.present
+            ? baselineValueKg.value
+            : this.baselineValueKg,
+        baselineDate:
+            baselineDate.present ? baselineDate.value : this.baselineDate,
         targetDate: targetDate.present ? targetDate.value : this.targetDate,
         targetMetric:
             targetMetric.present ? targetMetric.value : this.targetMetric,
@@ -23798,6 +23915,18 @@ class UserGoal extends DataClass implements Insertable<UserGoal> {
       reason: data.reason.present ? data.reason.value : this.reason,
       status: data.status.present ? data.status.value : this.status,
       startDate: data.startDate.present ? data.startDate.value : this.startDate,
+      trackingMode: data.trackingMode.present
+          ? data.trackingMode.value
+          : this.trackingMode,
+      baselineMeasurementId: data.baselineMeasurementId.present
+          ? data.baselineMeasurementId.value
+          : this.baselineMeasurementId,
+      baselineValueKg: data.baselineValueKg.present
+          ? data.baselineValueKg.value
+          : this.baselineValueKg,
+      baselineDate: data.baselineDate.present
+          ? data.baselineDate.value
+          : this.baselineDate,
       targetDate:
           data.targetDate.present ? data.targetDate.value : this.targetDate,
       targetMetric: data.targetMetric.present
@@ -23835,6 +23964,10 @@ class UserGoal extends DataClass implements Insertable<UserGoal> {
           ..write('reason: $reason, ')
           ..write('status: $status, ')
           ..write('startDate: $startDate, ')
+          ..write('trackingMode: $trackingMode, ')
+          ..write('baselineMeasurementId: $baselineMeasurementId, ')
+          ..write('baselineValueKg: $baselineValueKg, ')
+          ..write('baselineDate: $baselineDate, ')
           ..write('targetDate: $targetDate, ')
           ..write('targetMetric: $targetMetric, ')
           ..write('targetValue: $targetValue, ')
@@ -23848,27 +23981,32 @@ class UserGoal extends DataClass implements Insertable<UserGoal> {
   }
 
   @override
-  int get hashCode => Object.hash(
-      localId,
-      id,
-      createdAt,
-      updatedAt,
-      deletedAt,
-      userId,
-      area,
-      preset,
-      title,
-      reason,
-      status,
-      startDate,
-      targetDate,
-      targetMetric,
-      targetValue,
-      targetUnit,
-      desiredWeeklyRateKg,
-      isNutritionDriver,
-      predecessorGoalId,
-      retiredAt);
+  int get hashCode => Object.hashAll([
+        localId,
+        id,
+        createdAt,
+        updatedAt,
+        deletedAt,
+        userId,
+        area,
+        preset,
+        title,
+        reason,
+        status,
+        startDate,
+        trackingMode,
+        baselineMeasurementId,
+        baselineValueKg,
+        baselineDate,
+        targetDate,
+        targetMetric,
+        targetValue,
+        targetUnit,
+        desiredWeeklyRateKg,
+        isNutritionDriver,
+        predecessorGoalId,
+        retiredAt
+      ]);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -23885,6 +24023,10 @@ class UserGoal extends DataClass implements Insertable<UserGoal> {
           other.reason == this.reason &&
           other.status == this.status &&
           other.startDate == this.startDate &&
+          other.trackingMode == this.trackingMode &&
+          other.baselineMeasurementId == this.baselineMeasurementId &&
+          other.baselineValueKg == this.baselineValueKg &&
+          other.baselineDate == this.baselineDate &&
           other.targetDate == this.targetDate &&
           other.targetMetric == this.targetMetric &&
           other.targetValue == this.targetValue &&
@@ -23908,6 +24050,10 @@ class UserGoalsCompanion extends UpdateCompanion<UserGoal> {
   final Value<String?> reason;
   final Value<String> status;
   final Value<DateTime> startDate;
+  final Value<String> trackingMode;
+  final Value<String?> baselineMeasurementId;
+  final Value<double?> baselineValueKg;
+  final Value<DateTime?> baselineDate;
   final Value<DateTime?> targetDate;
   final Value<String?> targetMetric;
   final Value<double?> targetValue;
@@ -23929,6 +24075,10 @@ class UserGoalsCompanion extends UpdateCompanion<UserGoal> {
     this.reason = const Value.absent(),
     this.status = const Value.absent(),
     this.startDate = const Value.absent(),
+    this.trackingMode = const Value.absent(),
+    this.baselineMeasurementId = const Value.absent(),
+    this.baselineValueKg = const Value.absent(),
+    this.baselineDate = const Value.absent(),
     this.targetDate = const Value.absent(),
     this.targetMetric = const Value.absent(),
     this.targetValue = const Value.absent(),
@@ -23951,6 +24101,10 @@ class UserGoalsCompanion extends UpdateCompanion<UserGoal> {
     this.reason = const Value.absent(),
     this.status = const Value.absent(),
     required DateTime startDate,
+    this.trackingMode = const Value.absent(),
+    this.baselineMeasurementId = const Value.absent(),
+    this.baselineValueKg = const Value.absent(),
+    this.baselineDate = const Value.absent(),
     this.targetDate = const Value.absent(),
     this.targetMetric = const Value.absent(),
     this.targetValue = const Value.absent(),
@@ -23975,6 +24129,10 @@ class UserGoalsCompanion extends UpdateCompanion<UserGoal> {
     Expression<String>? reason,
     Expression<String>? status,
     Expression<DateTime>? startDate,
+    Expression<String>? trackingMode,
+    Expression<String>? baselineMeasurementId,
+    Expression<double>? baselineValueKg,
+    Expression<DateTime>? baselineDate,
     Expression<DateTime>? targetDate,
     Expression<String>? targetMetric,
     Expression<double>? targetValue,
@@ -23997,6 +24155,11 @@ class UserGoalsCompanion extends UpdateCompanion<UserGoal> {
       if (reason != null) 'reason': reason,
       if (status != null) 'status': status,
       if (startDate != null) 'start_date': startDate,
+      if (trackingMode != null) 'tracking_mode': trackingMode,
+      if (baselineMeasurementId != null)
+        'baseline_measurement_id': baselineMeasurementId,
+      if (baselineValueKg != null) 'baseline_value_kg': baselineValueKg,
+      if (baselineDate != null) 'baseline_date': baselineDate,
       if (targetDate != null) 'target_date': targetDate,
       if (targetMetric != null) 'target_metric': targetMetric,
       if (targetValue != null) 'target_value': targetValue,
@@ -24022,6 +24185,10 @@ class UserGoalsCompanion extends UpdateCompanion<UserGoal> {
       Value<String?>? reason,
       Value<String>? status,
       Value<DateTime>? startDate,
+      Value<String>? trackingMode,
+      Value<String?>? baselineMeasurementId,
+      Value<double?>? baselineValueKg,
+      Value<DateTime?>? baselineDate,
       Value<DateTime?>? targetDate,
       Value<String?>? targetMetric,
       Value<double?>? targetValue,
@@ -24043,6 +24210,11 @@ class UserGoalsCompanion extends UpdateCompanion<UserGoal> {
       reason: reason ?? this.reason,
       status: status ?? this.status,
       startDate: startDate ?? this.startDate,
+      trackingMode: trackingMode ?? this.trackingMode,
+      baselineMeasurementId:
+          baselineMeasurementId ?? this.baselineMeasurementId,
+      baselineValueKg: baselineValueKg ?? this.baselineValueKg,
+      baselineDate: baselineDate ?? this.baselineDate,
       targetDate: targetDate ?? this.targetDate,
       targetMetric: targetMetric ?? this.targetMetric,
       targetValue: targetValue ?? this.targetValue,
@@ -24093,6 +24265,19 @@ class UserGoalsCompanion extends UpdateCompanion<UserGoal> {
     if (startDate.present) {
       map['start_date'] = Variable<DateTime>(startDate.value);
     }
+    if (trackingMode.present) {
+      map['tracking_mode'] = Variable<String>(trackingMode.value);
+    }
+    if (baselineMeasurementId.present) {
+      map['baseline_measurement_id'] =
+          Variable<String>(baselineMeasurementId.value);
+    }
+    if (baselineValueKg.present) {
+      map['baseline_value_kg'] = Variable<double>(baselineValueKg.value);
+    }
+    if (baselineDate.present) {
+      map['baseline_date'] = Variable<DateTime>(baselineDate.value);
+    }
     if (targetDate.present) {
       map['target_date'] = Variable<DateTime>(targetDate.value);
     }
@@ -24136,6 +24321,10 @@ class UserGoalsCompanion extends UpdateCompanion<UserGoal> {
           ..write('reason: $reason, ')
           ..write('status: $status, ')
           ..write('startDate: $startDate, ')
+          ..write('trackingMode: $trackingMode, ')
+          ..write('baselineMeasurementId: $baselineMeasurementId, ')
+          ..write('baselineValueKg: $baselineValueKg, ')
+          ..write('baselineDate: $baselineDate, ')
           ..write('targetDate: $targetDate, ')
           ..write('targetMetric: $targetMetric, ')
           ..write('targetValue: $targetValue, ')
@@ -25990,6 +26179,13 @@ abstract class _$AppDatabase extends GeneratedDatabase {
             result: [
               TableUpdate('user_food_override_translations',
                   kind: UpdateKind.delete),
+            ],
+          ),
+          WritePropagation(
+            on: TableUpdateQuery.onTableName('measurements',
+                limitUpdateKind: UpdateKind.delete),
+            result: [
+              TableUpdate('user_goals', kind: UpdateKind.update),
             ],
           ),
           WritePropagation(
@@ -34976,6 +35172,26 @@ typedef $$MeasurementsTableUpdateCompanionBuilder = MeasurementsCompanion
   Value<int?> legacySessionId,
 });
 
+final class $$MeasurementsTableReferences
+    extends BaseReferences<_$AppDatabase, $MeasurementsTable, Measurement> {
+  $$MeasurementsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static MultiTypedResultKey<$UserGoalsTable, List<UserGoal>>
+      _userGoalsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+          db.userGoals,
+          aliasName: 'measurements__id__user_goals__baseline_measurement_id');
+
+  $$UserGoalsTableProcessedTableManager get userGoalsRefs {
+    final manager = $$UserGoalsTableTableManager($_db, $_db.userGoals).filter(
+        (f) =>
+            f.baselineMeasurementId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_userGoalsRefsTable($_db));
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: cache));
+  }
+}
+
 class $$MeasurementsTableFilterComposer
     extends Composer<_$AppDatabase, $MeasurementsTable> {
   $$MeasurementsTableFilterComposer({
@@ -35018,6 +35234,27 @@ class $$MeasurementsTableFilterComposer
   ColumnFilters<int> get legacySessionId => $composableBuilder(
       column: $table.legacySessionId,
       builder: (column) => ColumnFilters(column));
+
+  Expression<bool> userGoalsRefs(
+      Expression<bool> Function($$UserGoalsTableFilterComposer f) f) {
+    final $$UserGoalsTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.userGoals,
+        getReferencedColumn: (t) => t.baselineMeasurementId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$UserGoalsTableFilterComposer(
+              $db: $db,
+              $table: $db.userGoals,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
 }
 
 class $$MeasurementsTableOrderingComposer
@@ -35105,6 +35342,27 @@ class $$MeasurementsTableAnnotationComposer
 
   GeneratedColumn<int> get legacySessionId => $composableBuilder(
       column: $table.legacySessionId, builder: (column) => column);
+
+  Expression<T> userGoalsRefs<T extends Object>(
+      Expression<T> Function($$UserGoalsTableAnnotationComposer a) f) {
+    final $$UserGoalsTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.userGoals,
+        getReferencedColumn: (t) => t.baselineMeasurementId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$UserGoalsTableAnnotationComposer(
+              $db: $db,
+              $table: $db.userGoals,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
 }
 
 class $$MeasurementsTableTableManager extends RootTableManager<
@@ -35116,12 +35374,9 @@ class $$MeasurementsTableTableManager extends RootTableManager<
     $$MeasurementsTableAnnotationComposer,
     $$MeasurementsTableCreateCompanionBuilder,
     $$MeasurementsTableUpdateCompanionBuilder,
-    (
-      Measurement,
-      BaseReferences<_$AppDatabase, $MeasurementsTable, Measurement>
-    ),
+    (Measurement, $$MeasurementsTableReferences),
     Measurement,
-    PrefetchHooks Function()> {
+    PrefetchHooks Function({bool userGoalsRefs})> {
   $$MeasurementsTableTableManager(_$AppDatabase db, $MeasurementsTable table)
       : super(TableManagerState(
           db: db,
@@ -35187,11 +35442,33 @@ class $$MeasurementsTableTableManager extends RootTableManager<
           withReferenceMapper: (p0) => p0
               .map((e) => (
                     e.readTable<$MeasurementsTable, Measurement>(table),
-                    BaseReferences<_$AppDatabase, $MeasurementsTable,
-                        Measurement>(db, table, e)
+                    $$MeasurementsTableReferences(db, table, e)
                   ))
               .toList(),
-          prefetchHooksCallback: null,
+          prefetchHooksCallback: ({userGoalsRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [if (userGoalsRefs) db.userGoals],
+              addJoins: null,
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (userGoalsRefs)
+                    await $_getPrefetchedData<Measurement, $MeasurementsTable,
+                            UserGoal>(
+                        currentTable: table,
+                        referencedTable: $$MeasurementsTableReferences
+                            ._userGoalsRefsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$MeasurementsTableReferences(db, table, p0)
+                                .userGoalsRefs,
+                        referencedItemsForCurrentItem:
+                            (item, referencedItems) => referencedItems.where(
+                                (e) => e.baselineMeasurementId == item.id),
+                        typedResults: items)
+                ];
+              },
+            );
+          },
         ));
 }
 
@@ -35204,12 +35481,9 @@ typedef $$MeasurementsTableProcessedTableManager = ProcessedTableManager<
     $$MeasurementsTableAnnotationComposer,
     $$MeasurementsTableCreateCompanionBuilder,
     $$MeasurementsTableUpdateCompanionBuilder,
-    (
-      Measurement,
-      BaseReferences<_$AppDatabase, $MeasurementsTable, Measurement>
-    ),
+    (Measurement, $$MeasurementsTableReferences),
     Measurement,
-    PrefetchHooks Function()>;
+    PrefetchHooks Function({bool userGoalsRefs})>;
 typedef $$PostsTableCreateCompanionBuilder = PostsCompanion Function({
   Value<int> localId,
   Value<String> id,
@@ -41011,6 +41285,10 @@ typedef $$UserGoalsTableCreateCompanionBuilder = UserGoalsCompanion Function({
   Value<String?> reason,
   Value<String> status,
   required DateTime startDate,
+  Value<String> trackingMode,
+  Value<String?> baselineMeasurementId,
+  Value<double?> baselineValueKg,
+  Value<DateTime?> baselineDate,
   Value<DateTime?> targetDate,
   Value<String?> targetMetric,
   Value<double?> targetValue,
@@ -41033,6 +41311,10 @@ typedef $$UserGoalsTableUpdateCompanionBuilder = UserGoalsCompanion Function({
   Value<String?> reason,
   Value<String> status,
   Value<DateTime> startDate,
+  Value<String> trackingMode,
+  Value<String?> baselineMeasurementId,
+  Value<double?> baselineValueKg,
+  Value<DateTime?> baselineDate,
   Value<DateTime?> targetDate,
   Value<String?> targetMetric,
   Value<double?> targetValue,
@@ -41046,6 +41328,22 @@ typedef $$UserGoalsTableUpdateCompanionBuilder = UserGoalsCompanion Function({
 final class $$UserGoalsTableReferences
     extends BaseReferences<_$AppDatabase, $UserGoalsTable, UserGoal> {
   $$UserGoalsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $MeasurementsTable _baselineMeasurementIdTable(_$AppDatabase db) =>
+      db.measurements
+          .createAlias('user_goals__baseline_measurement_id__measurements__id');
+
+  $$MeasurementsTableProcessedTableManager? get baselineMeasurementId {
+    final $_column = $_itemColumn<String>('baseline_measurement_id');
+    if ($_column == null) return null;
+    final manager = $$MeasurementsTableTableManager($_db, $_db.measurements)
+        .filter((f) => f.id.sqlEquals($_column));
+    final item =
+        $_typedResult.readTableOrNull(_baselineMeasurementIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: [item]));
+  }
 
   static $UserGoalsTable _predecessorGoalIdTable(_$AppDatabase db) =>
       db.userGoals
@@ -41136,6 +41434,16 @@ class $$UserGoalsTableFilterComposer
   ColumnFilters<DateTime> get startDate => $composableBuilder(
       column: $table.startDate, builder: (column) => ColumnFilters(column));
 
+  ColumnFilters<String> get trackingMode => $composableBuilder(
+      column: $table.trackingMode, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<double> get baselineValueKg => $composableBuilder(
+      column: $table.baselineValueKg,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get baselineDate => $composableBuilder(
+      column: $table.baselineDate, builder: (column) => ColumnFilters(column));
+
   ColumnFilters<DateTime> get targetDate => $composableBuilder(
       column: $table.targetDate, builder: (column) => ColumnFilters(column));
 
@@ -41158,6 +41466,26 @@ class $$UserGoalsTableFilterComposer
 
   ColumnFilters<DateTime> get retiredAt => $composableBuilder(
       column: $table.retiredAt, builder: (column) => ColumnFilters(column));
+
+  $$MeasurementsTableFilterComposer get baselineMeasurementId {
+    final $$MeasurementsTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.baselineMeasurementId,
+        referencedTable: $db.measurements,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$MeasurementsTableFilterComposer(
+              $db: $db,
+              $table: $db.measurements,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
 
   $$UserGoalsTableFilterComposer get predecessorGoalId {
     final $$UserGoalsTableFilterComposer composer = $composerBuilder(
@@ -41267,6 +41595,18 @@ class $$UserGoalsTableOrderingComposer
   ColumnOrderings<DateTime> get startDate => $composableBuilder(
       column: $table.startDate, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<String> get trackingMode => $composableBuilder(
+      column: $table.trackingMode,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<double> get baselineValueKg => $composableBuilder(
+      column: $table.baselineValueKg,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get baselineDate => $composableBuilder(
+      column: $table.baselineDate,
+      builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<DateTime> get targetDate => $composableBuilder(
       column: $table.targetDate, builder: (column) => ColumnOrderings(column));
 
@@ -41290,6 +41630,26 @@ class $$UserGoalsTableOrderingComposer
 
   ColumnOrderings<DateTime> get retiredAt => $composableBuilder(
       column: $table.retiredAt, builder: (column) => ColumnOrderings(column));
+
+  $$MeasurementsTableOrderingComposer get baselineMeasurementId {
+    final $$MeasurementsTableOrderingComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.baselineMeasurementId,
+        referencedTable: $db.measurements,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$MeasurementsTableOrderingComposer(
+              $db: $db,
+              $table: $db.measurements,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
 
   $$UserGoalsTableOrderingComposer get predecessorGoalId {
     final $$UserGoalsTableOrderingComposer composer = $composerBuilder(
@@ -41357,6 +41717,15 @@ class $$UserGoalsTableAnnotationComposer
   GeneratedColumn<DateTime> get startDate =>
       $composableBuilder(column: $table.startDate, builder: (column) => column);
 
+  GeneratedColumn<String> get trackingMode => $composableBuilder(
+      column: $table.trackingMode, builder: (column) => column);
+
+  GeneratedColumn<double> get baselineValueKg => $composableBuilder(
+      column: $table.baselineValueKg, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get baselineDate => $composableBuilder(
+      column: $table.baselineDate, builder: (column) => column);
+
   GeneratedColumn<DateTime> get targetDate => $composableBuilder(
       column: $table.targetDate, builder: (column) => column);
 
@@ -41377,6 +41746,26 @@ class $$UserGoalsTableAnnotationComposer
 
   GeneratedColumn<DateTime> get retiredAt =>
       $composableBuilder(column: $table.retiredAt, builder: (column) => column);
+
+  $$MeasurementsTableAnnotationComposer get baselineMeasurementId {
+    final $$MeasurementsTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.baselineMeasurementId,
+        referencedTable: $db.measurements,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$MeasurementsTableAnnotationComposer(
+              $db: $db,
+              $table: $db.measurements,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
 
   $$UserGoalsTableAnnotationComposer get predecessorGoalId {
     final $$UserGoalsTableAnnotationComposer composer = $composerBuilder(
@@ -41453,7 +41842,10 @@ class $$UserGoalsTableTableManager extends RootTableManager<
     (UserGoal, $$UserGoalsTableReferences),
     UserGoal,
     PrefetchHooks Function(
-        {bool predecessorGoalId, bool goalEventsRefs, bool goalReviewsRefs})> {
+        {bool baselineMeasurementId,
+        bool predecessorGoalId,
+        bool goalEventsRefs,
+        bool goalReviewsRefs})> {
   $$UserGoalsTableTableManager(_$AppDatabase db, $UserGoalsTable table)
       : super(TableManagerState(
           db: db,
@@ -41477,6 +41869,10 @@ class $$UserGoalsTableTableManager extends RootTableManager<
             Value<String?> reason = const Value.absent(),
             Value<String> status = const Value.absent(),
             Value<DateTime> startDate = const Value.absent(),
+            Value<String> trackingMode = const Value.absent(),
+            Value<String?> baselineMeasurementId = const Value.absent(),
+            Value<double?> baselineValueKg = const Value.absent(),
+            Value<DateTime?> baselineDate = const Value.absent(),
             Value<DateTime?> targetDate = const Value.absent(),
             Value<String?> targetMetric = const Value.absent(),
             Value<double?> targetValue = const Value.absent(),
@@ -41499,6 +41895,10 @@ class $$UserGoalsTableTableManager extends RootTableManager<
             reason: reason,
             status: status,
             startDate: startDate,
+            trackingMode: trackingMode,
+            baselineMeasurementId: baselineMeasurementId,
+            baselineValueKg: baselineValueKg,
+            baselineDate: baselineDate,
             targetDate: targetDate,
             targetMetric: targetMetric,
             targetValue: targetValue,
@@ -41521,6 +41921,10 @@ class $$UserGoalsTableTableManager extends RootTableManager<
             Value<String?> reason = const Value.absent(),
             Value<String> status = const Value.absent(),
             required DateTime startDate,
+            Value<String> trackingMode = const Value.absent(),
+            Value<String?> baselineMeasurementId = const Value.absent(),
+            Value<double?> baselineValueKg = const Value.absent(),
+            Value<DateTime?> baselineDate = const Value.absent(),
             Value<DateTime?> targetDate = const Value.absent(),
             Value<String?> targetMetric = const Value.absent(),
             Value<double?> targetValue = const Value.absent(),
@@ -41543,6 +41947,10 @@ class $$UserGoalsTableTableManager extends RootTableManager<
             reason: reason,
             status: status,
             startDate: startDate,
+            trackingMode: trackingMode,
+            baselineMeasurementId: baselineMeasurementId,
+            baselineValueKg: baselineValueKg,
+            baselineDate: baselineDate,
             targetDate: targetDate,
             targetMetric: targetMetric,
             targetValue: targetValue,
@@ -41559,7 +41967,8 @@ class $$UserGoalsTableTableManager extends RootTableManager<
                   ))
               .toList(),
           prefetchHooksCallback: (
-              {predecessorGoalId = false,
+              {baselineMeasurementId = false,
+              predecessorGoalId = false,
               goalEventsRefs = false,
               goalReviewsRefs = false}) {
             return PrefetchHooks(
@@ -41581,6 +41990,17 @@ class $$UserGoalsTableTableManager extends RootTableManager<
                       dynamic,
                       dynamic,
                       dynamic>>(state) {
+                if (baselineMeasurementId) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.baselineMeasurementId,
+                    referencedTable: $$UserGoalsTableReferences
+                        ._baselineMeasurementIdTable(db),
+                    referencedColumn: $$UserGoalsTableReferences
+                        ._baselineMeasurementIdTable(db)
+                        .id,
+                  ) as T;
+                }
                 if (predecessorGoalId) {
                   state = state.withJoin(
                     currentTable: table,
@@ -41642,7 +42062,10 @@ typedef $$UserGoalsTableProcessedTableManager = ProcessedTableManager<
     (UserGoal, $$UserGoalsTableReferences),
     UserGoal,
     PrefetchHooks Function(
-        {bool predecessorGoalId, bool goalEventsRefs, bool goalReviewsRefs})>;
+        {bool baselineMeasurementId,
+        bool predecessorGoalId,
+        bool goalEventsRefs,
+        bool goalReviewsRefs})>;
 typedef $$GoalEventsTableCreateCompanionBuilder = GoalEventsCompanion Function({
   Value<int> localId,
   Value<String> id,

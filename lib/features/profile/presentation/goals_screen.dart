@@ -1,53 +1,52 @@
-import '../../../services/unit_service.dart';
-// lib/features/profile/presentation/goals_screen.dart
+import 'dart:async';
+
 import 'package:flutter/material.dart';
-import '../../../util/design_constants.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
-import '../domain/repositories/profile_repository.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 import '../../../generated/app_localizations.dart';
+import '../../../services/telemetry/telemetry_service.dart';
+import '../../../util/design_constants.dart';
+import '../../../widgets/common/algorithm_info_sheet.dart';
 import '../../../widgets/common/common.dart';
 import '../../../widgets/common/global_app_bar.dart';
-import '../../../widgets/common/algorithm_info_sheet.dart';
 import '../../nutrition_recommendation/data/recommendation_service.dart';
-import '../../nutrition_recommendation/domain/goal_models.dart';
-import '../../nutrition_recommendation/presentation/prior_activity_help_block.dart';
-import '../../../data/database_helper.dart';
-import 'dart:async';
-import 'package:flutter_lucide/flutter_lucide.dart';
-import '../../../services/telemetry/telemetry_service.dart';
-import 'my_goals_screen.dart';
+import '../domain/repositories/profile_repository.dart';
 
-
-
-/// A screen for defining daily health and nutrition targets.
-class GoalsScreen extends StatefulWidget {
+/// Operative calorie, nutrient, hydration, and step targets.
+///
+/// Nutrition goal direction and trajectory live exclusively in My Goals. The
+/// former preference-backed bodyweight editor is intentionally not reachable
+/// from this screen anymore.
+class DailyTargetsScreen extends StatefulWidget {
   final AdaptiveNutritionRecommendationService? recommendationService;
   final IProfileRepository? repository;
 
-  const GoalsScreen({
+  const DailyTargetsScreen({
     super.key,
     this.recommendationService,
     this.repository,
   });
 
   @override
-  State<GoalsScreen> createState() => _GoalsScreenState();
+  State<DailyTargetsScreen> createState() => _DailyTargetsScreenState();
 }
 
-class _GoalsScreenState extends State<GoalsScreen> {
+/// Compatibility name for existing routes while callers migrate to the more
+/// precise [DailyTargetsScreen] name.
+class GoalsScreen extends DailyTargetsScreen {
+  const GoalsScreen({
+    super.key,
+    super.recommendationService,
+    super.repository,
+  });
+}
+
+class _DailyTargetsScreenState extends State<DailyTargetsScreen> {
   late final IProfileRepository _repository =
       widget.repository ?? context.read<IProfileRepository>();
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = true;
-  late final AdaptiveNutritionRecommendationService _recommendationService;
-
-  BodyweightGoal _selectedGoal = BodyweightGoal.maintainWeight;
-  double _selectedTargetRateKgPerWeek = 0;
-  PriorActivityLevel _selectedPriorActivityLevel =
-      PriorActivityLevelCatalog.defaultLevel;
-  ExtraCardioHoursOption _selectedExtraCardioHoursOption =
-      ExtraCardioHoursCatalog.defaultOption;
 
   final _caloriesController = TextEditingController();
   final _proteinController = TextEditingController();
@@ -55,7 +54,6 @@ class _GoalsScreenState extends State<GoalsScreen> {
   final _fatController = TextEditingController();
   final _waterController = TextEditingController();
   final _stepsController = TextEditingController();
-  final _heightController = TextEditingController();
   final _sugarController = TextEditingController();
   final _fiberController = TextEditingController();
   final _saltController = TextEditingController();
@@ -65,9 +63,6 @@ class _GoalsScreenState extends State<GoalsScreen> {
     super.initState();
     unawaited(TelemetryService.instance
         .trackScreenView(screenName: ScreenName.goalEditor));
-    _recommendationService = widget.recommendationService ??
-        AdaptiveNutritionRecommendationService(
-            databaseHelper: DatabaseHelper.instance);
     _loadSettings();
   }
 
@@ -79,7 +74,6 @@ class _GoalsScreenState extends State<GoalsScreen> {
     _fatController.dispose();
     _waterController.dispose();
     _stepsController.dispose();
-    _heightController.dispose();
     _sugarController.dispose();
     _fiberController.dispose();
     _saltController.dispose();
@@ -89,90 +83,45 @@ class _GoalsScreenState extends State<GoalsScreen> {
   Future<void> _loadSettings() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final selectedGoal = await _recommendationService.getGoal();
-      final selectedTargetRate =
-          await _recommendationService.getTargetRateKgPerWeek();
-      final selectedPriorActivityLevel =
-          await _recommendationService.getPriorActivityLevel();
-      final selectedExtraCardioHoursOption =
-          await _recommendationService.getExtraCardioHoursOption();
-
       final settings = await _repository.getAppSettings();
       final targetSteps = await _repository.getCurrentTargetStepsOrDefault();
+      var targetWater = settings?.targetWater ?? 3000;
+      if (settings?.targetWater == null) {
+        final weightData = await _repository.getChartDataForTypeAndRange(
+          'weight',
+          DateTimeRange(
+            start: DateTime.now().subtract(const Duration(days: 365)),
+            end: DateTime.now(),
+          ),
+        );
+        if (weightData.isNotEmpty) {
+          targetWater = ((weightData.last.value / 20.0) * 1000.0).round();
+        }
+      }
 
       if (!mounted) return;
       setState(() {
-        _heightController.text = (prefs.getInt('userHeight') ?? 180).toString();
-
         _caloriesController.text =
             (settings?.targetCalories ?? 2500).toString();
         _proteinController.text = (settings?.targetProtein ?? 180).toString();
         _carbsController.text = (settings?.targetCarbs ?? 250).toString();
         _fatController.text = (settings?.targetFat ?? 80).toString();
-
-        int targetWater = settings?.targetWater ?? 3000;
-        if (settings?.targetWater == null) {
-          _repository
-              .getChartDataForTypeAndRange(
-            'weight',
-            DateTimeRange(
-              start: DateTime.now().subtract(const Duration(days: 365)),
-              end: DateTime.now(),
-            ),
-          )
-              .then((weightData) {
-            if (weightData.isNotEmpty && mounted) {
-              final latestWeight = weightData.last.value;
-              setState(() {
-                _waterController.text =
-                    ((latestWeight / 20.0) * 1000.0).round().toString();
-              });
-            }
-          });
-        }
         _waterController.text = targetWater.toString();
         _stepsController.text = targetSteps.toString();
-
         _sugarController.text = (prefs.getInt('targetSugar') ?? 50).toString();
         _fiberController.text = (prefs.getInt('targetFiber') ?? 30).toString();
         _saltController.text = (prefs.getInt('targetSalt') ?? 6).toString();
-        _selectedGoal = selectedGoal;
-        _selectedTargetRateKgPerWeek = WeeklyTargetRateCatalog.coerceTargetRate(
-          goal: selectedGoal,
-          kgPerWeek: selectedTargetRate,
-          unitService: context.read<UnitService>(),
-        );
-        _selectedPriorActivityLevel = selectedPriorActivityLevel;
-        _selectedExtraCardioHoursOption = selectedExtraCardioHoursOption;
-
         _isLoading = false;
       });
-    } catch (e) {
-      if (!mounted) return;
-      debugPrint('GoalsScreen: failed to load settings: $e');
-      setState(() => _isLoading = false);
+    } catch (error) {
+      debugPrint('DailyTargetsScreen: failed to load settings: $error');
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
   Future<void> _saveSettings() async {
-    final isValid = _formKey.currentState?.validate() ?? false;
-    if (!isValid) return;
-
+    if (!(_formKey.currentState?.validate() ?? false)) return;
     final prefs = await SharedPreferences.getInstance();
-
-    await prefs.setInt('userHeight', int.parse(_heightController.text));
-
-    await _recommendationService.saveGoalAndTargetRate(
-      goal: _selectedGoal,
-      targetRateKgPerWeek: _selectedTargetRateKgPerWeek,
-    );
-    await _recommendationService.savePriorActivityLevel(
-      _selectedPriorActivityLevel,
-    );
-    await _recommendationService.saveExtraCardioHoursOption(
-      _selectedExtraCardioHoursOption,
-    );
-
     await _repository.saveUserGoals(
       calories: int.parse(_caloriesController.text),
       protein: int.parse(_proteinController.text),
@@ -181,41 +130,30 @@ class _GoalsScreenState extends State<GoalsScreen> {
       water: int.parse(_waterController.text),
       steps: int.parse(_stepsController.text),
     );
-
     await prefs.setInt('targetSugar', int.parse(_sugarController.text));
     await prefs.setInt('targetFiber', int.parse(_fiberController.text));
     await prefs.setInt('targetSalt', int.parse(_saltController.text));
 
-    if (mounted) {
-      final l10n = AppLocalizations.of(context)!;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(l10n.snackbarGoalsSaved)));
-      Navigator.of(context).pop();
-    }
+    if (!mounted) return;
+    final l10n = AppLocalizations.of(context)!;
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(l10n.snackbarGoalsSaved)));
+    Navigator.of(context).pop();
   }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: GlobalAppBar(
-        title: l10n.my_goals,
+        title: l10n.dailyOperatingTargetsTitle,
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: DesignConstants.spacingS),
             child: TextButton(
               onPressed: _saveSettings,
-              child: Text(
-                l10n.buttonSave,
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.primary,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
-              ),
+              child: Text(l10n.buttonSave),
             ),
           ),
         ],
@@ -233,251 +171,51 @@ class _GoalsScreenState extends State<GoalsScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    InkWell(
-                      borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
-                      onTap: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(builder: (_) => const MyGoalsScreen()),
-                        );
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.all(DesignConstants.spacingM),
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
-                          border: Border.all(
-                            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
-                          ),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(
-                              LucideIcons.target,
-                              color: Theme.of(context).colorScheme.primary,
-                              size: 22,
-                            ),
-                            const SizedBox(width: DesignConstants.spacingM),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    l10n.goalsScreenToMyGoalsBannerTitle,
-                                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    l10n.goalsScreenToMyGoalsBannerSubtitle,
-                                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
-                                        ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Icon(
-                              LucideIcons.chevron_right,
-                              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4),
-                              size: 18,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: DesignConstants.spacingL),
-                    AppSectionHeader(
-                      key: const Key('goals_personal_section_title'),
-                      title: l10n.personalDataCL,
-                    ),
-                    const SizedBox(height: DesignConstants.spacingM),
-                    _buildSettingsField(
-                      controller: _heightController,
-                      label: l10n.profileUserHeight,
-                      fieldKey: const Key('goals_height_field'),
-                    ),
-                    const SizedBox(height: DesignConstants.spacingXL),
-                    AppSectionHeader(
-                      key: const Key('goals_adaptive_section_title'),
-                      title: l10n.adaptiveBodyweightTargetSectionTitle,
-                    ),
-                    const SizedBox(height: DesignConstants.spacingM),
-                    PlatformAdaptiveDropdownFormField<BodyweightGoal>(
-                      initialValue: _selectedGoal,
-                      decoration: InputDecoration(
-                        labelText: l10n.adaptiveGoalDirectionLabel,
-                      ),
-                      items: BodyweightGoal.values
-                          .map(
-                            (goal) => DropdownMenuItem<BodyweightGoal>(
-                              value: goal,
-                              child: Text(
-                                _goalLabel(l10n, goal),
-                              ),
-                            ),
-                          )
-                          .toList(growable: false),
-                      onChanged: (goal) {
-                        if (goal == null) return;
-                        setState(() {
-                          _selectedGoal = goal;
-                          _selectedTargetRateKgPerWeek =
-                              WeeklyTargetRateCatalog.defaultForGoal(
-                                      goal, context.read<UnitService>())
-                                  .kgPerWeek;
-                        });
-                      },
-                    ),
-                    const SizedBox(height: DesignConstants.spacingM),
-                    _buildTargetRateChips(context, l10n),
-                    const SizedBox(height: DesignConstants.spacingXL),
-
-                    AppSectionHeader(
-                      key: const Key(
-                        'goals_recommendation_settings_section_title',
-                      ),
-                      title: l10n.adaptiveRecommendationSettingsSectionTitle,
-                    ),
-                    const SizedBox(height: DesignConstants.spacingM),
-                    PlatformAdaptiveDropdownFormField<PriorActivityLevel>(
-                      key: const Key('goals_prior_activity_dropdown'),
-                      initialValue: _selectedPriorActivityLevel,
-                      decoration: InputDecoration(
-                        labelText: l10n.adaptivePriorActivityLabel,
-                      ),
-                      items: PriorActivityLevel.values
-                          .map(
-                            (level) => DropdownMenuItem<PriorActivityLevel>(
-                              value: level,
-                              child: Text(
-                                _priorActivityLabel(l10n, level),
-                              ),
-                            ),
-                          )
-                          .toList(growable: false),
-                      onChanged: (level) {
-                        if (level == null) return;
-                        setState(() {
-                          _selectedPriorActivityLevel = level;
-                        });
-                      },
-                    ),
-                    const SizedBox(height: DesignConstants.spacingS),
-                    PriorActivityHelpBlock(
-                      key: const Key('goals_prior_activity_help_block'),
-                      l10n: l10n,
-                    ),
-                    const SizedBox(height: DesignConstants.spacingM),
-                    PlatformAdaptiveDropdownFormField<ExtraCardioHoursOption>(
-                      key: const Key('goals_extra_cardio_dropdown'),
-                      initialValue: _selectedExtraCardioHoursOption,
-                      decoration: InputDecoration(
-                        labelText: l10n.adaptiveExtraCardioLabel,
-                      ),
-                      items: ExtraCardioHoursCatalog.supportedOptions
-                          .map(
-                            (option) =>
-                                DropdownMenuItem<ExtraCardioHoursOption>(
-                              value: option,
-                              child: Text(_extraCardioLabel(l10n, option)),
-                            ),
-                          )
-                          .toList(growable: false),
-                      onChanged: (option) {
-                        if (option == null) return;
-                        setState(() {
-                          _selectedExtraCardioHoursOption = option;
-                        });
-                      },
-                    ),
-                    const SizedBox(height: DesignConstants.spacingS),
-                    Text(
-                      l10n.adaptiveExtraCardioHelp,
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                    const SizedBox(height: DesignConstants.spacingXL),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         AppSectionHeader(
                           key: const Key('goals_daily_section_title'),
                           title: l10n.profileDailyGoalsCL,
                         ),
-                        Padding(
-                          padding: const EdgeInsets.only(right: 4.0),
-                          child: AlgorithmInfoButton(
-                            title: l10n.infoTdeeTitle,
-                            explanation: l10n.infoTdeeExplanation,
-                            keyPoints: l10n.infoTdeeKeyPoints.split('\n'),
-                            technicalTitle: l10n.infoTdeeTechnicalTitle,
-                            technicalExplanation:
-                                l10n.infoTdeeTechnicalExplanation,
-                            markdownAssetPath:
-                                'documentation/features/bayesian_tdee_estimator.md',
-                            citationUrl:
-                                'https://trainlibre.com/docs/features/bayesian-tdee-estimator/#evidence',
-                          ),
+                        AlgorithmInfoButton(
+                          title: l10n.infoTdeeTitle,
+                          explanation: l10n.infoTdeeExplanation,
+                          keyPoints: l10n.infoTdeeKeyPoints.split('\n'),
+                          technicalTitle: l10n.infoTdeeTechnicalTitle,
+                          technicalExplanation:
+                              l10n.infoTdeeTechnicalExplanation,
+                          markdownAssetPath:
+                              'documentation/features/bayesian_tdee_estimator.md',
+                          citationUrl:
+                              'https://trainlibre.com/docs/features/bayesian-tdee-estimator/#evidence',
                         ),
                       ],
                     ),
                     const SizedBox(height: DesignConstants.spacingM),
-                    _buildSettingsField(
-                      controller: _caloriesController,
-                      label: l10n.calories,
-                    ),
-                    _buildSettingsField(
-                      controller: _proteinController,
-                      label: l10n.protein,
-                    ),
-                    _buildSettingsField(
-                      controller: _carbsController,
-                      label: l10n.carbs,
-                    ),
-                    _buildSettingsField(
-                      controller: _fatController,
-                      label: l10n.fat,
-                    ),
-                    _buildSettingsField(
-                      controller: _waterController,
-                      label: l10n.water,
-                    ),
-                    _buildSettingsField(
-                      controller: _stepsController,
-                      label: l10n.steps,
-                    ),
-                    const SizedBox(height: DesignConstants.spacingXL),
+                    _field(_caloriesController, l10n.calories),
+                    _field(_proteinController, l10n.protein),
+                    _field(_carbsController, l10n.carbs),
+                    _field(_fatController, l10n.fat),
+                    _field(_waterController, l10n.water),
+                    _field(_stepsController, l10n.steps),
+                    const SizedBox(height: DesignConstants.spacingL),
                     AppSectionHeader(title: l10n.detailedNutrientGoalsCL),
                     const SizedBox(height: DesignConstants.spacingM),
-                    _buildSettingsField(
-                      controller: _sugarController,
-                      label: l10n.sugar,
-                    ),
-                    _buildSettingsField(
-                      controller: _fiberController,
-                      label: l10n.fiber,
-                    ),
-                    _buildSettingsField(
-                      controller: _saltController,
-                      label: l10n.salt,
-                    ),
+                    _field(_sugarController, l10n.sugar),
+                    _field(_fiberController, l10n.fiber),
+                    _field(_saltController, l10n.salt),
                     const SizedBox(height: DesignConstants.spacingL),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: DesignConstants.spacingM,
-                      ),
-                      child: Text(
-                        'Nutritional estimates are sports-science-inspired heuristics calibrated for healthy individuals and are not intended for medical diagnosis or treatment. See scientific references via the info button.',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              fontStyle: FontStyle.italic,
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurface
-                                  .withValues(alpha: 0.6),
-                            ),
-                        textAlign: TextAlign.center,
-                      ),
+                    Text(
+                      l10n.infoScientificDisclaimer,
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            fontStyle: FontStyle.italic,
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onSurface
+                                .withValues(alpha: 0.6),
+                          ),
                     ),
                   ],
                 ),
@@ -486,187 +224,18 @@ class _GoalsScreenState extends State<GoalsScreen> {
     );
   }
 
-  Widget _buildSettingsField({
-    required TextEditingController controller,
-    required String label,
-    Key? fieldKey,
-  }) {
+  Widget _field(TextEditingController controller, String label) {
     final l10n = AppLocalizations.of(context)!;
     return Padding(
       padding: const EdgeInsets.only(bottom: DesignConstants.spacingM),
       child: TextFormField(
-        key: fieldKey,
         controller: controller,
         decoration: InputDecoration(labelText: label),
         keyboardType: TextInputType.number,
-        validator: (value) {
-          if (value == null || value.isEmpty || num.tryParse(value) == null) {
-            return l10n.validatorPleaseEnterNumber;
-          }
-          return null;
-        },
+        validator: (value) => value == null || num.tryParse(value) == null
+            ? l10n.validatorPleaseEnterNumber
+            : null,
       ),
     );
-  }
-
-  String _goalLabel(AppLocalizations l10n, BodyweightGoal goal) {
-    switch (goal) {
-      case BodyweightGoal.loseWeight:
-        return l10n.adaptiveGoalLose;
-      case BodyweightGoal.maintainWeight:
-        return l10n.adaptiveGoalMaintain;
-      case BodyweightGoal.gainWeight:
-        return l10n.adaptiveGoalGain;
-    }
-  }
-
-  Widget _buildTargetRateChips(BuildContext context, AppLocalizations l10n) {
-    if (_selectedGoal == BodyweightGoal.maintainWeight) {
-      return const SizedBox.shrink();
-    }
-
-    final unitService = context.read<UnitService>();
-    final presetOptions = WeeklyTargetRateCatalog.optionsForGoal(
-      _selectedGoal,
-      unitService,
-    );
-    final isCustom = !WeeklyTargetRateCatalog.isPreset(
-      goal: _selectedGoal,
-      kgPerWeek: _selectedTargetRateKgPerWeek,
-      unitService: unitService,
-    );
-
-    final chips = <Widget>[];
-
-    for (final option in presetOptions) {
-      final selected =
-          !isCustom &&
-          (option.kgPerWeek - _selectedTargetRateKgPerWeek).abs() < 0.001;
-      chips.add(
-        ChoiceChip(
-          label: Text(_rateLabel(context, l10n, option.kgPerWeek)),
-          selected: selected,
-          onSelected: (_) {
-            setState(() {
-              _selectedTargetRateKgPerWeek = option.kgPerWeek;
-            });
-          },
-        ),
-      );
-    }
-
-    final String customChipText;
-    if (isCustom) {
-      customChipText = _rateLabel(context, l10n, _selectedTargetRateKgPerWeek);
-    } else {
-
-      customChipText =
-          (l10n.customTargetRateOption.isNotEmpty)
-              ? l10n.customTargetRateOption
-              : 'Eigener Wert';
-    }
-
-    chips.add(
-      ChoiceChip(
-        key: const Key('goals_custom_rate_chip'),
-        label: Text(customChipText),
-        selected: isCustom,
-        onSelected: (_) async {
-          final newRate = await showAdaptiveTargetRatePicker(
-            context: context,
-            goal: _selectedGoal,
-            initialKgPerWeek:
-                _selectedTargetRateKgPerWeek == 0
-                    ? WeeklyTargetRateCatalog.defaultForGoal(
-                      _selectedGoal,
-                      unitService,
-                    ).kgPerWeek
-                    : _selectedTargetRateKgPerWeek,
-            unitService: unitService,
-          );
-          if (newRate != null && mounted) {
-            setState(() {
-              _selectedTargetRateKgPerWeek = newRate;
-            });
-          }
-        },
-      ),
-    );
-
-    return Wrap(spacing: 8, runSpacing: 8, children: chips);
-  }
-
-  String _rateLabel(
-    BuildContext context,
-    AppLocalizations l10n,
-    double kgPerWeek,
-  ) {
-    final unitService = context.read<UnitService>();
-    final sign = kgPerWeek > 0 ? '+' : '';
-    final isMetric = unitService.isMetric;
-
-    if (isMetric) {
-      final grams = (kgPerWeek.abs() * 1000).round();
-      if (grams < 1000 && grams % 100 != 0) {
-        return '$sign$grams g/Woche';
-      }
-    }
-
-    final displayValue = unitService.convertDisplayValue(
-      kgPerWeek.abs(),
-      UnitDimension.weight,
-    );
-    final valStr = displayValue
-        .toStringAsFixed(2)
-        .replaceAll(RegExp(r'0*$'), '')
-        .replaceAll(RegExp(r'\.$'), '');
-    return l10n.adaptiveRatePerWeek(
-      '$sign$valStr',
-      unitService.suffixFor(UnitDimension.weight),
-    );
-  }
-
-
-  String _priorActivityLabel(
-    AppLocalizations l10n,
-    PriorActivityLevel level,
-  ) {
-    switch (level) {
-      case PriorActivityLevel.low:
-        return l10n.adaptivePriorActivityLow;
-      case PriorActivityLevel.moderate:
-        return l10n.adaptivePriorActivityModerate;
-      case PriorActivityLevel.high:
-        return l10n.adaptivePriorActivityHigh;
-      case PriorActivityLevel.veryHigh:
-        return l10n.adaptivePriorActivityVeryHigh;
-    }
-  }
-
-  String _extraCardioLabel(
-    AppLocalizations l10n,
-    ExtraCardioHoursOption option,
-  ) {
-    switch (option) {
-      case ExtraCardioHoursOption.h0:
-        return l10n.adaptiveExtraCardioOption0;
-      case ExtraCardioHoursOption.h1:
-        return l10n.adaptiveExtraCardioOption1;
-      case ExtraCardioHoursOption.h2:
-        return l10n.adaptiveExtraCardioOption2;
-      case ExtraCardioHoursOption.h3:
-        return l10n.adaptiveExtraCardioOption3;
-      case ExtraCardioHoursOption.h5:
-        return l10n.adaptiveExtraCardioOption5;
-      case ExtraCardioHoursOption.h7Plus:
-        return l10n.adaptiveExtraCardioOption7Plus;
-    }
-  }
-}
-
-extension StringExtension on String {
-  String capitalize() {
-    if (isEmpty) return this;
-    return "${this[0].toUpperCase()}${substring(1)}";
   }
 }

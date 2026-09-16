@@ -102,16 +102,21 @@ class AdaptiveNutritionRecommendationEngine {
     required double currentWeightKg,
     required int recommendedCalories,
   }) {
-    final normalizedWeight = currentWeightKg <= 0 ? 75.0 : currentWeightKg;
-    var proteinGrams = (normalizedWeight * _proteinPerKg(goal)).round();
+    if (currentWeightKg <= 0) {
+      throw ArgumentError.value(
+        currentWeightKg,
+        'currentWeightKg',
+        'A positive measured weight is required.',
+      );
+    }
+    var proteinGrams = (currentWeightKg * _proteinPerKg(goal)).round();
 
     // Fat is targeted per kilogram like protein is, and only falls back to the
     // floor when the calorie budget cannot carry the target. Carbohydrates
     // take whatever is left.
-    final fatFloor =
-        (normalizedWeight * _kFatFloorPerKg).round().clamp(35, 130);
+    final fatFloor = (currentWeightKg * _kFatFloorPerKg).round().clamp(35, 130);
     var fatGrams =
-        (normalizedWeight * _fatPerKg(goal)).round().clamp(fatFloor, 250);
+        (currentWeightKg * _fatPerKg(goal)).round().clamp(fatFloor, 250);
 
     var carbsGrams =
         ((recommendedCalories - (proteinGrams * 4) - (fatGrams * 9)) / 4)

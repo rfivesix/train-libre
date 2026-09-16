@@ -70,6 +70,8 @@ void main() {
     addTearDown(database.close);
     final repository = GoalRepositoryImpl(database: database);
     await repository.createGoal(
+      baselineValueKg: 80,
+      baselineDate: DateTime(2026, 1, 1),
       preset: GoalPreset.loseWeight,
       title: 'Test',
       startDate: DateTime(2026, 1, 1),
@@ -108,6 +110,8 @@ void main() {
     addTearDown(database.close);
     final repository = GoalRepositoryImpl(database: database);
     final goal = await repository.createGoal(
+      baselineValueKg: 80,
+      baselineDate: DateTime(2026, 1, 1),
       preset: GoalPreset.maintainWeight,
       title: 'Test',
       startDate: DateTime(2026, 1, 1),

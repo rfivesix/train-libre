@@ -375,7 +375,8 @@ class LocalNotificationService {
       }
       return true;
     } catch (e, st) {
-      debugPrint('LocalNotificationService: showAdaptiveRecommendationDueNotification failed: $e\n$st');
+      debugPrint(
+          'LocalNotificationService: showAdaptiveRecommendationDueNotification failed: $e\n$st');
       return false;
     }
   }
@@ -483,6 +484,8 @@ class LocalNotificationService {
   Future<bool> showWeeklyGoalReviewNotification({
     required String goalId,
     required String reviewId,
+    String? goalTitle,
+    int? recommendedCalories,
     bool ignorePreferences = false,
     Duration? delay,
   }) async {
@@ -495,6 +498,12 @@ class LocalNotificationService {
 
     final locale = WidgetsBinding.instance.platformDispatcher.locale;
     final l10n = lookupAppLocalizations(locale);
+    final body = goalTitle != null && recommendedCalories != null
+        ? l10n.weeklyGoalReviewNotificationDetailedBody(
+            goalTitle,
+            recommendedCalories,
+          )
+        : l10n.weeklyGoalReviewNotificationBody;
 
     try {
       final id = notificationIdForReview(reviewId);
@@ -511,7 +520,7 @@ class LocalNotificationService {
           await _plugin.zonedSchedule(
             id: id,
             title: l10n.weeklyGoalReviewNotificationTitle,
-            body: l10n.weeklyGoalReviewNotificationBody,
+            body: body,
             scheduledDate: scheduledDate,
             notificationDetails: details,
             androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
@@ -521,7 +530,7 @@ class LocalNotificationService {
           await _plugin.zonedSchedule(
             id: id,
             title: l10n.weeklyGoalReviewNotificationTitle,
-            body: l10n.weeklyGoalReviewNotificationBody,
+            body: body,
             scheduledDate: scheduledDate,
             notificationDetails: details,
             androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
@@ -532,14 +541,15 @@ class LocalNotificationService {
         await _plugin.show(
           id: id,
           title: l10n.weeklyGoalReviewNotificationTitle,
-          body: l10n.weeklyGoalReviewNotificationBody,
+          body: body,
           notificationDetails: details,
           payload: payload,
         );
       }
       return true;
     } catch (e, st) {
-      debugPrint('LocalNotificationService: showWeeklyGoalReviewNotification failed: $e\n$st');
+      debugPrint(
+          'LocalNotificationService: showWeeklyGoalReviewNotification failed: $e\n$st');
       return false;
     }
   }
@@ -595,7 +605,8 @@ class LocalNotificationService {
         : l10n.goalTargetDateApproachingBody(goalTitle);
 
     try {
-      final id = notificationIdForGoalTargetDate(goalId, isDueToday: isDueToday);
+      final id =
+          notificationIdForGoalTargetDate(goalId, isDueToday: isDueToday);
       final details = _goalTargetDateNotificationDetails();
       final payload = AppNotificationPayload(
         type: AppNotificationType.goalTargetDate,
@@ -636,7 +647,8 @@ class LocalNotificationService {
       }
       return true;
     } catch (e, st) {
-      debugPrint('LocalNotificationService: showGoalTargetDateReminderNotification failed: $e\n$st');
+      debugPrint(
+          'LocalNotificationService: showGoalTargetDateReminderNotification failed: $e\n$st');
       return false;
     }
   }

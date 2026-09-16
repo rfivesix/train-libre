@@ -56,6 +56,8 @@ void main() {
       preset: GoalPreset.maintainWeight,
       title: 'Maintain',
       startDate: DateTime(2026, 1, 1),
+      baselineValueKg: 80,
+      baselineDate: DateTime(2026, 1, 1),
     );
     final review = GoalReviewRecord(
       id: 'review-1',

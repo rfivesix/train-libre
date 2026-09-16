@@ -13,6 +13,7 @@ import 'main_screen.dart';
 import '../../onboarding/presentation/onboarding_screen.dart';
 import '../../nutrition_recommendation/data/recommendation_service.dart';
 import '../../profile/data/goal_repository_impl.dart';
+import '../../profile/data/legacy_goal_migration.dart';
 import '../../profile/domain/services/goal_notification_orchestrator.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -185,6 +186,7 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
         () async {
           await LocalNotificationService.instance.initialize();
           try {
+            await LegacyGoalMigration().run();
             await AdaptiveNutritionRecommendationService()
                 .refreshRecommendationIfDue();
             await GoalNotificationOrchestrator(

@@ -49,7 +49,7 @@ class _MyGoalsScreenState extends State<MyGoalsScreen> {
   }
 
   Future<Map<String, dynamic>> _fetchGoalsData() async {
-    final activeGoal = await _goalRepository.getActiveGoal();
+    final activeGoal = await _goalRepository.getActiveNutritionGoal();
     GoalProgress? activeProgress;
     if (activeGoal != null) {
       activeProgress = await _goalRepository.getGoalProgress(activeGoal);
@@ -126,10 +126,13 @@ class _MyGoalsScreenState extends State<MyGoalsScreen> {
               children: [
                 // Top banner pointing to operative daily targets
                 InkWell(
-                  borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
+                  borderRadius:
+                      BorderRadius.circular(DesignConstants.borderRadiusM),
                   onTap: () {
                     Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const GoalsScreen()),
+                      MaterialPageRoute(
+                        builder: (_) => const DailyTargetsScreen(),
+                      ),
                     );
                   },
                   child: Container(
@@ -138,10 +141,13 @@ class _MyGoalsScreenState extends State<MyGoalsScreen> {
                       vertical: DesignConstants.spacingS + 2,
                     ),
                     decoration: BoxDecoration(
-                      color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-                      borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
+                      color: theme.colorScheme.surfaceContainerHighest
+                          .withValues(alpha: 0.5),
+                      borderRadius:
+                          BorderRadius.circular(DesignConstants.borderRadiusM),
                       border: Border.all(
-                        color: theme.colorScheme.outline.withValues(alpha: 0.15),
+                        color:
+                            theme.colorScheme.outline.withValues(alpha: 0.15),
                       ),
                     ),
                     child: Row(
@@ -156,14 +162,16 @@ class _MyGoalsScreenState extends State<MyGoalsScreen> {
                           child: Text(
                             l10n.myGoalsOperativeTargetsBanner,
                             style: theme.textTheme.bodySmall?.copyWith(
-                              color: theme.colorScheme.onSurface.withValues(alpha: 0.8),
+                              color: theme.colorScheme.onSurface
+                                  .withValues(alpha: 0.8),
                             ),
                           ),
                         ),
                         Icon(
                           LucideIcons.chevron_right,
                           size: 16,
-                          color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
+                          color: theme.colorScheme.onSurface
+                              .withValues(alpha: 0.4),
                         ),
                       ],
                     ),
@@ -199,7 +207,8 @@ class _MyGoalsScreenState extends State<MyGoalsScreen> {
                           onPressed: () async {
                             await Navigator.of(context).push(
                               MaterialPageRoute(
-                                builder: (_) => GoalDetailScreen(goalId: activeGoal.id),
+                                builder: (_) =>
+                                    GoalDetailScreen(goalId: activeGoal.id),
                               ),
                             );
                             _loadData();
@@ -210,20 +219,24 @@ class _MyGoalsScreenState extends State<MyGoalsScreen> {
                       Expanded(
                         child: AppButton.secondary(
                           label: l10n.adjustGoalTitle,
-                          onPressed: () async {
-                            final startWeight = activeProgress?.currentValue ??
-                                activeProgress?.baselineValue ??
-                                75.0;
-                            final result = await GoalAdjustmentSheet.show(
-                              context,
-                              goal: activeGoal,
-                              startWeightKg: startWeight,
-                              repository: _goalRepository,
-                            );
-                            if (result == true && mounted) {
-                              _loadData();
-                            }
-                          },
+                          onPressed: (activeProgress?.currentValue ??
+                                      activeProgress?.baselineValue) ==
+                                  null
+                              ? null
+                              : () async {
+                                  final startWeight =
+                                      activeProgress!.currentValue ??
+                                          activeProgress.baselineValue!;
+                                  final result = await GoalAdjustmentSheet.show(
+                                    context,
+                                    goal: activeGoal,
+                                    startWeightKg: startWeight,
+                                    repository: _goalRepository,
+                                  );
+                                  if (result == true && mounted) {
+                                    _loadData();
+                                  }
+                                },
                         ),
                       ),
                     ],
@@ -244,7 +257,8 @@ class _MyGoalsScreenState extends State<MyGoalsScreen> {
                         ),
                         leading: Icon(
                           LucideIcons.rotate_ccw,
-                          color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+                          color: theme.colorScheme.onSurface
+                              .withValues(alpha: 0.7),
                         ),
                         title: Text(
                           '${l10n.myGoalsHistorySectionHeader} (${retiredGoals.length})',
@@ -257,10 +271,12 @@ class _MyGoalsScreenState extends State<MyGoalsScreen> {
                             shrinkWrap: true,
                             physics: const NeverScrollableScrollPhysics(),
                             itemCount: retiredGoals.length,
-                            separatorBuilder: (_, __) => const Divider(height: 1),
+                            separatorBuilder: (_, __) =>
+                                const Divider(height: 1),
                             itemBuilder: (context, index) {
                               final item = retiredGoals[index];
-                              final isSuperseded = item.status == GoalStatus.superseded;
+                              final isSuperseded =
+                                  item.status == GoalStatus.superseded;
                               return ListTile(
                                 contentPadding: const EdgeInsets.symmetric(
                                   horizontal: DesignConstants.spacingM,
@@ -271,7 +287,8 @@ class _MyGoalsScreenState extends State<MyGoalsScreen> {
                                     Expanded(
                                       child: Text(
                                         item.title,
-                                        style: theme.textTheme.bodyMedium?.copyWith(
+                                        style: theme.textTheme.bodyMedium
+                                            ?.copyWith(
                                           fontWeight: FontWeight.w600,
                                         ),
                                       ),
@@ -283,8 +300,10 @@ class _MyGoalsScreenState extends State<MyGoalsScreen> {
                                       ),
                                       decoration: BoxDecoration(
                                         color: isSuperseded
-                                            ? theme.colorScheme.surfaceContainerHighest
-                                            : Colors.orange.withValues(alpha: 0.15),
+                                            ? theme.colorScheme
+                                                .surfaceContainerHighest
+                                            : Colors.orange
+                                                .withValues(alpha: 0.15),
                                         borderRadius: BorderRadius.circular(
                                           DesignConstants.borderRadiusS,
                                         ),
@@ -293,9 +312,11 @@ class _MyGoalsScreenState extends State<MyGoalsScreen> {
                                         isSuperseded
                                             ? l10n.goalStatusSuperseded
                                             : l10n.goalStatusRetired,
-                                        style: theme.textTheme.labelSmall?.copyWith(
+                                        style: theme.textTheme.labelSmall
+                                            ?.copyWith(
                                           color: isSuperseded
-                                              ? theme.colorScheme.onSurface.withValues(alpha: 0.7)
+                                              ? theme.colorScheme.onSurface
+                                                  .withValues(alpha: 0.7)
                                               : Colors.orange.shade800,
                                           fontSize: 10,
                                           fontWeight: FontWeight.w600,
@@ -310,26 +331,32 @@ class _MyGoalsScreenState extends State<MyGoalsScreen> {
                                     const SizedBox(height: 2),
                                     Text(
                                       '${dateFormat.format(item.startDate)}${item.retiredAt != null ? " – ${dateFormat.format(item.retiredAt!)}" : ""}',
-                                      style: theme.textTheme.bodySmall?.copyWith(
+                                      style:
+                                          theme.textTheme.bodySmall?.copyWith(
                                         fontSize: 11,
-                                        color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                                        color: theme.colorScheme.onSurface
+                                            .withValues(alpha: 0.5),
                                       ),
                                     ),
                                     if (item.targetValue != null)
                                       Text(
                                         '${l10n.goalTargetHeader}: ${unitService.convertDisplayValue(item.targetValue!, UnitDimension.weight).toStringAsFixed(1)} ${unitService.unitString(UnitDimension.weight)}',
-                                        style: theme.textTheme.bodySmall?.copyWith(
+                                        style:
+                                            theme.textTheme.bodySmall?.copyWith(
                                           fontSize: 11,
-                                          color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+                                          color: theme.colorScheme.onSurface
+                                              .withValues(alpha: 0.7),
                                         ),
                                       ),
                                   ],
                                 ),
-                                trailing: const Icon(LucideIcons.chevron_right, size: 18),
+                                trailing: const Icon(LucideIcons.chevron_right,
+                                    size: 18),
                                 onTap: () async {
                                   await Navigator.of(context).push(
                                     MaterialPageRoute(
-                                      builder: (_) => GoalDetailScreen(goalId: item.id),
+                                      builder: (_) =>
+                                          GoalDetailScreen(goalId: item.id),
                                     ),
                                   );
                                   _loadData();

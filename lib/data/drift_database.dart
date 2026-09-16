@@ -796,6 +796,13 @@ class UserGoals extends Table with HybridId, MetaColumns {
   TextColumn get status => text().withDefault(
       const Constant('active'))(); // 'active', 'retired', 'superseded', 'draft'
   DateTimeColumn get startDate => dateTime()();
+  TextColumn get trackingMode =>
+      text().withDefault(const Constant('weeklyRate'))();
+  TextColumn get baselineMeasurementId => text()
+      .nullable()
+      .references(Measurements, #id, onDelete: KeyAction.setNull)();
+  RealColumn get baselineValueKg => real().nullable()();
+  DateTimeColumn get baselineDate => dateTime().nullable()();
   DateTimeColumn get targetDate => dateTime().nullable()();
   TextColumn get targetMetric =>
       text().nullable()(); // 'weight', 'body_fat', 'waist', etc.
@@ -901,7 +908,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
-  int get schemaVersion => 33;
+  int get schemaVersion => 34;
 
   /// Adds whatever the file is missing compared to the generated tables.
   ///
@@ -969,6 +976,10 @@ class AppDatabase extends _$AppDatabase {
   @override
   MigrationStrategy get migration => MigrationStrategy(
         beforeOpen: (details) async {
+          // Also enforce references for injected/test executors. The production
+          // connection enables this pragma during setup, but database semantics
+          // must not depend on how the executor was constructed.
+          await customStatement('PRAGMA foreign_keys = ON;');
           await reconcileSchema();
         },
         onCreate: (Migrator m) async {
@@ -1580,6 +1591,20 @@ class AppDatabase extends _$AppDatabase {
                 await m.addColumn(setLogs, setLogs.progressionData);
               }
             }
+            if (from < 34) {
+              // Released v1.4.x and some development v32/v33 databases may
+              // have none, some, or all goal tables. Always establish the
+              // complete base schema before cleanup, indexes, or columns.
+              if (!await _tableExists(this, userGoals.actualTableName)) {
+                await m.createTable(userGoals);
+              }
+              if (!await _tableExists(this, goalEvents.actualTableName)) {
+                await m.createTable(goalEvents);
+              }
+              if (!await _tableExists(this, goalReviews.actualTableName)) {
+                await m.createTable(goalReviews);
+              }
+            }
             if (from < 32) {
               // Keep the newest row if a development build managed to create
               // duplicates before window-level idempotency was enforced.
@@ -1598,6 +1623,46 @@ class AppDatabase extends _$AppDatabase {
                 !await _columnExists(
                     this, goalReviews.actualTableName, 'assessment_json')) {
               await m.addColumn(goalReviews, goalReviews.assessmentJson);
+            }
+            if (from < 34) {
+              Future<void> addGoalColumnIfMissing(
+                GeneratedColumn column,
+              ) async {
+                if (!await _columnExists(
+                    this, userGoals.actualTableName, column.name)) {
+                  await m.addColumn(userGoals, column);
+                }
+              }
+
+              await addGoalColumnIfMissing(userGoals.trackingMode);
+              await addGoalColumnIfMissing(userGoals.baselineMeasurementId);
+              await addGoalColumnIfMissing(userGoals.baselineValueKg);
+              await addGoalColumnIfMissing(userGoals.baselineDate);
+
+              // Snapshot the historical baseline once. It must not drift when
+              // measurements are later added, edited or deleted.
+              await customStatement('''
+                UPDATE user_goals
+                SET baseline_measurement_id = (
+                      SELECT id FROM measurements
+                      WHERE type = 'weight' AND date <= user_goals.start_date
+                      ORDER BY date DESC, local_id DESC LIMIT 1
+                    ),
+                    baseline_value_kg = (
+                      SELECT value FROM measurements
+                      WHERE type = 'weight' AND date <= user_goals.start_date
+                      ORDER BY date DESC, local_id DESC LIMIT 1
+                    ),
+                    baseline_date = (
+                      SELECT date FROM measurements
+                      WHERE type = 'weight' AND date <= user_goals.start_date
+                      ORDER BY date DESC, local_id DESC LIMIT 1
+                    )
+                WHERE baseline_value_kg IS NULL;
+              ''');
+              await customStatement(
+                'CREATE UNIQUE INDEX IF NOT EXISTS idx_goal_reviews_window ON goal_reviews (goal_id, window_start, window_end);',
+              );
             }
             unawaited(TelemetryService.instance.trackDbMigrationStatus(
               fromVersion: from,

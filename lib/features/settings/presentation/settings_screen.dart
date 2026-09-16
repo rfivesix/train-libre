@@ -21,6 +21,7 @@ import 'appearance_settings_screen.dart';
 import 'developer_settings_screen.dart';
 import 'data_management_screen.dart';
 import 'goal_notification_settings_screen.dart';
+import 'calculation_basis_screen.dart';
 import 'health_export_settings_screen.dart';
 import 'pulse_settings_screen.dart';
 import 'sleep_settings_screen.dart';
@@ -335,6 +336,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     );
                   },
                   tileKey: const Key('settings_goal_notifications_entry'),
+                  wrapInCard: false,
+                ),
+                const Divider(height: 1),
+                _buildNavigationCard(
+                  context: context,
+                  icon: LucideIcons.calculator,
+                  title: l10n.calculationBasisTitle,
+                  subtitle: l10n.calculationBasisSubtitle,
+                  onTap: () async {
+                    final changed = await Navigator.of(context).push<bool>(
+                      MaterialPageRoute(
+                        builder: (context) => const CalculationBasisScreen(),
+                      ),
+                    );
+                    if (_settingsChildMayHaveChanged(changed)) {
+                      hasStepsSettingsChanged = true;
+                    }
+                  },
+                  tileKey: const Key('settings_calculation_basis_entry'),
                   wrapInCard: false,
                 ),
                 const Divider(height: 1),

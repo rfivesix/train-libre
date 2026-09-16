@@ -106,7 +106,7 @@ class AdaptiveNutritionRecommendationService {
   }
 
   Future<BodyweightGoal> getGoal() async {
-    final activeGoal = await _goalRepository.getActiveGoal();
+    final activeGoal = await _goalRepository.getActiveNutritionGoal();
     if (activeGoal != null && activeGoal.isNutritionDriver) {
       switch (activeGoal.preset) {
         case GoalPreset.loseWeight:
@@ -132,7 +132,7 @@ class AdaptiveNutritionRecommendationService {
   }
 
   Future<double> getTargetRateKgPerWeek() async {
-    final activeGoal = await _goalRepository.getActiveGoal();
+    final activeGoal = await _goalRepository.getActiveNutritionGoal();
     if (activeGoal != null && activeGoal.isNutritionDriver) {
       if (activeGoal.targetValue != null && activeGoal.targetDate != null) {
         final progress = await _goalRepository.getGoalProgress(activeGoal);
@@ -160,6 +160,22 @@ class AdaptiveNutritionRecommendationService {
           activeGoal.preset == GoalPreset.recomposition) {
         return 0.0;
       }
+      if (activeGoal.preset == GoalPreset.loseWeight) {
+        return -0.50;
+      }
+      if (activeGoal.preset == GoalPreset.gainWeight) {
+        return 0.25;
+      }
+
+      // A custom target-weight goal still has an unambiguous direction even
+      // when it intentionally has no deadline or user-defined weekly rate.
+      final baseline = activeGoal.baselineValueKg;
+      final target = activeGoal.targetValue;
+      if (baseline != null && target != null) {
+        if (target < baseline) return -0.50;
+        if (target > baseline) return 0.25;
+      }
+      return 0.0;
     }
     return _repository.getTargetRateKgPerWeek();
   }
@@ -310,6 +326,12 @@ class AdaptiveNutritionRecommendationService {
     DateTime? now,
     bool force = false,
   }) async {
+    final activeGoal = await _goalRepository.getActiveNutritionGoal();
+    if (activeGoal != null &&
+        (activeGoal.baselineValueKg == null ||
+            activeGoal.baselineDate == null)) {
+      return null;
+    }
     final effectiveNow = now ?? DateTime.now();
     final dueWeekKey = RecommendationScheduler.dueWeekKeyFor(effectiveNow);
     // Keep the adaptive input window stable within one due week by anchoring to
@@ -349,6 +371,7 @@ class AdaptiveNutritionRecommendationService {
         now: stableWindowEndDay,
         declaredActivityLevel: priorActivityLevel,
         extraCardioHoursOption: extraCardioHoursOption,
+        baselineWeightKg: activeGoal?.baselineValueKg,
       ),
     ]);
 
@@ -468,6 +491,13 @@ class AdaptiveNutritionRecommendationService {
     bool markAsApplied = false,
   }) async {
     final effectiveNow = now ?? DateTime.now();
+    if (weightKg == null || weightKg <= 0) {
+      throw ArgumentError.value(
+        weightKg,
+        'weightKg',
+        'Onboarding requires a positive measured weight.',
+      );
+    }
     final effectiveDeclaredActivityLevel =
         declaredActivityLevel ?? await _repository.getPriorActivityLevel();
     final effectiveExtraCardioHoursOption =
@@ -496,11 +526,11 @@ class AdaptiveNutritionRecommendationService {
       windowStart: RecommendationScheduler.normalizeDay(effectiveNow),
       windowEnd: RecommendationInputAdapter.endOfDay(effectiveNow),
       windowDays: 0,
-      weightLogCount: weightKg != null ? 1 : 0,
+      weightLogCount: 1,
       intakeLoggedDays: 0,
       smoothedWeightSlopeKgPerWeek: null,
       avgLoggedCalories: 0,
-      currentWeightKg: weightKg ?? 75,
+      currentWeightKg: weightKg,
       priorMaintenanceCalories: priorMaintenanceCalories,
       activeTargetCalories: null,
       qualityFlags: const ['onboarding_prior_only'],
@@ -651,7 +681,7 @@ class AdaptiveNutritionRecommendationService {
       recommendation: recommendation,
     );
 
-    final activeGoal = await _goalRepository.getActiveGoal();
+    final activeGoal = await _goalRepository.getActiveNutritionGoal();
     if (activeGoal != null) {
       final pendingReview =
           await _goalRepository.getPendingReview(activeGoal.id);
@@ -733,7 +763,10 @@ class AdaptiveNutritionRecommendationService {
 
     return RecommendationInputAdapter.estimatePriorMaintenanceCalories(
       profile: asDbProfile,
-      currentWeightKg: weightKg ?? 75,
+      currentWeightKg: weightKg ??
+          (throw StateError(
+            'A positive measured weight is required for the profile prior.',
+          )),
       bodyFatPercent: effectiveBodyFatPercent,
       declaredActivityLevel: declaredActivityLevel,
       extraCardioHoursOption: extraCardioHoursOption,

@@ -188,8 +188,7 @@ class AdaptiveReviewCard extends StatelessWidget {
             const SizedBox(height: DesignConstants.spacingM),
             Text(
               assessment == null
-                  ? review?.explanation ??
-                      l10n.weeklyReviewPendingDefaultExplanation
+                  ? l10n.weeklyReviewPendingDefaultExplanation
                   : l10n.reviewOverallSummary(
                       statusLabel,
                       _momentumLabel(

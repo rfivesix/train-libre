@@ -221,16 +221,6 @@ class WeeklyGoalReviewService {
             loggedIntakeDaysCount >= minLoggedIntakeDaysForReview;
 
     if (!isSufficient || observedRateKgPerWeek == null) {
-      final missing = <String>[];
-      if (weightObservationCount < minWeightObservationsForReview) {
-        missing.add(
-            '${minWeightObservationsForReview - weightObservationCount} Wiegung(en)');
-      }
-      if (loggedIntakeDaysCount < minLoggedIntakeDaysForReview) {
-        missing.add(
-            '${minLoggedIntakeDaysForReview - loggedIntakeDaysCount} Kalorientag(e)');
-      }
-
       return WeeklyReviewEvaluation(
         trajectoryStatus: 'calibrating',
         confidenceLevel: 'uncalibrated',
@@ -241,8 +231,7 @@ class WeeklyGoalReviewService {
         targetRateKgPerWeek: expectedRateKgPerWeek,
         tdeeEstimate: tdeeEstimate,
         currentCalories: currentCalories,
-        explanation:
-            'Train Libre kalibriert sich noch auf deine Daten. Für eine verlässliche wöchentliche Empfehlung fehlen in den letzten 7 Tagen noch ${missing.join(' und ')}. Bitte führe dein Tagebuch einfach wie gewohnt weiter.',
+        explanation: 'review_calibrating',
       );
     }
 
@@ -276,8 +265,7 @@ class WeeklyGoalReviewService {
         recommendedProtein: engineRecommendedProtein,
         recommendedCarbs: engineRecommendedCarbs,
         recommendedFat: engineRecommendedFat,
-        explanation:
-            'Dein Gewichtsverlauf ist voll auf Zielkurs (Trend: ${observedRateKgPerWeek >= 0 ? '+' : ''}${observedRateKgPerWeek.toStringAsFixed(2)} kg/Woche vs. Soll: ${targetRate >= 0 ? '+' : ''}${targetRate.toStringAsFixed(2)} kg/Woche). Eine Kalorienanpassung ist aktuell nicht erforderlich.',
+        explanation: 'review_on_track',
       );
     }
 
@@ -300,14 +288,7 @@ class WeeklyGoalReviewService {
 
     final status = isSlower ? 'slower' : 'faster';
 
-    String explanation;
-    if (isSlower) {
-      explanation =
-          'Dein Trend verläuft mit ${observedRateKgPerWeek >= 0 ? '+' : ''}${observedRateKgPerWeek.toStringAsFixed(2)} kg/Woche etwas langsamer als die geplante Trajektorie von ${targetRate >= 0 ? '+' : ''}${targetRate.toStringAsFixed(2)} kg/Woche. Dein geschätzter Verbrauch (TDEE) liegt bei ca. ${tdeeEstimate?.round() ?? 2500} kcal. Eine moderate Kalorienanpassung kann helfen, die Trajektorie einzuhalten.';
-    } else {
-      explanation =
-          'Dein Trend verläuft mit ${observedRateKgPerWeek >= 0 ? '+' : ''}${observedRateKgPerWeek.toStringAsFixed(2)} kg/Woche schneller als die geplante Trajektorie von ${targetRate >= 0 ? '+' : ''}${targetRate.toStringAsFixed(2)} kg/Woche. Dein geschätzter Verbrauch (TDEE) liegt bei ca. ${tdeeEstimate?.round() ?? 2500} kcal. Um ein zu extremes Defizit oder ungesunden Gewichtsverlust zu vermeiden, wird eine leichte Anhebung empfohlen.';
-    }
+    final explanation = isSlower ? 'review_slower' : 'review_faster';
 
     return WeeklyReviewEvaluation(
       trajectoryStatus: status,

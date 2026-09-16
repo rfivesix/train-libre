@@ -29,6 +29,7 @@ class ActiveGoalDashboardWidget extends StatelessWidget {
   final GoalProgress? progress;
   final List<ChartDataPoint> chartPoints;
   final VoidCallback? onRefresh;
+  final Future<void> Function()? onBaselineRecorded;
   final VoidCallback? onHeaderTap;
   final bool bleedChartToEdges;
   final Widget? bottomActions;
@@ -39,6 +40,7 @@ class ActiveGoalDashboardWidget extends StatelessWidget {
     required this.progress,
     required this.chartPoints,
     this.onRefresh,
+    this.onBaselineRecorded,
     this.onHeaderTap,
     this.bleedChartToEdges = false,
     this.bottomActions,
@@ -330,7 +332,11 @@ class ActiveGoalDashboardWidget extends StatelessWidget {
                         builder: (_) => const AddMeasurementScreen(),
                       ),
                     );
-                    onRefresh?.call();
+                    if (onBaselineRecorded != null) {
+                      await onBaselineRecorded!();
+                    } else {
+                      onRefresh?.call();
+                    }
                   },
                 ),
               ],
@@ -348,8 +354,8 @@ class ActiveGoalDashboardWidget extends StatelessWidget {
           const SizedBox(height: DesignConstants.spacingS),
           Builder(
             builder: (context) {
-              final startWeight = progress?.baselineValue ??
-                  (chartPoints.isNotEmpty ? chartPoints.first.value : 75.0);
+              final startWeight =
+                  progress?.baselineValue ?? chartPoints.first.value;
               final targetDate = activeGoal.targetDate ??
                   activeGoal.startDate.add(const Duration(days: 84));
               final domainEnd = targetDate.isAfter(DateTime.now())

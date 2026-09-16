@@ -33,6 +33,8 @@ void main() {
         preset: GoalPreset.loseWeight,
         title: 'Test',
         startDate: DateTime(2026, 1, 1),
+        baselineValueKg: 80,
+        baselineDate: DateTime(2026, 1, 1),
         targetDate: DateTime(2026, 4, 1),
         targetMetric: 'weight',
         targetValue: 75,

@@ -106,7 +106,10 @@ void main() {
         ),
       );
 
-      final input = await adapter.buildInput(now: day);
+      final input = await adapter.buildInput(
+        now: day,
+        baselineWeightKg: 80,
+      );
 
       expect(input.intakeLoggedDays, 1);
       expect(input.avgLoggedCalories, closeTo(670.0, 0.001));
@@ -116,7 +119,10 @@ void main() {
     test('buildInput defaults to a 14-day adaptive lookback', () async {
       final now = DateTime(2026, 4, 14, 12);
 
-      final input = await adapter.buildInput(now: now);
+      final input = await adapter.buildInput(
+        now: now,
+        baselineWeightKg: 80,
+      );
 
       expect(input.windowStart, DateTime(2026, 4, 1));
       expect(input.windowEnd, DateTime(2026, 4, 14, 23, 59, 59));
@@ -288,7 +294,11 @@ void main() {
         gender: 'male',
       );
 
-      final input = await adapter.buildInput(now: now, rollingWindowDays: 21);
+      final input = await adapter.buildInput(
+        now: now,
+        rollingWindowDays: 21,
+        baselineWeightKg: 75,
+      );
 
       final expectedWithActual =
           RecommendationInputAdapter.estimatePriorMaintenanceCalories(
@@ -340,7 +350,11 @@ void main() {
         gender: 'male',
       );
 
-      final input = await adapter.buildInput(now: now, rollingWindowDays: 21);
+      final input = await adapter.buildInput(
+        now: now,
+        rollingWindowDays: 21,
+        baselineWeightKg: 75,
+      );
 
       final expected =
           RecommendationInputAdapter.estimatePriorMaintenanceCalories(
@@ -362,7 +376,11 @@ void main() {
         () async {
       final now = DateTime(2026, 4, 5, 12, 0);
 
-      final input = await adapter.buildInput(now: now, rollingWindowDays: 21);
+      final input = await adapter.buildInput(
+        now: now,
+        rollingWindowDays: 21,
+        baselineWeightKg: 75,
+      );
 
       final expected =
           RecommendationInputAdapter.estimatePriorMaintenanceCalories(
@@ -381,7 +399,27 @@ void main() {
 
     test('buildInput returns null slope when insufficient weight data exists',
         () async {
+      await _insertWeightForDay(dbHelper, DateTime(2026, 4, 5), 80.0);
       final input = await adapter.buildInput(now: DateTime(2026, 4, 5));
+      expect(input.smoothedWeightSlopeKgPerWeek, isNull);
+    });
+
+    test(
+        'buildInput throws StateError when neither weight measurement nor baseline snapshot exists',
+        () async {
+      expect(
+        () => adapter.buildInput(now: DateTime(2026, 4, 5)),
+        throwsStateError,
+      );
+    });
+
+    test(
+        'buildInput uses historical weight outside window when current window has no weight logs',
+        () async {
+      await _insertWeightForDay(dbHelper, DateTime(2026, 3, 1), 84.0);
+      final input = await adapter.buildInput(now: DateTime(2026, 4, 5));
+      expect(input.currentWeightKg, 84.0);
+      expect(input.weightLogCount, 0);
       expect(input.smoothedWeightSlopeKgPerWeek, isNull);
     });
 

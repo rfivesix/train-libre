@@ -13186,7 +13186,7 @@ abstract class AppLocalizations {
   /// No description provided for @reviewActionKeepCurrent.
   ///
   /// In en, this message translates to:
-  /// **'Keep current targets'**
+  /// **'Keep goal and update daily targets'**
   String get reviewActionKeepCurrent;
 
   /// No description provided for @reviewDismissedSnack.
@@ -13624,7 +13624,7 @@ abstract class AppLocalizations {
   /// No description provided for @goalNotifyPrivacyBody.
   ///
   /// In en, this message translates to:
-  /// **'All goal and review notifications are handled purely locally on your device. Private weight or calorie numbers never appear on the lock screen.'**
+  /// **'Goal and review notifications are handled locally and may include useful goal, weight, or calorie details. Use your operating system settings to control lock-screen previews and quiet hours.'**
   String get goalNotifyPrivacyBody;
 
   /// No description provided for @goalNotificationSettingsSubtitle.
@@ -13644,6 +13644,13 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Your new 7-day review is available in the Nutrition Hub.'**
   String get weeklyGoalReviewNotificationBody;
+
+  /// No description provided for @weeklyGoalReviewNotificationDetailedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{goalTitle}: your updated recommendation is {calories} kcal per day. Open the review for the full reasoning.'**
+  String weeklyGoalReviewNotificationDetailedBody(
+      String goalTitle, int calories);
 
   /// No description provided for @goalTargetDateReminderTitle.
   ///
@@ -13698,6 +13705,132 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No measurements recorded yet.'**
   String get emptyStateMeasurements;
+
+  /// No description provided for @goalTrackingModeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'How do you want to plan?'**
+  String get goalTrackingModeTitle;
+
+  /// No description provided for @goalTrackingModeDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose what should define your nutrition goal.'**
+  String get goalTrackingModeDescription;
+
+  /// No description provided for @goalTrackingModeOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Open goal'**
+  String get goalTrackingModeOpen;
+
+  /// No description provided for @goalTrackingModeOpenDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'No target weight, date, or custom weekly rate.'**
+  String get goalTrackingModeOpenDescription;
+
+  /// No description provided for @goalTrackingModeWeeklyRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly rate'**
+  String get goalTrackingModeWeeklyRate;
+
+  /// No description provided for @goalTrackingModeWeeklyRateDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Set how much weight you want to change per week.'**
+  String get goalTrackingModeWeeklyRateDescription;
+
+  /// No description provided for @goalTrackingModeTargetWeight.
+  ///
+  /// In en, this message translates to:
+  /// **'Target weight'**
+  String get goalTrackingModeTargetWeight;
+
+  /// No description provided for @goalTrackingModeTargetWeightDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Set a target weight, with an optional date.'**
+  String get goalTrackingModeTargetWeightDescription;
+
+  /// No description provided for @goalTrackingModeDefaultRateInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'The safe default of {rate} is used and shown in recommendations.'**
+  String goalTrackingModeDefaultRateInfo(String rate);
+
+  /// No description provided for @goalTrackingOpenReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Your open goal is ready. Recommendations use the safe default for this direction.'**
+  String get goalTrackingOpenReady;
+
+  /// No description provided for @goalTargetDateOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Target date (optional)'**
+  String get goalTargetDateOptional;
+
+  /// No description provided for @goalReplaceActiveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace active nutrition goal?'**
+  String get goalReplaceActiveTitle;
+
+  /// No description provided for @goalReplaceActiveBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your current nutrition goal will be completed and replaced. Daily targets are not changed until a recommendation is applied.'**
+  String get goalReplaceActiveBody;
+
+  /// No description provided for @goalReplaceActiveConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace goal'**
+  String get goalReplaceActiveConfirm;
+
+  /// No description provided for @goalCreateError.
+  ///
+  /// In en, this message translates to:
+  /// **'The goal could not be saved: {error}'**
+  String goalCreateError(String error);
+
+  /// No description provided for @goalAdjustError.
+  ///
+  /// In en, this message translates to:
+  /// **'The goal could not be adjusted: {error}'**
+  String goalAdjustError(String error);
+
+  /// No description provided for @reviewKeepAndApplyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep goal and update daily targets?'**
+  String get reviewKeepAndApplyTitle;
+
+  /// No description provided for @reviewKeepAndApplyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The goal remains unchanged. The recommendation will be recalculated and the resulting calorie and nutrient targets will be applied immediately.'**
+  String get reviewKeepAndApplyBody;
+
+  /// No description provided for @reviewActionError.
+  ///
+  /// In en, this message translates to:
+  /// **'The review action failed: {error}'**
+  String reviewActionError(String error);
+
+  /// No description provided for @calculationBasisTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Calculation basis'**
+  String get calculationBasisTitle;
+
+  /// No description provided for @calculationBasisSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Everyday activity and additional cardio'**
+  String get calculationBasisSubtitle;
 }
 
 class _AppLocalizationsDelegate

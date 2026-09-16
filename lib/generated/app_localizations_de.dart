@@ -6633,7 +6633,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get workoutPhotoRemoveConfirm =>
-      'Are you sure you want to remove this photo?';
+      'Möchtest du dieses Foto wirklich entfernen?';
 
   @override
   String get workoutPhotoLimitReached => 'Maximal 4 Fotos erreicht';
@@ -7573,7 +7573,8 @@ class AppLocalizationsDe extends AppLocalizations {
   String get reviewActionAdjustTrajectory => 'Ziel & Trajektorie anpassen';
 
   @override
-  String get reviewActionKeepCurrent => 'Bisherige Werte beibehalten';
+  String get reviewActionKeepCurrent =>
+      'Ziel beibehalten und Tagesziele aktualisieren';
 
   @override
   String get reviewDismissedSnack =>
@@ -7825,7 +7826,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get goalNotifyPrivacyBody =>
-      'Alle Ziel- und Review-Benachrichtigungen werden ausschließlich lokal auf deinem Gerät verwaltet. Sensible Gewichts- oder Kaloriendaten erscheinen niemals auf dem Sperrbildschirm.';
+      'Ziel- und Review-Benachrichtigungen werden lokal verarbeitet und können hilfreiche Ziel-, Gewichts- oder Kaloriendetails enthalten. Sperrbildschirm-Vorschauen und Ruhezeiten steuerst du in den Einstellungen deines Betriebssystems.';
 
   @override
   String get goalNotificationSettingsSubtitle =>
@@ -7837,6 +7838,12 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get weeklyGoalReviewNotificationBody =>
       'Dein neuer 7-Tage-Review steht im Nutrition Hub bereit.';
+
+  @override
+  String weeklyGoalReviewNotificationDetailedBody(
+      String goalTitle, int calories) {
+    return '$goalTitle: Deine aktualisierte Empfehlung beträgt $calories kcal pro Tag. Öffne den Review für die vollständige Begründung.';
+  }
 
   @override
   String get goalTargetDateReminderTitle => 'Zieldatum erreicht';
@@ -7868,4 +7875,84 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get emptyStateMeasurements => 'Noch keine Messungen erfasst.';
+
+  @override
+  String get goalTrackingModeTitle => 'Wie möchtest du planen?';
+
+  @override
+  String get goalTrackingModeDescription =>
+      'Wähle, wodurch dein Ernährungsziel bestimmt wird.';
+
+  @override
+  String get goalTrackingModeOpen => 'Offenes Ziel';
+
+  @override
+  String get goalTrackingModeOpenDescription =>
+      'Ohne Zielgewicht, Termin oder eigene Wochenrate.';
+
+  @override
+  String get goalTrackingModeWeeklyRate => 'Wochenrate';
+
+  @override
+  String get goalTrackingModeWeeklyRateDescription =>
+      'Lege fest, wie stark sich dein Gewicht pro Woche ändern soll.';
+
+  @override
+  String get goalTrackingModeTargetWeight => 'Zielgewicht';
+
+  @override
+  String get goalTrackingModeTargetWeightDescription =>
+      'Lege ein Zielgewicht und optional einen Termin fest.';
+
+  @override
+  String goalTrackingModeDefaultRateInfo(String rate) {
+    return 'Für Empfehlungen wird der ausgewiesene sichere Standard von $rate verwendet.';
+  }
+
+  @override
+  String get goalTrackingOpenReady =>
+      'Dein offenes Ziel ist bereit. Empfehlungen verwenden den sicheren Standard für diese Richtung.';
+
+  @override
+  String get goalTargetDateOptional => 'Zieldatum (optional)';
+
+  @override
+  String get goalReplaceActiveTitle => 'Aktives Ernährungsziel ersetzen?';
+
+  @override
+  String get goalReplaceActiveBody =>
+      'Dein bisheriges Ernährungsziel wird abgeschlossen und ersetzt. Tagesziele ändern sich erst, wenn du eine Empfehlung anwendest.';
+
+  @override
+  String get goalReplaceActiveConfirm => 'Ziel ersetzen';
+
+  @override
+  String goalCreateError(String error) {
+    return 'Das Ziel konnte nicht gespeichert werden: $error';
+  }
+
+  @override
+  String goalAdjustError(String error) {
+    return 'Das Ziel konnte nicht angepasst werden: $error';
+  }
+
+  @override
+  String get reviewKeepAndApplyTitle =>
+      'Ziel beibehalten und Tagesziele aktualisieren?';
+
+  @override
+  String get reviewKeepAndApplyBody =>
+      'Das Ziel bleibt unverändert. Die Empfehlung wird neu berechnet und die daraus entstehenden Kalorien- und Nährstoffziele werden sofort angewendet.';
+
+  @override
+  String reviewActionError(String error) {
+    return 'Die Review-Aktion ist fehlgeschlagen: $error';
+  }
+
+  @override
+  String get calculationBasisTitle => 'Berechnungsgrundlagen';
+
+  @override
+  String get calculationBasisSubtitle =>
+      'Alltagsaktivität und zusätzliches Cardio';
 }

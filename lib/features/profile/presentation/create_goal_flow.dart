@@ -6,8 +6,6 @@ import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
-import '../../../data/database_helper.dart';
-import '../../../data/drift_database.dart' as db;
 import '../../../generated/app_localizations.dart';
 import '../../../services/unit_service.dart';
 import '../../../util/design_constants.dart';
@@ -38,7 +36,7 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
       widget.repository ?? GoalRepositoryImpl();
 
   int _currentStep = 0;
-  static const int _totalSteps = 4;
+  static const int _totalSteps = 5;
 
   // Step 0: Absicht / Preset
   GoalPreset _preset = GoalPreset.loseWeight;
@@ -49,8 +47,11 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
   DateTime _startDate = DateTime.now();
   double? _detectedBaselineWeight; // in kg
   DateTime? _detectedBaselineDate;
+  String? _detectedBaselineMeasurementId;
   final _baselineWeightController = TextEditingController();
   bool _isManualBaselineMode = false;
+
+  GoalTrackingMode _trackingMode = GoalTrackingMode.weeklyRate;
 
   // Step 2: Zielgewicht
   final _targetWeightController = TextEditingController();
@@ -97,26 +98,19 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
       59,
     );
 
-    final database = DatabaseHelper.instance.dbInstance;
-    final allMeasurements = await (database.select(database.measurements)
-          ..where((t) => t.type.equals('weight')))
-        .get();
-    final valid = allMeasurements
-        .where((m) =>
-            m.date.isBefore(startEndOfDay) ||
-            m.date.isAtSameMomentAs(startEndOfDay))
-        .toList()
-      ..sort((a, b) => b.date.compareTo(a.date));
-    final row = valid.firstOrNull;
+    final row = await _repository.findLatestWeightAtOrBefore(startEndOfDay);
 
     if (!mounted) return;
     final unitService = context.read<UnitService>();
     setState(() {
-      _detectedBaselineWeight = row?.value;
+      _detectedBaselineWeight = row?.valueKg;
       _detectedBaselineDate = row?.date;
-      if (row?.value != null && _baselineWeightController.text.isEmpty) {
-        final disp =
-            unitService.convertDisplayValue(row!.value, UnitDimension.weight);
+      _detectedBaselineMeasurementId = row?.id;
+      if (row?.valueKg != null && _baselineWeightController.text.isEmpty) {
+        final disp = unitService.convertDisplayValue(
+          row!.valueKg,
+          UnitDimension.weight,
+        );
         _baselineWeightController.text = disp.toStringAsFixed(1);
       }
     });
@@ -128,13 +122,11 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
     }
     final text = _baselineWeightController.text.trim();
     if (text.isEmpty) {
-      return _detectedBaselineWeight ??
-          unitService.convertToMetric(75.0, UnitDimension.weight);
+      return _detectedBaselineWeight;
     }
     final parsed = double.tryParse(text.replaceAll(',', '.'));
     if (parsed == null || parsed <= 0) {
-      return _detectedBaselineWeight ??
-          unitService.convertToMetric(75.0, UnitDimension.weight);
+      return _detectedBaselineWeight;
     }
     return unitService.convertToMetric(parsed, UnitDimension.weight);
   }
@@ -235,23 +227,6 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
           _customTitleController.text.trim().isEmpty) {
         _customTitleController.text = l10n.goalPresetCustom;
       }
-      final baseline = _getBaselineKg(unitService);
-      if (_targetWeightController.text.trim().isEmpty && baseline != null) {
-        final displayBaseline =
-            unitService.convertDisplayValue(baseline, UnitDimension.weight);
-        final displayDelta = unitService.convertDisplayValue(
-          _preset == GoalPreset.gainWeight ? 3.0 : 5.0,
-          UnitDimension.weight,
-        );
-        final target = _preset == GoalPreset.loseWeight ||
-                (_preset == GoalPreset.custom && _customDirection == 'lose')
-            ? max(30.0, displayBaseline - displayDelta)
-            : (_preset == GoalPreset.gainWeight ||
-                    (_preset == GoalPreset.custom && _customDirection == 'gain')
-                ? displayBaseline + displayDelta
-                : displayBaseline);
-        _targetWeightController.text = target.toStringAsFixed(1);
-      }
     } else if (_currentStep == 1) {
       final baseline = _getBaselineKg(unitService);
       if (baseline == null || baseline <= 0) {
@@ -266,7 +241,18 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
         );
         return;
       }
-
+    } else if (_currentStep == 2) {
+      if (_preset == GoalPreset.recomposition) {
+        _trackingMode = GoalTrackingMode.open;
+      } else if ((_preset == GoalPreset.maintainWeight ||
+              (_preset == GoalPreset.custom &&
+                  _customDirection == 'maintain')) &&
+          _trackingMode == GoalTrackingMode.weeklyRate) {
+        _trackingMode = GoalTrackingMode.open;
+      }
+    } else if (_currentStep == 3 &&
+        _trackingMode == GoalTrackingMode.targetWeight) {
+      final baseline = _getBaselineKg(unitService)!;
       // Pre-fill target weight if empty.
       if (_targetWeightController.text.trim().isEmpty) {
         final dispBase =
@@ -318,22 +304,6 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
         );
         return;
       }
-
-      // Initialize trajectory defaults if not yet set
-      final delta = (target - baseline).abs();
-      if (delta > 0) {
-        if (_preset == GoalPreset.gainWeight ||
-            (_preset == GoalPreset.custom && _customDirection == 'gain')) {
-          _weeklyRateKg = 0.25;
-        } else {
-          _weeklyRateKg = 0.50;
-        }
-        final days = (delta / _weeklyRateKg * 7).round();
-        _targetDate = _startDate.add(Duration(days: max(7, days)));
-      } else {
-        _weeklyRateKg = 0.0;
-        _targetDate = _startDate.add(const Duration(days: 84));
-      }
     }
 
     if (_currentStep < _totalSteps - 1) {
@@ -383,47 +353,69 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
     final baselineKg = _getBaselineKg(unitService);
     final targetKg = _getTargetKg(unitService);
 
-    // If user entered a manual baseline and no measurement was recorded at _startDate,
-    // record this measurement now so trajectory calculations have an immediate starting anchor.
-    if (_detectedBaselineWeight == null && baselineKg != null) {
-      try {
-        final database = DatabaseHelper.instance.dbInstance;
-        await database.into(database.measurements).insert(
-              db.MeasurementsCompanion.insert(
-                date: _startDate,
-                type: 'weight',
-                value: baselineKg,
-                unit: 'kg',
-              ),
-            );
-      } catch (_) {
-        // Silently ignore measurement insertion errors to avoid blocking goal creation
-      }
-    }
-
     double? signedWeeklyRateKg;
-    if (_preset == GoalPreset.loseWeight ||
-        (_preset == GoalPreset.custom && _customDirection == 'lose')) {
+    if (_trackingMode == GoalTrackingMode.weeklyRate &&
+        (_preset == GoalPreset.loseWeight ||
+            (_preset == GoalPreset.custom && _customDirection == 'lose'))) {
       signedWeeklyRateKg = -_weeklyRateKg.abs();
-    } else if (_preset == GoalPreset.gainWeight ||
-        (_preset == GoalPreset.custom && _customDirection == 'gain')) {
+    } else if (_trackingMode == GoalTrackingMode.weeklyRate &&
+        (_preset == GoalPreset.gainWeight ||
+            (_preset == GoalPreset.custom && _customDirection == 'gain'))) {
       signedWeeklyRateKg = _weeklyRateKg.abs();
-    } else {
+    } else if (_trackingMode == GoalTrackingMode.weeklyRate) {
       signedWeeklyRateKg = 0.0;
     }
 
     try {
-      final previouslyActive = await _repository.getActiveGoal();
+      final previouslyActive = await _repository.getActiveNutritionGoal();
+      if (previouslyActive != null && mounted) {
+        final replace = await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text(l10n.goalReplaceActiveTitle),
+            content: Text(l10n.goalReplaceActiveBody),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: Text(l10n.cancel),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: Text(l10n.goalReplaceActiveConfirm),
+              ),
+            ],
+          ),
+        );
+        if (replace != true) {
+          if (mounted) setState(() => _isSaving = false);
+          return;
+        }
+      }
       await _repository.createGoal(
-        preset: _preset,
+        preset: _preset == GoalPreset.custom
+            ? switch (_customDirection) {
+                'lose' => GoalPreset.loseWeight,
+                'gain' => GoalPreset.gainWeight,
+                _ => GoalPreset.maintainWeight,
+              }
+            : _preset,
         title: title,
         reason: _reasonController.text.trim().isNotEmpty
             ? _reasonController.text.trim()
             : null,
         startDate: _startDate,
-        targetDate: _targetDate,
+        trackingMode: _trackingMode,
+        baselineMeasurementId:
+            _isManualBaselineMode ? null : _detectedBaselineMeasurementId,
+        baselineValueKg: baselineKg,
+        baselineDate: _isManualBaselineMode
+            ? _startDate
+            : (_detectedBaselineDate ?? _startDate),
+        targetDate:
+            _trackingMode == GoalTrackingMode.targetWeight ? _targetDate : null,
         targetMetric: 'weight',
-        targetValue: targetKg,
+        targetValue:
+            _trackingMode == GoalTrackingMode.targetWeight ? targetKg : null,
         targetUnit: 'kg',
         desiredWeeklyRateKg: signedWeeklyRateKg,
         isNutritionDriver: _isNutritionDriver,
@@ -441,7 +433,7 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
       if (!mounted) return;
       setState(() => _isSaving = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Fehler beim Erstellen des Ziels: $e')),
+        SnackBar(content: Text(l10n.goalCreateError(e.toString()))),
       );
     }
   }
@@ -542,16 +534,166 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
       case 0:
         return _buildStep0Preset(context);
       case 1:
-        return _buildStep1StartingPointAndTarget(context);
+        return _buildStep1Baseline(context);
       case 2:
-        return _buildStep3Trajectory(context);
+        return _buildTrackingModeStep(context);
       case 3:
+        return _buildTrackingDetailsStep(context);
+      case 4:
         return _buildStep4Reason(context, includeReview: true);
       default:
         return const SizedBox.shrink();
     }
   }
 
+  Widget _buildTrackingModeStep(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final isMaintain = _preset == GoalPreset.maintainWeight ||
+        (_preset == GoalPreset.custom && _customDirection == 'maintain');
+    final modes = <GoalTrackingMode>[
+      GoalTrackingMode.open,
+      if (_preset != GoalPreset.recomposition && !isMaintain)
+        GoalTrackingMode.weeklyRate,
+      if (_preset != GoalPreset.recomposition) GoalTrackingMode.targetWeight,
+    ];
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(l10n.goalTrackingModeTitle,
+            style: theme.textTheme.headlineSmall
+                ?.copyWith(fontWeight: FontWeight.bold)),
+        const SizedBox(height: DesignConstants.spacingS),
+        Text(l10n.goalTrackingModeDescription),
+        const SizedBox(height: DesignConstants.spacingL),
+        for (final mode in modes)
+          ListTile(
+            onTap: () => setState(() => _trackingMode = mode),
+            leading: Icon(
+              _trackingMode == mode
+                  ? LucideIcons.circle_check
+                  : LucideIcons.circle,
+              color: _trackingMode == mode ? theme.colorScheme.primary : null,
+            ),
+            title: Text(switch (mode) {
+              GoalTrackingMode.open => l10n.goalTrackingModeOpen,
+              GoalTrackingMode.weeklyRate => l10n.goalTrackingModeWeeklyRate,
+              GoalTrackingMode.targetWeight =>
+                l10n.goalTrackingModeTargetWeight,
+            }),
+            subtitle: Text(switch (mode) {
+              GoalTrackingMode.open => l10n.goalTrackingModeOpenDescription,
+              GoalTrackingMode.weeklyRate =>
+                l10n.goalTrackingModeWeeklyRateDescription,
+              GoalTrackingMode.targetWeight =>
+                l10n.goalTrackingModeTargetWeightDescription,
+            }),
+          ),
+        if (_trackingMode == GoalTrackingMode.open) ...[
+          const SizedBox(height: DesignConstants.spacingM),
+          SummaryCard(
+            child: Text(l10n.goalTrackingModeDefaultRateInfo(
+              _preset == GoalPreset.gainWeight
+                  ? '+0.25 kg/${l10n.weekShort}'
+                  : (_preset == GoalPreset.loseWeight
+                      ? '-0.50 kg/${l10n.weekShort}'
+                      : '0.00 kg/${l10n.weekShort}'),
+            )),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildTrackingDetailsStep(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final unitService = context.watch<UnitService>();
+    if (_trackingMode == GoalTrackingMode.open) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(l10n.goalTrackingModeOpen,
+              style: theme.textTheme.headlineSmall
+                  ?.copyWith(fontWeight: FontWeight.bold)),
+          const SizedBox(height: DesignConstants.spacingM),
+          Text(l10n.goalTrackingOpenReady),
+        ],
+      );
+    }
+    if (_trackingMode == GoalTrackingMode.weeklyRate) {
+      final unit = unitService.unitString(UnitDimension.weight);
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(l10n.goalTrackingModeWeeklyRate,
+              style: theme.textTheme.headlineSmall
+                  ?.copyWith(fontWeight: FontWeight.bold)),
+          const SizedBox(height: DesignConstants.spacingL),
+          Text('${_weeklyRateKg.toStringAsFixed(2)} $unit / ${l10n.weekShort}',
+              style: theme.textTheme.headlineMedium
+                  ?.copyWith(color: theme.colorScheme.primary)),
+          const SizedBox(height: DesignConstants.spacingM),
+          AppRulerPicker.rate(
+            value: _weeklyRateKg,
+            imperial: unitService.isImperial,
+            onChanged: (value) => setState(() => _weeklyRateKg = value),
+            unit: unit,
+          ),
+        ],
+      );
+    }
+    final dateFormat = DateFormat.yMMMd(
+      Localizations.localeOf(context).toString(),
+    );
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildStep2TargetWeight(context),
+        const SizedBox(height: DesignConstants.spacingL),
+        ListTile(
+          contentPadding: EdgeInsets.zero,
+          leading: Icon(LucideIcons.calendar, color: theme.colorScheme.primary),
+          title: Text(_targetDate == null
+              ? l10n.goalNoDeadlineOption
+              : dateFormat.format(_targetDate!)),
+          subtitle: Text(l10n.goalTargetDateOptional),
+          trailing: _targetDate == null
+              ? const Icon(LucideIcons.chevron_right)
+              : IconButton(
+                  tooltip: l10n.delete,
+                  icon: const Icon(LucideIcons.x),
+                  onPressed: () => setState(() => _targetDate = null),
+                ),
+          onTap: () async {
+            final picked = await showAdaptiveDatePicker(
+              context: context,
+              initialDate:
+                  _targetDate ?? _startDate.add(const Duration(days: 84)),
+              firstDate: _startDate.add(const Duration(days: 7)),
+              lastDate: _startDate.add(const Duration(days: 730)),
+            );
+            if (picked != null) setState(() => _targetDate = picked);
+          },
+        ),
+        if (_targetDate == null) ...[
+          const SizedBox(height: DesignConstants.spacingM),
+          SummaryCard(
+            child: Text(l10n.goalTrackingModeDefaultRateInfo(
+              _preset == GoalPreset.gainWeight
+                  ? '+0.25 kg/${l10n.weekShort}'
+                  : (_preset == GoalPreset.loseWeight
+                      ? '-0.50 kg/${l10n.weekShort}'
+                      : '0.00 kg/${l10n.weekShort}'),
+            )),
+          ),
+        ],
+      ],
+    );
+  }
+
+  // Kept temporarily while older golden tests are migrated to the five-step UI.
+  // ignore: unused_element
   Widget _buildStep1StartingPointAndTarget(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
@@ -886,25 +1028,16 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
                     ],
                   ),
                   const SizedBox(height: DesignConstants.spacingM),
-                  Center(
-                    child: Text(
-                      '${(double.tryParse(_baselineWeightController.text.replaceAll(',', '.')) ?? 75.0).toStringAsFixed(1)} $unitStr',
-                      style: theme.textTheme.headlineMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                  TextField(
+                    key: const Key('goal_inline_baseline_input'),
+                    controller: _baselineWeightController,
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
+                    onChanged: (_) => setState(() {}),
+                    decoration: InputDecoration(
+                      suffixText: unitStr,
+                      hintText: unitService.isImperial ? '0.0' : '0.0',
                     ),
-                  ),
-                  const SizedBox(height: DesignConstants.spacingS),
-                  AppRulerPicker.weight(
-                    value: double.tryParse(_baselineWeightController.text
-                            .replaceAll(',', '.')) ??
-                        75.0,
-                    imperial: unitService.isImperial,
-                    onChanged: (val) {
-                      setState(() {
-                        _baselineWeightController.text = val.toStringAsFixed(1);
-                      });
-                    },
                   ),
                 ],
               ),
@@ -1037,15 +1170,17 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
                 ),
               ],
               const SizedBox(height: DesignConstants.spacingM),
-              AppRulerPicker.weight(
-                value: targetDisp ?? (baselineDisp ?? 75.0),
-                imperial: unitService.isImperial,
-                onChanged: (newWeight) {
-                  setState(() {
-                    _targetWeightController.text = newWeight.toStringAsFixed(1);
-                  });
-                },
-              ),
+              if (targetDisp != null || baselineDisp != null)
+                AppRulerPicker.weight(
+                  value: targetDisp ?? baselineDisp!,
+                  imperial: unitService.isImperial,
+                  onChanged: (newWeight) {
+                    setState(() {
+                      _targetWeightController.text =
+                          newWeight.toStringAsFixed(1);
+                    });
+                  },
+                ),
             ],
           ),
         ),
@@ -1183,6 +1318,8 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
   // -------------------------------------------------------------
   // Step 3: Tempo & Zieldatum (Interaktiver Planer)
   // -------------------------------------------------------------
+  // Kept temporarily while older golden tests are migrated to the five-step UI.
+  // ignore: unused_element
   Widget _buildStep3Trajectory(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);

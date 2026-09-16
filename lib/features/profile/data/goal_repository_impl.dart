@@ -28,6 +28,10 @@ class GoalRepositoryImpl implements IGoalRepository {
       reason: row.reason,
       status: GoalStatus.fromString(row.status),
       startDate: row.startDate,
+      trackingMode: GoalTrackingMode.fromString(row.trackingMode),
+      baselineMeasurementId: row.baselineMeasurementId,
+      baselineValueKg: row.baselineValueKg,
+      baselineDate: row.baselineDate,
       targetDate: row.targetDate,
       targetMetric: row.targetMetric,
       targetValue: row.targetValue,
@@ -79,9 +83,64 @@ class GoalRepositoryImpl implements IGoalRepository {
   }
 
   @override
+  Future<({String id, double valueKg, DateTime date})?>
+      findLatestWeightAtOrBefore(DateTime date) async {
+    final query = _db.select(_db.measurements)
+      ..where((row) =>
+          row.type.equals('weight') & row.date.isSmallerOrEqualValue(date))
+      ..orderBy([(row) => drift.OrderingTerm.desc(row.date)])
+      ..limit(1);
+    final row = await query.getSingleOrNull();
+    if (row == null) return null;
+    return (id: row.id, valueKg: row.value, date: row.date);
+  }
+
+  @override
+  Future<Goal> captureMissingBaseline(String goalId) async {
+    return _db.transaction(() async {
+      final current = await getGoalById(goalId);
+      if (current == null) throw StateError('Goal not found');
+      if (current.baselineValueKg != null && current.baselineDate != null) {
+        return current;
+      }
+
+      final query = _db.select(_db.measurements)
+        ..where((row) => row.type.equals('weight'))
+        ..orderBy([(row) => drift.OrderingTerm.desc(row.date)])
+        ..limit(1);
+      final measurement = await query.getSingleOrNull();
+      if (measurement == null || measurement.value <= 0) return current;
+
+      final now = DateTime.now();
+      await (_db.update(_db.userGoals)..where((row) => row.id.equals(goalId)))
+          .write(db.UserGoalsCompanion(
+        baselineMeasurementId: drift.Value(measurement.id),
+        baselineValueKg: drift.Value(measurement.value),
+        baselineDate: drift.Value(measurement.date),
+        updatedAt: drift.Value(now),
+      ));
+      await _db.into(_db.goalEvents).insert(db.GoalEventsCompanion.insert(
+            id: drift.Value(_uuid.v4()),
+            goalId: goalId,
+            eventType: 'baseline_recorded',
+            actor: const drift.Value('user'),
+            occurredAt: drift.Value(now),
+            createdAt: drift.Value(now),
+          ));
+      return (await getGoalById(goalId))!;
+    });
+  }
+
+  @override
   Future<Goal?> getActiveGoal() async {
+    return getActiveNutritionGoal();
+  }
+
+  @override
+  Future<Goal?> getActiveNutritionGoal() async {
     final query = _db.select(_db.userGoals)
-      ..where((t) => t.status.equals('active'))
+      ..where(
+          (t) => t.status.equals('active') & t.area.equals('body_composition'))
       ..limit(1);
     final row = await query.getSingleOrNull();
     if (row == null) return null;
@@ -109,22 +168,6 @@ class GoalRepositoryImpl implements IGoalRepository {
   @override
   Future<GoalProgress?> getGoalProgress(Goal goal) async {
     final metric = goal.targetMetric ?? 'weight';
-    final startEndOfDay = DateTime(
-      goal.startDate.year,
-      goal.startDate.month,
-      goal.startDate.day,
-      23,
-      59,
-      59,
-    );
-
-    // 1. Baseline: latest observation on or before startDate
-    final baselineQuery = _db.select(_db.measurements)
-      ..where((t) =>
-          t.type.equals(metric) & t.date.isSmallerOrEqualValue(startEndOfDay))
-      ..orderBy([(t) => drift.OrderingTerm.desc(t.date)])
-      ..limit(1);
-    final baselineRow = await baselineQuery.getSingleOrNull();
 
     // 2. Latest observation overall
     final latestQuery = _db.select(_db.measurements)
@@ -135,8 +178,8 @@ class GoalRepositoryImpl implements IGoalRepository {
 
     return GoalProgress.calculate(
       goal: goal,
-      baselineValue: baselineRow?.value,
-      baselineDate: baselineRow?.date,
+      baselineValue: goal.baselineValueKg,
+      baselineDate: goal.baselineDate,
       currentValue: latestRow?.value,
       currentDate: latestRow?.date,
       trendRateKgPerWeek: goal.desiredWeeklyRateKg,
@@ -149,6 +192,10 @@ class GoalRepositoryImpl implements IGoalRepository {
     required String title,
     String? reason,
     required DateTime startDate,
+    GoalTrackingMode trackingMode = GoalTrackingMode.weeklyRate,
+    String? baselineMeasurementId,
+    double? baselineValueKg,
+    DateTime? baselineDate,
     DateTime? targetDate,
     String? targetMetric,
     double? targetValue,
@@ -158,10 +205,33 @@ class GoalRepositoryImpl implements IGoalRepository {
   }) async {
     return _db.transaction(() async {
       final now = DateTime.now();
+      if (baselineValueKg == null ||
+          !baselineValueKg.isFinite ||
+          baselineValueKg <= 0) {
+        throw ArgumentError('A real baseline weight is required');
+      }
+      final effectiveBaselineDate = baselineDate ?? startDate;
+      var effectiveMeasurementId = baselineMeasurementId;
+      if (effectiveMeasurementId == null) {
+        effectiveMeasurementId = _uuid.v4();
+        await _db.into(_db.measurements).insert(
+              db.MeasurementsCompanion.insert(
+                id: drift.Value(effectiveMeasurementId),
+                type: 'weight',
+                value: baselineValueKg,
+                unit: 'kg',
+                date: effectiveBaselineDate,
+                legacySessionId: drift.Value(
+                  effectiveBaselineDate.millisecondsSinceEpoch,
+                ),
+              ),
+            );
+      }
 
-      // Rule: Exactly ONE active goal. Retire or supersede any existing active goal.
+      // Exactly one active goal per area; future workout goals are independent.
       final existingActive = await (_db.select(_db.userGoals)
-            ..where((t) => t.status.equals('active')))
+            ..where((t) =>
+                t.status.equals('active') & t.area.equals('body_composition')))
           .get();
 
       for (final existing in existingActive) {
@@ -192,6 +262,10 @@ class GoalRepositoryImpl implements IGoalRepository {
             reason: drift.Value(reason),
             status: const drift.Value('active'),
             startDate: startDate,
+            trackingMode: drift.Value(trackingMode.name),
+            baselineMeasurementId: drift.Value(effectiveMeasurementId),
+            baselineValueKg: drift.Value(baselineValueKg),
+            baselineDate: drift.Value(effectiveBaselineDate),
             targetDate: drift.Value(targetDate),
             targetMetric: drift.Value(targetMetric),
             targetValue: drift.Value(targetValue),
@@ -258,6 +332,11 @@ class GoalRepositoryImpl implements IGoalRepository {
             reason: drift.Value(reason ?? currentGoal.reason),
             status: const drift.Value('active'),
             startDate: successorStartDate,
+            trackingMode: drift.Value(currentGoal.trackingMode.name),
+            baselineMeasurementId:
+                drift.Value(currentGoal.baselineMeasurementId),
+            baselineValueKg: drift.Value(currentGoal.baselineValueKg),
+            baselineDate: drift.Value(currentGoal.baselineDate),
             targetDate: drift.Value(targetDate),
             targetMetric: drift.Value(currentGoal.targetMetric),
             targetValue: drift.Value(targetValue),
@@ -288,6 +367,7 @@ class GoalRepositoryImpl implements IGoalRepository {
   @override
   Future<Goal> reviseGoal({
     required Goal currentGoal,
+    GoalTrackingMode? trackingMode,
     required double? targetValue,
     required DateTime? targetDate,
     required double? desiredWeeklyRateKg,
@@ -306,6 +386,7 @@ class GoalRepositoryImpl implements IGoalRepository {
           'desiredWeeklyRateKg': currentGoal.desiredWeeklyRateKg,
         },
         'after': {
+          'trackingMode': (trackingMode ?? currentGoal.trackingMode).name,
           'targetValue': targetValue,
           'targetDate': targetDate?.toIso8601String(),
           'desiredWeeklyRateKg': desiredWeeklyRateKg,
@@ -318,6 +399,8 @@ class GoalRepositoryImpl implements IGoalRepository {
         targetValue: drift.Value(targetValue),
         targetDate: drift.Value(targetDate),
         desiredWeeklyRateKg: drift.Value(desiredWeeklyRateKg),
+        trackingMode:
+            drift.Value((trackingMode ?? currentGoal.trackingMode).name),
         updatedAt: drift.Value(now),
       ));
       await _db.into(_db.goalEvents).insert(db.GoalEventsCompanion.insert(
@@ -366,7 +449,8 @@ class GoalRepositoryImpl implements IGoalRepository {
 
       // Ensure no other goal remains active
       final activeGoals = await (_db.select(_db.userGoals)
-            ..where((t) => t.status.equals('active')))
+            ..where((t) =>
+                t.status.equals('active') & t.area.equals('body_composition')))
           .get();
       for (final g in activeGoals) {
         if (g.id != goalId) {

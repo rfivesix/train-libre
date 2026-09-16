@@ -111,8 +111,8 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
   }
 
   Future<void> _openAdjustmentSheet(Goal goal, GoalProgress? progress) async {
-    final startWeight =
-        progress?.currentValue ?? progress?.baselineValue ?? 75.0;
+    final startWeight = progress?.currentValue ?? progress?.baselineValue;
+    if (startWeight == null) return;
     final result = await GoalAdjustmentSheet.show(
       context,
       goal: goal,
@@ -125,6 +125,11 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
     }
   }
 
+  Future<void> _captureBaselineAndReload() async {
+    await _goalRepository.captureMissingBaseline(widget.goalId);
+    if (mounted) _loadData();
+  }
+
   Future<void> _retireGoal(Goal goal) async {
     final l10n = AppLocalizations.of(context)!;
     final confirmed = await showDeleteConfirmation(
@@ -135,8 +140,7 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
     );
 
     if (confirmed == true && mounted) {
-      await _goalRepository.retireGoal(goal.id,
-          reason: 'Nutzer hat Ziel beendet');
+      await _goalRepository.retireGoal(goal.id, reason: 'User retired goal');
       await GoalNotificationOrchestrator(goalRepository: _goalRepository)
           .goalBecameInactive(goal.id);
       if (mounted) {
@@ -227,18 +231,21 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
                   progress: progress,
                   chartPoints: chartPoints,
                   onRefresh: _loadData,
+                  onBaselineRecorded: _captureBaselineAndReload,
                   bleedChartToEdges: true,
                   bottomActions: isActive
                       ? Row(
                           children: [
-                            Expanded(
-                              child: AppButton.secondary(
-                                label: l10n.adjustGoalTitle,
-                                onPressed: () =>
-                                    _openAdjustmentSheet(goal, progress),
+                            if (goal.baselineValueKg != null) ...[
+                              Expanded(
+                                child: AppButton.secondary(
+                                  label: l10n.adjustGoalTitle,
+                                  onPressed: () =>
+                                      _openAdjustmentSheet(goal, progress),
+                                ),
                               ),
-                            ),
-                            const SizedBox(width: DesignConstants.spacingM),
+                              const SizedBox(width: DesignConstants.spacingM),
+                            ],
                             Expanded(
                               child: AppButton.secondary(
                                 label: l10n.retireGoalButton,

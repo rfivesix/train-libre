@@ -7517,7 +7517,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get reviewActionAdjustTrajectory => 'Adjust goal & trajectory';
 
   @override
-  String get reviewActionKeepCurrent => 'Keep current targets';
+  String get reviewActionKeepCurrent => 'Keep goal and update daily targets';
 
   @override
   String get reviewDismissedSnack =>
@@ -7766,7 +7766,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get goalNotifyPrivacyBody =>
-      'All goal and review notifications are handled purely locally on your device. Private weight or calorie numbers never appear on the lock screen.';
+      'Goal and review notifications are handled locally and may include useful goal, weight, or calorie details. Use your operating system settings to control lock-screen previews and quiet hours.';
 
   @override
   String get goalNotificationSettingsSubtitle =>
@@ -7778,6 +7778,12 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get weeklyGoalReviewNotificationBody =>
       'Your new 7-day review is available in the Nutrition Hub.';
+
+  @override
+  String weeklyGoalReviewNotificationDetailedBody(
+      String goalTitle, int calories) {
+    return '$goalTitle: your updated recommendation is $calories kcal per day. Open the review for the full reasoning.';
+  }
 
   @override
   String get goalTargetDateReminderTitle => 'Goal target date';
@@ -7809,4 +7815,83 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get emptyStateMeasurements => 'No measurements recorded yet.';
+
+  @override
+  String get goalTrackingModeTitle => 'How do you want to plan?';
+
+  @override
+  String get goalTrackingModeDescription =>
+      'Choose what should define your nutrition goal.';
+
+  @override
+  String get goalTrackingModeOpen => 'Open goal';
+
+  @override
+  String get goalTrackingModeOpenDescription =>
+      'No target weight, date, or custom weekly rate.';
+
+  @override
+  String get goalTrackingModeWeeklyRate => 'Weekly rate';
+
+  @override
+  String get goalTrackingModeWeeklyRateDescription =>
+      'Set how much weight you want to change per week.';
+
+  @override
+  String get goalTrackingModeTargetWeight => 'Target weight';
+
+  @override
+  String get goalTrackingModeTargetWeightDescription =>
+      'Set a target weight, with an optional date.';
+
+  @override
+  String goalTrackingModeDefaultRateInfo(String rate) {
+    return 'The safe default of $rate is used and shown in recommendations.';
+  }
+
+  @override
+  String get goalTrackingOpenReady =>
+      'Your open goal is ready. Recommendations use the safe default for this direction.';
+
+  @override
+  String get goalTargetDateOptional => 'Target date (optional)';
+
+  @override
+  String get goalReplaceActiveTitle => 'Replace active nutrition goal?';
+
+  @override
+  String get goalReplaceActiveBody =>
+      'Your current nutrition goal will be completed and replaced. Daily targets are not changed until a recommendation is applied.';
+
+  @override
+  String get goalReplaceActiveConfirm => 'Replace goal';
+
+  @override
+  String goalCreateError(String error) {
+    return 'The goal could not be saved: $error';
+  }
+
+  @override
+  String goalAdjustError(String error) {
+    return 'The goal could not be adjusted: $error';
+  }
+
+  @override
+  String get reviewKeepAndApplyTitle => 'Keep goal and update daily targets?';
+
+  @override
+  String get reviewKeepAndApplyBody =>
+      'The goal remains unchanged. The recommendation will be recalculated and the resulting calorie and nutrient targets will be applied immediately.';
+
+  @override
+  String reviewActionError(String error) {
+    return 'The review action failed: $error';
+  }
+
+  @override
+  String get calculationBasisTitle => 'Calculation basis';
+
+  @override
+  String get calculationBasisSubtitle =>
+      'Everyday activity and additional cardio';
 }

@@ -7312,64 +7312,65 @@ class AppLocalizationsFr extends AppLocalizations {
       'Votre motivation personnelle vous aide à rester concentré. Stockée uniquement en local.';
 
   @override
-  String get goalStepBaselineQuestion => 'Start Date & Baseline Weight';
+  String get goalStepBaselineQuestion => 'Date de début et poids initial';
 
   @override
   String get goalStepBaselineDescription =>
-      'When does this goal start? Train Libre uses your weight on this date as the starting baseline.';
+      'Quand cet objectif commence-t-il ? Train Libre utilise votre poids à cette date comme valeur initiale.';
 
   @override
-  String get goalStepTargetWeightQuestion => 'What is your target weight?';
+  String get goalStepTargetWeightQuestion => 'Quel est votre poids cible ?';
 
   @override
   String get goalStepTargetWeightDescription =>
-      'Enter your desired target weight.';
+      'Saisissez le poids cible souhaité.';
 
   @override
-  String get goalStepTrajectoryQuestion => 'Plan Pace & Target Date';
+  String get goalStepTrajectoryQuestion =>
+      'Planifier le rythme et la date cible';
 
   @override
   String get goalStepTrajectoryDescription =>
-      'Pick a target date or a weekly rate – the other will be calculated interactively in real time.';
+      'Choisissez une date cible ou un rythme hebdomadaire ; l’autre valeur est calculée instantanément.';
 
   @override
   String goalEnterBaselineWeightPrompt(String unit) {
-    return 'Enter starting weight ($unit)';
+    return 'Saisir le poids initial ($unit)';
   }
 
   @override
   String goalTargetWeightLabel(String unit) {
-    return 'Target weight ($unit)';
+    return 'Poids cible ($unit)';
   }
 
   @override
-  String get goalWeightDifferenceLabel => 'Planned change';
+  String get goalWeightDifferenceLabel => 'Évolution prévue';
 
   @override
-  String get goalPlanByDate => 'Plan by target date';
+  String get goalPlanByDate => 'Planifier selon la date cible';
 
   @override
-  String get goalPlanByRate => 'Plan by weekly pace';
+  String get goalPlanByRate => 'Planifier selon le rythme hebdomadaire';
 
   @override
-  String get goalEstimatedDailyDelta => 'Daily calorie adjustment';
+  String get goalEstimatedDailyDelta => 'Ajustement calorique quotidien';
 
   @override
   String goalEstimatedDuration(int weeks) {
-    return 'Duration: $weeks weeks';
+    return 'Durée : $weeks semaines';
   }
 
   @override
-  String get goalRateGentle => 'Gentle (0.25 kg/wk)';
+  String get goalRateGentle => 'Doux (0,25 kg/sem.)';
 
   @override
-  String get goalRateModerate => 'Moderate (0.50 kg/wk)';
+  String get goalRateModerate => 'Modéré (0,50 kg/sem.)';
 
   @override
-  String get goalRateAthletic => 'Athletic (0.75 kg/wk)';
+  String get goalRateAthletic => 'Sportif (0,75 kg/sem.)';
 
   @override
-  String get goalRateAggressive => 'Aggressive (1.00 kg/wk)';
+  String get goalRateAggressive => 'Intensif (1,00 kg/sem.)';
 
   @override
   String get goalRateCustom => 'Rythme personnalisé (curseur)';
@@ -7379,19 +7380,19 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get goalPaceFeedbackSafe =>
-      'Recommended, sustainable pace (0.5% - 1.0% body weight/week).';
+      'Rythme recommandé et durable (0,5 % à 1,0 % du poids corporel par semaine).';
 
   @override
   String get goalPaceFeedbackAggressive =>
-      'Aggressive pace. Pay close attention to adequate protein and recovery.';
+      'Rythme intensif. Veillez particulièrement à un apport suffisant en protéines et à la récupération.';
 
   @override
   String get goalPaceFeedbackGentle =>
-      'Very gentle pace, very easy to sustain long term.';
+      'Rythme très doux, facile à maintenir sur le long terme.';
 
   @override
   String get goalPaceFeedbackMaintain =>
-      'Maintain weight with a balanced energy intake.';
+      'Maintenez votre poids avec un apport énergétique équilibré.';
 
   @override
   String get goalReasonSuggestionHealth => 'Santé & vitalité';
@@ -7639,7 +7640,8 @@ class AppLocalizationsFr extends AppLocalizations {
       'Ajuster l\'objectif et la trajectoire';
 
   @override
-  String get reviewActionKeepCurrent => 'Conserver les valeurs actuelles';
+  String get reviewActionKeepCurrent =>
+      'Conserver l’objectif et actualiser les objectifs quotidiens';
 
   @override
   String get reviewDismissedSnack =>
@@ -7893,7 +7895,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get goalNotifyPrivacyBody =>
-      'Toutes les notifications sont gérées localement. Aucune donnée privée de poids ou de calories n\'apparaît sur l\'écran verrouillé.';
+      'Les notifications d’objectif et de bilan sont traitées localement et peuvent contenir des informations utiles sur l’objectif, le poids ou les calories. Gérez les aperçus sur écran verrouillé et les heures silencieuses dans les réglages du système.';
 
   @override
   String get goalNotificationSettingsSubtitle =>
@@ -7905,6 +7907,12 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get weeklyGoalReviewNotificationBody =>
       'Votre analyse des 7 derniers jours est disponible dans le pôle Nutrition.';
+
+  @override
+  String weeklyGoalReviewNotificationDetailedBody(
+      String goalTitle, int calories) {
+    return '$goalTitle : votre recommandation actualisée est de $calories kcal par jour. Ouvrez le bilan pour consulter le raisonnement complet.';
+  }
 
   @override
   String get goalTargetDateReminderTitle => 'Date cible d\'objectif';
@@ -7937,4 +7945,85 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get emptyStateMeasurements =>
       'Aucune mesure enregistrée pour le moment.';
+
+  @override
+  String get goalTrackingModeTitle => 'Comment souhaitez-vous planifier ?';
+
+  @override
+  String get goalTrackingModeDescription =>
+      'Choisissez ce qui définit votre objectif nutritionnel.';
+
+  @override
+  String get goalTrackingModeOpen => 'Objectif ouvert';
+
+  @override
+  String get goalTrackingModeOpenDescription =>
+      'Sans poids cible, date ni rythme hebdomadaire personnalisé.';
+
+  @override
+  String get goalTrackingModeWeeklyRate => 'Rythme hebdomadaire';
+
+  @override
+  String get goalTrackingModeWeeklyRateDescription =>
+      'Définissez l’évolution de poids souhaitée par semaine.';
+
+  @override
+  String get goalTrackingModeTargetWeight => 'Poids cible';
+
+  @override
+  String get goalTrackingModeTargetWeightDescription =>
+      'Définissez un poids cible et, si vous le souhaitez, une date.';
+
+  @override
+  String goalTrackingModeDefaultRateInfo(String rate) {
+    return 'La valeur sûre par défaut de $rate est utilisée et affichée dans les recommandations.';
+  }
+
+  @override
+  String get goalTrackingOpenReady =>
+      'Votre objectif ouvert est prêt. Les recommandations utilisent la valeur sûre par défaut correspondant à cette direction.';
+
+  @override
+  String get goalTargetDateOptional => 'Date cible (facultative)';
+
+  @override
+  String get goalReplaceActiveTitle =>
+      'Remplacer l’objectif nutritionnel actif ?';
+
+  @override
+  String get goalReplaceActiveBody =>
+      'Votre objectif nutritionnel actuel sera terminé et remplacé. Les objectifs quotidiens ne changent que lorsqu’une recommandation est appliquée.';
+
+  @override
+  String get goalReplaceActiveConfirm => 'Remplacer l’objectif';
+
+  @override
+  String goalCreateError(String error) {
+    return 'Impossible d’enregistrer l’objectif : $error';
+  }
+
+  @override
+  String goalAdjustError(String error) {
+    return 'Impossible de modifier l’objectif : $error';
+  }
+
+  @override
+  String get reviewKeepAndApplyTitle =>
+      'Conserver l’objectif et actualiser les objectifs quotidiens ?';
+
+  @override
+  String get reviewKeepAndApplyBody =>
+      'L’objectif reste inchangé. La recommandation est recalculée et les objectifs caloriques et nutritionnels qui en résultent sont appliqués immédiatement.';
+
+  @override
+  String reviewActionError(String error) {
+    return 'L’action de bilan a échoué : $error';
+  }
+
+  @override
+  String get calculationBasisTitle => 'Base de calcul';
+
+  @override
+  String get calculationBasisSubtitle =>
+      'Activité quotidienne et cardio supplémentaire';
 }

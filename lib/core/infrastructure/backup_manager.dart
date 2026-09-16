@@ -25,6 +25,7 @@ import '../../features/diary/data/sources/diary_local_data_source.dart';
 import '../../features/diary/data/meal_photo_store.dart';
 import '../../features/diary/data/sources/meal_local_data_source.dart';
 import '../../features/profile/data/sources/profile_local_data_source.dart';
+import '../../features/profile/data/legacy_goal_migration.dart';
 import '../../features/supplements/data/sources/supplement_local_data_source.dart';
 import '../../features/steps/data/sources/steps_local_data_source.dart';
 import '../../features/workout/data/sources/workout_local_data_source.dart';
@@ -1170,12 +1171,12 @@ class BackupManager {
             'user_food_override_translations',
             payload['user_food_override_translations'] ??
                 payload['userFoodOverrideTranslations']);
-        await _importTable('user_goals',
-            payload['user_goals'] ?? payload['userGoals']);
-        await _importTable('goal_events',
-            payload['goal_events'] ?? payload['goalEvents']);
-        await _importTable('goal_reviews',
-            payload['goal_reviews'] ?? payload['goalReviews']);
+        await _importTable(
+            'user_goals', payload['user_goals'] ?? payload['userGoals']);
+        await _importTable(
+            'goal_events', payload['goal_events'] ?? payload['goalEvents']);
+        await _importTable(
+            'goal_reviews', payload['goal_reviews'] ?? payload['goalReviews']);
         token?.throwIfCancelled();
       });
       success = true;
@@ -1203,6 +1204,7 @@ class BackupManager {
 
     if (success) {
       await _reapplyExerciseAliases();
+      await LegacyGoalMigration(database: dbInst).run();
       if (restorePhotos != null) {
         try {
           await restorePhotos();
