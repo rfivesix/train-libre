@@ -64,15 +64,20 @@ class CalculateDailyNutritionUseCase {
     int totalSets = 0;
     int completedCount = 0;
 
+    // BOLT OPTIMIZATION: Replaced DateTime/Duration arithmetic in the hot loop
+    // with raw integer microseconds to avoid intermediate object allocations.
+    int totalDurationMicroseconds = 0;
+
     for (final log in workoutLogs) {
       if (log.endTime == null) continue;
       completedCount++;
-      totalDuration += log.endTime!.difference(log.startTime);
+      totalDurationMicroseconds += log.endTime!.microsecondsSinceEpoch - log.startTime.microsecondsSinceEpoch;
       totalSets += log.sets.length;
       for (final set in log.sets) {
         totalVolume += (set.weightKg ?? 0) * (set.reps ?? 0);
       }
     }
+    totalDuration += Duration(microseconds: totalDurationMicroseconds);
 
     if (completedCount > 0) {
       workoutSummary = {
