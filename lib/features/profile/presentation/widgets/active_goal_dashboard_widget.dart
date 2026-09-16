@@ -10,8 +10,8 @@ import '../../../../services/unit_service.dart';
 import '../../../../util/design_constants.dart';
 import '../../../../widgets/common/app_button.dart';
 import '../../../../widgets/common/app_section_header.dart';
-import '../../../../widgets/common/glass_progress_bar.dart';
 import '../../../../widgets/common/summary_card.dart';
+import '../../../../widgets/common/value_summary_card.dart';
 import '../../domain/models/goal_model.dart';
 import '../../domain/models/goal_progress.dart';
 import '../../../analytics/domain/models/chart_data_point.dart';
@@ -155,8 +155,104 @@ class ActiveGoalDashboardWidget extends StatelessWidget {
         SummaryCard(
           margin: EdgeInsets.zero,
           onTap: onHeaderTap,
-          child: Padding(
-            padding: DesignConstants.cardPadding,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      activeGoal.title.isNotEmpty
+                          ? activeGoal.title
+                          : _presetLabel(context, activeGoal.preset),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  _GoalStatusPill(
+                    label: isActive
+                        ? l10n.goalStatusActive
+                        : (isRetired
+                            ? l10n.goalStatusRetired
+                            : l10n.goalStatusSuperseded),
+                    active: isActive,
+                  ),
+                  if (onHeaderTap != null) ...[
+                    const SizedBox(width: DesignConstants.spacingS),
+                    Icon(
+                      LucideIcons.chevron_right,
+                      size: 18,
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
+                    ),
+                  ],
+                ],
+              ),
+              const SizedBox(height: DesignConstants.spacingS),
+              Text(
+                statusMessage,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.72),
+                ),
+              ),
+              if (activeGoal.reason?.trim().isNotEmpty == true) ...[
+                const SizedBox(height: DesignConstants.spacingS),
+                Text(
+                  '“${activeGoal.reason!.trim()}”',
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    fontStyle: FontStyle.italic,
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.55),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+        const SizedBox(height: DesignConstants.spacingS),
+        ValueSummaryCard(
+          label: l10n.goalCurrentHeader,
+          value: formatWeight(progress?.currentValue),
+          subtitle: progress?.deltaSinceStart == null
+              ? null
+              : '${progress!.deltaSinceStart! >= 0 ? "+" : ""}${unitService.convertDisplayValue(progress!.deltaSinceStart!, UnitDimension.weight).toStringAsFixed(1)} ${unitService.unitString(UnitDimension.weight)}',
+          valueColor: theme.colorScheme.primary,
+        ),
+        const SizedBox(height: DesignConstants.spacingS),
+        Row(
+          children: [
+            Expanded(
+              child: ValueSummaryCard(
+                label: l10n.goalBaselineHeader,
+                value: formatWeight(progress?.baselineValue),
+                subtitle: progress?.baselineDate == null
+                    ? null
+                    : dateFormat.format(progress!.baselineDate!),
+              ),
+            ),
+            const SizedBox(width: DesignConstants.spacingS),
+            Expanded(
+              child: ValueSummaryCard(
+                label: l10n.goalTargetHeader,
+                value: activeGoal.targetValue == null
+                    ? (activeGoal.isMaintenanceOrRecomp
+                        ? l10n.goalMaintainCorridor
+                        : l10n.goalDirectionalOnly)
+                    : formatWeight(activeGoal.targetValue),
+                subtitle: activeGoal.targetDate == null
+                    ? l10n.goalNoTargetDateShort
+                    : dateFormat.format(activeGoal.targetDate!),
+              ),
+            ),
+          ],
+        ),
+        if (progress != null && !isWaiting) ...[
+          const SizedBox(height: DesignConstants.spacingS),
+          SummaryCard(
+            margin: EdgeInsets.zero,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -164,134 +260,47 @@ class ActiveGoalDashboardWidget extends StatelessWidget {
                   children: [
                     Expanded(
                       child: Text(
-                        activeGoal.title.isNotEmpty
-                            ? activeGoal.title
-                            : _presetLabel(context, activeGoal.preset),
-                        style: theme.textTheme.titleMedium?.copyWith(
+                        l10n.goalProgressSectionTitle,
+                        style: theme.textTheme.labelLarge?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                     ),
-                    _GoalStatusPill(
-                      label: isActive
-                          ? l10n.goalStatusActive
-                          : (isRetired
-                              ? l10n.goalStatusRetired
-                              : l10n.goalStatusSuperseded),
-                      active: isActive,
-                    ),
-                    if (onHeaderTap != null) ...[
-                      const SizedBox(width: DesignConstants.spacingXS),
-                      Icon(
-                        LucideIcons.chevron_right,
-                        size: 18,
-                        color:
-                            theme.colorScheme.onSurface.withValues(alpha: 0.4),
+                    Text(
+                      '${(((progress!.progressPercentage ?? (progress!.isInToleranceBand ? 1.0 : 0.0)) * 100).clamp(0.0, 100.0)).round()}%',
+                      style: theme.textTheme.labelLarge?.copyWith(
+                        color: theme.colorScheme.primary,
+                        fontWeight: FontWeight.bold,
                       ),
-                    ],
+                    ),
                   ],
                 ),
-                const SizedBox(height: DesignConstants.spacingM),
+                const SizedBox(height: DesignConstants.spacingS),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(99),
+                  child: LinearProgressIndicator(
+                    minHeight: 6,
+                    value: (progress!.progressPercentage ??
+                            (progress!.isInToleranceBand ? 1.0 : 0.0))
+                        .clamp(0.0, 1.0),
+                    backgroundColor: theme.colorScheme.surfaceContainerHighest,
+                  ),
+                ),
+                const SizedBox(height: DesignConstants.spacingS),
                 Text(
-                  statusMessage,
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: -0.2,
+                  progress!.remainingDistance != null
+                      ? l10n.goalRemainingDistanceLabel(
+                          formatWeight(progress!.remainingDistance),
+                        )
+                      : statusMessage,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.62),
                   ),
                 ),
-                const SizedBox(height: DesignConstants.spacingL),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Expanded(
-                      child: _JourneyValue(
-                        label: l10n.goalCurrentHeader,
-                        value: formatWeight(progress?.currentValue),
-                        emphasized: true,
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(
-                        left: DesignConstants.spacingS,
-                        right: DesignConstants.spacingS,
-                        bottom: 8,
-                      ),
-                      child: Icon(
-                        LucideIcons.arrow_right,
-                        color:
-                            theme.colorScheme.onSurface.withValues(alpha: 0.35),
-                      ),
-                    ),
-                    Expanded(
-                      child: _JourneyValue(
-                        label: l10n.goalTargetHeader,
-                        value: activeGoal.targetValue == null
-                            ? (activeGoal.isMaintenanceOrRecomp
-                                ? l10n.goalMaintainCorridor
-                                : l10n.goalDirectionalOnly)
-                            : formatWeight(activeGoal.targetValue),
-                        alignEnd: true,
-                      ),
-                    ),
-                  ],
-                ),
-                if (progress != null && !isWaiting) ...[
-                  const SizedBox(height: DesignConstants.spacingL),
-                  GlassProgressBar(
-                    label: l10n.goalProgressSectionTitle,
-                    unit: unitService.unitString(UnitDimension.weight),
-                    value: ((progress!.progressPercentage ??
-                                (progress!.isInToleranceBand ? 1.0 : 0.0)) *
-                            100)
-                        .clamp(0.0, 100.0),
-                    target: 100,
-                    color: Colors.green,
-                    borderRadius: DesignConstants.borderRadiusL,
-                    customSubtitle: progress!.remainingDistance != null
-                        ? l10n.goalRemainingDistanceLabel(
-                            formatWeight(progress!.remainingDistance),
-                          )
-                        : statusMessage,
-                  ),
-                ],
-                const Divider(height: DesignConstants.spacingXL),
-                Wrap(
-                  spacing: DesignConstants.spacingL,
-                  runSpacing: DesignConstants.spacingS,
-                  children: [
-                    _JourneyMeta(
-                      label: l10n.goalBaselineHeader,
-                      value: formatWeight(progress?.baselineValue),
-                    ),
-                    _JourneyMeta(
-                      label: l10n.goalTargetDateLabel,
-                      value: activeGoal.targetDate == null
-                          ? l10n.goalNoTargetDateShort
-                          : dateFormat.format(activeGoal.targetDate!),
-                    ),
-                    if (progress?.trendRateKgPerWeek != null)
-                      _JourneyMeta(
-                        label: l10n.goalWeeklyRateLabel,
-                        value:
-                            '${progress!.trendRateKgPerWeek! >= 0 ? "+" : ""}${unitService.convertDisplayValue(progress!.trendRateKgPerWeek!, UnitDimension.weight).toStringAsFixed(2)} ${unitService.unitString(UnitDimension.weight)}/${l10n.weekShort}',
-                      ),
-                  ],
-                ),
-                if (activeGoal.reason?.trim().isNotEmpty == true) ...[
-                  const SizedBox(height: DesignConstants.spacingM),
-                  Text(
-                    '“${activeGoal.reason!.trim()}”',
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      fontStyle: FontStyle.italic,
-                      color:
-                          theme.colorScheme.onSurface.withValues(alpha: 0.68),
-                    ),
-                  ),
-                ],
               ],
             ),
           ),
-        ),
+        ],
         const SizedBox(height: DesignConstants.spacingS),
         // The first missing measurement is the only action shown in this state.
         if (isWaiting) ...[
@@ -419,83 +428,6 @@ class _GoalStatusPill extends StatelessWidget {
           color: color.withValues(alpha: active ? 1 : 0.7),
           fontWeight: FontWeight.w700,
         ),
-      ),
-    );
-  }
-}
-
-class _JourneyValue extends StatelessWidget {
-  final String label;
-  final String value;
-  final bool emphasized;
-  final bool alignEnd;
-
-  const _JourneyValue({
-    required this.label,
-    required this.value,
-    this.emphasized = false,
-    this.alignEnd = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Column(
-      crossAxisAlignment:
-          alignEnd ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: theme.textTheme.labelMedium?.copyWith(
-            color: theme.colorScheme.onSurface.withValues(alpha: 0.58),
-          ),
-        ),
-        const SizedBox(height: DesignConstants.spacingXS),
-        FittedBox(
-          fit: BoxFit.scaleDown,
-          alignment: alignEnd ? Alignment.centerRight : Alignment.centerLeft,
-          child: Text(
-            value,
-            style: theme.textTheme.headlineSmall?.copyWith(
-              color: emphasized ? theme.colorScheme.primary : null,
-              fontWeight: FontWeight.w900,
-              letterSpacing: -0.4,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _JourneyMeta extends StatelessWidget {
-  final String label;
-  final String value;
-
-  const _JourneyMeta({required this.label, required this.value});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Semantics(
-      label: '$label: $value',
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.52),
-            ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            value,
-            style: theme.textTheme.labelMedium?.copyWith(
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ],
       ),
     );
   }

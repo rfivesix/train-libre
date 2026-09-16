@@ -815,45 +815,43 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
         // Baseline Status / Input Card
         if (hasDetected && !_isManualBaselineMode) ...[
           SummaryCard(
-            child: Padding(
-              padding: DesignConstants.cardPadding,
-              child: Row(
-                children: [
-                  const Icon(LucideIcons.circle_check,
-                      color: Colors.green, size: 28),
-                  const SizedBox(width: DesignConstants.spacingM),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          l10n.goalBaselineFoundTitle,
-                          style: theme.textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
+            margin: EdgeInsets.zero,
+            child: Row(
+              children: [
+                const Icon(LucideIcons.circle_check,
+                    color: Colors.green, size: 24),
+                const SizedBox(width: DesignConstants.spacingM),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        l10n.goalBaselineFoundTitle,
+                        style: theme.textTheme.labelLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
                         ),
-                        const SizedBox(height: 2),
-                        Text(
-                          '${unitService.convertDisplayValue(_detectedBaselineWeight!, UnitDimension.weight).toStringAsFixed(1)} $unitStr'
-                          '${_detectedBaselineDate != null ? ' (${dateFormat.format(_detectedBaselineDate!)})' : ''}',
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: theme.colorScheme.primary,
-                          ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        '${unitService.convertDisplayValue(_detectedBaselineWeight!, UnitDimension.weight).toStringAsFixed(1)} $unitStr'
+                        '${_detectedBaselineDate != null ? ' • ${dateFormat.format(_detectedBaselineDate!)}' : ''}',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: theme.colorScheme.primary,
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                  TextButton(
-                    onPressed: () {
-                      setState(() {
-                        _isManualBaselineMode = true;
-                      });
-                    },
-                    child: Text(l10n.edit),
-                  ),
-                ],
-              ),
+                ),
+                TextButton(
+                  onPressed: () {
+                    setState(() {
+                      _isManualBaselineMode = true;
+                    });
+                  },
+                  child: Text(l10n.edit),
+                ),
+              ],
             ),
           ),
         ] else ...[
@@ -972,128 +970,128 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
         ],
 
         SummaryCard(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: DesignConstants.spacingM,
-              vertical: DesignConstants.spacingL,
-            ),
-            child: Column(
-              children: [
-                Text(
-                  l10n.goalTargetWeightLabel(unitStr),
-                  style: theme.textTheme.labelMedium?.copyWith(
-                    color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+          margin: EdgeInsets.zero,
+          child: Column(
+            children: [
+              Text(
+                l10n.goalTargetWeightLabel(unitStr),
+                style: theme.textTheme.labelMedium?.copyWith(
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+                ),
+              ),
+              const SizedBox(height: DesignConstants.spacingS),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.baseline,
+                textBaseline: TextBaseline.alphabetic,
+                children: [
+                  Text(
+                    targetDisp?.toStringAsFixed(1) ?? '--',
+                    style: theme.textTheme.displayMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: theme.colorScheme.primary,
+                    ),
                   ),
-                ),
-                const SizedBox(height: DesignConstants.spacingS),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.baseline,
-                  textBaseline: TextBaseline.alphabetic,
-                  children: [
-                    Text(
-                      targetDisp?.toStringAsFixed(1) ?? '--',
-                      style: theme.textTheme.displayMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: theme.colorScheme.primary,
-                      ),
+                  const SizedBox(width: DesignConstants.spacingS),
+                  Text(
+                    unitStr,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                      fontWeight: FontWeight.w600,
                     ),
-                    const SizedBox(width: DesignConstants.spacingS),
-                    Text(
-                      unitStr,
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        color:
-                            theme.colorScheme.onSurface.withValues(alpha: 0.6),
-                        fontWeight: FontWeight.w600,
-                      ),
+                  ),
+                  const SizedBox(width: DesignConstants.spacingS),
+                  IconButton(
+                    icon: Icon(
+                      _showManualTargetWeightInput
+                          ? LucideIcons.sliders_horizontal
+                          : LucideIcons.pencil,
+                      size: 20,
                     ),
-                    const SizedBox(width: DesignConstants.spacingS),
-                    IconButton(
-                      icon: Icon(
-                        _showManualTargetWeightInput
-                            ? LucideIcons.sliders_horizontal
-                            : LucideIcons.pencil,
-                        size: 20,
-                      ),
-                      onPressed: () {
-                        setState(() {
-                          _showManualTargetWeightInput =
-                              !_showManualTargetWeightInput;
-                        });
-                      },
-                    ),
-                  ],
-                ),
-                if (_showManualTargetWeightInput) ...[
-                  const SizedBox(height: DesignConstants.spacingM),
-                  TextField(
-                    controller: _targetWeightController,
-                    keyboardType:
-                        const TextInputType.numberWithOptions(decimal: true),
-                    autofocus: true,
-                    textAlign: TextAlign.center,
-                    onChanged: (_) => setState(() {}),
-                    decoration: InputDecoration(
-                      contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 8),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(
-                            DesignConstants.borderRadiusM),
-                      ),
-                    ),
+                    onPressed: () {
+                      setState(() {
+                        _showManualTargetWeightInput =
+                            !_showManualTargetWeightInput;
+                      });
+                    },
                   ),
                 ],
+              ),
+              if (_showManualTargetWeightInput) ...[
                 const SizedBox(height: DesignConstants.spacingM),
-                AppRulerPicker.weight(
-                  value: targetDisp ?? (baselineDisp ?? 75.0),
-                  imperial: unitService.isImperial,
-                  onChanged: (newWeight) {
-                    setState(() {
-                      _targetWeightController.text =
-                          newWeight.toStringAsFixed(1);
-                    });
-                  },
+                TextField(
+                  controller: _targetWeightController,
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
+                  autofocus: true,
+                  textAlign: TextAlign.center,
+                  onChanged: (_) => setState(() {}),
+                  decoration: InputDecoration(
+                    contentPadding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    border: OutlineInputBorder(
+                      borderRadius:
+                          BorderRadius.circular(DesignConstants.borderRadiusM),
+                    ),
+                  ),
                 ),
               ],
-            ),
+              const SizedBox(height: DesignConstants.spacingM),
+              AppRulerPicker.weight(
+                value: targetDisp ?? (baselineDisp ?? 75.0),
+                imperial: unitService.isImperial,
+                onChanged: (newWeight) {
+                  setState(() {
+                    _targetWeightController.text = newWeight.toStringAsFixed(1);
+                  });
+                },
+              ),
+            ],
           ),
         ),
         const SizedBox(height: DesignConstants.spacingM),
 
         // Quick adjustment chips
         if (!isMaintain && baselineDisp != null) ...[
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: (_preset == GoalPreset.gainWeight ||
-                    (_preset == GoalPreset.custom &&
-                        _customDirection == 'gain'))
-                ? [2.0, 4.0, 6.0, 8.0].map((delta) {
-                    final target = baselineDisp + delta;
-                    return ActionChip(
-                      label: Text(
-                          '+$delta $unitStr (${target.toStringAsFixed(1)})'),
-                      onPressed: () {
-                        setState(() {
-                          _targetWeightController.text =
-                              target.toStringAsFixed(1);
-                        });
-                      },
-                    );
-                  }).toList()
-                : [2.0, 5.0, 10.0, 15.0].map((delta) {
-                    final target = max(30.0, baselineDisp - delta);
-                    return ActionChip(
-                      label: Text(
-                          '-$delta $unitStr (${target.toStringAsFixed(1)})'),
-                      onPressed: () {
-                        setState(() {
-                          _targetWeightController.text =
-                              target.toStringAsFixed(1);
-                        });
-                      },
-                    );
-                  }).toList(),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: (_preset == GoalPreset.gainWeight ||
+                      (_preset == GoalPreset.custom &&
+                          _customDirection == 'gain'))
+                  ? [2.0, 4.0, 6.0, 8.0].map((delta) {
+                      final target = baselineDisp + delta;
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: ActionChip(
+                          label: Text(
+                              '+$delta $unitStr (${target.toStringAsFixed(1)})'),
+                          onPressed: () {
+                            setState(() {
+                              _targetWeightController.text =
+                                  target.toStringAsFixed(1);
+                            });
+                          },
+                        ),
+                      );
+                    }).toList()
+                  : [2.0, 5.0, 10.0, 15.0].map((delta) {
+                      final target = max(30.0, baselineDisp - delta);
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: ActionChip(
+                          label: Text(
+                              '-$delta $unitStr (${target.toStringAsFixed(1)})'),
+                          onPressed: () {
+                            setState(() {
+                              _targetWeightController.text =
+                                  target.toStringAsFixed(1);
+                            });
+                          },
+                        ),
+                      );
+                    }).toList(),
+            ),
           ),
           const SizedBox(height: DesignConstants.spacingM),
         ],
@@ -1551,11 +1549,8 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
           children: [
             l10n.goalReasonSuggestionHealth,
             l10n.goalReasonSuggestionFitness,
-            l10n.goalReasonSuggestionShape,
             l10n.goalReasonSuggestionEnergy,
-            l10n.goalReasonSuggestionLongevity,
             l10n.goalReasonSuggestionHabits,
-            l10n.goalReasonSuggestionStrength,
           ].map((suggestion) {
             final isSelected = _reasonController.text.trim() == suggestion;
             return ActionChip(
@@ -1598,8 +1593,8 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
             key: const ValueKey('reason_text_field'),
             focusNode: _reasonFocusNode,
             controller: _reasonController,
-            minLines: 3,
-            maxLines: 5,
+            minLines: 2,
+            maxLines: 4,
             textCapitalization: TextCapitalization.sentences,
             decoration: InputDecoration(
               hintText: l10n.goalReasonPlaceholder,
@@ -1653,69 +1648,69 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
         const SizedBox(height: DesignConstants.spacingS),
         SummaryCard(
           margin: EdgeInsets.zero,
-          child: Padding(
-            padding: DesignConstants.cardPadding,
-            child: Column(
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildPreviewMetric(
-                        context,
-                        l10n.goalBaselineHeader,
-                        formatWeight(baseline),
-                      ),
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildPreviewMetric(
+                      context,
+                      l10n.goalBaselineHeader,
+                      formatWeight(baseline),
                     ),
-                    Icon(LucideIcons.arrow_right,
-                        color: theme.colorScheme.primary, size: 20),
-                    Expanded(
-                      child: _buildPreviewMetric(
-                        context,
-                        l10n.goalTargetHeader,
-                        formatWeight(target),
-                        alignEnd: true,
-                      ),
+                  ),
+                  Icon(LucideIcons.arrow_right,
+                      color: theme.colorScheme.primary, size: 20),
+                  Expanded(
+                    child: _buildPreviewMetric(
+                      context,
+                      l10n.goalTargetHeader,
+                      formatWeight(target),
+                      alignEnd: true,
                     ),
-                  ],
-                ),
-                const Divider(height: DesignConstants.spacingXL),
-                _buildReviewRow(
-                  context,
-                  label: l10n.goalWeeklyRateLabel,
-                  value:
-                      '${_weeklyRateKg.toStringAsFixed(2)} $unit / ${l10n.weekShort}',
-                  icon: LucideIcons.gauge,
-                ),
-                const SizedBox(height: DesignConstants.spacingM),
-                _buildReviewRow(
-                  context,
-                  label: l10n.goalTargetDateLabel,
-                  value: _targetDate == null
-                      ? l10n.goalNoTargetDateShort
-                      : dateFormat.format(_targetDate!),
-                  icon: LucideIcons.calendar,
-                ),
-              ],
-            ),
+                  ),
+                ],
+              ),
+              const Divider(height: DesignConstants.spacingXL),
+              _buildReviewRow(
+                context,
+                label: l10n.goalWeeklyRateLabel,
+                value:
+                    '${_weeklyRateKg.toStringAsFixed(2)} $unit / ${l10n.weekShort}',
+                icon: LucideIcons.gauge,
+              ),
+              const SizedBox(height: DesignConstants.spacingM),
+              _buildReviewRow(
+                context,
+                label: l10n.goalTargetDateLabel,
+                value: _targetDate == null
+                    ? l10n.goalNoTargetDateShort
+                    : dateFormat.format(_targetDate!),
+                icon: LucideIcons.calendar,
+              ),
+            ],
           ),
         ),
         const SizedBox(height: DesignConstants.spacingM),
-        SwitchListTile.adaptive(
-          contentPadding: EdgeInsets.zero,
-          title: Text(
-            l10n.goalDriverSettingLabel,
-            style: theme.textTheme.titleSmall?.copyWith(
-              fontWeight: FontWeight.bold,
+        SummaryCard(
+          margin: EdgeInsets.zero,
+          child: SwitchListTile.adaptive(
+            contentPadding: EdgeInsets.zero,
+            title: Text(
+              l10n.goalDriverSettingLabel,
+              style: theme.textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
             ),
-          ),
-          subtitle: Text(
-            l10n.goalDriverSettingDescription,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+            subtitle: Text(
+              l10n.goalDriverSettingDescription,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+              ),
             ),
+            value: _isNutritionDriver,
+            onChanged: (value) => setState(() => _isNutritionDriver = value),
           ),
-          value: _isNutritionDriver,
-          onChanged: (value) => setState(() => _isNutritionDriver = value),
         ),
       ],
     );
