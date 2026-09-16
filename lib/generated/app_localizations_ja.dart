@@ -4592,6 +4592,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get adaptiveRecommendationMaintenanceLabel => 'メンテナンスの目安';
 
   @override
+  String get adaptiveRecommendationWhyTitle => 'この提案の理由';
+
+  @override
+  String get adaptiveRecommendationWhySubtitle => '維持カロリー、データ品質、計算の詳細';
+
+  @override
   String get adaptiveRecommendationMaintenanceSourceLabel =>
       'プロファイルの以前のログと最近のログ';
 
@@ -4600,6 +4606,14 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get adaptiveRecommendationMacroTargetsLabel => '推奨ターゲット';
+
+  @override
+  String get adaptiveRecommendationAlreadyActive => '適用済み';
+
+  @override
+  String adaptiveRecommendationTargetChange(String value) {
+    return '現在値から $value';
+  }
 
   @override
   String get adaptiveRecommendationTargetCaloriesLabel => '目標kcal';
@@ -6782,6 +6796,28 @@ class AppLocalizationsJa extends AppLocalizations {
   String get goalStep1Description => '方向性を選択するか、自分の言葉で自由に目標を記述してください。';
 
   @override
+  String goalStepProgress(int current, int total) {
+    return '$total ステップ中 $current';
+  }
+
+  @override
+  String get goalStartingPointAndTargetTitle => 'スタート地点と目標';
+
+  @override
+  String get goalStartingPointAndTargetDescription =>
+      '開始時点を確認し、方向性に合った目標を選びます。';
+
+  @override
+  String get goalTargetDirectionLoseError => '減量目標では、開始体重より低い目標を選んでください。';
+
+  @override
+  String get goalTargetDirectionGainError => '増量目標では、開始体重より高い目標を選んでください。';
+
+  @override
+  String get goalDriverSettingDescription =>
+      'Train Libre はこの目標をもとに、毎日のカロリーとマクロ目標を調整します。';
+
+  @override
   String get goalPresetLoseWeight => '減量';
 
   @override
@@ -7428,6 +7464,12 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get goalMaintenanceDrifting => '目標範囲からわずかに乖離';
+
+  @override
+  String get goalJourneyInProgress => '目標に向けて進行中です';
+
+  @override
+  String get goalJourneyTargetReached => '目標を達成しました';
 
   @override
   String get goalNotifyWeeklyReviewTitle => '週間レビューの準備完了';

@@ -23,6 +23,21 @@ void main() {
       expect(state.desiredWeeklyRateKg, closeTo(1.0, 0.01));
     });
 
+    test('reset restores the canonical sandbox baseline', () {
+      final state = NutritionSandboxState();
+      state.setTargetWeight(70);
+      state.setCurrentCalories(1800);
+      state.setWeightObservationCount(1);
+
+      state.reset();
+
+      expect(state.baselineWeightKg, 85.0);
+      expect(state.targetWeightKg, 78.0);
+      expect(state.currentCalories, 2150);
+      expect(state.weightObservationCount, 5);
+      expect(state.desiredWeeklyRateKg, closeTo(0.58, 0.01));
+    });
+
     test('evaluates assessment live and produces synthetic models', () {
       final state = NutritionSandboxState();
       final assessment = state.evaluateAssessment();
@@ -41,7 +56,8 @@ void main() {
   });
 
   group('CanonicalNutritionScenarios', () {
-    test('all 8 canonical scenarios match their expected evaluation states', () {
+    test('all 8 canonical scenarios match their expected evaluation states',
+        () {
       final state = NutritionSandboxState();
 
       for (final scenario in CanonicalNutritionScenarios.all) {
@@ -68,10 +84,12 @@ void main() {
       }
     });
 
-    test('Scenario 2 (Plateau) triggers adjust_targets and falling_further_behind', () {
+    test(
+        'Scenario 2 (Plateau) triggers adjust_targets and falling_further_behind',
+        () {
       final state = NutritionSandboxState();
-      final plateauScenario =
-          CanonicalNutritionScenarios.all.firstWhere((s) => s.id == 'behind_plateau');
+      final plateauScenario = CanonicalNutritionScenarios.all
+          .firstWhere((s) => s.id == 'behind_plateau');
       plateauScenario.applyToSandbox(state);
 
       final assessment = state.evaluateAssessment();
@@ -83,10 +101,11 @@ void main() {
       expect(review.recommendedCalories, state.recommendedCalories);
     });
 
-    test('Scenario 3 (Intake gap) keeps targets because intake explains gap', () {
+    test('Scenario 3 (Intake gap) keeps targets because intake explains gap',
+        () {
       final state = NutritionSandboxState();
-      final intakeScenario =
-          CanonicalNutritionScenarios.all.firstWhere((s) => s.id == 'behind_intake_gap');
+      final intakeScenario = CanonicalNutritionScenarios.all
+          .firstWhere((s) => s.id == 'behind_intake_gap');
       intakeScenario.applyToSandbox(state);
 
       final assessment = state.evaluateAssessment();
@@ -97,10 +116,12 @@ void main() {
       expect(review.recommendedCalories, isNull);
     });
 
-    test('Scenario 6 (Insufficient data) fails sufficiency gate to calibrating state', () {
+    test(
+        'Scenario 6 (Insufficient data) fails sufficiency gate to calibrating state',
+        () {
       final state = NutritionSandboxState();
-      final calibratingScenario =
-          CanonicalNutritionScenarios.all.firstWhere((s) => s.id == 'insufficient_data');
+      final calibratingScenario = CanonicalNutritionScenarios.all
+          .firstWhere((s) => s.id == 'insufficient_data');
       calibratingScenario.applyToSandbox(state);
 
       final assessment = state.evaluateAssessment();
@@ -111,8 +132,8 @@ void main() {
 
     test('Scenario 8 (Target reached) detects goal met', () {
       final state = NutritionSandboxState();
-      final reachedScenario =
-          CanonicalNutritionScenarios.all.firstWhere((s) => s.id == 'target_reached');
+      final reachedScenario = CanonicalNutritionScenarios.all
+          .firstWhere((s) => s.id == 'target_reached');
       reachedScenario.applyToSandbox(state);
 
       final assessment = state.evaluateAssessment();

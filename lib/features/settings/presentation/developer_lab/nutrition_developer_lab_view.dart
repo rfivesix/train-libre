@@ -28,14 +28,14 @@ class NutritionDeveloperLabView extends StatefulWidget {
 class _NutritionDeveloperLabViewState extends State<NutritionDeveloperLabView> {
   final NutritionSandboxState _sandboxState = NutritionSandboxState();
   int _selectedSectionIndex =
-      0; // 0: Sandbox, 1: Szenarien, 2: Screens, 3: Benachrichtigungen
+      0; // 0: Overview, 1: Scenarios, 2: Controls, 3: Screens & alerts
   bool _isSeedingDb = false;
 
   final List<String> _sections = [
-    'Live Sandbox',
-    '8 Szenarien',
-    'Screen-Launcher',
-    'Benachrichtigungen',
+    'Overview',
+    'Scenarios',
+    'Controls',
+    'Screens & Alerts',
   ];
 
   Future<void> _injectScenarioIntoDb(
@@ -121,7 +121,34 @@ class _NutritionDeveloperLabViewState extends State<NutritionDeveloperLabView> {
 
         // 0: Live Sandbox
         if (_selectedSectionIndex == 0) ...[
-          NutritionSandboxWidget(state: _sandboxState),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              if (constraints.maxWidth < 900) {
+                return NutritionSandboxWidget(
+                  state: _sandboxState,
+                  showControls: false,
+                );
+              }
+              return Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: NutritionSandboxWidget(
+                      state: _sandboxState,
+                      showControls: false,
+                    ),
+                  ),
+                  const SizedBox(width: DesignConstants.spacingL),
+                  Expanded(
+                    child: NutritionSandboxWidget(
+                      state: _sandboxState,
+                      showOverview: false,
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
         ],
 
         // 1: Canonical Scenarios
@@ -132,6 +159,24 @@ class _NutritionDeveloperLabViewState extends State<NutritionDeveloperLabView> {
             style: theme.textTheme.bodySmall?.copyWith(height: 1.3),
           ),
           const SizedBox(height: DesignConstants.spacingM),
+          SummaryCard(
+            useSecondarySurface: true,
+            child: Padding(
+              padding: DesignConstants.cardPadding,
+              child: Row(
+                children: [
+                  Icon(LucideIcons.shield_check,
+                      color: theme.colorScheme.primary),
+                  const SizedBox(width: DesignConstants.spacingM),
+                  const Expanded(
+                    child: Text(
+                      'Preview is in-memory only. Database mode writes clearly marked test fixtures and can be cleaned below.',
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
           ...CanonicalNutritionScenarios.all
               .map((scenario) => _buildScenarioCard(scenario)),
           const SizedBox(height: DesignConstants.spacingL),
@@ -164,8 +209,16 @@ class _NutritionDeveloperLabViewState extends State<NutritionDeveloperLabView> {
           ),
         ],
 
-        // 2: Screen Launcher
+        // 2: Exact engine controls
         if (_selectedSectionIndex == 2) ...[
+          NutritionSandboxWidget(
+            state: _sandboxState,
+            showOverview: false,
+          ),
+        ],
+
+        // 3: Product screen launcher and notification tester
+        if (_selectedSectionIndex == 3) ...[
           AppSectionHeader(title: 'Alle neuen Screens & Flows direkt öffnen'),
           SummaryCard(
             child: Column(
@@ -206,7 +259,7 @@ class _NutritionDeveloperLabViewState extends State<NutritionDeveloperLabView> {
                   leading: Icon(LucideIcons.plus),
                   title: const Text('Zielerstellung (CreateGoalFlow)'),
                   subtitle: const Text(
-                      'Öffnet den 6-Schritte Zielerstellungs-Wizard'),
+                      'Öffnet die Zielreise mit vier klaren Kapiteln'),
                   trailing: const Icon(LucideIcons.chevron_right),
                   onTap: () {
                     Navigator.of(context).push(
@@ -229,10 +282,7 @@ class _NutritionDeveloperLabViewState extends State<NutritionDeveloperLabView> {
               ],
             ),
           ),
-        ],
-
-        // 3: Notification Tester
-        if (_selectedSectionIndex == 3) ...[
+          const SizedBox(height: DesignConstants.spacingXL),
           const NotificationTestView(),
         ],
 

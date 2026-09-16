@@ -13,6 +13,7 @@ import '../../../widgets/common/app_button.dart';
 import '../../../widgets/common/bottom_content_spacer.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/app_section_header.dart';
+import '../../../widgets/common/summary_card.dart';
 import '../../../widgets/common/value_summary_card.dart';
 import '../../nutrition_recommendation/data/recommendation_service.dart';
 import '../domain/models/goal_model.dart';
@@ -47,6 +48,7 @@ class _WeeklyGoalReviewScreenState extends State<WeeklyGoalReviewScreen> {
   int _loggedIntakeDaysCount = 0;
   bool _isLoading = true;
   bool _isApplying = false;
+  bool _showAdjustmentEditor = false;
   double? _currentWeightKg;
   final _adjustmentKey = GlobalKey<GoalAdjustmentSheetState>();
 
@@ -54,8 +56,8 @@ class _WeeklyGoalReviewScreenState extends State<WeeklyGoalReviewScreen> {
   void initState() {
     super.initState();
     _goalRepository = widget.repository ?? GoalRepositoryImpl();
-    _recommendationService =
-        widget.recommendationService ?? AdaptiveNutritionRecommendationService();
+    _recommendationService = widget.recommendationService ??
+        AdaptiveNutritionRecommendationService();
     _review = widget.review;
     _initReview();
   }
@@ -408,28 +410,49 @@ class _WeeklyGoalReviewScreenState extends State<WeeklyGoalReviewScreen> {
           ],
 
           if (_currentWeightKg != null && widget.goal.targetValue != null) ...[
-            const Divider(height: DesignConstants.spacingXL),
-            AppSectionHeader(title: l10n.adjustGoalTitle),
-            const SizedBox(height: DesignConstants.spacingXS),
-            Text(
-              l10n.adjustGoalDescription,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+            SummaryCard(
+              margin: EdgeInsets.zero,
+              child: ListTile(
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: DesignConstants.spacingM,
+                  vertical: DesignConstants.spacingS,
+                ),
+                leading: Icon(
+                  LucideIcons.sliders_horizontal,
+                  color: theme.colorScheme.primary,
+                ),
+                title: Text(
+                  l10n.adjustGoalTitle,
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                subtitle: Text(l10n.adjustGoalDescription),
+                trailing: Icon(
+                  _showAdjustmentEditor
+                      ? LucideIcons.chevron_up
+                      : LucideIcons.chevron_down,
+                ),
+                onTap: () => setState(
+                  () => _showAdjustmentEditor = !_showAdjustmentEditor,
+                ),
               ),
             ),
+            if (_showAdjustmentEditor) ...[
+              const SizedBox(height: DesignConstants.spacingM),
+              GoalAdjustmentSheet(
+                key: _adjustmentKey,
+                goal: widget.goal,
+                startWeightKg: _currentWeightKg!,
+                repository: _goalRepository,
+                embedded: true,
+                recommendedTargetDate: recommendedDate,
+                recommendedWeeklyRateKg: recommendedRate,
+                showSaveButton: false,
+                onSaved: _onAdjustmentSaved,
+              ),
+            ],
             const SizedBox(height: DesignConstants.spacingL),
-            GoalAdjustmentSheet(
-              key: _adjustmentKey,
-              goal: widget.goal,
-              startWeightKg: _currentWeightKg!,
-              repository: _goalRepository,
-              embedded: true,
-              recommendedTargetDate: recommendedDate,
-              recommendedWeeklyRateKg: recommendedRate,
-              showSaveButton: false,
-              onSaved: _onAdjustmentSaved,
-            ),
-            const SizedBox(height: DesignConstants.spacingXL),
           ],
 
           // Trajectory Comparison: Observed Rate vs Target Rate
@@ -615,16 +638,26 @@ class _WeeklyGoalReviewScreenState extends State<WeeklyGoalReviewScreen> {
           ],
 
           // Data basis is deliberately secondary and stays at the bottom.
-          Container(
-            alignment: Alignment.centerLeft,
-            child: Padding(
-              padding: DesignConstants.cardPadding,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  AppSectionHeader(title: l10n.reviewSufficiencyGateTitle),
-                  const SizedBox(height: DesignConstants.spacingM),
-                  Row(
+          Theme(
+            data: theme.copyWith(dividerColor: Colors.transparent),
+            child: ExpansionTile(
+              key: const Key('weekly_review_data_quality'),
+              tilePadding: EdgeInsets.zero,
+              title: Text(
+                l10n.reviewSufficiencyGateTitle,
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              subtitle: Text(
+                '${l10n.reviewWeighInsCountLabel}: $_weightObservationCount • ${l10n.reviewLoggedDaysCountLabel}: $_loggedIntakeDaysCount',
+              ),
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(
+                    bottom: DesignConstants.spacingM,
+                  ),
+                  child: Row(
                     children: [
                       Expanded(
                         child: _buildGateMetric(
@@ -645,8 +678,8 @@ class _WeeklyGoalReviewScreenState extends State<WeeklyGoalReviewScreen> {
                       ),
                     ],
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
           const SizedBox(height: DesignConstants.spacingL),
@@ -680,7 +713,7 @@ class _WeeklyGoalReviewScreenState extends State<WeeklyGoalReviewScreen> {
           const BottomContentSpacer(),
         ],
       ),
-      bottomNavigationBar: hasAdjustmentEditor
+      bottomNavigationBar: hasAdjustmentEditor && _showAdjustmentEditor
           ? SafeArea(
               minimum: const EdgeInsets.fromLTRB(
                 DesignConstants.spacingM,
@@ -697,9 +730,9 @@ class _WeeklyGoalReviewScreenState extends State<WeeklyGoalReviewScreen> {
                 tooltip: l10n.adjustGoalUpdatePlanButton,
                 onPressed: _isApplying
                     ? null
-                    : () => recommendedDate != null &&
-                            recommendedRate != null
-                        ? _adjustmentKey.currentState?.acceptRecommendedAndSave()
+                    : () => recommendedDate != null && recommendedRate != null
+                        ? _adjustmentKey.currentState
+                            ?.acceptRecommendedAndSave()
                         : _adjustmentKey.currentState?.confirmAndSave(),
               ),
             )

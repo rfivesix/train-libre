@@ -38,7 +38,7 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
       widget.repository ?? GoalRepositoryImpl();
 
   int _currentStep = 0;
-  static const int _totalSteps = 6;
+  static const int _totalSteps = 4;
 
   // Step 0: Absicht / Preset
   GoalPreset _preset = GoalPreset.loseWeight;
@@ -235,6 +235,23 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
           _customTitleController.text.trim().isEmpty) {
         _customTitleController.text = l10n.goalPresetCustom;
       }
+      final baseline = _getBaselineKg(unitService);
+      if (_targetWeightController.text.trim().isEmpty && baseline != null) {
+        final displayBaseline =
+            unitService.convertDisplayValue(baseline, UnitDimension.weight);
+        final displayDelta = unitService.convertDisplayValue(
+          _preset == GoalPreset.gainWeight ? 3.0 : 5.0,
+          UnitDimension.weight,
+        );
+        final target = _preset == GoalPreset.loseWeight ||
+                (_preset == GoalPreset.custom && _customDirection == 'lose')
+            ? max(30.0, displayBaseline - displayDelta)
+            : (_preset == GoalPreset.gainWeight ||
+                    (_preset == GoalPreset.custom && _customDirection == 'gain')
+                ? displayBaseline + displayDelta
+                : displayBaseline);
+        _targetWeightController.text = target.toStringAsFixed(1);
+      }
     } else if (_currentStep == 1) {
       final baseline = _getBaselineKg(unitService);
       if (baseline == null || baseline <= 0) {
@@ -250,7 +267,7 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
         return;
       }
 
-      // Pre-fill target weight if empty
+      // Pre-fill target weight if empty.
       if (_targetWeightController.text.trim().isEmpty) {
         final dispBase =
             unitService.convertDisplayValue(baseline, UnitDimension.weight);
@@ -269,7 +286,7 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
           _targetWeightController.text = dispBase.toStringAsFixed(1);
         }
       }
-    } else if (_currentStep == 2) {
+
       final target = _getTargetKg(unitService);
       if (target == null || target <= 0) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -284,8 +301,25 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
         return;
       }
 
+      final isLosing = _preset == GoalPreset.loseWeight ||
+          (_preset == GoalPreset.custom && _customDirection == 'lose');
+      final isGaining = _preset == GoalPreset.gainWeight ||
+          (_preset == GoalPreset.custom && _customDirection == 'gain');
+      if ((isLosing && target >= baseline) ||
+          (isGaining && target <= baseline)) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              isLosing
+                  ? l10n.goalTargetDirectionLoseError
+                  : l10n.goalTargetDirectionGainError,
+            ),
+          ),
+        );
+        return;
+      }
+
       // Initialize trajectory defaults if not yet set
-      final baseline = _getBaselineKg(unitService) ?? target;
       final delta = (target - baseline).abs();
       if (delta > 0) {
         if (_preset == GoalPreset.gainWeight ||
@@ -428,9 +462,36 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
       body: SafeArea(
         child: Column(
           children: [
-            LinearProgressIndicator(
-              value: (_currentStep + 1) / _totalSteps,
-              backgroundColor: theme.colorScheme.surfaceContainerHighest,
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                DesignConstants.spacingL,
+                DesignConstants.spacingS,
+                DesignConstants.spacingL,
+                0,
+              ),
+              child: Row(
+                children: [
+                  Text(
+                    l10n.goalStepProgress(_currentStep + 1, _totalSteps),
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(width: DesignConstants.spacingM),
+                  Expanded(
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(99),
+                      child: LinearProgressIndicator(
+                        minHeight: 6,
+                        value: (_currentStep + 1) / _totalSteps,
+                        backgroundColor:
+                            theme.colorScheme.surfaceContainerHighest,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
             Expanded(
               child: SingleChildScrollView(
@@ -481,18 +542,41 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
       case 0:
         return _buildStep0Preset(context);
       case 1:
-        return _buildStep1Baseline(context);
+        return _buildStep1StartingPointAndTarget(context);
       case 2:
-        return _buildStep2TargetWeight(context);
-      case 3:
         return _buildStep3Trajectory(context);
-      case 4:
-        return _buildStep4Reason(context);
-      case 5:
-        return _buildStep5Review(context);
+      case 3:
+        return _buildStep4Reason(context, includeReview: true);
       default:
         return const SizedBox.shrink();
     }
+  }
+
+  Widget _buildStep1StartingPointAndTarget(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          l10n.goalStartingPointAndTargetTitle,
+          style: theme.textTheme.headlineSmall?.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: DesignConstants.spacingS),
+        Text(
+          l10n.goalStartingPointAndTargetDescription,
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+          ),
+        ),
+        const SizedBox(height: DesignConstants.spacingL),
+        _buildStep1Baseline(context, showIntro: false),
+        const SizedBox(height: DesignConstants.spacingXL),
+        _buildStep2TargetWeight(context, showIntro: false),
+      ],
+    );
   }
 
   // -------------------------------------------------------------
@@ -661,7 +745,7 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
   // -------------------------------------------------------------
   // Step 1: Startdatum & Baseline
   // -------------------------------------------------------------
-  Widget _buildStep1Baseline(BuildContext context) {
+  Widget _buildStep1Baseline(BuildContext context, {bool showIntro = true}) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final unitService = context.watch<UnitService>();
@@ -675,20 +759,30 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          l10n.goalStepBaselineQuestion,
-          style: theme.textTheme.headlineSmall?.copyWith(
-            fontWeight: FontWeight.bold,
+        if (showIntro) ...[
+          Text(
+            l10n.goalStepBaselineQuestion,
+            style: theme.textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
           ),
-        ),
-        const SizedBox(height: DesignConstants.spacingS),
-        Text(
-          l10n.goalStepBaselineDescription,
-          style: theme.textTheme.bodyMedium?.copyWith(
-            color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+          const SizedBox(height: DesignConstants.spacingS),
+          Text(
+            l10n.goalStepBaselineDescription,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+            ),
           ),
-        ),
-        const SizedBox(height: DesignConstants.spacingL),
+          const SizedBox(height: DesignConstants.spacingL),
+        ] else ...[
+          Text(
+            l10n.goalBaselineHeader,
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: DesignConstants.spacingS),
+        ],
 
         // Start Date Picker
         ListTile(
@@ -826,7 +920,8 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
   // -------------------------------------------------------------
   // Step 2: Zielgewicht
   // -------------------------------------------------------------
-  Widget _buildStep2TargetWeight(BuildContext context) {
+  Widget _buildStep2TargetWeight(BuildContext context,
+      {bool showIntro = true}) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final unitService = context.watch<UnitService>();
@@ -851,20 +946,30 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          l10n.goalStepTargetWeightQuestion,
-          style: theme.textTheme.headlineSmall?.copyWith(
-            fontWeight: FontWeight.bold,
+        if (showIntro) ...[
+          Text(
+            l10n.goalStepTargetWeightQuestion,
+            style: theme.textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
           ),
-        ),
-        const SizedBox(height: DesignConstants.spacingS),
-        Text(
-          l10n.goalStepTargetWeightDescription,
-          style: theme.textTheme.bodyMedium?.copyWith(
-            color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+          const SizedBox(height: DesignConstants.spacingS),
+          Text(
+            l10n.goalStepTargetWeightDescription,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+            ),
           ),
-        ),
-        const SizedBox(height: DesignConstants.spacingL),
+          const SizedBox(height: DesignConstants.spacingL),
+        ] else ...[
+          Text(
+            isMaintain ? l10n.goalMaintainCorridor : l10n.goalTargetHeader,
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: DesignConstants.spacingS),
+        ],
 
         SummaryCard(
           child: Padding(
@@ -993,6 +1098,25 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
           const SizedBox(height: DesignConstants.spacingM),
         ],
 
+        if (baselineDisp != null && targetDisp != null) ...[
+          if ((_preset == GoalPreset.loseWeight ||
+                  (_preset == GoalPreset.custom &&
+                      _customDirection == 'lose')) &&
+              targetDisp >= baselineDisp)
+            _buildDirectionWarning(
+              context,
+              l10n.goalTargetDirectionLoseError,
+            ),
+          if ((_preset == GoalPreset.gainWeight ||
+                  (_preset == GoalPreset.custom &&
+                      _customDirection == 'gain')) &&
+              targetDisp <= baselineDisp)
+            _buildDirectionWarning(
+              context,
+              l10n.goalTargetDirectionGainError,
+            ),
+        ],
+
         // 3-Column Summary Cards: Baseline, Planned Delta, Target
         if (baselineDisp != null &&
             targetDisp != null &&
@@ -1028,6 +1152,33 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
           ),
         ],
       ],
+    );
+  }
+
+  Widget _buildDirectionWarning(BuildContext context, String message) {
+    final theme = Theme.of(context);
+    return Container(
+      margin: const EdgeInsets.only(bottom: DesignConstants.spacingM),
+      padding: const EdgeInsets.all(DesignConstants.spacingM),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.errorContainer,
+        borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
+      ),
+      child: Row(
+        children: [
+          Icon(LucideIcons.circle_alert,
+              color: theme.colorScheme.onErrorContainer, size: 18),
+          const SizedBox(width: DesignConstants.spacingS),
+          Expanded(
+            child: Text(
+              message,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onErrorContainer,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -1371,7 +1522,7 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
   // -------------------------------------------------------------
   // Step 4: Motivation & Grund
   // -------------------------------------------------------------
-  Widget _buildStep4Reason(BuildContext context) {
+  Widget _buildStep4Reason(BuildContext context, {bool includeReview = false}) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
 
@@ -1393,7 +1544,7 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
         ),
         const SizedBox(height: DesignConstants.spacingL),
 
-        // Quick suggestion catalog without emojis (compact, multiple per line)
+        // A small set of prompts starts a personal, editable statement.
         Wrap(
           spacing: 6,
           runSpacing: 6,
@@ -1402,12 +1553,9 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
             l10n.goalReasonSuggestionFitness,
             l10n.goalReasonSuggestionShape,
             l10n.goalReasonSuggestionEnergy,
-            l10n.goalReasonSuggestionStrength,
-            l10n.goalReasonSuggestionConfidence,
-            l10n.goalReasonSuggestionEvent,
             l10n.goalReasonSuggestionLongevity,
             l10n.goalReasonSuggestionHabits,
-            l10n.goalReasonSuggestionClothing,
+            l10n.goalReasonSuggestionStrength,
           ].map((suggestion) {
             final isSelected = _reasonController.text.trim() == suggestion;
             return ActionChip(
@@ -1470,135 +1618,88 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
             color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
           ),
         ),
+        if (includeReview) ...[
+          const SizedBox(height: DesignConstants.spacingXL),
+          _buildCompactGoalPreview(context),
+        ],
       ],
     );
   }
 
-  // -------------------------------------------------------------
-  // Step 5: Review & Aktivieren
-  // -------------------------------------------------------------
-  Widget _buildStep5Review(BuildContext context) {
+  Widget _buildCompactGoalPreview(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final unitService = context.watch<UnitService>();
-    final unitStr = unitService.unitString(UnitDimension.weight);
+    final unit = unitService.unitString(UnitDimension.weight);
+    final baseline = _getBaselineKg(unitService);
+    final target = _getTargetKg(unitService);
     final dateFormat = DateFormat.yMMMd(
       Localizations.localeOf(context).toString(),
     );
 
-    final baselineKg = _getBaselineKg(unitService);
-    final targetKg = _getTargetKg(unitService);
-    final double? baselineDisp = baselineKg != null
-        ? unitService.convertDisplayValue(baselineKg, UnitDimension.weight)
-        : null;
-    final double? targetDisp = targetKg != null
-        ? unitService.convertDisplayValue(targetKg, UnitDimension.weight)
-        : null;
-
-    String title;
-    if (_preset == GoalPreset.custom &&
-        _customTitleController.text.trim().isNotEmpty) {
-      title = _customTitleController.text.trim();
-    } else {
-      switch (_preset) {
-        case GoalPreset.loseWeight:
-          title = l10n.goalPresetLoseWeight;
-          break;
-        case GoalPreset.gainWeight:
-          title = l10n.goalPresetGainWeight;
-          break;
-        case GoalPreset.maintainWeight:
-          title = l10n.goalPresetMaintainWeight;
-          break;
-        case GoalPreset.recomposition:
-          title = l10n.goalPresetRecomposition;
-          break;
-        case GoalPreset.custom:
-          title = l10n.goalPresetCustom;
-          break;
-      }
-    }
+    String formatWeight(double? value) => value == null
+        ? '--'
+        : '${unitService.convertDisplayValue(value, UnitDimension.weight).toStringAsFixed(1)} $unit';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           l10n.goalStep7Question,
-          style: theme.textTheme.headlineSmall?.copyWith(
+          style: theme.textTheme.titleLarge?.copyWith(
             fontWeight: FontWeight.bold,
           ),
         ),
         const SizedBox(height: DesignConstants.spacingS),
-        Text(
-          l10n.goalStep7Description,
-          style: theme.textTheme.bodyMedium?.copyWith(
-            color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
-          ),
-        ),
-        const SizedBox(height: DesignConstants.spacingL),
-
         SummaryCard(
+          margin: EdgeInsets.zero,
           child: Padding(
             padding: DesignConstants.cardPadding,
             child: Column(
               children: [
-                _buildReviewRow(
-                  context,
-                  label: l10n.goalAreaLabel,
-                  value: title,
-                  icon: LucideIcons.target,
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildPreviewMetric(
+                        context,
+                        l10n.goalBaselineHeader,
+                        formatWeight(baseline),
+                      ),
+                    ),
+                    Icon(LucideIcons.arrow_right,
+                        color: theme.colorScheme.primary, size: 20),
+                    Expanded(
+                      child: _buildPreviewMetric(
+                        context,
+                        l10n.goalTargetHeader,
+                        formatWeight(target),
+                        alignEnd: true,
+                      ),
+                    ),
+                  ],
                 ),
-                const Divider(height: DesignConstants.spacingL),
-                _buildReviewRow(
-                  context,
-                  label: l10n.goalStartLabel,
-                  value: baselineDisp != null
-                      ? '${baselineDisp.toStringAsFixed(1)} $unitStr'
-                      : l10n.goalWaitingForMeasurementShort,
-                  icon: LucideIcons.play,
-                ),
-                const Divider(height: DesignConstants.spacingL),
-                _buildReviewRow(
-                  context,
-                  label: l10n.goalTargetLabel,
-                  value: targetDisp != null
-                      ? '${targetDisp.toStringAsFixed(1)} $unitStr'
-                      : '--',
-                  icon: LucideIcons.flag,
-                ),
-                const Divider(height: DesignConstants.spacingL),
+                const Divider(height: DesignConstants.spacingXL),
                 _buildReviewRow(
                   context,
                   label: l10n.goalWeeklyRateLabel,
                   value:
-                      '${_weeklyRateKg.toStringAsFixed(2)} $unitStr / ${l10n.weekShort}',
+                      '${_weeklyRateKg.toStringAsFixed(2)} $unit / ${l10n.weekShort}',
                   icon: LucideIcons.gauge,
                 ),
-                const Divider(height: DesignConstants.spacingL),
+                const SizedBox(height: DesignConstants.spacingM),
                 _buildReviewRow(
                   context,
                   label: l10n.goalTargetDateLabel,
-                  value: _targetDate != null
-                      ? dateFormat.format(_targetDate!)
-                      : l10n.goalNoTargetDateShort,
+                  value: _targetDate == null
+                      ? l10n.goalNoTargetDateShort
+                      : dateFormat.format(_targetDate!),
                   icon: LucideIcons.calendar,
                 ),
-                if (_reasonController.text.trim().isNotEmpty) ...[
-                  const Divider(height: DesignConstants.spacingL),
-                  _buildReviewRow(
-                    context,
-                    label: l10n.goalStep6Question,
-                    value: _reasonController.text.trim(),
-                    icon: LucideIcons.heart,
-                  ),
-                ],
               ],
             ),
           ),
         ),
-        const SizedBox(height: DesignConstants.spacingL),
-
-        // Nutrition driver toggle
+        const SizedBox(height: DesignConstants.spacingM),
         SwitchListTile.adaptive(
           contentPadding: EdgeInsets.zero,
           title: Text(
@@ -1608,13 +1709,42 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
             ),
           ),
           subtitle: Text(
-            'Passt tägliche Kalorien und Makros adaptiv an dieses Ziel an.',
+            l10n.goalDriverSettingDescription,
             style: theme.textTheme.bodySmall?.copyWith(
               color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
             ),
           ),
           value: _isNutritionDriver,
-          onChanged: (val) => setState(() => _isNutritionDriver = val),
+          onChanged: (value) => setState(() => _isNutritionDriver = value),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPreviewMetric(
+    BuildContext context,
+    String label,
+    String value, {
+    bool alignEnd = false,
+  }) {
+    final theme = Theme.of(context);
+    return Column(
+      crossAxisAlignment:
+          alignEnd ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: theme.textTheme.labelMedium?.copyWith(
+            color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+          ),
+        ),
+        const SizedBox(height: DesignConstants.spacingXS),
+        Text(
+          value,
+          style: theme.textTheme.titleLarge?.copyWith(
+            fontWeight: FontWeight.bold,
+            color: alignEnd ? theme.colorScheme.primary : null,
+          ),
         ),
       ],
     );

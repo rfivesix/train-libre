@@ -57,6 +57,25 @@ class NutritionSandboxState extends ChangeNotifier {
   int get recommendedCarbs => _recommendedCarbs;
   int get recommendedFat => _recommendedFat;
 
+  void reset() {
+    _preset = GoalPreset.loseWeight;
+    _baselineWeightKg = 85.0;
+    _targetWeightKg = 78.0;
+    _totalPlannedWeeks = 12;
+    _elapsedWeeks = 4;
+    _currentWeightKg = 83.2;
+    _recentRateKgPerWeek = -0.45;
+    _operatingRateKgPerWeek = -0.45;
+    _weightObservationCount = 5;
+    _nutritionLoggedDays = 7;
+    _currentCalories = 2150;
+    _averageLoggedCalories = 2170;
+    _tdeeEstimate = 2650.0;
+    _recommendedCalories = 2000;
+    _recalculateDerivedPace();
+    notifyListeners();
+  }
+
   // Setters with notifyListeners()
   void setPreset(GoalPreset value) {
     _preset = value;
@@ -140,7 +159,8 @@ class NutritionSandboxState extends ChangeNotifier {
   void _recalculateDerivedPace() {
     final delta = (_targetWeightKg - _baselineWeightKg).abs();
     if (_totalPlannedWeeks > 0) {
-      _desiredWeeklyRateKg = ((delta / _totalPlannedWeeks) * 100).round() / 100.0;
+      _desiredWeeklyRateKg =
+          ((delta / _totalPlannedWeeks) * 100).round() / 100.0;
     }
   }
 
@@ -209,9 +229,8 @@ class NutritionSandboxState extends ChangeNotifier {
       status: 'pending',
       trajectoryStatus: assessment.overallStatus,
       observedRateKgPerWeek: _recentRateKgPerWeek,
-      confidenceLevel: assessment.dataQuality == 'sufficient'
-          ? 'high'
-          : 'uncalibrated',
+      confidenceLevel:
+          assessment.dataQuality == 'sufficient' ? 'high' : 'uncalibrated',
       tdeeEstimate: _tdeeEstimate,
       recommendedCalories: canAdjust ? _recommendedCalories : null,
       recommendedProtein: canAdjust ? _recommendedProtein : null,

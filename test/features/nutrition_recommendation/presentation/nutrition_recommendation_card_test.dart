@@ -77,6 +77,7 @@ void main() {
 
     final context = tester.element(find.byType(NutritionRecommendationCard));
     final l10n = AppLocalizations.of(context)!;
+    await _expandExplanation(tester);
 
     expect(find.text('2500 kcal'), findsOneWidget);
     expect(
@@ -229,6 +230,7 @@ void main() {
 
     final context = tester.element(find.byType(NutritionRecommendationCard));
     final l10n = AppLocalizations.of(context)!;
+    await _expandExplanation(tester);
     expect(
       find.text(l10n.adaptiveRecommendationDataBasisHintPriorOnly),
       findsOneWidget,
@@ -296,6 +298,7 @@ void main() {
 
     final context = tester.element(find.byType(NutritionRecommendationCard));
     final l10n = AppLocalizations.of(context)!;
+    await _expandExplanation(tester);
     expect(find.byKey(const Key('adaptive_recommendation_range_line')),
         findsOneWidget);
     expect(find.byKey(const Key('adaptive_recommendation_uncertainty_hint')),
@@ -336,6 +339,7 @@ void main() {
 
     final context = tester.element(find.byType(NutritionRecommendationCard));
     final l10n = AppLocalizations.of(context)!;
+    await _expandExplanation(tester);
     expect(
       find.byKey(const Key('adaptive_recommendation_stabilizing_hint')),
       findsOneWidget,
@@ -374,6 +378,7 @@ void main() {
 
     final context = tester.element(find.byType(NutritionRecommendationCard));
     final l10n = AppLocalizations.of(context)!;
+    await _expandExplanation(tester);
     expect(find.text(l10n.adaptiveRecommendationUncertaintyHintModerate),
         findsOneWidget);
     expect(
@@ -478,6 +483,7 @@ void main() {
             ),
           ),
         );
+        await _expandExplanation(tester);
 
         final progressIndicators = tester.widgetList<LinearProgressIndicator>(
           find.byType(LinearProgressIndicator),
@@ -526,6 +532,7 @@ void main() {
     final context = tester.element(find.byType(NutritionRecommendationCard));
     final l10n = AppLocalizations.of(context)!;
     final expectedLabel = l10n.adaptiveConfidenceHigh;
+    await _expandExplanation(tester);
 
     // Find Semantics widgets that are ancestors of the LinearProgressIndicator.
     // The immediate ancestor is the one we added for the bar; verify that its
@@ -587,6 +594,7 @@ void main() {
 
     final context = tester.element(find.byType(NutritionRecommendationCard));
     final l10n = AppLocalizations.of(context)!;
+    await _expandExplanation(tester);
 
     expect(find.textContaining('5938'), findsNothing);
     expect(
@@ -597,6 +605,14 @@ void main() {
         find.text(l10n.adaptiveRecommendationTrajectoryCorrectionExplanation),
         findsOneWidget);
   });
+}
+
+Future<void> _expandExplanation(WidgetTester tester) async {
+  final tile = find.byKey(const Key('adaptive_recommendation_explanation'));
+  expect(tile, findsOneWidget);
+  await tester.ensureVisible(tile);
+  await tester.tap(tile);
+  await tester.pumpAndSettle();
 }
 
 NutritionRecommendation _recommendation() {

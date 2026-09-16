@@ -4740,6 +4740,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get adaptiveRecommendationMaintenanceLabel => 'Estimated maintenance';
 
   @override
+  String get adaptiveRecommendationWhyTitle => 'Why this recommendation?';
+
+  @override
+  String get adaptiveRecommendationWhySubtitle =>
+      'Maintenance estimate, data quality and calculation details';
+
+  @override
   String get adaptiveRecommendationMaintenanceSourceLabel =>
       'Profile prior + recent logs';
 
@@ -4748,6 +4755,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get adaptiveRecommendationMacroTargetsLabel => 'Recommended targets';
+
+  @override
+  String get adaptiveRecommendationAlreadyActive => 'Already active';
+
+  @override
+  String adaptiveRecommendationTargetChange(String value) {
+    return '$value from current';
+  }
 
   @override
   String get adaptiveRecommendationTargetCaloriesLabel => 'Target kcal';
@@ -7012,6 +7027,31 @@ class AppLocalizationsEn extends AppLocalizations {
       'Choose a direction or describe your milestone in your own words.';
 
   @override
+  String goalStepProgress(int current, int total) {
+    return 'Step $current of $total';
+  }
+
+  @override
+  String get goalStartingPointAndTargetTitle =>
+      'Your starting point and destination';
+
+  @override
+  String get goalStartingPointAndTargetDescription =>
+      'Confirm where you are starting, then choose a target that matches your direction.';
+
+  @override
+  String get goalTargetDirectionLoseError =>
+      'For a weight-loss goal, choose a target below your starting weight.';
+
+  @override
+  String get goalTargetDirectionGainError =>
+      'For a weight-gain goal, choose a target above your starting weight.';
+
+  @override
+  String get goalDriverSettingDescription =>
+      'Train Libre uses this goal to adapt your daily calorie and macro targets.';
+
+  @override
   String get goalPresetLoseWeight => 'Lose weight';
 
   @override
@@ -7693,6 +7733,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get goalMaintenanceDrifting => 'Slight deviation from corridor';
+
+  @override
+  String get goalJourneyInProgress => 'Your goal is in motion';
+
+  @override
+  String get goalJourneyTargetReached => 'You reached your target';
 
   @override
   String get goalNotifyWeeklyReviewTitle => 'Weekly review ready';

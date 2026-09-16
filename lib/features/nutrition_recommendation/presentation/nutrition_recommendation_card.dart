@@ -27,6 +27,10 @@ class NutritionRecommendationCard extends StatelessWidget {
   final bool isApplying;
   final VoidCallback? onRecalculate;
   final VoidCallback? onApply;
+  final int? currentCalories;
+  final int? currentProteinGrams;
+  final int? currentCarbsGrams;
+  final int? currentFatGrams;
 
   const NutritionRecommendationCard({
     super.key,
@@ -41,6 +45,10 @@ class NutritionRecommendationCard extends StatelessWidget {
     required this.isApplying,
     required this.onRecalculate,
     required this.onApply,
+    this.currentCalories,
+    this.currentProteinGrams,
+    this.currentCarbsGrams,
+    this.currentFatGrams,
   });
 
   @override
@@ -74,6 +82,10 @@ class NutritionRecommendationCard extends StatelessWidget {
               isApplying: isApplying,
               onRecalculate: onRecalculate,
               onApply: onApply,
+              currentCalories: currentCalories,
+              currentProteinGrams: currentProteinGrams,
+              currentCarbsGrams: currentCarbsGrams,
+              currentFatGrams: currentFatGrams,
               goalLabel: _goalLabel(l10n, recommendation!.goal),
               rateLabel: _rateLabel(
                   context, l10n, recommendation!.targetRateKgPerWeek),
@@ -225,6 +237,10 @@ class _GeneratedRecommendationContent extends StatelessWidget {
   final String rateLabel;
   final String formattedGeneratedAt;
   final String formattedNextDue;
+  final int? currentCalories;
+  final int? currentProteinGrams;
+  final int? currentCarbsGrams;
+  final int? currentFatGrams;
 
   const _GeneratedRecommendationContent({
     required this.recommendation,
@@ -239,6 +255,10 @@ class _GeneratedRecommendationContent extends StatelessWidget {
     required this.rateLabel,
     required this.formattedGeneratedAt,
     required this.formattedNextDue,
+    required this.currentCalories,
+    required this.currentProteinGrams,
+    required this.currentCarbsGrams,
+    required this.currentFatGrams,
   });
 
   @override
@@ -279,61 +299,12 @@ class _GeneratedRecommendationContent extends StatelessWidget {
             ),
           ),
         const SizedBox(height: DesignConstants.spacingM),
-        _MacroTargetGrid(recommendation: recommendation),
-        const SizedBox(height: DesignConstants.spacingL),
-        Text(
-          l10n.adaptiveRecommendationMaintenanceLabel,
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-        ),
-        const SizedBox(height: DesignConstants.spacingS),
-        _MaintenanceHero(
-          value: recommendation.estimatedMaintenanceCalories,
-          rangeLine: rangeLine,
-          confidenceLabel: confidenceLabel,
-          confidence: recommendation.confidence,
-        ),
-        if (maintenanceEstimate != null) ...[
-          const SizedBox(height: DesignConstants.spacingS),
-          Text(
-            RecommendationUiCopy.uncertaintyHint(
-              l10n,
-              maintenanceEstimate!,
-            ),
-            key: const Key('adaptive_recommendation_uncertainty_hint'),
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.78),
-            ),
-          ),
-          if (RecommendationUiCopy.isStabilizing(maintenanceEstimate!))
-            Padding(
-              padding: const EdgeInsets.only(top: DesignConstants.spacingXS),
-              child: Text(
-                l10n.adaptiveRecommendationStabilizingHint,
-                key: const Key('adaptive_recommendation_stabilizing_hint'),
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.78),
-                ),
-              ),
-            ),
-        ],
-        const SizedBox(height: DesignConstants.spacingS),
-        _RecommendationContextPanel(
-          dataBasisLine: l10n.adaptiveRecommendationDataBasisLine(
-            recommendation.inputSummary.windowDays,
-            recommendation.inputSummary.weightLogCount,
-            recommendation.inputSummary.intakeLoggedDays,
-          ),
-          dataBasisMessage: RecommendationUiCopy.dataBasisMessage(
-            l10n,
-            recommendation,
-          ),
-          trajectoryCorrectionCalories:
-              recommendation.trajectoryCorrectionCalories,
-          calculatedAtLine: l10n.adaptiveRecommendationCalculatedAtLine(
-            formattedGeneratedAt,
-          ),
+        _MacroTargetGrid(
+          recommendation: recommendation,
+          currentCalories: currentCalories,
+          currentProteinGrams: currentProteinGrams,
+          currentCarbsGrams: currentCarbsGrams,
+          currentFatGrams: currentFatGrams,
         ),
         if (recommendationWarning != null)
           Padding(
@@ -349,6 +320,99 @@ class _GeneratedRecommendationContent extends StatelessWidget {
           isApplying: isApplying,
           onRecalculate: onRecalculate,
           onApply: onApply,
+        ),
+        const SizedBox(height: DesignConstants.spacingS),
+        Theme(
+          data: theme.copyWith(dividerColor: Colors.transparent),
+          child: ExpansionTile(
+            key: const Key('adaptive_recommendation_explanation'),
+            tilePadding: EdgeInsets.zero,
+            childrenPadding: const EdgeInsets.only(
+              bottom: DesignConstants.spacingM,
+            ),
+            title: Text(
+              l10n.adaptiveRecommendationWhyTitle,
+              style: theme.textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            subtitle: Text(
+              l10n.adaptiveRecommendationWhySubtitle,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.62),
+              ),
+            ),
+            children: [
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  l10n.adaptiveRecommendationMaintenanceLabel,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              const SizedBox(height: DesignConstants.spacingS),
+              _MaintenanceHero(
+                value: recommendation.estimatedMaintenanceCalories,
+                rangeLine: rangeLine,
+                confidenceLabel: confidenceLabel,
+                confidence: recommendation.confidence,
+              ),
+              if (maintenanceEstimate != null) ...[
+                const SizedBox(height: DesignConstants.spacingS),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    RecommendationUiCopy.uncertaintyHint(
+                      l10n,
+                      maintenanceEstimate!,
+                    ),
+                    key: const Key('adaptive_recommendation_uncertainty_hint'),
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color:
+                          theme.colorScheme.onSurface.withValues(alpha: 0.78),
+                    ),
+                  ),
+                ),
+                if (RecommendationUiCopy.isStabilizing(maintenanceEstimate!))
+                  Padding(
+                    padding:
+                        const EdgeInsets.only(top: DesignConstants.spacingXS),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        l10n.adaptiveRecommendationStabilizingHint,
+                        key: const Key(
+                          'adaptive_recommendation_stabilizing_hint',
+                        ),
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurface
+                              .withValues(alpha: 0.78),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+              const SizedBox(height: DesignConstants.spacingM),
+              _RecommendationContextPanel(
+                dataBasisLine: l10n.adaptiveRecommendationDataBasisLine(
+                  recommendation.inputSummary.windowDays,
+                  recommendation.inputSummary.weightLogCount,
+                  recommendation.inputSummary.intakeLoggedDays,
+                ),
+                dataBasisMessage: RecommendationUiCopy.dataBasisMessage(
+                  l10n,
+                  recommendation,
+                ),
+                trajectoryCorrectionCalories:
+                    recommendation.trajectoryCorrectionCalories,
+                calculatedAtLine: l10n.adaptiveRecommendationCalculatedAtLine(
+                  formattedGeneratedAt,
+                ),
+              ),
+            ],
+          ),
         ),
       ],
     );
@@ -585,8 +649,18 @@ class _MetricCaption extends StatelessWidget {
 
 class _MacroTargetGrid extends StatelessWidget {
   final NutritionRecommendation recommendation;
+  final int? currentCalories;
+  final int? currentProteinGrams;
+  final int? currentCarbsGrams;
+  final int? currentFatGrams;
 
-  const _MacroTargetGrid({required this.recommendation});
+  const _MacroTargetGrid({
+    required this.recommendation,
+    required this.currentCalories,
+    required this.currentProteinGrams,
+    required this.currentCarbsGrams,
+    required this.currentFatGrams,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -597,24 +671,32 @@ class _MacroTargetGrid extends StatelessWidget {
         value: l10n.adaptiveRecommendationCaloriesValue(
           recommendation.recommendedCalories,
         ),
+        currentValue: currentCalories,
+        recommendedValue: recommendation.recommendedCalories,
       ),
       _MacroTarget(
         label: l10n.protein,
         value: l10n.adaptiveRecommendationProteinValue(
           recommendation.recommendedProteinGrams,
         ),
+        currentValue: currentProteinGrams,
+        recommendedValue: recommendation.recommendedProteinGrams,
       ),
       _MacroTarget(
         label: l10n.carbs,
         value: l10n.adaptiveRecommendationCarbsValue(
           recommendation.recommendedCarbsGrams,
         ),
+        currentValue: currentCarbsGrams,
+        recommendedValue: recommendation.recommendedCarbsGrams,
       ),
       _MacroTarget(
         label: l10n.fat,
         value: l10n.adaptiveRecommendationFatValue(
           recommendation.recommendedFatGrams,
         ),
+        currentValue: currentFatGrams,
+        recommendedValue: recommendation.recommendedFatGrams,
       ),
     ];
 
@@ -633,7 +715,17 @@ class _MacroTargetGrid extends StatelessWidget {
             final crossAxisCount = constraints.maxWidth < 430 ? 2 : 4;
             final gridItems = [
               for (final item in items)
-                ValueSummaryCard(label: item.label, value: item.value),
+                ValueSummaryCard(
+                  label: item.label,
+                  value: item.value,
+                  subtitle: item.currentValue == null
+                      ? null
+                      : (item.currentValue == item.recommendedValue
+                          ? l10n.adaptiveRecommendationAlreadyActive
+                          : l10n.adaptiveRecommendationTargetChange(
+                              '${item.recommendedValue - item.currentValue! >= 0 ? "+" : ""}${item.recommendedValue - item.currentValue!}',
+                            )),
+                ),
             ];
 
             final rows = <Widget>[];
@@ -682,8 +774,15 @@ class _MacroTargetGrid extends StatelessWidget {
 class _MacroTarget {
   final String label;
   final String value;
+  final int? currentValue;
+  final int recommendedValue;
 
-  const _MacroTarget({required this.label, required this.value});
+  const _MacroTarget({
+    required this.label,
+    required this.value,
+    required this.currentValue,
+    required this.recommendedValue,
+  });
 }
 
 class _RecommendationContextPanel extends StatelessWidget {

@@ -8334,6 +8334,18 @@ abstract class AppLocalizations {
   /// **'Estimated maintenance'**
   String get adaptiveRecommendationMaintenanceLabel;
 
+  /// No description provided for @adaptiveRecommendationWhyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Why this recommendation?'**
+  String get adaptiveRecommendationWhyTitle;
+
+  /// No description provided for @adaptiveRecommendationWhySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Maintenance estimate, data quality and calculation details'**
+  String get adaptiveRecommendationWhySubtitle;
+
   /// No description provided for @adaptiveRecommendationMaintenanceSourceLabel.
   ///
   /// In en, this message translates to:
@@ -8351,6 +8363,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Recommended targets'**
   String get adaptiveRecommendationMacroTargetsLabel;
+
+  /// No description provided for @adaptiveRecommendationAlreadyActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Already active'**
+  String get adaptiveRecommendationAlreadyActive;
+
+  /// No description provided for @adaptiveRecommendationTargetChange.
+  ///
+  /// In en, this message translates to:
+  /// **'{value} from current'**
+  String adaptiveRecommendationTargetChange(String value);
 
   /// No description provided for @adaptiveRecommendationTargetCaloriesLabel.
   ///
@@ -12289,6 +12313,42 @@ abstract class AppLocalizations {
   /// **'Choose a direction or describe your milestone in your own words.'**
   String get goalStep1Description;
 
+  /// No description provided for @goalStepProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Step {current} of {total}'**
+  String goalStepProgress(int current, int total);
+
+  /// No description provided for @goalStartingPointAndTargetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your starting point and destination'**
+  String get goalStartingPointAndTargetTitle;
+
+  /// No description provided for @goalStartingPointAndTargetDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm where you are starting, then choose a target that matches your direction.'**
+  String get goalStartingPointAndTargetDescription;
+
+  /// No description provided for @goalTargetDirectionLoseError.
+  ///
+  /// In en, this message translates to:
+  /// **'For a weight-loss goal, choose a target below your starting weight.'**
+  String get goalTargetDirectionLoseError;
+
+  /// No description provided for @goalTargetDirectionGainError.
+  ///
+  /// In en, this message translates to:
+  /// **'For a weight-gain goal, choose a target above your starting weight.'**
+  String get goalTargetDirectionGainError;
+
+  /// No description provided for @goalDriverSettingDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Train Libre uses this goal to adapt your daily calorie and macro targets.'**
+  String get goalDriverSettingDescription;
+
   /// No description provided for @goalPresetLoseWeight.
   ///
   /// In en, this message translates to:
@@ -13506,6 +13566,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Slight deviation from corridor'**
   String get goalMaintenanceDrifting;
+
+  /// No description provided for @goalJourneyInProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Your goal is in motion'**
+  String get goalJourneyInProgress;
+
+  /// No description provided for @goalJourneyTargetReached.
+  ///
+  /// In en, this message translates to:
+  /// **'You reached your target'**
+  String get goalJourneyTargetReached;
 
   /// No description provided for @goalNotifyWeeklyReviewTitle.
   ///

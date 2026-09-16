@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 
 import '../../../data/database_helper.dart';
+import '../../../data/drift_database.dart' as db;
 import '../../../generated/app_localizations.dart';
 import '../../../util/design_constants.dart';
 import '../../../widgets/common/app_button.dart';
@@ -323,15 +324,22 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
                   const SizedBox(height: DesignConstants.spacingL),
                 ],
 
-                // Modul 3: Adaptive Nutrition Recommendations (1:1)
-                AppSectionHeader(title: l10n.adaptiveRecommendationCardTitle),
-                RepaintBoundary(
-                  child: _buildGoalsAndRecommendationCard(
-                    context,
-                    recommendationState,
+                // A pending review is the single primary action. It already
+                // contains the recommendation, so the standalone card returns
+                // after the review has been completed.
+                if (pendingReview == null) ...[
+                  AppSectionHeader(
+                    title: l10n.adaptiveRecommendationCardTitle,
                   ),
-                ),
-                const SizedBox(height: DesignConstants.spacingXL),
+                  RepaintBoundary(
+                    child: _buildGoalsAndRecommendationCard(
+                      context,
+                      recommendationState,
+                      data['dailyGoals'] as db.DailyGoalsHistoryData?,
+                    ),
+                  ),
+                  const SizedBox(height: DesignConstants.spacingXL),
+                ],
 
                 // Modul 4: Gespeicherte Mahlzeiten
                 AppSectionHeader(title: l10n.nutritionSectionMyMeals),
@@ -460,6 +468,7 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
   Widget _buildGoalsAndRecommendationCard(
     BuildContext context,
     AdaptiveNutritionRecommendationState recommendationState,
+    db.DailyGoalsHistoryData? currentGoals,
   ) {
     return NutritionRecommendationCard(
       goal: recommendationState.goal,
@@ -475,6 +484,10 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
       isApplying: _isApplyingRecommendation,
       onRecalculate: _recalculateRecommendationNow,
       onApply: _applyRecommendation,
+      currentCalories: currentGoals?.targetCalories,
+      currentProteinGrams: currentGoals?.targetProtein,
+      currentCarbsGrams: currentGoals?.targetCarbs,
+      currentFatGrams: currentGoals?.targetFat,
     );
   }
 

@@ -43,7 +43,8 @@ void main() {
       );
     }
 
-    testWidgets('Step 0 displays preset choices and AppSegmentedControl for custom direction',
+    testWidgets(
+        'Step 0 displays preset choices and AppSegmentedControl for custom direction',
         (tester) async {
       tester.view.physicalSize = const Size(800, 1600);
       tester.view.devicePixelRatio = 1.0;
@@ -65,7 +66,8 @@ void main() {
       expect(find.byType(AppSegmentedControl<String>), findsOneWidget);
     });
 
-    testWidgets('Step 1 and Step 2 display AppRulerPicker.weight', (tester) async {
+    testWidgets('Step 2 combines baseline and target weight pickers',
+        (tester) async {
       tester.view.physicalSize = const Size(800, 1600);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(() => tester.view.resetPhysicalSize());
@@ -84,21 +86,13 @@ void main() {
         await tester.pumpAndSettle();
       }
 
-      // Verify AppRulerPicker is in Step 1
-      expect(find.byType(AppRulerPicker), findsOneWidget);
-
-      // Proceed to Step 2 (Target Weight)
-      await tester.tap(find.text('Continue'));
-      await tester.pumpAndSettle();
-
-      // Step 2 question
-      expect(find.text('What is your target weight?'), findsOneWidget);
-
-      // Step 2 should display AppRulerPicker.weight
-      expect(find.byType(AppRulerPicker), findsOneWidget);
+      expect(find.text('Your starting point and destination'), findsOneWidget);
+      expect(find.byType(AppRulerPicker), findsNWidgets(2));
     });
 
-    testWidgets('Step 3 shows trajectory card, pace dropdown, and duration dropdown', (tester) async {
+    testWidgets(
+        'Step 3 shows trajectory card, pace dropdown, and duration dropdown',
+        (tester) async {
       tester.view.physicalSize = const Size(800, 1600);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(() => tester.view.resetPhysicalSize());
@@ -117,11 +111,7 @@ void main() {
         await tester.pumpAndSettle();
       }
 
-      // Step 1 -> Step 2
-      await tester.tap(find.text('Continue'));
-      await tester.pumpAndSettle();
-
-      // Step 2 -> Step 3
+      // Combined starting point/target -> realistic plan
       await tester.tap(find.text('Continue'));
       await tester.pumpAndSettle();
 
@@ -129,8 +119,30 @@ void main() {
       expect(find.text('Plan Pace & Target Date'), findsOneWidget);
 
       // Verify dropdown keys exist
-      expect(find.byKey(const ValueKey('rate_dropdown_moderate')), findsOneWidget);
-      expect(find.byKey(const ValueKey('duration_dropdown_custom')), findsOneWidget);
+      expect(
+          find.byKey(const ValueKey('rate_dropdown_moderate')), findsOneWidget);
+      expect(find.byKey(const ValueKey('duration_dropdown_custom')),
+          findsOneWidget);
+    });
+
+    testWidgets('motivation is the final step and contains activation preview',
+        (tester) async {
+      tester.view.physicalSize = const Size(800, 1800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() => tester.view.resetPhysicalSize());
+
+      await tester.pumpWidget(createWidgetUnderTest());
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Continue'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Continue'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Continue'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Why is this important to you?'), findsOneWidget);
+      expect(find.text('Review & Activate'), findsOneWidget);
+      expect(find.text('Activate Goal'), findsOneWidget);
     });
   });
 }
