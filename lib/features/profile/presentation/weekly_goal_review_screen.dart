@@ -657,7 +657,7 @@ class _WeeklyGoalReviewScreenState extends State<WeeklyGoalReviewScreen> {
             child: Theme(
               data: theme.copyWith(dividerColor: Colors.transparent),
               child: ExpansionTile(
-                key: const Key('weekly_review_data_quality'),
+                key: const PageStorageKey('weekly_review_data_quality'),
                 tilePadding: EdgeInsets.zero,
                 childrenPadding: EdgeInsets.zero,
                 title: Text(

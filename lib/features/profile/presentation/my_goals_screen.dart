@@ -251,6 +251,7 @@ class _MyGoalsScreenState extends State<MyGoalsScreen> {
                     child: Theme(
                       data: theme.copyWith(dividerColor: Colors.transparent),
                       child: ExpansionTile(
+                        key: const PageStorageKey('my_goals_history_expansion'),
                         tilePadding: const EdgeInsets.symmetric(
                           horizontal: DesignConstants.spacingM,
                           vertical: 4,

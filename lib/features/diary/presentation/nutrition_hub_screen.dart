@@ -17,6 +17,7 @@ import 'package:provider/provider.dart';
 import '../../analytics/domain/models/chart_data_point.dart';
 import '../../nutrition_recommendation/data/recommendation_service.dart';
 import '../../nutrition_recommendation/presentation/nutrition_recommendation_card.dart';
+import '../../statistics/data/macro_analytics_data_adapter.dart';
 import '../../profile/data/goal_repository_impl.dart';
 import '../../profile/domain/models/goal_model.dart';
 import '../../profile/domain/models/goal_progress.dart';
@@ -144,6 +145,8 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
 
     final recommendationState =
         await _recommendationService.loadState(refreshIfDue: refreshIfDue);
+    final recentDailyIntakes =
+        await const MacroAnalyticsDataAdapter().fetchRecentDays(days: 7);
 
     return {
       'meals': meals,
@@ -153,6 +156,7 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
       'pendingReview': pendingReview,
       'chartPoints': chartPoints,
       'recommendationState': recommendationState,
+      'recentDailyIntakes': recentDailyIntakes,
     };
   }
 
@@ -341,6 +345,7 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
                       context,
                       recommendationState,
                       data['dailyGoals'] as db.DailyGoalsHistoryData?,
+                      data['recentDailyIntakes'] as List<DailyMacroIntake>?,
                     ),
                   ),
                   const SizedBox(height: DesignConstants.spacingXL),
@@ -474,6 +479,7 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
     BuildContext context,
     AdaptiveNutritionRecommendationState recommendationState,
     db.DailyGoalsHistoryData? currentGoals,
+    List<DailyMacroIntake>? recentDailyIntakes,
   ) {
     return NutritionRecommendationCard(
       goal: recommendationState.goal,
@@ -493,6 +499,7 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
       currentProteinGrams: currentGoals?.targetProtein,
       currentCarbsGrams: currentGoals?.targetCarbs,
       currentFatGrams: currentGoals?.targetFat,
+      recentDailyIntakes: recentDailyIntakes,
     );
   }
 

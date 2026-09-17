@@ -43,6 +43,7 @@ import 'widgets/consistency_section_card.dart';
 import 'widgets/muscle_volume_section_card.dart';
 import 'widgets/performance_section_card.dart';
 import 'widgets/pulse_section_card.dart';
+import 'widgets/macro_section_card.dart';
 import 'widgets/sleep_section_card.dart';
 
 class StatisticsHubScreen extends StatefulWidget {
@@ -297,6 +298,11 @@ class _StatisticsHubScreenView extends StatelessWidget {
                             RepaintBoundary(
                               child: _buildMuscleVolumeSection(
                                   context, viewModel, l10n),
+                            ),
+                            const SizedBox(height: DesignConstants.spacingL),
+                            AppSectionHeader(title: l10n.nutrition),
+                            const RepaintBoundary(
+                              child: MacroSectionCard(),
                             ),
                             const BottomContentSpacer(),
                           ],

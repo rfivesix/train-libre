@@ -14,6 +14,8 @@ import '../domain/goal_models.dart';
 import '../domain/recommendation_models.dart';
 import 'recommendation_ui_copy.dart';
 import '../../../widgets/common/app_button.dart';
+import '../../statistics/data/macro_analytics_data_adapter.dart';
+import 'widgets/weekly_intake_vs_target_chart.dart';
 
 class NutritionRecommendationCard extends StatelessWidget {
   final BodyweightGoal goal;
@@ -31,6 +33,7 @@ class NutritionRecommendationCard extends StatelessWidget {
   final int? currentProteinGrams;
   final int? currentCarbsGrams;
   final int? currentFatGrams;
+  final List<DailyMacroIntake>? recentDailyIntakes;
 
   const NutritionRecommendationCard({
     super.key,
@@ -49,6 +52,7 @@ class NutritionRecommendationCard extends StatelessWidget {
     this.currentProteinGrams,
     this.currentCarbsGrams,
     this.currentFatGrams,
+    this.recentDailyIntakes,
   });
 
   @override
@@ -86,6 +90,7 @@ class NutritionRecommendationCard extends StatelessWidget {
               currentProteinGrams: currentProteinGrams,
               currentCarbsGrams: currentCarbsGrams,
               currentFatGrams: currentFatGrams,
+              recentDailyIntakes: recentDailyIntakes,
               goalLabel: _goalLabel(l10n, recommendation!.goal),
               rateLabel: _rateLabel(
                   context, l10n, recommendation!.targetRateKgPerWeek),
@@ -241,6 +246,7 @@ class _GeneratedRecommendationContent extends StatelessWidget {
   final int? currentProteinGrams;
   final int? currentCarbsGrams;
   final int? currentFatGrams;
+  final List<DailyMacroIntake>? recentDailyIntakes;
 
   const _GeneratedRecommendationContent({
     required this.recommendation,
@@ -259,6 +265,7 @@ class _GeneratedRecommendationContent extends StatelessWidget {
     required this.currentProteinGrams,
     required this.currentCarbsGrams,
     required this.currentFatGrams,
+    this.recentDailyIntakes,
   });
 
   @override
@@ -299,6 +306,16 @@ class _GeneratedRecommendationContent extends StatelessWidget {
             ),
           ),
         const SizedBox(height: DesignConstants.spacingM),
+        if (recentDailyIntakes != null && recentDailyIntakes!.isNotEmpty) ...[
+          WeeklyIntakeVsTargetChart(
+            dailyIntakes: recentDailyIntakes!,
+            targetCalories: recommendation.recommendedCalories,
+            targetProtein: recommendation.recommendedProteinGrams,
+            targetCarbs: recommendation.recommendedCarbsGrams,
+            targetFat: recommendation.recommendedFatGrams,
+          ),
+          const SizedBox(height: DesignConstants.spacingM),
+        ],
         _MacroTargetGrid(
           recommendation: recommendation,
           currentCalories: currentCalories,

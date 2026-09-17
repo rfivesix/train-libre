@@ -15,8 +15,10 @@ import '../../../widgets/common/app_segmented_control.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/platform_adaptive_dropdown.dart';
 import '../../../widgets/common/platform_adaptive_pickers.dart';
+import '../../../widgets/common/platform_adaptive_switch_list_tile.dart';
 import '../../../widgets/common/summary_card.dart';
 import '../../../widgets/common/value_summary_card.dart';
+import '../../app/presentation/widgets/glass_bottom_menu.dart';
 import '../data/goal_repository_impl.dart';
 import '../domain/models/goal_model.dart';
 import '../domain/repositories/goal_repository.dart';
@@ -50,6 +52,8 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
   String? _detectedBaselineMeasurementId;
   final _baselineWeightController = TextEditingController();
   bool _isManualBaselineMode = false;
+  bool _isEditingBaseline = false;
+  bool _showManualBaselineInput = false;
 
   GoalTrackingMode _trackingMode = GoalTrackingMode.weeklyRate;
 
@@ -112,6 +116,11 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
           UnitDimension.weight,
         );
         _baselineWeightController.text = disp.toStringAsFixed(1);
+        _isEditingBaseline = false;
+      }
+      if (row?.valueKg == null) {
+        _isEditingBaseline = true;
+        _showManualBaselineInput = true;
       }
     });
   }
@@ -219,6 +228,7 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
   }
 
   void _nextStep() {
+    FocusScope.of(context).unfocus();
     final unitService = context.read<UnitService>();
     final l10n = AppLocalizations.of(context)!;
 
@@ -241,68 +251,85 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
         );
         return;
       }
-    } else if (_currentStep == 2) {
-      if (_preset == GoalPreset.recomposition) {
+
+      final isMaintain = _preset == GoalPreset.maintainWeight ||
+          _preset == GoalPreset.recomposition ||
+          (_preset == GoalPreset.custom && _customDirection == 'maintain');
+
+      if (isMaintain) {
         _trackingMode = GoalTrackingMode.open;
-      } else if ((_preset == GoalPreset.maintainWeight ||
-              (_preset == GoalPreset.custom &&
-                  _customDirection == 'maintain')) &&
-          _trackingMode == GoalTrackingMode.weeklyRate) {
-        _trackingMode = GoalTrackingMode.open;
-      }
-    } else if (_currentStep == 3 &&
-        _trackingMode == GoalTrackingMode.targetWeight) {
-      final baseline = _getBaselineKg(unitService)!;
-      // Pre-fill target weight if empty.
-      if (_targetWeightController.text.trim().isEmpty) {
+        if (_selectedDurationPreset == 'custom' && _targetDate == null) {
+          _selectedDurationPreset = 'ongoing';
+        }
+      } else {
+        _trackingMode = GoalTrackingMode.targetWeight;
         final dispBase =
             unitService.convertDisplayValue(baseline, UnitDimension.weight);
-        if (_preset == GoalPreset.loseWeight ||
-            (_preset == GoalPreset.custom && _customDirection == 'lose')) {
-          final diff =
-              unitService.convertDisplayValue(5.0, UnitDimension.weight);
-          final targetDisp = max(30.0, dispBase - diff);
-          _targetWeightController.text = targetDisp.toStringAsFixed(1);
-        } else if (_preset == GoalPreset.gainWeight ||
-            (_preset == GoalPreset.custom && _customDirection == 'gain')) {
-          final diff =
-              unitService.convertDisplayValue(3.0, UnitDimension.weight);
-          _targetWeightController.text = (dispBase + diff).toStringAsFixed(1);
-        } else {
-          _targetWeightController.text = dispBase.toStringAsFixed(1);
+        if (_targetWeightController.text.trim().isEmpty) {
+          if (_preset == GoalPreset.loseWeight ||
+              (_preset == GoalPreset.custom && _customDirection == 'lose')) {
+            final diff =
+                unitService.convertDisplayValue(5.0, UnitDimension.weight);
+            final targetDisp = max(30.0, dispBase - diff);
+            _targetWeightController.text = targetDisp.toStringAsFixed(1);
+          } else if (_preset == GoalPreset.gainWeight ||
+              (_preset == GoalPreset.custom && _customDirection == 'gain')) {
+            final diff =
+                unitService.convertDisplayValue(3.0, UnitDimension.weight);
+            _targetWeightController.text = (dispBase + diff).toStringAsFixed(1);
+          } else {
+            _targetWeightController.text = dispBase.toStringAsFixed(1);
+          }
+        }
+
+        if (_targetDate == null) {
+          final delta = _getDeltaKg(unitService);
+          final weeks = (_weeklyRateKg > 0 && delta > 0)
+              ? max(1, (delta / _weeklyRateKg).round())
+              : 12;
+          _targetDate = _startDate.add(Duration(days: max(7, weeks * 7)));
+          _syncDurationPreset();
+          _syncRatePreset();
         }
       }
+    } else if (_currentStep == 2) {
+      final isMaintain = _preset == GoalPreset.maintainWeight ||
+          _preset == GoalPreset.recomposition ||
+          (_preset == GoalPreset.custom && _customDirection == 'maintain');
 
-      final target = _getTargetKg(unitService);
-      if (target == null || target <= 0) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              l10n.goalTargetWeightLabel(
-                unitService.unitString(UnitDimension.weight),
+      if (!isMaintain) {
+        final baseline = _getBaselineKg(unitService)!;
+        final target = _getTargetKg(unitService);
+        if (target == null || target <= 0) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                l10n.goalTargetWeightLabel(
+                  unitService.unitString(UnitDimension.weight),
+                ),
               ),
             ),
-          ),
-        );
-        return;
-      }
+          );
+          return;
+        }
 
-      final isLosing = _preset == GoalPreset.loseWeight ||
-          (_preset == GoalPreset.custom && _customDirection == 'lose');
-      final isGaining = _preset == GoalPreset.gainWeight ||
-          (_preset == GoalPreset.custom && _customDirection == 'gain');
-      if ((isLosing && target >= baseline) ||
-          (isGaining && target <= baseline)) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              isLosing
-                  ? l10n.goalTargetDirectionLoseError
-                  : l10n.goalTargetDirectionGainError,
+        final isLosing = _preset == GoalPreset.loseWeight ||
+            (_preset == GoalPreset.custom && _customDirection == 'lose');
+        final isGaining = _preset == GoalPreset.gainWeight ||
+            (_preset == GoalPreset.custom && _customDirection == 'gain');
+        if ((isLosing && target >= baseline) ||
+            (isGaining && target <= baseline)) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                isLosing
+                    ? l10n.goalTargetDirectionLoseError
+                    : l10n.goalTargetDirectionGainError,
+              ),
             ),
-          ),
-        );
-        return;
+          );
+          return;
+        }
       }
     }
 
@@ -312,6 +339,7 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
   }
 
   void _previousStep() {
+    FocusScope.of(context).unfocus();
     if (_currentStep > 0) {
       setState(() => _currentStep--);
     } else {
@@ -353,38 +381,32 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
     final baselineKg = _getBaselineKg(unitService);
     final targetKg = _getTargetKg(unitService);
 
+    final isMaintain = _preset == GoalPreset.maintainWeight ||
+        _preset == GoalPreset.recomposition ||
+        (_preset == GoalPreset.custom && _customDirection == 'maintain');
+
     double? signedWeeklyRateKg;
-    if (_trackingMode == GoalTrackingMode.weeklyRate &&
-        (_preset == GoalPreset.loseWeight ||
-            (_preset == GoalPreset.custom && _customDirection == 'lose'))) {
-      signedWeeklyRateKg = -_weeklyRateKg.abs();
-    } else if (_trackingMode == GoalTrackingMode.weeklyRate &&
-        (_preset == GoalPreset.gainWeight ||
-            (_preset == GoalPreset.custom && _customDirection == 'gain'))) {
-      signedWeeklyRateKg = _weeklyRateKg.abs();
-    } else if (_trackingMode == GoalTrackingMode.weeklyRate) {
+    if (isMaintain) {
       signedWeeklyRateKg = 0.0;
+    } else if (_preset == GoalPreset.loseWeight ||
+        (_preset == GoalPreset.custom && _customDirection == 'lose')) {
+      signedWeeklyRateKg = -_weeklyRateKg.abs();
+    } else {
+      signedWeeklyRateKg = _weeklyRateKg.abs();
     }
+
+    _trackingMode =
+        isMaintain ? GoalTrackingMode.open : GoalTrackingMode.targetWeight;
 
     try {
       final previouslyActive = await _repository.getActiveNutritionGoal();
       if (previouslyActive != null && mounted) {
-        final replace = await showDialog<bool>(
+        final replace = await showGlassConfirmation(
           context: context,
-          builder: (context) => AlertDialog(
-            title: Text(l10n.goalReplaceActiveTitle),
-            content: Text(l10n.goalReplaceActiveBody),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context, false),
-                child: Text(l10n.cancel),
-              ),
-              TextButton(
-                onPressed: () => Navigator.pop(context, true),
-                child: Text(l10n.goalReplaceActiveConfirm),
-              ),
-            ],
-          ),
+          title: l10n.goalReplaceActiveTitle,
+          content: l10n.goalReplaceActiveBody,
+          confirmLabel: l10n.goalReplaceActiveConfirm,
+          isDanger: false,
         );
         if (replace != true) {
           if (mounted) setState(() => _isSaving = false);
@@ -411,11 +433,9 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
         baselineDate: _isManualBaselineMode
             ? _startDate
             : (_detectedBaselineDate ?? _startDate),
-        targetDate:
-            _trackingMode == GoalTrackingMode.targetWeight ? _targetDate : null,
+        targetDate: _targetDate,
         targetMetric: 'weight',
-        targetValue:
-            _trackingMode == GoalTrackingMode.targetWeight ? targetKg : null,
+        targetValue: isMaintain ? baselineKg : targetKg,
         targetUnit: 'kg',
         desiredWeeklyRateKg: signedWeeklyRateKg,
         isNutritionDriver: _isNutritionDriver,
@@ -486,10 +506,15 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
               ),
             ),
             Expanded(
-              child: SingleChildScrollView(
-                key: ValueKey(_currentStep),
-                padding: DesignConstants.screenPadding,
-                child: _buildCurrentStepContent(context),
+              child: PageStorage(
+                bucket: PageStorageBucket(),
+                child: SingleChildScrollView(
+                  key: ValueKey('goal_flow_step_$_currentStep'),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: DesignConstants.spacingM,
+                  ),
+                  child: _buildCurrentStepContent(context),
+                ),
               ),
             ),
             Padding(
@@ -532,193 +557,38 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
   Widget _buildCurrentStepContent(BuildContext context) {
     switch (_currentStep) {
       case 0:
-        return _buildStep0Preset(context);
+        return Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: DesignConstants.spacingL,
+          ),
+          child: _buildStep0Preset(context),
+        );
       case 1:
-        return _buildStep1Baseline(context);
+        return Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: DesignConstants.spacingL,
+          ),
+          child: _buildStep1Baseline(context),
+        );
       case 2:
-        return _buildTrackingModeStep(context);
+        return _buildStep2TargetAndPace(context);
       case 3:
-        return _buildTrackingDetailsStep(context);
+        return Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: DesignConstants.spacingL,
+          ),
+          child: _buildStep3Motivation(context),
+        );
       case 4:
-        return _buildStep4Reason(context, includeReview: true);
+        return Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: DesignConstants.spacingL,
+          ),
+          child: _buildStep4ReviewAndActivate(context),
+        );
       default:
         return const SizedBox.shrink();
     }
-  }
-
-  Widget _buildTrackingModeStep(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final theme = Theme.of(context);
-    final isMaintain = _preset == GoalPreset.maintainWeight ||
-        (_preset == GoalPreset.custom && _customDirection == 'maintain');
-    final modes = <GoalTrackingMode>[
-      GoalTrackingMode.open,
-      if (_preset != GoalPreset.recomposition && !isMaintain)
-        GoalTrackingMode.weeklyRate,
-      if (_preset != GoalPreset.recomposition) GoalTrackingMode.targetWeight,
-    ];
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(l10n.goalTrackingModeTitle,
-            style: theme.textTheme.headlineSmall
-                ?.copyWith(fontWeight: FontWeight.bold)),
-        const SizedBox(height: DesignConstants.spacingS),
-        Text(l10n.goalTrackingModeDescription),
-        const SizedBox(height: DesignConstants.spacingL),
-        for (final mode in modes)
-          ListTile(
-            onTap: () => setState(() => _trackingMode = mode),
-            leading: Icon(
-              _trackingMode == mode
-                  ? LucideIcons.circle_check
-                  : LucideIcons.circle,
-              color: _trackingMode == mode ? theme.colorScheme.primary : null,
-            ),
-            title: Text(switch (mode) {
-              GoalTrackingMode.open => l10n.goalTrackingModeOpen,
-              GoalTrackingMode.weeklyRate => l10n.goalTrackingModeWeeklyRate,
-              GoalTrackingMode.targetWeight =>
-                l10n.goalTrackingModeTargetWeight,
-            }),
-            subtitle: Text(switch (mode) {
-              GoalTrackingMode.open => l10n.goalTrackingModeOpenDescription,
-              GoalTrackingMode.weeklyRate =>
-                l10n.goalTrackingModeWeeklyRateDescription,
-              GoalTrackingMode.targetWeight =>
-                l10n.goalTrackingModeTargetWeightDescription,
-            }),
-          ),
-        if (_trackingMode == GoalTrackingMode.open) ...[
-          const SizedBox(height: DesignConstants.spacingM),
-          SummaryCard(
-            child: Text(l10n.goalTrackingModeDefaultRateInfo(
-              _preset == GoalPreset.gainWeight
-                  ? '+0.25 kg/${l10n.weekShort}'
-                  : (_preset == GoalPreset.loseWeight
-                      ? '-0.50 kg/${l10n.weekShort}'
-                      : '0.00 kg/${l10n.weekShort}'),
-            )),
-          ),
-        ],
-      ],
-    );
-  }
-
-  Widget _buildTrackingDetailsStep(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final theme = Theme.of(context);
-    final unitService = context.watch<UnitService>();
-    if (_trackingMode == GoalTrackingMode.open) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(l10n.goalTrackingModeOpen,
-              style: theme.textTheme.headlineSmall
-                  ?.copyWith(fontWeight: FontWeight.bold)),
-          const SizedBox(height: DesignConstants.spacingM),
-          Text(l10n.goalTrackingOpenReady),
-        ],
-      );
-    }
-    if (_trackingMode == GoalTrackingMode.weeklyRate) {
-      final unit = unitService.unitString(UnitDimension.weight);
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(l10n.goalTrackingModeWeeklyRate,
-              style: theme.textTheme.headlineSmall
-                  ?.copyWith(fontWeight: FontWeight.bold)),
-          const SizedBox(height: DesignConstants.spacingL),
-          Text('${_weeklyRateKg.toStringAsFixed(2)} $unit / ${l10n.weekShort}',
-              style: theme.textTheme.headlineMedium
-                  ?.copyWith(color: theme.colorScheme.primary)),
-          const SizedBox(height: DesignConstants.spacingM),
-          AppRulerPicker.rate(
-            value: _weeklyRateKg,
-            imperial: unitService.isImperial,
-            onChanged: (value) => setState(() => _weeklyRateKg = value),
-            unit: unit,
-          ),
-        ],
-      );
-    }
-    final dateFormat = DateFormat.yMMMd(
-      Localizations.localeOf(context).toString(),
-    );
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildStep2TargetWeight(context),
-        const SizedBox(height: DesignConstants.spacingL),
-        ListTile(
-          contentPadding: EdgeInsets.zero,
-          leading: Icon(LucideIcons.calendar, color: theme.colorScheme.primary),
-          title: Text(_targetDate == null
-              ? l10n.goalNoDeadlineOption
-              : dateFormat.format(_targetDate!)),
-          subtitle: Text(l10n.goalTargetDateOptional),
-          trailing: _targetDate == null
-              ? const Icon(LucideIcons.chevron_right)
-              : IconButton(
-                  tooltip: l10n.delete,
-                  icon: const Icon(LucideIcons.x),
-                  onPressed: () => setState(() => _targetDate = null),
-                ),
-          onTap: () async {
-            final picked = await showAdaptiveDatePicker(
-              context: context,
-              initialDate:
-                  _targetDate ?? _startDate.add(const Duration(days: 84)),
-              firstDate: _startDate.add(const Duration(days: 7)),
-              lastDate: _startDate.add(const Duration(days: 730)),
-            );
-            if (picked != null) setState(() => _targetDate = picked);
-          },
-        ),
-        if (_targetDate == null) ...[
-          const SizedBox(height: DesignConstants.spacingM),
-          SummaryCard(
-            child: Text(l10n.goalTrackingModeDefaultRateInfo(
-              _preset == GoalPreset.gainWeight
-                  ? '+0.25 kg/${l10n.weekShort}'
-                  : (_preset == GoalPreset.loseWeight
-                      ? '-0.50 kg/${l10n.weekShort}'
-                      : '0.00 kg/${l10n.weekShort}'),
-            )),
-          ),
-        ],
-      ],
-    );
-  }
-
-  // Kept temporarily while older golden tests are migrated to the five-step UI.
-  // ignore: unused_element
-  Widget _buildStep1StartingPointAndTarget(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final theme = Theme.of(context);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          l10n.goalStartingPointAndTargetTitle,
-          style: theme.textTheme.headlineSmall?.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: DesignConstants.spacingS),
-        Text(
-          l10n.goalStartingPointAndTargetDescription,
-          style: theme.textTheme.bodyMedium?.copyWith(
-            color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
-          ),
-        ),
-        const SizedBox(height: DesignConstants.spacingL),
-        _buildStep1Baseline(context, showIntro: false),
-        const SizedBox(height: DesignConstants.spacingXL),
-        _buildStep2TargetWeight(context, showIntro: false),
-      ],
-    );
   }
 
   // -------------------------------------------------------------
@@ -887,7 +757,7 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
   // -------------------------------------------------------------
   // Step 1: Startdatum & Baseline
   // -------------------------------------------------------------
-  Widget _buildStep1Baseline(BuildContext context, {bool showIntro = true}) {
+  Widget _buildStep1Baseline(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final unitService = context.watch<UnitService>();
@@ -896,167 +766,283 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
       Localizations.localeOf(context).toString(),
     );
 
-    final hasDetected = _detectedBaselineWeight != null;
+    final baselineKg = _getBaselineKg(unitService);
+    final double? baselineDisp = baselineKg != null
+        ? unitService.convertDisplayValue(baselineKg, UnitDimension.weight)
+        : null;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (showIntro) ...[
-          Text(
-            l10n.goalStepBaselineQuestion,
-            style: theme.textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
+        Text(
+          l10n.goalStepBaselineQuestion,
+          style: theme.textTheme.headlineSmall?.copyWith(
+            fontWeight: FontWeight.bold,
           ),
-          const SizedBox(height: DesignConstants.spacingS),
-          Text(
-            l10n.goalStepBaselineDescription,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
-            ),
+        ),
+        const SizedBox(height: DesignConstants.spacingS),
+        Text(
+          l10n.goalStepBaselineDescription,
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
           ),
-          const SizedBox(height: DesignConstants.spacingL),
-        ] else ...[
-          Text(
-            l10n.goalBaselineHeader,
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: DesignConstants.spacingS),
-        ],
-
-        // Start Date Picker
-        ListTile(
-          contentPadding: EdgeInsets.zero,
-          leading:
-              Icon(LucideIcons.calendar_days, color: theme.colorScheme.primary),
-          title: Text(
-            dateFormat.format(_startDate),
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          subtitle: Text(l10n.goalStartDateLabel),
-          trailing: const Icon(LucideIcons.chevron_right),
-          onTap: () async {
-            final picked = await showAdaptiveDatePicker(
-              context: context,
-              initialDate: _startDate,
-              firstDate: DateTime(2000),
-              lastDate: DateTime.now(),
-            );
-            if (picked != null) {
-              setState(() => _startDate = picked);
-              _detectBaseline();
-            }
-          },
         ),
         const SizedBox(height: DesignConstants.spacingL),
 
-        // Baseline Status / Input Card
-        if (hasDetected && !_isManualBaselineMode) ...[
-          SummaryCard(
-            margin: EdgeInsets.zero,
-            child: Row(
-              children: [
-                const Icon(LucideIcons.circle_check,
-                    color: Colors.green, size: 24),
-                const SizedBox(width: DesignConstants.spacingM),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        l10n.goalBaselineFoundTitle,
-                        style: theme.textTheme.labelLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        '${unitService.convertDisplayValue(_detectedBaselineWeight!, UnitDimension.weight).toStringAsFixed(1)} $unitStr'
-                        '${_detectedBaselineDate != null ? ' • ${dateFormat.format(_detectedBaselineDate!)}' : ''}',
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.w700,
-                          color: theme.colorScheme.primary,
-                        ),
-                      ),
-                    ],
+        // Unified SummaryCard for Start Date and Baseline
+        SummaryCard(
+          margin: EdgeInsets.zero,
+          child: Column(
+            children: [
+              // Row 1: Start Date Picker
+              InkWell(
+                onTap: () async {
+                  final picked = await showAdaptiveDatePicker(
+                    context: context,
+                    initialDate: _startDate,
+                    firstDate: DateTime(2000),
+                    lastDate: DateTime.now(),
+                  );
+                  if (picked != null) {
+                    setState(() => _startDate = picked);
+                    _detectBaseline();
+                  }
+                },
+                borderRadius:
+                    BorderRadius.circular(DesignConstants.borderRadiusM),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    vertical: DesignConstants.spacingXS,
                   ),
-                ),
-                TextButton(
-                  onPressed: () {
-                    setState(() {
-                      _isManualBaselineMode = true;
-                    });
-                  },
-                  child: Text(l10n.edit),
-                ),
-              ],
-            ),
-          ),
-        ] else ...[
-          SummaryCard(
-            child: Padding(
-              padding: DesignConstants.cardPadding,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
+                  child: Row(
                     children: [
-                      Icon(LucideIcons.scale,
-                          color: theme.colorScheme.primary, size: 24),
+                      Icon(LucideIcons.calendar,
+                          color: theme.colorScheme.primary, size: 22),
                       const SizedBox(width: DesignConstants.spacingM),
                       Expanded(
-                        child: Text(
-                          l10n.goalEnterBaselineWeightPrompt(unitStr),
-                          style: theme.textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              l10n.goalStartDateLabel,
+                              style: theme.textTheme.labelMedium?.copyWith(
+                                color: theme.colorScheme.onSurface
+                                    .withValues(alpha: 0.6),
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              dateFormat.format(_startDate),
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                      if (hasDetected)
-                        TextButton(
-                          onPressed: () {
-                            setState(() {
-                              _isManualBaselineMode = false;
-                            });
-                          },
-                          child: Text(l10n.cancel),
-                        ),
                     ],
                   ),
-                  const SizedBox(height: DesignConstants.spacingM),
-                  TextField(
-                    key: const Key('goal_inline_baseline_input'),
-                    controller: _baselineWeightController,
-                    keyboardType:
-                        const TextInputType.numberWithOptions(decimal: true),
-                    onChanged: (_) => setState(() {}),
-                    decoration: InputDecoration(
-                      suffixText: unitStr,
-                      hintText: unitService.isImperial ? '0.0' : '0.0',
-                    ),
-                  ),
-                ],
+                ),
               ),
-            ),
+              const Padding(
+                padding:
+                    EdgeInsets.symmetric(vertical: DesignConstants.spacingS),
+                child: Divider(height: 1),
+              ),
+
+              // Row 2: Baseline Weight with Ruler and Manual Input Toggle
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  vertical: DesignConstants.spacingXS,
+                ),
+                child: Column(
+                  children: [
+                    Text(
+                      l10n.goalBaselineHeader,
+                      style: theme.textTheme.labelMedium?.copyWith(
+                        color:
+                            theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                      ),
+                    ),
+                    const SizedBox(height: DesignConstants.spacingXS),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.baseline,
+                      textBaseline: TextBaseline.alphabetic,
+                      children: [
+                        InkWell(
+                          onTap: () {
+                            setState(() {
+                              _isEditingBaseline = !_isEditingBaseline;
+                            });
+                          },
+                          borderRadius: BorderRadius.circular(
+                              DesignConstants.borderRadiusM),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: DesignConstants.spacingS,
+                              vertical: 2,
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.baseline,
+                              textBaseline: TextBaseline.alphabetic,
+                              children: [
+                                Text(
+                                  baselineDisp?.toStringAsFixed(1) ?? '--',
+                                  style:
+                                      theme.textTheme.displayMedium?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: theme.colorScheme.primary,
+                                  ),
+                                ),
+                                const SizedBox(width: DesignConstants.spacingS),
+                                Text(
+                                  unitStr,
+                                  style: theme.textTheme.titleMedium?.copyWith(
+                                    color: theme.colorScheme.onSurface
+                                        .withValues(alpha: 0.6),
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: DesignConstants.spacingXS),
+                        IconButton(
+                          key: const Key('goal_edit_baseline_button'),
+                          tooltip: _isEditingBaseline ? l10n.save : l10n.edit,
+                          icon: Icon(
+                            _isEditingBaseline
+                                ? LucideIcons.check
+                                : LucideIcons.pencil,
+                            size: 20,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _isEditingBaseline = !_isEditingBaseline;
+                            });
+                          },
+                        ),
+                        if (_isEditingBaseline)
+                          IconButton(
+                            icon: Icon(
+                              _showManualBaselineInput
+                                  ? LucideIcons.sliders_horizontal
+                                  : LucideIcons.keyboard,
+                              size: 20,
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                _showManualBaselineInput =
+                                    !_showManualBaselineInput;
+                              });
+                            },
+                          ),
+                      ],
+                    ),
+                    if (_detectedBaselineDate != null &&
+                        !_isManualBaselineMode) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        dateFormat.format(_detectedBaselineDate!),
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurface
+                              .withValues(alpha: 0.5),
+                        ),
+                      ),
+                    ],
+                    if (_isEditingBaseline) ...[
+                      if (_showManualBaselineInput) ...[
+                        const SizedBox(height: DesignConstants.spacingM),
+                        TextField(
+                          key: const Key('goal_inline_baseline_input'),
+                          controller: _baselineWeightController,
+                          keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true),
+                          textAlign: TextAlign.center,
+                          onChanged: (text) {
+                            final parsed =
+                                double.tryParse(text.replaceAll(',', '.'));
+                            if (parsed != null && parsed > 0) {
+                              setState(() {
+                                _detectedBaselineWeight =
+                                    unitService.convertToMetric(
+                                        parsed, UnitDimension.weight);
+                                _isManualBaselineMode = true;
+                              });
+                            } else {
+                              setState(() {});
+                            }
+                          },
+                          decoration: InputDecoration(
+                            suffixText: unitStr,
+                            hintText: '0.0',
+                            contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 8),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(
+                                  DesignConstants.borderRadiusM),
+                            ),
+                          ),
+                        ),
+                      ],
+                      const SizedBox(height: DesignConstants.spacingM),
+                      AppRulerPicker.weight(
+                        value: baselineDisp ??
+                            (unitService.isImperial ? 160.0 : 75.0),
+                        imperial: unitService.isImperial,
+                        onChanged: (newWeight) {
+                          setState(() {
+                            _baselineWeightController.text =
+                                newWeight.toStringAsFixed(1);
+                            _detectedBaselineWeight =
+                                unitService.convertToMetric(
+                                    newWeight, UnitDimension.weight);
+                            _isManualBaselineMode = true;
+                          });
+                        },
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ],
     );
   }
 
   // -------------------------------------------------------------
-  // Step 2: Zielgewicht
+  // Step 2: Zielgewicht & Tempo-Planer
   // -------------------------------------------------------------
-  Widget _buildStep2TargetWeight(BuildContext context,
-      {bool showIntro = true}) {
+  Widget _buildStep2TargetAndPace(BuildContext context) {
+    final isMaintain = _preset == GoalPreset.maintainWeight ||
+        _preset == GoalPreset.recomposition ||
+        (_preset == GoalPreset.custom && _customDirection == 'maintain');
+
+    if (isMaintain) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: DesignConstants.spacingL,
+        ),
+        child: _buildStep2MaintainTargetAndPace(context),
+      );
+    } else {
+      return _buildStep2ChangeTargetAndPace(context);
+    }
+  }
+
+  Widget _buildStep2ChangeTargetAndPace(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final unitService = context.watch<UnitService>();
     final unitStr = unitService.unitString(UnitDimension.weight);
+    final dateFormat = DateFormat.yMMMd(
+      Localizations.localeOf(context).toString(),
+    );
 
     final baselineKg = _getBaselineKg(unitService);
     final targetKg = _getTargetKg(unitService);
@@ -1070,147 +1056,151 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
         ? (targetDisp - baselineDisp)
         : null;
 
-    final isMaintain = _preset == GoalPreset.maintainWeight ||
-        _preset == GoalPreset.recomposition ||
-        (_preset == GoalPreset.custom && _customDirection == 'maintain');
+    final isLosing = _preset == GoalPreset.loseWeight ||
+        (_preset == GoalPreset.custom && _customDirection == 'lose');
+
+    // Daily Calorie impact estimate (~7700 kcal per kg of fat mass)
+    final dailyCalorieImpact = (_weeklyRateKg * 7700 / 7).round();
+
+    final int weeks = _targetDate != null
+        ? max(1, (_targetDate!.difference(_startDate).inDays / 7).round())
+        : 12;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (showIntro) ...[
-          Text(
-            l10n.goalStepTargetWeightQuestion,
-            style: theme.textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
+        Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: DesignConstants.spacingL,
           ),
-          const SizedBox(height: DesignConstants.spacingS),
-          Text(
-            l10n.goalStepTargetWeightDescription,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
-            ),
-          ),
-          const SizedBox(height: DesignConstants.spacingL),
-        ] else ...[
-          Text(
-            isMaintain ? l10n.goalMaintainCorridor : l10n.goalTargetHeader,
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: DesignConstants.spacingS),
-        ],
-
-        SummaryCard(
-          margin: EdgeInsets.zero,
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                l10n.goalTargetWeightLabel(unitStr),
-                style: theme.textTheme.labelMedium?.copyWith(
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+                l10n.goalStepTargetWeightQuestion,
+                style: theme.textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
                 ),
               ),
               const SizedBox(height: DesignConstants.spacingS),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.baseline,
-                textBaseline: TextBaseline.alphabetic,
-                children: [
-                  Text(
-                    targetDisp?.toStringAsFixed(1) ?? '--',
-                    style: theme.textTheme.displayMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: theme.colorScheme.primary,
-                    ),
-                  ),
-                  const SizedBox(width: DesignConstants.spacingS),
-                  Text(
-                    unitStr,
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(width: DesignConstants.spacingS),
-                  IconButton(
-                    icon: Icon(
-                      _showManualTargetWeightInput
-                          ? LucideIcons.sliders_horizontal
-                          : LucideIcons.pencil,
-                      size: 20,
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        _showManualTargetWeightInput =
-                            !_showManualTargetWeightInput;
-                      });
-                    },
-                  ),
-                ],
+              Text(
+                l10n.goalStepTrajectoryDescription,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+                ),
               ),
-              if (_showManualTargetWeightInput) ...[
-                const SizedBox(height: DesignConstants.spacingM),
-                TextField(
-                  controller: _targetWeightController,
-                  keyboardType:
-                      const TextInputType.numberWithOptions(decimal: true),
-                  autofocus: true,
-                  textAlign: TextAlign.center,
-                  onChanged: (_) => setState(() {}),
-                  decoration: InputDecoration(
-                    contentPadding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    border: OutlineInputBorder(
-                      borderRadius:
-                          BorderRadius.circular(DesignConstants.borderRadiusM),
+              const SizedBox(height: DesignConstants.spacingL),
+
+              // Target Weight Card
+              SummaryCard(
+                margin: EdgeInsets.zero,
+                child: Column(
+                  children: [
+                    Text(
+                      l10n.goalTargetWeightLabel(unitStr),
+                      style: theme.textTheme.labelMedium?.copyWith(
+                        color:
+                            theme.colorScheme.onSurface.withValues(alpha: 0.7),
+                      ),
                     ),
-                  ),
+                    const SizedBox(height: DesignConstants.spacingS),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.baseline,
+                      textBaseline: TextBaseline.alphabetic,
+                      children: [
+                        Text(
+                          targetDisp?.toStringAsFixed(1) ?? '--',
+                          style: theme.textTheme.displayMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: theme.colorScheme.primary,
+                          ),
+                        ),
+                        const SizedBox(width: DesignConstants.spacingS),
+                        Text(
+                          unitStr,
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            color: theme.colorScheme.onSurface
+                                .withValues(alpha: 0.6),
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(width: DesignConstants.spacingS),
+                        IconButton(
+                          icon: Icon(
+                            _showManualTargetWeightInput
+                                ? LucideIcons.sliders_horizontal
+                                : LucideIcons.pencil,
+                            size: 20,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _showManualTargetWeightInput =
+                                  !_showManualTargetWeightInput;
+                            });
+                          },
+                        ),
+                      ],
+                    ),
+                    if (_showManualTargetWeightInput) ...[
+                      const SizedBox(height: DesignConstants.spacingM),
+                      TextField(
+                        controller: _targetWeightController,
+                        keyboardType:
+                            const TextInputType.numberWithOptions(decimal: true),
+                        textAlign: TextAlign.center,
+                        onChanged: (_) {
+                          final newTarget = _getTargetKg(unitService);
+                          if (newTarget != null && baselineKg != null) {
+                            final delta = (newTarget - baselineKg).abs();
+                            if (delta > 0 && _weeklyRateKg > 0) {
+                              final w = delta / _weeklyRateKg;
+                              final days = (w * 7).round();
+                              setState(() {
+                                _targetDate = _startDate
+                                    .add(Duration(days: max(7, days)));
+                                _syncDurationPreset();
+                              });
+                            }
+                          }
+                        },
+                        decoration: InputDecoration(
+                          contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 8),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(
+                                DesignConstants.borderRadiusM),
+                          ),
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: DesignConstants.spacingM),
+                    if (targetDisp != null || baselineDisp != null)
+                      AppRulerPicker.weight(
+                        value: targetDisp ?? baselineDisp!,
+                        imperial: unitService.isImperial,
+                        onChanged: (newWeight) {
+                          _onTargetWeightChanged(newWeight, unitService);
+                        },
+                      ),
+                  ],
                 ),
-              ],
-              const SizedBox(height: DesignConstants.spacingM),
-              if (targetDisp != null || baselineDisp != null)
-                AppRulerPicker.weight(
-                  value: targetDisp ?? baselineDisp!,
-                  imperial: unitService.isImperial,
-                  onChanged: (newWeight) {
-                    setState(() {
-                      _targetWeightController.text =
-                          newWeight.toStringAsFixed(1);
-                    });
-                  },
-                ),
+              ),
             ],
           ),
         ),
         const SizedBox(height: DesignConstants.spacingM),
 
-        // Quick adjustment chips
-        if (!isMaintain && baselineDisp != null) ...[
+        // Quick adjustment chips (scrollable edge-to-edge)
+        if (baselineDisp != null) ...[
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(
+              horizontal: DesignConstants.spacingL,
+            ),
             child: Row(
-              children: (_preset == GoalPreset.gainWeight ||
-                      (_preset == GoalPreset.custom &&
-                          _customDirection == 'gain'))
-                  ? [2.0, 4.0, 6.0, 8.0].map((delta) {
-                      final target = baselineDisp + delta;
-                      return Padding(
-                        padding: const EdgeInsets.only(right: 8),
-                        child: ActionChip(
-                          label: Text(
-                              '+$delta $unitStr (${target.toStringAsFixed(1)})'),
-                          onPressed: () {
-                            setState(() {
-                              _targetWeightController.text =
-                                  target.toStringAsFixed(1);
-                            });
-                          },
-                        ),
-                      );
-                    }).toList()
-                  : [2.0, 5.0, 10.0, 15.0].map((delta) {
+              children: (isLosing)
+                  ? [2.0, 5.0, 10.0, 15.0].map((delta) {
                       final target = max(30.0, baselineDisp - delta);
                       return Padding(
                         padding: const EdgeInsets.only(right: 8),
@@ -1218,10 +1208,20 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
                           label: Text(
                               '-$delta $unitStr (${target.toStringAsFixed(1)})'),
                           onPressed: () {
-                            setState(() {
-                              _targetWeightController.text =
-                                  target.toStringAsFixed(1);
-                            });
+                            _onTargetWeightChanged(target, unitService);
+                          },
+                        ),
+                      );
+                    }).toList()
+                  : [2.0, 4.0, 6.0, 8.0].map((delta) {
+                      final target = baselineDisp + delta;
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: ActionChip(
+                          label: Text(
+                              '+$delta $unitStr (${target.toStringAsFixed(1)})'),
+                          onPressed: () {
+                            _onTargetWeightChanged(target, unitService);
                           },
                         ),
                       );
@@ -1231,19 +1231,21 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
           const SizedBox(height: DesignConstants.spacingM),
         ],
 
+        Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: DesignConstants.spacingL,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+
         if (baselineDisp != null && targetDisp != null) ...[
-          if ((_preset == GoalPreset.loseWeight ||
-                  (_preset == GoalPreset.custom &&
-                      _customDirection == 'lose')) &&
-              targetDisp >= baselineDisp)
+          if (isLosing && targetDisp >= baselineDisp)
             _buildDirectionWarning(
               context,
               l10n.goalTargetDirectionLoseError,
             ),
-          if ((_preset == GoalPreset.gainWeight ||
-                  (_preset == GoalPreset.custom &&
-                      _customDirection == 'gain')) &&
-              targetDisp <= baselineDisp)
+          if (!isLosing && targetDisp <= baselineDisp)
             _buildDirectionWarning(
               context,
               l10n.goalTargetDirectionGainError,
@@ -1283,9 +1285,441 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
               ),
             ],
           ),
+          const SizedBox(height: DesignConstants.spacingL),
+        ],
+
+        // Hero Trajectory card
+        SummaryCard(
+          child: Padding(
+            padding: DesignConstants.cardPadding,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      l10n.goalEstimatedDuration(weeks),
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    if (_targetDate != null)
+                      Text(
+                        dateFormat.format(_targetDate!),
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: theme.colorScheme.primary,
+                        ),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: DesignConstants.spacingM),
+                const Divider(height: 1),
+                const SizedBox(height: DesignConstants.spacingM),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        l10n.goalEstimatedDailyDelta,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.colorScheme.onSurface
+                              .withValues(alpha: 0.7),
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: DesignConstants.spacingS),
+                    Text(
+                      '${isLosing ? '-' : '+'}$dailyCalorieImpact ${l10n.analyticsKcalPerDay}',
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: isLosing
+                            ? Colors.orangeAccent
+                            : Colors.lightGreenAccent,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: DesignConstants.spacingM),
+                Row(
+                  children: [
+                    Icon(
+                      _weeklyRateKg > 1.0
+                          ? LucideIcons.triangle_alert
+                          : (_weeklyRateKg < 0.3
+                              ? LucideIcons.info
+                              : LucideIcons.circle_check),
+                      size: 18,
+                      color: _weeklyRateKg > 1.0
+                          ? Colors.orange
+                          : (_weeklyRateKg < 0.3 ? Colors.blue : Colors.green),
+                    ),
+                    const SizedBox(width: DesignConstants.spacingS),
+                    Expanded(
+                      child: Text(
+                        _weeklyRateKg > 1.0
+                            ? l10n.goalPaceFeedbackAggressive
+                            : (_weeklyRateKg < 0.3
+                                ? l10n.goalPaceFeedbackGentle
+                                : l10n.goalPaceFeedbackSafe),
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurface
+                              .withValues(alpha: 0.85),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: DesignConstants.spacingL),
+
+        // Pace Selection
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              l10n.goalWeeklyRateLabel,
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            Text(
+              '${_weeklyRateKg.toStringAsFixed(2)} $unitStr / ${l10n.weekShort}',
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: theme.colorScheme.primary,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: DesignConstants.spacingS),
+        PlatformAdaptiveDropdownFormField<String>(
+          key: ValueKey('rate_dropdown_$_selectedRatePreset'),
+          value: _selectedRatePreset,
+          items: [
+            DropdownMenuItem(
+              value: 'gentle',
+              child: Text(l10n.goalRateGentle),
+            ),
+            DropdownMenuItem(
+              value: 'moderate',
+              child: Text(l10n.goalRateModerate),
+            ),
+            DropdownMenuItem(
+              value: 'athletic',
+              child: Text(l10n.goalRateAthletic),
+            ),
+            DropdownMenuItem(
+              value: 'aggressive',
+              child: Text(l10n.goalRateAggressive),
+            ),
+            DropdownMenuItem(
+              value: 'custom',
+              child: Text(l10n.goalRateCustom),
+            ),
+          ],
+          onChanged: (val) {
+            if (val == null) return;
+            if (val == 'gentle') {
+              _onWeeklyRateChanged(0.25, unitService, ratePreset: 'gentle');
+            } else if (val == 'moderate') {
+              _onWeeklyRateChanged(0.50, unitService, ratePreset: 'moderate');
+            } else if (val == 'athletic') {
+              _onWeeklyRateChanged(0.75, unitService, ratePreset: 'athletic');
+            } else if (val == 'aggressive') {
+              _onWeeklyRateChanged(1.00, unitService, ratePreset: 'aggressive');
+            } else {
+              setState(() => _selectedRatePreset = 'custom');
+            }
+          },
+        ),
+        if (_selectedRatePreset == 'custom') ...[
+          const SizedBox(height: DesignConstants.spacingM),
+          AppRulerPicker.rate(
+            value: _weeklyRateKg,
+            imperial: unitService.isImperial,
+            onChanged: (val) =>
+                _onWeeklyRateChanged(val, unitService, ratePreset: 'custom'),
+            unit: unitStr,
+          ),
+        ],
+        const SizedBox(height: DesignConstants.spacingL),
+
+        // Target Date / Duration Selection
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              l10n.goalTargetDateLabel,
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            if (_targetDate != null)
+              Text(
+                dateFormat.format(_targetDate!),
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.primary,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+          ],
+        ),
+        const SizedBox(height: DesignConstants.spacingS),
+        PlatformAdaptiveDropdownFormField<String>(
+          key: ValueKey('duration_dropdown_$_selectedDurationPreset'),
+          value: _selectedDurationPreset,
+          items: [
+            DropdownMenuItem(
+              value: '8',
+              child: Text(l10n.goalEstimatedDuration(8)),
+            ),
+            DropdownMenuItem(
+              value: '12',
+              child: Text(l10n.goalEstimatedDuration(12)),
+            ),
+            DropdownMenuItem(
+              value: '16',
+              child: Text(l10n.goalEstimatedDuration(16)),
+            ),
+            DropdownMenuItem(
+              value: '24',
+              child: Text(l10n.goalEstimatedDuration(24)),
+            ),
+            DropdownMenuItem(
+              value: 'custom',
+              child: Text(l10n.goalDurationCustom),
+            ),
+          ],
+          onChanged: (val) {
+            if (val == null) return;
+            if (val == 'custom') {
+              setState(() => _selectedDurationPreset = 'custom');
+            } else {
+              final w = int.tryParse(val) ?? 12;
+              final newDate = _startDate.add(Duration(days: w * 7));
+              _onTargetDateChanged(newDate, unitService, durationPreset: val);
+            }
+          },
+        ),
+        if (_selectedDurationPreset == 'custom') ...[
+          const SizedBox(height: DesignConstants.spacingM),
+          SummaryCard(
+            child: ListTile(
+              title: Text(
+                _targetDate != null
+                    ? dateFormat.format(_targetDate!)
+                    : l10n.goalNoDeadlineOption,
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              subtitle: Text(l10n.goalTargetDateLabel),
+              onTap: () async {
+                final picked = await showAdaptiveDatePicker(
+                  context: context,
+                  initialDate:
+                      _targetDate ?? _startDate.add(const Duration(days: 84)),
+                  firstDate: _startDate.add(const Duration(days: 7)),
+                  lastDate: _startDate.add(const Duration(days: 730)),
+                );
+                if (picked != null) {
+                  _onTargetDateChanged(picked, unitService,
+                      durationPreset: 'custom');
+                }
+              },
+            ),
+          ),
+        ],
+      ],
+    ),
+  ),
+],
+);
+}
+
+  Widget _buildStep2MaintainTargetAndPace(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final unitService = context.watch<UnitService>();
+    final unitStr = unitService.unitString(UnitDimension.weight);
+    final dateFormat = DateFormat.yMMMd(
+      Localizations.localeOf(context).toString(),
+    );
+
+    final baselineKg = _getBaselineKg(unitService);
+    final double? baselineDisp = baselineKg != null
+        ? unitService.convertDisplayValue(baselineKg, UnitDimension.weight)
+        : null;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          l10n.goalPresetMaintainWeight,
+          style: theme.textTheme.headlineSmall?.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: DesignConstants.spacingS),
+        Text(
+          l10n.goalPresetMaintainWeightDescription,
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+          ),
+        ),
+        const SizedBox(height: DesignConstants.spacingL),
+
+        // Maintain Corridor Card
+        SummaryCard(
+          margin: EdgeInsets.zero,
+          child: Padding(
+            padding: DesignConstants.cardPadding,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l10n.goalMaintainCorridor,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    if (baselineDisp != null) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        '${baselineDisp.toStringAsFixed(1)} $unitStr (± 1.0 $unitStr)',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.colorScheme.primary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+                const SizedBox(height: DesignConstants.spacingM),
+                const Divider(height: 1),
+                const SizedBox(height: DesignConstants.spacingM),
+                Text(
+                  l10n.goalPaceFeedbackMaintain,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.8),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: DesignConstants.spacingL),
+
+        // Duration / Target Date Selection
+        Text(
+          l10n.goalTargetDateLabel,
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: DesignConstants.spacingS),
+        PlatformAdaptiveDropdownFormField<String>(
+          key: ValueKey('maintain_duration_$_selectedDurationPreset'),
+          value: _selectedDurationPreset == '24'
+              ? 'custom'
+              : _selectedDurationPreset,
+          items: [
+            DropdownMenuItem(
+              value: 'ongoing',
+              child: Text(l10n.goalNoDeadlineOption),
+            ),
+            DropdownMenuItem(
+              value: '8',
+              child: Text(l10n.goalEstimatedDuration(8)),
+            ),
+            DropdownMenuItem(
+              value: '12',
+              child: Text(l10n.goalEstimatedDuration(12)),
+            ),
+            DropdownMenuItem(
+              value: '16',
+              child: Text(l10n.goalEstimatedDuration(16)),
+            ),
+            DropdownMenuItem(
+              value: 'custom',
+              child: Text(l10n.goalDurationCustom),
+            ),
+          ],
+          onChanged: (val) {
+            if (val == null) return;
+            if (val == 'ongoing') {
+              setState(() {
+                _selectedDurationPreset = 'ongoing';
+                _targetDate = null;
+              });
+            } else if (val == 'custom') {
+              setState(() {
+                _selectedDurationPreset = 'custom';
+              });
+            } else {
+              final w = int.tryParse(val) ?? 12;
+              setState(() {
+                _selectedDurationPreset = val;
+                _targetDate = _startDate.add(Duration(days: w * 7));
+              });
+            }
+          },
+        ),
+        if (_selectedDurationPreset == 'custom') ...[
+          const SizedBox(height: DesignConstants.spacingM),
+          SummaryCard(
+            child: ListTile(
+              title: Text(
+                _targetDate != null
+                    ? dateFormat.format(_targetDate!)
+                    : l10n.goalNoDeadlineOption,
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              subtitle: Text(l10n.goalTargetDateLabel),
+              onTap: () async {
+                final picked = await showAdaptiveDatePicker(
+                  context: context,
+                  initialDate:
+                      _targetDate ?? _startDate.add(const Duration(days: 84)),
+                  firstDate: _startDate.add(const Duration(days: 7)),
+                  lastDate: _startDate.add(const Duration(days: 730)),
+                );
+                if (picked != null) {
+                  setState(() {
+                    _targetDate = picked;
+                  });
+                }
+              },
+            ),
+          ),
         ],
       ],
     );
+  }
+
+  void _onTargetWeightChanged(double newWeight, UnitService unitService) {
+    setState(() {
+      _targetWeightController.text = newWeight.toStringAsFixed(1);
+      final delta = _getDeltaKg(unitService);
+      if (delta > 0 && _weeklyRateKg > 0) {
+        final weeks = delta / _weeklyRateKg;
+        final days = (weeks * 7).round();
+        _targetDate = _startDate.add(Duration(days: max(7, days)));
+        _syncDurationPreset();
+      }
+    });
   }
 
   Widget _buildDirectionWarning(BuildContext context, String message) {
@@ -1316,348 +1750,9 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
   }
 
   // -------------------------------------------------------------
-  // Step 3: Tempo & Zieldatum (Interaktiver Planer)
+  // Step 3: Motivation & Grund
   // -------------------------------------------------------------
-  // Kept temporarily while older golden tests are migrated to the five-step UI.
-  // ignore: unused_element
-  Widget _buildStep3Trajectory(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final theme = Theme.of(context);
-    final unitService = context.watch<UnitService>();
-    final unitStr = unitService.unitString(UnitDimension.weight);
-    final dateFormat = DateFormat.yMMMd(
-      Localizations.localeOf(context).toString(),
-    );
-
-    final deltaKg = _getDeltaKg(unitService);
-    final isMaintain = deltaKg <= 0.05;
-
-    // Daily Calorie impact estimate
-    // ~7700 kcal per kg of fat mass
-    final dailyCalorieImpact = (_weeklyRateKg * 7700 / 7).round();
-    final isLosing = _preset == GoalPreset.loseWeight ||
-        (_preset == GoalPreset.custom && _customDirection == 'lose');
-
-    final int weeks = _targetDate != null
-        ? max(1, (_targetDate!.difference(_startDate).inDays / 7).round())
-        : 12;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          l10n.goalStepTrajectoryQuestion,
-          style: theme.textTheme.headlineSmall?.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: DesignConstants.spacingS),
-        Text(
-          l10n.goalStepTrajectoryDescription,
-          style: theme.textTheme.bodyMedium?.copyWith(
-            color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
-          ),
-        ),
-        const SizedBox(height: DesignConstants.spacingL),
-        if (isMaintain) ...[
-          SummaryCard(
-            child: Padding(
-              padding: DesignConstants.cardPadding,
-              child: Row(
-                children: [
-                  const Icon(LucideIcons.scale, color: Colors.green, size: 28),
-                  const SizedBox(width: DesignConstants.spacingM),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          l10n.goalPresetMaintainWeight,
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          l10n.goalPaceFeedbackMaintain,
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurface
-                                .withValues(alpha: 0.7),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: DesignConstants.spacingL),
-        ] else ...[
-          // 1. Live Interactive Trajectory Summary Card (Hero at the Top)
-          SummaryCard(
-            child: Padding(
-              padding: DesignConstants.cardPadding,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        l10n.goalEstimatedDuration(weeks),
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      if (_targetDate != null)
-                        Text(
-                          dateFormat.format(_targetDate!),
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: theme.colorScheme.primary,
-                          ),
-                        ),
-                    ],
-                  ),
-                  const SizedBox(height: DesignConstants.spacingM),
-                  const Divider(height: 1),
-                  const SizedBox(height: DesignConstants.spacingM),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          l10n.goalEstimatedDailyDelta,
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: theme.colorScheme.onSurface
-                                .withValues(alpha: 0.7),
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      const SizedBox(width: DesignConstants.spacingS),
-                      Text(
-                        '${isLosing ? '-' : '+'}$dailyCalorieImpact ${l10n.analyticsKcalPerDay}',
-                        style: theme.textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: isLosing
-                              ? Colors.orangeAccent
-                              : Colors.lightGreenAccent,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: DesignConstants.spacingM),
-                  Row(
-                    children: [
-                      Icon(
-                        _weeklyRateKg > 1.0
-                            ? LucideIcons.triangle_alert
-                            : (_weeklyRateKg < 0.3
-                                ? LucideIcons.info
-                                : LucideIcons.circle_check),
-                        size: 18,
-                        color: _weeklyRateKg > 1.0
-                            ? Colors.orange
-                            : (_weeklyRateKg < 0.3
-                                ? Colors.blue
-                                : Colors.green),
-                      ),
-                      const SizedBox(width: DesignConstants.spacingS),
-                      Expanded(
-                        child: Text(
-                          _weeklyRateKg > 1.0
-                              ? l10n.goalPaceFeedbackAggressive
-                              : (_weeklyRateKg < 0.3
-                                  ? l10n.goalPaceFeedbackGentle
-                                  : l10n.goalPaceFeedbackSafe),
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurface
-                                .withValues(alpha: 0.85),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: DesignConstants.spacingL),
-
-          // 2. Control: Pace Selection with Dropdown & Custom Ruler
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                l10n.goalWeeklyRateLabel,
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              Text(
-                '${_weeklyRateKg.toStringAsFixed(2)} $unitStr / ${l10n.weekShort}',
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: theme.colorScheme.primary,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: DesignConstants.spacingS),
-          PlatformAdaptiveDropdownFormField<String>(
-            key: ValueKey('rate_dropdown_$_selectedRatePreset'),
-            value: _selectedRatePreset,
-            items: [
-              DropdownMenuItem(
-                value: 'gentle',
-                child: Text(l10n.goalRateGentle),
-              ),
-              DropdownMenuItem(
-                value: 'moderate',
-                child: Text(l10n.goalRateModerate),
-              ),
-              DropdownMenuItem(
-                value: 'athletic',
-                child: Text(l10n.goalRateAthletic),
-              ),
-              DropdownMenuItem(
-                value: 'aggressive',
-                child: Text(l10n.goalRateAggressive),
-              ),
-              DropdownMenuItem(
-                value: 'custom',
-                child: Text(l10n.goalRateCustom),
-              ),
-            ],
-            onChanged: (val) {
-              if (val == null) return;
-              if (val == 'gentle') {
-                _onWeeklyRateChanged(0.25, unitService, ratePreset: 'gentle');
-              } else if (val == 'moderate') {
-                _onWeeklyRateChanged(0.50, unitService, ratePreset: 'moderate');
-              } else if (val == 'athletic') {
-                _onWeeklyRateChanged(0.75, unitService, ratePreset: 'athletic');
-              } else if (val == 'aggressive') {
-                _onWeeklyRateChanged(1.00, unitService,
-                    ratePreset: 'aggressive');
-              } else {
-                setState(() => _selectedRatePreset = 'custom');
-              }
-            },
-          ),
-          if (_selectedRatePreset == 'custom') ...[
-            const SizedBox(height: DesignConstants.spacingM),
-            AppRulerPicker.rate(
-              value: _weeklyRateKg,
-              imperial: unitService.isImperial,
-              onChanged: (val) =>
-                  _onWeeklyRateChanged(val, unitService, ratePreset: 'custom'),
-              unit: unitStr,
-            ),
-          ],
-          const SizedBox(height: DesignConstants.spacingL),
-
-          // 3. Control: Target Date & Duration Selection with Dropdown
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                l10n.goalTargetDateLabel,
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              if (_targetDate != null)
-                Text(
-                  dateFormat.format(_targetDate!),
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.primary,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-            ],
-          ),
-          const SizedBox(height: DesignConstants.spacingS),
-          PlatformAdaptiveDropdownFormField<String>(
-            key: ValueKey('duration_dropdown_$_selectedDurationPreset'),
-            value: _selectedDurationPreset,
-            items: [
-              DropdownMenuItem(
-                value: '8',
-                child: Text(l10n.goalEstimatedDuration(8)),
-              ),
-              DropdownMenuItem(
-                value: '12',
-                child: Text(l10n.goalEstimatedDuration(12)),
-              ),
-              DropdownMenuItem(
-                value: '16',
-                child: Text(l10n.goalEstimatedDuration(16)),
-              ),
-              DropdownMenuItem(
-                value: '24',
-                child: Text(l10n.goalEstimatedDuration(24)),
-              ),
-              DropdownMenuItem(
-                value: 'custom',
-                child: Text(l10n.goalDurationCustom),
-              ),
-            ],
-            onChanged: (val) {
-              if (val == null) return;
-              if (val == 'custom') {
-                setState(() => _selectedDurationPreset = 'custom');
-              } else {
-                final w = int.tryParse(val) ?? 12;
-                final newDate = _startDate.add(Duration(days: w * 7));
-                _onTargetDateChanged(newDate, unitService, durationPreset: val);
-              }
-            },
-          ),
-          if (_selectedDurationPreset == 'custom') ...[
-            const SizedBox(height: DesignConstants.spacingM),
-            SummaryCard(
-              child: ListTile(
-                leading: Icon(LucideIcons.calendar,
-                    color: theme.colorScheme.primary),
-                title: Text(
-                  _targetDate != null
-                      ? dateFormat.format(_targetDate!)
-                      : l10n.goalNoDeadlineOption,
-                  style: theme.textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                subtitle: Text(l10n.goalTargetDateLabel),
-                trailing: const Icon(LucideIcons.chevron_right, size: 18),
-                onTap: () async {
-                  final picked = await showAdaptiveDatePicker(
-                    context: context,
-                    initialDate:
-                        _targetDate ?? _startDate.add(const Duration(days: 84)),
-                    firstDate: _startDate.add(const Duration(days: 7)),
-                    lastDate: _startDate.add(const Duration(days: 730)),
-                  );
-                  if (picked != null) {
-                    _onTargetDateChanged(picked, unitService,
-                        durationPreset: 'custom');
-                  }
-                },
-              ),
-            ),
-          ],
-        ],
-      ],
-    );
-  }
-
-  // -------------------------------------------------------------
-  // Step 4: Motivation & Grund
-  // -------------------------------------------------------------
-  Widget _buildStep4Reason(BuildContext context, {bool includeReview = false}) {
+  Widget _buildStep3Motivation(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
 
@@ -1679,7 +1774,7 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
         ),
         const SizedBox(height: DesignConstants.spacingL),
 
-        // A small set of prompts starts a personal, editable statement.
+        // Prompts
         Wrap(
           spacing: 6,
           runSpacing: 6,
@@ -1722,7 +1817,7 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
         ),
         const SizedBox(height: DesignConstants.spacingM),
 
-        // Multi-line Reason TextField with guaranteed focus
+        // Multi-line Reason TextField with focus node
         InkWell(
           onTap: () => _reasonFocusNode.requestFocus(),
           borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
@@ -1730,8 +1825,8 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
             key: const ValueKey('reason_text_field'),
             focusNode: _reasonFocusNode,
             controller: _reasonController,
-            minLines: 2,
-            maxLines: 4,
+            minLines: 3,
+            maxLines: 5,
             textCapitalization: TextCapitalization.sentences,
             decoration: InputDecoration(
               hintText: l10n.goalReasonPlaceholder,
@@ -1750,15 +1845,14 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
             color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
           ),
         ),
-        if (includeReview) ...[
-          const SizedBox(height: DesignConstants.spacingXL),
-          _buildCompactGoalPreview(context),
-        ],
       ],
     );
   }
 
-  Widget _buildCompactGoalPreview(BuildContext context) {
+  // -------------------------------------------------------------
+  // Step 4: Review & Aktivieren
+  // -------------------------------------------------------------
+  Widget _buildStep4ReviewAndActivate(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final unitService = context.watch<UnitService>();
@@ -1769,6 +1863,10 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
       Localizations.localeOf(context).toString(),
     );
 
+    final isMaintain = _preset == GoalPreset.maintainWeight ||
+        _preset == GoalPreset.recomposition ||
+        (_preset == GoalPreset.custom && _customDirection == 'maintain');
+
     String formatWeight(double? value) => value == null
         ? '--'
         : '${unitService.convertDisplayValue(value, UnitDimension.weight).toStringAsFixed(1)} $unit';
@@ -1778,11 +1876,18 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
       children: [
         Text(
           l10n.goalStep7Question,
-          style: theme.textTheme.titleLarge?.copyWith(
+          style: theme.textTheme.headlineSmall?.copyWith(
             fontWeight: FontWeight.bold,
           ),
         ),
         const SizedBox(height: DesignConstants.spacingS),
+        Text(
+          l10n.goalStep7Description,
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+          ),
+        ),
+        const SizedBox(height: DesignConstants.spacingL),
         SummaryCard(
           margin: EdgeInsets.zero,
           child: Column(
@@ -1796,13 +1901,20 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
                       formatWeight(baseline),
                     ),
                   ),
-                  Icon(LucideIcons.arrow_right,
-                      color: theme.colorScheme.primary, size: 20),
+                  Text(
+                    '→',
+                    style: theme.textTheme.headlineSmall?.copyWith(
+                      color: theme.colorScheme.primary,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                   Expanded(
                     child: _buildPreviewMetric(
                       context,
                       l10n.goalTargetHeader,
-                      formatWeight(target),
+                      isMaintain
+                          ? '${formatWeight(baseline)} (± 1.0 $unit)'
+                          : formatWeight(target),
                       alignEnd: true,
                     ),
                   ),
@@ -1812,18 +1924,17 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
               _buildReviewRow(
                 context,
                 label: l10n.goalWeeklyRateLabel,
-                value:
-                    '${_weeklyRateKg.toStringAsFixed(2)} $unit / ${l10n.weekShort}',
-                icon: LucideIcons.gauge,
+                value: isMaintain
+                    ? '0.00 $unit / ${l10n.weekShort} (${l10n.goalPresetMaintainWeight})'
+                    : '${_weeklyRateKg.toStringAsFixed(2)} $unit / ${l10n.weekShort}',
               ),
               const SizedBox(height: DesignConstants.spacingM),
               _buildReviewRow(
                 context,
                 label: l10n.goalTargetDateLabel,
                 value: _targetDate == null
-                    ? l10n.goalNoTargetDateShort
+                    ? l10n.goalNoDeadlineOption
                     : dateFormat.format(_targetDate!),
-                icon: LucideIcons.calendar,
               ),
             ],
           ),
@@ -1831,7 +1942,7 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
         const SizedBox(height: DesignConstants.spacingM),
         SummaryCard(
           margin: EdgeInsets.zero,
-          child: SwitchListTile.adaptive(
+          child: PlatformAdaptiveSwitchListTile(
             contentPadding: EdgeInsets.zero,
             title: Text(
               l10n.goalDriverSettingLabel,
@@ -1886,13 +1997,10 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
     BuildContext context, {
     required String label,
     required String value,
-    required IconData icon,
   }) {
     final theme = Theme.of(context);
     return Row(
       children: [
-        Icon(icon, size: 18, color: theme.colorScheme.primary),
-        const SizedBox(width: DesignConstants.spacingM),
         Expanded(
           child: Text(
             label,

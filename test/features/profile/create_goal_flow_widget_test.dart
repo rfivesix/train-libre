@@ -8,8 +8,11 @@ import 'package:train_libre/features/profile/data/goal_repository_impl.dart';
 import 'package:train_libre/features/profile/presentation/create_goal_flow.dart';
 import 'package:train_libre/generated/app_localizations.dart';
 import 'package:train_libre/services/unit_service.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:train_libre/widgets/common/app_ruler_picker.dart';
 import 'package:train_libre/widgets/common/app_segmented_control.dart';
+import 'package:train_libre/widgets/common/platform_adaptive_switch_list_tile.dart';
+import 'package:train_libre/widgets/common/summary_card.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -66,7 +69,8 @@ void main() {
       expect(find.byType(AppSegmentedControl<String>), findsOneWidget);
     });
 
-    testWidgets('Step 1 requires an explicit baseline without a 75 kg fallback',
+    testWidgets(
+        'Step 1 requires an explicit baseline and transitions directly to Target & Pace planner',
         (tester) async {
       tester.view.physicalSize = const Size(800, 1600);
       tester.view.devicePixelRatio = 1.0;
@@ -82,19 +86,23 @@ void main() {
       expect(
           find.byKey(const Key('goal_inline_baseline_input')), findsOneWidget);
       expect(find.textContaining('75.0'), findsNothing);
+
+      // Entering baseline weight and continuing
       await tester.enterText(
         find.byKey(const Key('goal_inline_baseline_input')),
         '80.0',
       );
       await tester.tap(find.text('Continue'));
       await tester.pumpAndSettle();
-      expect(find.text('How do you want to plan?'), findsOneWidget);
-      expect(find.text('Open goal'), findsOneWidget);
-      expect(find.text('Weekly rate'), findsOneWidget);
-      expect(find.text('Target weight'), findsOneWidget);
+
+      // Directly on Step 2: Target & Pace planner (no empty or open-goal selection screens)
+      expect(find.text('What is your target weight?'), findsOneWidget);
+      expect(find.byType(AppRulerPicker), findsWidgets);
+      expect(find.text('Planned weekly rate'), findsOneWidget);
+      expect(find.text('Target date'), findsWidgets);
     });
 
-    testWidgets('Step 3 shows the controls for the selected weekly-rate mode',
+    testWidgets('Step 2 allows adjusting target weight and pace interactively',
         (tester) async {
       tester.view.physicalSize = const Size(800, 1600);
       tester.view.devicePixelRatio = 1.0;
@@ -113,13 +121,19 @@ void main() {
       );
       await tester.tap(find.text('Continue'));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Continue'));
-      await tester.pumpAndSettle();
-      expect(find.text('Weekly rate'), findsWidgets);
-      expect(find.byType(AppRulerPicker), findsOneWidget);
+
+      // Step 2 is active
+      expect(find.text('What is your target weight?'), findsOneWidget);
+      expect(find.text('Start (Baseline)'), findsOneWidget);
+      expect(find.text('Planned change'), findsOneWidget);
+      expect(find.text('Target'), findsOneWidget);
+
+      // Verify quick action chips are present for lose weight (-5.0 kg (75.0))
+      expect(find.text('-5.0 kg (75.0)'), findsOneWidget);
     });
 
-    testWidgets('motivation is the final step and contains activation preview',
+    testWidgets(
+        'Step 3 is dedicated motivation and Step 4 is Review & Activate',
         (tester) async {
       tester.view.physicalSize = const Size(800, 1800);
       tester.view.devicePixelRatio = 1.0;
@@ -127,22 +141,173 @@ void main() {
 
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pumpAndSettle();
+
+      // Step 0 -> Step 1
       await tester.tap(find.text('Continue'));
       await tester.pumpAndSettle();
+
+      // Step 1 -> Step 2
       await tester.enterText(
         find.byKey(const Key('goal_inline_baseline_input')),
         '80.0',
       );
       await tester.tap(find.text('Continue'));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Continue'));
-      await tester.pumpAndSettle();
+
+      // Step 2 -> Step 3 (Motivation)
       await tester.tap(find.text('Continue'));
       await tester.pumpAndSettle();
 
       expect(find.text('Why is this important to you?'), findsOneWidget);
+      expect(find.byKey(const ValueKey('reason_text_field')), findsOneWidget);
+      // Motivation step does not have the review card
+      expect(find.text('Review & Activate'), findsNothing);
+
+      // Step 3 -> Step 4 (Review & Activate)
+      await tester.tap(find.text('Continue'));
+      await tester.pumpAndSettle();
+
       expect(find.text('Review & Activate'), findsOneWidget);
+      expect(find.text('Drives nutrition'), findsOneWidget);
       expect(find.text('Activate Goal'), findsOneWidget);
+    });
+
+    testWidgets(
+        'Maintain weight goal shows corridor and duration without target deficit',
+        (tester) async {
+      tester.view.physicalSize = const Size(800, 1600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() => tester.view.resetPhysicalSize());
+
+      await tester.pumpWidget(createWidgetUnderTest());
+      await tester.pumpAndSettle();
+
+      // Select Maintain Weight preset
+      await tester.tap(find.text('Maintain weight'));
+      await tester.pumpAndSettle();
+
+      // Step 0 -> Step 1
+      await tester.tap(find.text('Continue'));
+      await tester.pumpAndSettle();
+
+      // Step 1: enter baseline
+      await tester.enterText(
+        find.byKey(const Key('goal_inline_baseline_input')),
+        '70.0',
+      );
+      await tester.tap(find.text('Continue'));
+      await tester.pumpAndSettle();
+
+      // Step 2: Maintain corridor screen
+      expect(find.text('Maintain weight'), findsWidgets);
+      expect(find.textContaining('± 1.0 kg'), findsWidgets);
+      expect(find.text('No target date'), findsOneWidget);
+    });
+
+    testWidgets(
+        'Step 1 displays AppRulerPicker and Step 4 renders PlatformAdaptiveSwitchListTile',
+        (tester) async {
+      tester.view.physicalSize = const Size(800, 1800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() => tester.view.resetPhysicalSize());
+
+      await tester.pumpWidget(createWidgetUnderTest());
+      await tester.pumpAndSettle();
+
+      // Step 0 -> Step 1
+      await tester.tap(find.text('Continue'));
+      await tester.pumpAndSettle();
+
+      // Verify AppRulerPicker is present on Step 1 (Baseline Weight)
+      expect(find.byType(AppRulerPicker), findsOneWidget);
+
+      // Enter baseline and continue
+      await tester.enterText(
+        find.byKey(const Key('goal_inline_baseline_input')),
+        '85.0',
+      );
+      await tester.tap(find.text('Continue'));
+      await tester.pumpAndSettle();
+
+      // Step 2 -> Step 3
+      await tester.tap(find.text('Continue'));
+      await tester.pumpAndSettle();
+
+      // Step 3 -> Step 4
+      await tester.tap(find.text('Continue'));
+      await tester.pumpAndSettle();
+
+      // Verify PlatformAdaptiveSwitchListTile is used on Step 4
+      expect(find.byType(PlatformAdaptiveSwitchListTile), findsOneWidget);
+    });
+
+    testWidgets(
+        'Step 1 baseline ruler picker is collapsed when baseline exists and appears only on edit; Step 4 rows have no calendar icons',
+        (tester) async {
+      tester.view.physicalSize = const Size(800, 1800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() => tester.view.resetPhysicalSize());
+
+      // Insert an existing baseline weight measurement
+      await db.into(db.measurements).insert(
+            MeasurementsCompanion.insert(
+              type: 'weight',
+              value: 92.2,
+              unit: 'kg',
+              date: DateTime.now(),
+            ),
+          );
+
+      await tester.pumpWidget(createWidgetUnderTest());
+      await tester.pumpAndSettle();
+
+      // Step 0 -> Step 1 (Start Date & Baseline Weight)
+      await tester.tap(find.text('Continue'));
+      await tester.pumpAndSettle();
+
+      // Baseline weight is displayed
+      expect(find.text('92.2'), findsOneWidget);
+      // Ruler picker is collapsed by default!
+      expect(find.byType(AppRulerPicker), findsNothing);
+
+      // Tap the edit button
+      await tester.tap(find.byKey(const Key('goal_edit_baseline_button')));
+      await tester.pumpAndSettle();
+
+      // Now ruler picker is visible
+      expect(find.byType(AppRulerPicker), findsOneWidget);
+
+      // Tap again to finish editing
+      await tester.tap(find.byKey(const Key('goal_edit_baseline_button')));
+      await tester.pumpAndSettle();
+
+      // Ruler picker collapses again
+      expect(find.byType(AppRulerPicker), findsNothing);
+
+      // Continue to Step 2
+      await tester.tap(find.text('Continue'));
+      await tester.pumpAndSettle();
+
+      // Step 2 -> Step 3
+      await tester.tap(find.text('Continue'));
+      await tester.pumpAndSettle();
+
+      // Step 3 -> Step 4 (Review & Activate)
+      await tester.tap(find.text('Continue'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Review & Activate'), findsOneWidget);
+      expect(find.text('Planned weekly rate'), findsOneWidget);
+      expect(find.text('Target date'), findsOneWidget);
+
+      // Step 4 review rows should not have any calendar icons
+      expect(
+        find.descendant(
+          of: find.byType(SummaryCard).first,
+          matching: find.byIcon(LucideIcons.calendar),
+        ),
+        findsNothing,
+      );
     });
   });
 }
