@@ -1,8 +1,8 @@
 // lib/features/analytics/presentation/macro_statistics_screen.dart
 
 import 'dart:async';
-import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:intl/intl.dart';
 
 import '../../../generated/app_localizations.dart';
@@ -12,6 +12,7 @@ import '../../../util/design_constants.dart';
 import '../../../util/timeframe_label_formatter.dart';
 import '../../../widgets/common/common.dart';
 import '../../../widgets/common/global_app_bar.dart';
+import '../../../widgets/common/macro_badge_row.dart';
 import '../../../widgets/common/platform_adaptive_pickers.dart'
     as adaptive_pickers;
 import '../../../widgets/common/summary_card.dart';
@@ -42,6 +43,7 @@ class _MacroStatisticsScreenState extends State<MacroStatisticsScreen> {
   TimeframeBlock _activeBlock = TimeframeBlock.week;
   DateTime _anchorDate = DateTime.now();
   bool _isRolling = true;
+  DailyMacroIntake? _selectedDay;
 
   final List<TimeframeBlock> _validBlocks = const [
     TimeframeBlock.week,
@@ -88,12 +90,14 @@ class _MacroStatisticsScreenState extends State<MacroStatisticsScreen> {
       setState(() {
         _summary = summary;
         _isLoading = false;
+        _selectedDay = null;
       });
     } catch (_) {
       if (!mounted || loadEpoch != _loadEpoch) return;
       setState(() {
         _summary = null;
         _isLoading = false;
+        _selectedDay = null;
       });
     }
   }
@@ -250,54 +254,54 @@ class _MacroStatisticsScreenState extends State<MacroStatisticsScreen> {
                     carbsColor: carbsColor,
                   ),
                 ),
-                const SizedBox(height: DesignConstants.spacingL),
+                const SizedBox(height: DesignConstants.spacingM),
 
-                // Main Stacked Bar Chart (Directly rendered on background, no SummaryCard)
+                // Selected Day Inspection Line
+                if (_selectedDay != null) ...[
+                  _buildInspectionBar(context, _selectedDay!),
+                  const SizedBox(height: DesignConstants.spacingS),
+                ],
+
+                // Main Stacked Bar Chart (starts from very left edge of screen)
                 Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: DesignConstants.spacingM,
+                  padding: const EdgeInsets.only(
+                    left: 0,
+                    right: DesignConstants.spacingM,
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (_summary != null)
-                        MacroHistoryStackedBarChart(
+                  child: _summary != null
+                      ? MacroHistoryStackedBarChart(
                           dailyIntakes: _summary!.dailyIntakes,
                           range: _summary!.range,
                           is7Days: _activeBlock == TimeframeBlock.week,
+                          selectedDay: _selectedDay,
+                          onDaySelected: (day) =>
+                              setState(() => _selectedDay = day),
                         )
-                      else
-                        const SizedBox(
+                      : const SizedBox(
                           height: 220,
                           child: Center(
                             child: CircularProgressIndicator(),
                           ),
                         ),
-                      const SizedBox(height: DesignConstants.spacingM),
-                      // Legend
-                      _buildLegend(
-                        context,
-                        proteinColor: proteinColor,
-                        fatColor: fatColor,
-                        carbsColor: carbsColor,
-                      ),
-                    ],
-                  ),
                 ),
-                const SizedBox(height: DesignConstants.spacingXL),
+                const SizedBox(height: DesignConstants.spacingM),
 
-                // Daily Breakdown List
+                // Legend
                 Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: DesignConstants.spacingL,
                   ),
-                  child: _buildDailyBreakdown(
+                  child: _buildLegend(
                     context,
                     proteinColor: proteinColor,
                     fatColor: fatColor,
                     carbsColor: carbsColor,
                   ),
                 ),
+                const SizedBox(height: DesignConstants.spacingL),
+
+                // Daily Breakdown List
+                _buildDailyBreakdown(context),
               ],
             ),
           ),
@@ -323,7 +327,6 @@ class _MacroStatisticsScreenState extends State<MacroStatisticsScreen> {
     required Color fatColor,
     required Color carbsColor,
   }) {
-    final theme = Theme.of(context);
     final summary = _summary;
 
     final calText = summary != null ? '${summary.avgCalories}' : '--';
@@ -334,63 +337,41 @@ class _MacroStatisticsScreenState extends State<MacroStatisticsScreen> {
     final carbsText =
         summary != null ? '${summary.avgCarbs.toStringAsFixed(0)} g' : '--';
 
-    final locale = Localizations.localeOf(context).toString();
-    String rangeText = '';
-    if (summary != null) {
-      final start = DateFormat.MMMd(locale).format(summary.range.start);
-      final end = DateFormat.yMMMd(locale).format(summary.range.end);
-      rangeText = '$start – $end';
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return Row(
       children: [
-        Row(
-          children: [
-            Expanded(
-              child: _buildMetricCol(
-                context,
-                label: 'Kalorien',
-                value: calText,
-                unit: 'kcal',
-                color: calColor,
-              ),
-            ),
-            Expanded(
-              child: _buildMetricCol(
-                context,
-                label: 'Protein',
-                value: protText,
-                color: proteinColor,
-              ),
-            ),
-            Expanded(
-              child: _buildMetricCol(
-                context,
-                label: 'Fett',
-                value: fatText,
-                color: fatColor,
-              ),
-            ),
-            Expanded(
-              child: _buildMetricCol(
-                context,
-                label: 'Carbs',
-                value: carbsText,
-                color: carbsColor,
-              ),
-            ),
-          ],
-        ),
-        if (rangeText.isNotEmpty) ...[
-          const SizedBox(height: DesignConstants.spacingS),
-          Text(
-            rangeText,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
-            ),
+        Expanded(
+          child: _buildMetricCol(
+            context,
+            label: 'Kalorien',
+            value: calText,
+            unit: 'kcal',
+            color: calColor,
           ),
-        ],
+        ),
+        Expanded(
+          child: _buildMetricCol(
+            context,
+            label: 'Protein',
+            value: protText,
+            color: proteinColor,
+          ),
+        ),
+        Expanded(
+          child: _buildMetricCol(
+            context,
+            label: 'Fett',
+            value: fatText,
+            color: fatColor,
+          ),
+        ),
+        Expanded(
+          child: _buildMetricCol(
+            context,
+            label: 'Carbs',
+            value: carbsText,
+            color: carbsColor,
+          ),
+        ),
       ],
     );
   }
@@ -482,12 +463,68 @@ class _MacroStatisticsScreenState extends State<MacroStatisticsScreen> {
     );
   }
 
-  Widget _buildDailyBreakdown(
-    BuildContext context, {
-    required Color proteinColor,
-    required Color fatColor,
-    required Color carbsColor,
-  }) {
+  Widget _buildInspectionBar(BuildContext context, DailyMacroIntake day) {
+    final theme = Theme.of(context);
+    final locale = Localizations.localeOf(context).toString();
+    final dateStr = DateFormat.yMMMEd(locale).format(day.date);
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: DesignConstants.spacingL,
+      ),
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: DesignConstants.spacingM,
+          vertical: DesignConstants.spacingS,
+        ),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+          borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
+          border: Border.all(
+            color: theme.colorScheme.primary.withValues(alpha: 0.3),
+            width: 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    dateStr,
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: theme.colorScheme.onSurface,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  MacroBadgeRow(
+                    kcal: day.calories,
+                    protein: day.proteinGrams,
+                    fat: day.fatGrams,
+                    carbs: day.carbsGrams,
+                    useBadges: true,
+                  ),
+                ],
+              ),
+            ),
+            IconButton(
+              icon: const Icon(LucideIcons.x, size: 18),
+              visualDensity: VisualDensity.compact,
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(),
+              tooltip: 'Schließen',
+              onPressed: () => setState(() => _selectedDay = null),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDailyBreakdown(BuildContext context) {
     final theme = Theme.of(context);
     final summary = _summary;
     if (summary == null || summary.dailyIntakes.isEmpty) {
@@ -503,73 +540,56 @@ class _MacroStatisticsScreenState extends State<MacroStatisticsScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Tagesverlauf',
-          style: theme.textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
+        const AppSectionHeader(
+          title: 'Tagesverlauf',
+          padding: EdgeInsets.symmetric(horizontal: DesignConstants.spacingL),
         ),
-        const SizedBox(height: DesignConstants.spacingM),
-        ListView.separated(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: trackedDays.length,
-          separatorBuilder: (_, __) => const SizedBox(height: DesignConstants.spacingS),
-          itemBuilder: (context, index) {
-            final day = trackedDays[index];
-            final dateStr = DateFormat.yMMMEd(locale).format(day.date);
+        const SizedBox(height: DesignConstants.spacingS),
+        Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: DesignConstants.spacingL,
+          ),
+          child: ListView.separated(
+            shrinkWrap: true,
+            padding: EdgeInsets.zero,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: trackedDays.length,
+            separatorBuilder: (_, __) =>
+                const SizedBox(height: DesignConstants.spacingS),
+            itemBuilder: (context, index) {
+              final day = trackedDays[index];
+              final dateStr = DateFormat.yMMMEd(locale).format(day.date);
 
-            final carbsKcal = day.carbsGrams * 4;
-            final proteinKcal = day.proteinGrams * 4;
-            final fatKcal = day.fatGrams * 9;
-            final totalKcal = max(1.0, carbsKcal + proteinKcal + fatKcal);
-
-            final pPct = (proteinKcal / totalKcal * 100).round();
-            final fPct = (fatKcal / totalKcal * 100).round();
-            final cPct = (carbsKcal / totalKcal * 100).round();
-
-            return SummaryCard(
-              margin: EdgeInsets.zero,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: DesignConstants.spacingM,
-                  vertical: DesignConstants.spacingS,
-                ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            dateStr,
-                            style: theme.textTheme.bodyMedium?.copyWith(
+              return SummaryCard(
+                margin: EdgeInsets.zero,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: DesignConstants.spacingM,
+                    vertical: DesignConstants.spacingS,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        dateStr,
+                        style: theme.textTheme.bodyMedium?.copyWith(
                               fontWeight: FontWeight.bold,
                             ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            '$pPct% P (${day.proteinGrams.toStringAsFixed(0)}g) • $fPct% F (${day.fatGrams.toStringAsFixed(0)}g) • $cPct% C (${day.carbsGrams.toStringAsFixed(0)}g)',
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: theme.colorScheme.onSurface
-                                  .withValues(alpha: 0.6),
-                            ),
-                          ),
-                        ],
                       ),
-                    ),
-                    Text(
-                      '${day.calories} kcal',
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: theme.colorScheme.primary,
+                      const SizedBox(height: 6),
+                      MacroBadgeRow(
+                        kcal: day.calories,
+                        protein: day.proteinGrams,
+                        fat: day.fatGrams,
+                        carbs: day.carbsGrams,
+                        useBadges: true,
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-            );
-          },
+              );
+            },
+          ),
         ),
       ],
     );

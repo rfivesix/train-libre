@@ -2,7 +2,6 @@
 
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:flutter_lucide/flutter_lucide.dart';
 
 import '../../../../theme/app_colors.dart';
 import '../../../../util/design_constants.dart';
@@ -10,6 +9,7 @@ import '../../../../widgets/common/summary_card.dart';
 import '../../../statistics/data/macro_analytics_data_adapter.dart';
 import '../../../statistics/domain/timeframe_block.dart';
 import '../macro_statistics_screen.dart';
+import 'analytics_card_base.dart';
 
 /// Preview card embedded in Statistics Hub showing macronutrient overview for selected timeframe.
 class MacroSectionCard extends StatefulWidget {
@@ -145,21 +145,14 @@ class _MacroSectionCardState extends State<MacroSectionCard> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'Makronährstoffe',
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                widget.rangeLabel ??
+              AnalyticsCardBase.buildHeaderWithChevron(
+                context,
+                label: 'Makronährstoffe',
+                chipText: widget.rangeLabel ??
                     (widget.activeBlockType == TimeframeBlock.week
                         ? 'Letzte 7 Tage'
                         : widget.activeBlockType.name),
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
-                ),
+                trailingIcon: true,
               ),
               const SizedBox(height: DesignConstants.spacingM),
 
@@ -274,22 +267,12 @@ class _MacroSectionCardState extends State<MacroSectionCard> {
               ),
               const SizedBox(height: DesignConstants.spacingM),
 
-              // Bottom row: average kcal + chevron
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    avgKcal > 0 ? '$avgKcal kcal' : '-- kcal',
-                    style: theme.textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  Icon(
-                    LucideIcons.chevron_right,
-                    size: 20,
-                    color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
-                  ),
-                ],
+              // Bottom: average kcal
+              Text(
+                avgKcal > 0 ? '$avgKcal kcal' : '-- kcal',
+                style: theme.textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ],
           ),

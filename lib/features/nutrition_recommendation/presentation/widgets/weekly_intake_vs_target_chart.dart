@@ -186,14 +186,17 @@ class WeeklyIntakeVsTargetChart extends StatelessWidget {
                 ? Border.all(color: theme.colorScheme.primary, width: 1.2)
                 : null,
           ),
-          child: Text(
-            calories > 0 ? '$calories' : '--',
-            maxLines: 1,
-            textAlign: TextAlign.center,
-            style: theme.textTheme.labelSmall?.copyWith(
-              fontWeight: FontWeight.bold,
-              fontSize: 9.5,
-              color: badgeTextColor,
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              calories > 0 ? '$calories' : '--',
+              maxLines: 1,
+              textAlign: TextAlign.center,
+              style: theme.textTheme.labelSmall?.copyWith(
+                fontWeight: FontWeight.bold,
+                fontSize: 9.5,
+                color: badgeTextColor,
+              ),
             ),
           ),
         ),
@@ -231,13 +234,17 @@ class WeeklyIntakeVsTargetChart extends StatelessWidget {
                                 child: Container(
                                   color: proteinColor,
                                   alignment: Alignment.center,
-                                  child: Text(
-                                    '${proteinGrams.round()}P',
-                                    maxLines: 1,
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 8.5,
+                                  padding: const EdgeInsets.symmetric(horizontal: 1),
+                                  child: FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    child: Text(
+                                      '${proteinGrams.round()}P',
+                                      maxLines: 1,
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 8.5,
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -248,13 +255,17 @@ class WeeklyIntakeVsTargetChart extends StatelessWidget {
                                 child: Container(
                                   color: fatColor,
                                   alignment: Alignment.center,
-                                  child: Text(
-                                    '${fatGrams.round()}F',
-                                    maxLines: 1,
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 8.5,
+                                  padding: const EdgeInsets.symmetric(horizontal: 1),
+                                  child: FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    child: Text(
+                                      '${fatGrams.round()}F',
+                                      maxLines: 1,
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 8.5,
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -265,13 +276,17 @@ class WeeklyIntakeVsTargetChart extends StatelessWidget {
                                 child: Container(
                                   color: carbsColor,
                                   alignment: Alignment.center,
-                                  child: Text(
-                                    '${carbsGrams.round()}C',
-                                    maxLines: 1,
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 8.5,
+                                  padding: const EdgeInsets.symmetric(horizontal: 1),
+                                  child: FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    child: Text(
+                                      '${carbsGrams.round()}C',
+                                      maxLines: 1,
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 8.5,
+                                      ),
                                     ),
                                   ),
                                 ),

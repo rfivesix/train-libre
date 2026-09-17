@@ -19,6 +19,8 @@ class MacroHistoryStackedBarChart extends StatelessWidget {
   final DateTimeRange range;
   final double chartHeight;
   final bool? is7Days;
+  final DailyMacroIntake? selectedDay;
+  final ValueChanged<DailyMacroIntake?>? onDaySelected;
 
   const MacroHistoryStackedBarChart({
     super.key,
@@ -26,6 +28,8 @@ class MacroHistoryStackedBarChart extends StatelessWidget {
     required this.range,
     this.chartHeight = 220,
     this.is7Days,
+    this.selectedDay,
+    this.onDaySelected,
   });
 
   @override
@@ -121,21 +125,41 @@ class MacroHistoryStackedBarChart extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: List.generate(dailyIntakes.length, (index) {
                           final item = dailyIntakes[index];
+                          final isSelected = selectedDay != null &&
+                              selectedDay!.date.year == item.date.year &&
+                              selectedDay!.date.month == item.date.month &&
+                              selectedDay!.date.day == item.date.day;
+                          final isOtherSelected =
+                              selectedDay != null && !isSelected;
+
                           return Expanded(
-                            child: Padding(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: showDetails
-                                    ? 3.0
-                                    : (dailyIntakes.length <= 31 ? 1.5 : 0.5),
-                              ),
-                              child: _buildStackedBar(
-                                context,
-                                item: item,
-                                maxKcal: gridCeiling,
-                                proteinColor: proteinColor,
-                                carbsColor: carbsColor,
-                                fatColor: fatColor,
-                                showDetails: showDetails,
+                            child: GestureDetector(
+                              behavior: HitTestBehavior.opaque,
+                              onTap: onDaySelected == null
+                                  ? null
+                                  : () => onDaySelected!(
+                                        isSelected ? null : item,
+                                      ),
+                              child: Padding(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: showDetails
+                                      ? 3.0
+                                      : (dailyIntakes.length <= 31 ? 1.5 : 0.5),
+                                ),
+                                child: AnimatedOpacity(
+                                  duration: const Duration(milliseconds: 150),
+                                  opacity: isOtherSelected ? 0.35 : 1.0,
+                                  child: _buildStackedBar(
+                                    context,
+                                    item: item,
+                                    maxKcal: gridCeiling,
+                                    proteinColor: proteinColor,
+                                    carbsColor: carbsColor,
+                                    fatColor: fatColor,
+                                    showDetails: showDetails,
+                                    isSelected: isSelected,
+                                  ),
+                                ),
                               ),
                             ),
                           );
@@ -165,20 +189,21 @@ class MacroHistoryStackedBarChart extends StatelessWidget {
     required Color carbsColor,
     required Color fatColor,
     required bool showDetails,
+    bool isSelected = false,
   }) {
+    final theme = Theme.of(context);
     if (item.calories <= 0) {
       return Column(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
-          if (showDetails) ...[
+          if (showDetails || isSelected) ...[
             Text(
               '--',
-              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              style: theme.textTheme.labelSmall?.copyWith(
                     fontSize: 9,
-                    color: Theme.of(context)
-                        .colorScheme
-                        .onSurface
-                        .withValues(alpha: 0.4),
+                    color: isSelected
+                        ? theme.colorScheme.primary
+                        : theme.colorScheme.onSurface.withValues(alpha: 0.4),
                   ),
             ),
             const SizedBox(height: 4),
@@ -186,7 +211,9 @@ class MacroHistoryStackedBarChart extends StatelessWidget {
           Container(
             height: 3,
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.08),
+              color: isSelected
+                  ? theme.colorScheme.primary
+                  : theme.colorScheme.onSurface.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -214,11 +241,11 @@ class MacroHistoryStackedBarChart extends StatelessWidget {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final availableHeight = showDetails
+        final availableHeight = (showDetails || isSelected)
             ? max(0.0, constraints.maxHeight - 20)
             : constraints.maxHeight;
         final barHeight = max(
-          showDetails ? 24.0 : 4.0,
+          (showDetails || isSelected) ? 24.0 : 4.0,
           availableHeight * totalRatio,
         );
 
@@ -227,21 +254,36 @@ class MacroHistoryStackedBarChart extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              if (showDetails) ...[
-                Text(
-                  '${item.calories}',
-                  maxLines: 1,
-                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 9.5,
-                      ),
+              if (showDetails || isSelected) ...[
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    '${item.calories}',
+                    maxLines: 1,
+                    style: theme.textTheme.labelSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 9.5,
+                          color: isSelected ? theme.colorScheme.primary : null,
+                        ),
+                  ),
                 ),
                 const SizedBox(height: 3),
               ],
-              SizedBox(
+              Container(
                 height: barHeight,
+                decoration: isSelected
+                    ? BoxDecoration(
+                        borderRadius: BorderRadius.circular(showDetails ? 5 : 3),
+                        border: Border.all(
+                          color: theme.colorScheme.primary,
+                          width: 1.5,
+                        ),
+                      )
+                    : null,
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(showDetails ? 4 : 2),
+                  borderRadius: BorderRadius.circular(
+                    showDetails ? (isSelected ? 3.5 : 4) : 2,
+                  ),
                   child: Column(
                     children: [
                       // Top: Protein
@@ -251,13 +293,16 @@ class MacroHistoryStackedBarChart extends StatelessWidget {
                           color: proteinColor,
                           alignment: Alignment.center,
                           child: showDetails && item.proteinGrams >= 5
-                              ? Text(
-                                  '${item.proteinGrams.round()}P',
-                                  maxLines: 1,
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 8,
+                              ? FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  child: Text(
+                                    '${item.proteinGrams.round()}P',
+                                    maxLines: 1,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 8,
+                                    ),
                                   ),
                                 )
                               : null,
@@ -269,14 +314,18 @@ class MacroHistoryStackedBarChart extends StatelessWidget {
                         child: Container(
                           color: fatColor,
                           alignment: Alignment.center,
+                          padding: const EdgeInsets.symmetric(horizontal: 0.5),
                           child: showDetails && item.fatGrams >= 5
-                              ? Text(
-                                  '${item.fatGrams.round()}F',
-                                  maxLines: 1,
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 8,
+                              ? FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  child: Text(
+                                    '${item.fatGrams.round()}F',
+                                    maxLines: 1,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 8,
+                                    ),
                                   ),
                                 )
                               : null,
@@ -288,14 +337,18 @@ class MacroHistoryStackedBarChart extends StatelessWidget {
                         child: Container(
                           color: carbsColor,
                           alignment: Alignment.center,
+                          padding: const EdgeInsets.symmetric(horizontal: 0.5),
                           child: showDetails && item.carbsGrams >= 5
-                              ? Text(
-                                  '${item.carbsGrams.round()}C',
-                                  maxLines: 1,
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 8,
+                              ? FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  child: Text(
+                                    '${item.carbsGrams.round()}C',
+                                    maxLines: 1,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 8,
+                                    ),
                                   ),
                                 )
                               : null,

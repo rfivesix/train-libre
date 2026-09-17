@@ -43,6 +43,41 @@ void main() {
     expect(find.byType(MacroHistoryStackedBarChart), findsOneWidget);
   });
 
+  testWidgets('MacroHistoryStackedBarChart triggers onDaySelected when bar tapped', (tester) async {
+    final now = DateTime(2026, 4, 10);
+    DailyMacroIntake? selected;
+    final days = [
+      DailyMacroIntake(
+        date: now,
+        calories: 2000,
+        proteinGrams: 150,
+        carbsGrams: 200,
+        fatGrams: 60,
+      ),
+    ];
+
+    await tester.pumpWidget(
+      MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(
+          body: MacroHistoryStackedBarChart(
+            dailyIntakes: days,
+            range: DateTimeRange(start: now, end: now),
+            onDaySelected: (day) => selected = day,
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final gestureFinder = find.byType(GestureDetector);
+    expect(gestureFinder, findsWidgets);
+    await tester.tap(gestureFinder.first);
+    expect(selected, isNotNull);
+    expect(selected?.calories, 2000);
+  });
+
   testWidgets('MacroSectionCard renders with empty data', (tester) async {
     await tester.pumpWidget(
       const MaterialApp(

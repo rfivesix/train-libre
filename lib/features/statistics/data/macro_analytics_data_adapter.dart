@@ -258,7 +258,7 @@ class MacroAnalyticsDataAdapter {
         entry.timestamp.day,
       );
       final amountFactor = entry.quantityInMl / 100.0;
-      final cals = (entry.kcal ?? 0).toDouble() * amountFactor;
+      final cals = (entry.kcal ?? 0).toDouble();
       final carbs = (entry.carbsPer100ml ?? 0.0) * amountFactor;
 
       caloriesByDay[day] = (caloriesByDay[day] ?? 0.0) + cals;
