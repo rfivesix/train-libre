@@ -412,6 +412,7 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
       appBar: GlobalAppBar(
         title: l10n.createGoalTitle,
         leading: IconButton(
+          tooltip: MaterialLocalizations.of(context).backButtonTooltip,
           icon: const Icon(LucideIcons.arrow_left),
           onPressed: _previousStep,
         ),
@@ -896,6 +897,7 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
                     ),
                     const SizedBox(width: DesignConstants.spacingS),
                     IconButton(
+                      tooltip: _showManualTargetWeightInput ? l10n.cancel : l10n.edit,
                       icon: Icon(
                         _showManualTargetWeightInput
                             ? LucideIcons.sliders_horizontal
