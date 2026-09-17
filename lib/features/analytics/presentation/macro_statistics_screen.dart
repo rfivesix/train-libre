@@ -2,7 +2,6 @@
 
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:intl/intl.dart';
 
 import '../../../generated/app_localizations.dart';
@@ -254,14 +253,6 @@ class _MacroStatisticsScreenState extends State<MacroStatisticsScreen> {
                     carbsColor: carbsColor,
                   ),
                 ),
-                const SizedBox(height: DesignConstants.spacingM),
-
-                // Selected Day Inspection Line
-                if (_selectedDay != null) ...[
-                  _buildInspectionBar(context, _selectedDay!),
-                  const SizedBox(height: DesignConstants.spacingS),
-                ],
-
                 // Main Stacked Bar Chart (starts from very left edge of screen)
                 Padding(
                   padding: const EdgeInsets.only(
@@ -328,21 +319,43 @@ class _MacroStatisticsScreenState extends State<MacroStatisticsScreen> {
     required Color carbsColor,
   }) {
     final summary = _summary;
+    final selected = _selectedDay;
 
-    final calText = summary != null ? '${summary.avgCalories}' : '--';
-    final protText =
-        summary != null ? '${summary.avgProtein.toStringAsFixed(0)} g' : '--';
-    final fatText =
-        summary != null ? '${summary.avgFat.toStringAsFixed(0)} g' : '--';
-    final carbsText =
-        summary != null ? '${summary.avgCarbs.toStringAsFixed(0)} g' : '--';
+    // When a day is hovered/selected via press-and-hold, show its exact values.
+    // Otherwise fall back to the period averages.
+    final bool showDay = selected != null;
+
+    final calText = showDay
+        ? '${selected.calories}'
+        : (summary != null ? '${summary.avgCalories}' : '--');
+    final protText = showDay
+        ? '${selected.proteinGrams.toStringAsFixed(0)} g'
+        : (summary != null
+            ? '${summary.avgProtein.toStringAsFixed(0)} g'
+            : '--');
+    final fatText = showDay
+        ? '${selected.fatGrams.toStringAsFixed(0)} g'
+        : (summary != null
+            ? '${summary.avgFat.toStringAsFixed(0)} g'
+            : '--');
+    final carbsText = showDay
+        ? '${selected.carbsGrams.toStringAsFixed(0)} g'
+        : (summary != null
+            ? '${summary.avgCarbs.toStringAsFixed(0)} g'
+            : '--');
+
+    // Sub-label distinguishes "avg" mode from "selected day" mode
+    final calLabel = showDay ? 'Kalorien' : 'Ø Kalorien';
+    final protLabel = showDay ? 'Protein' : 'Ø Protein';
+    final fatLabel = showDay ? 'Fett' : 'Ø Fett';
+    final carbsLabel = showDay ? 'Carbs' : 'Ø Carbs';
 
     return Row(
       children: [
         Expanded(
           child: _buildMetricCol(
             context,
-            label: 'Kalorien',
+            label: calLabel,
             value: calText,
             unit: 'kcal',
             color: calColor,
@@ -351,7 +364,7 @@ class _MacroStatisticsScreenState extends State<MacroStatisticsScreen> {
         Expanded(
           child: _buildMetricCol(
             context,
-            label: 'Protein',
+            label: protLabel,
             value: protText,
             color: proteinColor,
           ),
@@ -359,7 +372,7 @@ class _MacroStatisticsScreenState extends State<MacroStatisticsScreen> {
         Expanded(
           child: _buildMetricCol(
             context,
-            label: 'Fett',
+            label: fatLabel,
             value: fatText,
             color: fatColor,
           ),
@@ -367,7 +380,7 @@ class _MacroStatisticsScreenState extends State<MacroStatisticsScreen> {
         Expanded(
           child: _buildMetricCol(
             context,
-            label: 'Carbs',
+            label: carbsLabel,
             value: carbsText,
             color: carbsColor,
           ),
@@ -463,66 +476,6 @@ class _MacroStatisticsScreenState extends State<MacroStatisticsScreen> {
     );
   }
 
-  Widget _buildInspectionBar(BuildContext context, DailyMacroIntake day) {
-    final theme = Theme.of(context);
-    final locale = Localizations.localeOf(context).toString();
-    final dateStr = DateFormat.yMMMEd(locale).format(day.date);
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: DesignConstants.spacingL,
-      ),
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: DesignConstants.spacingM,
-          vertical: DesignConstants.spacingS,
-        ),
-        decoration: BoxDecoration(
-          color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-          borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
-          border: Border.all(
-            color: theme.colorScheme.primary.withValues(alpha: 0.3),
-            width: 1,
-          ),
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    dateStr,
-                    style: theme.textTheme.labelMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: theme.colorScheme.onSurface,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  MacroBadgeRow(
-                    kcal: day.calories,
-                    protein: day.proteinGrams,
-                    fat: day.fatGrams,
-                    carbs: day.carbsGrams,
-                    useBadges: true,
-                  ),
-                ],
-              ),
-            ),
-            IconButton(
-              icon: const Icon(LucideIcons.x, size: 18),
-              visualDensity: VisualDensity.compact,
-              padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(),
-              tooltip: 'Schließen',
-              onPressed: () => setState(() => _selectedDay = null),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
   Widget _buildDailyBreakdown(BuildContext context) {
     final theme = Theme.of(context);

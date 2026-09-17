@@ -14,7 +14,12 @@ import '../../../statistics/data/macro_analytics_data_adapter.dart';
 /// - Bottom: Carbohydrates (Green)
 /// - Middle: Fat (Pink/Purple)
 /// - Top: Protein (Red)
-class MacroHistoryStackedBarChart extends StatelessWidget {
+///
+/// Supports press-and-hold / drag-to-scrub interaction: while the user's
+/// finger is down, the hovered bar is highlighted and [onDaySelected] is
+/// called continuously. A date label floats directly above the active bar
+/// inside the chart without shifting the surrounding layout.
+class MacroHistoryStackedBarChart extends StatefulWidget {
   final List<DailyMacroIntake> dailyIntakes;
   final DateTimeRange range;
   final double chartHeight;
@@ -33,6 +38,56 @@ class MacroHistoryStackedBarChart extends StatelessWidget {
   });
 
   @override
+  State<MacroHistoryStackedBarChart> createState() =>
+      _MacroHistoryStackedBarChartState();
+}
+
+class _MacroHistoryStackedBarChartState
+    extends State<MacroHistoryStackedBarChart> {
+  // X position of the current touch (in the bar-row's local coordinate space)
+  double? _touchX;
+  // Whether the user is actively pressing (long-press/pan active)
+  bool _isPressing = false;
+
+  int _indexFromX(double x, double totalWidth) {
+    if (widget.dailyIntakes.isEmpty || totalWidth <= 0) return -1;
+    final barWidth = totalWidth / widget.dailyIntakes.length;
+    final index = (x / barWidth).floor();
+    return index.clamp(0, widget.dailyIntakes.length - 1);
+  }
+
+  void _handleDragStart(DragStartDetails details, double totalWidth) {
+    final index = _indexFromX(details.localPosition.dx, totalWidth);
+    if (index < 0) return;
+    setState(() {
+      _isPressing = true;
+      _touchX = details.localPosition.dx;
+    });
+    widget.onDaySelected?.call(widget.dailyIntakes[index]);
+  }
+
+  void _handleDragUpdate(DragUpdateDetails details, double totalWidth) {
+    if (!_isPressing) return;
+    final index = _indexFromX(details.localPosition.dx, totalWidth);
+    if (index < 0) return;
+    setState(() => _touchX = details.localPosition.dx);
+    final newDay = widget.dailyIntakes[index];
+    if (widget.selectedDay == null ||
+        newDay.date.day != widget.selectedDay!.date.day ||
+        newDay.date.month != widget.selectedDay!.date.month) {
+      widget.onDaySelected?.call(newDay);
+    }
+  }
+
+  void _handleDragEnd() {
+    setState(() {
+      _isPressing = false;
+      _touchX = null;
+    });
+    widget.onDaySelected?.call(null);
+  }
+
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final macroColors = theme.extension<MacroColors>();
@@ -43,23 +98,24 @@ class MacroHistoryStackedBarChart extends StatelessWidget {
 
     // Calculate maximum calories to scale chart
     int maxDailyKcal = 0;
-    for (final day in dailyIntakes) {
+    for (final day in widget.dailyIntakes) {
       if (day.calories > maxDailyKcal) {
         maxDailyKcal = day.calories;
       }
     }
 
-    // Determine grid ceiling (multiples of 1000, minimum 2000, e.g. 2000, 3000, 4000)
+    // Determine grid ceiling (multiples of 500, minimum 2000)
     final gridCeiling = max(2000, ((maxDailyKcal * 1.15) / 500).ceil() * 500);
     final midKcal = (gridCeiling / 2).round();
 
-    final bool showDetails = is7Days ?? (dailyIntakes.length <= 7);
+    final bool showDetails =
+        widget.is7Days ?? (widget.dailyIntakes.length <= 7);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         SizedBox(
-          height: chartHeight,
+          height: widget.chartHeight,
           child: Stack(
             children: [
               // Background Grid Lines
@@ -67,7 +123,8 @@ class MacroHistoryStackedBarChart extends StatelessWidget {
                 child: CustomPaint(
                   painter: _MacroGridPainter(
                     gridCeiling: gridCeiling,
-                    lineColor: theme.colorScheme.onSurface.withValues(alpha: 0.08),
+                    lineColor:
+                        theme.colorScheme.onSurface.withValues(alpha: 0.08),
                   ),
                 ),
               ),
@@ -85,7 +142,7 @@ class MacroHistoryStackedBarChart extends StatelessWidget {
               ),
               Positioned(
                 right: 0,
-                top: (chartHeight - 24) / 2,
+                top: (widget.chartHeight - 24) / 2,
                 child: Text(
                   '$midKcal',
                   style: theme.textTheme.labelSmall?.copyWith(
@@ -106,66 +163,123 @@ class MacroHistoryStackedBarChart extends StatelessWidget {
                 ),
               ),
 
-              // Bars
+              // Bars — wrapped in a LayoutBuilder so we know the exact pixel width
               Positioned(
                 left: 0,
                 right: 32,
                 top: 8,
                 bottom: 20,
-                child: dailyIntakes.isEmpty
+                child: widget.dailyIntakes.isEmpty
                     ? Center(
                         child: Text(
                           'Keine Daten',
                           style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                            color: theme.colorScheme.onSurface
+                                .withValues(alpha: 0.5),
                           ),
                         ),
                       )
-                    : Row(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: List.generate(dailyIntakes.length, (index) {
-                          final item = dailyIntakes[index];
-                          final isSelected = selectedDay != null &&
-                              selectedDay!.date.year == item.date.year &&
-                              selectedDay!.date.month == item.date.month &&
-                              selectedDay!.date.day == item.date.day;
-                          final isOtherSelected =
-                              selectedDay != null && !isSelected;
+                    : LayoutBuilder(builder: (context, constraints) {
+                        final barsWidth = constraints.maxWidth;
+                        return GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          // Long-press starts the scrub
+                          onLongPressStart: (d) => _handleDragStart(
+                            DragStartDetails(
+                              globalPosition: d.globalPosition,
+                              localPosition: d.localPosition,
+                            ),
+                            barsWidth,
+                          ),
+                          onLongPressMoveUpdate: (d) {
+                            if (!_isPressing) return;
+                            _handleDragUpdate(
+                              DragUpdateDetails(
+                                globalPosition: d.globalPosition,
+                                localPosition: d.localPosition,
+                                delta: Offset.zero,
+                              ),
+                              barsWidth,
+                            );
+                          },
+                          onLongPressEnd: (_) => _handleDragEnd(),
+                          onLongPressCancel: _handleDragEnd,
+                          // Tap toggles a single day and stores touch X for the chip
+                          onTapUp: (d) {
+                            if (widget.onDaySelected == null) return;
+                            final idx = _indexFromX(
+                                d.localPosition.dx, barsWidth);
+                            if (idx < 0) return;
+                            final tapped = widget.dailyIntakes[idx];
+                            final isSame = widget.selectedDay != null &&
+                                widget.selectedDay!.date.day ==
+                                    tapped.date.day &&
+                                widget.selectedDay!.date.month ==
+                                    tapped.date.month;
+                            if (isSame) {
+                              // Deselect: clear position and notify null
+                              setState(() => _touchX = null);
+                              widget.onDaySelected?.call(null);
+                            } else {
+                              // Select: store X so chip appears at correct position
+                              setState(() => _touchX = d.localPosition.dx);
+                              widget.onDaySelected?.call(tapped);
+                            }
+                          },
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: List.generate(
+                                widget.dailyIntakes.length, (index) {
+                              final item = widget.dailyIntakes[index];
+                              final isSelected = widget.selectedDay != null &&
+                                  widget.selectedDay!.date.year ==
+                                      item.date.year &&
+                                  widget.selectedDay!.date.month ==
+                                      item.date.month &&
+                                  widget.selectedDay!.date.day == item.date.day;
+                              final isOtherSelected =
+                                  widget.selectedDay != null && !isSelected;
 
-                          return Expanded(
-                            child: GestureDetector(
-                              behavior: HitTestBehavior.opaque,
-                              onTap: onDaySelected == null
-                                  ? null
-                                  : () => onDaySelected!(
-                                        isSelected ? null : item,
-                                      ),
-                              child: Padding(
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: showDetails
-                                      ? 3.0
-                                      : (dailyIntakes.length <= 31 ? 1.5 : 0.5),
-                                ),
-                                child: AnimatedOpacity(
-                                  duration: const Duration(milliseconds: 150),
-                                  opacity: isOtherSelected ? 0.35 : 1.0,
-                                  child: _buildStackedBar(
-                                    context,
-                                    item: item,
-                                    maxKcal: gridCeiling,
-                                    proteinColor: proteinColor,
-                                    carbsColor: carbsColor,
-                                    fatColor: fatColor,
-                                    showDetails: showDetails,
-                                    isSelected: isSelected,
+                              return Expanded(
+                                child: Padding(
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: showDetails
+                                        ? 3.0
+                                        : (widget.dailyIntakes.length <= 31
+                                            ? 1.5
+                                            : 0.5),
+                                  ),
+                                  child: AnimatedOpacity(
+                                    duration:
+                                        const Duration(milliseconds: 120),
+                                    opacity: isOtherSelected ? 0.35 : 1.0,
+                                    child: _buildStackedBar(
+                                      context,
+                                      item: item,
+                                      maxKcal: gridCeiling,
+                                      proteinColor: proteinColor,
+                                      carbsColor: carbsColor,
+                                      fatColor: fatColor,
+                                      showDetails: showDetails,
+                                      isSelected: isSelected,
+                                    ),
                                   ),
                                 ),
-                              ),
-                            ),
-                          );
-                        }),
-                      ),
+                              );
+                            }),
+                          ),
+                        );
+                      }),
               ),
+
+              // Floating date chip — shown whenever a day is selected (tap or press-hold)
+              if (_touchX != null && widget.selectedDay != null)
+                _buildFloatingDateLabel(
+                  context,
+                  theme: theme,
+                  touchX: _touchX!,
+                  day: widget.selectedDay!,
+                ),
 
               // Bottom X-Axis date labels
               Positioned(
@@ -178,6 +292,61 @@ class MacroHistoryStackedBarChart extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+
+  /// Renders a small floating date chip positioned above the touched bar.
+  Widget _buildFloatingDateLabel(
+    BuildContext context, {
+    required ThemeData theme,
+    required double touchX,
+    required DailyMacroIntake day,
+  }) {
+    final locale = Localizations.localeOf(context).toString();
+    final label = widget.dailyIntakes.length <= 7
+        ? DateFormat.MMMEd(locale).format(day.date)
+        : DateFormat.MMMd(locale).format(day.date);
+
+    const chipWidth = 80.0;
+    const chipHeight = 20.0;
+    // Keep chip away from the y-axis area on the right
+    const safeRightPad = 32.0;
+
+    // Clamp: touchX is in the bars' coordinate space (0 → width - 32 approx)
+    // We don't know exact width here, so we allow negative left and let Flutter
+    // clip it — but we do at least ensure it doesn't go below 0.
+    final rawLeft = touchX - chipWidth / 2;
+    final clampedLeft = rawLeft.clamp(0.0, double.infinity);
+    // Avoid overlapping y-axis: push left if chip would overflow to the right.
+    // We use a MediaQuery-based estimate; exact clamping done via IgnorePointer.
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final maxLeft = screenWidth - safeRightPad - chipWidth;
+    final finalLeft = clampedLeft.clamp(0.0, maxLeft);
+
+    return Positioned(
+      left: finalLeft,
+      top: 10,
+      child: IgnorePointer(
+        child: Container(
+          width: chipWidth,
+          height: chipHeight,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: theme.colorScheme.inverseSurface.withValues(alpha: 0.85),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: theme.colorScheme.onInverseSurface,
+              fontWeight: FontWeight.w600,
+              fontSize: 10,
+            ),
+          ),
+        ),
+      ),
     );
   }
 
@@ -241,11 +410,9 @@ class MacroHistoryStackedBarChart extends StatelessWidget {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final availableHeight = (showDetails || isSelected)
-            ? max(0.0, constraints.maxHeight - 20)
-            : constraints.maxHeight;
+        final availableHeight = constraints.maxHeight;
         final barHeight = max(
-          (showDetails || isSelected) ? 24.0 : 4.0,
+          showDetails ? 24.0 : 4.0,
           availableHeight * totalRatio,
         );
 
@@ -254,21 +421,7 @@ class MacroHistoryStackedBarChart extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              if (showDetails || isSelected) ...[
-                FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Text(
-                    '${item.calories}',
-                    maxLines: 1,
-                    style: theme.textTheme.labelSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 9.5,
-                          color: isSelected ? theme.colorScheme.primary : null,
-                        ),
-                  ),
-                ),
-                const SizedBox(height: 3),
-              ],
+
               Container(
                 height: barHeight,
                 decoration: isSelected
@@ -366,7 +519,7 @@ class MacroHistoryStackedBarChart extends StatelessWidget {
   }
 
   Widget _buildXAxisLabels(BuildContext context, {required bool showDetails}) {
-    if (dailyIntakes.isEmpty) return const SizedBox.shrink();
+    if (widget.dailyIntakes.isEmpty) return const SizedBox.shrink();
 
     final theme = Theme.of(context);
     final locale = Localizations.localeOf(context).toString();
@@ -375,7 +528,7 @@ class MacroHistoryStackedBarChart extends StatelessWidget {
     if (showDetails) {
       return Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: dailyIntakes.map((d) {
+        children: widget.dailyIntakes.map((d) {
           final raw = DateFormat.E(locale).format(d.date).replaceAll('.', '').trim();
           final label = raw.length > 2 ? raw.substring(0, 2) : raw;
           return Expanded(
@@ -394,13 +547,13 @@ class MacroHistoryStackedBarChart extends StatelessWidget {
     }
 
     // For longer periods, show 4-5 evenly distributed dates
-    final count = min(5, dailyIntakes.length);
-    final step = (dailyIntakes.length - 1) / (count - 1);
+    final count = min(5, widget.dailyIntakes.length);
+    final step = (widget.dailyIntakes.length - 1) / (count - 1);
     final labels = <Widget>[];
 
     for (int i = 0; i < count; i++) {
-      final index = (i * step).round().clamp(0, dailyIntakes.length - 1);
-      final date = dailyIntakes[index].date;
+      final index = (i * step).round().clamp(0, widget.dailyIntakes.length - 1);
+      final date = widget.dailyIntakes[index].date;
       final label = DateFormat.MMMd(locale).format(date);
       labels.add(
         Text(
