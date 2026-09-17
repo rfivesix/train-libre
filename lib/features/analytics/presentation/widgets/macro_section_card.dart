@@ -8,15 +8,26 @@ import '../../../../theme/app_colors.dart';
 import '../../../../util/design_constants.dart';
 import '../../../../widgets/common/summary_card.dart';
 import '../../../statistics/data/macro_analytics_data_adapter.dart';
+import '../../../statistics/domain/timeframe_block.dart';
 import '../macro_statistics_screen.dart';
 
-/// Preview card embedded in Statistics Hub showing 7-day macronutrient overview.
+/// Preview card embedded in Statistics Hub showing macronutrient overview for selected timeframe.
 class MacroSectionCard extends StatefulWidget {
   final MacroAnalyticsDataAdapter adapter;
+  final TimeframeBlock activeBlockType;
+  final DateTime? anchorDate;
+  final bool isRolling;
+  final String? rangeLabel;
+  final VoidCallback? onTap;
 
   const MacroSectionCard({
     super.key,
     this.adapter = const MacroAnalyticsDataAdapter(),
+    this.activeBlockType = TimeframeBlock.week,
+    this.anchorDate,
+    this.isRolling = true,
+    this.rangeLabel,
+    this.onTap,
   });
 
   @override
@@ -24,7 +35,7 @@ class MacroSectionCard extends StatefulWidget {
 }
 
 class _MacroSectionCardState extends State<MacroSectionCard> {
-  List<DailyMacroIntake> _recentDays = [];
+  MacroPeriodSummary? _summary;
   bool _isLoading = true;
 
   @override
@@ -33,18 +44,68 @@ class _MacroSectionCardState extends State<MacroSectionCard> {
     _load();
   }
 
+  @override
+  void didUpdateWidget(MacroSectionCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.activeBlockType != widget.activeBlockType ||
+        oldWidget.anchorDate != widget.anchorDate ||
+        oldWidget.isRolling != widget.isRolling) {
+      _load();
+    }
+  }
+
   Future<void> _load() async {
+    setState(() => _isLoading = true);
     try {
-      final days = await widget.adapter.fetchRecentDays(days: 7);
+      final bounds = widget.isRolling
+          ? widget.activeBlockType.getRollingBounds()
+          : widget.activeBlockType.getBounds(
+              widget.anchorDate ?? DateTime.now(),
+              DateTime(2020),
+            );
+      final summary = await widget.adapter.fetchSummary(range: bounds);
       if (!mounted) return;
       setState(() {
-        _recentDays = days;
+        _summary = summary;
         _isLoading = false;
       });
     } catch (_) {
       if (!mounted) return;
-      setState(() => _isLoading = false);
+      setState(() {
+        _summary = null;
+        _isLoading = false;
+      });
     }
+  }
+
+  List<DailyMacroIntake> _previewBars(List<DailyMacroIntake> all) {
+    if (all.length <= 31) return all;
+    final int step = (all.length / 28).ceil();
+    final List<DailyMacroIntake> result = [];
+    for (int i = 0; i < all.length; i += step) {
+      final chunk = all.sublist(i, min(i + step, all.length));
+      int cals = 0;
+      double p = 0;
+      double c = 0;
+      double f = 0;
+      int tracked = 0;
+      for (final day in chunk) {
+        cals += day.calories;
+        p += day.proteinGrams;
+        c += day.carbsGrams;
+        f += day.fatGrams;
+        if (day.hasData) tracked++;
+      }
+      final divisor = tracked > 0 ? tracked : chunk.length;
+      result.add(DailyMacroIntake(
+        date: chunk.first.date,
+        calories: (cals / divisor).round(),
+        proteinGrams: p / divisor,
+        carbsGrams: c / divisor,
+        fatGrams: f / divisor,
+      ));
+    }
+    return result;
   }
 
   @override
@@ -56,28 +117,28 @@ class _MacroSectionCardState extends State<MacroSectionCard> {
     final carbsColor = macroColors?.carbs ?? Colors.green.shade400;
     final fatColor = macroColors?.fat ?? Colors.purple.shade300;
 
+    final displayDays = _previewBars(_summary?.dailyIntakes ?? []);
     int maxKcal = 1;
-    int sumKcal = 0;
-    int trackedCount = 0;
-    for (final d in _recentDays) {
+    for (final d in displayDays) {
       if (d.calories > maxKcal) maxKcal = d.calories;
-      if (d.hasData) {
-        sumKcal += d.calories;
-        trackedCount++;
-      }
     }
-    final avgKcal = trackedCount > 0 ? (sumKcal / trackedCount).round() : 0;
+    final avgKcal = _summary?.avgCalories ?? 0;
 
     return SummaryCard(
       margin: EdgeInsets.zero,
       child: InkWell(
-        onTap: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (_) => const MacroStatisticsScreen(),
-            ),
-          );
-        },
+        onTap: widget.onTap ??
+            () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => MacroStatisticsScreen(
+                    initialRangeIndex: widget.activeBlockType.index,
+                    initialAnchorDate: widget.anchorDate,
+                    initialIsRolling: widget.isRolling,
+                  ),
+                ),
+              );
+            },
         borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
         child: Padding(
           padding: DesignConstants.cardPadding,
@@ -92,7 +153,10 @@ class _MacroSectionCardState extends State<MacroSectionCard> {
               ),
               const SizedBox(height: 2),
               Text(
-                'Letzte 7 Tage',
+                widget.rangeLabel ??
+                    (widget.activeBlockType == TimeframeBlock.week
+                        ? 'Letzte 7 Tage'
+                        : widget.activeBlockType.name),
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
                 ),
@@ -113,9 +177,9 @@ class _MacroSectionCardState extends State<MacroSectionCard> {
                     : Row(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: List.generate(
-                          max(7, _recentDays.length),
+                          displayDays.isEmpty ? 7 : displayDays.length,
                           (index) {
-                            if (index >= _recentDays.length) {
+                            if (index >= displayDays.length) {
                               return Expanded(
                                 child: Container(
                                   height: 4,
@@ -125,7 +189,7 @@ class _MacroSectionCardState extends State<MacroSectionCard> {
                                 ),
                               );
                             }
-                            final item = _recentDays[index];
+                            final item = displayDays[index];
                             if (item.calories <= 0) {
                               return Expanded(
                                 child: Container(
@@ -160,7 +224,11 @@ class _MacroSectionCardState extends State<MacroSectionCard> {
 
                             return Expanded(
                               child: Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 3),
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: displayDays.length <= 7
+                                      ? 3.0
+                                      : (displayDays.length <= 31 ? 1.0 : 0.5),
+                                ),
                                 child: LayoutBuilder(
                                   builder: (context, constraints) {
                                     final barHeight =

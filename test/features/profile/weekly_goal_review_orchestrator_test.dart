@@ -125,7 +125,7 @@ void main() {
     expect(reviews, hasLength(1));
     expect(reviews.where((review) => review.status == 'pending'), hasLength(1));
     expect((await repository.getPendingReview(goal.id))?.windowStart,
-        DateTime(2026, 1, 12));
+        DateTime(2026, 1, 15));
     expect(source.calls, 1);
   });
 

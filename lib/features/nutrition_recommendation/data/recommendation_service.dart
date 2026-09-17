@@ -223,6 +223,11 @@ class AdaptiveNutritionRecommendationService {
     return recommendation;
   }
 
+  Future<int> _resolveCheckInWeekday() async {
+    final activeGoal = await _goalRepository.getActiveNutritionGoal();
+    return activeGoal?.startDate.weekday ?? DateTime.monday;
+  }
+
   /// Scheduler-oriented notification hook.
   ///
   /// Notification is sent only when all conditions are true:
@@ -233,7 +238,9 @@ class AdaptiveNutritionRecommendationService {
     DateTime? now,
   }) async {
     final effectiveNow = now ?? DateTime.now();
-    final dueWeekKey = RecommendationScheduler.dueWeekKeyFor(effectiveNow);
+    final checkInWeekday = await _resolveCheckInWeekday();
+    final dueWeekKey =
+        RecommendationScheduler.dueWeekKeyFor(effectiveNow, checkInWeekday: checkInWeekday);
     final lastGeneratedDueWeekKey =
         await _repository.getLastGeneratedDueWeekKey();
     final latestGeneratedRecommendation =
@@ -271,7 +278,10 @@ class AdaptiveNutritionRecommendationService {
 
     await _dueNotifier.notifyRecommendationDue(
       dueWeekKey: dueWeekKey,
-      dueAt: RecommendationScheduler.dueWeekStart(effectiveNow),
+      dueAt: RecommendationScheduler.dueWeekStart(
+        effectiveNow,
+        checkInWeekday: checkInWeekday,
+      ),
     );
     await _repository.setLastDueNotificationWeekKey(dueWeekKey);
     return true;
@@ -292,21 +302,25 @@ class AdaptiveNutritionRecommendationService {
       _repository.getLatestRecommendationSnapshot(),
       _repository.getLatestAppliedRecommendation(),
       _repository.getLastGeneratedDueWeekKey(),
+      _resolveCheckInWeekday(),
     ]);
 
     final latestSnapshot = results[2] as AdaptiveRecommendationSnapshot?;
     final latestGeneratedRecommendation = latestSnapshot?.recommendation;
     final latestMaintenanceEstimate = latestSnapshot?.maintenanceEstimate;
     final lastGeneratedDueWeekKey = results[4] as String?;
+    final checkInWeekday = results[5] as int;
     final currentDueWeekKey =
-        RecommendationScheduler.dueWeekKeyFor(effectiveNow);
+        RecommendationScheduler.dueWeekKeyFor(effectiveNow, checkInWeekday: checkInWeekday);
     final isAdaptiveRecommendationDueNow = RecommendationScheduler.isDueNow(
       now: effectiveNow,
       lastGeneratedDueWeekKey: lastGeneratedDueWeekKey,
+      checkInWeekday: checkInWeekday,
     );
     final nextAdaptiveRecommendationDueAt = RecommendationScheduler.nextDueAt(
       now: effectiveNow,
       lastGeneratedDueWeekKey: lastGeneratedDueWeekKey,
+      checkInWeekday: checkInWeekday,
     );
 
     return AdaptiveNutritionRecommendationState(
@@ -332,13 +346,18 @@ class AdaptiveNutritionRecommendationService {
             activeGoal.baselineDate == null)) {
       return null;
     }
+    final checkInWeekday = activeGoal?.startDate.weekday ?? DateTime.monday;
     final effectiveNow = now ?? DateTime.now();
-    final dueWeekKey = RecommendationScheduler.dueWeekKeyFor(effectiveNow);
+    final dueWeekKey =
+        RecommendationScheduler.dueWeekKeyFor(effectiveNow, checkInWeekday: checkInWeekday);
     // Keep the adaptive input window stable within one due week by anchoring to
-    // the previous Sunday end-of-day. This makes in-week force refreshes
+    // the completed day prior to check-in day. This makes in-week force refreshes
     // deterministic instead of drifting with "today".
     final stableWindowEndDay =
-        RecommendationScheduler.stableWindowEndDayForDueWeek(effectiveNow);
+        RecommendationScheduler.stableWindowEndDayForDueWeek(
+      effectiveNow,
+      checkInWeekday: checkInWeekday,
+    );
     final latestContext = await Future.wait<dynamic>([
       _repository.getLatestRecommendationSnapshot(),
       _repository.getLatestEstimatorState(),
@@ -378,7 +397,10 @@ class AdaptiveNutritionRecommendationService {
     final goal = results[0] as BodyweightGoal;
     final targetRateKgPerWeek = results[1] as double;
     final input = results[2] as RecommendationGenerationInput;
-    final phaseAnchorDay = RecommendationScheduler.dueWeekStart(effectiveNow);
+    final phaseAnchorDay = RecommendationScheduler.dueWeekStart(
+      effectiveNow,
+      checkInWeekday: checkInWeekday,
+    );
     final phaseTrackingState = await _resolveAndPersistPhaseTrackingState(
       goal: goal,
       anchorDay: phaseAnchorDay,
@@ -536,9 +558,11 @@ class AdaptiveNutritionRecommendationService {
       qualityFlags: const ['onboarding_prior_only'],
     );
 
-    final dueWeekKey = RecommendationScheduler.dueWeekKeyFor(effectiveNow);
+    final checkInWeekday = await _resolveCheckInWeekday();
+    final dueWeekKey =
+        RecommendationScheduler.dueWeekKeyFor(effectiveNow, checkInWeekday: checkInWeekday);
     final onboardingPhaseAnchorDay =
-        RecommendationScheduler.dueWeekStart(effectiveNow);
+        RecommendationScheduler.dueWeekStart(effectiveNow, checkInWeekday: checkInWeekday);
     final onboardingPhaseState = AdaptiveDietPhaseTrackingState.bootstrap(
       phase: goal.canonicalDietPhase,
       asOfDay: onboardingPhaseAnchorDay,
@@ -590,8 +614,12 @@ class AdaptiveNutritionRecommendationService {
     required NutritionRecommendation recommendation,
     bool markAsApplied = false,
   }) async {
+    final checkInWeekday = await _resolveCheckInWeekday();
     final dueWeekKey = recommendation.dueWeekKey ??
-        RecommendationScheduler.dueWeekKeyFor(recommendation.generatedAt);
+        RecommendationScheduler.dueWeekKeyFor(
+          recommendation.generatedAt,
+          checkInWeekday: checkInWeekday,
+        );
     final syntheticEstimate = BayesianMaintenanceEstimate(
       posteriorMaintenanceCalories:
           recommendation.estimatedMaintenanceCalories.toDouble(),
@@ -639,7 +667,10 @@ class AdaptiveNutritionRecommendationService {
       state: AdaptiveDietPhaseTrackingState.bootstrap(
         phase: recommendation.goal.canonicalDietPhase,
         asOfDay: DateTime.tryParse(dueWeekKey) ??
-            RecommendationScheduler.dueWeekStart(recommendation.generatedAt),
+            RecommendationScheduler.dueWeekStart(
+              recommendation.generatedAt,
+              checkInWeekday: checkInWeekday,
+            ),
       ),
     );
     if (markAsApplied) {

@@ -9,8 +9,11 @@ import '../../../generated/app_localizations.dart';
 import '../../../services/telemetry/telemetry_service.dart';
 import '../../../theme/app_colors.dart';
 import '../../../util/design_constants.dart';
+import '../../../util/timeframe_label_formatter.dart';
 import '../../../widgets/common/common.dart';
 import '../../../widgets/common/global_app_bar.dart';
+import '../../../widgets/common/platform_adaptive_pickers.dart'
+    as adaptive_pickers;
 import '../../../widgets/common/summary_card.dart';
 import '../../statistics/data/macro_analytics_data_adapter.dart';
 import '../../statistics/domain/timeframe_block.dart';
@@ -19,10 +22,14 @@ import 'widgets/macro_history_stacked_bar_chart.dart';
 /// Screen displaying historical macronutrient distribution and caloric intake.
 class MacroStatisticsScreen extends StatefulWidget {
   final int initialRangeIndex;
+  final DateTime? initialAnchorDate;
+  final bool? initialIsRolling;
 
   const MacroStatisticsScreen({
     super.key,
     this.initialRangeIndex = 0,
+    this.initialAnchorDate,
+    this.initialIsRolling,
   });
 
   @override
@@ -57,6 +64,12 @@ class _MacroStatisticsScreenState extends State<MacroStatisticsScreen> {
     ));
     final index = widget.initialRangeIndex.clamp(0, _validBlocks.length - 1);
     _activeBlock = _validBlocks[index];
+    if (widget.initialAnchorDate != null) {
+      _anchorDate = widget.initialAnchorDate!;
+    }
+    if (widget.initialIsRolling != null) {
+      _isRolling = widget.initialIsRolling!;
+    }
     _load();
   }
 
@@ -129,12 +142,98 @@ class _MacroStatisticsScreenState extends State<MacroStatisticsScreen> {
                   onSelected: (index) {
                     setState(() {
                       _activeBlock = _validBlocks[index];
-                      _isRolling = true;
-                      _anchorDate = DateTime.now();
+                      _isRolling = false;
                     });
                     _load();
                   },
-                  showDateNavigation: false,
+                  onPrevious: _activeBlock == TimeframeBlock.maxBlock
+                      ? null
+                      : () {
+                          setState(() {
+                            final currentBounds = _activeBlock.getBounds(
+                                DateTime.now(), DateTime(2020));
+                            final myBounds = _activeBlock.getBounds(
+                                _anchorDate, DateTime(2020));
+                            final isOngoing = !_isRolling &&
+                                myBounds.start.isAtSameMomentAs(
+                                    currentBounds.start);
+
+                            if (isOngoing) {
+                              _isRolling = true;
+                            } else if (_isRolling) {
+                              _isRolling = false;
+                              _anchorDate = _activeBlock.shift(
+                                  DateTime.now(), -1);
+                            } else {
+                              _anchorDate =
+                                  _activeBlock.shift(_anchorDate, -1);
+                            }
+                          });
+                          _load();
+                        },
+                  onNext: _activeBlock == TimeframeBlock.maxBlock
+                      ? null
+                      : () {
+                          setState(() {
+                            if (_isRolling) {
+                              _isRolling = false;
+                              _anchorDate = DateTime.now();
+                            } else {
+                              final previousAnchor = _activeBlock
+                                  .shift(DateTime.now(), -1);
+                              final previousBounds = _activeBlock.getBounds(
+                                  previousAnchor, DateTime(2020));
+                              final myBounds = _activeBlock.getBounds(
+                                  _anchorDate, DateTime(2020));
+                              final isPreviousToOngoing = !_isRolling &&
+                                  myBounds.start.isAtSameMomentAs(
+                                      previousBounds.start);
+
+                              if (isPreviousToOngoing) {
+                                _isRolling = true;
+                              } else {
+                                _anchorDate = _activeBlock.shift(
+                                    _anchorDate, 1);
+                              }
+                            }
+                          });
+                          _load();
+                        },
+                  displayDate: _isRolling
+                      ? TimeframeLabelFormatter.formatRolling(
+                          _activeBlock, l10n)
+                      : TimeframeLabelFormatter.format(
+                          _activeBlock, _anchorDate, l10n),
+                  onTapDateDisplay: () async {
+                    final selected = await adaptive_pickers
+                        .showAdaptiveTimeframePicker(
+                      context: context,
+                      activeBlock: _activeBlock,
+                      initialAnchor: _anchorDate,
+                      earliestAvailableDay: DateTime(2020),
+                      initialIsRolling: _isRolling,
+                    );
+                    if (selected != null) {
+                      setState(() {
+                        _anchorDate = selected.anchorDate;
+                        _isRolling = selected.isRolling;
+                      });
+                      _load();
+                    }
+                  },
+                  nextEnabled: _activeBlock == TimeframeBlock.maxBlock
+                      ? false
+                      : (_isRolling
+                          ? false
+                          : !_activeBlock
+                              .getBounds(_anchorDate, DateTime(2020))
+                              .start
+                              .isAtSameMomentAs(_activeBlock
+                                  .getBounds(
+                                      DateTime.now(), DateTime(2020))
+                                  .start)),
+                  showDateNavigation:
+                      _activeBlock != TimeframeBlock.maxBlock,
                 ),
                 const SizedBox(height: DesignConstants.spacingL),
 
@@ -153,43 +252,36 @@ class _MacroStatisticsScreenState extends State<MacroStatisticsScreen> {
                 ),
                 const SizedBox(height: DesignConstants.spacingL),
 
-                // Main Stacked Bar Chart Card
+                // Main Stacked Bar Chart (Directly rendered on background, no SummaryCard)
                 Padding(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: DesignConstants.spacingL,
+                    horizontal: DesignConstants.spacingM,
                   ),
-                  child: SummaryCard(
-                    margin: EdgeInsets.zero,
-                    child: Padding(
-                      padding: DesignConstants.cardPadding,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          if (_summary != null)
-                            MacroHistoryStackedBarChart(
-                              dailyIntakes: _summary!.dailyIntakes,
-                              range: _summary!.range,
-                            )
-                          else
-                            const SizedBox(
-                              height: 200,
-                              child: Center(
-                                child: CircularProgressIndicator(),
-                              ),
-                            ),
-                          const SizedBox(height: DesignConstants.spacingM),
-                          const Divider(height: 1),
-                          const SizedBox(height: DesignConstants.spacingS),
-                          // Legend
-                          _buildLegend(
-                            context,
-                            proteinColor: proteinColor,
-                            fatColor: fatColor,
-                            carbsColor: carbsColor,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (_summary != null)
+                        MacroHistoryStackedBarChart(
+                          dailyIntakes: _summary!.dailyIntakes,
+                          range: _summary!.range,
+                          is7Days: _activeBlock == TimeframeBlock.week,
+                        )
+                      else
+                        const SizedBox(
+                          height: 220,
+                          child: Center(
+                            child: CircularProgressIndicator(),
                           ),
-                        ],
+                        ),
+                      const SizedBox(height: DesignConstants.spacingM),
+                      // Legend
+                      _buildLegend(
+                        context,
+                        proteinColor: proteinColor,
+                        fatColor: fatColor,
+                        carbsColor: carbsColor,
                       ),
-                    ),
+                    ],
                   ),
                 ),
                 const SizedBox(height: DesignConstants.spacingXL),

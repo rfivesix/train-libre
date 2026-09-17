@@ -69,7 +69,7 @@ class WeeklyIntakeVsTargetChart extends StatelessWidget {
                   children: List.generate(7, (index) {
                     final day = index < sevenDays.length ? sevenDays[index] : null;
                     final dayLabel = day != null
-                        ? DateFormat.E(locale).format(day.date).substring(0, 1).toUpperCase()
+                        ? _formatWeekday(day.date, locale)
                         : '';
                     return Expanded(
                       child: Padding(
@@ -303,5 +303,14 @@ class WeeklyIntakeVsTargetChart extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  static String _formatWeekday(DateTime date, String locale) {
+    final raw = DateFormat.E(locale).format(date);
+    final clean = raw.replaceAll('.', '').trim();
+    if (clean.length > 2) {
+      return clean.substring(0, 2);
+    }
+    return clean;
   }
 }

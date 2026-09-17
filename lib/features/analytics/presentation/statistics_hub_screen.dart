@@ -45,6 +45,7 @@ import 'widgets/performance_section_card.dart';
 import 'widgets/pulse_section_card.dart';
 import 'widgets/macro_section_card.dart';
 import 'widgets/sleep_section_card.dart';
+import 'macro_statistics_screen.dart';
 
 class StatisticsHubScreen extends StatefulWidget {
   const StatisticsHubScreen({
@@ -301,8 +302,9 @@ class _StatisticsHubScreenView extends StatelessWidget {
                             ),
                             const SizedBox(height: DesignConstants.spacingL),
                             AppSectionHeader(title: l10n.nutrition),
-                            const RepaintBoundary(
-                              child: MacroSectionCard(),
+                            RepaintBoundary(
+                              child: _buildMacroSection(
+                                  context, viewModel, l10n),
                             ),
                             const BottomContentSpacer(),
                           ],
@@ -705,6 +707,44 @@ class _StatisticsHubScreenView extends StatelessWidget {
       isEmpty: true,
       message: l10n.emptyStateActiveGapOverlay,
       child: card,
+    );
+  }
+
+  Widget _buildMacroSection(
+    BuildContext context,
+    StatisticsHubViewModel viewModel,
+    AppLocalizations l10n,
+  ) {
+    final rangeLabel = _unifiedRangeLabel(viewModel, l10n);
+    return MorphSourceScope(
+      builder: (context, setHidden) => Builder(
+        builder: (cardCtx) => MacroSectionCard(
+          activeBlockType: viewModel.activeBlockType,
+          anchorDate: viewModel.anchorDate,
+          isRolling: viewModel.isRolling,
+          rangeLabel: rangeLabel,
+          onTap: () {
+            Navigator.of(context).push(
+              CardMorphRoute(
+                sourceContext: cardCtx,
+                sourceBuilder: (_) => MacroSectionCard(
+                  activeBlockType: viewModel.activeBlockType,
+                  anchorDate: viewModel.anchorDate,
+                  isRolling: viewModel.isRolling,
+                  rangeLabel: rangeLabel,
+                  onTap: () {},
+                ),
+                onSourceVisibilityChanged: setHidden,
+                builder: (_) => MacroStatisticsScreen(
+                  initialRangeIndex: viewModel.activeBlockType.index,
+                  initialAnchorDate: viewModel.anchorDate,
+                  initialIsRolling: viewModel.isRolling,
+                ),
+              ),
+            );
+          },
+        ),
+      ),
     );
   }
 

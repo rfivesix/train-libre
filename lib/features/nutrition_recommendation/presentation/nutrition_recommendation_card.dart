@@ -315,14 +315,15 @@ class _GeneratedRecommendationContent extends StatelessWidget {
             targetFat: recommendation.recommendedFatGrams,
           ),
           const SizedBox(height: DesignConstants.spacingM),
+        ] else ...[
+          _MacroTargetGrid(
+            recommendation: recommendation,
+            currentCalories: currentCalories,
+            currentProteinGrams: currentProteinGrams,
+            currentCarbsGrams: currentCarbsGrams,
+            currentFatGrams: currentFatGrams,
+          ),
         ],
-        _MacroTargetGrid(
-          recommendation: recommendation,
-          currentCalories: currentCalories,
-          currentProteinGrams: currentProteinGrams,
-          currentCarbsGrams: currentCarbsGrams,
-          currentFatGrams: currentFatGrams,
-        ),
         if (recommendationWarning != null)
           Padding(
             padding: const EdgeInsets.only(top: DesignConstants.spacingM),
@@ -360,6 +361,26 @@ class _GeneratedRecommendationContent extends StatelessWidget {
               ),
             ),
             children: [
+              if (recentDailyIntakes != null && recentDailyIntakes!.isNotEmpty) ...[
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    l10n.adaptiveRecommendationMacroTargetsLabel,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: DesignConstants.spacingS),
+                _MacroTargetGrid(
+                  recommendation: recommendation,
+                  currentCalories: currentCalories,
+                  currentProteinGrams: currentProteinGrams,
+                  currentCarbsGrams: currentCarbsGrams,
+                  currentFatGrams: currentFatGrams,
+                ),
+                const SizedBox(height: DesignConstants.spacingM),
+              ],
               Align(
                 alignment: Alignment.centerLeft,
                 child: Text(

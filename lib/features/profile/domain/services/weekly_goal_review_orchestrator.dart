@@ -125,7 +125,10 @@ class WeeklyGoalReviewOrchestrator {
     final createdAt = now ?? DateTime.now();
     final effectiveNow = _day(createdAt);
     final windowEndDay =
-        RecommendationScheduler.stableWindowEndDayForDueWeek(effectiveNow);
+        RecommendationScheduler.stableWindowEndDayForDueWeek(
+      effectiveNow,
+      checkInWeekday: goal.startDate.weekday,
+    );
     final windowStart = windowEndDay.subtract(const Duration(days: 6));
     final windowEnd = DateTime(
       windowEndDay.year,

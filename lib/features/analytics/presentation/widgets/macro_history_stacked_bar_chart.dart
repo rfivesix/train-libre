@@ -18,12 +18,14 @@ class MacroHistoryStackedBarChart extends StatelessWidget {
   final List<DailyMacroIntake> dailyIntakes;
   final DateTimeRange range;
   final double chartHeight;
+  final bool? is7Days;
 
   const MacroHistoryStackedBarChart({
     super.key,
     required this.dailyIntakes,
     required this.range,
     this.chartHeight = 220,
+    this.is7Days,
   });
 
   @override
@@ -47,6 +49,8 @@ class MacroHistoryStackedBarChart extends StatelessWidget {
     final gridCeiling = max(2000, ((maxDailyKcal * 1.15) / 500).ceil() * 500);
     final midKcal = (gridCeiling / 2).round();
 
+    final bool showDetails = is7Days ?? (dailyIntakes.length <= 7);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -54,7 +58,7 @@ class MacroHistoryStackedBarChart extends StatelessWidget {
           height: chartHeight,
           child: Stack(
             children: [
-              // Grid background lines & labels
+              // Background Grid Lines
               Positioned.fill(
                 child: CustomPaint(
                   painter: _MacroGridPainter(
@@ -120,8 +124,8 @@ class MacroHistoryStackedBarChart extends StatelessWidget {
                           return Expanded(
                             child: Padding(
                               padding: EdgeInsets.symmetric(
-                                horizontal: dailyIntakes.length <= 10
-                                    ? 4.0
+                                horizontal: showDetails
+                                    ? 3.0
                                     : (dailyIntakes.length <= 31 ? 1.5 : 0.5),
                               ),
                               child: _buildStackedBar(
@@ -131,6 +135,7 @@ class MacroHistoryStackedBarChart extends StatelessWidget {
                                 proteinColor: proteinColor,
                                 carbsColor: carbsColor,
                                 fatColor: fatColor,
+                                showDetails: showDetails,
                               ),
                             ),
                           );
@@ -143,7 +148,7 @@ class MacroHistoryStackedBarChart extends StatelessWidget {
                 left: 0,
                 right: 32,
                 bottom: 0,
-                child: _buildXAxisLabels(context),
+                child: _buildXAxisLabels(context, showDetails: showDetails),
               ),
             ],
           ),
@@ -159,17 +164,33 @@ class MacroHistoryStackedBarChart extends StatelessWidget {
     required Color proteinColor,
     required Color carbsColor,
     required Color fatColor,
+    required bool showDetails,
   }) {
     if (item.calories <= 0) {
-      return Align(
-        alignment: Alignment.bottomCenter,
-        child: Container(
-          height: 3,
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.08),
-            borderRadius: BorderRadius.circular(2),
+      return Column(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          if (showDetails) ...[
+            Text(
+              '--',
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    fontSize: 9,
+                    color: Theme.of(context)
+                        .colorScheme
+                        .onSurface
+                        .withValues(alpha: 0.4),
+                  ),
+            ),
+            const SizedBox(height: 4),
+          ],
+          Container(
+            height: 3,
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(2),
+            ),
           ),
-        ),
+        ],
       );
     }
 
@@ -193,58 +214,124 @@ class MacroHistoryStackedBarChart extends StatelessWidget {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final barHeight = constraints.maxHeight * totalRatio;
+        final availableHeight = showDetails
+            ? max(0.0, constraints.maxHeight - 20)
+            : constraints.maxHeight;
+        final barHeight = max(
+          showDetails ? 24.0 : 4.0,
+          availableHeight * totalRatio,
+        );
+
         return Align(
           alignment: Alignment.bottomCenter,
-          child: SizedBox(
-            height: barHeight,
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(3),
-              child: Column(
-                verticalDirection: VerticalDirection.up,
-                children: [
-                  // Bottom: Carbs
-                  Expanded(
-                    flex: carbsFlex,
-                    child: Container(color: carbsColor),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (showDetails) ...[
+                Text(
+                  '${item.calories}',
+                  maxLines: 1,
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 9.5,
+                      ),
+                ),
+                const SizedBox(height: 3),
+              ],
+              SizedBox(
+                height: barHeight,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(showDetails ? 4 : 2),
+                  child: Column(
+                    children: [
+                      // Top: Protein
+                      Expanded(
+                        flex: proteinFlex,
+                        child: Container(
+                          color: proteinColor,
+                          alignment: Alignment.center,
+                          child: showDetails && item.proteinGrams >= 5
+                              ? Text(
+                                  '${item.proteinGrams.round()}P',
+                                  maxLines: 1,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 8,
+                                  ),
+                                )
+                              : null,
+                        ),
+                      ),
+                      // Middle: Fat
+                      Expanded(
+                        flex: fatFlex,
+                        child: Container(
+                          color: fatColor,
+                          alignment: Alignment.center,
+                          child: showDetails && item.fatGrams >= 5
+                              ? Text(
+                                  '${item.fatGrams.round()}F',
+                                  maxLines: 1,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 8,
+                                  ),
+                                )
+                              : null,
+                        ),
+                      ),
+                      // Bottom: Carbs
+                      Expanded(
+                        flex: carbsFlex,
+                        child: Container(
+                          color: carbsColor,
+                          alignment: Alignment.center,
+                          child: showDetails && item.carbsGrams >= 5
+                              ? Text(
+                                  '${item.carbsGrams.round()}C',
+                                  maxLines: 1,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 8,
+                                  ),
+                                )
+                              : null,
+                        ),
+                      ),
+                    ],
                   ),
-                  // Middle: Fat
-                  Expanded(
-                    flex: fatFlex,
-                    child: Container(color: fatColor),
-                  ),
-                  // Top: Protein
-                  Expanded(
-                    flex: proteinFlex,
-                    child: Container(color: proteinColor),
-                  ),
-                ],
+                ),
               ),
-            ),
+            ],
           ),
         );
       },
     );
   }
 
-  Widget _buildXAxisLabels(BuildContext context) {
+  Widget _buildXAxisLabels(BuildContext context, {required bool showDetails}) {
     if (dailyIntakes.isEmpty) return const SizedBox.shrink();
 
     final theme = Theme.of(context);
     final locale = Localizations.localeOf(context).toString();
 
     // If 7 days, show each day abbreviation
-    if (dailyIntakes.length <= 7) {
+    if (showDetails) {
       return Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: dailyIntakes.map((d) {
-          final label = DateFormat.E(locale).format(d.date);
+          final raw = DateFormat.E(locale).format(d.date).replaceAll('.', '').trim();
+          final label = raw.length > 2 ? raw.substring(0, 2) : raw;
           return Expanded(
             child: Text(
               label,
               textAlign: TextAlign.center,
               style: theme.textTheme.labelSmall?.copyWith(
-                color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                fontWeight: FontWeight.w600,
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
                 fontSize: 10,
               ),
             ),

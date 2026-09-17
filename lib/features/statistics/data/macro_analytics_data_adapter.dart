@@ -161,6 +161,18 @@ class MacroAnalyticsDataAdapter {
     return summary.dailyIntakes;
   }
 
+  /// Fetches the 7 days of the calendar week (Monday to Sunday) containing [date] or today.
+  Future<List<DailyMacroIntake>> fetchCurrentWeekDays({
+    DateTime? date,
+  }) async {
+    final target = normalizeDay(date ?? DateTime.now());
+    final offset = target.weekday - DateTime.monday;
+    final monday = target.subtract(Duration(days: offset));
+    final sunday = monday.add(const Duration(days: 6));
+    final summary = await fetchSummary(range: DateTimeRange(start: monday, end: sunday));
+    return summary.dailyIntakes;
+  }
+
   Future<Map<DateTime, DailyMacroIntake>> _aggregateDays({
     required DateTime startDay,
     required DateTime endDay,
