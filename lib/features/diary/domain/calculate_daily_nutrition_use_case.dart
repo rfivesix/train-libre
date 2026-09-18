@@ -174,7 +174,9 @@ class CalculateDailyNutritionUseCase {
     final List<TrackedSupplement> trackedSupps = [];
 
     for (final s in supplementsForDate) {
-      final hasLog = todaysDoses.containsKey(s.id);
+      // ⚡ Bolt Optimization: Use a single map lookup to replace .containsKey() + map[key]
+      final dose = todaysDoses[s.id];
+      final hasLog = dose != null;
       if (s.isTracked || hasLog) {
         var supplementToUse = s;
         if (s.isCaffeine && s.dailyGoal == null && s.dailyLimit == null) {
@@ -193,7 +195,7 @@ class CalculateDailyNutritionUseCase {
         trackedSupps.add(
           TrackedSupplement(
             supplement: supplementToUse,
-            totalDosedToday: todaysDoses[s.id] ?? 0.0,
+            totalDosedToday: dose ?? 0.0,
           ),
         );
         if (s.id != null) {
@@ -221,10 +223,11 @@ class CalculateDailyNutritionUseCase {
         caffeineSupplement = s;
       }
 
-      if (unaccountedDoses > 0 && s.id != null &&
-          todaysDoses.containsKey(s.id) &&
-          !trackedSuppIds.contains(s.id)) {
-        var supplementToUse = s;
+      if (unaccountedDoses > 0 && s.id != null) {
+        // ⚡ Bolt Optimization: Evaluate map lookup only after passing short-circuit checks
+        final dose = todaysDoses[s.id];
+        if (dose != null && !trackedSuppIds.contains(s.id)) {
+          var supplementToUse = s;
         if (isCaffeine &&
             s.dailyGoal == null &&
             s.dailyLimit == null) {
@@ -240,11 +243,12 @@ class CalculateDailyNutritionUseCase {
             isTracked: s.isTracked,
           );
         }
-        trackedSupps.add(
-          TrackedSupplement(supplement: supplementToUse, totalDosedToday: todaysDoses[s.id]!),
-        );
-        trackedSuppIds.add(s.id!);
-        unaccountedDoses--;
+          trackedSupps.add(
+            TrackedSupplement(supplement: supplementToUse, totalDosedToday: dose),
+          );
+          trackedSuppIds.add(s.id!);
+          unaccountedDoses--;
+        }
       }
     }
 
