@@ -413,6 +413,7 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
         title: l10n.createGoalTitle,
         leading: IconButton(
           icon: const Icon(LucideIcons.arrow_left),
+          tooltip: MaterialLocalizations.of(context).backButtonTooltip,
           onPressed: _previousStep,
         ),
       ),
@@ -902,6 +903,7 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
                             : LucideIcons.pencil,
                         size: 20,
                       ),
+                      tooltip: _showManualTargetWeightInput ? l10n.cancel : l10n.edit,
                       onPressed: () {
                         setState(() {
                           _showManualTargetWeightInput =
