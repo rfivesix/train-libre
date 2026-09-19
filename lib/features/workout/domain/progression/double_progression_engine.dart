@@ -51,24 +51,38 @@ class DoubleProgressionEngine {
       sessionMap.putIfAbsent(key, () => []).add(set);
     }
 
-    // Sort sessions chronologically by the latest set in each session to find the last session.
-    final sortedSessions = sessionMap.values.toList()
-      ..sort((a, b) {
-        final aLatest =
-            a.map((s) => s.performedAt).reduce((x, y) => x.isAfter(y) ? x : y);
-        final bLatest =
-            b.map((s) => s.performedAt).reduce((x, y) => x.isAfter(y) ? x : y);
-        return aLatest.compareTo(bLatest);
-      });
+    // BOLT OPTIMIZATION: Replaced O(N log N) sorting with chained .map().reduce() inside the comparator
+    // with a single O(N) pass to find the latest session.
+    late List<ProgressionSetEntry> lastSessionSets;
+    late DateTime lastSessionDate;
+    bool isFirstSession = true;
 
-    final lastSessionSets = sortedSessions.last;
-    final lastSessionDate = lastSessionSets
-        .map((s) => s.performedAt)
-        .reduce((a, b) => a.isAfter(b) ? a : b);
+    for (final sessionSets in sessionMap.values) {
+      late DateTime currentSessionLatest;
+      bool isFirstSet = true;
+      for (final s in sessionSets) {
+        if (isFirstSet || s.performedAt.isAfter(currentSessionLatest)) {
+          currentSessionLatest = s.performedAt;
+          isFirstSet = false;
+        }
+      }
+
+      if (isFirstSession || currentSessionLatest.isAfter(lastSessionDate)) {
+        lastSessionDate = currentSessionLatest;
+        lastSessionSets = sessionSets;
+        isFirstSession = false;
+      }
+    }
 
     // Rule 9: Determine baseline working load from the last session.
-    final weights =
-        lastSessionSets.map((s) => s.weight).whereType<double>().toList();
+    // BOLT OPTIMIZATION: Replaced chained .map().whereType().toList() with a single pass
+    // to prevent intermediate lazy iterable allocations.
+    final weights = <double>[];
+    for (final s in lastSessionSets) {
+      if (s.weight != null) {
+        weights.add(s.weight!);
+      }
+    }
 
     if (weights.isEmpty) {
       return const ProgressionSuggestion(
@@ -182,23 +196,36 @@ class DoubleProgressionEngine {
           : '${set.performedAt.year}-${set.performedAt.month}-${set.performedAt.day}';
       sessions.putIfAbsent(key, () => []).add(set);
     }
-    final orderedSessions = sessions.values.toList()
-      ..sort((left, right) {
-        DateTime latest(List<ProgressionSetEntry> session) => session
-            .map((entry) => entry.performedAt)
-            .reduce((a, b) => a.isAfter(b) ? a : b);
-        return latest(left).compareTo(latest(right));
-      });
-    final lastSession = List<ProgressionSetEntry>.from(orderedSessions.last)
+    // BOLT OPTIMIZATION: Replaced O(N log N) sorting with chained .map().reduce() inside the comparator
+    // with a single O(N) pass to find the latest session.
+    late List<ProgressionSetEntry> latestSessionRaw;
+    late DateTime lastSessionDate;
+    bool isFirstSession = true;
+
+    for (final sessionSets in sessions.values) {
+      late DateTime currentSessionLatest;
+      bool isFirstSet = true;
+      for (final s in sessionSets) {
+        if (isFirstSet || s.performedAt.isAfter(currentSessionLatest)) {
+          currentSessionLatest = s.performedAt;
+          isFirstSet = false;
+        }
+      }
+
+      if (isFirstSession || currentSessionLatest.isAfter(lastSessionDate)) {
+        lastSessionDate = currentSessionLatest;
+        latestSessionRaw = sessionSets;
+        isFirstSession = false;
+      }
+    }
+
+    final lastSession = List<ProgressionSetEntry>.from(latestSessionRaw)
       ..sort((left, right) {
         final order = (left.order ?? 0).compareTo(right.order ?? 0);
         return order != 0
             ? order
             : left.performedAt.compareTo(right.performedAt);
       });
-    final lastSessionDate = lastSession
-        .map((entry) => entry.performedAt)
-        .reduce((a, b) => a.isAfter(b) ? a : b);
 
     if ((now ?? DateTime.now()).difference(lastSessionDate) >
         const Duration(days: 21)) {
