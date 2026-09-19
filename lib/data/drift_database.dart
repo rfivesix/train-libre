@@ -1815,8 +1815,11 @@ String calculateProductContentHash({
   return sha256.convert(bytes).toString();
 }
 
+final _safeIdentifier = RegExp(r'^[a-zA-Z0-9_]+$');
+
 /// Column names of [table], or an empty set when the table does not exist.
 Future<Set<String>> _columnsOf(GeneratedDatabase db, String table) async {
+  if (!_safeIdentifier.hasMatch(table)) return const {};
   final rows = await db.customSelect('PRAGMA table_info($table);').get();
   return rows.map((row) => row.read<String>('name')).toSet();
 }
