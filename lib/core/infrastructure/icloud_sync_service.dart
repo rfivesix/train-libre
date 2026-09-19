@@ -514,6 +514,7 @@ class ICloudSyncService {
     String schema,
     String table,
   ) async {
+    if (!_safeIdentifier.hasMatch(schema) || !_safeIdentifier.hasMatch(table)) return const [];
     try {
       final rows =
           await db.customSelect('PRAGMA $schema.table_info("$table")').get();
