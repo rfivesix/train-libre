@@ -51,26 +51,36 @@ class DoubleProgressionEngine {
       sessionMap.putIfAbsent(key, () => []).add(set);
     }
 
-    // Sort sessions chronologically by the latest set in each session to find the last session.
-    final sortedSessions = sessionMap.values.toList()
-      ..sort((a, b) {
-        final aLatest =
-            a.map((s) => s.performedAt).reduce((x, y) => x.isAfter(y) ? x : y);
-        final bLatest =
-            b.map((s) => s.performedAt).reduce((x, y) => x.isAfter(y) ? x : y);
-        return aLatest.compareTo(bLatest);
-      });
+    // BOLT OPTIMIZATION: Replaced O(N log N) session sorting and chained
+    // .map().reduce() comparators with a single O(N) pass to find the last session
+    // and its maximum load without intermediate allocations.
+    List<ProgressionSetEntry>? lastSessionSets;
+    DateTime? lastSessionDate;
 
-    final lastSessionSets = sortedSessions.last;
-    final lastSessionDate = lastSessionSets
-        .map((s) => s.performedAt)
-        .reduce((a, b) => a.isAfter(b) ? a : b);
+    for (final session in sessionMap.values) {
+      DateTime? latestInSession;
+      for (final set in session) {
+        if (latestInSession == null || set.performedAt.isAfter(latestInSession)) {
+          latestInSession = set.performedAt;
+        }
+      }
+      if (lastSessionDate == null || latestInSession!.isAfter(lastSessionDate)) {
+        lastSessionDate = latestInSession;
+        lastSessionSets = session;
+      }
+    }
 
     // Rule 9: Determine baseline working load from the last session.
-    final weights =
-        lastSessionSets.map((s) => s.weight).whereType<double>().toList();
+    double? lastWeight;
+    for (final s in lastSessionSets!) {
+      if (s.weight != null) {
+        if (lastWeight == null || s.weight! > lastWeight) {
+          lastWeight = s.weight;
+        }
+      }
+    }
 
-    if (weights.isEmpty) {
+    if (lastWeight == null) {
       return const ProgressionSuggestion(
         outcome: ProgressionOutcome.noSuggestion,
         targetWeight: null,
@@ -80,11 +90,9 @@ class DoubleProgressionEngine {
       );
     }
 
-    final lastWeight = weights.reduce(math.max);
-
     // Rule 6: Break of more than 3 weeks (21 days) resets progression to hold last load.
     final referenceDate = now ?? DateTime.now();
-    final gap = referenceDate.difference(lastSessionDate);
+    final gap = referenceDate.difference(lastSessionDate!);
     if (gap > const Duration(days: 21)) {
       return ProgressionSuggestion(
         outcome: ProgressionOutcome.hold,
@@ -182,25 +190,33 @@ class DoubleProgressionEngine {
           : '${set.performedAt.year}-${set.performedAt.month}-${set.performedAt.day}';
       sessions.putIfAbsent(key, () => []).add(set);
     }
-    final orderedSessions = sessions.values.toList()
-      ..sort((left, right) {
-        DateTime latest(List<ProgressionSetEntry> session) => session
-            .map((entry) => entry.performedAt)
-            .reduce((a, b) => a.isAfter(b) ? a : b);
-        return latest(left).compareTo(latest(right));
-      });
-    final lastSession = List<ProgressionSetEntry>.from(orderedSessions.last)
+    // BOLT OPTIMIZATION: Replaced O(N log N) sorting and chained .map().reduce()
+    // inside the comparator with a single O(N) pass to find the last session.
+    List<ProgressionSetEntry>? latestSessionSets;
+    DateTime? lastSessionDate;
+
+    for (final session in sessions.values) {
+      DateTime? latestInSession;
+      for (final set in session) {
+        if (latestInSession == null || set.performedAt.isAfter(latestInSession)) {
+          latestInSession = set.performedAt;
+        }
+      }
+      if (lastSessionDate == null || latestInSession!.isAfter(lastSessionDate)) {
+        lastSessionDate = latestInSession;
+        latestSessionSets = session;
+      }
+    }
+
+    final lastSession = List<ProgressionSetEntry>.from(latestSessionSets!)
       ..sort((left, right) {
         final order = (left.order ?? 0).compareTo(right.order ?? 0);
         return order != 0
             ? order
             : left.performedAt.compareTo(right.performedAt);
       });
-    final lastSessionDate = lastSession
-        .map((entry) => entry.performedAt)
-        .reduce((a, b) => a.isAfter(b) ? a : b);
 
-    if ((now ?? DateTime.now()).difference(lastSessionDate) >
+    if ((now ?? DateTime.now()).difference(lastSessionDate!) >
         const Duration(days: 21)) {
       return List.filled(
           positions.length, absent(ProgressionReason.breakExceededThreeWeeks));
