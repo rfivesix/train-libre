@@ -7902,6 +7902,52 @@ class AppLocalizationsFr extends AppLocalizations {
       'Notifications locales pour les bilans et les dates cibles';
 
   @override
+  String get notificationSettingsTitle => 'Notifications';
+
+  @override
+  String get notificationSettingsSubtitle =>
+      'Rappels d’entraînement, d’objectifs et de bilans';
+
+  @override
+  String get notificationWorkoutSectionTitle => 'Plan d’entraînement';
+
+  @override
+  String get notificationGoalsSectionTitle => 'Objectifs et bilans';
+
+  @override
+  String get workoutPlanNotifyTitle => 'Rappel les jours d’entraînement';
+
+  @override
+  String get workoutPlanNotifySubtitle =>
+      'Uniquement les jours prévus. Aucun rappel de rattrapage ni culpabilisant.';
+
+  @override
+  String get workoutPlanNotifyTimeTitle => 'Heure du rappel';
+
+  @override
+  String get workoutPlanNotifyNoActivePlan =>
+      'Les rappels s’activent lorsqu’un plan d’entraînement est actif.';
+
+  @override
+  String get notificationPermissionDenied =>
+      'Les notifications sont désactivées dans les réglages système.';
+
+  @override
+  String get notificationPrivacyTitle => 'Local et sous votre contrôle';
+
+  @override
+  String get notificationPrivacyBody =>
+      'Ces rappels sont programmés localement. Gérez les aperçus sur écran verrouillé et les heures silencieuses dans les réglages du système.';
+
+  @override
+  String get workoutPlanReminderTitle => 'Votre entraînement est prévu';
+
+  @override
+  String workoutPlanReminderBody(String routineName, String planName) {
+    return '$routineName est la prochaine séance de $planName.';
+  }
+
+  @override
   String get weeklyGoalReviewNotificationTitle => 'Bilan hebdomadaire prêt';
 
   @override

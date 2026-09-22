@@ -1,5 +1,6 @@
 import 'package:drift/native.dart';
 import 'package:drift/drift.dart' as drift;
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:train_libre/data/drift_database.dart';
 import 'package:train_libre/features/workout/data/manual_training_plan_repository.dart';
@@ -35,6 +36,22 @@ void main() {
     expect(days.first.slotIndex, today.weekday - 1);
     expect(days.last.slotIndex, tomorrow.weekday - 1);
     expect(days.last.status, PlannedDayStatus.planned);
+  });
+
+  test('calendar does not project plan days before the first activation',
+      () async {
+    final id = await repository.createPlan(
+      name: 'Week',
+      kind: TrainingPlanKind.week,
+      days: List.filled(7, workout),
+    );
+    final today = DateTime.now();
+    final yesterday = DateTime(today.year, today.month, today.day - 1);
+
+    final days = await repository.calendar(id, yesterday, today);
+
+    expect(days, hasLength(1));
+    expect(DateUtils.isSameDay(days.single.date, today), isTrue);
   });
 
   test('sequence holds a missed workout until explicit skip', () async {

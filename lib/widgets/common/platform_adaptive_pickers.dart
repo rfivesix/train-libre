@@ -806,6 +806,7 @@ Future<TimeframeSelection?> showAdaptiveTimeframePicker({
   required TimeframeBlock activeBlock,
   required DateTime initialAnchor,
   required DateTime earliestAvailableDay,
+  DateTime? latestAvailableDay,
   bool initialIsRolling = false,
   bool supportRolling = true,
 }) async {
@@ -820,19 +821,20 @@ Future<TimeframeSelection?> showAdaptiveTimeframePicker({
       : Colors.black.withValues(alpha: 0.3);
 
   final now = DateTime.now();
+  final latest = latestAvailableDay ?? now;
 
-  // Generate the list of allowed anchor dates from earliestAvailableDay to now
+  // Generate selectable calendar blocks inside the caller's real data range.
   final List<DateTime> options = [];
   DateTime current =
       activeBlock.getBounds(earliestAvailableDay, earliestAvailableDay).start;
 
-  while (current.isBefore(now) ||
-      current.isAtSameMomentAs(now) ||
-      current.year == now.year && current.month == now.month) {
+  while (current.isBefore(latest) ||
+      current.isAtSameMomentAs(latest) ||
+      current.year == latest.year && current.month == latest.month) {
     if (activeBlock
         .getBounds(current, earliestAvailableDay)
         .start
-        .isAfter(now)) {
+        .isAfter(latest)) {
       break;
     }
     options.add(current);
@@ -870,7 +872,7 @@ Future<TimeframeSelection?> showAdaptiveTimeframePicker({
 
   // Fallback if empty
   if (options.isEmpty) {
-    options.add(now);
+    options.add(earliestAvailableDay);
   }
 
   // Insert rolling option

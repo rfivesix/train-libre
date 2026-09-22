@@ -17,6 +17,14 @@ void main() {
     expect(parsed?.type, AppNotificationType.weeklyGoalReview);
     expect(parsed?.goalId, 'goal-1');
     expect(parsed?.reviewId, 'review-1');
+    const workoutPayload = AppNotificationPayload(
+      type: AppNotificationType.workoutPlan,
+      planId: 'plan-1',
+    );
+    expect(
+      AppNotificationPayload.tryParse(workoutPayload.encode())?.planId,
+      'plan-1',
+    );
     expect(AppNotificationPayload.tryParse('{"type":"obsolete"}'), isNull);
     expect(AppNotificationPayload.tryParse('not-json'), isNull);
   });
@@ -35,6 +43,16 @@ void main() {
         'goal-1',
         isDueToday: true,
       )),
+    );
+    expect(
+      LocalNotificationService.notificationIdForWorkoutPlan(
+        'plan-1',
+        DateTime(2026, 9, 22),
+      ),
+      LocalNotificationService.notificationIdForWorkoutPlan(
+        'plan-1',
+        DateTime(2026, 9, 22, 18),
+      ),
     );
     expect(
       LocalNotificationService.notificationIdForGoalTargetDate(
@@ -69,6 +87,13 @@ void main() {
     );
     await repository.saveReview(review);
     final router = AppNotificationRouter(repository);
+    expect(
+      await router.resolve(const AppNotificationPayload(
+        type: AppNotificationType.workoutPlan,
+        planId: 'plan-1',
+      )),
+      isA<WorkoutPlanNotificationDestination>(),
+    );
     final payload = AppNotificationPayload(
       type: AppNotificationType.weeklyGoalReview,
       goalId: goal.id,

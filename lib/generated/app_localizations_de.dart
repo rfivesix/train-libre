@@ -7833,6 +7833,52 @@ class AppLocalizationsDe extends AppLocalizations {
       'Lokale Benachrichtigungen für Reviews und Zieldaten';
 
   @override
+  String get notificationSettingsTitle => 'Benachrichtigungen';
+
+  @override
+  String get notificationSettingsSubtitle =>
+      'Erinnerungen für Training, Ziele und Reviews';
+
+  @override
+  String get notificationWorkoutSectionTitle => 'Trainingsplan';
+
+  @override
+  String get notificationGoalsSectionTitle => 'Ziele & Reviews';
+
+  @override
+  String get workoutPlanNotifyTitle => 'An Trainingstage erinnern';
+
+  @override
+  String get workoutPlanNotifySubtitle =>
+      'Nur an geplanten Trainingstagen. Keine Nachhol- oder Schuldenerinnerungen.';
+
+  @override
+  String get workoutPlanNotifyTimeTitle => 'Uhrzeit';
+
+  @override
+  String get workoutPlanNotifyNoActivePlan =>
+      'Die Erinnerung wird aktiv, sobald ein Trainingsplan aktiv ist.';
+
+  @override
+  String get notificationPermissionDenied =>
+      'Benachrichtigungen sind in den Systemeinstellungen deaktiviert.';
+
+  @override
+  String get notificationPrivacyTitle => 'Lokal & unter deiner Kontrolle';
+
+  @override
+  String get notificationPrivacyBody =>
+      'Diese Erinnerungen werden lokal geplant. Vorschauen auf dem Sperrbildschirm und Ruhezeiten steuerst du in den Einstellungen deines Betriebssystems.';
+
+  @override
+  String get workoutPlanReminderTitle => 'Dein Workout ist geplant';
+
+  @override
+  String workoutPlanReminderBody(String routineName, String planName) {
+    return '$routineName ist als Nächstes in $planName vorgesehen.';
+  }
+
+  @override
   String get weeklyGoalReviewNotificationTitle => 'Wöchentlicher Review bereit';
 
   @override

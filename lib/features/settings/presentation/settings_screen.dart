@@ -325,8 +325,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 _buildNavigationCard(
                   context: context,
                   icon: LucideIcons.bell,
-                  title: l10n.goalNotificationSettingsTitle,
-                  subtitle: l10n.goalNotificationSettingsSubtitle,
+                  title: l10n.notificationSettingsTitle,
+                  subtitle: l10n.notificationSettingsSubtitle,
                   onTap: () {
                     Navigator.of(context).push(
                       MaterialPageRoute(

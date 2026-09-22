@@ -10,9 +10,10 @@ import '../features/nutrition_recommendation/domain/adaptive_recommendation_snap
 import '../features/profile/data/goal_repository_impl.dart';
 import '../features/profile/domain/models/goal_model.dart';
 import 'notification_navigation.dart';
+import '../features/workout/domain/workout_plan_notification_scheduler.dart';
 
 /// Handles local notification setup and rest timer notifications.
-class LocalNotificationService {
+class LocalNotificationService implements WorkoutPlanNotificationScheduler {
   LocalNotificationService._();
 
   static final LocalNotificationService instance = LocalNotificationService._();
@@ -29,6 +30,7 @@ class LocalNotificationService {
       'tdee_recalculation_channel';
   static const String _weeklyGoalReviewChannelId = 'weekly_goal_review_channel';
   static const String _goalTargetDateChannelId = 'goal_target_date_channel';
+  static const String _workoutPlanChannelId = 'workout_plan_channel';
 
   StreamSubscription<AdaptiveRecommendationSnapshot>? _tdeeSubscription;
 
@@ -810,6 +812,112 @@ class LocalNotificationService {
     } catch (_) {}
   }
 
+  NotificationDetails _workoutPlanNotificationDetails() {
+    return const NotificationDetails(
+      android: AndroidNotificationDetails(
+        _workoutPlanChannelId,
+        'Workout plan',
+        channelDescription: 'Optional reminders for planned workout days.',
+        importance: Importance.defaultImportance,
+        priority: Priority.defaultPriority,
+        playSound: true,
+      ),
+      iOS: DarwinNotificationDetails(
+        presentAlert: true,
+        presentBanner: true,
+        presentSound: true,
+        presentBadge: false,
+        presentList: true,
+      ),
+      macOS: DarwinNotificationDetails(
+        presentAlert: true,
+        presentBanner: true,
+        presentSound: true,
+        presentBadge: false,
+        presentList: true,
+      ),
+    );
+  }
+
+  @override
+  Future<void> replaceWorkoutPlanReminders(
+    List<WorkoutPlanReminder> reminders,
+  ) async {
+    if (!_isInitialized) await initialize();
+    if (!_isInitialized) return;
+    await cancelWorkoutPlanReminders();
+    final locale = WidgetsBinding.instance.platformDispatcher.locale;
+    final l10n = lookupAppLocalizations(locale);
+    final details = _workoutPlanNotificationDetails();
+
+    for (final reminder in reminders) {
+      final local = reminder.scheduledAt;
+      final when = tz.TZDateTime(
+        tz.local,
+        local.year,
+        local.month,
+        local.day,
+        local.hour,
+        local.minute,
+      );
+      final id = notificationIdForWorkoutPlan(
+        reminder.planId,
+        reminder.scheduledAt,
+      );
+      final payload = AppNotificationPayload(
+        type: AppNotificationType.workoutPlan,
+        planId: reminder.planId,
+      ).encode();
+      try {
+        await _plugin.zonedSchedule(
+          id: id,
+          title: l10n.workoutPlanReminderTitle,
+          body: l10n.workoutPlanReminderBody(
+            reminder.routineName,
+            reminder.planName,
+          ),
+          scheduledDate: when,
+          notificationDetails: details,
+          androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+          payload: payload,
+        );
+      } catch (_) {
+        try {
+          await _plugin.zonedSchedule(
+            id: id,
+            title: l10n.workoutPlanReminderTitle,
+            body: l10n.workoutPlanReminderBody(
+              reminder.routineName,
+              reminder.planName,
+            ),
+            scheduledDate: when,
+            notificationDetails: details,
+            androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+            payload: payload,
+          );
+        } catch (_) {
+          // A denied permission or unsupported scheduler must not affect plans.
+        }
+      }
+    }
+  }
+
+  @override
+  Future<void> cancelWorkoutPlanReminders() async {
+    if (!_isInitialized) return;
+    try {
+      final pending = await _plugin.pendingNotificationRequests();
+      for (final notification in pending) {
+        if (AppNotificationPayload.tryParse(notification.payload)?.type ==
+            AppNotificationType.workoutPlan) {
+          await _plugin.cancel(id: notification.id);
+        }
+      }
+    } catch (_) {
+      // Pending-request enumeration is unavailable on a few desktop targets.
+    }
+  }
+
   static int notificationIdForReview(String reviewId) =>
       100000000 + (_stableHash(reviewId) % 100000000);
 
@@ -818,6 +926,13 @@ class LocalNotificationService {
     required bool isDueToday,
   }) =>
       (isDueToday ? 300000000 : 200000000) + (_stableHash(goalId) % 100000000);
+
+  static int notificationIdForWorkoutPlan(String planId, DateTime date) =>
+      400000000 +
+      (_stableHash(
+            '${planId}_${date.year}_${date.month}_${date.day}',
+          ) %
+          100000000);
 
   static int _stableHash(String value) {
     var hash = 0x811c9dc5;

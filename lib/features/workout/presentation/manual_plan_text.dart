@@ -57,6 +57,62 @@ class ManualPlanText {
       'updatePlan': 'Auch im Plan übernehmen',
       'previous': 'Zurück',
       'next': 'Weiter',
+      'inactive': 'Inaktiv',
+      'savedPlans': 'Gespeicherte Pläne',
+      'schedule': 'Kalender',
+      'weekView': 'Woche',
+      'managePlan': 'Plan verwalten',
+      'weekPlanExplanation':
+          'Die Einheiten bleiben ihren Wochentagen zugeordnet. Nicht absolvierte Tage werden nicht automatisch nachgeholt.',
+      'sequencePlanExplanation':
+          'Die Sequenz geht erst weiter, wenn du die aktuelle Einheit absolvierst, teilweise abschließt oder bewusst überspringst.',
+      'activatePlanTitle': 'Plan aktivieren',
+      'activatePlanBody':
+          'Du kannst an deiner letzten Position weitermachen oder den Plan heute neu beginnen.',
+      'resumeDescription':
+          'An der zuletzt gespeicherten Position weitertrainieren',
+      'restartDescription':
+          'Die Sequenz beziehungsweise Woche heute neu beginnen',
+      'deactivatePlanTitle': 'Plan pausieren?',
+      'deactivatePlanBody':
+          'Dein Verlauf und alle absolvierten Einheiten bleiben erhalten.',
+      'skipExplanation':
+          'Die Einheit wird als übersprungen dokumentiert und der Plan läuft anschließend weiter.',
+      'startPastBody':
+          'Das Workout startet jetzt, bleibt im Plan aber dem ursprünglich vorgesehenen Tag zugeordnet.',
+      'historyExplanation':
+          'Jede Änderung erzeugt eine neue Version. Vergangene Einheiten behalten ihre damaligen Vorgaben.',
+      'noPlanDescription':
+          'Erstelle einen Wochenplan oder eine fortlaufende Sequenz aus deinen vorhandenen Routinen.',
+      'startShort': 'Starten',
+      'restDescription': 'Heute ist bewusst keine Trainingseinheit vorgesehen.',
+      'completedDescription':
+          'Alle vorgesehenen Sätze wurden absolviert. Zusätzliche Sätze bleiben ebenfalls erhalten.',
+      'partialDescription':
+          'Das Workout wurde begonnen und mit den tatsächlich absolvierten Sätzen gespeichert.',
+      'skippedDescription': 'Diese Einheit wurde bewusst übersprungen.',
+      'futureDescription':
+          'Diese Einheit ist für den ausgewählten Tag vorgesehen.',
+      'todayDescription': 'Diese Einheit ist heute als Nächstes vorgesehen.',
+      'pastOpenDescription':
+          'Diese Einheit ist noch offen und kann jetzt bewusst gestartet oder übersprungen werden.',
+      'notStarted': 'Noch nicht aktiv',
+      'beforePlanStart': 'Vor Planbeginn',
+      'basics': 'Grundlagen',
+      'day': 'Tag',
+      'exercises': 'Übungen',
+      'restPickerDescription': 'Keine Routine an diesem Tag',
+      'weekEditorExplanation':
+          'Die sieben Tage wiederholen sich jede Woche und bleiben festen Wochentagen zugeordnet.',
+      'sequenceEditorExplanation':
+          'Eine Sequenz läuft unabhängig von Wochentagen in der festgelegten Reihenfolge weiter.',
+      'editorScheduleHint':
+          'Tippe auf einen Tag, um eine Routine zuzuweisen oder ihn als Ruhetag festzulegen.',
+      'shorter': 'Sequenz verkürzen',
+      'longer': 'Sequenz verlängern',
+      'editRoutine': 'Routine bearbeiten',
+      'hubNoPlanDescription': 'Erstelle deinen eigenen Trainingsrhythmus',
+      'hubNoUpcomingWorkout': 'Aktuell ist keine Einheit offen',
     },
     'en': {
       'plans': 'Training plans',
@@ -103,6 +159,60 @@ class ManualPlanText {
       'updatePlan': 'Update plan too',
       'previous': 'Previous',
       'next': 'Next',
+      'inactive': 'Inactive',
+      'savedPlans': 'Saved plans',
+      'schedule': 'Calendar',
+      'weekView': 'Week',
+      'managePlan': 'Manage plan',
+      'weekPlanExplanation':
+          'Sessions stay assigned to their weekdays. Missed days are not moved automatically.',
+      'sequencePlanExplanation':
+          'The sequence advances only after you complete, partly complete, or explicitly skip the current session.',
+      'activatePlanTitle': 'Activate plan',
+      'activatePlanBody':
+          'Continue from the saved position or start the plan again today.',
+      'resumeDescription': 'Continue from the last saved position',
+      'restartDescription': 'Restart the sequence or week today',
+      'deactivatePlanTitle': 'Pause this plan?',
+      'deactivatePlanBody':
+          'Your history and completed sessions remain available.',
+      'skipExplanation':
+          'The session is recorded as skipped and the plan then moves on.',
+      'startPastBody':
+          'The workout starts now but remains assigned to its original planned day.',
+      'historyExplanation':
+          'Every edit creates a version. Past sessions keep the instructions they had at the time.',
+      'noPlanDescription':
+          'Build a weekly plan or an ongoing sequence from your saved routines.',
+      'startShort': 'Start',
+      'restDescription':
+          'No training session is intentionally planned for this day.',
+      'completedDescription':
+          'All prescribed sets were completed. Extra sets are kept as well.',
+      'partialDescription':
+          'The workout was started and saved with the sets you actually completed.',
+      'skippedDescription': 'This session was explicitly skipped.',
+      'futureDescription': 'This session is planned for the selected day.',
+      'todayDescription': 'This is the next session planned for today.',
+      'pastOpenDescription':
+          'This session is still open. Start or explicitly skip it now.',
+      'notStarted': 'Not active yet',
+      'beforePlanStart': 'Before plan start',
+      'basics': 'Basics',
+      'day': 'Day',
+      'exercises': 'exercises',
+      'restPickerDescription': 'No routine on this day',
+      'weekEditorExplanation':
+          'The seven days repeat each week and stay assigned to fixed weekdays.',
+      'sequenceEditorExplanation':
+          'A sequence continues in order independently of weekdays.',
+      'editorScheduleHint':
+          'Tap a day to assign a routine or make it a rest day.',
+      'shorter': 'Shorten sequence',
+      'longer': 'Lengthen sequence',
+      'editRoutine': 'Edit routine',
+      'hubNoPlanDescription': 'Build your own training rhythm',
+      'hubNoUpcomingWorkout': 'No session is currently due',
     },
     'fr': {
       'plans': 'Plans d’entraînement',
@@ -149,6 +259,59 @@ class ManualPlanText {
       'updatePlan': 'Mettre aussi le plan à jour',
       'previous': 'Précédent',
       'next': 'Suivant',
+      'inactive': 'Inactif',
+      'savedPlans': 'Plans enregistrés',
+      'schedule': 'Calendrier',
+      'weekView': 'Semaine',
+      'managePlan': 'Gérer le plan',
+      'weekPlanExplanation':
+          'Les séances restent associées à leurs jours. Les jours manqués ne sont pas déplacés automatiquement.',
+      'sequencePlanExplanation':
+          'La séquence avance uniquement après avoir terminé, partiellement terminé ou passé la séance en cours.',
+      'activatePlanTitle': 'Activer le plan',
+      'activatePlanBody':
+          'Reprenez à la dernière position ou recommencez le plan aujourd’hui.',
+      'resumeDescription': 'Continuer à la dernière position enregistrée',
+      'restartDescription': 'Recommencer la séquence ou la semaine aujourd’hui',
+      'deactivatePlanTitle': 'Mettre ce plan en pause ?',
+      'deactivatePlanBody':
+          'Votre historique et les séances terminées sont conservés.',
+      'skipExplanation':
+          'La séance sera notée comme passée, puis le plan continuera.',
+      'startPastBody':
+          'La séance démarre maintenant mais reste associée à son jour initial.',
+      'historyExplanation':
+          'Chaque modification crée une version. Les séances passées conservent leurs consignes.',
+      'noPlanDescription':
+          'Créez un plan hebdomadaire ou une séquence avec vos routines.',
+      'startShort': 'Démarrer',
+      'restDescription': 'Aucune séance n’est prévue volontairement ce jour.',
+      'completedDescription':
+          'Toutes les séries prévues ont été réalisées. Les séries supplémentaires sont conservées.',
+      'partialDescription':
+          'La séance a été commencée et enregistrée avec les séries réalisées.',
+      'skippedDescription': 'Cette séance a été volontairement passée.',
+      'futureDescription': 'Cette séance est prévue pour le jour sélectionné.',
+      'todayDescription': 'C’est la prochaine séance prévue aujourd’hui.',
+      'pastOpenDescription':
+          'Cette séance est encore ouverte. Démarrez-la ou passez-la explicitement.',
+      'notStarted': 'Pas encore actif',
+      'beforePlanStart': 'Avant le début du plan',
+      'basics': 'Principes',
+      'day': 'Jour',
+      'exercises': 'exercices',
+      'restPickerDescription': 'Aucune routine ce jour',
+      'weekEditorExplanation':
+          'Les sept jours se répètent chaque semaine et restent associés aux jours fixes.',
+      'sequenceEditorExplanation':
+          'Une séquence continue dans l’ordre, indépendamment des jours de la semaine.',
+      'editorScheduleHint':
+          'Touchez un jour pour attribuer une routine ou définir un jour de repos.',
+      'shorter': 'Raccourcir la séquence',
+      'longer': 'Allonger la séquence',
+      'editRoutine': 'Modifier la routine',
+      'hubNoPlanDescription': 'Créez votre propre rythme d’entraînement',
+      'hubNoUpcomingWorkout': 'Aucune séance n’est actuellement prévue',
     },
     'it': {
       'plans': 'Piani di allenamento',
@@ -195,6 +358,60 @@ class ManualPlanText {
       'updatePlan': 'Aggiorna anche il piano',
       'previous': 'Precedente',
       'next': 'Avanti',
+      'inactive': 'Inattivo',
+      'savedPlans': 'Piani salvati',
+      'schedule': 'Calendario',
+      'weekView': 'Settimana',
+      'managePlan': 'Gestisci piano',
+      'weekPlanExplanation':
+          'Le sessioni restano assegnate ai giorni della settimana. I giorni saltati non vengono spostati automaticamente.',
+      'sequencePlanExplanation':
+          'La sequenza avanza solo dopo aver completato, completato in parte o saltato esplicitamente la sessione corrente.',
+      'activatePlanTitle': 'Attiva piano',
+      'activatePlanBody':
+          'Continua dall’ultima posizione o ricomincia il piano oggi.',
+      'resumeDescription': 'Continua dall’ultima posizione salvata',
+      'restartDescription': 'Ricomincia oggi la sequenza o la settimana',
+      'deactivatePlanTitle': 'Mettere in pausa il piano?',
+      'deactivatePlanBody':
+          'La cronologia e le sessioni completate restano disponibili.',
+      'skipExplanation':
+          'La sessione viene registrata come saltata e il piano prosegue.',
+      'startPastBody':
+          'L’allenamento inizia ora ma resta associato al giorno originario.',
+      'historyExplanation':
+          'Ogni modifica crea una versione. Le sessioni passate mantengono le istruzioni originali.',
+      'noPlanDescription':
+          'Crea un piano settimanale o una sequenza usando le tue routine.',
+      'startShort': 'Avvia',
+      'restDescription': 'Per questo giorno non è prevista alcuna sessione.',
+      'completedDescription':
+          'Tutte le serie previste sono state completate. Anche le serie extra vengono conservate.',
+      'partialDescription':
+          'L’allenamento è stato iniziato e salvato con le serie effettivamente completate.',
+      'skippedDescription': 'Questa sessione è stata saltata esplicitamente.',
+      'futureDescription':
+          'Questa sessione è prevista per il giorno selezionato.',
+      'todayDescription': 'Questa è la prossima sessione prevista per oggi.',
+      'pastOpenDescription':
+          'Questa sessione è ancora aperta. Avviala o saltala esplicitamente.',
+      'notStarted': 'Non ancora attivo',
+      'beforePlanStart': 'Prima dell’inizio',
+      'basics': 'Impostazioni base',
+      'day': 'Giorno',
+      'exercises': 'esercizi',
+      'restPickerDescription': 'Nessuna routine in questo giorno',
+      'weekEditorExplanation':
+          'I sette giorni si ripetono ogni settimana e restano assegnati ai giorni fissi.',
+      'sequenceEditorExplanation':
+          'Una sequenza continua in ordine indipendentemente dai giorni della settimana.',
+      'editorScheduleHint':
+          'Tocca un giorno per assegnare una routine o renderlo un giorno di riposo.',
+      'shorter': 'Riduci sequenza',
+      'longer': 'Estendi sequenza',
+      'editRoutine': 'Modifica routine',
+      'hubNoPlanDescription': 'Crea il tuo ritmo di allenamento',
+      'hubNoUpcomingWorkout': 'Nessuna sessione è attualmente prevista',
     },
     'ja': {
       'plans': 'トレーニングプラン',
@@ -241,6 +458,45 @@ class ManualPlanText {
       'updatePlan': 'プランにも反映',
       'previous': '前へ',
       'next': '次へ',
+      'inactive': '無効',
+      'savedPlans': '保存済みプラン',
+      'schedule': 'カレンダー',
+      'weekView': '週',
+      'managePlan': 'プランを管理',
+      'weekPlanExplanation': '各セッションは曜日に固定されます。実施しなかった日は自動で移動しません。',
+      'sequencePlanExplanation': '現在のセッションを完了、一部完了、または明示的にスキップした後に次へ進みます。',
+      'activatePlanTitle': 'プランを有効化',
+      'activatePlanBody': '保存位置から続けるか、今日から最初に戻れます。',
+      'resumeDescription': '最後に保存した位置から続ける',
+      'restartDescription': '今日からシーケンスまたは週を再開する',
+      'deactivatePlanTitle': 'プランを一時停止しますか？',
+      'deactivatePlanBody': '履歴と完了済みセッションは保持されます。',
+      'skipExplanation': 'スキップとして記録され、その後プランは次へ進みます。',
+      'startPastBody': 'ワークアウトは今開始されますが、元の予定日に関連付けられます。',
+      'historyExplanation': '変更ごとに新しいバージョンが作成され、過去の内容は保持されます。',
+      'noPlanDescription': '保存済みルーティンから週間プランまたはシーケンスを作成します。',
+      'startShort': '開始',
+      'restDescription': 'この日は意図的にトレーニングを予定していません。',
+      'completedDescription': '予定されたセットをすべて完了しました。追加セットも保持されます。',
+      'partialDescription': '実施したセットを含めて一部完了として保存されました。',
+      'skippedDescription': 'このセッションは明示的にスキップされました。',
+      'futureDescription': '選択した日にこのセッションが予定されています。',
+      'todayDescription': '今日の次の予定セッションです。',
+      'pastOpenDescription': 'このセッションは未完了です。開始またはスキップできます。',
+      'notStarted': 'まだ有効ではありません',
+      'beforePlanStart': 'プラン開始前',
+      'basics': '基本設定',
+      'day': '日',
+      'exercises': '種目',
+      'restPickerDescription': 'この日はルーティンなし',
+      'weekEditorExplanation': '7日間が毎週繰り返され、各セッションは曜日に固定されます。',
+      'sequenceEditorExplanation': '曜日に関係なく、設定した順序でシーケンスが進みます。',
+      'editorScheduleHint': '日をタップしてルーティンまたは休息日を設定します。',
+      'shorter': 'シーケンスを短くする',
+      'longer': 'シーケンスを長くする',
+      'editRoutine': 'ルーティンを編集',
+      'hubNoPlanDescription': '自分のトレーニングリズムを作成',
+      'hubNoUpcomingWorkout': '現在予定されているセッションはありません',
     },
   };
 }

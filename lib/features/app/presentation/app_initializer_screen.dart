@@ -15,6 +15,7 @@ import '../../nutrition_recommendation/data/recommendation_service.dart';
 import '../../profile/data/goal_repository_impl.dart';
 import '../../profile/data/legacy_goal_migration.dart';
 import '../../profile/domain/services/goal_notification_orchestrator.dart';
+import '../../workout/domain/services/workout_plan_notification_orchestrator.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
@@ -192,6 +193,7 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
             await GoalNotificationOrchestrator(
               goalRepository: GoalRepositoryImpl(),
             ).synchronize();
+            await WorkoutPlanNotificationOrchestrator().synchronize();
           } catch (e) {
             debugPrint("Startup goal/recommendation check failed: $e");
           }

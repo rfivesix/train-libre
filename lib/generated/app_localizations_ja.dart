@@ -7494,6 +7494,48 @@ class AppLocalizationsJa extends AppLocalizations {
   String get goalNotificationSettingsSubtitle => 'レビューや期日に関するローカル通知';
 
   @override
+  String get notificationSettingsTitle => '通知';
+
+  @override
+  String get notificationSettingsSubtitle => 'ワークアウト、目標、レビューのリマインダー';
+
+  @override
+  String get notificationWorkoutSectionTitle => 'トレーニングプラン';
+
+  @override
+  String get notificationGoalsSectionTitle => '目標とレビュー';
+
+  @override
+  String get workoutPlanNotifyTitle => 'トレーニング日に通知';
+
+  @override
+  String get workoutPlanNotifySubtitle => '予定されたトレーニング日のみ。埋め合わせを促す通知はありません。';
+
+  @override
+  String get workoutPlanNotifyTimeTitle => '通知時刻';
+
+  @override
+  String get workoutPlanNotifyNoActivePlan => 'トレーニングプランを有効にすると通知が有効になります。';
+
+  @override
+  String get notificationPermissionDenied => 'システム設定で通知が無効になっています。';
+
+  @override
+  String get notificationPrivacyTitle => '端末内で管理';
+
+  @override
+  String get notificationPrivacyBody =>
+      'これらの通知は端末内で予定されます。ロック画面のプレビューと通知を控える時間帯はOSの設定で管理できます。';
+
+  @override
+  String get workoutPlanReminderTitle => 'ワークアウトの予定があります';
+
+  @override
+  String workoutPlanReminderBody(String routineName, String planName) {
+    return '$planNameの次の予定は$routineNameです。';
+  }
+
+  @override
   String get weeklyGoalReviewNotificationTitle => '週間レビューの準備完了';
 
   @override

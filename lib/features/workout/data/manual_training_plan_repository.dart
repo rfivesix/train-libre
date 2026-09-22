@@ -50,6 +50,11 @@ class ManualTrainingPlanRepository {
           ..where((t) => t.planId.equals(planId) & t.endedOn.isNull())
           ..orderBy([(t) => drift.OrderingTerm.desc(t.startedOn)]))
         .getSingleOrNull();
+    final firstActivation = await (_db.select(_db.trainingPlanActivations)
+          ..where((t) => t.planId.equals(planId))
+          ..orderBy([(t) => drift.OrderingTerm.asc(t.localId)])
+          ..limit(1))
+        .getSingleOrNull();
     final revision = revisions.first;
     return ManualTrainingPlan(
       id: plan.id,
@@ -60,7 +65,7 @@ class ManualTrainingPlanRepository {
       revisionNumber: revision.number,
       active: plan.isActive,
       activationId: activation?.id,
-      startedOn: activation?.startedOn,
+      startedOn: firstActivation?.startedOn ?? plan.startedOn,
     );
   }
 

@@ -44,6 +44,7 @@ import 'features/diary/domain/repositories/diary_repository.dart';
 import 'features/diary/data/nutrition_repository.dart';
 import 'features/workout/domain/repositories/workout_repository.dart';
 import 'features/workout/data/workout_repository.dart';
+import 'features/workout/data/manual_training_plan_repository.dart';
 import 'features/exercise_catalog/domain/repositories/exercise_catalog_repository.dart';
 import 'features/exercise_catalog/data/exercise_catalog_repository.dart';
 import 'features/profile/domain/repositories/profile_repository.dart';
@@ -71,6 +72,7 @@ import 'features/nutrition_recommendation/data/recommendation_service.dart';
 import 'services/ai_service.dart';
 import 'services/local_notification_service.dart';
 import 'features/profile/domain/services/goal_notification_orchestrator.dart';
+import 'features/workout/domain/services/workout_plan_notification_orchestrator.dart';
 import 'services/telemetry/telemetry_service.dart';
 
 @pragma('vm:entry-point')
@@ -93,6 +95,9 @@ void callbackDispatcher() {
       await service.refreshRecommendationIfDue();
       await GoalNotificationOrchestrator(
         goalRepository: GoalRepositoryImpl(database: database),
+      ).synchronize();
+      await WorkoutPlanNotificationOrchestrator(
+        repository: ManualTrainingPlanRepository(database: database),
       ).synchronize();
 
       return true;

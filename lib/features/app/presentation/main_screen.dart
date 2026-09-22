@@ -64,6 +64,7 @@ import '../../../services/notification_navigation.dart';
 import '../../profile/data/goal_repository_impl.dart';
 import '../../profile/presentation/goal_detail_screen.dart';
 import '../../profile/presentation/weekly_goal_review_screen.dart';
+import '../../workout/presentation/manual_plan_screen.dart';
 
 /// The root scaffold containing the main navigation structure.
 ///
@@ -207,6 +208,12 @@ class _MainScreenState extends State<MainScreen>
         await AppNotificationRouter(GoalRepositoryImpl()).resolve(payload);
     if (!mounted) return;
     switch (destination) {
+      case WorkoutPlanNotificationDestination():
+        _onNavigationTapped(1);
+        await Navigator.of(context).push(MaterialPageRoute(
+          builder: (_) => const ManualPlanScreen(),
+        ));
+        return;
       case NutritionHubNotificationDestination():
         _onNavigationTapped(3);
         return;

@@ -13633,6 +13633,84 @@ abstract class AppLocalizations {
   /// **'Local notifications for reviews and target dates'**
   String get goalNotificationSettingsSubtitle;
 
+  /// No description provided for @notificationSettingsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get notificationSettingsTitle;
+
+  /// No description provided for @notificationSettingsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Workout, goal, and review reminders'**
+  String get notificationSettingsSubtitle;
+
+  /// No description provided for @notificationWorkoutSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Workout plan'**
+  String get notificationWorkoutSectionTitle;
+
+  /// No description provided for @notificationGoalsSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Goals & reviews'**
+  String get notificationGoalsSectionTitle;
+
+  /// No description provided for @workoutPlanNotifyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Remind me on workout days'**
+  String get workoutPlanNotifyTitle;
+
+  /// No description provided for @workoutPlanNotifySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Only on planned workout days. No catch-up or guilt reminders.'**
+  String get workoutPlanNotifySubtitle;
+
+  /// No description provided for @workoutPlanNotifyTimeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder time'**
+  String get workoutPlanNotifyTimeTitle;
+
+  /// No description provided for @workoutPlanNotifyNoActivePlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminders become active when a training plan is active.'**
+  String get workoutPlanNotifyNoActivePlan;
+
+  /// No description provided for @notificationPermissionDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications are disabled in system settings.'**
+  String get notificationPermissionDenied;
+
+  /// No description provided for @notificationPrivacyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Local and in your control'**
+  String get notificationPrivacyTitle;
+
+  /// No description provided for @notificationPrivacyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'These reminders are scheduled locally. Manage lock-screen previews and quiet hours in your operating system settings.'**
+  String get notificationPrivacyBody;
+
+  /// No description provided for @workoutPlanReminderTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your workout is planned'**
+  String get workoutPlanReminderTitle;
+
+  /// No description provided for @workoutPlanReminderBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{routineName} is up next in {planName}.'**
+  String workoutPlanReminderBody(String routineName, String planName);
+
   /// No description provided for @weeklyGoalReviewNotificationTitle.
   ///
   /// In en, this message translates to:

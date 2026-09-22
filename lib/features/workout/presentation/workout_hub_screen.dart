@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
 import '../data/sources/workout_local_data_source.dart';
 import '../../../generated/app_localizations.dart';
 import '../domain/models/routine.dart';
@@ -25,6 +26,7 @@ import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../app/presentation/widgets/glass_bottom_menu.dart';
 import 'live_workout_view_model.dart';
 import '../data/manual_training_plan_repository.dart';
+import '../domain/models/manual_training_plan.dart';
 import 'manual_plan_screen.dart';
 import 'manual_plan_text.dart';
 import '../../../widgets/common/app_button.dart';
@@ -69,6 +71,26 @@ class _WorkoutHubScreenState extends State<WorkoutHubScreen> {
 
   void _retryRecovery() {
     setState(() => _recoveryFuture = _loadRecovery());
+  }
+
+  Future<({ManualTrainingPlan plan, PlannedCalendarDay? next})?>
+      _loadManualPlanSummary() async {
+    final plan = await _manualPlans.activePlan();
+    if (plan == null) return null;
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final days = await _manualPlans.calendar(
+      plan.id,
+      today,
+      DateTime(today.year, today.month, today.day + 28),
+    );
+    return (
+      plan: plan,
+      next: days
+          .where((day) =>
+              !day.day.isRest && day.status == PlannedDayStatus.planned)
+          .firstOrNull,
+    );
   }
 
   Future<bool> _checkAndHandleOngoingWorkout() async {
@@ -203,9 +225,24 @@ class _WorkoutHubScreenState extends State<WorkoutHubScreen> {
         AppSectionHeader(title: ManualPlanText(context).get('plan')),
         FutureBuilder(
           key: ValueKey(_manualPlanRefresh),
-          future: _manualPlans.activePlan(),
+          future: _loadManualPlanSummary(),
           builder: (context, snapshot) {
-            final plan = snapshot.data;
+            final summary = snapshot.data;
+            final plan = summary?.plan;
+            final next = summary?.next;
+            final text = ManualPlanText(context);
+            final locale = Localizations.localeOf(context).toString();
+            String subtitle;
+            if (plan == null) {
+              subtitle = text.get('hubNoPlanDescription');
+            } else if (next == null) {
+              subtitle = text.get('hubNoUpcomingWorkout');
+            } else {
+              final when = DateUtils.isSameDay(next.date, DateTime.now())
+                  ? text.get('today')
+                  : DateFormat.MMMEd(locale).format(next.date);
+              subtitle = '${next.day.routineName} · $when';
+            }
             return SummaryCard(
               onTap: () async {
                 await Navigator.of(context).push(MaterialPageRoute(
@@ -213,7 +250,12 @@ class _WorkoutHubScreenState extends State<WorkoutHubScreen> {
                 if (mounted) setState(() => _manualPlanRefresh++);
               },
               child: Row(children: [
-                const Icon(LucideIcons.calendar_days),
+                Icon(
+                  plan == null
+                      ? LucideIcons.calendar_plus
+                      : LucideIcons.calendar_check_2,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
                 const SizedBox(width: DesignConstants.spacingM),
                 Expanded(
                     child: Column(
@@ -221,9 +263,14 @@ class _WorkoutHubScreenState extends State<WorkoutHubScreen> {
                   children: [
                     Text(plan?.name ?? ManualPlanText(context).get('noPlan'),
                         style: Theme.of(context).textTheme.titleMedium),
-                    Text(plan == null
-                        ? ManualPlanText(context).get('create')
-                        : ManualPlanText(context).get('active')),
+                    const SizedBox(height: 2),
+                    Text(subtitle,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurface
+                                  .withValues(alpha: 0.68),
+                            )),
                   ],
                 )),
                 const Icon(LucideIcons.chevron_right),

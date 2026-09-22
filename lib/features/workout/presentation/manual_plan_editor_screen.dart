@@ -8,6 +8,7 @@ import '../../../util/design_constants.dart';
 import '../../../widgets/common/app_button.dart';
 import '../../../widgets/common/app_link_row.dart';
 import '../../../widgets/common/app_segmented_control.dart';
+import '../../../widgets/common/app_section_header.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/summary_card.dart';
 import '../../app/presentation/widgets/glass_bottom_menu.dart';
@@ -15,6 +16,7 @@ import '../data/manual_training_plan_repository.dart';
 import '../data/sources/workout_local_data_source.dart';
 import '../domain/models/manual_training_plan.dart';
 import '../domain/models/routine.dart';
+import '../domain/services/workout_plan_notification_orchestrator.dart';
 import 'edit_routine_screen.dart';
 import 'manual_plan_text.dart';
 
@@ -85,6 +87,9 @@ class _ManualPlanEditorScreenState extends State<ManualPlanEditorScreen> {
                 children: [
                   AppLinkRow(
                     title: ManualPlanText(context).get('rest'),
+                    subtitle:
+                        ManualPlanText(context).get('restPickerDescription'),
+                    trailingIcon: LucideIcons.moon,
                     onTap: () {
                       close();
                       Navigator.pop(context, 'rest');
@@ -93,6 +98,9 @@ class _ManualPlanEditorScreenState extends State<ManualPlanEditorScreen> {
                   for (final routine in routines)
                     AppLinkRow(
                       title: routine.name,
+                      subtitle:
+                          '${routine.exercises.length} ${ManualPlanText(context).get('exercises')}',
+                      trailingIcon: LucideIcons.dumbbell,
                       onTap: () {
                         close();
                         Navigator.pop(context, routine);
@@ -209,6 +217,7 @@ class _ManualPlanEditorScreenState extends State<ManualPlanEditorScreen> {
             days: _days,
             nextCycle: nextCycle);
       }
+      await WorkoutPlanNotificationOrchestrator().synchronize();
       if (mounted) Navigator.pop(context, true);
     } catch (error) {
       if (mounted) setState(() => _error = error.toString());
@@ -229,8 +238,9 @@ class _ManualPlanEditorScreenState extends State<ManualPlanEditorScreen> {
       appBar: GlobalAppBar(
           title: text.get(widget.plan == null ? 'create' : 'edit')),
       body: ListView(
-        padding: const EdgeInsets.all(DesignConstants.spacingL),
+        padding: DesignConstants.screenPadding,
         children: [
+          AppSectionHeader(title: text.get('basics'), isFirst: true),
           SummaryCard(
               child: TextField(
             controller: _name,
@@ -241,7 +251,7 @@ class _ManualPlanEditorScreenState extends State<ManualPlanEditorScreen> {
             ),
           )),
           if (widget.plan == null) ...[
-            const SizedBox(height: DesignConstants.spacingL),
+            const SizedBox(height: DesignConstants.spacingM),
             AppSegmentedControl<TrainingPlanKind>(
               children: {
                 TrainingPlanKind.week: text.get('week'),
@@ -254,48 +264,91 @@ class _ManualPlanEditorScreenState extends State<ManualPlanEditorScreen> {
                     const TrainingPlanDay());
               }),
             ),
+            const SizedBox(height: DesignConstants.spacingS),
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                  horizontal: DesignConstants.spacingS),
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 180),
+                child: Text(
+                  text.get(_kind == TrainingPlanKind.week
+                      ? 'weekEditorExplanation'
+                      : 'sequenceEditorExplanation'),
+                  key: ValueKey(_kind),
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context)
+                            .colorScheme
+                            .onSurface
+                            .withValues(alpha: 0.68),
+                        height: 1.35,
+                      ),
+                ),
+              ),
+            ),
           ],
           if (_kind == TrainingPlanKind.sequence) ...[
-            const SizedBox(height: DesignConstants.spacingL),
+            const SizedBox(height: DesignConstants.spacingM),
             SummaryCard(
                 child: Row(children: [
               Expanded(
-                  child: Text(
-                      '${text.get('length')}: ${_days.length} ${text.get('days')}')),
+                  child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(text.get('length'),
+                      style: Theme.of(context).textTheme.titleMedium),
+                  Text('${_days.length} ${text.get('days')}',
+                      style: Theme.of(context).textTheme.bodySmall),
+                ],
+              )),
               IconButton(
-                  onPressed: () => _setLength(_days.length - 1),
+                  tooltip: text.get('shorter'),
+                  onPressed: _days.length > 1
+                      ? () => _setLength(_days.length - 1)
+                      : null,
                   icon: const Icon(LucideIcons.minus)),
               IconButton(
-                  onPressed: () => _setLength(_days.length + 1),
+                  tooltip: text.get('longer'),
+                  onPressed: _days.length < 14
+                      ? () => _setLength(_days.length + 1)
+                      : null,
                   icon: const Icon(LucideIcons.plus)),
             ])),
           ],
-          const SizedBox(height: DesignConstants.spacingM),
-          for (var index = 0; index < _days.length; index++)
-            SummaryCard(
-                child: Row(children: [
-              SizedBox(
-                  width: 92,
-                  child: Text(_kind == TrainingPlanKind.week
-                      ? weekdayNames[index]
-                      : '${index + 1}. ${text.get('days')}')),
-              Expanded(
-                  child: InkWell(
-                onTap: () => _chooseRoutine(index),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  child: Text(_days[index].routineName ?? text.get('rest'),
-                      maxLines: 2, overflow: TextOverflow.ellipsis),
+          const SizedBox(height: DesignConstants.spacingL),
+          AppSectionHeader(title: text.get('schedule')),
+          Text(
+            text.get('editorScheduleHint'),
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context)
+                      .colorScheme
+                      .onSurface
+                      .withValues(alpha: 0.68),
                 ),
-              )),
-              if (!_days[index].isRest)
-                IconButton(
-                  tooltip: text.get('edit'),
-                  onPressed: () => _editRoutine(index),
-                  icon: const Icon(LucideIcons.pencil, size: 18),
-                ),
-              const Icon(LucideIcons.chevron_right, size: 18),
-            ])),
+          ),
+          const SizedBox(height: DesignConstants.spacingS),
+          AnimatedSize(
+            duration: const Duration(milliseconds: 220),
+            curve: Curves.easeOutCubic,
+            alignment: Alignment.topCenter,
+            child: SummaryCard(
+              padding: EdgeInsets.zero,
+              child: Column(children: [
+                for (var index = 0; index < _days.length; index++) ...[
+                  _PlanEditorDayRow(
+                    label: _kind == TrainingPlanKind.week
+                        ? weekdayNames[index]
+                        : '${text.get('day')} ${index + 1}',
+                    day: _days[index],
+                    onChoose: () => _chooseRoutine(index),
+                    onEdit:
+                        _days[index].isRest ? null : () => _editRoutine(index),
+                  ),
+                  if (index != _days.length - 1)
+                    const Divider(height: 1, indent: 56),
+                ],
+              ]),
+            ),
+          ),
           if (_error != null)
             Padding(
               padding: const EdgeInsets.all(DesignConstants.spacingM),
@@ -310,6 +363,70 @@ class _ManualPlanEditorScreenState extends State<ManualPlanEditorScreen> {
           ),
           const SizedBox(height: 36),
         ],
+      ),
+    );
+  }
+}
+
+class _PlanEditorDayRow extends StatelessWidget {
+  const _PlanEditorDayRow({
+    required this.label,
+    required this.day,
+    required this.onChoose,
+    this.onEdit,
+  });
+
+  final String label;
+  final TrainingPlanDay day;
+  final VoidCallback onChoose;
+  final VoidCallback? onEdit;
+
+  @override
+  Widget build(BuildContext context) {
+    final text = ManualPlanText(context);
+    final theme = Theme.of(context);
+    return InkWell(
+      onTap: onChoose,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 11, 8, 11),
+        child: Row(children: [
+          SizedBox(
+            width: 34,
+            child: Icon(
+              day.isRest ? LucideIcons.moon : LucideIcons.dumbbell,
+              size: 19,
+              color: day.isRest
+                  ? theme.colorScheme.onSurfaceVariant
+                  : theme.colorScheme.primary,
+            ),
+          ),
+          const SizedBox(width: DesignConstants.spacingS),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label,
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                    )),
+                const SizedBox(height: 2),
+                Text(day.routineName ?? text.get('rest'),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    )),
+              ],
+            ),
+          ),
+          if (onEdit != null)
+            IconButton(
+              tooltip: text.get('editRoutine'),
+              onPressed: onEdit,
+              icon: const Icon(LucideIcons.pencil, size: 18),
+            ),
+          const Icon(LucideIcons.chevron_right, size: 18),
+        ]),
       ),
     );
   }

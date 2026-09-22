@@ -9,6 +9,7 @@ import 'package:flutter/rendering.dart';
 import '../data/sources/workout_local_data_source.dart';
 import '../data/manual_training_plan_repository.dart';
 import 'manual_plan_text.dart';
+import '../domain/services/workout_plan_notification_orchestrator.dart';
 import '../../sharing/share_service.dart';
 import '../../../generated/app_localizations.dart';
 import '../../exercise_catalog/domain/models/exercise.dart';
@@ -589,7 +590,10 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
       ),
     );
     if (include == null) return;
-    if (include) await plans.includeRoutineEdit(_routineId!);
+    if (include) {
+      await plans.includeRoutineEdit(_routineId!);
+      await WorkoutPlanNotificationOrchestrator().synchronize();
+    }
     _routineChangedInSession = false;
   }
 

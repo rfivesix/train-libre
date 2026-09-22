@@ -7,17 +7,20 @@ enum AppNotificationType {
   weeklyGoalReview,
   goalTargetDate,
   adaptiveRecommendation,
+  workoutPlan,
 }
 
 class AppNotificationPayload {
   final AppNotificationType type;
   final String? goalId;
   final String? reviewId;
+  final String? planId;
 
   const AppNotificationPayload({
     required this.type,
     this.goalId,
     this.reviewId,
+    this.planId,
   });
 
   String encode() => jsonEncode({
@@ -25,6 +28,7 @@ class AppNotificationPayload {
         'type': type.name,
         if (goalId != null) 'goalId': goalId,
         if (reviewId != null) 'reviewId': reviewId,
+        if (planId != null) 'planId': planId,
       });
 
   static AppNotificationPayload? tryParse(String? raw) {
@@ -41,6 +45,7 @@ class AppNotificationPayload {
         type: type,
         goalId: map['goalId'] as String?,
         reviewId: map['reviewId'] as String?,
+        planId: map['planId'] as String?,
       );
     } catch (_) {
       return null;
@@ -54,6 +59,10 @@ sealed class NotificationDestination {
 
 class NutritionHubNotificationDestination extends NotificationDestination {
   const NutritionHubNotificationDestination();
+}
+
+class WorkoutPlanNotificationDestination extends NotificationDestination {
+  const WorkoutPlanNotificationDestination();
 }
 
 class GoalDetailNotificationDestination extends NotificationDestination {
@@ -76,6 +85,9 @@ class AppNotificationRouter {
   Future<NotificationDestination> resolve(
     AppNotificationPayload? payload,
   ) async {
+    if (payload?.type == AppNotificationType.workoutPlan) {
+      return const WorkoutPlanNotificationDestination();
+    }
     if (payload == null ||
         payload.type == AppNotificationType.adaptiveRecommendation) {
       return const NutritionHubNotificationDestination();

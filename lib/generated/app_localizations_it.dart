@@ -7879,6 +7879,52 @@ class AppLocalizationsIt extends AppLocalizations {
       'Notifiche locali per bilanci e date obiettivo';
 
   @override
+  String get notificationSettingsTitle => 'Notifiche';
+
+  @override
+  String get notificationSettingsSubtitle =>
+      'Promemoria per allenamenti, obiettivi e revisioni';
+
+  @override
+  String get notificationWorkoutSectionTitle => 'Piano di allenamento';
+
+  @override
+  String get notificationGoalsSectionTitle => 'Obiettivi e revisioni';
+
+  @override
+  String get workoutPlanNotifyTitle => 'Ricorda nei giorni di allenamento';
+
+  @override
+  String get workoutPlanNotifySubtitle =>
+      'Solo nei giorni pianificati. Nessun promemoria di recupero o colpevolizzante.';
+
+  @override
+  String get workoutPlanNotifyTimeTitle => 'Ora del promemoria';
+
+  @override
+  String get workoutPlanNotifyNoActivePlan =>
+      'I promemoria si attivano quando è attivo un piano di allenamento.';
+
+  @override
+  String get notificationPermissionDenied =>
+      'Le notifiche sono disattivate nelle impostazioni di sistema.';
+
+  @override
+  String get notificationPrivacyTitle => 'Locale e sotto il tuo controllo';
+
+  @override
+  String get notificationPrivacyBody =>
+      'Questi promemoria sono programmati localmente. Gestisci anteprime e orari silenziosi nelle impostazioni del sistema operativo.';
+
+  @override
+  String get workoutPlanReminderTitle => 'Il tuo allenamento è pianificato';
+
+  @override
+  String workoutPlanReminderBody(String routineName, String planName) {
+    return '$routineName è il prossimo allenamento di $planName.';
+  }
+
+  @override
   String get weeklyGoalReviewNotificationTitle => 'Bilancio settimanale pronto';
 
   @override
