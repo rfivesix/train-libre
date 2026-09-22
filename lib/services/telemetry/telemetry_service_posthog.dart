@@ -21,7 +21,7 @@ class PostHogTelemetryService implements TelemetryService {
   static const String _prefFoodLogSourcesKey = 'telemetry_daily_food_sources';
 
   static const String _defaultApiKey = String.fromEnvironment('POSTHOG_API_KEY',
-      defaultValue: 'phc_vmLGxjjWfVB58y7smThJX9mQte9Y97Kff62EmLDtNWTB');
+      defaultValue: '');
   static const String _postHogEuHost = 'https://eu.i.posthog.com';
 
   /// Reported as `$lib_version` on the direct-HTTP `app_launched` payload so it
