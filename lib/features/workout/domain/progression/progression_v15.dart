@@ -11,9 +11,15 @@ ProgressionPolicy selectProgressionPolicy(
       ranges.first!.min <= 0) {
     return ProgressionPolicy.linkedWorkingSets;
   }
-  return List.generate(loads.length,
-              (i) => loads[i] == loads.first && ranges[i] == ranges.first)
-          .every((v) => v)
+  // BOLT OPTIMIZATION: Replace List.generate(...).every() with short-circuiting loop
+  bool allSame = true;
+  for (var i = 0; i < loads.length; i++) {
+    if (loads[i] != loads.first || ranges[i] != ranges.first) {
+      allSame = false;
+      break;
+    }
+  }
+  return allSame
       ? ProgressionPolicy.independentWorkingSets
       : ProgressionPolicy.linkedWorkingSets;
 }
@@ -126,16 +132,37 @@ class ProgressionV15 {
         positions[i].range != null &&
         e.reps! >= positions[i].range!.max &&
         (e.reps! < positions[i].range!.max + 3 || e.overshootConfirmed);
-    final allTop = latest.length == positions.length &&
-        List.generate(positions.length, (i) => top(latest[i], i))
-            .every((v) => v);
-    bool bodyReady = loadMode == LoadMode.bodyweight &&
-        positions.isNotEmpty &&
-        (policy == ProgressionPolicy.linkedWorkingSets
-            ? allTop
-            : List.generate(positions.length,
-                    (i) => ordered.any((s) => s.length > i && top(s[i], i)))
-                .every((v) => v));
+    // BOLT OPTIMIZATION: Replace List.generate(...).every() with short-circuiting loops
+    bool allTop = latest.length == positions.length;
+    if (allTop) {
+      for (var i = 0; i < positions.length; i++) {
+        if (!top(latest[i], i)) {
+          allTop = false;
+          break;
+        }
+      }
+    }
+
+    bool bodyReady = loadMode == LoadMode.bodyweight && positions.isNotEmpty;
+    if (bodyReady) {
+      if (policy == ProgressionPolicy.linkedWorkingSets) {
+        bodyReady = allTop;
+      } else {
+        for (var i = 0; i < positions.length; i++) {
+          bool anyTop = false;
+          for (final s in ordered) {
+            if (s.length > i && top(s[i], i)) {
+              anyTop = true;
+              break;
+            }
+          }
+          if (!anyTop) {
+            bodyReady = false;
+            break;
+          }
+        }
+      }
+    }
     final results = <ProgressionSuggestion>[];
     for (var i = 0; i < positions.length; i++) {
       final ownSession = policy == ProgressionPolicy.independentWorkingSets
@@ -247,8 +274,18 @@ class ProgressionV15 {
             .where((s) => s.length > i && evidence(s[i], i))
             .take(3)
             .toList();
-        if (comparable.length == 3 &&
-            comparable.every((s) => s[i].reps! < range.min)) {
+        // BOLT OPTIMIZATION: Replace iterable .every() with short-circuiting loop
+        bool allUnder = comparable.length == 3;
+        if (allUnder) {
+          for (final s in comparable) {
+            if (s[i].reps! >= range.min) {
+              allUnder = false;
+              break;
+            }
+          }
+        }
+
+        if (allUnder) {
           final lower = resolved != null
               ? resolved.next(w, assisted: loadMode != LoadMode.assisted)
               : loadMode == LoadMode.assisted
