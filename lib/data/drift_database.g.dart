@@ -25948,6 +25948,2353 @@ class GoalReviewsCompanion extends UpdateCompanion<GoalReview> {
   }
 }
 
+class $TrainingPlansTable extends TrainingPlans
+    with TableInfo<$TrainingPlansTable, TrainingPlan> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $TrainingPlansTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _localIdMeta =
+      const VerificationMeta('localId');
+  @override
+  late final GeneratedColumn<int> localId = GeneratedColumn<int>(
+      'local_id', aliasedName, false,
+      hasAutoIncrement: true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+      'id', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'),
+      clientDefault: () => const Uuid().v4());
+  static const VerificationMeta _createdAtMeta =
+      const VerificationMeta('createdAt');
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+      'created_at', aliasedName, false,
+      type: DriftSqlType.dateTime,
+      requiredDuringInsert: false,
+      defaultValue: currentDateAndTime);
+  static const VerificationMeta _updatedAtMeta =
+      const VerificationMeta('updatedAt');
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+      'updated_at', aliasedName, false,
+      type: DriftSqlType.dateTime,
+      requiredDuringInsert: false,
+      defaultValue: currentDateAndTime);
+  static const VerificationMeta _deletedAtMeta =
+      const VerificationMeta('deletedAt');
+  @override
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+      'deleted_at', aliasedName, true,
+      type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+      'name', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _kindMeta = const VerificationMeta('kind');
+  @override
+  late final GeneratedColumn<String> kind = GeneratedColumn<String>(
+      'kind', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _lengthDaysMeta =
+      const VerificationMeta('lengthDays');
+  @override
+  late final GeneratedColumn<int> lengthDays = GeneratedColumn<int>(
+      'length_days', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
+  static const VerificationMeta _isActiveMeta =
+      const VerificationMeta('isActive');
+  @override
+  late final GeneratedColumn<bool> isActive = GeneratedColumn<bool>(
+      'is_active', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('CHECK ("is_active" IN (0, 1))'),
+      defaultValue: const Constant(false));
+  static const VerificationMeta _startedOnMeta =
+      const VerificationMeta('startedOn');
+  @override
+  late final GeneratedColumn<DateTime> startedOn = GeneratedColumn<DateTime>(
+      'started_on', aliasedName, true,
+      type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  static const VerificationMeta _pausedOnMeta =
+      const VerificationMeta('pausedOn');
+  @override
+  late final GeneratedColumn<DateTime> pausedOn = GeneratedColumn<DateTime>(
+      'paused_on', aliasedName, true,
+      type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  static const VerificationMeta _sequenceCursorMeta =
+      const VerificationMeta('sequenceCursor');
+  @override
+  late final GeneratedColumn<int> sequenceCursor = GeneratedColumn<int>(
+      'sequence_cursor', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0));
+  static const VerificationMeta _sequenceCycleMeta =
+      const VerificationMeta('sequenceCycle');
+  @override
+  late final GeneratedColumn<int> sequenceCycle = GeneratedColumn<int>(
+      'sequence_cycle', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0));
+  @override
+  List<GeneratedColumn> get $columns => [
+        localId,
+        id,
+        createdAt,
+        updatedAt,
+        deletedAt,
+        name,
+        kind,
+        lengthDays,
+        isActive,
+        startedOn,
+        pausedOn,
+        sequenceCursor,
+        sequenceCycle
+      ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'training_plans';
+  @override
+  VerificationContext validateIntegrity(Insertable<TrainingPlan> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('local_id')) {
+      context.handle(_localIdMeta,
+          localId.isAcceptableOrUnknown(data['local_id']!, _localIdMeta));
+    }
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(_createdAtMeta,
+          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(_updatedAtMeta,
+          updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta));
+    }
+    if (data.containsKey('deleted_at')) {
+      context.handle(_deletedAtMeta,
+          deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta));
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+          _nameMeta, name.isAcceptableOrUnknown(data['name']!, _nameMeta));
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('kind')) {
+      context.handle(
+          _kindMeta, kind.isAcceptableOrUnknown(data['kind']!, _kindMeta));
+    } else if (isInserting) {
+      context.missing(_kindMeta);
+    }
+    if (data.containsKey('length_days')) {
+      context.handle(
+          _lengthDaysMeta,
+          lengthDays.isAcceptableOrUnknown(
+              data['length_days']!, _lengthDaysMeta));
+    } else if (isInserting) {
+      context.missing(_lengthDaysMeta);
+    }
+    if (data.containsKey('is_active')) {
+      context.handle(_isActiveMeta,
+          isActive.isAcceptableOrUnknown(data['is_active']!, _isActiveMeta));
+    }
+    if (data.containsKey('started_on')) {
+      context.handle(_startedOnMeta,
+          startedOn.isAcceptableOrUnknown(data['started_on']!, _startedOnMeta));
+    }
+    if (data.containsKey('paused_on')) {
+      context.handle(_pausedOnMeta,
+          pausedOn.isAcceptableOrUnknown(data['paused_on']!, _pausedOnMeta));
+    }
+    if (data.containsKey('sequence_cursor')) {
+      context.handle(
+          _sequenceCursorMeta,
+          sequenceCursor.isAcceptableOrUnknown(
+              data['sequence_cursor']!, _sequenceCursorMeta));
+    }
+    if (data.containsKey('sequence_cycle')) {
+      context.handle(
+          _sequenceCycleMeta,
+          sequenceCycle.isAcceptableOrUnknown(
+              data['sequence_cycle']!, _sequenceCycleMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {localId};
+  @override
+  TrainingPlan map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return TrainingPlan(
+      localId: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}local_id'])!,
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
+      createdAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
+      updatedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}updated_at'])!,
+      deletedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}deleted_at']),
+      name: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}name'])!,
+      kind: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}kind'])!,
+      lengthDays: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}length_days'])!,
+      isActive: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}is_active'])!,
+      startedOn: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}started_on']),
+      pausedOn: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}paused_on']),
+      sequenceCursor: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}sequence_cursor'])!,
+      sequenceCycle: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}sequence_cycle'])!,
+    );
+  }
+
+  @override
+  $TrainingPlansTable createAlias(String alias) {
+    return $TrainingPlansTable(attachedDatabase, alias);
+  }
+}
+
+class TrainingPlan extends DataClass implements Insertable<TrainingPlan> {
+  final int localId;
+  final String id;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final DateTime? deletedAt;
+  final String name;
+  final String kind;
+  final int lengthDays;
+  final bool isActive;
+  final DateTime? startedOn;
+  final DateTime? pausedOn;
+  final int sequenceCursor;
+  final int sequenceCycle;
+  const TrainingPlan(
+      {required this.localId,
+      required this.id,
+      required this.createdAt,
+      required this.updatedAt,
+      this.deletedAt,
+      required this.name,
+      required this.kind,
+      required this.lengthDays,
+      required this.isActive,
+      this.startedOn,
+      this.pausedOn,
+      required this.sequenceCursor,
+      required this.sequenceCycle});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['local_id'] = Variable<int>(localId);
+    map['id'] = Variable<String>(id);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
+    map['name'] = Variable<String>(name);
+    map['kind'] = Variable<String>(kind);
+    map['length_days'] = Variable<int>(lengthDays);
+    map['is_active'] = Variable<bool>(isActive);
+    if (!nullToAbsent || startedOn != null) {
+      map['started_on'] = Variable<DateTime>(startedOn);
+    }
+    if (!nullToAbsent || pausedOn != null) {
+      map['paused_on'] = Variable<DateTime>(pausedOn);
+    }
+    map['sequence_cursor'] = Variable<int>(sequenceCursor);
+    map['sequence_cycle'] = Variable<int>(sequenceCycle);
+    return map;
+  }
+
+  TrainingPlansCompanion toCompanion(bool nullToAbsent) {
+    return TrainingPlansCompanion(
+      localId: Value(localId),
+      id: Value(id),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
+      name: Value(name),
+      kind: Value(kind),
+      lengthDays: Value(lengthDays),
+      isActive: Value(isActive),
+      startedOn: startedOn == null && nullToAbsent
+          ? const Value.absent()
+          : Value(startedOn),
+      pausedOn: pausedOn == null && nullToAbsent
+          ? const Value.absent()
+          : Value(pausedOn),
+      sequenceCursor: Value(sequenceCursor),
+      sequenceCycle: Value(sequenceCycle),
+    );
+  }
+
+  factory TrainingPlan.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return TrainingPlan(
+      localId: serializer.fromJson<int>(json['localId']),
+      id: serializer.fromJson<String>(json['id']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+      name: serializer.fromJson<String>(json['name']),
+      kind: serializer.fromJson<String>(json['kind']),
+      lengthDays: serializer.fromJson<int>(json['lengthDays']),
+      isActive: serializer.fromJson<bool>(json['isActive']),
+      startedOn: serializer.fromJson<DateTime?>(json['startedOn']),
+      pausedOn: serializer.fromJson<DateTime?>(json['pausedOn']),
+      sequenceCursor: serializer.fromJson<int>(json['sequenceCursor']),
+      sequenceCycle: serializer.fromJson<int>(json['sequenceCycle']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'localId': serializer.toJson<int>(localId),
+      'id': serializer.toJson<String>(id),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+      'name': serializer.toJson<String>(name),
+      'kind': serializer.toJson<String>(kind),
+      'lengthDays': serializer.toJson<int>(lengthDays),
+      'isActive': serializer.toJson<bool>(isActive),
+      'startedOn': serializer.toJson<DateTime?>(startedOn),
+      'pausedOn': serializer.toJson<DateTime?>(pausedOn),
+      'sequenceCursor': serializer.toJson<int>(sequenceCursor),
+      'sequenceCycle': serializer.toJson<int>(sequenceCycle),
+    };
+  }
+
+  TrainingPlan copyWith(
+          {int? localId,
+          String? id,
+          DateTime? createdAt,
+          DateTime? updatedAt,
+          Value<DateTime?> deletedAt = const Value.absent(),
+          String? name,
+          String? kind,
+          int? lengthDays,
+          bool? isActive,
+          Value<DateTime?> startedOn = const Value.absent(),
+          Value<DateTime?> pausedOn = const Value.absent(),
+          int? sequenceCursor,
+          int? sequenceCycle}) =>
+      TrainingPlan(
+        localId: localId ?? this.localId,
+        id: id ?? this.id,
+        createdAt: createdAt ?? this.createdAt,
+        updatedAt: updatedAt ?? this.updatedAt,
+        deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+        name: name ?? this.name,
+        kind: kind ?? this.kind,
+        lengthDays: lengthDays ?? this.lengthDays,
+        isActive: isActive ?? this.isActive,
+        startedOn: startedOn.present ? startedOn.value : this.startedOn,
+        pausedOn: pausedOn.present ? pausedOn.value : this.pausedOn,
+        sequenceCursor: sequenceCursor ?? this.sequenceCursor,
+        sequenceCycle: sequenceCycle ?? this.sequenceCycle,
+      );
+  TrainingPlan copyWithCompanion(TrainingPlansCompanion data) {
+    return TrainingPlan(
+      localId: data.localId.present ? data.localId.value : this.localId,
+      id: data.id.present ? data.id.value : this.id,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+      name: data.name.present ? data.name.value : this.name,
+      kind: data.kind.present ? data.kind.value : this.kind,
+      lengthDays:
+          data.lengthDays.present ? data.lengthDays.value : this.lengthDays,
+      isActive: data.isActive.present ? data.isActive.value : this.isActive,
+      startedOn: data.startedOn.present ? data.startedOn.value : this.startedOn,
+      pausedOn: data.pausedOn.present ? data.pausedOn.value : this.pausedOn,
+      sequenceCursor: data.sequenceCursor.present
+          ? data.sequenceCursor.value
+          : this.sequenceCursor,
+      sequenceCycle: data.sequenceCycle.present
+          ? data.sequenceCycle.value
+          : this.sequenceCycle,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TrainingPlan(')
+          ..write('localId: $localId, ')
+          ..write('id: $id, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('name: $name, ')
+          ..write('kind: $kind, ')
+          ..write('lengthDays: $lengthDays, ')
+          ..write('isActive: $isActive, ')
+          ..write('startedOn: $startedOn, ')
+          ..write('pausedOn: $pausedOn, ')
+          ..write('sequenceCursor: $sequenceCursor, ')
+          ..write('sequenceCycle: $sequenceCycle')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+      localId,
+      id,
+      createdAt,
+      updatedAt,
+      deletedAt,
+      name,
+      kind,
+      lengthDays,
+      isActive,
+      startedOn,
+      pausedOn,
+      sequenceCursor,
+      sequenceCycle);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is TrainingPlan &&
+          other.localId == this.localId &&
+          other.id == this.id &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt &&
+          other.deletedAt == this.deletedAt &&
+          other.name == this.name &&
+          other.kind == this.kind &&
+          other.lengthDays == this.lengthDays &&
+          other.isActive == this.isActive &&
+          other.startedOn == this.startedOn &&
+          other.pausedOn == this.pausedOn &&
+          other.sequenceCursor == this.sequenceCursor &&
+          other.sequenceCycle == this.sequenceCycle);
+}
+
+class TrainingPlansCompanion extends UpdateCompanion<TrainingPlan> {
+  final Value<int> localId;
+  final Value<String> id;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<DateTime?> deletedAt;
+  final Value<String> name;
+  final Value<String> kind;
+  final Value<int> lengthDays;
+  final Value<bool> isActive;
+  final Value<DateTime?> startedOn;
+  final Value<DateTime?> pausedOn;
+  final Value<int> sequenceCursor;
+  final Value<int> sequenceCycle;
+  const TrainingPlansCompanion({
+    this.localId = const Value.absent(),
+    this.id = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.name = const Value.absent(),
+    this.kind = const Value.absent(),
+    this.lengthDays = const Value.absent(),
+    this.isActive = const Value.absent(),
+    this.startedOn = const Value.absent(),
+    this.pausedOn = const Value.absent(),
+    this.sequenceCursor = const Value.absent(),
+    this.sequenceCycle = const Value.absent(),
+  });
+  TrainingPlansCompanion.insert({
+    this.localId = const Value.absent(),
+    this.id = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    required String name,
+    required String kind,
+    required int lengthDays,
+    this.isActive = const Value.absent(),
+    this.startedOn = const Value.absent(),
+    this.pausedOn = const Value.absent(),
+    this.sequenceCursor = const Value.absent(),
+    this.sequenceCycle = const Value.absent(),
+  })  : name = Value(name),
+        kind = Value(kind),
+        lengthDays = Value(lengthDays);
+  static Insertable<TrainingPlan> custom({
+    Expression<int>? localId,
+    Expression<String>? id,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<DateTime>? deletedAt,
+    Expression<String>? name,
+    Expression<String>? kind,
+    Expression<int>? lengthDays,
+    Expression<bool>? isActive,
+    Expression<DateTime>? startedOn,
+    Expression<DateTime>? pausedOn,
+    Expression<int>? sequenceCursor,
+    Expression<int>? sequenceCycle,
+  }) {
+    return RawValuesInsertable({
+      if (localId != null) 'local_id': localId,
+      if (id != null) 'id': id,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+      if (name != null) 'name': name,
+      if (kind != null) 'kind': kind,
+      if (lengthDays != null) 'length_days': lengthDays,
+      if (isActive != null) 'is_active': isActive,
+      if (startedOn != null) 'started_on': startedOn,
+      if (pausedOn != null) 'paused_on': pausedOn,
+      if (sequenceCursor != null) 'sequence_cursor': sequenceCursor,
+      if (sequenceCycle != null) 'sequence_cycle': sequenceCycle,
+    });
+  }
+
+  TrainingPlansCompanion copyWith(
+      {Value<int>? localId,
+      Value<String>? id,
+      Value<DateTime>? createdAt,
+      Value<DateTime>? updatedAt,
+      Value<DateTime?>? deletedAt,
+      Value<String>? name,
+      Value<String>? kind,
+      Value<int>? lengthDays,
+      Value<bool>? isActive,
+      Value<DateTime?>? startedOn,
+      Value<DateTime?>? pausedOn,
+      Value<int>? sequenceCursor,
+      Value<int>? sequenceCycle}) {
+    return TrainingPlansCompanion(
+      localId: localId ?? this.localId,
+      id: id ?? this.id,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      deletedAt: deletedAt ?? this.deletedAt,
+      name: name ?? this.name,
+      kind: kind ?? this.kind,
+      lengthDays: lengthDays ?? this.lengthDays,
+      isActive: isActive ?? this.isActive,
+      startedOn: startedOn ?? this.startedOn,
+      pausedOn: pausedOn ?? this.pausedOn,
+      sequenceCursor: sequenceCursor ?? this.sequenceCursor,
+      sequenceCycle: sequenceCycle ?? this.sequenceCycle,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (localId.present) {
+      map['local_id'] = Variable<int>(localId.value);
+    }
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (kind.present) {
+      map['kind'] = Variable<String>(kind.value);
+    }
+    if (lengthDays.present) {
+      map['length_days'] = Variable<int>(lengthDays.value);
+    }
+    if (isActive.present) {
+      map['is_active'] = Variable<bool>(isActive.value);
+    }
+    if (startedOn.present) {
+      map['started_on'] = Variable<DateTime>(startedOn.value);
+    }
+    if (pausedOn.present) {
+      map['paused_on'] = Variable<DateTime>(pausedOn.value);
+    }
+    if (sequenceCursor.present) {
+      map['sequence_cursor'] = Variable<int>(sequenceCursor.value);
+    }
+    if (sequenceCycle.present) {
+      map['sequence_cycle'] = Variable<int>(sequenceCycle.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TrainingPlansCompanion(')
+          ..write('localId: $localId, ')
+          ..write('id: $id, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('name: $name, ')
+          ..write('kind: $kind, ')
+          ..write('lengthDays: $lengthDays, ')
+          ..write('isActive: $isActive, ')
+          ..write('startedOn: $startedOn, ')
+          ..write('pausedOn: $pausedOn, ')
+          ..write('sequenceCursor: $sequenceCursor, ')
+          ..write('sequenceCycle: $sequenceCycle')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $TrainingPlanRevisionsTable extends TrainingPlanRevisions
+    with TableInfo<$TrainingPlanRevisionsTable, TrainingPlanRevision> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $TrainingPlanRevisionsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _localIdMeta =
+      const VerificationMeta('localId');
+  @override
+  late final GeneratedColumn<int> localId = GeneratedColumn<int>(
+      'local_id', aliasedName, false,
+      hasAutoIncrement: true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+      'id', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'),
+      clientDefault: () => const Uuid().v4());
+  static const VerificationMeta _createdAtMeta =
+      const VerificationMeta('createdAt');
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+      'created_at', aliasedName, false,
+      type: DriftSqlType.dateTime,
+      requiredDuringInsert: false,
+      defaultValue: currentDateAndTime);
+  static const VerificationMeta _updatedAtMeta =
+      const VerificationMeta('updatedAt');
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+      'updated_at', aliasedName, false,
+      type: DriftSqlType.dateTime,
+      requiredDuringInsert: false,
+      defaultValue: currentDateAndTime);
+  static const VerificationMeta _deletedAtMeta =
+      const VerificationMeta('deletedAt');
+  @override
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+      'deleted_at', aliasedName, true,
+      type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  static const VerificationMeta _planIdMeta = const VerificationMeta('planId');
+  @override
+  late final GeneratedColumn<String> planId = GeneratedColumn<String>(
+      'plan_id', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('REFERENCES training_plans (id)'));
+  static const VerificationMeta _numberMeta = const VerificationMeta('number');
+  @override
+  late final GeneratedColumn<int> number = GeneratedColumn<int>(
+      'number', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
+  static const VerificationMeta _effectiveOnMeta =
+      const VerificationMeta('effectiveOn');
+  @override
+  late final GeneratedColumn<DateTime> effectiveOn = GeneratedColumn<DateTime>(
+      'effective_on', aliasedName, false,
+      type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  static const VerificationMeta _effectiveCycleMeta =
+      const VerificationMeta('effectiveCycle');
+  @override
+  late final GeneratedColumn<int> effectiveCycle = GeneratedColumn<int>(
+      'effective_cycle', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
+  static const VerificationMeta _daysJsonMeta =
+      const VerificationMeta('daysJson');
+  @override
+  late final GeneratedColumn<String> daysJson = GeneratedColumn<String>(
+      'days_json', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  @override
+  List<GeneratedColumn> get $columns => [
+        localId,
+        id,
+        createdAt,
+        updatedAt,
+        deletedAt,
+        planId,
+        number,
+        effectiveOn,
+        effectiveCycle,
+        daysJson
+      ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'training_plan_revisions';
+  @override
+  VerificationContext validateIntegrity(
+      Insertable<TrainingPlanRevision> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('local_id')) {
+      context.handle(_localIdMeta,
+          localId.isAcceptableOrUnknown(data['local_id']!, _localIdMeta));
+    }
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(_createdAtMeta,
+          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(_updatedAtMeta,
+          updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta));
+    }
+    if (data.containsKey('deleted_at')) {
+      context.handle(_deletedAtMeta,
+          deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta));
+    }
+    if (data.containsKey('plan_id')) {
+      context.handle(_planIdMeta,
+          planId.isAcceptableOrUnknown(data['plan_id']!, _planIdMeta));
+    } else if (isInserting) {
+      context.missing(_planIdMeta);
+    }
+    if (data.containsKey('number')) {
+      context.handle(_numberMeta,
+          number.isAcceptableOrUnknown(data['number']!, _numberMeta));
+    } else if (isInserting) {
+      context.missing(_numberMeta);
+    }
+    if (data.containsKey('effective_on')) {
+      context.handle(
+          _effectiveOnMeta,
+          effectiveOn.isAcceptableOrUnknown(
+              data['effective_on']!, _effectiveOnMeta));
+    } else if (isInserting) {
+      context.missing(_effectiveOnMeta);
+    }
+    if (data.containsKey('effective_cycle')) {
+      context.handle(
+          _effectiveCycleMeta,
+          effectiveCycle.isAcceptableOrUnknown(
+              data['effective_cycle']!, _effectiveCycleMeta));
+    }
+    if (data.containsKey('days_json')) {
+      context.handle(_daysJsonMeta,
+          daysJson.isAcceptableOrUnknown(data['days_json']!, _daysJsonMeta));
+    } else if (isInserting) {
+      context.missing(_daysJsonMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {localId};
+  @override
+  TrainingPlanRevision map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return TrainingPlanRevision(
+      localId: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}local_id'])!,
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
+      createdAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
+      updatedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}updated_at'])!,
+      deletedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}deleted_at']),
+      planId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}plan_id'])!,
+      number: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}number'])!,
+      effectiveOn: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}effective_on'])!,
+      effectiveCycle: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}effective_cycle']),
+      daysJson: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}days_json'])!,
+    );
+  }
+
+  @override
+  $TrainingPlanRevisionsTable createAlias(String alias) {
+    return $TrainingPlanRevisionsTable(attachedDatabase, alias);
+  }
+}
+
+class TrainingPlanRevision extends DataClass
+    implements Insertable<TrainingPlanRevision> {
+  final int localId;
+  final String id;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final DateTime? deletedAt;
+  final String planId;
+  final int number;
+  final DateTime effectiveOn;
+  final int? effectiveCycle;
+  final String daysJson;
+  const TrainingPlanRevision(
+      {required this.localId,
+      required this.id,
+      required this.createdAt,
+      required this.updatedAt,
+      this.deletedAt,
+      required this.planId,
+      required this.number,
+      required this.effectiveOn,
+      this.effectiveCycle,
+      required this.daysJson});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['local_id'] = Variable<int>(localId);
+    map['id'] = Variable<String>(id);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
+    map['plan_id'] = Variable<String>(planId);
+    map['number'] = Variable<int>(number);
+    map['effective_on'] = Variable<DateTime>(effectiveOn);
+    if (!nullToAbsent || effectiveCycle != null) {
+      map['effective_cycle'] = Variable<int>(effectiveCycle);
+    }
+    map['days_json'] = Variable<String>(daysJson);
+    return map;
+  }
+
+  TrainingPlanRevisionsCompanion toCompanion(bool nullToAbsent) {
+    return TrainingPlanRevisionsCompanion(
+      localId: Value(localId),
+      id: Value(id),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
+      planId: Value(planId),
+      number: Value(number),
+      effectiveOn: Value(effectiveOn),
+      effectiveCycle: effectiveCycle == null && nullToAbsent
+          ? const Value.absent()
+          : Value(effectiveCycle),
+      daysJson: Value(daysJson),
+    );
+  }
+
+  factory TrainingPlanRevision.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return TrainingPlanRevision(
+      localId: serializer.fromJson<int>(json['localId']),
+      id: serializer.fromJson<String>(json['id']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+      planId: serializer.fromJson<String>(json['planId']),
+      number: serializer.fromJson<int>(json['number']),
+      effectiveOn: serializer.fromJson<DateTime>(json['effectiveOn']),
+      effectiveCycle: serializer.fromJson<int?>(json['effectiveCycle']),
+      daysJson: serializer.fromJson<String>(json['daysJson']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'localId': serializer.toJson<int>(localId),
+      'id': serializer.toJson<String>(id),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+      'planId': serializer.toJson<String>(planId),
+      'number': serializer.toJson<int>(number),
+      'effectiveOn': serializer.toJson<DateTime>(effectiveOn),
+      'effectiveCycle': serializer.toJson<int?>(effectiveCycle),
+      'daysJson': serializer.toJson<String>(daysJson),
+    };
+  }
+
+  TrainingPlanRevision copyWith(
+          {int? localId,
+          String? id,
+          DateTime? createdAt,
+          DateTime? updatedAt,
+          Value<DateTime?> deletedAt = const Value.absent(),
+          String? planId,
+          int? number,
+          DateTime? effectiveOn,
+          Value<int?> effectiveCycle = const Value.absent(),
+          String? daysJson}) =>
+      TrainingPlanRevision(
+        localId: localId ?? this.localId,
+        id: id ?? this.id,
+        createdAt: createdAt ?? this.createdAt,
+        updatedAt: updatedAt ?? this.updatedAt,
+        deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+        planId: planId ?? this.planId,
+        number: number ?? this.number,
+        effectiveOn: effectiveOn ?? this.effectiveOn,
+        effectiveCycle:
+            effectiveCycle.present ? effectiveCycle.value : this.effectiveCycle,
+        daysJson: daysJson ?? this.daysJson,
+      );
+  TrainingPlanRevision copyWithCompanion(TrainingPlanRevisionsCompanion data) {
+    return TrainingPlanRevision(
+      localId: data.localId.present ? data.localId.value : this.localId,
+      id: data.id.present ? data.id.value : this.id,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+      planId: data.planId.present ? data.planId.value : this.planId,
+      number: data.number.present ? data.number.value : this.number,
+      effectiveOn:
+          data.effectiveOn.present ? data.effectiveOn.value : this.effectiveOn,
+      effectiveCycle: data.effectiveCycle.present
+          ? data.effectiveCycle.value
+          : this.effectiveCycle,
+      daysJson: data.daysJson.present ? data.daysJson.value : this.daysJson,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TrainingPlanRevision(')
+          ..write('localId: $localId, ')
+          ..write('id: $id, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('planId: $planId, ')
+          ..write('number: $number, ')
+          ..write('effectiveOn: $effectiveOn, ')
+          ..write('effectiveCycle: $effectiveCycle, ')
+          ..write('daysJson: $daysJson')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(localId, id, createdAt, updatedAt, deletedAt,
+      planId, number, effectiveOn, effectiveCycle, daysJson);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is TrainingPlanRevision &&
+          other.localId == this.localId &&
+          other.id == this.id &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt &&
+          other.deletedAt == this.deletedAt &&
+          other.planId == this.planId &&
+          other.number == this.number &&
+          other.effectiveOn == this.effectiveOn &&
+          other.effectiveCycle == this.effectiveCycle &&
+          other.daysJson == this.daysJson);
+}
+
+class TrainingPlanRevisionsCompanion
+    extends UpdateCompanion<TrainingPlanRevision> {
+  final Value<int> localId;
+  final Value<String> id;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<DateTime?> deletedAt;
+  final Value<String> planId;
+  final Value<int> number;
+  final Value<DateTime> effectiveOn;
+  final Value<int?> effectiveCycle;
+  final Value<String> daysJson;
+  const TrainingPlanRevisionsCompanion({
+    this.localId = const Value.absent(),
+    this.id = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.planId = const Value.absent(),
+    this.number = const Value.absent(),
+    this.effectiveOn = const Value.absent(),
+    this.effectiveCycle = const Value.absent(),
+    this.daysJson = const Value.absent(),
+  });
+  TrainingPlanRevisionsCompanion.insert({
+    this.localId = const Value.absent(),
+    this.id = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    required String planId,
+    required int number,
+    required DateTime effectiveOn,
+    this.effectiveCycle = const Value.absent(),
+    required String daysJson,
+  })  : planId = Value(planId),
+        number = Value(number),
+        effectiveOn = Value(effectiveOn),
+        daysJson = Value(daysJson);
+  static Insertable<TrainingPlanRevision> custom({
+    Expression<int>? localId,
+    Expression<String>? id,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<DateTime>? deletedAt,
+    Expression<String>? planId,
+    Expression<int>? number,
+    Expression<DateTime>? effectiveOn,
+    Expression<int>? effectiveCycle,
+    Expression<String>? daysJson,
+  }) {
+    return RawValuesInsertable({
+      if (localId != null) 'local_id': localId,
+      if (id != null) 'id': id,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+      if (planId != null) 'plan_id': planId,
+      if (number != null) 'number': number,
+      if (effectiveOn != null) 'effective_on': effectiveOn,
+      if (effectiveCycle != null) 'effective_cycle': effectiveCycle,
+      if (daysJson != null) 'days_json': daysJson,
+    });
+  }
+
+  TrainingPlanRevisionsCompanion copyWith(
+      {Value<int>? localId,
+      Value<String>? id,
+      Value<DateTime>? createdAt,
+      Value<DateTime>? updatedAt,
+      Value<DateTime?>? deletedAt,
+      Value<String>? planId,
+      Value<int>? number,
+      Value<DateTime>? effectiveOn,
+      Value<int?>? effectiveCycle,
+      Value<String>? daysJson}) {
+    return TrainingPlanRevisionsCompanion(
+      localId: localId ?? this.localId,
+      id: id ?? this.id,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      deletedAt: deletedAt ?? this.deletedAt,
+      planId: planId ?? this.planId,
+      number: number ?? this.number,
+      effectiveOn: effectiveOn ?? this.effectiveOn,
+      effectiveCycle: effectiveCycle ?? this.effectiveCycle,
+      daysJson: daysJson ?? this.daysJson,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (localId.present) {
+      map['local_id'] = Variable<int>(localId.value);
+    }
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
+    if (planId.present) {
+      map['plan_id'] = Variable<String>(planId.value);
+    }
+    if (number.present) {
+      map['number'] = Variable<int>(number.value);
+    }
+    if (effectiveOn.present) {
+      map['effective_on'] = Variable<DateTime>(effectiveOn.value);
+    }
+    if (effectiveCycle.present) {
+      map['effective_cycle'] = Variable<int>(effectiveCycle.value);
+    }
+    if (daysJson.present) {
+      map['days_json'] = Variable<String>(daysJson.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TrainingPlanRevisionsCompanion(')
+          ..write('localId: $localId, ')
+          ..write('id: $id, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('planId: $planId, ')
+          ..write('number: $number, ')
+          ..write('effectiveOn: $effectiveOn, ')
+          ..write('effectiveCycle: $effectiveCycle, ')
+          ..write('daysJson: $daysJson')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $TrainingPlanActivationsTable extends TrainingPlanActivations
+    with TableInfo<$TrainingPlanActivationsTable, TrainingPlanActivation> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $TrainingPlanActivationsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _localIdMeta =
+      const VerificationMeta('localId');
+  @override
+  late final GeneratedColumn<int> localId = GeneratedColumn<int>(
+      'local_id', aliasedName, false,
+      hasAutoIncrement: true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+      'id', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'),
+      clientDefault: () => const Uuid().v4());
+  static const VerificationMeta _createdAtMeta =
+      const VerificationMeta('createdAt');
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+      'created_at', aliasedName, false,
+      type: DriftSqlType.dateTime,
+      requiredDuringInsert: false,
+      defaultValue: currentDateAndTime);
+  static const VerificationMeta _updatedAtMeta =
+      const VerificationMeta('updatedAt');
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+      'updated_at', aliasedName, false,
+      type: DriftSqlType.dateTime,
+      requiredDuringInsert: false,
+      defaultValue: currentDateAndTime);
+  static const VerificationMeta _deletedAtMeta =
+      const VerificationMeta('deletedAt');
+  @override
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+      'deleted_at', aliasedName, true,
+      type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  static const VerificationMeta _planIdMeta = const VerificationMeta('planId');
+  @override
+  late final GeneratedColumn<String> planId = GeneratedColumn<String>(
+      'plan_id', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('REFERENCES training_plans (id)'));
+  static const VerificationMeta _startedOnMeta =
+      const VerificationMeta('startedOn');
+  @override
+  late final GeneratedColumn<DateTime> startedOn = GeneratedColumn<DateTime>(
+      'started_on', aliasedName, false,
+      type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  static const VerificationMeta _endedOnMeta =
+      const VerificationMeta('endedOn');
+  @override
+  late final GeneratedColumn<DateTime> endedOn = GeneratedColumn<DateTime>(
+      'ended_on', aliasedName, true,
+      type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  static const VerificationMeta _initialCursorMeta =
+      const VerificationMeta('initialCursor');
+  @override
+  late final GeneratedColumn<int> initialCursor = GeneratedColumn<int>(
+      'initial_cursor', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0));
+  static const VerificationMeta _initialCycleMeta =
+      const VerificationMeta('initialCycle');
+  @override
+  late final GeneratedColumn<int> initialCycle = GeneratedColumn<int>(
+      'initial_cycle', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0));
+  @override
+  List<GeneratedColumn> get $columns => [
+        localId,
+        id,
+        createdAt,
+        updatedAt,
+        deletedAt,
+        planId,
+        startedOn,
+        endedOn,
+        initialCursor,
+        initialCycle
+      ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'training_plan_activations';
+  @override
+  VerificationContext validateIntegrity(
+      Insertable<TrainingPlanActivation> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('local_id')) {
+      context.handle(_localIdMeta,
+          localId.isAcceptableOrUnknown(data['local_id']!, _localIdMeta));
+    }
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(_createdAtMeta,
+          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(_updatedAtMeta,
+          updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta));
+    }
+    if (data.containsKey('deleted_at')) {
+      context.handle(_deletedAtMeta,
+          deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta));
+    }
+    if (data.containsKey('plan_id')) {
+      context.handle(_planIdMeta,
+          planId.isAcceptableOrUnknown(data['plan_id']!, _planIdMeta));
+    } else if (isInserting) {
+      context.missing(_planIdMeta);
+    }
+    if (data.containsKey('started_on')) {
+      context.handle(_startedOnMeta,
+          startedOn.isAcceptableOrUnknown(data['started_on']!, _startedOnMeta));
+    } else if (isInserting) {
+      context.missing(_startedOnMeta);
+    }
+    if (data.containsKey('ended_on')) {
+      context.handle(_endedOnMeta,
+          endedOn.isAcceptableOrUnknown(data['ended_on']!, _endedOnMeta));
+    }
+    if (data.containsKey('initial_cursor')) {
+      context.handle(
+          _initialCursorMeta,
+          initialCursor.isAcceptableOrUnknown(
+              data['initial_cursor']!, _initialCursorMeta));
+    }
+    if (data.containsKey('initial_cycle')) {
+      context.handle(
+          _initialCycleMeta,
+          initialCycle.isAcceptableOrUnknown(
+              data['initial_cycle']!, _initialCycleMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {localId};
+  @override
+  TrainingPlanActivation map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return TrainingPlanActivation(
+      localId: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}local_id'])!,
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
+      createdAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
+      updatedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}updated_at'])!,
+      deletedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}deleted_at']),
+      planId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}plan_id'])!,
+      startedOn: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}started_on'])!,
+      endedOn: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}ended_on']),
+      initialCursor: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}initial_cursor'])!,
+      initialCycle: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}initial_cycle'])!,
+    );
+  }
+
+  @override
+  $TrainingPlanActivationsTable createAlias(String alias) {
+    return $TrainingPlanActivationsTable(attachedDatabase, alias);
+  }
+}
+
+class TrainingPlanActivation extends DataClass
+    implements Insertable<TrainingPlanActivation> {
+  final int localId;
+  final String id;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final DateTime? deletedAt;
+  final String planId;
+  final DateTime startedOn;
+  final DateTime? endedOn;
+  final int initialCursor;
+  final int initialCycle;
+  const TrainingPlanActivation(
+      {required this.localId,
+      required this.id,
+      required this.createdAt,
+      required this.updatedAt,
+      this.deletedAt,
+      required this.planId,
+      required this.startedOn,
+      this.endedOn,
+      required this.initialCursor,
+      required this.initialCycle});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['local_id'] = Variable<int>(localId);
+    map['id'] = Variable<String>(id);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
+    map['plan_id'] = Variable<String>(planId);
+    map['started_on'] = Variable<DateTime>(startedOn);
+    if (!nullToAbsent || endedOn != null) {
+      map['ended_on'] = Variable<DateTime>(endedOn);
+    }
+    map['initial_cursor'] = Variable<int>(initialCursor);
+    map['initial_cycle'] = Variable<int>(initialCycle);
+    return map;
+  }
+
+  TrainingPlanActivationsCompanion toCompanion(bool nullToAbsent) {
+    return TrainingPlanActivationsCompanion(
+      localId: Value(localId),
+      id: Value(id),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
+      planId: Value(planId),
+      startedOn: Value(startedOn),
+      endedOn: endedOn == null && nullToAbsent
+          ? const Value.absent()
+          : Value(endedOn),
+      initialCursor: Value(initialCursor),
+      initialCycle: Value(initialCycle),
+    );
+  }
+
+  factory TrainingPlanActivation.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return TrainingPlanActivation(
+      localId: serializer.fromJson<int>(json['localId']),
+      id: serializer.fromJson<String>(json['id']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+      planId: serializer.fromJson<String>(json['planId']),
+      startedOn: serializer.fromJson<DateTime>(json['startedOn']),
+      endedOn: serializer.fromJson<DateTime?>(json['endedOn']),
+      initialCursor: serializer.fromJson<int>(json['initialCursor']),
+      initialCycle: serializer.fromJson<int>(json['initialCycle']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'localId': serializer.toJson<int>(localId),
+      'id': serializer.toJson<String>(id),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+      'planId': serializer.toJson<String>(planId),
+      'startedOn': serializer.toJson<DateTime>(startedOn),
+      'endedOn': serializer.toJson<DateTime?>(endedOn),
+      'initialCursor': serializer.toJson<int>(initialCursor),
+      'initialCycle': serializer.toJson<int>(initialCycle),
+    };
+  }
+
+  TrainingPlanActivation copyWith(
+          {int? localId,
+          String? id,
+          DateTime? createdAt,
+          DateTime? updatedAt,
+          Value<DateTime?> deletedAt = const Value.absent(),
+          String? planId,
+          DateTime? startedOn,
+          Value<DateTime?> endedOn = const Value.absent(),
+          int? initialCursor,
+          int? initialCycle}) =>
+      TrainingPlanActivation(
+        localId: localId ?? this.localId,
+        id: id ?? this.id,
+        createdAt: createdAt ?? this.createdAt,
+        updatedAt: updatedAt ?? this.updatedAt,
+        deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+        planId: planId ?? this.planId,
+        startedOn: startedOn ?? this.startedOn,
+        endedOn: endedOn.present ? endedOn.value : this.endedOn,
+        initialCursor: initialCursor ?? this.initialCursor,
+        initialCycle: initialCycle ?? this.initialCycle,
+      );
+  TrainingPlanActivation copyWithCompanion(
+      TrainingPlanActivationsCompanion data) {
+    return TrainingPlanActivation(
+      localId: data.localId.present ? data.localId.value : this.localId,
+      id: data.id.present ? data.id.value : this.id,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+      planId: data.planId.present ? data.planId.value : this.planId,
+      startedOn: data.startedOn.present ? data.startedOn.value : this.startedOn,
+      endedOn: data.endedOn.present ? data.endedOn.value : this.endedOn,
+      initialCursor: data.initialCursor.present
+          ? data.initialCursor.value
+          : this.initialCursor,
+      initialCycle: data.initialCycle.present
+          ? data.initialCycle.value
+          : this.initialCycle,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TrainingPlanActivation(')
+          ..write('localId: $localId, ')
+          ..write('id: $id, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('planId: $planId, ')
+          ..write('startedOn: $startedOn, ')
+          ..write('endedOn: $endedOn, ')
+          ..write('initialCursor: $initialCursor, ')
+          ..write('initialCycle: $initialCycle')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(localId, id, createdAt, updatedAt, deletedAt,
+      planId, startedOn, endedOn, initialCursor, initialCycle);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is TrainingPlanActivation &&
+          other.localId == this.localId &&
+          other.id == this.id &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt &&
+          other.deletedAt == this.deletedAt &&
+          other.planId == this.planId &&
+          other.startedOn == this.startedOn &&
+          other.endedOn == this.endedOn &&
+          other.initialCursor == this.initialCursor &&
+          other.initialCycle == this.initialCycle);
+}
+
+class TrainingPlanActivationsCompanion
+    extends UpdateCompanion<TrainingPlanActivation> {
+  final Value<int> localId;
+  final Value<String> id;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<DateTime?> deletedAt;
+  final Value<String> planId;
+  final Value<DateTime> startedOn;
+  final Value<DateTime?> endedOn;
+  final Value<int> initialCursor;
+  final Value<int> initialCycle;
+  const TrainingPlanActivationsCompanion({
+    this.localId = const Value.absent(),
+    this.id = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.planId = const Value.absent(),
+    this.startedOn = const Value.absent(),
+    this.endedOn = const Value.absent(),
+    this.initialCursor = const Value.absent(),
+    this.initialCycle = const Value.absent(),
+  });
+  TrainingPlanActivationsCompanion.insert({
+    this.localId = const Value.absent(),
+    this.id = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    required String planId,
+    required DateTime startedOn,
+    this.endedOn = const Value.absent(),
+    this.initialCursor = const Value.absent(),
+    this.initialCycle = const Value.absent(),
+  })  : planId = Value(planId),
+        startedOn = Value(startedOn);
+  static Insertable<TrainingPlanActivation> custom({
+    Expression<int>? localId,
+    Expression<String>? id,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<DateTime>? deletedAt,
+    Expression<String>? planId,
+    Expression<DateTime>? startedOn,
+    Expression<DateTime>? endedOn,
+    Expression<int>? initialCursor,
+    Expression<int>? initialCycle,
+  }) {
+    return RawValuesInsertable({
+      if (localId != null) 'local_id': localId,
+      if (id != null) 'id': id,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+      if (planId != null) 'plan_id': planId,
+      if (startedOn != null) 'started_on': startedOn,
+      if (endedOn != null) 'ended_on': endedOn,
+      if (initialCursor != null) 'initial_cursor': initialCursor,
+      if (initialCycle != null) 'initial_cycle': initialCycle,
+    });
+  }
+
+  TrainingPlanActivationsCompanion copyWith(
+      {Value<int>? localId,
+      Value<String>? id,
+      Value<DateTime>? createdAt,
+      Value<DateTime>? updatedAt,
+      Value<DateTime?>? deletedAt,
+      Value<String>? planId,
+      Value<DateTime>? startedOn,
+      Value<DateTime?>? endedOn,
+      Value<int>? initialCursor,
+      Value<int>? initialCycle}) {
+    return TrainingPlanActivationsCompanion(
+      localId: localId ?? this.localId,
+      id: id ?? this.id,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      deletedAt: deletedAt ?? this.deletedAt,
+      planId: planId ?? this.planId,
+      startedOn: startedOn ?? this.startedOn,
+      endedOn: endedOn ?? this.endedOn,
+      initialCursor: initialCursor ?? this.initialCursor,
+      initialCycle: initialCycle ?? this.initialCycle,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (localId.present) {
+      map['local_id'] = Variable<int>(localId.value);
+    }
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
+    if (planId.present) {
+      map['plan_id'] = Variable<String>(planId.value);
+    }
+    if (startedOn.present) {
+      map['started_on'] = Variable<DateTime>(startedOn.value);
+    }
+    if (endedOn.present) {
+      map['ended_on'] = Variable<DateTime>(endedOn.value);
+    }
+    if (initialCursor.present) {
+      map['initial_cursor'] = Variable<int>(initialCursor.value);
+    }
+    if (initialCycle.present) {
+      map['initial_cycle'] = Variable<int>(initialCycle.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TrainingPlanActivationsCompanion(')
+          ..write('localId: $localId, ')
+          ..write('id: $id, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('planId: $planId, ')
+          ..write('startedOn: $startedOn, ')
+          ..write('endedOn: $endedOn, ')
+          ..write('initialCursor: $initialCursor, ')
+          ..write('initialCycle: $initialCycle')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $TrainingPlanOccurrencesTable extends TrainingPlanOccurrences
+    with TableInfo<$TrainingPlanOccurrencesTable, TrainingPlanOccurrence> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $TrainingPlanOccurrencesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _localIdMeta =
+      const VerificationMeta('localId');
+  @override
+  late final GeneratedColumn<int> localId = GeneratedColumn<int>(
+      'local_id', aliasedName, false,
+      hasAutoIncrement: true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+      'id', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'),
+      clientDefault: () => const Uuid().v4());
+  static const VerificationMeta _createdAtMeta =
+      const VerificationMeta('createdAt');
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+      'created_at', aliasedName, false,
+      type: DriftSqlType.dateTime,
+      requiredDuringInsert: false,
+      defaultValue: currentDateAndTime);
+  static const VerificationMeta _updatedAtMeta =
+      const VerificationMeta('updatedAt');
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+      'updated_at', aliasedName, false,
+      type: DriftSqlType.dateTime,
+      requiredDuringInsert: false,
+      defaultValue: currentDateAndTime);
+  static const VerificationMeta _deletedAtMeta =
+      const VerificationMeta('deletedAt');
+  @override
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+      'deleted_at', aliasedName, true,
+      type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  static const VerificationMeta _planIdMeta = const VerificationMeta('planId');
+  @override
+  late final GeneratedColumn<String> planId = GeneratedColumn<String>(
+      'plan_id', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('REFERENCES training_plans (id)'));
+  static const VerificationMeta _activationIdMeta =
+      const VerificationMeta('activationId');
+  @override
+  late final GeneratedColumn<String> activationId = GeneratedColumn<String>(
+      'activation_id', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'REFERENCES training_plan_activations (id)'));
+  static const VerificationMeta _revisionIdMeta =
+      const VerificationMeta('revisionId');
+  @override
+  late final GeneratedColumn<String> revisionId = GeneratedColumn<String>(
+      'revision_id', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'REFERENCES training_plan_revisions (id)'));
+  static const VerificationMeta _scheduledOnMeta =
+      const VerificationMeta('scheduledOn');
+  @override
+  late final GeneratedColumn<DateTime> scheduledOn = GeneratedColumn<DateTime>(
+      'scheduled_on', aliasedName, false,
+      type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  static const VerificationMeta _slotIndexMeta =
+      const VerificationMeta('slotIndex');
+  @override
+  late final GeneratedColumn<int> slotIndex = GeneratedColumn<int>(
+      'slot_index', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<String> status = GeneratedColumn<String>(
+      'status', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _workoutLogIdMeta =
+      const VerificationMeta('workoutLogId');
+  @override
+  late final GeneratedColumn<String> workoutLogId = GeneratedColumn<String>(
+      'workout_log_id', aliasedName, true,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'REFERENCES workout_logs (id) ON DELETE SET NULL'));
+  static const VerificationMeta _routineSnapshotJsonMeta =
+      const VerificationMeta('routineSnapshotJson');
+  @override
+  late final GeneratedColumn<String> routineSnapshotJson =
+      GeneratedColumn<String>('routine_snapshot_json', aliasedName, true,
+          type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _resolvedAtMeta =
+      const VerificationMeta('resolvedAt');
+  @override
+  late final GeneratedColumn<DateTime> resolvedAt = GeneratedColumn<DateTime>(
+      'resolved_at', aliasedName, true,
+      type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  @override
+  List<GeneratedColumn> get $columns => [
+        localId,
+        id,
+        createdAt,
+        updatedAt,
+        deletedAt,
+        planId,
+        activationId,
+        revisionId,
+        scheduledOn,
+        slotIndex,
+        status,
+        workoutLogId,
+        routineSnapshotJson,
+        resolvedAt
+      ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'training_plan_occurrences';
+  @override
+  VerificationContext validateIntegrity(
+      Insertable<TrainingPlanOccurrence> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('local_id')) {
+      context.handle(_localIdMeta,
+          localId.isAcceptableOrUnknown(data['local_id']!, _localIdMeta));
+    }
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(_createdAtMeta,
+          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(_updatedAtMeta,
+          updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta));
+    }
+    if (data.containsKey('deleted_at')) {
+      context.handle(_deletedAtMeta,
+          deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta));
+    }
+    if (data.containsKey('plan_id')) {
+      context.handle(_planIdMeta,
+          planId.isAcceptableOrUnknown(data['plan_id']!, _planIdMeta));
+    } else if (isInserting) {
+      context.missing(_planIdMeta);
+    }
+    if (data.containsKey('activation_id')) {
+      context.handle(
+          _activationIdMeta,
+          activationId.isAcceptableOrUnknown(
+              data['activation_id']!, _activationIdMeta));
+    } else if (isInserting) {
+      context.missing(_activationIdMeta);
+    }
+    if (data.containsKey('revision_id')) {
+      context.handle(
+          _revisionIdMeta,
+          revisionId.isAcceptableOrUnknown(
+              data['revision_id']!, _revisionIdMeta));
+    } else if (isInserting) {
+      context.missing(_revisionIdMeta);
+    }
+    if (data.containsKey('scheduled_on')) {
+      context.handle(
+          _scheduledOnMeta,
+          scheduledOn.isAcceptableOrUnknown(
+              data['scheduled_on']!, _scheduledOnMeta));
+    } else if (isInserting) {
+      context.missing(_scheduledOnMeta);
+    }
+    if (data.containsKey('slot_index')) {
+      context.handle(_slotIndexMeta,
+          slotIndex.isAcceptableOrUnknown(data['slot_index']!, _slotIndexMeta));
+    } else if (isInserting) {
+      context.missing(_slotIndexMeta);
+    }
+    if (data.containsKey('status')) {
+      context.handle(_statusMeta,
+          status.isAcceptableOrUnknown(data['status']!, _statusMeta));
+    } else if (isInserting) {
+      context.missing(_statusMeta);
+    }
+    if (data.containsKey('workout_log_id')) {
+      context.handle(
+          _workoutLogIdMeta,
+          workoutLogId.isAcceptableOrUnknown(
+              data['workout_log_id']!, _workoutLogIdMeta));
+    }
+    if (data.containsKey('routine_snapshot_json')) {
+      context.handle(
+          _routineSnapshotJsonMeta,
+          routineSnapshotJson.isAcceptableOrUnknown(
+              data['routine_snapshot_json']!, _routineSnapshotJsonMeta));
+    }
+    if (data.containsKey('resolved_at')) {
+      context.handle(
+          _resolvedAtMeta,
+          resolvedAt.isAcceptableOrUnknown(
+              data['resolved_at']!, _resolvedAtMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {localId};
+  @override
+  TrainingPlanOccurrence map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return TrainingPlanOccurrence(
+      localId: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}local_id'])!,
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
+      createdAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
+      updatedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}updated_at'])!,
+      deletedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}deleted_at']),
+      planId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}plan_id'])!,
+      activationId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}activation_id'])!,
+      revisionId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}revision_id'])!,
+      scheduledOn: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}scheduled_on'])!,
+      slotIndex: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}slot_index'])!,
+      status: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}status'])!,
+      workoutLogId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}workout_log_id']),
+      routineSnapshotJson: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}routine_snapshot_json']),
+      resolvedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}resolved_at']),
+    );
+  }
+
+  @override
+  $TrainingPlanOccurrencesTable createAlias(String alias) {
+    return $TrainingPlanOccurrencesTable(attachedDatabase, alias);
+  }
+}
+
+class TrainingPlanOccurrence extends DataClass
+    implements Insertable<TrainingPlanOccurrence> {
+  final int localId;
+  final String id;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final DateTime? deletedAt;
+  final String planId;
+  final String activationId;
+  final String revisionId;
+  final DateTime scheduledOn;
+  final int slotIndex;
+  final String status;
+  final String? workoutLogId;
+  final String? routineSnapshotJson;
+  final DateTime? resolvedAt;
+  const TrainingPlanOccurrence(
+      {required this.localId,
+      required this.id,
+      required this.createdAt,
+      required this.updatedAt,
+      this.deletedAt,
+      required this.planId,
+      required this.activationId,
+      required this.revisionId,
+      required this.scheduledOn,
+      required this.slotIndex,
+      required this.status,
+      this.workoutLogId,
+      this.routineSnapshotJson,
+      this.resolvedAt});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['local_id'] = Variable<int>(localId);
+    map['id'] = Variable<String>(id);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
+    map['plan_id'] = Variable<String>(planId);
+    map['activation_id'] = Variable<String>(activationId);
+    map['revision_id'] = Variable<String>(revisionId);
+    map['scheduled_on'] = Variable<DateTime>(scheduledOn);
+    map['slot_index'] = Variable<int>(slotIndex);
+    map['status'] = Variable<String>(status);
+    if (!nullToAbsent || workoutLogId != null) {
+      map['workout_log_id'] = Variable<String>(workoutLogId);
+    }
+    if (!nullToAbsent || routineSnapshotJson != null) {
+      map['routine_snapshot_json'] = Variable<String>(routineSnapshotJson);
+    }
+    if (!nullToAbsent || resolvedAt != null) {
+      map['resolved_at'] = Variable<DateTime>(resolvedAt);
+    }
+    return map;
+  }
+
+  TrainingPlanOccurrencesCompanion toCompanion(bool nullToAbsent) {
+    return TrainingPlanOccurrencesCompanion(
+      localId: Value(localId),
+      id: Value(id),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
+      planId: Value(planId),
+      activationId: Value(activationId),
+      revisionId: Value(revisionId),
+      scheduledOn: Value(scheduledOn),
+      slotIndex: Value(slotIndex),
+      status: Value(status),
+      workoutLogId: workoutLogId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(workoutLogId),
+      routineSnapshotJson: routineSnapshotJson == null && nullToAbsent
+          ? const Value.absent()
+          : Value(routineSnapshotJson),
+      resolvedAt: resolvedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(resolvedAt),
+    );
+  }
+
+  factory TrainingPlanOccurrence.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return TrainingPlanOccurrence(
+      localId: serializer.fromJson<int>(json['localId']),
+      id: serializer.fromJson<String>(json['id']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+      planId: serializer.fromJson<String>(json['planId']),
+      activationId: serializer.fromJson<String>(json['activationId']),
+      revisionId: serializer.fromJson<String>(json['revisionId']),
+      scheduledOn: serializer.fromJson<DateTime>(json['scheduledOn']),
+      slotIndex: serializer.fromJson<int>(json['slotIndex']),
+      status: serializer.fromJson<String>(json['status']),
+      workoutLogId: serializer.fromJson<String?>(json['workoutLogId']),
+      routineSnapshotJson:
+          serializer.fromJson<String?>(json['routineSnapshotJson']),
+      resolvedAt: serializer.fromJson<DateTime?>(json['resolvedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'localId': serializer.toJson<int>(localId),
+      'id': serializer.toJson<String>(id),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+      'planId': serializer.toJson<String>(planId),
+      'activationId': serializer.toJson<String>(activationId),
+      'revisionId': serializer.toJson<String>(revisionId),
+      'scheduledOn': serializer.toJson<DateTime>(scheduledOn),
+      'slotIndex': serializer.toJson<int>(slotIndex),
+      'status': serializer.toJson<String>(status),
+      'workoutLogId': serializer.toJson<String?>(workoutLogId),
+      'routineSnapshotJson': serializer.toJson<String?>(routineSnapshotJson),
+      'resolvedAt': serializer.toJson<DateTime?>(resolvedAt),
+    };
+  }
+
+  TrainingPlanOccurrence copyWith(
+          {int? localId,
+          String? id,
+          DateTime? createdAt,
+          DateTime? updatedAt,
+          Value<DateTime?> deletedAt = const Value.absent(),
+          String? planId,
+          String? activationId,
+          String? revisionId,
+          DateTime? scheduledOn,
+          int? slotIndex,
+          String? status,
+          Value<String?> workoutLogId = const Value.absent(),
+          Value<String?> routineSnapshotJson = const Value.absent(),
+          Value<DateTime?> resolvedAt = const Value.absent()}) =>
+      TrainingPlanOccurrence(
+        localId: localId ?? this.localId,
+        id: id ?? this.id,
+        createdAt: createdAt ?? this.createdAt,
+        updatedAt: updatedAt ?? this.updatedAt,
+        deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+        planId: planId ?? this.planId,
+        activationId: activationId ?? this.activationId,
+        revisionId: revisionId ?? this.revisionId,
+        scheduledOn: scheduledOn ?? this.scheduledOn,
+        slotIndex: slotIndex ?? this.slotIndex,
+        status: status ?? this.status,
+        workoutLogId:
+            workoutLogId.present ? workoutLogId.value : this.workoutLogId,
+        routineSnapshotJson: routineSnapshotJson.present
+            ? routineSnapshotJson.value
+            : this.routineSnapshotJson,
+        resolvedAt: resolvedAt.present ? resolvedAt.value : this.resolvedAt,
+      );
+  TrainingPlanOccurrence copyWithCompanion(
+      TrainingPlanOccurrencesCompanion data) {
+    return TrainingPlanOccurrence(
+      localId: data.localId.present ? data.localId.value : this.localId,
+      id: data.id.present ? data.id.value : this.id,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+      planId: data.planId.present ? data.planId.value : this.planId,
+      activationId: data.activationId.present
+          ? data.activationId.value
+          : this.activationId,
+      revisionId:
+          data.revisionId.present ? data.revisionId.value : this.revisionId,
+      scheduledOn:
+          data.scheduledOn.present ? data.scheduledOn.value : this.scheduledOn,
+      slotIndex: data.slotIndex.present ? data.slotIndex.value : this.slotIndex,
+      status: data.status.present ? data.status.value : this.status,
+      workoutLogId: data.workoutLogId.present
+          ? data.workoutLogId.value
+          : this.workoutLogId,
+      routineSnapshotJson: data.routineSnapshotJson.present
+          ? data.routineSnapshotJson.value
+          : this.routineSnapshotJson,
+      resolvedAt:
+          data.resolvedAt.present ? data.resolvedAt.value : this.resolvedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TrainingPlanOccurrence(')
+          ..write('localId: $localId, ')
+          ..write('id: $id, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('planId: $planId, ')
+          ..write('activationId: $activationId, ')
+          ..write('revisionId: $revisionId, ')
+          ..write('scheduledOn: $scheduledOn, ')
+          ..write('slotIndex: $slotIndex, ')
+          ..write('status: $status, ')
+          ..write('workoutLogId: $workoutLogId, ')
+          ..write('routineSnapshotJson: $routineSnapshotJson, ')
+          ..write('resolvedAt: $resolvedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+      localId,
+      id,
+      createdAt,
+      updatedAt,
+      deletedAt,
+      planId,
+      activationId,
+      revisionId,
+      scheduledOn,
+      slotIndex,
+      status,
+      workoutLogId,
+      routineSnapshotJson,
+      resolvedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is TrainingPlanOccurrence &&
+          other.localId == this.localId &&
+          other.id == this.id &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt &&
+          other.deletedAt == this.deletedAt &&
+          other.planId == this.planId &&
+          other.activationId == this.activationId &&
+          other.revisionId == this.revisionId &&
+          other.scheduledOn == this.scheduledOn &&
+          other.slotIndex == this.slotIndex &&
+          other.status == this.status &&
+          other.workoutLogId == this.workoutLogId &&
+          other.routineSnapshotJson == this.routineSnapshotJson &&
+          other.resolvedAt == this.resolvedAt);
+}
+
+class TrainingPlanOccurrencesCompanion
+    extends UpdateCompanion<TrainingPlanOccurrence> {
+  final Value<int> localId;
+  final Value<String> id;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<DateTime?> deletedAt;
+  final Value<String> planId;
+  final Value<String> activationId;
+  final Value<String> revisionId;
+  final Value<DateTime> scheduledOn;
+  final Value<int> slotIndex;
+  final Value<String> status;
+  final Value<String?> workoutLogId;
+  final Value<String?> routineSnapshotJson;
+  final Value<DateTime?> resolvedAt;
+  const TrainingPlanOccurrencesCompanion({
+    this.localId = const Value.absent(),
+    this.id = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.planId = const Value.absent(),
+    this.activationId = const Value.absent(),
+    this.revisionId = const Value.absent(),
+    this.scheduledOn = const Value.absent(),
+    this.slotIndex = const Value.absent(),
+    this.status = const Value.absent(),
+    this.workoutLogId = const Value.absent(),
+    this.routineSnapshotJson = const Value.absent(),
+    this.resolvedAt = const Value.absent(),
+  });
+  TrainingPlanOccurrencesCompanion.insert({
+    this.localId = const Value.absent(),
+    this.id = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    required String planId,
+    required String activationId,
+    required String revisionId,
+    required DateTime scheduledOn,
+    required int slotIndex,
+    required String status,
+    this.workoutLogId = const Value.absent(),
+    this.routineSnapshotJson = const Value.absent(),
+    this.resolvedAt = const Value.absent(),
+  })  : planId = Value(planId),
+        activationId = Value(activationId),
+        revisionId = Value(revisionId),
+        scheduledOn = Value(scheduledOn),
+        slotIndex = Value(slotIndex),
+        status = Value(status);
+  static Insertable<TrainingPlanOccurrence> custom({
+    Expression<int>? localId,
+    Expression<String>? id,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<DateTime>? deletedAt,
+    Expression<String>? planId,
+    Expression<String>? activationId,
+    Expression<String>? revisionId,
+    Expression<DateTime>? scheduledOn,
+    Expression<int>? slotIndex,
+    Expression<String>? status,
+    Expression<String>? workoutLogId,
+    Expression<String>? routineSnapshotJson,
+    Expression<DateTime>? resolvedAt,
+  }) {
+    return RawValuesInsertable({
+      if (localId != null) 'local_id': localId,
+      if (id != null) 'id': id,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+      if (planId != null) 'plan_id': planId,
+      if (activationId != null) 'activation_id': activationId,
+      if (revisionId != null) 'revision_id': revisionId,
+      if (scheduledOn != null) 'scheduled_on': scheduledOn,
+      if (slotIndex != null) 'slot_index': slotIndex,
+      if (status != null) 'status': status,
+      if (workoutLogId != null) 'workout_log_id': workoutLogId,
+      if (routineSnapshotJson != null)
+        'routine_snapshot_json': routineSnapshotJson,
+      if (resolvedAt != null) 'resolved_at': resolvedAt,
+    });
+  }
+
+  TrainingPlanOccurrencesCompanion copyWith(
+      {Value<int>? localId,
+      Value<String>? id,
+      Value<DateTime>? createdAt,
+      Value<DateTime>? updatedAt,
+      Value<DateTime?>? deletedAt,
+      Value<String>? planId,
+      Value<String>? activationId,
+      Value<String>? revisionId,
+      Value<DateTime>? scheduledOn,
+      Value<int>? slotIndex,
+      Value<String>? status,
+      Value<String?>? workoutLogId,
+      Value<String?>? routineSnapshotJson,
+      Value<DateTime?>? resolvedAt}) {
+    return TrainingPlanOccurrencesCompanion(
+      localId: localId ?? this.localId,
+      id: id ?? this.id,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      deletedAt: deletedAt ?? this.deletedAt,
+      planId: planId ?? this.planId,
+      activationId: activationId ?? this.activationId,
+      revisionId: revisionId ?? this.revisionId,
+      scheduledOn: scheduledOn ?? this.scheduledOn,
+      slotIndex: slotIndex ?? this.slotIndex,
+      status: status ?? this.status,
+      workoutLogId: workoutLogId ?? this.workoutLogId,
+      routineSnapshotJson: routineSnapshotJson ?? this.routineSnapshotJson,
+      resolvedAt: resolvedAt ?? this.resolvedAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (localId.present) {
+      map['local_id'] = Variable<int>(localId.value);
+    }
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
+    if (planId.present) {
+      map['plan_id'] = Variable<String>(planId.value);
+    }
+    if (activationId.present) {
+      map['activation_id'] = Variable<String>(activationId.value);
+    }
+    if (revisionId.present) {
+      map['revision_id'] = Variable<String>(revisionId.value);
+    }
+    if (scheduledOn.present) {
+      map['scheduled_on'] = Variable<DateTime>(scheduledOn.value);
+    }
+    if (slotIndex.present) {
+      map['slot_index'] = Variable<int>(slotIndex.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(status.value);
+    }
+    if (workoutLogId.present) {
+      map['workout_log_id'] = Variable<String>(workoutLogId.value);
+    }
+    if (routineSnapshotJson.present) {
+      map['routine_snapshot_json'] =
+          Variable<String>(routineSnapshotJson.value);
+    }
+    if (resolvedAt.present) {
+      map['resolved_at'] = Variable<DateTime>(resolvedAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TrainingPlanOccurrencesCompanion(')
+          ..write('localId: $localId, ')
+          ..write('id: $id, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('planId: $planId, ')
+          ..write('activationId: $activationId, ')
+          ..write('revisionId: $revisionId, ')
+          ..write('scheduledOn: $scheduledOn, ')
+          ..write('slotIndex: $slotIndex, ')
+          ..write('status: $status, ')
+          ..write('workoutLogId: $workoutLogId, ')
+          ..write('routineSnapshotJson: $routineSnapshotJson, ')
+          ..write('resolvedAt: $resolvedAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -26012,6 +28359,13 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $UserGoalsTable userGoals = $UserGoalsTable(this);
   late final $GoalEventsTable goalEvents = $GoalEventsTable(this);
   late final $GoalReviewsTable goalReviews = $GoalReviewsTable(this);
+  late final $TrainingPlansTable trainingPlans = $TrainingPlansTable(this);
+  late final $TrainingPlanRevisionsTable trainingPlanRevisions =
+      $TrainingPlanRevisionsTable(this);
+  late final $TrainingPlanActivationsTable trainingPlanActivations =
+      $TrainingPlanActivationsTable(this);
+  late final $TrainingPlanOccurrencesTable trainingPlanOccurrences =
+      $TrainingPlanOccurrencesTable(this);
   late final Index idxNutritionConsumedAt = Index('idx_nutrition_consumed_at',
       'CREATE INDEX idx_nutrition_consumed_at ON nutrition_logs (consumed_at)');
   late final Index idxFluidConsumedAt = Index('idx_fluid_consumed_at',
@@ -26067,6 +28421,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         userGoals,
         goalEvents,
         goalReviews,
+        trainingPlans,
+        trainingPlanRevisions,
+        trainingPlanActivations,
+        trainingPlanOccurrences,
         idxNutritionConsumedAt,
         idxFluidConsumedAt,
         idxMealEntriesConsumedAt
@@ -26200,6 +28558,13 @@ abstract class _$AppDatabase extends GeneratedDatabase {
                 limitUpdateKind: UpdateKind.delete),
             result: [
               TableUpdate('goal_reviews', kind: UpdateKind.delete),
+            ],
+          ),
+          WritePropagation(
+            on: TableUpdateQuery.onTableName('workout_logs',
+                limitUpdateKind: UpdateKind.delete),
+            result: [
+              TableUpdate('training_plan_occurrences', kind: UpdateKind.update),
             ],
           ),
         ],
@@ -29331,6 +31696,26 @@ final class $$WorkoutLogsTableReferences
     return ProcessedTableManager(
         manager.$state.copyWith(prefetchedData: cache));
   }
+
+  static MultiTypedResultKey<$TrainingPlanOccurrencesTable,
+      List<TrainingPlanOccurrence>> _trainingPlanOccurrencesRefsTable(
+          _$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(db.trainingPlanOccurrences,
+          aliasName:
+              'workout_logs__id__training_plan_occurrences__workout_log_id');
+
+  $$TrainingPlanOccurrencesTableProcessedTableManager
+      get trainingPlanOccurrencesRefs {
+    final manager = $$TrainingPlanOccurrencesTableTableManager(
+            $_db, $_db.trainingPlanOccurrences)
+        .filter(
+            (f) => f.workoutLogId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache =
+        $_typedResult.readTableOrNull(_trainingPlanOccurrencesRefsTable($_db));
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: cache));
+  }
 }
 
 class $$WorkoutLogsTableFilterComposer
@@ -29470,6 +31855,29 @@ class $$WorkoutLogsTableFilterComposer
               $removeJoinBuilderFromRootComposer:
                   $removeJoinBuilderFromRootComposer,
             ));
+    return f(composer);
+  }
+
+  Expression<bool> trainingPlanOccurrencesRefs(
+      Expression<bool> Function($$TrainingPlanOccurrencesTableFilterComposer f)
+          f) {
+    final $$TrainingPlanOccurrencesTableFilterComposer composer =
+        $composerBuilder(
+            composer: this,
+            getCurrentColumn: (t) => t.id,
+            referencedTable: $db.trainingPlanOccurrences,
+            getReferencedColumn: (t) => t.workoutLogId,
+            builder: (joinBuilder,
+                    {$addJoinBuilderToRootComposer,
+                    $removeJoinBuilderFromRootComposer}) =>
+                $$TrainingPlanOccurrencesTableFilterComposer(
+                  $db: $db,
+                  $table: $db.trainingPlanOccurrences,
+                  $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                  joinBuilder: joinBuilder,
+                  $removeJoinBuilderFromRootComposer:
+                      $removeJoinBuilderFromRootComposer,
+                ));
     return f(composer);
   }
 }
@@ -29690,6 +32098,29 @@ class $$WorkoutLogsTableAnnotationComposer
                 ));
     return f(composer);
   }
+
+  Expression<T> trainingPlanOccurrencesRefs<T extends Object>(
+      Expression<T> Function($$TrainingPlanOccurrencesTableAnnotationComposer a)
+          f) {
+    final $$TrainingPlanOccurrencesTableAnnotationComposer composer =
+        $composerBuilder(
+            composer: this,
+            getCurrentColumn: (t) => t.id,
+            referencedTable: $db.trainingPlanOccurrences,
+            getReferencedColumn: (t) => t.workoutLogId,
+            builder: (joinBuilder,
+                    {$addJoinBuilderToRootComposer,
+                    $removeJoinBuilderFromRootComposer}) =>
+                $$TrainingPlanOccurrencesTableAnnotationComposer(
+                  $db: $db,
+                  $table: $db.trainingPlanOccurrences,
+                  $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                  joinBuilder: joinBuilder,
+                  $removeJoinBuilderFromRootComposer:
+                      $removeJoinBuilderFromRootComposer,
+                ));
+    return f(composer);
+  }
 }
 
 class $$WorkoutLogsTableTableManager extends RootTableManager<
@@ -29707,7 +32138,8 @@ class $$WorkoutLogsTableTableManager extends RootTableManager<
         {bool routineId,
         bool setLogsRefs,
         bool cardioActivitiesRefs,
-        bool workoutExerciseLogsRefs})> {
+        bool workoutExerciseLogsRefs,
+        bool trainingPlanOccurrencesRefs})> {
   $$WorkoutLogsTableTableManager(_$AppDatabase db, $WorkoutLogsTable table)
       : super(TableManagerState(
           db: db,
@@ -29800,13 +32232,15 @@ class $$WorkoutLogsTableTableManager extends RootTableManager<
               {routineId = false,
               setLogsRefs = false,
               cardioActivitiesRefs = false,
-              workoutExerciseLogsRefs = false}) {
+              workoutExerciseLogsRefs = false,
+              trainingPlanOccurrencesRefs = false}) {
             return PrefetchHooks(
               db: db,
               explicitlyWatchedTables: [
                 if (setLogsRefs) db.setLogs,
                 if (cardioActivitiesRefs) db.cardioActivities,
-                if (workoutExerciseLogsRefs) db.workoutExerciseLogs
+                if (workoutExerciseLogsRefs) db.workoutExerciseLogs,
+                if (trainingPlanOccurrencesRefs) db.trainingPlanOccurrences
               ],
               addJoins: <
                   T extends TableManagerState<
@@ -29873,6 +32307,19 @@ class $$WorkoutLogsTableTableManager extends RootTableManager<
                         referencedItemsForCurrentItem:
                             (item, referencedItems) => referencedItems
                                 .where((e) => e.workoutLogId == item.id),
+                        typedResults: items),
+                  if (trainingPlanOccurrencesRefs)
+                    await $_getPrefetchedData<WorkoutLog, $WorkoutLogsTable,
+                            TrainingPlanOccurrence>(
+                        currentTable: table,
+                        referencedTable: $$WorkoutLogsTableReferences
+                            ._trainingPlanOccurrencesRefsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$WorkoutLogsTableReferences(db, table, p0)
+                                .trainingPlanOccurrencesRefs,
+                        referencedItemsForCurrentItem:
+                            (item, referencedItems) => referencedItems
+                                .where((e) => e.workoutLogId == item.id),
                         typedResults: items)
                 ];
               },
@@ -29896,7 +32343,8 @@ typedef $$WorkoutLogsTableProcessedTableManager = ProcessedTableManager<
         {bool routineId,
         bool setLogsRefs,
         bool cardioActivitiesRefs,
-        bool workoutExerciseLogsRefs})>;
+        bool workoutExerciseLogsRefs,
+        bool trainingPlanOccurrencesRefs})>;
 typedef $$SetLogsTableCreateCompanionBuilder = SetLogsCompanion Function({
   Value<int> localId,
   Value<String> id,
@@ -42968,6 +45416,2094 @@ typedef $$GoalReviewsTableProcessedTableManager = ProcessedTableManager<
     (GoalReview, $$GoalReviewsTableReferences),
     GoalReview,
     PrefetchHooks Function({bool goalId})>;
+typedef $$TrainingPlansTableCreateCompanionBuilder = TrainingPlansCompanion
+    Function({
+  Value<int> localId,
+  Value<String> id,
+  Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
+  Value<DateTime?> deletedAt,
+  required String name,
+  required String kind,
+  required int lengthDays,
+  Value<bool> isActive,
+  Value<DateTime?> startedOn,
+  Value<DateTime?> pausedOn,
+  Value<int> sequenceCursor,
+  Value<int> sequenceCycle,
+});
+typedef $$TrainingPlansTableUpdateCompanionBuilder = TrainingPlansCompanion
+    Function({
+  Value<int> localId,
+  Value<String> id,
+  Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
+  Value<DateTime?> deletedAt,
+  Value<String> name,
+  Value<String> kind,
+  Value<int> lengthDays,
+  Value<bool> isActive,
+  Value<DateTime?> startedOn,
+  Value<DateTime?> pausedOn,
+  Value<int> sequenceCursor,
+  Value<int> sequenceCycle,
+});
+
+final class $$TrainingPlansTableReferences
+    extends BaseReferences<_$AppDatabase, $TrainingPlansTable, TrainingPlan> {
+  $$TrainingPlansTableReferences(
+      super.$_db, super.$_table, super.$_typedResult);
+
+  static MultiTypedResultKey<$TrainingPlanRevisionsTable,
+      List<TrainingPlanRevision>> _trainingPlanRevisionsRefsTable(
+          _$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(db.trainingPlanRevisions,
+          aliasName: 'training_plans__id__training_plan_revisions__plan_id');
+
+  $$TrainingPlanRevisionsTableProcessedTableManager
+      get trainingPlanRevisionsRefs {
+    final manager = $$TrainingPlanRevisionsTableTableManager(
+            $_db, $_db.trainingPlanRevisions)
+        .filter((f) => f.planId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache =
+        $_typedResult.readTableOrNull(_trainingPlanRevisionsRefsTable($_db));
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: cache));
+  }
+
+  static MultiTypedResultKey<$TrainingPlanActivationsTable,
+      List<TrainingPlanActivation>> _trainingPlanActivationsRefsTable(
+          _$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(db.trainingPlanActivations,
+          aliasName: 'training_plans__id__training_plan_activations__plan_id');
+
+  $$TrainingPlanActivationsTableProcessedTableManager
+      get trainingPlanActivationsRefs {
+    final manager = $$TrainingPlanActivationsTableTableManager(
+            $_db, $_db.trainingPlanActivations)
+        .filter((f) => f.planId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache =
+        $_typedResult.readTableOrNull(_trainingPlanActivationsRefsTable($_db));
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: cache));
+  }
+
+  static MultiTypedResultKey<$TrainingPlanOccurrencesTable,
+      List<TrainingPlanOccurrence>> _trainingPlanOccurrencesRefsTable(
+          _$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(db.trainingPlanOccurrences,
+          aliasName: 'training_plans__id__training_plan_occurrences__plan_id');
+
+  $$TrainingPlanOccurrencesTableProcessedTableManager
+      get trainingPlanOccurrencesRefs {
+    final manager = $$TrainingPlanOccurrencesTableTableManager(
+            $_db, $_db.trainingPlanOccurrences)
+        .filter((f) => f.planId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache =
+        $_typedResult.readTableOrNull(_trainingPlanOccurrencesRefsTable($_db));
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: cache));
+  }
+}
+
+class $$TrainingPlansTableFilterComposer
+    extends Composer<_$AppDatabase, $TrainingPlansTable> {
+  $$TrainingPlansTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get localId => $composableBuilder(
+      column: $table.localId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+      column: $table.deletedAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get name => $composableBuilder(
+      column: $table.name, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get kind => $composableBuilder(
+      column: $table.kind, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get lengthDays => $composableBuilder(
+      column: $table.lengthDays, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get isActive => $composableBuilder(
+      column: $table.isActive, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get startedOn => $composableBuilder(
+      column: $table.startedOn, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get pausedOn => $composableBuilder(
+      column: $table.pausedOn, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get sequenceCursor => $composableBuilder(
+      column: $table.sequenceCursor,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get sequenceCycle => $composableBuilder(
+      column: $table.sequenceCycle, builder: (column) => ColumnFilters(column));
+
+  Expression<bool> trainingPlanRevisionsRefs(
+      Expression<bool> Function($$TrainingPlanRevisionsTableFilterComposer f)
+          f) {
+    final $$TrainingPlanRevisionsTableFilterComposer composer =
+        $composerBuilder(
+            composer: this,
+            getCurrentColumn: (t) => t.id,
+            referencedTable: $db.trainingPlanRevisions,
+            getReferencedColumn: (t) => t.planId,
+            builder: (joinBuilder,
+                    {$addJoinBuilderToRootComposer,
+                    $removeJoinBuilderFromRootComposer}) =>
+                $$TrainingPlanRevisionsTableFilterComposer(
+                  $db: $db,
+                  $table: $db.trainingPlanRevisions,
+                  $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                  joinBuilder: joinBuilder,
+                  $removeJoinBuilderFromRootComposer:
+                      $removeJoinBuilderFromRootComposer,
+                ));
+    return f(composer);
+  }
+
+  Expression<bool> trainingPlanActivationsRefs(
+      Expression<bool> Function($$TrainingPlanActivationsTableFilterComposer f)
+          f) {
+    final $$TrainingPlanActivationsTableFilterComposer composer =
+        $composerBuilder(
+            composer: this,
+            getCurrentColumn: (t) => t.id,
+            referencedTable: $db.trainingPlanActivations,
+            getReferencedColumn: (t) => t.planId,
+            builder: (joinBuilder,
+                    {$addJoinBuilderToRootComposer,
+                    $removeJoinBuilderFromRootComposer}) =>
+                $$TrainingPlanActivationsTableFilterComposer(
+                  $db: $db,
+                  $table: $db.trainingPlanActivations,
+                  $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                  joinBuilder: joinBuilder,
+                  $removeJoinBuilderFromRootComposer:
+                      $removeJoinBuilderFromRootComposer,
+                ));
+    return f(composer);
+  }
+
+  Expression<bool> trainingPlanOccurrencesRefs(
+      Expression<bool> Function($$TrainingPlanOccurrencesTableFilterComposer f)
+          f) {
+    final $$TrainingPlanOccurrencesTableFilterComposer composer =
+        $composerBuilder(
+            composer: this,
+            getCurrentColumn: (t) => t.id,
+            referencedTable: $db.trainingPlanOccurrences,
+            getReferencedColumn: (t) => t.planId,
+            builder: (joinBuilder,
+                    {$addJoinBuilderToRootComposer,
+                    $removeJoinBuilderFromRootComposer}) =>
+                $$TrainingPlanOccurrencesTableFilterComposer(
+                  $db: $db,
+                  $table: $db.trainingPlanOccurrences,
+                  $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                  joinBuilder: joinBuilder,
+                  $removeJoinBuilderFromRootComposer:
+                      $removeJoinBuilderFromRootComposer,
+                ));
+    return f(composer);
+  }
+}
+
+class $$TrainingPlansTableOrderingComposer
+    extends Composer<_$AppDatabase, $TrainingPlansTable> {
+  $$TrainingPlansTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get localId => $composableBuilder(
+      column: $table.localId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+      column: $table.deletedAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get name => $composableBuilder(
+      column: $table.name, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get kind => $composableBuilder(
+      column: $table.kind, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get lengthDays => $composableBuilder(
+      column: $table.lengthDays, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get isActive => $composableBuilder(
+      column: $table.isActive, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get startedOn => $composableBuilder(
+      column: $table.startedOn, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get pausedOn => $composableBuilder(
+      column: $table.pausedOn, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get sequenceCursor => $composableBuilder(
+      column: $table.sequenceCursor,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get sequenceCycle => $composableBuilder(
+      column: $table.sequenceCycle,
+      builder: (column) => ColumnOrderings(column));
+}
+
+class $$TrainingPlansTableAnnotationComposer
+    extends Composer<_$AppDatabase, $TrainingPlansTable> {
+  $$TrainingPlansTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get localId =>
+      $composableBuilder(column: $table.localId, builder: (column) => column);
+
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<String> get kind =>
+      $composableBuilder(column: $table.kind, builder: (column) => column);
+
+  GeneratedColumn<int> get lengthDays => $composableBuilder(
+      column: $table.lengthDays, builder: (column) => column);
+
+  GeneratedColumn<bool> get isActive =>
+      $composableBuilder(column: $table.isActive, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get startedOn =>
+      $composableBuilder(column: $table.startedOn, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get pausedOn =>
+      $composableBuilder(column: $table.pausedOn, builder: (column) => column);
+
+  GeneratedColumn<int> get sequenceCursor => $composableBuilder(
+      column: $table.sequenceCursor, builder: (column) => column);
+
+  GeneratedColumn<int> get sequenceCycle => $composableBuilder(
+      column: $table.sequenceCycle, builder: (column) => column);
+
+  Expression<T> trainingPlanRevisionsRefs<T extends Object>(
+      Expression<T> Function($$TrainingPlanRevisionsTableAnnotationComposer a)
+          f) {
+    final $$TrainingPlanRevisionsTableAnnotationComposer composer =
+        $composerBuilder(
+            composer: this,
+            getCurrentColumn: (t) => t.id,
+            referencedTable: $db.trainingPlanRevisions,
+            getReferencedColumn: (t) => t.planId,
+            builder: (joinBuilder,
+                    {$addJoinBuilderToRootComposer,
+                    $removeJoinBuilderFromRootComposer}) =>
+                $$TrainingPlanRevisionsTableAnnotationComposer(
+                  $db: $db,
+                  $table: $db.trainingPlanRevisions,
+                  $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                  joinBuilder: joinBuilder,
+                  $removeJoinBuilderFromRootComposer:
+                      $removeJoinBuilderFromRootComposer,
+                ));
+    return f(composer);
+  }
+
+  Expression<T> trainingPlanActivationsRefs<T extends Object>(
+      Expression<T> Function($$TrainingPlanActivationsTableAnnotationComposer a)
+          f) {
+    final $$TrainingPlanActivationsTableAnnotationComposer composer =
+        $composerBuilder(
+            composer: this,
+            getCurrentColumn: (t) => t.id,
+            referencedTable: $db.trainingPlanActivations,
+            getReferencedColumn: (t) => t.planId,
+            builder: (joinBuilder,
+                    {$addJoinBuilderToRootComposer,
+                    $removeJoinBuilderFromRootComposer}) =>
+                $$TrainingPlanActivationsTableAnnotationComposer(
+                  $db: $db,
+                  $table: $db.trainingPlanActivations,
+                  $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                  joinBuilder: joinBuilder,
+                  $removeJoinBuilderFromRootComposer:
+                      $removeJoinBuilderFromRootComposer,
+                ));
+    return f(composer);
+  }
+
+  Expression<T> trainingPlanOccurrencesRefs<T extends Object>(
+      Expression<T> Function($$TrainingPlanOccurrencesTableAnnotationComposer a)
+          f) {
+    final $$TrainingPlanOccurrencesTableAnnotationComposer composer =
+        $composerBuilder(
+            composer: this,
+            getCurrentColumn: (t) => t.id,
+            referencedTable: $db.trainingPlanOccurrences,
+            getReferencedColumn: (t) => t.planId,
+            builder: (joinBuilder,
+                    {$addJoinBuilderToRootComposer,
+                    $removeJoinBuilderFromRootComposer}) =>
+                $$TrainingPlanOccurrencesTableAnnotationComposer(
+                  $db: $db,
+                  $table: $db.trainingPlanOccurrences,
+                  $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                  joinBuilder: joinBuilder,
+                  $removeJoinBuilderFromRootComposer:
+                      $removeJoinBuilderFromRootComposer,
+                ));
+    return f(composer);
+  }
+}
+
+class $$TrainingPlansTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $TrainingPlansTable,
+    TrainingPlan,
+    $$TrainingPlansTableFilterComposer,
+    $$TrainingPlansTableOrderingComposer,
+    $$TrainingPlansTableAnnotationComposer,
+    $$TrainingPlansTableCreateCompanionBuilder,
+    $$TrainingPlansTableUpdateCompanionBuilder,
+    (TrainingPlan, $$TrainingPlansTableReferences),
+    TrainingPlan,
+    PrefetchHooks Function(
+        {bool trainingPlanRevisionsRefs,
+        bool trainingPlanActivationsRefs,
+        bool trainingPlanOccurrencesRefs})> {
+  $$TrainingPlansTableTableManager(_$AppDatabase db, $TrainingPlansTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$TrainingPlansTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$TrainingPlansTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$TrainingPlansTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<int> localId = const Value.absent(),
+            Value<String> id = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+            Value<DateTime> updatedAt = const Value.absent(),
+            Value<DateTime?> deletedAt = const Value.absent(),
+            Value<String> name = const Value.absent(),
+            Value<String> kind = const Value.absent(),
+            Value<int> lengthDays = const Value.absent(),
+            Value<bool> isActive = const Value.absent(),
+            Value<DateTime?> startedOn = const Value.absent(),
+            Value<DateTime?> pausedOn = const Value.absent(),
+            Value<int> sequenceCursor = const Value.absent(),
+            Value<int> sequenceCycle = const Value.absent(),
+          }) =>
+              TrainingPlansCompanion(
+            localId: localId,
+            id: id,
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+            deletedAt: deletedAt,
+            name: name,
+            kind: kind,
+            lengthDays: lengthDays,
+            isActive: isActive,
+            startedOn: startedOn,
+            pausedOn: pausedOn,
+            sequenceCursor: sequenceCursor,
+            sequenceCycle: sequenceCycle,
+          ),
+          createCompanionCallback: ({
+            Value<int> localId = const Value.absent(),
+            Value<String> id = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+            Value<DateTime> updatedAt = const Value.absent(),
+            Value<DateTime?> deletedAt = const Value.absent(),
+            required String name,
+            required String kind,
+            required int lengthDays,
+            Value<bool> isActive = const Value.absent(),
+            Value<DateTime?> startedOn = const Value.absent(),
+            Value<DateTime?> pausedOn = const Value.absent(),
+            Value<int> sequenceCursor = const Value.absent(),
+            Value<int> sequenceCycle = const Value.absent(),
+          }) =>
+              TrainingPlansCompanion.insert(
+            localId: localId,
+            id: id,
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+            deletedAt: deletedAt,
+            name: name,
+            kind: kind,
+            lengthDays: lengthDays,
+            isActive: isActive,
+            startedOn: startedOn,
+            pausedOn: pausedOn,
+            sequenceCursor: sequenceCursor,
+            sequenceCycle: sequenceCycle,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (
+                    e.readTable<$TrainingPlansTable, TrainingPlan>(table),
+                    $$TrainingPlansTableReferences(db, table, e)
+                  ))
+              .toList(),
+          prefetchHooksCallback: (
+              {trainingPlanRevisionsRefs = false,
+              trainingPlanActivationsRefs = false,
+              trainingPlanOccurrencesRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [
+                if (trainingPlanRevisionsRefs) db.trainingPlanRevisions,
+                if (trainingPlanActivationsRefs) db.trainingPlanActivations,
+                if (trainingPlanOccurrencesRefs) db.trainingPlanOccurrences
+              ],
+              addJoins: null,
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (trainingPlanRevisionsRefs)
+                    await $_getPrefetchedData<TrainingPlan, $TrainingPlansTable,
+                            TrainingPlanRevision>(
+                        currentTable: table,
+                        referencedTable: $$TrainingPlansTableReferences
+                            ._trainingPlanRevisionsRefsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$TrainingPlansTableReferences(db, table, p0)
+                                .trainingPlanRevisionsRefs,
+                        referencedItemsForCurrentItem: (item,
+                                referencedItems) =>
+                            referencedItems.where((e) => e.planId == item.id),
+                        typedResults: items),
+                  if (trainingPlanActivationsRefs)
+                    await $_getPrefetchedData<TrainingPlan, $TrainingPlansTable,
+                            TrainingPlanActivation>(
+                        currentTable: table,
+                        referencedTable: $$TrainingPlansTableReferences
+                            ._trainingPlanActivationsRefsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$TrainingPlansTableReferences(db, table, p0)
+                                .trainingPlanActivationsRefs,
+                        referencedItemsForCurrentItem: (item,
+                                referencedItems) =>
+                            referencedItems.where((e) => e.planId == item.id),
+                        typedResults: items),
+                  if (trainingPlanOccurrencesRefs)
+                    await $_getPrefetchedData<TrainingPlan, $TrainingPlansTable,
+                            TrainingPlanOccurrence>(
+                        currentTable: table,
+                        referencedTable: $$TrainingPlansTableReferences
+                            ._trainingPlanOccurrencesRefsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$TrainingPlansTableReferences(db, table, p0)
+                                .trainingPlanOccurrencesRefs,
+                        referencedItemsForCurrentItem: (item,
+                                referencedItems) =>
+                            referencedItems.where((e) => e.planId == item.id),
+                        typedResults: items)
+                ];
+              },
+            );
+          },
+        ));
+}
+
+typedef $$TrainingPlansTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $TrainingPlansTable,
+    TrainingPlan,
+    $$TrainingPlansTableFilterComposer,
+    $$TrainingPlansTableOrderingComposer,
+    $$TrainingPlansTableAnnotationComposer,
+    $$TrainingPlansTableCreateCompanionBuilder,
+    $$TrainingPlansTableUpdateCompanionBuilder,
+    (TrainingPlan, $$TrainingPlansTableReferences),
+    TrainingPlan,
+    PrefetchHooks Function(
+        {bool trainingPlanRevisionsRefs,
+        bool trainingPlanActivationsRefs,
+        bool trainingPlanOccurrencesRefs})>;
+typedef $$TrainingPlanRevisionsTableCreateCompanionBuilder
+    = TrainingPlanRevisionsCompanion Function({
+  Value<int> localId,
+  Value<String> id,
+  Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
+  Value<DateTime?> deletedAt,
+  required String planId,
+  required int number,
+  required DateTime effectiveOn,
+  Value<int?> effectiveCycle,
+  required String daysJson,
+});
+typedef $$TrainingPlanRevisionsTableUpdateCompanionBuilder
+    = TrainingPlanRevisionsCompanion Function({
+  Value<int> localId,
+  Value<String> id,
+  Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
+  Value<DateTime?> deletedAt,
+  Value<String> planId,
+  Value<int> number,
+  Value<DateTime> effectiveOn,
+  Value<int?> effectiveCycle,
+  Value<String> daysJson,
+});
+
+final class $$TrainingPlanRevisionsTableReferences extends BaseReferences<
+    _$AppDatabase, $TrainingPlanRevisionsTable, TrainingPlanRevision> {
+  $$TrainingPlanRevisionsTableReferences(
+      super.$_db, super.$_table, super.$_typedResult);
+
+  static $TrainingPlansTable _planIdTable(_$AppDatabase db) => db.trainingPlans
+      .createAlias('training_plan_revisions__plan_id__training_plans__id');
+
+  $$TrainingPlansTableProcessedTableManager get planId {
+    final $_column = $_itemColumn<String>('plan_id')!;
+
+    final manager = $$TrainingPlansTableTableManager($_db, $_db.trainingPlans)
+        .filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_planIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: [item]));
+  }
+
+  static MultiTypedResultKey<$TrainingPlanOccurrencesTable,
+      List<TrainingPlanOccurrence>> _trainingPlanOccurrencesRefsTable(
+          _$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(db.trainingPlanOccurrences,
+          aliasName:
+              'training_plan_revisions__id__training_plan_occurrences__revision_id');
+
+  $$TrainingPlanOccurrencesTableProcessedTableManager
+      get trainingPlanOccurrencesRefs {
+    final manager = $$TrainingPlanOccurrencesTableTableManager(
+            $_db, $_db.trainingPlanOccurrences)
+        .filter((f) => f.revisionId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache =
+        $_typedResult.readTableOrNull(_trainingPlanOccurrencesRefsTable($_db));
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: cache));
+  }
+}
+
+class $$TrainingPlanRevisionsTableFilterComposer
+    extends Composer<_$AppDatabase, $TrainingPlanRevisionsTable> {
+  $$TrainingPlanRevisionsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get localId => $composableBuilder(
+      column: $table.localId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+      column: $table.deletedAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get number => $composableBuilder(
+      column: $table.number, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get effectiveOn => $composableBuilder(
+      column: $table.effectiveOn, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get effectiveCycle => $composableBuilder(
+      column: $table.effectiveCycle,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get daysJson => $composableBuilder(
+      column: $table.daysJson, builder: (column) => ColumnFilters(column));
+
+  $$TrainingPlansTableFilterComposer get planId {
+    final $$TrainingPlansTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.planId,
+        referencedTable: $db.trainingPlans,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$TrainingPlansTableFilterComposer(
+              $db: $db,
+              $table: $db.trainingPlans,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+
+  Expression<bool> trainingPlanOccurrencesRefs(
+      Expression<bool> Function($$TrainingPlanOccurrencesTableFilterComposer f)
+          f) {
+    final $$TrainingPlanOccurrencesTableFilterComposer composer =
+        $composerBuilder(
+            composer: this,
+            getCurrentColumn: (t) => t.id,
+            referencedTable: $db.trainingPlanOccurrences,
+            getReferencedColumn: (t) => t.revisionId,
+            builder: (joinBuilder,
+                    {$addJoinBuilderToRootComposer,
+                    $removeJoinBuilderFromRootComposer}) =>
+                $$TrainingPlanOccurrencesTableFilterComposer(
+                  $db: $db,
+                  $table: $db.trainingPlanOccurrences,
+                  $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                  joinBuilder: joinBuilder,
+                  $removeJoinBuilderFromRootComposer:
+                      $removeJoinBuilderFromRootComposer,
+                ));
+    return f(composer);
+  }
+}
+
+class $$TrainingPlanRevisionsTableOrderingComposer
+    extends Composer<_$AppDatabase, $TrainingPlanRevisionsTable> {
+  $$TrainingPlanRevisionsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get localId => $composableBuilder(
+      column: $table.localId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+      column: $table.deletedAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get number => $composableBuilder(
+      column: $table.number, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get effectiveOn => $composableBuilder(
+      column: $table.effectiveOn, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get effectiveCycle => $composableBuilder(
+      column: $table.effectiveCycle,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get daysJson => $composableBuilder(
+      column: $table.daysJson, builder: (column) => ColumnOrderings(column));
+
+  $$TrainingPlansTableOrderingComposer get planId {
+    final $$TrainingPlansTableOrderingComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.planId,
+        referencedTable: $db.trainingPlans,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$TrainingPlansTableOrderingComposer(
+              $db: $db,
+              $table: $db.trainingPlans,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$TrainingPlanRevisionsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $TrainingPlanRevisionsTable> {
+  $$TrainingPlanRevisionsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get localId =>
+      $composableBuilder(column: $table.localId, builder: (column) => column);
+
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+
+  GeneratedColumn<int> get number =>
+      $composableBuilder(column: $table.number, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get effectiveOn => $composableBuilder(
+      column: $table.effectiveOn, builder: (column) => column);
+
+  GeneratedColumn<int> get effectiveCycle => $composableBuilder(
+      column: $table.effectiveCycle, builder: (column) => column);
+
+  GeneratedColumn<String> get daysJson =>
+      $composableBuilder(column: $table.daysJson, builder: (column) => column);
+
+  $$TrainingPlansTableAnnotationComposer get planId {
+    final $$TrainingPlansTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.planId,
+        referencedTable: $db.trainingPlans,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$TrainingPlansTableAnnotationComposer(
+              $db: $db,
+              $table: $db.trainingPlans,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+
+  Expression<T> trainingPlanOccurrencesRefs<T extends Object>(
+      Expression<T> Function($$TrainingPlanOccurrencesTableAnnotationComposer a)
+          f) {
+    final $$TrainingPlanOccurrencesTableAnnotationComposer composer =
+        $composerBuilder(
+            composer: this,
+            getCurrentColumn: (t) => t.id,
+            referencedTable: $db.trainingPlanOccurrences,
+            getReferencedColumn: (t) => t.revisionId,
+            builder: (joinBuilder,
+                    {$addJoinBuilderToRootComposer,
+                    $removeJoinBuilderFromRootComposer}) =>
+                $$TrainingPlanOccurrencesTableAnnotationComposer(
+                  $db: $db,
+                  $table: $db.trainingPlanOccurrences,
+                  $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                  joinBuilder: joinBuilder,
+                  $removeJoinBuilderFromRootComposer:
+                      $removeJoinBuilderFromRootComposer,
+                ));
+    return f(composer);
+  }
+}
+
+class $$TrainingPlanRevisionsTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $TrainingPlanRevisionsTable,
+    TrainingPlanRevision,
+    $$TrainingPlanRevisionsTableFilterComposer,
+    $$TrainingPlanRevisionsTableOrderingComposer,
+    $$TrainingPlanRevisionsTableAnnotationComposer,
+    $$TrainingPlanRevisionsTableCreateCompanionBuilder,
+    $$TrainingPlanRevisionsTableUpdateCompanionBuilder,
+    (TrainingPlanRevision, $$TrainingPlanRevisionsTableReferences),
+    TrainingPlanRevision,
+    PrefetchHooks Function({bool planId, bool trainingPlanOccurrencesRefs})> {
+  $$TrainingPlanRevisionsTableTableManager(
+      _$AppDatabase db, $TrainingPlanRevisionsTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$TrainingPlanRevisionsTableFilterComposer(
+                  $db: db, $table: table),
+          createOrderingComposer: () =>
+              $$TrainingPlanRevisionsTableOrderingComposer(
+                  $db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$TrainingPlanRevisionsTableAnnotationComposer(
+                  $db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<int> localId = const Value.absent(),
+            Value<String> id = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+            Value<DateTime> updatedAt = const Value.absent(),
+            Value<DateTime?> deletedAt = const Value.absent(),
+            Value<String> planId = const Value.absent(),
+            Value<int> number = const Value.absent(),
+            Value<DateTime> effectiveOn = const Value.absent(),
+            Value<int?> effectiveCycle = const Value.absent(),
+            Value<String> daysJson = const Value.absent(),
+          }) =>
+              TrainingPlanRevisionsCompanion(
+            localId: localId,
+            id: id,
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+            deletedAt: deletedAt,
+            planId: planId,
+            number: number,
+            effectiveOn: effectiveOn,
+            effectiveCycle: effectiveCycle,
+            daysJson: daysJson,
+          ),
+          createCompanionCallback: ({
+            Value<int> localId = const Value.absent(),
+            Value<String> id = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+            Value<DateTime> updatedAt = const Value.absent(),
+            Value<DateTime?> deletedAt = const Value.absent(),
+            required String planId,
+            required int number,
+            required DateTime effectiveOn,
+            Value<int?> effectiveCycle = const Value.absent(),
+            required String daysJson,
+          }) =>
+              TrainingPlanRevisionsCompanion.insert(
+            localId: localId,
+            id: id,
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+            deletedAt: deletedAt,
+            planId: planId,
+            number: number,
+            effectiveOn: effectiveOn,
+            effectiveCycle: effectiveCycle,
+            daysJson: daysJson,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (
+                    e.readTable<$TrainingPlanRevisionsTable,
+                        TrainingPlanRevision>(table),
+                    $$TrainingPlanRevisionsTableReferences(db, table, e)
+                  ))
+              .toList(),
+          prefetchHooksCallback: (
+              {planId = false, trainingPlanOccurrencesRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [
+                if (trainingPlanOccurrencesRefs) db.trainingPlanOccurrences
+              ],
+              addJoins: <
+                  T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic>>(state) {
+                if (planId) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.planId,
+                    referencedTable:
+                        $$TrainingPlanRevisionsTableReferences._planIdTable(db),
+                    referencedColumn: $$TrainingPlanRevisionsTableReferences
+                        ._planIdTable(db)
+                        .id,
+                  ) as T;
+                }
+
+                return state;
+              },
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (trainingPlanOccurrencesRefs)
+                    await $_getPrefetchedData<
+                            TrainingPlanRevision,
+                            $TrainingPlanRevisionsTable,
+                            TrainingPlanOccurrence>(
+                        currentTable: table,
+                        referencedTable: $$TrainingPlanRevisionsTableReferences
+                            ._trainingPlanOccurrencesRefsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$TrainingPlanRevisionsTableReferences(
+                                    db, table, p0)
+                                .trainingPlanOccurrencesRefs,
+                        referencedItemsForCurrentItem:
+                            (item, referencedItems) => referencedItems
+                                .where((e) => e.revisionId == item.id),
+                        typedResults: items)
+                ];
+              },
+            );
+          },
+        ));
+}
+
+typedef $$TrainingPlanRevisionsTableProcessedTableManager
+    = ProcessedTableManager<
+        _$AppDatabase,
+        $TrainingPlanRevisionsTable,
+        TrainingPlanRevision,
+        $$TrainingPlanRevisionsTableFilterComposer,
+        $$TrainingPlanRevisionsTableOrderingComposer,
+        $$TrainingPlanRevisionsTableAnnotationComposer,
+        $$TrainingPlanRevisionsTableCreateCompanionBuilder,
+        $$TrainingPlanRevisionsTableUpdateCompanionBuilder,
+        (TrainingPlanRevision, $$TrainingPlanRevisionsTableReferences),
+        TrainingPlanRevision,
+        PrefetchHooks Function(
+            {bool planId, bool trainingPlanOccurrencesRefs})>;
+typedef $$TrainingPlanActivationsTableCreateCompanionBuilder
+    = TrainingPlanActivationsCompanion Function({
+  Value<int> localId,
+  Value<String> id,
+  Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
+  Value<DateTime?> deletedAt,
+  required String planId,
+  required DateTime startedOn,
+  Value<DateTime?> endedOn,
+  Value<int> initialCursor,
+  Value<int> initialCycle,
+});
+typedef $$TrainingPlanActivationsTableUpdateCompanionBuilder
+    = TrainingPlanActivationsCompanion Function({
+  Value<int> localId,
+  Value<String> id,
+  Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
+  Value<DateTime?> deletedAt,
+  Value<String> planId,
+  Value<DateTime> startedOn,
+  Value<DateTime?> endedOn,
+  Value<int> initialCursor,
+  Value<int> initialCycle,
+});
+
+final class $$TrainingPlanActivationsTableReferences extends BaseReferences<
+    _$AppDatabase, $TrainingPlanActivationsTable, TrainingPlanActivation> {
+  $$TrainingPlanActivationsTableReferences(
+      super.$_db, super.$_table, super.$_typedResult);
+
+  static $TrainingPlansTable _planIdTable(_$AppDatabase db) => db.trainingPlans
+      .createAlias('training_plan_activations__plan_id__training_plans__id');
+
+  $$TrainingPlansTableProcessedTableManager get planId {
+    final $_column = $_itemColumn<String>('plan_id')!;
+
+    final manager = $$TrainingPlansTableTableManager($_db, $_db.trainingPlans)
+        .filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_planIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: [item]));
+  }
+
+  static MultiTypedResultKey<$TrainingPlanOccurrencesTable,
+      List<TrainingPlanOccurrence>> _trainingPlanOccurrencesRefsTable(
+          _$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(db.trainingPlanOccurrences,
+          aliasName:
+              'training_plan_activations__id__training_plan_occurrences__activation_id');
+
+  $$TrainingPlanOccurrencesTableProcessedTableManager
+      get trainingPlanOccurrencesRefs {
+    final manager = $$TrainingPlanOccurrencesTableTableManager(
+            $_db, $_db.trainingPlanOccurrences)
+        .filter(
+            (f) => f.activationId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache =
+        $_typedResult.readTableOrNull(_trainingPlanOccurrencesRefsTable($_db));
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: cache));
+  }
+}
+
+class $$TrainingPlanActivationsTableFilterComposer
+    extends Composer<_$AppDatabase, $TrainingPlanActivationsTable> {
+  $$TrainingPlanActivationsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get localId => $composableBuilder(
+      column: $table.localId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+      column: $table.deletedAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get startedOn => $composableBuilder(
+      column: $table.startedOn, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get endedOn => $composableBuilder(
+      column: $table.endedOn, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get initialCursor => $composableBuilder(
+      column: $table.initialCursor, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get initialCycle => $composableBuilder(
+      column: $table.initialCycle, builder: (column) => ColumnFilters(column));
+
+  $$TrainingPlansTableFilterComposer get planId {
+    final $$TrainingPlansTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.planId,
+        referencedTable: $db.trainingPlans,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$TrainingPlansTableFilterComposer(
+              $db: $db,
+              $table: $db.trainingPlans,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+
+  Expression<bool> trainingPlanOccurrencesRefs(
+      Expression<bool> Function($$TrainingPlanOccurrencesTableFilterComposer f)
+          f) {
+    final $$TrainingPlanOccurrencesTableFilterComposer composer =
+        $composerBuilder(
+            composer: this,
+            getCurrentColumn: (t) => t.id,
+            referencedTable: $db.trainingPlanOccurrences,
+            getReferencedColumn: (t) => t.activationId,
+            builder: (joinBuilder,
+                    {$addJoinBuilderToRootComposer,
+                    $removeJoinBuilderFromRootComposer}) =>
+                $$TrainingPlanOccurrencesTableFilterComposer(
+                  $db: $db,
+                  $table: $db.trainingPlanOccurrences,
+                  $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                  joinBuilder: joinBuilder,
+                  $removeJoinBuilderFromRootComposer:
+                      $removeJoinBuilderFromRootComposer,
+                ));
+    return f(composer);
+  }
+}
+
+class $$TrainingPlanActivationsTableOrderingComposer
+    extends Composer<_$AppDatabase, $TrainingPlanActivationsTable> {
+  $$TrainingPlanActivationsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get localId => $composableBuilder(
+      column: $table.localId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+      column: $table.deletedAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get startedOn => $composableBuilder(
+      column: $table.startedOn, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get endedOn => $composableBuilder(
+      column: $table.endedOn, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get initialCursor => $composableBuilder(
+      column: $table.initialCursor,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get initialCycle => $composableBuilder(
+      column: $table.initialCycle,
+      builder: (column) => ColumnOrderings(column));
+
+  $$TrainingPlansTableOrderingComposer get planId {
+    final $$TrainingPlansTableOrderingComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.planId,
+        referencedTable: $db.trainingPlans,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$TrainingPlansTableOrderingComposer(
+              $db: $db,
+              $table: $db.trainingPlans,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$TrainingPlanActivationsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $TrainingPlanActivationsTable> {
+  $$TrainingPlanActivationsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get localId =>
+      $composableBuilder(column: $table.localId, builder: (column) => column);
+
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get startedOn =>
+      $composableBuilder(column: $table.startedOn, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get endedOn =>
+      $composableBuilder(column: $table.endedOn, builder: (column) => column);
+
+  GeneratedColumn<int> get initialCursor => $composableBuilder(
+      column: $table.initialCursor, builder: (column) => column);
+
+  GeneratedColumn<int> get initialCycle => $composableBuilder(
+      column: $table.initialCycle, builder: (column) => column);
+
+  $$TrainingPlansTableAnnotationComposer get planId {
+    final $$TrainingPlansTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.planId,
+        referencedTable: $db.trainingPlans,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$TrainingPlansTableAnnotationComposer(
+              $db: $db,
+              $table: $db.trainingPlans,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+
+  Expression<T> trainingPlanOccurrencesRefs<T extends Object>(
+      Expression<T> Function($$TrainingPlanOccurrencesTableAnnotationComposer a)
+          f) {
+    final $$TrainingPlanOccurrencesTableAnnotationComposer composer =
+        $composerBuilder(
+            composer: this,
+            getCurrentColumn: (t) => t.id,
+            referencedTable: $db.trainingPlanOccurrences,
+            getReferencedColumn: (t) => t.activationId,
+            builder: (joinBuilder,
+                    {$addJoinBuilderToRootComposer,
+                    $removeJoinBuilderFromRootComposer}) =>
+                $$TrainingPlanOccurrencesTableAnnotationComposer(
+                  $db: $db,
+                  $table: $db.trainingPlanOccurrences,
+                  $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                  joinBuilder: joinBuilder,
+                  $removeJoinBuilderFromRootComposer:
+                      $removeJoinBuilderFromRootComposer,
+                ));
+    return f(composer);
+  }
+}
+
+class $$TrainingPlanActivationsTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $TrainingPlanActivationsTable,
+    TrainingPlanActivation,
+    $$TrainingPlanActivationsTableFilterComposer,
+    $$TrainingPlanActivationsTableOrderingComposer,
+    $$TrainingPlanActivationsTableAnnotationComposer,
+    $$TrainingPlanActivationsTableCreateCompanionBuilder,
+    $$TrainingPlanActivationsTableUpdateCompanionBuilder,
+    (TrainingPlanActivation, $$TrainingPlanActivationsTableReferences),
+    TrainingPlanActivation,
+    PrefetchHooks Function({bool planId, bool trainingPlanOccurrencesRefs})> {
+  $$TrainingPlanActivationsTableTableManager(
+      _$AppDatabase db, $TrainingPlanActivationsTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$TrainingPlanActivationsTableFilterComposer(
+                  $db: db, $table: table),
+          createOrderingComposer: () =>
+              $$TrainingPlanActivationsTableOrderingComposer(
+                  $db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$TrainingPlanActivationsTableAnnotationComposer(
+                  $db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<int> localId = const Value.absent(),
+            Value<String> id = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+            Value<DateTime> updatedAt = const Value.absent(),
+            Value<DateTime?> deletedAt = const Value.absent(),
+            Value<String> planId = const Value.absent(),
+            Value<DateTime> startedOn = const Value.absent(),
+            Value<DateTime?> endedOn = const Value.absent(),
+            Value<int> initialCursor = const Value.absent(),
+            Value<int> initialCycle = const Value.absent(),
+          }) =>
+              TrainingPlanActivationsCompanion(
+            localId: localId,
+            id: id,
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+            deletedAt: deletedAt,
+            planId: planId,
+            startedOn: startedOn,
+            endedOn: endedOn,
+            initialCursor: initialCursor,
+            initialCycle: initialCycle,
+          ),
+          createCompanionCallback: ({
+            Value<int> localId = const Value.absent(),
+            Value<String> id = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+            Value<DateTime> updatedAt = const Value.absent(),
+            Value<DateTime?> deletedAt = const Value.absent(),
+            required String planId,
+            required DateTime startedOn,
+            Value<DateTime?> endedOn = const Value.absent(),
+            Value<int> initialCursor = const Value.absent(),
+            Value<int> initialCycle = const Value.absent(),
+          }) =>
+              TrainingPlanActivationsCompanion.insert(
+            localId: localId,
+            id: id,
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+            deletedAt: deletedAt,
+            planId: planId,
+            startedOn: startedOn,
+            endedOn: endedOn,
+            initialCursor: initialCursor,
+            initialCycle: initialCycle,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (
+                    e.readTable<$TrainingPlanActivationsTable,
+                        TrainingPlanActivation>(table),
+                    $$TrainingPlanActivationsTableReferences(db, table, e)
+                  ))
+              .toList(),
+          prefetchHooksCallback: (
+              {planId = false, trainingPlanOccurrencesRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [
+                if (trainingPlanOccurrencesRefs) db.trainingPlanOccurrences
+              ],
+              addJoins: <
+                  T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic>>(state) {
+                if (planId) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.planId,
+                    referencedTable: $$TrainingPlanActivationsTableReferences
+                        ._planIdTable(db),
+                    referencedColumn: $$TrainingPlanActivationsTableReferences
+                        ._planIdTable(db)
+                        .id,
+                  ) as T;
+                }
+
+                return state;
+              },
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (trainingPlanOccurrencesRefs)
+                    await $_getPrefetchedData<
+                            TrainingPlanActivation,
+                            $TrainingPlanActivationsTable,
+                            TrainingPlanOccurrence>(
+                        currentTable: table,
+                        referencedTable:
+                            $$TrainingPlanActivationsTableReferences
+                                ._trainingPlanOccurrencesRefsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$TrainingPlanActivationsTableReferences(
+                                    db, table, p0)
+                                .trainingPlanOccurrencesRefs,
+                        referencedItemsForCurrentItem:
+                            (item, referencedItems) => referencedItems
+                                .where((e) => e.activationId == item.id),
+                        typedResults: items)
+                ];
+              },
+            );
+          },
+        ));
+}
+
+typedef $$TrainingPlanActivationsTableProcessedTableManager
+    = ProcessedTableManager<
+        _$AppDatabase,
+        $TrainingPlanActivationsTable,
+        TrainingPlanActivation,
+        $$TrainingPlanActivationsTableFilterComposer,
+        $$TrainingPlanActivationsTableOrderingComposer,
+        $$TrainingPlanActivationsTableAnnotationComposer,
+        $$TrainingPlanActivationsTableCreateCompanionBuilder,
+        $$TrainingPlanActivationsTableUpdateCompanionBuilder,
+        (TrainingPlanActivation, $$TrainingPlanActivationsTableReferences),
+        TrainingPlanActivation,
+        PrefetchHooks Function(
+            {bool planId, bool trainingPlanOccurrencesRefs})>;
+typedef $$TrainingPlanOccurrencesTableCreateCompanionBuilder
+    = TrainingPlanOccurrencesCompanion Function({
+  Value<int> localId,
+  Value<String> id,
+  Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
+  Value<DateTime?> deletedAt,
+  required String planId,
+  required String activationId,
+  required String revisionId,
+  required DateTime scheduledOn,
+  required int slotIndex,
+  required String status,
+  Value<String?> workoutLogId,
+  Value<String?> routineSnapshotJson,
+  Value<DateTime?> resolvedAt,
+});
+typedef $$TrainingPlanOccurrencesTableUpdateCompanionBuilder
+    = TrainingPlanOccurrencesCompanion Function({
+  Value<int> localId,
+  Value<String> id,
+  Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
+  Value<DateTime?> deletedAt,
+  Value<String> planId,
+  Value<String> activationId,
+  Value<String> revisionId,
+  Value<DateTime> scheduledOn,
+  Value<int> slotIndex,
+  Value<String> status,
+  Value<String?> workoutLogId,
+  Value<String?> routineSnapshotJson,
+  Value<DateTime?> resolvedAt,
+});
+
+final class $$TrainingPlanOccurrencesTableReferences extends BaseReferences<
+    _$AppDatabase, $TrainingPlanOccurrencesTable, TrainingPlanOccurrence> {
+  $$TrainingPlanOccurrencesTableReferences(
+      super.$_db, super.$_table, super.$_typedResult);
+
+  static $TrainingPlansTable _planIdTable(_$AppDatabase db) => db.trainingPlans
+      .createAlias('training_plan_occurrences__plan_id__training_plans__id');
+
+  $$TrainingPlansTableProcessedTableManager get planId {
+    final $_column = $_itemColumn<String>('plan_id')!;
+
+    final manager = $$TrainingPlansTableTableManager($_db, $_db.trainingPlans)
+        .filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_planIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: [item]));
+  }
+
+  static $TrainingPlanActivationsTable _activationIdTable(_$AppDatabase db) =>
+      db.trainingPlanActivations.createAlias(
+          'training_plan_occurrences__activation_id__training_plan_activations__id');
+
+  $$TrainingPlanActivationsTableProcessedTableManager get activationId {
+    final $_column = $_itemColumn<String>('activation_id')!;
+
+    final manager = $$TrainingPlanActivationsTableTableManager(
+            $_db, $_db.trainingPlanActivations)
+        .filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_activationIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: [item]));
+  }
+
+  static $TrainingPlanRevisionsTable _revisionIdTable(_$AppDatabase db) =>
+      db.trainingPlanRevisions.createAlias(
+          'training_plan_occurrences__revision_id__training_plan_revisions__id');
+
+  $$TrainingPlanRevisionsTableProcessedTableManager get revisionId {
+    final $_column = $_itemColumn<String>('revision_id')!;
+
+    final manager = $$TrainingPlanRevisionsTableTableManager(
+            $_db, $_db.trainingPlanRevisions)
+        .filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_revisionIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: [item]));
+  }
+
+  static $WorkoutLogsTable _workoutLogIdTable(_$AppDatabase db) =>
+      db.workoutLogs.createAlias(
+          'training_plan_occurrences__workout_log_id__workout_logs__id');
+
+  $$WorkoutLogsTableProcessedTableManager? get workoutLogId {
+    final $_column = $_itemColumn<String>('workout_log_id');
+    if ($_column == null) return null;
+    final manager = $$WorkoutLogsTableTableManager($_db, $_db.workoutLogs)
+        .filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_workoutLogIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: [item]));
+  }
+}
+
+class $$TrainingPlanOccurrencesTableFilterComposer
+    extends Composer<_$AppDatabase, $TrainingPlanOccurrencesTable> {
+  $$TrainingPlanOccurrencesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get localId => $composableBuilder(
+      column: $table.localId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+      column: $table.deletedAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get scheduledOn => $composableBuilder(
+      column: $table.scheduledOn, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get slotIndex => $composableBuilder(
+      column: $table.slotIndex, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get status => $composableBuilder(
+      column: $table.status, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get routineSnapshotJson => $composableBuilder(
+      column: $table.routineSnapshotJson,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get resolvedAt => $composableBuilder(
+      column: $table.resolvedAt, builder: (column) => ColumnFilters(column));
+
+  $$TrainingPlansTableFilterComposer get planId {
+    final $$TrainingPlansTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.planId,
+        referencedTable: $db.trainingPlans,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$TrainingPlansTableFilterComposer(
+              $db: $db,
+              $table: $db.trainingPlans,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+
+  $$TrainingPlanActivationsTableFilterComposer get activationId {
+    final $$TrainingPlanActivationsTableFilterComposer composer =
+        $composerBuilder(
+            composer: this,
+            getCurrentColumn: (t) => t.activationId,
+            referencedTable: $db.trainingPlanActivations,
+            getReferencedColumn: (t) => t.id,
+            builder: (joinBuilder,
+                    {$addJoinBuilderToRootComposer,
+                    $removeJoinBuilderFromRootComposer}) =>
+                $$TrainingPlanActivationsTableFilterComposer(
+                  $db: $db,
+                  $table: $db.trainingPlanActivations,
+                  $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                  joinBuilder: joinBuilder,
+                  $removeJoinBuilderFromRootComposer:
+                      $removeJoinBuilderFromRootComposer,
+                ));
+    return composer;
+  }
+
+  $$TrainingPlanRevisionsTableFilterComposer get revisionId {
+    final $$TrainingPlanRevisionsTableFilterComposer composer =
+        $composerBuilder(
+            composer: this,
+            getCurrentColumn: (t) => t.revisionId,
+            referencedTable: $db.trainingPlanRevisions,
+            getReferencedColumn: (t) => t.id,
+            builder: (joinBuilder,
+                    {$addJoinBuilderToRootComposer,
+                    $removeJoinBuilderFromRootComposer}) =>
+                $$TrainingPlanRevisionsTableFilterComposer(
+                  $db: $db,
+                  $table: $db.trainingPlanRevisions,
+                  $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                  joinBuilder: joinBuilder,
+                  $removeJoinBuilderFromRootComposer:
+                      $removeJoinBuilderFromRootComposer,
+                ));
+    return composer;
+  }
+
+  $$WorkoutLogsTableFilterComposer get workoutLogId {
+    final $$WorkoutLogsTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.workoutLogId,
+        referencedTable: $db.workoutLogs,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$WorkoutLogsTableFilterComposer(
+              $db: $db,
+              $table: $db.workoutLogs,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$TrainingPlanOccurrencesTableOrderingComposer
+    extends Composer<_$AppDatabase, $TrainingPlanOccurrencesTable> {
+  $$TrainingPlanOccurrencesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get localId => $composableBuilder(
+      column: $table.localId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+      column: $table.deletedAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get scheduledOn => $composableBuilder(
+      column: $table.scheduledOn, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get slotIndex => $composableBuilder(
+      column: $table.slotIndex, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get status => $composableBuilder(
+      column: $table.status, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get routineSnapshotJson => $composableBuilder(
+      column: $table.routineSnapshotJson,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get resolvedAt => $composableBuilder(
+      column: $table.resolvedAt, builder: (column) => ColumnOrderings(column));
+
+  $$TrainingPlansTableOrderingComposer get planId {
+    final $$TrainingPlansTableOrderingComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.planId,
+        referencedTable: $db.trainingPlans,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$TrainingPlansTableOrderingComposer(
+              $db: $db,
+              $table: $db.trainingPlans,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+
+  $$TrainingPlanActivationsTableOrderingComposer get activationId {
+    final $$TrainingPlanActivationsTableOrderingComposer composer =
+        $composerBuilder(
+            composer: this,
+            getCurrentColumn: (t) => t.activationId,
+            referencedTable: $db.trainingPlanActivations,
+            getReferencedColumn: (t) => t.id,
+            builder: (joinBuilder,
+                    {$addJoinBuilderToRootComposer,
+                    $removeJoinBuilderFromRootComposer}) =>
+                $$TrainingPlanActivationsTableOrderingComposer(
+                  $db: $db,
+                  $table: $db.trainingPlanActivations,
+                  $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                  joinBuilder: joinBuilder,
+                  $removeJoinBuilderFromRootComposer:
+                      $removeJoinBuilderFromRootComposer,
+                ));
+    return composer;
+  }
+
+  $$TrainingPlanRevisionsTableOrderingComposer get revisionId {
+    final $$TrainingPlanRevisionsTableOrderingComposer composer =
+        $composerBuilder(
+            composer: this,
+            getCurrentColumn: (t) => t.revisionId,
+            referencedTable: $db.trainingPlanRevisions,
+            getReferencedColumn: (t) => t.id,
+            builder: (joinBuilder,
+                    {$addJoinBuilderToRootComposer,
+                    $removeJoinBuilderFromRootComposer}) =>
+                $$TrainingPlanRevisionsTableOrderingComposer(
+                  $db: $db,
+                  $table: $db.trainingPlanRevisions,
+                  $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                  joinBuilder: joinBuilder,
+                  $removeJoinBuilderFromRootComposer:
+                      $removeJoinBuilderFromRootComposer,
+                ));
+    return composer;
+  }
+
+  $$WorkoutLogsTableOrderingComposer get workoutLogId {
+    final $$WorkoutLogsTableOrderingComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.workoutLogId,
+        referencedTable: $db.workoutLogs,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$WorkoutLogsTableOrderingComposer(
+              $db: $db,
+              $table: $db.workoutLogs,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$TrainingPlanOccurrencesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $TrainingPlanOccurrencesTable> {
+  $$TrainingPlanOccurrencesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get localId =>
+      $composableBuilder(column: $table.localId, builder: (column) => column);
+
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get scheduledOn => $composableBuilder(
+      column: $table.scheduledOn, builder: (column) => column);
+
+  GeneratedColumn<int> get slotIndex =>
+      $composableBuilder(column: $table.slotIndex, builder: (column) => column);
+
+  GeneratedColumn<String> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<String> get routineSnapshotJson => $composableBuilder(
+      column: $table.routineSnapshotJson, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get resolvedAt => $composableBuilder(
+      column: $table.resolvedAt, builder: (column) => column);
+
+  $$TrainingPlansTableAnnotationComposer get planId {
+    final $$TrainingPlansTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.planId,
+        referencedTable: $db.trainingPlans,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$TrainingPlansTableAnnotationComposer(
+              $db: $db,
+              $table: $db.trainingPlans,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+
+  $$TrainingPlanActivationsTableAnnotationComposer get activationId {
+    final $$TrainingPlanActivationsTableAnnotationComposer composer =
+        $composerBuilder(
+            composer: this,
+            getCurrentColumn: (t) => t.activationId,
+            referencedTable: $db.trainingPlanActivations,
+            getReferencedColumn: (t) => t.id,
+            builder: (joinBuilder,
+                    {$addJoinBuilderToRootComposer,
+                    $removeJoinBuilderFromRootComposer}) =>
+                $$TrainingPlanActivationsTableAnnotationComposer(
+                  $db: $db,
+                  $table: $db.trainingPlanActivations,
+                  $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                  joinBuilder: joinBuilder,
+                  $removeJoinBuilderFromRootComposer:
+                      $removeJoinBuilderFromRootComposer,
+                ));
+    return composer;
+  }
+
+  $$TrainingPlanRevisionsTableAnnotationComposer get revisionId {
+    final $$TrainingPlanRevisionsTableAnnotationComposer composer =
+        $composerBuilder(
+            composer: this,
+            getCurrentColumn: (t) => t.revisionId,
+            referencedTable: $db.trainingPlanRevisions,
+            getReferencedColumn: (t) => t.id,
+            builder: (joinBuilder,
+                    {$addJoinBuilderToRootComposer,
+                    $removeJoinBuilderFromRootComposer}) =>
+                $$TrainingPlanRevisionsTableAnnotationComposer(
+                  $db: $db,
+                  $table: $db.trainingPlanRevisions,
+                  $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                  joinBuilder: joinBuilder,
+                  $removeJoinBuilderFromRootComposer:
+                      $removeJoinBuilderFromRootComposer,
+                ));
+    return composer;
+  }
+
+  $$WorkoutLogsTableAnnotationComposer get workoutLogId {
+    final $$WorkoutLogsTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.workoutLogId,
+        referencedTable: $db.workoutLogs,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$WorkoutLogsTableAnnotationComposer(
+              $db: $db,
+              $table: $db.workoutLogs,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$TrainingPlanOccurrencesTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $TrainingPlanOccurrencesTable,
+    TrainingPlanOccurrence,
+    $$TrainingPlanOccurrencesTableFilterComposer,
+    $$TrainingPlanOccurrencesTableOrderingComposer,
+    $$TrainingPlanOccurrencesTableAnnotationComposer,
+    $$TrainingPlanOccurrencesTableCreateCompanionBuilder,
+    $$TrainingPlanOccurrencesTableUpdateCompanionBuilder,
+    (TrainingPlanOccurrence, $$TrainingPlanOccurrencesTableReferences),
+    TrainingPlanOccurrence,
+    PrefetchHooks Function(
+        {bool planId, bool activationId, bool revisionId, bool workoutLogId})> {
+  $$TrainingPlanOccurrencesTableTableManager(
+      _$AppDatabase db, $TrainingPlanOccurrencesTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$TrainingPlanOccurrencesTableFilterComposer(
+                  $db: db, $table: table),
+          createOrderingComposer: () =>
+              $$TrainingPlanOccurrencesTableOrderingComposer(
+                  $db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$TrainingPlanOccurrencesTableAnnotationComposer(
+                  $db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<int> localId = const Value.absent(),
+            Value<String> id = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+            Value<DateTime> updatedAt = const Value.absent(),
+            Value<DateTime?> deletedAt = const Value.absent(),
+            Value<String> planId = const Value.absent(),
+            Value<String> activationId = const Value.absent(),
+            Value<String> revisionId = const Value.absent(),
+            Value<DateTime> scheduledOn = const Value.absent(),
+            Value<int> slotIndex = const Value.absent(),
+            Value<String> status = const Value.absent(),
+            Value<String?> workoutLogId = const Value.absent(),
+            Value<String?> routineSnapshotJson = const Value.absent(),
+            Value<DateTime?> resolvedAt = const Value.absent(),
+          }) =>
+              TrainingPlanOccurrencesCompanion(
+            localId: localId,
+            id: id,
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+            deletedAt: deletedAt,
+            planId: planId,
+            activationId: activationId,
+            revisionId: revisionId,
+            scheduledOn: scheduledOn,
+            slotIndex: slotIndex,
+            status: status,
+            workoutLogId: workoutLogId,
+            routineSnapshotJson: routineSnapshotJson,
+            resolvedAt: resolvedAt,
+          ),
+          createCompanionCallback: ({
+            Value<int> localId = const Value.absent(),
+            Value<String> id = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+            Value<DateTime> updatedAt = const Value.absent(),
+            Value<DateTime?> deletedAt = const Value.absent(),
+            required String planId,
+            required String activationId,
+            required String revisionId,
+            required DateTime scheduledOn,
+            required int slotIndex,
+            required String status,
+            Value<String?> workoutLogId = const Value.absent(),
+            Value<String?> routineSnapshotJson = const Value.absent(),
+            Value<DateTime?> resolvedAt = const Value.absent(),
+          }) =>
+              TrainingPlanOccurrencesCompanion.insert(
+            localId: localId,
+            id: id,
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+            deletedAt: deletedAt,
+            planId: planId,
+            activationId: activationId,
+            revisionId: revisionId,
+            scheduledOn: scheduledOn,
+            slotIndex: slotIndex,
+            status: status,
+            workoutLogId: workoutLogId,
+            routineSnapshotJson: routineSnapshotJson,
+            resolvedAt: resolvedAt,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (
+                    e.readTable<$TrainingPlanOccurrencesTable,
+                        TrainingPlanOccurrence>(table),
+                    $$TrainingPlanOccurrencesTableReferences(db, table, e)
+                  ))
+              .toList(),
+          prefetchHooksCallback: (
+              {planId = false,
+              activationId = false,
+              revisionId = false,
+              workoutLogId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins: <
+                  T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic>>(state) {
+                if (planId) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.planId,
+                    referencedTable: $$TrainingPlanOccurrencesTableReferences
+                        ._planIdTable(db),
+                    referencedColumn: $$TrainingPlanOccurrencesTableReferences
+                        ._planIdTable(db)
+                        .id,
+                  ) as T;
+                }
+                if (activationId) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.activationId,
+                    referencedTable: $$TrainingPlanOccurrencesTableReferences
+                        ._activationIdTable(db),
+                    referencedColumn: $$TrainingPlanOccurrencesTableReferences
+                        ._activationIdTable(db)
+                        .id,
+                  ) as T;
+                }
+                if (revisionId) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.revisionId,
+                    referencedTable: $$TrainingPlanOccurrencesTableReferences
+                        ._revisionIdTable(db),
+                    referencedColumn: $$TrainingPlanOccurrencesTableReferences
+                        ._revisionIdTable(db)
+                        .id,
+                  ) as T;
+                }
+                if (workoutLogId) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.workoutLogId,
+                    referencedTable: $$TrainingPlanOccurrencesTableReferences
+                        ._workoutLogIdTable(db),
+                    referencedColumn: $$TrainingPlanOccurrencesTableReferences
+                        ._workoutLogIdTable(db)
+                        .id,
+                  ) as T;
+                }
+
+                return state;
+              },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ));
+}
+
+typedef $$TrainingPlanOccurrencesTableProcessedTableManager
+    = ProcessedTableManager<
+        _$AppDatabase,
+        $TrainingPlanOccurrencesTable,
+        TrainingPlanOccurrence,
+        $$TrainingPlanOccurrencesTableFilterComposer,
+        $$TrainingPlanOccurrencesTableOrderingComposer,
+        $$TrainingPlanOccurrencesTableAnnotationComposer,
+        $$TrainingPlanOccurrencesTableCreateCompanionBuilder,
+        $$TrainingPlanOccurrencesTableUpdateCompanionBuilder,
+        (TrainingPlanOccurrence, $$TrainingPlanOccurrencesTableReferences),
+        TrainingPlanOccurrence,
+        PrefetchHooks Function(
+            {bool planId,
+            bool activationId,
+            bool revisionId,
+            bool workoutLogId})>;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -43061,4 +47597,14 @@ class $AppDatabaseManager {
       $$GoalEventsTableTableManager(_db, _db.goalEvents);
   $$GoalReviewsTableTableManager get goalReviews =>
       $$GoalReviewsTableTableManager(_db, _db.goalReviews);
+  $$TrainingPlansTableTableManager get trainingPlans =>
+      $$TrainingPlansTableTableManager(_db, _db.trainingPlans);
+  $$TrainingPlanRevisionsTableTableManager get trainingPlanRevisions =>
+      $$TrainingPlanRevisionsTableTableManager(_db, _db.trainingPlanRevisions);
+  $$TrainingPlanActivationsTableTableManager get trainingPlanActivations =>
+      $$TrainingPlanActivationsTableTableManager(
+          _db, _db.trainingPlanActivations);
+  $$TrainingPlanOccurrencesTableTableManager get trainingPlanOccurrences =>
+      $$TrainingPlanOccurrencesTableTableManager(
+          _db, _db.trainingPlanOccurrences);
 }

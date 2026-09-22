@@ -855,6 +855,52 @@ class GoalReviews extends Table with HybridId, MetaColumns {
   TextColumn get assessmentJson => text().nullable()();
 }
 
+/// A manually authored calendar. Only one row may be active at a time.
+class TrainingPlans extends Table with HybridId, MetaColumns {
+  TextColumn get name => text()();
+  TextColumn get kind => text()(); // week, sequence
+  IntColumn get lengthDays => integer()();
+  BoolColumn get isActive => boolean().withDefault(const Constant(false))();
+  DateTimeColumn get startedOn => dateTime().nullable()();
+  DateTimeColumn get pausedOn => dateTime().nullable()();
+  IntColumn get sequenceCursor => integer().withDefault(const Constant(0))();
+  IntColumn get sequenceCycle => integer().withDefault(const Constant(0))();
+}
+
+/// Immutable authored content. A new edit appends a row instead of replacing it.
+class TrainingPlanRevisions extends Table with HybridId, MetaColumns {
+  TextColumn get planId => text().references(TrainingPlans, #id)();
+  IntColumn get number => integer()();
+  DateTimeColumn get effectiveOn => dateTime()();
+  IntColumn get effectiveCycle => integer().nullable()();
+  TextColumn get daysJson => text()();
+}
+
+/// Every activation has its own timeline; resetting never erases old cycles.
+class TrainingPlanActivations extends Table with HybridId, MetaColumns {
+  TextColumn get planId => text().references(TrainingPlans, #id)();
+  DateTimeColumn get startedOn => dateTime()();
+  DateTimeColumn get endedOn => dateTime().nullable()();
+  IntColumn get initialCursor => integer().withDefault(const Constant(0))();
+  IntColumn get initialCycle => integer().withDefault(const Constant(0))();
+}
+
+/// One resolution of a scheduled slot, including explicit skips and partials.
+class TrainingPlanOccurrences extends Table with HybridId, MetaColumns {
+  TextColumn get planId => text().references(TrainingPlans, #id)();
+  TextColumn get activationId =>
+      text().references(TrainingPlanActivations, #id)();
+  TextColumn get revisionId => text().references(TrainingPlanRevisions, #id)();
+  DateTimeColumn get scheduledOn => dateTime()();
+  IntColumn get slotIndex => integer()();
+  TextColumn get status => text()(); // ongoing, completed, partial, skipped
+  TextColumn get workoutLogId => text()
+      .nullable()
+      .references(WorkoutLogs, #id, onDelete: KeyAction.setNull)();
+  TextColumn get routineSnapshotJson => text().nullable()();
+  DateTimeColumn get resolvedAt => dateTime().nullable()();
+}
+
 @DriftDatabase(
   tables: [
     Profiles,
@@ -900,6 +946,10 @@ class GoalReviews extends Table with HybridId, MetaColumns {
     UserGoals,
     GoalEvents,
     GoalReviews,
+    TrainingPlans,
+    TrainingPlanRevisions,
+    TrainingPlanActivations,
+    TrainingPlanOccurrences,
   ],
 )
 
@@ -908,7 +958,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
-  int get schemaVersion => 34;
+  int get schemaVersion => 35;
 
   /// Adds whatever the file is missing compared to the generated tables.
   ///
@@ -969,6 +1019,12 @@ class AppDatabase extends _$AppDatabase {
       await customStatement(
         'CREATE INDEX IF NOT EXISTS idx_nutrition_logs_meal_entry_id ON nutrition_logs (meal_entry_id);',
       );
+      await customStatement(
+        'CREATE UNIQUE INDEX IF NOT EXISTS idx_training_plan_active ON training_plans (is_active) WHERE is_active = 1;',
+      );
+      await customStatement(
+        'CREATE UNIQUE INDEX IF NOT EXISTS idx_training_occurrence_slot ON training_plan_occurrences (activation_id, scheduled_on, slot_index);',
+      );
     }
     return repaired;
   }
@@ -984,6 +1040,10 @@ class AppDatabase extends _$AppDatabase {
         },
         onCreate: (Migrator m) async {
           await m.createAll();
+          await customStatement(
+              'CREATE UNIQUE INDEX IF NOT EXISTS idx_training_plan_active ON training_plans (is_active) WHERE is_active = 1;');
+          await customStatement(
+              'CREATE UNIQUE INDEX IF NOT EXISTS idx_training_occurrence_slot ON training_plan_occurrences (activation_id, scheduled_on, slot_index);');
           await _createSleepPersistenceSchema(this);
           await customStatement('''
           CREATE TABLE IF NOT EXISTS health_export_records (
@@ -1021,6 +1081,27 @@ class AppDatabase extends _$AppDatabase {
         },
         onUpgrade: (Migrator m, int from, int to) async {
           try {
+            if (from < 35) {
+              if (!await _tableExists(this, trainingPlans.actualTableName)) {
+                await m.createTable(trainingPlans);
+              }
+              if (!await _tableExists(
+                  this, trainingPlanRevisions.actualTableName)) {
+                await m.createTable(trainingPlanRevisions);
+              }
+              if (!await _tableExists(
+                  this, trainingPlanActivations.actualTableName)) {
+                await m.createTable(trainingPlanActivations);
+              }
+              if (!await _tableExists(
+                  this, trainingPlanOccurrences.actualTableName)) {
+                await m.createTable(trainingPlanOccurrences);
+              }
+              await customStatement(
+                  'CREATE UNIQUE INDEX IF NOT EXISTS idx_training_plan_active ON training_plans (is_active) WHERE is_active = 1;');
+              await customStatement(
+                  'CREATE UNIQUE INDEX IF NOT EXISTS idx_training_occurrence_slot ON training_plan_occurrences (activation_id, scheduled_on, slot_index);');
+            }
             if (from < 2) {
               await m.createTable(favorites);
               // Important: add the missing column.

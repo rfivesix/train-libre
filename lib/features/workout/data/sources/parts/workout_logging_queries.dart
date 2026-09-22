@@ -927,6 +927,10 @@ extension WorkoutLoggingQueries on WorkoutLocalDataSource {
   Future<void> clearAllWorkoutData() async {
     final dbInstance = await database;
     await dbInstance.transaction(() async {
+      await dbInstance.delete(dbInstance.trainingPlanOccurrences).go();
+      await dbInstance.delete(dbInstance.trainingPlanActivations).go();
+      await dbInstance.delete(dbInstance.trainingPlanRevisions).go();
+      await dbInstance.delete(dbInstance.trainingPlans).go();
       await dbInstance.delete(dbInstance.cardioSamples).go();
       await dbInstance.delete(dbInstance.cardioActivities).go();
       await dbInstance.delete(dbInstance.setLogs).go();

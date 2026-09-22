@@ -24,6 +24,9 @@ import '../../../widgets/common/summary_card.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../app/presentation/widgets/glass_bottom_menu.dart';
 import 'live_workout_view_model.dart';
+import '../data/manual_training_plan_repository.dart';
+import 'manual_plan_screen.dart';
+import 'manual_plan_text.dart';
 import '../../../widgets/common/app_button.dart';
 import '../../../widgets/common/empty_states/card_empty_state_overlay.dart';
 import 'dart:async';
@@ -41,6 +44,8 @@ class WorkoutHubScreen extends StatefulWidget {
 }
 
 class _WorkoutHubScreenState extends State<WorkoutHubScreen> {
+  final _manualPlans = ManualTrainingPlanRepository();
+  int _manualPlanRefresh = 0;
   late final Stream<List<Routine>> _routinesStream;
   late Future<RecoveryAnalyticsPayload> _recoveryFuture;
   late final l10n = AppLocalizations.of(context)!;
@@ -195,6 +200,38 @@ class _WorkoutHubScreenState extends State<WorkoutHubScreen> {
     return ListView(
       padding: finalPadding,
       children: [
+        AppSectionHeader(title: ManualPlanText(context).get('plan')),
+        FutureBuilder(
+          key: ValueKey(_manualPlanRefresh),
+          future: _manualPlans.activePlan(),
+          builder: (context, snapshot) {
+            final plan = snapshot.data;
+            return SummaryCard(
+              onTap: () async {
+                await Navigator.of(context).push(MaterialPageRoute(
+                    builder: (_) => const ManualPlanScreen()));
+                if (mounted) setState(() => _manualPlanRefresh++);
+              },
+              child: Row(children: [
+                const Icon(LucideIcons.calendar_days),
+                const SizedBox(width: DesignConstants.spacingM),
+                Expanded(
+                    child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(plan?.name ?? ManualPlanText(context).get('noPlan'),
+                        style: Theme.of(context).textTheme.titleMedium),
+                    Text(plan == null
+                        ? ManualPlanText(context).get('create')
+                        : ManualPlanText(context).get('active')),
+                  ],
+                )),
+                const Icon(LucideIcons.chevron_right),
+              ]),
+            );
+          },
+        ),
+        const SizedBox(height: DesignConstants.spacingXL),
         AppSectionHeader(title: l10n.sectionRecovery),
         _buildRecoveryCard(context, l10n),
         const SizedBox(height: DesignConstants.spacingXL),
