@@ -45,19 +45,25 @@ class StepsMonthChart extends StatelessWidget {
     final byDay = <int, int>{
       for (final bucket in buckets) bucket.start.day: bucket.steps,
     };
-    final total = buckets.fold<int>(0, (sum, b) => sum + b.steps);
-    final avg = daysInMonth == 0 ? 0 : (total / daysInMonth).round();
-    final goalDays = buckets.where((b) => b.steps >= safeGoal).length;
-
-    int maxValue = safeGoal;
+    // BOLT OPTIMIZATION: Replaced chained .fold(), .where().length, and a second loop
+    // with a single-pass calculation to eliminate multiple iterations over the buckets list.
+    var total = 0;
+    var goalDays = 0;
+    var maxValue = safeGoal;
     for (final bucket in buckets) {
-      if (bucket.steps > maxValue) {
-        maxValue = bucket.steps;
+      final steps = bucket.steps;
+      total += steps;
+      if (steps >= safeGoal) {
+        goalDays++;
+      }
+      if (steps > maxValue) {
+        maxValue = steps;
       }
     }
     if (maxValue <= 0) {
       maxValue = 1;
     }
+    final avg = daysInMonth == 0 ? 0 : (total / daysInMonth).round();
 
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);

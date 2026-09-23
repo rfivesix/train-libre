@@ -123,7 +123,14 @@ class InMemoryStepsAggregationRepository implements StepsAggregationRepository {
       final day = normalizedStart.add(Duration(days: index));
       return StepsBucket(start: day, steps: 3000 + rng.nextInt(7000));
     });
-    final total = buckets.fold<int>(0, (sum, bucket) => sum + bucket.steps);
+
+    // BOLT OPTIMIZATION: Replaced .fold() with a standard for loop
+    // to prevent unnecessary closure allocation.
+    var total = 0;
+    for (final bucket in buckets) {
+      total += bucket.steps;
+    }
+
     final result = RangeStepsAggregation(
       start: normalizedStart,
       end: normalizedEnd,
@@ -288,7 +295,14 @@ class HealthStepsAggregationRepository implements StepsAggregationRepository {
       final dayKey = _dayKey(day);
       return StepsBucket(start: day, steps: byDay[dayKey] ?? 0);
     });
-    final total = buckets.fold<int>(0, (sum, bucket) => sum + bucket.steps);
+
+    // BOLT OPTIMIZATION: Replaced .fold() with a standard for loop
+    // to prevent unnecessary closure allocation.
+    var total = 0;
+    for (final bucket in buckets) {
+      total += bucket.steps;
+    }
+
     final result = RangeStepsAggregation(
       start: normalizedStart,
       end: normalizedEnd,

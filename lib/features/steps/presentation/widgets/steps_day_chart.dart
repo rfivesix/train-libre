@@ -53,22 +53,26 @@ class StepsDayChart extends StatelessWidget {
       context,
     ).languageCode.toLowerCase();
     final numberFormat = NumberFormat.decimalPattern(localeCode);
-    final total = buckets.fold<int>(0, (sum, b) => sum + b.steps);
-    final activeHours = buckets.where((b) => b.steps > 0).length;
     final safeGoal =
         dailyGoal > 0 ? dailyGoal : StepsSyncService.defaultStepsGoal;
 
+    // BOLT OPTIMIZATION: Replaced chained .fold(), .where().length, and two separate loops
+    // with a single-pass calculation to eliminate multiple iterations over the buckets list.
+    var total = 0;
+    var activeHours = 0;
+    var maxValue = 0;
     StepsBucket? peakBucket;
     for (final bucket in buckets) {
-      if (peakBucket == null || bucket.steps > peakBucket.steps) {
-        peakBucket = bucket;
+      final steps = bucket.steps;
+      total += steps;
+      if (steps > 0) {
+        activeHours++;
       }
-    }
-
-    int maxValue = 0;
-    for (final bucket in buckets) {
-      if (bucket.steps > maxValue) {
-        maxValue = bucket.steps;
+      if (steps > maxValue) {
+        maxValue = steps;
+      }
+      if (peakBucket == null || steps > peakBucket.steps) {
+        peakBucket = bucket;
       }
     }
     if (maxValue <= 0) {

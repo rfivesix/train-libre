@@ -56,19 +56,26 @@ class StepsWeekChart extends StatelessWidget {
     final numberFormat = NumberFormat.decimalPattern(localeCode);
     final safeGoal =
         dailyGoal > 0 ? dailyGoal : StepsSyncService.defaultStepsGoal;
-    final total = buckets.fold<int>(0, (sum, b) => sum + b.steps);
-    final avg = buckets.isEmpty ? 0 : (total / buckets.length).round();
-    final goalDays = buckets.where((b) => b.steps >= safeGoal).length;
 
-    int maxValue = safeGoal;
+    // BOLT OPTIMIZATION: Replaced chained .fold(), .where().length, and a second loop
+    // with a single-pass calculation to eliminate multiple iterations over the buckets list.
+    var total = 0;
+    var goalDays = 0;
+    var maxValue = safeGoal;
     for (final bucket in buckets) {
-      if (bucket.steps > maxValue) {
-        maxValue = bucket.steps;
+      final steps = bucket.steps;
+      total += steps;
+      if (steps >= safeGoal) {
+        goalDays++;
+      }
+      if (steps > maxValue) {
+        maxValue = steps;
       }
     }
     if (maxValue <= 0) {
       maxValue = 1;
     }
+    final avg = buckets.isEmpty ? 0 : (total / buckets.length).round();
     const weekChartHeight = 172.0;
     const weekChartBottom = weekChartHeight - chartBottomInset;
     const weekDrawableHeight = weekChartBottom - weekChartTopInset;
