@@ -54,17 +54,23 @@ class DoubleProgressionEngine {
     // Sort sessions chronologically by the latest set in each session to find the last session.
     final sortedSessions = sessionMap.values.toList()
       ..sort((a, b) {
-        final aLatest =
-            a.map((s) => s.performedAt).reduce((x, y) => x.isAfter(y) ? x : y);
-        final bLatest =
-            b.map((s) => s.performedAt).reduce((x, y) => x.isAfter(y) ? x : y);
-        return aLatest.compareTo(bLatest);
+        DateTime latest(List<ProgressionSetEntry> session) {
+          var max = session.first.performedAt;
+          for (var i = 1; i < session.length; i++) {
+            if (session[i].performedAt.isAfter(max)) max = session[i].performedAt;
+          }
+          return max;
+        }
+        return latest(a).compareTo(latest(b));
       });
 
     final lastSessionSets = sortedSessions.last;
-    final lastSessionDate = lastSessionSets
-        .map((s) => s.performedAt)
-        .reduce((a, b) => a.isAfter(b) ? a : b);
+    var lastSessionDate = lastSessionSets.first.performedAt;
+    for (var i = 1; i < lastSessionSets.length; i++) {
+      if (lastSessionSets[i].performedAt.isAfter(lastSessionDate)) {
+        lastSessionDate = lastSessionSets[i].performedAt;
+      }
+    }
 
     // Rule 9: Determine baseline working load from the last session.
     final weights =
@@ -184,9 +190,13 @@ class DoubleProgressionEngine {
     }
     final orderedSessions = sessions.values.toList()
       ..sort((left, right) {
-        DateTime latest(List<ProgressionSetEntry> session) => session
-            .map((entry) => entry.performedAt)
-            .reduce((a, b) => a.isAfter(b) ? a : b);
+        DateTime latest(List<ProgressionSetEntry> session) {
+          var max = session.first.performedAt;
+          for (var i = 1; i < session.length; i++) {
+            if (session[i].performedAt.isAfter(max)) max = session[i].performedAt;
+          }
+          return max;
+        }
         return latest(left).compareTo(latest(right));
       });
     final lastSession = List<ProgressionSetEntry>.from(orderedSessions.last)
@@ -196,9 +206,12 @@ class DoubleProgressionEngine {
             ? order
             : left.performedAt.compareTo(right.performedAt);
       });
-    final lastSessionDate = lastSession
-        .map((entry) => entry.performedAt)
-        .reduce((a, b) => a.isAfter(b) ? a : b);
+    var lastSessionDate = lastSession.first.performedAt;
+    for (var i = 1; i < lastSession.length; i++) {
+      if (lastSession[i].performedAt.isAfter(lastSessionDate)) {
+        lastSessionDate = lastSession[i].performedAt;
+      }
+    }
 
     if ((now ?? DateTime.now()).difference(lastSessionDate) >
         const Duration(days: 21)) {

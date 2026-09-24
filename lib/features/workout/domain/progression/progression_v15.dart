@@ -94,8 +94,13 @@ class ProgressionV15 {
           '${e.performedAt.year}-${e.performedAt.month}-${e.performedAt.day}';
       sessions.putIfAbsent(key, () => []).add(e);
     }
-    DateTime date(List<ProgressionSetEntry> s) =>
-        s.map((e) => e.performedAt).reduce((a, b) => a.isAfter(b) ? a : b);
+    DateTime date(List<ProgressionSetEntry> s) {
+      var max = s.first.performedAt;
+      for (var i = 1; i < s.length; i++) {
+        if (s[i].performedAt.isAfter(max)) max = s[i].performedAt;
+      }
+      return max;
+    }
     final ordered = sessions.values.toList()
       ..sort((a, b) => date(b).compareTo(date(a)));
     for (final s in ordered) {
