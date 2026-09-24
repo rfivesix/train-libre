@@ -1,0 +1,3 @@
+## 2024-05-13 - Add Semantics to measurement date/time pickers
+**Learning:** In the `add_measurement_screen.dart`, custom date/time pickers are implemented using `InkWell` combined with a `Row` containing an icon and text. These custom interactive elements completely lack accessibility labeling, preventing screen reader users from understanding their purpose (as buttons).
+**Action:** When identifying custom interactive targets (like `GestureDetector` or `InkWell`) that act as buttons but do not use standard Flutter button widgets, always wrap them in a `Semantics` widget with `button: true` and a clear, localized `label`. Use existing `l10n` keys if they fit the context (e.g. `selectDateTitle`, `selectTimeTitle`).
