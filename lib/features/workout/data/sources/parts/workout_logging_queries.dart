@@ -399,10 +399,22 @@ extension WorkoutLoggingQueries on WorkoutLocalDataSource {
         extraPaths: extraPaths,
       );
     }
-    await (dbInstance.delete(
-      dbInstance.workoutLogs,
-    )..where((tbl) => tbl.localId.equals(logId)))
-        .go();
+    await dbInstance.transaction(() async {
+      // A plan occurrence is the resolution of this specific workout, not an
+      // independent history entry. Keeping it after the workout is deleted
+      // leaves the calendar stuck on "ongoing" (the FK can only null the log
+      // reference). Removing both rows atomically makes the scheduled unit
+      // available again and also keeps sequence progression truthful.
+      if (row != null) {
+        await (dbInstance.delete(dbInstance.trainingPlanOccurrences)
+              ..where((tbl) => tbl.workoutLogId.equals(row.id)))
+            .go();
+      }
+      await (dbInstance.delete(
+        dbInstance.workoutLogs,
+      )..where((tbl) => tbl.localId.equals(logId)))
+          .go();
+    });
   }
 
   Future<void> updateWorkoutLogPhotos(int logId, List<String> paths) async {

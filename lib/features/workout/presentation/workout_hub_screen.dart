@@ -29,6 +29,7 @@ import '../data/manual_training_plan_repository.dart';
 import '../domain/models/manual_training_plan.dart';
 import 'manual_plan_screen.dart';
 import 'manual_plan_text.dart';
+import 'widgets/manual_plan_ui.dart';
 import '../../../widgets/common/app_button.dart';
 import '../../../widgets/common/empty_states/card_empty_state_overlay.dart';
 import 'dart:async';
@@ -73,8 +74,12 @@ class _WorkoutHubScreenState extends State<WorkoutHubScreen> {
     setState(() => _recoveryFuture = _loadRecovery());
   }
 
-  Future<({ManualTrainingPlan plan, PlannedCalendarDay? next})?>
-      _loadManualPlanSummary() async {
+  Future<
+      ({
+        ManualTrainingPlan plan,
+        PlannedCalendarDay? today,
+        PlannedCalendarDay? next
+      })?> _loadManualPlanSummary() async {
     final plan = await _manualPlans.activePlan();
     if (plan == null) return null;
     final now = DateTime.now();
@@ -86,6 +91,8 @@ class _WorkoutHubScreenState extends State<WorkoutHubScreen> {
     );
     return (
       plan: plan,
+      today:
+          days.where((day) => DateUtils.isSameDay(day.date, today)).firstOrNull,
       next: days
           .where((day) =>
               !day.day.isRest && day.status == PlannedDayStatus.planned)
@@ -229,52 +236,61 @@ class _WorkoutHubScreenState extends State<WorkoutHubScreen> {
           builder: (context, snapshot) {
             final summary = snapshot.data;
             final plan = summary?.plan;
+            final today = summary?.today;
             final next = summary?.next;
             final text = ManualPlanText(context);
             final locale = Localizations.localeOf(context).toString();
-            String subtitle;
-            if (plan == null) {
-              subtitle = text.get('hubNoPlanDescription');
-            } else if (next == null) {
-              subtitle = text.get('hubNoUpcomingWorkout');
-            } else {
-              final when = DateUtils.isSameDay(next.date, DateTime.now())
-                  ? text.get('today')
-                  : DateFormat.MMMEd(locale).format(next.date);
-              subtitle = '${next.day.routineName} · $when';
+            Future<void> openPlan() async {
+              await Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const ManualPlanScreen()));
+              if (mounted) setState(() => _manualPlanRefresh++);
             }
-            return SummaryCard(
-              onTap: () async {
-                await Navigator.of(context).push(MaterialPageRoute(
-                    builder: (_) => const ManualPlanScreen()));
-                if (mounted) setState(() => _manualPlanRefresh++);
-              },
-              child: Row(children: [
-                Icon(
-                  plan == null
-                      ? LucideIcons.calendar_plus
-                      : LucideIcons.calendar_check_2,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-                const SizedBox(width: DesignConstants.spacingM),
-                Expanded(
-                    child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(plan?.name ?? ManualPlanText(context).get('noPlan'),
-                        style: Theme.of(context).textTheme.titleMedium),
-                    const SizedBox(height: 2),
-                    Text(subtitle,
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurface
-                                  .withValues(alpha: 0.68),
-                            )),
-                  ],
-                )),
-                const Icon(LucideIcons.chevron_right),
-              ]),
+
+            if (plan == null) {
+              return WorkoutPlanHeroCard(
+                eyebrow: text.get('plan'),
+                title: text.get('noPlan'),
+                subtitle: text.get('hubNoPlanDescription'),
+                onTap: openPlan,
+              );
+            }
+
+            final displayDay = today ?? next;
+            final isTodayWorkout = today != null && !today.day.isRest;
+            String subtitle;
+            if (displayDay == null) {
+              subtitle = text.get('hubNoUpcomingWorkout');
+            } else if (today?.day.isRest == true && next != null) {
+              subtitle = '${text.get('nextUp')}: ${next.day.routineName}'
+                  '${DesignConstants.metadataSeparator}'
+                  '${DateFormat.MMMEd(locale).format(next.date)}';
+            } else if (isTodayWorkout) {
+              subtitle = plannedDayMetadata(context, today.day);
+            } else {
+              final when = DateUtils.isSameDay(displayDay.date, DateTime.now())
+                  ? text.get('today')
+                  : DateFormat.MMMEd(locale).format(displayDay.date);
+              subtitle = '$when${DesignConstants.metadataSeparator}'
+                  '${plannedDayMetadata(context, displayDay.day)}';
+            }
+
+            return WorkoutPlanHeroCard(
+              eyebrow: plan.name,
+              title: displayDay?.day.routineName ?? text.get('rest'),
+              subtitle: subtitle,
+              status: displayDay?.status,
+              onTap: openPlan,
+              actionLabel:
+                  isTodayWorkout && today.status == PlannedDayStatus.planned
+                      ? text.get('start')
+                      : null,
+              onAction:
+                  isTodayWorkout && today.status == PlannedDayStatus.planned
+                      ? () async {
+                          await startManualPlanDay(context, plan, today);
+                          if (mounted) setState(() => _manualPlanRefresh++);
+                        }
+                      : null,
             );
           },
         ),

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:train_libre/data/drift_database.dart';
 import 'package:train_libre/features/workout/data/manual_training_plan_repository.dart';
+import 'package:train_libre/features/workout/data/sources/workout_local_data_source.dart';
 import 'package:train_libre/features/workout/domain/models/manual_training_plan.dart';
 
 void main() {
@@ -164,6 +165,59 @@ void main() {
     expect(
       (await repository.calendar(id, today, today)).single.status,
       PlannedDayStatus.completed,
+    );
+  });
+
+  test('deleting a started workout reopens its planned day', () async {
+    final id = await repository.createPlan(
+      name: 'Delete regression',
+      kind: TrainingPlanKind.sequence,
+      days: const [workout],
+    );
+    final plan = (await repository.activePlan())!;
+    final today = DateTime.now();
+    final day = (await repository.calendar(id, today, today)).single;
+    final started = await repository.start(plan, day);
+
+    expect(
+      (await repository.calendar(id, today, today)).single.status,
+      PlannedDayStatus.ongoing,
+    );
+
+    await WorkoutLocalDataSource.forTesting(database)
+        .deleteWorkoutLog(started.log.localId);
+
+    final reopened = (await repository.calendar(id, today, today)).single;
+    expect(reopened.status, PlannedDayStatus.planned);
+    expect(reopened.workoutLogId, isNull);
+    expect(
+      await database.select(database.trainingPlanOccurrences).get(),
+      isEmpty,
+    );
+  });
+
+  test('calendar repairs an orphaned non-skip occurrence', () async {
+    final id = await repository.createPlan(
+      name: 'Orphan regression',
+      kind: TrainingPlanKind.sequence,
+      days: const [workout],
+    );
+    final plan = (await repository.activePlan())!;
+    final today = DateTime.now();
+    final day = (await repository.calendar(id, today, today)).single;
+    final started = await repository.start(plan, day);
+    await database.customUpdate(
+      'UPDATE training_plan_occurrences SET workout_log_id = NULL '
+      'WHERE workout_log_id = ?',
+      variables: [drift.Variable.withString(started.log.id)],
+      updates: {database.trainingPlanOccurrences},
+    );
+
+    final repaired = (await repository.calendar(id, today, today)).single;
+    expect(repaired.status, PlannedDayStatus.planned);
+    expect(
+      await database.select(database.trainingPlanOccurrences).get(),
+      isEmpty,
     );
   });
 }

@@ -311,6 +311,16 @@ class ManualTrainingPlanRepository {
       String planId, DateTime first, DateTime last) async {
     final plan = await loadPlan(planId);
     if (plan == null) return [];
+    // Older app builds could leave an occurrence behind after deleting its
+    // workout. Skips are the only valid occurrences without a workout link;
+    // all other orphaned rows must stop influencing the visible status and
+    // the sequence cursor.
+    await (_db.delete(_db.trainingPlanOccurrences)
+          ..where((t) =>
+              t.planId.equals(planId) &
+              t.workoutLogId.isNull() &
+              t.status.isNotValue('skipped')))
+        .go();
     final activations = await (_db.select(_db.trainingPlanActivations)
           ..where((t) => t.planId.equals(planId))
           ..orderBy([(t) => drift.OrderingTerm.asc(t.localId)]))

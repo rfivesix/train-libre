@@ -3,14 +3,13 @@ import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
+import '../../../data/drift_database.dart' as db;
 import '../../../util/design_constants.dart';
 import '../../../widgets/common/app_button.dart';
 import '../../../widgets/common/app_link_row.dart';
-import '../../../widgets/common/app_section_header.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/platform_adaptive_pickers.dart';
 import '../../../widgets/common/summary_card.dart';
-import '../../../widgets/common/time_range_filter.dart';
 import '../../app/presentation/widgets/glass_bottom_menu.dart';
 import '../../statistics/domain/timeframe_block.dart';
 import '../data/manual_training_plan_repository.dart';
@@ -21,6 +20,7 @@ import 'live_workout_screen.dart';
 import 'live_workout_view_model.dart';
 import 'manual_plan_editor_screen.dart';
 import 'manual_plan_text.dart';
+import 'widgets/manual_plan_ui.dart';
 
 Future<void> startManualPlanDay(BuildContext context, ManualTrainingPlan plan,
     PlannedCalendarDay day) async {
@@ -63,6 +63,7 @@ class _ManualPlanScreenState extends State<ManualPlanScreen> {
   String? _selectedId;
   DateTime? _weekAnchor;
   DateTime? _selectedDate;
+  int _weekDirection = 0;
   int _refresh = 0;
 
   DateTime _day(DateTime date) => DateTime(date.year, date.month, date.day);
@@ -81,6 +82,7 @@ class _ManualPlanScreenState extends State<ManualPlanScreen> {
       _selectedId = null;
       _weekAnchor = null;
       _selectedDate = null;
+      _weekDirection = 0;
       _reload();
     }
   }
@@ -279,43 +281,27 @@ class _ManualPlanScreenState extends State<ManualPlanScreen> {
         padding:
             const EdgeInsets.symmetric(horizontal: DesignConstants.spacingS),
         child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Text(text.get('historyExplanation')),
-          const SizedBox(height: DesignConstants.spacingM),
-          for (var index = 0; index < versions.length; index++) ...[
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                  horizontal: DesignConstants.spacingM,
-                  vertical: DesignConstants.spacingM),
-              child:
-                  Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Icon(LucideIcons.rotate_ccw_clock,
-                    size: 19, color: Theme.of(context).colorScheme.primary),
-                const SizedBox(width: DesignConstants.spacingM),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('${text.get('version')} ${versions[index].number}',
-                          style: Theme.of(context).textTheme.titleMedium),
-                      const SizedBox(height: 3),
-                      Text(
-                        '${DateFormat.yMMMd(locale).format(versions[index].effectiveOn)} · ${TrainingPlanDay.decodeDays(versions[index].daysJson).map((day) => day.routineName ?? text.get('rest')).join(' · ')}',
-                        maxLines: 3,
-                        overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurface
-                                  .withValues(alpha: 0.68),
-                            ),
-                      ),
-                    ],
-                  ),
-                ),
-              ]),
+          Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: DesignConstants.spacingS,
             ),
-            if (index != versions.length - 1) const Divider(height: 1),
-          ],
+            child: Text(
+              text.get('historyExplanation'),
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(context)
+                        .colorScheme
+                        .onSurface
+                        .withValues(alpha: 0.7),
+                  ),
+            ),
+          ),
+          const SizedBox(height: DesignConstants.spacingM),
+          for (final revision in versions)
+            _PlanRevisionTile(
+              revision: revision,
+              locale: locale,
+              text: text,
+            ),
         ]),
       ),
     );
@@ -333,25 +319,51 @@ class _ManualPlanScreenState extends State<ManualPlanScreen> {
       supportRolling: false,
     );
     if (selected == null) return;
+    final nextAnchor = _startOfWeek(selected.anchorDate);
+    final currentAnchor = _weekAnchor ?? _startOfWeek(today);
     setState(() {
-      _weekAnchor = _startOfWeek(selected.anchorDate);
+      _weekDirection = nextAnchor.compareTo(currentAnchor);
+      _weekAnchor = nextAnchor;
       _selectedDate = null;
     });
   }
 
-  void _shiftWeek(ManualTrainingPlan plan, int direction) {
-    final today = _day(DateTime.now());
-    final earliest = _startOfWeek(plan.startedOn ?? today);
-    final latest =
-        _startOfWeek(DateTime(today.year + 1, today.month, today.day));
-    final current = _weekAnchor ?? _startOfWeek(today);
-    var next =
-        DateTime(current.year, current.month, current.day + 7 * direction);
-    if (next.isBefore(earliest)) next = earliest;
-    if (next.isAfter(latest)) next = latest;
+  Future<void> _selectPlan(
+      List<db.TrainingPlan> plans, String selectedId) async {
+    final text = ManualPlanText(context);
+    final selected = await showGlassBottomMenu<String>(
+      context: context,
+      title: text.get('savedPlans'),
+      expandToFullHeight: plans.length > 7,
+      contentBuilder: (context, close) => Padding(
+        padding:
+            const EdgeInsets.symmetric(horizontal: DesignConstants.spacingS),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            for (final plan in plans)
+              AppLinkRow(
+                title: plan.name,
+                subtitle:
+                    plan.isActive ? text.get('active') : text.get('inactive'),
+                trailingIcon: plan.id == selectedId
+                    ? LucideIcons.check
+                    : LucideIcons.chevron_right,
+                onTap: () {
+                  close();
+                  Navigator.pop(context, plan.id);
+                },
+              ),
+          ],
+        ),
+      ),
+    );
+    if (selected == null || selected == selectedId || !mounted) return;
     setState(() {
-      _weekAnchor = next;
+      _selectedId = selected;
+      _weekAnchor = null;
       _selectedDate = null;
+      _weekDirection = 0;
     });
   }
 
@@ -375,8 +387,10 @@ class _ManualPlanScreenState extends State<ManualPlanScreen> {
   @override
   Widget build(BuildContext context) {
     final text = ManualPlanText(context);
+    final topPadding = MediaQuery.paddingOf(context).top + kToolbarHeight;
     return Scaffold(
-      appBar: GlobalAppBar(title: text.get('plans'), actions: [
+      extendBodyBehindAppBar: true,
+      appBar: GlobalAppBar(title: text.get('plan'), actions: [
         IconButton(
             tooltip: text.get('create'),
             onPressed: () => _createOrEdit(null),
@@ -387,10 +401,13 @@ class _ManualPlanScreenState extends State<ManualPlanScreen> {
         future: _repository.allPlans(),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
-            return const Center(child: CircularProgressIndicator());
+            return Padding(
+              padding: EdgeInsets.only(top: topPadding),
+              child: const Center(child: CircularProgressIndicator()),
+            );
           }
           final rows = snapshot.data!;
-          if (rows.isEmpty) return _buildEmptyState(context);
+          if (rows.isEmpty) return _buildEmptyState(context, topPadding);
           final selectedId = _selectedId ??
               rows.where((row) => row.isActive).firstOrNull?.id ??
               rows.first.id;
@@ -399,82 +416,56 @@ class _ManualPlanScreenState extends State<ManualPlanScreen> {
             builder: (context, planSnapshot) {
               final plan = planSnapshot.data;
               if (plan == null) {
-                return const Center(child: CircularProgressIndicator());
+                return Padding(
+                  padding: EdgeInsets.only(top: topPadding),
+                  child: const Center(child: CircularProgressIndicator()),
+                );
               }
               final today = _day(DateTime.now());
-              final earliestWeek = _startOfWeek(plan.startedOn ?? today);
-              final latestWeek = _startOfWeek(
-                  DateTime(today.year + 1, today.month, today.day));
               var start = _weekAnchor ?? _startOfWeek(today);
+              final earliestWeek = _startOfWeek(plan.startedOn ?? today);
               if (start.isBefore(earliestWeek)) start = earliestWeek;
               final end = DateTime(start.year, start.month, start.day + 6);
               return ListView(
-                padding: DesignConstants.screenPadding,
+                padding: EdgeInsets.only(
+                  top: topPadding + DesignConstants.screenPaddingVertical,
+                  bottom: 36,
+                ),
                 children: [
-                  if (rows.length > 1) ...[
-                    AppSectionHeader(
-                        title: text.get('savedPlans'), isFirst: true),
-                    SummaryCard(
-                      padding: EdgeInsets.zero,
-                      child: Column(children: [
-                        for (var index = 0; index < rows.length; index++) ...[
-                          AppLinkRow(
-                            title: rows[index].name,
-                            subtitle: rows[index].isActive
-                                ? text.get('active')
-                                : text.get('inactive'),
-                            trailingIcon: rows[index].id == selectedId
-                                ? LucideIcons.check
-                                : LucideIcons.chevron_right,
-                            onTap: () => setState(() {
-                              _selectedId = rows[index].id;
-                              _weekAnchor = null;
-                              _selectedDate = null;
-                            }),
-                          ),
-                          if (index != rows.length - 1)
-                            const Divider(height: 1),
-                        ],
-                      ]),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: DesignConstants.screenPaddingHorizontal,
                     ),
-                    const SizedBox(height: DesignConstants.spacingL),
-                  ],
-                  _buildPlanHeader(context, plan),
+                    child: _buildPlanHeader(
+                      context,
+                      plan,
+                      canSwitch: rows.length > 1,
+                      onSwitch: () => _selectPlan(rows, selectedId),
+                    ),
+                  ),
                   const SizedBox(height: DesignConstants.spacingL),
-                  AppSectionHeader(title: text.get('schedule')),
-                  TimeRangeFilter(
-                    ranges: [text.get('weekView')],
-                    selectedIndex: 0,
-                    onSelected: (_) {},
-                    onPrevious: start.isAfter(earliestWeek)
-                        ? () => _shiftWeek(plan, -1)
-                        : null,
-                    onNext: start.isBefore(latestWeek)
-                        ? () => _shiftWeek(plan, 1)
-                        : null,
-                    nextEnabled: start.isBefore(latestWeek),
-                    displayDate: _formatWeek(context, start, end),
-                    onTapDateDisplay: () => _pickWeek(plan, start),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: DesignConstants.screenPaddingHorizontal,
+                    ),
+                    child: FutureBuilder<
+                        ({
+                          List<PlannedCalendarDay> visible,
+                          PlannedCalendarDay? next
+                        })>(
+                      future: _calendarData(plan, start, end),
+                      builder: (context, daySnapshot) {
+                        if (!daySnapshot.hasData) {
+                          return const Padding(
+                            padding: EdgeInsets.all(DesignConstants.spacingXL),
+                            child: Center(child: CircularProgressIndicator()),
+                          );
+                        }
+                        return _buildWeek(context, plan, start,
+                            daySnapshot.data!.visible, daySnapshot.data!.next);
+                      },
+                    ),
                   ),
-                  const SizedBox(height: DesignConstants.spacingS),
-                  FutureBuilder<
-                      ({
-                        List<PlannedCalendarDay> visible,
-                        PlannedCalendarDay? next
-                      })>(
-                    future: _calendarData(plan, start, end),
-                    builder: (context, daySnapshot) {
-                      if (!daySnapshot.hasData) {
-                        return const Padding(
-                          padding: EdgeInsets.all(DesignConstants.spacingXL),
-                          child: Center(child: CircularProgressIndicator()),
-                        );
-                      }
-                      return _buildWeek(context, plan, start,
-                          daySnapshot.data!.visible, daySnapshot.data!.next);
-                    },
-                  ),
-                  const SizedBox(height: 36),
                 ],
               );
             },
@@ -484,11 +475,16 @@ class _ManualPlanScreenState extends State<ManualPlanScreen> {
     );
   }
 
-  Widget _buildEmptyState(BuildContext context) {
+  Widget _buildEmptyState(BuildContext context, double topPadding) {
     final text = ManualPlanText(context);
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(DesignConstants.spacingXL),
+        padding: EdgeInsets.fromLTRB(
+          DesignConstants.spacingXL,
+          topPadding + DesignConstants.spacingXL,
+          DesignConstants.spacingXL,
+          DesignConstants.spacingXL,
+        ),
         child: Column(mainAxisSize: MainAxisSize.min, children: [
           Icon(LucideIcons.calendar_plus,
               size: 36, color: Theme.of(context).colorScheme.primary),
@@ -509,98 +505,100 @@ class _ManualPlanScreenState extends State<ManualPlanScreen> {
     );
   }
 
-  Widget _buildPlanHeader(BuildContext context, ManualTrainingPlan plan) {
+  Widget _buildPlanHeader(
+    BuildContext context,
+    ManualTrainingPlan plan, {
+    required bool canSwitch,
+    required VoidCallback onSwitch,
+  }) {
     final text = ManualPlanText(context);
     final theme = Theme.of(context);
-    return SummaryCard(
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(plan.name, style: theme.textTheme.headlineSmall),
-                const SizedBox(height: 2),
-                Text(
-                  '${text.get(plan.kind == TrainingPlanKind.week ? 'week' : 'sequence')} · ${plan.days.length} ${text.get('days')}',
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.onSurface.withValues(alpha: 0.65),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(4, 8, 0, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Expanded(
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(10),
+                  onTap: canSwitch ? onSwitch : null,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Flexible(
+                          child: Text(
+                            plan.name,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.headlineSmall?.copyWith(
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: -0.45,
+                            ),
+                          ),
+                        ),
+                        if (canSwitch) ...[
+                          const SizedBox(width: 7),
+                          Icon(
+                            LucideIcons.chevron_down,
+                            size: 18,
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ],
+                      ],
+                    ),
                   ),
+                ),
+              ),
+              IconButton(
+                tooltip: text.get('managePlan'),
+                onPressed: () => _manage(plan),
+                icon: const Icon(LucideIcons.ellipsis, size: 21),
+              ),
+            ],
+          ),
+          Text.rich(
+            TextSpan(
+              children: [
+                if (!plan.active)
+                  TextSpan(
+                    text: '${text.get('inactive')}'
+                        '${DesignConstants.metadataSeparator}',
+                    style: TextStyle(
+                      color: theme.colorScheme.error,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                TextSpan(
+                  text:
+                      '${text.get(plan.kind == TrainingPlanKind.week ? 'week' : 'sequence')}'
+                      '${DesignConstants.metadataSeparator}'
+                      '${plan.days.length} ${text.get('days')}',
                 ),
               ],
             ),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-            decoration: BoxDecoration(
-              color: (plan.active
-                      ? theme.colorScheme.primary
-                      : theme.colorScheme.onSurface)
-                  .withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(100),
-            ),
-            child: Text(
-              text.get(plan.active ? 'active' : 'inactive'),
-              style: theme.textTheme.labelMedium?.copyWith(
-                color: plan.active
-                    ? theme.colorScheme.primary
-                    : theme.colorScheme.onSurfaceVariant,
-                fontWeight: FontWeight.w700,
-              ),
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.64),
             ),
           ),
-        ]),
-        const SizedBox(height: DesignConstants.spacingM),
-        Text(
-          text.get(plan.kind == TrainingPlanKind.week
-              ? 'weekPlanExplanation'
-              : 'sequencePlanExplanation'),
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
-            height: 1.35,
-          ),
-        ),
-        const SizedBox(height: DesignConstants.spacingM),
-        const Divider(height: 1),
-        InkWell(
-          borderRadius: BorderRadius.circular(12),
-          onTap: () => _manage(plan),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 12),
-            child: Row(children: [
-              Icon(LucideIcons.settings_2,
-                  size: 19, color: theme.colorScheme.primary),
-              const SizedBox(width: DesignConstants.spacingS),
-              Expanded(
-                child: Text(text.get('managePlan'),
-                    style: theme.textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    )),
+          if (!plan.active) ...[
+            const SizedBox(height: DesignConstants.spacingM),
+            SizedBox(
+              width: double.infinity,
+              child: AppButton.primary(
+                label: text.get('activate'),
+                icon: LucideIcons.play,
+                onPressed: () => _activate(plan),
               ),
-              Icon(LucideIcons.chevron_right,
-                  size: 18,
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.45)),
-            ]),
-          ),
-        ),
-        if (!plan.active) ...[
-          const SizedBox(height: DesignConstants.spacingS),
-          AppButton.primary(
-            label: text.get('activate'),
-            icon: LucideIcons.play,
-            onPressed: () => _activate(plan),
-          ),
+            ),
+          ],
         ],
-      ]),
+      ),
     );
-  }
-
-  String _formatWeek(BuildContext context, DateTime start, DateTime end) {
-    final locale = Localizations.localeOf(context).toString();
-    if (start.year == end.year && start.month == end.month) {
-      return '${DateFormat.MMMd(locale).format(start)}–${DateFormat.d(locale).format(end)}';
-    }
-    return '${DateFormat.MMMd(locale).format(start)}–${DateFormat.MMMd(locale).format(end)}';
   }
 
   Widget _buildWeek(BuildContext context, ManualTrainingPlan plan,
@@ -623,263 +621,185 @@ class _ManualPlanScreenState extends State<ManualPlanScreen> {
           selectable.firstOrNull;
     }
     final selectedDay = selected == null ? null : byDate[_day(selected)];
-    final theme = Theme.of(context);
+    final reduceMotion = MediaQuery.of(context).disableAnimations;
     return Column(children: [
       AnimatedSwitcher(
-        duration: const Duration(milliseconds: 240),
+        duration:
+            reduceMotion ? Duration.zero : const Duration(milliseconds: 180),
         switchInCurve: Curves.easeOutCubic,
         switchOutCurve: Curves.easeInCubic,
-        transitionBuilder: (child, animation) => FadeTransition(
-          opacity: animation,
-          child: SlideTransition(
-            position: Tween(begin: const Offset(0.025, 0), end: Offset.zero)
-                .animate(animation),
-            child: child,
-          ),
-        ),
-        child: SummaryCard(
+        transitionBuilder: (child, animation) {
+          if (reduceMotion || _weekDirection == 0) {
+            return FadeTransition(opacity: animation, child: child);
+          }
+          final offset = _weekDirection > 0 ? 0.045 : -0.045;
+          return FadeTransition(
+            opacity: animation,
+            child: SlideTransition(
+              position: Tween<Offset>(
+                begin: Offset(offset, 0),
+                end: Offset.zero,
+              ).animate(animation),
+              child: child,
+            ),
+          );
+        },
+        child: Row(
           key: ValueKey(start),
-          padding: EdgeInsets.zero,
-          child: Column(children: [
-            for (var index = 0; index < dates.length; index++) ...[
-              _PlanAgendaRow(
-                date: dates[index],
-                day: byDate[dates[index]],
-                selected: selected != null &&
-                    DateUtils.isSameDay(dates[index], selected),
-                next: next != null &&
-                    DateUtils.isSameDay(dates[index], next.date),
-                onTap: byDate[dates[index]] == null
-                    ? null
-                    : () => setState(() => _selectedDate = dates[index]),
+          children: [
+            PlanCalendarPickerButton(
+              onPressed: () => _pickWeek(plan, start),
+            ),
+            const SizedBox(width: 4),
+            Expanded(
+              child: PlanWeekStrip(
+                dates: dates,
+                days: byDate,
+                selectedDate: selected,
+                nextDate: next?.date,
+                onSelected: (date) => setState(() => _selectedDate = date),
               ),
-              if (index != dates.length - 1)
-                Divider(
-                  height: 1,
-                  indent: 72,
-                  color: theme.dividerColor.withValues(alpha: 0.45),
-                ),
-            ],
-          ]),
+            ),
+          ],
         ),
       ),
       AnimatedSwitcher(
-        duration: const Duration(milliseconds: 220),
+        duration:
+            reduceMotion ? Duration.zero : const Duration(milliseconds: 160),
         switchInCurve: Curves.easeOutCubic,
         child: selectedDay == null
             ? const SizedBox.shrink()
-            : _buildDayDetail(context, plan, selectedDay,
-                key: ValueKey('${selectedDay.date}_${selectedDay.status}')),
+            : PlanDayDetailCard(
+                key: ValueKey('${selectedDay.date}_${selectedDay.status}'),
+                plan: plan,
+                day: selectedDay,
+                onStart: plan.active &&
+                        !selectedDay.day.isRest &&
+                        selectedDay.status == PlannedDayStatus.planned &&
+                        !selectedDay.date.isAfter(_day(DateTime.now()))
+                    ? () => _start(plan, selectedDay)
+                    : null,
+                onSkip: plan.active &&
+                        !selectedDay.day.isRest &&
+                        selectedDay.status == PlannedDayStatus.planned &&
+                        !selectedDay.date.isAfter(_day(DateTime.now()))
+                    ? () => _skip(plan, selectedDay)
+                    : null,
+              ),
       ),
     ]);
   }
-
-  Widget _buildDayDetail(
-      BuildContext context, ManualTrainingPlan plan, PlannedCalendarDay day,
-      {required Key key}) {
-    final text = ManualPlanText(context);
-    final theme = Theme.of(context);
-    final locale = Localizations.localeOf(context).toString();
-    final today = _day(DateTime.now());
-    final canResolve = plan.active &&
-        !day.day.isRest &&
-        day.status == PlannedDayStatus.planned &&
-        !day.date.isAfter(today);
-    final helper = day.day.isRest
-        ? text.get('restDescription')
-        : day.status == PlannedDayStatus.completed
-            ? text.get('completedDescription')
-            : day.status == PlannedDayStatus.partial
-                ? text.get('partialDescription')
-                : day.status == PlannedDayStatus.skipped
-                    ? text.get('skippedDescription')
-                    : day.date.isAfter(today)
-                        ? text.get('futureDescription')
-                        : DateUtils.isSameDay(day.date, today)
-                            ? text.get('todayDescription')
-                            : text.get('pastOpenDescription');
-    return SummaryCard(
-      key: key,
-      useSecondarySurface: true,
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(DateFormat.yMMMMEEEEd(locale).format(day.date),
-            style: theme.textTheme.labelLarge?.copyWith(
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.62),
-            )),
-        const SizedBox(height: 4),
-        Text(day.day.routineName ?? text.get('rest'),
-            style: theme.textTheme.titleLarge),
-        const SizedBox(height: DesignConstants.spacingS),
-        Text(helper,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.72),
-            )),
-        if (canResolve) ...[
-          const SizedBox(height: DesignConstants.spacingM),
-          Row(children: [
-            Expanded(
-              child: AppButton.secondary(
-                label: text.get('skip'),
-                icon: LucideIcons.skip_forward,
-                onPressed: () => _skip(plan, day),
-              ),
-            ),
-            const SizedBox(width: DesignConstants.spacingM),
-            Expanded(
-              child: AppButton.primary(
-                label: text.get('startShort'),
-                icon: LucideIcons.play,
-                onPressed: () => _start(plan, day),
-              ),
-            ),
-          ]),
-        ],
-      ]),
-    );
-  }
 }
 
-class _PlanAgendaRow extends StatelessWidget {
-  const _PlanAgendaRow({
-    required this.date,
-    required this.day,
-    required this.selected,
-    required this.next,
-    required this.onTap,
+class _PlanRevisionTile extends StatelessWidget {
+  const _PlanRevisionTile({
+    required this.revision,
+    required this.locale,
+    required this.text,
   });
 
-  final DateTime date;
-  final PlannedCalendarDay? day;
-  final bool selected;
-  final bool next;
-  final VoidCallback? onTap;
+  final db.TrainingPlanRevision revision;
+  final String locale;
+  final ManualPlanText text;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final text = ManualPlanText(context);
-    final locale = Localizations.localeOf(context).toString();
-    final today = DateUtils.isSameDay(date, DateTime.now());
-    final status = day?.status;
-    final (icon, color) = switch (status) {
-      PlannedDayStatus.completed => (
-          LucideIcons.circle_check,
-          theme.colorScheme.primary
-        ),
-      PlannedDayStatus.partial => (LucideIcons.circle_dot, Colors.orange),
-      PlannedDayStatus.skipped => (
-          LucideIcons.skip_forward,
-          theme.colorScheme.onSurfaceVariant
-        ),
-      PlannedDayStatus.rest => (
-          LucideIcons.moon,
-          theme.colorScheme.onSurfaceVariant
-        ),
-      PlannedDayStatus.ongoing => (
-          LucideIcons.timer,
-          theme.colorScheme.primary
-        ),
-      PlannedDayStatus.planned => (
-          LucideIcons.circle,
-          theme.colorScheme.onSurfaceVariant
-        ),
-      null => (LucideIcons.minus, theme.disabledColor),
-    };
-    return Semantics(
-      button: onTap != null,
-      selected: selected,
-      child: InkWell(
-        onTap: onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 180),
-          curve: Curves.easeOutCubic,
-          color: selected
-              ? theme.colorScheme.primary.withValues(alpha: 0.08)
-              : Colors.transparent,
-          padding: const EdgeInsets.symmetric(
-              horizontal: DesignConstants.spacingM, vertical: 11),
-          child: Row(children: [
-            SizedBox(
-              width: 48,
-              child: Column(children: [
-                Text(DateFormat.E(locale).format(date),
-                    style: theme.textTheme.labelMedium?.copyWith(
-                      color:
-                          theme.colorScheme.onSurface.withValues(alpha: 0.62),
-                    )),
-                const SizedBox(height: 2),
-                AnimatedContainer(
-                  duration: const Duration(milliseconds: 180),
-                  width: 30,
-                  height: 30,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color:
-                        today ? theme.colorScheme.primary : Colors.transparent,
-                  ),
-                  child: Text(DateFormat.d(locale).format(date),
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        color: today ? theme.colorScheme.onPrimary : null,
-                        fontWeight: FontWeight.w700,
-                      )),
-                ),
-              ]),
+    final days = TrainingPlanDay.decodeDays(revision.daysJson);
+    final visibleDays = days.take(7).toList();
+    return SummaryCard(
+      margin: const EdgeInsets.only(bottom: DesignConstants.spacingS),
+      useSecondarySurface: true,
+      disableShadow: true,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 34,
+            height: 34,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: theme.colorScheme.primary.withValues(alpha: 0.12),
             ),
-            const SizedBox(width: DesignConstants.spacingS),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(children: [
-                    Flexible(
-                      child: Text(
-                        day?.day.routineName ??
-                            (day == null
-                                ? text.get('notStarted')
-                                : text.get('rest')),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          color: day == null ? theme.disabledColor : null,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                    if (next) ...[
-                      const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 7, vertical: 2),
-                        decoration: BoxDecoration(
-                          color:
-                              theme.colorScheme.primary.withValues(alpha: 0.13),
-                          borderRadius: BorderRadius.circular(100),
-                        ),
-                        child: Text(text.get('nextUp'),
-                            style: theme.textTheme.labelSmall?.copyWith(
-                              color: theme.colorScheme.primary,
-                              fontWeight: FontWeight.w700,
-                            )),
-                      ),
-                    ],
-                  ]),
-                  const SizedBox(height: 2),
-                  Text(
-                    day == null
-                        ? text.get('beforePlanStart')
-                        : text.get(status!.name),
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: day == null
-                          ? theme.disabledColor
-                          : theme.colorScheme.onSurface.withValues(alpha: 0.62),
-                    ),
-                  ),
-                ],
+            child: Text(
+              '${revision.number}',
+              style: theme.textTheme.labelLarge?.copyWith(
+                color: theme.colorScheme.primary,
+                fontWeight: FontWeight.w700,
               ),
             ),
-            Icon(icon, size: 19, color: color),
-          ]),
+          ),
+          const SizedBox(width: DesignConstants.spacingM),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '${text.get('version')} ${revision.number}',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  DateFormat.yMMMd(locale).format(revision.effectiveOn),
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                  ),
+                ),
+                const SizedBox(height: DesignConstants.spacingS),
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: [
+                    for (final day in visibleDays)
+                      _RevisionDayChip(
+                        label: day.routineName ?? text.get('rest'),
+                        rest: day.isRest,
+                      ),
+                    if (days.length > visibleDays.length)
+                      _RevisionDayChip(
+                        label: '+${days.length - visibleDays.length}',
+                        rest: true,
+                      ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _RevisionDayChip extends StatelessWidget {
+  const _RevisionDayChip({required this.label, required this.rest});
+
+  final String label;
+  final bool rest;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      constraints: const BoxConstraints(maxWidth: 150),
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+      decoration: BoxDecoration(
+        color: (rest ? theme.colorScheme.onSurface : theme.colorScheme.primary)
+            .withValues(alpha: 0.09),
+        borderRadius: BorderRadius.circular(100),
+      ),
+      child: Text(
+        label,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: theme.textTheme.labelSmall?.copyWith(
+          color: rest
+              ? theme.colorScheme.onSurfaceVariant
+              : theme.colorScheme.primary,
+          fontWeight: FontWeight.w600,
         ),
       ),
     );

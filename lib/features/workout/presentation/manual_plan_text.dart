@@ -104,13 +104,17 @@ class ManualPlanText {
       'restPickerDescription': 'Keine Routine an diesem Tag',
       'weekEditorExplanation':
           'Die sieben Tage wiederholen sich jede Woche und bleiben festen Wochentagen zugeordnet.',
+      'weekEditorShort': 'Feste Wochentage, jede Woche.',
       'sequenceEditorExplanation':
           'Eine Sequenz läuft unabhängig von Wochentagen in der festgelegten Reihenfolge weiter.',
+      'sequenceEditorShort': 'Tag für Tag in eigener Reihenfolge.',
       'editorScheduleHint':
           'Tippe auf einen Tag, um eine Routine zuzuweisen oder ihn als Ruhetag festzulegen.',
       'shorter': 'Sequenz verkürzen',
       'longer': 'Sequenz verlängern',
       'editRoutine': 'Routine bearbeiten',
+      'addDay': 'Tag hinzufügen',
+      'removeDay': 'Tag entfernen',
       'hubNoPlanDescription': 'Erstelle deinen eigenen Trainingsrhythmus',
       'hubNoUpcomingWorkout': 'Aktuell ist keine Einheit offen',
     },
@@ -204,13 +208,17 @@ class ManualPlanText {
       'restPickerDescription': 'No routine on this day',
       'weekEditorExplanation':
           'The seven days repeat each week and stay assigned to fixed weekdays.',
+      'weekEditorShort': 'Fixed weekdays, repeated weekly.',
       'sequenceEditorExplanation':
           'A sequence continues in order independently of weekdays.',
+      'sequenceEditorShort': 'Day by day in its own order.',
       'editorScheduleHint':
           'Tap a day to assign a routine or make it a rest day.',
       'shorter': 'Shorten sequence',
       'longer': 'Lengthen sequence',
       'editRoutine': 'Edit routine',
+      'addDay': 'Add day',
+      'removeDay': 'Remove day',
       'hubNoPlanDescription': 'Build your own training rhythm',
       'hubNoUpcomingWorkout': 'No session is currently due',
     },
@@ -303,13 +311,17 @@ class ManualPlanText {
       'restPickerDescription': 'Aucune routine ce jour',
       'weekEditorExplanation':
           'Les sept jours se répètent chaque semaine et restent associés aux jours fixes.',
+      'weekEditorShort': 'Jours fixes, répétés chaque semaine.',
       'sequenceEditorExplanation':
           'Une séquence continue dans l’ordre, indépendamment des jours de la semaine.',
+      'sequenceEditorShort': 'Jour après jour, dans son propre ordre.',
       'editorScheduleHint':
           'Touchez un jour pour attribuer une routine ou définir un jour de repos.',
       'shorter': 'Raccourcir la séquence',
       'longer': 'Allonger la séquence',
       'editRoutine': 'Modifier la routine',
+      'addDay': 'Ajouter un jour',
+      'removeDay': 'Supprimer le jour',
       'hubNoPlanDescription': 'Créez votre propre rythme d’entraînement',
       'hubNoUpcomingWorkout': 'Aucune séance n’est actuellement prévue',
     },
@@ -403,13 +415,17 @@ class ManualPlanText {
       'restPickerDescription': 'Nessuna routine in questo giorno',
       'weekEditorExplanation':
           'I sette giorni si ripetono ogni settimana e restano assegnati ai giorni fissi.',
+      'weekEditorShort': 'Giorni fissi, ripetuti ogni settimana.',
       'sequenceEditorExplanation':
           'Una sequenza continua in ordine indipendentemente dai giorni della settimana.',
+      'sequenceEditorShort': 'Giorno per giorno, nel proprio ordine.',
       'editorScheduleHint':
           'Tocca un giorno per assegnare una routine o renderlo un giorno di riposo.',
       'shorter': 'Riduci sequenza',
       'longer': 'Estendi sequenza',
       'editRoutine': 'Modifica routine',
+      'addDay': 'Aggiungi giorno',
+      'removeDay': 'Rimuovi giorno',
       'hubNoPlanDescription': 'Crea il tuo ritmo di allenamento',
       'hubNoUpcomingWorkout': 'Nessuna sessione è attualmente prevista',
     },
@@ -490,11 +506,15 @@ class ManualPlanText {
       'exercises': '種目',
       'restPickerDescription': 'この日はルーティンなし',
       'weekEditorExplanation': '7日間が毎週繰り返され、各セッションは曜日に固定されます。',
+      'weekEditorShort': '固定曜日で毎週繰り返します。',
       'sequenceEditorExplanation': '曜日に関係なく、設定した順序でシーケンスが進みます。',
+      'sequenceEditorShort': '独自の順番で1日ずつ進みます。',
       'editorScheduleHint': '日をタップしてルーティンまたは休息日を設定します。',
       'shorter': 'シーケンスを短くする',
       'longer': 'シーケンスを長くする',
       'editRoutine': 'ルーティンを編集',
+      'addDay': '日を追加',
+      'removeDay': '日を削除',
       'hubNoPlanDescription': '自分のトレーニングリズムを作成',
       'hubNoUpcomingWorkout': '現在予定されているセッションはありません',
     },
