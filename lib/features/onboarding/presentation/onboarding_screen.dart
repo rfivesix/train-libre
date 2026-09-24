@@ -13,6 +13,7 @@ import '../../../generated/app_localizations.dart';
 import '../../app/presentation/main_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../nutrition_recommendation/data/recommendation_service.dart';
+import '../../profile/data/legacy_goal_migration.dart';
 import '../../nutrition_recommendation/presentation/body_fat_guidance_sheet.dart';
 import '../../nutrition_recommendation/domain/goal_models.dart';
 import '../../nutrition_recommendation/domain/recommendation_models.dart';
@@ -475,6 +476,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       goal: _selectedGoal,
       targetRateKgPerWeek: _selectedTargetRateKgPerWeek,
     );
+    // The weight measurement and the new rate-based nutrition goal are now
+    // persisted through the same canonical goal model. The legacy values above
+    // remain only as migration input for older installations.
+    await LegacyGoalMigration().run();
     await _recommendationService.savePriorActivityLevel(
       _selectedPriorActivityLevel,
     );

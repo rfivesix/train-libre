@@ -289,6 +289,22 @@ class ProfileLocalDataSource {
     return row?.value;
   }
 
+  Future<double?> getLatestWeightBefore(DateTime before) async {
+    final row = await (dbInstance.select(dbInstance.measurements)
+          ..where((tbl) =>
+              tbl.type.equals('weight') &
+              tbl.date.isSmallerOrEqualValue(before))
+          ..orderBy([
+            (t) => drift.OrderingTerm(
+                expression: t.date, mode: drift.OrderingMode.desc),
+            (t) => drift.OrderingTerm(
+                expression: t.localId, mode: drift.OrderingMode.desc),
+          ])
+          ..limit(1))
+        .getSingleOrNull();
+    return row?.value;
+  }
+
   Future<void> saveInitialWeight(double weightKg) async {
     final now = DateTime.now();
     await dbInstance.into(dbInstance.measurements).insert(

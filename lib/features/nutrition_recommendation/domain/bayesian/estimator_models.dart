@@ -40,10 +40,14 @@ class BayesianEstimatorConfig {
   final double minimumHistoricalQScale;
   final double maximumHistoricalQScale;
 
-  /// Confirmed-phase kcal/kg ramp settings for the weekly observation model.
-  final double phaseRampStartKcalPerKg;
-  final double phaseRampMatureKcalPerKg;
-  final int phaseRampMatureWeek;
+  /// Fixed energy density used to convert weekly body-mass change into a
+  /// daily energy-balance estimate.
+  final double bodyMassEnergyDensityKcalPerKg;
+
+  /// Early phase changes are water-weight-sensitive, so uncertainty is
+  /// increased instead of changing the physical observation coefficient.
+  final double phaseWeek1ObservationVarianceMultiplier;
+  final double phaseWeek2ObservationVarianceMultiplier;
 
   final double minimumMaintenanceCalories;
   final double maximumMaintenanceCalories;
@@ -51,7 +55,7 @@ class BayesianEstimatorConfig {
   /// Conservative defaults tuned for stability in sparse/noisy weekly logs.
   const BayesianEstimatorConfig({
     this.priorStdDevCalories = 420,
-    this.weeklyMaintenanceDriftCalories = 40,
+    this.weeklyMaintenanceDriftCalories = 60,
     this.baseObservationStdDevCalories = 120,
     this.intakeDayStdDevCalories = 320,
     this.weightTrendStdDevKgPerWeek = 0.55,
@@ -68,9 +72,9 @@ class BayesianEstimatorConfig {
     this.maximumHistoricalRScale = 2.60,
     this.minimumHistoricalQScale = 0.60,
     this.maximumHistoricalQScale = 1.90,
-    this.phaseRampStartKcalPerKg = 3000,
-    this.phaseRampMatureKcalPerKg = 7700,
-    this.phaseRampMatureWeek = 9,
+    this.bodyMassEnergyDensityKcalPerKg = 7700,
+    this.phaseWeek1ObservationVarianceMultiplier = 2.25,
+    this.phaseWeek2ObservationVarianceMultiplier = 1.50,
     this.minimumMaintenanceCalories = 1200,
     this.maximumMaintenanceCalories = 5000,
   });
@@ -421,6 +425,7 @@ class _ObservationModel {
   final double slopeVariance;
   final double completenessMultiplier;
   final double qualityMultiplier;
+  final double phaseVarianceMultiplier;
   final AdaptiveDietPhase confirmedPhase;
   final int confirmedPhaseAgeDays;
   final double confirmedPhaseAgeWeeks;
@@ -444,6 +449,7 @@ class _ObservationModel {
     required this.slopeVariance,
     required this.completenessMultiplier,
     required this.qualityMultiplier,
+    required this.phaseVarianceMultiplier,
     required this.confirmedPhase,
     required this.confirmedPhaseAgeDays,
     required this.confirmedPhaseAgeWeeks,

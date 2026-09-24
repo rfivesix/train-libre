@@ -7,6 +7,9 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:flutter/rendering.dart';
 import '../data/sources/workout_local_data_source.dart';
+import '../data/manual_training_plan_repository.dart';
+import 'manual_plan_text.dart';
+import '../domain/services/workout_plan_notification_orchestrator.dart';
 import '../../sharing/share_service.dart';
 import '../../../generated/app_localizations.dart';
 import '../../exercise_catalog/domain/models/exercise.dart';
@@ -38,7 +41,12 @@ import '../../../services/telemetry/telemetry_service.dart';
 class EditRoutineScreen extends StatefulWidget {
   /// The [Routine] to be edited. If null, a new routine is created.
   final Routine? routine;
-  const EditRoutineScreen({super.key, this.routine});
+  final bool offerPlanUpdateOnSave;
+  const EditRoutineScreen({
+    super.key,
+    this.routine,
+    this.offerPlanUpdateOnSave = true,
+  });
 
   @override
   State<EditRoutineScreen> createState() => _EditRoutineScreenState();
@@ -52,6 +60,7 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
   int? _routineId;
   String _originalName = '';
   bool _isLoading = false;
+  bool _routineChangedInSession = false;
   bool _isDragging = false;
   bool _isDragActive = false;
   double _dynamicHeadroom = 0.0;
@@ -174,6 +183,8 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
 
   void _handlePopAttempt([Object? result]) async {
     if (!_hasUnsavedChanges()) {
+      await _offerPlanUpdate();
+      if (!mounted) return;
       setState(() {
         _canPop = true;
       });
@@ -245,6 +256,8 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
     } else {
       final success = await _persistRoutineState();
       if (success && mounted) {
+        await _offerPlanUpdate();
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(l10n.snackbarRoutineSaved)),
         );
@@ -448,11 +461,13 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
         });
         HapticFeedbackService.instance.confirmationFeedback();
         _originalState = _serializeState();
+        _routineChangedInSession = true;
       }
     }
   }
 
   Future<bool> _persistRoutineState({bool isAddingExercise = false}) async {
+    final existingRoutineChanged = !_isNewRoutine && _hasUnsavedChanges();
     final l10n = AppLocalizations.of(context)!;
     FocusScope.of(context).unfocus();
 
@@ -532,12 +547,64 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
     }
 
     _originalState = _serializeState();
+    if (existingRoutineChanged) _routineChangedInSession = true;
     return true;
+  }
+
+  Future<void> _offerPlanUpdate() async {
+    if (!widget.offerPlanUpdateOnSave ||
+        !_routineChangedInSession ||
+        _routineId == null ||
+        !mounted) {
+      return;
+    }
+    final plans = ManualTrainingPlanRepository();
+    if (!await plans.isRoutineUsed(_routineId!)) {
+      _routineChangedInSession = false;
+      return;
+    }
+    if (!mounted) return;
+    final text = ManualPlanText(context);
+    final include = await showGlassBottomMenu<bool?>(
+      context: context,
+      title: text.get('routineChanged'),
+      contentBuilder: (ctx, close) => Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          AppButton.secondary(
+            label: text.get('routineOnly'),
+            onPressed: () {
+              close();
+              Navigator.of(ctx).pop(false);
+            },
+          ),
+          const SizedBox(height: DesignConstants.spacingM),
+          AppButton.primary(
+            label: text.get('updatePlan'),
+            onPressed: () {
+              close();
+              Navigator.of(ctx).pop(true);
+            },
+          ),
+        ],
+      ),
+    );
+    if (include == null) return;
+    if (include) {
+      await plans.includeRoutineEdit(_routineId!);
+      await WorkoutPlanNotificationOrchestrator().synchronize();
+    }
+    _routineChangedInSession = false;
   }
 
   Future<bool> _saveRoutine() async {
     final success = await _persistRoutineState();
     if (success && mounted) {
+      if (_routineId != null) {
+        await WorkoutLocalDataSource.instance.touchRoutineLastUsed(_routineId!);
+      }
+      await _offerPlanUpdate();
+      if (!mounted) return success;
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(
@@ -639,6 +706,7 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
             re.id!, result.isNotEmpty ? result : null);
       }
       _originalState = _serializeState();
+      _routineChangedInSession = true;
     }
   }
 
@@ -765,6 +833,7 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
         }
       });
       _originalState = _serializeState();
+      _routineChangedInSession = true;
     }
   }
 
@@ -815,6 +884,7 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
       );
     }
     _originalState = _serializeState();
+    _routineChangedInSession = true;
   }
 
   Future<void> _toggleSupersetAfter(int upperIndex) async {
@@ -837,6 +907,7 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
       );
     }
     _originalState = _serializeState();
+    _routineChangedInSession = true;
   }
 
   void _shareCurrentRoutine() {

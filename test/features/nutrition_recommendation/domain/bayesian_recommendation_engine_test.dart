@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:train_libre/features/nutrition_recommendation/domain/adaptive_diet_phase.dart';
 import 'package:train_libre/features/nutrition_recommendation/domain/bayesian_recommendation_engine.dart';
 import 'package:train_libre/features/nutrition_recommendation/domain/bayesian_tdee_estimator.dart';
 import 'package:train_libre/features/nutrition_recommendation/domain/confidence_models.dart';
@@ -175,6 +176,61 @@ void main() {
       expect(result.recommendation.confidence,
           isNot(RecommendationConfidence.notEnoughData));
       expect(result.recursiveState, isNotNull);
+    });
+
+    test('keeps maintenance pure while adding persistent rate correction', () {
+      const phaseContext = BayesianObservationPhaseContext(
+        confirmedPhase: AdaptiveDietPhase.bulk,
+        confirmedPhaseAgeDays: 30,
+        pendingPhase: null,
+        pendingPhaseAgeDays: null,
+      );
+      final first = engine.generate(
+        input: _input(
+          priorMaintenanceCalories: 2700,
+          avgLoggedCalories: 3150,
+          smoothedWeightSlopeKgPerWeek: 0.12,
+          windowDays: 14,
+          weightLogCount: 14,
+          intakeLoggedDays: 14,
+        ),
+        goal: BodyweightGoal.gainWeight,
+        targetRateKgPerWeek: 0.37,
+        generatedAt: DateTime(2026, 4, 6),
+        algorithmVersion: 'dual_loop_test',
+        dueWeekKey: '2026-04-06',
+        phaseContext: phaseContext,
+      );
+      final second = engine.generate(
+        input: _input(
+          priorMaintenanceCalories: 2700,
+          avgLoggedCalories: 3150,
+          smoothedWeightSlopeKgPerWeek: 0.10,
+          windowDays: 14,
+          weightLogCount: 14,
+          intakeLoggedDays: 14,
+        ),
+        goal: BodyweightGoal.gainWeight,
+        targetRateKgPerWeek: 0.37,
+        generatedAt: DateTime(2026, 4, 13),
+        algorithmVersion: 'dual_loop_test',
+        dueWeekKey: '2026-04-13',
+        recursiveState: first.recursiveState,
+        previousRecommendation: first.recommendation,
+        phaseContext: phaseContext,
+      );
+
+      expect(first.recommendation.trajectoryCorrectionCalories, 0);
+      expect(second.recommendation.trajectoryCorrectionCalories, 100);
+      expect(second.recommendation.trajectoryCorrectionStatus, 'active');
+      expect(
+        second.recommendation.recommendedCalories,
+        second.recommendation.estimatedMaintenanceCalories + 407 + 100,
+      );
+      expect(
+        second.maintenanceEstimate.posteriorMaintenanceCalories.round(),
+        second.recommendation.estimatedMaintenanceCalories,
+      );
     });
   });
 }

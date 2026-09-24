@@ -31,10 +31,15 @@ class AdaptiveReviewCard extends StatelessWidget {
 
   Color _statusColor(String? status, ThemeData theme) {
     switch (status) {
+      case 'on_trajectory':
+      case 'target_reached':
       case 'on_track':
         return Colors.green;
+      case 'behind':
+      case 'target_date_needs_review':
       case 'slower':
         return Colors.orange;
+      case 'ahead':
       case 'faster':
         return Colors.blue;
       case 'calibrating':
@@ -46,6 +51,15 @@ class AdaptiveReviewCard extends StatelessWidget {
   String _statusLabel(BuildContext context, String? status) {
     final l10n = AppLocalizations.of(context)!;
     switch (status) {
+      case 'behind':
+        return l10n.reviewStatusBehind;
+      case 'ahead':
+        return l10n.reviewStatusAhead;
+      case 'target_reached':
+        return l10n.reviewStatusTargetReached;
+      case 'target_date_needs_review':
+        return l10n.reviewStatusTargetDateNeedsReview;
+      case 'on_trajectory':
       case 'on_track':
         return l10n.reviewStatusOnTrack;
       case 'slower':
@@ -56,6 +70,18 @@ class AdaptiveReviewCard extends StatelessWidget {
       default:
         return l10n.reviewStatusCalibrating;
     }
+  }
+
+  String _momentumLabel(BuildContext context, String? status) {
+    final l10n = AppLocalizations.of(context)!;
+    return switch (status) {
+      'matching_plan' => l10n.reviewMomentumMatchingPlan,
+      'catching_up' => l10n.reviewMomentumCatchingUp,
+      'falling_further_behind' => l10n.reviewMomentumFallingBehind,
+      'moving_faster' => l10n.reviewMomentumMovingFaster,
+      'moving_slower' => l10n.reviewMomentumMovingSlower,
+      _ => l10n.reviewMomentumUnclear,
+    };
   }
 
   @override
@@ -105,8 +131,10 @@ class AdaptiveReviewCard extends StatelessWidget {
       );
     }
 
-    final statusColor = _statusColor(review?.trajectoryStatus, theme);
-    final statusLabel = _statusLabel(context, review?.trajectoryStatus);
+    final assessment = review?.assessment;
+    final primaryStatus = assessment?.overallStatus ?? review?.trajectoryStatus;
+    final statusColor = _statusColor(primaryStatus, theme);
+    final statusLabel = _statusLabel(context, primaryStatus);
 
     return SummaryCard(
       child: Padding(
@@ -159,7 +187,15 @@ class AdaptiveReviewCard extends StatelessWidget {
             ),
             const SizedBox(height: DesignConstants.spacingM),
             Text(
-              review?.explanation ?? l10n.weeklyReviewPendingDefaultExplanation,
+              assessment == null
+                  ? l10n.weeklyReviewPendingDefaultExplanation
+                  : l10n.reviewOverallSummary(
+                      statusLabel,
+                      _momentumLabel(
+                        context,
+                        assessment.recentMomentumStatus,
+                      ),
+                    ),
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.colorScheme.onSurface.withValues(alpha: 0.85),
                 height: 1.35,

@@ -8334,6 +8334,18 @@ abstract class AppLocalizations {
   /// **'Estimated maintenance'**
   String get adaptiveRecommendationMaintenanceLabel;
 
+  /// No description provided for @adaptiveRecommendationWhyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Why this recommendation?'**
+  String get adaptiveRecommendationWhyTitle;
+
+  /// No description provided for @adaptiveRecommendationWhySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Maintenance estimate, data quality and calculation details'**
+  String get adaptiveRecommendationWhySubtitle;
+
   /// No description provided for @adaptiveRecommendationMaintenanceSourceLabel.
   ///
   /// In en, this message translates to:
@@ -8352,6 +8364,18 @@ abstract class AppLocalizations {
   /// **'Recommended targets'**
   String get adaptiveRecommendationMacroTargetsLabel;
 
+  /// No description provided for @adaptiveRecommendationAlreadyActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Already active'**
+  String get adaptiveRecommendationAlreadyActive;
+
+  /// No description provided for @adaptiveRecommendationTargetChange.
+  ///
+  /// In en, this message translates to:
+  /// **'{value} from current'**
+  String adaptiveRecommendationTargetChange(String value);
+
   /// No description provided for @adaptiveRecommendationTargetCaloriesLabel.
   ///
   /// In en, this message translates to:
@@ -8364,23 +8388,17 @@ abstract class AppLocalizations {
   /// **'Data quality'**
   String get adaptiveRecommendationDataQualityLabel;
 
-  /// No description provided for @adaptiveRecommendationEnergyDensityLabel.
+  /// No description provided for @adaptiveRecommendationTrajectoryCorrectionLine.
   ///
   /// In en, this message translates to:
-  /// **'Effective energy density'**
-  String get adaptiveRecommendationEnergyDensityLabel;
+  /// **'Trajectory adjustment: {value} kcal/day'**
+  String adaptiveRecommendationTrajectoryCorrectionLine(String value);
 
-  /// No description provided for @adaptiveRecommendationEnergyDensityValue.
+  /// No description provided for @adaptiveRecommendationTrajectoryCorrectionExplanation.
   ///
   /// In en, this message translates to:
-  /// **'{value} kcal/kg'**
-  String adaptiveRecommendationEnergyDensityValue(int value);
-
-  /// No description provided for @adaptiveRecommendationEnergyDensityExplanation.
-  ///
-  /// In en, this message translates to:
-  /// **'Dynamic value based on weight and water-loss ratio'**
-  String get adaptiveRecommendationEnergyDensityExplanation;
+  /// **'A bounded adjustment is helping bring your recent weight-change rate back toward your goal.'**
+  String get adaptiveRecommendationTrajectoryCorrectionExplanation;
 
   /// No description provided for @adaptiveRecommendationRecalculateNowAction.
   ///
@@ -9693,7 +9711,7 @@ abstract class AppLocalizations {
   /// No description provided for @infoTdeeKeyPoints.
   ///
   /// In en, this message translates to:
-  /// **'• Smooths out daily weight fluctuations using a recursive trend model.\n• Uses a Bayesian-inspired approach to adapt weekly targets conservatively.\n• Alerts you if your logging consistency is too sparse for high-confidence updates.'**
+  /// **'• Uses your latest 14 days of weight and intake logs to estimate maintenance.\n• Treats early phase-change weight fluctuations as extra uncertainty.\n• Uses a separate bounded adjustment when your rate persistently differs from your goal.'**
   String get infoTdeeKeyPoints;
 
   /// No description provided for @infoTdeeTechnicalTitle.
@@ -9705,7 +9723,7 @@ abstract class AppLocalizations {
   /// No description provided for @infoTdeeTechnicalExplanation.
   ///
   /// In en, this message translates to:
-  /// **'Rather than relying on static formulas, Train Libre models your metabolism as a dynamic \'hidden state\' estimated recursively. Daily observed maintenance is computed by adjusting intake against body mass changes. A process noise coefficient is added on unlogged days to increase the estimation uncertainty, which dampens updates and prevents skewing from short-term water retention.'**
+  /// **'Train Libre estimates maintenance as a dynamic hidden state with a recursive Kalman filter. Weekly process uncertainty lets the estimate follow real metabolic changes, while observation uncertainty limits reactions to water weight and incomplete logs. A separate capped trajectory controller may adjust the calorie target after two consistent rate errors without changing the maintenance estimate.'**
   String get infoTdeeTechnicalExplanation;
 
   /// No description provided for @infoRecoveryTitle.
@@ -12295,6 +12313,42 @@ abstract class AppLocalizations {
   /// **'Choose a direction or describe your milestone in your own words.'**
   String get goalStep1Description;
 
+  /// No description provided for @goalStepProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Step {current} of {total}'**
+  String goalStepProgress(int current, int total);
+
+  /// No description provided for @goalStartingPointAndTargetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your starting point and destination'**
+  String get goalStartingPointAndTargetTitle;
+
+  /// No description provided for @goalStartingPointAndTargetDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm where you are starting, then choose a target that matches your direction.'**
+  String get goalStartingPointAndTargetDescription;
+
+  /// No description provided for @goalTargetDirectionLoseError.
+  ///
+  /// In en, this message translates to:
+  /// **'For a weight-loss goal, choose a target below your starting weight.'**
+  String get goalTargetDirectionLoseError;
+
+  /// No description provided for @goalTargetDirectionGainError.
+  ///
+  /// In en, this message translates to:
+  /// **'For a weight-gain goal, choose a target above your starting weight.'**
+  String get goalTargetDirectionGainError;
+
+  /// No description provided for @goalDriverSettingDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Train Libre uses this goal to adapt your daily calorie and macro targets.'**
+  String get goalDriverSettingDescription;
+
   /// No description provided for @goalPresetLoseWeight.
   ///
   /// In en, this message translates to:
@@ -12901,6 +12955,72 @@ abstract class AppLocalizations {
   /// **'Calibrating'**
   String get reviewStatusCalibrating;
 
+  /// No description provided for @reviewStatusBehind.
+  ///
+  /// In en, this message translates to:
+  /// **'Behind plan'**
+  String get reviewStatusBehind;
+
+  /// No description provided for @reviewStatusAhead.
+  ///
+  /// In en, this message translates to:
+  /// **'Ahead of plan'**
+  String get reviewStatusAhead;
+
+  /// No description provided for @reviewStatusTargetReached.
+  ///
+  /// In en, this message translates to:
+  /// **'Target reached'**
+  String get reviewStatusTargetReached;
+
+  /// No description provided for @reviewStatusTargetDateNeedsReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Target date needs review'**
+  String get reviewStatusTargetDateNeedsReview;
+
+  /// No description provided for @reviewOverallSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Overall: {overall}. Last 7 days: {momentum}.'**
+  String reviewOverallSummary(String overall, String momentum);
+
+  /// No description provided for @reviewMomentumMatchingPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'matching the plan'**
+  String get reviewMomentumMatchingPlan;
+
+  /// No description provided for @reviewMomentumCatchingUp.
+  ///
+  /// In en, this message translates to:
+  /// **'catching up'**
+  String get reviewMomentumCatchingUp;
+
+  /// No description provided for @reviewMomentumFallingBehind.
+  ///
+  /// In en, this message translates to:
+  /// **'falling further behind'**
+  String get reviewMomentumFallingBehind;
+
+  /// No description provided for @reviewMomentumMovingFaster.
+  ///
+  /// In en, this message translates to:
+  /// **'moving faster'**
+  String get reviewMomentumMovingFaster;
+
+  /// No description provided for @reviewMomentumMovingSlower.
+  ///
+  /// In en, this message translates to:
+  /// **'moving slower'**
+  String get reviewMomentumMovingSlower;
+
+  /// No description provided for @reviewMomentumUnclear.
+  ///
+  /// In en, this message translates to:
+  /// **'not yet clear'**
+  String get reviewMomentumUnclear;
+
   /// No description provided for @reviewNextAnalysisScheduled.
   ///
   /// In en, this message translates to:
@@ -12961,6 +13081,72 @@ abstract class AppLocalizations {
   /// **'Trajectory Comparison'**
   String get reviewTrajectoryComparisonTitle;
 
+  /// No description provided for @reviewPlanVsRealityTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan vs. reality'**
+  String get reviewPlanVsRealityTitle;
+
+  /// No description provided for @reviewExpectedByNowLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Expected by now'**
+  String get reviewExpectedByNowLabel;
+
+  /// No description provided for @reviewSmoothedCurrentLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Smoothed current'**
+  String get reviewSmoothedCurrentLabel;
+
+  /// No description provided for @reviewTrajectoryGapLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Gap to plan'**
+  String get reviewTrajectoryGapLabel;
+
+  /// No description provided for @reviewRequiredRateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Needed from now'**
+  String get reviewRequiredRateLabel;
+
+  /// No description provided for @reviewProjectedDateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Projected target date'**
+  String get reviewProjectedDateLabel;
+
+  /// No description provided for @reviewNutritionAdjustTargets.
+  ///
+  /// In en, this message translates to:
+  /// **'Your logged intake is consistent enough to calculate adjusted daily targets.'**
+  String get reviewNutritionAdjustTargets;
+
+  /// No description provided for @reviewNutritionKeepTargetsIntakeDiffers.
+  ///
+  /// In en, this message translates to:
+  /// **'Your current targets still fit. Your logged intake differs from them, so changing the plan would not solve the main deviation.'**
+  String get reviewNutritionKeepTargetsIntakeDiffers;
+
+  /// No description provided for @reviewNutritionKeepTargets.
+  ///
+  /// In en, this message translates to:
+  /// **'No change to your daily targets is recommended this week.'**
+  String get reviewNutritionKeepTargets;
+
+  /// No description provided for @reviewNutritionTrajectoryChangeNeeded.
+  ///
+  /// In en, this message translates to:
+  /// **'The rate needed to keep the current date is not a sensible nutrition adjustment. Change the goal, rate, or date instead.'**
+  String get reviewNutritionTrajectoryChangeNeeded;
+
+  /// No description provided for @reviewNutritionInsufficientData.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep logging normally. There is not enough recent data for a reliable nutrition adjustment yet.'**
+  String get reviewNutritionInsufficientData;
+
   /// No description provided for @reviewObservedRateLabel.
   ///
   /// In en, this message translates to:
@@ -13000,7 +13186,7 @@ abstract class AppLocalizations {
   /// No description provided for @reviewActionKeepCurrent.
   ///
   /// In en, this message translates to:
-  /// **'Keep current targets'**
+  /// **'Keep goal and update daily targets'**
   String get reviewActionKeepCurrent;
 
   /// No description provided for @reviewDismissedSnack.
@@ -13048,14 +13234,50 @@ abstract class AppLocalizations {
   /// No description provided for @adjustGoalConfirmTitle.
   ///
   /// In en, this message translates to:
-  /// **'Apply as successor goal?'**
+  /// **'Update plan?'**
   String get adjustGoalConfirmTitle;
 
   /// No description provided for @adjustGoalConfirmContent.
   ///
   /// In en, this message translates to:
-  /// **'This will archive your current goal trajectory and start an updated goal phase with the new targets.'**
+  /// **'Your existing progress and all measurements remain intact. The revised trajectory starts today.'**
   String get adjustGoalConfirmContent;
+
+  /// No description provided for @adjustGoalUpdatePlanButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Update plan'**
+  String get adjustGoalUpdatePlanButton;
+
+  /// No description provided for @adjustGoalAcceptRecommendationAndUpdatePlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Accept recommendation and update plan'**
+  String get adjustGoalAcceptRecommendationAndUpdatePlan;
+
+  /// No description provided for @adjustGoalRecommendedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Recommended adjustment'**
+  String get adjustGoalRecommendedTitle;
+
+  /// No description provided for @adjustGoalRecommendedPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep a realistic pace and move the target date to {date} ({rate}).'**
+  String adjustGoalRecommendedPlan(String date, String rate);
+
+  /// No description provided for @adjustGoalRecommendedKeepDatePlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep the {date} target date and adjust the pace to {rate}.'**
+  String adjustGoalRecommendedKeepDatePlan(String date, String rate);
+
+  /// No description provided for @adjustGoalSelectRecommendedPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Select recommendation'**
+  String get adjustGoalSelectRecommendedPlan;
 
   /// No description provided for @adjustGoalConfirmButton.
   ///
@@ -13345,6 +13567,18 @@ abstract class AppLocalizations {
   /// **'Slight deviation from corridor'**
   String get goalMaintenanceDrifting;
 
+  /// No description provided for @goalJourneyInProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Your goal is in motion'**
+  String get goalJourneyInProgress;
+
+  /// No description provided for @goalJourneyTargetReached.
+  ///
+  /// In en, this message translates to:
+  /// **'You reached your target'**
+  String get goalJourneyTargetReached;
+
   /// No description provided for @goalNotifyWeeklyReviewTitle.
   ///
   /// In en, this message translates to:
@@ -13390,7 +13624,7 @@ abstract class AppLocalizations {
   /// No description provided for @goalNotifyPrivacyBody.
   ///
   /// In en, this message translates to:
-  /// **'All goal and review notifications are handled purely locally on your device. Private weight or calorie numbers never appear on the lock screen.'**
+  /// **'Goal and review notifications are handled locally and may include useful goal, weight, or calorie details. Use your operating system settings to control lock-screen previews and quiet hours.'**
   String get goalNotifyPrivacyBody;
 
   /// No description provided for @goalNotificationSettingsSubtitle.
@@ -13398,6 +13632,84 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Local notifications for reviews and target dates'**
   String get goalNotificationSettingsSubtitle;
+
+  /// No description provided for @notificationSettingsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get notificationSettingsTitle;
+
+  /// No description provided for @notificationSettingsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Workout, goal, and review reminders'**
+  String get notificationSettingsSubtitle;
+
+  /// No description provided for @notificationWorkoutSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Workout plan'**
+  String get notificationWorkoutSectionTitle;
+
+  /// No description provided for @notificationGoalsSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Goals & reviews'**
+  String get notificationGoalsSectionTitle;
+
+  /// No description provided for @workoutPlanNotifyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Remind me on workout days'**
+  String get workoutPlanNotifyTitle;
+
+  /// No description provided for @workoutPlanNotifySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Only on planned workout days. No catch-up or guilt reminders.'**
+  String get workoutPlanNotifySubtitle;
+
+  /// No description provided for @workoutPlanNotifyTimeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder time'**
+  String get workoutPlanNotifyTimeTitle;
+
+  /// No description provided for @workoutPlanNotifyNoActivePlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminders become active when a training plan is active.'**
+  String get workoutPlanNotifyNoActivePlan;
+
+  /// No description provided for @notificationPermissionDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications are disabled in system settings.'**
+  String get notificationPermissionDenied;
+
+  /// No description provided for @notificationPrivacyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Local and in your control'**
+  String get notificationPrivacyTitle;
+
+  /// No description provided for @notificationPrivacyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'These reminders are scheduled locally. Manage lock-screen previews and quiet hours in your operating system settings.'**
+  String get notificationPrivacyBody;
+
+  /// No description provided for @workoutPlanReminderTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your workout is planned'**
+  String get workoutPlanReminderTitle;
+
+  /// No description provided for @workoutPlanReminderBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{routineName} is up next in {planName}.'**
+  String workoutPlanReminderBody(String routineName, String planName);
 
   /// No description provided for @weeklyGoalReviewNotificationTitle.
   ///
@@ -13410,6 +13722,13 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Your new 7-day review is available in the Nutrition Hub.'**
   String get weeklyGoalReviewNotificationBody;
+
+  /// No description provided for @weeklyGoalReviewNotificationDetailedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{goalTitle}: your updated recommendation is {calories} kcal per day. Open the review for the full reasoning.'**
+  String weeklyGoalReviewNotificationDetailedBody(
+      String goalTitle, int calories);
 
   /// No description provided for @goalTargetDateReminderTitle.
   ///
@@ -13464,6 +13783,132 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No measurements recorded yet.'**
   String get emptyStateMeasurements;
+
+  /// No description provided for @goalTrackingModeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'How do you want to plan?'**
+  String get goalTrackingModeTitle;
+
+  /// No description provided for @goalTrackingModeDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose what should define your nutrition goal.'**
+  String get goalTrackingModeDescription;
+
+  /// No description provided for @goalTrackingModeOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Open goal'**
+  String get goalTrackingModeOpen;
+
+  /// No description provided for @goalTrackingModeOpenDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'No target weight, date, or custom weekly rate.'**
+  String get goalTrackingModeOpenDescription;
+
+  /// No description provided for @goalTrackingModeWeeklyRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly rate'**
+  String get goalTrackingModeWeeklyRate;
+
+  /// No description provided for @goalTrackingModeWeeklyRateDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Set how much weight you want to change per week.'**
+  String get goalTrackingModeWeeklyRateDescription;
+
+  /// No description provided for @goalTrackingModeTargetWeight.
+  ///
+  /// In en, this message translates to:
+  /// **'Target weight'**
+  String get goalTrackingModeTargetWeight;
+
+  /// No description provided for @goalTrackingModeTargetWeightDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Set a target weight, with an optional date.'**
+  String get goalTrackingModeTargetWeightDescription;
+
+  /// No description provided for @goalTrackingModeDefaultRateInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'The safe default of {rate} is used and shown in recommendations.'**
+  String goalTrackingModeDefaultRateInfo(String rate);
+
+  /// No description provided for @goalTrackingOpenReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Your open goal is ready. Recommendations use the safe default for this direction.'**
+  String get goalTrackingOpenReady;
+
+  /// No description provided for @goalTargetDateOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Target date (optional)'**
+  String get goalTargetDateOptional;
+
+  /// No description provided for @goalReplaceActiveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace active nutrition goal?'**
+  String get goalReplaceActiveTitle;
+
+  /// No description provided for @goalReplaceActiveBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your current nutrition goal will be completed and replaced. Daily targets are not changed until a recommendation is applied.'**
+  String get goalReplaceActiveBody;
+
+  /// No description provided for @goalReplaceActiveConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace goal'**
+  String get goalReplaceActiveConfirm;
+
+  /// No description provided for @goalCreateError.
+  ///
+  /// In en, this message translates to:
+  /// **'The goal could not be saved: {error}'**
+  String goalCreateError(String error);
+
+  /// No description provided for @goalAdjustError.
+  ///
+  /// In en, this message translates to:
+  /// **'The goal could not be adjusted: {error}'**
+  String goalAdjustError(String error);
+
+  /// No description provided for @reviewKeepAndApplyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep goal and update daily targets?'**
+  String get reviewKeepAndApplyTitle;
+
+  /// No description provided for @reviewKeepAndApplyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The goal remains unchanged. The recommendation will be recalculated and the resulting calorie and nutrient targets will be applied immediately.'**
+  String get reviewKeepAndApplyBody;
+
+  /// No description provided for @reviewActionError.
+  ///
+  /// In en, this message translates to:
+  /// **'The review action failed: {error}'**
+  String reviewActionError(String error);
+
+  /// No description provided for @calculationBasisTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Calculation basis'**
+  String get calculationBasisTitle;
+
+  /// No description provided for @calculationBasisSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Everyday activity and additional cardio'**
+  String get calculationBasisSubtitle;
 }
 
 class _AppLocalizationsDelegate

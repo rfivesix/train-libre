@@ -25,6 +25,7 @@ import '../../features/diary/data/sources/diary_local_data_source.dart';
 import '../../features/diary/data/meal_photo_store.dart';
 import '../../features/diary/data/sources/meal_local_data_source.dart';
 import '../../features/profile/data/sources/profile_local_data_source.dart';
+import '../../features/profile/data/legacy_goal_migration.dart';
 import '../../features/supplements/data/sources/supplement_local_data_source.dart';
 import '../../features/steps/data/sources/steps_local_data_source.dart';
 import '../../features/workout/data/sources/workout_local_data_source.dart';
@@ -313,6 +314,18 @@ class BackupManager {
         goalEvents: await _fetchTable('goal_events'),
         goalReviews: await _fetchTable('goal_reviews'));
     final payload = backup.toJson();
+    // Immutable manual-plan revisions and occurrence history are exported
+    // separately so older JSON backups continue to mean "no plan".
+    payload['training_plans'] = await _fetchTable('training_plans');
+    payload['training_plan_revisions'] =
+        await _fetchTable('training_plan_revisions');
+    payload['training_plan_activations'] =
+        await _fetchTable('training_plan_activations');
+    payload['training_plan_occurrences'] =
+        await _fetchTable('training_plan_occurrences');
+    payload['training_plan_routine_bindings'] = await _fetchTable('routines');
+    payload['training_plan_workout_bindings'] =
+        await _fetchTable('workout_logs');
     payload['appName'] = currentBackupAppName;
     payload['applicationId'] = currentApplicationId;
     payload['backupFilePrefix'] = currentBackupFilePrefix;
@@ -799,6 +812,10 @@ class BackupManager {
             .go();
 
         // Clear workout tables
+        await dbInst.delete(dbInst.trainingPlanOccurrences).go();
+        await dbInst.delete(dbInst.trainingPlanActivations).go();
+        await dbInst.delete(dbInst.trainingPlanRevisions).go();
+        await dbInst.delete(dbInst.trainingPlans).go();
         await dbInst.delete(dbInst.setLogs).go();
         await dbInst.delete(dbInst.workoutLogs).go();
         await dbInst.delete(dbInst.routineSetTemplates).go();
@@ -922,6 +939,7 @@ class BackupManager {
         onProgress?.call('workouts', 0.80);
         await _workoutDb.importWorkoutData(
             routines: backup.routines, workoutLogs: backup.workoutLogs);
+        await _restoreManualPlans(payload, backup);
         token?.throwIfCancelled();
 
         // Import DailyGoalsHistory
@@ -1170,12 +1188,12 @@ class BackupManager {
             'user_food_override_translations',
             payload['user_food_override_translations'] ??
                 payload['userFoodOverrideTranslations']);
-        await _importTable('user_goals',
-            payload['user_goals'] ?? payload['userGoals']);
-        await _importTable('goal_events',
-            payload['goal_events'] ?? payload['goalEvents']);
-        await _importTable('goal_reviews',
-            payload['goal_reviews'] ?? payload['goalReviews']);
+        await _importTable(
+            'user_goals', payload['user_goals'] ?? payload['userGoals']);
+        await _importTable(
+            'goal_events', payload['goal_events'] ?? payload['goalEvents']);
+        await _importTable(
+            'goal_reviews', payload['goal_reviews'] ?? payload['goalReviews']);
         token?.throwIfCancelled();
       });
       success = true;
@@ -1203,6 +1221,7 @@ class BackupManager {
 
     if (success) {
       await _reapplyExerciseAliases();
+      await LegacyGoalMigration(database: dbInst).run();
       if (restorePhotos != null) {
         try {
           await restorePhotos();
@@ -1274,6 +1293,106 @@ class BackupManager {
     } catch (e) {
       debugPrint('Pruning orphaned workout photos failed: $e');
     }
+  }
+
+  Future<void> _restoreManualPlans(
+      Map<String, dynamic> payload, TrainLibreBackup backup) async {
+    final rawPlans = payload['training_plans'];
+    if (rawPlans is! List || rawPlans.isEmpty) return;
+
+    final dbInst = _dbHelper.dbInstance;
+    final oldRoutines = (payload['training_plan_routine_bindings'] as List?)
+            ?.whereType<Map>()
+            .map((row) => Map<String, dynamic>.from(row))
+            .toList() ??
+        [];
+    final oldWorkouts = (payload['training_plan_workout_bindings'] as List?)
+            ?.whereType<Map>()
+            .map((row) => Map<String, dynamic>.from(row))
+            .toList() ??
+        [];
+    final newRoutines = await (dbInst.select(dbInst.routines)
+          ..orderBy([(t) => drift.OrderingTerm.asc(t.localId)]))
+        .get();
+    final newWorkouts = await (dbInst.select(dbInst.workoutLogs)
+          ..orderBy([(t) => drift.OrderingTerm.asc(t.localId)]))
+        .get();
+    final oldRoutineUuidByLocal = {
+      for (final row in oldRoutines)
+        if (row['local_id'] is num) (row['local_id'] as num).toInt(): row['id']
+    };
+    final oldWorkoutUuidByLocal = {
+      for (final row in oldWorkouts)
+        if (row['local_id'] is num) (row['local_id'] as num).toInt(): row['id']
+    };
+    final routineUuidMap = <String, String>{};
+    final routineLocalMap = <int, int>{};
+    for (var i = 0; i < backup.routines.length && i < newRoutines.length; i++) {
+      final oldLocal = backup.routines[i].id;
+      if (oldLocal == null) continue;
+      routineLocalMap[oldLocal] = newRoutines[i].localId;
+      final oldUuid = oldRoutineUuidByLocal[oldLocal];
+      if (oldUuid is String) routineUuidMap[oldUuid] = newRoutines[i].id;
+    }
+    final workoutUuidMap = <String, String>{};
+    for (var i = 0;
+        i < backup.workoutLogs.length && i < newWorkouts.length;
+        i++) {
+      final oldLocal = backup.workoutLogs[i].id;
+      if (oldLocal == null) continue;
+      final oldUuid = oldWorkoutUuidByLocal[oldLocal];
+      if (oldUuid is String) workoutUuidMap[oldUuid] = newWorkouts[i].id;
+    }
+    final newExercises = await dbInst.select(dbInst.exercises).get();
+    final exerciseLocalByUuid = {
+      for (final row in newExercises) row.id: row.localId,
+    };
+
+    await _importTable('training_plans', rawPlans);
+    final revisions = (payload['training_plan_revisions'] as List?) ?? [];
+    final mappedRevisions = <Map<String, dynamic>>[];
+    for (final original in revisions) {
+      if (original is! Map) continue;
+      final row = Map<String, dynamic>.from(original);
+      final days = jsonDecode(row['days_json'] as String) as List<dynamic>;
+      for (final entry in days) {
+        if (entry is! Map) continue;
+        final day = Map<String, dynamic>.from(entry);
+        final oldUuid = day['routineUuid'];
+        if (oldUuid is String) day['routineUuid'] = routineUuidMap[oldUuid];
+        final snapshot = day['routineSnapshot'];
+        if (snapshot is Map) {
+          final local = snapshot['id'];
+          if (local is num) snapshot['id'] = routineLocalMap[local.toInt()];
+          final exercises = snapshot['exercises'];
+          if (exercises is List) {
+            for (final item in exercises) {
+              if (item is! Map || item['exercise'] is! Map) continue;
+              final exercise = item['exercise'] as Map;
+              final uuid = exercise['uuid'];
+              if (uuid is String) exercise['id'] = exerciseLocalByUuid[uuid];
+            }
+          }
+        }
+        entry.clear();
+        entry.addAll(day);
+      }
+      row['days_json'] = jsonEncode(days);
+      mappedRevisions.add(row);
+    }
+    await _importTable('training_plan_revisions', mappedRevisions);
+    await _importTable('training_plan_activations',
+        payload['training_plan_activations'] as List?);
+    final occurrences = (payload['training_plan_occurrences'] as List?) ?? [];
+    final mappedOccurrences = <Map<String, dynamic>>[];
+    for (final original in occurrences) {
+      if (original is! Map) continue;
+      final row = Map<String, dynamic>.from(original);
+      final oldUuid = row['workout_log_id'];
+      if (oldUuid is String) row['workout_log_id'] = workoutUuidMap[oldUuid];
+      mappedOccurrences.add(row);
+    }
+    await _importTable('training_plan_occurrences', mappedOccurrences);
   }
 
   Future<void> _importTable(String tableName, List<dynamic>? rows) async {

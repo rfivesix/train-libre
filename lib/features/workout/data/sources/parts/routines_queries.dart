@@ -60,12 +60,169 @@ extension RoutinesQueries on WorkoutLocalDataSource {
   }
 
   Stream<List<Routine>> watchAllRoutines() {
-    final dbInstance = DatabaseHelper.instance.dbInstance;
+    final dbInstance = _dbInstance;
     final query = dbInstance.select(dbInstance.routines)
       ..orderBy([(t) => drift.OrderingTerm(expression: t.name)]);
     return query.watch().map((rows) {
-      return rows.map((r) => Routine(id: r.localId, name: r.name)).toList();
+      return rows
+          .map((r) => Routine(
+                id: r.localId,
+                name: r.name,
+                lastUsedAt: r.lastUsedAt,
+                createdAt: r.createdAt,
+              ))
+          .toList();
     });
+  }
+
+  /// Reactively observes all routines with their associated exercises and exercise translations.
+  ///
+  /// Uses a single joined query across [routines], [routineExercises], [exercises], and
+  /// [exerciseTranslations] to prevent N+1 queries. Automatically triggers on updates to
+  /// any of these tables. Results are sorted descending by last used date (with creation date as fallback).
+  Stream<List<Routine>> watchAllRoutinesWithDetails() {
+    final dbInstance = _dbInstance;
+    final query = dbInstance.select(dbInstance.routines).join([
+      drift.leftOuterJoin(
+        dbInstance.routineExercises,
+        dbInstance.routineExercises.routineId.equalsExp(dbInstance.routines.id),
+      ),
+      drift.leftOuterJoin(
+        dbInstance.exercises,
+        dbInstance.exercises.id
+            .equalsExp(dbInstance.routineExercises.exerciseId),
+      ),
+      drift.leftOuterJoin(
+        dbInstance.exerciseTranslations,
+        dbInstance.exerciseTranslations.exerciseId
+            .equalsExp(dbInstance.exercises.id),
+      ),
+    ]);
+
+    return query.watch().map((rows) {
+      final Map<int, db.Routine> routineRows = {};
+      final Map<int, Map<int, db.RoutineExercise>> reByRoutine = {};
+      final Map<int, db.Exercise> exerciseRows = {};
+      final Map<String, Map<String, ExerciseText>> translationsByExerciseUuid =
+          {};
+
+      for (final row in rows) {
+        final r = row.readTable(dbInstance.routines);
+        routineRows[r.localId] = r;
+
+        final re = row.readTableOrNull(dbInstance.routineExercises);
+        if (re != null) {
+          reByRoutine.putIfAbsent(r.localId, () => {})[re.localId] = re;
+        }
+
+        final ex = row.readTableOrNull(dbInstance.exercises);
+        if (ex != null) {
+          exerciseRows[ex.localId] = ex;
+        }
+
+        final tr = row.readTableOrNull(dbInstance.exerciseTranslations);
+        if (tr != null && tr.name.trim().isNotEmpty) {
+          translationsByExerciseUuid
+              .putIfAbsent(tr.exerciseId, () => {})[tr.languageCode] =
+              ExerciseText(
+            name: tr.name,
+            description: tr.description ?? '',
+          );
+        }
+      }
+
+      final List<Routine> routines = [];
+
+      for (final r in routineRows.values) {
+        final reMap = reByRoutine[r.localId] ?? {};
+        final sortedReList = reMap.values.toList()
+          ..sort((a, b) => a.orderIndex.compareTo(b.orderIndex));
+
+        final List<RoutineExercise> domainExercises = [];
+        for (final re in sortedReList) {
+          final matchingEx = exerciseRows.values
+              .where((e) => e.id == re.exerciseId)
+              .firstOrNull;
+
+          if (matchingEx != null) {
+            final texts = translationsByExerciseUuid[matchingEx.id] ?? {};
+            final domainEx = Exercise(
+              id: matchingEx.localId,
+              uuid: matchingEx.id,
+              source: matchingEx.source,
+              replacesExerciseId: matchingEx.replacesExerciseId,
+              texts: texts,
+              categoryName: matchingEx.categoryName ?? 'Other',
+              imagePath: matchingEx.imagePath,
+              primaryMuscles: WorkoutLocalDataSource._parseMuscleList(
+                matchingEx.musclesPrimary,
+              ),
+              secondaryMuscles: WorkoutLocalDataSource._parseMuscleList(
+                matchingEx.musclesSecondary,
+              ),
+              mechanic: matchingEx.mechanic,
+              forceVector: matchingEx.forceVector,
+              movementPattern: matchingEx.movementPattern,
+              laterality: matchingEx.laterality,
+              difficulty: matchingEx.difficulty,
+              trackingType: matchingEx.trackingType,
+              loadMode: matchingEx.loadMode,
+              supportsAddedWeight: matchingEx.supportsAddedWeight,
+              primaryEquipment: matchingEx.primaryEquipment,
+            );
+
+            domainExercises.add(
+              RoutineExercise(
+                id: re.localId,
+                exercise: domainEx,
+                setTemplates: const [],
+                pauseSeconds: re.pauseSeconds,
+                supersetGroup: re.supersetGroup,
+                progressionData: re.progressionData,
+                notes: re.notes,
+              ),
+            );
+          }
+        }
+
+        routines.add(
+          Routine(
+            id: r.localId,
+            name: r.name,
+            exercises: domainExercises,
+            lastUsedAt: r.lastUsedAt,
+            createdAt: r.createdAt,
+          ),
+        );
+      }
+
+      // Sort routines descending by COALESCE(lastUsedAt, createdAt)
+      routines.sort((a, b) {
+        final aTime = a.lastUsedAt ??
+            a.createdAt ??
+            DateTime.fromMillisecondsSinceEpoch(0);
+        final bTime = b.lastUsedAt ??
+            b.createdAt ??
+            DateTime.fromMillisecondsSinceEpoch(0);
+        final cmp = bTime.compareTo(aTime);
+        if (cmp != 0) return cmp;
+        final idCmp = (b.id ?? 0).compareTo(a.id ?? 0);
+        if (idCmp != 0) return idCmp;
+        return a.name.compareTo(b.name);
+      });
+
+      return routines;
+    });
+  }
+
+  Future<void> touchRoutineLastUsed(int routineId, [DateTime? time]) async {
+    final dbInstance = await database;
+    final timestamp = time ?? DateTime.now();
+    await (dbInstance.update(dbInstance.routines)
+          ..where((tbl) => tbl.localId.equals(routineId)))
+        .write(db.RoutinesCompanion(
+      lastUsedAt: drift.Value(timestamp),
+    ));
   }
 
   Future<List<Routine>> getAllRoutinesWithDetails() async {
@@ -82,10 +239,19 @@ extension RoutinesQueries on WorkoutLocalDataSource {
 
   Future<Routine> createRoutine(String name) async {
     final dbInstance = await database;
-    final row = await dbInstance
-        .into(dbInstance.routines)
-        .insertReturning(db.RoutinesCompanion(name: drift.Value(name)));
-    return Routine(id: row.localId, name: row.name);
+    final now = DateTime.now();
+    final row = await dbInstance.into(dbInstance.routines).insertReturning(
+          db.RoutinesCompanion(
+            name: drift.Value(name),
+            lastUsedAt: drift.Value(now),
+          ),
+        );
+    return Routine(
+      id: row.localId,
+      name: row.name,
+      lastUsedAt: row.lastUsedAt,
+      createdAt: row.createdAt,
+    );
   }
 
   Future<void> updateRoutineName(int routineId, String newName) async {

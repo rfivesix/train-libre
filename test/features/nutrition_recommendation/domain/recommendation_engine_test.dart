@@ -250,13 +250,14 @@ void main() {
       expect(recommendation.recommendedCarbsGrams, 0);
     });
 
-    test('falls back to a default body weight when none is known', () {
-      final recommendation = generate(
-        goal: BodyweightGoal.maintainWeight,
-        weightKg: 0,
+    test('rejects recommendation generation without a measured weight', () {
+      expect(
+        () => generate(
+          goal: BodyweightGoal.maintainWeight,
+          weightKg: 0,
+        ),
+        throwsArgumentError,
       );
-
-      expect(recommendation.recommendedFatGrams, 75); // 75 kg * 1.0
     });
   });
 }

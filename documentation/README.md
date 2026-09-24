@@ -25,7 +25,7 @@ For software engineers, system architects, and technical contributors.
 For advanced users, mathematical evaluators, and privacy auditors who seek complete transparency into our smart processing engines.
 
 *   [**Capabilities & Privacy Overview**](features/overview.md): Summary of the app's smart capabilities, local processing model, native secure storage, and opt-in zero-profiling telemetry boundaries.
-*   [**Bayesian TDEE Estimator (Kalman Filter)**](features/bayesian_tdee_estimator.md): Full mathematical and algorithmic analysis of the Adaptive Diet Recommendation Engine, including Kalman filter equations, variance boundaries, completeness coefficients, and linear ramps.
+*   [**Bayesian TDEE Estimator & Calorie Controller**](features/bayesian_tdee_estimator.md): Full mathematical and algorithmic analysis of the recursive TDEE estimate, observation uncertainty, and bounded goal-rate correction loop.
 *   [**Macronutrient Distribution**](features/macro_distribution.md): How the estimator's calorie target becomes protein, carbohydrate, and fat — the per-kilogram anchors, the fat floor, the order in which the distribution gives way on a constrained budget, and worked examples.
 *   [**BYOK AI Meal Capture & Validation**](features/byok_ai_validation.md): Core detail on the local BYOK API integration, system prompts restricting LLM calculations, fuzzy string matching, target-fit verification, and the 3-pass self-repair verification loop.
 *   [**Meal Capture Pipeline**](features/meal_capture_pipeline.md): The capture paths around the analysis — unified camera with passive barcode detection, voice dictation, meals as logged events, photo storage, and what leaves the device on each path.

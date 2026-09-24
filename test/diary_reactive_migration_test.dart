@@ -125,6 +125,10 @@ class FakeWorkoutRepository implements IWorkoutRepository {
       Stream.value([]);
   @override
   Stream<List<Routine>> watchAllRoutines() => Stream.value([]);
+  @override
+  Stream<List<Routine>> watchAllRoutinesWithDetails() => Stream.value([]);
+  @override
+  Future<void> touchRoutineLastUsed(int routineId, [DateTime? time]) async {}
   Stream<List<WorkoutLog>> Function(DateTime start, DateTime end)?
       watchWorkoutLogsForDateRangeMock;
 

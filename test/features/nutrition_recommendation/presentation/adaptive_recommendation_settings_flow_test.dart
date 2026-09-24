@@ -10,6 +10,7 @@ import 'package:train_libre/features/profile/data/profile_repository.dart';
 import 'package:train_libre/features/profile/data/sources/profile_local_data_source.dart';
 import 'package:train_libre/features/profile/presentation/goals_screen.dart';
 import 'package:train_libre/features/onboarding/presentation/onboarding_screen.dart';
+import 'package:train_libre/features/settings/presentation/calculation_basis_screen.dart';
 import 'package:train_libre/services/unit_service.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -84,7 +85,7 @@ void main() {
       await tester.pumpAndSettle();
     }
 
-    testWidgets('goals screen keeps adaptive sections above daily goals',
+    testWidgets('daily targets screen no longer exposes legacy goal controls',
         (tester) async {
       await tester.pumpWidget(
         wrapWithProviders(
@@ -102,37 +103,15 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      final adaptiveSection =
-          find.byKey(const Key('goals_adaptive_section_title'));
-      final personalSection =
-          find.byKey(const Key('goals_personal_section_title'));
-      final recommendationSettingsSection = find.byKey(
-        const Key('goals_recommendation_settings_section_title'),
-      );
       final dailyGoalsSection =
           find.byKey(const Key('goals_daily_section_title'));
-      final heightField = find.byKey(const Key('goals_height_field'));
-
-      expect(personalSection, findsOneWidget);
-      expect(adaptiveSection, findsOneWidget);
-      expect(recommendationSettingsSection, findsOneWidget);
       expect(dailyGoalsSection, findsOneWidget);
-      expect(heightField, findsOneWidget);
-      expect(find.byKey(const Key('goals_prior_activity_dropdown')),
-          findsOneWidget);
       expect(
-          find.byKey(const Key('goals_extra_cardio_dropdown')), findsOneWidget);
-
-      final personalTop = tester.getTopLeft(personalSection).dy;
-      final heightFieldTop = tester.getTopLeft(heightField).dy;
-      final adaptiveTop = tester.getTopLeft(adaptiveSection).dy;
-      final settingsTop = tester.getTopLeft(recommendationSettingsSection).dy;
-      final dailyTop = tester.getTopLeft(dailyGoalsSection).dy;
-
-      expect(personalTop, lessThan(adaptiveTop));
-      expect(heightFieldTop, lessThan(adaptiveTop));
-      expect(adaptiveTop, lessThan(settingsTop));
-      expect(settingsTop, lessThan(dailyTop));
+          find.byKey(const Key('goals_personal_section_title')), findsNothing);
+      expect(
+          find.byKey(const Key('goals_adaptive_section_title')), findsNothing);
+      expect(
+          find.byKey(const Key('goals_prior_activity_dropdown')), findsNothing);
     });
 
     testWidgets(
@@ -326,24 +305,21 @@ void main() {
           MaterialApp(
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
-            home: GoalsScreen(
+            home: CalculationBasisScreen(
               recommendationService: recommendationService,
-              repository: ProfileRepository(
-                localDataSource: ProfileLocalDataSource(database),
-              ),
             ),
           ),
         ),
       );
       await tester.pumpAndSettle();
 
-      final goalsDropdown =
-          find.byKey(const Key('goals_prior_activity_dropdown'));
-      expect(goalsDropdown, findsOneWidget);
-      await Scrollable.ensureVisible(tester.element(goalsDropdown),
+      final settingsDropdown =
+          find.byKey(const Key('calculation_basis_activity'));
+      expect(settingsDropdown, findsOneWidget);
+      await Scrollable.ensureVisible(tester.element(settingsDropdown),
           alignment: 0.5);
       await tester.pumpAndSettle();
-      await tester.tap(goalsDropdown);
+      await tester.tap(settingsDropdown);
       await tester.pumpAndSettle();
       expect(find.text(l10n.adaptivePriorActivityVeryHigh), findsOneWidget);
     });

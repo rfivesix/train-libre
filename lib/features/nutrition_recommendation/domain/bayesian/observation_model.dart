@@ -11,6 +11,9 @@ extension ObservationModelBuilding on BayesianTdeeEstimator {
     final kcalPerKgSelection = _resolveKcalPerKg(
       phaseContext: phaseContext,
     );
+    final phaseVarianceMultiplier = _resolvePhaseVarianceMultiplier(
+      phaseContext: phaseContext,
+    );
     final kcalPerKgPerDay = kcalPerKgSelection.kcalPerKg / 7;
 
     final baseVariance =
@@ -25,10 +28,12 @@ extension ObservationModelBuilding on BayesianTdeeEstimator {
             math.sqrt(weightSignalDays);
     final slopeVariance = math.pow(slopeStdErrorCalories, 2).toDouble();
 
-    final referenceVariance = math.max(
+    final unadjustedReferenceVariance = math.max(
       baseVariance + intakeVariance + slopeVariance,
       1.0,
     );
+    final referenceVariance =
+        unadjustedReferenceVariance * phaseVarianceMultiplier;
 
     final usableWindowDays = math.max(input.windowDays, 1);
     final intakeCompleteness =
@@ -101,6 +106,7 @@ extension ObservationModelBuilding on BayesianTdeeEstimator {
       slopeVariance: slopeVariance,
       completenessMultiplier: completenessMultiplier,
       qualityMultiplier: qualityMultiplier,
+      phaseVarianceMultiplier: phaseVarianceMultiplier,
       confirmedPhase: phaseContext.confirmedPhase,
       confirmedPhaseAgeDays: confirmedPhaseAgeDays,
       confirmedPhaseAgeWeeks: confirmedPhaseAgeWeeks,
@@ -114,36 +120,23 @@ extension ObservationModelBuilding on BayesianTdeeEstimator {
   _KcalPerKgSelection _resolveKcalPerKg({
     required BayesianObservationPhaseContext phaseContext,
   }) {
-    final confirmedAgeDays = math.max(phaseContext.confirmedPhaseAgeDays, 1);
-    final matureWeek = math.max(config.phaseRampMatureWeek, 2);
-    final matureAtAgeDays = 1 + ((matureWeek - 1) * 7);
-    final currentWeekIndex = ((confirmedAgeDays - 1) ~/ 7) + 1;
-
-    if (confirmedAgeDays >= matureAtAgeDays) {
-      return _KcalPerKgSelection(
-        kcalPerKg: config.phaseRampMatureKcalPerKg,
-        mode: 'phase_ramp_mature',
-      );
-    }
-
-    if (currentWeekIndex <= 1) {
-      return _KcalPerKgSelection(
-        kcalPerKg: config.phaseRampStartKcalPerKg,
-        mode: 'phase_ramp_week_1',
-      );
-    }
-
-    final rampWeeks = math.max(matureWeek - 1, 1);
-    final elapsedRampWeeks = ((confirmedAgeDays - 1) / 7)
-        .clamp(0.0, rampWeeks.toDouble())
-        .toDouble();
-    final ratio = (elapsedRampWeeks / rampWeeks).clamp(0.0, 1.0).toDouble();
     return _KcalPerKgSelection(
-      kcalPerKg: config.phaseRampStartKcalPerKg +
-          ((config.phaseRampMatureKcalPerKg - config.phaseRampStartKcalPerKg) *
-              ratio),
-      mode: 'phase_ramp_transition',
+      kcalPerKg: config.bodyMassEnergyDensityKcalPerKg,
+      mode: 'fixed_energy_density',
     );
+  }
+
+  double _resolvePhaseVarianceMultiplier({
+    required BayesianObservationPhaseContext phaseContext,
+  }) {
+    final confirmedAgeDays = math.max(phaseContext.confirmedPhaseAgeDays, 1);
+    if (confirmedAgeDays <= 7) {
+      return config.phaseWeek1ObservationVarianceMultiplier;
+    }
+    if (confirmedAgeDays <= 14) {
+      return config.phaseWeek2ObservationVarianceMultiplier;
+    }
+    return 1.0;
   }
 
   _NoiseCalibration _calibrateNoiseModel({

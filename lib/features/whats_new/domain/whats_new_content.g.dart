@@ -16,6 +16,37 @@ import 'whats_new_release.dart';
 const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
   'en': <WhatsNewRelease>[
     WhatsNewRelease(
+      version: '1.5.0',
+      releasedOn: '2026-09-25',
+      entries: <WhatsNewEntry>[
+        WhatsNewEntry(
+          icon: LucideIcons.chart_line,
+          title: 'Goals that adapt with you',
+          body: 'Set a long-term weight goal with a real starting measurement, follow your trajectory, and review your progress in calm weekly check-ins. New calorie and macro recommendations remain proposals until you choose to apply them.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.dumbbell,
+          title: 'Build your own workout plan',
+          body: 'Arrange saved routines as a weekly schedule or a flexible 1–14 day sequence, include rest days, see what is next, and start planned sessions directly from the Diary.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.bell,
+          title: 'Helpful reminders, never catch-up pressure',
+          body: 'Optional local reminders keep goal reviews and planned workouts visible. Missed sessions do not create extra work or a workout debt.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.layout_grid,
+          title: 'A clearer Workout home',
+          body: 'The redesigned Workout tab brings your active plan, recovery, quick starts, recently used routines, history, and the exercise catalogue into one focused place.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.utensils,
+          title: 'Understand your nutrition trends',
+          body: 'New macro statistics and a rolling seven-day intake comparison make calories, protein, fat, and carbohydrates easier to inspect over time.',
+        ),
+      ],
+    ),
+    WhatsNewRelease(
       version: '1.4.1',
       releasedOn: '2026-09-14',
       entries: <WhatsNewEntry>[
@@ -204,6 +235,37 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
     ),
   ],
   'de': <WhatsNewRelease>[
+    WhatsNewRelease(
+      version: '1.5.0',
+      releasedOn: '2026-09-25',
+      entries: <WhatsNewEntry>[
+        WhatsNewEntry(
+          icon: LucideIcons.chart_line,
+          title: 'Ziele, die sich mit dir weiterentwickeln',
+          body: 'Lege ein langfristiges Gewichtsziel mit echter Startmessung fest, verfolge deinen Zielpfad und ordne deinen Fortschritt in ruhigen wöchentlichen Rückblicken ein. Neue Kalorien- und Makroempfehlungen bleiben Vorschläge, bis du sie selbst anwendest.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.dumbbell,
+          title: 'Erstelle deinen eigenen Trainingsplan',
+          body: 'Ordne gespeicherte Routinen als Wochenplan oder flexible Abfolge von 1–14 Tagen an, plane Ruhetage ein, sieh direkt, was als Nächstes ansteht, und starte geplante Einheiten aus dem Tagebuch.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.bell,
+          title: 'Hilfreiche Erinnerungen ohne Nachholdruck',
+          body: 'Optionale lokale Benachrichtigungen erinnern an Zielrückblicke und geplante Workouts. Verpasste Einheiten erzeugen weder Zusatztraining noch Trainingsschulden.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.layout_grid,
+          title: 'Ein klareres Zuhause fürs Training',
+          body: 'Der überarbeitete Workout-Tab bündelt deinen aktiven Plan, Regeneration, Schnellstarts, zuletzt verwendete Routinen, Verlauf und Übungskatalog an einem Ort.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.utensils,
+          title: 'Ernährungstrends besser verstehen',
+          body: 'Neue Makrostatistiken und ein rollierender 7-Tage-Vergleich machen Kalorien, Protein, Fett und Kohlenhydrate über die Zeit leichter nachvollziehbar.',
+        ),
+      ],
+    ),
     WhatsNewRelease(
       version: '1.4.1',
       releasedOn: '2026-09-14',
@@ -394,6 +456,37 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
   ],
   'fr': <WhatsNewRelease>[
     WhatsNewRelease(
+      version: '1.5.0',
+      releasedOn: '2026-09-25',
+      entries: <WhatsNewEntry>[
+        WhatsNewEntry(
+          icon: LucideIcons.chart_line,
+          title: 'Des objectifs qui évoluent avec toi',
+          body: 'définis un objectif de poids à long terme à partir d\'une mesure réelle, suis ta trajectoire et fais le point sereinement chaque semaine. Les nouvelles recommandations de calories et de macros restent des propositions tant que tu ne les appliques pas.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.dumbbell,
+          title: 'Crée ton propre programme d\'entraînement',
+          body: 'organise tes routines enregistrées en semaine fixe ou en séquence flexible de 1 à 14 jours, ajoute des jours de repos, vois la prochaine séance et lance-la directement depuis le journal.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.bell,
+          title: 'Des rappels utiles, sans pression de rattrapage',
+          body: 'des notifications locales facultatives gardent les bilans d\'objectif et les séances prévues bien visibles. Une séance manquée ne crée ni travail supplémentaire ni dette d\'entraînement.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.layout_grid,
+          title: 'Un espace Entraînement plus clair',
+          body: 'l\'onglet repensé réunit ton programme actif, la récupération, les démarrages rapides, les routines récentes, l\'historique et le catalogue d\'exercices en un seul endroit.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.utensils,
+          title: 'Comprends mieux tes tendances nutritionnelles',
+          body: 'de nouvelles statistiques de macros et une comparaison glissante sur sept jours facilitent le suivi des calories, protéines, lipides et glucides dans le temps.',
+        ),
+      ],
+    ),
+    WhatsNewRelease(
       version: '1.4.1',
       releasedOn: '2026-09-14',
       entries: <WhatsNewEntry>[
@@ -583,6 +676,37 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
   ],
   'it': <WhatsNewRelease>[
     WhatsNewRelease(
+      version: '1.5.0',
+      releasedOn: '2026-09-25',
+      entries: <WhatsNewEntry>[
+        WhatsNewEntry(
+          icon: LucideIcons.chart_line,
+          title: 'Obiettivi che si adattano a te',
+          body: 'imposta un obiettivo di peso a lungo termine partendo da una misurazione reale, segui la traiettoria e verifica i progressi con tranquilli riepiloghi settimanali. Le nuove raccomandazioni su calorie e macro restano proposte finché non scegli di applicarle.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.dumbbell,
+          title: 'Crea il tuo piano di allenamento',
+          body: 'organizza le routine salvate come programma settimanale o sequenza flessibile da 1 a 14 giorni, includi i giorni di riposo, controlla la prossima sessione e avviala direttamente dal diario.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.bell,
+          title: 'Promemoria utili, senza pressioni per recuperare',
+          body: 'notifiche locali facoltative mantengono visibili i riepiloghi degli obiettivi e gli allenamenti programmati. Una sessione saltata non crea lavoro extra né debiti di allenamento.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.layout_grid,
+          title: 'Una schermata Allenamento più chiara',
+          body: 'la scheda ridisegnata riunisce piano attivo, recupero, avvii rapidi, routine recenti, cronologia e catalogo degli esercizi in un unico spazio.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.utensils,
+          title: 'Comprendi meglio le tendenze nutrizionali',
+          body: 'nuove statistiche dei macro e un confronto mobile di sette giorni rendono più semplice seguire calorie, proteine, grassi e carboidrati nel tempo.',
+        ),
+      ],
+    ),
+    WhatsNewRelease(
       version: '1.4.1',
       releasedOn: '2026-09-14',
       entries: <WhatsNewEntry>[
@@ -771,6 +895,37 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
     ),
   ],
   'ja': <WhatsNewRelease>[
+    WhatsNewRelease(
+      version: '1.5.0',
+      releasedOn: '2026-09-25',
+      entries: <WhatsNewEntry>[
+        WhatsNewEntry(
+          icon: LucideIcons.chart_line,
+          title: 'あなたに合わせて進む目標管理',
+          body: '実際の開始時の体重記録から長期目標を設定し、軌道と進捗を落ち着いた週次レビューで確認できます。新しいカロリー・PFCバランスの提案は、自分で適用するまで目標値を変更しません。',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.dumbbell,
+          title: '自分のトレーニングプランを作成',
+          body: '保存済みルーティンを週間スケジュールまたは1〜14日の柔軟なシーケンスに配置し、休養日を含めて次のセッションを確認できます。予定したワークアウトは日記から直接開始できます。',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.bell,
+          title: '取り戻す負担を生まないリマインダー',
+          body: '任意のローカル通知で目標レビューと予定したワークアウトを確認できます。セッションを逃しても、追加トレーニングや埋め合わせは発生しません。',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.layout_grid,
+          title: 'より分かりやすいトレーニング画面',
+          body: '新しくなったワークアウトタブに、進行中のプラン、回復状況、クイックスタート、最近のルーティン、履歴、種目カタログをまとめました。',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.utensils,
+          title: '栄養の傾向を把握',
+          body: '新しいPFC統計と直近7日間の摂取比較で、カロリー・たんぱく質・脂質・炭水化物の変化を追いやすくなりました。',
+        ),
+      ],
+    ),
     WhatsNewRelease(
       version: '1.4.1',
       releasedOn: '2026-09-14',
@@ -967,4 +1122,4 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
 const String kWhatsNewFallbackLanguage = 'en';
 
 /// The version this catalog was generated for, taken from pubspec.yaml.
-const String kWhatsNewGeneratedForVersion = '1.4.1';
+const String kWhatsNewGeneratedForVersion = '1.5.0';

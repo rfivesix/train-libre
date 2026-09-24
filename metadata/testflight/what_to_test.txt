@@ -1,11 +1,13 @@
-Train Libre 1.4.1
+Train Libre 1.5.0
 
-Please focus your testing on the new Muscle Recovery model and AI capture updates:
+Please focus your testing on adaptive goals, manual workout plans, and the redesigned Workout tab:
 
-• Muscle Recovery: Check the updated recovery view at the top of the Workout tab. Verify that muscle rows display their readiness score, color-coded scale, and remaining recovery time. Tap any muscle row to inspect the new evidence panel with recent session load and recovery forecast.
-• AI Voice Dictation: Open AI Meal Capture (via Diary + button) and tap the microphone. Verify the transcript appears cleanly at the top while recording, the record button is conveniently placed at the bottom, and status colors transition smoothly.
-• AI Meal Review & Logging: Scan or dictate a meal to review the streamlined ingredient cards, test inline editing, and verify meal type selection (breakfast, lunch, dinner, snack).
+• Adaptive Nutrition Goals: Create a weight goal from a real weight measurement, inspect its trajectory, and complete a weekly review. Confirm that a recommendation does not change calorie or macro targets until you explicitly apply it.
+• Manual Workout Plans: Build both a fixed weekly plan and a flexible sequence from saved routines. Include a rest day, start the due workout from the Diary, and verify complete, partial, and skipped states. A missed sequence workout should remain next; no catch-up workout should be added.
+• Workout Reminders: Enable a plan reminder, change its time, and verify that opening the notification leads to the active plan. Retiring or replacing the plan should remove obsolete reminders.
+• Workout Hub & Routines: Check routine ordering after creating, editing, and starting a routine. Test edit, duplicate, share, delete, quick start, workout history, and exercise catalogue navigation.
+• Nutrition Statistics: Inspect several time ranges, navigate between periods, and press or drag across macro bars to verify the selected day's values.
 
-Please also report any issues with general stability, layout, and day-to-day use.
+Please also report any localisation, accessibility, notification timing, backup/restore, layout, or general stability issues.
 
 Thank you for testing Train Libre!

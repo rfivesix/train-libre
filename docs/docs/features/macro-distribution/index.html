@@ -168,7 +168,7 @@
 <h2 id="1-inputs-and-order-of-resolution" class="doc-h2">1. Inputs and Order of Resolution<a href="#1-inputs-and-order-of-resolution" class="header-anchor" aria-label="Link to section">#</a></h2>
 <p>The distribution takes three inputs:</p>
 <ul class="doc-list">
-<li><strong>Recommended calories</strong> (<em>C</em>): the estimator's maintenance figure plus the goal's rate adjustment, clamped to a floor of 1200 kcal.</li>
+<li><strong>Recommended calories</strong> (<em>C</em>): the estimator's maintenance figure plus the goal's rate adjustment and any bounded trajectory correction, clamped to a floor of 1200 kcal. The trajectory correction is a separate control output and never changes the displayed maintenance estimate.</li>
 <li><strong>Body weight</strong> (<em>w</em>): the most recent logged weight. If it is missing or non-positive, a neutral default of 75 kg is substituted so the recommendation degrades to something plausible rather than to zero.</li>
 <li><strong>Goal</strong>: lose weight, maintain weight, or gain weight.</li>
 </ul>

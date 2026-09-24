@@ -1,10 +1,16 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
+
 import '../data/sources/workout_local_data_source.dart';
 import '../../../generated/app_localizations.dart';
 import '../domain/models/routine.dart';
 import '../domain/repositories/workout_repository.dart';
 import '../../../services/haptic_feedback_service.dart';
+import '../../../services/telemetry/telemetry_service.dart';
+import '../../sharing/share_service.dart';
 import 'edit_routine_screen.dart';
 import '../../exercise_catalog/presentation/exercise_catalog_screen.dart';
 import '../../analytics/presentation/recovery_tracker_screen.dart';
@@ -14,25 +20,26 @@ import '../../statistics/data/statistics_hub_data_adapter.dart';
 import '../../statistics/domain/recovery_payload_models.dart';
 import '../../statistics/domain/timeframe_block.dart';
 import 'live_workout_screen.dart';
-import 'routines_screen.dart';
-import 'workout_history_screen.dart';
+import 'live_workout_view_model.dart';
+import '../data/manual_training_plan_repository.dart';
+import '../domain/models/manual_training_plan.dart';
+import 'manual_plan_screen.dart';
+import 'manual_plan_text.dart';
+import 'widgets/manual_plan_ui.dart';
 import '../../../util/design_constants.dart';
+import '../../../widgets/common/app_button.dart';
 import '../../../widgets/common/bottom_content_spacer.dart';
 import '../../../widgets/common/card_morph_route.dart';
 import '../../../widgets/common/common.dart';
 import '../../../widgets/common/summary_card.dart';
-import 'package:flutter_lucide/flutter_lucide.dart';
-import '../../app/presentation/widgets/glass_bottom_menu.dart';
-import 'live_workout_view_model.dart';
-import '../../../widgets/common/app_button.dart';
 import '../../../widgets/common/empty_states/card_empty_state_overlay.dart';
-import 'dart:async';
-import '../../../services/telemetry/telemetry_service.dart';
+import '../../app/presentation/widgets/glass_bottom_menu.dart';
 
 /// The central management screen for all workout-related activities.
 ///
-/// Provides quick actions to start an empty workout, launch saved routines,
-/// and navigate to workout history, routine management, and the exercise catalog.
+/// Features the active manual training plan hero, muscle readiness / recovery,
+/// quick actions for starting an empty workout or creating a routine, and the
+/// full vertical list of routines with Hevy-style cards.
 class WorkoutHubScreen extends StatefulWidget {
   const WorkoutHubScreen({super.key});
 
@@ -41,15 +48,19 @@ class WorkoutHubScreen extends StatefulWidget {
 }
 
 class _WorkoutHubScreenState extends State<WorkoutHubScreen> {
+  final _manualPlans = ManualTrainingPlanRepository();
+  int _manualPlanRefresh = 0;
   late final Stream<List<Routine>> _routinesStream;
   late Future<RecoveryAnalyticsPayload> _recoveryFuture;
   late final l10n = AppLocalizations.of(context)!;
+  static const ShareService _shareService = ShareService();
+  final Set<int> _dismissedRoutineIds = {};
 
   @override
   void initState() {
     super.initState();
     _routinesStream = Provider.of<IWorkoutRepository>(context, listen: false)
-        .watchAllRoutines();
+        .watchAllRoutinesWithDetails();
     _recoveryFuture = _loadRecovery();
   }
 
@@ -64,6 +75,32 @@ class _WorkoutHubScreenState extends State<WorkoutHubScreen> {
 
   void _retryRecovery() {
     setState(() => _recoveryFuture = _loadRecovery());
+  }
+
+  Future<
+      ({
+        ManualTrainingPlan plan,
+        PlannedCalendarDay? today,
+        PlannedCalendarDay? next
+      })?> _loadManualPlanSummary() async {
+    final plan = await _manualPlans.activePlan();
+    if (plan == null) return null;
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final days = await _manualPlans.calendar(
+      plan.id,
+      today,
+      DateTime(today.year, today.month, today.day + 28),
+    );
+    return (
+      plan: plan,
+      today:
+          days.where((day) => DateUtils.isSameDay(day.date, today)).firstOrNull,
+      next: days
+          .where((day) =>
+              !day.day.isRest && day.status == PlannedDayStatus.planned)
+          .firstOrNull,
+    );
   }
 
   Future<bool> _checkAndHandleOngoingWorkout() async {
@@ -95,10 +132,11 @@ class _WorkoutHubScreenState extends State<WorkoutHubScreen> {
     return false;
   }
 
-  void _startEmptyWorkout(
-      {BuildContext? sourceContext,
-      WidgetBuilder? sourceBuilder,
-      MorphSourceVisibilityCallback? onSourceVisibilityChanged}) async {
+  void _startEmptyWorkout({
+    BuildContext? sourceContext,
+    WidgetBuilder? sourceBuilder,
+    MorphSourceVisibilityCallback? onSourceVisibilityChanged,
+  }) async {
     final sourceRect = CardMorphRoute.measureRect(sourceContext);
     final canProceed = await _checkAndHandleOngoingWorkout();
     if (!canProceed) return;
@@ -120,21 +158,26 @@ class _WorkoutHubScreenState extends State<WorkoutHubScreen> {
     }
   }
 
-  void _startRoutine(Routine routine,
-      {BuildContext? sourceContext,
-      WidgetBuilder? sourceBuilder,
-      MorphSourceVisibilityCallback? onSourceVisibilityChanged}) async {
+  void _startRoutine(
+    Routine routine, {
+    BuildContext? sourceContext,
+    WidgetBuilder? sourceBuilder,
+    MorphSourceVisibilityCallback? onSourceVisibilityChanged,
+  }) async {
     final sourceRect = CardMorphRoute.measureRect(sourceContext);
     final canProceed = await _checkAndHandleOngoingWorkout();
     if (!canProceed) return;
     if (!mounted) return;
 
-    // Need the full routine details to start.
+    if (routine.id != null) {
+      await WorkoutLocalDataSource.instance.touchRoutineLastUsed(routine.id!);
+    }
+
     final detailedRoutine =
         await WorkoutLocalDataSource.instance.getRoutineById(
       routine.id!,
     );
-    if (detailedRoutine == null) return;
+    if (detailedRoutine == null || !mounted) return;
 
     final newLog = await WorkoutLocalDataSource.instance.startWorkout(
       routineName: routine.name,
@@ -157,11 +200,11 @@ class _WorkoutHubScreenState extends State<WorkoutHubScreen> {
     }
   }
 
-  Future<void> _createNewRoutine(
-      {BuildContext? sourceContext,
-      WidgetBuilder? sourceBuilder,
-      MorphSourceVisibilityCallback? onSourceVisibilityChanged}) async {
-    // Navigates to the editor for a new routine.
+  Future<void> _createNewRoutine({
+    BuildContext? sourceContext,
+    WidgetBuilder? sourceBuilder,
+    MorphSourceVisibilityCallback? onSourceVisibilityChanged,
+  }) async {
     final created = await Navigator.of(context).push(
       CardMorphRoute(
         sourceContext: sourceContext,
@@ -175,164 +218,210 @@ class _WorkoutHubScreenState extends State<WorkoutHubScreen> {
     }
   }
 
+  Future<void> _openRoutineEditor(
+    Routine routine, {
+    BuildContext? sourceContext,
+    WidgetBuilder? sourceBuilder,
+    MorphSourceVisibilityCallback? onSourceVisibilityChanged,
+  }) async {
+    if (routine.id == null) return;
+    final sourceRect = CardMorphRoute.measureRect(sourceContext);
+    final fullRoutine =
+        await WorkoutLocalDataSource.instance.getRoutineById(routine.id!);
+    if (!mounted || fullRoutine == null) return;
+
+    final updated = await Navigator.of(context).push<bool>(
+      CardMorphRoute(
+        sourceRect: sourceRect,
+        sourceBuilder: sourceBuilder,
+        onSourceVisibilityChanged: onSourceVisibilityChanged,
+        builder: (context) => EditRoutineScreen(routine: fullRoutine),
+      ),
+    );
+    if (updated == true) {
+      HapticFeedbackService.instance.confirmationFeedback();
+    }
+  }
+
+  void _duplicateRoutine(int routineId) async {
+    await WorkoutLocalDataSource.instance.duplicateRoutine(routineId);
+    HapticFeedbackService.instance.confirmationFeedback();
+  }
+
+  Future<void> _shareRoutine(Routine routine) async {
+    if (routine.id == null) return;
+    final fullRoutine =
+        await WorkoutLocalDataSource.instance.getRoutineById(routine.id!);
+    if (!mounted || fullRoutine == null) return;
+    await _shareService.showRoutineShareSheet(
+      context: context,
+      routine: fullRoutine,
+    );
+  }
+
+  void _deleteRoutine(BuildContext context, Routine routine) async {
+    final l10n = AppLocalizations.of(context)!;
+    final confirmed = await showDeleteConfirmation(
+      context,
+      content: l10n.deleteRoutineConfirmContent(routine.name),
+    );
+
+    if (confirmed) {
+      if (routine.id != null) {
+        setState(() {
+          _dismissedRoutineIds.add(routine.id!);
+        });
+        await WorkoutLocalDataSource.instance.deleteRoutine(routine.id!);
+      }
+    }
+  }
+
+  String _formatRoutineExercisesSubtitle(
+    BuildContext context,
+    Routine routine,
+  ) {
+    if (routine.exercises.isEmpty) {
+      return AppLocalizations.of(context)!.editRoutineSubtitle;
+    }
+    final locale = Localizations.localeOf(context).languageCode;
+    final names = routine.exercises
+        .map((re) => re.exercise.localizedNameFor(locale))
+        .where((name) => name.trim().isNotEmpty)
+        .toList();
+    if (names.isEmpty) {
+      return AppLocalizations.of(context)!.editRoutineSubtitle;
+    }
+    return names.join(', ');
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final double appBarHeight = MediaQuery.of(
-      context,
-    ).padding.top; // + kToolbarHeight;
+    final double appBarHeight = MediaQuery.of(context).padding.top;
 
-    // 2. Get your base padding from your design constants
-    const EdgeInsets basePadding = DesignConstants
-        .cardPadding; // This is EdgeInsets.all(DesignConstants.spacingL)
-
-    // 3. Create the final combined padding
+    const EdgeInsets basePadding = DesignConstants.cardPadding;
     final EdgeInsets finalPadding = basePadding.copyWith(
-      // Take the original top value (16.0) and add the app bar height
       top: basePadding.top + appBarHeight,
     );
 
     return ListView(
       padding: finalPadding,
       children: [
+        // 1. Trainingsplan (Hero)
+        AppSectionHeader(title: ManualPlanText(context).get('plan')),
+        FutureBuilder(
+          key: ValueKey(_manualPlanRefresh),
+          future: _loadManualPlanSummary(),
+          builder: (context, snapshot) {
+            final summary = snapshot.data;
+            final plan = summary?.plan;
+            final today = summary?.today;
+            final next = summary?.next;
+            final text = ManualPlanText(context);
+            final locale = Localizations.localeOf(context).toString();
+            Future<void> openPlan() async {
+              await Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const ManualPlanScreen()),
+              );
+              if (mounted) setState(() => _manualPlanRefresh++);
+            }
+
+            if (plan == null) {
+              return WorkoutPlanHeroCard(
+                eyebrow: text.get('plan'),
+                title: text.get('noPlan'),
+                subtitle: text.get('hubNoPlanDescription'),
+                onTap: openPlan,
+              );
+            }
+
+            final displayDay = today ?? next;
+            final isTodayWorkout = today != null && !today.day.isRest;
+            String subtitle;
+            if (displayDay == null) {
+              subtitle = text.get('hubNoUpcomingWorkout');
+            } else if (today?.day.isRest == true && next != null) {
+              subtitle = '${text.get('nextUp')}: ${next.day.routineName}'
+                  '${DesignConstants.metadataSeparator}'
+                  '${DateFormat.MMMEd(locale).format(next.date)}';
+            } else if (isTodayWorkout) {
+              subtitle = plannedDayMetadata(context, today.day);
+            } else {
+              final when = DateUtils.isSameDay(displayDay.date, DateTime.now())
+                  ? text.get('today')
+                  : DateFormat.MMMEd(locale).format(displayDay.date);
+              subtitle = '$when${DesignConstants.metadataSeparator}'
+                  '${plannedDayMetadata(context, displayDay.day)}';
+            }
+
+            return WorkoutPlanHeroCard(
+              eyebrow: plan.name,
+              title: displayDay?.day.routineName ?? text.get('rest'),
+              subtitle: subtitle,
+              status: displayDay?.status,
+              onTap: openPlan,
+              actionLabel:
+                  isTodayWorkout && today.status == PlannedDayStatus.planned
+                      ? text.get('start')
+                      : null,
+              onAction:
+                  isTodayWorkout && today.status == PlannedDayStatus.planned
+                      ? () async {
+                          await startManualPlanDay(context, plan, today);
+                          if (mounted) setState(() => _manualPlanRefresh++);
+                        }
+                      : null,
+            );
+          },
+        ),
+        const SizedBox(height: DesignConstants.spacingXL),
+
+        // 2. Recovery (Muscle Readiness)
         AppSectionHeader(title: l10n.sectionRecovery),
         _buildRecoveryCard(context, l10n),
         const SizedBox(height: DesignConstants.spacingXL),
-        AppSectionHeader(title: l10n.workoutSectionStart),
-        MorphSourceScope(
-          builder: (context, setHidden) => Builder(
-            builder: (cardCtx) {
-              Widget buildEmptyCard() => SummaryCard(
-                    child: Padding(
-                      padding: const EdgeInsets.all(20.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(LucideIcons.circle_plus, size: 28),
-                          const SizedBox(width: DesignConstants.spacingM),
-                          Text(
-                            l10n.startEmptyWorkoutButton,
-                            style: Theme.of(context).textTheme.titleLarge,
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
 
-              return SummaryCard(
-                child: InkWell(
-                  onTap: () => _startEmptyWorkout(
-                    sourceContext: cardCtx,
-                    sourceBuilder: (_) => buildEmptyCard(),
-                    onSourceVisibilityChanged: setHidden,
-                  ),
-                  borderRadius: BorderRadius.circular(
-                    DesignConstants.borderRadiusM,
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(20.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(LucideIcons.circle_plus, size: 28),
-                        const SizedBox(width: DesignConstants.spacingM),
-                        Text(
-                          l10n.startEmptyWorkoutButton,
-                          style: Theme.of(context).textTheme.titleLarge,
-                        ),
-                      ],
-                    ),
-                  ),
+        // 3. Schnellstart (Duo-Row)
+        AppSectionHeader(title: l10n.workoutSectionStart),
+        _buildQuickStartRow(context, l10n),
+        const SizedBox(height: DesignConstants.spacingXL),
+
+        // 4. Routinen (Vertikale Liste)
+        StreamBuilder<List<Routine>>(
+          stream: _routinesStream,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(DesignConstants.spacingL),
+                  child: CircularProgressIndicator(),
                 ),
               );
-            },
-          ),
+            }
+            final routines = (snapshot.data ?? [])
+                .where((r) => !_dismissedRoutineIds.contains(r.id))
+                .toList();
+
+            final routinesHeader = l10n.workoutAllRoutines;
+            final countBadge =
+                routines.isNotEmpty ? ' (${routines.length})' : '';
+
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                AppSectionHeader(title: '$routinesHeader$countBadge'),
+                if (routines.isEmpty)
+                  _buildEmptyRoutinesCard(context, l10n)
+                else
+                  for (final routine in routines)
+                    _buildVerticalRoutineCard(context, routine, l10n),
+              ],
+            );
+          },
         ),
-        const SizedBox(height: DesignConstants.spacingXL),
-        AppSectionHeader(title: l10n.workoutSectionMyPlans),
-        SizedBox(
-          height: 160,
-          child: StreamBuilder<List<Routine>>(
-            stream: _routinesStream,
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
-              }
-              final routines = snapshot.data ?? [];
-              if (routines.isEmpty) {
-                return Row(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    _buildCreateRoutineCard(context, l10n),
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: DesignConstants.spacingS,
-                          vertical: DesignConstants.spacingM,
-                        ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              l10n.emptyRoutinesTitle,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .titleMedium
-                                  ?.copyWith(fontWeight: FontWeight.bold),
-                            ),
-                            const SizedBox(height: DesignConstants.spacingXS),
-                            Text(
-                              l10n.emptyRoutinesSubtitle,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodyMedium
-                                  ?.copyWith(
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .onSurface
-                                        .withValues(alpha: 0.6),
-                                    height: 1.3,
-                                  ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                );
-              }
-              return ListView.builder(
-                scrollDirection: Axis.horizontal,
-                clipBehavior: Clip.none,
-                itemCount: routines.length + 1,
-                itemBuilder: (context, index) {
-                  if (index == 0) {
-                    return _buildCreateRoutineCard(context, l10n);
-                  }
-                  return _buildRoutineCard(
-                    context,
-                    routines[index - 1],
-                  );
-                },
-              );
-            },
-          ),
-        ),
-        _buildNavigationTile(
-          context: context,
-          icon: LucideIcons.list,
-          title: l10n.workoutAllRoutines,
-          destination: () => const RoutinesScreen(),
-        ),
-        const SizedBox(height: DesignConstants.spacingXL),
-        AppSectionHeader(title: l10n.workoutSectionHistoryLibrary),
-        _buildNavigationTile(
-          context: context,
-          icon: LucideIcons.rotate_ccw_clock,
-          title: l10n.workoutEntryWorkouts,
-          destination: () => const WorkoutHistoryScreen(),
-        ),
+
+        // 5. Übungskatalog (Dezent am Ende unterhalb der Routinenliste)
+        const SizedBox(height: DesignConstants.spacingL),
         _buildNavigationTile(
           context: context,
           icon: LucideIcons.folder_open,
@@ -394,147 +483,415 @@ class _WorkoutHubScreenState extends State<WorkoutHubScreen> {
     );
   }
 
-  Widget _buildCreateRoutineCard(BuildContext context, AppLocalizations l10n) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final cardWidth = (screenWidth - 32 - 12) / 2.5; // Etwas schmaler
-
-    Widget buildCreateCardContent() => SummaryCard(
+  Widget _buildQuickStartRow(BuildContext context, AppLocalizations l10n) {
+    Widget buildEmptyWorkoutContent() => SummaryCard(
+          margin: EdgeInsets.zero,
           child: Padding(
-            padding: DesignConstants.cardPadding,
-            child: Column(
+            padding: const EdgeInsets.symmetric(
+              vertical: 14.0,
+              horizontal: DesignConstants.spacingM,
+            ),
+            child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(
                   LucideIcons.circle_plus,
-                  size: 40,
+                  size: 20,
                   color: Theme.of(context).colorScheme.primary,
                 ),
-                const SizedBox(height: DesignConstants.spacingS),
-                Text(l10n.addRoutineButton, textAlign: TextAlign.center),
+                const SizedBox(width: DesignConstants.spacingS),
+                Flexible(
+                  child: Text(
+                    l10n.startEmptyWorkoutButton,
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
               ],
             ),
           ),
         );
 
-    return SizedBox(
-      width: cardWidth,
-      child: Padding(
-        padding: const EdgeInsets.only(right: DesignConstants.spacingM),
-        child: MorphSourceScope(
-          builder: (context, setHidden) => Builder(
-            builder: (cardCtx) => SummaryCard(
-              child: InkWell(
-                onTap: () => _createNewRoutine(
-                  sourceContext: cardCtx,
-                  sourceBuilder: (_) => buildCreateCardContent(),
-                  onSourceVisibilityChanged: setHidden,
+    Widget buildCreateRoutineContent() => SummaryCard(
+          margin: EdgeInsets.zero,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              vertical: 14.0,
+              horizontal: DesignConstants.spacingM,
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  LucideIcons.plus,
+                  size: 20,
+                  color: Theme.of(context).colorScheme.primary,
                 ),
-                borderRadius:
-                    BorderRadius.circular(DesignConstants.borderRadiusM),
-                child: Padding(
-                  padding: DesignConstants.cardPadding,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        LucideIcons.circle_plus,
-                        size: 40,
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
-                      const SizedBox(height: DesignConstants.spacingS),
-                      Text(l10n.addRoutineButton, textAlign: TextAlign.center),
-                    ],
+                const SizedBox(width: DesignConstants.spacingS),
+                Flexible(
+                  child: Text(
+                    l10n.addRoutineButton,
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+
+    return Row(
+      children: [
+        Expanded(
+          child: MorphSourceScope(
+            builder: (context, setHidden) => Builder(
+              builder: (cardCtx) => SummaryCard(
+                margin: EdgeInsets.zero,
+                child: InkWell(
+                  onTap: () => _startEmptyWorkout(
+                    sourceContext: cardCtx,
+                    sourceBuilder: (_) => buildEmptyWorkoutContent(),
+                    onSourceVisibilityChanged: setHidden,
+                  ),
+                  borderRadius: BorderRadius.circular(
+                    DesignConstants.borderRadiusM,
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 14.0,
+                      horizontal: DesignConstants.spacingM,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          LucideIcons.circle_plus,
+                          size: 20,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                        const SizedBox(width: DesignConstants.spacingS),
+                        Flexible(
+                          child: Text(
+                            l10n.startEmptyWorkoutButton,
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleSmall
+                                ?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
             ),
           ),
         ),
+        const SizedBox(width: DesignConstants.spacingM),
+        Expanded(
+          child: MorphSourceScope(
+            builder: (context, setHidden) => Builder(
+              builder: (cardCtx) => SummaryCard(
+                margin: EdgeInsets.zero,
+                child: InkWell(
+                  onTap: () => _createNewRoutine(
+                    sourceContext: cardCtx,
+                    sourceBuilder: (_) => buildCreateRoutineContent(),
+                    onSourceVisibilityChanged: setHidden,
+                  ),
+                  borderRadius: BorderRadius.circular(
+                    DesignConstants.borderRadiusM,
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 14.0,
+                      horizontal: DesignConstants.spacingM,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          LucideIcons.plus,
+                          size: 20,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                        const SizedBox(width: DesignConstants.spacingS),
+                        Flexible(
+                          child: Text(
+                            l10n.addRoutineButton,
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleSmall
+                                ?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildEmptyRoutinesCard(BuildContext context, AppLocalizations l10n) {
+    return SummaryCard(
+      margin: const EdgeInsets.symmetric(vertical: DesignConstants.spacingXS),
+      padding: DesignConstants.cardPadding,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            l10n.emptyRoutinesTitle,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+          ),
+          const SizedBox(height: DesignConstants.spacingXS),
+          Text(
+            l10n.emptyRoutinesSubtitle,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Theme.of(context)
+                      .colorScheme
+                      .onSurface
+                      .withValues(alpha: 0.65),
+                  height: 1.35,
+                ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildRoutineCard(BuildContext context, Routine routine) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final cardWidth = (screenWidth - 32 - 12) / 2;
+  Widget _buildVerticalRoutineCard(
+    BuildContext context,
+    Routine routine,
+    AppLocalizations l10n,
+  ) {
+    final exercisesSubtitle = _formatRoutineExercisesSubtitle(context, routine);
 
-    Widget buildRoutineCardContent({VoidCallback? onStart}) => SummaryCard(
-          child: Padding(
-            padding: DesignConstants.cardPadding,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  routine.name,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
+    Widget buildCardBody({VoidCallback? onStart}) => SummaryCard(
+          margin: const EdgeInsets.symmetric(
+            vertical: DesignConstants.spacingXS,
+          ),
+          padding: EdgeInsets.zero,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  DesignConstants.cardPaddingInternal,
+                  DesignConstants.cardPaddingInternal,
+                  DesignConstants.spacingS,
+                  DesignConstants.spacingXS,
                 ),
-                AppButton.primary(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            routine.name,
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleMedium
+                                ?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: DesignConstants.spacingS),
+                        const Icon(
+                          LucideIcons.ellipsis_vertical,
+                          size: 20,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: DesignConstants.spacingXS),
+                    Text(
+                      exercisesSubtitle,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onSurface
+                                .withValues(alpha: 0.65),
+                            height: 1.35,
+                          ),
+                    ),
+                  ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  DesignConstants.cardPaddingInternal,
+                  DesignConstants.spacingS,
+                  DesignConstants.cardPaddingInternal,
+                  DesignConstants.cardPaddingInternal,
+                ),
+                child: AppButton.primary(
                   onPressed: onStart ?? () {},
-                  label: l10n.start_button,
-                  tooltip: l10n.start_button,
-                  size: AppButtonSize.medium,
+                  label: l10n.startWorkout,
+                  icon: LucideIcons.play,
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         );
 
-    return SizedBox(
-      width: cardWidth,
-      child: Padding(
-        padding: const EdgeInsets.only(right: DesignConstants.spacingM),
-        child: MorphSourceScope(
-          builder: (context, setHidden) => Builder(
-            builder: (cardCtx) => SummaryCard(
-              child: InkWell(
-                onTap: () {
-                  Navigator.of(context).push(
-                    CardMorphRoute(
-                      sourceContext: cardCtx,
-                      sourceBuilder: (_) => buildRoutineCardContent(),
-                      onSourceVisibilityChanged: setHidden,
-                      builder: (_) => EditRoutineScreen(routine: routine),
-                    ),
-                  );
-                },
-                borderRadius:
-                    BorderRadius.circular(DesignConstants.borderRadiusM),
+    return MorphSourceScope(
+      builder: (context, setHidden) => Builder(
+        builder: (cardCtx) => SummaryCard(
+          margin: const EdgeInsets.symmetric(
+            vertical: DesignConstants.spacingXS,
+          ),
+          padding: EdgeInsets.zero,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Top tappable area -> opens editor
+              InkWell(
+                onTap: () => _openRoutineEditor(
+                  routine,
+                  sourceContext: cardCtx,
+                  sourceBuilder: (_) => buildCardBody(),
+                  onSourceVisibilityChanged: setHidden,
+                ),
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(DesignConstants.borderRadiusL),
+                ),
                 child: Padding(
-                  padding: DesignConstants.cardPadding,
+                  padding: const EdgeInsets.fromLTRB(
+                    DesignConstants.cardPaddingInternal,
+                    DesignConstants.cardPaddingInternal,
+                    DesignConstants.spacingS,
+                    DesignConstants.spacingXS,
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        routine.name,
-                        style:
-                            Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              routine.name,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleMedium
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          PlatformAdaptivePopupMenu<String>(
+                            icon: Icon(
+                              LucideIcons.ellipsis_vertical,
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurfaceVariant,
+                              size: 20,
+                            ),
+                            onSelected: (value) {
+                              if (value == 'duplicate') {
+                                _duplicateRoutine(routine.id!);
+                              } else if (value == 'share') {
+                                _shareRoutine(routine);
+                              } else if (value == 'delete') {
+                                _deleteRoutine(context, routine);
+                              }
+                            },
+                            items: [
+                              PlatformAdaptivePopupMenuItem(
+                                value: 'duplicate',
+                                label: l10n.duplicate,
+                                icon: LucideIcons.copy,
+                              ),
+                              PlatformAdaptivePopupMenuItem(
+                                value: 'share',
+                                label: l10n.share,
+                                icon: DesignConstants.adaptiveShareIcon,
+                              ),
+                              PlatformAdaptivePopupMenuItem(
+                                value: 'delete',
+                                label: l10n.delete,
+                                icon: LucideIcons.trash,
+                                isDestructive: true,
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
-                      AppButton.primary(
-                        onPressed: () => _startRoutine(
-                          routine,
-                          sourceContext: cardCtx,
-                          sourceBuilder: (_) => buildRoutineCardContent(),
-                          onSourceVisibilityChanged: setHidden,
+                      const SizedBox(height: DesignConstants.spacingXS),
+                      Padding(
+                        padding: const EdgeInsets.only(
+                          right: DesignConstants.spacingS,
                         ),
-                        label: l10n.start_button,
-                        tooltip: l10n.start_button,
-                        size: AppButtonSize.medium,
+                        child: Text(
+                          exercisesSubtitle,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style:
+                              Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurface
+                                        .withValues(alpha: 0.65),
+                                    height: 1.35,
+                                  ),
+                        ),
                       ),
                     ],
                   ),
                 ),
               ),
-            ),
+              // Bottom full-width start button
+              Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  DesignConstants.cardPaddingInternal,
+                  DesignConstants.spacingS,
+                  DesignConstants.cardPaddingInternal,
+                  DesignConstants.cardPaddingInternal,
+                ),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: AppButton.primary(
+                    onPressed: () => _startRoutine(
+                      routine,
+                      sourceContext: cardCtx,
+                      sourceBuilder: (_) => buildCardBody(),
+                      onSourceVisibilityChanged: setHidden,
+                    ),
+                    label: l10n.startWorkout,
+                    icon: LucideIcons.play,
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),

@@ -39,6 +39,7 @@ import '../../../services/base_food_language_service.dart';
 import '../../../services/haptic_feedback_service.dart';
 import '../../workout/presentation/workout_history_screen.dart';
 import '../../workout/presentation/widgets/todays_workout_summary_card.dart';
+import '../../workout/presentation/widgets/manual_plan_diary_card.dart';
 import 'widgets/weight_card.dart';
 import 'widgets/steps_summary_card.dart';
 import 'widgets/sleep_summary_card.dart';
@@ -1058,7 +1059,8 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
                   if (stepsEnabled) const StepsSummaryCard(),
                   if (sleepEnabled) const SleepSummaryCard(),
                   if (pulseEnabled) const PulseSummaryCard(),
-                  // New section: insert workout summary here.
+                  ManualPlanDiaryCard(date: selectedDate),
+                  // Completed workout summary remains independent of the plan.
                   if (hasWorkoutSummary || showSkeleton)
                     Selector<DiaryViewModel, Map<String, dynamic>?>(
                       selector: (context, vm) => showSkeleton

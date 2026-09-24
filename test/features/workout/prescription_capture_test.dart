@@ -1,7 +1,9 @@
+import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:train_libre/data/drift_database.dart' show AppDatabase;
+import 'package:train_libre/data/drift_database.dart'
+    show AppDatabase, ExercisesCompanion;
 import 'package:train_libre/features/exercise_catalog/domain/models/exercise.dart'
     as model;
 import 'package:train_libre/features/workout/data/sources/workout_local_data_source.dart';
@@ -29,6 +31,16 @@ void main() {
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
     database = AppDatabase(NativeDatabase.memory());
+    for (var i = 1; i <= 3; i++) {
+      await database.into(database.exercises).insert(
+        ExercisesCompanion(
+          id: Value('uuid-ex-$i'),
+          trackingType: const Value('weight_reps'),
+          loadMode: const Value('external'),
+          categoryName: const Value('Strength'),
+        ),
+      );
+    }
     workoutDb = WorkoutLocalDataSource.forTesting(database);
     manager = buildManager();
   });

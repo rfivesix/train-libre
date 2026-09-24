@@ -18,6 +18,8 @@ import 'package:train_libre/features/nutrition_recommendation/domain/recommendat
 import 'package:train_libre/features/diary/domain/models/food_entry.dart';
 import 'package:train_libre/features/profile/domain/models/measurement.dart';
 import 'package:train_libre/features/profile/domain/models/measurement_session.dart';
+import 'package:train_libre/features/profile/data/goal_repository_impl.dart';
+import 'package:train_libre/features/profile/domain/models/goal_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
@@ -209,6 +211,78 @@ void main() {
       );
     });
 
+    test(
+        'algorithm upgrade recomputes once without applying targets or carrying old calibration history',
+        () async {
+      const legacyVersion =
+          'tdee_adaptive_recommendation_1_1_bayesian_recursive';
+      const dueWeekKey = '2026-04-06';
+      final legacyRecommendation = _recommendationForDueWeek(
+        dueWeekKey,
+        algorithmVersion: legacyVersion,
+      );
+      await repository.saveLatestRecommendationSnapshot(
+        snapshot: AdaptiveRecommendationSnapshot(
+          recommendation: legacyRecommendation,
+          maintenanceEstimate: _estimateForDueWeek(dueWeekKey),
+          dueWeekKey: dueWeekKey,
+          algorithmVersion: legacyVersion,
+        ),
+      );
+      await repository.saveLatestEstimatorState(
+        state: const BayesianEstimatorState(
+          posteriorMeanCalories: 2400,
+          posteriorVarianceCalories2: 32400,
+          lastDueWeekKey: dueWeekKey,
+          lastPriorMeanCalories: 2350,
+          lastPriorVarianceCalories2: 48400,
+          lastPriorSource: BayesianPriorSource.profilePriorBootstrap,
+          lastObservationUsed: true,
+          recentPosteriorMeansCalories: <double>[2300, 2350, 2400],
+          recentObservationResidualsCalories: <double>[80, 90, 100],
+          recentObservationImpliedMaintenanceCalories: <double>[
+            2380,
+            2440,
+            2500,
+          ],
+        ),
+      );
+      await repository.saveLatestAppliedRecommendation(
+        recommendation: legacyRecommendation,
+      );
+
+      final upgraded = await service.refreshRecommendationIfDue(
+        now: DateTime(2026, 4, 6, 12),
+      );
+      final upgradedSnapshot =
+          await repository.getLatestRecommendationSnapshot();
+      final upgradedState = await repository.getLatestEstimatorState();
+      final applied = await repository.getLatestAppliedRecommendation();
+      final settings = await dbHelper.getAppSettings();
+
+      expect(upgraded, isNotNull);
+      expect(upgraded!.algorithmVersion,
+          AdaptiveNutritionRecommendationService.algorithmVersion);
+      expect(upgraded.trajectoryCorrectionCalories, 0);
+      expect(upgraded.trajectoryCorrectionStatus, startsWith('inactive_'));
+      expect(upgradedSnapshot!.algorithmVersion,
+          AdaptiveNutritionRecommendationService.algorithmVersion);
+      expect(upgradedState!.recentPosteriorMeansCalories, isEmpty);
+      expect(upgradedState.recentObservationResidualsCalories, isEmpty);
+      expect(
+        upgradedState.recentObservationImpliedMaintenanceCalories,
+        isEmpty,
+      );
+      expect(applied!.algorithmVersion, legacyVersion);
+      expect(applied.recommendedCalories, 2400);
+      expect(settings!.targetCalories, 2400);
+
+      final replay = await service.refreshRecommendationIfDue(
+        now: DateTime(2026, 4, 8, 12),
+      );
+      expect(replay!.generatedAt, upgraded.generatedAt);
+    });
+
     test('recursive state is restored and chained across service restart',
         () async {
       final first = await service.refreshRecommendationIfDue(
@@ -338,6 +412,19 @@ void main() {
 
     test('refresh does not overwrite active goals until explicit apply',
         () async {
+      final goalRepository = GoalRepositoryImpl(database: database);
+      final goal = await goalRepository.createGoal(
+        baselineValueKg: 80,
+        baselineDate: DateTime(2026, 1, 1),
+        preset: GoalPreset.gainWeight,
+        title: 'Gain',
+        startDate: DateTime(2026, 3, 16),
+        targetDate: DateTime(2026, 8, 1),
+        targetMetric: 'weight',
+        targetValue: 88,
+        targetUnit: 'kg',
+        desiredWeeklyRateKg: 0.3,
+      );
       final monday = DateTime(2026, 4, 6, 10, 0);
       final beforeRefreshSettings = await dbHelper.getAppSettings();
       expect(beforeRefreshSettings, isNotNull);
@@ -363,6 +450,10 @@ void main() {
       expect(
         afterApplySettings.targetProtein,
         recommendation.recommendedProteinGrams,
+      );
+      expect(
+        (await goalRepository.getGoalById(goal.id))!.desiredWeeklyRateKg,
+        0.3,
       );
     });
 
@@ -489,6 +580,38 @@ void main() {
       expect(dueNotifier.notifications[1].dueWeekKey, '2026-04-13');
     });
 
+    test('disabled adaptive notifications are consumed, not replayed',
+        () async {
+      final preference = _FakeNotificationPreference(false);
+      final gatedService = AdaptiveNutritionRecommendationService(
+        repository: repository,
+        databaseHelper: dbHelper,
+        dueNotifier: dueNotifier,
+        notificationPreference: preference,
+      );
+
+      expect(
+        await gatedService.notifyIfNewRecommendationDue(
+          now: DateTime(2026, 4, 6, 8),
+        ),
+        isFalse,
+      );
+      preference.enabled = true;
+      expect(
+        await gatedService.notifyIfNewRecommendationDue(
+          now: DateTime(2026, 4, 8, 8),
+        ),
+        isFalse,
+      );
+      expect(
+        await gatedService.notifyIfNewRecommendationDue(
+          now: DateTime(2026, 4, 13, 8),
+        ),
+        isTrue,
+      );
+      expect(dueNotifier.notifications.single.dueWeekKey, '2026-04-13');
+    });
+
     test(
         'due notification does not fire when current due-week snapshot exists even without due-week marker key',
         () async {
@@ -570,24 +693,22 @@ void main() {
       );
     });
 
-    test('onboarding bootstrap handles missing optional profile inputs safely',
-        () async {
-      final recommendation = await service.generateOnboardingRecommendation(
-        goal: BodyweightGoal.maintainWeight,
-        targetRateKgPerWeek: 0,
-        weightKg: null,
-        heightCm: null,
-        birthday: null,
-        gender: null,
-        bodyFatPercent: null,
-        declaredActivityLevel: null,
-        extraCardioHoursOption: null,
-        now: DateTime(2026, 4, 5, 9, 0),
+    test('onboarding bootstrap requires a measured weight', () async {
+      await expectLater(
+        service.generateOnboardingRecommendation(
+          goal: BodyweightGoal.maintainWeight,
+          targetRateKgPerWeek: 0,
+          weightKg: null,
+          heightCm: null,
+          birthday: null,
+          gender: null,
+          bodyFatPercent: null,
+          declaredActivityLevel: null,
+          extraCardioHoursOption: null,
+          now: DateTime(2026, 4, 5, 9, 0),
+        ),
+        throwsArgumentError,
       );
-
-      expect(recommendation.recommendedCalories, greaterThan(0));
-      expect(recommendation.estimatedMaintenanceCalories, greaterThan(0));
-      expect(recommendation.dueWeekKey, '2026-03-30');
     });
 
     test(
@@ -678,10 +799,32 @@ void main() {
           recommendation!.recommendedCalories);
       expect(broadcasted.dueWeekKey, '2026-04-06');
     });
+
+    test(
+        'recalculateAndApply recomputes recommendation and updates active targets',
+        () async {
+      final monday = DateTime(2026, 4, 6, 10, 0);
+      final recommendation = await service.recalculateAndApply(now: monday);
+
+      expect(recommendation, isNotNull);
+      final applied = await repository.getLatestAppliedRecommendation();
+      expect(applied, isNotNull);
+      expect(applied?.recommendedCalories, recommendation?.recommendedCalories);
+
+      final settings = await dbHelper.getAppSettings();
+      expect(settings?.targetCalories, recommendation?.recommendedCalories);
+      expect(settings?.targetProtein, recommendation?.recommendedProteinGrams);
+      expect(settings?.targetCarbs, recommendation?.recommendedCarbsGrams);
+      expect(settings?.targetFat, recommendation?.recommendedFatGrams);
+    });
   });
 }
 
-NutritionRecommendation _recommendationForDueWeek(String dueWeekKey) {
+NutritionRecommendation _recommendationForDueWeek(
+  String dueWeekKey, {
+  String algorithmVersion =
+      AdaptiveNutritionRecommendationService.algorithmVersion,
+}) {
   return NutritionRecommendation(
     recommendedCalories: 2400,
     recommendedProteinGrams: 170,
@@ -695,7 +838,7 @@ NutritionRecommendation _recommendationForDueWeek(String dueWeekKey) {
     generatedAt: DateTime(2026, 4, 6, 10, 0),
     windowStart: DateTime(2026, 3, 16),
     windowEnd: DateTime(2026, 4, 5, 23, 59, 59),
-    algorithmVersion: AdaptiveNutritionRecommendationService.algorithmVersion,
+    algorithmVersion: algorithmVersion,
     inputSummary: const RecommendationInputSummary(
       windowDays: 21,
       weightLogCount: 9,
@@ -745,4 +888,13 @@ class _FakeDueNotifier implements AdaptiveRecommendationDueNotifier {
   }) async {
     notifications.add((dueWeekKey: dueWeekKey, dueAt: dueAt));
   }
+}
+
+class _FakeNotificationPreference
+    implements AdaptiveRecommendationNotificationPreference {
+  bool enabled;
+  _FakeNotificationPreference(this.enabled);
+
+  @override
+  Future<bool> isEnabled() async => enabled;
 }

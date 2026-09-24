@@ -1128,8 +1128,11 @@ void main() {
       expect(analytics['hasData'], isTrue);
       // 'lats' is mapped to the 'back' major muscle group.
       expect(muscles.keys, containsAll(['chest', 'back']));
-      expect(muscles['chest']!['lastEquivalentSets'], 1.0);
-      expect(muscles['back']!['lastEquivalentSets'], 1.0);
+      // Recovery v2 weights missing RIR neutrally instead of treating the set
+      // as maximal exposure. Reps 9+ keep the full repetition weight.
+      expect(muscles['chest']!['lastEquivalentSets'], 0.7);
+      // Five reps add the v2 0.9 repetition factor.
+      expect(muscles['back']!['lastEquivalentSets'], closeTo(0.63, 0.0001));
       expect(muscles.keys, isNot(contains('front_delts')));
       expect(muscles['quads']!['lastEquivalentSets'], 0.0);
       expect(muscles['hamstrings']!['lastEquivalentSets'], 0.0);
@@ -1175,10 +1178,11 @@ void main() {
       final muscles = _musclesByName(analytics);
 
       expect(analytics['hasData'], isTrue);
-      expect(muscles['chest']!['lastEquivalentSets'], 1.0);
+      expect(muscles['chest']!['lastEquivalentSets'], closeTo(0.63, 0.0001));
     });
 
-    test('getRecoveryAnalytics ignores sub-threshold muscle noise', () async {
+    test('getRecoveryAnalytics retains bounded secondary-muscle exposure',
+        () async {
       final now = DateTime.now();
       final workoutId = await _insertWorkout(
         database,
@@ -1205,12 +1209,10 @@ void main() {
 
       final analytics = await helper.getRecoveryAnalytics(lookbackDays: 30);
 
-      expect(
-        RecoveryDomainService.minimumSignificantEquivalentSets,
-        1.0,
-      );
-      expect(analytics['hasData'], isFalse);
-      expect(analytics['muscles'], isEmpty);
+      final muscles = _musclesByName(analytics);
+      expect(analytics['hasData'], isTrue);
+      // Secondary exposure (0.3) with neutral missing-RIR effort (0.7).
+      expect(muscles['back']!['lastEquivalentSets'], closeTo(0.21, 0.0001));
     });
 
     test('getRecoveryAnalytics uses fixed lookback instead of stale history',
@@ -1263,7 +1265,7 @@ void main() {
 
       expect(
         RecoveryDomainService.recoveryLookbackDays,
-        14,
+        21,
       );
       expect(muscles.keys, contains('biceps'));
       expect(muscles['chest']!['lastEquivalentSets'], 0.0);

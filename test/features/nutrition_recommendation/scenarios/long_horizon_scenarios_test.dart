@@ -16,7 +16,7 @@ void main() {
     final historyStart = firstDueWeek.subtract(const Duration(days: 35));
     final historyDays = 35 + (weekCount * 7);
 
-    test('long clean cut remains stable and follows phase ramp', () async {
+    test('long clean cut remains stable with phase uncertainty', () async {
       final harness = await AdaptiveScenarioHarness.create(
         profile: ScenarioProfile(
           name: 'Clean Cut',
@@ -53,7 +53,7 @@ void main() {
       expectDueWeekAnchorsStable(weeks, firstDueWeekStart: firstDueWeek);
       expectVarianceBoundedByCap(weeks);
       expectNoAbsurdMaintenanceJumps(weeks, maxJumpCalories: 560);
-      expectPhaseRampProgression(weeks);
+      expectFixedEnergyDensityAndPhaseVariance(weeks);
 
       expect(
         weeks.every(
@@ -123,7 +123,7 @@ void main() {
       expectDueWeekAnchorsStable(weeks, firstDueWeekStart: firstDueWeek);
       expectVarianceBoundedByCap(weeks);
       expectNoAbsurdMaintenanceJumps(weeks, maxJumpCalories: 560);
-      expectPhaseRampProgression(weeks);
+      expectFixedEnergyDensityAndPhaseVariance(weeks);
 
       expect(
         weeks.every(

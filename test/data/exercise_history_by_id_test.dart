@@ -51,6 +51,12 @@ void main() {
           ),
         );
 
+    for (final exerciseId in sets.map((set) => set.exerciseId).nonNulls) {
+      await db.into(db.exercises).insertOnConflictUpdate(
+            ExercisesCompanion(id: Value(exerciseId)),
+          );
+    }
+
     for (final s in sets) {
       await db.into(db.setLogs).insert(
             SetLogsCompanion.insert(

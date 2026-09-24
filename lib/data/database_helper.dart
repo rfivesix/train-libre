@@ -442,6 +442,8 @@ class DatabaseHelper {
 
   Future<double?> getLatestBodyFatPercentageBefore(DateTime b) =>
       profileLocalDataSource.getLatestBodyFatPercentageBefore(b);
+  Future<double?> getLatestWeightBefore(DateTime b) =>
+      profileLocalDataSource.getLatestWeightBefore(b);
   Future<void> saveUserProfile(
           {String? name,
           double? weight,

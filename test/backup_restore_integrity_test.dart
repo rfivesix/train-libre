@@ -14,6 +14,8 @@ import 'package:train_libre/data/drift_database.dart'
     show AppDatabase, ProductsCompanion, ExercisesCompanion;
 import 'package:train_libre/features/diary/data/sources/product_local_data_source.dart';
 import 'package:train_libre/features/workout/data/sources/workout_local_data_source.dart';
+import 'package:train_libre/features/workout/data/manual_training_plan_repository.dart';
+import 'package:train_libre/features/workout/domain/models/manual_training_plan.dart';
 import 'package:train_libre/features/diary/domain/models/food_entry.dart';
 import 'package:train_libre/features/diary/domain/models/meal_entry.dart';
 import 'package:train_libre/features/profile/domain/models/measurement.dart';
@@ -50,6 +52,38 @@ void main() {
 
     tearDown(() async {
       await db.close();
+    });
+
+    test('manual plan revisions and occurrence history survive restore',
+        () async {
+      const workout = TrainingPlanDay(routineSnapshot: {
+        'name': 'Push',
+        'exercises': <Object>[],
+      });
+      final plans = ManualTrainingPlanRepository(database: db);
+      final planId = await plans.createPlan(
+        name: 'My sequence',
+        kind: TrainingPlanKind.sequence,
+        days: const [workout, TrainingPlanDay()],
+      );
+      final plan = (await plans.activePlan())!;
+      final today = DateTime.now();
+      final day = (await plans.calendar(planId, today, today)).single;
+      await plans.skip(plan, day);
+
+      final payload = await backupManager.generateBackupPayloadForTesting();
+      expect(payload['training_plans'], hasLength(1));
+      expect(payload['training_plan_revisions'], hasLength(1));
+      expect(payload['training_plan_occurrences'], hasLength(1));
+
+      expect(
+          await backupManager.importBackupPayloadForTesting(payload), isTrue);
+      final restored = await plans.activePlan();
+      expect(restored?.name, 'My sequence');
+      expect(await plans.revisions(restored!.id), hasLength(1));
+      final restoredDay =
+          (await plans.calendar(restored.id, today, today)).single;
+      expect(restoredDay.status, PlannedDayStatus.skipped);
     });
 
     test('meal templates and nutrition entries survive backup restore',

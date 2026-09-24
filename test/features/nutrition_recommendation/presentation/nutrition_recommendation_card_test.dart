@@ -77,6 +77,7 @@ void main() {
 
     final context = tester.element(find.byType(NutritionRecommendationCard));
     final l10n = AppLocalizations.of(context)!;
+    await _expandExplanation(tester);
 
     expect(find.text('2500 kcal'), findsOneWidget);
     expect(
@@ -229,6 +230,7 @@ void main() {
 
     final context = tester.element(find.byType(NutritionRecommendationCard));
     final l10n = AppLocalizations.of(context)!;
+    await _expandExplanation(tester);
     expect(
       find.text(l10n.adaptiveRecommendationDataBasisHintPriorOnly),
       findsOneWidget,
@@ -296,6 +298,7 @@ void main() {
 
     final context = tester.element(find.byType(NutritionRecommendationCard));
     final l10n = AppLocalizations.of(context)!;
+    await _expandExplanation(tester);
     expect(find.byKey(const Key('adaptive_recommendation_range_line')),
         findsOneWidget);
     expect(find.byKey(const Key('adaptive_recommendation_uncertainty_hint')),
@@ -336,6 +339,7 @@ void main() {
 
     final context = tester.element(find.byType(NutritionRecommendationCard));
     final l10n = AppLocalizations.of(context)!;
+    await _expandExplanation(tester);
     expect(
       find.byKey(const Key('adaptive_recommendation_stabilizing_hint')),
       findsOneWidget,
@@ -374,6 +378,7 @@ void main() {
 
     final context = tester.element(find.byType(NutritionRecommendationCard));
     final l10n = AppLocalizations.of(context)!;
+    await _expandExplanation(tester);
     expect(find.text(l10n.adaptiveRecommendationUncertaintyHintModerate),
         findsOneWidget);
     expect(
@@ -478,6 +483,7 @@ void main() {
             ),
           ),
         );
+        await _expandExplanation(tester);
 
         final progressIndicators = tester.widgetList<LinearProgressIndicator>(
           find.byType(LinearProgressIndicator),
@@ -526,6 +532,7 @@ void main() {
     final context = tester.element(find.byType(NutritionRecommendationCard));
     final l10n = AppLocalizations.of(context)!;
     final expectedLabel = l10n.adaptiveConfidenceHigh;
+    await _expandExplanation(tester);
 
     // Find Semantics widgets that are ancestors of the LinearProgressIndicator.
     // The immediate ancestor is the one we added for the bar; verify that its
@@ -547,7 +554,8 @@ void main() {
     );
   });
 
-  testWidgets('renders effective energy density when present', (tester) async {
+  testWidgets('renders active trajectory correction and hides energy density',
+      (tester) async {
     final recommendation = _recommendation().copyWith(
       inputSummary: RecommendationInputSummary(
         windowDays: 21,
@@ -557,6 +565,9 @@ void main() {
         avgLoggedCalories: 2500,
         phaseEffectiveKcalPerKg: 5938.4,
       ),
+      trajectoryCorrectionCalories: 80,
+      trajectoryRateErrorKgPerWeek: 0.14,
+      trajectoryCorrectionStatus: 'active',
     );
 
     await tester.pumpWidget(
@@ -583,17 +594,25 @@ void main() {
 
     final context = tester.element(find.byType(NutritionRecommendationCard));
     final l10n = AppLocalizations.of(context)!;
+    await _expandExplanation(tester);
 
+    expect(find.textContaining('5938'), findsNothing);
     expect(
-        find.text(l10n.adaptiveRecommendationEnergyDensityLabel),
-        findsOneWidget);
-    expect(find.text(l10n.adaptiveRecommendationEnergyDensityValue(5938)),
-        findsOneWidget);
-    expect(
-      find.text(l10n.adaptiveRecommendationEnergyDensityExplanation),
+      find.text(l10n.adaptiveRecommendationTrajectoryCorrectionLine('+80')),
       findsOneWidget,
     );
+    expect(
+        find.text(l10n.adaptiveRecommendationTrajectoryCorrectionExplanation),
+        findsOneWidget);
   });
+}
+
+Future<void> _expandExplanation(WidgetTester tester) async {
+  final tile = find.byKey(const Key('adaptive_recommendation_explanation'));
+  expect(tile, findsOneWidget);
+  await tester.ensureVisible(tile);
+  await tester.tap(tile);
+  await tester.pumpAndSettle();
 }
 
 NutritionRecommendation _recommendation() {
@@ -705,6 +724,9 @@ extension on NutritionRecommendation {
     RecommendationInputSummary? inputSummary,
     int? baselineCalories,
     String? dueWeekKey,
+    int? trajectoryCorrectionCalories,
+    double? trajectoryRateErrorKgPerWeek,
+    String? trajectoryCorrectionStatus,
   }) {
     return NutritionRecommendation(
       recommendedCalories: recommendedCalories ?? this.recommendedCalories,
@@ -726,6 +748,12 @@ extension on NutritionRecommendation {
       inputSummary: inputSummary ?? this.inputSummary,
       baselineCalories: baselineCalories ?? this.baselineCalories,
       dueWeekKey: dueWeekKey ?? this.dueWeekKey,
+      trajectoryCorrectionCalories:
+          trajectoryCorrectionCalories ?? this.trajectoryCorrectionCalories,
+      trajectoryRateErrorKgPerWeek:
+          trajectoryRateErrorKgPerWeek ?? this.trajectoryRateErrorKgPerWeek,
+      trajectoryCorrectionStatus:
+          trajectoryCorrectionStatus ?? this.trajectoryCorrectionStatus,
     );
   }
 }

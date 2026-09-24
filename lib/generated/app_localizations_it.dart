@@ -4811,6 +4811,13 @@ class AppLocalizationsIt extends AppLocalizations {
   String get adaptiveRecommendationMaintenanceLabel => 'Manutenzione stimata';
 
   @override
+  String get adaptiveRecommendationWhyTitle => 'Perché questa raccomandazione?';
+
+  @override
+  String get adaptiveRecommendationWhySubtitle =>
+      'Mantenimento stimato, qualità dei dati e dettagli del calcolo';
+
+  @override
   String get adaptiveRecommendationMaintenanceSourceLabel =>
       'Profilo precedenti + registri recenti';
 
@@ -4821,23 +4828,27 @@ class AppLocalizationsIt extends AppLocalizations {
   String get adaptiveRecommendationMacroTargetsLabel => 'Obiettivi consigliati';
 
   @override
+  String get adaptiveRecommendationAlreadyActive => 'Già attivo';
+
+  @override
+  String adaptiveRecommendationTargetChange(String value) {
+    return '$value rispetto all’attuale';
+  }
+
+  @override
   String get adaptiveRecommendationTargetCaloriesLabel => 'Obiettivo kcal';
 
   @override
   String get adaptiveRecommendationDataQualityLabel => 'Qualità dei dati';
 
   @override
-  String get adaptiveRecommendationEnergyDensityLabel =>
-      'Densità energetica effettiva';
-
-  @override
-  String adaptiveRecommendationEnergyDensityValue(int value) {
-    return '$value kcal/kg';
+  String adaptiveRecommendationTrajectoryCorrectionLine(String value) {
+    return 'Correzione della traiettoria: $value kcal/giorno';
   }
 
   @override
-  String get adaptiveRecommendationEnergyDensityExplanation =>
-      'Valore dinamico basato sul rapporto tra peso e perdita di acqua';
+  String get adaptiveRecommendationTrajectoryCorrectionExplanation =>
+      'Una correzione limitata aiuta a riportare il recente ritmo di variazione del peso verso l\'obiettivo.';
 
   @override
   String get adaptiveRecommendationRecalculateNowAction => 'Ricalcola ora';
@@ -5596,7 +5607,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get infoTdeeKeyPoints =>
-      '• Appiana le fluttuazioni giornaliere del peso utilizzando un modello di trend ricorsivo.\n• Utilizza un approccio di ispirazione bayesiana per adattare in modo conservativo gli obiettivi settimanali.\n• Avvisa se la coerenza della registrazione è troppo scarsa per aggiornamenti ad alta affidabilità.';
+      '• Usa gli ultimi 14 giorni di peso e alimentazione per stimare il mantenimento.\n• Tratta le prime fluttuazioni dopo un cambio di fase come incertezza aggiuntiva.\n• Usa una correzione separata e limitata quando il ritmo si discosta in modo persistente dall\'obiettivo.';
 
   @override
   String get infoTdeeTechnicalTitle =>
@@ -5604,7 +5615,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get infoTdeeTechnicalExplanation =>
-      'Piuttosto che fare affidamento su formule statiche, Train Libre modella il tuo metabolismo come uno \"stato nascosto\" dinamico stimato ricorsivamente. Il mantenimento giornaliero osservato viene calcolato aggiustando l\'assunzione rispetto ai cambiamenti della massa corporea. Un coefficiente di rumore del processo viene aggiunto nei giorni non registrati per aumentare l’incertezza della stima, che smorza gli aggiornamenti e previene la distorsione dovuta alla ritenzione idrica a breve termine.';
+      'Train Libre stima il mantenimento come stato nascosto dinamico con un filtro di Kalman ricorsivo. L\'incertezza settimanale del processo permette di seguire i reali cambiamenti metabolici, mentre l\'incertezza dell\'osservazione limita le reazioni al peso dell\'acqua e ai registri incompleti. Dopo due errori di ritmo coerenti, un controller separato e limitato può correggere l\'obiettivo calorico senza modificare la stima del mantenimento.';
 
   @override
   String get infoRecoveryTitle => 'Stima del recupero muscolare';
@@ -7115,6 +7126,31 @@ class AppLocalizationsIt extends AppLocalizations {
       'Scegli un orientamento o descrivi il tuo obiettivo con parole tue.';
 
   @override
+  String goalStepProgress(int current, int total) {
+    return 'Passaggio $current di $total';
+  }
+
+  @override
+  String get goalStartingPointAndTargetTitle =>
+      'Il tuo punto di partenza e il traguardo';
+
+  @override
+  String get goalStartingPointAndTargetDescription =>
+      'Conferma il punto di partenza, poi scegli un obiettivo coerente con la tua direzione.';
+
+  @override
+  String get goalTargetDirectionLoseError =>
+      'Per dimagrire, scegli un obiettivo inferiore al peso iniziale.';
+
+  @override
+  String get goalTargetDirectionGainError =>
+      'Per aumentare di peso, scegli un obiettivo superiore al peso iniziale.';
+
+  @override
+  String get goalDriverSettingDescription =>
+      'Train Libre usa questo obiettivo per adattare calorie e macronutrienti giornalieri.';
+
+  @override
   String get goalPresetLoseWeight => 'Perdere peso';
 
   @override
@@ -7255,64 +7291,64 @@ class AppLocalizationsIt extends AppLocalizations {
       'La tua motivazione personale ti aiuta a mantenere il focus. Salvata unicamente in locale.';
 
   @override
-  String get goalStepBaselineQuestion => 'Start Date & Baseline Weight';
+  String get goalStepBaselineQuestion => 'Data di inizio e peso iniziale';
 
   @override
   String get goalStepBaselineDescription =>
-      'When does this goal start? Train Libre uses your weight on this date as the starting baseline.';
+      'Quando inizia questo obiettivo? Train Libre usa il peso di questa data come valore iniziale.';
 
   @override
-  String get goalStepTargetWeightQuestion => 'What is your target weight?';
+  String get goalStepTargetWeightQuestion => 'Qual è il tuo peso obiettivo?';
 
   @override
   String get goalStepTargetWeightDescription =>
-      'Enter your desired target weight.';
+      'Inserisci il peso obiettivo desiderato.';
 
   @override
-  String get goalStepTrajectoryQuestion => 'Plan Pace & Target Date';
+  String get goalStepTrajectoryQuestion => 'Pianifica ritmo e data obiettivo';
 
   @override
   String get goalStepTrajectoryDescription =>
-      'Pick a target date or a weekly rate – the other will be calculated interactively in real time.';
+      'Scegli una data obiettivo o un ritmo settimanale; l’altro valore verrà calcolato in tempo reale.';
 
   @override
   String goalEnterBaselineWeightPrompt(String unit) {
-    return 'Enter starting weight ($unit)';
+    return 'Inserisci il peso iniziale ($unit)';
   }
 
   @override
   String goalTargetWeightLabel(String unit) {
-    return 'Target weight ($unit)';
+    return 'Peso obiettivo ($unit)';
   }
 
   @override
-  String get goalWeightDifferenceLabel => 'Planned change';
+  String get goalWeightDifferenceLabel => 'Variazione pianificata';
 
   @override
-  String get goalPlanByDate => 'Plan by target date';
+  String get goalPlanByDate => 'Pianifica in base alla data obiettivo';
 
   @override
-  String get goalPlanByRate => 'Plan by weekly pace';
+  String get goalPlanByRate => 'Pianifica in base al ritmo settimanale';
 
   @override
-  String get goalEstimatedDailyDelta => 'Daily calorie adjustment';
+  String get goalEstimatedDailyDelta => 'Adeguamento calorico giornaliero';
 
   @override
   String goalEstimatedDuration(int weeks) {
-    return 'Duration: $weeks weeks';
+    return 'Durata: $weeks settimane';
   }
 
   @override
-  String get goalRateGentle => 'Gentle (0.25 kg/wk)';
+  String get goalRateGentle => 'Leggero (0,25 kg/sett.)';
 
   @override
-  String get goalRateModerate => 'Moderate (0.50 kg/wk)';
+  String get goalRateModerate => 'Moderato (0,50 kg/sett.)';
 
   @override
-  String get goalRateAthletic => 'Athletic (0.75 kg/wk)';
+  String get goalRateAthletic => 'Atletico (0,75 kg/sett.)';
 
   @override
-  String get goalRateAggressive => 'Aggressive (1.00 kg/wk)';
+  String get goalRateAggressive => 'Intenso (1,00 kg/sett.)';
 
   @override
   String get goalRateCustom => 'Ritmo personalizzato (cursore)';
@@ -7322,19 +7358,19 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get goalPaceFeedbackSafe =>
-      'Recommended, sustainable pace (0.5% - 1.0% body weight/week).';
+      'Ritmo consigliato e sostenibile (0,5%-1,0% del peso corporeo a settimana).';
 
   @override
   String get goalPaceFeedbackAggressive =>
-      'Aggressive pace. Pay close attention to adequate protein and recovery.';
+      'Ritmo intenso. Presta particolare attenzione a proteine adeguate e recupero.';
 
   @override
   String get goalPaceFeedbackGentle =>
-      'Very gentle pace, very easy to sustain long term.';
+      'Ritmo molto leggero, facile da sostenere a lungo termine.';
 
   @override
   String get goalPaceFeedbackMaintain =>
-      'Maintain weight with a balanced energy intake.';
+      'Mantieni il peso con un apporto energetico equilibrato.';
 
   @override
   String get goalReasonSuggestionHealth => 'Salute & vitalità';
@@ -7457,6 +7493,41 @@ class AppLocalizationsIt extends AppLocalizations {
   String get reviewStatusCalibrating => 'In calibrazione';
 
   @override
+  String get reviewStatusBehind => 'In ritardo sul piano';
+
+  @override
+  String get reviewStatusAhead => 'In anticipo sul piano';
+
+  @override
+  String get reviewStatusTargetReached => 'Obiettivo raggiunto';
+
+  @override
+  String get reviewStatusTargetDateNeedsReview => 'Data obiettivo da rivedere';
+
+  @override
+  String reviewOverallSummary(String overall, String momentum) {
+    return 'Andamento complessivo: $overall. Ultimi 7 giorni: $momentum.';
+  }
+
+  @override
+  String get reviewMomentumMatchingPlan => 'in linea con il piano';
+
+  @override
+  String get reviewMomentumCatchingUp => 'stai recuperando';
+
+  @override
+  String get reviewMomentumFallingBehind => 'stai perdendo altro terreno';
+
+  @override
+  String get reviewMomentumMovingFaster => 'andamento più rapido';
+
+  @override
+  String get reviewMomentumMovingSlower => 'andamento più lento';
+
+  @override
+  String get reviewMomentumUnclear => 'non ancora chiaro';
+
+  @override
   String reviewNextAnalysisScheduled(String date) {
     return 'Prossima analisi adattiva il $date (min. 3 pesate e 4 giorni di calorie)';
   }
@@ -7490,6 +7561,44 @@ class AppLocalizationsIt extends AppLocalizations {
   String get reviewTrajectoryComparisonTitle => 'Confronto traiettorie';
 
   @override
+  String get reviewPlanVsRealityTitle => 'Piano e realtà';
+
+  @override
+  String get reviewExpectedByNowLabel => 'Previsto a oggi';
+
+  @override
+  String get reviewSmoothedCurrentLabel => 'Valore attuale mediato';
+
+  @override
+  String get reviewTrajectoryGapLabel => 'Scostamento dal piano';
+
+  @override
+  String get reviewRequiredRateLabel => 'Necessario da ora';
+
+  @override
+  String get reviewProjectedDateLabel => 'Data obiettivo stimata';
+
+  @override
+  String get reviewNutritionAdjustTargets =>
+      'Il diario alimentare è abbastanza completo per calcolare nuovi obiettivi giornalieri.';
+
+  @override
+  String get reviewNutritionKeepTargetsIntakeDiffers =>
+      'Gli obiettivi attuali restano adatti. L\'apporto registrato è diverso, quindi modificare il piano non risolverebbe la causa principale.';
+
+  @override
+  String get reviewNutritionKeepTargets =>
+      'Questa settimana non è consigliata alcuna modifica agli obiettivi giornalieri.';
+
+  @override
+  String get reviewNutritionTrajectoryChangeNeeded =>
+      'Il ritmo necessario per mantenere la data attuale non è un adeguamento alimentare sensato. Modifica invece obiettivo, ritmo o data.';
+
+  @override
+  String get reviewNutritionInsufficientData =>
+      'Continua a registrare normalmente. Non ci sono ancora dati recenti sufficienti per un adeguamento affidabile.';
+
+  @override
   String get reviewObservedRateLabel => 'Trend osservato';
 
   @override
@@ -7509,7 +7618,8 @@ class AppLocalizationsIt extends AppLocalizations {
   String get reviewActionAdjustTrajectory => 'Adatta obiettivo e traiettoria';
 
   @override
-  String get reviewActionKeepCurrent => 'Mantieni i valori attuali';
+  String get reviewActionKeepCurrent =>
+      'Mantieni l’obiettivo e aggiorna gli obiettivi giornalieri';
 
   @override
   String get reviewDismissedSnack =>
@@ -7537,11 +7647,34 @@ class AppLocalizationsIt extends AppLocalizations {
       'Applica come obiettivo successivo';
 
   @override
-  String get adjustGoalConfirmTitle => 'Applicare come obiettivo successivo?';
+  String get adjustGoalConfirmTitle => 'Aggiornare il piano?';
 
   @override
   String get adjustGoalConfirmContent =>
-      'Questo archivierà la traiettoria attuale e avvierà una nuova fase con i parametri modificati.';
+      'I progressi e tutte le misurazioni restano intatti. La nuova traiettoria parte da oggi.';
+
+  @override
+  String get adjustGoalUpdatePlanButton => 'Aggiorna piano';
+
+  @override
+  String get adjustGoalAcceptRecommendationAndUpdatePlan =>
+      'Accetta il consiglio e aggiorna il piano';
+
+  @override
+  String get adjustGoalRecommendedTitle => 'Modifica consigliata';
+
+  @override
+  String adjustGoalRecommendedPlan(String date, String rate) {
+    return 'Mantieni un ritmo realistico e sposta la data obiettivo al $date ($rate).';
+  }
+
+  @override
+  String adjustGoalRecommendedKeepDatePlan(String date, String rate) {
+    return 'Mantieni la data obiettivo del $date e adegua il ritmo a $rate.';
+  }
+
+  @override
+  String get adjustGoalSelectRecommendedPlan => 'Seleziona consiglio';
 
   @override
   String get adjustGoalConfirmButton => 'Applica';
@@ -7707,6 +7840,12 @@ class AppLocalizationsIt extends AppLocalizations {
   String get goalMaintenanceDrifting => 'Lieve scostamento dal corridoio';
 
   @override
+  String get goalJourneyInProgress => 'Il tuo obiettivo è in movimento';
+
+  @override
+  String get goalJourneyTargetReached => 'Hai raggiunto il tuo obiettivo';
+
+  @override
   String get goalNotifyWeeklyReviewTitle => 'Bilancio settimanale pronto';
 
   @override
@@ -7733,11 +7872,57 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get goalNotifyPrivacyBody =>
-      'Tutte le notifiche sono gestite localmente. I tuoi dati di peso e calorie non appaiono mai nella schermata di blocco.';
+      'Le notifiche relative a obiettivi e revisioni vengono elaborate localmente e possono includere dettagli utili su obiettivo, peso o calorie. Gestisci anteprime nella schermata di blocco e orari silenziosi nelle impostazioni del sistema operativo.';
 
   @override
   String get goalNotificationSettingsSubtitle =>
       'Notifiche locali per bilanci e date obiettivo';
+
+  @override
+  String get notificationSettingsTitle => 'Notifiche';
+
+  @override
+  String get notificationSettingsSubtitle =>
+      'Promemoria per allenamenti, obiettivi e revisioni';
+
+  @override
+  String get notificationWorkoutSectionTitle => 'Piano di allenamento';
+
+  @override
+  String get notificationGoalsSectionTitle => 'Obiettivi e revisioni';
+
+  @override
+  String get workoutPlanNotifyTitle => 'Ricorda nei giorni di allenamento';
+
+  @override
+  String get workoutPlanNotifySubtitle =>
+      'Solo nei giorni pianificati. Nessun promemoria di recupero o colpevolizzante.';
+
+  @override
+  String get workoutPlanNotifyTimeTitle => 'Ora del promemoria';
+
+  @override
+  String get workoutPlanNotifyNoActivePlan =>
+      'I promemoria si attivano quando è attivo un piano di allenamento.';
+
+  @override
+  String get notificationPermissionDenied =>
+      'Le notifiche sono disattivate nelle impostazioni di sistema.';
+
+  @override
+  String get notificationPrivacyTitle => 'Locale e sotto il tuo controllo';
+
+  @override
+  String get notificationPrivacyBody =>
+      'Questi promemoria sono programmati localmente. Gestisci anteprime e orari silenziosi nelle impostazioni del sistema operativo.';
+
+  @override
+  String get workoutPlanReminderTitle => 'Il tuo allenamento è pianificato';
+
+  @override
+  String workoutPlanReminderBody(String routineName, String planName) {
+    return '$routineName è il prossimo allenamento di $planName.';
+  }
 
   @override
   String get weeklyGoalReviewNotificationTitle => 'Bilancio settimanale pronto';
@@ -7745,6 +7930,12 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get weeklyGoalReviewNotificationBody =>
       'La nuova analisi a 7 giorni è disponibile nell\'hub Nutrizione.';
+
+  @override
+  String weeklyGoalReviewNotificationDetailedBody(
+      String goalTitle, int calories) {
+    return '$goalTitle: la raccomandazione aggiornata è di $calories kcal al giorno. Apri la revisione per la spiegazione completa.';
+  }
 
   @override
   String get goalTargetDateReminderTitle => 'Data obiettivo raggiunta';
@@ -7776,4 +7967,85 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get emptyStateMeasurements => 'Nessuna misurazione ancora registrata.';
+
+  @override
+  String get goalTrackingModeTitle => 'Come vuoi pianificare?';
+
+  @override
+  String get goalTrackingModeDescription =>
+      'Scegli cosa deve definire il tuo obiettivo nutrizionale.';
+
+  @override
+  String get goalTrackingModeOpen => 'Obiettivo aperto';
+
+  @override
+  String get goalTrackingModeOpenDescription =>
+      'Senza peso obiettivo, data o ritmo settimanale personalizzato.';
+
+  @override
+  String get goalTrackingModeWeeklyRate => 'Ritmo settimanale';
+
+  @override
+  String get goalTrackingModeWeeklyRateDescription =>
+      'Imposta di quanto vuoi cambiare peso ogni settimana.';
+
+  @override
+  String get goalTrackingModeTargetWeight => 'Peso obiettivo';
+
+  @override
+  String get goalTrackingModeTargetWeightDescription =>
+      'Imposta un peso obiettivo e, facoltativamente, una data.';
+
+  @override
+  String goalTrackingModeDefaultRateInfo(String rate) {
+    return 'Nelle raccomandazioni viene usato e mostrato il valore sicuro predefinito di $rate.';
+  }
+
+  @override
+  String get goalTrackingOpenReady =>
+      'Il tuo obiettivo aperto è pronto. Le raccomandazioni usano il valore sicuro predefinito per questa direzione.';
+
+  @override
+  String get goalTargetDateOptional => 'Data obiettivo (facoltativa)';
+
+  @override
+  String get goalReplaceActiveTitle =>
+      'Sostituire l’obiettivo nutrizionale attivo?';
+
+  @override
+  String get goalReplaceActiveBody =>
+      'L’obiettivo nutrizionale attuale verrà completato e sostituito. Gli obiettivi giornalieri cambiano solo quando applichi una raccomandazione.';
+
+  @override
+  String get goalReplaceActiveConfirm => 'Sostituisci obiettivo';
+
+  @override
+  String goalCreateError(String error) {
+    return 'Impossibile salvare l’obiettivo: $error';
+  }
+
+  @override
+  String goalAdjustError(String error) {
+    return 'Impossibile modificare l’obiettivo: $error';
+  }
+
+  @override
+  String get reviewKeepAndApplyTitle =>
+      'Mantenere l’obiettivo e aggiornare gli obiettivi giornalieri?';
+
+  @override
+  String get reviewKeepAndApplyBody =>
+      'L’obiettivo resta invariato. La raccomandazione viene ricalcolata e i relativi obiettivi calorici e nutrizionali vengono applicati subito.';
+
+  @override
+  String reviewActionError(String error) {
+    return 'L’azione di revisione non è riuscita: $error';
+  }
+
+  @override
+  String get calculationBasisTitle => 'Base di calcolo';
+
+  @override
+  String get calculationBasisSubtitle =>
+      'Attività quotidiana e cardio aggiuntivo';
 }

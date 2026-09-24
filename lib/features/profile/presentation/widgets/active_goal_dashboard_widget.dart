@@ -10,7 +10,6 @@ import '../../../../services/unit_service.dart';
 import '../../../../util/design_constants.dart';
 import '../../../../widgets/common/app_button.dart';
 import '../../../../widgets/common/app_section_header.dart';
-import '../../../../widgets/common/glass_progress_bar.dart';
 import '../../../../widgets/common/summary_card.dart';
 import '../../../../widgets/common/value_summary_card.dart';
 import '../../domain/models/goal_model.dart';
@@ -30,6 +29,7 @@ class ActiveGoalDashboardWidget extends StatelessWidget {
   final GoalProgress? progress;
   final List<ChartDataPoint> chartPoints;
   final VoidCallback? onRefresh;
+  final Future<void> Function()? onBaselineRecorded;
   final VoidCallback? onHeaderTap;
   final bool bleedChartToEdges;
   final Widget? bottomActions;
@@ -40,6 +40,7 @@ class ActiveGoalDashboardWidget extends StatelessWidget {
     required this.progress,
     required this.chartPoints,
     this.onRefresh,
+    this.onBaselineRecorded,
     this.onHeaderTap,
     this.bleedChartToEdges = false,
     this.bottomActions,
@@ -83,19 +84,10 @@ class ActiveGoalDashboardWidget extends StatelessWidget {
     if (activeGoal == null) {
       return SummaryCard(
         margin: EdgeInsets.zero,
-        onTap: () async {
-          final result = await Navigator.of(context).push<bool>(
-            MaterialPageRoute(
-              builder: (_) => const CreateGoalFlow(),
-            ),
-          );
-          if (result == true) {
-            onRefresh?.call();
-          }
-        },
         child: Padding(
           padding: DesignConstants.cardPadding,
-          child: Row(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
                 width: 44,
@@ -110,32 +102,35 @@ class ActiveGoalDashboardWidget extends StatelessWidget {
                   size: 22,
                 ),
               ),
-              const SizedBox(width: DesignConstants.spacingM),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      l10n.noActiveGoalTitle,
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      l10n.noActiveGoalDescription,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color:
-                            theme.colorScheme.onSurface.withValues(alpha: 0.6),
-                      ),
-                    ),
-                  ],
+              const SizedBox(height: DesignConstants.spacingM),
+              Text(
+                l10n.noActiveGoalTitle,
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
                 ),
               ),
-              Icon(
-                LucideIcons.chevron_right,
-                size: 20,
-                color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
+              const SizedBox(height: DesignConstants.spacingXS),
+              Text(
+                l10n.noActiveGoalDescription,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.68),
+                  height: 1.35,
+                ),
+              ),
+              const SizedBox(height: DesignConstants.spacingL),
+              SizedBox(
+                width: double.infinity,
+                child: AppButton.primary(
+                  label: l10n.createGoalTitle,
+                  onPressed: () async {
+                    final result = await Navigator.of(context).push<bool>(
+                      MaterialPageRoute(
+                        builder: (_) => const CreateGoalFlow(),
+                      ),
+                    );
+                    if (result == true) onRefresh?.call();
+                  },
+                ),
               ),
             ],
           ),
@@ -146,159 +141,170 @@ class ActiveGoalDashboardWidget extends StatelessWidget {
     final isWaiting = progress?.state == GoalProgressState.waitingForBaseline;
     final isActive = activeGoal.status == GoalStatus.active;
     final isRetired = activeGoal.status == GoalStatus.retired;
+    final statusMessage = switch (progress?.state) {
+      GoalProgressState.targetMet => l10n.goalJourneyTargetReached,
+      GoalProgressState.maintenanceStable => l10n.goalMaintenanceStable,
+      GoalProgressState.maintenanceDrifting => l10n.goalMaintenanceDrifting,
+      GoalProgressState.waitingForBaseline =>
+        l10n.goalWaitingForBaselineCalloutTitle,
+      _ => l10n.goalJourneyInProgress,
+    };
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        // Header card with goal title, status, metadata, and motivation
         SummaryCard(
           margin: EdgeInsets.zero,
           onTap: onHeaderTap,
-          child: Padding(
-            padding: DesignConstants.cardPadding,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        activeGoal.title.isNotEmpty
-                            ? activeGoal.title
-                            : _presetLabel(context, activeGoal.preset),
-                        style: theme.textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      activeGoal.title.isNotEmpty
+                          ? activeGoal.title
+                          : _presetLabel(context, activeGoal.preset),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
+                  ),
+                  _GoalStatusPill(
+                    label: isActive
+                        ? l10n.goalStatusActive
+                        : (isRetired
+                            ? l10n.goalStatusRetired
+                            : l10n.goalStatusSuperseded),
+                    active: isActive,
+                  ),
+                  if (onHeaderTap != null) ...[
                     const SizedBox(width: DesignConstants.spacingS),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: isActive
-                            ? Colors.green.withValues(alpha: 0.15)
-                            : theme.colorScheme.onSurface
-                                .withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(
-                          DesignConstants.borderRadiusS,
-                        ),
-                      ),
-                      child: Text(
-                        isActive
-                            ? l10n.goalStatusActive
-                            : (isRetired
-                                ? l10n.goalStatusRetired
-                                : l10n.goalStatusSuperseded),
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: isActive
-                              ? Colors.green
-                              : theme.colorScheme.onSurface
-                                  .withValues(alpha: 0.7),
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
+                    Icon(
+                      LucideIcons.chevron_right,
+                      size: 18,
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
                     ),
-                    if (onHeaderTap != null) ...[
-                      const SizedBox(width: DesignConstants.spacingXS),
-                      Icon(
-                        LucideIcons.chevron_right,
-                        size: 18,
-                        color:
-                            theme.colorScheme.onSurface.withValues(alpha: 0.4),
-                      ),
-                    ],
                   ],
-                ),
-                const SizedBox(height: DesignConstants.spacingXS),
-                Text(
-                  '${l10n.goalStartedOnLabel(dateFormat.format(activeGoal.startDate))} • ${activeGoal.isNutritionDriver ? l10n.goalDrivesNutritionBadge : l10n.goalDocumentationOnlyBadge}',
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
-                  ),
-                ),
-                if (activeGoal.reason != null &&
-                    activeGoal.reason!.trim().isNotEmpty) ...[
-                  const SizedBox(height: DesignConstants.spacingS),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Icon(
-                        LucideIcons.quote,
-                        size: 14,
-                        color: theme.colorScheme.primary,
-                      ),
-                      const SizedBox(width: DesignConstants.spacingS),
-                      Expanded(
-                        child: Text(
-                          activeGoal.reason!.trim(),
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            fontStyle: FontStyle.italic,
-                            color: theme.colorScheme.onSurface
-                                .withValues(alpha: 0.75),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
                 ],
+              ),
+              const SizedBox(height: DesignConstants.spacingS),
+              Text(
+                statusMessage,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.72),
+                ),
+              ),
+              if (activeGoal.reason?.trim().isNotEmpty == true) ...[
+                const SizedBox(height: DesignConstants.spacingS),
+                Text(
+                  '“${activeGoal.reason!.trim()}”',
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    fontStyle: FontStyle.italic,
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.55),
+                  ),
+                ),
               ],
-            ),
+            ],
           ),
         ),
         const SizedBox(height: DesignConstants.spacingS),
-
-        // Drei-Säulen-Übersicht: Start, Aktuell, Ziel (ValueSummaryCards)
+        ValueSummaryCard(
+          label: l10n.goalCurrentHeader,
+          value: formatWeight(progress?.currentValue),
+          subtitle: progress?.deltaSinceStart == null
+              ? null
+              : '${progress!.deltaSinceStart! >= 0 ? "+" : ""}${unitService.convertDisplayValue(progress!.deltaSinceStart!, UnitDimension.weight).toStringAsFixed(1)} ${unitService.unitString(UnitDimension.weight)}',
+          valueColor: theme.colorScheme.primary,
+        ),
+        const SizedBox(height: DesignConstants.spacingS),
         Row(
           children: [
-            // Start / Baseline
             Expanded(
               child: ValueSummaryCard(
                 label: l10n.goalBaselineHeader,
-                value: isWaiting ? '--' : formatWeight(progress?.baselineValue),
-                subtitle: progress?.baselineDate != null
-                    ? dateFormat.format(progress!.baselineDate!)
-                    : l10n.goalWaitingForBaselineLabel,
+                value: formatWeight(progress?.baselineValue),
+                subtitle: progress?.baselineDate == null
+                    ? null
+                    : dateFormat.format(progress!.baselineDate!),
               ),
             ),
             const SizedBox(width: DesignConstants.spacingS),
-
-            // Aktuell
-            Expanded(
-              child: ValueSummaryCard(
-                label: l10n.goalCurrentHeader,
-                value: formatWeight(progress?.currentValue),
-                subtitle: progress?.deltaSinceStart != null
-                    ? '${progress!.deltaSinceStart! >= 0 ? "+" : ""}${unitService.convertDisplayValue(progress!.deltaSinceStart!, UnitDimension.weight).toStringAsFixed(1)} ${unitService.unitString(UnitDimension.weight)}'
-                    : null,
-                valueColor: theme.colorScheme.primary,
-              ),
-            ),
-            const SizedBox(width: DesignConstants.spacingS),
-
-            // Ziel
             Expanded(
               child: ValueSummaryCard(
                 label: l10n.goalTargetHeader,
-                value: activeGoal.targetValue != null
-                    ? formatWeight(activeGoal.targetValue)
-                    : (activeGoal.isMaintenanceOrRecomp
+                value: activeGoal.targetValue == null
+                    ? (activeGoal.isMaintenanceOrRecomp
                         ? l10n.goalMaintainCorridor
-                        : l10n.goalDirectionalOnly),
-                subtitle: activeGoal.targetDate != null
-                    ? dateFormat.format(activeGoal.targetDate!)
-                    : l10n.goalNoTargetDateShort,
+                        : l10n.goalDirectionalOnly)
+                    : formatWeight(activeGoal.targetValue),
+                subtitle: activeGoal.targetDate == null
+                    ? l10n.goalNoTargetDateShort
+                    : dateFormat.format(activeGoal.targetDate!),
               ),
             ),
           ],
         ),
+        if (progress != null && !isWaiting) ...[
+          const SizedBox(height: DesignConstants.spacingS),
+          SummaryCard(
+            margin: EdgeInsets.zero,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        l10n.goalProgressSectionTitle,
+                        style: theme.textTheme.labelLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    Text(
+                      '${(((progress!.progressPercentage ?? (progress!.isInToleranceBand ? 1.0 : 0.0)) * 100).clamp(0.0, 100.0)).round()}%',
+                      style: theme.textTheme.labelLarge?.copyWith(
+                        color: theme.colorScheme.primary,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: DesignConstants.spacingS),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(99),
+                  child: LinearProgressIndicator(
+                    minHeight: 6,
+                    value: (progress!.progressPercentage ??
+                            (progress!.isInToleranceBand ? 1.0 : 0.0))
+                        .clamp(0.0, 1.0),
+                    backgroundColor: theme.colorScheme.surfaceContainerHighest,
+                  ),
+                ),
+                const SizedBox(height: DesignConstants.spacingS),
+                Text(
+                  progress!.remainingDistance != null
+                      ? l10n.goalRemainingDistanceLabel(
+                          formatWeight(progress!.remainingDistance),
+                        )
+                      : statusMessage,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.62),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
         const SizedBox(height: DesignConstants.spacingS),
-
-        // Waiting for baseline callout if needed
+        // The first missing measurement is the only action shown in this state.
         if (isWaiting) ...[
           Container(
             padding: const EdgeInsets.all(DesignConstants.spacingM),
@@ -311,25 +317,6 @@ class ActiveGoalDashboardWidget extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    Icon(
-                      LucideIcons.scale,
-                      color: theme.colorScheme.primary,
-                      size: 20,
-                    ),
-                    const SizedBox(width: DesignConstants.spacingM),
-                    Expanded(
-                      child: Text(
-                        l10n.goalWaitingForBaselineCalloutTitle,
-                        style: theme.textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: DesignConstants.spacingS),
                 Text(
                   l10n.goalWaitingForBaselineCalloutDescription,
                   style: theme.textTheme.bodySmall?.copyWith(
@@ -345,72 +332,15 @@ class ActiveGoalDashboardWidget extends StatelessWidget {
                         builder: (_) => const AddMeasurementScreen(),
                       ),
                     );
-                    onRefresh?.call();
+                    if (onBaselineRecorded != null) {
+                      await onBaselineRecorded!();
+                    } else {
+                      onRefresh?.call();
+                    }
                   },
                 ),
               ],
             ),
-          ),
-          const SizedBox(height: DesignConstants.spacingL),
-        ],
-
-        // GlassProgressBar & Weekly Rate
-        if (progress != null && !isWaiting) ...[
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              GlassProgressBar(
-                label: l10n.goalProgressSectionTitle,
-                unit: unitService.unitString(UnitDimension.weight),
-                value: ((progress!.progressPercentage ?? 0.0) * 100)
-                    .clamp(0.0, 100.0),
-                target: 100.0,
-                color: Colors.green,
-                borderRadius: DesignConstants.borderRadiusL,
-                customSubtitle: progress!.remainingDistance != null &&
-                        activeGoal.hasNumericTarget
-                    ? l10n.goalRemainingDistanceLabel(
-                        '${unitService.convertDisplayValue(progress!.remainingDistance!, UnitDimension.weight).toStringAsFixed(1)} ${unitService.unitString(UnitDimension.weight)}',
-                      )
-                    : (activeGoal.isMaintenanceOrRecomp
-                        ? (progress!.isInToleranceBand == true
-                            ? l10n.goalMaintenanceStable
-                            : l10n.goalMaintenanceDrifting)
-                        : '${((progress!.progressPercentage ?? 0.0) * 100).toStringAsFixed(0)}%'),
-              ),
-              if (progress!.trendRateKgPerWeek != null ||
-                  progress!.progressPercentage != null) ...[
-                const SizedBox(height: DesignConstants.spacingXS),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 4),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      if (progress!.progressPercentage != null)
-                        Text(
-                          '${(progress!.progressPercentage! * 100).toStringAsFixed(0)}%',
-                          style: theme.textTheme.labelSmall?.copyWith(
-                            color: theme.colorScheme.onSurface
-                                .withValues(alpha: 0.6),
-                            fontWeight: FontWeight.w600,
-                          ),
-                        )
-                      else
-                        const SizedBox.shrink(),
-                      if (progress!.trendRateKgPerWeek != null)
-                        Text(
-                          '${progress!.trendRateKgPerWeek! >= 0 ? "+" : ""}${unitService.convertDisplayValue(progress!.trendRateKgPerWeek!, UnitDimension.weight).toStringAsFixed(2)} ${unitService.unitString(UnitDimension.weight)}/${l10n.weekShort}',
-                          style: theme.textTheme.labelSmall?.copyWith(
-                            color: theme.colorScheme.onSurface
-                                .withValues(alpha: 0.6),
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-              ],
-            ],
           ),
           const SizedBox(height: DesignConstants.spacingL),
         ],
@@ -424,8 +354,8 @@ class ActiveGoalDashboardWidget extends StatelessWidget {
           const SizedBox(height: DesignConstants.spacingS),
           Builder(
             builder: (context) {
-              final startWeight = progress?.baselineValue ??
-                  (chartPoints.isNotEmpty ? chartPoints.first.value : 75.0);
+              final startWeight =
+                  progress?.baselineValue ?? chartPoints.first.value;
               final targetDate = activeGoal.targetDate ??
                   activeGoal.startDate.add(const Duration(days: 84));
               final domainEnd = targetDate.isAfter(DateTime.now())
@@ -478,6 +408,33 @@ class ActiveGoalDashboardWidget extends StatelessWidget {
           bottomActions!,
         ],
       ],
+    );
+  }
+}
+
+class _GoalStatusPill extends StatelessWidget {
+  final String label;
+  final bool active;
+
+  const _GoalStatusPill({required this.label, required this.active});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final color = active ? Colors.green : theme.colorScheme.onSurface;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(DesignConstants.borderRadiusS),
+      ),
+      child: Text(
+        label,
+        style: theme.textTheme.labelSmall?.copyWith(
+          color: color.withValues(alpha: active ? 1 : 0.7),
+          fontWeight: FontWeight.w700,
+        ),
+      ),
     );
   }
 }
