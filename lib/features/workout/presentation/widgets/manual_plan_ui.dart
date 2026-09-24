@@ -228,35 +228,47 @@ class _PlanDayCell extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
         child: Material(
-          color: selected ? colorScheme.primary : Colors.transparent,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
-            side: today && !selected
-                ? BorderSide(color: colorScheme.primary, width: 1.5)
-                : BorderSide.none,
-          ),
+          color: Colors.transparent,
           child: InkWell(
             borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
             onTap: onTap,
             child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 5),
+              padding: const EdgeInsets.symmetric(vertical: 2),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(
-                    weekday.toUpperCase(),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      color: foreground,
-                      fontWeight: FontWeight.w700,
+                  Container(
+                    height: 48,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color:
+                          selected ? colorScheme.primary : Colors.transparent,
+                      borderRadius:
+                          BorderRadius.circular(DesignConstants.borderRadiusM),
+                      border: today && !selected
+                          ? Border.all(color: colorScheme.primary, width: 1.5)
+                          : null,
                     ),
-                  ),
-                  Text(
-                    DateFormat.d(locale).format(date),
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      color: foreground,
-                      fontWeight: FontWeight.w800,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          weekday.toUpperCase(),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: foreground,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        Text(
+                          DateFormat.d(locale).format(date),
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            color: foreground,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                   const SizedBox(height: 3),
@@ -291,7 +303,7 @@ class _PlanDayMarker extends StatelessWidget {
     final colors = Theme.of(context).colorScheme;
     if (day == null) return const SizedBox(height: 5);
     final color = selected
-        ? colors.onPrimary
+        ? colors.primary
         : switch (day!.status) {
             PlannedDayStatus.completed => colors.primary,
             PlannedDayStatus.partial => colors.tertiary,
@@ -408,17 +420,15 @@ class PlanDayDetailCard extends StatelessWidget {
               width: double.infinity,
               child: AppButton.primary(
                 label: text.get('start'),
-                icon: LucideIcons.play,
                 onPressed: onStart,
               ),
             ),
             if (onSkip != null)
               Align(
                 alignment: Alignment.center,
-                child: TextButton.icon(
+                child: TextButton(
                   onPressed: onSkip,
-                  icon: const Icon(LucideIcons.skip_forward, size: 17),
-                  label: Text(text.get('skip')),
+                  child: Text(text.get('skip')),
                 ),
               ),
           ],

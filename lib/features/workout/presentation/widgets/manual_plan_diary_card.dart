@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 
+import '../../../../generated/app_localizations.dart';
 import '../../../../util/design_constants.dart';
-import '../../../../widgets/common/app_button.dart';
 import '../../../../widgets/common/summary_card.dart';
 import '../../data/manual_training_plan_repository.dart';
 import '../../domain/models/manual_training_plan.dart';
@@ -51,54 +51,90 @@ class _ManualPlanDiaryCardState extends State<ManualPlanDiaryCard> {
         final canStart =
             today && !day.day.isRest && day.status == PlannedDayStatus.planned;
         final theme = Theme.of(context);
+        final l10n = AppLocalizations.of(context)!;
         return SummaryCard(
           padding: EdgeInsets.zero,
           margin:
               const EdgeInsets.symmetric(vertical: DesignConstants.spacingXS),
-          child: ListTile(
-            onTap: () async {
-              await Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const ManualPlanScreen()));
-              if (mounted) setState(() => _refresh++);
-            },
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: DesignConstants.spacingM,
-              vertical: DesignConstants.screenPaddingVertical,
-            ),
-            title: Text(
-              day.day.routineName ?? text.get('rest'),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: theme.textTheme.titleMedium?.copyWith(
-                color: theme.brightness == Brightness.dark
-                    ? Colors.white
-                    : Colors.black,
-                fontWeight: FontWeight.bold,
+          child: Semantics(
+            button: true,
+            container: true,
+            label: '${day.day.routineName ?? text.get('rest')}, $subtitle',
+            child: InkWell(
+              onTap: () async {
+                await Navigator.of(context).push(MaterialPageRoute(
+                    builder: (_) => const ManualPlanScreen()));
+                if (mounted) setState(() => _refresh++);
+              },
+              borderRadius:
+                  BorderRadius.circular(DesignConstants.borderRadiusL),
+              child: Padding(
+                // Keep every edge identical, like the Weight card.
+                padding: const EdgeInsets.all(DesignConstants.spacingM),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            day.day.routineName ?? text.get('rest'),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              color: theme.brightness == Brightness.dark
+                                  ? Colors.white
+                                  : Colors.black,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: DesignConstants.spacingXS),
+                          Text(
+                            subtitle,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: theme.colorScheme.onSurface,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: DesignConstants.spacingM),
+                    canStart
+                        ? FilledButton(
+                            style: FilledButton.styleFrom(
+                              minimumSize: const Size(0, 44),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: DesignConstants.spacingM,
+                              ),
+                              textStyle: theme.textTheme.labelLarge?.copyWith(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 0.1,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(
+                                  DesignConstants.borderRadiusM,
+                                ),
+                              ),
+                            ),
+                            onPressed: () async {
+                              await startManualPlanDay(context, plan, day);
+                              if (mounted) setState(() => _refresh++);
+                            },
+                            child: Text(l10n.startButton),
+                          )
+                        : Icon(
+                            LucideIcons.chevron_right,
+                            color: theme.colorScheme.onSurface,
+                          ),
+                  ],
+                ),
               ),
             ),
-            subtitle: Text(
-              subtitle,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurface,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            trailing: canStart
-                ? AppButton.primary(
-                    label: text.get('start'),
-                    icon: LucideIcons.play,
-                    size: AppButtonSize.small,
-                    onPressed: () async {
-                      await startManualPlanDay(context, plan, day);
-                      if (mounted) setState(() => _refresh++);
-                    },
-                  )
-                : Icon(
-                    LucideIcons.chevron_right,
-                    color: theme.colorScheme.onSurface,
-                  ),
           ),
         );
       },
