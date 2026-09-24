@@ -32,7 +32,7 @@ void main() {
         .customSelect("SELECT name FROM sqlite_master WHERE type = 'table'")
         .get();
     final names = tables.map((row) => row.read<String>('name')).toSet();
-    expect(database.schemaVersion, 35);
+    expect(database.schemaVersion, 36);
     expect(
       names,
       containsAll([
@@ -48,6 +48,32 @@ void main() {
     final indexNames = indexes.map((row) => row.read<String>('name')).toSet();
     expect(indexNames, contains('idx_training_plan_active'));
     expect(indexNames, contains('idx_training_occurrence_slot'));
+    await database.close();
+  });
+
+  test('schema 35 adds the nullable routine last-used timestamp', () async {
+    final directory =
+        await Directory.systemTemp.createTemp('schema_v36_routine_test_');
+    addTearDown(() async {
+      if (await directory.exists()) await directory.delete(recursive: true);
+    });
+    final file = File(p.join(directory.path, 'v35.sqlite'));
+
+    var database = AppDatabase(NativeDatabase(file));
+    await database.customSelect('SELECT 1').get();
+    await database
+        .customStatement('ALTER TABLE routines DROP COLUMN last_used_at');
+    await database.customStatement('PRAGMA user_version = 35');
+    await database.close();
+
+    database = AppDatabase(NativeDatabase(file));
+    await database.customSelect('SELECT 1').get();
+    final columns =
+        await database.customSelect('PRAGMA table_info(routines)').get();
+    final columnNames = columns.map((row) => row.read<String>('name')).toSet();
+
+    expect(database.schemaVersion, 36);
+    expect(columnNames, contains('last_used_at'));
     await database.close();
   });
 }

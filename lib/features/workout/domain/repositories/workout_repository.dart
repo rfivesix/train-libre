@@ -45,6 +45,8 @@ abstract class IWorkoutRepository {
       DateTime start, DateTime end);
   Stream<List<WorkoutLog>> watchFullWorkoutLogs();
   Stream<List<Routine>> watchAllRoutines();
+  Stream<List<Routine>> watchAllRoutinesWithDetails();
+  Future<void> touchRoutineLastUsed(int routineId, [DateTime? time]);
   Stream<List<WorkoutLog>> watchWorkoutLogsForDateRange(
       DateTime start, DateTime end);
   Future<Routine?> getRoutineByUuid(String uuid);

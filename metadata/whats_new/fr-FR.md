@@ -6,6 +6,18 @@
   récente en premier. Ensuite : python3 script/build_whats_new.py --write --sync-store
 -->
 
+## 1.5.0 (2026-09-25)
+
+{chart_line} Des objectifs qui évoluent avec toi : définis un objectif de poids à long terme à partir d'une mesure réelle, suis ta trajectoire et fais le point sereinement chaque semaine. Les nouvelles recommandations de calories et de macros restent des propositions tant que tu ne les appliques pas.
+
+{dumbbell} Crée ton propre programme d'entraînement : organise tes routines enregistrées en semaine fixe ou en séquence flexible de 1 à 14 jours, ajoute des jours de repos, vois la prochaine séance et lance-la directement depuis le journal.
+
+{bell} Des rappels utiles, sans pression de rattrapage : des notifications locales facultatives gardent les bilans d'objectif et les séances prévues bien visibles. Une séance manquée ne crée ni travail supplémentaire ni dette d'entraînement.
+
+{layout_grid} Un espace Entraînement plus clair : l'onglet repensé réunit ton programme actif, la récupération, les démarrages rapides, les routines récentes, l'historique et le catalogue d'exercices en un seul endroit.
+
+{utensils} Comprends mieux tes tendances nutritionnelles : de nouvelles statistiques de macros et une comparaison glissante sur sept jours facilitent le suivi des calories, protéines, lipides et glucides dans le temps.
+
 ## 1.4.1 (2026-09-14)
 
 {activity} Récupération musculaire plus précise : Le suivi de la récupération utilise désormais un modèle de charge résiduelle décroissante par série. Les cartes musculaires affichent la disponibilité et les heures restantes en un coup d’œil ; appuyez sur une carte pour voir les détails de dose et de prévision.

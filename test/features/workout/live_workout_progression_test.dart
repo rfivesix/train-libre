@@ -1,7 +1,9 @@
+import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:train_libre/data/drift_database.dart' show AppDatabase;
+import 'package:train_libre/data/drift_database.dart'
+    show AppDatabase, ExercisesCompanion;
 import 'package:train_libre/features/exercise_catalog/domain/models/exercise.dart'
     as model;
 import 'package:train_libre/features/workout/data/sources/workout_local_data_source.dart';
@@ -76,6 +78,22 @@ void main() {
       'training_autonomy_level': 'suggest',
     });
     database = AppDatabase(NativeDatabase.memory());
+    await database.into(database.exercises).insert(
+      const ExercisesCompanion(
+        id: Value('bench'),
+        trackingType: Value('weight_reps'),
+        loadMode: Value('external'),
+        categoryName: Value('Strength'),
+      ),
+    );
+    await database.into(database.exercises).insert(
+      const ExercisesCompanion(
+        id: Value('squat'),
+        trackingType: Value('weight_reps'),
+        loadMode: Value('external'),
+        categoryName: Value('Strength'),
+      ),
+    );
     dataSource = WorkoutLocalDataSource.forTesting(database);
     repository = WorkoutRepository(localDataSource: dataSource);
     unitService = UnitService();

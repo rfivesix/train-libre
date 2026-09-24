@@ -31,7 +31,7 @@ KERN-FEATURES:
 5. KI-MAHLZEITEN-ERFASSUNG (Optional)
 • Bring Your Own Key (BYOK): Optionale KI-Erkennung von Mahlzeiten über deinen eigenen API-Schlüssel. Standardmäßig deaktiviert.
 • Foto, Barcode und Sprache in einer Ansicht: Fotografiere deinen Teller, lass dieselbe Ansicht den Barcode eines verpackten Produkts erkennen oder beschreibe die Mahlzeit einfach per Sprache. Auf iPhones mit LiDAR wird die Portionsgröße gemessen statt geschätzt.
-• Intelligenter Abgleich: Ein lokales „Top-N Fuzzy Alternatives"-System in Kombination mit Open Food Facts ordnet deine Mahlzeit präzise zu und verhindert Halluzinationen zuverlässig.
+• Intelligenter Abgleich: Ein lokales „Top-N Fuzzy Alternatives“-System nutzt Open Food Facts, um passende Treffer zu finden. Jedes Ergebnis bleibt vor dem Speichern vollständig prüfbar.
 • 100 % transparent: Jeder KI-Vorschlag ist vor dem Speichern vollständig überprüfbar und anpassbar.
 
 RECHTLICHER HINWEIS:

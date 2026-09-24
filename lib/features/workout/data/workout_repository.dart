@@ -164,6 +164,14 @@ class WorkoutRepository
       _localDataSource.watchAllRoutines();
 
   @override
+  Stream<List<Routine>> watchAllRoutinesWithDetails() =>
+      _localDataSource.watchAllRoutinesWithDetails();
+
+  @override
+  Future<void> touchRoutineLastUsed(int routineId, [DateTime? time]) =>
+      _localDataSource.touchRoutineLastUsed(routineId, time);
+
+  @override
   Stream<List<WorkoutLog>> watchWorkoutLogsForDateRange(
           DateTime start, DateTime end) =>
       _localDataSource.watchWorkoutLogsForDateRange(start, end);

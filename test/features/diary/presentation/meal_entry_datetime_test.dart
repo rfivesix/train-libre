@@ -144,6 +144,8 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Open Meal'));
     await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Edit'));
+    await tester.pumpAndSettle();
   }
 
   Future<void> openPicker(WidgetTester tester) async {
@@ -250,8 +252,7 @@ void main() {
     expect(repo.updatedFoodEntries.single.id, 7);
   });
 
-  testWidgets(
-      'deleting an ingredient deletes the food entry on pop',
+  testWidgets('deleting an ingredient deletes the food entry on pop',
       (tester) async {
     final repo = _RecordingDiaryRepo();
     await pumpScreen(tester, repo);
@@ -270,7 +271,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(repo.deletedFoodEntries, contains(7),
-        reason: 'deleted ingredient ID 7 must be deleted via repo.deleteFoodEntry');
+        reason:
+            'deleted ingredient ID 7 must be deleted via repo.deleteFoodEntry');
   });
 
   testWidgets(
@@ -322,8 +324,7 @@ void main() {
     expect(repo.updatedFoodEntries.last.mealType, 'mealtypeDinner');
   });
 
-  testWidgets(
-      'renaming meal updates the title and persists on pop',
+  testWidgets('renaming meal updates the title and persists on pop',
       (tester) async {
     final repo = _RecordingDiaryRepo();
     await pumpScreen(tester, repo);

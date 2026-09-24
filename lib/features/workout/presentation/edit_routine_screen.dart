@@ -600,6 +600,9 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
   Future<bool> _saveRoutine() async {
     final success = await _persistRoutineState();
     if (success && mounted) {
+      if (_routineId != null) {
+        await WorkoutLocalDataSource.instance.touchRoutineLastUsed(_routineId!);
+      }
       await _offerPlanUpdate();
       if (!mounted) return success;
       ScaffoldMessenger.of(

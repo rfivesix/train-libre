@@ -1768,7 +1768,6 @@
   "@sleepDataStatusSubtitleIos": {
     "type": "text"
   },
-  "sleepNoPermissionTitle": "許可がありません",
   "sleepNoPermissionSubtitle": "睡眠データをインポートするには、睡眠と心拍数の権限が必要です。",
   "sleepFeatureUnavailableTitle": "利用できない機能",
   "sleepFeatureUnavailableSubtitle": "このデバイスでは睡眠のインポートが利用できないか、ヘルスコネクトがインストールされていません。",

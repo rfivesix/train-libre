@@ -1768,7 +1768,6 @@
   "@sleepDataStatusSubtitleIos": {
     "type": "text"
   },
-  "sleepNoPermissionTitle": "Aucune autorisation",
   "sleepNoPermissionSubtitle": "Des autorisations de sommeil et de fréquence cardiaque sont requises pour importer des données de sommeil.",
   "sleepFeatureUnavailableTitle": "Fonctionnalité indisponible",
   "sleepFeatureUnavailableSubtitle": "L’importation du sommeil n’est pas disponible sur cet appareil ou Health Connect n’est pas installé.",

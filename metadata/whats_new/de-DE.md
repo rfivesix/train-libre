@@ -6,6 +6,18 @@
   Danach ausführen: python3 script/build_whats_new.py --write --sync-store
 -->
 
+## 1.5.0 (2026-09-25)
+
+{chart_line} Ziele, die sich mit dir weiterentwickeln: Lege ein langfristiges Gewichtsziel mit echter Startmessung fest, verfolge deinen Zielpfad und ordne deinen Fortschritt in ruhigen wöchentlichen Rückblicken ein. Neue Kalorien- und Makroempfehlungen bleiben Vorschläge, bis du sie selbst anwendest.
+
+{dumbbell} Erstelle deinen eigenen Trainingsplan: Ordne gespeicherte Routinen als Wochenplan oder flexible Abfolge von 1–14 Tagen an, plane Ruhetage ein, sieh direkt, was als Nächstes ansteht, und starte geplante Einheiten aus dem Tagebuch.
+
+{bell} Hilfreiche Erinnerungen ohne Nachholdruck: Optionale lokale Benachrichtigungen erinnern an Zielrückblicke und geplante Workouts. Verpasste Einheiten erzeugen weder Zusatztraining noch Trainingsschulden.
+
+{layout_grid} Ein klareres Zuhause fürs Training: Der überarbeitete Workout-Tab bündelt deinen aktiven Plan, Regeneration, Schnellstarts, zuletzt verwendete Routinen, Verlauf und Übungskatalog an einem Ort.
+
+{utensils} Ernährungstrends besser verstehen: Neue Makrostatistiken und ein rollierender 7-Tage-Vergleich machen Kalorien, Protein, Fett und Kohlenhydrate über die Zeit leichter nachvollziehbar.
+
 ## 1.4.1 (2026-09-14)
 
 {activity} Präzisere Muskelregeneration: Die Regenerationsanzeige nutzt jetzt ein zeitdynamisches Belastungsmodell für jeden einzelnen Satz. Die Muskelkarten zeigen Bereitschaft und verbleibende Erholungszeit noch übersichtlicher; ein Tipp öffnet detaillierte Einblicke zu Belastungsdosis und Prognose.

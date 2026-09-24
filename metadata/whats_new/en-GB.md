@@ -6,6 +6,18 @@
   Newest version first. Regenerate with: python3 script/build_whats_new.py
 -->
 
+## 1.5.0 (2026-09-25)
+
+{chart_line} Goals that adapt with you: Set a long-term weight goal with a real starting measurement, follow your trajectory, and review your progress in calm weekly check-ins. New calorie and macro recommendations remain proposals until you choose to apply them.
+
+{dumbbell} Build your own workout plan: Arrange saved routines as a weekly schedule or a flexible 1–14 day sequence, include rest days, see what is next, and start planned sessions directly from the Diary.
+
+{bell} Helpful reminders, never catch-up pressure: Optional local reminders keep goal reviews and planned workouts visible. Missed sessions do not create extra work or a workout debt.
+
+{layout_grid} A clearer Workout home: The redesigned Workout tab brings your active plan, recovery, quick starts, recently used routines, history, and the exercise catalogue into one focused place.
+
+{utensils} Understand your nutrition trends: New macro statistics and a rolling seven-day intake comparison make calories, protein, fat, and carbohydrates easier to inspect over time.
+
 ## 1.4.1 (2026-09-14)
 
 {activity} Smarter Muscle Recovery: Recovery tracking now uses a time-decaying residual-load model for every single set. Muscle rows show readiness and remaining recovery hours at a glance, and tapping any card reveals detailed session dose and forecast insights.

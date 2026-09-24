@@ -2756,9 +2756,24 @@ class $RoutinesTable extends Routines with TableInfo<$RoutinesTable, Routine> {
       defaultConstraints:
           GeneratedColumn.constraintIsAlways('CHECK ("is_public" IN (0, 1))'),
       defaultValue: const Constant(false));
+  static const VerificationMeta _lastUsedAtMeta =
+      const VerificationMeta('lastUsedAt');
   @override
-  List<GeneratedColumn> get $columns =>
-      [localId, id, createdAt, updatedAt, deletedAt, userId, name, isPublic];
+  late final GeneratedColumn<DateTime> lastUsedAt = GeneratedColumn<DateTime>(
+      'last_used_at', aliasedName, true,
+      type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  @override
+  List<GeneratedColumn> get $columns => [
+        localId,
+        id,
+        createdAt,
+        updatedAt,
+        deletedAt,
+        userId,
+        name,
+        isPublic,
+        lastUsedAt
+      ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -2802,6 +2817,12 @@ class $RoutinesTable extends Routines with TableInfo<$RoutinesTable, Routine> {
       context.handle(_isPublicMeta,
           isPublic.isAcceptableOrUnknown(data['is_public']!, _isPublicMeta));
     }
+    if (data.containsKey('last_used_at')) {
+      context.handle(
+          _lastUsedAtMeta,
+          lastUsedAt.isAcceptableOrUnknown(
+              data['last_used_at']!, _lastUsedAtMeta));
+    }
     return context;
   }
 
@@ -2827,6 +2848,8 @@ class $RoutinesTable extends Routines with TableInfo<$RoutinesTable, Routine> {
           .read(DriftSqlType.string, data['${effectivePrefix}name'])!,
       isPublic: attachedDatabase.typeMapping
           .read(DriftSqlType.bool, data['${effectivePrefix}is_public'])!,
+      lastUsedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}last_used_at']),
     );
   }
 
@@ -2845,6 +2868,7 @@ class Routine extends DataClass implements Insertable<Routine> {
   final String? userId;
   final String name;
   final bool isPublic;
+  final DateTime? lastUsedAt;
   const Routine(
       {required this.localId,
       required this.id,
@@ -2853,7 +2877,8 @@ class Routine extends DataClass implements Insertable<Routine> {
       this.deletedAt,
       this.userId,
       required this.name,
-      required this.isPublic});
+      required this.isPublic,
+      this.lastUsedAt});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -2869,6 +2894,9 @@ class Routine extends DataClass implements Insertable<Routine> {
     }
     map['name'] = Variable<String>(name);
     map['is_public'] = Variable<bool>(isPublic);
+    if (!nullToAbsent || lastUsedAt != null) {
+      map['last_used_at'] = Variable<DateTime>(lastUsedAt);
+    }
     return map;
   }
 
@@ -2885,6 +2913,9 @@ class Routine extends DataClass implements Insertable<Routine> {
           userId == null && nullToAbsent ? const Value.absent() : Value(userId),
       name: Value(name),
       isPublic: Value(isPublic),
+      lastUsedAt: lastUsedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastUsedAt),
     );
   }
 
@@ -2900,6 +2931,7 @@ class Routine extends DataClass implements Insertable<Routine> {
       userId: serializer.fromJson<String?>(json['userId']),
       name: serializer.fromJson<String>(json['name']),
       isPublic: serializer.fromJson<bool>(json['isPublic']),
+      lastUsedAt: serializer.fromJson<DateTime?>(json['lastUsedAt']),
     );
   }
   @override
@@ -2914,6 +2946,7 @@ class Routine extends DataClass implements Insertable<Routine> {
       'userId': serializer.toJson<String?>(userId),
       'name': serializer.toJson<String>(name),
       'isPublic': serializer.toJson<bool>(isPublic),
+      'lastUsedAt': serializer.toJson<DateTime?>(lastUsedAt),
     };
   }
 
@@ -2925,7 +2958,8 @@ class Routine extends DataClass implements Insertable<Routine> {
           Value<DateTime?> deletedAt = const Value.absent(),
           Value<String?> userId = const Value.absent(),
           String? name,
-          bool? isPublic}) =>
+          bool? isPublic,
+          Value<DateTime?> lastUsedAt = const Value.absent()}) =>
       Routine(
         localId: localId ?? this.localId,
         id: id ?? this.id,
@@ -2935,6 +2969,7 @@ class Routine extends DataClass implements Insertable<Routine> {
         userId: userId.present ? userId.value : this.userId,
         name: name ?? this.name,
         isPublic: isPublic ?? this.isPublic,
+        lastUsedAt: lastUsedAt.present ? lastUsedAt.value : this.lastUsedAt,
       );
   Routine copyWithCompanion(RoutinesCompanion data) {
     return Routine(
@@ -2946,6 +2981,8 @@ class Routine extends DataClass implements Insertable<Routine> {
       userId: data.userId.present ? data.userId.value : this.userId,
       name: data.name.present ? data.name.value : this.name,
       isPublic: data.isPublic.present ? data.isPublic.value : this.isPublic,
+      lastUsedAt:
+          data.lastUsedAt.present ? data.lastUsedAt.value : this.lastUsedAt,
     );
   }
 
@@ -2959,14 +2996,15 @@ class Routine extends DataClass implements Insertable<Routine> {
           ..write('deletedAt: $deletedAt, ')
           ..write('userId: $userId, ')
           ..write('name: $name, ')
-          ..write('isPublic: $isPublic')
+          ..write('isPublic: $isPublic, ')
+          ..write('lastUsedAt: $lastUsedAt')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(
-      localId, id, createdAt, updatedAt, deletedAt, userId, name, isPublic);
+  int get hashCode => Object.hash(localId, id, createdAt, updatedAt, deletedAt,
+      userId, name, isPublic, lastUsedAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -2978,7 +3016,8 @@ class Routine extends DataClass implements Insertable<Routine> {
           other.deletedAt == this.deletedAt &&
           other.userId == this.userId &&
           other.name == this.name &&
-          other.isPublic == this.isPublic);
+          other.isPublic == this.isPublic &&
+          other.lastUsedAt == this.lastUsedAt);
 }
 
 class RoutinesCompanion extends UpdateCompanion<Routine> {
@@ -2990,6 +3029,7 @@ class RoutinesCompanion extends UpdateCompanion<Routine> {
   final Value<String?> userId;
   final Value<String> name;
   final Value<bool> isPublic;
+  final Value<DateTime?> lastUsedAt;
   const RoutinesCompanion({
     this.localId = const Value.absent(),
     this.id = const Value.absent(),
@@ -2999,6 +3039,7 @@ class RoutinesCompanion extends UpdateCompanion<Routine> {
     this.userId = const Value.absent(),
     this.name = const Value.absent(),
     this.isPublic = const Value.absent(),
+    this.lastUsedAt = const Value.absent(),
   });
   RoutinesCompanion.insert({
     this.localId = const Value.absent(),
@@ -3009,6 +3050,7 @@ class RoutinesCompanion extends UpdateCompanion<Routine> {
     this.userId = const Value.absent(),
     required String name,
     this.isPublic = const Value.absent(),
+    this.lastUsedAt = const Value.absent(),
   }) : name = Value(name);
   static Insertable<Routine> custom({
     Expression<int>? localId,
@@ -3019,6 +3061,7 @@ class RoutinesCompanion extends UpdateCompanion<Routine> {
     Expression<String>? userId,
     Expression<String>? name,
     Expression<bool>? isPublic,
+    Expression<DateTime>? lastUsedAt,
   }) {
     return RawValuesInsertable({
       if (localId != null) 'local_id': localId,
@@ -3029,6 +3072,7 @@ class RoutinesCompanion extends UpdateCompanion<Routine> {
       if (userId != null) 'user_id': userId,
       if (name != null) 'name': name,
       if (isPublic != null) 'is_public': isPublic,
+      if (lastUsedAt != null) 'last_used_at': lastUsedAt,
     });
   }
 
@@ -3040,7 +3084,8 @@ class RoutinesCompanion extends UpdateCompanion<Routine> {
       Value<DateTime?>? deletedAt,
       Value<String?>? userId,
       Value<String>? name,
-      Value<bool>? isPublic}) {
+      Value<bool>? isPublic,
+      Value<DateTime?>? lastUsedAt}) {
     return RoutinesCompanion(
       localId: localId ?? this.localId,
       id: id ?? this.id,
@@ -3050,6 +3095,7 @@ class RoutinesCompanion extends UpdateCompanion<Routine> {
       userId: userId ?? this.userId,
       name: name ?? this.name,
       isPublic: isPublic ?? this.isPublic,
+      lastUsedAt: lastUsedAt ?? this.lastUsedAt,
     );
   }
 
@@ -3080,6 +3126,9 @@ class RoutinesCompanion extends UpdateCompanion<Routine> {
     if (isPublic.present) {
       map['is_public'] = Variable<bool>(isPublic.value);
     }
+    if (lastUsedAt.present) {
+      map['last_used_at'] = Variable<DateTime>(lastUsedAt.value);
+    }
     return map;
   }
 
@@ -3093,7 +3142,8 @@ class RoutinesCompanion extends UpdateCompanion<Routine> {
           ..write('deletedAt: $deletedAt, ')
           ..write('userId: $userId, ')
           ..write('name: $name, ')
-          ..write('isPublic: $isPublic')
+          ..write('isPublic: $isPublic, ')
+          ..write('lastUsedAt: $lastUsedAt')
           ..write(')'))
         .toString();
   }
@@ -30311,6 +30361,7 @@ typedef $$RoutinesTableCreateCompanionBuilder = RoutinesCompanion Function({
   Value<String?> userId,
   required String name,
   Value<bool> isPublic,
+  Value<DateTime?> lastUsedAt,
 });
 typedef $$RoutinesTableUpdateCompanionBuilder = RoutinesCompanion Function({
   Value<int> localId,
@@ -30321,6 +30372,7 @@ typedef $$RoutinesTableUpdateCompanionBuilder = RoutinesCompanion Function({
   Value<String?> userId,
   Value<String> name,
   Value<bool> isPublic,
+  Value<DateTime?> lastUsedAt,
 });
 
 final class $$RoutinesTableReferences
@@ -30390,6 +30442,9 @@ class $$RoutinesTableFilterComposer
 
   ColumnFilters<bool> get isPublic => $composableBuilder(
       column: $table.isPublic, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get lastUsedAt => $composableBuilder(
+      column: $table.lastUsedAt, builder: (column) => ColumnFilters(column));
 
   Expression<bool> routineExercisesRefs(
       Expression<bool> Function($$RoutineExercisesTableFilterComposer f) f) {
@@ -30466,6 +30521,9 @@ class $$RoutinesTableOrderingComposer
 
   ColumnOrderings<bool> get isPublic => $composableBuilder(
       column: $table.isPublic, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get lastUsedAt => $composableBuilder(
+      column: $table.lastUsedAt, builder: (column) => ColumnOrderings(column));
 }
 
 class $$RoutinesTableAnnotationComposer
@@ -30500,6 +30558,9 @@ class $$RoutinesTableAnnotationComposer
 
   GeneratedColumn<bool> get isPublic =>
       $composableBuilder(column: $table.isPublic, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get lastUsedAt => $composableBuilder(
+      column: $table.lastUsedAt, builder: (column) => column);
 
   Expression<T> routineExercisesRefs<T extends Object>(
       Expression<T> Function($$RoutineExercisesTableAnnotationComposer a) f) {
@@ -30575,6 +30636,7 @@ class $$RoutinesTableTableManager extends RootTableManager<
             Value<String?> userId = const Value.absent(),
             Value<String> name = const Value.absent(),
             Value<bool> isPublic = const Value.absent(),
+            Value<DateTime?> lastUsedAt = const Value.absent(),
           }) =>
               RoutinesCompanion(
             localId: localId,
@@ -30585,6 +30647,7 @@ class $$RoutinesTableTableManager extends RootTableManager<
             userId: userId,
             name: name,
             isPublic: isPublic,
+            lastUsedAt: lastUsedAt,
           ),
           createCompanionCallback: ({
             Value<int> localId = const Value.absent(),
@@ -30595,6 +30658,7 @@ class $$RoutinesTableTableManager extends RootTableManager<
             Value<String?> userId = const Value.absent(),
             required String name,
             Value<bool> isPublic = const Value.absent(),
+            Value<DateTime?> lastUsedAt = const Value.absent(),
           }) =>
               RoutinesCompanion.insert(
             localId: localId,
@@ -30605,6 +30669,7 @@ class $$RoutinesTableTableManager extends RootTableManager<
             userId: userId,
             name: name,
             isPublic: isPublic,
+            lastUsedAt: lastUsedAt,
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (

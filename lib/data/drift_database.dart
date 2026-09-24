@@ -322,6 +322,7 @@ class Routines extends Table with HybridId, MetaColumns {
       text().nullable()(); // Nullable for local use without login
   TextColumn get name => text()();
   BoolColumn get isPublic => boolean().withDefault(const Constant(false))();
+  DateTimeColumn get lastUsedAt => dateTime().nullable()();
 }
 
 // 5. RoutineExercises
@@ -958,7 +959,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
-  int get schemaVersion => 35;
+  int get schemaVersion => 36;
 
   /// Adds whatever the file is missing compared to the generated tables.
   ///
@@ -1081,6 +1082,12 @@ class AppDatabase extends _$AppDatabase {
         },
         onUpgrade: (Migrator m, int from, int to) async {
           try {
+            if (from < 36) {
+              final cols = await _columnsOf(this, routines.actualTableName);
+              if (!cols.contains('last_used_at')) {
+                await m.addColumn(routines, routines.lastUsedAt);
+              }
+            }
             if (from < 35) {
               if (!await _tableExists(this, trainingPlans.actualTableName)) {
                 await m.createTable(trainingPlans);
