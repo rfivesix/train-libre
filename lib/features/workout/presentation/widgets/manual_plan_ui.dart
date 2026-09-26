@@ -30,74 +30,45 @@ String plannedDayMetadata(BuildContext context, TrainingPlanDay day) {
       '${DesignConstants.metadataSeparator}${l10n.setCount(plannedSetCount(day))}';
 }
 
-/// Permanent card displaying the authored template of a plan directly beneath
-/// the plan header, with an explicit edit action in its header.
+/// Renders the authored template of a plan directly on the screen background
+/// in an adaptive 2-column card view, with optional edit support on tap.
 class PlanOverviewCard extends StatelessWidget {
   const PlanOverviewCard({
     super.key,
     required this.plan,
     this.activeSlotIndex,
-    required this.onEdit,
+    this.onEdit,
   });
 
   final ManualTrainingPlan plan;
   final int? activeSlotIndex;
-  final ValueChanged<BuildContext> onEdit;
+  final ValueChanged<BuildContext>? onEdit;
 
   @override
   Widget build(BuildContext context) {
-    final text = ManualPlanText(context);
-    final theme = Theme.of(context);
-
-    return SummaryCard(
+    return PlanScheduleOverviewGrid(
       key: const Key('manual_plan_overview_card'),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Text(
-                text.get('planOverview'),
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              Builder(
-                builder: (editButtonContext) => IconButton(
-                  key: const Key('manual_plan_overview_edit_button'),
-                  tooltip: text.get('edit'),
-                  icon: const Icon(LucideIcons.pencil, size: 20),
-                  onPressed: () => onEdit(editButtonContext),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: DesignConstants.spacingM),
-          PlanScheduleOverviewGrid(
-            plan: plan,
-            activeSlotIndex: activeSlotIndex,
-          ),
-        ],
-      ),
+      plan: plan,
+      activeSlotIndex: activeSlotIndex,
+      onEdit: onEdit,
     );
   }
 }
 
 /// Shows the authored structure of a plan independently from the dates and
 /// completion states projected in the calendar below it. It deliberately uses
-/// the app-wide two-column value grid, rather than introducing another card
-/// hierarchy above the calendar.
+/// the app-wide two-column value grid directly on the background.
 class PlanScheduleOverviewGrid extends StatelessWidget {
   const PlanScheduleOverviewGrid({
     super.key,
     required this.plan,
     this.activeSlotIndex,
+    this.onEdit,
   });
 
   final ManualTrainingPlan plan;
   final int? activeSlotIndex;
+  final ValueChanged<BuildContext>? onEdit;
 
   @override
   Widget build(BuildContext context) {
@@ -105,10 +76,13 @@ class PlanScheduleOverviewGrid extends StatelessWidget {
     final locale = Localizations.localeOf(context).toString();
     final tiles = [
       for (var index = 0; index < plan.days.length; index++)
-        _PlanScheduleOverviewTile(
-          label: _labelFor(index, locale, text),
-          day: plan.days[index],
-          isActive: plan.active && activeSlotIndex == index,
+        Builder(
+          builder: (tileContext) => _PlanScheduleOverviewTile(
+            label: _labelFor(index, locale, text),
+            day: plan.days[index],
+            isActive: plan.active && activeSlotIndex == index,
+            onTap: onEdit != null ? () => onEdit!(tileContext) : null,
+          ),
         ),
     ];
 
@@ -161,11 +135,13 @@ class _PlanScheduleOverviewTile extends StatelessWidget {
     required this.label,
     required this.day,
     required this.isActive,
+    this.onTap,
   });
 
   final String label;
   final TrainingPlanDay day;
   final bool isActive;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -179,7 +155,8 @@ class _PlanScheduleOverviewTile extends StatelessWidget {
       child: ValueSummaryCard(
         label: label,
         value: day.routineName ?? text.get('rest'),
-        useSecondarySurface: true,
+        onTap: onTap,
+        useSecondarySurface: false,
         valueColor: isActive
             ? accent
             : (day.isRest

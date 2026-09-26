@@ -1036,6 +1036,7 @@ class AppDatabase extends _$AppDatabase {
           // Also enforce references for injected/test executors. The production
           // connection enables this pragma during setup, but database semantics
           // must not depend on how the executor was constructed.
+          await customStatement('PRAGMA busy_timeout = 30000;');
           await customStatement('PRAGMA foreign_keys = ON;');
           await reconcileSchema();
         },
@@ -1948,6 +1949,7 @@ LazyDatabase _openConnection() {
     return NativeDatabase.createInBackground(
       file,
       setup: (rawDb) {
+        rawDb.execute('PRAGMA busy_timeout = 30000;');
         rawDb.execute('PRAGMA foreign_keys = ON;');
       },
     );

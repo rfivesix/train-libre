@@ -324,29 +324,36 @@ class _ManualPlanScreenState extends State<ManualPlanScreen> {
       contentBuilder: (context, close) => Padding(
         padding:
             const EdgeInsets.symmetric(horizontal: DesignConstants.spacingS),
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: DesignConstants.spacingS,
-            ),
-            child: Text(
-              text.get('historyExplanation'),
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context)
-                        .colorScheme
-                        .onSurface
-                        .withValues(alpha: 0.7),
-                  ),
-            ),
+        child: SizedBox(
+          width: double.infinity,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: DesignConstants.spacingS,
+                ),
+                child: Text(
+                  text.get('historyExplanation'),
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Theme.of(context)
+                            .colorScheme
+                            .onSurface
+                            .withValues(alpha: 0.7),
+                      ),
+                ),
+              ),
+              const SizedBox(height: DesignConstants.spacingM),
+              for (final revision in versions)
+                _PlanRevisionTile(
+                  revision: revision,
+                  locale: locale,
+                  text: text,
+                ),
+            ],
           ),
-          const SizedBox(height: DesignConstants.spacingM),
-          for (final revision in versions)
-            _PlanRevisionTile(
-              revision: revision,
-              locale: locale,
-              text: text,
-            ),
-        ]),
+        ),
       ),
     );
   }
@@ -829,44 +836,47 @@ class _PlanRevisionTile extends StatelessWidget {
     final theme = Theme.of(context);
     final days = TrainingPlanDay.decodeDays(revision.daysJson);
     final visibleDays = days.take(7).toList();
-    return SummaryCard(
-      margin: const EdgeInsets.only(bottom: DesignConstants.spacingS),
-      useSecondarySurface: true,
-      disableShadow: true,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            '${text.get('version')} ${revision.number}',
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w700,
+    return SizedBox(
+      width: double.infinity,
+      child: SummaryCard(
+        margin: const EdgeInsets.only(bottom: DesignConstants.spacingS),
+        useSecondarySurface: true,
+        disableShadow: true,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              '${text.get('version')} ${revision.number}',
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
             ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            DateFormat.yMMMd(locale).format(revision.effectiveOn),
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+            const SizedBox(height: 2),
+            Text(
+              DateFormat.yMMMd(locale).format(revision.effectiveOn),
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+              ),
             ),
-          ),
-          const SizedBox(height: DesignConstants.spacingS),
-          Wrap(
-            spacing: 6,
-            runSpacing: 6,
-            children: [
-              for (final day in visibleDays)
-                _RevisionDayChip(
-                  label: day.routineName ?? text.get('rest'),
-                  rest: day.isRest,
-                ),
-              if (days.length > visibleDays.length)
-                _RevisionDayChip(
-                  label: '+${days.length - visibleDays.length}',
-                  rest: true,
-                ),
-            ],
-          ),
-        ],
+            const SizedBox(height: DesignConstants.spacingS),
+            Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: [
+                for (final day in visibleDays)
+                  _RevisionDayChip(
+                    label: day.routineName ?? text.get('rest'),
+                    rest: day.isRest,
+                  ),
+                if (days.length > visibleDays.length)
+                  _RevisionDayChip(
+                    label: '+${days.length - visibleDays.length}',
+                    rest: true,
+                  ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

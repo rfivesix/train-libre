@@ -11,6 +11,7 @@ import 'package:train_libre/features/workout/presentation/manual_plan_screen.dar
 import 'package:train_libre/features/workout/presentation/widgets/manual_plan_ui.dart';
 import 'package:train_libre/widgets/common/empty_states/cold_start_empty_state.dart';
 import 'package:train_libre/widgets/common/glass_fab.dart';
+import 'package:train_libre/widgets/common/summary_card.dart';
 import 'package:train_libre/generated/app_localizations.dart';
 
 Widget _app(Widget child, {Locale locale = const Locale('de')}) => MaterialApp(
@@ -261,7 +262,7 @@ void main() {
   });
 
   testWidgets(
-      'PlanOverviewCard displays header, pencil button and triggers onEdit',
+      'PlanOverviewCard renders directly on background and triggers onEdit on tile tap',
       (tester) async {
     final plan = ManualTrainingPlan(
       id: 'plan',
@@ -292,13 +293,14 @@ void main() {
     ));
 
     expect(find.byKey(const Key('manual_plan_overview_card')), findsOneWidget);
-    expect(find.text('Planübersicht'), findsOneWidget);
+    // Overview is rendered directly on background without title or separate pencil button:
+    expect(find.text('Planübersicht'), findsNothing);
     expect(find.byKey(const Key('manual_plan_overview_edit_button')),
-        findsOneWidget);
+        findsNothing);
     expect(find.text('Upper'), findsOneWidget);
     expect(find.text('Ruhetag'), findsNWidgets(2));
 
-    await tester.tap(find.byKey(const Key('manual_plan_overview_edit_button')));
+    await tester.tap(find.text('Upper'));
     await tester.pump();
     expect(editTriggered, isTrue);
   });
@@ -336,5 +338,73 @@ void main() {
     final textWidget = tester.widget<Text>(find.text('Hypertrophy Focus'));
     expect(textWidget.style?.color, isNot(equals(Colors.green)));
     expect(find.text('HYPERTROPHY FOCUS'), findsNothing);
+  });
+
+  testWidgets(
+      'plan version history sheet cards render with uniform full width',
+      (tester) async {
+    final db = AppDatabase(NativeDatabase.memory());
+    addTearDown(db.close);
+    final repo = ManualTrainingPlanRepository(database: db);
+
+    const workoutA = TrainingPlanDay(routineSnapshot: {
+      'id': 1,
+      'name': 'Long Routine Name That Wraps Multiple Times',
+      'exercises': [],
+    });
+    const workoutB = TrainingPlanDay(routineSnapshot: {
+      'id': 2,
+      'name': 'B',
+      'exercises': [],
+    });
+
+    final id = await repo.createPlan(
+      name: 'Plan With Revisions',
+      kind: TrainingPlanKind.week,
+      days: [
+        workoutB,
+        const TrainingPlanDay(),
+        const TrainingPlanDay(),
+        const TrainingPlanDay(),
+        const TrainingPlanDay(),
+        const TrainingPlanDay(),
+        const TrainingPlanDay(),
+      ],
+    );
+    await repo.revisePlan(
+      planId: id,
+      name: 'Plan With Revisions',
+      kind: TrainingPlanKind.week,
+      days: [
+        workoutA,
+        workoutB,
+        const TrainingPlanDay(),
+        const TrainingPlanDay(),
+        const TrainingPlanDay(),
+        const TrainingPlanDay(),
+        const TrainingPlanDay(),
+      ],
+      nextCycle: false,
+    );
+
+    await tester.pumpWidget(_app(ManualPlanScreen(repository: repo)));
+    await tester.pumpAndSettle();
+
+    expect(find.byIcon(LucideIcons.ellipsis), findsOneWidget);
+    await tester.tap(find.byIcon(LucideIcons.ellipsis));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Versionen'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Version 2'), findsOneWidget);
+    expect(find.text('Version 1'), findsOneWidget);
+
+    final v2Rect =
+        tester.getRect(find.widgetWithText(SummaryCard, 'Version 2'));
+    final v1Rect =
+        tester.getRect(find.widgetWithText(SummaryCard, 'Version 1'));
+
+    expect(v1Rect.width, equals(v2Rect.width));
   });
 }
