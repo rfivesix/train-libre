@@ -378,20 +378,32 @@ void main() {
       });
       await tester.pump();
 
-      // 2. Tap nextButton on adaptive page (5 -> 6)
+      // 2. Tap nextButton on adaptive page (5 -> 6: goal decision)
       await tester.tap(nextButton);
+      await tester.pumpAndSettle();
+
+      // Tap "Später einrichten" to skip directly to nutrition review
+      final laterButton =
+          find.byKey(const Key('onboarding_goal_decision_later_button'));
+      await tester.ensureVisible(laterButton);
+      await tester.pumpAndSettle();
+      await tester.tap(laterButton);
       await tester.pump();
 
-      // 3. Wait for _nextPage async preview re-check and animateToPage(6) to complete
+      // 3. Wait for animateToPage to complete
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(
+          find.byKey(const Key('onboarding_nutrition_page')), findsOneWidget);
+
+      // Wait for recommendation computation to finish so next button is enabled
       await tester.runAsync(() async {
         await Future.delayed(const Duration(milliseconds: 600));
       });
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
-      expect(
-          find.byKey(const Key('onboarding_nutrition_page')), findsOneWidget);
 
-      await tester.tap(nextButton); // nutrition(6) -> ai_health(7, last page)
+      await tester.tap(nextButton); // nutrition -> ai_health (last page)
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 400));
       expect(

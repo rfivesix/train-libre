@@ -4814,6 +4814,42 @@ abstract class AppLocalizations {
   /// **'You can enter and log your weight, body fat, and other measurements at any time in the dashboard.'**
   String get onboardingMeasurementsDisclaimer;
 
+  /// No description provided for @onboardingActivityTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'How active are you currently?'**
+  String get onboardingActivityTitle;
+
+  /// No description provided for @onboardingActivitySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your daily activity and existing cardio help estimate your baseline energy expenditure. Future training plans are not factored in here.'**
+  String get onboardingActivitySubtitle;
+
+  /// No description provided for @onboardingGoalDecisionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Would you like to set a personal nutrition goal?'**
+  String get onboardingGoalDecisionTitle;
+
+  /// No description provided for @onboardingGoalDecisionSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Set your direction, target weight, and pace. You can also skip this and maintain your current weight.'**
+  String get onboardingGoalDecisionSubtitle;
+
+  /// No description provided for @onboardingGoalDecisionSetupNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Set up now'**
+  String get onboardingGoalDecisionSetupNow;
+
+  /// No description provided for @onboardingGoalDecisionSetupLater.
+  ///
+  /// In en, this message translates to:
+  /// **'Set up later'**
+  String get onboardingGoalDecisionSetupLater;
+
   /// No description provided for @onboardingWaterNeedLabel.
   ///
   /// In en, this message translates to:

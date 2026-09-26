@@ -2659,6 +2659,27 @@ class AppLocalizationsDe extends AppLocalizations {
       'Du kannst dein Gewicht, Körperfett und weitere Messdaten jederzeit im Dashboard eintragen und loggen.';
 
   @override
+  String get onboardingActivityTitle => 'Wie aktiv bist du aktuell?';
+
+  @override
+  String get onboardingActivitySubtitle =>
+      'Deine aktuelle Alltagsaktivität und bestehendes Ausdauertraining helfen bei der Einschätzung deines aktuellen Energieverbrauchs. Zukünftig geplantes Training fließt hier noch nicht ein.';
+
+  @override
+  String get onboardingGoalDecisionTitle =>
+      'Möchtest du ein persönliches Ernährungsziel verfolgen?';
+
+  @override
+  String get onboardingGoalDecisionSubtitle =>
+      'Lege Zielrichtung, Zielgewicht und Tempo fest. Du kannst diesen Schritt auch überspringen und dein aktuelles Gewicht halten.';
+
+  @override
+  String get onboardingGoalDecisionSetupNow => 'Jetzt einrichten';
+
+  @override
+  String get onboardingGoalDecisionSetupLater => 'Später einrichten';
+
+  @override
   String onboardingWaterNeedLabel(String unit) {
     return 'Wasserbedarf ($unit)';
   }

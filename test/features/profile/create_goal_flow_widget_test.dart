@@ -31,12 +31,13 @@ void main() {
       await db.close();
     });
 
-    Widget createWidgetUnderTest() {
+    Widget createWidgetUnderTest({ThemeData? theme}) {
       return MultiProvider(
         providers: [
           ChangeNotifierProvider<UnitService>(create: (_) => UnitService()),
         ],
         child: MaterialApp(
+          theme: theme,
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
@@ -58,6 +59,11 @@ void main() {
 
       // Verify preset cards are present
       expect(find.text('Set New Goal'), findsOneWidget);
+      expect(find.text('Step 1 of 6'), findsOneWidget);
+      expect(find.byKey(const Key('goal_preset_loseWeight')), findsOneWidget);
+      expect(find.byKey(const Key('goal_preset_gainWeight')), findsOneWidget);
+      expect(
+          find.byKey(const Key('goal_preset_maintainWeight')), findsOneWidget);
 
       // Select Custom Goal card
       final customCard = find.text('Custom Goal');
@@ -69,8 +75,23 @@ void main() {
       expect(find.byType(AppSegmentedControl<String>), findsOneWidget);
     });
 
+    testWidgets('progress track remains visible in dark mode', (tester) async {
+      final darkTheme = ThemeData.dark();
+      await tester.pumpWidget(createWidgetUnderTest(theme: darkTheme));
+      await tester.pumpAndSettle();
+
+      final progress = tester.widget<LinearProgressIndicator>(
+        find.byType(LinearProgressIndicator),
+      );
+      expect(progress.color, darkTheme.colorScheme.primary);
+      expect(
+        progress.backgroundColor,
+        darkTheme.colorScheme.primary.withValues(alpha: 0.18),
+      );
+    });
+
     testWidgets(
-        'Step 1 requires an explicit baseline and transitions directly to Target & Pace planner',
+        'baseline transitions to target weight before pace and timeline',
         (tester) async {
       tester.view.physicalSize = const Size(800, 1600);
       tester.view.devicePixelRatio = 1.0;
@@ -83,6 +104,8 @@ void main() {
       await tester.tap(find.text('Continue'));
       await tester.pumpAndSettle();
 
+      expect(find.byKey(const Key('goal_start_date_card')), findsOneWidget);
+      expect(find.byKey(const Key('goal_baseline_card')), findsOneWidget);
       expect(
           find.byKey(const Key('goal_inline_baseline_input')), findsOneWidget);
       expect(find.textContaining('75.0'), findsNothing);
@@ -95,14 +118,23 @@ void main() {
       await tester.tap(find.text('Continue'));
       await tester.pumpAndSettle();
 
-      // Directly on Step 2: Target & Pace planner (no empty or open-goal selection screens)
+      // Step 2 is dedicated to the target weight.
       expect(find.text('What is your target weight?'), findsOneWidget);
       expect(find.byType(AppRulerPicker), findsWidgets);
+      expect(find.text('Planned weekly rate'), findsNothing);
+      expect(find.text('Target date'), findsNothing);
+
+      await tester.tap(find.text('Continue'));
+      await tester.pumpAndSettle();
+
+      // Step 3 contains only pace and timeline planning.
+      expect(find.text('Plan Pace & Target Date'), findsOneWidget);
       expect(find.text('Planned weekly rate'), findsOneWidget);
       expect(find.text('Target date'), findsWidgets);
+      expect(find.text('What is your target weight?'), findsNothing);
     });
 
-    testWidgets('Step 2 allows adjusting target weight and pace interactively',
+    testWidgets('Step 2 allows adjusting target weight without pace controls',
         (tester) async {
       tester.view.physicalSize = const Size(800, 1600);
       tester.view.devicePixelRatio = 1.0;
@@ -130,10 +162,11 @@ void main() {
 
       // Verify quick action chips are present for lose weight (-5.0 kg (75.0))
       expect(find.text('-5.0 kg (75.0)'), findsOneWidget);
+      expect(find.text('Planned weekly rate'), findsNothing);
     });
 
     testWidgets(
-        'Step 3 is dedicated motivation and Step 4 is Review & Activate',
+        'Step 4 is dedicated motivation and Step 5 is Review & Activate',
         (tester) async {
       tester.view.physicalSize = const Size(800, 1800);
       tester.view.devicePixelRatio = 1.0;
@@ -154,7 +187,13 @@ void main() {
       await tester.tap(find.text('Continue'));
       await tester.pumpAndSettle();
 
-      // Step 2 -> Step 3 (Motivation)
+      // Step 2 -> Step 3 (Pace & Timeline)
+      await tester.tap(find.text('Continue'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Plan Pace & Target Date'), findsOneWidget);
+
+      // Step 3 -> Step 4 (Motivation)
       await tester.tap(find.text('Continue'));
       await tester.pumpAndSettle();
 
@@ -163,7 +202,7 @@ void main() {
       // Motivation step does not have the review card
       expect(find.text('Review & Activate'), findsNothing);
 
-      // Step 3 -> Step 4 (Review & Activate)
+      // Step 4 -> Step 5 (Review & Activate)
       await tester.tap(find.text('Continue'));
       await tester.pumpAndSettle();
 
@@ -201,11 +240,17 @@ void main() {
       // Step 2: Maintain corridor screen
       expect(find.text('Maintain weight'), findsWidgets);
       expect(find.textContaining('± 1.0 kg'), findsWidgets);
+      expect(find.text('No target date'), findsNothing);
+
+      await tester.tap(find.text('Continue'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Plan Pace & Target Date'), findsOneWidget);
       expect(find.text('No target date'), findsOneWidget);
     });
 
     testWidgets(
-        'Step 1 displays AppRulerPicker and Step 4 renders PlatformAdaptiveSwitchListTile',
+        'Step 1 displays AppRulerPicker and Step 5 renders PlatformAdaptiveSwitchListTile',
         (tester) async {
       tester.view.physicalSize = const Size(800, 1800);
       tester.view.devicePixelRatio = 1.0;
@@ -229,20 +274,24 @@ void main() {
       await tester.tap(find.text('Continue'));
       await tester.pumpAndSettle();
 
-      // Step 2 -> Step 3
+      // Step 2 -> Step 3 (Pace & Timeline)
       await tester.tap(find.text('Continue'));
       await tester.pumpAndSettle();
 
-      // Step 3 -> Step 4
+      // Step 3 -> Step 4 (Motivation)
       await tester.tap(find.text('Continue'));
       await tester.pumpAndSettle();
 
-      // Verify PlatformAdaptiveSwitchListTile is used on Step 4
+      // Step 4 -> Step 5 (Review)
+      await tester.tap(find.text('Continue'));
+      await tester.pumpAndSettle();
+
+      // Verify PlatformAdaptiveSwitchListTile is used on Step 5
       expect(find.byType(PlatformAdaptiveSwitchListTile), findsOneWidget);
     });
 
     testWidgets(
-        'Step 1 baseline ruler picker is collapsed when baseline exists and appears only on edit; Step 4 rows have no calendar icons',
+        'Step 1 baseline ruler picker is collapsed when baseline exists and appears only on edit; Step 5 rows have no calendar icons',
         (tester) async {
       tester.view.physicalSize = const Size(800, 1800);
       tester.view.devicePixelRatio = 1.0;
@@ -288,11 +337,15 @@ void main() {
       await tester.tap(find.text('Continue'));
       await tester.pumpAndSettle();
 
-      // Step 2 -> Step 3
+      // Step 2 -> Step 3 (Pace & Timeline)
       await tester.tap(find.text('Continue'));
       await tester.pumpAndSettle();
 
-      // Step 3 -> Step 4 (Review & Activate)
+      // Step 3 -> Step 4 (Motivation)
+      await tester.tap(find.text('Continue'));
+      await tester.pumpAndSettle();
+
+      // Step 4 -> Step 5 (Review & Activate)
       await tester.tap(find.text('Continue'));
       await tester.pumpAndSettle();
 
@@ -300,7 +353,7 @@ void main() {
       expect(find.text('Planned weekly rate'), findsOneWidget);
       expect(find.text('Target date'), findsOneWidget);
 
-      // Step 4 review rows should not have any calendar icons
+      // Step 5 review rows should not have any calendar icons
       expect(
         find.descendant(
           of: find.byType(SummaryCard).first,

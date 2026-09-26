@@ -2670,6 +2670,27 @@ class AppLocalizationsIt extends AppLocalizations {
       'Puoi inserire e registrare peso, grasso corporeo e altre misure in qualsiasi momento nella dashboard.';
 
   @override
+  String get onboardingActivityTitle => 'Quanto sei attivo attualmente?';
+
+  @override
+  String get onboardingActivitySubtitle =>
+      'La tua attività quotidiana e il cardio esistente aiutano a stimare il tuo dispendio energetico di base. Gli allenamenti futuri non sono inclusi qui.';
+
+  @override
+  String get onboardingGoalDecisionTitle =>
+      'Vuoi impostare un obiettivo nutrizionale personale?';
+
+  @override
+  String get onboardingGoalDecisionSubtitle =>
+      'Definisci direzione, peso obiettivo e ritmo. Puoi anche saltare questo passaggio e mantenere il tuo peso attuale.';
+
+  @override
+  String get onboardingGoalDecisionSetupNow => 'Imposta ora';
+
+  @override
+  String get onboardingGoalDecisionSetupLater => 'Imposta più tardi';
+
+  @override
   String onboardingWaterNeedLabel(String unit) {
     return 'Fabbisogno d\'acqua ($unit)';
   }

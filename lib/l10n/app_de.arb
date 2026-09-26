@@ -1053,6 +1053,12 @@
   "onboardingMeasurementsTitle": "Maße & Baseline",
   "onboardingMeasurementsSubtitle": "Lege deine aktuelle Ausgangsbasis für die adaptive Empfehlung fest.",
   "onboardingMeasurementsDisclaimer": "Du kannst dein Gewicht, Körperfett und weitere Messdaten jederzeit im Dashboard eintragen und loggen.",
+  "onboardingActivityTitle": "Wie aktiv bist du aktuell?",
+  "onboardingActivitySubtitle": "Deine aktuelle Alltagsaktivität und bestehendes Ausdauertraining helfen bei der Einschätzung deines aktuellen Energieverbrauchs. Zukünftig geplantes Training fließt hier noch nicht ein.",
+  "onboardingGoalDecisionTitle": "Möchtest du ein persönliches Ernährungsziel verfolgen?",
+  "onboardingGoalDecisionSubtitle": "Lege Zielrichtung, Zielgewicht und Tempo fest. Du kannst diesen Schritt auch überspringen und dein aktuelles Gewicht halten.",
+  "onboardingGoalDecisionSetupNow": "Jetzt einrichten",
+  "onboardingGoalDecisionSetupLater": "Später einrichten",
   "onboardingWaterNeedLabel": "Wasserbedarf ({unit})",
   "@onboardingWaterNeedLabel": {
     "placeholders": {

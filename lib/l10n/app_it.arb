@@ -1053,6 +1053,12 @@
   "onboardingMeasurementsTitle": "Misure e baseline",
   "onboardingMeasurementsSubtitle": "Imposta la tua baseline attuale per la raccomandazione adattiva.",
   "onboardingMeasurementsDisclaimer": "Puoi inserire e registrare peso, grasso corporeo e altre misure in qualsiasi momento nella dashboard.",
+  "onboardingActivityTitle": "Quanto sei attivo attualmente?",
+  "onboardingActivitySubtitle": "La tua attività quotidiana e il cardio esistente aiutano a stimare il tuo dispendio energetico di base. Gli allenamenti futuri non sono inclusi qui.",
+  "onboardingGoalDecisionTitle": "Vuoi impostare un obiettivo nutrizionale personale?",
+  "onboardingGoalDecisionSubtitle": "Definisci direzione, peso obiettivo e ritmo. Puoi anche saltare questo passaggio e mantenere il tuo peso attuale.",
+  "onboardingGoalDecisionSetupNow": "Imposta ora",
+  "onboardingGoalDecisionSetupLater": "Imposta più tardi",
   "onboardingWaterNeedLabel": "Fabbisogno d'acqua ({unit})",
   "@onboardingWaterNeedLabel": {
     "placeholders": {

@@ -2592,6 +2592,26 @@ class AppLocalizationsJa extends AppLocalizations {
       '体重、体脂肪、その他の測定値は、ダッシュボードでいつでも入力して記録できます。';
 
   @override
+  String get onboardingActivityTitle => '現在どのくらい活動的ですか？';
+
+  @override
+  String get onboardingActivitySubtitle =>
+      '日頃の活動量と有酸素運動から基礎消費エネルギーを推定します。今後計画しているトレーニングはここでは考慮されません。';
+
+  @override
+  String get onboardingGoalDecisionTitle => '個人の栄養・体重目標を設定しますか？';
+
+  @override
+  String get onboardingGoalDecisionSubtitle =>
+      '目標の方向性、目標体重、ペースを設定します。スキップして現在の体重を維持することもできます。';
+
+  @override
+  String get onboardingGoalDecisionSetupNow => '今すぐ設定する';
+
+  @override
+  String get onboardingGoalDecisionSetupLater => '後で設定する';
+
+  @override
   String onboardingWaterNeedLabel(String unit) {
     return '水分目標 ($unit)';
   }

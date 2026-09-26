@@ -2682,6 +2682,28 @@ class AppLocalizationsFr extends AppLocalizations {
       'Vous pouvez saisir et journaliser votre poids, votre masse grasse et d\'autres mesures à tout moment dans le tableau de bord.';
 
   @override
+  String get onboardingActivityTitle =>
+      'Quel est votre niveau d\'activité actuel ?';
+
+  @override
+  String get onboardingActivitySubtitle =>
+      'Votre activité quotidienne et votre cardio existant permettent d\'estimer votre dépense énergétique de base. Les entraînements futurs ne sont pas pris en compte ici.';
+
+  @override
+  String get onboardingGoalDecisionTitle =>
+      'Souhaitez-vous définir un objectif nutritionnel personnel ?';
+
+  @override
+  String get onboardingGoalDecisionSubtitle =>
+      'Définissez votre direction, votre poids cible et votre rythme. Vous pouvez également passer cette étape et maintenir votre poids actuel.';
+
+  @override
+  String get onboardingGoalDecisionSetupNow => 'Configurer maintenant';
+
+  @override
+  String get onboardingGoalDecisionSetupLater => 'Configurer plus tard';
+
+  @override
   String onboardingWaterNeedLabel(String unit) {
     return 'Besoin en eau ($unit)';
   }

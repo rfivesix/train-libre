@@ -1053,6 +1053,12 @@
   "onboardingMeasurementsTitle": "測定値とベースライン",
   "onboardingMeasurementsSubtitle": "適応型レコメンドのために現在の基準値を設定します。",
   "onboardingMeasurementsDisclaimer": "体重、体脂肪、その他の測定値は、ダッシュボードでいつでも入力して記録できます。",
+  "onboardingActivityTitle": "現在どのくらい活動的ですか？",
+  "onboardingActivitySubtitle": "日頃の活動量と有酸素運動から基礎消費エネルギーを推定します。今後計画しているトレーニングはここでは考慮されません。",
+  "onboardingGoalDecisionTitle": "個人の栄養・体重目標を設定しますか？",
+  "onboardingGoalDecisionSubtitle": "目標の方向性、目標体重、ペースを設定します。スキップして現在の体重を維持することもできます。",
+  "onboardingGoalDecisionSetupNow": "今すぐ設定する",
+  "onboardingGoalDecisionSetupLater": "後で設定する",
   "onboardingWaterNeedLabel": "水分目標 ({unit})",
   "@onboardingWaterNeedLabel": {
     "placeholders": {

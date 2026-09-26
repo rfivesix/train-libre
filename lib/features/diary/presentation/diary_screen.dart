@@ -1059,72 +1059,75 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
                   if (stepsEnabled) const StepsSummaryCard(),
                   if (sleepEnabled) const SleepSummaryCard(),
                   if (pulseEnabled) const PulseSummaryCard(),
-                  ManualPlanDiaryCard(date: selectedDate),
-                  // Completed workout summary remains independent of the plan.
-                  if (hasWorkoutSummary || showSkeleton)
-                    Selector<DiaryViewModel, Map<String, dynamic>?>(
-                      selector: (context, vm) => showSkeleton
-                          ? {
-                              'duration': const Duration(minutes: 45),
-                              'volume': 10000.0,
-                              'sets': 15,
-                              'count': 1,
-                            }
-                          : vm.workoutSummary,
-                      builder: (context, workoutSummary, child) {
-                        return AnimatedSize(
-                          duration: const Duration(milliseconds: 250),
-                          curve: Curves.fastOutSlowIn,
-                          child: AnimatedSwitcher(
-                            duration: const Duration(milliseconds: 250),
-                            child: workoutSummary == null
-                                ? const SizedBox.shrink(
-                                    key: ValueKey('no_summary'))
-                                : Builder(
-                                    key: const ValueKey('has_summary'),
-                                    builder: (cardCtx) {
-                                      Widget buildSummaryCard(
-                                              {VoidCallback? onTap}) =>
-                                          RepaintBoundary(
-                                            child: TodaysWorkoutSummaryCard(
-                                              duration:
-                                                  workoutSummary['duration']
-                                                      as Duration,
-                                              volume: workoutSummary['volume']
-                                                  as double,
-                                              sets:
-                                                  workoutSummary['sets'] as int,
-                                              workoutCount:
-                                                  workoutSummary['count']
-                                                      as int,
-                                              onTap: onTap ?? () {},
-                                            ),
-                                          );
+                  ManualPlanDiaryCard(
+                    date: selectedDate,
+                    fallback: hasWorkoutSummary || showSkeleton
+                        ? Selector<DiaryViewModel, Map<String, dynamic>?>(
+                            selector: (context, vm) => showSkeleton
+                                ? {
+                                    'duration': const Duration(minutes: 45),
+                                    'volume': 10000.0,
+                                    'sets': 15,
+                                    'count': 1,
+                                  }
+                                : vm.workoutSummary,
+                            builder: (context, workoutSummary, child) {
+                              return AnimatedSize(
+                                duration: const Duration(milliseconds: 250),
+                                curve: Curves.fastOutSlowIn,
+                                child: AnimatedSwitcher(
+                                  duration: const Duration(milliseconds: 250),
+                                  child: workoutSummary == null
+                                      ? const SizedBox.shrink(
+                                          key: ValueKey('no_summary'))
+                                      : Builder(
+                                          key: const ValueKey('has_summary'),
+                                          builder: (cardCtx) {
+                                            Widget buildSummaryCard(
+                                                    {VoidCallback? onTap}) =>
+                                                RepaintBoundary(
+                                                  child:
+                                                      TodaysWorkoutSummaryCard(
+                                                    duration: workoutSummary[
+                                                        'duration'] as Duration,
+                                                    volume:
+                                                        workoutSummary['volume']
+                                                            as double,
+                                                    sets: workoutSummary['sets']
+                                                        as int,
+                                                    workoutCount:
+                                                        workoutSummary['count']
+                                                            as int,
+                                                    onTap: onTap ?? () {},
+                                                  ),
+                                                );
 
-                                      return MorphSourceScope(
-                                        builder: (context, setHidden) =>
-                                            buildSummaryCard(
-                                          onTap: () {
-                                            Navigator.of(context).push(
-                                              CardMorphRoute(
-                                                sourceContext: cardCtx,
-                                                sourceBuilder: (_) =>
-                                                    buildSummaryCard(),
-                                                onSourceVisibilityChanged:
-                                                    setHidden,
-                                                builder: (context) =>
-                                                    const WorkoutHistoryScreen(),
+                                            return MorphSourceScope(
+                                              builder: (context, setHidden) =>
+                                                  buildSummaryCard(
+                                                onTap: () {
+                                                  Navigator.of(context).push(
+                                                    CardMorphRoute(
+                                                      sourceContext: cardCtx,
+                                                      sourceBuilder: (_) =>
+                                                          buildSummaryCard(),
+                                                      onSourceVisibilityChanged:
+                                                          setHidden,
+                                                      builder: (context) =>
+                                                          const WorkoutHistoryScreen(),
+                                                    ),
+                                                  );
+                                                },
                                               ),
                                             );
                                           },
                                         ),
-                                      );
-                                    },
-                                  ),
-                          ),
-                        );
-                      },
-                    ),
+                                ),
+                              );
+                            },
+                          )
+                        : null,
+                  ),
                 ],
               ),
             ),

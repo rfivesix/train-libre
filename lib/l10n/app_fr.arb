@@ -1053,6 +1053,12 @@
   "onboardingMeasurementsTitle": "Mesures et référence",
   "onboardingMeasurementsSubtitle": "Définissez votre référence actuelle pour la recommandation adaptative.",
   "onboardingMeasurementsDisclaimer": "Vous pouvez saisir et journaliser votre poids, votre masse grasse et d'autres mesures à tout moment dans le tableau de bord.",
+  "onboardingActivityTitle": "Quel est votre niveau d'activité actuel ?",
+  "onboardingActivitySubtitle": "Votre activité quotidienne et votre cardio existant permettent d'estimer votre dépense énergétique de base. Les entraînements futurs ne sont pas pris en compte ici.",
+  "onboardingGoalDecisionTitle": "Souhaitez-vous définir un objectif nutritionnel personnel ?",
+  "onboardingGoalDecisionSubtitle": "Définissez votre direction, votre poids cible et votre rythme. Vous pouvez également passer cette étape et maintenir votre poids actuel.",
+  "onboardingGoalDecisionSetupNow": "Configurer maintenant",
+  "onboardingGoalDecisionSetupLater": "Configurer plus tard",
   "onboardingWaterNeedLabel": "Besoin en eau ({unit})",
   "@onboardingWaterNeedLabel": {
     "placeholders": {

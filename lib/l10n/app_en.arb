@@ -1052,6 +1052,12 @@
   "onboardingMeasurementsTitle": "Measurements & Baseline",
   "onboardingMeasurementsSubtitle": "Set your current baseline for the adaptive recommendation.",
   "onboardingMeasurementsDisclaimer": "You can enter and log your weight, body fat, and other measurements at any time in the dashboard.",
+  "onboardingActivityTitle": "How active are you currently?",
+  "onboardingActivitySubtitle": "Your daily activity and existing cardio help estimate your baseline energy expenditure. Future training plans are not factored in here.",
+  "onboardingGoalDecisionTitle": "Would you like to set a personal nutrition goal?",
+  "onboardingGoalDecisionSubtitle": "Set your direction, target weight, and pace. You can also skip this and maintain your current weight.",
+  "onboardingGoalDecisionSetupNow": "Set up now",
+  "onboardingGoalDecisionSetupLater": "Set up later",
   "onboardingWaterNeedLabel": "Water need ({unit})",
   "@onboardingWaterNeedLabel": {
     "placeholders": {

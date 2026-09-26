@@ -2647,6 +2647,27 @@ class AppLocalizationsEn extends AppLocalizations {
       'You can enter and log your weight, body fat, and other measurements at any time in the dashboard.';
 
   @override
+  String get onboardingActivityTitle => 'How active are you currently?';
+
+  @override
+  String get onboardingActivitySubtitle =>
+      'Your daily activity and existing cardio help estimate your baseline energy expenditure. Future training plans are not factored in here.';
+
+  @override
+  String get onboardingGoalDecisionTitle =>
+      'Would you like to set a personal nutrition goal?';
+
+  @override
+  String get onboardingGoalDecisionSubtitle =>
+      'Set your direction, target weight, and pace. You can also skip this and maintain your current weight.';
+
+  @override
+  String get onboardingGoalDecisionSetupNow => 'Set up now';
+
+  @override
+  String get onboardingGoalDecisionSetupLater => 'Set up later';
+
+  @override
   String onboardingWaterNeedLabel(String unit) {
     return 'Water need ($unit)';
   }

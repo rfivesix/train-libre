@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/intl.dart';
 import 'package:train_libre/features/workout/domain/models/manual_training_plan.dart';
 import 'package:train_libre/features/workout/presentation/manual_plan_editor_screen.dart';
 import 'package:train_libre/features/workout/presentation/widgets/manual_plan_ui.dart';
@@ -71,6 +73,7 @@ void main() {
 
     expect(find.text('PUSH PULL LEGS'), findsOneWidget);
     expect(find.text('Push'), findsOneWidget);
+    expect(find.byIcon(LucideIcons.play), findsNothing);
     await tester.tap(find.text('Workout starten'));
     await tester.pump();
     expect(starts, 1);
@@ -126,5 +129,171 @@ void main() {
     ));
 
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('plan overview shows the complete sequence and active step',
+      (tester) async {
+    final plan = ManualTrainingPlan(
+      id: 'plan',
+      name: 'Four day sequence',
+      kind: TrainingPlanKind.sequence,
+      days: const [
+        TrainingPlanDay(routineSnapshot: {'name': 'Upper'}),
+        TrainingPlanDay(),
+        TrainingPlanDay(routineSnapshot: {'name': 'Lower'}),
+        TrainingPlanDay(),
+      ],
+      revisionId: 'revision',
+      revisionNumber: 1,
+      active: true,
+    );
+    await tester.pumpWidget(_app(
+      Padding(
+        padding: const EdgeInsets.all(16),
+        child: PlanScheduleOverviewGrid(
+          plan: plan,
+          activeSlotIndex: 2,
+        ),
+      ),
+    ));
+
+    expect(
+        find.byKey(const Key('plan_schedule_overview_grid')), findsOneWidget);
+    expect(find.text('Tag 1'), findsOneWidget);
+    expect(find.text('Tag 4'), findsOneWidget);
+    expect(find.text('Upper'), findsOneWidget);
+    expect(find.text('Lower'), findsOneWidget);
+    expect(find.text('Ruhetag'), findsNWidgets(2));
+    expect(
+      tester.getSemantics(find.text('Lower')).label,
+      contains('Als Nächstes'),
+    );
+
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('plan overview renders every weekday for weekly plans',
+      (tester) async {
+    final plan = ManualTrainingPlan(
+      id: 'plan',
+      name: 'Week',
+      kind: TrainingPlanKind.week,
+      days: const [
+        TrainingPlanDay(routineSnapshot: {'name': 'Push'}),
+        TrainingPlanDay(),
+        TrainingPlanDay(routineSnapshot: {'name': 'Pull'}),
+        TrainingPlanDay(),
+        TrainingPlanDay(routineSnapshot: {'name': 'Legs'}),
+        TrainingPlanDay(),
+        TrainingPlanDay(),
+      ],
+      revisionId: 'revision',
+      revisionNumber: 1,
+      active: true,
+    );
+
+    await tester.pumpWidget(_app(
+      PlanScheduleOverviewGrid(
+        plan: plan,
+        activeSlotIndex: 0,
+      ),
+    ));
+
+    expect(
+      find.text(DateFormat.E('de').format(DateTime(2026, 9, 21))),
+      findsOneWidget,
+    );
+    expect(
+      find.text(DateFormat.E('de').format(DateTime(2026, 9, 27))),
+      findsOneWidget,
+    );
+    expect(find.text('Push'), findsOneWidget);
+    expect(find.text('Legs'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('completed plan days expose their saved workout details',
+      (tester) async {
+    final plan = ManualTrainingPlan(
+      id: 'plan',
+      name: 'Plan',
+      kind: TrainingPlanKind.sequence,
+      days: const [
+        TrainingPlanDay(routineSnapshot: {
+          'name': 'Upper',
+          'exercises': [],
+        }),
+      ],
+      revisionId: 'revision',
+      revisionNumber: 1,
+      active: true,
+    );
+    var viewed = 0;
+
+    await tester.pumpWidget(_app(
+      PlanDayDetailCard(
+        plan: plan,
+        day: PlannedCalendarDay(
+          date: DateTime(2026, 9, 26),
+          slotIndex: 0,
+          day: TrainingPlanDay(routineSnapshot: {
+            'name': 'Upper',
+            'exercises': [],
+          }),
+          status: PlannedDayStatus.completed,
+          workoutLogId: 42,
+        ),
+        onViewWorkout: () => viewed++,
+      ),
+    ));
+
+    expect(find.text('Workout ansehen'), findsOneWidget);
+    expect(find.textContaining('This session is planned'), findsNothing);
+    await tester.tap(find.text('Workout ansehen'));
+    expect(viewed, 1);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets(
+      'PlanOverviewCard displays header, pencil button and triggers onEdit',
+      (tester) async {
+    final plan = ManualTrainingPlan(
+      id: 'plan',
+      name: 'Upper Lower Sequence',
+      kind: TrainingPlanKind.sequence,
+      days: const [
+        TrainingPlanDay(routineSnapshot: {'name': 'Upper'}),
+        TrainingPlanDay(),
+        TrainingPlanDay(routineSnapshot: {'name': 'Lower'}),
+        TrainingPlanDay(),
+      ],
+      revisionId: 'revision',
+      revisionNumber: 1,
+      active: true,
+    );
+
+    var editTriggered = false;
+
+    await tester.pumpWidget(_app(
+      Padding(
+        padding: const EdgeInsets.all(16),
+        child: PlanOverviewCard(
+          plan: plan,
+          activeSlotIndex: 0,
+          onEdit: (ctx) => editTriggered = true,
+        ),
+      ),
+    ));
+
+    expect(find.byKey(const Key('manual_plan_overview_card')), findsOneWidget);
+    expect(find.text('Planübersicht'), findsOneWidget);
+    expect(find.byKey(const Key('manual_plan_overview_edit_button')),
+        findsOneWidget);
+    expect(find.text('Upper'), findsOneWidget);
+    expect(find.text('Ruhetag'), findsNWidgets(2));
+
+    await tester.tap(find.byKey(const Key('manual_plan_overview_edit_button')));
+    await tester.pump();
+    expect(editTriggered, isTrue);
   });
 }

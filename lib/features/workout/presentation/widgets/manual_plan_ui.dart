@@ -7,6 +7,7 @@ import '../../../../services/haptic_feedback_service.dart';
 import '../../../../util/design_constants.dart';
 import '../../../../widgets/common/app_button.dart';
 import '../../../../widgets/common/summary_card.dart';
+import '../../../../widgets/common/value_summary_card.dart';
 import '../../domain/models/manual_training_plan.dart';
 import '../../domain/models/routine_exercise.dart';
 import '../manual_plan_text.dart';
@@ -27,6 +28,167 @@ String plannedDayMetadata(BuildContext context, TrainingPlanDay day) {
   final l10n = AppLocalizations.of(context)!;
   return '${plannedExerciseCount(day)} ${text.get('exercises')}'
       '${DesignConstants.metadataSeparator}${l10n.setCount(plannedSetCount(day))}';
+}
+
+/// Permanent card displaying the authored template of a plan directly beneath
+/// the plan header, with an explicit edit action in its header.
+class PlanOverviewCard extends StatelessWidget {
+  const PlanOverviewCard({
+    super.key,
+    required this.plan,
+    this.activeSlotIndex,
+    required this.onEdit,
+  });
+
+  final ManualTrainingPlan plan;
+  final int? activeSlotIndex;
+  final ValueChanged<BuildContext> onEdit;
+
+  @override
+  Widget build(BuildContext context) {
+    final text = ManualPlanText(context);
+    final theme = Theme.of(context);
+
+    return SummaryCard(
+      key: const Key('manual_plan_overview_card'),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Text(
+                text.get('planOverview'),
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              Builder(
+                builder: (editButtonContext) => IconButton(
+                  key: const Key('manual_plan_overview_edit_button'),
+                  tooltip: text.get('edit'),
+                  icon: const Icon(LucideIcons.pencil, size: 20),
+                  onPressed: () => onEdit(editButtonContext),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: DesignConstants.spacingM),
+          PlanScheduleOverviewGrid(
+            plan: plan,
+            activeSlotIndex: activeSlotIndex,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Shows the authored structure of a plan independently from the dates and
+/// completion states projected in the calendar below it. It deliberately uses
+/// the app-wide two-column value grid, rather than introducing another card
+/// hierarchy above the calendar.
+class PlanScheduleOverviewGrid extends StatelessWidget {
+  const PlanScheduleOverviewGrid({
+    super.key,
+    required this.plan,
+    this.activeSlotIndex,
+  });
+
+  final ManualTrainingPlan plan;
+  final int? activeSlotIndex;
+
+  @override
+  Widget build(BuildContext context) {
+    final text = ManualPlanText(context);
+    final locale = Localizations.localeOf(context).toString();
+    final tiles = [
+      for (var index = 0; index < plan.days.length; index++)
+        _PlanScheduleOverviewTile(
+          label: _labelFor(index, locale, text),
+          day: plan.days[index],
+          isActive: plan.active && activeSlotIndex == index,
+        ),
+    ];
+
+    final rows = <Widget>[];
+    for (var index = 0; index < tiles.length; index += 2) {
+      rows.add(
+        IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(child: tiles[index]),
+              const SizedBox(width: DesignConstants.spacingS),
+              Expanded(
+                child: index + 1 < tiles.length
+                    ? tiles[index + 1]
+                    : const SizedBox(),
+              ),
+            ],
+          ),
+        ),
+      );
+      if (index + 2 < tiles.length) {
+        rows.add(const SizedBox(height: DesignConstants.spacingS));
+      }
+    }
+
+    return Semantics(
+      container: true,
+      label: text.get('planOverview'),
+      child: Column(
+        key: const Key('plan_schedule_overview_grid'),
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: rows,
+      ),
+    );
+  }
+
+  String _labelFor(int index, String locale, ManualPlanText text) {
+    if (plan.kind == TrainingPlanKind.sequence) {
+      return '${text.get('day')} ${index + 1}';
+    }
+    // 21 September 2026 is a Monday; this lets Intl localize the weekday
+    // without tying the overview to a particular calendar week.
+    return DateFormat.E(locale).format(DateTime(2026, 9, 21 + index));
+  }
+}
+
+class _PlanScheduleOverviewTile extends StatelessWidget {
+  const _PlanScheduleOverviewTile({
+    required this.label,
+    required this.day,
+    required this.isActive,
+  });
+
+  final String label;
+  final TrainingPlanDay day;
+  final bool isActive;
+
+  @override
+  Widget build(BuildContext context) {
+    final text = ManualPlanText(context);
+    final theme = Theme.of(context);
+    final accent = theme.colorScheme.primary;
+
+    return Semantics(
+      label: '$label, ${day.routineName ?? text.get('rest')}'
+          '${isActive ? ', ${text.get('nextUp')}' : ''}',
+      child: ValueSummaryCard(
+        label: label,
+        value: day.routineName ?? text.get('rest'),
+        useSecondarySurface: true,
+        valueColor: isActive
+            ? accent
+            : (day.isRest
+                ? theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7)
+                : null),
+        backgroundColor: isActive ? accent.withValues(alpha: 0.14) : null,
+      ),
+    );
+  }
 }
 
 class PlanStatusIndicator extends StatelessWidget {
@@ -339,25 +501,23 @@ class PlanDayDetailCard extends StatelessWidget {
     required this.day,
     this.onStart,
     this.onSkip,
+    this.onViewWorkout,
   });
 
   final ManualTrainingPlan plan;
   final PlannedCalendarDay day;
   final VoidCallback? onStart;
   final VoidCallback? onSkip;
+  final VoidCallback? onViewWorkout;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final text = ManualPlanText(context);
-    final locale = Localizations.localeOf(context).toString();
     final metadata = plannedDayMetadata(context, day.day);
-    final relativeLabel = DateUtils.isSameDay(day.date, DateTime.now())
-        ? text.get('today')
-        : DateFormat.EEEE(locale).format(day.date);
     final sequenceLabel = plan.kind == TrainingPlanKind.sequence
         ? '${text.get('day')} ${day.slotIndex + 1} ${DesignConstants.metadataSeparator}${plan.days.length} ${text.get('days')}'
-        : DateFormat.yMMMd(locale).format(day.date);
+        : null;
 
     return SummaryCard(
       margin: const EdgeInsets.only(top: DesignConstants.spacingM),
@@ -367,17 +527,20 @@ class PlanDayDetailCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              Expanded(
-                child: Text(
-                  '$relativeLabel ${DesignConstants.metadataSeparator}$sequenceLabel',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.labelMedium?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                    fontWeight: FontWeight.w600,
+              if (sequenceLabel != null)
+                Expanded(
+                  child: Text(
+                    sequenceLabel,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
-                ),
-              ),
+                )
+              else
+                const Spacer(),
               PlanStatusIndicator(status: day.status),
             ],
           ),
@@ -398,19 +561,9 @@ class PlanDayDetailCard extends StatelessWidget {
               ),
             ),
           ],
-          const SizedBox(height: DesignConstants.spacingM),
-          Text(
-            _description(text),
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.72),
-              height: 1.35,
-            ),
-          ),
           if (!day.day.isRest &&
               day.day.routine?.exercises.isNotEmpty == true) ...[
-            const SizedBox(height: DesignConstants.spacingL),
-            Divider(color: theme.dividerColor.withValues(alpha: 0.45)),
-            const SizedBox(height: DesignConstants.spacingS),
+            const SizedBox(height: DesignConstants.spacingM),
             for (final exercise in day.day.routine!.exercises)
               _PlanExerciseRow(exercise: exercise),
           ],
@@ -432,25 +585,20 @@ class PlanDayDetailCard extends StatelessWidget {
                 ),
               ),
           ],
+          if (onStart == null && onViewWorkout != null) ...[
+            const SizedBox(height: DesignConstants.spacingL),
+            SizedBox(
+              width: double.infinity,
+              child: AppButton.primary(
+                label: text.get('viewWorkout'),
+                onPressed: onViewWorkout,
+              ),
+            ),
+          ],
         ],
       ),
     );
   }
-
-  String _description(ManualPlanText text) => day.day.isRest
-      ? text.get('restDescription')
-      : switch (day.status) {
-          PlannedDayStatus.completed => text.get('completedDescription'),
-          PlannedDayStatus.partial => text.get('partialDescription'),
-          PlannedDayStatus.skipped => text.get('skippedDescription'),
-          PlannedDayStatus.ongoing => text.get('todayDescription'),
-          PlannedDayStatus.rest => text.get('restDescription'),
-          PlannedDayStatus.planned => day.date.isAfter(DateTime.now())
-              ? text.get('futureDescription')
-              : DateUtils.isSameDay(day.date, DateTime.now())
-                  ? text.get('todayDescription')
-                  : text.get('pastOpenDescription'),
-        };
 }
 
 class _PlanExerciseRow extends StatelessWidget {
@@ -609,14 +757,12 @@ class WorkoutPlanHeroCard extends StatelessWidget {
                       alignment: Alignment.centerRight,
                       child: AppButton.primary(
                         label: actionLabel!,
-                        icon: LucideIcons.play,
                         onPressed: onAction,
                         size: AppButtonSize.small,
                       ),
                     )
                   : AppButton.primary(
                       label: actionLabel!,
-                      icon: LucideIcons.play,
                       onPressed: onAction,
                     ),
             ),

@@ -319,19 +319,39 @@ class _WorkoutHubScreenState extends State<WorkoutHubScreen> {
             final next = summary?.next;
             final text = ManualPlanText(context);
             final locale = Localizations.localeOf(context).toString();
-            Future<void> openPlan() async {
+            Future<void> openPlan({
+              BuildContext? sourceContext,
+              WidgetBuilder? sourceBuilder,
+              MorphSourceVisibilityCallback? onSourceVisibilityChanged,
+            }) async {
               await Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const ManualPlanScreen()),
+                CardMorphRoute(
+                  sourceContext: sourceContext,
+                  sourceBuilder: sourceBuilder,
+                  onSourceVisibilityChanged: onSourceVisibilityChanged,
+                  builder: (_) => const ManualPlanScreen(),
+                ),
               );
               if (mounted) setState(() => _manualPlanRefresh++);
             }
 
             if (plan == null) {
-              return WorkoutPlanHeroCard(
-                eyebrow: text.get('plan'),
-                title: text.get('noPlan'),
-                subtitle: text.get('hubNoPlanDescription'),
-                onTap: openPlan,
+              Widget buildCard({VoidCallback? onTap}) => WorkoutPlanHeroCard(
+                    eyebrow: text.get('plan'),
+                    title: text.get('noPlan'),
+                    subtitle: text.get('hubNoPlanDescription'),
+                    onTap: onTap,
+                  );
+              return MorphSourceScope(
+                builder: (context, setHidden) => Builder(
+                  builder: (cardContext) => buildCard(
+                    onTap: () => openPlan(
+                      sourceContext: cardContext,
+                      sourceBuilder: (_) => buildCard(),
+                      onSourceVisibilityChanged: setHidden,
+                    ),
+                  ),
+                ),
               );
             }
 
@@ -354,23 +374,44 @@ class _WorkoutHubScreenState extends State<WorkoutHubScreen> {
                   '${plannedDayMetadata(context, displayDay.day)}';
             }
 
-            return WorkoutPlanHeroCard(
-              eyebrow: plan.name,
-              title: displayDay?.day.routineName ?? text.get('rest'),
-              subtitle: subtitle,
-              status: displayDay?.status,
-              onTap: openPlan,
-              actionLabel:
-                  isTodayWorkout && today.status == PlannedDayStatus.planned
-                      ? text.get('start')
-                      : null,
-              onAction:
-                  isTodayWorkout && today.status == PlannedDayStatus.planned
+            final canStart =
+                isTodayWorkout && today.status == PlannedDayStatus.planned;
+            Widget buildCard({VoidCallback? onTap, VoidCallback? onAction}) =>
+                WorkoutPlanHeroCard(
+                  eyebrow: plan.name,
+                  title: displayDay?.day.routineName ?? text.get('rest'),
+                  subtitle: subtitle,
+                  status: displayDay?.status,
+                  onTap: onTap,
+                  actionLabel: canStart ? text.get('start') : null,
+                  onAction: onAction,
+                );
+
+            return MorphSourceScope(
+              builder: (context, setHidden) => Builder(
+                builder: (cardContext) => buildCard(
+                  onTap: () => openPlan(
+                    sourceContext: cardContext,
+                    sourceBuilder: (_) => buildCard(
+                      onAction: canStart ? () {} : null,
+                    ),
+                    onSourceVisibilityChanged: setHidden,
+                  ),
+                  onAction: canStart
                       ? () async {
-                          await startManualPlanDay(context, plan, today);
+                          await startManualPlanDay(
+                            context,
+                            plan,
+                            today,
+                            sourceRect: CardMorphRoute.measureRect(cardContext),
+                            sourceBuilder: (_) => buildCard(onAction: () {}),
+                            onSourceVisibilityChanged: setHidden,
+                          );
                           if (mounted) setState(() => _manualPlanRefresh++);
                         }
                       : null,
+                ),
+              ),
             );
           },
         ),
@@ -526,7 +567,7 @@ class _WorkoutHubScreenState extends State<WorkoutHubScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(
-                  LucideIcons.plus,
+                  LucideIcons.folder_plus,
                   size: 20,
                   color: Theme.of(context).colorScheme.primary,
                 ),
@@ -621,7 +662,7 @@ class _WorkoutHubScreenState extends State<WorkoutHubScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Icon(
-                          LucideIcons.plus,
+                          LucideIcons.folder_plus,
                           size: 20,
                           color: Theme.of(context).colorScheme.primary,
                         ),
@@ -754,7 +795,6 @@ class _WorkoutHubScreenState extends State<WorkoutHubScreen> {
                 child: AppButton.primary(
                   onPressed: onStart ?? () {},
                   label: l10n.startWorkout,
-                  icon: LucideIcons.play,
                 ),
               ),
             ],
@@ -887,7 +927,6 @@ class _WorkoutHubScreenState extends State<WorkoutHubScreen> {
                       onSourceVisibilityChanged: setHidden,
                     ),
                     label: l10n.startWorkout,
-                    icon: LucideIcons.play,
                   ),
                 ),
               ),

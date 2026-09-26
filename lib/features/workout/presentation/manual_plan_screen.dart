@@ -7,7 +7,10 @@ import '../../../data/drift_database.dart' as db;
 import '../../../util/design_constants.dart';
 import '../../../widgets/common/app_button.dart';
 import '../../../widgets/common/app_link_row.dart';
+import '../../../widgets/common/card_morph_route.dart';
 import '../../../widgets/common/global_app_bar.dart';
+import '../../../widgets/common/morph_source.dart';
+import '../../../widgets/common/platform_adaptive_dropdown.dart';
 import '../../../widgets/common/platform_adaptive_pickers.dart';
 import '../../../widgets/common/summary_card.dart';
 import '../../app/presentation/widgets/glass_bottom_menu.dart';
@@ -20,17 +23,30 @@ import 'live_workout_screen.dart';
 import 'live_workout_view_model.dart';
 import 'manual_plan_editor_screen.dart';
 import 'manual_plan_text.dart';
+import 'workout_log_detail_screen.dart';
 import 'widgets/manual_plan_ui.dart';
 
-Future<void> startManualPlanDay(BuildContext context, ManualTrainingPlan plan,
-    PlannedCalendarDay day) async {
+Future<void> startManualPlanDay(
+  BuildContext context,
+  ManualTrainingPlan plan,
+  PlannedCalendarDay day, {
+  Rect? sourceRect,
+  WidgetBuilder? sourceBuilder,
+  MorphSourceVisibilityCallback? onSourceVisibilityChanged,
+}) async {
   final repository = ManualTrainingPlanRepository();
   final live = context.read<LiveWorkoutViewModel>();
   if (live.isActive) {
     final existing = live.workoutLog;
     if (existing != null && context.mounted) {
-      await Navigator.of(context).push(MaterialPageRoute(
-          builder: (_) => LiveWorkoutScreen(workoutLog: existing)));
+      await Navigator.of(context).push(
+        CardMorphRoute(
+          sourceRect: sourceRect,
+          sourceBuilder: sourceBuilder,
+          onSourceVisibilityChanged: onSourceVisibilityChanged,
+          builder: (_) => LiveWorkoutScreen(workoutLog: existing),
+        ),
+      );
       if (existing.id != null) await repository.reconcileWorkout(existing.id!);
     }
     await WorkoutPlanNotificationOrchestrator().synchronize();
@@ -44,9 +60,15 @@ Future<void> startManualPlanDay(BuildContext context, ManualTrainingPlan plan,
     startTime: started.log.startTime,
   );
   if (!context.mounted) return;
-  await Navigator.of(context).push(MaterialPageRoute(
+  await Navigator.of(context).push(
+    CardMorphRoute(
+      sourceRect: sourceRect,
+      sourceBuilder: sourceBuilder,
+      onSourceVisibilityChanged: onSourceVisibilityChanged,
       builder: (_) =>
-          LiveWorkoutScreen(workoutLog: log, routine: started.routine)));
+          LiveWorkoutScreen(workoutLog: log, routine: started.routine),
+    ),
+  );
   await repository.reconcileWorkout(started.log.localId);
   await WorkoutPlanNotificationOrchestrator().synchronize();
 }
@@ -77,6 +99,30 @@ class _ManualPlanScreenState extends State<ManualPlanScreen> {
   Future<void> _createOrEdit(ManualTrainingPlan? plan) async {
     final saved = await Navigator.of(context).push<bool>(
         MaterialPageRoute(builder: (_) => ManualPlanEditorScreen(plan: plan)));
+    if (saved == true) {
+      await _syncReminders();
+      _selectedId = null;
+      _weekAnchor = null;
+      _selectedDate = null;
+      _weekDirection = 0;
+      _reload();
+    }
+  }
+
+  Future<void> _editPlanFromCard(
+      ManualTrainingPlan plan, BuildContext sourceContext) async {
+    final reduceMotion =
+        MediaQuery.maybeOf(context)?.disableAnimations ?? false;
+    final saved = await Navigator.of(context).push<bool>(
+      reduceMotion
+          ? MaterialPageRoute(
+              builder: (_) => ManualPlanEditorScreen(plan: plan),
+            )
+          : CardMorphRoute<bool>(
+              sourceRect: CardMorphRoute.measureRect(sourceContext),
+              builder: (_) => ManualPlanEditorScreen(plan: plan),
+            ),
+    );
     if (saved == true) {
       await _syncReminders();
       _selectedId = null;
@@ -156,41 +202,8 @@ class _ManualPlanScreenState extends State<ManualPlanScreen> {
     _reload();
   }
 
-  Future<void> _manage(ManualTrainingPlan plan) async {
-    final text = ManualPlanText(context);
-    final action = await showGlassBottomMenu<String>(
-      context: context,
-      title: text.get('managePlan'),
-      contentBuilder: (context, close) => Padding(
-        padding:
-            const EdgeInsets.symmetric(horizontal: DesignConstants.spacingS),
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          AppLinkRow(
-              title: text.get('edit'),
-              trailingIcon: LucideIcons.pencil,
-              onTap: () {
-                close();
-                Navigator.pop(context, 'edit');
-              }),
-          AppLinkRow(
-              title: text.get('history'),
-              trailingIcon: LucideIcons.rotate_ccw_clock,
-              onTap: () {
-                close();
-                Navigator.pop(context, 'history');
-              }),
-          if (plan.active)
-            AppLinkRow(
-                title: text.get('deactivate'),
-                trailingIcon: LucideIcons.pause,
-                onTap: () {
-                  close();
-                  Navigator.pop(context, 'deactivate');
-                }),
-        ]),
-      ),
-    );
-    if (!mounted) return;
+  Future<void> _handleManageAction(
+      ManualTrainingPlan plan, String action) async {
     switch (action) {
       case 'edit':
         await _createOrEdit(plan);
@@ -199,6 +212,14 @@ class _ManualPlanScreenState extends State<ManualPlanScreen> {
       case 'deactivate':
         await _deactivate(plan);
     }
+  }
+
+  Future<void> _viewWorkout(int workoutLogId) async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => WorkoutLogDetailScreen(logId: workoutLogId),
+      ),
+    );
   }
 
   Future<void> _skip(ManualTrainingPlan plan, PlannedCalendarDay day) async {
@@ -234,7 +255,13 @@ class _ManualPlanScreenState extends State<ManualPlanScreen> {
     _reload();
   }
 
-  Future<void> _start(ManualTrainingPlan plan, PlannedCalendarDay day) async {
+  Future<void> _start(
+    ManualTrainingPlan plan,
+    PlannedCalendarDay day, {
+    Rect? sourceRect,
+    WidgetBuilder? sourceBuilder,
+    MorphSourceVisibilityCallback? onSourceVisibilityChanged,
+  }) async {
     final text = ManualPlanText(context);
     if (day.date.isBefore(_day(DateTime.now()))) {
       final confirmed = await showGlassBottomMenu<bool>(
@@ -264,7 +291,15 @@ class _ManualPlanScreenState extends State<ManualPlanScreen> {
       );
       if (confirmed != true || !mounted) return;
     }
-    await startManualPlanDay(context, plan, day);
+    if (!mounted) return;
+    await startManualPlanDay(
+      context,
+      plan,
+      day,
+      sourceRect: sourceRect,
+      sourceBuilder: sourceBuilder,
+      onSourceVisibilityChanged: onSourceVisibilityChanged,
+    );
     _reload();
   }
 
@@ -426,6 +461,11 @@ class _ManualPlanScreenState extends State<ManualPlanScreen> {
               final earliestWeek = _startOfWeek(plan.startedOn ?? today);
               if (start.isBefore(earliestWeek)) start = earliestWeek;
               final end = DateTime(start.year, start.month, start.day + 6);
+              final overviewActiveSlot = !plan.active
+                  ? null
+                  : plan.kind == TrainingPlanKind.week
+                      ? today.weekday - 1
+                      : null;
               return ListView(
                 padding: EdgeInsets.only(
                   top: topPadding + DesignConstants.screenPaddingVertical,
@@ -461,8 +501,21 @@ class _ManualPlanScreenState extends State<ManualPlanScreen> {
                             child: Center(child: CircularProgressIndicator()),
                           );
                         }
-                        return _buildWeek(context, plan, start,
-                            daySnapshot.data!.visible, daySnapshot.data!.next);
+                        final next = daySnapshot.data!.next;
+                        return Column(
+                          children: [
+                            PlanOverviewCard(
+                              plan: plan,
+                              activeSlotIndex:
+                                  overviewActiveSlot ?? next?.slotIndex,
+                              onEdit: (sourceContext) =>
+                                  _editPlanFromCard(plan, sourceContext),
+                            ),
+                            const SizedBox(height: DesignConstants.spacingL),
+                            _buildWeek(context, plan, start,
+                                daySnapshot.data!.visible, next),
+                          ],
+                        );
                       },
                     ),
                   ),
@@ -554,10 +607,31 @@ class _ManualPlanScreenState extends State<ManualPlanScreen> {
                   ),
                 ),
               ),
-              IconButton(
-                tooltip: text.get('managePlan'),
-                onPressed: () => _manage(plan),
-                icon: const Icon(LucideIcons.ellipsis, size: 21),
+              PlatformAdaptivePopupMenu<String>(
+                icon: Icon(
+                  LucideIcons.ellipsis,
+                  size: 21,
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+                onSelected: (action) => _handleManageAction(plan, action),
+                items: [
+                  PlatformAdaptivePopupMenuItem(
+                    value: 'edit',
+                    label: text.get('edit'),
+                    icon: LucideIcons.pencil,
+                  ),
+                  PlatformAdaptivePopupMenuItem(
+                    value: 'history',
+                    label: text.get('history'),
+                    icon: LucideIcons.rotate_ccw_clock,
+                  ),
+                  if (plan.active)
+                    PlatformAdaptivePopupMenuItem(
+                      value: 'deactivate',
+                      label: text.get('deactivate'),
+                      icon: LucideIcons.pause,
+                    ),
+                ],
               ),
             ],
           ),
@@ -622,6 +696,26 @@ class _ManualPlanScreenState extends State<ManualPlanScreen> {
     }
     final selectedDay = selected == null ? null : byDate[_day(selected)];
     final reduceMotion = MediaQuery.of(context).disableAnimations;
+    final canStart = plan.active &&
+        selectedDay != null &&
+        !selectedDay.day.isRest &&
+        selectedDay.status == PlannedDayStatus.planned &&
+        !selectedDay.date.isAfter(_day(DateTime.now()));
+    final workoutLogId = selectedDay?.workoutLogId;
+    final canViewWorkout = workoutLogId != null &&
+        (selectedDay?.status == PlannedDayStatus.completed ||
+            selectedDay?.status == PlannedDayStatus.partial);
+
+    Widget buildDetailCard({VoidCallback? onStart, VoidCallback? onSkip}) =>
+        PlanDayDetailCard(
+          plan: plan,
+          day: selectedDay!,
+          onStart: onStart,
+          onSkip: onSkip,
+          onViewWorkout:
+              canViewWorkout ? () => _viewWorkout(workoutLogId) : null,
+        );
+
     return Column(children: [
       AnimatedSwitcher(
         duration:
@@ -669,22 +763,26 @@ class _ManualPlanScreenState extends State<ManualPlanScreen> {
         switchInCurve: Curves.easeOutCubic,
         child: selectedDay == null
             ? const SizedBox.shrink()
-            : PlanDayDetailCard(
+            : MorphSourceScope(
                 key: ValueKey('${selectedDay.date}_${selectedDay.status}'),
-                plan: plan,
-                day: selectedDay,
-                onStart: plan.active &&
-                        !selectedDay.day.isRest &&
-                        selectedDay.status == PlannedDayStatus.planned &&
-                        !selectedDay.date.isAfter(_day(DateTime.now()))
-                    ? () => _start(plan, selectedDay)
-                    : null,
-                onSkip: plan.active &&
-                        !selectedDay.day.isRest &&
-                        selectedDay.status == PlannedDayStatus.planned &&
-                        !selectedDay.date.isAfter(_day(DateTime.now()))
-                    ? () => _skip(plan, selectedDay)
-                    : null,
+                builder: (context, setHidden) => Builder(
+                  builder: (cardContext) => buildDetailCard(
+                    onStart: canStart
+                        ? () => _start(
+                              plan,
+                              selectedDay,
+                              sourceRect:
+                                  CardMorphRoute.measureRect(cardContext),
+                              sourceBuilder: (_) => buildDetailCard(
+                                onStart: () {},
+                                onSkip: () {},
+                              ),
+                              onSourceVisibilityChanged: setHidden,
+                            )
+                        : null,
+                    onSkip: canStart ? () => _skip(plan, selectedDay) : null,
+                  ),
+                ),
               ),
       ),
     ]);
@@ -711,62 +809,38 @@ class _PlanRevisionTile extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: DesignConstants.spacingS),
       useSecondarySurface: true,
       disableShadow: true,
-      child: Row(
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 34,
-            height: 34,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: theme.colorScheme.primary.withValues(alpha: 0.12),
-            ),
-            child: Text(
-              '${revision.number}',
-              style: theme.textTheme.labelLarge?.copyWith(
-                color: theme.colorScheme.primary,
-                fontWeight: FontWeight.w700,
-              ),
+          Text(
+            '${text.get('version')} ${revision.number}',
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w700,
             ),
           ),
-          const SizedBox(width: DesignConstants.spacingM),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '${text.get('version')} ${revision.number}',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  DateFormat.yMMMd(locale).format(revision.effectiveOn),
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
-                  ),
-                ),
-                const SizedBox(height: DesignConstants.spacingS),
-                Wrap(
-                  spacing: 6,
-                  runSpacing: 6,
-                  children: [
-                    for (final day in visibleDays)
-                      _RevisionDayChip(
-                        label: day.routineName ?? text.get('rest'),
-                        rest: day.isRest,
-                      ),
-                    if (days.length > visibleDays.length)
-                      _RevisionDayChip(
-                        label: '+${days.length - visibleDays.length}',
-                        rest: true,
-                      ),
-                  ],
-                ),
-              ],
+          const SizedBox(height: 2),
+          Text(
+            DateFormat.yMMMd(locale).format(revision.effectiveOn),
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
             ),
+          ),
+          const SizedBox(height: DesignConstants.spacingS),
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: [
+              for (final day in visibleDays)
+                _RevisionDayChip(
+                  label: day.routineName ?? text.get('rest'),
+                  rest: day.isRest,
+                ),
+              if (days.length > visibleDays.length)
+                _RevisionDayChip(
+                  label: '+${days.length - visibleDays.length}',
+                  rest: true,
+                ),
+            ],
           ),
         ],
       ),
