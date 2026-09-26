@@ -55,15 +55,15 @@ Future<void> _advanceToMeasurements(WidgetTester tester) async {
   await tester.tap(nextButton);
   await tester.pumpAndSettle();
 
-  // Page 3: Profile basics
+  // Page 3: Name
   await tester.enterText(
     find.byKey(const Key('onboarding_name_text_field')),
     'Alex',
   );
-  await tester.enterText(
-    find.byKey(const Key('onboarding_height_text_field')),
-    '180',
-  );
+  await tester.tap(nextButton);
+  await tester.pumpAndSettle();
+
+  // Page 4: Age and gender
   // Pick gender Male
   final genderDropdown = find.byKey(const Key('onboarding_gender_dropdown'));
   await tester.tap(genderDropdown);
@@ -78,10 +78,28 @@ Future<void> _advanceToMeasurements(WidgetTester tester) async {
   await tester.tap(find.text('OK'));
   await tester.pumpAndSettle();
 
-  // Advance to Page 4: Measurements
+  await tester.tap(nextButton);
+  await tester.pumpAndSettle();
+
+  // Page 5: Height (the vertical ruler has a sensible default).
+  await tester.tap(nextButton);
+  await tester.pumpAndSettle();
+
+  // Page 6: Measurements
   await tester.tap(nextButton);
   await tester.pumpAndSettle();
   expect(find.byKey(const Key('onboarding_measurements_page')), findsOneWidget);
+}
+
+Future<void> _setOnboardingWeight(WidgetTester tester, String value) async {
+  await tester.tap(find.byKey(const Key('onboarding_weight_edit_button')));
+  await tester.pumpAndSettle();
+  await tester.enterText(
+    find.byKey(const Key('onboarding_weight_text_field')),
+    value,
+  );
+  await tester.tap(find.byKey(const Key('onboarding_weight_edit_button')));
+  await tester.pumpAndSettle();
 }
 
 void main() {
@@ -122,9 +140,7 @@ void main() {
     await _advanceToMeasurements(tester);
 
     // Enter weight
-    final weightField = find.byKey(const Key('onboarding_weight_text_field'));
-    await tester.enterText(weightField, '80');
-    await tester.pumpAndSettle();
+    await _setOnboardingWeight(tester, '80');
 
     final nextButton = find.byKey(const Key('onboarding_bottom_next_button'));
     await tester.tap(nextButton);
@@ -146,8 +162,8 @@ void main() {
     await tester.tap(nextButton);
     await tester.pumpAndSettle();
 
-    expect(find.byKey(const Key('onboarding_goal_decision_page')),
-        findsOneWidget);
+    expect(
+        find.byKey(const Key('onboarding_goal_decision_page')), findsOneWidget);
     expect(find.text('Möchtest du ein persönliches Ernährungsziel verfolgen?'),
         findsOneWidget);
     expect(find.byKey(const Key('onboarding_goal_decision_now_button')),
@@ -168,9 +184,7 @@ void main() {
 
     await _advanceToMeasurements(tester);
 
-    final weightField = find.byKey(const Key('onboarding_weight_text_field'));
-    await tester.enterText(weightField, '75');
-    await tester.pumpAndSettle();
+    await _setOnboardingWeight(tester, '75');
 
     final nextButton = find.byKey(const Key('onboarding_bottom_next_button'));
     await tester.tap(nextButton); // to Activity
@@ -201,8 +215,8 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 350));
 
-    expect(find.byKey(const Key('onboarding_goal_decision_page')),
-        findsOneWidget);
+    expect(
+        find.byKey(const Key('onboarding_goal_decision_page')), findsOneWidget);
   });
 
   testWidgets(
@@ -217,9 +231,7 @@ void main() {
 
     await _advanceToMeasurements(tester);
 
-    final weightField = find.byKey(const Key('onboarding_weight_text_field'));
-    await tester.enterText(weightField, '85');
-    await tester.pumpAndSettle();
+    await _setOnboardingWeight(tester, '85');
 
     final nextButton = find.byKey(const Key('onboarding_bottom_next_button'));
     await tester.tap(nextButton); // to Activity
@@ -284,9 +296,7 @@ void main() {
 
     await _advanceToMeasurements(tester);
 
-    final weightField = find.byKey(const Key('onboarding_weight_text_field'));
-    await tester.enterText(weightField, '80');
-    await tester.pumpAndSettle();
+    await _setOnboardingWeight(tester, '80');
 
     final nextButton = find.byKey(const Key('onboarding_bottom_next_button'));
     await tester.tap(nextButton); // to Activity
@@ -339,9 +349,7 @@ void main() {
 
     await _advanceToMeasurements(tester);
 
-    final weightField = find.byKey(const Key('onboarding_weight_text_field'));
-    await tester.enterText(weightField, '80');
-    await tester.pumpAndSettle();
+    await _setOnboardingWeight(tester, '80');
 
     final nextButton = find.byKey(const Key('onboarding_bottom_next_button'));
     await tester.tap(nextButton); // to Activity
@@ -394,8 +402,7 @@ void main() {
     expect(allGoals.first.isNutritionDriver, isTrue);
   });
 
-  testWidgets(
-      'Baseline weight edit in goal flow syncs with onboarding state',
+  testWidgets('Baseline weight edit in goal flow syncs with onboarding state',
       (WidgetTester tester) async {
     await tester.pumpWidget(_buildOnboardingTestApp(
       goalRepository: goalRepository,
@@ -406,9 +413,7 @@ void main() {
 
     await _advanceToMeasurements(tester);
 
-    final weightField = find.byKey(const Key('onboarding_weight_text_field'));
-    await tester.enterText(weightField, '80');
-    await tester.pumpAndSettle();
+    await _setOnboardingWeight(tester, '80');
 
     final nextButton = find.byKey(const Key('onboarding_bottom_next_button'));
     await tester.tap(nextButton); // to Activity
@@ -453,9 +458,6 @@ void main() {
 
     expect(
         find.byKey(const Key('onboarding_measurements_page')), findsOneWidget);
-    final currentWeightField = tester.widget<TextField>(
-      find.byKey(const Key('onboarding_weight_text_field')),
-    );
-    expect(currentWeightField.controller?.text, '82.5');
+    expect(find.text('82.5 kg'), findsOneWidget);
   });
 }

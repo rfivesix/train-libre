@@ -2560,13 +2560,26 @@ class AppLocalizationsIt extends AppLocalizations {
   String get onboardingNameLabel => 'Il tuo nome';
 
   @override
+  String get onboardingProfilePhotoSubtitle =>
+      'Aggiungi facoltativamente una foto profilo per rendere il profilo subito tuo.';
+
+  @override
+  String get onboardingProfilePhotoAdd => 'Aggiungi foto profilo';
+
+  @override
   String get onboardingNameError => 'Per favore inserisci il tuo nome';
 
   @override
   String get onboardingDobTitle => 'Quando sei nato?';
 
   @override
+  String get onboardingAgeTitle => 'Quanti anni hai?';
+
+  @override
   String get onboardingDobLabel => 'Data di nascita';
+
+  @override
+  String get onboardingDobPlaceholder => 'Seleziona la data di nascita';
 
   @override
   String get onboardingDobError => 'Seleziona la tua data di nascita';
@@ -2642,6 +2655,13 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get onboardingHeightLabel => 'Altezza';
+
+  @override
+  String get onboardingHeightTitle => 'Quanto sei alto?';
+
+  @override
+  String get onboardingHeightSubtitle =>
+      'Trascina il righello verso l\'alto o il basso per impostare la tua altezza.';
 
   @override
   String get onboardingGenderLabel => 'Genere';

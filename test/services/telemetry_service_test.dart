@@ -113,6 +113,7 @@ void main() {
       await postHogService.trackOnboardingStep(
         stepIndex: 0,
         stepName: 'welcome',
+        screenName: 'welcome',
         durationSeconds: 15,
         sessionId: sessionId,
       );

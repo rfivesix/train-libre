@@ -104,9 +104,13 @@ class _AppRulerPickerState extends State<AppRulerPicker> {
 
   void _change(double raw) {
     final clamped = raw.clamp(widget.minValue, widget.maxValue);
-    final tick = (clamped / widget.step).round();
-    final snapped = tick * widget.step;
+    widget.onChanged(clamped);
+  }
 
+  void _finish() {
+    final tick = (widget.value / widget.step).round();
+    final snapped =
+        (tick * widget.step).clamp(widget.minValue, widget.maxValue);
     if (tick != _lastHapticTick) {
       HapticFeedback.selectionClick();
       _lastHapticTick = tick;
@@ -146,6 +150,7 @@ class _AppRulerPickerState extends State<AppRulerPicker> {
                 _change(_dragValue);
               }
             : null,
+        onHorizontalDragEnd: widget.enabled ? (_) => _finish() : null,
         child: ClipRect(
           child: CustomPaint(
             size: const Size(double.infinity, 74),

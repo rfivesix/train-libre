@@ -63,6 +63,7 @@ import '../../health_export/models/export_models.dart';
 import 'package:uuid/uuid.dart';
 import '../../../services/telemetry/telemetry_service.dart';
 import '../../../widgets/common/app_button.dart';
+import '../../../widgets/common/app_ruler_picker.dart';
 import '../../../widgets/common/app_restart.dart';
 
 /// The initial setup flow for new users.
@@ -92,17 +93,19 @@ class OnboardingScreen extends StatefulWidget {
 class _OnboardingScreenState extends State<OnboardingScreen> {
   static const int _unitSystemPageIndex = 1;
   static const int _regionSelectionPageIndex = 2;
-  static const int _profilePageIndex = 3;
-  static const int _measurementsPageIndex = 4;
-  static const int _activityPageIndex = 5;
-  static const int _goalDecisionPageIndex = 6;
-  static const int _goalPresetPageIndex = 7;
-  static const int _goalTargetPageIndex = 8;
-  static const int _goalPaceTimelinePageIndex = 9;
-  static const int _goalMotivationPageIndex = 10;
-  static const int _nutritionPageIndex = 11;
-  static const int _permissionsPageIndex = 12;
-  static const int _totalPageCount = 13;
+  static const int _namePageIndex = 3;
+  static const int _bioDataPageIndex = 4;
+  static const int _heightPageIndex = 5;
+  static const int _measurementsPageIndex = 6;
+  static const int _activityPageIndex = 7;
+  static const int _goalDecisionPageIndex = 8;
+  static const int _goalPresetPageIndex = 9;
+  static const int _goalTargetPageIndex = 10;
+  static const int _goalPaceTimelinePageIndex = 11;
+  static const int _goalMotivationPageIndex = 12;
+  static const int _nutritionPageIndex = 13;
+  static const int _permissionsPageIndex = 14;
+  static const int _totalPageCount = 15;
   static const int _lastPageIndex = _permissionsPageIndex;
 
   bool _isImportedMode = false;
@@ -129,7 +132,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     'welcome',
     'unit_system',
     'region_selection',
-    'profile_basics',
+    'name',
+    'age_and_gender',
+    'height',
     'body_measurements',
     'current_activity',
     'goal_decision',
@@ -161,6 +166,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   final TextEditingController _nameController = TextEditingController();
   DateTime? _selectedDate;
   final TextEditingController _heightController = TextEditingController();
+  // Keep the initially visible dropdown value and the submitted profile value
+  // in sync. Otherwise the native control can show “Male” while validation
+  // still sees a null selection.
   String? _selectedGender = 'male';
   final TextEditingController _bodyFatPercentController =
       TextEditingController();
@@ -190,6 +198,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   @override
   void initState() {
     super.initState();
+    assert(_stepNames.length == _totalPageCount,
+        'Every onboarding page must have exactly one telemetry step name.');
     _isImportedMode = widget.forceImportMode;
     _databaseHelper = widget.databaseHelper ?? DatabaseHelper.instance;
     _goalRepository = widget.goalRepository ??
@@ -215,6 +225,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         TelemetryService.instance.trackOnboardingStep(
           stepIndex: 0,
           stepName: _stepNames[0],
+          screenName: _stepNames[0],
           durationSeconds: 0,
           sessionId: _onboardingSessionId,
         );
@@ -912,13 +923,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     }
 
     if (!_isImportedMode) {
-      if (_currentPage == _profilePageIndex) {
+      if (_currentPage == _namePageIndex) {
         if (_nameController.text.trim().isEmpty) return;
+      }
 
+      if (_currentPage == _bioDataPageIndex) {
         bool hasProfileErrors = false;
         _dobError = null;
         _genderError = null;
-        _heightError = null;
 
         if (_selectedDate == null) {
           _dobError = l10n.onboardingFieldCannotBeEmpty;
@@ -928,18 +940,22 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           _genderError = l10n.onboardingFieldCannotBeEmpty;
           hasProfileErrors = true;
         }
-        if (_heightController.text.trim().isEmpty) {
-          _heightError = l10n.onboardingFieldCannotBeEmpty;
-          hasProfileErrors = true;
-          _heightWarning = null;
-          _lastWarnedHeightValue = null;
-        }
-
         if (hasProfileErrors) {
           setState(() {});
           return;
         }
+      }
 
+      if (_currentPage == _heightPageIndex) {
+        _heightError = null;
+        if (_heightController.text.trim().isEmpty) {
+          setState(() {
+            _heightError = l10n.onboardingFieldCannotBeEmpty;
+            _heightWarning = null;
+            _lastWarnedHeightValue = null;
+          });
+          return;
+        }
         final heightInput =
             double.tryParse(_heightController.text.replaceAll(',', '.'));
         if (heightInput != null) {
@@ -1260,6 +1276,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     TelemetryService.instance.trackOnboardingStep(
                       stepIndex: i,
                       stepName: _stepNames[i.clamp(0, _stepNames.length - 1)],
+                      screenName: _stepNames[i.clamp(0, _stepNames.length - 1)],
                       durationSeconds: durationSec,
                       sessionId: _onboardingSessionId,
                     );
@@ -1292,13 +1309,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         });
                       },
                     ),
-                    ProfileSlide(
+                    NameSlide(
                       nameController: _nameController,
+                    ),
+                    BioDataSlide(
                       selectedDate: _selectedDate,
-                      heightController: _heightController,
                       selectedGender: _selectedGender,
-                      heightError: _heightError,
-                      heightWarning: _heightWarning,
                       dobError: _dobError,
                       genderError: _genderError,
                       onSelectDate: (picked) {
@@ -1316,6 +1332,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           _genderError = null;
                         });
                       },
+                    ),
+                    HeightSlide(
+                      heightController: _heightController,
+                      heightError: _heightError,
+                      heightWarning: _heightWarning,
                     ),
                     _OnboardingMeasurementsStep(
                       weightController: _weightController,
@@ -1470,7 +1491,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 }
 
-class _OnboardingMeasurementsStep extends StatelessWidget {
+class _OnboardingMeasurementsStep extends StatefulWidget {
   const _OnboardingMeasurementsStep({
     required this.weightController,
     required this.bodyFatPercentController,
@@ -1488,11 +1509,25 @@ class _OnboardingMeasurementsStep extends StatelessWidget {
   final String? weightWarning;
 
   @override
+  State<_OnboardingMeasurementsStep> createState() =>
+      _OnboardingMeasurementsStepState();
+}
+
+class _OnboardingMeasurementsStepState
+    extends State<_OnboardingMeasurementsStep> {
+  bool _bodyFatExpanded = false;
+
+  double _valueFor(TextEditingController controller, double fallback) =>
+      double.tryParse(controller.text.replaceAll(',', '.')) ?? fallback;
+
+  @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final unitService = context.watch<UnitService>();
     final weightSuffix = unitService.suffixFor(UnitDimension.weight);
+    final weightValue = _valueFor(widget.weightController, 75.0);
+    final bodyFatValue = _valueFor(widget.bodyFatPercentController, 20.0);
 
     return SingleChildScrollView(
       key: const Key('onboarding_measurements_page'),
@@ -1515,65 +1550,200 @@ class _OnboardingMeasurementsStep extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 28),
-          TextField(
-            key: const Key('onboarding_weight_text_field'),
-            controller: weightController,
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            decoration: InputDecoration(
-              labelText: '${l10n.onboardingWeightTitle} ($weightSuffix)',
-              suffixText: weightSuffix,
-              border: OutlineInputBorder(
-                borderRadius:
-                    BorderRadius.circular(DesignConstants.borderRadiusM),
-              ),
-              errorText: weightError,
+          _OnboardingMeasurementRuler(
+            value: weightValue,
+            controller: widget.weightController,
+            title: l10n.onboardingWeightTitle,
+            unit: weightSuffix,
+            editorKey: const Key('onboarding_weight_edit_button'),
+            manualInputKey: const Key('onboarding_weight_text_field'),
+            rulerKey: const Key('onboarding_weight_ruler'),
+            errorText: widget.weightError,
+            builder: (value, onChanged) => AppRulerPicker.weight(
+              key: const Key('onboarding_weight_ruler'),
+              value: value,
+              imperial: unitService.isImperial,
+              label: '${l10n.onboardingWeightTitle} ($weightSuffix)',
+              onChanged: onChanged,
             ),
           ),
-          if (weightWarning != null) ...[
+          if (widget.weightWarning != null) ...[
             const SizedBox(height: 4),
             Text(
-              weightWarning!,
+              widget.weightWarning!,
               style: TextStyle(
                 color: Colors.orange.shade800,
                 fontSize: 12,
               ),
             ),
           ],
-          const SizedBox(height: 18),
-          TextField(
-            key: const Key('onboarding_body_fat_text_field'),
-            controller: bodyFatPercentController,
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            onChanged: onBodyFatChanged,
-            decoration: InputDecoration(
-              labelText: l10n.onboardingBodyFatOptionalLabel,
-              suffixText: '%',
-              border: OutlineInputBorder(
-                borderRadius:
-                    BorderRadius.circular(DesignConstants.borderRadiusM),
-              ),
+          const SizedBox(height: DesignConstants.spacingM),
+          ExpansionTileTheme(
+            data: ExpansionTileThemeData(
+              textColor: theme.colorScheme.onSurface,
+              collapsedTextColor: theme.colorScheme.onSurface,
+              iconColor: theme.colorScheme.onSurfaceVariant,
+              collapsedIconColor: theme.colorScheme.onSurfaceVariant,
             ),
-          ),
-          const SizedBox(height: DesignConstants.spacingS),
-          Text(
-            l10n.onboardingBodyFatOptionalHelper,
-            key: const Key('onboarding_body_fat_helper_text'),
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: TextButton(
-              key: const Key('onboarding_body_fat_help_button'),
-              onPressed: onOpenBodyFatHelp,
-              child: Text(l10n.onboardingBodyFatHelpAction),
+            child: ExpansionTile(
+              key: const Key('onboarding_body_fat_expansion'),
+              initiallyExpanded: _bodyFatExpanded,
+              onExpansionChanged: (expanded) =>
+                  setState(() => _bodyFatExpanded = expanded),
+              tilePadding: EdgeInsets.zero,
+              title: Text(l10n.onboardingBodyFatOptionalLabel),
+              subtitle: Text(l10n.onboardingBodyFatOptionalHelper),
+              children: [
+                _OnboardingMeasurementRuler(
+                  value: bodyFatValue.clamp(3.0, 60.0),
+                  controller: widget.bodyFatPercentController,
+                  title: l10n.onboardingBodyFatOptionalLabel,
+                  unit: '%',
+                  editorKey: const Key('onboarding_body_fat_edit_button'),
+                  manualInputKey: const Key('onboarding_body_fat_text_field'),
+                  rulerKey: const Key('onboarding_body_fat_ruler'),
+                  onValueChanged: widget.onBodyFatChanged,
+                  builder: (value, onChanged) => AppRulerPicker(
+                    key: const Key('onboarding_body_fat_ruler'),
+                    value: value,
+                    minValue: 3,
+                    maxValue: 60,
+                    step: 0.1,
+                    // Mirror the metric weight ruler exactly: 0.1-unit ticks
+                    // every 7px, a medium tick at 0.5 and a labelled major
+                    // tick at each whole unit.
+                    pixelsPerUnit: 70,
+                    majorInterval: 1,
+                    minorInterval: 0.5,
+                    fractionDigits: 1,
+                    label: l10n.onboardingBodyFatOptionalLabel,
+                    unit: '%',
+                    onChanged: onChanged,
+                  ),
+                ),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: TextButton(
+                    key: const Key('onboarding_body_fat_help_button'),
+                    onPressed: widget.onOpenBodyFatHelp,
+                    child: Text(l10n.onboardingBodyFatHelpAction),
+                  ),
+                ),
+              ],
             ),
           ),
           const SizedBox(height: DesignConstants.spacingXL),
           _OnboardingInfoBox(text: l10n.onboardingMeasurementsDisclaimer),
         ],
       ),
+    );
+  }
+}
+
+class _OnboardingMeasurementRuler extends StatefulWidget {
+  const _OnboardingMeasurementRuler({
+    required this.value,
+    required this.controller,
+    required this.title,
+    required this.unit,
+    required this.editorKey,
+    required this.manualInputKey,
+    required this.rulerKey,
+    required this.builder,
+    this.errorText,
+    this.onValueChanged,
+  });
+
+  final double value;
+  final TextEditingController controller;
+  final String title;
+  final String unit;
+  final Key editorKey;
+  final Key manualInputKey;
+  final Key rulerKey;
+  final String? errorText;
+  final ValueChanged<String>? onValueChanged;
+  final Widget Function(double value, ValueChanged<double> onChanged) builder;
+
+  @override
+  State<_OnboardingMeasurementRuler> createState() =>
+      _OnboardingMeasurementRulerState();
+}
+
+class _OnboardingMeasurementRulerState
+    extends State<_OnboardingMeasurementRuler> {
+  bool _editing = false;
+
+  void _setValue(double value) {
+    widget.controller.text = value.toStringAsFixed(1);
+    widget.onValueChanged?.call(widget.controller.text);
+    setState(() {});
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final value =
+        double.tryParse(widget.controller.text.replaceAll(',', '.')) ??
+            widget.value;
+    final theme = Theme.of(context);
+    return Column(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            if (_editing)
+              SizedBox(
+                width: 180,
+                child: TextField(
+                  key: widget.manualInputKey,
+                  controller: widget.controller,
+                  autofocus: true,
+                  textAlign: TextAlign.center,
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
+                  style: theme.textTheme.headlineMedium?.copyWith(
+                    color: theme.colorScheme.primary,
+                    fontWeight: FontWeight.bold,
+                    fontFeatures: const [FontFeature.tabularFigures()],
+                  ),
+                  decoration: InputDecoration(
+                    isDense: true,
+                    suffixText: widget.unit,
+                    border: InputBorder.none,
+                  ),
+                  onChanged: (text) {
+                    final parsed = double.tryParse(text.replaceAll(',', '.'));
+                    if (parsed != null) widget.onValueChanged?.call(text);
+                    setState(() {});
+                  },
+                  onSubmitted: (_) => setState(() => _editing = false),
+                ),
+              )
+            else
+              Text('${value.toStringAsFixed(1)} ${widget.unit}',
+                  style: theme.textTheme.headlineMedium?.copyWith(
+                    color: theme.colorScheme.primary,
+                    fontWeight: FontWeight.bold,
+                    fontFeatures: const [FontFeature.tabularFigures()],
+                  )),
+            IconButton(
+              key: widget.editorKey,
+              tooltip: widget.title,
+              onPressed: () => setState(() => _editing = !_editing),
+              icon: Icon(_editing ? LucideIcons.check : LucideIcons.pencil),
+            ),
+          ],
+        ),
+        widget.builder(value, _setValue),
+        if (widget.errorText != null)
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Text(widget.errorText!,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.error,
+                )),
+          ),
+      ],
     );
   }
 }
@@ -1636,83 +1806,83 @@ class _OnboardingActivityStep extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-          const SizedBox(height: DesignConstants.spacingM),
-          Text(
-            l10n.onboardingActivityTitle,
-            style: theme.textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: DesignConstants.spacingS),
-          Text(
-            l10n.onboardingActivitySubtitle,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
-          const SizedBox(height: DesignConstants.spacingXL),
-          PlatformAdaptiveDropdownFormField<PriorActivityLevel>(
-            key: const Key('onboarding_prior_activity_dropdown'),
-            initialValue: selectedPriorActivityLevel,
-            decoration: InputDecoration(
-              labelText: l10n.adaptivePriorActivityLabel,
-              border: OutlineInputBorder(
-                borderRadius:
-                    BorderRadius.circular(DesignConstants.borderRadiusM),
+            const SizedBox(height: DesignConstants.spacingM),
+            Text(
+              l10n.onboardingActivityTitle,
+              style: theme.textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.bold,
               ),
             ),
-            items: PriorActivityLevel.values
-                .map(
-                  (level) => DropdownMenuItem<PriorActivityLevel>(
-                    value: level,
-                    child: Text(_priorActivityLabel(l10n, level)),
-                  ),
-                )
-                .toList(growable: false),
-            onChanged: (level) {
-              if (level != null) onPriorActivityLevelChanged(level);
-            },
-          ),
-          const SizedBox(height: DesignConstants.spacingL),
-          PriorActivityHelpBlock(
-            key: const Key('onboarding_prior_activity_help_block'),
-            l10n: l10n,
-          ),
-          const SizedBox(height: 20),
-          PlatformAdaptiveDropdownFormField<ExtraCardioHoursOption>(
-            key: const Key('onboarding_extra_cardio_dropdown'),
-            initialValue: selectedExtraCardioHoursOption,
-            decoration: InputDecoration(
-              labelText: l10n.adaptiveExtraCardioLabel,
-              border: OutlineInputBorder(
-                borderRadius:
-                    BorderRadius.circular(DesignConstants.borderRadiusM),
+            const SizedBox(height: DesignConstants.spacingS),
+            Text(
+              l10n.onboardingActivitySubtitle,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
               ),
             ),
-            items: ExtraCardioHoursCatalog.supportedOptions
-                .map(
-                  (option) => DropdownMenuItem<ExtraCardioHoursOption>(
-                    value: option,
-                    child: Text(_extraCardioLabel(l10n, option)),
-                  ),
-                )
-                .toList(growable: false),
-            onChanged: (option) {
-              if (option != null) onExtraCardioHoursOptionChanged(option);
-            },
-          ),
-          const SizedBox(height: DesignConstants.spacingS),
-          Text(
-            l10n.adaptiveExtraCardioHelp,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
+            const SizedBox(height: DesignConstants.spacingXL),
+            PlatformAdaptiveDropdownFormField<PriorActivityLevel>(
+              key: const Key('onboarding_prior_activity_dropdown'),
+              initialValue: selectedPriorActivityLevel,
+              decoration: InputDecoration(
+                labelText: l10n.adaptivePriorActivityLabel,
+                border: OutlineInputBorder(
+                  borderRadius:
+                      BorderRadius.circular(DesignConstants.borderRadiusM),
+                ),
+              ),
+              items: PriorActivityLevel.values
+                  .map(
+                    (level) => DropdownMenuItem<PriorActivityLevel>(
+                      value: level,
+                      child: Text(_priorActivityLabel(l10n, level)),
+                    ),
+                  )
+                  .toList(growable: false),
+              onChanged: (level) {
+                if (level != null) onPriorActivityLevelChanged(level);
+              },
             ),
-          ),
-        ],
+            const SizedBox(height: DesignConstants.spacingL),
+            PriorActivityHelpBlock(
+              key: const Key('onboarding_prior_activity_help_block'),
+              l10n: l10n,
+            ),
+            const SizedBox(height: 20),
+            PlatformAdaptiveDropdownFormField<ExtraCardioHoursOption>(
+              key: const Key('onboarding_extra_cardio_dropdown'),
+              initialValue: selectedExtraCardioHoursOption,
+              decoration: InputDecoration(
+                labelText: l10n.adaptiveExtraCardioLabel,
+                border: OutlineInputBorder(
+                  borderRadius:
+                      BorderRadius.circular(DesignConstants.borderRadiusM),
+                ),
+              ),
+              items: ExtraCardioHoursCatalog.supportedOptions
+                  .map(
+                    (option) => DropdownMenuItem<ExtraCardioHoursOption>(
+                      value: option,
+                      child: Text(_extraCardioLabel(l10n, option)),
+                    ),
+                  )
+                  .toList(growable: false),
+              onChanged: (option) {
+                if (option != null) onExtraCardioHoursOptionChanged(option);
+              },
+            ),
+            const SizedBox(height: DesignConstants.spacingS),
+            Text(
+              l10n.adaptiveExtraCardioHelp,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 }
 
 class _OnboardingGoalDecisionStep extends StatelessWidget {

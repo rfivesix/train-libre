@@ -42,21 +42,19 @@ void main() {
     await tester.tap(nextButton);
     await tester.pumpAndSettle();
 
-    // 3. Profile Screen (Page 2)
-    // Initially verify Name TextField is empty and there are no errors
+    // 4. Name screen
     expect(find.text('This field cannot be empty.'), findsNothing);
 
-    // Enter name to pass the initial name check
     await tester.enterText(
         find.byKey(const Key('onboarding_name_text_field')), 'John Doe');
     await tester.pumpAndSettle();
-
-    // Tap Next with Height, DOB, Sex empty
     await tester.tap(nextButton);
     await tester.pumpAndSettle();
 
-    // Verify error messages appear under empty fields
-    expect(find.text('This field cannot be empty.'), findsNWidgets(2));
+    // 5. Age and gender screen: gender defaults to Male, DOB is required.
+    await tester.tap(nextButton);
+    await tester.pumpAndSettle();
+    expect(find.text('This field cannot be empty.'), findsOneWidget);
 
     // Choose Sex/Gender 'Male'
     final genderDropdown = find.byKey(const Key('onboarding_gender_dropdown'));
@@ -80,27 +78,16 @@ void main() {
     await tester.tap(okButton);
     await tester.pumpAndSettle();
 
-    // Enter Height out of physiological bounds (> 250 cm / in)
-    await tester.enterText(
-        find.byKey(const Key('onboarding_height_text_field')), '419');
+    // Advance to the dedicated vertical height ruler and then measurements.
+    await tester.tap(nextButton);
     await tester.pumpAndSettle();
-
-    // Tap Next -> should show physiological warning intercept
     await tester.tap(nextButton);
     await tester.pumpAndSettle();
 
-    final warningTextFinder =
-        find.textContaining('expected physiological range');
-    expect(warningTextFinder, findsOneWidget);
-
-    // Tap Next again -> should bypass warning and advance to Measurements page
-    await tester.tap(nextButton);
-    await tester.pumpAndSettle();
-
-    // 4. Measurements Screen (Page 3)
-    // Ensure we are on page 3 by looking for the weight field
-    final weightField = find.byKey(const Key('onboarding_weight_text_field'));
-    expect(weightField, findsOneWidget);
+    // 6. Measurements screen
+    final weightEditButton =
+        find.byKey(const Key('onboarding_weight_edit_button'));
+    expect(weightEditButton, findsOneWidget);
 
     // Tap Next with empty weight field
     await tester.tap(nextButton);
@@ -110,14 +97,20 @@ void main() {
     expect(find.text('This field cannot be empty.'), findsOneWidget);
 
     // Enter weight out of bounds (> 250 kg / lbs)
-    await tester.enterText(weightField, '1000');
+    await tester.tap(weightEditButton);
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const Key('onboarding_weight_text_field')),
+      '1000',
+    );
+    await tester.tap(weightEditButton);
     await tester.pumpAndSettle();
 
     // Tap Next -> should show physiological warning intercept
     await tester.tap(nextButton);
     await tester.pumpAndSettle();
 
-    expect(warningTextFinder, findsOneWidget);
+    expect(find.textContaining('expected physiological range'), findsOneWidget);
 
     // Tap Next again -> should bypass warning and advance to Goals page
     await tester.tap(nextButton);
@@ -130,7 +123,8 @@ void main() {
     expect(find.byKey(const Key('onboarding_measurements_page')), findsNothing);
   });
 
-  testWidgets('OnboardingScreen presents UnitSystemSlide and updates unit system',
+  testWidgets(
+      'OnboardingScreen presents UnitSystemSlide and updates unit system',
       (WidgetTester tester) async {
     SharedPreferences.setMockInitialValues({});
     final unitService = UnitService();
@@ -154,7 +148,8 @@ void main() {
     await tester.pumpAndSettle();
 
     // Verify UnitSystemSlide is displayed
-    final l10n = AppLocalizations.of(tester.element(find.byType(OnboardingScreen)))!;
+    final l10n =
+        AppLocalizations.of(tester.element(find.byType(OnboardingScreen)))!;
     expect(find.text(l10n.onboardingUnitSystemTitle), findsOneWidget);
     expect(find.text(l10n.onboardingUnitImperial), findsOneWidget);
 

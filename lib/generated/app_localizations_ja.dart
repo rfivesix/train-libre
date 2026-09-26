@@ -2486,13 +2486,26 @@ class AppLocalizationsJa extends AppLocalizations {
   String get onboardingNameLabel => 'あなたの名前';
 
   @override
+  String get onboardingProfilePhotoSubtitle =>
+      '任意でプロフィール写真を追加して、最初から自分らしいプロフィールにしましょう。';
+
+  @override
+  String get onboardingProfilePhotoAdd => 'プロフィール写真を追加';
+
+  @override
   String get onboardingNameError => 'あなたの名前を入力してください';
 
   @override
   String get onboardingDobTitle => '生年月日は何ですか？';
 
   @override
+  String get onboardingAgeTitle => '何歳ですか？';
+
+  @override
   String get onboardingDobLabel => '生年月日';
+
+  @override
+  String get onboardingDobPlaceholder => '生年月日を選択';
 
   @override
   String get onboardingDobError => '生年月日を選択してください';
@@ -2566,6 +2579,12 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get onboardingHeightLabel => '身長';
+
+  @override
+  String get onboardingHeightTitle => '身長はどのくらいですか？';
+
+  @override
+  String get onboardingHeightSubtitle => 'ルーラーを上下にドラッグして身長を設定します。';
 
   @override
   String get onboardingGenderLabel => '性別';

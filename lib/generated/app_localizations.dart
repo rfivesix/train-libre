@@ -4610,6 +4610,18 @@ abstract class AppLocalizations {
   /// **'Your Name'**
   String get onboardingNameLabel;
 
+  /// No description provided for @onboardingProfilePhotoSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Optionally add a profile photo to make this profile feel like yours from the start.'**
+  String get onboardingProfilePhotoSubtitle;
+
+  /// No description provided for @onboardingProfilePhotoAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add profile photo'**
+  String get onboardingProfilePhotoAdd;
+
   /// No description provided for @onboardingNameError.
   ///
   /// In en, this message translates to:
@@ -4622,11 +4634,23 @@ abstract class AppLocalizations {
   /// **'When were you born?'**
   String get onboardingDobTitle;
 
+  /// No description provided for @onboardingAgeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'How old are you?'**
+  String get onboardingAgeTitle;
+
   /// No description provided for @onboardingDobLabel.
   ///
   /// In en, this message translates to:
   /// **'Date of Birth'**
   String get onboardingDobLabel;
+
+  /// No description provided for @onboardingDobPlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Select your date of birth'**
+  String get onboardingDobPlaceholder;
 
   /// No description provided for @onboardingDobError.
   ///
@@ -4771,6 +4795,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Height'**
   String get onboardingHeightLabel;
+
+  /// No description provided for @onboardingHeightTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'How tall are you?'**
+  String get onboardingHeightTitle;
+
+  /// No description provided for @onboardingHeightSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag the ruler up or down to set your height.'**
+  String get onboardingHeightSubtitle;
 
   /// No description provided for @onboardingGenderLabel.
   ///

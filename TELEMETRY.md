@@ -122,8 +122,9 @@ Train Libre enforces a strict zero-PII (Personally Identifiable Information) pol
 
 ### 2. Onboarding Funnel
 * **`onboarding_step_viewed`**:
-  * `step_index` (int: `0` to `7`)
-  * `step_name` (string: `"welcome"`, `"unit_system"`, `"region_selection"`, `"profile_basics"`, `"body_measurements"`, `"adaptive_goals"`, `"permissions_consent"`, `"completion"`)
+  * `step_index` (int: `0` to `14`)
+  * `step_name` (string enum identifying the funnel step)
+  * `screen_name` (string enum identifying the screen currently shown; for example `"name"`, `"age_and_gender"`, or `"height"`)
   * `duration_seconds` (int: time spent on previous step)
   * `session_id` (ephemeral RAM UUID)
 * **`onboarding_completed`**:

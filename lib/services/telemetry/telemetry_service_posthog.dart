@@ -588,12 +588,14 @@ class PostHogTelemetryService implements TelemetryService {
   Future<void> trackOnboardingStep({
     required int stepIndex,
     required String stepName,
+    required String screenName,
     required int durationSeconds,
     required String sessionId,
   }) async {
     await track('onboarding_step_viewed', properties: {
       'step_index': stepIndex,
       'step_name': stepName,
+      'screen_name': screenName,
       'duration_seconds': durationSeconds,
       'session_id': sessionId,
     });

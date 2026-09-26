@@ -87,6 +87,7 @@ class NoOpTelemetryService implements TelemetryService {
   Future<void> trackOnboardingStep({
     required int stepIndex,
     required String stepName,
+    required String screenName,
     required int durationSeconds,
     required String sessionId,
   }) async {}
