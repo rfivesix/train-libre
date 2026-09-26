@@ -22,8 +22,11 @@ class NameSlide extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     ProfileService? profileService;
     try {
-      profileService = context.watch<ProfileService>();
-    } on ProviderNotFoundException {
+      final service = context.watch<ProfileService>();
+      if (!service.isDisposed) {
+        profileService = service;
+      }
+    } catch (_) {
       // Widget tests and minimal app shells can omit the optional service.
     }
     return _OnboardingStepPage(

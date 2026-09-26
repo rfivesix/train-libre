@@ -191,19 +191,12 @@ class GoalPresetStep extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: DesignConstants.spacingM),
-                AnimatedContainer(
-                  duration: animationDuration,
-                  width: 18,
-                  height: 18,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: isSelected
-                          ? theme.colorScheme.primary
-                          : theme.colorScheme.onSurfaceVariant,
-                      width: isSelected ? 5 : 1.5,
-                    ),
-                  ),
+                Icon(
+                  isSelected ? LucideIcons.circle_dot : LucideIcons.circle,
+                  size: 20,
+                  color: isSelected
+                      ? theme.colorScheme.primary
+                      : theme.colorScheme.onSurfaceVariant,
                 ),
               ],
             ),

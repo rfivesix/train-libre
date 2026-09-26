@@ -25,24 +25,22 @@ class UnitSystemSlide extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(DesignConstants.spacingXL),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            const SizedBox(height: DesignConstants.spacingXL),
             Text(
               l10n.onboardingUnitSystemTitle,
-              textAlign: TextAlign.center,
               style: theme.textTheme.headlineSmall
                   ?.copyWith(fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: DesignConstants.spacingM),
+            const SizedBox(height: DesignConstants.spacingS),
             Text(
               l10n.onboardingUnitSystemSubtitle,
-              textAlign: TextAlign.center,
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
             ),
-            const SizedBox(height: DesignConstants.spacingXXL),
+            const SizedBox(height: DesignConstants.spacingXL),
             SpringyScale(
               isSelected: selectedSystem == UnitSystem.metric,
               onTap: () => onSelectSystem(UnitSystem.metric),
@@ -89,9 +87,9 @@ class _UnitSystemChoiceCard extends StatelessWidget {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(DesignConstants.spacingL),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(DesignConstants.borderRadiusL),
         color: cs.surfaceContainerLow.withValues(alpha: selected ? 1.0 : 0.6),
         border: Border.all(
           color: selected ? cs.primary : cs.outlineVariant,
@@ -111,7 +109,7 @@ class _UnitSystemChoiceCard extends StatelessWidget {
         children: [
           Icon(
             icon,
-            size: 34,
+            size: 28,
             color: selected ? cs.primary : cs.onSurfaceVariant,
           ),
           const SizedBox(width: DesignConstants.spacingL),
@@ -121,8 +119,8 @@ class _UnitSystemChoiceCard extends StatelessWidget {
               children: [
                 Text(
                   title,
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w800,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
                     color: selected ? cs.onSurface : cs.onSurfaceVariant,
                   ),
                 ),
@@ -137,7 +135,7 @@ class _UnitSystemChoiceCard extends StatelessWidget {
             ),
           ),
           Icon(
-            selected ? LucideIcons.circle_check : LucideIcons.circle,
+            selected ? LucideIcons.circle_dot : LucideIcons.circle,
             color: selected ? cs.primary : cs.outline,
           ),
         ],

@@ -13,6 +13,8 @@ import '../../../widgets/common/morph_source.dart';
 import '../../../widgets/common/platform_adaptive_dropdown.dart';
 import '../../../widgets/common/platform_adaptive_pickers.dart';
 import '../../../widgets/common/summary_card.dart';
+import '../../../widgets/common/empty_states/cold_start_empty_state.dart';
+import '../../../widgets/common/glass_fab.dart';
 import '../../app/presentation/widgets/glass_bottom_menu.dart';
 import '../../statistics/domain/timeframe_block.dart';
 import '../data/manual_training_plan_repository.dart';
@@ -74,19 +76,26 @@ Future<void> startManualPlanDay(
 }
 
 class ManualPlanScreen extends StatefulWidget {
-  const ManualPlanScreen({super.key});
+  final ManualTrainingPlanRepository? repository;
+  const ManualPlanScreen({super.key, this.repository});
 
   @override
   State<ManualPlanScreen> createState() => _ManualPlanScreenState();
 }
 
 class _ManualPlanScreenState extends State<ManualPlanScreen> {
-  final _repository = ManualTrainingPlanRepository();
+  late final ManualTrainingPlanRepository _repository;
   String? _selectedId;
   DateTime? _weekAnchor;
   DateTime? _selectedDate;
   int _weekDirection = 0;
   int _refresh = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _repository = widget.repository ?? ManualTrainingPlanRepository();
+  }
 
   DateTime _day(DateTime date) => DateTime(date.year, date.month, date.day);
   DateTime _startOfWeek(DateTime date) =>
@@ -423,138 +432,153 @@ class _ManualPlanScreenState extends State<ManualPlanScreen> {
   Widget build(BuildContext context) {
     final text = ManualPlanText(context);
     final topPadding = MediaQuery.paddingOf(context).top + kToolbarHeight;
-    return Scaffold(
-      extendBodyBehindAppBar: true,
-      appBar: GlobalAppBar(title: text.get('plan'), actions: [
-        IconButton(
-            tooltip: text.get('create'),
-            onPressed: () => _createOrEdit(null),
-            icon: const Icon(LucideIcons.plus)),
-      ]),
-      body: FutureBuilder(
-        key: ValueKey(_refresh),
-        future: _repository.allPlans(),
-        builder: (context, snapshot) {
-          if (!snapshot.hasData) {
-            return Padding(
-              padding: EdgeInsets.only(top: topPadding),
-              child: const Center(child: CircularProgressIndicator()),
-            );
-          }
-          final rows = snapshot.data!;
-          if (rows.isEmpty) return _buildEmptyState(context, topPadding);
-          final selectedId = _selectedId ??
-              rows.where((row) => row.isActive).firstOrNull?.id ??
-              rows.first.id;
-          return FutureBuilder<ManualTrainingPlan?>(
-            future: _repository.loadPlan(selectedId),
-            builder: (context, planSnapshot) {
-              final plan = planSnapshot.data;
-              if (plan == null) {
-                return Padding(
+    return FutureBuilder<List<db.TrainingPlan>>(
+      key: ValueKey(_refresh),
+      future: _repository.allPlans(),
+      builder: (context, snapshot) {
+        final rows = snapshot.data;
+        final hasPlans = rows != null && rows.isNotEmpty;
+        final isEmpty = rows != null && rows.isEmpty;
+
+        return Scaffold(
+          extendBodyBehindAppBar: true,
+          appBar: GlobalAppBar(
+            title: text.get('plan'),
+            actions: hasPlans
+                ? [
+                    IconButton(
+                      tooltip: text.get('create'),
+                      onPressed: () => _createOrEdit(null),
+                      icon: const Icon(LucideIcons.plus),
+                    ),
+                  ]
+                : null,
+          ),
+          body: !snapshot.hasData
+              ? Padding(
                   padding: EdgeInsets.only(top: topPadding),
                   child: const Center(child: CircularProgressIndicator()),
-                );
-              }
-              final today = _day(DateTime.now());
-              var start = _weekAnchor ?? _startOfWeek(today);
-              final earliestWeek = _startOfWeek(plan.startedOn ?? today);
-              if (start.isBefore(earliestWeek)) start = earliestWeek;
-              final end = DateTime(start.year, start.month, start.day + 6);
-              final overviewActiveSlot = !plan.active
-                  ? null
-                  : plan.kind == TrainingPlanKind.week
-                      ? today.weekday - 1
-                      : null;
-              return ListView(
-                padding: EdgeInsets.only(
-                  top: topPadding + DesignConstants.screenPaddingVertical,
-                  bottom: 36,
-                ),
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: DesignConstants.screenPaddingHorizontal,
-                    ),
-                    child: _buildPlanHeader(
-                      context,
-                      plan,
-                      canSwitch: rows.length > 1,
-                      onSwitch: () => _selectPlan(rows, selectedId),
-                    ),
-                  ),
-                  const SizedBox(height: DesignConstants.spacingL),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: DesignConstants.screenPaddingHorizontal,
-                    ),
-                    child: FutureBuilder<
-                        ({
-                          List<PlannedCalendarDay> visible,
-                          PlannedCalendarDay? next
-                        })>(
-                      future: _calendarData(plan, start, end),
-                      builder: (context, daySnapshot) {
-                        if (!daySnapshot.hasData) {
-                          return const Padding(
-                            padding: EdgeInsets.all(DesignConstants.spacingXL),
-                            child: Center(child: CircularProgressIndicator()),
-                          );
-                        }
-                        final next = daySnapshot.data!.next;
-                        return Column(
-                          children: [
-                            PlanOverviewCard(
-                              plan: plan,
-                              activeSlotIndex:
-                                  overviewActiveSlot ?? next?.slotIndex,
-                              onEdit: (sourceContext) =>
-                                  _editPlanFromCard(plan, sourceContext),
-                            ),
-                            const SizedBox(height: DesignConstants.spacingL),
-                            _buildWeek(context, plan, start,
-                                daySnapshot.data!.visible, next),
-                          ],
-                        );
-                      },
-                    ),
-                  ),
-                ],
-              );
-            },
-          );
-        },
+                )
+              : isEmpty
+                  ? _buildEmptyState(context, text, topPadding)
+                  : _buildPlanContent(context, rows!, text, topPadding),
+          floatingActionButton: isEmpty
+              ? GlassFab(
+                  label: text.get('create'),
+                  icon: LucideIcons.plus,
+                  onPressed: () => _createOrEdit(null),
+                )
+              : null,
+          floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+        );
+      },
+    );
+  }
+
+  Widget _buildEmptyState(
+    BuildContext context,
+    ManualPlanText text,
+    double topPadding,
+  ) {
+    return Padding(
+      padding: EdgeInsets.only(top: topPadding),
+      child: ColdStartEmptyState(
+        icon: LucideIcons.calendar_plus,
+        title: text.get('noPlan'),
+        subtitle: text.get('noPlanDescription'),
+        callToAction: text.get('create'),
+        showArrow: true,
+        customEndXOffset: 110.0,
+        customTargetYOffset: 100.0 + MediaQuery.paddingOf(context).bottom,
       ),
     );
   }
 
-  Widget _buildEmptyState(BuildContext context, double topPadding) {
-    final text = ManualPlanText(context);
-    return Center(
-      child: Padding(
-        padding: EdgeInsets.fromLTRB(
-          DesignConstants.spacingXL,
-          topPadding + DesignConstants.spacingXL,
-          DesignConstants.spacingXL,
-          DesignConstants.spacingXL,
-        ),
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Icon(LucideIcons.calendar_plus,
-              size: 36, color: Theme.of(context).colorScheme.primary),
-          const SizedBox(height: DesignConstants.spacingM),
-          Text(text.get('noPlan'),
-              style: Theme.of(context).textTheme.titleLarge),
-          const SizedBox(height: DesignConstants.spacingS),
-          Text(text.get('noPlanDescription'),
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyMedium),
-          const SizedBox(height: DesignConstants.spacingL),
-          AppButton.primary(
-              label: text.get('create'),
-              icon: LucideIcons.plus,
-              onPressed: () => _createOrEdit(null)),
-        ]),
-      ),
+  Widget _buildPlanContent(
+    BuildContext context,
+    List<db.TrainingPlan> rows,
+    ManualPlanText text,
+    double topPadding,
+  ) {
+    final selectedId = _selectedId ??
+        rows.where((row) => row.isActive).firstOrNull?.id ??
+        rows.first.id;
+    return FutureBuilder<ManualTrainingPlan?>(
+      future: _repository.loadPlan(selectedId),
+      builder: (context, planSnapshot) {
+        final plan = planSnapshot.data;
+        if (plan == null) {
+          return Padding(
+            padding: EdgeInsets.only(top: topPadding),
+            child: const Center(child: CircularProgressIndicator()),
+          );
+        }
+        final today = _day(DateTime.now());
+        var start = _weekAnchor ?? _startOfWeek(today);
+        final earliestWeek = _startOfWeek(plan.startedOn ?? today);
+        if (start.isBefore(earliestWeek)) start = earliestWeek;
+        final end = DateTime(start.year, start.month, start.day + 6);
+        final overviewActiveSlot = !plan.active
+            ? null
+            : plan.kind == TrainingPlanKind.week
+                ? today.weekday - 1
+                : null;
+        return ListView(
+          padding: EdgeInsets.only(
+            top: topPadding + DesignConstants.screenPaddingVertical,
+            bottom: 36,
+          ),
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: DesignConstants.screenPaddingHorizontal,
+              ),
+              child: _buildPlanHeader(
+                context,
+                plan,
+                canSwitch: rows.length > 1,
+                onSwitch: () => _selectPlan(rows, selectedId),
+              ),
+            ),
+            const SizedBox(height: DesignConstants.spacingL),
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: DesignConstants.screenPaddingHorizontal,
+              ),
+              child: FutureBuilder<
+                  ({
+                    List<PlannedCalendarDay> visible,
+                    PlannedCalendarDay? next
+                  })>(
+                future: _calendarData(plan, start, end),
+                builder: (context, daySnapshot) {
+                  if (!daySnapshot.hasData) {
+                    return const Padding(
+                      padding: EdgeInsets.all(DesignConstants.spacingXL),
+                      child: Center(child: CircularProgressIndicator()),
+                    );
+                  }
+                  final next = daySnapshot.data!.next;
+                  return Column(
+                    children: [
+                      PlanOverviewCard(
+                        plan: plan,
+                        activeSlotIndex:
+                            overviewActiveSlot ?? next?.slotIndex,
+                        onEdit: (sourceContext) =>
+                            _editPlanFromCard(plan, sourceContext),
+                      ),
+                      const SizedBox(height: DesignConstants.spacingL),
+                      _buildWeek(context, plan, start,
+                          daySnapshot.data!.visible, next),
+                    ],
+                  );
+                },
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 

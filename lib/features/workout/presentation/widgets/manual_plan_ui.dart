@@ -695,13 +695,12 @@ class WorkoutPlanHeroCard extends StatelessWidget {
                       children: [
                         Expanded(
                           child: Text(
-                            eyebrow.toUpperCase(),
+                            eyebrow,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: theme.textTheme.labelSmall?.copyWith(
-                              color: theme.colorScheme.primary,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: 0.7,
+                            style: theme.textTheme.labelMedium?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
                         ),

@@ -693,28 +693,52 @@ class _WorkoutHubScreenState extends State<WorkoutHubScreen> {
   }
 
   Widget _buildEmptyRoutinesCard(BuildContext context, AppLocalizations l10n) {
-    return SummaryCard(
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return Container(
+      width: double.infinity,
       margin: const EdgeInsets.symmetric(vertical: DesignConstants.spacingXS),
-      padding: DesignConstants.cardPadding,
+      padding: const EdgeInsets.symmetric(
+        vertical: DesignConstants.spacingL,
+        horizontal: DesignConstants.spacingM,
+      ),
+      decoration: BoxDecoration(
+        color: isDark
+            ? Colors.white.withValues(alpha: 0.03)
+            : Colors.black.withValues(alpha: 0.02),
+        borderRadius: BorderRadius.circular(DesignConstants.borderRadiusL),
+        border: Border.all(
+          color: isDark
+              ? Colors.white.withValues(alpha: 0.06)
+              : Colors.black.withValues(alpha: 0.05),
+          width: 1,
+        ),
+      ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
+          Icon(
+            LucideIcons.swatch_book,
+            size: 24,
+            color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
+          ),
+          const SizedBox(height: DesignConstants.spacingS),
           Text(
             l10n.emptyRoutinesTitle,
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+            style: theme.textTheme.bodyMedium?.copyWith(
+              fontWeight: FontWeight.w600,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+            textAlign: TextAlign.center,
           ),
-          const SizedBox(height: DesignConstants.spacingXS),
+          const SizedBox(height: 2),
           Text(
             l10n.emptyRoutinesSubtitle,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context)
-                      .colorScheme
-                      .onSurface
-                      .withValues(alpha: 0.65),
-                  height: 1.35,
-                ),
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+            ),
+            textAlign: TextAlign.center,
           ),
         ],
       ),

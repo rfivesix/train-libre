@@ -193,6 +193,11 @@ void main() async {
   final exerciseCatalogLocalDataSource =
       ExerciseCatalogLocalDataSource(database);
   final profileLocalDataSource = ProfileLocalDataSource(database);
+  final profileRepository =
+      ProfileRepository(localDataSource: profileLocalDataSource);
+  final profileService = ProfileService();
+  await profileService.initialize(profileRepository);
+
   final supplementLocalDataSource = SupplementLocalDataSource(database);
 
   final workoutRepository =
@@ -248,10 +253,8 @@ void main() async {
               localDataSource: exerciseCatalogLocalDataSource,
             ),
           ),
-          Provider<IProfileRepository>(
-            create: (_) => ProfileRepository(
-              localDataSource: profileLocalDataSource,
-            ),
+          Provider<IProfileRepository>.value(
+            value: profileRepository,
           ),
           Provider<IGoalRepository>(
             create: (_) => GoalRepositoryImpl(),
@@ -261,14 +264,7 @@ void main() async {
           Provider<WorkoutProgressionService>.value(
             value: workoutProgressionService,
           ),
-          ChangeNotifierProvider(
-            create: (context) {
-              final profileService = ProfileService();
-              final repository = context.read<IProfileRepository>();
-              profileService.initialize(repository);
-              return profileService;
-            },
-          ),
+          ChangeNotifierProvider.value(value: profileService),
           ChangeNotifierProvider.value(value: unitService),
           ChangeNotifierProvider.value(value: themeService),
           ChangeNotifierProvider.value(value: experienceLevelService),

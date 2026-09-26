@@ -62,6 +62,8 @@ void main() {
         name,
       );
       await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('onboarding_bottom_next_button')));
+      await tester.pumpAndSettle();
 
       final genderDropdown =
           find.byKey(const Key('onboarding_gender_dropdown'));
@@ -78,10 +80,8 @@ void main() {
       await tester.tap(okButton);
       await tester.pumpAndSettle();
 
-      await tester.enterText(
-        find.byKey(const Key('onboarding_height_text_field')),
-        height,
-      );
+      // Advance from BioDataSlide to HeightSlide
+      await tester.tap(find.byKey(const Key('onboarding_bottom_next_button')));
       await tester.pumpAndSettle();
     }
 
@@ -150,11 +150,13 @@ void main() {
       expect(find.byKey(const Key('onboarding_measurements_page')),
           findsOneWidget);
       expect(
-        find.byKey(const Key('onboarding_weight_text_field')),
+        find.byKey(const Key('onboarding_weight_edit_button')),
         findsOneWidget,
       );
+      await tester.tap(find.byKey(const Key('onboarding_body_fat_expansion')));
+      await tester.pumpAndSettle();
       expect(
-        find.byKey(const Key('onboarding_body_fat_text_field')),
+        find.byKey(const Key('onboarding_body_fat_edit_button')),
         findsOneWidget,
       );
       expect(
@@ -167,6 +169,8 @@ void main() {
       );
 
       // Enter weight before advancing
+      await tester.tap(find.byKey(const Key('onboarding_weight_edit_button')));
+      await tester.pumpAndSettle();
       await tester.enterText(
         find.byKey(const Key('onboarding_weight_text_field')),
         '70',
@@ -221,8 +225,13 @@ void main() {
       await tester.tap(find.byKey(const Key('onboarding_bottom_next_button')));
       await tester.pumpAndSettle();
 
+      await tester.tap(find.byKey(const Key('onboarding_body_fat_expansion')));
+      await tester.pumpAndSettle();
+
       final bodyFatHelpButton =
           find.byKey(const Key('onboarding_body_fat_help_button'));
+      await tester.ensureVisible(bodyFatHelpButton);
+      await tester.pumpAndSettle();
       await tester.tap(bodyFatHelpButton);
       await tester.pumpAndSettle();
 
@@ -276,6 +285,8 @@ void main() {
       await tester.tap(find.byKey(const Key('onboarding_bottom_next_button')));
       await tester.pumpAndSettle();
 
+      await tester.tap(find.byKey(const Key('onboarding_weight_edit_button')));
+      await tester.pumpAndSettle();
       await tester.enterText(
         find.byKey(const Key('onboarding_weight_text_field')),
         '70',
@@ -360,6 +371,8 @@ void main() {
       await tester.tap(nextButton); // profile -> measurements
       await tester.pumpAndSettle();
 
+      await tester.tap(find.byKey(const Key('onboarding_weight_edit_button')));
+      await tester.pumpAndSettle();
       await tester.enterText(
         find.byKey(const Key('onboarding_weight_text_field')),
         '70',

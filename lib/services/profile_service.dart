@@ -12,11 +12,33 @@ import '../features/profile/domain/repositories/profile_repository.dart';
 ///
 /// Implements [ChangeNotifier] to allow UI components to react to profile changes.
 class ProfileService extends ChangeNotifier {
-  static final ProfileService _instance = ProfileService._internal();
+  static ProfileService _instance = ProfileService._internal();
 
   /// Returns the singleton instance of [ProfileService].
-  factory ProfileService() => _instance;
+  factory ProfileService() {
+    if (_instance._disposed) {
+      _instance = ProfileService._internal();
+    }
+    return _instance;
+  }
   ProfileService._internal();
+
+  bool _disposed = false;
+
+  /// Whether this service instance has been disposed.
+  bool get isDisposed => _disposed;
+
+  @override
+  void dispose() {
+    _disposed = true;
+    super.dispose();
+  }
+
+  /// Visible for testing to reset the singleton instance.
+  @visibleForTesting
+  static void resetForTesting() {
+    _instance = ProfileService._internal();
+  }
 
   String? _profileImagePath;
   UserGender _gender = UserGender.male;
@@ -42,6 +64,7 @@ class ProfileService extends ChangeNotifier {
 
   /// Updates the cached username and notifies listeners.
   void updateUserName(String name) {
+    if (_disposed) return;
     final clean = name.trim();
     if (_userName == clean) return;
     _userName = clean;
@@ -74,6 +97,7 @@ class ProfileService extends ChangeNotifier {
     _gender = UserGender.fromString(profile?.gender);
     _userName = profile?.username ?? '';
 
+    if (_disposed) return;
     notifyListeners();
   }
 
@@ -81,10 +105,12 @@ class ProfileService extends ChangeNotifier {
   /// Updates the user's gender and persists it to the database.
   Future<void> updateGender(
       UserGender newGender, IProfileRepository repository) async {
+    if (_disposed) return;
     if (_gender == newGender) return;
 
     _gender = newGender;
     final profile = await repository.getUserProfile();
+    if (_disposed) return;
 
     await repository.saveUserProfile(
       name: profile?.username ?? 'User',
@@ -92,6 +118,7 @@ class ProfileService extends ChangeNotifier {
       height: profile?.height,
       gender: newGender.name,
     );
+    if (_disposed) return;
 
     notifyListeners();
   }
@@ -130,7 +157,9 @@ class ProfileService extends ChangeNotifier {
 
         _profileImagePath = localPath;
         cacheBuster++; // Forces the widget to redraw.
-        notifyListeners();
+        if (!_disposed) {
+          notifyListeners();
+        }
       }
     } catch (e) {
       debugPrint('Fehler beim Bild-Upload: $e');
@@ -156,7 +185,9 @@ class ProfileService extends ChangeNotifier {
       _profileImagePath = null;
       await prefs.remove(_profileImageKey);
       cacheBuster++;
-      notifyListeners();
+      if (!_disposed) {
+        notifyListeners();
+      }
 
       // 3. Physically delete file
       try {

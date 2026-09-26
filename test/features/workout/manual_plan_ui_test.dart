@@ -2,9 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/intl.dart';
+import 'package:drift/native.dart';
+import 'package:train_libre/data/drift_database.dart';
+import 'package:train_libre/features/workout/data/manual_training_plan_repository.dart';
 import 'package:train_libre/features/workout/domain/models/manual_training_plan.dart';
 import 'package:train_libre/features/workout/presentation/manual_plan_editor_screen.dart';
+import 'package:train_libre/features/workout/presentation/manual_plan_screen.dart';
 import 'package:train_libre/features/workout/presentation/widgets/manual_plan_ui.dart';
+import 'package:train_libre/widgets/common/empty_states/cold_start_empty_state.dart';
+import 'package:train_libre/widgets/common/glass_fab.dart';
 import 'package:train_libre/generated/app_localizations.dart';
 
 Widget _app(Widget child, {Locale locale = const Locale('de')}) => MaterialApp(
@@ -71,7 +77,7 @@ void main() {
       ),
     ));
 
-    expect(find.text('PUSH PULL LEGS'), findsOneWidget);
+    expect(find.text('Push Pull Legs'), findsOneWidget);
     expect(find.text('Push'), findsOneWidget);
     expect(find.byIcon(LucideIcons.play), findsNothing);
     await tester.tap(find.text('Workout starten'));
@@ -295,5 +301,40 @@ void main() {
     await tester.tap(find.byKey(const Key('manual_plan_overview_edit_button')));
     await tester.pump();
     expect(editTriggered, isTrue);
+  });
+
+  testWidgets(
+      'ManualPlanScreen displays ColdStartEmptyState with GlassFab when no plans exist',
+      (tester) async {
+    final db = AppDatabase(NativeDatabase.memory());
+    addTearDown(db.close);
+    final repo = ManualTrainingPlanRepository(database: db);
+
+    await tester.pumpWidget(_app(ManualPlanScreen(repository: repo)));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(ColdStartEmptyState), findsOneWidget);
+    expect(find.byType(GlassFab), findsOneWidget);
+    // When empty, top app bar actions (+ button) should be omitted
+    expect(find.byIcon(LucideIcons.plus), findsOneWidget);
+  });
+
+  testWidgets(
+      'hero card eyebrow uses muted onSurfaceVariant without green accent',
+      (tester) async {
+    await tester.pumpWidget(_app(
+      Padding(
+        padding: const EdgeInsets.all(16),
+        child: WorkoutPlanHeroCard(
+          eyebrow: 'Hypertrophy Focus',
+          title: 'Upper Body',
+          subtitle: '4 Übungen',
+        ),
+      ),
+    ));
+
+    final textWidget = tester.widget<Text>(find.text('Hypertrophy Focus'));
+    expect(textWidget.style?.color, isNot(equals(Colors.green)));
+    expect(find.text('HYPERTROPHY FOCUS'), findsNothing);
   });
 }

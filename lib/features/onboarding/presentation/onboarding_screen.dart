@@ -31,6 +31,7 @@ import 'widgets/welcome_slide.dart';
 import 'widgets/unit_system_slide.dart';
 import 'widgets/profile_slide.dart';
 import 'widgets/region_selection_slide.dart';
+import 'widgets/onboarding_info_box.dart';
 import '../../profile/data/goal_repository_impl.dart';
 import '../../profile/domain/models/goal_model.dart';
 import '../../profile/domain/repositories/goal_repository.dart';
@@ -1379,7 +1380,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       state: _goalFlowState,
                       padding: const EdgeInsets.fromLTRB(
                         DesignConstants.spacingXL,
-                        DesignConstants.spacingXL + DesignConstants.spacingM,
+                        DesignConstants.spacingXL * 2,
                         DesignConstants.spacingXL,
                         DesignConstants.spacingXL,
                       ),
@@ -1387,22 +1388,20 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     GoalTargetStep(
                       state: _goalFlowState,
                       horizontalPadding: DesignConstants.spacingXL,
-                      topPadding:
-                          DesignConstants.spacingXL + DesignConstants.spacingM,
+                      topPadding: DesignConstants.spacingXL * 2,
                       bottomPadding: DesignConstants.spacingXL,
                     ),
                     GoalPaceTimelineStep(
                       state: _goalFlowState,
                       horizontalPadding: DesignConstants.spacingXL,
-                      topPadding:
-                          DesignConstants.spacingXL + DesignConstants.spacingM,
+                      topPadding: DesignConstants.spacingXL * 2,
                       bottomPadding: DesignConstants.spacingXL,
                     ),
                     GoalMotivationStep(
                       state: _goalFlowState,
                       padding: const EdgeInsets.fromLTRB(
                         DesignConstants.spacingXL,
-                        DesignConstants.spacingXL + DesignConstants.spacingM,
+                        DesignConstants.spacingXL * 2,
                         DesignConstants.spacingXL,
                         DesignConstants.spacingXL,
                       ),
@@ -1535,7 +1534,7 @@ class _OnboardingMeasurementsStepState
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(height: DesignConstants.spacingM),
+          const SizedBox(height: DesignConstants.spacingXL),
           Text(
             l10n.onboardingMeasurementsTitle,
             style: theme.textTheme.headlineSmall?.copyWith(
@@ -1549,7 +1548,7 @@ class _OnboardingMeasurementsStepState
               color: theme.colorScheme.onSurfaceVariant,
             ),
           ),
-          const SizedBox(height: 28),
+          const SizedBox(height: DesignConstants.spacingXL),
           _OnboardingMeasurementRuler(
             value: weightValue,
             controller: widget.weightController,
@@ -1592,7 +1591,10 @@ class _OnboardingMeasurementsStepState
                   setState(() => _bodyFatExpanded = expanded),
               tilePadding: EdgeInsets.zero,
               title: Text(l10n.onboardingBodyFatOptionalLabel),
-              subtitle: Text(l10n.onboardingBodyFatOptionalHelper),
+              subtitle: Text(
+                l10n.onboardingBodyFatOptionalHelper,
+                key: const Key('onboarding_body_fat_helper_text'),
+              ),
               children: [
                 _OnboardingMeasurementRuler(
                   value: bodyFatValue.clamp(3.0, 60.0),
@@ -1633,7 +1635,7 @@ class _OnboardingMeasurementsStepState
             ),
           ),
           const SizedBox(height: DesignConstants.spacingXL),
-          _OnboardingInfoBox(text: l10n.onboardingMeasurementsDisclaimer),
+          OnboardingInfoBox(text: l10n.onboardingMeasurementsDisclaimer),
         ],
       ),
     );
@@ -1701,7 +1703,7 @@ class _OnboardingMeasurementRulerState
                   textAlign: TextAlign.center,
                   keyboardType:
                       const TextInputType.numberWithOptions(decimal: true),
-                  style: theme.textTheme.headlineMedium?.copyWith(
+                  style: theme.textTheme.displaySmall?.copyWith(
                     color: theme.colorScheme.primary,
                     fontWeight: FontWeight.bold,
                     fontFeatures: const [FontFeature.tabularFigures()],
@@ -1721,7 +1723,7 @@ class _OnboardingMeasurementRulerState
               )
             else
               Text('${value.toStringAsFixed(1)} ${widget.unit}',
-                  style: theme.textTheme.headlineMedium?.copyWith(
+                  style: theme.textTheme.displaySmall?.copyWith(
                     color: theme.colorScheme.primary,
                     fontWeight: FontWeight.bold,
                     fontFeatures: const [FontFeature.tabularFigures()],
@@ -1806,7 +1808,7 @@ class _OnboardingActivityStep extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(height: DesignConstants.spacingM),
+            const SizedBox(height: DesignConstants.spacingXL),
             Text(
               l10n.onboardingActivityTitle,
               style: theme.textTheme.headlineSmall?.copyWith(
@@ -1825,6 +1827,7 @@ class _OnboardingActivityStep extends StatelessWidget {
               key: const Key('onboarding_prior_activity_dropdown'),
               initialValue: selectedPriorActivityLevel,
               decoration: InputDecoration(
+                prefixIcon: const Icon(LucideIcons.activity),
                 labelText: l10n.adaptivePriorActivityLabel,
                 border: OutlineInputBorder(
                   borderRadius:
@@ -1848,11 +1851,12 @@ class _OnboardingActivityStep extends StatelessWidget {
               key: const Key('onboarding_prior_activity_help_block'),
               l10n: l10n,
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: DesignConstants.spacingL),
             PlatformAdaptiveDropdownFormField<ExtraCardioHoursOption>(
               key: const Key('onboarding_extra_cardio_dropdown'),
               initialValue: selectedExtraCardioHoursOption,
               decoration: InputDecoration(
+                prefixIcon: const Icon(LucideIcons.timer),
                 labelText: l10n.adaptiveExtraCardioLabel,
                 border: OutlineInputBorder(
                   borderRadius:
@@ -1905,7 +1909,7 @@ class _OnboardingGoalDecisionStep extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(height: DesignConstants.spacingM),
+          const SizedBox(height: DesignConstants.spacingXL),
           Text(
             l10n.onboardingGoalDecisionTitle,
             style: theme.textTheme.headlineSmall?.copyWith(
@@ -2040,7 +2044,7 @@ class _OnboardingNutritionStep extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(height: DesignConstants.spacingM),
+          const SizedBox(height: DesignConstants.spacingXL),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.center,
@@ -2079,25 +2083,25 @@ class _OnboardingNutritionStep extends StatelessWidget {
             label: l10n.onboardingGoalCalories,
             suffix: l10n.unit_kcal,
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: DesignConstants.spacingM),
           _OnboardingNumberField(
             controller: protController,
             label: l10n.onboardingGoalProtein,
             suffix: l10n.unit_grams,
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: DesignConstants.spacingM),
           _OnboardingNumberField(
             controller: carbController,
             label: l10n.onboardingGoalCarbs,
             suffix: l10n.unit_grams,
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: DesignConstants.spacingM),
           _OnboardingNumberField(
             controller: fatController,
             label: l10n.onboardingGoalFat,
             suffix: l10n.unit_grams,
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: DesignConstants.spacingM),
           _OnboardingNumberField(
             controller: waterController,
             label: l10n.onboardingWaterNeedLabel(liquidSuffix),
@@ -2136,34 +2140,6 @@ class _OnboardingNumberField extends StatelessWidget {
   }
 }
 
-class _OnboardingInfoBox extends StatelessWidget {
-  const _OnboardingInfoBox({required this.text});
-
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color:
-            theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.45),
-        borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
-      ),
-      child: Text(
-        text,
-        style: theme.textTheme.bodySmall?.copyWith(
-          color: theme.colorScheme.onSurfaceVariant,
-          height: 1.35,
-        ),
-      ),
-    );
-  }
-}
-
 class _OnboardingAiHealthStep extends StatelessWidget {
   const _OnboardingAiHealthStep({
     required this.onOpenAiSettings,
@@ -2188,7 +2164,7 @@ class _OnboardingAiHealthStep extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(height: DesignConstants.spacingM),
+          const SizedBox(height: DesignConstants.spacingXL),
           Text(
             l10n.onboardingAiHealthTitle,
             style: theme.textTheme.headlineSmall?.copyWith(

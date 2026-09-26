@@ -95,7 +95,6 @@ class GoalMotivationStep extends StatelessWidget {
             textCapitalization: TextCapitalization.sentences,
             decoration: InputDecoration(
               hintText: l10n.goalReasonPlaceholder,
-              filled: true,
               border: OutlineInputBorder(
                 borderRadius:
                     BorderRadius.circular(DesignConstants.borderRadiusM),

@@ -188,6 +188,7 @@ class GoalTargetStep extends StatelessWidget {
                           style: theme.textTheme.displayMedium?.copyWith(
                             fontWeight: FontWeight.bold,
                             color: theme.colorScheme.primary,
+                            fontFeatures: const [FontFeature.tabularFigures()],
                           ),
                         ),
                         const SizedBox(width: DesignConstants.spacingS),
@@ -277,8 +278,15 @@ class GoalTargetStep extends StatelessWidget {
                       return Padding(
                         padding: const EdgeInsets.only(right: 8),
                         child: ActionChip(
+                          visualDensity: VisualDensity.compact,
                           label: Text(
-                              '-$delta $unitStr (${target.toStringAsFixed(1)})'),
+                            '-$delta $unitStr (${target.toStringAsFixed(1)})',
+                            style: theme.textTheme.labelMedium,
+                          ),
+                          side: BorderSide(
+                            color: theme.colorScheme.onSurface
+                                .withValues(alpha: 0.15),
+                          ),
                           onPressed: () {
                             state.onTargetWeightChanged(target, unitService);
                           },
@@ -290,8 +298,15 @@ class GoalTargetStep extends StatelessWidget {
                       return Padding(
                         padding: const EdgeInsets.only(right: 8),
                         child: ActionChip(
+                          visualDensity: VisualDensity.compact,
                           label: Text(
-                              '+$delta $unitStr (${target.toStringAsFixed(1)})'),
+                            '+$delta $unitStr (${target.toStringAsFixed(1)})',
+                            style: theme.textTheme.labelMedium,
+                          ),
+                          side: BorderSide(
+                            color: theme.colorScheme.onSurface
+                                .withValues(alpha: 0.15),
+                          ),
                           onPressed: () {
                             state.onTargetWeightChanged(target, unitService);
                           },
