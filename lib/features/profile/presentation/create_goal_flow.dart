@@ -468,6 +468,7 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
         title: l10n.createGoalTitle,
         leading: IconButton(
           icon: const Icon(LucideIcons.arrow_left),
+          tooltip: l10n.back,
           onPressed: _previousStep,
         ),
       ),
@@ -927,6 +928,7 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
                         ),
                         if (_isEditingBaseline)
                           IconButton(
+                            tooltip: l10n.edit,
                             icon: Icon(
                               _showManualBaselineInput
                                   ? LucideIcons.sliders_horizontal
@@ -1127,6 +1129,7 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
                         ),
                         const SizedBox(width: DesignConstants.spacingS),
                         IconButton(
+                          tooltip: l10n.edit,
                           icon: Icon(
                             _showManualTargetWeightInput
                                 ? LucideIcons.sliders_horizontal
