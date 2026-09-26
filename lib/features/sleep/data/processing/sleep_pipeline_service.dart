@@ -1156,26 +1156,34 @@ class SleepPipelineService {
   static SleepStageConfidence _timelineConfidence(
       List<SleepStageSegment> segments) {
     if (segments.isEmpty) return SleepStageConfidence.unknown;
-    if (segments.every(
-      (segment) => segment.stageConfidence == SleepStageConfidence.unknown,
-    )) {
-      return SleepStageConfidence.unknown;
+
+    // BOLT OPTIMIZATION: Replaced multiple .every() and .any() passes over the
+    // segments list with a single loop that returns early on the lowest confidence
+    // level or records higher ones. Avoids O(N * 4) redundant iterations.
+    bool hasMedium = false;
+    bool hasHigh = false;
+    bool allUnknown = true;
+
+    for (final segment in segments) {
+      switch (segment.stageConfidence) {
+        case SleepStageConfidence.low:
+          return SleepStageConfidence.low;
+        case SleepStageConfidence.medium:
+          hasMedium = true;
+          allUnknown = false;
+          break;
+        case SleepStageConfidence.high:
+          hasHigh = true;
+          allUnknown = false;
+          break;
+        case SleepStageConfidence.unknown:
+          break;
+      }
     }
-    if (segments.any(
-      (segment) => segment.stageConfidence == SleepStageConfidence.low,
-    )) {
-      return SleepStageConfidence.low;
-    }
-    if (segments.any(
-      (segment) => segment.stageConfidence == SleepStageConfidence.medium,
-    )) {
-      return SleepStageConfidence.medium;
-    }
-    if (segments.any(
-      (segment) => segment.stageConfidence == SleepStageConfidence.high,
-    )) {
-      return SleepStageConfidence.high;
-    }
+
+    if (allUnknown) return SleepStageConfidence.unknown;
+    if (hasMedium) return SleepStageConfidence.medium;
+    if (hasHigh) return SleepStageConfidence.high;
     return SleepStageConfidence.unknown;
   }
 
