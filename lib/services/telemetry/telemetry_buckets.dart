@@ -46,4 +46,22 @@ abstract class TelemetryBuckets {
     if (count <= 5) return '3-5';
     return '6+';
   }
+
+  /// Converts measurement or log observation count into a coarse count bucket.
+  static String getObservationCountBucket(int count) {
+    if (count <= 0) return '0';
+    if (count <= 2) return '1-2';
+    if (count <= 5) return '3-5';
+    return '6+';
+  }
+
+  /// Converts goal lifetime or duration into coarse time buckets.
+  static String getGoalDurationBucket(Duration duration) {
+    final days = duration.inDays;
+    if (days < 7) return '<7d';
+    if (days < 28) return '1-4w';
+    if (days < 90) return '1-3m';
+    if (days < 180) return '3-6m';
+    return '>6m';
+  }
 }

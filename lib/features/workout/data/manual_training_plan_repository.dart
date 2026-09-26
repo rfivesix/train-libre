@@ -1,9 +1,11 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:drift/drift.dart' as drift;
 
 import '../../../data/database_helper.dart';
 import '../../../data/drift_database.dart' as db;
+import '../../../services/telemetry/telemetry_service.dart';
 import '../domain/models/manual_training_plan.dart';
 import '../domain/models/routine.dart';
 import 'sources/workout_local_data_source.dart';
@@ -230,6 +232,10 @@ class ManualTrainingPlanRepository {
       sequenceCursor: drift.Value(cursor),
       sequenceCycle: drift.Value(cycle),
     ));
+    unawaited(TelemetryService.instance.trackTrainingPlanToggled(
+      action: 'activated',
+      kind: plan.kind,
+    ));
   }
 
   Future<void> deactivate(String planId) async {
@@ -251,6 +257,12 @@ class ManualTrainingPlanRepository {
         sequenceCursor: drift.Value(sequenceState.cursor),
         sequenceCycle: drift.Value(sequenceState.cycle),
       ));
+      if (plan != null) {
+        unawaited(TelemetryService.instance.trackTrainingPlanToggled(
+          action: 'deactivated',
+          kind: plan.kind.name,
+        ));
+      }
     });
   }
 

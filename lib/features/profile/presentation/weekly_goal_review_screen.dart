@@ -1,5 +1,4 @@
-// lib/features/profile/presentation/weekly_goal_review_screen.dart
-
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:intl/intl.dart';
@@ -7,6 +6,8 @@ import 'package:provider/provider.dart';
 
 import '../../../data/database_helper.dart';
 import '../../../generated/app_localizations.dart';
+import '../../../services/telemetry/telemetry_buckets.dart';
+import '../../../services/telemetry/telemetry_service.dart';
 import '../../../services/unit_service.dart';
 import '../../../util/design_constants.dart';
 import '../../../widgets/common/app_button.dart';
@@ -54,6 +55,8 @@ class _WeeklyGoalReviewScreenState extends State<WeeklyGoalReviewScreen> {
   @override
   void initState() {
     super.initState();
+    unawaited(TelemetryService.instance
+        .trackScreenView(screenName: ScreenName.weeklyGoalReview));
     _goalRepository = widget.repository ?? GoalRepositoryImpl();
     _recommendationService = widget.recommendationService ??
         AdaptiveNutritionRecommendationService();
@@ -166,6 +169,25 @@ class _WeeklyGoalReviewScreenState extends State<WeeklyGoalReviewScreen> {
     };
   }
 
+  void _trackReviewCompleted(
+    String decision, {
+    String calorieDirection = 'none',
+    bool hasMacroAdjustments = false,
+  }) {
+    final rev = _review;
+    unawaited(TelemetryService.instance.trackWeeklyGoalReviewCompleted(
+      trajectoryStatus: rev?.trajectoryStatus ?? 'calibrating',
+      confidenceLevel: rev?.confidenceLevel ?? 'uncalibrated',
+      decision: decision,
+      weightObservationCountBucket:
+          TelemetryBuckets.getObservationCountBucket(_weightObservationCount),
+      loggedIntakeDaysBucket:
+          TelemetryBuckets.getObservationCountBucket(_loggedIntakeDaysCount),
+      calorieAdjustmentDirection: calorieDirection,
+      hasMacroAdjustments: hasMacroAdjustments,
+    ));
+  }
+
   Future<void> _applyRecommendation() async {
     if (_isApplying) return;
     setState(() => _isApplying = true);
@@ -179,6 +201,12 @@ class _WeeklyGoalReviewScreenState extends State<WeeklyGoalReviewScreen> {
           'applied',
           decision: 'apply_recommendation',
         );
+        final base = rec.baselineCalories;
+        final dir = base == null || rec.recommendedCalories == base
+            ? 'maintain'
+            : (rec.recommendedCalories > base ? 'increase' : 'decrease');
+        _trackReviewCompleted('applied',
+            calorieDirection: dir, hasMacroAdjustments: true);
       }
       if (!mounted) return;
       final l10n = AppLocalizations.of(context)!;
@@ -236,6 +264,7 @@ class _WeeklyGoalReviewScreenState extends State<WeeklyGoalReviewScreen> {
           'dismissed',
           decision: 'keep_goal_and_update_targets',
         );
+        _trackReviewCompleted('dismissed');
       }
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -265,6 +294,7 @@ class _WeeklyGoalReviewScreenState extends State<WeeklyGoalReviewScreen> {
           'applied',
           decision: 'plan_adjusted',
         );
+        _trackReviewCompleted('goal_changed', hasMacroAdjustments: true);
       }
       if (!mounted) return;
       final l10n = AppLocalizations.of(context)!;

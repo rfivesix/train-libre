@@ -107,6 +107,21 @@ abstract class FeatureKey {
   /// metric would no longer describe update reach.
   static const String whatsNewViewed = 'whats_new_viewed';
 
+  // Training Plans
+  static const String trainingPlanCreated = 'training_plan_created';
+  static const String trainingPlanUpdated = 'training_plan_updated';
+  static const String trainingPlanToggled = 'training_plan_toggled';
+  static const String trainingPlanDeleted = 'training_plan_deleted';
+  static const String trainingPlanSessionStarted =
+      'training_plan_session_started';
+
+  // Nutrition Goals & Plans
+  static const String nutritionGoalCreated = 'nutrition_goal_created';
+  static const String nutritionGoalAdjusted = 'nutrition_goal_adjusted';
+  static const String nutritionGoalRetired = 'nutrition_goal_retired';
+  static const String weeklyGoalReviewCompleted =
+      'weekly_goal_review_completed';
+
   static const Set<String> all = {
     routineCreated,
     routineStarted,
@@ -133,6 +148,15 @@ abstract class FeatureKey {
     appTourStarted,
     appTourCompleted,
     whatsNewViewed,
+    trainingPlanCreated,
+    trainingPlanUpdated,
+    trainingPlanToggled,
+    trainingPlanDeleted,
+    trainingPlanSessionStarted,
+    nutritionGoalCreated,
+    nutritionGoalAdjusted,
+    nutritionGoalRetired,
+    weeklyGoalReviewCompleted,
   };
 }
 
@@ -173,6 +197,16 @@ abstract class ScreenName {
   static const String consistencyTracker = 'consistency_tracker';
   static const String bodyNutritionCorrelation = 'body_nutrition_correlation';
   static const String recoveryTracker = 'recovery_tracker';
+
+  // Training Plans
+  static const String trainingPlanHub = 'training_plan_hub';
+  static const String trainingPlanEditor = 'training_plan_editor';
+
+  // Goals & Nutrition Plans
+  static const String myGoals = 'my_goals';
+  static const String createGoalFlow = 'create_goal_flow';
+  static const String goalDetail = 'goal_detail';
+  static const String weeklyGoalReview = 'weekly_goal_review';
 
   // Health & utilities
   static const String bodyMeasurements = 'body_measurements';
@@ -574,6 +608,7 @@ abstract class TelemetryService {
     bool hasFailureSets = false,
     bool usedPlateCalculator = false,
     bool hasWorkoutNotes = false,
+    bool fromTrainingPlan = false,
   });
 
   /// Event 3: screen_viewed
@@ -712,5 +747,76 @@ abstract class TelemetryService {
   /// Records only the closed-set response to the App Store review prompt.
   Future<void> trackAppReviewPromptResponded({
     required String response,
+  });
+
+  /// Training Plan Event: training_plan_created
+  Future<void> trackTrainingPlanCreated({
+    required String kind,
+    required int dayCount,
+    required int workoutDaysCount,
+    required int restDaysCount,
+    required bool isActive,
+  });
+
+  /// Training Plan Event: training_plan_updated
+  Future<void> trackTrainingPlanUpdated({
+    required String kind,
+    required int dayCount,
+    required int workoutDaysCount,
+    required int restDaysCount,
+    required String effectiveTiming,
+  });
+
+  /// Training Plan Event: training_plan_toggled
+  Future<void> trackTrainingPlanToggled({
+    required String action,
+    required String kind,
+  });
+
+  /// Training Plan Event: training_plan_deleted
+  Future<void> trackTrainingPlanDeleted({
+    required String kind,
+  });
+
+  /// Training Plan Event: training_plan_session_started
+  Future<void> trackTrainingPlanSessionStarted({
+    required String kind,
+    required bool isRestDayOverride,
+    required int dayIndex,
+  });
+
+  /// Nutrition Goal Event: nutrition_goal_created
+  Future<void> trackNutritionGoalCreated({
+    required String preset,
+    required String trackingMode,
+    required bool isNutritionDriver,
+    required bool hasTargetDate,
+    required bool hasNumericTarget,
+    required String rateDirection,
+    required String source,
+  });
+
+  /// Nutrition Goal Event: nutrition_goal_adjusted
+  Future<void> trackNutritionGoalAdjusted({
+    required String adjustmentType,
+    required bool isNutritionDriver,
+    required String rateDirection,
+  });
+
+  /// Nutrition Goal Event: nutrition_goal_retired
+  Future<void> trackNutritionGoalRetired({
+    required String reason,
+    required String durationDaysBucket,
+  });
+
+  /// Nutrition Goal Event: weekly_goal_review_completed
+  Future<void> trackWeeklyGoalReviewCompleted({
+    required String trajectoryStatus,
+    required String confidenceLevel,
+    required String decision,
+    required String weightObservationCountBucket,
+    required String loggedIntakeDaysBucket,
+    required String calorieAdjustmentDirection,
+    required bool hasMacroAdjustments,
   });
 }

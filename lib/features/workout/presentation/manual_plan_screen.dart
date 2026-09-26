@@ -1,9 +1,11 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../../../data/drift_database.dart' as db;
+import '../../../services/telemetry/telemetry_service.dart';
 import '../../../util/design_constants.dart';
 import '../../../widgets/common/app_button.dart';
 import '../../../widgets/common/app_link_row.dart';
@@ -46,7 +48,10 @@ Future<void> startManualPlanDay(
           sourceRect: sourceRect,
           sourceBuilder: sourceBuilder,
           onSourceVisibilityChanged: onSourceVisibilityChanged,
-          builder: (_) => LiveWorkoutScreen(workoutLog: existing),
+          builder: (_) => LiveWorkoutScreen(
+            workoutLog: existing,
+            isFromTrainingPlan: true,
+          ),
         ),
       );
       if (existing.id != null) await repository.reconcileWorkout(existing.id!);
@@ -55,6 +60,11 @@ Future<void> startManualPlanDay(
     return;
   }
   final started = await repository.start(plan, day);
+  unawaited(TelemetryService.instance.trackTrainingPlanSessionStarted(
+    kind: plan.kind.name,
+    isRestDayOverride: day.day.isRest,
+    dayIndex: day.slotIndex,
+  ));
   final log = WorkoutLog(
     id: started.log.localId,
     routineName: started.routine.name,
@@ -67,8 +77,11 @@ Future<void> startManualPlanDay(
       sourceRect: sourceRect,
       sourceBuilder: sourceBuilder,
       onSourceVisibilityChanged: onSourceVisibilityChanged,
-      builder: (_) =>
-          LiveWorkoutScreen(workoutLog: log, routine: started.routine),
+      builder: (_) => LiveWorkoutScreen(
+        workoutLog: log,
+        routine: started.routine,
+        isFromTrainingPlan: true,
+      ),
     ),
   );
   await repository.reconcileWorkout(started.log.localId);
@@ -94,6 +107,8 @@ class _ManualPlanScreenState extends State<ManualPlanScreen> {
   @override
   void initState() {
     super.initState();
+    unawaited(TelemetryService.instance
+        .trackScreenView(screenName: ScreenName.trainingPlanHub));
     _repository = widget.repository ?? ManualTrainingPlanRepository();
   }
 

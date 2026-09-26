@@ -1,11 +1,11 @@
-// lib/features/profile/presentation/my_goals_screen.dart
-
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../../../generated/app_localizations.dart';
+import '../../../services/telemetry/telemetry_service.dart';
 import '../../../services/unit_service.dart';
 import '../../../util/design_constants.dart';
 import '../../../widgets/common/app_button.dart';
@@ -38,6 +38,8 @@ class _MyGoalsScreenState extends State<MyGoalsScreen> {
   @override
   void initState() {
     super.initState();
+    unawaited(TelemetryService.instance
+        .trackScreenView(screenName: ScreenName.myGoals));
     _goalRepository = widget.repository ?? GoalRepositoryImpl();
     _loadData();
   }

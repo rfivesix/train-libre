@@ -142,10 +142,10 @@ The closed set of values lives in `ScreenName` (`lib/services/telemetry/telemetr
 * **`screen_viewed`**:
   * `screen_name` (string enum):
     * **Tabs:** `"workout_tab"`, `"diary_tab"`, `"analytics_tab"`, `"profile_tab"`, `"settings_tab"`
-    * **Workout:** `"live_workout"`, `"routine_editor"`, `"routine_list"`, `"workout_summary"`, `"workout_history"`, `"workout_detail"`, `"exercise_catalog"`, `"exercise_detail"`, `"create_exercise"`
+    * **Workout:** `"live_workout"`, `"routine_editor"`, `"routine_list"`, `"workout_summary"`, `"workout_history"`, `"workout_detail"`, `"exercise_catalog"`, `"exercise_detail"`, `"create_exercise"`, `"training_plan_hub"`, `"training_plan_editor"`
     * **Diary:** `"diary_day_view"`, `"nutrition_hub"`, `"meal_list"`, `"add_food_search"`, `"food_detail"`, `"create_food"`, `"ai_meal_capture"`, `"ai_meal_review"`, `"meal_analysis"`, `"barcode_scanner"`, `"meal_editor"`, `"food_explorer"`
     * **Analytics:** `"statistics_hub"`, `"muscle_group_analytics"`, `"pr_dashboard"`, `"consistency_tracker"`, `"body_nutrition_correlation"`, `"recovery_tracker"`
-    * **Health & Utilities:** `"body_measurements"`, `"goal_editor"`, `"pulse_overview"`, `"sleep_overview"`, `"steps_overview"`, `"supplements_overview"`, `"settings_main"`, `"ai_settings"`, `"voice_dictation_settings"`, `"data_management"`, `"about_app"`, `"legal_privacy"`, `"feedback_report"`
+    * **Health & Utilities:** `"body_measurements"`, `"goal_editor"`, `"my_goals"`, `"create_goal_flow"`, `"goal_detail"`, `"weekly_goal_review"`, `"pulse_overview"`, `"sleep_overview"`, `"steps_overview"`, `"supplements_overview"`, `"settings_main"`, `"ai_settings"`, `"voice_dictation_settings"`, `"data_management"`, `"about_app"`, `"legal_privacy"`, `"feedback_report"`
 
 > **Reconciled against the app:** `"workout_overview"` was folded into `"workout_tab"` (same screen). `"cloud_backup"`, `"export_data"`, `"import_data"` and `"data_privacy_settings"` were replaced by the single `"data_management"` — backup, CSV export, import and local-data deletion all live on `DataManagementScreen`. `"fasting_tracker"` and `"qr_share"` were removed: the app has no fasting tracker, and routine sharing is text/image based with no QR screen. `"feedback_report"` and `"meal_analysis"` were added to reflect real screens.
 
@@ -153,11 +153,11 @@ The closed set of values lives in `ScreenName` (`lib/services/telemetry/telemetr
 The closed set of values lives in `FeatureKey` (`lib/services/telemetry/telemetry_service.dart`).
 
 * **`feature_used`**:
-  * `feature_key` (string): `"routine_created"`, `"routine_started"`, `"routine_shared"`, `"workout_imported"`, `"custom_exercise_created"`, `"barcode_scanned"`, `"custom_food_created"`, `"recipe_created"`, `"supplement_logged"`, `"voice_dictation_used"`, `"lidar_depth_captured"`, `"lidar_depth_visualized"`, `"ai_meal_correction_submitted"`, `"off_catalog_installed"`, `"off_catalog_updated"`, `"body_measurement_logged"`, `"apple_health_exported"`, `"health_connect_exported"`, `"json_backup_created"`, `"json_backup_restored"`, `"icloud_sync_triggered"`, `"csv_exported"`, `"app_tour_started"`, `"app_tour_completed"`, `"whats_new_viewed"`
+  * `feature_key` (string): `"routine_created"`, `"routine_started"`, `"routine_shared"`, `"workout_imported"`, `"custom_exercise_created"`, `"barcode_scanned"`, `"custom_food_created"`, `"recipe_created"`, `"supplement_logged"`, `"voice_dictation_used"`, `"lidar_depth_captured"`, `"lidar_depth_visualized"`, `"ai_meal_correction_submitted"`, `"off_catalog_installed"`, `"off_catalog_updated"`, `"body_measurement_logged"`, `"apple_health_exported"`, `"health_connect_exported"`, `"json_backup_created"`, `"json_backup_restored"`, `"icloud_sync_triggered"`, `"csv_exported"`, `"app_tour_started"`, `"app_tour_completed"`, `"whats_new_viewed"`, `"training_plan_created"`, `"training_plan_updated"`, `"training_plan_toggled"`, `"training_plan_deleted"`, `"training_plan_session_started"`, `"nutrition_goal_created"`, `"nutrition_goal_adjusted"`, `"nutrition_goal_retired"`, `"weekly_goal_review_completed"`
 
 > **Reconciled against the app:** `"routine_shared_qr"` became `"routine_shared"` — sharing goes through `ShareService`'s text/image sheet, there is no QR flow. `"routine_scanned_qr"` was replaced by `"workout_imported"` (CSV/XLSX import via `ImportManager`). `"fasting_timer_started"`, `"fasting_timer_completed"` and `"plate_calculator_used"` were removed: neither a fasting timer nor a plate calculator exists in the app.
 >
-> Keys whose event can fire from several screens are tracked at their data-layer choke point (`recipe_created`, `supplement_logged`, `body_measurement_logged`, `json_backup_created`, `json_backup_restored`, `csv_exported`, `off_catalog_installed`, `off_catalog_updated`) so no call site can bypass them. `icloud_sync_triggered` is tracked when the user enables iCloud sync or triggers a manual backup ("Backup Now"); automatic background syncs perform zero telemetry tracking.
+> Keys whose event can fire from several screens are tracked at their data-layer choke point (`recipe_created`, `supplement_logged`, `body_measurement_logged`, `json_backup_created`, `json_backup_restored`, `csv_exported`, `off_catalog_installed`, `off_catalog_updated`, `training_plan_toggled`, `nutrition_goal_created`, `nutrition_goal_adjusted`, `nutrition_goal_retired`) so no call site can bypass them. `icloud_sync_triggered` is tracked when the user enables iCloud sync or triggers a manual backup ("Backup Now"); automatic background syncs perform zero telemetry tracking.
 
 ### 5. Aggregated Food Logging (`daily_food_logged`)
 * **`daily_food_logged`**:
@@ -181,6 +181,7 @@ The closed set of values lives in `FeatureKey` (`lib/services/telemetry/telemetr
   * `has_failure_sets` (bool)
   * `used_plate_calculator` (bool — reserved; the app has no plate calculator yet, so this is always `false`)
   * `has_workout_notes` (bool)
+  * `from_training_plan` (bool: whether the workout session was started from a scheduled training plan day)
 
 `workout_type` is coerced to `"routine"` or `"custom"` in `trackWorkoutCompleted` before it is sent, so a user-authored routine title can never leak through this field.
 
@@ -236,6 +237,58 @@ The closed set of values lives in `FeatureKey` (`lib/services/telemetry/telemetr
   * `session_stall_index` (int: 1–5, position within the current app session)
 
   **Frame statistics never leave the device on their own.** Continuous measurement runs locally and is visible under *Settings → Performance Log*; only this stall event and a user-initiated feedback report ever transmit any of it.
+
+### 9. Training Plans (Workout Plans)
+* **`training_plan_created`**:
+  * `kind` (string: `"week"` or `"sequence"`)
+  * `day_count` (int: e.g. `7` for weekly plans or length for sequence plans)
+  * `workout_days_count` (int: number of non-rest workout days)
+  * `rest_days_count` (int: number of rest days)
+  * `is_active` (bool: whether the plan was activated upon creation)
+* **`training_plan_updated`**:
+  * `kind` (string: `"week"` or `"sequence"`)
+  * `day_count` (int)
+  * `workout_days_count` (int)
+  * `rest_days_count` (int)
+  * `effective_timing` (string: `"from_today"` or `"next_cycle"`)
+* **`training_plan_toggled`**:
+  * `action` (string: `"activated"` or `"deactivated"`)
+  * `kind` (string: `"week"` or `"sequence"`)
+* **`training_plan_deleted`**:
+  * `kind` (string: `"week"` or `"sequence"`)
+* **`training_plan_session_started`**:
+  * `kind` (string: `"week"` or `"sequence"`)
+  * `is_rest_day_override` (bool: true if the user started a workout on a scheduled rest day)
+  * `day_index` (int: 0-based calendar slot index)
+
+> **Zero PII Guarantee:** Plan titles, routine names, exercise configurations, and note texts are strictly forbidden and never transmitted. Only structural schedule metrics (kinds, day counts, rest days) are recorded.
+
+### 10. Nutrition Plans & Adaptive Goals
+* **`nutrition_goal_created`**:
+  * `preset` (string: `"lose_weight"`, `"gain_weight"`, `"maintain_weight"`, `"recomposition"`, `"custom"`)
+  * `tracking_mode` (string: `"open"`, `"weekly_rate"`, `"target_weight"`)
+  * `is_nutrition_driver` (bool: whether this goal actively drives diary daily macro/calorie targets)
+  * `has_target_date` (bool: whether a completion deadline is set)
+  * `has_numeric_target` (bool: whether a specific numerical target is specified)
+  * `rate_direction` (string: `"deficit"`, `"surplus"`, `"maintenance"`, `"neutral"`)
+  * `source` (string: `"profile"` or `"onboarding"`)
+* **`nutrition_goal_adjusted`**:
+  * `adjustment_type` (string: `"pace"`, `"target"`, or `"timeline"`)
+  * `is_nutrition_driver` (bool)
+  * `rate_direction` (string: `"deficit"`, `"surplus"`, `"maintenance"`, `"neutral"`)
+* **`nutrition_goal_retired`**:
+  * `reason` (string: `"completed"`, `"abandoned"`, `"superseded"`, or `"manual"`)
+  * `duration_days_bucket` (string enum: `"<7d"`, `"1-4w"`, `"1-3m"`, `"3-6m"`, `">6m"`)
+* **`weekly_goal_review_completed`**:
+  * `trajectory_status` (string: `"on_track"`, `"slower"`, `"faster"`, or `"calibrating"`)
+  * `confidence_level` (string: `"high"`, `"moderate"`, `"low"`, or `"uncalibrated"`)
+  * `decision` (string: `"applied"`, `"deferred"`, `"dismissed"`, or `"goal_changed"`)
+  * `weight_observation_count_bucket` (string: `"0"`, `"1-2"`, `"3-5"`, `"6+"`)
+  * `logged_intake_days_bucket` (string: `"0"`, `"1-2"`, `"3-5"`, `"6+"`)
+  * `calorie_adjustment_direction` (string: `"increase"`, `"decrease"`, `"maintain"`, or `"none"`)
+  * `has_macro_adjustments` (bool: whether protein/carbs/fat targets were updated)
+
+> **Zero PII Guarantee:** Absolute user body weights (baseline weight, target weight), exact weight change quantities, and caloric numbers (e.g. target kcal, deficit kcal) are strictly excluded. Only standardized presets, rates/directions, and bucketed observation counts are captured.
 
 ---
 

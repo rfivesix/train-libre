@@ -1,9 +1,11 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:intl/intl.dart';
 
+import '../../../services/telemetry/telemetry_service.dart';
 import '../../../util/design_constants.dart';
 import '../../../widgets/common/app_button.dart';
 import '../../../widgets/common/app_link_row.dart';
@@ -40,6 +42,8 @@ class _ManualPlanEditorScreenState extends State<ManualPlanEditorScreen> {
   @override
   void initState() {
     super.initState();
+    unawaited(TelemetryService.instance
+        .trackScreenView(screenName: ScreenName.trainingPlanEditor));
     final plan = widget.plan;
     if (plan != null) {
       _name.text = plan.name;
@@ -239,9 +243,18 @@ class _ManualPlanEditorScreenState extends State<ManualPlanEditorScreen> {
       _error = null;
     });
     try {
+      final workoutDaysCount = _days.where((day) => !day.isRest).length;
+      final restDaysCount = _days.where((day) => day.isRest).length;
       if (widget.plan == null) {
         await _repository.createPlan(
             name: _name.text, kind: _kind, days: _days);
+        unawaited(TelemetryService.instance.trackTrainingPlanCreated(
+          kind: _kind.name,
+          dayCount: _days.length,
+          workoutDaysCount: workoutDaysCount,
+          restDaysCount: restDaysCount,
+          isActive: true,
+        ));
       } else {
         await _repository.revisePlan(
             planId: widget.plan!.id,
@@ -249,6 +262,13 @@ class _ManualPlanEditorScreenState extends State<ManualPlanEditorScreen> {
             kind: _kind,
             days: _days,
             nextCycle: nextCycle);
+        unawaited(TelemetryService.instance.trackTrainingPlanUpdated(
+          kind: _kind.name,
+          dayCount: _days.length,
+          workoutDaysCount: workoutDaysCount,
+          restDaysCount: restDaysCount,
+          effectiveTiming: nextCycle ? 'next_cycle' : 'from_today',
+        ));
       }
       await WorkoutPlanNotificationOrchestrator().synchronize();
       if (mounted) Navigator.pop(context, true);

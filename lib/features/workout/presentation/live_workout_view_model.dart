@@ -138,6 +138,7 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   WorkoutLog? _workoutLog;
+  bool isFromTrainingPlan = false;
   List<RoutineExercise> _exercises = [];
   final Map<int, SetLog> _setLogs = {};
   final Map<int, int?> pauseTimes = {};
@@ -1894,9 +1895,11 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
         hasDropSets: hasDropSets,
         hasFailureSets: hasFailureSets,
         hasWorkoutNotes: notes != null && notes.trim().isNotEmpty,
+        fromTrainingPlan: isFromTrainingPlan,
       ));
 
       _workoutLog = null;
+      isFromTrainingPlan = false;
       _setLogs.clear();
       _completedWorkingOrder.clear();
       _suggestions.clear();

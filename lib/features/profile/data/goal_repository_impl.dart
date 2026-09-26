@@ -1,5 +1,4 @@
-// lib/features/profile/data/goal_repository_impl.dart
-
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:drift/drift.dart' as drift;
@@ -7,6 +6,8 @@ import 'package:uuid/uuid.dart';
 
 import '../../../data/database_helper.dart';
 import '../../../data/drift_database.dart' as db;
+import '../../../services/telemetry/telemetry_buckets.dart';
+import '../../../services/telemetry/telemetry_service.dart';
 import '../domain/models/goal_model.dart';
 import '../domain/models/goal_progress.dart';
 import '../domain/repositories/goal_repository.dart';
@@ -286,6 +287,37 @@ class GoalRepositoryImpl implements IGoalRepository {
             createdAt: drift.Value(now),
           ));
       final created = await getGoalById(newGoalId);
+      final rate = desiredWeeklyRateKg ?? 0.0;
+      final rateDir = rate < -0.05
+          ? 'deficit'
+          : (rate > 0.05
+              ? 'surplus'
+              : (preset == GoalPreset.maintainWeight ||
+                      preset == GoalPreset.recomposition
+                  ? 'maintenance'
+                  : 'neutral'));
+
+      unawaited(TelemetryService.instance.trackNutritionGoalCreated(
+        preset: preset == GoalPreset.loseWeight
+            ? 'lose_weight'
+            : (preset == GoalPreset.gainWeight
+                ? 'gain_weight'
+                : (preset == GoalPreset.maintainWeight
+                    ? 'maintain_weight'
+                    : (preset == GoalPreset.recomposition
+                        ? 'recomposition'
+                        : 'custom'))),
+        trackingMode: trackingMode == GoalTrackingMode.weeklyRate
+            ? 'weekly_rate'
+            : (trackingMode == GoalTrackingMode.targetWeight
+                ? 'target_weight'
+                : 'open'),
+        isNutritionDriver: isNutritionDriver,
+        hasTargetDate: targetDate != null,
+        hasNumericTarget: targetValue != null,
+        rateDirection: rateDir,
+        source: 'profile',
+      ));
       return created!;
     });
   }
@@ -439,6 +471,13 @@ class GoalRepositoryImpl implements IGoalRepository {
             createdAt: drift.Value(now),
           ));
       await _closePendingReviewsInTransaction(goalId, now);
+      final goal = await getGoalById(goalId);
+      final duration =
+          goal != null ? now.difference(goal.startDate) : Duration.zero;
+      unawaited(TelemetryService.instance.trackNutritionGoalRetired(
+        reason: reason == 'completed' ? 'completed' : 'manual',
+        durationDaysBucket: TelemetryBuckets.getGoalDurationBucket(duration),
+      ));
     });
   }
 
@@ -595,6 +634,15 @@ class GoalRepositoryImpl implements IGoalRepository {
         .write(db.UserGoalsCompanion(
       desiredWeeklyRateKg: drift.Value(weeklyRateKg),
       updatedAt: drift.Value(now),
+    ));
+    final goal = await getGoalById(goalId);
+    final rateDir = weeklyRateKg < -0.05
+        ? 'deficit'
+        : (weeklyRateKg > 0.05 ? 'surplus' : 'maintenance');
+    unawaited(TelemetryService.instance.trackNutritionGoalAdjusted(
+      adjustmentType: 'pace',
+      isNutritionDriver: goal?.isNutritionDriver ?? true,
+      rateDirection: rateDir,
     ));
   }
 

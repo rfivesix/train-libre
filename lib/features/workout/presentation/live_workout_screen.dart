@@ -63,11 +63,15 @@ class LiveWorkoutScreen extends StatefulWidget {
   /// Optional initial action to run when opened via deep link (e.g. 'add_exercise').
   final String? initialAction;
 
+  /// Whether this workout session was initiated from a training plan.
+  final bool isFromTrainingPlan;
+
   const LiveWorkoutScreen({
     super.key,
     this.routine,
     required this.workoutLog,
     this.initialAction,
+    this.isFromTrainingPlan = false,
   });
 
   /// The route this screen currently occupies, if it is on the stack at all.
@@ -308,6 +312,10 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
         _prQueue.add(event);
         _processPRQueue();
       });
+
+      if (widget.isFromTrainingPlan) {
+        manager.isFromTrainingPlan = true;
+      }
 
       // Await the load: it starts the workout and fetches previous
       // performances, and until it finishes there are no exercises to scroll

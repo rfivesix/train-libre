@@ -1,10 +1,10 @@
-// lib/features/profile/presentation/create_goal_flow.dart
-
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:provider/provider.dart';
 
 import '../../../generated/app_localizations.dart';
+import '../../../services/telemetry/telemetry_service.dart';
 import '../../../services/unit_service.dart';
 import '../../../util/design_constants.dart';
 import '../../../widgets/common/app_button.dart';
@@ -40,6 +40,8 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
   @override
   void initState() {
     super.initState();
+    unawaited(TelemetryService.instance
+        .trackScreenView(screenName: ScreenName.createGoalFlow));
     _state.addListener(_onStateChanged);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {

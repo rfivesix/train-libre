@@ -1,9 +1,9 @@
-// lib/features/profile/presentation/goal_detail_screen.dart
-
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../generated/app_localizations.dart';
+import '../../../services/telemetry/telemetry_service.dart';
 import '../../../util/design_constants.dart';
 import '../../../widgets/common/app_button.dart';
 import '../../../widgets/common/bottom_content_spacer.dart';
@@ -41,6 +41,8 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
   @override
   void initState() {
     super.initState();
+    unawaited(TelemetryService.instance
+        .trackScreenView(screenName: ScreenName.goalDetail));
     _goalRepository = widget.repository ?? GoalRepositoryImpl();
     _loadData();
   }

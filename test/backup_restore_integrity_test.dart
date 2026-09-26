@@ -23,6 +23,8 @@ import 'package:train_libre/features/profile/domain/models/measurement_session.d
 import 'package:train_libre/features/workout/domain/models/set_log.dart';
 import 'package:train_libre/features/workout/domain/models/workout_log.dart';
 import 'package:train_libre/features/supplements/domain/models/supplement.dart';
+import 'package:train_libre/features/profile/data/goal_repository_impl.dart';
+import 'package:train_libre/features/profile/domain/models/goal_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:drift/drift.dart' as drift;
 
@@ -1341,6 +1343,75 @@ void main() {
       expect(prefs.getBool('is_exercise_catalog_initialized'), isTrue);
       expect(prefs.getString('installed_training_version'), '202512310001');
       expect(prefs.getString('installed_off_version_de'), '202512310001');
+    });
+
+    test('user goals and baseline measurements survive backup restore without FK failure', () async {
+      final goalRepo = GoalRepositoryImpl(database: db);
+      final date = DateTime(2026, 3, 15, 8, 30);
+      final goal = await goalRepo.createGoal(
+        preset: GoalPreset.loseWeight,
+        title: 'Spring Cut',
+        startDate: date,
+        baselineValueKg: 85.0,
+        baselineDate: date,
+        trackingMode: GoalTrackingMode.weeklyRate,
+        desiredWeeklyRateKg: 0.5,
+        targetMetric: 'weight',
+        targetUnit: 'kg',
+        isNutritionDriver: true,
+      );
+
+      final measurementsBefore = await db.select(db.measurements).get();
+      expect(measurementsBefore, hasLength(1));
+      expect(goal.baselineMeasurementId, measurementsBefore.single.id);
+
+      final payload = await backupManager.generateBackupPayloadForTesting();
+      expect(payload['user_goals'], isNotEmpty);
+      expect(payload['measurements'], isNotEmpty);
+
+      // Restore into the database
+      final success = await backupManager.importBackupPayloadForTesting(payload);
+      expect(success, isTrue);
+
+      final restoredGoals = await goalRepo.getActiveGoal();
+      expect(restoredGoals, isNotNull);
+      expect(restoredGoals!.title, 'Spring Cut');
+      expect(restoredGoals.baselineValueKg, 85.0);
+
+      final measurementsAfter = await db.select(db.measurements).get();
+      expect(measurementsAfter, hasLength(1));
+      expect(measurementsAfter.single.id, measurementsBefore.single.id);
+      expect(restoredGoals.baselineMeasurementId, measurementsAfter.single.id);
+    });
+
+    test('restore sanitizes orphan goal baseline measurement references instead of throwing FK error', () async {
+      final payload = await backupManager.generateBackupPayloadForTesting();
+      // Simulate an old backup where user_goals has an unknown UUID and measurements is empty or different
+      payload['user_goals'] = [
+        {
+          'id': 'goal-orphan-1',
+          'preset': 'loseWeight',
+          'title': 'Orphan Goal',
+          'status': 'active',
+          'start_date': DateTime(2026, 1, 1).toIso8601String(),
+          'tracking_mode': 'weeklyRate',
+          'baseline_measurement_id': 'non-existent-measurement-uuid',
+          'baseline_value_kg': 80.0,
+          'baseline_date': DateTime(2026, 1, 1).toIso8601String(),
+          'created_at': DateTime.now().toIso8601String(),
+          'updated_at': DateTime.now().toIso8601String(),
+        }
+      ];
+      payload['measurements'] = <Map<String, dynamic>>[];
+
+      final success = await backupManager.importBackupPayloadForTesting(payload);
+      expect(success, isTrue);
+
+      final goals = await db.select(db.userGoals).get();
+      expect(goals, hasLength(1));
+      expect(goals.single.id, 'goal-orphan-1');
+      // Should have been sanitized to null because no measurement existed with that UUID or matching date
+      expect(goals.single.baselineMeasurementId, isNull);
     });
   });
 }

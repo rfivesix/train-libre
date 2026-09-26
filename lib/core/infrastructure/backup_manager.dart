@@ -326,6 +326,7 @@ class BackupManager {
     payload['training_plan_routine_bindings'] = await _fetchTable('routines');
     payload['training_plan_workout_bindings'] =
         await _fetchTable('workout_logs');
+    payload['measurements'] = await _fetchTable('measurements');
     payload['appName'] = currentBackupAppName;
     payload['applicationId'] = currentApplicationId;
     payload['backupFilePrefix'] = currentBackupFilePrefix;
@@ -758,15 +759,16 @@ class BackupManager {
     final dbInst = _dbHelper.dbInstance;
     bool success = false;
 
+    // Temporarily disable foreign keys during restore so that tables can be
+    // wiped, populated, and reconciled out of order without constraint violations.
+    await dbInst.customStatement('PRAGMA foreign_keys = OFF;');
+
     try {
       token?.throwIfCancelled();
       onProgress?.call('preferences', 0.10);
       await prefs.clear();
 
-      await dbInst.transaction(() async {
-        // Defer foreign key checks so tables can be cleared and populated in any order safely
-        await dbInst.customStatement('PRAGMA defer_foreign_keys = ON');
-
+      await _executeWithRetry(() => dbInst.transaction(() async {
         token?.throwIfCancelled();
         onProgress?.call('clear_database', 0.15);
 
@@ -873,11 +875,21 @@ class BackupManager {
         token?.throwIfCancelled();
 
         onProgress?.call('user_data', 0.35);
+        final rawMeasurements = payload['measurements'] as List?;
+        final hasRawMeasurements =
+            rawMeasurements != null && rawMeasurements.isNotEmpty;
+
+        if (hasRawMeasurements) {
+          onProgress?.call('measurements', 0.34);
+          await _importTable('measurements', rawMeasurements);
+        }
+
         await _dbHelper.importUserData(
             foodEntries: backup.foodEntries,
             fluidEntries: backup.fluidEntries,
             favoriteBarcodes: backup.favoriteBarcodes,
-            measurementSessions: backup.measurementSessions,
+            measurementSessions:
+                hasRawMeasurements ? [] : backup.measurementSessions,
             supplements: backup.supplements,
             supplementLogs: backup.supplementLogs);
         token?.throwIfCancelled();
@@ -1195,7 +1207,9 @@ class BackupManager {
         await _importTable(
             'goal_reviews', payload['goal_reviews'] ?? payload['goalReviews']);
         token?.throwIfCancelled();
-      });
+
+        await _sanitizeRestoredForeignKeys(dbInst);
+      }));
       success = true;
     } catch (e) {
       debugPrint('Backup import failed: $e');
@@ -1217,6 +1231,12 @@ class BackupManager {
         }
       }
       rethrow;
+    } finally {
+      try {
+        await dbInst.customStatement('PRAGMA foreign_keys = ON;');
+      } catch (e) {
+        debugPrint('Failed to re-enable foreign keys after backup import: $e');
+      }
     }
 
     if (success) {
@@ -1413,7 +1433,20 @@ class BackupManager {
       for (final entry in map.entries) {
         if (validIdentifier.hasMatch(entry.key)) {
           validColumns.add(entry.key);
-          values.add(entry.value);
+          var val = entry.value;
+          if (val is String &&
+              (entry.key.endsWith('_date') ||
+                  entry.key.endsWith('_at') ||
+                  entry.key == 'date' ||
+                  entry.key == 'timestamp') &&
+              val.contains('-') &&
+              val.contains('T')) {
+            final dt = DateTime.tryParse(val);
+            if (dt != null) {
+              val = dt.millisecondsSinceEpoch ~/ 1000;
+            }
+          }
+          values.add(val);
         }
       }
 
@@ -1423,6 +1456,172 @@ class BackupManager {
       final sql =
           'INSERT OR REPLACE INTO $tableName (${validColumns.join(', ')}) VALUES ($placeholders)';
       await dbInst.customStatement(sql, values);
+    }
+  }
+
+  Future<T> _executeWithRetry<T>(
+    Future<T> Function() action, {
+    int maxAttempts = 5,
+    Duration initialDelay = const Duration(milliseconds: 300),
+  }) async {
+    int attempts = 0;
+    while (true) {
+      try {
+        attempts++;
+        return await action();
+      } catch (e) {
+        final errStr = e.toString().toLowerCase();
+        final isLocked = errStr.contains('database is locked') ||
+            errStr.contains('code 5') ||
+            errStr.contains('sqlite_busy');
+        if (isLocked && attempts < maxAttempts) {
+          debugPrint(
+              'Database locked during backup restore (attempt $attempts/$maxAttempts). Retrying in ${initialDelay * attempts}...');
+          await Future.delayed(initialDelay * attempts);
+          continue;
+        }
+        rethrow;
+      }
+    }
+  }
+
+  Future<void> _sanitizeRestoredForeignKeys(db.AppDatabase dbInst) async {
+    // 1. Reconcile user_goals.baseline_measurement_id with measurements.
+    try {
+      final orphanGoals = await dbInst.customSelect(
+        'SELECT id, baseline_measurement_id, baseline_date, baseline_value_kg '
+        'FROM user_goals '
+        'WHERE baseline_measurement_id IS NOT NULL '
+        'AND baseline_measurement_id NOT IN (SELECT id FROM measurements);',
+      ).get();
+
+      for (final row in orphanGoals) {
+        final goalId = row.read<String>('id');
+        final baselineDateRaw = row.data['baseline_date'];
+        final baselineValueRaw = row.data['baseline_value_kg'];
+        final baselineValue =
+            baselineValueRaw is num ? baselineValueRaw.toDouble() : null;
+
+        String? matchedMeasurementId;
+        if (baselineDateRaw != null && baselineValue != null) {
+          int? baselineSeconds;
+          if (baselineDateRaw is int) {
+            baselineSeconds = baselineDateRaw;
+          } else if (baselineDateRaw is String) {
+            final parsed = DateTime.tryParse(baselineDateRaw);
+            if (parsed != null) {
+              baselineSeconds = parsed.millisecondsSinceEpoch ~/ 1000;
+            }
+          }
+
+          if (baselineSeconds != null) {
+            final matched = await dbInst.customSelect(
+              'SELECT id FROM measurements '
+              'WHERE type = ? AND ABS(value - ?) < 0.01 '
+              'ORDER BY ABS(date - ?) ASC '
+              'LIMIT 1;',
+              variables: [
+                drift.Variable.withString('weight'),
+                drift.Variable.withReal(baselineValue),
+                drift.Variable.withInt(baselineSeconds),
+              ],
+            ).getSingleOrNull();
+            matchedMeasurementId = matched?.data['id']?.toString();
+          }
+        }
+
+        await dbInst.customStatement(
+          'UPDATE user_goals SET baseline_measurement_id = ? WHERE id = ?;',
+          [matchedMeasurementId, goalId],
+        );
+      }
+    } catch (e) {
+      debugPrint('Error sanitizing goal baseline measurements: $e');
+    }
+
+    // 2. Reconcile user_goals predecessor_goal_id
+    try {
+      await dbInst.customStatement(
+        'UPDATE user_goals SET predecessor_goal_id = NULL '
+        'WHERE predecessor_goal_id IS NOT NULL '
+        'AND predecessor_goal_id NOT IN (SELECT id FROM user_goals);',
+      );
+    } catch (e) {
+      debugPrint('Error sanitizing goal predecessor IDs: $e');
+    }
+
+    // 3. Reconcile goal_events and goal_reviews
+    try {
+      await dbInst.customStatement(
+        'DELETE FROM goal_events WHERE goal_id NOT IN (SELECT id FROM user_goals);',
+      );
+      await dbInst.customStatement(
+        'DELETE FROM goal_reviews WHERE goal_id NOT IN (SELECT id FROM user_goals);',
+      );
+    } catch (e) {
+      debugPrint('Error sanitizing goal events/reviews: $e');
+    }
+
+    // 4. Reconcile nutrition_logs references
+    try {
+      await dbInst.customStatement(
+        'UPDATE nutrition_logs SET meal_entry_id = NULL '
+        'WHERE meal_entry_id IS NOT NULL '
+        'AND meal_entry_id NOT IN (SELECT id FROM meal_entries);',
+      );
+      await dbInst.customStatement(
+        'UPDATE nutrition_logs SET archive_local_id = NULL '
+        'WHERE archive_local_id IS NOT NULL '
+        'AND archive_local_id NOT IN (SELECT local_id FROM off_products_archive);',
+      );
+      await dbInst.customStatement(
+        'UPDATE nutrition_logs SET product_id = NULL '
+        'WHERE product_id IS NOT NULL '
+        'AND product_id NOT IN (SELECT id FROM products);',
+      );
+    } catch (e) {
+      debugPrint('Error sanitizing nutrition logs references: $e');
+    }
+
+    // 5. Reconcile fluid_logs and supplement_logs references
+    try {
+      await dbInst.customStatement(
+        'UPDATE fluid_logs SET linked_nutrition_log_id = NULL '
+        'WHERE linked_nutrition_log_id IS NOT NULL '
+        'AND linked_nutrition_log_id NOT IN (SELECT id FROM nutrition_logs);',
+      );
+      await dbInst.customStatement(
+        'UPDATE supplement_logs SET source_nutrition_log_id = NULL '
+        'WHERE source_nutrition_log_id IS NOT NULL '
+        'AND source_nutrition_log_id NOT IN (SELECT id FROM nutrition_logs);',
+      );
+    } catch (e) {
+      debugPrint('Error sanitizing fluid/supplement log references: $e');
+    }
+
+    // 6. Reconcile cardio_activities and cardio_samples
+    try {
+      await dbInst.customStatement(
+        'UPDATE cardio_activities SET workout_log_id = NULL '
+        'WHERE workout_log_id IS NOT NULL '
+        'AND workout_log_id NOT IN (SELECT id FROM workout_logs);',
+      );
+      await dbInst.customStatement(
+        'DELETE FROM cardio_samples WHERE cardio_activity_id NOT IN (SELECT id FROM cardio_activities);',
+      );
+    } catch (e) {
+      debugPrint('Error sanitizing cardio references: $e');
+    }
+
+    // 7. Reconcile training_plan_occurrences
+    try {
+      await dbInst.customStatement(
+        'UPDATE training_plan_occurrences SET workout_log_id = NULL '
+        'WHERE workout_log_id IS NOT NULL '
+        'AND workout_log_id NOT IN (SELECT id FROM workout_logs);',
+      );
+    } catch (e) {
+      debugPrint('Error sanitizing training plan occurrences references: $e');
     }
   }
 

@@ -56,6 +56,7 @@ class NoOpTelemetryService implements TelemetryService {
     bool hasFailureSets = false,
     bool usedPlateCalculator = false,
     bool hasWorkoutNotes = false,
+    bool fromTrainingPlan = false,
   }) async {}
 
   @override
@@ -191,5 +192,76 @@ class NoOpTelemetryService implements TelemetryService {
   @override
   Future<void> trackAppReviewPromptResponded({
     required String response,
+  }) async {}
+
+  @override
+  Future<void> trackTrainingPlanCreated({
+    required String kind,
+    required int dayCount,
+    required int workoutDaysCount,
+    required int restDaysCount,
+    required bool isActive,
+  }) async {}
+
+  @override
+  Future<void> trackTrainingPlanUpdated({
+    required String kind,
+    required int dayCount,
+    required int workoutDaysCount,
+    required int restDaysCount,
+    required String effectiveTiming,
+  }) async {}
+
+  @override
+  Future<void> trackTrainingPlanToggled({
+    required String action,
+    required String kind,
+  }) async {}
+
+  @override
+  Future<void> trackTrainingPlanDeleted({
+    required String kind,
+  }) async {}
+
+  @override
+  Future<void> trackTrainingPlanSessionStarted({
+    required String kind,
+    required bool isRestDayOverride,
+    required int dayIndex,
+  }) async {}
+
+  @override
+  Future<void> trackNutritionGoalCreated({
+    required String preset,
+    required String trackingMode,
+    required bool isNutritionDriver,
+    required bool hasTargetDate,
+    required bool hasNumericTarget,
+    required String rateDirection,
+    required String source,
+  }) async {}
+
+  @override
+  Future<void> trackNutritionGoalAdjusted({
+    required String adjustmentType,
+    required bool isNutritionDriver,
+    required String rateDirection,
+  }) async {}
+
+  @override
+  Future<void> trackNutritionGoalRetired({
+    required String reason,
+    required String durationDaysBucket,
+  }) async {}
+
+  @override
+  Future<void> trackWeeklyGoalReviewCompleted({
+    required String trajectoryStatus,
+    required String confidenceLevel,
+    required String decision,
+    required String weightObservationCountBucket,
+    required String loggedIntakeDaysBucket,
+    required String calorieAdjustmentDirection,
+    required bool hasMacroAdjustments,
   }) async {}
 }

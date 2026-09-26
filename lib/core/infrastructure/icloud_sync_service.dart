@@ -5,7 +5,10 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:icloud_storage/icloud_storage.dart';
+import 'package:icloud_storage/icloud_storage_platform_interface.dart';
+import 'package:icloud_storage/icloud_storage_method_channel.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -38,6 +41,73 @@ const String kICloudSyncEnabledKey = 'is_icloud_sync_enabled';
 /// The SharedPreferences key for the last successful backup timestamp.
 const String kICloudLastSyncTimestampKey = 'icloud_last_sync_timestamp';
 
+/// Custom subclass of [MethodChannelICloudStorage] that sanitizes nullable booleans
+/// returned by native iOS (such as `isUploading` or `isUploaded` returning nil)
+/// so that [ICloudFile.fromMap] does not throw `type 'Null' is not a subtype of type 'bool'`.
+class PatchedMethodChannelICloudStorage extends MethodChannelICloudStorage {
+  final MethodChannel _channel = const MethodChannel('icloud_storage');
+
+  @override
+  Future<List<ICloudFile>> gather({
+    required String containerId,
+    StreamHandler<List<ICloudFile>>? onUpdate,
+  }) async {
+    final eventChannelName = onUpdate == null
+        ? ''
+        : [
+            'icloud_storage',
+            'event',
+            'gather',
+            containerId,
+            '${DateTime.now().millisecondsSinceEpoch}_${DateTime.now().microsecondsSinceEpoch % 1000}',
+          ].join('/');
+
+    if (onUpdate != null) {
+      await _channel.invokeMethod(
+          'createEventChannel', {'eventChannelName': eventChannelName});
+
+      final gatherEventChannel = EventChannel(eventChannelName);
+      final stream = gatherEventChannel
+          .receiveBroadcastStream()
+          .where((event) => event is List)
+          .map<List<ICloudFile>>((event) => _mapSanitizedFiles(
+              List<Map<dynamic, dynamic>>.from(event)));
+
+      onUpdate(stream);
+    }
+
+    final mapList =
+        await _channel.invokeListMethod<Map<dynamic, dynamic>>('gather', {
+      'containerId': containerId,
+      'eventChannelName': eventChannelName,
+    });
+
+    return _mapSanitizedFiles(mapList);
+  }
+
+  static List<ICloudFile> _mapSanitizedFiles(
+      List<Map<dynamic, dynamic>>? mapList) {
+    final files = <ICloudFile>[];
+    if (mapList == null) return files;
+    for (final rawMap in mapList) {
+      final map = Map<dynamic, dynamic>.from(rawMap);
+      map['isUploading'] = map['isUploading'] ?? false;
+      map['isUploaded'] = map['isUploaded'] ?? true;
+      map['isDownloading'] = map['isDownloading'] ?? false;
+      map['hasUnresolvedConflicts'] = map['hasUnresolvedConflicts'] ?? false;
+      try {
+        files.add(ICloudFile.fromMap(map));
+      } catch (ex) {
+        if (kDebugMode) {
+          debugPrint(
+              'WARNING: icloud_storage plugin gather method could not map $map to iCloudFile: $ex');
+        }
+      }
+    }
+    return files;
+  }
+}
+
 /// Service responsible for snapshotting the active Drift database and syncing
 /// the snapshot to and from the user's iCloud Drive container.
 ///
@@ -49,7 +119,23 @@ const String kICloudLastSyncTimestampKey = 'icloud_last_sync_timestamp';
 ///    and the previews, then replaces the active DB file before the Drift
 ///    connection is opened.
 class ICloudSyncService {
-  ICloudSyncService._();
+  ICloudSyncService._() {
+    _ensurePatchedPlatform();
+  }
+
+  static void _ensurePatchedPlatform() {
+    if (Platform.isIOS || Platform.isMacOS) {
+      try {
+        if (ICloudStoragePlatform.instance
+            is! PatchedMethodChannelICloudStorage) {
+          ICloudStoragePlatform.instance = PatchedMethodChannelICloudStorage();
+        }
+      } catch (e) {
+        debugPrint('Could not install PatchedMethodChannelICloudStorage: $e');
+      }
+    }
+  }
+
   static final ICloudSyncService instance = ICloudSyncService._();
 
   // The iCloud container ID must match what is configured in Xcode.
