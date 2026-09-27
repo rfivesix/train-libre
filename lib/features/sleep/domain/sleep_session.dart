@@ -29,18 +29,18 @@ class SleepSession {
   final String? normalizationVersion;
 
   Map<String, dynamic> toJson() => <String, dynamic>{
-        'id': id,
-        'startAtUtc': startAtUtc.toIso8601String(),
-        'endAtUtc': endAtUtc.toIso8601String(),
-        'sessionType': sessionType.name,
-        'sourcePlatform': sourcePlatform,
-        'sourceAppId': sourceAppId,
-        'sourceRecordHash': sourceRecordHash,
-        'sourceConfidence': sourceConfidence,
-        'stageConfidence': stageConfidence.name,
-        'overallConfidence': overallConfidence.name,
-        'normalizationVersion': normalizationVersion,
-      };
+    'id': id,
+    'startAtUtc': startAtUtc.toIso8601String(),
+    'endAtUtc': endAtUtc.toIso8601String(),
+    'sessionType': sessionType.name,
+    'sourcePlatform': sourcePlatform,
+    'sourceAppId': sourceAppId,
+    'sourceRecordHash': sourceRecordHash,
+    'sourceConfidence': sourceConfidence,
+    'stageConfidence': stageConfidence.name,
+    'overallConfidence': overallConfidence.name,
+    'normalizationVersion': normalizationVersion,
+  };
 }
 
 typedef SleepInterval = SleepSession;
@@ -88,24 +88,31 @@ List<SleepInterval> mergeOverlappingIntervals(List<SleepInterval> intervals) {
 
   // Update classification logic: merged intervals exceeding >= 3 hours
   // are correctly categorized as mainSleep, else nap.
-  return merged.map((s) {
+  // BOLT OPTIMIZATION: Replaced chained .map().toList() with an in-place mutation loop
+  // to avoid O(N) redundant iteration and intermediate list allocation.
+  for (var i = 0; i < merged.length; i++) {
+    final s = merged[i];
     final duration = s.endAtUtc.difference(s.startAtUtc);
     final newType = duration >= const Duration(hours: 3)
         ? SleepSessionType.mainSleep
         : SleepSessionType.nap;
 
-    return SleepSession(
-      id: s.id,
-      startAtUtc: s.startAtUtc,
-      endAtUtc: s.endAtUtc,
-      sessionType: newType,
-      sourcePlatform: s.sourcePlatform,
-      sourceAppId: s.sourceAppId,
-      sourceRecordHash: s.sourceRecordHash,
-      sourceConfidence: s.sourceConfidence,
-      stageConfidence: s.stageConfidence,
-      overallConfidence: s.overallConfidence,
-      normalizationVersion: s.normalizationVersion,
-    );
-  }).toList();
+    if (s.sessionType != newType) {
+      merged[i] = SleepSession(
+        id: s.id,
+        startAtUtc: s.startAtUtc,
+        endAtUtc: s.endAtUtc,
+        sessionType: newType,
+        sourcePlatform: s.sourcePlatform,
+        sourceAppId: s.sourceAppId,
+        sourceRecordHash: s.sourceRecordHash,
+        sourceConfidence: s.sourceConfidence,
+        stageConfidence: s.stageConfidence,
+        overallConfidence: s.overallConfidence,
+        normalizationVersion: s.normalizationVersion,
+      );
+    }
+  }
+
+  return merged;
 }
