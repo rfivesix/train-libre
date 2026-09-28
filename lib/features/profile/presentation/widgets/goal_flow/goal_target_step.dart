@@ -173,8 +173,9 @@ class GoalTargetStep extends StatelessWidget {
                     Text(
                       l10n.goalTargetWeightLabel(unitStr),
                       style: theme.textTheme.labelMedium?.copyWith(
-                        color:
-                            theme.colorScheme.onSurface.withValues(alpha: 0.7),
+                        color: theme.colorScheme.onSurface.withValues(
+                          alpha: 0.7,
+                        ),
                       ),
                     ),
                     const SizedBox(height: DesignConstants.spacingS),
@@ -195,13 +196,17 @@ class GoalTargetStep extends StatelessWidget {
                         Text(
                           unitStr,
                           style: theme.textTheme.titleMedium?.copyWith(
-                            color: theme.colorScheme.onSurface
-                                .withValues(alpha: 0.6),
+                            color: theme.colorScheme.onSurface.withValues(
+                              alpha: 0.6,
+                            ),
                             fontWeight: FontWeight.w600,
                           ),
                         ),
                         const SizedBox(width: DesignConstants.spacingS),
                         IconButton(
+                          tooltip: state.showManualTargetWeightInput
+                              ? l10n.cancel
+                              : l10n.edit,
                           icon: Icon(
                             state.showManualTargetWeightInput
                                 ? LucideIcons.sliders_horizontal
@@ -219,8 +224,9 @@ class GoalTargetStep extends StatelessWidget {
                       TextField(
                         key: const Key('goal_target_weight_input'),
                         controller: state.targetWeightController,
-                        keyboardType:
-                            const TextInputType.numberWithOptions(decimal: true),
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
                         textAlign: TextAlign.center,
                         onChanged: (_) {
                           final newTarget = state.getTargetKg(unitService);
@@ -230,8 +236,9 @@ class GoalTargetStep extends StatelessWidget {
                               final w = delta / state.weeklyRateKg;
                               final days = (w * 7).round();
                               state.onTargetDateChanged(
-                                state.startDate
-                                    .add(Duration(days: max(7, days))),
+                                state.startDate.add(
+                                  Duration(days: max(7, days)),
+                                ),
                                 unitService,
                               );
                             }
@@ -239,10 +246,13 @@ class GoalTargetStep extends StatelessWidget {
                         },
                         decoration: InputDecoration(
                           contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 8),
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(
-                                DesignConstants.borderRadiusM),
+                              DesignConstants.borderRadiusM,
+                            ),
                           ),
                         ),
                       ),
@@ -268,9 +278,7 @@ class GoalTargetStep extends StatelessWidget {
         if (baselineDisp != null) ...[
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
-            padding: EdgeInsets.symmetric(
-              horizontal: horizontalPadding,
-            ),
+            padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
             child: Row(
               children: (isLosing)
                   ? [2.0, 5.0, 10.0, 15.0].map((delta) {
@@ -284,8 +292,9 @@ class GoalTargetStep extends StatelessWidget {
                             style: theme.textTheme.labelMedium,
                           ),
                           side: BorderSide(
-                            color: theme.colorScheme.onSurface
-                                .withValues(alpha: 0.15),
+                            color: theme.colorScheme.onSurface.withValues(
+                              alpha: 0.15,
+                            ),
                           ),
                           onPressed: () {
                             state.onTargetWeightChanged(target, unitService);
@@ -304,8 +313,9 @@ class GoalTargetStep extends StatelessWidget {
                             style: theme.textTheme.labelMedium,
                           ),
                           side: BorderSide(
-                            color: theme.colorScheme.onSurface
-                                .withValues(alpha: 0.15),
+                            color: theme.colorScheme.onSurface.withValues(
+                              alpha: 0.15,
+                            ),
                           ),
                           onPressed: () {
                             state.onTargetWeightChanged(target, unitService);
@@ -347,7 +357,8 @@ class GoalTargetStep extends StatelessWidget {
                         key: const Key('goal_baseline_card'),
                         onTap: () => state.toggleEditingBaseline(),
                         borderRadius: BorderRadius.circular(
-                            DesignConstants.borderRadiusM),
+                          DesignConstants.borderRadiusM,
+                        ),
                         child: ValueSummaryCard(
                           label: l10n.goalBaselineHeader,
                           value: '${baselineDisp.toStringAsFixed(1)} $unitStr',
@@ -403,14 +414,18 @@ class GoalTargetStep extends StatelessWidget {
                           key: const Key('goal_inline_baseline_input'),
                           controller: state.baselineWeightController,
                           keyboardType: const TextInputType.numberWithOptions(
-                              decimal: true),
+                            decimal: true,
+                          ),
                           textAlign: TextAlign.center,
                           onChanged: (text) {
-                            final parsed =
-                                double.tryParse(text.replaceAll(',', '.'));
+                            final parsed = double.tryParse(
+                              text.replaceAll(',', '.'),
+                            );
                             if (parsed != null && parsed > 0) {
                               final metric = unitService.convertToMetric(
-                                  parsed, UnitDimension.weight);
+                                parsed,
+                                UnitDimension.weight,
+                              );
                               state.setBaselineManual(metric, unitService);
                             }
                           },
@@ -418,10 +433,13 @@ class GoalTargetStep extends StatelessWidget {
                             suffixText: unitStr,
                             hintText: '0.0',
                             contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 12, vertical: 8),
+                              horizontal: 12,
+                              vertical: 8,
+                            ),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(
-                                  DesignConstants.borderRadiusM),
+                                DesignConstants.borderRadiusM,
+                              ),
                             ),
                           ),
                         ),
@@ -431,7 +449,9 @@ class GoalTargetStep extends StatelessWidget {
                           imperial: unitService.isImperial,
                           onChanged: (newWeight) {
                             final metric = unitService.convertToMetric(
-                                newWeight, UnitDimension.weight);
+                              newWeight,
+                              UnitDimension.weight,
+                            );
                             state.setBaselineManual(metric, unitService);
                           },
                         ),
@@ -459,8 +479,11 @@ class GoalTargetStep extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Icon(LucideIcons.circle_alert,
-              color: theme.colorScheme.onErrorContainer, size: 18),
+          Icon(
+            LucideIcons.circle_alert,
+            color: theme.colorScheme.onErrorContainer,
+            size: 18,
+          ),
           const SizedBox(width: DesignConstants.spacingS),
           Expanded(
             child: Text(
