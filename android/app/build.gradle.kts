@@ -95,7 +95,7 @@ dependencies {
     // compileSdk 37, which is a toolchain upgrade this change has no business
     // dragging in. 2026.02.01 resolves to Compose 1.10.4, the newest line that
     // still builds against AGP 8.13 / compileSdk 36.
-    implementation(platform("androidx.compose:compose-bom:2026.02.01"))
+    implementation(platform("androidx.compose:compose-bom:2026.09.00"))
     implementation("androidx.compose.material3:material3")
     implementation("androidx.compose.ui:ui")
     implementation("androidx.activity:activity-compose:1.11.0")
