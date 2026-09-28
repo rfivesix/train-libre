@@ -100,15 +100,26 @@ class ProgressionV15 {
           '${e.performedAt.year}-${e.performedAt.month}-${e.performedAt.day}';
       sessions.putIfAbsent(key, () => []).add(e);
     }
-    DateTime date(List<ProgressionSetEntry> s) =>
-        s.map((e) => e.performedAt).reduce((a, b) => a.isAfter(b) ? a : b);
+    // BOLT OPTIMIZATION: Avoid repeated .map().reduce() inside sort comparator
+    // by pre-calculating the max date for each session.
+    final sessionMaxDates = <List<ProgressionSetEntry>, DateTime>{};
+    for (final s in sessions.values) {
+      DateTime? maxDate;
+      for (final e in s) {
+        if (maxDate == null || e.performedAt.isAfter(maxDate)) {
+          maxDate = e.performedAt;
+        }
+      }
+      sessionMaxDates[s] = maxDate ?? DateTime.fromMillisecondsSinceEpoch(0);
+    }
+
     final ordered = sessions.values.toList()
-      ..sort((a, b) => date(b).compareTo(date(a)));
+      ..sort((a, b) => sessionMaxDates[b]!.compareTo(sessionMaxDates[a]!));
     for (final s in ordered) {
       s.sort((a, b) => (a.order ?? 0).compareTo(b.order ?? 0));
     }
     if (ordered.isEmpty) return absent(ProgressionReason.noHistory);
-    if ((now ?? DateTime.now()).difference(date(ordered.first)) >
+    if ((now ?? DateTime.now()).difference(sessionMaxDates[ordered.first]!) >
         const Duration(days: 21)) {
       return absent(ProgressionReason.breakExceededThreeWeeks);
     }
