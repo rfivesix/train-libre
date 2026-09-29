@@ -38,7 +38,11 @@ Exercise _exercise({required String name, required String category}) =>
       secondaryMuscles: const [],
     );
 
-Exercise _timedExercise({required String name}) => Exercise(
+Exercise _timedExercise({
+  required String name,
+  String trackingType = 'time',
+}) =>
+    Exercise(
       id: 2,
       texts: {
         'de': ExerciseText(name: name, description: ''),
@@ -48,7 +52,7 @@ Exercise _timedExercise({required String name}) => Exercise(
       // duration. The live activity must follow this tracking type, not the
       // category, otherwise it renders a nonsensical reps line.
       categoryName: 'Strength',
-      trackingType: 'time',
+      trackingType: trackingType,
       primaryMuscles: const [],
       secondaryMuscles: const [],
     );
@@ -225,6 +229,34 @@ void main() {
       expect(content.metricSecondary, isEmpty);
       expect(content.metricSeparator, '·');
       expect(content.badgeText, isEmpty);
+      expect(content.canCompleteSet, isTrue);
+    });
+
+    test('time plus weight keeps both metrics and never falls back to reps',
+        () {
+      final weightedHold = RoutineExercise(
+        id: 81,
+        exercise: _timedExercise(
+          name: 'Weighted Hold',
+          trackingType: 'time_weight',
+        ),
+        setTemplates: [SetTemplate(id: 811, setType: 'normal')],
+      );
+
+      final content = _build(
+        exercises: [weightedHold],
+        setLogs: {
+          811: _log(
+            exerciseName: 'Weighted Hold',
+            weightKg: 20,
+            durationSeconds: 45,
+          ),
+        },
+      );
+
+      expect(content.metricPrimary, '20 kg');
+      expect(content.metricSecondary, '0:45');
+      expect(content.metricSeparator, '·');
       expect(content.canCompleteSet, isTrue);
     });
   });

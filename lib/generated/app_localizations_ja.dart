@@ -1152,6 +1152,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get durationLabel => '間隔';
 
   @override
+  String get clearDuration => '時間をクリア';
+
+  @override
   String get volumeLabel => '音量';
 
   @override

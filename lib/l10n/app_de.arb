@@ -465,6 +465,7 @@
   "workoutStatsTitle": "Training (7 Tage)",
   "workoutsLabel": "Workouts",
   "durationLabel": "Dauer",
+  "clearDuration": "Dauer löschen",
   "volumeLabel": "Volumen",
   "@durationLabel": {
     "description": "Label für die Zusammenfassung der Trainingsdauer"

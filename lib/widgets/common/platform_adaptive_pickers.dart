@@ -1199,7 +1199,7 @@ Future<Duration?> showAdaptiveDurationPicker({
                                 Navigator.pop(ctx, Duration.zero);
                               },
                               child: Text(
-                                l10n?.delete ?? 'Clear',
+                                l10n?.clearDuration ?? 'Clear duration',
                                 style: TextStyle(
                                   fontWeight: FontWeight.w600,
                                   color: theme.colorScheme.error,

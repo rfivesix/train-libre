@@ -1166,6 +1166,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get durationLabel => 'Durata';
 
   @override
+  String get clearDuration => 'Cancella durata';
+
+  @override
   String get volumeLabel => 'Volume';
 
   @override

@@ -59,10 +59,10 @@ WorkoutLiveActivityContent buildWorkoutLiveActivityContent({
   // Duration-based exercises need the same metric format as cardio even if
   // their catalog category is not Cardio (for example a plank). Category is a
   // browsing concern; tracking type describes what the current set contains.
-  final isDurationBased =
-      ExerciseLogMask.forExercise(next.exercise.exercise).logsDuration;
+  final mask = ExerciseLogMask.forExercise(next.exercise.exercise);
+  final isDurationBased = mask.logsDuration;
   final metrics = isDurationBased
-      ? _cardioMetrics(next, unitService, strings, localeName)
+      ? _durationMetrics(next, mask, unitService, strings, localeName)
       : _strengthMetrics(next, unitService, strings, localeName);
 
   return WorkoutLiveActivityContent(
@@ -160,8 +160,9 @@ _MetricLine _strengthMetrics(
 /// only reps, weight and RIR. The line therefore falls back to values already
 /// entered on the set, and stays empty for a fresh cardio set. Once templates
 /// gain duration and distance targets, only this function changes.
-_MetricLine _cardioMetrics(
+_MetricLine _durationMetrics(
   _NextSet next,
+  ExerciseLogMask mask,
   UnitService unitService,
   WorkoutLiveActivityStrings strings,
   String localeName,
@@ -174,25 +175,39 @@ _MetricLine _cardioMetrics(
       ? ''
       : '${_formatDecimal(unitService.convertDisplayValue(distanceKm, UnitDimension.distance), localeName, decimals: 2)} ${strings.distanceUnit}';
 
+  final weight = next.log.weightKg ?? next.template?.targetWeight;
+  final weightText = weight == null
+      ? ''
+      : '${_formatDecimal(unitService.convertDisplayValue(weight, UnitDimension.weight), localeName)} ${strings.weightUnit}';
+
   final rpe = next.log.rpe;
   final rpeText = rpe == null ? '' : '(${strings.rpeLabel} $rpe)';
 
-  // Cardio needs at least one of the two to be meaningful; there is no
-  // planned value to fall back on (see the note above).
-  final hasAny = durationText.isNotEmpty || distanceText.isNotEmpty;
+  final primaryText = mask.logsWeight
+      ? weightText
+      : durationText.isEmpty
+          ? distanceText
+          : durationText;
+  final secondaryText = mask.logsWeight
+      ? durationText
+      : durationText.isEmpty
+          ? ''
+          : distanceText;
+
+  final complete = mask.logsWeight
+      ? weightText.isNotEmpty && durationText.isNotEmpty
+      : mask.logsDistance
+          ? durationText.isNotEmpty || distanceText.isNotEmpty
+          : durationText.isNotEmpty;
 
   return _MetricLine(
-    primary: durationText.isEmpty
-        ? (distanceText.isEmpty ? _unknownValue : distanceText)
-        : durationText,
-    secondary: durationText.isEmpty ? '' : distanceText,
+    primary: primaryText.isEmpty ? _unknownValue : primaryText,
+    secondary: secondaryText,
     tertiary: rpeText,
     separator: '·',
-    compactPrimary: durationText.isEmpty
-        ? (distanceText.isEmpty ? _unknownValue : distanceText)
-        : durationText,
-    compactSecondary: durationText.isEmpty ? '' : distanceText,
-    complete: hasAny,
+    compactPrimary: primaryText.isEmpty ? _unknownValue : primaryText,
+    compactSecondary: secondaryText,
+    complete: complete,
   );
 }
 

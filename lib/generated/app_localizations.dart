@@ -2048,6 +2048,12 @@ abstract class AppLocalizations {
   /// **'Duration'**
   String get durationLabel;
 
+  /// No description provided for @clearDuration.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear duration'**
+  String get clearDuration;
+
   /// No description provided for @volumeLabel.
   ///
   /// In en, this message translates to:

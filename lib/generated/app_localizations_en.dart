@@ -1162,6 +1162,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get durationLabel => 'Duration';
 
   @override
+  String get clearDuration => 'Clear duration';
+
+  @override
   String get volumeLabel => 'Volume';
 
   @override

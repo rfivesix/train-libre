@@ -465,6 +465,7 @@
   "workoutStatsTitle": "Formation (7 jours)",
   "workoutsLabel": "Entraînements",
   "durationLabel": "Durée",
+  "clearDuration": "Effacer la durée",
   "@durationLabel": {
     "description": "Label for workout duration summary"
   },

@@ -465,6 +465,7 @@
   "workoutStatsTitle": "研修（7日間）",
   "workoutsLabel": "トレーニング",
   "durationLabel": "間隔",
+  "clearDuration": "時間をクリア",
   "@durationLabel": {
     "description": "Label for workout duration summary"
   },

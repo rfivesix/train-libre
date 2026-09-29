@@ -63,7 +63,10 @@ void main() {
           'Session note\n\n'
           'Kurzhantelbankdrücken — W 20kg x 20, W 30kg x 8, W 40kg x 3, S 45kg x 8, F 45kg x 8\n'
           'Brustpresse — S 80kg x 12, S 90kg x 10, D 70kg x 8\n'
-          'Seitheben — S 12kg x 15, S 12kg x 14, F 10kg x 16',
+          'Seitheben — S 12kg x 15, S 12kg x 14, F 10kg x 16\n'
+          'Plank — S 1:15\n'
+          'Laufband — S 5.2km · 30:00\n'
+          'Weighted Hold — S 20kg · 0:45',
         );
       },
     );
@@ -232,6 +235,35 @@ Future<void> _seed(AppDatabase db) async {
         reps: const drift.Value(16),
         isCompleted: const drift.Value(true),
         logOrder: const drift.Value(10),
+      ),
+      SetLogsCompanion(
+        workoutLogId: drift.Value(workout.id),
+        exerciseNameSnapshot: const drift.Value('Plank'),
+        setType: const drift.Value('normal'),
+        // Reproduce the reported legacy/default values. Duration must win.
+        weight: const drift.Value(0),
+        reps: const drift.Value(0),
+        durationSeconds: const drift.Value(75),
+        isCompleted: const drift.Value(true),
+        logOrder: const drift.Value(11),
+      ),
+      SetLogsCompanion(
+        workoutLogId: drift.Value(workout.id),
+        exerciseNameSnapshot: const drift.Value('Laufband'),
+        setType: const drift.Value('normal'),
+        distance: const drift.Value(5.2),
+        durationSeconds: const drift.Value(1800),
+        isCompleted: const drift.Value(true),
+        logOrder: const drift.Value(12),
+      ),
+      SetLogsCompanion(
+        workoutLogId: drift.Value(workout.id),
+        exerciseNameSnapshot: const drift.Value('Weighted Hold'),
+        setType: const drift.Value('normal'),
+        weight: const drift.Value(20),
+        durationSeconds: const drift.Value(45),
+        isCompleted: const drift.Value(true),
+        logOrder: const drift.Value(13),
       ),
     ]);
   });
