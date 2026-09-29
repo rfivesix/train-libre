@@ -786,7 +786,7 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
       );
       final mask = ExerciseLogMask.forExercise(exercise.exercise);
 
-      if (!weightControllers.containsKey(templateId)) {
+      if (weightControllers[templateId] == null) {
         String initText;
         if (mask.logsDistance) {
           initText = setLog.distanceKm == null
@@ -807,7 +807,7 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
         weightControllers[templateId] = TextEditingController(text: initText);
       }
 
-      if (!repsControllers.containsKey(templateId)) {
+      if (repsControllers[templateId] == null) {
         String initText;
         if (mask.logsDuration) {
           initText = formatPauseDuration(setLog.durationSeconds);
@@ -817,7 +817,7 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
         repsControllers[templateId] = TextEditingController(text: initText);
       }
 
-      if (!rirControllers.containsKey(templateId)) {
+      if (rirControllers[templateId] == null) {
         rirControllers[templateId] =
             TextEditingController(text: setLog.rir?.toString() ?? '');
       }
@@ -892,7 +892,8 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
     int? duration,
     bool clearDuration = false,
   }) async {
-    if (!_setLogs.containsKey(templateId)) return;
+    final log = _setLogs[templateId];
+    if (log == null) return;
     if (weight != null || reps != null || clearWeight || clearReps) {
       // A suggestion may still be resolving when the user starts typing in
       // the next row. Record the edit immediately, even before that async
@@ -902,8 +903,8 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
     }
 
     final oldLog = (weight != null || reps != null)
-        ? _setLogs[templateId]!.copyWith(valuesAutoFilled: false)
-        : _setLogs[templateId]!;
+        ? log.copyWith(valuesAutoFilled: false)
+        : log;
     SetTemplate? template;
     for (var re in _exercises) {
       for (var t in re.setTemplates) {
@@ -1286,7 +1287,7 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
   Future<void> _checkAndApplyPRs(SetLog setLog, int templateId) async {
     final exName = setLog.exerciseName;
 
-    if (!_exerciseBests.containsKey(exName)) {
+    if (_exerciseBests[exName] == null) {
       final exercise = await _repository.getExerciseByName(exName);
       final altName =
           exercise?.canonicalName != exName ? exercise?.canonicalName : null;
@@ -1426,8 +1427,8 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   Future<void> removeSet(int templateId) async {
-    if (!_setLogs.containsKey(templateId)) return;
-    final log = _setLogs[templateId]!;
+    final log = _setLogs[templateId];
+    if (log == null) return;
     if (log.id != null) {
       await _repository.deleteSetLogs([log.id!]);
     }
@@ -1544,8 +1545,8 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
 
     final idsToDelete = <int>[];
     for (var t in re.setTemplates) {
-      if (_setLogs.containsKey(t.id)) {
-        final log = _setLogs[t.id]!;
+      final log = _setLogs[t.id];
+      if (log != null) {
         if (log.id != null) idsToDelete.add(log.id!);
         _totalVolume -= (log.weightKg ?? 0) * (log.reps ?? 0);
         _totalSets--;
@@ -1636,8 +1637,8 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
 
       final setsToUpdate = <SetLog>[];
       for (var t in _exercises[idx].setTemplates) {
-        if (_setLogs.containsKey(t.id)) {
-          final log = _setLogs[t.id]!;
+        final log = _setLogs[t.id];
+        if (log != null) {
           final updatedLog = log.copyWith(restTimeSeconds: seconds);
           _setLogs[t.id!] = updatedLog;
           setsToUpdate.add(updatedLog);
