@@ -132,6 +132,7 @@ class _CreateGoalFlowState extends State<CreateGoalFlow> {
       appBar: GlobalAppBar(
         title: l10n.createGoalTitle,
         leading: IconButton(
+          tooltip: l10n.backLabel,
           icon: const Icon(LucideIcons.arrow_left),
           onPressed: _previousStep,
         ),
