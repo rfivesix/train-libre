@@ -19,7 +19,8 @@ void main() {
     await db.close();
   });
 
-  test('createRoutine sets lastUsedAt to now and touches update order', () async {
+  test('createRoutine sets lastUsedAt to now and touches update order',
+      () async {
     final r1 = await dataSource.createRoutine('Routine 1');
     expect(r1.id, isNotNull);
 
@@ -43,39 +44,63 @@ void main() {
     expect(list.last.name, 'Routine 2');
   });
 
-  test('watchAllRoutinesWithDetails includes exercises in sequence order', () async {
+  test('deleteRoutine preserves workout history by unlinking its routine',
+      () async {
+    final routine = await dataSource.createRoutine('Archived strength');
+    final routineRow = await (db.select(db.routines)
+          ..where((row) => row.localId.equals(routine.id!)))
+        .getSingle();
+    final workout = await db.into(db.workoutLogs).insertReturning(
+          WorkoutLogsCompanion(
+            routineId: Value(routineRow.id),
+            startTime: Value(DateTime.now()),
+          ),
+        );
+
+    await dataSource.deleteRoutine(routine.id!);
+
+    expect(await dataSource.getRoutineById(routine.id!), isNull);
+    final retainedWorkout = await (db.select(db.workoutLogs)
+          ..where((row) => row.id.equals(workout.id)))
+        .getSingle();
+    expect(retainedWorkout.routineId, isNull);
+    expect(retainedWorkout.routineNameSnapshot, 'Archived strength');
+  });
+
+  test('watchAllRoutinesWithDetails includes exercises in sequence order',
+      () async {
     // Insert test exercise
     await db.into(db.exercises).insert(
-      const ExercisesCompanion(
-        id: Value('bench-uuid'),
-        categoryName: Value('Strength'),
-        trackingType: Value('weight_reps'),
-        loadMode: Value('external'),
-      ),
-    );
+          const ExercisesCompanion(
+            id: Value('bench-uuid'),
+            categoryName: Value('Strength'),
+            trackingType: Value('weight_reps'),
+            loadMode: Value('external'),
+          ),
+        );
     await db.into(db.exerciseTranslations).insert(
-      const ExerciseTranslationsCompanion(
-        exerciseId: Value('bench-uuid'),
-        languageCode: Value('en'),
-        name: Value('Bench Press'),
-      ),
-    );
+          const ExerciseTranslationsCompanion(
+            exerciseId: Value('bench-uuid'),
+            languageCode: Value('en'),
+            name: Value('Bench Press'),
+          ),
+        );
 
     await db.into(db.exercises).insert(
-      const ExercisesCompanion(
-        id: Value('squat-uuid'),
-        categoryName: Value('Strength'),
-        trackingType: Value('weight_reps'),
-        loadMode: Value('external'),
-      ),
-    );
+          const ExercisesCompanion(
+            id: Value('squat-uuid'),
+            categoryName: Value('Strength'),
+            trackingType: Value('weight_reps'),
+            loadMode: Value('external'),
+          ),
+        );
     await db.into(db.exerciseTranslations).insert(
-      const ExerciseTranslationsCompanion(
-        exerciseId: Value('squat-uuid'),
-        languageCode: Value('en'),
-        name: Value('Barbell Squat'),
-      ),
-    );
+          const ExerciseTranslationsCompanion(
+            exerciseId: Value('squat-uuid'),
+            languageCode: Value('en'),
+            name: Value('Barbell Squat'),
+          ),
+        );
 
     final benchRow = await (db.select(db.exercises)
           ..where((tbl) => tbl.id.equals('bench-uuid')))

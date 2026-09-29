@@ -132,7 +132,7 @@ class _MacroSectionCardState extends State<MacroSectionCard> {
               Navigator.of(context).push(
                 MaterialPageRoute(
                   builder: (_) => MacroStatisticsScreen(
-                    initialRangeIndex: widget.activeBlockType.index,
+                    initialBlock: widget.activeBlockType,
                     initialAnchorDate: widget.anchorDate,
                     initialIsRolling: widget.isRolling,
                   ),
@@ -176,7 +176,8 @@ class _MacroSectionCardState extends State<MacroSectionCard> {
                               return Expanded(
                                 child: Container(
                                   height: 4,
-                                  margin: const EdgeInsets.symmetric(horizontal: 2),
+                                  margin:
+                                      const EdgeInsets.symmetric(horizontal: 2),
                                   color: theme.colorScheme.onSurface
                                       .withValues(alpha: 0.08),
                                 ),
@@ -187,7 +188,8 @@ class _MacroSectionCardState extends State<MacroSectionCard> {
                               return Expanded(
                                 child: Container(
                                   height: 4,
-                                  margin: const EdgeInsets.symmetric(horizontal: 2),
+                                  margin:
+                                      const EdgeInsets.symmetric(horizontal: 2),
                                   decoration: BoxDecoration(
                                     color: theme.colorScheme.onSurface
                                         .withValues(alpha: 0.08),
@@ -206,13 +208,18 @@ class _MacroSectionCardState extends State<MacroSectionCard> {
                                 carbsKcal + proteinKcal + fatKcal;
 
                             final cFlex = totalMacroKcal > 0
-                                ? max(1, (carbsKcal / totalMacroKcal * 100).round())
+                                ? max(1,
+                                    (carbsKcal / totalMacroKcal * 100).round())
                                 : 33;
                             final fFlex = totalMacroKcal > 0
-                                ? max(1, (fatKcal / totalMacroKcal * 100).round())
+                                ? max(
+                                    1, (fatKcal / totalMacroKcal * 100).round())
                                 : 33;
                             final pFlex = totalMacroKcal > 0
-                                ? max(1, (proteinKcal / totalMacroKcal * 100).round())
+                                ? max(
+                                    1,
+                                    (proteinKcal / totalMacroKcal * 100)
+                                        .round())
                                 : 34;
 
                             return Expanded(
@@ -239,8 +246,8 @@ class _MacroSectionCardState extends State<MacroSectionCard> {
                                             children: [
                                               Expanded(
                                                 flex: cFlex,
-                                                child:
-                                                    Container(color: carbsColor),
+                                                child: Container(
+                                                    color: carbsColor),
                                               ),
                                               Expanded(
                                                 flex: fFlex,

@@ -303,8 +303,8 @@ class _StatisticsHubScreenView extends StatelessWidget {
                             const SizedBox(height: DesignConstants.spacingL),
                             AppSectionHeader(title: l10n.nutrition),
                             RepaintBoundary(
-                              child: _buildMacroSection(
-                                  context, viewModel, l10n),
+                              child:
+                                  _buildMacroSection(context, viewModel, l10n),
                             ),
                             const BottomContentSpacer(),
                           ],
@@ -692,7 +692,9 @@ class _StatisticsHubScreenView extends StatelessWidget {
                 ),
                 onSourceVisibilityChanged: setHidden,
                 builder: (_) => BodyNutritionCorrelationScreen(
-                  initialRangeIndex: viewModel.activeBlockType.index,
+                  initialBlock: viewModel.activeBlockType,
+                  initialAnchorDate: viewModel.anchorDate,
+                  initialIsRolling: viewModel.isRolling,
                 ),
               ),
             );
@@ -736,7 +738,7 @@ class _StatisticsHubScreenView extends StatelessWidget {
                 ),
                 onSourceVisibilityChanged: setHidden,
                 builder: (_) => MacroStatisticsScreen(
-                  initialRangeIndex: viewModel.activeBlockType.index,
+                  initialBlock: viewModel.activeBlockType,
                   initialAnchorDate: viewModel.anchorDate,
                   initialIsRolling: viewModel.isRolling,
                 ),
