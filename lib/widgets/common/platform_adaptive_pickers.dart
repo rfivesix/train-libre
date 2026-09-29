@@ -1138,6 +1138,7 @@ Future<Duration?> showAdaptiveDurationPicker({
   required BuildContext context,
   required Duration initialDuration,
   String? title,
+  bool allowClear = false,
 }) async {
   final isDark = Theme.of(context).brightness == Brightness.dark;
   final l10n = AppLocalizations.of(context);
@@ -1183,27 +1184,30 @@ Future<Duration?> showAdaptiveDurationPicker({
                   ),
                   SizedBox(
                     width: 100,
-                    child: Align(
-                      alignment: Alignment.centerRight,
-                      child: TextButton(
-                        style: TextButton.styleFrom(
-                          padding: EdgeInsets.zero,
-                          minimumSize: const Size(0, 0),
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        ),
-                        onPressed: () {
-                          HapticFeedbackService.instance.selectionFeedback();
-                          Navigator.pop(ctx, Duration.zero);
-                        },
-                        child: Text(
-                          l10n?.removeTimer ?? 'Timer entfernen',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w600,
-                            color: theme.colorScheme.error,
-                          ),
-                        ),
-                      ),
-                    ),
+                    child: allowClear
+                        ? Align(
+                            alignment: Alignment.centerRight,
+                            child: TextButton(
+                              style: TextButton.styleFrom(
+                                padding: EdgeInsets.zero,
+                                minimumSize: const Size(0, 0),
+                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              ),
+                              onPressed: () {
+                                HapticFeedbackService.instance
+                                    .selectionFeedback();
+                                Navigator.pop(ctx, Duration.zero);
+                              },
+                              child: Text(
+                                l10n?.delete ?? 'Clear',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  color: theme.colorScheme.error,
+                                ),
+                              ),
+                            ),
+                          )
+                        : const SizedBox.shrink(),
                   ),
                 ],
               ),

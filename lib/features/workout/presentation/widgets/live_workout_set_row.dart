@@ -563,6 +563,8 @@ class LiveWorkoutSetRow extends StatelessWidget {
                               context: context,
                               initialDuration:
                                   Duration(seconds: currentSeconds),
+                              title: l10n.durationLabel,
+                              allowClear: true,
                             );
                             if (newDuration != null) {
                               final seconds = newDuration.inSeconds;

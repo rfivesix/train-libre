@@ -78,7 +78,6 @@ dependencies:
       ref: main
   liquid_glass_widgets: ^1.2.2
   flutter_lucide: ^1.38.0 # 1.38 renamed LucideIcons.history to rotate_ccw_clock
-  in_app_review: ^2.0.12
   icloud_storage: ^2.0.3
   skeletonizer: ^2.1.3
   workmanager: ^0.10.7

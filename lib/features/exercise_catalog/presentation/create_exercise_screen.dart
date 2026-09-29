@@ -11,6 +11,7 @@ import '../../../widgets/common/common.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/seamless_loading_overlay.dart';
 import '../domain/body_slug_mapper.dart';
+import '../domain/muscle_group_normalizer.dart';
 import 'dart:async';
 import '../../../services/telemetry/telemetry_service.dart';
 
@@ -106,10 +107,10 @@ class _CreateExerciseScreenState extends State<CreateExerciseScreen> {
       final categories = await _repository.getAllCategories();
       final dbMuscles = await _repository.getAllMuscleGroups();
 
-      final mergedMuscles = <String>{
+      final mergedMuscles = deduplicateMuscleGroups([
         ..._defaultMuscles,
         ...dbMuscles,
-      }.toList();
+      ]);
 
       if (mounted) {
         setState(() {
@@ -126,8 +127,12 @@ class _CreateExerciseScreenState extends State<CreateExerciseScreen> {
             _descriptionController.text =
                 toEdit.localizedDescriptionFor(_languageCode);
             _selectedCategory = toEdit.categoryName;
-            _selectedPrimaryMuscles.addAll(toEdit.primaryMuscles);
-            _selectedSecondaryMuscles.addAll(toEdit.secondaryMuscles);
+            _selectedPrimaryMuscles.addAll(
+              deduplicateMuscleGroups(toEdit.primaryMuscles),
+            );
+            _selectedSecondaryMuscles.addAll(
+              deduplicateMuscleGroups(toEdit.secondaryMuscles),
+            );
             _selectedMechanic = toEdit.mechanic;
             _selectedForceVector = toEdit.forceVector;
             _selectedMovementPattern = toEdit.movementPattern;

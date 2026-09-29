@@ -1,6 +1,7 @@
 import 'package:intl/intl.dart';
 
 import '../../../../services/unit_service.dart';
+import '../classification/exercise_log_mask.dart';
 import '../models/routine_exercise.dart';
 import '../models/set_log.dart';
 import '../models/set_template.dart';
@@ -55,8 +56,12 @@ WorkoutLiveActivityContent buildWorkoutLiveActivityContent({
   // to `setPending` here would erase the overdue state.
   final hasRest = restEndsAt != null;
 
-  final isCardio = next.exercise.exercise.isCardio;
-  final metrics = isCardio
+  // Duration-based exercises need the same metric format as cardio even if
+  // their catalog category is not Cardio (for example a plank). Category is a
+  // browsing concern; tracking type describes what the current set contains.
+  final isDurationBased =
+      ExerciseLogMask.forExercise(next.exercise.exercise).logsDuration;
+  final metrics = isDurationBased
       ? _cardioMetrics(next, unitService, strings, localeName)
       : _strengthMetrics(next, unitService, strings, localeName);
 
@@ -71,8 +76,8 @@ WorkoutLiveActivityContent buildWorkoutLiveActivityContent({
         strings.setPosition(next.indexInExercise, next.totalInExercise),
     // Cardio sends no badge — the metrics line starts at the leading edge and
     // the compact leading zone falls back to the app icon.
-    badgeText: isCardio ? '' : _badgeText(next),
-    badgeColorHex: isCardio ? _colorNeutral : _badgeColor(next.setType),
+    badgeText: isDurationBased ? '' : _badgeText(next),
+    badgeColorHex: isDurationBased ? _colorNeutral : _badgeColor(next.setType),
     metricPrimary: metrics.primary,
     metricSecondary: metrics.secondary,
     metricTertiary: metrics.tertiary,

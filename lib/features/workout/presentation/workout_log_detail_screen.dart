@@ -790,6 +790,7 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
       context: context,
       initialDuration: initialDuration,
       title: AppLocalizations.of(context)!.durationLabel,
+      allowClear: true,
     );
     if (selected == null || !mounted) return;
 

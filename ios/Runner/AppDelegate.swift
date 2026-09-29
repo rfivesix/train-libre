@@ -1,5 +1,6 @@
 import Flutter
 import HealthKit
+import StoreKit
 import UIKit
 import UserNotifications
 
@@ -9,6 +10,7 @@ import UserNotifications
   private let stepsChannelName = "trainlibre.health/steps"
   private let sleepHealthKitChannelName = "trainlibre.health/sleep_healthkit"
   private let exportAppleHealthChannelName = "trainlibre.health/export_apple_health"
+  private let reviewChannelName = "trainlibre.app/review"
   private var channelsConfigured = false
   private var depthScanRegistered = false
   private let liveActivityBridge = WorkoutLiveActivityBridge()
@@ -144,6 +146,30 @@ import UserNotifications
     )
     exportChannel.setMethodCallHandler { [weak self] call, result in
       self?.handleExportAppleHealthCall(call: call, result: result)
+    }
+
+    let reviewChannel = FlutterMethodChannel(
+      name: reviewChannelName,
+      binaryMessenger: messenger
+    )
+    reviewChannel.setMethodCallHandler { call, result in
+      guard call.method == "requestReview" else {
+        result(FlutterMethodNotImplemented)
+        return
+      }
+      if #available(iOS 14.0, *) {
+        guard let scene = UIApplication.shared.connectedScenes
+          .compactMap({ $0 as? UIWindowScene })
+          .first(where: { $0.activationState == .foregroundActive })
+        else {
+          result(false)
+          return
+        }
+        SKStoreReviewController.requestReview(in: scene)
+      } else if #available(iOS 10.3, *) {
+        SKStoreReviewController.requestReview()
+      }
+      result(true)
     }
 
     let liveActivityChannel = FlutterMethodChannel(

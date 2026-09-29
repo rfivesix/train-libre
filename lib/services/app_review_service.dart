@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
-import 'package:in_app_review/in_app_review.dart';
+import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../features/app/presentation/widgets/glass_bottom_menu.dart';
@@ -19,6 +19,8 @@ class AppReviewService {
   // users receive the improved, workout-timed opportunity once as well.
   static const String _hasRequestedReviewKey =
       'has_requested_review_after_workout_summary';
+  static const MethodChannel _reviewChannel =
+      MethodChannel('trainlibre.app/review');
 
   /// Shows the rating menu exactly once, after the user closes their first
   /// completed-workout summary. The platform owns whether its native review
@@ -63,10 +65,7 @@ class AppReviewService {
           label: l10n.reviewPromptYes,
           subtitle: l10n.reviewPromptSubtitle,
           onTap: () async {
-            final InAppReview inAppReview = InAppReview.instance;
-            if (await inAppReview.isAvailable()) {
-              await inAppReview.requestReview();
-            }
+            await _reviewChannel.invokeMethod<void>('requestReview');
           },
           result: _ReviewPromptResponse.yes,
         ),

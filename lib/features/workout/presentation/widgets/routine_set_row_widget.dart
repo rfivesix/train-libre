@@ -134,6 +134,8 @@ class RoutineSetRowWidget extends StatelessWidget {
                               await adaptive_pickers.showAdaptiveDurationPicker(
                             context: context,
                             initialDuration: Duration(seconds: currentSeconds),
+                            title: AppLocalizations.of(context)!.durationLabel,
+                            allowClear: true,
                           );
                           if (newDuration != null) {
                             final seconds = newDuration.inSeconds;

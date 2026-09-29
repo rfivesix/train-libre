@@ -38,6 +38,21 @@ Exercise _exercise({required String name, required String category}) =>
       secondaryMuscles: const [],
     );
 
+Exercise _timedExercise({required String name}) => Exercise(
+      id: 2,
+      texts: {
+        'de': ExerciseText(name: name, description: ''),
+        'en': ExerciseText(name: name, description: ''),
+      },
+      // A plank is commonly categorized as strength/core, but it records a
+      // duration. The live activity must follow this tracking type, not the
+      // category, otherwise it renders a nonsensical reps line.
+      categoryName: 'Strength',
+      trackingType: 'time',
+      primaryMuscles: const [],
+      secondaryMuscles: const [],
+    );
+
 SetLog _log({
   required String exerciseName,
   String setType = 'normal',
@@ -188,6 +203,29 @@ void main() {
 
       expect(content.compactPrimary, '72,5 kg');
       expect(content.compactSecondary, '× 8');
+    });
+  });
+
+  group('duration-based sets', () {
+    test('uses a duration rather than a reps metric outside Cardio', () {
+      final timedExercise = RoutineExercise(
+        id: 80,
+        exercise: _timedExercise(name: 'Plank'),
+        setTemplates: [SetTemplate(id: 801, setType: 'normal')],
+      );
+
+      final content = _build(
+        exercises: [timedExercise],
+        setLogs: {
+          801: _log(exerciseName: 'Plank', durationSeconds: 75),
+        },
+      );
+
+      expect(content.metricPrimary, '1:15');
+      expect(content.metricSecondary, isEmpty);
+      expect(content.metricSeparator, '·');
+      expect(content.badgeText, isEmpty);
+      expect(content.canCompleteSet, isTrue);
     });
   });
 
