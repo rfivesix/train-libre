@@ -21,9 +21,16 @@ import 'dart:async';
 import '../../../services/telemetry/telemetry_service.dart';
 
 class BodyNutritionCorrelationScreen extends StatefulWidget {
-  final int initialRangeIndex;
+  final TimeframeBlock initialBlock;
+  final DateTime? initialAnchorDate;
+  final bool initialIsRolling;
 
-  const BodyNutritionCorrelationScreen({super.key, this.initialRangeIndex = 1});
+  const BodyNutritionCorrelationScreen({
+    super.key,
+    this.initialBlock = TimeframeBlock.month,
+    this.initialAnchorDate,
+    this.initialIsRolling = true,
+  });
 
   @override
   State<BodyNutritionCorrelationScreen> createState() =>
@@ -44,6 +51,7 @@ class _BodyNutritionCorrelationScreenState
     TimeframeBlock.month,
     TimeframeBlock.threeMonths,
     TimeframeBlock.sixMonths,
+    TimeframeBlock.year,
     TimeframeBlock.maxBlock,
   ];
 
@@ -55,8 +63,11 @@ class _BodyNutritionCorrelationScreenState
     super.initState();
     unawaited(TelemetryService.instance
         .trackScreenView(screenName: ScreenName.bodyNutritionCorrelation));
-    final index = widget.initialRangeIndex.clamp(0, 4);
-    _activeBlock = _validBlocks[index];
+    _activeBlock = _validBlocks.contains(widget.initialBlock)
+        ? widget.initialBlock
+        : TimeframeBlock.month;
+    _anchorDate = widget.initialAnchorDate ?? _anchorDate;
+    _isRolling = widget.initialIsRolling;
     _load();
   }
 
@@ -88,6 +99,7 @@ class _BodyNutritionCorrelationScreenState
         l10n.filter1MonthShort,
         l10n.filter3MonthsShort,
         l10n.filter6MonthsShort,
+        l10n.filter1YearShort,
         l10n.filterMax,
       ];
 
@@ -97,11 +109,12 @@ class _BodyNutritionCorrelationScreenState
     final topPadding = MediaQuery.of(context).padding.top + kToolbarHeight;
 
     final hasNoData = _analytics == null;
-    final displayAnalytics = _analytics ?? getMockCorrelationResult(
-      _isRolling
-          ? _activeBlock.getRollingBounds()
-          : _activeBlock.getBounds(_anchorDate, DateTime(2020)),
-    );
+    final displayAnalytics = _analytics ??
+        getMockCorrelationResult(
+          _isRolling
+              ? _activeBlock.getRollingBounds()
+              : _activeBlock.getBounds(_anchorDate, DateTime(2020)),
+        );
 
     Widget bodyContent = _buildBodyContent(l10n, displayAnalytics);
 
@@ -142,24 +155,22 @@ class _BodyNutritionCorrelationScreenState
                       ? null
                       : () {
                           setState(() {
-                            final currentBounds =
-                                _activeBlock.getBounds(
-                                    DateTime.now(), DateTime(2020));
+                            final currentBounds = _activeBlock.getBounds(
+                                DateTime.now(), DateTime(2020));
                             final myBounds = _activeBlock.getBounds(
                                 _anchorDate, DateTime(2020));
                             final isOngoing = !_isRolling &&
-                                myBounds.start.isAtSameMomentAs(
-                                    currentBounds.start);
+                                myBounds.start
+                                    .isAtSameMomentAs(currentBounds.start);
 
                             if (isOngoing) {
                               _isRolling = true;
                             } else if (_isRolling) {
                               _isRolling = false;
-                              _anchorDate = _activeBlock.shift(
-                                  DateTime.now(), -1);
-                            } else {
                               _anchorDate =
-                                  _activeBlock.shift(_anchorDate, -1);
+                                  _activeBlock.shift(DateTime.now(), -1);
+                            } else {
+                              _anchorDate = _activeBlock.shift(_anchorDate, -1);
                             }
                           });
                           _load();
@@ -172,23 +183,21 @@ class _BodyNutritionCorrelationScreenState
                               _isRolling = false;
                               _anchorDate = DateTime.now();
                             } else {
-                              final previousAnchor = _activeBlock
-                                  .shift(DateTime.now(), -1);
-                              final previousBounds =
-                                  _activeBlock.getBounds(
-                                      previousAnchor, DateTime(2020));
+                              final previousAnchor =
+                                  _activeBlock.shift(DateTime.now(), -1);
+                              final previousBounds = _activeBlock.getBounds(
+                                  previousAnchor, DateTime(2020));
                               final myBounds = _activeBlock.getBounds(
                                   _anchorDate, DateTime(2020));
-                              final isPreviousToOngoing =
-                                  !_isRolling &&
-                                      myBounds.start.isAtSameMomentAs(
-                                          previousBounds.start);
+                              final isPreviousToOngoing = !_isRolling &&
+                                  myBounds.start
+                                      .isAtSameMomentAs(previousBounds.start);
 
                               if (isPreviousToOngoing) {
                                 _isRolling = true;
                               } else {
-                                _anchorDate = _activeBlock.shift(
-                                    _anchorDate, 1);
+                                _anchorDate =
+                                    _activeBlock.shift(_anchorDate, 1);
                               }
                             }
                           });
@@ -200,8 +209,8 @@ class _BodyNutritionCorrelationScreenState
                       : TimeframeLabelFormatter.format(
                           _activeBlock, _anchorDate, l10n),
                   onTapDateDisplay: () async {
-                    final selected = await adaptive_pickers
-                        .showAdaptiveTimeframePicker(
+                    final selected =
+                        await adaptive_pickers.showAdaptiveTimeframePicker(
                       context: context,
                       activeBlock: _activeBlock,
                       initialAnchor: _anchorDate,
@@ -224,11 +233,9 @@ class _BodyNutritionCorrelationScreenState
                               .getBounds(_anchorDate, DateTime(2020))
                               .start
                               .isAtSameMomentAs(_activeBlock
-                                  .getBounds(
-                                      DateTime.now(), DateTime(2020))
+                                  .getBounds(DateTime.now(), DateTime(2020))
                                   .start)),
-                  showDateNavigation:
-                      _activeBlock != TimeframeBlock.maxBlock,
+                  showDateNavigation: _activeBlock != TimeframeBlock.maxBlock,
                 ),
                 const SizedBox(height: DesignConstants.spacingM),
                 bodyContent,
@@ -557,7 +564,8 @@ class _BodyNutritionCorrelationScreenState
     );
   }
 
-  Widget _buildBodyContent(AppLocalizations l10n, BodyNutritionAnalyticsResult analytics) {
+  Widget _buildBodyContent(
+      AppLocalizations l10n, BodyNutritionAnalyticsResult analytics) {
     return Padding(
       padding: const EdgeInsets.symmetric(
         horizontal: DesignConstants.screenPaddingHorizontal,

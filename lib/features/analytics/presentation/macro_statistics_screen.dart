@@ -21,13 +21,13 @@ import 'widgets/macro_history_stacked_bar_chart.dart';
 
 /// Screen displaying historical macronutrient distribution and caloric intake.
 class MacroStatisticsScreen extends StatefulWidget {
-  final int initialRangeIndex;
+  final TimeframeBlock initialBlock;
   final DateTime? initialAnchorDate;
   final bool? initialIsRolling;
 
   const MacroStatisticsScreen({
     super.key,
-    this.initialRangeIndex = 0,
+    this.initialBlock = TimeframeBlock.week,
     this.initialAnchorDate,
     this.initialIsRolling,
   });
@@ -63,8 +63,9 @@ class _MacroStatisticsScreenState extends State<MacroStatisticsScreen> {
     unawaited(TelemetryService.instance.trackScreenView(
       screenName: ScreenName.bodyNutritionCorrelation,
     ));
-    final index = widget.initialRangeIndex.clamp(0, _validBlocks.length - 1);
-    _activeBlock = _validBlocks[index];
+    _activeBlock = _validBlocks.contains(widget.initialBlock)
+        ? widget.initialBlock
+        : TimeframeBlock.week;
     if (widget.initialAnchorDate != null) {
       _anchorDate = widget.initialAnchorDate!;
     }
@@ -158,18 +159,17 @@ class _MacroStatisticsScreenState extends State<MacroStatisticsScreen> {
                             final myBounds = _activeBlock.getBounds(
                                 _anchorDate, DateTime(2020));
                             final isOngoing = !_isRolling &&
-                                myBounds.start.isAtSameMomentAs(
-                                    currentBounds.start);
+                                myBounds.start
+                                    .isAtSameMomentAs(currentBounds.start);
 
                             if (isOngoing) {
                               _isRolling = true;
                             } else if (_isRolling) {
                               _isRolling = false;
-                              _anchorDate = _activeBlock.shift(
-                                  DateTime.now(), -1);
-                            } else {
                               _anchorDate =
-                                  _activeBlock.shift(_anchorDate, -1);
+                                  _activeBlock.shift(DateTime.now(), -1);
+                            } else {
+                              _anchorDate = _activeBlock.shift(_anchorDate, -1);
                             }
                           });
                           _load();
@@ -182,21 +182,21 @@ class _MacroStatisticsScreenState extends State<MacroStatisticsScreen> {
                               _isRolling = false;
                               _anchorDate = DateTime.now();
                             } else {
-                              final previousAnchor = _activeBlock
-                                  .shift(DateTime.now(), -1);
+                              final previousAnchor =
+                                  _activeBlock.shift(DateTime.now(), -1);
                               final previousBounds = _activeBlock.getBounds(
                                   previousAnchor, DateTime(2020));
                               final myBounds = _activeBlock.getBounds(
                                   _anchorDate, DateTime(2020));
                               final isPreviousToOngoing = !_isRolling &&
-                                  myBounds.start.isAtSameMomentAs(
-                                      previousBounds.start);
+                                  myBounds.start
+                                      .isAtSameMomentAs(previousBounds.start);
 
                               if (isPreviousToOngoing) {
                                 _isRolling = true;
                               } else {
-                                _anchorDate = _activeBlock.shift(
-                                    _anchorDate, 1);
+                                _anchorDate =
+                                    _activeBlock.shift(_anchorDate, 1);
                               }
                             }
                           });
@@ -208,8 +208,8 @@ class _MacroStatisticsScreenState extends State<MacroStatisticsScreen> {
                       : TimeframeLabelFormatter.format(
                           _activeBlock, _anchorDate, l10n),
                   onTapDateDisplay: () async {
-                    final selected = await adaptive_pickers
-                        .showAdaptiveTimeframePicker(
+                    final selected =
+                        await adaptive_pickers.showAdaptiveTimeframePicker(
                       context: context,
                       activeBlock: _activeBlock,
                       initialAnchor: _anchorDate,
@@ -232,11 +232,9 @@ class _MacroStatisticsScreenState extends State<MacroStatisticsScreen> {
                               .getBounds(_anchorDate, DateTime(2020))
                               .start
                               .isAtSameMomentAs(_activeBlock
-                                  .getBounds(
-                                      DateTime.now(), DateTime(2020))
+                                  .getBounds(DateTime.now(), DateTime(2020))
                                   .start)),
-                  showDateNavigation:
-                      _activeBlock != TimeframeBlock.maxBlock,
+                  showDateNavigation: _activeBlock != TimeframeBlock.maxBlock,
                 ),
                 const SizedBox(height: DesignConstants.spacingL),
 
@@ -335,14 +333,10 @@ class _MacroStatisticsScreenState extends State<MacroStatisticsScreen> {
             : '--');
     final fatText = showDay
         ? '${selected.fatGrams.toStringAsFixed(0)} g'
-        : (summary != null
-            ? '${summary.avgFat.toStringAsFixed(0)} g'
-            : '--');
+        : (summary != null ? '${summary.avgFat.toStringAsFixed(0)} g' : '--');
     final carbsText = showDay
         ? '${selected.carbsGrams.toStringAsFixed(0)} g'
-        : (summary != null
-            ? '${summary.avgCarbs.toStringAsFixed(0)} g'
-            : '--');
+        : (summary != null ? '${summary.avgCarbs.toStringAsFixed(0)} g' : '--');
 
     // Sub-label distinguishes "avg" mode from "selected day" mode
     final calLabel = showDay ? 'Kalorien' : 'Ø Kalorien';
@@ -476,7 +470,6 @@ class _MacroStatisticsScreenState extends State<MacroStatisticsScreen> {
     );
   }
 
-
   Widget _buildDailyBreakdown(BuildContext context) {
     final theme = Theme.of(context);
     final summary = _summary;
@@ -526,8 +519,8 @@ class _MacroStatisticsScreenState extends State<MacroStatisticsScreen> {
                       Text(
                         dateStr,
                         style: theme.textTheme.bodyMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       const SizedBox(height: 6),
                       MacroBadgeRow(

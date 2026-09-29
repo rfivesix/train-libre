@@ -122,9 +122,8 @@ extension RoutinesQueries on WorkoutLocalDataSource {
 
         final tr = row.readTableOrNull(dbInstance.exerciseTranslations);
         if (tr != null && tr.name.trim().isNotEmpty) {
-          translationsByExerciseUuid
-              .putIfAbsent(tr.exerciseId, () => {})[tr.languageCode] =
-              ExerciseText(
+          translationsByExerciseUuid.putIfAbsent(
+              tr.exerciseId, () => {})[tr.languageCode] = ExerciseText(
             name: tr.name,
             description: tr.description ?? '',
           );
@@ -521,10 +520,31 @@ extension RoutinesQueries on WorkoutLocalDataSource {
 
   Future<void> deleteRoutine(int routineId) async {
     final dbInstance = await database;
-    await (dbInstance.delete(
-      dbInstance.routines,
-    )..where((tbl) => tbl.localId.equals(routineId)))
-        .go();
+    await dbInstance.transaction(() async {
+      final routine = await (dbInstance.select(dbInstance.routines)
+            ..where((tbl) => tbl.localId.equals(routineId)))
+          .getSingleOrNull();
+      if (routine == null) return;
+
+      // Workout logs retain a nullable reference so that deleting a saved
+      // routine never deletes or invalidates the user's workout history.
+      // Preserve the readable routine name for old logs that predate a name
+      // snapshot as well.
+      await dbInstance.customStatement(
+        '''
+        UPDATE workout_logs
+        SET routine_id = NULL,
+            routine_name_snapshot = COALESCE(routine_name_snapshot, ?)
+        WHERE routine_id = ?
+        ''',
+        [routine.name, routine.id],
+      );
+
+      await (dbInstance.delete(
+        dbInstance.routines,
+      )..where((tbl) => tbl.localId.equals(routineId)))
+          .go();
+    });
   }
 
   Future<void> duplicateRoutine(int routineId) async {
