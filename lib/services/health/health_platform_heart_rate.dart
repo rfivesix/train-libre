@@ -55,21 +55,25 @@ class HealthPlatformHeartRate implements HealthHeartRateDataSource {
     required DateTime fromUtc,
     required DateTime toUtc,
   }) async {
-    final response = await _channel.invokeMethod<List<dynamic>>(
-      'readHeartRateSamples',
-      <String, dynamic>{
-        'fromUtcIso': fromUtc.toUtc().toIso8601String(),
-        'toUtcIso': toUtc.toUtc().toIso8601String(),
-      },
-    );
+    final response = await _channel
+        .invokeMethod<List<dynamic>>('readHeartRateSamples', <String, dynamic>{
+          'fromUtcIso': fromUtc.toUtc().toIso8601String(),
+          'toUtcIso': toUtc.toUtc().toIso8601String(),
+        });
 
     final rows = response ?? const <dynamic>[];
-    return rows
-        .map(
-          (row) =>
-              HealthHeartRateSampleDto.fromMap(row as Map<dynamic, dynamic>),
-        )
-        .where((sample) => sample.bpm.isFinite && sample.bpm > 0)
-        .toList(growable: false);
+
+    // BOLT OPTIMIZATION: Avoid chaining .map().where().toList() on large datasets
+    // to prevent intermediate lazy closures and multiple O(N) iterations.
+    final result = <HealthHeartRateSampleDto>[];
+    for (var i = 0; i < rows.length; i++) {
+      final sample = HealthHeartRateSampleDto.fromMap(
+        rows[i] as Map<dynamic, dynamic>,
+      );
+      if (sample.bpm.isFinite && sample.bpm > 0) {
+        result.add(sample);
+      }
+    }
+    return result;
   }
 }
