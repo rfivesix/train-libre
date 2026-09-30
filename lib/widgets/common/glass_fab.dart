@@ -17,11 +17,15 @@ class GlassFab extends StatefulWidget {
   /// Optional label to display next to the icon, turning the FAB into a pill.
   final String? label;
 
+  /// Optional tooltip for screen readers when no label is provided.
+  final String? tooltip;
+
   const GlassFab({
     super.key,
     required this.onPressed,
     this.icon = LucideIcons.plus,
     this.label,
+    this.tooltip,
   });
 
   @override
@@ -98,7 +102,9 @@ class _GlassFabState extends State<GlassFab>
           height: DesignConstants.fabSize,
           width: hasLabel ? null : DesignConstants.fabSize,
           shape: hasLabel
-              ? LiquidRoundedSuperellipse(borderRadius: DesignConstants.fabSize / 2)
+              ? LiquidRoundedSuperellipse(
+                  borderRadius: DesignConstants.fabSize / 2,
+                )
               : const LiquidOval(),
           quality: DesignConstants.defaultGlassQuality,
           settings: DesignConstants.liquidGlassSettings(isDark),
@@ -115,7 +121,7 @@ class _GlassFabState extends State<GlassFab>
       ),
     );
 
-    return GestureDetector(
+    Widget result = GestureDetector(
       onTapDown: _onTapDown,
       onTapUp: _onTapUp,
       onTapCancel: () => _controller.reverse(),
@@ -127,6 +133,21 @@ class _GlassFabState extends State<GlassFab>
         },
         child: IntrinsicWidth(child: content),
       ),
+    );
+
+    final tooltipText = widget.label ?? widget.tooltip ?? '';
+    if (tooltipText.isNotEmpty) {
+      result = Tooltip(
+        message: tooltipText,
+        excludeFromSemantics: true,
+        child: result,
+      );
+    }
+
+    return Semantics(
+      button: true,
+      label: widget.label ?? widget.tooltip ?? 'Floating action',
+      child: result,
     );
   }
 }
