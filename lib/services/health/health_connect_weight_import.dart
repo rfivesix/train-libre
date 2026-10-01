@@ -19,6 +19,8 @@ class HealthConnectWeightRecord {
     required this.timestampUtc,
     required this.weightKg,
     required this.sourcePackageName,
+    this.measurementType = 'weight',
+    this.unit = 'kg',
   });
 
   final String recordId;
@@ -26,10 +28,12 @@ class HealthConnectWeightRecord {
   final DateTime timestampUtc;
   final double weightKg;
   final String sourcePackageName;
+  final String measurementType;
+  final String unit;
 
   String get fingerprint => sha256
       .convert(utf8.encode(
-          '$timestampUtc|${weightKg.toStringAsPrecision(15)}|$sourcePackageName'))
+          '$measurementType|$timestampUtc|${weightKg.toStringAsPrecision(15)}|$sourcePackageName'))
       .toString();
 
   factory HealthConnectWeightRecord.fromMap(Map<dynamic, dynamic> map) =>
@@ -39,8 +43,11 @@ class HealthConnectWeightRecord {
             DateTime.tryParse(map['lastModifiedAtUtcIso'] as String? ?? '')
                 ?.toUtc(),
         timestampUtc: DateTime.parse(map['timestampUtcIso'] as String).toUtc(),
-        weightKg: (map['weightKg'] as num).toDouble(),
+        weightKg:
+            ((map['value'] as num?) ?? (map['weightKg'] as num)).toDouble(),
         sourcePackageName: map['sourcePackageName'] as String? ?? '',
+        measurementType: map['measurementType'] as String? ?? 'weight',
+        unit: map['unit'] as String? ?? 'kg',
       );
 }
 
@@ -106,10 +113,22 @@ class HealthConnectWeightImportResult {
   final bool limitedHistory;
 }
 
+/// Common contract for foreground settings and cold-start weight imports.
+/// Platform implementations intentionally share the same local mapping table
+/// so that external records retain their source-specific identity.
+abstract interface class WeightImportService {
+  Future<bool> isEnabled();
+  Future<void> setEnabled(bool enabled);
+  Future<HealthConnectWeightImportStatus> getStatus();
+  Future<HealthConnectWeightImportResult?> requestAccessAndImport();
+  Future<HealthConnectWeightImportResult?> importOnColdStart();
+  Future<HealthConnectWeightImportResult?> importNow();
+}
+
 /// Kaltstart-Import only.  A full scan is intentional: #669 deliberately does
 /// not introduce Changes tokens, and a full scan is what lets old scale values
 /// be updated safely.
-class HealthConnectWeightImportService {
+class HealthConnectWeightImportService implements WeightImportService {
   static const _enabledKey = 'health_connect_weight_import_enabled';
 
   HealthConnectWeightImportService({
@@ -124,16 +143,20 @@ class HealthConnectWeightImportService {
   final DatabaseHelper _dbHelper;
   final bool _isAndroid;
 
+  @override
   Future<bool> isEnabled() async =>
       (await SharedPreferences.getInstance()).getBool(_enabledKey) ?? false;
 
+  @override
   Future<void> setEnabled(bool enabled) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_enabledKey, enabled);
   }
 
+  @override
   Future<HealthConnectWeightImportStatus> getStatus() => _platform.getStatus();
 
+  @override
   Future<HealthConnectWeightImportResult?> requestAccessAndImport() async {
     if (!_isAndroid) return null;
     final granted = await _platform.requestPermissions();
@@ -142,12 +165,14 @@ class HealthConnectWeightImportService {
     return importNow();
   }
 
+  @override
   Future<HealthConnectWeightImportResult?> importOnColdStart() async {
     if (!_isAndroid) return null;
     if (!await isEnabled()) return null;
     return importNow();
   }
 
+  @override
   Future<HealthConnectWeightImportResult?> importNow() async {
     if (!_isAndroid) return null;
     final status = await _platform.getStatus();
@@ -180,7 +205,7 @@ class HealthConnectWeightImportService {
            WHERE platform = ? AND domain = ? AND external_record_id = ?''',
         variables: [
           drift.Variable.withString('healthConnect'),
-          drift.Variable.withString('weight'),
+          drift.Variable.withString(record.measurementType),
           drift.Variable.withString(record.recordId),
         ],
       ).getSingleOrNull();
@@ -188,9 +213,9 @@ class HealthConnectWeightImportService {
       if (existing == null) {
         final row = await db.into(db.measurements).insertReturning(
               db_model.MeasurementsCompanion.insert(
-                type: 'weight',
+                type: record.measurementType,
                 value: record.weightKg,
-                unit: 'kg',
+                unit: record.unit,
                 date: record.timestampUtc,
                 legacySessionId: drift.Value(
                   record.timestampUtc.millisecondsSinceEpoch,
@@ -203,7 +228,7 @@ class HealthConnectWeightImportService {
              VALUES (?, ?, ?, ?, ?, ?)''',
           [
             'healthConnect',
-            'weight',
+            record.measurementType,
             record.recordId,
             row.localId,
             modifiedMillis,
@@ -240,7 +265,7 @@ class HealthConnectWeightImportService {
           modifiedMillis,
           record.fingerprint,
           'healthConnect',
-          'weight',
+          record.measurementType,
           record.recordId
         ],
       );

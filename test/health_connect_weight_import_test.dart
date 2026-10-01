@@ -132,6 +132,39 @@ void main() {
       );
     });
 
+    test('stores body-fat imports as body-fat measurements', () async {
+      final platform = _FakeWeightPlatform(
+        status: const HealthConnectWeightImportStatus(
+          available: true,
+          historyAvailable: true,
+          readGranted: true,
+          historyGranted: true,
+        ),
+        records: [
+          HealthConnectWeightRecord(
+            recordId: 'body-fat-1',
+            lastModifiedAtUtc: DateTime.utc(2026, 9, 1),
+            timestampUtc: DateTime.utc(2026, 9, 1),
+            weightKg: 17.2,
+            sourcePackageName: 'com.scale.app',
+            measurementType: 'fat_percent',
+            unit: '%',
+          ),
+        ],
+      );
+      final service = HealthConnectWeightImportService(
+        platform: platform,
+        databaseHelper: databaseHelper,
+        isAndroid: true,
+      );
+
+      await service.requestAccessAndImport();
+
+      final measurements = await database.select(database.measurements).get();
+      expect(measurements.single.type, 'fat_percent');
+      expect(measurements.single.value, 17.2);
+    });
+
     test('does not enable cold-start import after denied permission', () async {
       final platform = _FakeWeightPlatform(
         status: const HealthConnectWeightImportStatus(

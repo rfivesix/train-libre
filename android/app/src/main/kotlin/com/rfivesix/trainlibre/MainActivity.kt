@@ -85,6 +85,7 @@ class MainActivity : FlutterActivity() {
     )
     private val requiredWeightImportPermissions = setOf(
         HealthPermission.getReadPermission(WeightRecord::class),
+        HealthPermission.getReadPermission(BodyFatRecord::class),
     )
     private val preferredStepsSources = listOf(
         "com.google.android.apps.fitness",
@@ -578,6 +579,32 @@ class MainActivity : FlutterActivity() {
                                 "timestampUtcIso" to record.time.toString(),
                                 "zoneOffsetMinutes" to record.zoneOffset?.totalSeconds?.div(60),
                                 "weightKg" to record.weight.inKilograms,
+                                "measurementType" to "weight",
+                                "unit" to "kg",
+                                "sourcePackageName" to record.metadata.dataOrigin.packageName,
+                            ))
+                        }
+                    }
+                    pageToken = response.pageToken
+                } while (!pageToken.isNullOrEmpty())
+                pageToken = null
+                do {
+                    val response = client.readRecords(
+                        ReadRecordsRequest(
+                            recordType = BodyFatRecord::class,
+                            timeRangeFilter = TimeRangeFilter.between(from, to),
+                            pageToken = pageToken,
+                        ),
+                    )
+                    response.records.forEach { record ->
+                        if (record.metadata.dataOrigin.packageName != applicationContext.packageName) {
+                            rows.add(mapOf(
+                                "recordId" to record.metadata.id,
+                                "lastModifiedAtUtcIso" to record.metadata.lastModifiedTime.toString(),
+                                "timestampUtcIso" to record.time.toString(),
+                                "value" to record.percentage.value,
+                                "measurementType" to "fat_percent",
+                                "unit" to "%",
                                 "sourcePackageName" to record.metadata.dataOrigin.packageName,
                             ))
                         }

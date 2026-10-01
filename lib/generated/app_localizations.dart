@@ -9009,14 +9009,26 @@ abstract class AppLocalizations {
   /// No description provided for @healthConnectWeightImportTitle.
   ///
   /// In en, this message translates to:
-  /// **'Import weight from Health Connect'**
+  /// **'Import body measurements from Health Connect'**
   String get healthConnectWeightImportTitle;
 
   /// No description provided for @healthConnectWeightImportSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Import weights written by scales and other apps. Train Libre records are ignored.'**
+  /// **'Import weight and body-fat values from scales and other apps. Train Libre records are ignored.'**
   String get healthConnectWeightImportSubtitle;
+
+  /// No description provided for @appleHealthWeightImportTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Import body measurements from Apple Health'**
+  String get appleHealthWeightImportTitle;
+
+  /// No description provided for @appleHealthWeightImportSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Import weight, body fat, and waist measurements from Apple Health. Train Libre records are ignored.'**
+  String get appleHealthWeightImportSubtitle;
 
   /// No description provided for @healthConnectWeightImportReady.
   ///

@@ -1,6 +1,7 @@
 // lib/main.dart
 
 import 'dart:async';
+import 'dart:io';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'util/design_constants.dart';
 
@@ -75,6 +76,7 @@ import 'features/profile/domain/services/goal_notification_orchestrator.dart';
 import 'features/workout/domain/services/workout_plan_notification_orchestrator.dart';
 import 'services/telemetry/telemetry_service.dart';
 import 'services/health/health_connect_weight_import.dart';
+import 'services/health/apple_health_weight_import.dart';
 import 'features/health_export/health_export_coordinator.dart';
 
 @pragma('vm:entry-point')
@@ -191,13 +193,16 @@ void main() async {
   final database = db.AppDatabase();
   DatabaseHelper.setDriftDb(database);
   final healthExportCoordinator = HealthExportCoordinator(database: database);
-  // #669 deliberately performs its bounded import only on a cold start.  It
-  // never prompts here; permissions are granted from the Health settings.
+  // Weight imports run only after the user enabled them in Health settings;
+  // cold start never opens a permission prompt on either platform.
   unawaited(() async {
     try {
-      await HealthConnectWeightImportService().importOnColdStart();
+      final WeightImportService weightImport = Platform.isIOS
+          ? AppleHealthWeightImportService()
+          : HealthConnectWeightImportService();
+      await weightImport.importOnColdStart();
     } catch (error) {
-      debugPrint('Health Connect weight import failed: $error');
+      debugPrint('Health weight import failed: $error');
     }
   }());
   final diaryLocalDataSource = DiaryLocalDataSource(database);

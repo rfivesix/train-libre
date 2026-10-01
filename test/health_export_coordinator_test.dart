@@ -7,13 +7,17 @@ import 'package:train_libre/features/health_export/health_export_coordinator.dar
 import 'package:train_libre/features/health_export/models/export_models.dart';
 
 class _FakeExportService extends HealthExportService {
-  _FakeExportService() : super(adapters: const []);
+  _FakeExportService({
+    this.enabledPlatforms = const {HealthExportPlatform.appleHealth},
+  }) : super(adapters: const []);
 
   int exportCalls = 0;
+  final Set<HealthExportPlatform> enabledPlatforms;
+  final List<HealthExportPlatform> exportedPlatforms = [];
 
   @override
   Future<bool> isPlatformEnabled(HealthExportPlatform platform) async =>
-      platform == HealthExportPlatform.appleHealth;
+      enabledPlatforms.contains(platform);
 
   @override
   Future<HealthExportResult> exportNow(
@@ -21,6 +25,7 @@ class _FakeExportService extends HealthExportService {
     int? lookbackDays,
   }) async {
     exportCalls++;
+    exportedPlatforms.add(platform);
     return HealthExportResult(platform: platform, success: true);
   }
 }
@@ -36,6 +41,7 @@ void main() {
       database: database,
       service: service,
       debounceDuration: const Duration(milliseconds: 10),
+      platforms: const [HealthExportPlatform.appleHealth],
     );
     addTearDown(() async {
       coordinator.dispose();
@@ -59,5 +65,28 @@ void main() {
     }
     await Future<void>.delayed(const Duration(milliseconds: 50));
     expect(service.exportCalls, 2);
+  });
+
+  test('runs continuous export for Health Connect when it is enabled',
+      () async {
+    final database = AppDatabase(NativeDatabase.memory());
+    final service = _FakeExportService(
+      enabledPlatforms: const {HealthExportPlatform.healthConnect},
+    );
+    final coordinator = HealthExportCoordinator(
+      database: database,
+      service: service,
+      debounceDuration: const Duration(milliseconds: 10),
+      platforms: const [HealthExportPlatform.healthConnect],
+    );
+    addTearDown(() async {
+      coordinator.dispose();
+      await database.close();
+    });
+
+    coordinator.start();
+    await Future<void>.delayed(const Duration(milliseconds: 50));
+
+    expect(service.exportedPlatforms, [HealthExportPlatform.healthConnect]);
   });
 }

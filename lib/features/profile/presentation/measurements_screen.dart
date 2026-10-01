@@ -27,6 +27,7 @@ import '../../../util/timeframe_label_formatter.dart';
 import '../../../widgets/common/app_button.dart';
 import 'dart:async';
 import '../../../services/telemetry/telemetry_service.dart';
+import 'measurement_import_settings_screen.dart';
 
 /// Maps a Measurements-widget period key onto the timeframe the screen offers.
 ///
@@ -268,7 +269,23 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
 
     return Scaffold(
       extendBodyBehindAppBar: true,
-      appBar: GlobalAppBar(title: l10n.measurementsScreenTitle),
+      appBar: GlobalAppBar(
+        title: l10n.measurementsScreenTitle,
+        actions: [
+          IconButton(
+            icon: const Icon(LucideIcons.download),
+            tooltip: l10n.healthConnectWeightImportNow,
+            onPressed: () async {
+              final changed = await Navigator.of(context).push<bool>(
+                MaterialPageRoute(
+                  builder: (context) => const MeasurementImportSettingsScreen(),
+                ),
+              );
+              if (changed == true) _loadMeasurements();
+            },
+          ),
+        ],
+      ),
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SeamlessLoadingOverlay(
         isLoading: _isLoading,

@@ -5176,11 +5176,19 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get healthConnectWeightImportTitle =>
-      'Gewicht aus Health Connect importieren';
+      'Körpermesswerte aus Health Connect importieren';
 
   @override
   String get healthConnectWeightImportSubtitle =>
-      'Importiert Gewichte von Waagen und anderen Apps. Train-Libre-Einträge werden ignoriert.';
+      'Importiert Gewicht und Körperfett von Waagen und anderen Apps. Train-Libre-Einträge werden ignoriert.';
+
+  @override
+  String get appleHealthWeightImportTitle =>
+      'Körpermesswerte aus Apple Health importieren';
+
+  @override
+  String get appleHealthWeightImportSubtitle =>
+      'Importiert Gewicht, Körperfett und Taillenumfang aus Apple Health. Train-Libre-Einträge werden ignoriert.';
 
   @override
   String get healthConnectWeightImportReady =>

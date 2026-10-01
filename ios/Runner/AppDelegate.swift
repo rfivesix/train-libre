@@ -11,6 +11,7 @@ import UserNotifications
   private let stepsChannelName = "trainlibre.health/steps"
   private let sleepHealthKitChannelName = "trainlibre.health/sleep_healthkit"
   private let exportAppleHealthChannelName = "trainlibre.health/export_apple_health"
+  private let weightImportAppleHealthChannelName = "trainlibre.health/import_weight_apple_health"
   private let reviewChannelName = "trainlibre.app/review"
   private var channelsConfigured = false
   private var depthScanRegistered = false
@@ -147,6 +148,14 @@ import UserNotifications
     )
     exportChannel.setMethodCallHandler { [weak self] call, result in
       self?.handleExportAppleHealthCall(call: call, result: result)
+    }
+
+    let weightImportChannel = FlutterMethodChannel(
+      name: weightImportAppleHealthChannelName,
+      binaryMessenger: messenger
+    )
+    weightImportChannel.setMethodCallHandler { [weak self] call, result in
+      self?.handleAppleHealthWeightImportCall(call: call, result: result)
     }
 
     let reviewChannel = FlutterMethodChannel(
@@ -457,6 +466,131 @@ import UserNotifications
       writeWorkout(call: call, result: result)
     default:
       result(FlutterMethodNotImplemented)
+    }
+  }
+
+  private func handleAppleHealthWeightImportCall(call: FlutterMethodCall, result: @escaping FlutterResult) {
+    switch call.method {
+    case "getStatus":
+      let available = HKHealthStore.isHealthDataAvailable()
+      // HealthKit does not expose whether a read category was granted. A
+      // query is the authoritative check and returns permission_denied below.
+      result([
+        "available": available,
+        "historyAvailable": available,
+        "readGranted": available,
+        "historyGranted": available,
+      ])
+    case "requestPermissions":
+      requestAppleHealthWeightImportPermissions(result: result)
+    case "readWeights":
+      readAppleHealthWeights(call: call, result: result)
+    default:
+      result(FlutterMethodNotImplemented)
+    }
+  }
+
+  private func requestAppleHealthWeightImportPermissions(result: @escaping FlutterResult) {
+    guard
+      HKHealthStore.isHealthDataAvailable(),
+      let bodyMass = HKObjectType.quantityType(forIdentifier: .bodyMass),
+      let bodyFat = HKObjectType.quantityType(forIdentifier: .bodyFatPercentage),
+      let waist = HKObjectType.quantityType(forIdentifier: .waistCircumference)
+    else {
+      result(false)
+      return
+    }
+    healthStore.requestAuthorization(toShare: [], read: [bodyMass, bodyFat, waist]) { success, error in
+      DispatchQueue.main.async {
+        if let error {
+          result(FlutterError(
+            code: self.healthExportErrorCode(error),
+            message: error.localizedDescription,
+            details: nil
+          ))
+        } else {
+          result(success)
+        }
+      }
+    }
+  }
+
+  private func readAppleHealthWeights(call: FlutterMethodCall, result: @escaping FlutterResult) {
+    guard
+      let args = call.arguments as? [String: Any],
+      let fromIso = args["fromUtcIso"] as? String,
+      let toIso = args["toUtcIso"] as? String,
+      let bodyMass = HKObjectType.quantityType(forIdentifier: .bodyMass),
+      let bodyFat = HKObjectType.quantityType(forIdentifier: .bodyFatPercentage),
+      let waist = HKObjectType.quantityType(forIdentifier: .waistCircumference)
+    else {
+      result(FlutterError(code: "invalid_args", message: "Weight import requires a time range", details: nil))
+      return
+    }
+    let formatter = ISO8601DateFormatter()
+    formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+    guard let from = formatter.date(from: fromIso), let to = formatter.date(from: toIso) else {
+      result(FlutterError(code: "invalid_args", message: "Invalid weight import range", details: nil))
+      return
+    }
+
+    let range = HKQuery.predicateForSamples(withStart: from, end: to, options: .strictStartDate)
+    // Never import Train Libre's own Apple Health export back as a new local
+    // measurement. Other sources (scales, Apple Health, and companion apps)
+    // retain their original HealthKit UUID as the local import identity.
+    let ownSource = HKQuery.predicateForObjects(from: HKSource.default())
+    let predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
+      range,
+      NSCompoundPredicate(notPredicateWithSubpredicate: ownSource),
+    ])
+    let sort = NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: true)
+    let types: [(HKQuantityType, String, HKUnit, Double)] = [
+      (bodyMass, "weight", HKUnit.gramUnit(with: .kilo), 1),
+      // HealthKit stores body fat as a fraction while Train Libre stores %.
+      (bodyFat, "fat_percent", HKUnit.percent(), 100),
+      (waist, "waist", HKUnit.meterUnit(with: .centi), 1),
+    ]
+    let group = DispatchGroup()
+    let lock = DispatchQueue(label: "trainlibre.appleHealthMeasurementImport")
+    var rows: [[String: Any]] = []
+    var queryError: Error?
+    for (type, measurementType, unit, multiplier) in types {
+      group.enter()
+      let query = HKSampleQuery(
+        sampleType: type,
+        predicate: predicate,
+        limit: HKObjectQueryNoLimit,
+        sortDescriptors: [sort]
+      ) { _, samples, error in
+        lock.async {
+          if queryError == nil, let error { queryError = error }
+          for sample in samples as? [HKQuantitySample] ?? [] {
+            rows.append([
+              "recordId": sample.uuid.uuidString,
+              "timestampUtcIso": formatter.string(from: sample.startDate),
+              "value": sample.quantity.doubleValue(for: unit) * multiplier,
+              "unit": measurementType == "fat_percent" ? "%" : (measurementType == "waist" ? "cm" : "kg"),
+              "measurementType": measurementType,
+              "sourceBundleId": sample.sourceRevision.source.bundleIdentifier,
+            ])
+          }
+          group.leave()
+        }
+      }
+      healthStore.execute(query)
+    }
+    group.notify(queue: .main) {
+      if let error = queryError {
+        result(FlutterError(
+          code: self.healthExportErrorCode(error),
+          message: error.localizedDescription,
+          details: nil
+        ))
+      } else {
+        result(rows.sorted {
+          ($0["timestampUtcIso"] as? String ?? "") < ($1["timestampUtcIso"] as? String ?? "")
+        })
+      }
     }
   }
 

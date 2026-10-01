@@ -4967,11 +4967,18 @@ class AppLocalizationsJa extends AppLocalizations {
   String get healthExportHealthConnectStatusTitle => 'ヘルスコネクトのエクスポートステータス';
 
   @override
-  String get healthConnectWeightImportTitle => 'Health Connect から体重を読み込む';
+  String get healthConnectWeightImportTitle => 'Health Connect から身体測定値を読み込む';
 
   @override
   String get healthConnectWeightImportSubtitle =>
-      '体重計や他のアプリが記録した体重を読み込みます。Train Libre の記録は除外されます。';
+      '体重計や他のアプリが記録した体重と体脂肪を読み込みます。Train Libre の記録は除外されます。';
+
+  @override
+  String get appleHealthWeightImportTitle => 'Apple ヘルスケアから身体測定値を読み込む';
+
+  @override
+  String get appleHealthWeightImportSubtitle =>
+      'Apple ヘルスケアから体重、体脂肪、ウエスト周囲径を読み込みます。Train Libre の記録は除外されます。';
 
   @override
   String get healthConnectWeightImportReady => '全履歴へのアクセスが有効です';

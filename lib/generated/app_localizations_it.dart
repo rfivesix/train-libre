@@ -5215,11 +5215,19 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get healthConnectWeightImportTitle =>
-      'Importa il peso da Health Connect';
+      'Importa le misurazioni corporee da Health Connect';
 
   @override
   String get healthConnectWeightImportSubtitle =>
-      'Importa i pesi registrati da bilance e altre app. I dati di Train Libre vengono ignorati.';
+      'Importa peso e massa grassa registrati da bilance e altre app. I dati di Train Libre vengono ignorati.';
+
+  @override
+  String get appleHealthWeightImportTitle =>
+      'Importa le misurazioni corporee da Apple Salute';
+
+  @override
+  String get appleHealthWeightImportSubtitle =>
+      'Importa peso, massa grassa e girovita da Apple Salute. I dati di Train Libre vengono ignorati.';
 
   @override
   String get healthConnectWeightImportReady =>

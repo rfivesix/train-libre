@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:drift/drift.dart';
@@ -16,9 +17,11 @@ class HealthExportCoordinator {
   HealthExportCoordinator(
       {required AppDatabase database,
       HealthExportService? service,
-      Duration debounceDuration = const Duration(seconds: 2)})
+      Duration debounceDuration = const Duration(seconds: 2),
+      List<HealthExportPlatform>? platforms})
       : _database = database,
         _debounceDuration = debounceDuration,
+        _platforms = platforms ?? _platformsForCurrentOs(),
         _service = service ??
             HealthExportService(adapters: [
               AppleHealthExportAdapter(),
@@ -28,6 +31,7 @@ class HealthExportCoordinator {
   final AppDatabase _database;
   final HealthExportService _service;
   final Duration _debounceDuration;
+  final List<HealthExportPlatform> _platforms;
   StreamSubscription<Set<TableUpdate>>? _subscription;
   Timer? _debounce;
   bool _running = false;
@@ -62,7 +66,7 @@ class HealthExportCoordinator {
     }
     _running = true;
     try {
-      for (final platform in HealthExportPlatform.values) {
+      for (final platform in _platforms) {
         if (await _service.isPlatformEnabled(platform)) {
           await _service.exportNow(platform);
         }
@@ -83,4 +87,11 @@ class HealthExportCoordinator {
     _subscription?.cancel();
     _subscription = null;
   }
+
+  static List<HealthExportPlatform> _platformsForCurrentOs() =>
+      switch (Platform.operatingSystem) {
+        'ios' => const [HealthExportPlatform.appleHealth],
+        'android' => const [HealthExportPlatform.healthConnect],
+        _ => const <HealthExportPlatform>[],
+      };
 }
