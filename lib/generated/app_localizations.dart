@@ -500,12 +500,6 @@ abstract class AppLocalizations {
   /// **'Caffeine'**
   String get caffeine;
 
-  /// No description provided for @explorerScreenTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Food Explorer'**
-  String get explorerScreenTitle;
-
   /// No description provided for @nutritionScreenTitle.
   ///
   /// In en, this message translates to:
@@ -697,12 +691,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Dashboard'**
   String get drawerDashboard;
-
-  /// No description provided for @drawerFoodExplorer.
-  ///
-  /// In en, this message translates to:
-  /// **'Food Explorer'**
-  String get drawerFoodExplorer;
 
   /// No description provided for @drawerDataManagement.
   ///

@@ -37,12 +37,13 @@ class PlanOverviewCard extends StatelessWidget {
     super.key,
     required this.plan,
     this.activeSlotIndex,
-    this.onEdit,
+    this.onRoutineTap,
   });
 
   final ManualTrainingPlan plan;
   final int? activeSlotIndex;
-  final ValueChanged<BuildContext>? onEdit;
+  final void Function(TrainingPlanDay day, BuildContext sourceContext)?
+      onRoutineTap;
 
   @override
   Widget build(BuildContext context) {
@@ -50,25 +51,26 @@ class PlanOverviewCard extends StatelessWidget {
       key: const Key('manual_plan_overview_card'),
       plan: plan,
       activeSlotIndex: activeSlotIndex,
-      onEdit: onEdit,
+      onRoutineTap: onRoutineTap,
     );
   }
 }
 
 /// Shows the authored structure of a plan independently from the dates and
-/// completion states projected in the calendar below it. It deliberately uses
-/// the app-wide two-column value grid directly on the background.
+/// completion states projected in the calendar below it. Workout days open
+/// their routine; rest days deliberately remain static information.
 class PlanScheduleOverviewGrid extends StatelessWidget {
   const PlanScheduleOverviewGrid({
     super.key,
     required this.plan,
     this.activeSlotIndex,
-    this.onEdit,
+    this.onRoutineTap,
   });
 
   final ManualTrainingPlan plan;
   final int? activeSlotIndex;
-  final ValueChanged<BuildContext>? onEdit;
+  final void Function(TrainingPlanDay day, BuildContext sourceContext)?
+      onRoutineTap;
 
   @override
   Widget build(BuildContext context) {
@@ -81,7 +83,9 @@ class PlanScheduleOverviewGrid extends StatelessWidget {
             label: _labelFor(index, locale, text),
             day: plan.days[index],
             isActive: plan.active && activeSlotIndex == index,
-            onTap: onEdit != null ? () => onEdit!(tileContext) : null,
+            onTap: !plan.days[index].isRest && onRoutineTap != null
+                ? () => onRoutineTap!(plan.days[index], tileContext)
+                : null,
           ),
         ),
     ];

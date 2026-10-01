@@ -262,7 +262,7 @@ void main() {
   });
 
   testWidgets(
-      'PlanOverviewCard renders directly on background and triggers onEdit on tile tap',
+      'PlanOverviewCard opens workout routines while leaving rest days static',
       (tester) async {
     final plan = ManualTrainingPlan(
       id: 'plan',
@@ -279,7 +279,7 @@ void main() {
       active: true,
     );
 
-    var editTriggered = false;
+    TrainingPlanDay? openedDay;
 
     await tester.pumpWidget(_app(
       Padding(
@@ -287,7 +287,7 @@ void main() {
         child: PlanOverviewCard(
           plan: plan,
           activeSlotIndex: 0,
-          onEdit: (ctx) => editTriggered = true,
+          onRoutineTap: (day, _) => openedDay = day,
         ),
       ),
     ));
@@ -302,7 +302,12 @@ void main() {
 
     await tester.tap(find.text('Upper'));
     await tester.pump();
-    expect(editTriggered, isTrue);
+    expect(openedDay?.routineName, 'Upper');
+
+    openedDay = null;
+    await tester.tap(find.text('Ruhetag').first);
+    await tester.pump();
+    expect(openedDay, isNull);
   });
 
   testWidgets(
@@ -340,8 +345,7 @@ void main() {
     expect(find.text('HYPERTROPHY FOCUS'), findsNothing);
   });
 
-  testWidgets(
-      'plan version history sheet cards render with uniform full width',
+  testWidgets('plan version history sheet cards render with uniform full width',
       (tester) async {
     final db = AppDatabase(NativeDatabase.memory());
     addTearDown(db.close);

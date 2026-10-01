@@ -5,6 +5,7 @@ import 'package:train_libre/features/nutrition_recommendation/domain/confidence_
 import 'package:train_libre/features/nutrition_recommendation/domain/goal_models.dart';
 import 'package:train_libre/features/nutrition_recommendation/domain/recommendation_models.dart';
 import 'package:train_libre/features/nutrition_recommendation/presentation/nutrition_recommendation_card.dart';
+import 'package:train_libre/features/statistics/data/macro_analytics_data_adapter.dart';
 import 'package:train_libre/generated/app_localizations.dart';
 
 void main() {
@@ -44,6 +45,41 @@ void main() {
     expect(find.text(l10n.adaptiveRecommendationApplyAction), findsNothing);
   });
 
+  testWidgets(
+      'keeps explanation state separate from the nutrition scroll offset',
+      (tester) async {
+    final bucket = PageStorageBucket();
+
+    await tester.pumpWidget(
+      MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: PageStorage(
+          bucket: bucket,
+          child: KeyedSubtree(
+            key: const PageStorageKey('tab_nutrition'),
+            child: Builder(
+              builder: (context) {
+                // This is the value a ListView restores for the tab's scroll
+                // position after it has been scrolled off screen.
+                PageStorage.of(context).writeState(context, 480.0);
+                return Scaffold(body: _recommendationCard());
+              },
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(tester.takeException(), isNull);
+    expect(
+      find.byKey(
+        const PageStorageKey('adaptive_recommendation_explanation'),
+      ),
+      findsOneWidget,
+    );
+  });
+
   testWidgets('renders recommendation details and apply action',
       (tester) async {
     var applyTapped = false;
@@ -70,6 +106,15 @@ void main() {
             onApply: () {
               applyTapped = true;
             },
+            recentDailyIntakes: [
+              DailyMacroIntake(
+                date: DateTime(2026, 4, 5),
+                calories: 2400,
+                proteinGrams: 175,
+                carbsGrams: 275,
+                fatGrams: 70,
+              ),
+            ],
           ),
         ),
       ),
@@ -78,6 +123,15 @@ void main() {
     final context = tester.element(find.byType(NutritionRecommendationCard));
     final l10n = AppLocalizations.of(context)!;
     await _expandExplanation(tester);
+
+    expect(
+      tester
+          .getTopLeft(find.text(l10n.adaptiveRecommendationDataQualityLabel))
+          .dx,
+      tester
+          .getTopLeft(find.text(l10n.adaptiveRecommendationMaintenanceLabel))
+          .dx,
+    );
 
     expect(find.text('2500 kcal'), findsOneWidget);
     expect(
@@ -608,12 +662,28 @@ void main() {
 }
 
 Future<void> _expandExplanation(WidgetTester tester) async {
-  final tile = find.byKey(const Key('adaptive_recommendation_explanation'));
+  final tile = find.byKey(
+    const PageStorageKey('adaptive_recommendation_explanation'),
+  );
   expect(tile, findsOneWidget);
   await tester.ensureVisible(tile);
   await tester.tap(tile);
   await tester.pumpAndSettle();
 }
+
+Widget _recommendationCard() => NutritionRecommendationCard(
+      goal: BodyweightGoal.maintainWeight,
+      targetRateKgPerWeek: 0,
+      recommendation: _recommendation(),
+      maintenanceEstimate: _estimate(),
+      generatedAt: DateTime(2026, 4, 5),
+      nextAdaptiveRecommendationDueAt: DateTime(2026, 4, 13),
+      isAdaptiveRecommendationDueNow: false,
+      isRecalculating: false,
+      isApplying: false,
+      onRecalculate: () {},
+      onApply: () {},
+    );
 
 NutritionRecommendation _recommendation() {
   return NutritionRecommendation(

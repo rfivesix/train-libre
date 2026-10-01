@@ -56,6 +56,13 @@ class AiNeuralCloudOrbWidget extends StatefulWidget {
   /// impatience.
   final double flowSpeed;
 
+  /// Whether the cloud should keep its autonomous, continuous motion.
+  ///
+  /// Set this to false for progress-driven contexts such as app startup. The
+  /// cloud can still morph and change colour through [morph] and [tint], but
+  /// it consumes no per-frame ticker work while the progress is unchanged.
+  final bool animate;
+
   /// Drives the base-to-accent dye sweep from outside, 0 to 1.
   ///
   /// The scale is the same five dye steps the tap counter walks through, so
@@ -85,6 +92,7 @@ class AiNeuralCloudOrbWidget extends StatefulWidget {
     this.instantaneousMorph,
     this.energy = 0.0,
     this.flowSpeed = 1.0,
+    this.animate = true,
     this.tint,
     this.tintEnergyGain = 0.0,
   });
@@ -127,7 +135,8 @@ class AiNeuralCloudOrbWidgetState extends State<AiNeuralCloudOrbWidget>
   void initState() {
     super.initState();
 
-    _ticker = createTicker(_onTick)..start();
+    _ticker = createTicker(_onTick);
+    if (widget.animate) _ticker.start();
 
     // Gentle organic ripple wave controller (750ms soft wave)
     _rippleController = AnimationController(
@@ -177,6 +186,15 @@ class AiNeuralCloudOrbWidgetState extends State<AiNeuralCloudOrbWidget>
     final tint = widget.tint;
     if (tint != null && tint != oldWidget.tint) {
       _animateChargeTo(tint.clamp(0.0, 1.0) * 5.0);
+    }
+
+    if (widget.animate != oldWidget.animate) {
+      if (widget.animate) {
+        _lastTick = Duration.zero;
+        _ticker.start();
+      } else {
+        _ticker.stop();
+      }
     }
   }
 

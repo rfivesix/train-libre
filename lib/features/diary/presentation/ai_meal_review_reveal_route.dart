@@ -16,11 +16,13 @@ const double kAiMealReviewRevealDebugSlowdown = 1.0;
 class AiMealReviewRevealRoute<T> extends PageRoute<T> {
   final WidgetBuilder builder;
   final Offset? originCenter;
+  final double? vaporCoreRadius;
   final Duration _duration;
 
   AiMealReviewRevealRoute({
     required this.builder,
     this.originCenter,
+    this.vaporCoreRadius,
     super.settings,
     Duration? duration,
   }) : _duration = duration ??
@@ -83,6 +85,7 @@ class AiMealReviewRevealRoute<T> extends PageRoute<T> {
     return _CloudVaporRevealTransition(
       animation: animation,
       center: center,
+      coreRadius: vaporCoreRadius,
       child: child,
     );
   }
@@ -91,11 +94,13 @@ class AiMealReviewRevealRoute<T> extends PageRoute<T> {
 class _CloudVaporRevealTransition extends StatelessWidget {
   final Animation<double> animation;
   final Offset center;
+  final double? coreRadius;
   final Widget child;
 
   const _CloudVaporRevealTransition({
     required this.animation,
     required this.center,
+    this.coreRadius,
     required this.child,
   });
 
@@ -105,7 +110,8 @@ class _CloudVaporRevealTransition extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
     final Size screen = MediaQuery.sizeOf(context);
     final double orbSize = (screen.width * 0.78).clamp(260.0, 360.0);
-    final double coreRadius = (124.0 * (orbSize / 280.0)) / 2;
+    final double resolvedCoreRadius =
+        coreRadius ?? (124.0 * (orbSize / 280.0)) / 2;
 
     return AnimatedBuilder(
       animation: animation,
@@ -149,7 +155,7 @@ class _CloudVaporRevealTransition extends StatelessWidget {
                       center: center,
                       t: t,
                       opacity: vaporOpacity,
-                      coreRadius: coreRadius,
+                      coreRadius: resolvedCoreRadius,
                       primaryColor: theme.colorScheme.primary,
                       baseColor:
                           isDark ? Colors.white : const Color(0xFF09090B),
@@ -161,6 +167,53 @@ class _CloudVaporRevealTransition extends StatelessWidget {
           ],
         );
       },
+    );
+  }
+}
+
+/// Reusable version of the AI cloud's vapor-disperse exit effect.
+///
+/// It is intentionally driven by an external progress value so a caller can
+/// keep it tightly synchronized with its own transition rather than creating
+/// another independent ticker.
+class AiCloudVaporDisperse extends StatelessWidget {
+  final double progress;
+  final double coreRadius;
+  final Offset? center;
+  final Color? baseColor;
+
+  const AiCloudVaporDisperse({
+    super.key,
+    required this.progress,
+    required this.coreRadius,
+    this.center,
+    this.baseColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final t = Curves.easeOutCubic.transform(progress.clamp(0.0, 1.0));
+    final opacity =
+        (1.0 - math.pow(progress.clamp(0.0, 1.0), 0.75)).clamp(0.0, 1.0);
+
+    return IgnorePointer(
+      child: LayoutBuilder(
+        builder: (context, constraints) => CustomPaint(
+          painter: _OrganicVaporDispersePainter(
+            center: center ??
+                Offset(constraints.maxWidth / 2, constraints.maxHeight / 2),
+            t: t,
+            opacity: opacity.toDouble(),
+            coreRadius: coreRadius,
+            primaryColor: theme.colorScheme.primary,
+            baseColor:
+                baseColor ?? (isDark ? Colors.white : const Color(0xFF09090B)),
+            isDark: isDark,
+          ),
+        ),
+      ),
     );
   }
 }

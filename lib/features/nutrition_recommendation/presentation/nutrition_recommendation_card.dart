@@ -343,8 +343,13 @@ class _GeneratedRecommendationContent extends StatelessWidget {
         Theme(
           data: theme.copyWith(dividerColor: Colors.transparent),
           child: ExpansionTile(
-            key: const Key('adaptive_recommendation_explanation'),
+            // The surrounding Nutrition tab has a PageStorageKey for its
+            // scroll position. Give the expansion state its own storage key
+            // so Flutter never tries to restore that double as a bool.
+            key: const PageStorageKey('adaptive_recommendation_explanation'),
             tilePadding: EdgeInsets.zero,
+            expandedAlignment: Alignment.centerLeft,
+            expandedCrossAxisAlignment: CrossAxisAlignment.stretch,
             childrenPadding: const EdgeInsets.only(
               bottom: DesignConstants.spacingM,
             ),
@@ -361,17 +366,8 @@ class _GeneratedRecommendationContent extends StatelessWidget {
               ),
             ),
             children: [
-              if (recentDailyIntakes != null && recentDailyIntakes!.isNotEmpty) ...[
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    l10n.adaptiveRecommendationMacroTargetsLabel,
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: DesignConstants.spacingS),
+              if (recentDailyIntakes != null &&
+                  recentDailyIntakes!.isNotEmpty) ...[
                 _MacroTargetGrid(
                   recommendation: recommendation,
                   currentCalories: currentCalories,

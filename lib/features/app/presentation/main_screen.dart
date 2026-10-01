@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 
 import '../../../core/performance/jank_route_observer.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
@@ -162,7 +163,6 @@ class _MainScreenState extends State<MainScreen>
         .instance.notificationTaps
         .listen(_handleNotificationTap);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      unawaited(_runStartupPrompts());
       if (_currentIndex >= 0 && _currentIndex < _tabScreenNames.length) {
         _publishPerfTabLabel(_currentIndex);
         unawaited(TelemetryService.instance.trackScreenView(
@@ -171,15 +171,22 @@ class _MainScreenState extends State<MainScreen>
       }
       // Cold launch from a widget: the deep link arrived before this screen
       // existed, so the action was parked rather than run.
+      _scheduleIdleStartupWork();
+    });
+    _startWidgetRefreshTimer();
+  }
+
+  void _scheduleIdleStartupWork() {
+    SchedulerBinding.instance.scheduleTask(() async {
+      if (!mounted) return;
+      unawaited(_runStartupPrompts());
       _drainPendingWidgetAction();
       final pendingTap =
           LocalNotificationService.instance.takePendingNotificationTap();
       if (pendingTap != null) unawaited(_handleNotificationTap(pendingTap));
-      // First population, so a freshly added widget is not stuck on placeholders
-      // until the user happens to log something.
+      unawaited(_tagebuchKey.currentState?.syncHealthData());
       refreshHomeWidgets();
-    });
-    _startWidgetRefreshTimer();
+    }, Priority.idle, debugLabel: 'deferred-main-startup');
   }
 
   /// Runs a quick action parked by the Home Screen widget deep link, if any.
@@ -1667,7 +1674,10 @@ class _MainScreenState extends State<MainScreen>
               children: <Widget>[
                 KeepAlivePage(
                   storageKey: const PageStorageKey('tab_tagebuch'),
-                  child: DiaryScreen(contentKey: _tagebuchKey),
+                  child: DiaryScreen(
+                    contentKey: _tagebuchKey,
+                    deferInitialHealthSync: true,
+                  ),
                 ),
                 const KeepAlivePage(
                   storageKey: PageStorageKey('tab_workout'),

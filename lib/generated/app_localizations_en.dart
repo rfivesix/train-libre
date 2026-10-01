@@ -214,9 +214,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get caffeine => 'Caffeine';
 
   @override
-  String get explorerScreenTitle => 'Food Explorer';
-
-  @override
   String get nutritionScreenTitle => 'Nutrition Analysis';
 
   @override
@@ -314,9 +311,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get drawerDashboard => 'Dashboard';
-
-  @override
-  String get drawerFoodExplorer => 'Food Explorer';
 
   @override
   String get drawerDataManagement => 'Data Backup';

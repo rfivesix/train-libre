@@ -1,6 +1,7 @@
 import '../../../core/performance/startup_trace.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import '../../../util/design_constants.dart';
 
 import '../../../core/infrastructure/backup_manager.dart';
@@ -23,6 +24,8 @@ import 'dart:io';
 import 'package:package_info_plus/package_info_plus.dart';
 import '../../../services/telemetry/telemetry_service.dart';
 import '../../onboarding/data/telemetry_consent_prompt.dart';
+import '../../diary/presentation/widgets/ai_neural_cloud_orb_widget.dart';
+import '../../diary/presentation/ai_meal_review_reveal_route.dart';
 
 /// A splash screen responsible for app-wide initialization.
 ///
@@ -49,9 +52,11 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
   String _currentTask = '';
   String _currentDetail = '';
   double _progress = 0.0;
-  bool _isDone = false;
   bool _canSkipRemoteCatalog = false;
   bool _skipRemoteCatalogRequested = false;
+  bool _isContractingForExit = false;
+  _PendingStartupProgress? _pendingProgress;
+  bool _progressFrameScheduled = false;
 
   @override
   void initState() {
@@ -69,6 +74,14 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
         _prepareCoreServices,
       );
 
+      // The screen is already visible at this point. Advance it before the
+      // catalog work starts so the cloud reflects the complete startup path.
+      _setStartupProgress(
+        task: 'Initialisiere...',
+        detail: 'Vorbereitung...',
+        progress: 0.12,
+      );
+
       // Cold Start first launch prompt is handled during onboarding region selection.
     }
 
@@ -82,36 +95,36 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
       force: widget.forceUpdate,
       skipOffDatabase: skipOffDb,
       onProgress: (task, detail, progress) {
-        if (!mounted) return;
-        setState(() {
-          _currentTask = task;
-          _currentDetail = detail;
-          _progress = progress;
-          _canSkipRemoteCatalog = false;
-        });
+        _queueStartupProgress(
+          task: task,
+          detail: detail,
+          progress: _screenProgressFor(task, progress),
+          canSkipRemoteCatalog: false,
+        );
       },
       onRemoteProgress: (task, detail, progress, {required canSkip}) {
         if (!mounted) return;
         final l10n = AppLocalizations.of(context)!;
-        setState(() {
-          _currentTask = task;
-          _currentDetail = _skipRemoteCatalogRequested
+        _queueStartupProgress(
+          task: task,
+          detail: _skipRemoteCatalogRequested
               ? l10n.appInitSkippingRemoteDownload
-              : detail;
-          _progress = progress;
-          _canSkipRemoteCatalog = canSkip && !_skipRemoteCatalogRequested;
-        });
+              : detail,
+          progress: _screenProgressFor(task, progress),
+          canSkipRemoteCatalog: canSkip && !_skipRemoteCatalogRequested,
+        );
       },
       isRemoteSkipRequested: () => _skipRemoteCatalogRequested,
     );
 
     // Show completion feedback before navigation.
+    _flushQueuedProgress();
     if (mounted) {
       final l10n = AppLocalizations.of(context)!;
       setState(() {
         _currentTask = l10n.appInitFinalizing;
         _currentDetail = l10n.appInitCheckingBackups;
-        _progress = 1.0;
+        _progress = 0.97;
         _canSkipRemoteCatalog = false;
       });
     }
@@ -139,19 +152,97 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
 
     if (!mounted) return;
 
-    // Navigate to the next screen.
-    setState(() => _isDone = true);
+    // Like the AI meal flow, the living cloud first contracts into the calm
+    // circle that is the source shape for the vapor reveal.
+    setState(() {
+      _progress = 1.0;
+      _isContractingForExit = true;
+    });
+    await Future<void>.delayed(const Duration(milliseconds: 620));
+    if (!mounted) return;
 
-    Widget targetScreen =
+    final targetScreen =
         hasSeenOnboarding ? const MainScreen() : const OnboardingScreen();
-
+    // Use the exact, proven reveal route from the AI meal scan instead of a
+    // second startup-specific implementation of the vapor transition.
     Navigator.of(context).pushReplacement(
-      PageRouteBuilder(
-        pageBuilder: (_, __, ___) => targetScreen,
-        transitionsBuilder: (_, anim, __, child) =>
-            FadeTransition(opacity: anim, child: child),
+      AiMealReviewRevealRoute<void>(
+        originCenter: Offset(
+          MediaQuery.sizeOf(context).width / 2,
+          MediaQuery.sizeOf(context).height * 0.455,
+        ),
+        vaporCoreRadius: 42,
+        duration: const Duration(milliseconds: 760),
+        builder: (_) => targetScreen,
       ),
     );
+  }
+
+  /// Converts each catalog's local 0–1 import progress into one continuous
+  /// startup journey. A later stage never makes the cloud move backwards.
+  double _screenProgressFor(String task, double progress) {
+    final normalized = progress.clamp(0.0, 1.0);
+    final (start, end) = switch (task) {
+      final value when value.contains('Übungen') => (0.12, 0.40),
+      final value when value.contains('Basis-Produkte') => (0.40, 0.62),
+      final value when value.contains('Kategorien') => (0.62, 0.76),
+      final value when value.contains('Produktdatenbank') => (0.76, 0.94),
+      _ => (0.12, 0.94),
+    };
+    return (start + (end - start) * normalized).clamp(_progress, 0.94);
+  }
+
+  /// Importers can report many batches per second. Retaining only the newest
+  /// update until the next frame protects the raster thread from a burst of
+  /// full-screen rebuilds while preserving the visible final progress.
+  void _queueStartupProgress({
+    required String task,
+    required String detail,
+    required double progress,
+    required bool canSkipRemoteCatalog,
+  }) {
+    if (!mounted) return;
+    _pendingProgress = _PendingStartupProgress(
+      task: task,
+      detail: detail,
+      progress: progress,
+      canSkipRemoteCatalog: canSkipRemoteCatalog,
+    );
+    if (_progressFrameScheduled) return;
+    _progressFrameScheduled = true;
+    SchedulerBinding.instance.scheduleFrameCallback((_) {
+      _progressFrameScheduled = false;
+      _flushQueuedProgress();
+    });
+  }
+
+  void _flushQueuedProgress() {
+    final update = _pendingProgress;
+    _pendingProgress = null;
+    if (!mounted || update == null) return;
+    _setStartupProgress(
+      task: update.task,
+      detail: update.detail,
+      progress: update.progress,
+      canSkipRemoteCatalog: update.canSkipRemoteCatalog,
+    );
+  }
+
+  void _setStartupProgress({
+    required String task,
+    required String detail,
+    required double progress,
+    bool? canSkipRemoteCatalog,
+  }) {
+    if (!mounted) return;
+    setState(() {
+      _currentTask = task;
+      _currentDetail = detail;
+      _progress = progress.clamp(_progress, 1.0);
+      if (canSkipRemoteCatalog != null) {
+        _canSkipRemoteCatalog = canSkipRemoteCatalog;
+      }
+    });
   }
 
   Future<void> _prepareCoreServices() async {
@@ -383,14 +474,9 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // If initialization is done, render an empty container until navigation completes.
-    if (_isDone) {
-      return Container(color: Theme.of(context).scaffoldBackgroundColor);
-    }
-
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     final l10n = AppLocalizations.of(context)!;
+    final percentage = (_progress * 100).round();
 
     final displayTask = _currentTask.isEmpty
         ? l10n.appInitStarting
@@ -408,13 +494,12 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Icon shown during startup.
-            Icon(
-              LucideIcons.download,
-              size: 64,
-              color: theme.colorScheme.primary,
+            Semantics(
+              label: l10n.appInitStarting,
+              value: '$percentage%',
+              child: _buildStartupCloud(theme),
             ),
-            const SizedBox(height: 40),
+            const SizedBox(height: 28),
 
             // Main status text.
             Text(
@@ -424,23 +509,7 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
                 fontWeight: FontWeight.bold,
               ),
             ),
-            const SizedBox(height: DesignConstants.spacingL),
-
-            // Progress bar.
-            ClipRRect(
-              borderRadius: BorderRadius.circular(10),
-              child: LinearProgressIndicator(
-                value: _progress > 0
-                    ? _progress
-                    : null, // null renders an indeterminate spinner style.
-                minHeight: 8,
-                backgroundColor: isDark
-                    ? Colors.white10
-                    : Theme.of(context).colorScheme.onSurfaceVariant,
-                color: theme.colorScheme.primary,
-              ),
-            ),
-            const SizedBox(height: DesignConstants.spacingM),
+            const SizedBox(height: DesignConstants.spacingS),
 
             // Secondary detail text.
             Text(
@@ -471,4 +540,42 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
       ),
     );
   }
+
+  Widget _buildStartupCloud(ThemeData theme) {
+    final cloud = RepaintBoundary(
+      child: AiNeuralCloudOrbWidget(
+        size: 172,
+        // Stage 1 is already the living, uncoloured cloud. The startup
+        // percentage only charges its colour; it contracts only for the
+        // intentional vapor exit.
+        morph: _isContractingForExit ? 0 : 1,
+        // Fade the charged colour back to the same base tone as the vapor
+        // during the contraction, so circle and first vapor frame meet.
+        tint: _isContractingForExit ? 0 : _progress,
+        // This is a small, isolated vector paint. The slow flow keeps the
+        // intended alive-at-rest feel, while the disabled ambient glow avoids
+        // an expensive fullscreen-style blur.
+        animate: true,
+        flowSpeed: 0.35,
+        showAmbientGlow: false,
+        baseColor: theme.colorScheme.onSurfaceVariant,
+        accentColor: theme.colorScheme.primary,
+      ),
+    );
+    return cloud;
+  }
+}
+
+class _PendingStartupProgress {
+  const _PendingStartupProgress({
+    required this.task,
+    required this.detail,
+    required this.progress,
+    required this.canSkipRemoteCatalog,
+  });
+
+  final String task;
+  final String detail;
+  final double progress;
+  final bool canSkipRemoteCatalog;
 }

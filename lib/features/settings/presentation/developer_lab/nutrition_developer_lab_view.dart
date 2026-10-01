@@ -11,6 +11,8 @@ import '../../../diary/presentation/nutrition_hub_screen.dart';
 import '../../../profile/presentation/create_goal_flow.dart';
 import '../../../profile/presentation/my_goals_screen.dart';
 import '../../../profile/presentation/weekly_goal_review_screen.dart';
+import '../../../profile/presentation/widgets/adaptive_review_card.dart';
+import '../../../profile/domain/models/goal_model.dart';
 import 'canonical_scenarios.dart';
 import 'notification_test_view.dart';
 import 'nutrition_sandbox_state.dart';
@@ -242,6 +244,27 @@ class _NutritionDeveloperLabViewState extends State<NutritionDeveloperLabView> {
                 ),
                 const Divider(height: 1),
                 ListTile(
+                  leading: const Icon(LucideIcons.panel_top),
+                  title: const Text('Wöchentliche Review-Karte'),
+                  subtitle: const Text(
+                    'Zeigt dieselbe Karte wie oben im Diary und im Nutrition Hub',
+                  ),
+                  trailing: const Icon(LucideIcons.chevron_right),
+                  onTap: () {
+                    final goal = _sandboxState.buildSyntheticGoal();
+                    final review = _sandboxState.buildSyntheticReviewRecord();
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => _WeeklyReviewCardPreviewScreen(
+                          goal: goal,
+                          review: review,
+                        ),
+                      ),
+                    );
+                  },
+                ),
+                const Divider(height: 1),
+                ListTile(
                   leading: const Icon(LucideIcons.compass),
                   title: const Text('Nutrition Hub Screen'),
                   subtitle: const Text(
@@ -366,6 +389,33 @@ class _NutritionDeveloperLabViewState extends State<NutritionDeveloperLabView> {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _WeeklyReviewCardPreviewScreen extends StatelessWidget {
+  final Goal goal;
+  final GoalReviewRecord review;
+
+  const _WeeklyReviewCardPreviewScreen({
+    required this.goal,
+    required this.review,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Wöchentliche Review-Karte')),
+      body: ListView(
+        padding: DesignConstants.cardPadding,
+        children: [
+          AdaptiveReviewCard(
+            activeGoal: goal,
+            pendingReview: review,
+            onRefresh: () {},
+          ),
+        ],
       ),
     );
   }

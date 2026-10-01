@@ -212,9 +212,6 @@ class AppLocalizationsJa extends AppLocalizations {
   String get caffeine => 'カフェイン';
 
   @override
-  String get explorerScreenTitle => 'フードエクスプローラー';
-
-  @override
   String get nutritionScreenTitle => '栄養分析';
 
   @override
@@ -311,9 +308,6 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get drawerDashboard => 'ダッシュボード';
-
-  @override
-  String get drawerFoodExplorer => 'フードエクスプローラー';
 
   @override
   String get drawerDataManagement => 'データのバックアップ';

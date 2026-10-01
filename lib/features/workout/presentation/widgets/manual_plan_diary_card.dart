@@ -10,6 +10,7 @@ import '../../data/manual_training_plan_repository.dart';
 import '../../domain/models/manual_training_plan.dart';
 import '../manual_plan_screen.dart';
 import '../manual_plan_text.dart';
+import '../workout_log_detail_screen.dart';
 import 'manual_plan_ui.dart';
 
 class ManualPlanDiaryCard extends StatefulWidget {
@@ -63,6 +64,10 @@ class _ManualPlanDiaryCardState extends State<ManualPlanDiaryCard> {
                 : '$metadata · ${text.get(day.status.name)}';
         final canStart =
             today && !day.day.isRest && day.status == PlannedDayStatus.planned;
+        final workoutLogId = day.workoutLogId;
+        final hasRecordedWorkout = workoutLogId != null &&
+            (day.status == PlannedDayStatus.completed ||
+                day.status == PlannedDayStatus.partial);
         final theme = Theme.of(context);
         final l10n = AppLocalizations.of(context)!;
         Widget buildCard({VoidCallback? onTap, VoidCallback? onStart}) =>
@@ -160,7 +165,9 @@ class _ManualPlanDiaryCardState extends State<ManualPlanDiaryCard> {
                       onStart: canStart ? () {} : null,
                     ),
                     onSourceVisibilityChanged: setHidden,
-                    builder: (_) => const ManualPlanScreen(),
+                    builder: (_) => hasRecordedWorkout
+                        ? WorkoutLogDetailScreen(logId: workoutLogId)
+                        : const ManualPlanScreen(),
                   ),
                 );
                 if (mounted) setState(() => _refresh++);

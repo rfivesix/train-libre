@@ -20,11 +20,13 @@ import '../../../widgets/common/glass_fab.dart';
 import '../../app/presentation/widgets/glass_bottom_menu.dart';
 import '../../statistics/domain/timeframe_block.dart';
 import '../data/manual_training_plan_repository.dart';
+import '../data/sources/workout_local_data_source.dart';
 import '../domain/models/manual_training_plan.dart';
 import '../domain/models/workout_log.dart';
 import '../domain/services/workout_plan_notification_orchestrator.dart';
 import 'live_workout_screen.dart';
 import 'live_workout_view_model.dart';
+import 'edit_routine_screen.dart';
 import 'manual_plan_editor_screen.dart';
 import 'manual_plan_text.dart';
 import 'workout_log_detail_screen.dart';
@@ -133,30 +135,6 @@ class _ManualPlanScreenState extends State<ManualPlanScreen> {
     }
   }
 
-  Future<void> _editPlanFromCard(
-      ManualTrainingPlan plan, BuildContext sourceContext) async {
-    final reduceMotion =
-        MediaQuery.maybeOf(context)?.disableAnimations ?? false;
-    final saved = await Navigator.of(context).push<bool>(
-      reduceMotion
-          ? MaterialPageRoute(
-              builder: (_) => ManualPlanEditorScreen(plan: plan),
-            )
-          : CardMorphRoute<bool>(
-              sourceRect: CardMorphRoute.measureRect(sourceContext),
-              builder: (_) => ManualPlanEditorScreen(plan: plan),
-            ),
-    );
-    if (saved == true) {
-      await _syncReminders();
-      _selectedId = null;
-      _weekAnchor = null;
-      _selectedDate = null;
-      _weekDirection = 0;
-      _reload();
-    }
-  }
-
   Future<void> _activate(ManualTrainingPlan plan) async {
     final text = ManualPlanText(context);
     final resume = await showGlassBottomMenu<bool>(
@@ -244,6 +222,26 @@ class _ManualPlanScreenState extends State<ManualPlanScreen> {
         builder: (_) => WorkoutLogDetailScreen(logId: workoutLogId),
       ),
     );
+  }
+
+  Future<void> _openRoutine(
+    TrainingPlanDay day,
+    BuildContext sourceContext,
+  ) async {
+    final routineId = day.routine?.id;
+    if (routineId == null) return;
+
+    final routine =
+        await WorkoutLocalDataSource.instance.getRoutineById(routineId);
+    if (!mounted || !sourceContext.mounted || routine == null) return;
+
+    await Navigator.of(context).push(
+      CardMorphRoute(
+        sourceRect: CardMorphRoute.measureRect(sourceContext),
+        builder: (_) => EditRoutineScreen(routine: routine),
+      ),
+    );
+    _reload();
   }
 
   Future<void> _skip(ManualTrainingPlan plan, PlannedCalendarDay day) async {
@@ -585,10 +583,8 @@ class _ManualPlanScreenState extends State<ManualPlanScreen> {
                     children: [
                       PlanOverviewCard(
                         plan: plan,
-                        activeSlotIndex:
-                            overviewActiveSlot ?? next?.slotIndex,
-                        onEdit: (sourceContext) =>
-                            _editPlanFromCard(plan, sourceContext),
+                        activeSlotIndex: overviewActiveSlot ?? next?.slotIndex,
+                        onRoutineTap: _openRoutine,
                       ),
                       const SizedBox(height: DesignConstants.spacingL),
                       _buildWeek(context, plan, start,

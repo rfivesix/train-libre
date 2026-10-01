@@ -51,7 +51,7 @@ import 'dialogs/delete_meal_entry_bottom_sheet.dart';
 import 'meal_entry_screen.dart';
 import '../data/meal_photo_store.dart';
 import '../domain/models/meal_entry.dart';
-import 'widgets/recommendation_banner.dart';
+import 'widgets/pending_review_diary_card.dart';
 import 'meal_screen.dart';
 import '../../../core/infrastructure/share_service.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
@@ -66,8 +66,14 @@ import 'package:skeletonizer/skeletonizer.dart';
 class DiaryScreen extends StatelessWidget {
   final DateTime? initialDate;
   final GlobalKey<DiaryScreenState>? contentKey;
+  final bool deferInitialHealthSync;
 
-  const DiaryScreen({super.key, this.initialDate, this.contentKey});
+  const DiaryScreen({
+    super.key,
+    this.initialDate,
+    this.contentKey,
+    this.deferInitialHealthSync = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -77,6 +83,7 @@ class DiaryScreen extends StatelessWidget {
         supplementRepo: context.read<SupplementRepository>(),
         workoutRepo: context.read<IWorkoutRepository>(),
         initialDate: initialDate,
+        deferInitialHealthSync: deferInitialHealthSync,
       ),
       child: _DiaryScreenContent(key: contentKey ?? key),
     );
@@ -1002,11 +1009,8 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          if (dailyNutrition != null &&
-                              data.selectedDate.isSameDate(DateTime.now()))
-                            RecommendationBanner(
-                              currentCalories: dailyNutrition.targetCalories,
-                            ),
+                          if (data.selectedDate.isSameDate(DateTime.now()))
+                            const PendingReviewDiaryCard(),
                           AppSectionHeader(title: l10n.today_overview_text),
                           if (dailyNutrition != null)
                             RepaintBoundary(
