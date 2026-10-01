@@ -11,6 +11,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.ActivityCompat
 import androidx.documentfile.provider.DocumentFile
 import androidx.health.connect.client.HealthConnectClient
+import androidx.health.connect.client.HealthConnectFeatures
 import androidx.health.connect.client.PermissionController
 import androidx.health.connect.client.permission.HealthPermission
 import androidx.health.connect.client.records.HeartRateRecord
@@ -60,6 +61,7 @@ class MainActivity : FlutterActivity() {
     private val healthChannelName = "trainlibre.health/steps"
     private val sleepHealthConnectChannelName = "trainlibre.health/sleep_health_connect"
     private val exportHealthConnectChannelName = "trainlibre.health/export_health_connect"
+    private val weightImportHealthConnectChannelName = "trainlibre.health/import_weight_health_connect"
     private val storageChannelName = "trainlibre.storage/saf"
     private var pendingPermissionResult: MethodChannel.Result? = null
     private var pendingPermissionRequestSet: Set<String>? = null
@@ -80,6 +82,9 @@ class MainActivity : FlutterActivity() {
         HealthPermission.getWritePermission(NutritionRecord::class),
         HealthPermission.getWritePermission(HydrationRecord::class),
         HealthPermission.getWritePermission(ExerciseSessionRecord::class),
+    )
+    private val requiredWeightImportPermissions = setOf(
+        HealthPermission.getReadPermission(WeightRecord::class),
     )
     private val preferredStepsSources = listOf(
         "com.google.android.apps.fitness",
@@ -167,6 +172,17 @@ class MainActivity : FlutterActivity() {
             ImageOpsPlugin.channelName,
         ).setMethodCallHandler { call, result ->
             ImageOpsPlugin.handle(call, result)
+        }
+        MethodChannel(
+            flutterEngine.dartExecutor.binaryMessenger,
+            weightImportHealthConnectChannelName,
+        ).setMethodCallHandler { call, result ->
+            when (call.method) {
+                "getStatus" -> handleWeightImportStatus(result)
+                "requestPermissions" -> handleWeightImportPermissions(result)
+                "readWeights" -> handleReadWeights(call, result)
+                else -> result.notImplemented()
+            }
         }
 
         MethodChannel(
@@ -454,6 +470,129 @@ class MainActivity : FlutterActivity() {
         }
     }
 
+    /**
+     * Weight imports are intentionally separate from export permissions.  The
+     * history permission is an optional Health Connect feature, so callers can
+     * distinguish a complete import from the mandatory 30-day fallback.
+     */
+    private fun handleWeightImportStatus(result: MethodChannel.Result) {
+        CoroutineScope(Dispatchers.IO).launch {
+            val status = HealthConnectClient.getSdkStatus(this@MainActivity)
+            if (status != HealthConnectClient.SDK_AVAILABLE) {
+                withContext(Dispatchers.Main) {
+                    result.success(mapOf("available" to false, "historyAvailable" to false, "readGranted" to false, "historyGranted" to false))
+                }
+                return@launch
+            }
+            val client = HealthConnectClient.getOrCreate(this@MainActivity)
+            val granted = client.permissionController.getGrantedPermissions()
+            val historyAvailable = client.features.getFeatureStatus(
+                HealthConnectFeatures.FEATURE_READ_HEALTH_DATA_HISTORY,
+            ) == HealthConnectFeatures.FEATURE_STATUS_AVAILABLE
+            withContext(Dispatchers.Main) {
+                result.success(mapOf(
+                    "available" to true,
+                    "historyAvailable" to historyAvailable,
+                    "readGranted" to granted.containsAll(requiredWeightImportPermissions),
+                    "historyGranted" to granted.contains(HealthPermission.PERMISSION_READ_HEALTH_DATA_HISTORY),
+                ))
+            }
+        }
+    }
+
+    private fun handleWeightImportPermissions(result: MethodChannel.Result) {
+        if (HealthConnectClient.getSdkStatus(this) != HealthConnectClient.SDK_AVAILABLE) {
+            result.error("not_available", "Health Connect not available", null)
+            return
+        }
+        CoroutineScope(Dispatchers.IO).launch {
+            val client = HealthConnectClient.getOrCreate(this@MainActivity)
+            val historyAvailable = client.features.getFeatureStatus(
+                HealthConnectFeatures.FEATURE_READ_HEALTH_DATA_HISTORY,
+            ) == HealthConnectFeatures.FEATURE_STATUS_AVAILABLE
+            val requested = requiredWeightImportPermissions + if (historyAvailable) {
+                setOf(HealthPermission.PERMISSION_READ_HEALTH_DATA_HISTORY)
+            } else emptySet()
+            val granted = client.permissionController.getGrantedPermissions()
+            if (granted.containsAll(requested)) {
+                withContext(Dispatchers.Main) { result.success(true) }
+                return@launch
+            }
+            withContext(Dispatchers.Main) {
+                pendingPermissionResult = object : MethodChannel.Result {
+                    override fun success(res: Any?) {
+                        CoroutineScope(Dispatchers.IO).launch {
+                            val current = HealthConnectClient.getOrCreate(this@MainActivity)
+                                .permissionController.getGrantedPermissions()
+                            withContext(Dispatchers.Main) {
+                                // Reading weights is useful even when the optional history
+                                // permission was declined; Dart exposes that as limited mode.
+                                result.success(current.containsAll(requiredWeightImportPermissions))
+                            }
+                        }
+                    }
+                    override fun error(code: String, message: String?, details: Any?) = result.error(code, message, details)
+                    override fun notImplemented() = result.notImplemented()
+                }
+                pendingPermissionRequestSet = requested
+                permissionLauncher.launch(requested)
+            }
+        }
+    }
+
+    private fun handleReadWeights(call: MethodCall, result: MethodChannel.Result) {
+        val args = call.arguments as? Map<*, *> ?: emptyMap<String, Any>()
+        val fromIso = args["fromUtcIso"] as? String
+        val toIso = args["toUtcIso"] as? String
+        if (fromIso == null || toIso == null) {
+            result.error("invalid_args", "Weight import requires a time range", null)
+            return
+        }
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val client = HealthConnectClient.getOrCreate(this@MainActivity)
+                val granted = client.permissionController.getGrantedPermissions()
+                if (!granted.containsAll(requiredWeightImportPermissions)) {
+                    withContext(Dispatchers.Main) { result.error("permission_denied", "Weight read permission not granted", null) }
+                    return@launch
+                }
+                val from = Instant.parse(fromIso)
+                val to = Instant.parse(toIso)
+                val rows = mutableListOf<Map<String, Any?>>()
+                var pageToken: String? = null
+                do {
+                    val response = client.readRecords(
+                        ReadRecordsRequest(
+                            recordType = WeightRecord::class,
+                            timeRangeFilter = TimeRangeFilter.between(from, to),
+                            pageToken = pageToken,
+                        ),
+                    )
+                    response.records.forEach { record ->
+                        // Do not import our own exported values back into the local
+                        // measurements table.
+                        if (record.metadata.dataOrigin.packageName != applicationContext.packageName) {
+                            rows.add(mapOf(
+                                "recordId" to record.metadata.id,
+                                "lastModifiedAtUtcIso" to record.metadata.lastModifiedTime.toString(),
+                                "timestampUtcIso" to record.time.toString(),
+                                "zoneOffsetMinutes" to record.zoneOffset?.totalSeconds?.div(60),
+                                "weightKg" to record.weight.inKilograms,
+                                "sourcePackageName" to record.metadata.dataOrigin.packageName,
+                            ))
+                        }
+                    }
+                    pageToken = response.pageToken
+                } while (!pageToken.isNullOrEmpty())
+                withContext(Dispatchers.Main) { result.success(rows) }
+            } catch (e: SecurityException) {
+                withContext(Dispatchers.Main) { result.error("permission_denied", e.message, null) }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) { result.error("read_failed", e.message, null) }
+            }
+        }
+    }
+
     private fun handleReadSleepAndHeartRate(call: MethodCall, result: MethodChannel.Result) {
         val status = HealthConnectClient.getSdkStatus(this)
         if (status != HealthConnectClient.SDK_AVAILABLE) {
@@ -587,36 +726,15 @@ class MainActivity : FlutterActivity() {
 
     private fun handleWriteMeasurement(call: MethodCall, result: MethodChannel.Result) {
         val args = call.arguments as? Map<*, *> ?: emptyMap<String, Any>()
-        val timestampIso = args["timestampUtcIso"] as? String
-        val zoneOffsetMinutes = (args["zoneOffsetMinutes"] as? Number)?.toInt()
         val typeRaw = args["type"] as? String
-        val value = (args["value"] as? Number)?.toDouble()
-        if (timestampIso == null || typeRaw == null || value == null) {
+        if (typeRaw == null) {
             result.error("invalid_args", "Invalid measurement payload", null)
             return
         }
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val client = HealthConnectClient.getOrCreate(this@MainActivity)
-                val at = Instant.parse(timestampIso)
-                val zoneOffset = toZoneOffset(zoneOffsetMinutes)
-                val record = when (typeRaw) {
-                    "weight" -> WeightRecord(
-                        time = at,
-                        zoneOffset = zoneOffset,
-                        weight = Mass.kilograms(value),
-                        metadata = Metadata.manualEntry(),
-                    )
-                    "bodyFatPercentage" -> BodyFatRecord(
-                        time = at,
-                        zoneOffset = zoneOffset,
-                        // Health Connect BodyFatRecord expects 0..100 as percent units.
-                        percentage = Percentage(normalizeBodyFatPercent(value)),
-                        metadata = Metadata.manualEntry(),
-                    )
-                    "bmi" -> null
-                    else -> null
-                }
+                val record = buildMeasurementRecord(args)
                 if (typeRaw == "bmi") {
                     withContext(Dispatchers.Main) {
                         result.error(
@@ -628,6 +746,7 @@ class MainActivity : FlutterActivity() {
                     return@launch
                 }
                 if (typeRaw == "bodyFatPercentage") {
+                    val value = (args["value"] as Number).toDouble()
                     logExportDebug(
                         "BodyFat write sourceType=$typeRaw rawValue=$value normalizedPercent=${normalizeBodyFatPercent(value)}",
                     )
@@ -642,7 +761,7 @@ class MainActivity : FlutterActivity() {
                 withContext(Dispatchers.Main) { result.success(true) }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
-                    result.error("write_failed", e.message, null)
+                    result.error(writeErrorCode(e), e.message, null)
                 }
             }
         }
@@ -670,7 +789,7 @@ class MainActivity : FlutterActivity() {
                 withContext(Dispatchers.Main) { result.success(true) }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
-                    result.error("write_failed", e.message, null)
+                    result.error(writeErrorCode(e), e.message, null)
                 }
             }
         }
@@ -726,7 +845,7 @@ class MainActivity : FlutterActivity() {
                     startZoneOffset = zoneOffset,
                     endTime = end,
                     endZoneOffset = zoneOffset,
-                    metadata = Metadata.manualEntry(),
+                    metadata = exportMetadata(args),
                     energy = calories?.let(Energy::kilocalories),
                     protein = protein?.let(Mass::grams),
                     totalCarbohydrate = carbs?.let(Mass::grams),
@@ -739,6 +858,12 @@ class MainActivity : FlutterActivity() {
                     insertRecordsWithQuotaBackoff(client, listOf(record), "nutrition")
                     withContext(Dispatchers.Main) { result.success(true) }
                 } catch (e: Exception) {
+                    if (isPermissionError(e) || isQuotaExceededError(e)) {
+                        withContext(Dispatchers.Main) {
+                            result.error(writeErrorCode(e), e.message, null)
+                        }
+                        return@launch
+                    }
                     val hasOptionalFields = fiber != null || sugar != null || sodium != null
                     logExportError("Nutrition write failed payload=$attemptedPayload", e)
                     if (!hasOptionalFields) {
@@ -770,7 +895,7 @@ class MainActivity : FlutterActivity() {
                             startZoneOffset = zoneOffset,
                             endTime = end,
                             endZoneOffset = zoneOffset,
-                            metadata = Metadata.manualEntry(),
+                            metadata = exportMetadata(args),
                             energy = calories?.let(Energy::kilocalories),
                             protein = protein?.let(Mass::grams),
                             totalCarbohydrate = carbs?.let(Mass::grams),
@@ -789,13 +914,13 @@ class MainActivity : FlutterActivity() {
                         val combined =
                             "initial=${e.message ?: "unknown"}; fallback=${fallbackError.message ?: "unknown"}"
                         withContext(Dispatchers.Main) {
-                            result.error("write_failed", combined, null)
+                            result.error(writeErrorCode(fallbackError), combined, null)
                         }
                     }
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
-                    result.error("write_failed", e.message, null)
+                    result.error(writeErrorCode(e), e.message, null)
                 }
             }
         }
@@ -822,6 +947,7 @@ class MainActivity : FlutterActivity() {
                 try {
                     insertRecordsWithQuotaBackoff(client, primaryRecords, "nutrition_batch")
                 } catch (e: Exception) {
+                    if (isPermissionError(e) || isQuotaExceededError(e)) throw e
                     val fallbackRecords = recordsRaw.mapIndexed { index, payload ->
                         buildNutritionRecord(payload, includeOptionalFields = false) ?: throw IllegalArgumentException(
                             "Invalid nutrition fallback payload at index $index",
@@ -832,7 +958,7 @@ class MainActivity : FlutterActivity() {
                 withContext(Dispatchers.Main) { result.success(true) }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
-                    result.error("write_failed", e.message, null)
+                    result.error(writeErrorCode(e), e.message, null)
                 }
             }
         }
@@ -840,10 +966,8 @@ class MainActivity : FlutterActivity() {
 
     private fun handleWriteHydration(call: MethodCall, result: MethodChannel.Result) {
         val args = call.arguments as? Map<*, *> ?: emptyMap<String, Any>()
-        val timestampIso = args["timestampUtcIso"] as? String
-        val zoneOffsetMinutes = (args["zoneOffsetMinutes"] as? Number)?.toInt()
         val liters = (args["volumeLiters"] as? Number)?.toDouble()
-        if (timestampIso == null || liters == null) {
+        if (liters == null) {
             result.error("invalid_args", "Invalid hydration payload", null)
             return
         }
@@ -854,24 +978,15 @@ class MainActivity : FlutterActivity() {
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val client = HealthConnectClient.getOrCreate(this@MainActivity)
-                val at = Instant.parse(timestampIso)
-                val end = at.plusSeconds(exportIntervalSeconds)
-                val zoneOffset = toZoneOffset(zoneOffsetMinutes)
-                val record = HydrationRecord(
-                    startTime = at,
-                    startZoneOffset = zoneOffset,
-                    endTime = end,
-                    endZoneOffset = zoneOffset,
-                    metadata = Metadata.manualEntry(),
-                    volume = Volume.liters(liters),
-                )
-                logExportDebug("Hydration attempt liters=$liters at=$timestampIso")
+                val record = buildHydrationRecord(args)
+                    ?: throw IllegalArgumentException("Invalid hydration payload")
+                logExportDebug("Hydration attempt liters=$liters")
                 insertRecordsWithQuotaBackoff(client, listOf(record), "hydration")
                 withContext(Dispatchers.Main) { result.success(true) }
             } catch (e: Exception) {
-                logExportError("Hydration write failed liters=$liters at=$timestampIso", e)
+                logExportError("Hydration write failed liters=$liters", e)
                 withContext(Dispatchers.Main) {
-                    result.error("write_failed", e.message, null)
+                    result.error(writeErrorCode(e), e.message, null)
                 }
             }
         }
@@ -899,7 +1014,7 @@ class MainActivity : FlutterActivity() {
                 withContext(Dispatchers.Main) { result.success(true) }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
-                    result.error("write_failed", e.message, null)
+                    result.error(writeErrorCode(e), e.message, null)
                 }
             }
         }
@@ -947,48 +1062,20 @@ class MainActivity : FlutterActivity() {
 
     private fun handleWriteWorkout(call: MethodCall, result: MethodChannel.Result) {
         val args = call.arguments as? Map<*, *> ?: emptyMap<String, Any>()
-        val startIso = args["startUtcIso"] as? String
-        val endIso = args["endUtcIso"] as? String
-        val startZoneOffsetMinutes = (args["startZoneOffsetMinutes"] as? Number)?.toInt()
-        val endZoneOffsetMinutes = (args["endZoneOffsetMinutes"] as? Number)?.toInt()
-        if (startIso == null || endIso == null) {
+        if (args["startUtcIso"] !is String || args["endUtcIso"] !is String) {
             result.error("invalid_args", "Invalid workout payload", null)
             return
         }
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val client = HealthConnectClient.getOrCreate(this@MainActivity)
-                val start = Instant.parse(startIso)
-                val end = Instant.parse(endIso)
-                if (!start.isBefore(end)) {
-                    withContext(Dispatchers.Main) {
-                        result.error("invalid_args", "Workout start must be before end", null)
-                    }
-                    return@launch
-                }
-                val typeRaw = (args["workoutType"] as? String) ?: "strength"
-                val exerciseType = when (typeRaw) {
-                    "running" -> ExerciseSessionRecord.EXERCISE_TYPE_RUNNING
-                    "walking" -> ExerciseSessionRecord.EXERCISE_TYPE_WALKING
-                    "cycling" -> ExerciseSessionRecord.EXERCISE_TYPE_BIKING
-                    "yoga" -> ExerciseSessionRecord.EXERCISE_TYPE_YOGA
-                    else -> ExerciseSessionRecord.EXERCISE_TYPE_STRENGTH_TRAINING
-                }
-                val record = ExerciseSessionRecord(
-                    startTime = start,
-                    startZoneOffset = toZoneOffset(startZoneOffsetMinutes),
-                    endTime = end,
-                    endZoneOffset = toZoneOffset(endZoneOffsetMinutes),
-                    metadata = Metadata.manualEntry(),
-                    exerciseType = exerciseType,
-                    title = args["title"] as? String,
-                    notes = args["notes"] as? String,
-                )
+                val record = buildWorkoutRecord(args)
+                    ?: throw IllegalArgumentException("Invalid workout payload")
                 insertRecordsWithQuotaBackoff(client, listOf(record), "workout")
                 withContext(Dispatchers.Main) { result.success(true) }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
-                    result.error("write_failed", e.message, null)
+                    result.error(writeErrorCode(e), e.message, null)
                 }
             }
         }
@@ -1016,7 +1103,7 @@ class MainActivity : FlutterActivity() {
                 withContext(Dispatchers.Main) { result.success(true) }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
-                    result.error("write_failed", e.message, null)
+                    result.error(writeErrorCode(e), e.message, null)
                 }
             }
         }
@@ -1045,13 +1132,13 @@ class MainActivity : FlutterActivity() {
                 time = at,
                 zoneOffset = zoneOffset,
                 weight = Mass.kilograms(value),
-                metadata = Metadata.manualEntry(),
+                metadata = exportMetadata(args),
             )
             "bodyFatPercentage" -> BodyFatRecord(
                 time = at,
                 zoneOffset = zoneOffset,
                 percentage = Percentage(normalizeBodyFatPercent(value)),
-                metadata = Metadata.manualEntry(),
+                metadata = exportMetadata(args),
             )
             else -> null
         }
@@ -1083,7 +1170,7 @@ class MainActivity : FlutterActivity() {
             startZoneOffset = zoneOffset,
             endTime = end,
             endZoneOffset = zoneOffset,
-            metadata = Metadata.manualEntry(),
+            metadata = exportMetadata(args),
             energy = calories?.let(Energy::kilocalories),
             protein = protein?.let(Mass::grams),
             totalCarbohydrate = carbs?.let(Mass::grams),
@@ -1109,7 +1196,7 @@ class MainActivity : FlutterActivity() {
             startZoneOffset = zoneOffset,
             endTime = end,
             endZoneOffset = zoneOffset,
-            metadata = Metadata.manualEntry(),
+            metadata = exportMetadata(args),
             volume = Volume.liters(liters),
         )
     }
@@ -1137,11 +1224,23 @@ class MainActivity : FlutterActivity() {
             startZoneOffset = toZoneOffset(startZoneOffsetMinutes),
             endTime = end,
             endZoneOffset = toZoneOffset(endZoneOffsetMinutes),
-            metadata = Metadata.manualEntry(),
+            metadata = exportMetadata(args),
             exerciseType = exerciseType,
             title = args["title"] as? String,
             notes = args["notes"] as? String,
         )
+    }
+
+    private fun exportMetadata(args: Map<*, *>): Metadata {
+        val clientRecordId = (args["externalId"] as? String)
+            ?: (args["idempotencyKey"] as? String)
+        val version = (args["exportRevision"] as? Number)?.toLong() ?: 0L
+        return if (clientRecordId.isNullOrBlank()) Metadata.manualEntry() else {
+            Metadata.manualEntry(
+                clientRecordId = clientRecordId,
+                clientRecordVersion = version,
+            )
+        }
     }
 
     private suspend fun insertRecordsWithQuotaBackoff(
@@ -1149,6 +1248,14 @@ class MainActivity : FlutterActivity() {
         records: List<Record>,
         operation: String,
     ) {
+        val granted = client.permissionController.getGrantedPermissions()
+        val required = records.mapNotNull(::writePermissionFor).toSet()
+        if (!granted.containsAll(required)) {
+            val missing = required - granted
+            throw SecurityException(
+                "Missing Health Connect write permission(s): ${missing.joinToString()}",
+            )
+        }
         var attempt = 0
         while (true) {
             try {
@@ -1169,10 +1276,48 @@ class MainActivity : FlutterActivity() {
         }
     }
 
-    private fun isQuotaExceededError(error: Exception): Boolean {
-        val message = (error.message ?: "").lowercase()
-        return message.contains("quota")
+    private fun writePermissionFor(record: Record): String? = when (record) {
+        is WeightRecord -> HealthPermission.getWritePermission(WeightRecord::class)
+        is BodyFatRecord -> HealthPermission.getWritePermission(BodyFatRecord::class)
+        is NutritionRecord -> HealthPermission.getWritePermission(NutritionRecord::class)
+        is HydrationRecord -> HealthPermission.getWritePermission(HydrationRecord::class)
+        is ExerciseSessionRecord -> HealthPermission.getWritePermission(ExerciseSessionRecord::class)
+        else -> null
     }
+
+    private fun isQuotaExceededError(error: Throwable): Boolean {
+        var current: Throwable? = error
+        while (current != null) {
+            val candidate = current
+            if (candidate.javaClass.name == "android.health.connect.HealthConnectException") {
+                val code = runCatching {
+                    candidate.javaClass.getMethod("getErrorCode").invoke(candidate) as? Int
+                }.getOrNull()
+                if (code == 7) return true // ERROR_RATE_LIMIT_EXCEEDED
+            }
+            current = current.cause
+        }
+        return false
+    }
+
+    private fun isPermissionError(error: Throwable): Boolean {
+        var current: Throwable? = error
+        while (current != null) {
+            val candidate = current
+            if (candidate is SecurityException) return true
+            if (candidate.javaClass.name == "android.health.connect.HealthConnectException") {
+                val code = runCatching {
+                    candidate.javaClass.getMethod("getErrorCode").invoke(candidate) as? Int
+                }.getOrNull()
+                if (code == 5) return true // ERROR_SECURITY
+            }
+            current = current.cause
+        }
+        return false
+    }
+
+    private fun writeErrorCode(error: Throwable): String =
+        if (isPermissionError(error)) "permission_denied" else "write_failed"
 
     private fun toZoneOffset(minutes: Int?): ZoneOffset {
         val safeMinutes = minutes ?: 0

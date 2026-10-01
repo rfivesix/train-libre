@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:train_libre/data/database_helper.dart';
 import 'package:train_libre/data/drift_database.dart';
 import 'package:train_libre/features/health_export/data/health_export_data_source.dart';
+import 'package:train_libre/features/health_export/models/export_models.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -70,6 +71,49 @@ void main() {
         );
       },
     );
+
+    test('does not export Health Connect weights imported from Health Connect',
+        () async {
+      final measurement = (await db.select(db.measurements).get())
+          .firstWhere((row) => row.type == 'weight');
+      await db.customStatement(
+        '''INSERT INTO health_import_records
+           (platform, domain, external_record_id, local_measurement_id,
+            last_modified_at, payload_fingerprint)
+           VALUES (?, ?, ?, ?, ?, ?)''',
+        [
+          'healthConnect',
+          'weight',
+          'source-weight-1',
+          measurement.localId,
+          DateTime.now().toUtc().millisecondsSinceEpoch,
+          'fingerprint',
+        ],
+      );
+      final source = HealthExportDataSource(databaseHelper: dbHelper);
+
+      final healthConnect = await source.loadMeasurements(
+        options: const HealthExportLoadOptions(
+          lookbackDays: 10,
+          platform: HealthExportPlatform.healthConnect,
+        ),
+      );
+      final appleHealth = await source.loadMeasurements(
+        options: const HealthExportLoadOptions(
+          lookbackDays: 10,
+          platform: HealthExportPlatform.appleHealth,
+        ),
+      );
+
+      expect(
+        healthConnect.where((record) => record.type.name == 'weight'),
+        isEmpty,
+      );
+      expect(
+        appleHealth.where((record) => record.type.name == 'weight'),
+        hasLength(1),
+      );
+    });
   });
 }
 

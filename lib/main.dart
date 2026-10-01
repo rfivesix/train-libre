@@ -74,6 +74,8 @@ import 'services/local_notification_service.dart';
 import 'features/profile/domain/services/goal_notification_orchestrator.dart';
 import 'features/workout/domain/services/workout_plan_notification_orchestrator.dart';
 import 'services/telemetry/telemetry_service.dart';
+import 'services/health/health_connect_weight_import.dart';
+import 'features/health_export/health_export_coordinator.dart';
 
 @pragma('vm:entry-point')
 void callbackDispatcher() {
@@ -188,6 +190,16 @@ void main() async {
 
   final database = db.AppDatabase();
   DatabaseHelper.setDriftDb(database);
+  final healthExportCoordinator = HealthExportCoordinator(database: database);
+  // #669 deliberately performs its bounded import only on a cold start.  It
+  // never prompts here; permissions are granted from the Health settings.
+  unawaited(() async {
+    try {
+      await HealthConnectWeightImportService().importOnColdStart();
+    } catch (error) {
+      debugPrint('Health Connect weight import failed: $error');
+    }
+  }());
   final diaryLocalDataSource = DiaryLocalDataSource(database);
   final workoutLocalDataSource = WorkoutLocalDataSource(database);
   final exerciseCatalogLocalDataSource =
@@ -280,6 +292,7 @@ void main() async {
           ),
         ],
         child: MyApp(
+          healthExportCoordinator: healthExportCoordinator,
           home: isFreshInstall
               ? const InitialConsentScreen(
                   nextScreen: AppInitializerScreen(skipOffDatabase: true))
@@ -342,9 +355,14 @@ class _RestartWidgetState extends State<RestartWidget> {
 
 class MyApp extends StatefulWidget {
   final Widget home;
+  final HealthExportCoordinator? healthExportCoordinator;
 
   /// Creates the root widget for the application.
-  const MyApp({super.key, required this.home});
+  const MyApp({
+    super.key,
+    required this.home,
+    this.healthExportCoordinator,
+  });
 
   @override
   State<MyApp> createState() => _MyAppState();
@@ -363,14 +381,20 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     _lifecycleListener = AppLifecycleListener(
       onPause: _onAppPause,
       onHide: _onAppPause,
-      onResume: () => _hasHandledCurrentBackground = false,
+      onResume: () {
+        _hasHandledCurrentBackground = false;
+        final coordinator = widget.healthExportCoordinator;
+        if (coordinator != null) unawaited(coordinator.syncNow());
+      },
     );
+    widget.healthExportCoordinator?.start();
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _lifecycleListener.dispose();
+    widget.healthExportCoordinator?.dispose();
     super.dispose();
   }
 

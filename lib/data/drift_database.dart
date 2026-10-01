@@ -959,7 +959,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
-  int get schemaVersion => 36;
+  int get schemaVersion => 38;
 
   /// Adds whatever the file is missing compared to the generated tables.
   ///
@@ -1058,6 +1058,32 @@ class AppDatabase extends _$AppDatabase {
             UNIQUE(platform, domain, idempotency_key)
           )
         ''');
+          await customStatement('''
+          CREATE TABLE IF NOT EXISTS health_import_records (
+            platform TEXT NOT NULL,
+            domain TEXT NOT NULL,
+            external_record_id TEXT NOT NULL,
+            local_measurement_id INTEGER NOT NULL,
+            last_modified_at INTEGER NULL,
+            payload_fingerprint TEXT NOT NULL,
+            PRIMARY KEY (platform, domain, external_record_id),
+            FOREIGN KEY (local_measurement_id) REFERENCES measurements(local_id) ON DELETE CASCADE
+          )
+        ''');
+          await customStatement('''
+          CREATE TABLE IF NOT EXISTS health_export_identities (
+            platform TEXT NOT NULL,
+            domain TEXT NOT NULL,
+            source_key TEXT NOT NULL,
+            external_id TEXT NOT NULL,
+            revision INTEGER NOT NULL DEFAULT -1,
+            payload_fingerprint TEXT NULL,
+            is_legacy INTEGER NOT NULL DEFAULT 0,
+            exported_at INTEGER NULL,
+            PRIMARY KEY (platform, domain, source_key),
+            UNIQUE(platform, domain, external_id)
+          )
+        ''');
           await _createPulsePersistenceSchema(this);
           await customStatement(
             'CREATE INDEX IF NOT EXISTS exercises_usage_count_idx ON exercises (usage_count);',
@@ -1083,6 +1109,36 @@ class AppDatabase extends _$AppDatabase {
         },
         onUpgrade: (Migrator m, int from, int to) async {
           try {
+            if (from < 38) {
+              await customStatement('''
+                CREATE TABLE IF NOT EXISTS health_export_identities (
+                  platform TEXT NOT NULL,
+                  domain TEXT NOT NULL,
+                  source_key TEXT NOT NULL,
+                  external_id TEXT NOT NULL,
+                  revision INTEGER NOT NULL DEFAULT -1,
+                  payload_fingerprint TEXT NULL,
+                  is_legacy INTEGER NOT NULL DEFAULT 0,
+                  exported_at INTEGER NULL,
+                  PRIMARY KEY (platform, domain, source_key),
+                  UNIQUE(platform, domain, external_id)
+                )
+              ''');
+            }
+            if (from < 37) {
+              await customStatement('''
+                CREATE TABLE IF NOT EXISTS health_import_records (
+                  platform TEXT NOT NULL,
+                  domain TEXT NOT NULL,
+                  external_record_id TEXT NOT NULL,
+                  local_measurement_id INTEGER NOT NULL,
+                  last_modified_at INTEGER NULL,
+                  payload_fingerprint TEXT NOT NULL,
+                  PRIMARY KEY (platform, domain, external_record_id),
+                  FOREIGN KEY (local_measurement_id) REFERENCES measurements(local_id) ON DELETE CASCADE
+                )
+              ''');
+            }
             if (from < 36) {
               final cols = await _columnsOf(this, routines.actualTableName);
               if (!cols.contains('last_used_at')) {

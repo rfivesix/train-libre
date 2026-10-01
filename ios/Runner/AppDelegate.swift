@@ -1,4 +1,5 @@
 import Flutter
+import CryptoKit
 import HealthKit
 import StoreKit
 import UIKit
@@ -488,9 +489,26 @@ import UserNotifications
       dietaryCarbs, dietaryFat, dietaryFiber, dietarySugar, dietarySodium,
       hydration, workout,
     ]
+    let readTypes: Set<HKObjectType> = [
+      bodyMass, bodyFat, bmi, dietaryEnergy, dietaryProtein, dietaryCarbs,
+      dietaryFat, dietaryFiber, dietarySugar, dietarySodium, hydration,
+      workout,
+    ]
 
-    healthStore.requestAuthorization(toShare: shareTypes, read: nil) { success, _ in
-      result(success)
+    // Recovery queries need read access to find and validate this app's
+    // previously written revisions before older objects can be removed.
+    healthStore.requestAuthorization(toShare: shareTypes, read: readTypes) { success, error in
+      DispatchQueue.main.async {
+        if let error {
+          result(FlutterError(
+            code: self.healthExportErrorCode(error),
+            message: error.localizedDescription,
+            details: nil
+          ))
+        } else {
+          result(success)
+        }
+      }
     }
   }
 
@@ -534,14 +552,8 @@ import UserNotifications
 
     let adjustedValue = typeRaw == "bodyFatPercentage" ? value / 100.0 : value
     let quantity = HKQuantity(unit: unit, doubleValue: adjustedValue)
-    let sample = HKQuantitySample(type: resolvedType, quantity: quantity, start: timestamp, end: timestamp)
-    healthStore.save(sample) { success, error in
-      if let error = error {
-        result(FlutterError(code: "write_failed", message: error.localizedDescription, details: nil))
-        return
-      }
-      result(success)
-    }
+    let sample = HKQuantitySample(type: resolvedType, quantity: quantity, start: timestamp, end: timestamp, metadata: exportMetadata(args))
+    saveRevisionedSamples([sample], result: result)
   }
 
   private func writeNutrition(call: FlutterMethodCall, result: @escaping FlutterResult) {
@@ -564,7 +576,7 @@ import UserNotifications
     func appendSample(_ identifier: HKQuantityTypeIdentifier, _ value: Double?, _ unit: HKUnit) {
       guard let value = value, let type = HKObjectType.quantityType(forIdentifier: identifier) else { return }
       let quantity = HKQuantity(unit: unit, doubleValue: value)
-      samples.append(HKQuantitySample(type: type, quantity: quantity, start: timestamp, end: timestamp))
+      samples.append(HKQuantitySample(type: type, quantity: quantity, start: timestamp, end: timestamp, metadata: exportMetadata(args, suffix: identifier.rawValue)))
     }
 
     appendSample(.dietaryEnergyConsumed, value("caloriesKcal"), HKUnit.kilocalorie())
@@ -580,13 +592,7 @@ import UserNotifications
       return
     }
 
-    healthStore.save(samples) { success, error in
-      if let error = error {
-        result(FlutterError(code: "write_failed", message: error.localizedDescription, details: nil))
-        return
-      }
-      result(success)
-    }
+    saveRevisionedSamples(samples, result: result)
   }
 
   private func writeHydration(call: FlutterMethodCall, result: @escaping FlutterResult) {
@@ -606,14 +612,8 @@ import UserNotifications
     }
 
     let quantity = HKQuantity(unit: HKUnit.liter(), doubleValue: liters)
-    let sample = HKQuantitySample(type: type, quantity: quantity, start: timestamp, end: timestamp)
-    healthStore.save(sample) { success, error in
-      if let error = error {
-        result(FlutterError(code: "write_failed", message: error.localizedDescription, details: nil))
-        return
-      }
-      result(success)
-    }
+    let sample = HKQuantitySample(type: type, quantity: quantity, start: timestamp, end: timestamp, metadata: exportMetadata(args))
+    saveRevisionedSamples([sample], result: result)
   }
 
   private func writeWorkout(call: FlutterMethodCall, result: @escaping FlutterResult) {
@@ -649,11 +649,11 @@ import UserNotifications
       HKQuantity(unit: HKUnit.kilocalorie(), doubleValue: $0.doubleValue)
     }
     let summaryNotes = (args["notes"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines)
-    let metadata: [String: Any]? = {
-      guard let summaryNotes, !summaryNotes.isEmpty else { return nil }
+    var metadata = exportMetadata(args)
+    if let summaryNotes, !summaryNotes.isEmpty {
       // HealthKit workout has no dedicated notes field; persist summary in metadata.
-      return ["trainlibre_workout_summary": summaryNotes]
-    }()
+      metadata["trainlibre_workout_summary"] = summaryNotes
+    }
     let duration = end.timeIntervalSince(start)
     let workout = HKWorkout(
       activityType: workoutType,
@@ -662,15 +662,203 @@ import UserNotifications
       duration: duration,
       totalEnergyBurned: calories,
       totalDistance: nil,
-      metadata: metadata
+      metadata: metadata.isEmpty ? nil : metadata
     )
-    healthStore.save(workout) { success, error in
-      if let error = error {
-        result(FlutterError(code: "write_failed", message: error.localizedDescription, details: nil))
+    saveRevisionedSamples([workout], result: result)
+  }
+
+  private func exportMetadata(_ args: [String: Any], suffix: String? = nil) -> [String: Any] {
+    let base = (args["externalId"] as? String) ?? (args["idempotencyKey"] as? String)
+    guard let base, !base.isEmpty else { return [:] }
+    let revision = (args["exportRevision"] as? NSNumber)?.int64Value ?? 0
+    let externalID = suffix.map { deterministicUUID("\(base):\($0)") } ?? base
+    return [
+      HKMetadataKeyExternalUUID: externalID,
+      "trainlibre_export_revision": revision,
+    ]
+  }
+
+  private func deterministicUUID(_ value: String) -> String {
+    var bytes = Array(SHA256.hash(data: Data(value.utf8)).prefix(16))
+    bytes[6] = (bytes[6] & 0x0f) | 0x50
+    bytes[8] = (bytes[8] & 0x3f) | 0x80
+    let hex = bytes.map { String(format: "%02x", $0) }.joined()
+    return "\(hex.prefix(8))-\(hex.dropFirst(8).prefix(4))-\(hex.dropFirst(12).prefix(4))-\(hex.dropFirst(16).prefix(4))-\(hex.dropFirst(20))"
+  }
+
+  /// HealthKit does not upsert by external UUID. Keep the previous complete
+  /// revision until the new one has been saved and verified, then remove only
+  /// older objects from this app. A retry repairs a partial newer revision.
+  private func saveRevisionedSamples(
+    _ samples: [HKSample],
+    result: @escaping FlutterResult
+  ) {
+    guard !samples.isEmpty else {
+      result(true)
+      return
+    }
+    for sample in samples where healthStore.authorizationStatus(for: sample.sampleType) != .sharingAuthorized {
+      result(FlutterError(
+        code: "permission_denied",
+        message: "Apple Health write permission is required for \(sample.sampleType.identifier)",
+        details: nil
+      ))
+      return
+    }
+
+    let revision = (samples[0].metadata?["trainlibre_export_revision"] as? NSNumber)?.int64Value ?? 0
+    var expected: [String: HKSampleType] = [:]
+    for sample in samples {
+      guard let externalID = sample.metadata?[HKMetadataKeyExternalUUID] as? String else {
+        healthStore.save(samples) { success, error in
+          if let error {
+            result(FlutterError(code: "write_failed", message: error.localizedDescription, details: nil))
+          } else {
+            result(success)
+          }
+        }
         return
       }
-      result(success)
+      expected[externalID] = sample.sampleType
     }
+
+    fetchOwnSamples(expected) { [weak self] existing, error in
+      guard let self else { return }
+      if let error {
+        result(FlutterError(code: self.healthExportErrorCode(error), message: error.localizedDescription, details: nil))
+        return
+      }
+      let complete = expected.keys.allSatisfy { externalID in
+        (existing[externalID] ?? []).contains { self.exportRevision(of: $0) == revision }
+      }
+      if complete {
+        self.cleanupOlderRevisions(existing, keeping: revision, result: result)
+        return
+      }
+
+      let partialTarget = existing.values.flatMap { $0 }.filter {
+        self.exportRevision(of: $0) == revision
+      }
+      self.deleteObjects(partialTarget) { deleteError in
+        if let deleteError {
+          result(FlutterError(code: "write_failed", message: deleteError.localizedDescription, details: nil))
+          return
+        }
+        self.healthStore.save(samples) { success, saveError in
+          guard success, saveError == nil else {
+            result(FlutterError(
+              code: "write_failed",
+              message: saveError?.localizedDescription ?? "Apple Health save failed",
+              details: nil
+            ))
+            return
+          }
+          self.fetchOwnSamples(expected) { verified, verifyError in
+            if let verifyError {
+              result(FlutterError(code: self.healthExportErrorCode(verifyError), message: verifyError.localizedDescription, details: nil))
+              return
+            }
+            let verifiedComplete = expected.keys.allSatisfy { externalID in
+              (verified[externalID] ?? []).contains {
+                self.exportRevision(of: $0) == revision
+              }
+            }
+            guard verifiedComplete else {
+              result(FlutterError(code: "write_failed", message: "Apple Health revision verification failed", details: nil))
+              return
+            }
+            self.cleanupOlderRevisions(verified, keeping: revision, result: result)
+          }
+        }
+      }
+    }
+  }
+
+  private func fetchOwnSamples(
+    _ expected: [String: HKSampleType],
+    completion: @escaping ([String: [HKSample]], Error?) -> Void
+  ) {
+    let group = DispatchGroup()
+    let lock = NSLock()
+    var found: [String: [HKSample]] = [:]
+    var firstError: Error?
+
+    for (externalID, type) in expected {
+      group.enter()
+      let predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
+        HKQuery.predicateForObjects(from: HKSource.default()),
+        HKQuery.predicateForObjects(
+          withMetadataKey: HKMetadataKeyExternalUUID,
+          allowedValues: [externalID]
+        ),
+      ])
+      let query = HKSampleQuery(
+        sampleType: type,
+        predicate: predicate,
+        limit: HKObjectQueryNoLimit,
+        sortDescriptors: nil
+      ) { _, samples, error in
+        lock.lock()
+        found[externalID] = samples ?? []
+        if firstError == nil { firstError = error }
+        lock.unlock()
+        group.leave()
+      }
+      healthStore.execute(query)
+    }
+    group.notify(queue: .global(qos: .utility)) {
+      completion(found, firstError)
+    }
+  }
+
+  private func cleanupOlderRevisions(
+    _ existing: [String: [HKSample]],
+    keeping revision: Int64,
+    result: @escaping FlutterResult
+  ) {
+    var toDelete: [HKSample] = []
+    for samples in existing.values {
+      let current = samples.filter { exportRevision(of: $0) == revision }
+      toDelete.append(contentsOf: samples.filter { exportRevision(of: $0) < revision })
+      if current.count > 1 {
+        toDelete.append(contentsOf: current.dropFirst())
+      }
+    }
+    deleteObjects(toDelete) { error in
+      if let error {
+        result(FlutterError(code: "write_failed", message: error.localizedDescription, details: nil))
+      } else {
+        result(true)
+      }
+    }
+  }
+
+  private func deleteObjects(_ objects: [HKSample], completion: @escaping (Error?) -> Void) {
+    guard !objects.isEmpty else {
+      completion(nil)
+      return
+    }
+    healthStore.delete(objects.map { $0 as HKObject }) { success, error in
+      completion(success ? nil : (error ?? NSError(
+        domain: "TrainLibreHealthExport",
+        code: 1,
+        userInfo: [NSLocalizedDescriptionKey: "Apple Health cleanup failed"]
+      )))
+    }
+  }
+
+  private func exportRevision(of sample: HKSample) -> Int64 {
+    return (sample.metadata?["trainlibre_export_revision"] as? NSNumber)?.int64Value ?? -1
+  }
+
+  private func healthExportErrorCode(_ error: Error) -> String {
+    let nsError = error as NSError
+    guard nsError.domain == HKErrorDomain else { return "write_failed" }
+    let permissionCodes = [
+      HKError.Code.errorAuthorizationDenied.rawValue,
+      HKError.Code.errorAuthorizationNotDetermined.rawValue,
+    ]
+    return permissionCodes.contains(nsError.code) ? "permission_denied" : "write_failed"
   }
 
   private func requestSleepPermissions(result: @escaping FlutterResult) {

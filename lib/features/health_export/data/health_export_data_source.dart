@@ -39,10 +39,15 @@ class HealthExportPayload {
 }
 
 class HealthExportLoadOptions {
-  const HealthExportLoadOptions({this.lookbackDays, this.updatedSinceUtc});
+  const HealthExportLoadOptions({
+    this.lookbackDays,
+    this.updatedSinceUtc,
+    this.platform,
+  });
 
   final int? lookbackDays;
   final DateTime? updatedSinceUtc;
+  final HealthExportPlatform? platform;
 }
 
 class HealthExportDataSource {
@@ -88,11 +93,33 @@ class HealthExportDataSource {
       lookbackDays: lookbackDays,
       options: options,
     );
-    return _buildMeasurements(
+    final records = await _buildMeasurements(
       start: start,
       end: end,
       updatedSinceUtc: options.updatedSinceUtc,
     );
+    if (options.platform != HealthExportPlatform.healthConnect ||
+        records.isEmpty) {
+      return records;
+    }
+    final ids = records
+        .map((record) => int.tryParse(record.idempotencyKey.split(':').last))
+        .whereType<int>()
+        .toList(growable: false);
+    if (ids.isEmpty) return records;
+    final dbInstance = await _db.database;
+    final imported = await dbInstance.customSelect(
+      '''SELECT local_measurement_id FROM health_import_records
+         WHERE platform = 'healthConnect' AND domain = 'weight'
+           AND local_measurement_id IN (${List.filled(ids.length, '?').join(',')})''',
+      variables: ids.map(Variable.withInt).toList(growable: false),
+    ).get();
+    final importedIds =
+        imported.map((row) => row.read<int>('local_measurement_id')).toSet();
+    return records.where((record) {
+      final id = int.tryParse(record.idempotencyKey.split(':').last);
+      return id == null || !importedIds.contains(id);
+    }).toList(growable: false);
   }
 
   Future<List<ExportNutritionRecord>> loadNutrition({

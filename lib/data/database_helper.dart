@@ -76,6 +76,8 @@ class DatabaseHelper {
         await dbInst.delete(dbInst.supplementSettingsHistory).go();
         await dbInst.customStatement('DELETE FROM health_step_segments');
         await dbInst.customStatement('DELETE FROM health_export_records');
+        await dbInst.customStatement('DELETE FROM health_export_identities');
+        await dbInst.customStatement('DELETE FROM health_import_records');
         await dbInst.customStatement('DELETE FROM sleep_nightly_analyses');
         await dbInst
             .customStatement('DELETE FROM sleep_canonical_stage_segments');

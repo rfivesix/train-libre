@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../health_export/adapters/apple_health/apple_health_export_adapter.dart';
 import '../../health_export/adapters/health_connect/health_connect_export_adapter.dart';
@@ -11,6 +12,7 @@ import '../../../util/design_constants.dart';
 import '../../../widgets/common/common.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/summary_card.dart';
+import '../../../services/health/health_connect_weight_import.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 
 class HealthExportSettingsScreen extends StatefulWidget {
@@ -32,6 +34,11 @@ class _HealthExportSettingsScreenState
   bool _healthConnectExportEnabled = false;
   bool _isAppleExporting = false;
   bool _isHealthConnectExporting = false;
+  final HealthConnectWeightImportService _weightImportService =
+      HealthConnectWeightImportService();
+  HealthConnectWeightImportStatus? _weightImportStatus;
+  bool _weightImportEnabled = false;
+  bool _isWeightImporting = false;
   bool _hasChanges = false;
 
   @override
@@ -51,12 +58,74 @@ class _HealthExportSettingsScreenState
       HealthExportPlatform.healthConnect,
     );
     final statuses = await _healthExportService.getStatuses();
+    final weightImportEnabled =
+        Platform.isAndroid ? await _weightImportService.isEnabled() : false;
+    final weightImportStatus =
+        Platform.isAndroid ? await _weightImportService.getStatus() : null;
     if (!mounted) return;
     setState(() {
       _appleExportEnabled = appleEnabled;
       _healthConnectExportEnabled = healthConnectEnabled;
       _exportStatuses = statuses;
+      _weightImportEnabled = weightImportEnabled;
+      _weightImportStatus = weightImportStatus;
     });
+  }
+
+  Future<void> _toggleWeightImport(bool enabled) async {
+    if (!enabled) {
+      await _weightImportService.setEnabled(false);
+      await _loadHealthExportSettings();
+      return;
+    }
+    setState(() => _isWeightImporting = true);
+    try {
+      final result = await _weightImportService.requestAccessAndImport();
+      await _showWeightImportResult(result);
+    } on PlatformException catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(error.message ?? error.code)),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isWeightImporting = false);
+      await _loadHealthExportSettings();
+    }
+  }
+
+  Future<void> _importWeightsNow() async {
+    setState(() => _isWeightImporting = true);
+    try {
+      final result = await _weightImportService.importNow();
+      await _showWeightImportResult(result);
+    } on PlatformException catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(error.message ?? error.code)),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isWeightImporting = false);
+      await _loadHealthExportSettings();
+    }
+  }
+
+  Future<void> _showWeightImportResult(
+    HealthConnectWeightImportResult? result,
+  ) async {
+    if (!mounted || result == null) return;
+    final l10n = AppLocalizations.of(context)!;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          l10n.healthConnectWeightImportResult(
+            result.imported,
+            result.updated,
+          ),
+        ),
+      ),
+    );
   }
 
   Future<void> _toggleHealthExport({
@@ -98,7 +167,12 @@ class _HealthExportSettingsScreenState
       }
     });
 
-    final result = await _healthExportService.exportNow(platform);
+    // A manual export is also the recovery path when permissions were revoked
+    // or a newer app version needs additional HealthKit read scopes.
+    final permission = await _healthExportService.requestPermissions(platform);
+    final result = permission.success
+        ? await _healthExportService.exportNow(platform)
+        : permission;
     await _loadHealthExportSettings();
     if (!mounted) return;
 
@@ -141,6 +215,8 @@ class _HealthExportSettingsScreenState
       HealthExportState.exporting => l10n.healthExportStateExporting,
       HealthExportState.success => l10n.healthExportStateSuccess,
       HealthExportState.failed => l10n.healthExportStateFailed,
+      HealthExportState.permissionRequired =>
+        l10n.healthExportStatePermissionRequired,
       HealthExportState.disabled => l10n.healthExportStateDisabled,
     };
   }
@@ -150,6 +226,7 @@ class _HealthExportSettingsScreenState
       HealthExportState.success => LucideIcons.circle_check,
       HealthExportState.exporting => LucideIcons.refresh_cw,
       HealthExportState.failed => LucideIcons.triangle_alert,
+      HealthExportState.permissionRequired => LucideIcons.shield_alert,
       HealthExportState.disabled => LucideIcons.toggle_left,
       HealthExportState.idle => LucideIcons.hourglass,
     };
@@ -161,6 +238,7 @@ class _HealthExportSettingsScreenState
       HealthExportState.success => Colors.green,
       HealthExportState.exporting => scheme.primary,
       HealthExportState.failed => scheme.error,
+      HealthExportState.permissionRequired => scheme.error,
       HealthExportState.disabled => scheme.outline,
       HealthExportState.idle => scheme.outline,
     };
@@ -328,6 +406,38 @@ class _HealthExportSettingsScreenState
                         : const Icon(LucideIcons.chevron_right),
                     onTap: _healthConnectExportEnabled
                         ? () => _exportNow(HealthExportPlatform.healthConnect)
+                        : null,
+                  ),
+                  const Divider(),
+                  PlatformAdaptiveSwitchListTile(
+                    secondary: const Icon(LucideIcons.scale),
+                    title: Text(
+                      l10n.healthConnectWeightImportTitle,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    subtitle: Text(l10n.healthConnectWeightImportSubtitle),
+                    value: _weightImportEnabled,
+                    onChanged: _isWeightImporting ? null : _toggleWeightImport,
+                  ),
+                  ListTile(
+                    leading: _isWeightImporting
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(LucideIcons.download),
+                    title: Text(l10n.healthConnectWeightImportNow),
+                    subtitle: Text(
+                      _weightImportStatus?.available != true
+                          ? l10n.healthConnectWeightImportUnavailable
+                          : (_weightImportStatus?.isLimited ?? true)
+                              ? l10n.healthConnectWeightImportLimited
+                              : l10n.healthConnectWeightImportReady,
+                    ),
+                    enabled: _weightImportEnabled && !_isWeightImporting,
+                    onTap: _weightImportEnabled && !_isWeightImporting
+                        ? _importWeightsNow
                         : null,
                   ),
                 ],

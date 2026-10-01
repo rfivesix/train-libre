@@ -5186,6 +5186,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get healthExportStateFailed => 'Fallito';
 
   @override
+  String get healthExportStatePermissionRequired => 'Autorizzazione richiesta';
+
+  @override
   String get healthExportStateDisabled => 'Disabilitato';
 
   @override
@@ -5196,7 +5199,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get healthExportAppleHealthSubtitle =>
-      'Esportazione di sola andata da Train Libre ad Apple Health';
+      'Esportazione unidirezionale verso Apple Salute. Train Libre legge solo i dati esportati dall’app per sostituirli in modo sicuro dopo una modifica.';
 
   @override
   String get healthExportHealthConnectSubtitle =>
@@ -5209,6 +5212,34 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get healthExportHealthConnectStatusTitle =>
       'Stato dell\'esportazione di Health Connect';
+
+  @override
+  String get healthConnectWeightImportTitle =>
+      'Importa il peso da Health Connect';
+
+  @override
+  String get healthConnectWeightImportSubtitle =>
+      'Importa i pesi registrati da bilance e altre app. I dati di Train Libre vengono ignorati.';
+
+  @override
+  String get healthConnectWeightImportReady =>
+      'Accesso alla cronologia completa attivo';
+
+  @override
+  String get healthConnectWeightImportLimited =>
+      'Limitato alla cronologia recente disponibile';
+
+  @override
+  String get healthConnectWeightImportUnavailable =>
+      'Health Connect non è disponibile';
+
+  @override
+  String get healthConnectWeightImportNow => 'Importa ora';
+
+  @override
+  String healthConnectWeightImportResult(int imported, int updated) {
+    return '$imported importati, $updated aggiornati';
+  }
 
   @override
   String get settingsBaseFoodLanguageTitle => 'Lingua di visualizzazione cibo';

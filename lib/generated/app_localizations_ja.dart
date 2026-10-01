@@ -4941,6 +4941,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get healthExportStateFailed => '失敗した';
 
   @override
+  String get healthExportStatePermissionRequired => '権限が必要です';
+
+  @override
   String get healthExportStateDisabled => '無効';
 
   @override
@@ -4951,7 +4954,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get healthExportAppleHealthSubtitle =>
-      'Train Libre から Apple Health への片道エクスポート';
+      'Apple ヘルスケアへの一方向エクスポートです。編集時に安全に置き換えるため、Train Libre は自ら書き出したデータのみを読み取ります。';
 
   @override
   String get healthExportHealthConnectSubtitle =>
@@ -4962,6 +4965,30 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get healthExportHealthConnectStatusTitle => 'ヘルスコネクトのエクスポートステータス';
+
+  @override
+  String get healthConnectWeightImportTitle => 'Health Connect から体重を読み込む';
+
+  @override
+  String get healthConnectWeightImportSubtitle =>
+      '体重計や他のアプリが記録した体重を読み込みます。Train Libre の記録は除外されます。';
+
+  @override
+  String get healthConnectWeightImportReady => '全履歴へのアクセスが有効です';
+
+  @override
+  String get healthConnectWeightImportLimited => '利用可能な最近の履歴に限定されています';
+
+  @override
+  String get healthConnectWeightImportUnavailable => 'Health Connect を利用できません';
+
+  @override
+  String get healthConnectWeightImportNow => '今すぐ読み込む';
+
+  @override
+  String healthConnectWeightImportResult(int imported, int updated) {
+    return '$imported 件を読み込み、$updated 件を更新しました';
+  }
 
   @override
   String get settingsBaseFoodLanguageTitle => '食品表示言語';

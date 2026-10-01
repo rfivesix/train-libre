@@ -8958,6 +8958,12 @@ abstract class AppLocalizations {
   /// **'Failed'**
   String get healthExportStateFailed;
 
+  /// No description provided for @healthExportStatePermissionRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Permission required'**
+  String get healthExportStatePermissionRequired;
+
   /// No description provided for @healthExportStateDisabled.
   ///
   /// In en, this message translates to:
@@ -8979,7 +8985,7 @@ abstract class AppLocalizations {
   /// No description provided for @healthExportAppleHealthSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'One-way export from Train Libre to Apple Health'**
+  /// **'One-way export to Apple Health. Train Libre reads only its own exported records so edits can safely replace them.'**
   String get healthExportAppleHealthSubtitle;
 
   /// No description provided for @healthExportHealthConnectSubtitle.
@@ -8999,6 +9005,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Health Connect export status'**
   String get healthExportHealthConnectStatusTitle;
+
+  /// No description provided for @healthConnectWeightImportTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Import weight from Health Connect'**
+  String get healthConnectWeightImportTitle;
+
+  /// No description provided for @healthConnectWeightImportSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Import weights written by scales and other apps. Train Libre records are ignored.'**
+  String get healthConnectWeightImportSubtitle;
+
+  /// No description provided for @healthConnectWeightImportReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Full history access enabled'**
+  String get healthConnectWeightImportReady;
+
+  /// No description provided for @healthConnectWeightImportLimited.
+  ///
+  /// In en, this message translates to:
+  /// **'Limited to the available recent history'**
+  String get healthConnectWeightImportLimited;
+
+  /// No description provided for @healthConnectWeightImportUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Health Connect is unavailable'**
+  String get healthConnectWeightImportUnavailable;
+
+  /// No description provided for @healthConnectWeightImportNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Import now'**
+  String get healthConnectWeightImportNow;
+
+  /// No description provided for @healthConnectWeightImportResult.
+  ///
+  /// In en, this message translates to:
+  /// **'Imported {imported}, updated {updated}'**
+  String healthConnectWeightImportResult(int imported, int updated);
 
   /// No description provided for @settingsBaseFoodLanguageTitle.
   ///
