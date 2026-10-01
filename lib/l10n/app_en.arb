@@ -3594,5 +3594,10 @@
   "reviewActionError": "The review action failed: {error}",
   "@reviewActionError": {"placeholders": {"error": {"type": "String"}}},
   "calculationBasisTitle": "Calculation basis",
-  "calculationBasisSubtitle": "Everyday activity and additional cardio"
+  "calculationBasisSubtitle": "Everyday activity and additional cardio",
+  "estimatedOneRepMaxInfoTitle": "Estimated 1-Rep Max Heuristic (Brzycki Formula)",
+  "estimatedOneRepMaxInfoExplanation": "Estimates strength from a completed set to support progress tracking.",
+  "estimatedOneRepMaxInfoPoints": "1RM ≈ effective load × (36 / (37 − reps)), for 1–12 repetitions.\nThis is an estimate from a completed set, not a direct maximum test.\nBodyweight and assisted exercises use effective load, including body weight and assistance.",
+  "estimatedOneRepMaxInfoDetailsTitle": "Brzycki Formula Details",
+  "estimatedOneRepMaxInfoDetails": "Train Libre estimates one-repetition maximum (1RM) from effective set load using the Brzycki formula: 1RM = effective load × (36 / (37 − repetitions)). Sets above 12 repetitions are not used. This remains an estimate; individual technique and performance can differ from the calculation."
 }

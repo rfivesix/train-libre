@@ -8150,4 +8150,24 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get calculationBasisSubtitle =>
       'Activité quotidienne et cardio supplémentaire';
+
+  @override
+  String get estimatedOneRepMaxInfoTitle =>
+      'Estimation du 1RM (formule de Brzycki)';
+
+  @override
+  String get estimatedOneRepMaxInfoExplanation =>
+      'Estime la force à partir d\'une série terminée pour suivre la progression.';
+
+  @override
+  String get estimatedOneRepMaxInfoPoints =>
+      '1RM ≈ charge effective × (36 / (37 − répétitions)), pour 1 à 12 répétitions.\nIl s\'agit d\'une estimation à partir d\'une série terminée, pas d\'un test maximal direct.\nPour les exercices au poids du corps ou assistés, la charge effective tient compte du poids du corps et de l\'assistance.';
+
+  @override
+  String get estimatedOneRepMaxInfoDetailsTitle =>
+      'Détails de la formule de Brzycki';
+
+  @override
+  String get estimatedOneRepMaxInfoDetails =>
+      'Train Libre estime le maximum sur une répétition (1RM) à partir de la charge effective de la série avec la formule de Brzycki : 1RM = charge effective × (36 / (37 − répétitions)). Les séries de plus de 12 répétitions ne sont pas prises en compte. Cela reste une estimation ; la technique et la performance individuelles peuvent différer du résultat.';
 }

@@ -162,7 +162,10 @@ This project features a comprehensive, modular documentation suite split by targ
 *   [**Native Health Sync & Export**](documentation/features/health_sync_export.md): Bidirectional vital synchronization (Steps, Sleep), outbound manual log export pipelines, SQLite-backed idempotency tracking, and fault-tolerance patterns.
 *   [Sleep Health Score Engine](documentation/features/sleep_scoring_engine.md): The five scoring domains, their curve shapes, and the soft-cap penalty logic.
 *   [Muscle Recovery & Readiness Model](documentation/features/muscle_recovery_model.md): Per-set RIR-aware residual load, role-weighted exposure, muscle-specific decay, and readiness.
-*   [Estimated 1-Rep Max Heuristic](documentation/features/intelligent_workouts.md): The Epley-based submaximal strength model behind PRs and progression.
+*   [Estimated 1-Rep Max Heuristic](documentation/features/intelligent_workouts.md): The Brzycki-based submaximal strength model behind PRs and progression.
+*   [Adaptive Nutrition Goals](documentation/features/adaptive_nutrition_goals.md): Long-term weight goals, weekly reviews, and proposed calorie and macro adjustments.
+*   [Manual Workout Plans](documentation/features/manual_workout_plans.md): Fixed weekly plans and flexible sequences with rest days and planned-session tracking.
+*   [Macronutrient Analytics](documentation/features/macro_analytics.md): Calorie and macro intake trends across selectable time ranges.
 *   [Live Activity & Workout Session](documentation/features/live_activity_workout.md): The iOS Live Activity and Dynamic Island surface for a running workout.
 *   [Telemetry & Privacy Architecture](TELEMETRY.md): The complete opt-in telemetry event catalog and the anti-profiling safeguards around it.
 

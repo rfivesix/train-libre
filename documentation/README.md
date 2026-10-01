@@ -16,7 +16,7 @@ This documentation suite is split into highly modular, focused files categorised
 For software engineers, system architects, and technical contributors.
 
 *   [**System Overview & Testing Philosophy**](developer/overview.md): High-level system purpose, tech stack, and automated testing strategy spanning unit, integration, and database migration tests.
-*   [**System Architecture & Runtime Wiring**](developer/architecture.md): Clean Architecture boundaries (Presentation $\rightarrow$ Domain $\leftarrow$ Data), application startup and Provider wiring in `main.dart`, Drift SQLite lifecycle at schema version 31, and background tasks.
+*   [**System Architecture & Runtime Wiring**](developer/architecture.md): Clean Architecture boundaries (Presentation $\rightarrow$ Domain $\leftarrow$ Data), application startup and Provider wiring in `main.dart`, Drift SQLite lifecycle at schema version 38, and background tasks.
 *   [**Data Flow & State Lifecycle**](developer/data_flow_and_state.md): Detail on our "Reactive Reads / Imperative Writes" paradigm, reactive Drift stream handlers, subscription lifecycles, and edit-mode user interface input blocking.
 *   [**Localization Architecture**](developer/localization_architecture.md): Offline-first relational localization strategy for catalogs and UI strings across 5 supported locales, schema migration to normalized translation tables, and guide for adding locales.
 *   [**Home Screen Widgets (iOS & Android)**](developer/ios_home_screen_widgets.md): Cross-platform snapshot architecture and native widget families for both iOS (WidgetKit) and Android (Glance/AppWidgetProvider), their configuration, and deep links.
@@ -36,3 +36,6 @@ For advanced users, mathematical evaluators, and privacy auditors who seek compl
 *   [**Estimated 1-Rep Max Heuristic**](features/intelligent_workouts.md): The Brzycki-based submaximal strength estimation model behind personal records and strength progression, accounting for effective load across assisted, bodyweight, and loaded sets, and its non-medical scope.
 *   [**Workout progression**](features/workout_progression_engine.md): A first-working-set recommendation for eligible load-and-repetition exercises, with simple double progression and later-set e1RM back-offs.
 *   [**Live Activity & Workout Session**](features/live_activity_workout.md): The iOS Live Activity and Dynamic Island surface for a running workout, and the state it mirrors.
+*   [**Adaptive Nutrition Goals**](features/adaptive_nutrition_goals.md): Goal setup, trajectory, weekly review gates, and user-controlled target changes.
+*   [**Manual Workout Plans**](features/manual_workout_plans.md): Weekly and repeating plans, rest days, session outcomes, reminders, and restore behavior.
+*   [**Macronutrient Analytics**](features/macro_analytics.md): Intake trends, time ranges, date navigation, and daily chart selection.

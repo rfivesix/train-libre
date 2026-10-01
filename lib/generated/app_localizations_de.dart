@@ -8078,4 +8078,22 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get calculationBasisSubtitle =>
       'Alltagsaktivität und zusätzliches Cardio';
+
+  @override
+  String get estimatedOneRepMaxInfoTitle => 'Geschätztes 1RM (Brzycki-Formel)';
+
+  @override
+  String get estimatedOneRepMaxInfoExplanation =>
+      'Schätzt die Kraft anhand eines absolvierten Satzes, um den Fortschritt nachzuverfolgen.';
+
+  @override
+  String get estimatedOneRepMaxInfoPoints =>
+      '1RM ≈ effektive Last × (36 / (37 − Wiederholungen)), für 1–12 Wiederholungen.\nDer Wert ist eine Schätzung aus einem Satz, kein direkter Maximaltest.\nBei Eigengewichts- und unterstützten Übungen berücksichtigt die effektive Last Körpergewicht und Unterstützung.';
+
+  @override
+  String get estimatedOneRepMaxInfoDetailsTitle => 'Details zur Brzycki-Formel';
+
+  @override
+  String get estimatedOneRepMaxInfoDetails =>
+      'Train Libre schätzt das Einwiederholungsmaximum (1RM) anhand der effektiven Satzlast mit der Brzycki-Formel: 1RM = effektive Last × (36 / (37 − Wiederholungen)). Sätze mit mehr als 12 Wiederholungen werden nicht verwendet. Der Wert bleibt eine Schätzung; individuelle Technik und Leistung können vom Ergebnis abweichen.';
 }

@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [1.5.0] — Unreleased
 
+### Changed
+- **Documentation review:** Updated database schema references to version 38, corrected the 1RM model description to Brzycki, documented adaptive nutrition goals and manual workout plans, and removed delivered work from the upcoming roadmap.
+
+### Fixed
+- **1RM guidance copy:** Corrected the workout summary, workout detail, and exercise detail info sheets to identify the Brzycki formula and its effective-load, 1–12 repetition input range.
+
 ### Added
 - **Cross-platform Body-Measurement Import:** Moved health reads out of one-way Health Export into their own entry under Health & Tracking (also reachable from Measurements). Apple Health imports weight, body-fat percentage, and waist circumference; Health Connect imports weight and body-fat percentage. Imports are opt-in, run again on cold start, retain source-record identity, and exclude Train Libre exports to prevent loops.
 - **Health Connect Weight Import (`HealthConnectWeightImportService`, Settings):** Added an explicit opt-in weight import with feature-aware permissions, full-history or transparent 30-day limited mode, paginated native reads, source-record update detection, cold-start synchronization, and loop prevention so Health Connect-originated weights are never exported back to Health Connect.

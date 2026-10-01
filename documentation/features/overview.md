@@ -1,6 +1,6 @@
 # Feature Transparency & Privacy Architecture
 
-Train Libre leverages advanced computational intelligence to provide users with adaptive nutrition recommendations, intelligent meal capture, workout progression, recovery analytics, and robust health metrics synchronization. Crucially, all calculations and integrations are designed around strict **local-first** and **privacy-first** principles.
+Train Libre provides adaptive nutrition goals and recommendations, manual workout plans, intelligent meal capture, workout progression, recovery analytics, and health metrics synchronization. All calculations and integrations are designed around strict **local-first** and **privacy-first** principles.
 
 ---
 
@@ -10,7 +10,7 @@ To achieve true user privacy and data ownership, the application enforces the fo
 
 1.  **Zero Mandatory Cloud Intermediaries**: The application does not require a custom backend server to function. There is no central user database, no mandatory registration, and no login wall. All diary, workout, sleep, and metric records reside in local SQLite storage.
 2.  **On-Device Encryption & Security**: Sensitive credentials, specifically the user-provided API keys required for Bring Your Own Key (BYOK) Large Language Models, are stored in hardware-backed system secure vaults (iOS Keychain and Android Keystore) via `FlutterSecureStorage` with device-only accessibility.
-3.  **Local Algorithmic Execution**: High-level statistical and physiological logic — including the Kalman filter for TDEE, macronutrient distributions, the Sleep Health Score engine, muscle recovery timelines, and Brzycki 1RM heuristics — executes entirely on-device. Personal logs, bodyweight measurements, and physical metrics are never transmitted to external servers for analytical evaluation.
+3.  **Local Algorithmic Execution**: High-level statistical and physiological logic — including the Kalman filter for TDEE, macronutrient distributions, adaptive goal reviews, the Sleep Health Score engine, muscle recovery timelines, and Brzycki 1RM heuristics — executes entirely on-device. Personal logs, bodyweight measurements, and physical metrics are never transmitted to external servers for analytical evaluation.
 4.  **Strictly Opt-In, Zero-Profiling Usage Telemetry**:
     *   Disabled by default upon installation.
     *   No network connection or SDK initialization occurs before explicit consent.
@@ -65,3 +65,15 @@ Real-time glanceable surfaces mirroring active workouts and daily wellness metri
 *   **Workout Live Activity**: iOS Lock Screen and Dynamic Island card displaying live set targets, active rest timers, and exercise navigation without background network polling.
 *   **Home Screen Widgets**: Shared Dart snapshot engine delivering six glanceable widgets (Today Glance, Quick Actions, Steps, Measurements, Muscle Recovery, Last Workout) on both iOS 18+ and Android 12+.
 *   *Learn more in the [**Live Activity Documentation**](live_activity_workout.md) and [**Home Screen Widgets Guide**](../developer/ios_home_screen_widgets.md).*
+
+### 10. Adaptive Nutrition Goals
+Users can set a long-term weight goal from a recorded baseline and review its trajectory over time. Weekly reviews require sufficient weigh-ins and food logs before proposing calorie and macro changes. Recommendations remain proposals until the user applies them.
+*   *Learn more in the [**Adaptive Nutrition Goals Documentation**](adaptive_nutrition_goals.md).*
+
+### 11. Manual Workout Plans
+Saved routines can be arranged as a fixed weekly schedule or a repeating 1–14 day sequence with rest days. Plans track completed, partial, and skipped sessions. Missed sequence sessions remain next until completed or skipped; optional local reminders open the active plan.
+*   *Learn more in the [**Manual Workout Plans Documentation**](manual_workout_plans.md).*
+
+### 12. Macronutrient Analytics
+The Statistics hub carries its selected date range into macro analytics, with period navigation, daily intake detail, and a rolling seven-day intake-versus-target comparison in Nutrition.
+*   *Learn more in the [**Macronutrient Analytics Documentation**](macro_analytics.md).*

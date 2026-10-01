@@ -27,7 +27,7 @@ graph TD
     subgraph Data ["Data Layer (Infrastructure)"]
         ReposConcrete[Concrete Repositories]
         DataSources[Drift Local Data Sources]
-        SQLite[(Drift AppDatabase SQLite v31)]
+        SQLite[(Drift AppDatabase SQLite v38)]
         PlatformAdapters[Native Method Channels / Health / Widgets]
     end
 
@@ -165,7 +165,7 @@ A top-level `MultiProvider` registers dependencies so child widgets access them 
 
 ## Database Lifecycle & Schema Management
 
-Persistence in Train Libre is driven by SQLite through the Drift package. The database is currently at **schema version 31**.
+Persistence in Train Libre is driven by SQLite through the Drift package. The database is currently at **schema version 38**.
 
 ### The DatabaseHelper Singleton
 A central mediator `DatabaseHelper` manages the active database instance:

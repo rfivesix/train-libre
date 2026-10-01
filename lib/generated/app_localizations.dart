@@ -14035,6 +14035,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Everyday activity and additional cardio'**
   String get calculationBasisSubtitle;
+
+  /// No description provided for @estimatedOneRepMaxInfoTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimated 1-Rep Max Heuristic (Brzycki Formula)'**
+  String get estimatedOneRepMaxInfoTitle;
+
+  /// No description provided for @estimatedOneRepMaxInfoExplanation.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimates strength from a completed set to support progress tracking.'**
+  String get estimatedOneRepMaxInfoExplanation;
+
+  /// No description provided for @estimatedOneRepMaxInfoPoints.
+  ///
+  /// In en, this message translates to:
+  /// **'1RM ≈ effective load × (36 / (37 − reps)), for 1–12 repetitions.\nThis is an estimate from a completed set, not a direct maximum test.\nBodyweight and assisted exercises use effective load, including body weight and assistance.'**
+  String get estimatedOneRepMaxInfoPoints;
+
+  /// No description provided for @estimatedOneRepMaxInfoDetailsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Brzycki Formula Details'**
+  String get estimatedOneRepMaxInfoDetailsTitle;
+
+  /// No description provided for @estimatedOneRepMaxInfoDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Train Libre estimates one-repetition maximum (1RM) from effective set load using the Brzycki formula: 1RM = effective load × (36 / (37 − repetitions)). Sets above 12 repetitions are not used. This remains an estimate; individual technique and performance can differ from the calculation.'**
+  String get estimatedOneRepMaxInfoDetails;
 }
 
 class _AppLocalizationsDelegate

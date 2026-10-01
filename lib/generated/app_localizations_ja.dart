@@ -7721,4 +7721,22 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get calculationBasisSubtitle => '日常活動と追加の有酸素運動';
+
+  @override
+  String get estimatedOneRepMaxInfoTitle => '推定1RM（Brzycki式）';
+
+  @override
+  String get estimatedOneRepMaxInfoExplanation =>
+      '完了したセットから筋力を推定し、進捗の記録に役立てます。';
+
+  @override
+  String get estimatedOneRepMaxInfoPoints =>
+      '1RM ≈ 実効負荷 × (36 / (37 − 回数))、1〜12回の場合。\n完了したセットからの推定値であり、最大重量を直接測定した結果ではありません。\n自重種目や補助ありの種目では、実効負荷に体重と補助量が反映されます。';
+
+  @override
+  String get estimatedOneRepMaxInfoDetailsTitle => 'Brzycki式の詳細';
+
+  @override
+  String get estimatedOneRepMaxInfoDetails =>
+      'Train LibreはBrzycki式を使い、セットの実効負荷から1回最大重量（1RM）を推定します。式は 1RM = 実効負荷 × (36 / (37 − 回数)) です。13回以上のセットは使用しません。あくまで推定値であり、個人のフォームやパフォーマンスによって結果は異なります。';
 }

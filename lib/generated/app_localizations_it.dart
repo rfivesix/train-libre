@@ -8125,4 +8125,24 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get calculationBasisSubtitle =>
       'Attività quotidiana e cardio aggiuntivo';
+
+  @override
+  String get estimatedOneRepMaxInfoTitle =>
+      'Stima del massimale (formula di Brzycki)';
+
+  @override
+  String get estimatedOneRepMaxInfoExplanation =>
+      'Stima la forza da una serie completata per monitorare i progressi.';
+
+  @override
+  String get estimatedOneRepMaxInfoPoints =>
+      '1RM ≈ carico effettivo × (36 / (37 − ripetizioni)), da 1 a 12 ripetizioni.\nÈ una stima basata su una serie completata, non un test diretto del massimale.\nNegli esercizi a corpo libero o assistiti, il carico effettivo considera il peso corporeo e l\'assistenza.';
+
+  @override
+  String get estimatedOneRepMaxInfoDetailsTitle =>
+      'Dettagli della formula di Brzycki';
+
+  @override
+  String get estimatedOneRepMaxInfoDetails =>
+      'Train Libre stima il massimale per una ripetizione (1RM) dal carico effettivo della serie usando la formula di Brzycki: 1RM = carico effettivo × (36 / (37 − ripetizioni)). Le serie oltre 12 ripetizioni non vengono utilizzate. È comunque una stima; tecnica e prestazione individuali possono differire dal risultato.';
 }

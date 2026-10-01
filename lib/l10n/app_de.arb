@@ -3378,5 +3378,10 @@
   "reviewActionError": "Die Review-Aktion ist fehlgeschlagen: {error}",
   "@reviewActionError": {"placeholders": {"error": {"type": "String"}}},
   "calculationBasisTitle": "Berechnungsgrundlagen",
-  "calculationBasisSubtitle": "Alltagsaktivität und zusätzliches Cardio"
+  "calculationBasisSubtitle": "Alltagsaktivität und zusätzliches Cardio",
+  "estimatedOneRepMaxInfoTitle": "Geschätztes 1RM (Brzycki-Formel)",
+  "estimatedOneRepMaxInfoExplanation": "Schätzt die Kraft anhand eines absolvierten Satzes, um den Fortschritt nachzuverfolgen.",
+  "estimatedOneRepMaxInfoPoints": "1RM ≈ effektive Last × (36 / (37 − Wiederholungen)), für 1–12 Wiederholungen.\nDer Wert ist eine Schätzung aus einem Satz, kein direkter Maximaltest.\nBei Eigengewichts- und unterstützten Übungen berücksichtigt die effektive Last Körpergewicht und Unterstützung.",
+  "estimatedOneRepMaxInfoDetailsTitle": "Details zur Brzycki-Formel",
+  "estimatedOneRepMaxInfoDetails": "Train Libre schätzt das Einwiederholungsmaximum (1RM) anhand der effektiven Satzlast mit der Brzycki-Formel: 1RM = effektive Last × (36 / (37 − Wiederholungen)). Sätze mit mehr als 12 Wiederholungen werden nicht verwendet. Der Wert bleibt eine Schätzung; individuelle Technik und Leistung können vom Ergebnis abweichen."
 }

@@ -1,11 +1,14 @@
 # Train Libre Roadmap
 
 ## What's Next
-* **Advanced Target Setting & Training Experience Leveling:** Expand the onboarding and goal logic. Instead of just picking a general goal, users can define time-bound targets (e.g., losing 10 kg in 3 months). It will also feature a system to determine the user's current training experience level (e.g., beginner, intermediate, advanced) based on strength-to-bodyweight ratios or training history to better tailor recommendations.
 * **Curated Training Plan Library ("Store"):** A program library of curated training plans (e.g., PPL, upper/lower, hypertrophy blocks) that can be copied directly into personal routines. This includes building a clean, rigid internal infrastructure to handle preset templates that users can easily duplicate and edit.
 * **Fitness Recipe Book & Nutrition Infrastructure:** Integrate a comprehensive recipe section backed by an open fitness recipe dataset or API. Users can browse or search fitness-focused recipes and instantly import their macro profiles and ingredients directly into their daily nutrition protocol as cooked meals, eliminating manual single-ingredient tracking.
-* **Weekly Training Calendar:** Implement a weekly calendar to assign plans/routines to specific days (e.g., Mon Push, Wed Pull, Fri Legs) and seamlessly visualize planned vs. completed sessions.
 * **Advanced Training & Nutrition Goal Logic:** Introduce distinct training/rest‑day profiles and simple refeed/high‑day patterns on top of the adaptive TDEE estimator to dynamic adjust goals based on the active day type.
+
+## Recently Delivered
+* **Long-term nutrition goals and adaptive reviews (1.5.0):** Set a weight target from a recorded measurement, follow the trajectory, and review recommendations before choosing whether to apply them.
+* **Manual workout plans (1.5.0):** Schedule saved routines as a fixed weekly plan or a flexible 1–14 day sequence, include rest days, and track planned sessions.
+* **Training experience levels:** The app includes experience-level support for tailoring training guidance.
 
 ## Mid-term
 * **Wearable-/watch‑first logging experiences:** Implement wear-focused tracking modules for minimal‑friction set tracking directly from a smartwatch during active workouts.
