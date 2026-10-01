@@ -97,12 +97,8 @@ class SleepPeriodAggregationEngine {
       days: days,
       sleepWindows: windows,
       meanScore: _meanScore(days),
-      weekdayAverageDuration: _averageDuration(
-        days.where((day) => day.date.weekday <= DateTime.friday),
-      ),
-      weekendAverageDuration: _averageDuration(
-        days.where((day) => day.date.weekday >= DateTime.saturday),
-      ),
+      weekdayAverageDuration: _averageDuration(days, isWeekday: true),
+      weekendAverageDuration: _averageDuration(days, isWeekday: false),
     );
   }
 
@@ -133,12 +129,8 @@ class SleepPeriodAggregationEngine {
       monthStart: normalizedMonthStart,
       days: days,
       meanScore: _meanScore(days),
-      weekdayAverageDuration: _averageDuration(
-        days.where((day) => day.date.weekday <= DateTime.friday),
-      ),
-      weekendAverageDuration: _averageDuration(
-        days.where((day) => day.date.weekday >= DateTime.saturday),
-      ),
+      weekdayAverageDuration: _averageDuration(days, isWeekday: true),
+      weekendAverageDuration: _averageDuration(days, isWeekday: false),
     );
   }
 
@@ -261,10 +253,18 @@ class SleepPeriodAggregationEngine {
     return sum / count;
   }
 
-  Duration? _averageDuration(Iterable<SleepDayAggregate> days) {
+  Duration? _averageDuration(Iterable<SleepDayAggregate> days, {bool? isWeekday}) {
     int sum = 0;
     int count = 0;
+
+    // BOLT OPTIMIZATION: Avoid intermediate Iterable/WhereIterable closures by moving the weekday
+    // condition inside the loop, rather than using days.where(...).
     for (final day in days) {
+      if (isWeekday != null) {
+        if (isWeekday && day.date.weekday > DateTime.friday) continue;
+        if (!isWeekday && day.date.weekday < DateTime.saturday) continue;
+      }
+
       final totalSleepMinutes = day.totalSleepMinutes;
       if (totalSleepMinutes != null && totalSleepMinutes > 0) {
         sum += totalSleepMinutes;
