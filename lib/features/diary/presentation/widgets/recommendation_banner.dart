@@ -233,6 +233,7 @@ class _RecommendationBannerState extends State<RecommendationBanner>
                         Semantics(
                           label: l10n.semanticsApplyRecommendation,
                           button: true,
+                          excludeSemantics: true,
                           child: GestureDetector(
                             behavior: HitTestBehavior.opaque,
                             onTap: _applyRecommendation,
@@ -263,6 +264,7 @@ class _RecommendationBannerState extends State<RecommendationBanner>
                         Semantics(
                           label: l10n.semanticsDismissBanner,
                           button: true,
+                          excludeSemantics: true,
                           child: GestureDetector(
                             behavior: HitTestBehavior.opaque,
                             onTap: _dismissBanner,

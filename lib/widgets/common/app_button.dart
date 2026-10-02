@@ -336,7 +336,11 @@ class _AppButtonState extends State<AppButton>
     );
 
     if (widget.tooltip != null) {
-      return Tooltip(message: widget.tooltip!, child: semanticButton);
+      return Tooltip(
+        message: widget.tooltip!,
+        excludeFromSemantics: true,
+        child: semanticButton,
+      );
     }
     return semanticButton;
   }
