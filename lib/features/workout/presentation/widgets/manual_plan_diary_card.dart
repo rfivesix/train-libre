@@ -80,6 +80,7 @@ class _ManualPlanDiaryCardState extends State<ManualPlanDiaryCard> {
                 button: true,
                 container: true,
                 label: '${day.day.routineName ?? text.get('rest')}, $subtitle',
+                excludeSemantics: true,
                 child: InkWell(
                   onTap: onTap,
                   borderRadius:

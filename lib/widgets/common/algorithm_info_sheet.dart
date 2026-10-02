@@ -53,29 +53,34 @@ class AlgorithmInfoButton extends StatelessWidget {
     return SizedBox(
       width: 44,
       height: 44,
-      child: Material(
-        type: MaterialType.transparency,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(22),
-          onTap: () {
-            showAlgorithmInfoBottomSheet(
-              context,
-              title: title,
-              explanation: explanation,
-              keyPoints: keyPoints,
-              technicalTitle: technicalTitle,
-              technicalExplanation: technicalExplanation,
-              markdownAssetPath: markdownAssetPath,
-              citationUrl: citationUrl,
-            );
-          },
-          child: Tooltip(
-            message: title,
-            child: Center(
-              child: Icon(
-                LucideIcons.info,
-                color: iconColor ?? theme.colorScheme.primary,
-                size: DesignConstants.iconSizeM,
+      child: Semantics(
+        button: true,
+        label: title,
+        child: Material(
+          type: MaterialType.transparency,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(22),
+            onTap: () {
+              showAlgorithmInfoBottomSheet(
+                context,
+                title: title,
+                explanation: explanation,
+                keyPoints: keyPoints,
+                technicalTitle: technicalTitle,
+                technicalExplanation: technicalExplanation,
+                markdownAssetPath: markdownAssetPath,
+                citationUrl: citationUrl,
+              );
+            },
+            child: Tooltip(
+              message: title,
+              excludeFromSemantics: true,
+              child: Center(
+                child: Icon(
+                  LucideIcons.info,
+                  color: iconColor ?? theme.colorScheme.primary,
+                  size: DesignConstants.iconSizeM,
+                ),
               ),
             ),
           ),
