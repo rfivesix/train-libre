@@ -144,6 +144,12 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
   final Map<int, int?> pauseTimes = {};
 
   Timer? _restTimer;
+  Timer? _setTimerTicker;
+  int? _activeSetTimerId;
+  DateTime? _setTimerStartedAt;
+  int _setTimerBaseSeconds = 0;
+  int? _pausedSetTimerId;
+  int _pausedSetTimerElapsedSeconds = 0;
   DateTime? _targetRestEndTime;
   DateTime? _restStartedAt;
   int _remainingRestSeconds = 0;
@@ -177,6 +183,92 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
   WorkoutLog? get workoutLog => _workoutLog;
   List<RoutineExercise> get exercises => _exercises;
   int get remainingRestSeconds => _remainingRestSeconds;
+  int? get activeSetTimerId => _activeSetTimerId;
+  DateTime? get setTimerStartedAt => _setTimerStartedAt;
+  int get setTimerBaseSeconds => _setTimerBaseSeconds;
+  int setTimerElapsedSeconds(int templateId) {
+    if (_activeSetTimerId == templateId && _setTimerStartedAt != null) {
+      return DateTime.now()
+          .difference(_setTimerStartedAt!)
+          .inSeconds
+          .clamp(0, 1 << 30);
+    }
+    if (_pausedSetTimerId == templateId) {
+      return _pausedSetTimerElapsedSeconds;
+    }
+    return 0;
+  }
+
+  void startSetTimer(
+    int templateId, {
+    DateTime? startedAt,
+    int elapsedSeconds = 0,
+  }) {
+    final log = _setLogs[templateId];
+    if (log == null ||
+        log.isCompleted == true ||
+        nextOpenTemplateId != templateId ||
+        log.durationSeconds == null && !_isDurationSet(templateId)) {
+      return;
+    }
+    _setTimerTicker?.cancel();
+    _activeSetTimerId = templateId;
+    final baseSeconds = startedAt != null
+        ? elapsedSeconds
+        : (_pausedSetTimerId == templateId ? _pausedSetTimerElapsedSeconds : 0);
+    _setTimerBaseSeconds = baseSeconds;
+    _setTimerStartedAt =
+        (startedAt ?? DateTime.now()).subtract(Duration(seconds: baseSeconds));
+    _pausedSetTimerId = null;
+    _pausedSetTimerElapsedSeconds = 0;
+    _setTimerTicker =
+        Timer.periodic(const Duration(seconds: 1), (_) => notifyListeners());
+    notifyListeners();
+    unawaited(_syncLiveActivity());
+  }
+
+  bool _isDurationSet(int templateId) {
+    for (final exercise in _exercises) {
+      if (exercise.setTemplates.any((template) => template.id == templateId)) {
+        return ExerciseLogMask.forExercise(exercise.exercise).logsDuration;
+      }
+    }
+    return false;
+  }
+
+  Future<void> completeTimedSet(int templateId, {int? elapsedSeconds}) async {
+    if (_activeSetTimerId == templateId && _setTimerStartedAt != null) {
+      final total = elapsedSeconds ?? setTimerElapsedSeconds(templateId);
+      _setTimerTicker?.cancel();
+      _activeSetTimerId = null;
+      _setTimerStartedAt = null;
+      _setTimerBaseSeconds = 0;
+      _pausedSetTimerId = null;
+      _pausedSetTimerElapsedSeconds = 0;
+      await updateSet(templateId, duration: total, isCompleted: true);
+      return;
+    }
+    if (_isDurationSet(templateId) && elapsedSeconds != null) {
+      _pausedSetTimerId = null;
+      _pausedSetTimerElapsedSeconds = 0;
+      await updateSet(templateId, duration: elapsedSeconds, isCompleted: true);
+      return;
+    }
+    await updateSet(templateId, isCompleted: true);
+  }
+
+  Future<void> stopSetTimer(int templateId, {int? elapsedSeconds}) async {
+    if (_activeSetTimerId != templateId || _setTimerStartedAt == null) return;
+    final total = elapsedSeconds ?? setTimerElapsedSeconds(templateId);
+    _setTimerTicker?.cancel();
+    _activeSetTimerId = null;
+    _setTimerStartedAt = null;
+    _setTimerBaseSeconds = 0;
+    _pausedSetTimerId = templateId;
+    _pausedSetTimerElapsedSeconds = total;
+    await updateSet(templateId, duration: total);
+  }
+
   bool get showRestDone => _showRestDone;
   Duration get elapsedDuration => _elapsedDuration;
   Map<int, SetLog> get setLogs => _setLogs;
@@ -184,6 +276,7 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
   int get autoAdvanceRevision => _autoAdvanceRevision;
   int? get autoAdvanceExerciseIndex => _autoAdvanceExerciseIndex;
   int? get nextOpenExerciseIndex => _nextOpenSet()?.exerciseIndex;
+  int? get nextOpenTemplateId => _nextOpenSet()?.templateId;
 
   /// Whether a pause is currently counting down. Flips back to false the
   /// moment the countdown hits zero or is skipped, so the minimized bar can
@@ -260,6 +353,14 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
       localeName: _liveActivityLocale,
       restEndsAt: _targetRestEndTime,
       restStartedAt: _restStartedAt,
+      setTimerTemplateId: _activeSetTimerId,
+      setTimerStartedAt: _setTimerStartedAt,
+      setTimerElapsedSeconds: _activeSetTimerId == null
+          ? _pausedSetTimerElapsedSeconds
+          : _setTimerBaseSeconds,
+      labelStartTimer: strings.startTimer,
+      labelStopTimer: strings.stopTimer,
+      labelTimerRunning: strings.timerRunning,
     );
   }
 
@@ -367,7 +468,37 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
           final delta = command['deltaSeconds'];
           if (delta is int) adjustRestTime(delta);
         case 'completeSet':
-          await _completeNextPlannedSet();
+          final timerTemplateId = command['timerTemplateId'];
+          final elapsedSeconds = command['elapsedSeconds'];
+          if (timerTemplateId is int && elapsedSeconds is int) {
+            await completeTimedSet(
+              timerTemplateId,
+              elapsedSeconds: elapsedSeconds,
+            );
+          } else {
+            await _completeNextPlannedSet();
+          }
+        case 'startSetTimer':
+          final id = command['templateId'];
+          final startedAtMs = command['startedAtEpochMs'];
+          if (id is int) {
+            startSetTimer(
+              id,
+              startedAt: startedAtMs is int
+                  ? DateTime.fromMillisecondsSinceEpoch(startedAtMs)
+                  : null,
+              elapsedSeconds: command['elapsedSeconds'] is int
+                  ? command['elapsedSeconds'] as int
+                  : 0,
+            );
+          }
+        case 'stopSetTimer':
+          final id = command['templateId'];
+          final elapsed = command['elapsedSeconds'];
+          if (id is int) {
+            await stopSetTimer(id,
+                elapsedSeconds: elapsed is int ? elapsed : null);
+          }
       }
     }
     await _syncLiveActivity();
@@ -388,6 +519,10 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
       final templateId = next.templateId;
       final log = _setLogs[templateId];
       if (log != null && log.isCompleted != true) {
+        if (_isDurationSet(templateId) && _activeSetTimerId == templateId) {
+          await completeTimedSet(templateId);
+          return;
+        }
         // A set counts as filled in when the fields its mask actually shows
         // have values. Asking a plank for reps would block the finish button
         // on a number the row never offered.
@@ -974,6 +1109,17 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
     }
 
     _setLogs[templateId] = finalSet;
+    if ((isCompleted == true && oldLog.isCompleted != true) ||
+        duration != null ||
+        clearDuration) {
+      // Publish the resolved duration to the live row before awaiting PR and
+      // database work. Otherwise the completed checkmark can appear while the
+      // time cell still shows its pre-timer value until a later rebuild.
+      if (isCompleted == true && oldLog.isCompleted != true) {
+        _fillControllersFromSet(templateId, finalSet);
+      }
+      notifyListeners();
+    }
     if (finalSet.rir != oldLog.rir) {
       rirControllers[templateId]?.text = finalSet.rir?.toString() ?? '';
     }
@@ -1002,8 +1148,6 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
     await _repository.updateSetLogs([_setLogs[templateId]!]);
 
     if (isCompleted == true && oldLog.isCompleted != true) {
-      _fillControllersFromSet(templateId, finalSet);
-
       _applyRestAfterCompletion(templateId);
       final next = _nextOpenSet();
       _autoAdvanceExerciseIndex = next?.exerciseIndex;
@@ -1872,6 +2016,12 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
       }
 
       _workoutDurationTimer?.cancel();
+      _setTimerTicker?.cancel();
+      _activeSetTimerId = null;
+      _setTimerStartedAt = null;
+      _setTimerBaseSeconds = 0;
+      _pausedSetTimerId = null;
+      _pausedSetTimerElapsedSeconds = 0;
       _restTimer?.cancel();
       _restDoneBannerTimer?.cancel();
       _showRestDone = false;
@@ -1916,6 +2066,12 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
 
   Future<void> clearLocalSessionState() async {
     _workoutDurationTimer?.cancel();
+    _setTimerTicker?.cancel();
+    _activeSetTimerId = null;
+    _setTimerStartedAt = null;
+    _setTimerBaseSeconds = 0;
+    _pausedSetTimerId = null;
+    _pausedSetTimerElapsedSeconds = 0;
     _restTimer?.cancel();
     _restDoneBannerTimer?.cancel();
     _cancelRestSound();
@@ -1976,6 +2132,7 @@ class LiveWorkoutViewModel extends ChangeNotifier with WidgetsBindingObserver {
     _restTimer?.cancel();
     _restDoneBannerTimer?.cancel();
     _workoutDurationTimer?.cancel();
+    _setTimerTicker?.cancel();
     _prEventsController.close();
     disposeControllers();
     if (_registerLifecycleObserver) {

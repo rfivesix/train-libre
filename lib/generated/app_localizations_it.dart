@@ -8145,4 +8145,13 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get estimatedOneRepMaxInfoDetails =>
       'Train Libre stima il massimale per una ripetizione (1RM) dal carico effettivo della serie usando la formula di Brzycki: 1RM = carico effettivo × (36 / (37 − ripetizioni)). Le serie oltre 12 ripetizioni non vengono utilizzate. È comunque una stima; tecnica e prestazione individuali possono differire dal risultato.';
+
+  @override
+  String get setTimerStart => 'Avvia timer';
+
+  @override
+  String get setTimerRunning => 'Timer in corso';
+
+  @override
+  String get setTimerStop => 'Ferma timer';
 }

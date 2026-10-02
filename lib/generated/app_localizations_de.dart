@@ -8096,4 +8096,13 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get estimatedOneRepMaxInfoDetails =>
       'Train Libre schätzt das Einwiederholungsmaximum (1RM) anhand der effektiven Satzlast mit der Brzycki-Formel: 1RM = effektive Last × (36 / (37 − Wiederholungen)). Sätze mit mehr als 12 Wiederholungen werden nicht verwendet. Der Wert bleibt eine Schätzung; individuelle Technik und Leistung können vom Ergebnis abweichen.';
+
+  @override
+  String get setTimerStart => 'Timer starten';
+
+  @override
+  String get setTimerRunning => 'Timer läuft';
+
+  @override
+  String get setTimerStop => 'Timer stoppen';
 }

@@ -8170,4 +8170,13 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get estimatedOneRepMaxInfoDetails =>
       'Train Libre estime le maximum sur une répétition (1RM) à partir de la charge effective de la série avec la formule de Brzycki : 1RM = charge effective × (36 / (37 − répétitions)). Les séries de plus de 12 répétitions ne sont pas prises en compte. Cela reste une estimation ; la technique et la performance individuelles peuvent différer du résultat.';
+
+  @override
+  String get setTimerStart => 'Démarrer le minuteur';
+
+  @override
+  String get setTimerRunning => 'Minuteur en cours';
+
+  @override
+  String get setTimerStop => 'Arrêter le minuteur';
 }

@@ -14065,6 +14065,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Train Libre estimates one-repetition maximum (1RM) from effective set load using the Brzycki formula: 1RM = effective load × (36 / (37 − repetitions)). Sets above 12 repetitions are not used. This remains an estimate; individual technique and performance can differ from the calculation.'**
   String get estimatedOneRepMaxInfoDetails;
+
+  /// No description provided for @setTimerStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Start timer'**
+  String get setTimerStart;
+
+  /// No description provided for @setTimerRunning.
+  ///
+  /// In en, this message translates to:
+  /// **'Timer running'**
+  String get setTimerRunning;
+
+  /// No description provided for @setTimerStop.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop timer'**
+  String get setTimerStop;
 }
 
 class _AppLocalizationsDelegate

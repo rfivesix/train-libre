@@ -92,6 +92,13 @@ import Foundation
         phase: .resting,
         restEndsAt: newEnd,
         restStartedAt: old.restStartedAt,
+        setTimerStartedAt: old.setTimerStartedAt,
+        setTimerDeadline: old.setTimerDeadline,
+        setTimerTemplateId: old.setTimerTemplateId,
+        setTimerElapsedSeconds: old.setTimerElapsedSeconds,
+        labelStartTimer: old.labelStartTimer,
+        labelStopTimer: old.labelStopTimer,
+        labelTimerRunning: old.labelTimerRunning,
         exerciseName: old.exerciseName,
         setPosition: old.setPosition,
         badge: old.badge,
@@ -101,7 +108,9 @@ import Foundation
         metricSeparator: old.metricSeparator,
         compactPrimary: old.compactPrimary,
         compactSecondary: old.compactSecondary,
-        canCompleteSet: old.canCompleteSet
+        canCompleteSet: old.canCompleteSet || old.setTimerStartedAt != nil ||
+          (old.setTimerElapsedSeconds ?? 0) > 0,
+        upcomingSets: old.upcomingSets
       )
 
       LiveActivityCommandStore.writeRestEndsAt(newEnd)
@@ -133,6 +142,13 @@ import Foundation
         phase: .setPending,
         restEndsAt: nil,
         restStartedAt: nil,
+        setTimerStartedAt: old.setTimerStartedAt,
+        setTimerDeadline: old.setTimerDeadline,
+        setTimerTemplateId: old.setTimerTemplateId,
+        setTimerElapsedSeconds: old.setTimerElapsedSeconds,
+        labelStartTimer: old.labelStartTimer,
+        labelStopTimer: old.labelStopTimer,
+        labelTimerRunning: old.labelTimerRunning,
         exerciseName: old.exerciseName,
         setPosition: old.setPosition,
         badge: old.badge,
@@ -142,7 +158,9 @@ import Foundation
         metricSeparator: old.metricSeparator,
         compactPrimary: old.compactPrimary,
         compactSecondary: old.compactSecondary,
-        canCompleteSet: old.canCompleteSet
+        canCompleteSet: old.canCompleteSet || old.setTimerStartedAt != nil ||
+          (old.setTimerElapsedSeconds ?? 0) > 0,
+        upcomingSets: old.upcomingSets
       )
 
       LiveActivityCommandStore.writeRestEndsAt(nil)
@@ -153,15 +171,81 @@ import Foundation
     }
   }
 
-  /// The checkmark. Completing a set is a database write, and this intent runs
-  /// in a process that has no access to the drift database — so it records the
-  /// intent and hands over to the app, which applies it and recomputes the
-  /// next set.
+  @available(iOS 17.0, *)
+  struct StartSetTimerIntent: LiveActivityIntent {
+    static var title: LocalizedStringResource = "Start set timer"
+    static var isDiscoverable: Bool = false
+    init() {}
+
+    func perform() async throws -> some IntentResult {
+      guard let activity = LiveActivityUpdater.current else { return .result() }
+      let old = activity.content.state
+      guard let templateId = old.setTimerTemplateId else { return .result() }
+      let startedAt = Date()
+      let elapsed = old.setTimerElapsedSeconds ?? 0
+      let next = WorkoutActivityAttributes.ContentState(
+        phase: old.phase, restEndsAt: old.restEndsAt, restStartedAt: old.restStartedAt,
+        setTimerStartedAt: startedAt.addingTimeInterval(-TimeInterval(elapsed)),
+        setTimerDeadline: nil,
+        setTimerTemplateId: templateId, setTimerElapsedSeconds: elapsed,
+        labelStartTimer: old.labelStartTimer, labelStopTimer: old.labelStopTimer,
+        labelTimerRunning: old.labelTimerRunning,
+        exerciseName: old.exerciseName, setPosition: old.setPosition, badge: old.badge,
+        metricPrimary: old.metricPrimary, metricSecondary: old.metricSecondary,
+        metricTertiary: old.metricTertiary, metricSeparator: old.metricSeparator,
+        compactPrimary: old.compactPrimary, compactSecondary: old.compactSecondary,
+        canCompleteSet: true,
+        upcomingSets: old.upcomingSets
+      )
+      LiveActivityCommandStore.enqueue("startSetTimer", payload: [
+        "templateId": templateId,
+        "startedAtEpochMs": Int64(startedAt.timeIntervalSince1970 * 1000),
+        "elapsedSeconds": elapsed,
+      ])
+      await LiveActivityUpdater.push(activity, next)
+      return .result()
+    }
+  }
+
+  @available(iOS 17.0, *)
+  struct StopSetTimerIntent: LiveActivityIntent {
+    static var title: LocalizedStringResource = "Stop set timer"
+    static var isDiscoverable: Bool = false
+    init() {}
+
+    func perform() async throws -> some IntentResult {
+      guard let activity = LiveActivityUpdater.current else { return .result() }
+      let old = activity.content.state
+      guard let templateId = old.setTimerTemplateId,
+            let startedAt = old.setTimerStartedAt else { return .result() }
+      let elapsed = max(0, Int(Date().timeIntervalSince(startedAt)))
+      let next = WorkoutActivityAttributes.ContentState(
+        phase: old.phase, restEndsAt: old.restEndsAt, restStartedAt: old.restStartedAt,
+        setTimerTemplateId: templateId, setTimerElapsedSeconds: elapsed,
+        labelStartTimer: old.labelStartTimer, labelStopTimer: old.labelStopTimer,
+        labelTimerRunning: old.labelTimerRunning,
+        exerciseName: old.exerciseName, setPosition: old.setPosition, badge: old.badge,
+        metricPrimary: old.metricPrimary, metricSecondary: old.metricSecondary,
+        metricTertiary: old.metricTertiary, metricSeparator: old.metricSeparator,
+        compactPrimary: old.compactPrimary, compactSecondary: old.compactSecondary,
+        canCompleteSet: old.canCompleteSet || elapsed > 0,
+        upcomingSets: old.upcomingSets
+      )
+      LiveActivityCommandStore.enqueue("stopSetTimer", payload: [
+        "templateId": templateId,
+        "elapsedSeconds": elapsed,
+      ])
+      await LiveActivityUpdater.push(activity, next)
+      return .result()
+    }
+  }
+
+  /// The checkmark. Queue the database write and update the activity without
+  /// foregrounding the app. The app applies queued changes when it next runs.
   @available(iOS 17.0, *)
   struct CompleteSetIntent: LiveActivityIntent {
     static var title: LocalizedStringResource = "Complete set"
     static var isDiscoverable: Bool = false
-    static var openAppWhenRun: Bool = true
 
     @Parameter(title: "Workout")
     var workoutLogId: Int
@@ -173,12 +257,69 @@ import Foundation
     }
 
     func perform() async throws -> some IntentResult {
-      // A new pause is started by the app once it applies the command.
+      guard let activity = LiveActivityUpdater.current else { return .result() }
+      let old = activity.content.state
+      var command: [String: Any] = ["workoutLogId": workoutLogId]
+      if let templateId = old.setTimerTemplateId,
+         old.setTimerStartedAt != nil || (old.setTimerElapsedSeconds ?? 0) > 0 {
+        let elapsed: Int
+        if let startedAt = old.setTimerStartedAt {
+          elapsed = max(0, Int(Date().timeIntervalSince(startedAt)))
+        } else {
+          elapsed = old.setTimerElapsedSeconds ?? 0
+        }
+        command["timerTemplateId"] = templateId
+        command["elapsedSeconds"] = elapsed
+      }
+      LiveActivityCommandStore.enqueue("completeSet", payload: command)
       RestSoundScheduler.cancel()
-      LiveActivityCommandStore.enqueue(
-        "completeSet",
-        payload: ["workoutLogId": workoutLogId]
-      )
+
+      var upcoming = old.upcomingSets
+      let nextState: WorkoutActivityAttributes.ContentState
+      if !upcoming.isEmpty {
+        let next = upcoming.removeFirst()
+        nextState = WorkoutActivityAttributes.ContentState(
+          phase: .setPending,
+          restEndsAt: nil,
+          restStartedAt: nil,
+          setTimerTemplateId: next.setTimerTemplateId,
+          setTimerElapsedSeconds: 0,
+          labelStartTimer: old.labelStartTimer,
+          labelStopTimer: old.labelStopTimer,
+          labelTimerRunning: old.labelTimerRunning,
+          exerciseName: next.exerciseName,
+          setPosition: next.setPosition,
+          badge: WorkoutSetBadge(text: next.badgeText, colorHex: next.badgeColorHex),
+          metricPrimary: next.metricPrimary,
+          metricSecondary: next.metricSecondary,
+          metricTertiary: next.metricTertiary,
+          metricSeparator: next.metricSeparator,
+          compactPrimary: next.compactPrimary,
+          compactSecondary: next.compactSecondary,
+          canCompleteSet: next.canCompleteSet,
+          upcomingSets: upcoming
+        )
+      } else {
+        nextState = WorkoutActivityAttributes.ContentState(
+          phase: .noSetsLeft,
+          restEndsAt: nil,
+          restStartedAt: nil,
+          labelStartTimer: old.labelStartTimer,
+          labelStopTimer: old.labelStopTimer,
+          labelTimerRunning: old.labelTimerRunning,
+          exerciseName: old.exerciseName,
+          setPosition: old.setPosition,
+          badge: old.badge,
+          metricPrimary: old.metricPrimary,
+          metricSecondary: old.metricSecondary,
+          metricTertiary: old.metricTertiary,
+          metricSeparator: old.metricSeparator,
+          compactPrimary: old.compactPrimary,
+          compactSecondary: old.compactSecondary,
+          canCompleteSet: false
+        )
+      }
+      await LiveActivityUpdater.push(activity, nextState)
       return .result()
     }
   }

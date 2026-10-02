@@ -7739,4 +7739,13 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String get estimatedOneRepMaxInfoDetails =>
       'Train LibreはBrzycki式を使い、セットの実効負荷から1回最大重量（1RM）を推定します。式は 1RM = 実効負荷 × (36 / (37 − 回数)) です。13回以上のセットは使用しません。あくまで推定値であり、個人のフォームやパフォーマンスによって結果は異なります。';
+
+  @override
+  String get setTimerStart => 'タイマーを開始';
+
+  @override
+  String get setTimerRunning => 'タイマー実行中';
+
+  @override
+  String get setTimerStop => 'タイマーを停止';
 }

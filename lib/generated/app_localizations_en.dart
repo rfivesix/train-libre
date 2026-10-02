@@ -8035,4 +8035,13 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get estimatedOneRepMaxInfoDetails =>
       'Train Libre estimates one-repetition maximum (1RM) from effective set load using the Brzycki formula: 1RM = effective load × (36 / (37 − repetitions)). Sets above 12 repetitions are not used. This remains an estimate; individual technique and performance can differ from the calculation.';
+
+  @override
+  String get setTimerStart => 'Start timer';
+
+  @override
+  String get setTimerRunning => 'Timer running';
+
+  @override
+  String get setTimerStop => 'Stop timer';
 }

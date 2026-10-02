@@ -20,6 +20,9 @@ const _strings = WorkoutLiveActivityStrings(
   openApp: 'App öffnen',
   skip: 'Skip',
   overduePrefix: 'überfällig seit',
+  startTimer: 'Timer starten',
+  stopTimer: 'Timer stoppen',
+  timerRunning: 'Timer läuft',
   restDoneTitle: 'Pause beendet',
   restDoneBody: 'Weiter geht es.',
 );
@@ -86,6 +89,9 @@ WorkoutLiveActivityContent _build({
   required Map<int, SetLog> setLogs,
   DateTime? restEndsAt,
   DateTime? restStartedAt,
+  int? setTimerTemplateId,
+  DateTime? setTimerStartedAt,
+  int setTimerElapsedSeconds = 0,
   UnitService? unitService,
 }) =>
     buildWorkoutLiveActivityContent(
@@ -96,6 +102,9 @@ WorkoutLiveActivityContent _build({
       localeName: 'de',
       restEndsAt: restEndsAt,
       restStartedAt: restStartedAt,
+      setTimerTemplateId: setTimerTemplateId,
+      setTimerStartedAt: setTimerStartedAt,
+      setTimerElapsedSeconds: setTimerElapsedSeconds,
     );
 
 void main() {
@@ -211,6 +220,28 @@ void main() {
   });
 
   group('duration-based sets', () {
+    test('exposes the current timed set and elapsed timer to native UI', () {
+      final timedExercise = RoutineExercise(
+        id: 80,
+        exercise: _timedExercise(name: 'Plank'),
+        setTemplates: [SetTemplate(id: 801, setType: 'normal')],
+      );
+      final started = DateTime(2026, 8, 9, 18, 0);
+      final content = _build(
+        exercises: [timedExercise],
+        setLogs: {801: _log(exerciseName: 'Plank', durationSeconds: 75)},
+        setTimerTemplateId: 801,
+        setTimerStartedAt: started,
+        setTimerElapsedSeconds: 0,
+      );
+
+      expect(content.setTimerTemplateId, 801);
+      expect(content.setTimerStartedAt, started);
+      expect(content.setTimerDeadline, isNull);
+      expect(content.setTimerElapsedSeconds, 0);
+      expect(content.canCompleteSet, isTrue);
+    });
+
     test('uses a duration rather than a reps metric outside Cardio', () {
       final timedExercise = RoutineExercise(
         id: 80,
@@ -230,6 +261,30 @@ void main() {
       expect(content.metricSeparator, '·');
       expect(content.badgeText, isEmpty);
       expect(content.canCompleteSet, isTrue);
+    });
+
+    test('includes following sets so the Live Activity can advance in place',
+        () {
+      final timedExercise = RoutineExercise(
+        id: 80,
+        exercise: _timedExercise(name: 'Plank'),
+        setTemplates: [
+          SetTemplate(id: 801, setType: 'normal'),
+          SetTemplate(id: 802, setType: 'normal'),
+        ],
+      );
+      final content = _build(
+        exercises: [timedExercise],
+        setLogs: {
+          801: _log(exerciseName: 'Plank'),
+          802: _log(exerciseName: 'Plank'),
+        },
+      );
+
+      expect(content.setTimerTemplateId, 801);
+      expect(content.upcomingSets, hasLength(1));
+      expect(content.upcomingSets.single.setTimerTemplateId, 802);
+      expect(content.upcomingSets.single.setPosition, 'Satz 2 von 2');
     });
 
     test('time plus weight keeps both metrics and never falls back to reps',

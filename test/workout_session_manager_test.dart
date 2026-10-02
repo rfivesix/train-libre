@@ -130,6 +130,93 @@ void main() {
       expect(manager.setLogs[1002]!.reps, isNull);
     });
 
+    test('timed set starts at zero, pauses, resumes, and saves total time',
+        () async {
+      final log = await workoutDb.startWorkout(routineName: 'Timed session');
+      const timedExercise = model.Exercise(
+        id: 2,
+        texts: {
+          'de': model.ExerciseText(name: 'Plank', description: ''),
+          'en': model.ExerciseText(name: 'Plank', description: ''),
+        },
+        categoryName: 'Strength',
+        trackingType: 'time',
+        primaryMuscles: [],
+        secondaryMuscles: [],
+      );
+      await manager.startWorkout(
+        log,
+        [
+          RoutineExercise(
+            id: 200,
+            exercise: timedExercise,
+            setTemplates: [SetTemplate(id: 2001, setType: 'normal')],
+          ),
+        ],
+      );
+      await _waitFor(() => manager.setLogs.containsKey(2001));
+      await manager.updateSet(2001, duration: 1);
+
+      manager.startSetTimer(2001);
+      expect(manager.activeSetTimerId, 2001);
+      expect(manager.setTimerElapsedSeconds(2001), 0);
+      await Future<void>.delayed(const Duration(milliseconds: 1200));
+      await manager.stopSetTimer(2001);
+      final pausedSeconds = manager.setLogs[2001]!.durationSeconds!;
+      expect(pausedSeconds, greaterThanOrEqualTo(1));
+      expect(manager.activeSetTimerId, isNull);
+      expect(manager.setTimerElapsedSeconds(2001), pausedSeconds);
+
+      await Future<void>.delayed(const Duration(milliseconds: 1100));
+      expect(manager.setTimerElapsedSeconds(2001), pausedSeconds,
+          reason: 'a paused timer must remain still');
+
+      manager.startSetTimer(2001);
+      await Future<void>.delayed(const Duration(milliseconds: 1100));
+      expect(manager.setTimerElapsedSeconds(2001), greaterThan(pausedSeconds));
+
+      await manager.completeTimedSet(2001);
+      final saved = manager.setLogs[2001]!;
+      expect(saved.isCompleted, isTrue);
+      expect(saved.durationSeconds, greaterThanOrEqualTo(1));
+      expect(manager.activeSetTimerId, isNull);
+    });
+
+    test(
+        'timed set completed from a background action saves its tapped duration',
+        () async {
+      final log = await workoutDb.startWorkout(routineName: 'Timed action');
+      const timedExercise = model.Exercise(
+        id: 22,
+        texts: {
+          'de': model.ExerciseText(name: 'Plank', description: ''),
+          'en': model.ExerciseText(name: 'Plank', description: ''),
+        },
+        categoryName: 'Strength',
+        trackingType: 'time',
+        primaryMuscles: [],
+        secondaryMuscles: [],
+      );
+      await manager.startWorkout(
+        log,
+        [
+          RoutineExercise(
+            id: 220,
+            exercise: timedExercise,
+            setTemplates: [SetTemplate(id: 2201, setType: 'normal')],
+          ),
+        ],
+      );
+      await _waitFor(() => manager.setLogs.containsKey(2201));
+
+      // The native Live Activity may outlive the Flutter process. On restore,
+      // the completion command carries the duration measured at the tap.
+      await manager.completeTimedSet(2201, elapsedSeconds: 63);
+
+      expect(manager.setLogs[2201]!.isCompleted, isTrue);
+      expect(manager.setLogs[2201]!.durationSeconds, 63);
+    });
+
     test('currentExerciseNameFor names the exercise of the next open set',
         () async {
       final log = await workoutDb.startWorkout(routineName: 'Session');

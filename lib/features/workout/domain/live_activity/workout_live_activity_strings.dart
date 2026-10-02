@@ -27,6 +27,9 @@ class WorkoutLiveActivityStrings {
   /// Leading half of „seit 0:47 überfällig" — the counter itself is rendered
   /// by SwiftUI and appended after this text.
   final String overduePrefix;
+  final String startTimer;
+  final String stopTimer;
+  final String timerRunning;
 
   /// Title and body of the "rest is over" sound notification. Scheduled
   /// natively while a Live Activity is running, so the text has to
@@ -45,6 +48,9 @@ class WorkoutLiveActivityStrings {
     required this.openApp,
     required this.skip,
     required this.overduePrefix,
+    required this.startTimer,
+    required this.stopTimer,
+    required this.timerRunning,
     required this.restDoneTitle,
     required this.restDoneBody,
   });

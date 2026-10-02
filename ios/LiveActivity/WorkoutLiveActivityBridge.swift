@@ -75,11 +75,12 @@ final class WorkoutLiveActivityBridge {
         ActivityAuthorizationInfo().areActivitiesEnabled,
         let args,
         let attributes = Self.attributes(from: args),
-        let state = Self.contentState(from: args)
+        let unboundedState = Self.contentState(from: args)
       else {
         result(false)
         return
       }
+      let state = Self.fittingContentState(unboundedState)
 
       Task {
         // A workout that was never ended (crash, force quit) would otherwise
@@ -120,12 +121,13 @@ final class WorkoutLiveActivityBridge {
       }
       guard
         let args,
-        let state = Self.contentState(from: args),
+        let unboundedState = Self.contentState(from: args),
         let activity = Self.activity(withId: currentActivityId)
       else {
         result(false)
         return
       }
+      let state = Self.fittingContentState(unboundedState)
 
       Task {
         // staleDate is what makes the overdue state (S3) appear while the app
@@ -186,6 +188,21 @@ final class WorkoutLiveActivityBridge {
     UserDefaults(suiteName: TrainLibreLiveActivity.appGroupId)
   }
 
+  /// Keep enough room for ActivityKit's envelope around a ContentState. The
+  /// UI only needs the first future sets to advance in place, so drop the tail
+  /// until the encoded state fits instead of failing to start the activity.
+  private static func fittingContentState(
+    _ initial: WorkoutActivityAttributes.ContentState
+  ) -> WorkoutActivityAttributes.ContentState {
+    var state = initial
+    while !state.upcomingSets.isEmpty,
+          let size = try? JSONEncoder().encode(state).count,
+          size > 3_200 {
+      state = state.replacingUpcomingSets(Array(state.upcomingSets.dropLast()))
+    }
+    return state
+  }
+
   /// Returns and clears the commands that Live Activity buttons produced while
   /// the app was not running. The app applies them and is then the single
   /// source of truth again.
@@ -238,6 +255,13 @@ final class WorkoutLiveActivityBridge {
         phase: phase,
         restEndsAt: date("restEndsAtEpochMs"),
         restStartedAt: date("restStartedAtEpochMs"),
+        setTimerStartedAt: date("setTimerStartedAtEpochMs"),
+        setTimerDeadline: date("setTimerDeadlineEpochMs"),
+        setTimerTemplateId: (args["setTimerTemplateId"] as? NSNumber)?.intValue,
+        setTimerElapsedSeconds: (args["setTimerElapsedSeconds"] as? NSNumber)?.intValue,
+        labelStartTimer: args["labelStartTimer"] as? String,
+        labelStopTimer: args["labelStopTimer"] as? String,
+        labelTimerRunning: args["labelTimerRunning"] as? String,
         exerciseName: args["exerciseName"] as? String ?? "",
         setPosition: args["setPosition"] as? String ?? "",
         badge: WorkoutSetBadge(
@@ -250,7 +274,9 @@ final class WorkoutLiveActivityBridge {
         metricSeparator: args["metricSeparator"] as? String ?? "×",
         compactPrimary: args["compactPrimary"] as? String ?? "",
         compactSecondary: args["compactSecondary"] as? String ?? "",
-        canCompleteSet: args["canCompleteSet"] as? Bool ?? false
+        canCompleteSet: args["canCompleteSet"] as? Bool ?? false,
+        upcomingSets: (args["upcomingSets"] as? [[String: Any]] ?? [])
+          .map(WorkoutActivitySetSnapshot.init(dictionary:))
       )
     }
   #endif

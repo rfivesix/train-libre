@@ -426,6 +426,9 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
         // (such as German "Überspringen") would wrap to two lines.
         skip: l10n.liveActivitySkipShort,
         overduePrefix: l10n.liveActivityOverdueLabel,
+        startTimer: l10n.setTimerStart,
+        stopTimer: l10n.setTimerStop,
+        timerRunning: l10n.setTimerRunning,
         restDoneTitle: l10n.restTimerNotificationTitle,
         restDoneBody: l10n.restTimerNotificationBody,
       ),

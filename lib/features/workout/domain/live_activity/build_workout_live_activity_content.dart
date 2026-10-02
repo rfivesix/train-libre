@@ -35,6 +35,12 @@ WorkoutLiveActivityContent buildWorkoutLiveActivityContent({
   required String localeName,
   DateTime? restEndsAt,
   DateTime? restStartedAt,
+  int? setTimerTemplateId,
+  DateTime? setTimerStartedAt,
+  int setTimerElapsedSeconds = 0,
+  String labelStartTimer = '',
+  String labelStopTimer = '',
+  String labelTimerRunning = '',
 }) {
   final next = _findNextSet(exercises, setLogs);
 
@@ -71,6 +77,18 @@ WorkoutLiveActivityContent buildWorkoutLiveActivityContent({
         : WorkoutLiveActivityPhase.setPending,
     restEndsAt: restEndsAt,
     restStartedAt: restStartedAt,
+    setTimerStartedAt:
+        setTimerTemplateId == next.templateId ? setTimerStartedAt : null,
+    setTimerDeadline: null,
+    setTimerTemplateId: isDurationBased &&
+            (setTimerTemplateId == null ||
+                setTimerTemplateId == next.templateId)
+        ? next.templateId
+        : null,
+    setTimerElapsedSeconds: isDurationBased ? setTimerElapsedSeconds : 0,
+    labelStartTimer: labelStartTimer,
+    labelStopTimer: labelStopTimer,
+    labelTimerRunning: labelTimerRunning,
     exerciseName: next.localizedName(_languageCode(localeName)),
     setPosition:
         strings.setPosition(next.indexInExercise, next.totalInExercise),
@@ -84,8 +102,56 @@ WorkoutLiveActivityContent buildWorkoutLiveActivityContent({
     metricSeparator: metrics.separator,
     compactPrimary: metrics.compactPrimary,
     compactSecondary: metrics.compactSecondary,
-    canCompleteSet: metrics.complete,
+    canCompleteSet:
+        metrics.complete || (isDurationBased && setTimerStartedAt != null),
+    upcomingSets: _upcomingSetSnapshots(
+      current: next,
+      exercises: exercises,
+      setLogs: setLogs,
+      unitService: unitService,
+      strings: strings,
+      localeName: localeName,
+    ),
   );
+}
+
+List<WorkoutLiveActivitySetSnapshot> _upcomingSetSnapshots({
+  required _NextSet current,
+  required List<RoutineExercise> exercises,
+  required Map<int, SetLog> setLogs,
+  required UnitService unitService,
+  required WorkoutLiveActivityStrings strings,
+  required String localeName,
+}) {
+  final upcoming = <WorkoutLiveActivitySetSnapshot>[];
+  final simulatedLogs = Map<int, SetLog>.of(setLogs)
+    ..[current.templateId] = current.log.copyWith(isCompleted: true);
+  while (upcoming.length < 30) {
+    final next = _findNextSet(exercises, simulatedLogs);
+    if (next == null) break;
+    final mask = ExerciseLogMask.forExercise(next.exercise.exercise);
+    final metrics = mask.logsDuration
+        ? _durationMetrics(next, mask, unitService, strings, localeName)
+        : _strengthMetrics(next, unitService, strings, localeName);
+    upcoming.add(WorkoutLiveActivitySetSnapshot(
+      exerciseName: next.localizedName(_languageCode(localeName)),
+      setPosition:
+          strings.setPosition(next.indexInExercise, next.totalInExercise),
+      badgeText: mask.logsDuration ? '' : _badgeText(next),
+      badgeColorHex:
+          mask.logsDuration ? _colorNeutral : _badgeColor(next.setType),
+      metricPrimary: metrics.primary,
+      metricSecondary: metrics.secondary,
+      metricTertiary: metrics.tertiary,
+      metricSeparator: metrics.separator,
+      compactPrimary: metrics.compactPrimary,
+      compactSecondary: metrics.compactSecondary,
+      setTimerTemplateId: mask.logsDuration ? next.templateId : null,
+      canCompleteSet: metrics.complete,
+    ));
+    simulatedLogs[next.templateId] = next.log.copyWith(isCompleted: true);
+  }
+  return upcoming;
 }
 
 /// `localeName` arrives as a full language tag such as `de-DE`.
@@ -244,6 +310,7 @@ String _badgeColor(String setType) => switch (setType) {
     };
 
 class _NextSet {
+  final int templateId;
   final RoutineExercise exercise;
   final SetTemplate? template;
   final SetLog log;
@@ -251,6 +318,7 @@ class _NextSet {
   final int totalInExercise;
 
   const _NextSet({
+    required this.templateId,
     required this.exercise,
     required this.template,
     required this.log,
@@ -281,6 +349,7 @@ _NextSet? _findNextSet(
   if (log == null) return null;
 
   return _NextSet(
+    templateId: next.templateId,
     exercise: exercise,
     template: template,
     log: log,

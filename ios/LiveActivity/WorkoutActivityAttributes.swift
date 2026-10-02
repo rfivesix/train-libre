@@ -25,6 +25,103 @@ public enum TrainLibreLiveActivity {
 
 #if canImport(ActivityKit)
 
+  public struct WorkoutActivitySetSnapshot: Codable, Hashable {
+    public let exerciseName: String
+    public let setPosition: String
+    public let badgeText: String
+    public let badgeColorHex: String
+    public let metricPrimary: String
+    public let metricSecondary: String
+    public let metricTertiary: String
+    public let metricSeparator: String
+    public let compactPrimary: String
+    public let compactSecondary: String
+    public let setTimerTemplateId: Int?
+    public let canCompleteSet: Bool
+
+    public init(dictionary: [String: Any]) {
+      exerciseName = dictionary["exerciseName"] as? String ?? ""
+      setPosition = dictionary["setPosition"] as? String ?? ""
+      badgeText = dictionary["badgeText"] as? String ?? ""
+      badgeColorHex = dictionary["badgeColorHex"] as? String ?? "#8E8E93"
+      metricPrimary = dictionary["metricPrimary"] as? String ?? ""
+      metricSecondary = dictionary["metricSecondary"] as? String ?? ""
+      metricTertiary = dictionary["metricTertiary"] as? String ?? ""
+      metricSeparator = dictionary["metricSeparator"] as? String ?? "×"
+      compactPrimary = dictionary["compactPrimary"] as? String ?? ""
+      compactSecondary = dictionary["compactSecondary"] as? String ?? ""
+      setTimerTemplateId = (dictionary["setTimerTemplateId"] as? NSNumber)?.intValue
+      canCompleteSet = dictionary["canCompleteSet"] as? Bool ?? false
+    }
+
+    private enum CodingKeys: String, CodingKey {
+      case exerciseName
+      case setPosition
+      case badgeText
+      case badgeColorHex
+      case metricPrimary
+      case metricSecondary
+      case metricTertiary
+      case metricSeparator
+      case compactPrimary
+      case compactSecondary
+      case setTimerTemplateId
+      case canCompleteSet
+    }
+
+    /// Decode object snapshots written by earlier builds, then encode the
+    /// stable field order as an array. ActivityKit's content-state limit is
+    /// small; repeating twelve JSON property names for each future set made a
+    /// normal workout exceed it before the Live Activity could start.
+    public init(from decoder: Decoder) throws {
+      if let keyed = try? decoder.container(keyedBy: CodingKeys.self) {
+        exerciseName = try keyed.decode(String.self, forKey: .exerciseName)
+        setPosition = try keyed.decode(String.self, forKey: .setPosition)
+        badgeText = try keyed.decode(String.self, forKey: .badgeText)
+        badgeColorHex = try keyed.decode(String.self, forKey: .badgeColorHex)
+        metricPrimary = try keyed.decode(String.self, forKey: .metricPrimary)
+        metricSecondary = try keyed.decode(String.self, forKey: .metricSecondary)
+        metricTertiary = try keyed.decode(String.self, forKey: .metricTertiary)
+        metricSeparator = try keyed.decode(String.self, forKey: .metricSeparator)
+        compactPrimary = try keyed.decode(String.self, forKey: .compactPrimary)
+        compactSecondary = try keyed.decode(String.self, forKey: .compactSecondary)
+        setTimerTemplateId = try keyed.decodeIfPresent(Int.self, forKey: .setTimerTemplateId)
+        canCompleteSet = try keyed.decode(Bool.self, forKey: .canCompleteSet)
+        return
+      }
+
+      var unkeyed = try decoder.unkeyedContainer()
+      exerciseName = try unkeyed.decode(String.self)
+      setPosition = try unkeyed.decode(String.self)
+      badgeText = try unkeyed.decode(String.self)
+      badgeColorHex = try unkeyed.decode(String.self)
+      metricPrimary = try unkeyed.decode(String.self)
+      metricSecondary = try unkeyed.decode(String.self)
+      metricTertiary = try unkeyed.decode(String.self)
+      metricSeparator = try unkeyed.decode(String.self)
+      compactPrimary = try unkeyed.decode(String.self)
+      compactSecondary = try unkeyed.decode(String.self)
+      setTimerTemplateId = try unkeyed.decodeIfPresent(Int.self)
+      canCompleteSet = try unkeyed.decode(Bool.self)
+    }
+
+    public func encode(to encoder: Encoder) throws {
+      var unkeyed = encoder.unkeyedContainer()
+      try unkeyed.encode(exerciseName)
+      try unkeyed.encode(setPosition)
+      try unkeyed.encode(badgeText)
+      try unkeyed.encode(badgeColorHex)
+      try unkeyed.encode(metricPrimary)
+      try unkeyed.encode(metricSecondary)
+      try unkeyed.encode(metricTertiary)
+      try unkeyed.encode(metricSeparator)
+      try unkeyed.encode(compactPrimary)
+      try unkeyed.encode(compactSecondary)
+      try unkeyed.encode(setTimerTemplateId)
+      try unkeyed.encode(canCompleteSet)
+    }
+  }
+
   /// The five states from `documentation/features/live_activity_workout.md`.
   ///
   /// `restOverdue` is never pushed by the app — it is derived in the view from
@@ -62,6 +159,13 @@ public enum TrainLibreLiveActivity {
       public let restEndsAt: Date?
       /// Start of the running rest period — only needed for the progress bar.
       public let restStartedAt: Date?
+      public let setTimerStartedAt: Date?
+      public let setTimerDeadline: Date?
+      public let setTimerTemplateId: Int?
+      public let setTimerElapsedSeconds: Int?
+      public let labelStartTimer: String?
+      public let labelStopTimer: String?
+      public let labelTimerRunning: String?
 
       public let exerciseName: String
       public let setPosition: String
@@ -84,11 +188,19 @@ public enum TrainLibreLiveActivity {
       /// The checkmark must never invent values, so it goes grey and only
       /// opens the app.
       public let canCompleteSet: Bool
+      public let upcomingSets: [WorkoutActivitySetSnapshot]
 
       public init(
         phase: WorkoutActivityPhase,
         restEndsAt: Date?,
         restStartedAt: Date?,
+        setTimerStartedAt: Date? = nil,
+        setTimerDeadline: Date? = nil,
+        setTimerTemplateId: Int? = nil,
+        setTimerElapsedSeconds: Int? = nil,
+        labelStartTimer: String? = nil,
+        labelStopTimer: String? = nil,
+        labelTimerRunning: String? = nil,
         exerciseName: String,
         setPosition: String,
         badge: WorkoutSetBadge,
@@ -98,11 +210,19 @@ public enum TrainLibreLiveActivity {
         metricSeparator: String,
         compactPrimary: String,
         compactSecondary: String,
-        canCompleteSet: Bool
+        canCompleteSet: Bool,
+        upcomingSets: [WorkoutActivitySetSnapshot] = []
       ) {
         self.phase = phase
         self.restEndsAt = restEndsAt
         self.restStartedAt = restStartedAt
+        self.setTimerStartedAt = setTimerStartedAt
+        self.setTimerDeadline = setTimerDeadline
+        self.setTimerTemplateId = setTimerTemplateId
+        self.setTimerElapsedSeconds = setTimerElapsedSeconds
+        self.labelStartTimer = labelStartTimer
+        self.labelStopTimer = labelStopTimer
+        self.labelTimerRunning = labelTimerRunning
         self.exerciseName = exerciseName
         self.setPosition = setPosition
         self.badge = badge
@@ -113,6 +233,35 @@ public enum TrainLibreLiveActivity {
         self.compactPrimary = compactPrimary
         self.compactSecondary = compactSecondary
         self.canCompleteSet = canCompleteSet
+        self.upcomingSets = upcomingSets
+      }
+
+      public func replacingUpcomingSets(
+        _ sets: [WorkoutActivitySetSnapshot]
+      ) -> ContentState {
+        ContentState(
+          phase: phase,
+          restEndsAt: restEndsAt,
+          restStartedAt: restStartedAt,
+          setTimerStartedAt: setTimerStartedAt,
+          setTimerDeadline: setTimerDeadline,
+          setTimerTemplateId: setTimerTemplateId,
+          setTimerElapsedSeconds: setTimerElapsedSeconds,
+          labelStartTimer: labelStartTimer,
+          labelStopTimer: labelStopTimer,
+          labelTimerRunning: labelTimerRunning,
+          exerciseName: exerciseName,
+          setPosition: setPosition,
+          badge: badge,
+          metricPrimary: metricPrimary,
+          metricSecondary: metricSecondary,
+          metricTertiary: metricTertiary,
+          metricSeparator: metricSeparator,
+          compactPrimary: compactPrimary,
+          compactSecondary: compactSecondary,
+          canCompleteSet: canCompleteSet,
+          upcomingSets: sets
+        )
       }
     }
 

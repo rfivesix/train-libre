@@ -41,6 +41,13 @@ While a rest timer runs, a control row appears beneath the set:
         [ −15s ]        1:07        [ +15s ]        [ Skip ]
 ```
 
+For a duration-based exercise, the set also carries its own timer controls. It
+starts at zero and counts up. Stop pauses the elapsed time, and Play resumes it;
+completing the set stores the accumulated duration. Start and stop are also
+available from the iOS Live Activity (interactive on iOS 17+) and Android
+workout Live Update. Those controls update the activity without foregrounding
+the app; their database commands are applied when the app next resumes.
+
 When there are no sets left the card offers **Add exercise**; if a workout is running with no
 exercises at all, it offers **Open app**. The workout is never finished from the card — that
 stays a deliberate action inside the app.
@@ -156,8 +163,8 @@ needs roughly one update per set.
 
 ## Known limits
 
-- **Android is not covered.** Live Activities are an iOS feature; the equivalent there is a
-  foreground-service notification and has not been built.
+- **Android uses its workout Live Update notification.** Its set timer runs in the notification
+  chronometer; system promotion to the Live Update surface depends on Android 16 and device policy.
 - **Cardio targets do not exist yet.** Routines store no planned duration or distance, so cardio
   sets stay empty until values are entered.
 - **The numbers cannot be edited from the card.** Weight and reps are shown as planned; changing
