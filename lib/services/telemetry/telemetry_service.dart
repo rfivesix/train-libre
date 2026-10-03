@@ -673,7 +673,7 @@ abstract class TelemetryService {
   Future<void> trackAiMealScanCompleted({
     required String requestId,
     required String provider,
-    required String latencyBucket,
+    required int durationSeconds,
     required bool success,
     String? errorCode,
     String? inputMode,
@@ -684,6 +684,18 @@ abstract class TelemetryService {
     bool? validationPassed,
     int? repairAttemptsCount,
     String? suggestedItemsCountBucket,
+    int? preparationSeconds,
+    int? providerSeconds,
+    int? validationSeconds,
+    int? repairSeconds,
+    int? revealSeconds,
+    bool? primaryFirstPassAccepted,
+    int? selectedValidationRoundsCount,
+    int? validationRunsTotalCount,
+    bool? repairLimitReached,
+    List<String>? firstPassIssueCategories,
+    bool? fastMode,
+    bool? hedgeStarted,
   });
 
   /// Event 12: voice_dictation_completed
@@ -698,7 +710,7 @@ abstract class TelemetryService {
   /// Event 13: ai_meal_correction_completed
   Future<void> trackAiMealCorrectionCompleted({
     required bool hasImages,
-    required String latencyBucket,
+    required int durationSeconds,
     required bool success,
     int? repairAttemptsCount,
     String? errorCode,

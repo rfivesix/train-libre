@@ -3,6 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; font-src 'self' data: https://cdn.jsdelivr.net; img-src 'self' data: https:; connect-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests;">
+  <meta http-equiv="X-Content-Type-Options" content="nosniff">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
   <meta name="description" content="Apple HealthKit and Health Connect bidirectional sync &amp; SQLite idempotency.">
   <title>Native Health Sync &amp; Export Pipeline | Train Libre Documentation</title>
   <link rel="canonical" href="https://trainlibre.com/docs/features/health-sync-export/">
@@ -26,47 +29,18 @@
   <link rel="stylesheet" href="../../../style.css">
   <link rel="stylesheet" href="../../docs.css">
 
+  <!-- Theme Script (Synchronous in head to prevent theme flash) -->
+  <script src="../../../theme.js"></script>
+
   <!-- KaTeX Auto-render Script -->
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js" defer></script>
-  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" defer onload="renderMathInElement(document.body, {
-    delimiters: [
-      {left: '$$', right: '$$', display: true},
-      {left: '$', right: '$', display: false}
-    ],
-    throwOnError: false
-  });"></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" defer></script>
 
   <!-- Mermaid.js for Architecture Diagrams -->
-  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
-  <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      if (typeof mermaid !== "undefined") {
-        const isDark = document.documentElement.getAttribute("data-theme") !== "light";
-        mermaid.initialize({
-          startOnLoad: true,
-          theme: isDark ? "dark" : "default",
-          themeVariables: isDark ? {
-            darkMode: true,
-            background: "#151815",
-            primaryColor: "#1b1f1b",
-            primaryTextColor: "#f4f6f4",
-            primaryBorderColor: "rgba(221, 255, 0, 0.4)",
-            lineColor: "#ddff00",
-            secondaryColor: "#151815",
-            tertiaryColor: "#0e100e"
-          } : {}
-        });
-      }
-    });
-  </script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js" defer></script>
 
-  <!-- Prevent Theme Flash -->
-  <script>
-    (function () {
-      const theme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: light)').matches ? "light" : "dark");
-      document.documentElement.setAttribute("data-theme", theme);
-    })();
-  </script>
+  <!-- Dedicated Docs Client Interactions -->
+  <script src="../../docs.js" defer></script>
 </head>
 <body class="docs-body">
   <div class="page">
@@ -176,7 +150,7 @@
 <p>To guarantee that each record is exported exactly once, the platform implements a hash-based tracking registry.</p>
 <h3 id="sqlite-schema-healthexportrecords" class="doc-h3">SQLite Schema: <code>health_export_records</code><a href="#sqlite-schema-healthexportrecords" class="header-anchor" aria-label="Link to section">#</a></h3>
 <p>Every successfully exported record is registered in a dedicated SQLite table managed via the Drift ORM:</p>
-<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">sql</span><button class="copy-btn" onclick="navigator.clipboard.writeText(this.closest('.code-block-wrapper').querySelector('code').innerText); this.textContent='Copied!'; setTimeout(()=>this.textContent='Copy', 1500);">Copy</button></div><pre><code class="language-sql">CREATE TABLE IF NOT EXISTS health_export_records (
+<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">sql</span><button class="copy-btn">Copy</button></div><pre><code class="language-sql">CREATE TABLE IF NOT EXISTS health_export_records (
     local_id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     id TEXT NOT NULL UNIQUE,
     platform TEXT NOT NULL,
@@ -195,12 +169,12 @@
 </ul>
 <h3 id="upsert-and-verification-mechanics" class="doc-h3">Upsert and Verification Mechanics<a href="#upsert-and-verification-mechanics" class="header-anchor" aria-label="Link to section">#</a></h3>
 <p>When writing records, the local data source handles conflicts gracefully via SQL upsert. This is executed using the following statement in <code>StepsLocalDataSource.markHealthExported</code>:</p>
-<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">sql</span><button class="copy-btn" onclick="navigator.clipboard.writeText(this.closest('.code-block-wrapper').querySelector('code').innerText); this.textContent='Copied!'; setTimeout(()=>this.textContent='Copy', 1500);">Copy</button></div><pre><code class="language-sql">INSERT INTO health_export_records (id, platform, domain, idempotency_key, exported_at)
+<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">sql</span><button class="copy-btn">Copy</button></div><pre><code class="language-sql">INSERT INTO health_export_records (id, platform, domain, idempotency_key, exported_at)
 VALUES (lower(hex(randomblob(16))), ?, ?, ?, ?)
 ON CONFLICT(platform, domain, idempotency_key) DO UPDATE SET
   exported_at = excluded.exported_at;</code></pre></div>
 <p>Before passing payloads to the native adapter, the service queries the database to filter out already-exported items. The verification lookup matches keys in batches using <code>getExportedHealthKeys</code>:</p>
-<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">sql</span><button class="copy-btn" onclick="navigator.clipboard.writeText(this.closest('.code-block-wrapper').querySelector('code').innerText); this.textContent='Copied!'; setTimeout(()=>this.textContent='Copy', 1500);">Copy</button></div><pre><code class="language-sql">SELECT idempotency_key
+<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">sql</span><button class="copy-btn">Copy</button></div><pre><code class="language-sql">SELECT idempotency_key
 FROM health_export_records
 WHERE platform = ?
   AND domain = ?
@@ -216,7 +190,7 @@ WHERE platform = ?
 <ol class="doc-list">
 <li><strong>Calculate Total Steps per Source</strong>:</li>
 </ol>
-<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">sql</span><button class="copy-btn" onclick="navigator.clipboard.writeText(this.closest('.code-block-wrapper').querySelector('code').innerText); this.textContent='Copied!'; setTimeout(()=>this.textContent='Copy', 1500);">Copy</button></div><pre><code class="language-sql">    WITH source_totals AS (
+<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">sql</span><button class="copy-btn">Copy</button></div><pre><code class="language-sql">    WITH source_totals AS (
       SELECT
         COALESCE(source_id, &#x27;&#x27;) AS source_key,
         SUM(step_count) AS source_total
@@ -228,7 +202,7 @@ WHERE platform = ?
 <ol class="doc-list">
 <li><strong>Select Dominant Source</strong>:</li>
 </ol>
-<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">sql</span><button class="copy-btn" onclick="navigator.clipboard.writeText(this.closest('.code-block-wrapper').querySelector('code').innerText); this.textContent='Copied!'; setTimeout(()=>this.textContent='Copy', 1500);">Copy</button></div><pre><code class="language-sql">    dominant_source AS (
+<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">sql</span><button class="copy-btn">Copy</button></div><pre><code class="language-sql">    dominant_source AS (
       SELECT source_key
       FROM source_totals
       ORDER BY source_total DESC, source_key ASC
@@ -238,7 +212,7 @@ WHERE platform = ?
 <ol class="doc-list">
 <li><strong>Aggregate Hourly for Dominant Source</strong>:</li>
 </ol>
-<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">sql</span><button class="copy-btn" onclick="navigator.clipboard.writeText(this.closest('.code-block-wrapper').querySelector('code').innerText); this.textContent='Copied!'; setTimeout(()=>this.textContent='Copy', 1500);">Copy</button></div><pre><code class="language-sql">    SELECT
+<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">sql</span><button class="copy-btn">Copy</button></div><pre><code class="language-sql">    SELECT
       CAST(strftime(&#x27;%H&#x27;, datetime(start_at, &#x27;unixepoch&#x27;, &#x27;localtime&#x27;)) AS INTEGER) AS hour_local,
       SUM(step_count) AS total_steps
     FROM health_step_segments
@@ -253,7 +227,7 @@ WHERE platform = ?
 <ol class="doc-list">
 <li><strong>Calculate Hourly Sums per Source</strong>:</li>
 </ol>
-<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">sql</span><button class="copy-btn" onclick="navigator.clipboard.writeText(this.closest('.code-block-wrapper').querySelector('code').innerText); this.textContent='Copied!'; setTimeout(()=>this.textContent='Copy', 1500);">Copy</button></div><pre><code class="language-sql">    WITH source_hour AS (
+<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">sql</span><button class="copy-btn">Copy</button></div><pre><code class="language-sql">    WITH source_hour AS (
       SELECT
         CAST(strftime(&#x27;%H&#x27;, datetime(start_at, &#x27;unixepoch&#x27;, &#x27;localtime&#x27;)) AS INTEGER) AS hour_local,
         COALESCE(source_id, &#x27;&#x27;) AS source_key,
@@ -266,7 +240,7 @@ WHERE platform = ?
 <ol class="doc-list">
 <li><strong>Select Max Source Volume per Hour</strong>:</li>
 </ol>
-<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">sql</span><button class="copy-btn" onclick="navigator.clipboard.writeText(this.closest('.code-block-wrapper').querySelector('code').innerText); this.textContent='Copied!'; setTimeout(()=>this.textContent='Copy', 1500);">Copy</button></div><pre><code class="language-sql">    SELECT hour_local, MAX(source_steps) AS total_steps
+<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">sql</span><button class="copy-btn">Copy</button></div><pre><code class="language-sql">    SELECT hour_local, MAX(source_steps) AS total_steps
     FROM source_hour
     GROUP BY hour_local
     ORDER BY hour_local ASC;
@@ -274,7 +248,7 @@ WHERE platform = ?
 <hr class="divider">
 <h2 id="export-execution-lifecycle" class="doc-h2">Export Execution Lifecycle<a href="#export-execution-lifecycle" class="header-anchor" aria-label="Link to section">#</a></h2>
 <p>The export loop is orchestrated by <code>HealthExportService</code> and involves a highly defensive multi-stage execution pipeline:</p>
-<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">text</span><button class="copy-btn" onclick="navigator.clipboard.writeText(this.closest('.code-block-wrapper').querySelector('code').innerText); this.textContent='Copied!'; setTimeout(()=>this.textContent='Copy', 1500);">Copy</button></div><pre><code>[Request Export] 
+<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">text</span><button class="copy-btn">Copy</button></div><pre><code>[Request Export] 
        │
        ▼
 [Verify Platform Support &amp; Permissions] ──(Not Configured)──► [Abort &amp; Set Disabled]
@@ -310,7 +284,7 @@ WHERE platform = ?
 <p>To avoid loading the entire database history for every export, <code>HealthExportService</code> reads the platform's historical execution state from <code>SharedPreferences</code>. The system tracks a separate <code>lastSuccessfulExportAtUtc</code> timestamp for each independent domain (<code>measurements</code>, <code>nutritionHydration</code>, <code>workouts</code>). <em>   If a checkpoint exists for a domain, only logs added or updated </em>after<em> that timestamp are retrieved for export. </em>   If a checkpoint is null (e.g., first sync or state reset), a full historical backfill is scheduled <em>only</em> for that specific domain. This ensures that a failure in one domain does not force other healthy domains to re-export their entire histories.</p>
 <h3 id="3-record-batching-chunking" class="doc-h3">3. Record Batching (Chunking)<a href="#3-record-batching-chunking" class="header-anchor" aria-label="Link to section">#</a></h3>
 <p>Native OS APIs impose strict bounds on payload sizes to prevent memory spikes and thread starvation. <code>HealthExportService</code> partitions all outbound arrays into batches of up to <code>1000</code> records (<code>maxWriteBatchSize</code>):</p>
-<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">dart</span><button class="copy-btn" onclick="navigator.clipboard.writeText(this.closest('.code-block-wrapper').querySelector('code').innerText); this.textContent='Copied!'; setTimeout(()=>this.textContent='Copy', 1500);">Copy</button></div><pre><code class="language-dart">List&lt;List&lt;T&gt;&gt; _chunkRecords&lt;T&gt;(List&lt;T&gt; records) {
+<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">dart</span><button class="copy-btn">Copy</button></div><pre><code class="language-dart">List&lt;List&lt;T&gt;&gt; _chunkRecords&lt;T&gt;(List&lt;T&gt; records) {
   if (records.isEmpty) return &lt;List&lt;T&gt;&gt;[];
   final chunks = &lt;List&lt;T&gt;&gt;[];
   for (var i = 0; i &lt; records.length; i += maxWriteBatchSize) {
@@ -396,93 +370,5 @@ WHERE platform = ?
       </div>
     </footer>
   </div>
-
-  <!-- Documentation Interactions Script -->
-  <script>
-    // Theme toggle interaction
-    const themeBtn = document.getElementById("theme-toggle");
-    if (themeBtn) {
-      themeBtn.addEventListener("click", () => {
-        const current = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
-        document.documentElement.setAttribute("data-theme", current);
-        localStorage.setItem("theme", current);
-        if (typeof mermaid !== "undefined") {
-          const mNodes = document.querySelectorAll(".mermaid");
-          if (mNodes.length > 0) {
-            mNodes.forEach(node => {
-              if (node.hasAttribute("data-mermaid")) {
-                node.removeAttribute("data-processed");
-                node.innerHTML = node.getAttribute("data-mermaid");
-              }
-            });
-            mermaid.initialize({
-              startOnLoad: false,
-              theme: current === "light" ? "default" : "dark"
-            });
-            mermaid.run();
-          }
-        }
-      });
-    }
-
-    // Mobile sidebar toggle
-    const sidebarToggle = document.getElementById("sidebar-toggle");
-    const sidebar = document.getElementById("docs-sidebar");
-    if (sidebarToggle && sidebar) {
-      sidebarToggle.addEventListener("click", () => {
-        const expanded = sidebar.classList.toggle("open");
-        sidebarToggle.setAttribute("aria-expanded", expanded);
-      });
-
-      document.addEventListener("click", (e) => {
-        if (sidebar.classList.contains("open") && !sidebar.contains(e.target) && !sidebarToggle.contains(e.target)) {
-          sidebar.classList.remove("open");
-          sidebarToggle.setAttribute("aria-expanded", "false");
-        }
-      });
-    }
-
-    // Sidebar filter/search
-    const filterInput = document.getElementById("sidebar-filter");
-    if (filterInput) {
-      filterInput.addEventListener("input", (e) => {
-        const val = e.target.value.toLowerCase().trim();
-        document.querySelectorAll(".sidebar-nav-list li").forEach(li => {
-          const text = li.textContent.toLowerCase();
-          li.style.display = text.includes(val) ? "" : "none";
-        });
-        document.querySelectorAll(".sidebar-group").forEach(group => {
-          const hasVisible = Array.from(group.querySelectorAll("li")).some(li => li.style.display !== "none");
-          group.style.display = hasVisible ? "" : "none";
-        });
-      });
-    }
-
-    // Scroll-spy for Table of Contents
-    const tocItems = document.querySelectorAll(".toc-list a");
-    if (tocItems.length > 0) {
-      const headingElements = Array.from(tocItems).map(a => {
-        const id = a.getAttribute("href").substring(1);
-        return document.getElementById(id);
-      }).filter(Boolean);
-
-      const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            const id = entry.target.getAttribute("id");
-            tocItems.forEach(a => {
-              if (a.getAttribute("href") === "#" + id) {
-                a.classList.add("active");
-              } else {
-                a.classList.remove("active");
-              }
-            });
-          }
-        });
-      }, { rootMargin: "0px 0px -70% 0px", threshold: 0.1 });
-
-      headingElements.forEach(h => observer.observe(h));
-    }
-  </script>
 </body>
 </html>

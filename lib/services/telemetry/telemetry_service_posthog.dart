@@ -654,7 +654,7 @@ class PostHogTelemetryService implements TelemetryService {
   Future<void> trackAiMealScanCompleted({
     required String requestId,
     required String provider,
-    required String latencyBucket,
+    required int durationSeconds,
     required bool success,
     String? errorCode,
     String? inputMode,
@@ -665,11 +665,23 @@ class PostHogTelemetryService implements TelemetryService {
     bool? validationPassed,
     int? repairAttemptsCount,
     String? suggestedItemsCountBucket,
+    int? preparationSeconds,
+    int? providerSeconds,
+    int? validationSeconds,
+    int? repairSeconds,
+    int? revealSeconds,
+    bool? primaryFirstPassAccepted,
+    int? selectedValidationRoundsCount,
+    int? validationRunsTotalCount,
+    bool? repairLimitReached,
+    List<String>? firstPassIssueCategories,
+    bool? fastMode,
+    bool? hedgeStarted,
   }) async {
     await track('ai_meal_scan_completed', properties: {
       'request_id': requestId,
       'provider': provider,
-      'latency_bucket': latencyBucket,
+      'duration_seconds': durationSeconds,
       'success': success,
       if (errorCode != null) 'error_code': errorCode,
       if (inputMode != null) 'input_mode': inputMode,
@@ -682,6 +694,22 @@ class PostHogTelemetryService implements TelemetryService {
         'repair_attempts_count': repairAttemptsCount,
       if (suggestedItemsCountBucket != null)
         'suggested_items_count_bucket': suggestedItemsCountBucket,
+      if (preparationSeconds != null) 'preparation_seconds': preparationSeconds,
+      if (providerSeconds != null) 'provider_seconds': providerSeconds,
+      if (validationSeconds != null) 'validation_seconds': validationSeconds,
+      if (repairSeconds != null) 'repair_seconds': repairSeconds,
+      if (revealSeconds != null) 'reveal_seconds': revealSeconds,
+      if (primaryFirstPassAccepted != null)
+        'primary_first_pass_accepted': primaryFirstPassAccepted,
+      if (selectedValidationRoundsCount != null)
+        'selected_validation_rounds_count': selectedValidationRoundsCount,
+      if (validationRunsTotalCount != null)
+        'validation_runs_total_count': validationRunsTotalCount,
+      if (repairLimitReached != null) 'repair_limit_reached': repairLimitReached,
+      if (firstPassIssueCategories != null)
+        'first_pass_issue_categories': firstPassIssueCategories,
+      if (fastMode != null) 'fast_mode': fastMode,
+      if (hedgeStarted != null) 'hedge_started': hedgeStarted,
     });
   }
 
@@ -705,14 +733,14 @@ class PostHogTelemetryService implements TelemetryService {
   @override
   Future<void> trackAiMealCorrectionCompleted({
     required bool hasImages,
-    required String latencyBucket,
+    required int durationSeconds,
     required bool success,
     int? repairAttemptsCount,
     String? errorCode,
   }) async {
     await track('ai_meal_correction_completed', properties: {
       'has_images': hasImages,
-      'latency_bucket': latencyBucket,
+      'duration_seconds': durationSeconds,
       'success': success,
       if (repairAttemptsCount != null)
         'repair_attempts_count': repairAttemptsCount,

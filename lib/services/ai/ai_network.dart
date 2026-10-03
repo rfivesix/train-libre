@@ -1,6 +1,46 @@
 part of '../ai_service.dart';
 
 extension AiNetwork on AiService {
+  int? _tokenCount(dynamic value) => value is int && value >= 0 ? value : null;
+
+  AiTokenUsage? _openAiUsage(Map<String, dynamic> json) {
+    final usage = json['usage'];
+    if (usage is! Map) return null;
+    return AiTokenUsage(
+      inputTokens: _tokenCount(usage['prompt_tokens']),
+      outputTokens: _tokenCount(usage['completion_tokens']),
+      totalTokens: _tokenCount(usage['total_tokens']),
+    );
+  }
+
+  AiTokenUsage? _anthropicUsage(Map<String, dynamic> json) {
+    final usage = json['usage'];
+    if (usage is! Map) return null;
+    final uncached = _tokenCount(usage['input_tokens']);
+    final created = _tokenCount(usage['cache_creation_input_tokens']) ?? 0;
+    final read = _tokenCount(usage['cache_read_input_tokens']) ?? 0;
+    final input = uncached == null ? null : uncached + created + read;
+    final output = _tokenCount(usage['output_tokens']);
+    return AiTokenUsage(
+      inputTokens: input,
+      outputTokens: output,
+      totalTokens: input != null && output != null ? input + output : null,
+    );
+  }
+
+  AiTokenUsage? _geminiUsage(Map<String, dynamic> json) {
+    final usage = json['usageMetadata'];
+    if (usage is! Map) return null;
+    final input = _tokenCount(usage['promptTokenCount']);
+    final total = _tokenCount(usage['totalTokenCount']);
+    return AiTokenUsage(
+      inputTokens: input,
+      // Gemini's total includes thinking tokens, unlike candidatesTokenCount.
+      outputTokens: input != null && total != null ? total - input : null,
+      totalTokens: total,
+    );
+  }
+
   /// Strips OpenAI's `-YYYY-MM-DD` snapshot suffix so `gpt-5.4-2026-03-01` and
   /// `gpt-5.4` collapse into one entry.
   ///
@@ -92,9 +132,15 @@ extension AiNetwork on AiService {
   }) async {
     http.Response? lastResponse;
     final candidates = _geminiModelCandidates(model);
+    final cachedRoute = _geminiResolvedRoutes[model];
+    final routes = <(String, String)>[
+      if (cachedRoute != null) cachedRoute,
+      for (final candidate in candidates)
+        for (final version in const ['v1beta', 'v1'])
+          if ((candidate, version) != cachedRoute) (candidate, version),
+    ];
 
-    for (final candidate in candidates) {
-      for (final version in const ['v1beta', 'v1']) {
+    for (final (candidate, version) in routes) {
         final uri = Uri.parse(
           'https://generativelanguage.googleapis.com/$version/models/$candidate:generateContent?key=$apiKey',
         );
@@ -107,15 +153,20 @@ extension AiNetwork on AiService {
             )
             .timeout(Duration(seconds: timeoutSeconds));
 
-        if (response.statusCode == 200) return response;
-        lastResponse = response;
-
-        if (response.statusCode == 401 ||
-            response.statusCode == 403 ||
-            response.statusCode == 429) {
+        if (response.statusCode == 200) {
+          _geminiResolvedRoutes[model] = (candidate, version);
           return response;
         }
-      }
+        lastResponse = response;
+
+        final message = (_extractProviderErrorMessage(response.body) ?? '')
+            .toLowerCase();
+        final retryAnotherRoute = response.statusCode == 404 ||
+            (response.statusCode == 400 &&
+                (message.contains('model') || message.contains('version')));
+        if (!retryAnotherRoute) {
+          return response;
+        }
     }
 
     return lastResponse ??
@@ -125,7 +176,7 @@ extension AiNetwork on AiService {
         );
   }
 
-  Future<String> _callAnthropicRaw(
+  Future<_AiRawResponse> _callAnthropicRaw(
     String apiKey,
     String model,
     String userContent,
@@ -182,7 +233,7 @@ extension AiNetwork on AiService {
           orElse: () => <String, dynamic>{});
       final text = textPart['text'] as String?;
       if (text == null || text.isEmpty) throw const AiParseException();
-      return text;
+      return _AiRawResponse(text, _anthropicUsage(json));
     } on SocketException {
       throw const AiNetworkException();
     } catch (e) {
@@ -191,7 +242,7 @@ extension AiNetwork on AiService {
     }
   }
 
-  Future<String> _callMistralRaw(
+  Future<_AiRawResponse> _callMistralRaw(
     String apiKey,
     String model,
     String userContent,
@@ -210,7 +261,7 @@ extension AiNetwork on AiService {
     );
   }
 
-  Future<String> _callXaiRaw(
+  Future<_AiRawResponse> _callXaiRaw(
     String apiKey,
     String model,
     String userContent,
@@ -229,7 +280,7 @@ extension AiNetwork on AiService {
     );
   }
 
-  Future<String> _callOpenAiCompatibleRaw({
+  Future<_AiRawResponse> _callOpenAiCompatibleRaw({
     required String endpoint,
     required String authHeader,
     required String model,
@@ -279,7 +330,10 @@ extension AiNetwork on AiService {
       final json = jsonDecode(response.body) as Map<String, dynamic>;
       final choices = json['choices'] as List<dynamic>?;
       if (choices == null || choices.isEmpty) throw const AiParseException();
-      return choices[0]['message']['content'] as String? ?? '';
+      return _AiRawResponse(
+        choices[0]['message']['content'] as String? ?? '',
+        _openAiUsage(json),
+      );
     } on SocketException {
       throw const AiNetworkException();
     } catch (e) {
@@ -583,7 +637,7 @@ extension AiNetwork on AiService {
     return !isFixedTemperature;
   }
 
-  Future<String> _callOpenAiRaw(
+  Future<_AiRawResponse> _callOpenAiRaw(
     String apiKey,
     String model,
     String userContent,
@@ -667,7 +721,10 @@ extension AiNetwork on AiService {
       final json = jsonDecode(response.body) as Map<String, dynamic>;
       final choices = json['choices'] as List<dynamic>?;
       if (choices == null || choices.isEmpty) throw const AiParseException();
-      return choices[0]['message']['content'] as String? ?? '';
+      return _AiRawResponse(
+        choices[0]['message']['content'] as String? ?? '',
+        _openAiUsage(json),
+      );
     } on SocketException catch (e) {
       if (provider == AiProvider.ollama) {
         throw const AiNetworkException(
@@ -698,7 +755,7 @@ extension AiNetwork on AiService {
     }
   }
 
-  Future<String> _callGeminiRaw(
+  Future<_AiRawResponse> _callGeminiRaw(
     String apiKey,
     String model,
     String userContent,
@@ -762,7 +819,7 @@ extension AiNetwork on AiService {
           buffer.write(partMap['text'] as String);
         }
       }
-      return buffer.toString();
+      return _AiRawResponse(buffer.toString(), _geminiUsage(json));
     } on SocketException {
       throw const AiNetworkException();
     } catch (e) {

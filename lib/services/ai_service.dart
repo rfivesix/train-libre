@@ -14,9 +14,6 @@ import '../core/media/meal_image_processor.dart';
 import 'ai_meal_validation.dart';
 import 'ai_meal_context.dart';
 import 'ai_matching_language_service.dart';
-import 'package:uuid/uuid.dart';
-import 'telemetry/telemetry_service.dart';
-import 'telemetry/telemetry_buckets.dart';
 import '../features/depth_scan/domain/models/depth_scale_facts.dart';
 
 part 'ai/ai_models.dart';
@@ -62,6 +59,7 @@ class AiService {
   final FlutterSecureStorage _secureStorage;
   final DynamicModelIdsLoader? _dynamicModelIdsLoader;
   final AiHttpGet _httpGet;
+  final Map<String, (String, String)> _geminiResolvedRoutes = {};
 
   /// Keychain items default to `kSecAttrAccessibleWhenUnlocked`, which Apple
   /// copies into device and iCloud backups and restores onto whatever device
@@ -98,6 +96,17 @@ class AiService {
   static const _customBaseUrlKey = 'ai_custom_base_url';
   static const _customModelKey = 'ai_custom_model';
   static const _timeoutKey = 'ai_timeout_seconds';
+  static const _fastModeKey = 'ai_fast_mode_enabled';
+
+  Future<bool> isFastModeEnabled() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_fastModeKey) ?? true;
+  }
+
+  Future<void> setFastModeEnabled(bool enabled) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_fastModeKey, enabled);
+  }
 
   static const selectedProviderStorageKey = _providerKey;
 
@@ -611,6 +620,7 @@ class AiService {
     DepthScaleFacts? depthFacts,
     File? depthMap,
     String? depthMapLegend,
+    AiUsageCollector? usageCollector,
   }) async {
     final userContent =
         textHint ?? 'Analyze this meal and identify all food components.';
@@ -631,6 +641,7 @@ class AiService {
       systemPrompt: prompt,
       images: attachDepthMap ? [...images, depthMap] : images,
       temperature: 0.3,
+      usageCollector: usageCollector,
     );
 
     return _parseMealCandidateFromContent(raw);
@@ -641,6 +652,7 @@ class AiService {
     String description, {
     String? languageCode,
     AiMatchingContext? matchingContext,
+    AiUsageCollector? usageCollector,
   }) async {
     final prompt = _AiPrompts.buildSystemPrompt(
       languageCode: languageCode,
@@ -652,6 +664,7 @@ class AiService {
       userContent: description,
       systemPrompt: prompt,
       temperature: 0.3,
+      usageCollector: usageCollector,
     );
 
     return _parseMealCandidateFromContent(raw);
@@ -742,6 +755,7 @@ class AiService {
     List<File>? images,
     String? languageCode,
     AiMatchingContext? matchingContext,
+    AiUsageCollector? usageCollector,
   }) async {
     final previousJson = jsonEncode(
       previousResults.map((e) => e.toJson()).toList(),
@@ -765,6 +779,7 @@ Please provide an updated analysis incorporating the user's feedback. Return the
       systemPrompt: prompt,
       images: images,
       temperature: 0.3,
+      usageCollector: usageCollector,
     );
 
     return _parseMealCandidateFromContent(raw);
@@ -796,6 +811,7 @@ Please provide an updated analysis incorporating the user's feedback. Return the
     AiMatchingContext? matchingContext,
     AiMealContext? mealContext,
     DepthScaleFacts? depthFacts,
+    AiUsageCollector? usageCollector,
   }) async {
     final userContent = '''
 Previous meal capture candidate:
@@ -819,7 +835,13 @@ Repair the candidate. When database candidates are listed, pick the EXACT name f
 
     final raw = await _callSelectedProviderRaw(
       userContent: userContent,
-      images: images,
+      // A catalog ambiguity can be resolved from the original candidate and
+      // the verified local menu; resend photos only for visual/quantity issues.
+      images: validation.allIssues.every(
+        (issue) => issue.code == 'ambiguous_nutrition_match',
+      )
+          ? null
+          : images,
       systemPrompt: _AiPrompts.buildRepairPrompt(
         languageCode: languageCode,
         appLanguage: matchingContext?.appLanguage,
@@ -828,6 +850,7 @@ Repair the candidate. When database candidates are listed, pick the EXACT name f
         depthFacts: depthFacts,
       ),
       temperature: 0.1,
+      usageCollector: usageCollector,
     );
     final repaired = await _parseItemsFromContent(raw);
 
@@ -859,16 +882,10 @@ Repair the candidate. When database candidates are listed, pick the EXACT name f
     required String systemPrompt,
     List<File>? images,
     double temperature = 0.3,
+    AiUsageCollector? usageCollector,
   }) async {
-    final requestId = const Uuid().v4();
+    usageCollector?.startRequest();
     final providerEnum = await getSelectedProvider();
-    final provider = providerEnum.name;
-    final stopwatch = Stopwatch()..start();
-
-    unawaited(TelemetryService.instance.trackAiMealScanRequested(
-      requestId: requestId,
-      provider: provider,
-    ));
 
     try {
       String? apiKey;
@@ -879,23 +896,22 @@ Repair the candidate. When database candidates are listed, pick the EXACT name f
           throw const AiKeyMissingException();
         }
       }
-      final model = await resolveAndPersistSelectedModel(providerEnum);
+      // The settings screen already resolves the selection. A network model
+      // listing here added one provider round-trip to every scan and repair.
+      final model = await getSelectedModel(providerEnum);
 
       // Scaled before encoding: the raw camera file is 3–8 MB, base64 adds a
       // third on top, and the models resize to about 1024 px anyway — four
       // untouched photos meant tens of megabytes uploaded over mobile data for
       // pixels the provider throws away. The capture screen has usually
       // prepared these already, so this is a cache hit by the time it runs.
-      final imageDataList = <String>[];
-      if (images != null) {
-        for (final img in images) {
-          final prepared =
-              await MealImageProcessor.instance.prepareForAnalysis(img);
-          imageDataList.add(prepared.base64);
-        }
-      }
+      final imageDataList = images == null
+          ? <String>[]
+          : await Future.wait(images.map((img) async =>
+              (await MealImageProcessor.instance.prepareForAnalysis(img))
+                  .base64));
 
-      final String rawResult;
+      final _AiRawResponse rawResult;
       switch (providerEnum) {
         case AiProvider.openai:
           rawResult = await _callOpenAiRaw(
@@ -974,24 +990,10 @@ Repair the candidate. When database candidates are listed, pick the EXACT name f
           break;
       }
 
-      stopwatch.stop();
-      unawaited(TelemetryService.instance.trackAiMealScanCompleted(
-        requestId: requestId,
-        provider: provider,
-        latencyBucket: TelemetryBuckets.getLatencyBucket(stopwatch.elapsed),
-        success: true,
-      ));
-
-      return rawResult;
+      usageCollector?.finishRequest(rawResult.usage);
+      return rawResult.text;
     } catch (e) {
-      stopwatch.stop();
-      unawaited(TelemetryService.instance.trackAiMealScanCompleted(
-        requestId: requestId,
-        provider: provider,
-        latencyBucket: TelemetryBuckets.getLatencyBucket(stopwatch.elapsed),
-        success: false,
-        errorCode: e.runtimeType.toString(),
-      ));
+      usageCollector?.finishRequest(null);
       rethrow;
     }
   }

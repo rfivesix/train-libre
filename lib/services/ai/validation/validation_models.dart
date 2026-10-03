@@ -455,11 +455,17 @@ class AiRepairOutcome {
   final AiValidationResult validation;
   final int repairPassesUsed;
   final bool repairLimitReached;
+  final bool firstPassAccepted;
+  final int validationRunsCount;
+  final List<String> firstPassIssueCategories;
 
   const AiRepairOutcome({
     required this.validation,
     required this.repairPassesUsed,
     required this.repairLimitReached,
+    this.firstPassAccepted = false,
+    this.validationRunsCount = 1,
+    this.firstPassIssueCategories = const [],
   });
 }
 

@@ -122,7 +122,7 @@ class NoOpTelemetryService implements TelemetryService {
   Future<void> trackAiMealScanCompleted({
     required String requestId,
     required String provider,
-    required String latencyBucket,
+    required int durationSeconds,
     required bool success,
     String? errorCode,
     String? inputMode,
@@ -133,6 +133,18 @@ class NoOpTelemetryService implements TelemetryService {
     bool? validationPassed,
     int? repairAttemptsCount,
     String? suggestedItemsCountBucket,
+    int? preparationSeconds,
+    int? providerSeconds,
+    int? validationSeconds,
+    int? repairSeconds,
+    int? revealSeconds,
+    bool? primaryFirstPassAccepted,
+    int? selectedValidationRoundsCount,
+    int? validationRunsTotalCount,
+    bool? repairLimitReached,
+    List<String>? firstPassIssueCategories,
+    bool? fastMode,
+    bool? hedgeStarted,
   }) async {}
 
   @override
@@ -147,7 +159,7 @@ class NoOpTelemetryService implements TelemetryService {
   @override
   Future<void> trackAiMealCorrectionCompleted({
     required bool hasImages,
-    required String latencyBucket,
+    required int durationSeconds,
     required bool success,
     int? repairAttemptsCount,
     String? errorCode,

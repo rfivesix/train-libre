@@ -11,6 +11,53 @@ enum AiProvider {
   custom,
 }
 
+/// Usage reported by a provider, never inferred from prompt length.
+class AiTokenUsage {
+  final int? inputTokens;
+  final int? outputTokens;
+  final int? totalTokens;
+
+  const AiTokenUsage({this.inputTokens, this.outputTokens, this.totalTokens});
+
+  bool get isComplete =>
+      inputTokens != null && outputTokens != null && totalTokens != null;
+}
+
+/// Scan-scoped counter. A late hedged response can update the review screen.
+class AiUsageCollector extends ChangeNotifier {
+  int inputTokens = 0;
+  int outputTokens = 0;
+  int totalTokens = 0;
+  int requestCount = 0;
+  int pendingCount = 0;
+  bool usageComplete = true;
+
+  void startRequest() {
+    requestCount++;
+    pendingCount++;
+    notifyListeners();
+  }
+
+  void finishRequest(AiTokenUsage? usage) {
+    pendingCount = pendingCount > 0 ? pendingCount - 1 : 0;
+    if (usage == null || !usage.isComplete) {
+      usageComplete = false;
+    } else {
+      inputTokens += usage.inputTokens!;
+      outputTokens += usage.outputTokens!;
+      totalTokens += usage.totalTokens!;
+    }
+    notifyListeners();
+  }
+}
+
+class _AiRawResponse {
+  final String text;
+  final AiTokenUsage? usage;
+
+  const _AiRawResponse(this.text, this.usage);
+}
+
 /// Provider registry metadata.
 class AiProviderMetadata {
   final AiProvider provider;

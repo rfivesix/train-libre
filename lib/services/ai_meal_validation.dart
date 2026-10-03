@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import '../features/diary/data/sources/product_local_data_source.dart';
 import '../features/diary/domain/models/food_item.dart';
 import 'ai_meal_context.dart';
@@ -9,6 +11,7 @@ part 'ai/validation/rules_logic.dart';
 
 class AiMealValidationEngine {
   final AiFoodMatchLoader _matchLoader;
+  final Map<String, Future<List<FoodItem>>> _matchCache = {};
 
   AiMealValidationEngine({
     AiFoodMatchLoader? matchLoader,
@@ -47,29 +50,46 @@ class AiMealValidationEngine {
     final normalized = _normalize(candidate);
     final mealIssues = <AiValidationIssue>[...normalized.issues];
     final validatedItems = <AiValidatedMealItem>[];
-
-    for (var i = 0; i < normalized.candidate.items.length; i++) {
-      final item = normalized.candidate.items[i];
-      final matches = await _matchLoader(item);
-      final match = _evaluateMatch(item, matches);
-      final nutrition = match.bestMatch == null
-          ? AiNutritionTotals.zero
-          : AiNutritionTotals.fromFood(match.bestMatch!, item.grams);
-      final issues = _validateItem(
-        index: i,
-        item: item,
-        match: match,
-        nutrition: nutrition,
-        mode: mode,
-      );
-      validatedItems.add(
-        AiValidatedMealItem(
-          candidate: item,
+    final items = normalized.candidate.items;
+    // SQLite can serve independent reads concurrently; keep a small bound so a
+    // complex meal does not flood the database worker. Future.wait retains order.
+    for (var start = 0; start < items.length; start += 4) {
+      final end = (start + 4).clamp(0, items.length);
+      final matchesByItem = await Future.wait([
+        for (var i = start; i < end; i++)
+          _matchCache.putIfAbsent(
+            jsonEncode([
+              items[i].name,
+              items[i].matchedBarcode,
+              items[i].catalogSearchTerm,
+              items[i].searchTerms,
+            ]),
+            () => _matchLoader(items[i]),
+          ),
+      ]);
+      for (var i = start; i < end; i++) {
+        final item = items[i];
+        final matches = matchesByItem[i - start];
+        final match = _evaluateMatch(item, matches);
+        final nutrition = match.bestMatch == null
+            ? AiNutritionTotals.zero
+            : AiNutritionTotals.fromFood(match.bestMatch!, item.grams);
+        final issues = _validateItem(
+          index: i,
+          item: item,
           match: match,
           nutrition: nutrition,
-          issues: issues,
-        ),
-      );
+          mode: mode,
+        );
+        validatedItems.add(
+          AiValidatedMealItem(
+            candidate: item,
+            match: match,
+            nutrition: nutrition,
+            issues: issues,
+          ),
+        );
+      }
     }
 
     final totals = validatedItems.fold<AiNutritionTotals>(
@@ -254,6 +274,19 @@ class AiRepairOrchestrator {
       mode: mode,
       targetContext: targetContext,
     );
+    final firstPassAccepted =
+        validation.passed && !validation.needsSemanticSelection;
+    final firstPassIssueCategories = <String>{
+      for (final issue in validation.allIssues)
+        if (issue.code == 'ambiguous_nutrition_match')
+          'semantic_match'
+        else if (issue.code.contains('quantity') ||
+            issue.code.contains('kcal') ||
+            issue.code.contains('macro'))
+          'quantity_or_anchor'
+        else
+          'other_validation',
+    };
     var repairPasses = 0;
 
     while ((!validation.passed || validation.needsSemanticSelection) &&
@@ -277,6 +310,10 @@ class AiRepairOrchestrator {
       ),
       repairPassesUsed: repairPasses,
       repairLimitReached: limitReached,
+      firstPassAccepted: firstPassAccepted,
+      validationRunsCount: repairPasses + 1,
+      firstPassIssueCategories:
+          firstPassIssueCategories.toList(growable: false),
     );
   }
 }
