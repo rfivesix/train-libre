@@ -63,6 +63,33 @@ class SummaryCard extends StatelessWidget {
     final squircle = SmoothRectangleBorder(borderRadius: squircleRadius);
     final clipper = ShapeBorderClipper(shape: squircle);
 
+    final Color inputFill;
+    if (isDark) {
+      inputFill = theme.inputDecorationTheme.fillColor ??
+          const Color(0xFF2C2C2E);
+    } else {
+      // In light mode:
+      // If the card background is white (the default for summary cards),
+      // nested form inputs and dropdowns must take the contrasting secondary
+      // surface color (#F2F2F7) to prevent white-on-white blending.
+      // If the card already uses the secondary surface (#F2F2F7), nested inputs
+      // take white.
+      final isWhiteCard = (cardBg == Colors.white ||
+              cardBg.toARGB32() == 0xFFFFFFFF ||
+              cardBg.computeLuminance() > 0.95) &&
+          cardBg != DesignConstants.summaryCardSecondaryLightMode;
+      inputFill = isWhiteCard
+          ? DesignConstants.summaryCardSecondaryLightMode
+          : Colors.white;
+    }
+
+    final cardTheme = theme.copyWith(
+      cardColor: cardBg,
+      inputDecorationTheme: theme.inputDecorationTheme.copyWith(
+        fillColor: inputFill,
+      ),
+    );
+
     final card = Padding(
       padding: margin,
       child: Container(
@@ -84,7 +111,10 @@ class SummaryCard extends StatelessWidget {
             ),
             child: Material(
               color: Colors.transparent,
-              child: child,
+              child: Theme(
+                data: cardTheme,
+                child: child,
+              ),
             ),
           ),
         ),

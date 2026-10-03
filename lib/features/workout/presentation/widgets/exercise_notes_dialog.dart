@@ -41,7 +41,6 @@ class _ExerciseNotesDialogState extends State<ExerciseNotesDialog> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final brightness = Theme.of(context).brightness;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -54,11 +53,6 @@ class _ExerciseNotesDialogState extends State<ExerciseNotesDialog> {
           textCapitalization: TextCapitalization.sentences,
           decoration: InputDecoration(
             hintText: l10n.exerciseNoteHint,
-            filled: true,
-            fillColor: brightness == Brightness.dark
-                ? (Theme.of(context).inputDecorationTheme.fillColor ??
-                    const Color(0xFF2C2C2E))
-                : Colors.white,
             border: OutlineInputBorder(
               borderRadius:
                   BorderRadius.circular(DesignConstants.borderRadiusM),

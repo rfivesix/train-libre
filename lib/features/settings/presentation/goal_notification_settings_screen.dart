@@ -11,6 +11,7 @@ import '../../../widgets/common/summary_card.dart';
 import '../../../widgets/common/app_link_row.dart';
 import '../../../widgets/common/app_section_header.dart';
 import '../../../widgets/common/platform_adaptive_pickers.dart';
+import '../../../widgets/common/platform_adaptive_switch_list_tile.dart';
 import '../../../services/local_notification_service.dart';
 import '../../profile/data/goal_repository_impl.dart';
 import '../../profile/domain/services/goal_notification_orchestrator.dart';
@@ -172,7 +173,7 @@ class _GoalNotificationSettingsScreenState
                   padding: EdgeInsets.zero,
                   child: Column(
                     children: [
-                      SwitchListTile.adaptive(
+                      PlatformAdaptiveSwitchListTile(
                         secondary: Icon(
                           LucideIcons.dumbbell,
                           color: theme.colorScheme.primary,
@@ -246,7 +247,7 @@ class _GoalNotificationSettingsScreenState
                   padding: EdgeInsets.zero,
                   child: Column(
                     children: [
-                      SwitchListTile.adaptive(
+                      PlatformAdaptiveSwitchListTile(
                         secondary: Icon(
                           LucideIcons.calendar_check_2,
                           color: theme.colorScheme.primary,
@@ -271,7 +272,7 @@ class _GoalNotificationSettingsScreenState
                         },
                       ),
                       const Divider(height: 1),
-                      SwitchListTile.adaptive(
+                      PlatformAdaptiveSwitchListTile(
                         secondary: Icon(
                           LucideIcons.sparkles,
                           color: theme.colorScheme.primary,
@@ -296,7 +297,7 @@ class _GoalNotificationSettingsScreenState
                         },
                       ),
                       const Divider(height: 1),
-                      SwitchListTile.adaptive(
+                      PlatformAdaptiveSwitchListTile(
                         secondary: Icon(
                           LucideIcons.flag,
                           color: theme.colorScheme.primary,
