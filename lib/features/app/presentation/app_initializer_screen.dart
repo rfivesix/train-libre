@@ -55,6 +55,7 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
   bool _canSkipRemoteCatalog = false;
   bool _skipRemoteCatalogRequested = false;
   bool _isContractingForExit = false;
+  bool _isCloudHiddenForVaporExit = false;
   _PendingStartupProgress? _pendingProgress;
   bool _progressFrameScheduled = false;
 
@@ -159,6 +160,13 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
       _isContractingForExit = true;
     });
     await Future<void>.delayed(const Duration(milliseconds: 620));
+    if (!mounted) return;
+
+    // The route below is transparent while its vapor starts. Hide the source
+    // cloud before the next frame so its contracted core cannot show through
+    // behind the first dispersing puffs.
+    setState(() => _isCloudHiddenForVaporExit = true);
+    await WidgetsBinding.instance.endOfFrame;
     if (!mounted) return;
 
     final targetScreen =
@@ -542,6 +550,10 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
   }
 
   Widget _buildStartupCloud(ThemeData theme) {
+    if (_isCloudHiddenForVaporExit) {
+      return const SizedBox(width: 172, height: 172);
+    }
+
     final cloud = RepaintBoundary(
       child: AiNeuralCloudOrbWidget(
         size: 172,
@@ -558,6 +570,7 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
         animate: true,
         flowSpeed: 0.35,
         showAmbientGlow: false,
+        showDetachedSatellite: false,
         baseColor: theme.colorScheme.onSurfaceVariant,
         accentColor: theme.colorScheme.primary,
       ),

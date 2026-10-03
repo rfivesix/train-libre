@@ -31,6 +31,12 @@ abstract class AiNeuralCloudOrbState {
 class AiNeuralCloudOrbWidget extends StatefulWidget {
   final double size;
   final bool showAmbientGlow;
+
+  /// Whether to draw the detached trailing bubble beside the cloud.
+  ///
+  /// It is part of the AI-oriented treatment by default, but callers such as
+  /// app startup can keep the silhouette purely decorative.
+  final bool showDetachedSatellite;
   final Color? baseColor;
   final Color? accentColor;
   final VoidCallback? onTap;
@@ -85,6 +91,7 @@ class AiNeuralCloudOrbWidget extends StatefulWidget {
     super.key,
     this.size = 280,
     this.showAmbientGlow = true,
+    this.showDetachedSatellite = true,
     this.baseColor,
     this.accentColor,
     this.onTap,
@@ -299,6 +306,7 @@ class AiNeuralCloudOrbWidgetState extends State<AiNeuralCloudOrbWidget>
                     .clamp(0.0, 1.0),
                 energy: _energy,
                 showAmbientGlow: widget.showAmbientGlow,
+                showDetachedSatellite: widget.showDetachedSatellite,
                 baseColor: effectiveBase,
                 accentColor: effectiveAccent,
                 isDark: isDark,
@@ -323,6 +331,7 @@ class _OrganicLivingCloudPainter extends CustomPainter {
   final double energy;
 
   final bool showAmbientGlow;
+  final bool showDetachedSatellite;
   final Color baseColor;
   final Color accentColor;
   final bool isDark;
@@ -334,6 +343,7 @@ class _OrganicLivingCloudPainter extends CustomPainter {
     required this.morph,
     required this.energy,
     required this.showAmbientGlow,
+    required this.showDetachedSatellite,
     required this.baseColor,
     required this.accentColor,
     required this.isDark,
@@ -526,7 +536,7 @@ class _OrganicLivingCloudPainter extends CustomPainter {
 
     // 4. Detached trailing satellite bubble — only once there is a cloud for it
     // to have detached from.
-    if (morph > 0.02) {
+    if (showDetachedSatellite && morph > 0.02) {
       final satProgress = charge.clamp(0.0, 1.0);
       final satColor = Color.lerp(baseColor, accentColor, satProgress)!;
 
@@ -565,6 +575,7 @@ class _OrganicLivingCloudPainter extends CustomPainter {
         oldDelegate.morph != morph ||
         oldDelegate.energy != energy ||
         oldDelegate.showAmbientGlow != showAmbientGlow ||
+        oldDelegate.showDetachedSatellite != showDetachedSatellite ||
         oldDelegate.baseColor != baseColor ||
         oldDelegate.accentColor != accentColor ||
         oldDelegate.isDark != isDark;
