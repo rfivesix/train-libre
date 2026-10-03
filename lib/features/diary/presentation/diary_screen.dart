@@ -1626,6 +1626,7 @@ class _DiaryDayButton extends StatelessWidget {
       button: true,
       selected: isSelected,
       label: dateLabel,
+      excludeSemantics: true,
       child: Padding(
         padding: const EdgeInsets.symmetric(
           horizontal: 2,

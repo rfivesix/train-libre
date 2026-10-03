@@ -33,6 +33,7 @@ class AppLinkRow extends StatelessWidget {
       child: Semantics(
         button: true,
         label: title,
+        excludeSemantics: true,
         child: InkWell(
           onTap: onTap,
           borderRadius: borderRadius,
