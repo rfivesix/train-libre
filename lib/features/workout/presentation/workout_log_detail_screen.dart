@@ -808,6 +808,7 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
     return Semantics(
       button: true,
       label: semanticLabel,
+      excludeSemantics: true,
       child: Material(
         color: Colors.transparent,
         child: InkWell(
