@@ -576,15 +576,26 @@ class BodyNutritionAnalyticsEngine {
     if (series.isEmpty) return const [];
     if (windowSize <= 1) return List<DailyValuePoint>.from(series);
 
-    final values = series.map((p) => p.value).toList(growable: false);
+    // BOLT OPTIMIZATION: Replaced O(N*W) sublist/fold iterations with a single-pass
+    // sliding window (O(N)) to eliminate intermediate allocations and redundant math.
     final result = <DailyValuePoint>[];
+    double currentSum = 0.0;
 
     for (var i = 0; i < series.length; i++) {
-      final start = (i - windowSize + 1).clamp(0, i);
-      final slice = values.sublist(start, i + 1);
-      final avg =
-          slice.fold<double>(0.0, (sum, value) => sum + value) / slice.length;
-      result.add(DailyValuePoint(day: series[i].day, value: avg));
+      currentSum += series[i].value;
+
+      final windowStart = i - windowSize + 1;
+      if (windowStart > 0) {
+        currentSum -= series[windowStart - 1].value;
+      }
+
+      final elementsInWindow = math.min(i + 1, windowSize);
+      result.add(
+        DailyValuePoint(
+          day: series[i].day,
+          value: currentSum / elementsInWindow,
+        ),
+      );
     }
 
     return result;
