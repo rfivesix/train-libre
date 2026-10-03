@@ -5102,6 +5102,36 @@ abstract class AppLocalizations {
   /// **'Save to Diary'**
   String get aiReviewSaveToDiary;
 
+  /// No description provided for @aiReviewTokensUsed.
+  ///
+  /// In en, this message translates to:
+  /// **'AI usage: {count} tokens'**
+  String aiReviewTokensUsed(int count);
+
+  /// No description provided for @aiReviewTokensPending.
+  ///
+  /// In en, this message translates to:
+  /// **'AI usage: updating…'**
+  String get aiReviewTokensPending;
+
+  /// No description provided for @aiReviewTokensUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'AI usage: unavailable'**
+  String get aiReviewTokensUnknown;
+
+  /// No description provided for @aiFastModeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Speed mode'**
+  String get aiFastModeTitle;
+
+  /// No description provided for @aiFastModeSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'May send a second request after 4 seconds. This can add API costs.'**
+  String get aiFastModeSubtitle;
+
   /// No description provided for @aiReviewFeedbackHint.
   ///
   /// In en, this message translates to:
@@ -10993,6 +11023,12 @@ abstract class AppLocalizations {
   /// **'Matching the ingredients'**
   String get mealAnalysisMatching;
 
+  /// No description provided for @mealAnalysisRepairing.
+  ///
+  /// In en, this message translates to:
+  /// **'Refining the result'**
+  String get mealAnalysisRepairing;
+
   /// No description provided for @mealAnalysisFailed.
   ///
   /// In en, this message translates to:
@@ -14083,6 +14119,342 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Stop timer'**
   String get setTimerStop;
+
+  /// No description provided for @aiScanLogsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'AI meal scan logs'**
+  String get aiScanLogsTitle;
+
+  /// No description provided for @aiScanLogsPrivacy.
+  ///
+  /// In en, this message translates to:
+  /// **'Stored only on this device. No meal text, photos or keys. Up to 20 scans.'**
+  String get aiScanLogsPrivacy;
+
+  /// No description provided for @aiScanLogsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No AI meal scans logged yet.'**
+  String get aiScanLogsEmpty;
+
+  /// No description provided for @aiScanLogsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} scans'**
+  String aiScanLogsCount(int count);
+
+  /// No description provided for @aiScanLogsCopyAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy all'**
+  String get aiScanLogsCopyAll;
+
+  /// No description provided for @aiScanLogsClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear logs'**
+  String get aiScanLogsClear;
+
+  /// No description provided for @aiScanLogsCopy.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy log'**
+  String get aiScanLogsCopy;
+
+  /// No description provided for @aiScanLogsCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Log copied to clipboard'**
+  String get aiScanLogsCopied;
+
+  /// No description provided for @aiScanLogsPhotos.
+  ///
+  /// In en, this message translates to:
+  /// **'Photos'**
+  String get aiScanLogsPhotos;
+
+  /// No description provided for @aiScanLogsFirstPass.
+  ///
+  /// In en, this message translates to:
+  /// **'First validation passed'**
+  String get aiScanLogsFirstPass;
+
+  /// No description provided for @aiScanLogsValidations.
+  ///
+  /// In en, this message translates to:
+  /// **'Validations selected / total'**
+  String get aiScanLogsValidations;
+
+  /// No description provided for @aiScanLogsRepairs.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatic repairs'**
+  String get aiScanLogsRepairs;
+
+  /// No description provided for @aiScanLogsHedge.
+  ///
+  /// In en, this message translates to:
+  /// **'Parallel request'**
+  String get aiScanLogsHedge;
+
+  /// No description provided for @aiScanLogsTokens.
+  ///
+  /// In en, this message translates to:
+  /// **'Tokens total (in / out)'**
+  String get aiScanLogsTokens;
+
+  /// No description provided for @aiScanLogsUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown'**
+  String get aiScanLogsUnknown;
+
+  /// No description provided for @aiScanLogsCalls.
+  ///
+  /// In en, this message translates to:
+  /// **'Provider requests'**
+  String get aiScanLogsCalls;
+
+  /// No description provided for @aiScanLogsReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Review outcome'**
+  String get aiScanLogsReview;
+
+  /// No description provided for @aiScanLogsCorrections.
+  ///
+  /// In en, this message translates to:
+  /// **'User AI corrections'**
+  String get aiScanLogsCorrections;
+
+  /// No description provided for @aiScanLogsTimeline.
+  ///
+  /// In en, this message translates to:
+  /// **'Timeline'**
+  String get aiScanLogsTimeline;
+
+  /// No description provided for @aiScanLogsInputText.
+  ///
+  /// In en, this message translates to:
+  /// **'Text'**
+  String get aiScanLogsInputText;
+
+  /// No description provided for @aiScanLogsInputPhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo'**
+  String get aiScanLogsInputPhoto;
+
+  /// No description provided for @aiScanLogsInputMixed.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo + text'**
+  String get aiScanLogsInputMixed;
+
+  /// No description provided for @aiScanLogsRunning.
+  ///
+  /// In en, this message translates to:
+  /// **'Running'**
+  String get aiScanLogsRunning;
+
+  /// No description provided for @aiScanLogsAccepted.
+  ///
+  /// In en, this message translates to:
+  /// **'Accepted'**
+  String get aiScanLogsAccepted;
+
+  /// No description provided for @aiScanLogsNeedsRepair.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs repair'**
+  String get aiScanLogsNeedsRepair;
+
+  /// No description provided for @aiScanLogsFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed'**
+  String get aiScanLogsFailed;
+
+  /// No description provided for @aiScanLogsCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled'**
+  String get aiScanLogsCancelled;
+
+  /// No description provided for @aiScanLogsSavedUnchanged.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved unchanged'**
+  String get aiScanLogsSavedUnchanged;
+
+  /// No description provided for @aiScanLogsSavedEdited.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved after edit'**
+  String get aiScanLogsSavedEdited;
+
+  /// No description provided for @aiScanLogsSavedCorrected.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved after AI correction'**
+  String get aiScanLogsSavedCorrected;
+
+  /// No description provided for @aiScanLogsDiscarded.
+  ///
+  /// In en, this message translates to:
+  /// **'Discarded'**
+  String get aiScanLogsDiscarded;
+
+  /// No description provided for @aiScanLogsStageRequested.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan started'**
+  String get aiScanLogsStageRequested;
+
+  /// No description provided for @aiScanLogsStagePrepared.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparation finished'**
+  String get aiScanLogsStagePrepared;
+
+  /// No description provided for @aiScanLogsStagePrimary.
+  ///
+  /// In en, this message translates to:
+  /// **'First AI request started'**
+  String get aiScanLogsStagePrimary;
+
+  /// No description provided for @aiScanLogsStageHedge.
+  ///
+  /// In en, this message translates to:
+  /// **'Parallel AI request started'**
+  String get aiScanLogsStageHedge;
+
+  /// No description provided for @aiScanLogsStageProvider.
+  ///
+  /// In en, this message translates to:
+  /// **'AI response received'**
+  String get aiScanLogsStageProvider;
+
+  /// No description provided for @aiScanLogsStageValidation.
+  ///
+  /// In en, this message translates to:
+  /// **'Local validation finished'**
+  String get aiScanLogsStageValidation;
+
+  /// No description provided for @aiScanLogsStageRepairStart.
+  ///
+  /// In en, this message translates to:
+  /// **'AI repair started'**
+  String get aiScanLogsStageRepairStart;
+
+  /// No description provided for @aiScanLogsStageRepairEnd.
+  ///
+  /// In en, this message translates to:
+  /// **'AI repair response received'**
+  String get aiScanLogsStageRepairEnd;
+
+  /// No description provided for @aiScanLogsStageReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Review visible'**
+  String get aiScanLogsStageReview;
+
+  /// No description provided for @aiScanLogsStageCorrectionStart.
+  ///
+  /// In en, this message translates to:
+  /// **'User correction started'**
+  String get aiScanLogsStageCorrectionStart;
+
+  /// No description provided for @aiScanLogsStageCorrectionEnd.
+  ///
+  /// In en, this message translates to:
+  /// **'User correction finished'**
+  String get aiScanLogsStageCorrectionEnd;
+
+  /// No description provided for @aiScanLogsClearConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete all locally saved AI scan logs?'**
+  String get aiScanLogsClearConfirm;
+
+  /// No description provided for @aiScanLogsStageSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'Candidate selected'**
+  String get aiScanLogsStageSelected;
+
+  /// No description provided for @aiScanLogsCandidatePrimary.
+  ///
+  /// In en, this message translates to:
+  /// **'First request'**
+  String get aiScanLogsCandidatePrimary;
+
+  /// No description provided for @aiScanLogsCandidateHedge.
+  ///
+  /// In en, this message translates to:
+  /// **'Parallel request'**
+  String get aiScanLogsCandidateHedge;
+
+  /// No description provided for @aiScanLogsScore.
+  ///
+  /// In en, this message translates to:
+  /// **'Score'**
+  String get aiScanLogsScore;
+
+  /// No description provided for @aiScanLogsIssueSemantic.
+  ///
+  /// In en, this message translates to:
+  /// **'Catalog choice'**
+  String get aiScanLogsIssueSemantic;
+
+  /// No description provided for @aiScanLogsIssueCatalog.
+  ///
+  /// In en, this message translates to:
+  /// **'Catalog match'**
+  String get aiScanLogsIssueCatalog;
+
+  /// No description provided for @aiScanLogsIssueQuantity.
+  ///
+  /// In en, this message translates to:
+  /// **'Quantity'**
+  String get aiScanLogsIssueQuantity;
+
+  /// No description provided for @aiScanLogsIssueNutrition.
+  ///
+  /// In en, this message translates to:
+  /// **'Nutrition anchor'**
+  String get aiScanLogsIssueNutrition;
+
+  /// No description provided for @aiScanLogsIssuePreparation.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparation state'**
+  String get aiScanLogsIssuePreparation;
+
+  /// No description provided for @aiScanLogsIssueConfidence.
+  ///
+  /// In en, this message translates to:
+  /// **'Confidence'**
+  String get aiScanLogsIssueConfidence;
+
+  /// No description provided for @aiScanLogsIssueOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other validation'**
+  String get aiScanLogsIssueOther;
+
+  /// No description provided for @aiScanLogsStageUsage.
+  ///
+  /// In en, this message translates to:
+  /// **'Provider usage reported'**
+  String get aiScanLogsStageUsage;
+
+  /// No description provided for @aiScanLogsCall.
+  ///
+  /// In en, this message translates to:
+  /// **'Call'**
+  String get aiScanLogsCall;
 }
 
 class _AppLocalizationsDelegate

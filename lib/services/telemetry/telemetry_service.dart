@@ -714,6 +714,10 @@ abstract class TelemetryService {
     required bool success,
     int? repairAttemptsCount,
     String? errorCode,
+    int? inputTokens,
+    int? outputTokens,
+    int? totalTokens,
+    bool? usageComplete,
   });
 
   /// Event 9: db_migration_status

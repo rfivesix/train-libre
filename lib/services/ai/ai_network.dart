@@ -141,32 +141,32 @@ extension AiNetwork on AiService {
     ];
 
     for (final (candidate, version) in routes) {
-        final uri = Uri.parse(
-          'https://generativelanguage.googleapis.com/$version/models/$candidate:generateContent?key=$apiKey',
-        );
-        final timeoutSeconds = await getAiTimeoutSeconds();
-        final response = await http
-            .post(
-              uri,
-              headers: {'Content-Type': 'application/json'},
-              body: body,
-            )
-            .timeout(Duration(seconds: timeoutSeconds));
+      final uri = Uri.parse(
+        'https://generativelanguage.googleapis.com/$version/models/$candidate:generateContent?key=$apiKey',
+      );
+      final timeoutSeconds = await getAiTimeoutSeconds();
+      final response = await http
+          .post(
+            uri,
+            headers: {'Content-Type': 'application/json'},
+            body: body,
+          )
+          .timeout(Duration(seconds: timeoutSeconds));
 
-        if (response.statusCode == 200) {
-          _geminiResolvedRoutes[model] = (candidate, version);
-          return response;
-        }
-        lastResponse = response;
+      if (response.statusCode == 200) {
+        _geminiResolvedRoutes[model] = (candidate, version);
+        return response;
+      }
+      lastResponse = response;
 
-        final message = (_extractProviderErrorMessage(response.body) ?? '')
-            .toLowerCase();
-        final retryAnotherRoute = response.statusCode == 404 ||
-            (response.statusCode == 400 &&
-                (message.contains('model') || message.contains('version')));
-        if (!retryAnotherRoute) {
-          return response;
-        }
+      final message =
+          (_extractProviderErrorMessage(response.body) ?? '').toLowerCase();
+      final retryAnotherRoute = response.statusCode == 404 ||
+          (response.statusCode == 400 &&
+              (message.contains('model') || message.contains('version')));
+      if (!retryAnotherRoute) {
+        return response;
+      }
     }
 
     return lastResponse ??
@@ -183,6 +183,7 @@ extension AiNetwork on AiService {
     List<String> imagesBase64, {
     required String systemPrompt,
     double temperature = 0.3,
+    bool structuredOutput = false,
   }) async {
     final content = <Map<String, dynamic>>[];
     for (final img64 in imagesBase64) {
@@ -193,19 +194,23 @@ extension AiNetwork on AiService {
     }
     content.add({'type': 'text', 'text': userContent});
 
-    final body = jsonEncode({
+    final request = <String, dynamic>{
       'model': model,
       'system': systemPrompt,
       'max_tokens': 2000,
       'temperature': temperature,
+      if (structuredOutput)
+        'output_config': {
+          'format': {'type': 'json_schema', 'schema': _AiPrompts.mealSchema},
+        },
       'messages': [
         {'role': 'user', 'content': content},
       ],
-    });
+    };
 
     try {
       final timeoutSeconds = await getAiTimeoutSeconds();
-      final response = await http
+      var response = await http
           .post(
             Uri.parse('https://api.anthropic.com/v1/messages'),
             headers: {
@@ -213,9 +218,27 @@ extension AiNetwork on AiService {
               'x-api-key': apiKey,
               'anthropic-version': '2023-06-01',
             },
-            body: body,
+            body: jsonEncode(request),
           )
           .timeout(Duration(seconds: timeoutSeconds));
+      if (structuredOutput && response.statusCode == 400) {
+        final message =
+            (_extractProviderErrorMessage(response.body) ?? '').toLowerCase();
+        if (message.contains('output_config') || message.contains('schema')) {
+          request.remove('output_config');
+          response = await http
+              .post(
+                Uri.parse('https://api.anthropic.com/v1/messages'),
+                headers: {
+                  'Content-Type': 'application/json',
+                  'x-api-key': apiKey,
+                  'anthropic-version': '2023-06-01',
+                },
+                body: jsonEncode(request),
+              )
+              .timeout(Duration(seconds: timeoutSeconds));
+        }
+      }
       if (response.statusCode == 401 || response.statusCode == 403) {
         throw const AiAuthException();
       }
@@ -249,6 +272,7 @@ extension AiNetwork on AiService {
     List<String> imagesBase64, {
     required String systemPrompt,
     double temperature = 0.3,
+    bool structuredOutput = false,
   }) {
     return _callOpenAiCompatibleRaw(
       endpoint: 'https://api.mistral.ai/v1/chat/completions',
@@ -258,6 +282,7 @@ extension AiNetwork on AiService {
       imagesBase64: imagesBase64,
       systemPrompt: systemPrompt,
       temperature: temperature,
+      structuredOutput: structuredOutput,
     );
   }
 
@@ -288,6 +313,7 @@ extension AiNetwork on AiService {
     required List<String> imagesBase64,
     required String systemPrompt,
     double temperature = 0.3,
+    bool structuredOutput = false,
   }) async {
     final contentParts = <Map<String, dynamic>>[];
     for (final img64 in imagesBase64) {
@@ -298,7 +324,7 @@ extension AiNetwork on AiService {
     }
     contentParts.add({'type': 'text', 'text': userContent});
 
-    final body = jsonEncode({
+    final request = <String, dynamic>{
       'model': model,
       'messages': [
         {'role': 'system', 'content': systemPrompt},
@@ -306,20 +332,45 @@ extension AiNetwork on AiService {
       ],
       'max_tokens': 2000,
       'temperature': temperature,
-    });
+      if (structuredOutput)
+        'response_format': {
+          'type': 'json_schema',
+          'json_schema': {
+            'name': 'meal_capture',
+            'schema': _AiPrompts.mealSchema
+          },
+        },
+    };
 
     try {
       final timeoutSeconds = await getAiTimeoutSeconds();
-      final response = await http
+      var response = await http
           .post(
             Uri.parse(endpoint),
             headers: {
               'Content-Type': 'application/json',
               'Authorization': authHeader,
             },
-            body: body,
+            body: jsonEncode(request),
           )
           .timeout(Duration(seconds: timeoutSeconds));
+      if (structuredOutput && response.statusCode == 400) {
+        final message =
+            (_extractProviderErrorMessage(response.body) ?? '').toLowerCase();
+        if (message.contains('response_format') || message.contains('schema')) {
+          request.remove('response_format');
+          response = await http
+              .post(
+                Uri.parse(endpoint),
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': authHeader,
+                },
+                body: jsonEncode(request),
+              )
+              .timeout(Duration(seconds: timeoutSeconds));
+        }
+      }
       if (response.statusCode == 401 || response.statusCode == 403) {
         throw const AiAuthException();
       }
@@ -646,6 +697,7 @@ extension AiNetwork on AiService {
     double temperature = 0.3,
     String? baseUrlOverride,
     AiProvider provider = AiProvider.openai,
+    bool structuredOutput = false,
   }) async {
     final effectiveModel = _normalizeOpenAiModelId(model);
     final contentParts = <Map<String, dynamic>>[];
@@ -667,6 +719,15 @@ extension AiNetwork on AiService {
         {'role': 'user', 'content': contentParts},
       ],
       ..._openAiTokenParams(effectiveModel, provider: provider),
+      if (structuredOutput && provider == AiProvider.openai)
+        'response_format': {
+          'type': 'json_schema',
+          'json_schema': {
+            'name': 'meal_capture',
+            'strict': true,
+            'schema': _AiPrompts.mealSchema,
+          },
+        },
       if (sendTemperature) 'temperature': temperature,
     };
 
@@ -697,6 +758,22 @@ extension AiNetwork on AiService {
         if (message != null && message.toLowerCase().contains('temperature')) {
           final retryMap = Map<String, dynamic>.from(requestMap)
             ..remove('temperature');
+          response = await http
+              .post(
+                Uri.parse(endpoint),
+                headers: headers,
+                body: jsonEncode(retryMap),
+              )
+              .timeout(Duration(seconds: timeoutSeconds));
+        }
+      }
+
+      if (structuredOutput && response.statusCode == 400) {
+        final message =
+            (_extractProviderErrorMessage(response.body) ?? '').toLowerCase();
+        if (message.contains('response_format') || message.contains('schema')) {
+          final retryMap = Map<String, dynamic>.from(requestMap)
+            ..remove('response_format');
           response = await http
               .post(
                 Uri.parse(endpoint),
@@ -762,6 +839,7 @@ extension AiNetwork on AiService {
     List<String> imagesBase64, {
     required String systemPrompt,
     double temperature = 0.3,
+    bool structuredOutput = false,
   }) async {
     final parts = <Map<String, dynamic>>[];
     for (final img64 in imagesBase64) {
@@ -771,22 +849,41 @@ extension AiNetwork on AiService {
     }
     parts.add({'text': '$systemPrompt\n\n$userContent'});
 
-    final body = jsonEncode({
+    final request = <String, dynamic>{
       'contents': [
         {'parts': parts},
       ],
       'generationConfig': {
         'temperature': temperature,
         'maxOutputTokens': 8192,
+        if (structuredOutput) ...{
+          'responseMimeType': 'application/json',
+          'responseJsonSchema': _AiPrompts.mealSchema,
+        },
       },
-    });
+    };
 
     try {
-      final response = await _postGeminiGenerateContent(
+      var response = await _postGeminiGenerateContent(
         apiKey: apiKey,
         model: model,
-        body: body,
+        body: jsonEncode(request),
       );
+      if (structuredOutput && response.statusCode == 400) {
+        final message =
+            (_extractProviderErrorMessage(response.body) ?? '').toLowerCase();
+        if (message.contains('responsejsonschema') ||
+            message.contains('schema')) {
+          (request['generationConfig'] as Map<String, dynamic>)
+            ..remove('responseMimeType')
+            ..remove('responseJsonSchema');
+          response = await _postGeminiGenerateContent(
+            apiKey: apiKey,
+            model: model,
+            body: jsonEncode(request),
+          );
+        }
+      }
       if (response.statusCode == 401 || response.statusCode == 403) {
         throw const AiAuthException();
       }

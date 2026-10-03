@@ -56,6 +56,7 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
   bool _scaleHintEnabled = true;
   bool _depthImageEnabled = true;
   bool _voiceTidyEnabled = true;
+  bool _fastModeEnabled = true;
 
   @override
   void initState() {
@@ -65,6 +66,12 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
     _loadSettings();
     unawaited(_loadDepthSettings());
     unawaited(_loadVoiceSettings());
+    unawaited(_loadFastModeSetting());
+  }
+
+  Future<void> _loadFastModeSetting() async {
+    final enabled = await AiService.instance.isFastModeEnabled();
+    if (mounted) setState(() => _fastModeEnabled = enabled);
   }
 
   Future<void> _loadDepthSettings() async {
@@ -457,6 +464,20 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                       value: aiEnabled,
                       onChanged: (value) => themeService.setAiEnabled(value),
                     ),
+                    if (aiEnabled) ...[
+                      const SizedBox(height: 12),
+                      PlatformAdaptiveSwitchListTile(
+                        contentPadding: EdgeInsets.zero,
+                        secondary: const Icon(LucideIcons.zap),
+                        title: Text(l10n.aiFastModeTitle),
+                        subtitle: Text(l10n.aiFastModeSubtitle),
+                        value: _fastModeEnabled,
+                        onChanged: (value) async {
+                          await AiService.instance.setFastModeEnabled(value);
+                          if (mounted) setState(() => _fastModeEnabled = value);
+                        },
+                      ),
+                    ],
                     if (aiEnabled && _hasLidar) ...[
                       const SizedBox(height: 12),
                       PlatformAdaptiveSwitchListTile(

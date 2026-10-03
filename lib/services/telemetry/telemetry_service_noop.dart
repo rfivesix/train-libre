@@ -163,6 +163,10 @@ class NoOpTelemetryService implements TelemetryService {
     required bool success,
     int? repairAttemptsCount,
     String? errorCode,
+    int? inputTokens,
+    int? outputTokens,
+    int? totalTokens,
+    bool? usageComplete,
   }) async {}
 
   @override

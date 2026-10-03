@@ -2819,6 +2819,24 @@ class AppLocalizationsDe extends AppLocalizations {
   String get aiReviewSaveToDiary => 'Ins Tagebuch speichern';
 
   @override
+  String aiReviewTokensUsed(int count) {
+    return 'KI-Nutzung: $count Tokens';
+  }
+
+  @override
+  String get aiReviewTokensPending => 'KI-Nutzung: wird aktualisiert…';
+
+  @override
+  String get aiReviewTokensUnknown => 'KI-Nutzung: nicht verfügbar';
+
+  @override
+  String get aiFastModeTitle => 'Geschwindigkeitsmodus';
+
+  @override
+  String get aiFastModeSubtitle =>
+      'Kann nach 4 Sekunden eine zweite Anfrage senden. Dadurch können zusätzliche API-Kosten entstehen.';
+
+  @override
   String get aiReviewFeedbackHint =>
       'Beschreibe, was die KI falsch erkannt hat...';
 
@@ -6339,6 +6357,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get mealAnalysisMatching => 'Zutaten werden abgeglichen';
 
   @override
+  String get mealAnalysisRepairing => 'Ergebnis wird verbessert';
+
+  @override
   String get mealAnalysisFailed => 'Das hat nicht geklappt';
 
   @override
@@ -8105,4 +8126,176 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get setTimerStop => 'Timer stoppen';
+
+  @override
+  String get aiScanLogsTitle => 'KI-Mahlzeitenerkennung · Logs';
+
+  @override
+  String get aiScanLogsPrivacy =>
+      'Nur auf diesem Gerät gespeichert. Keine Mahlzeitentexte, Fotos oder Schlüssel. Bis zu 20 Scans.';
+
+  @override
+  String get aiScanLogsEmpty => 'Noch keine KI-Mahlzeitenscans protokolliert.';
+
+  @override
+  String aiScanLogsCount(int count) {
+    return '$count Scans';
+  }
+
+  @override
+  String get aiScanLogsCopyAll => 'Alle kopieren';
+
+  @override
+  String get aiScanLogsClear => 'Logs löschen';
+
+  @override
+  String get aiScanLogsCopy => 'Log kopieren';
+
+  @override
+  String get aiScanLogsCopied => 'Log in die Zwischenablage kopiert';
+
+  @override
+  String get aiScanLogsPhotos => 'Fotos';
+
+  @override
+  String get aiScanLogsFirstPass => 'Erste Prüfung bestanden';
+
+  @override
+  String get aiScanLogsValidations => 'Prüfungen ausgewählt / gesamt';
+
+  @override
+  String get aiScanLogsRepairs => 'Automatische Reparaturen';
+
+  @override
+  String get aiScanLogsHedge => 'Parallelanfrage';
+
+  @override
+  String get aiScanLogsTokens => 'Tokens gesamt (Ein / Aus)';
+
+  @override
+  String get aiScanLogsUnknown => 'Unbekannt';
+
+  @override
+  String get aiScanLogsCalls => 'Anbieteranfragen';
+
+  @override
+  String get aiScanLogsReview => 'Review-Ergebnis';
+
+  @override
+  String get aiScanLogsCorrections => 'Nutzer-KI-Korrekturen';
+
+  @override
+  String get aiScanLogsTimeline => 'Zeitverlauf';
+
+  @override
+  String get aiScanLogsInputText => 'Text';
+
+  @override
+  String get aiScanLogsInputPhoto => 'Foto';
+
+  @override
+  String get aiScanLogsInputMixed => 'Foto + Text';
+
+  @override
+  String get aiScanLogsRunning => 'Läuft';
+
+  @override
+  String get aiScanLogsAccepted => 'Freigegeben';
+
+  @override
+  String get aiScanLogsNeedsRepair => 'Reparatur nötig';
+
+  @override
+  String get aiScanLogsFailed => 'Fehlgeschlagen';
+
+  @override
+  String get aiScanLogsCancelled => 'Abgebrochen';
+
+  @override
+  String get aiScanLogsSavedUnchanged => 'Unverändert gespeichert';
+
+  @override
+  String get aiScanLogsSavedEdited => 'Nach Bearbeitung gespeichert';
+
+  @override
+  String get aiScanLogsSavedCorrected => 'Nach KI-Korrektur gespeichert';
+
+  @override
+  String get aiScanLogsDiscarded => 'Verworfen';
+
+  @override
+  String get aiScanLogsStageRequested => 'Scan gestartet';
+
+  @override
+  String get aiScanLogsStagePrepared => 'Vorbereitung beendet';
+
+  @override
+  String get aiScanLogsStagePrimary => 'Erste KI-Anfrage gestartet';
+
+  @override
+  String get aiScanLogsStageHedge => 'Parallele KI-Anfrage gestartet';
+
+  @override
+  String get aiScanLogsStageProvider => 'KI-Antwort erhalten';
+
+  @override
+  String get aiScanLogsStageValidation => 'Lokale Prüfung beendet';
+
+  @override
+  String get aiScanLogsStageRepairStart => 'KI-Reparatur gestartet';
+
+  @override
+  String get aiScanLogsStageRepairEnd => 'KI-Reparaturantwort erhalten';
+
+  @override
+  String get aiScanLogsStageReview => 'Review sichtbar';
+
+  @override
+  String get aiScanLogsStageCorrectionStart => 'Nutzerkorrektur gestartet';
+
+  @override
+  String get aiScanLogsStageCorrectionEnd => 'Nutzerkorrektur beendet';
+
+  @override
+  String get aiScanLogsClearConfirm =>
+      'Alle lokal gespeicherten KI-Scan-Logs löschen?';
+
+  @override
+  String get aiScanLogsStageSelected => 'Kandidat ausgewählt';
+
+  @override
+  String get aiScanLogsCandidatePrimary => 'Erste Anfrage';
+
+  @override
+  String get aiScanLogsCandidateHedge => 'Parallele Anfrage';
+
+  @override
+  String get aiScanLogsScore => 'Wertung';
+
+  @override
+  String get aiScanLogsIssueSemantic => 'Katalogauswahl';
+
+  @override
+  String get aiScanLogsIssueCatalog => 'Katalogtreffer';
+
+  @override
+  String get aiScanLogsIssueQuantity => 'Menge';
+
+  @override
+  String get aiScanLogsIssueNutrition => 'Nährwertanker';
+
+  @override
+  String get aiScanLogsIssuePreparation => 'Zubereitungsart';
+
+  @override
+  String get aiScanLogsIssueConfidence => 'Sicherheit';
+
+  @override
+  String get aiScanLogsIssueOther => 'Weitere Prüfung';
+
+  @override
+  String get aiScanLogsStageUsage => 'Anbieter-Nutzung gemeldet';
+
+  @override
+  String get aiScanLogsCall => 'Anfrage';
 }

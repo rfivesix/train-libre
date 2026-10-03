@@ -12,6 +12,8 @@ import '../domain/repositories/diary_repository.dart';
 import '../data/meal_photo_store.dart';
 import '../domain/models/meal_capture_meta.dart';
 import '../../../services/ai_meal_validation.dart';
+import '../../../services/ai_meal_review_telemetry.dart';
+import '../../../services/ai_meal_scan_log_service.dart';
 import '../../../services/ai_matching_language_service.dart';
 import '../../../services/ai_service.dart';
 import '../../../services/haptic_feedback_service.dart';
@@ -39,7 +41,6 @@ import '../../../services/theme_service.dart';
 import '../../../services/base_food_language_service.dart';
 import '../../../widgets/common/app_button.dart';
 import '../../../services/telemetry/telemetry_service.dart';
-import '../../../services/telemetry/telemetry_buckets.dart';
 import 'dart:async';
 
 /// Review screen for AI-suggested food items.
@@ -54,6 +55,8 @@ class AiMealReviewScreen extends StatefulWidget {
   final DepthScaleFacts? depthFacts;
   final String? sentPrompt;
   final String? rawResponse;
+  final String? scanRequestId;
+  final AiUsageCollector? usageCollector;
 
   /// Dictated description that accompanied the capture, kept so a later
   /// re-analysis can send the same context again.
@@ -71,6 +74,8 @@ class AiMealReviewScreen extends StatefulWidget {
     this.depthFacts,
     this.sentPrompt,
     this.rawResponse,
+    this.scanRequestId,
+    this.usageCollector,
     this.voiceTranscript,
   });
 
@@ -99,6 +104,43 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
   Route<void>? _analysisRoute;
   bool _analysisCancelled = false;
   AiValidationResult? _validation;
+  late final AiMealReviewTelemetry _reviewTelemetry;
+  bool _manualEdited = false;
+  int _aiCorrectionRounds = 0;
+  final AiUsageCollector _correctionUsage = AiUsageCollector();
+
+  void _onUsageChanged() {
+    if (mounted) setState(() {});
+  }
+
+  String _tokenUsageLabel(AppLocalizations l10n) {
+    final scan = widget.usageCollector!;
+    final total = scan.totalTokens + _correctionUsage.totalTokens;
+    final pending = scan.pendingCount + _correctionUsage.pendingCount;
+    if (pending > 0) return l10n.aiReviewTokensPending;
+    if (!scan.usageComplete || !_correctionUsage.usageComplete) {
+      return l10n.aiReviewTokensUnknown;
+    }
+    return l10n.aiReviewTokensUsed(total);
+  }
+
+  void _trackReviewFinished(bool saved) {
+    _reviewTelemetry.manualEdited = _manualEdited;
+    _reviewTelemetry.correctionRounds = _aiCorrectionRounds;
+    unawaited(_reviewTelemetry.finish(saved: saved));
+    final id = widget.scanRequestId;
+    if (id != null) {
+      unawaited(AiMealScanLogService.instance.review(id,
+          result: !saved
+              ? AiMealScanLogResult.discarded
+              : _aiCorrectionRounds > 0
+                  ? AiMealScanLogResult.savedAfterAiCorrection
+                  : _manualEdited
+                      ? AiMealScanLogResult.savedAfterManualEdit
+                      : AiMealScanLogResult.savedUnchanged,
+          correctionRounds: _aiCorrectionRounds));
+    }
+  }
 
   void _dismissAnalysisScreen() {
     if (_analysisRoute == null) return;
@@ -198,6 +240,7 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
     );
     if (picked == null || !mounted) return;
     HapticFeedbackService.instance.selectionFeedback();
+    _manualEdited = true;
     setState(() => _selectedTimestamp = picked);
   }
 
@@ -223,6 +266,9 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
   @override
   void initState() {
     super.initState();
+    _reviewTelemetry = AiMealReviewTelemetry(requestId: widget.scanRequestId);
+    widget.usageCollector?.addListener(_onUsageChanged);
+    _correctionUsage.addListener(_onUsageChanged);
     unawaited(TelemetryService.instance
         .trackScreenView(screenName: ScreenName.aiMealReview));
     _selectedMealType = widget.initialMealType ??
@@ -241,6 +287,14 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
 
   @override
   void dispose() {
+    widget.usageCollector?.removeListener(_onUsageChanged);
+    _correctionUsage.removeListener(_onUsageChanged);
+    unawaited(
+        _correctionUsage.whenIdle.then((_) => _correctionUsage.dispose()));
+    final scanUsage = widget.usageCollector;
+    if (scanUsage != null) {
+      unawaited(scanUsage.whenIdle.then((_) => scanUsage.dispose()));
+    }
     _depthImage?.dispose();
     for (final img in _depthImages.values) {
       img.dispose();
@@ -348,6 +402,7 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
   // ---------------------------------------------------------------------------
 
   void _removeItem(int index) {
+    _manualEdited = true;
     setState(() => _items.removeAt(index));
     _validateCurrentItems(showLoading: false);
   }
@@ -356,6 +411,7 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
     final item = _items[index];
     final newGrams = (item.suggestion.estimatedGrams + delta).clamp(10, 5000);
     if (newGrams != item.suggestion.estimatedGrams) {
+      _manualEdited = true;
       setState(() {
         item.suggestion.estimatedGrams = newGrams;
         _updateItemNutritionLocally(index);
@@ -421,6 +477,7 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
     );
 
     if (result != null && mounted) {
+      _manualEdited = true;
       setState(() {
         item.suggestion.estimatedGrams = result;
         _updateItemNutritionLocally(index);
@@ -434,6 +491,7 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
       MaterialPageRoute(builder: (_) => const GeneralFoodSelectionScreen()),
     );
     if (selectedItem != null && mounted) {
+      _manualEdited = true;
       setState(() {
         _items[index].matchedFood = selectedItem;
         _items[index].suggestion.matchedBarcode = selectedItem.barcode;
@@ -459,6 +517,7 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
       MaterialPageRoute(builder: (_) => const GeneralFoodSelectionScreen()),
     );
     if (selectedItem != null && mounted) {
+      _manualEdited = true;
       setState(() {
         _items.add(
           _ReviewItem(
@@ -496,6 +555,16 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
   Future<void> _retryWithFeedback() async {
     final feedback = _feedbackController.text.trim();
     if (feedback.isEmpty) return;
+    _aiCorrectionRounds++;
+    final scanId = widget.scanRequestId;
+    if (scanId != null) {
+      unawaited(AiMealScanLogService.instance.eventNow(
+          scanId, AiMealScanLogStage.correctionStarted,
+          round: _aiCorrectionRounds));
+    }
+    final usageBefore = _correctionUsage.totalTokens;
+    final inputBefore = _correctionUsage.inputTokens;
+    final outputBefore = _correctionUsage.outputTokens;
 
     unawaited(TelemetryService.instance.trackFeatureUsed(
       featureKey: FeatureKey.aiMealCorrectionSubmitted,
@@ -508,6 +577,8 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
     _analysisController?.dispose();
     _analysisController = controller;
     _analysisCancelled = false;
+    final stopwatch = Stopwatch()..start();
+    var correctionCompleted = false;
 
     _analysisRoute = MealAnalysisScreen.route(
       controller: controller,
@@ -515,6 +586,23 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
           widget.originalImages.isNotEmpty ? widget.originalImages.first : null,
       onCancel: () {
         _analysisCancelled = true;
+        if (!correctionCompleted) {
+          correctionCompleted = true;
+          stopwatch.stop();
+          if (scanId != null) {
+            unawaited(AiMealScanLogService.instance.eventNow(
+                scanId, AiMealScanLogStage.correctionFinished,
+                durationMilliseconds: stopwatch.elapsedMilliseconds,
+                result: AiMealScanLogResult.cancelled,
+                round: _aiCorrectionRounds));
+          }
+          unawaited(TelemetryService.instance.trackAiMealCorrectionCompleted(
+            hasImages: widget.originalImages.isNotEmpty,
+            durationSeconds: (stopwatch.elapsedMilliseconds / 1000).round(),
+            success: false,
+            errorCode: 'cancelled',
+          ));
+        }
         _stopAiWaitingHaptics();
         _dismissAnalysisScreen();
         if (mounted) {
@@ -525,7 +613,6 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
     unawaited(Navigator.of(context).push(_analysisRoute!));
 
     controller.value = MealAnalysisPhase.analyzing;
-    final stopwatch = Stopwatch()..start();
 
     try {
       final matchingContext =
@@ -538,6 +625,7 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
         feedback: feedback,
         images: widget.originalImages.isNotEmpty ? widget.originalImages : null,
         matchingContext: matchingContext,
+        usageCollector: _correctionUsage,
       );
 
       if (!mounted || _analysisCancelled) return;
@@ -550,6 +638,7 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
         initialCandidate: candidate,
         mode: AiValidationMode.capture,
         repairer: (candidate, validation, attempt) {
+          controller.value = MealAnalysisPhase.repairing;
           return AiService.instance.repairMealCaptureCandidate(
             candidate: candidate,
             validation: validation,
@@ -557,6 +646,7 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
                 widget.originalImages.isNotEmpty ? widget.originalImages : null,
             matchingContext: matchingContext,
             mealContext: candidate.context,
+            usageCollector: _correctionUsage,
           );
         },
       );
@@ -564,13 +654,31 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
       if (!mounted || _analysisCancelled) return;
 
       stopwatch.stop();
-      final latencyBucket =
-          TelemetryBuckets.getLatencyBucket(stopwatch.elapsed);
+      correctionCompleted = true;
+      if (scanId != null) {
+        unawaited(AiMealScanLogService.instance.eventNow(
+            scanId, AiMealScanLogStage.correctionFinished,
+            durationMilliseconds: stopwatch.elapsedMilliseconds,
+            result: outcome.validation.passed
+                ? AiMealScanLogResult.accepted
+                : AiMealScanLogResult.needsRepair,
+            round: _aiCorrectionRounds));
+      }
       unawaited(TelemetryService.instance.trackAiMealCorrectionCompleted(
         hasImages: widget.originalImages.isNotEmpty,
-        latencyBucket: latencyBucket,
+        durationSeconds: (stopwatch.elapsedMilliseconds / 1000).round(),
         success: true,
         repairAttemptsCount: outcome.repairPassesUsed,
+        inputTokens: _correctionUsage.usageComplete
+            ? _correctionUsage.inputTokens - inputBefore
+            : null,
+        outputTokens: _correctionUsage.usageComplete
+            ? _correctionUsage.outputTokens - outputBefore
+            : null,
+        totalTokens: _correctionUsage.usageComplete
+            ? _correctionUsage.totalTokens - usageBefore
+            : null,
+        usageComplete: _correctionUsage.usageComplete,
       ));
 
       _stopAiWaitingHaptics();
@@ -585,14 +693,21 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
         });
       }
     } on AiServiceException catch (e) {
+      if (_analysisCancelled) return;
       stopwatch.stop();
-      final latencyBucket =
-          TelemetryBuckets.getLatencyBucket(stopwatch.elapsed);
+      correctionCompleted = true;
+      if (scanId != null) {
+        unawaited(AiMealScanLogService.instance.eventNow(
+            scanId, AiMealScanLogStage.correctionFinished,
+            durationMilliseconds: stopwatch.elapsedMilliseconds,
+            result: AiMealScanLogResult.failed,
+            round: _aiCorrectionRounds));
+      }
       unawaited(TelemetryService.instance.trackAiMealCorrectionCompleted(
         hasImages: widget.originalImages.isNotEmpty,
-        latencyBucket: latencyBucket,
+        durationSeconds: (stopwatch.elapsedMilliseconds / 1000).round(),
         success: false,
-        errorCode: e.runtimeType.toString(),
+        errorCode: aiServiceErrorCode(e),
       ));
       _stopAiWaitingHaptics();
       _dismissAnalysisScreen();
@@ -605,7 +720,37 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
           ),
         );
       }
+    } catch (_) {
+      if (_analysisCancelled) return;
+      stopwatch.stop();
+      correctionCompleted = true;
+      if (scanId != null) {
+        unawaited(AiMealScanLogService.instance.eventNow(
+            scanId, AiMealScanLogStage.correctionFinished,
+            durationMilliseconds: stopwatch.elapsedMilliseconds,
+            result: AiMealScanLogResult.failed,
+            round: _aiCorrectionRounds));
+      }
+      unawaited(TelemetryService.instance.trackAiMealCorrectionCompleted(
+        hasImages: widget.originalImages.isNotEmpty,
+        durationSeconds: (stopwatch.elapsedMilliseconds / 1000).round(),
+        success: false,
+        errorCode: 'unexpected',
+      ));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(AppLocalizations.of(context)!.error),
+        ));
+      }
     } finally {
+      if (_analysisCancelled && !correctionCompleted) {
+        unawaited(TelemetryService.instance.trackAiMealCorrectionCompleted(
+          hasImages: widget.originalImages.isNotEmpty,
+          durationSeconds: (stopwatch.elapsedMilliseconds / 1000).round(),
+          success: false,
+          errorCode: 'cancelled',
+        ));
+      }
       _stopAiWaitingHaptics();
       _dismissAnalysisScreen();
       if (mounted) setState(() => _isRetrying = false);
@@ -725,6 +870,7 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
     }
 
     if (!mounted || !saved) return;
+    _trackReviewFinished(true);
     HapticFeedbackService.instance.confirmationFeedback();
     Navigator.of(context).pop(true);
   }
@@ -921,6 +1067,7 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
         if (didPop) return;
         if (await _confirmDiscard() && mounted) {
           if (!context.mounted) return;
+          _trackReviewFinished(false);
           Navigator.of(context).pop(false);
         }
       },
@@ -991,6 +1138,16 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
                             ),
                           ),
                           const SizedBox(height: 4),
+                          if (widget.usageCollector != null) ...[
+                            Text(
+                              _tokenUsageLabel(l10n),
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: subtitleColor,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                          ],
                           Row(
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
@@ -1343,6 +1500,7 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
                       ],
                       onChanged: (v) {
                         if (v != null) {
+                          if (v != _selectedMealType) _manualEdited = true;
                           setState(() => _selectedMealType = v);
                         }
                       },

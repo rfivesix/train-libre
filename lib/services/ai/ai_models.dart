@@ -25,30 +25,65 @@ class AiTokenUsage {
 
 /// Scan-scoped counter. A late hedged response can update the review screen.
 class AiUsageCollector extends ChangeNotifier {
+  AiUsageCollector({this.onRequestCompleted});
+
+  final void Function(AiUsageRequestReport report)? onRequestCompleted;
+  final Map<int, Stopwatch> _requestWatches = {};
   int inputTokens = 0;
   int outputTokens = 0;
   int totalTokens = 0;
   int requestCount = 0;
   int pendingCount = 0;
   bool usageComplete = true;
+  Completer<void>? _idleCompleter;
 
-  void startRequest() {
+  Future<void> get whenIdle => pendingCount == 0
+      ? Future<void>.value()
+      : (_idleCompleter ??= Completer<void>()).future;
+
+  int startRequest() {
     requestCount++;
     pendingCount++;
+    _requestWatches[requestCount] = Stopwatch()..start();
     notifyListeners();
+    return requestCount;
   }
 
-  void finishRequest(AiTokenUsage? usage) {
+  void finishRequest(AiTokenUsage? usage, {int? requestId}) {
+    final completedId = requestId ?? _requestWatches.keys.firstOrNull;
+    final watch = _requestWatches.remove(completedId);
+    watch?.stop();
     pendingCount = pendingCount > 0 ? pendingCount - 1 : 0;
     if (usage == null || !usage.isComplete) {
       usageComplete = false;
-    } else {
-      inputTokens += usage.inputTokens!;
-      outputTokens += usage.outputTokens!;
-      totalTokens += usage.totalTokens!;
+    }
+    inputTokens += usage?.inputTokens ?? 0;
+    outputTokens += usage?.outputTokens ?? 0;
+    totalTokens += usage?.totalTokens ?? 0;
+    if (completedId != null) {
+      onRequestCompleted?.call(AiUsageRequestReport(
+        requestIndex: completedId,
+        durationMilliseconds: watch?.elapsedMilliseconds ?? 0,
+        usage: usage,
+      ));
+    }
+    if (pendingCount == 0) {
+      _idleCompleter?.complete();
+      _idleCompleter = null;
     }
     notifyListeners();
   }
+}
+
+class AiUsageRequestReport {
+  final int requestIndex;
+  final int durationMilliseconds;
+  final AiTokenUsage? usage;
+
+  const AiUsageRequestReport(
+      {required this.requestIndex,
+      required this.durationMilliseconds,
+      required this.usage});
 }
 
 class _AiRawResponse {
@@ -293,6 +328,16 @@ class AiUnsupportedFeatureException extends AiServiceException {
   const AiUnsupportedFeatureException(
       [super.message = 'Feature not supported.']);
 }
+
+/// Fixed telemetry vocabulary; provider error text is never transmitted.
+String aiServiceErrorCode(AiServiceException error) => switch (error) {
+      AiKeyMissingException() => 'key_missing',
+      AiAuthException() => 'auth',
+      AiNetworkException() => 'network',
+      AiParseException() => 'parse',
+      AiRateLimitException() => 'rate_limit',
+      AiUnsupportedFeatureException() => 'unsupported',
+    };
 
 /// One bullet of a tidied dictation transcript.
 class VoiceTranscriptBullet {

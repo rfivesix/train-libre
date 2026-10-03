@@ -1,6 +1,88 @@
 part of '../ai_service.dart';
 
 abstract class _AiPrompts {
+  static const itemSchema = <String, dynamic>{
+    'type': 'object',
+    'additionalProperties': false,
+    'properties': {
+      'name': {'type': 'string'},
+      'catalogSearchTerm': {
+        'type': ['string', 'null']
+      },
+      'servedGrams': {'type': 'integer'},
+      'estimatedGrams': {'type': 'integer'},
+      'confidence': {'type': 'number'},
+      'stateHint': {
+        'type': ['string', 'null']
+      },
+      'searchTerms': {
+        'type': 'array',
+        'items': {'type': 'string'}
+      },
+      'matchedBarcode': {
+        'type': ['string', 'null']
+      },
+    },
+    'required': [
+      'name',
+      'catalogSearchTerm',
+      'servedGrams',
+      'estimatedGrams',
+      'confidence',
+      'stateHint',
+      'searchTerms',
+      'matchedBarcode',
+    ],
+  };
+
+  static const mealSchema = <String, dynamic>{
+    'type': 'object',
+    'additionalProperties': false,
+    'properties': {
+      'mealContext': {
+        'type': 'object',
+        'additionalProperties': false,
+        'properties': {
+          'dishType': {'type': 'string'},
+          'expectedKcalRange': {
+            'type': 'array',
+            'items': {'type': 'integer'}
+          },
+          'expectedMacroProfile': {
+            'type': 'object',
+            'additionalProperties': false,
+            'properties': {
+              'proteinPercent': {
+                'type': 'array',
+                'items': {'type': 'integer'}
+              },
+              'carbsPercent': {
+                'type': 'array',
+                'items': {'type': 'integer'}
+              },
+              'fatPercent': {
+                'type': 'array',
+                'items': {'type': 'integer'}
+              },
+            },
+            'required': ['proteinPercent', 'carbsPercent', 'fatPercent'],
+          },
+          'cookingMethod': {'type': 'string'},
+          'contextNotes': {'type': 'string'},
+        },
+        'required': [
+          'dishType',
+          'expectedKcalRange',
+          'expectedMacroProfile',
+          'cookingMethod',
+          'contextNotes',
+        ],
+      },
+      'items': {'type': 'array', 'items': itemSchema},
+    },
+    'required': ['mealContext', 'items'],
+  };
+
   /// Builds the system prompt, optionally localised to [appLanguage] and [catalogLanguage].
   static String buildSystemPrompt({
     String? languageCode,
@@ -8,6 +90,7 @@ abstract class _AiPrompts {
     String? catalogLanguage,
     DepthScaleFacts? depthFacts,
     String? depthMapLegend,
+    bool structuredOutput = false,
   }) {
     final effectiveAppLang = appLanguage ?? languageCode;
     final effectiveCatalogLang = catalogLanguage;
@@ -97,7 +180,7 @@ The JSON object must have exactly these two fields:
    - "stateHint": string or null (e.g. "cooked", "raw", "boiled")
    - "searchTerms": array of 1-3 short strings for local catalog retrieval
 
-Example response:
+${structuredOutput ? '' : '''Example response:
 {
   "mealContext": {
     "dishType": "Omelette with Butter",
@@ -115,6 +198,7 @@ Example response:
     {"name": "Butter", "catalogSearchTerm": "Beurre", "servedGrams": 10, "estimatedGrams": 10, "confidence": 0.8, "stateHint": "raw", "searchTerms": ["Butter"]}
   ]
 }
+'''}
 ''';
   }
 

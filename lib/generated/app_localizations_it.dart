@@ -2830,6 +2830,24 @@ class AppLocalizationsIt extends AppLocalizations {
   String get aiReviewSaveToDiary => 'Salva nel diario';
 
   @override
+  String aiReviewTokensUsed(int count) {
+    return 'Utilizzo IA: $count token';
+  }
+
+  @override
+  String get aiReviewTokensPending => 'Utilizzo IA: aggiornamento…';
+
+  @override
+  String get aiReviewTokensUnknown => 'Utilizzo IA: non disponibile';
+
+  @override
+  String get aiFastModeTitle => 'Modalità veloce';
+
+  @override
+  String get aiFastModeSubtitle =>
+      'Può inviare una seconda richiesta dopo 4 secondi. Potrebbero esserci costi API aggiuntivi.';
+
+  @override
   String get aiReviewFeedbackHint =>
       'Descrivi cosa ha sbagliato l\'intelligenza artificiale...';
 
@@ -6380,6 +6398,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get mealAnalysisMatching => 'Confronto degli ingredienti';
 
   @override
+  String get mealAnalysisRepairing => 'Perfezionamento del risultato';
+
+  @override
   String get mealAnalysisFailed => 'Non ha funzionato';
 
   @override
@@ -8154,4 +8175,176 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get setTimerStop => 'Ferma timer';
+
+  @override
+  String get aiScanLogsTitle => 'Log riconoscimento pasti IA';
+
+  @override
+  String get aiScanLogsPrivacy =>
+      'Salvati solo su questo dispositivo. Nessun testo del pasto, foto o chiave. Fino a 20 scansioni.';
+
+  @override
+  String get aiScanLogsEmpty => 'Nessuna scansione pasto registrata.';
+
+  @override
+  String aiScanLogsCount(int count) {
+    return '$count scansioni';
+  }
+
+  @override
+  String get aiScanLogsCopyAll => 'Copia tutti';
+
+  @override
+  String get aiScanLogsClear => 'Cancella log';
+
+  @override
+  String get aiScanLogsCopy => 'Copia log';
+
+  @override
+  String get aiScanLogsCopied => 'Log copiato negli appunti';
+
+  @override
+  String get aiScanLogsPhotos => 'Foto';
+
+  @override
+  String get aiScanLogsFirstPass => 'Prima convalida superata';
+
+  @override
+  String get aiScanLogsValidations => 'Convalide selezionate / totali';
+
+  @override
+  String get aiScanLogsRepairs => 'Correzioni automatiche';
+
+  @override
+  String get aiScanLogsHedge => 'Richiesta parallela';
+
+  @override
+  String get aiScanLogsTokens => 'Token totali (in / out)';
+
+  @override
+  String get aiScanLogsUnknown => 'Sconosciuto';
+
+  @override
+  String get aiScanLogsCalls => 'Richieste al provider';
+
+  @override
+  String get aiScanLogsReview => 'Esito revisione';
+
+  @override
+  String get aiScanLogsCorrections => 'Correzioni IA richieste';
+
+  @override
+  String get aiScanLogsTimeline => 'Cronologia';
+
+  @override
+  String get aiScanLogsInputText => 'Testo';
+
+  @override
+  String get aiScanLogsInputPhoto => 'Foto';
+
+  @override
+  String get aiScanLogsInputMixed => 'Foto + testo';
+
+  @override
+  String get aiScanLogsRunning => 'In corso';
+
+  @override
+  String get aiScanLogsAccepted => 'Accettato';
+
+  @override
+  String get aiScanLogsNeedsRepair => 'Correzione necessaria';
+
+  @override
+  String get aiScanLogsFailed => 'Non riuscito';
+
+  @override
+  String get aiScanLogsCancelled => 'Annullato';
+
+  @override
+  String get aiScanLogsSavedUnchanged => 'Salvato senza modifiche';
+
+  @override
+  String get aiScanLogsSavedEdited => 'Salvato dopo modifica';
+
+  @override
+  String get aiScanLogsSavedCorrected => 'Salvato dopo correzione IA';
+
+  @override
+  String get aiScanLogsDiscarded => 'Scartato';
+
+  @override
+  String get aiScanLogsStageRequested => 'Scansione avviata';
+
+  @override
+  String get aiScanLogsStagePrepared => 'Preparazione completata';
+
+  @override
+  String get aiScanLogsStagePrimary => 'Prima richiesta IA avviata';
+
+  @override
+  String get aiScanLogsStageHedge => 'Richiesta IA parallela avviata';
+
+  @override
+  String get aiScanLogsStageProvider => 'Risposta IA ricevuta';
+
+  @override
+  String get aiScanLogsStageValidation => 'Convalida locale completata';
+
+  @override
+  String get aiScanLogsStageRepairStart => 'Correzione IA avviata';
+
+  @override
+  String get aiScanLogsStageRepairEnd => 'Risposta correzione IA ricevuta';
+
+  @override
+  String get aiScanLogsStageReview => 'Revisione visibile';
+
+  @override
+  String get aiScanLogsStageCorrectionStart => 'Correzione utente avviata';
+
+  @override
+  String get aiScanLogsStageCorrectionEnd => 'Correzione utente completata';
+
+  @override
+  String get aiScanLogsClearConfirm =>
+      'Eliminare tutti i log delle scansioni IA salvati localmente?';
+
+  @override
+  String get aiScanLogsStageSelected => 'Candidato selezionato';
+
+  @override
+  String get aiScanLogsCandidatePrimary => 'Prima richiesta';
+
+  @override
+  String get aiScanLogsCandidateHedge => 'Richiesta parallela';
+
+  @override
+  String get aiScanLogsScore => 'Punteggio';
+
+  @override
+  String get aiScanLogsIssueSemantic => 'Scelta catalogo';
+
+  @override
+  String get aiScanLogsIssueCatalog => 'Corrispondenza catalogo';
+
+  @override
+  String get aiScanLogsIssueQuantity => 'Quantità';
+
+  @override
+  String get aiScanLogsIssueNutrition => 'Riferimento nutrizionale';
+
+  @override
+  String get aiScanLogsIssuePreparation => 'Stato di preparazione';
+
+  @override
+  String get aiScanLogsIssueConfidence => 'Attendibilità';
+
+  @override
+  String get aiScanLogsIssueOther => 'Altra convalida';
+
+  @override
+  String get aiScanLogsStageUsage => 'Utilizzo provider ricevuto';
+
+  @override
+  String get aiScanLogsCall => 'Chiamata';
 }

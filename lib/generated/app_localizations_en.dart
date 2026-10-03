@@ -2806,6 +2806,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get aiReviewSaveToDiary => 'Save to Diary';
 
   @override
+  String aiReviewTokensUsed(int count) {
+    return 'AI usage: $count tokens';
+  }
+
+  @override
+  String get aiReviewTokensPending => 'AI usage: updating…';
+
+  @override
+  String get aiReviewTokensUnknown => 'AI usage: unavailable';
+
+  @override
+  String get aiFastModeTitle => 'Speed mode';
+
+  @override
+  String get aiFastModeSubtitle =>
+      'May send a second request after 4 seconds. This can add API costs.';
+
+  @override
   String get aiReviewFeedbackHint => 'Describe what the AI got wrong...';
 
   @override
@@ -6287,6 +6305,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mealAnalysisMatching => 'Matching the ingredients';
 
   @override
+  String get mealAnalysisRepairing => 'Refining the result';
+
+  @override
   String get mealAnalysisFailed => 'That did not work';
 
   @override
@@ -8044,4 +8065,175 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get setTimerStop => 'Stop timer';
+
+  @override
+  String get aiScanLogsTitle => 'AI meal scan logs';
+
+  @override
+  String get aiScanLogsPrivacy =>
+      'Stored only on this device. No meal text, photos or keys. Up to 20 scans.';
+
+  @override
+  String get aiScanLogsEmpty => 'No AI meal scans logged yet.';
+
+  @override
+  String aiScanLogsCount(int count) {
+    return '$count scans';
+  }
+
+  @override
+  String get aiScanLogsCopyAll => 'Copy all';
+
+  @override
+  String get aiScanLogsClear => 'Clear logs';
+
+  @override
+  String get aiScanLogsCopy => 'Copy log';
+
+  @override
+  String get aiScanLogsCopied => 'Log copied to clipboard';
+
+  @override
+  String get aiScanLogsPhotos => 'Photos';
+
+  @override
+  String get aiScanLogsFirstPass => 'First validation passed';
+
+  @override
+  String get aiScanLogsValidations => 'Validations selected / total';
+
+  @override
+  String get aiScanLogsRepairs => 'Automatic repairs';
+
+  @override
+  String get aiScanLogsHedge => 'Parallel request';
+
+  @override
+  String get aiScanLogsTokens => 'Tokens total (in / out)';
+
+  @override
+  String get aiScanLogsUnknown => 'Unknown';
+
+  @override
+  String get aiScanLogsCalls => 'Provider requests';
+
+  @override
+  String get aiScanLogsReview => 'Review outcome';
+
+  @override
+  String get aiScanLogsCorrections => 'User AI corrections';
+
+  @override
+  String get aiScanLogsTimeline => 'Timeline';
+
+  @override
+  String get aiScanLogsInputText => 'Text';
+
+  @override
+  String get aiScanLogsInputPhoto => 'Photo';
+
+  @override
+  String get aiScanLogsInputMixed => 'Photo + text';
+
+  @override
+  String get aiScanLogsRunning => 'Running';
+
+  @override
+  String get aiScanLogsAccepted => 'Accepted';
+
+  @override
+  String get aiScanLogsNeedsRepair => 'Needs repair';
+
+  @override
+  String get aiScanLogsFailed => 'Failed';
+
+  @override
+  String get aiScanLogsCancelled => 'Cancelled';
+
+  @override
+  String get aiScanLogsSavedUnchanged => 'Saved unchanged';
+
+  @override
+  String get aiScanLogsSavedEdited => 'Saved after edit';
+
+  @override
+  String get aiScanLogsSavedCorrected => 'Saved after AI correction';
+
+  @override
+  String get aiScanLogsDiscarded => 'Discarded';
+
+  @override
+  String get aiScanLogsStageRequested => 'Scan started';
+
+  @override
+  String get aiScanLogsStagePrepared => 'Preparation finished';
+
+  @override
+  String get aiScanLogsStagePrimary => 'First AI request started';
+
+  @override
+  String get aiScanLogsStageHedge => 'Parallel AI request started';
+
+  @override
+  String get aiScanLogsStageProvider => 'AI response received';
+
+  @override
+  String get aiScanLogsStageValidation => 'Local validation finished';
+
+  @override
+  String get aiScanLogsStageRepairStart => 'AI repair started';
+
+  @override
+  String get aiScanLogsStageRepairEnd => 'AI repair response received';
+
+  @override
+  String get aiScanLogsStageReview => 'Review visible';
+
+  @override
+  String get aiScanLogsStageCorrectionStart => 'User correction started';
+
+  @override
+  String get aiScanLogsStageCorrectionEnd => 'User correction finished';
+
+  @override
+  String get aiScanLogsClearConfirm => 'Delete all locally saved AI scan logs?';
+
+  @override
+  String get aiScanLogsStageSelected => 'Candidate selected';
+
+  @override
+  String get aiScanLogsCandidatePrimary => 'First request';
+
+  @override
+  String get aiScanLogsCandidateHedge => 'Parallel request';
+
+  @override
+  String get aiScanLogsScore => 'Score';
+
+  @override
+  String get aiScanLogsIssueSemantic => 'Catalog choice';
+
+  @override
+  String get aiScanLogsIssueCatalog => 'Catalog match';
+
+  @override
+  String get aiScanLogsIssueQuantity => 'Quantity';
+
+  @override
+  String get aiScanLogsIssueNutrition => 'Nutrition anchor';
+
+  @override
+  String get aiScanLogsIssuePreparation => 'Preparation state';
+
+  @override
+  String get aiScanLogsIssueConfidence => 'Confidence';
+
+  @override
+  String get aiScanLogsIssueOther => 'Other validation';
+
+  @override
+  String get aiScanLogsStageUsage => 'Provider usage reported';
+
+  @override
+  String get aiScanLogsCall => 'Call';
 }

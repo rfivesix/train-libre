@@ -11,6 +11,7 @@ import '../../../widgets/common/common.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/summary_card.dart';
 import 'developer_lab/nutrition_developer_lab_view.dart';
+import 'widgets/ai_meal_scan_logs_section.dart';
 import 'performance_diagnostics_screen.dart';
 
 /// The developer tools screen with dual tabs:
@@ -45,22 +46,27 @@ class DeveloperSettingsScreen extends StatelessWidget {
                   color: isDark
                       ? Colors.white.withValues(alpha: 0.08)
                       : Colors.black.withValues(alpha: 0.05),
-                  borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
+                  borderRadius:
+                      BorderRadius.circular(DesignConstants.borderRadiusM),
                 ),
                 child: TabBar(
                   indicatorSize: TabBarIndicatorSize.tab,
                   dividerColor: Colors.transparent,
                   indicator: BoxDecoration(
-                    color: theme.colorScheme.primary.withValues(alpha: isDark ? 0.25 : 0.15),
-                    borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
+                    color: theme.colorScheme.primary
+                        .withValues(alpha: isDark ? 0.25 : 0.15),
+                    borderRadius:
+                        BorderRadius.circular(DesignConstants.borderRadiusM),
                     border: Border.all(
                       color: theme.colorScheme.primary.withValues(alpha: 0.4),
                       width: 1,
                     ),
                   ),
                   labelColor: theme.colorScheme.primary,
-                  unselectedLabelColor: theme.colorScheme.onSurface.withValues(alpha: 0.6),
-                  labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                  unselectedLabelColor:
+                      theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                  labelStyle: const TextStyle(
+                      fontWeight: FontWeight.bold, fontSize: 13),
                   tabs: const [
                     Tab(
                       iconMargin: EdgeInsets.zero,
@@ -102,7 +108,8 @@ class DeveloperSettingsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildGeneralTab(BuildContext context, AppLocalizations l10n, ThemeData theme) {
+  Widget _buildGeneralTab(
+      BuildContext context, AppLocalizations l10n, ThemeData theme) {
     final experienceLevelService = Provider.of<ExperienceLevelService>(context);
 
     return ListView(
@@ -130,6 +137,8 @@ class DeveloperSettingsScreen extends StatelessWidget {
             ),
           ),
         ),
+        const SizedBox(height: DesignConstants.spacingL),
+        const AiMealScanLogsSection(),
         const SizedBox(height: DesignConstants.spacingXL),
         AppSectionHeader(title: l10n.developerLabExperienceSection),
         SummaryCard(

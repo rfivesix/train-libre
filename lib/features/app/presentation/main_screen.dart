@@ -35,7 +35,7 @@ import '../../diary/presentation/nutrition_hub_screen.dart';
 import '../../profile/presentation/profile_screen.dart';
 import '../../analytics/presentation/statistics_hub_screen.dart';
 import '../../workout/presentation/workout_hub_screen.dart';
-import '../../workout/presentation/workout_history_screen.dart';
+import '../../workout/presentation/widgets/workout_history_app_bar_button.dart';
 import '../../../services/profile_service.dart';
 import '../../steps/data/steps_aggregation_repository.dart';
 import '../../../services/haptic_feedback_service.dart';
@@ -1154,22 +1154,7 @@ class _MainScreenState extends State<MainScreen>
         return GlobalAppBar(
           title: l10n.workout,
           actions: [
-            IconButton(
-              icon: Icon(
-                LucideIcons.rotate_ccw_clock,
-                color: Theme.of(context).brightness == Brightness.dark
-                    ? Colors.white
-                    : Colors.black,
-              ),
-              tooltip: l10n.workoutEntryWorkouts,
-              onPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => const WorkoutHistoryScreen(),
-                  ),
-                );
-              },
-            ),
+            const WorkoutHistoryAppBarButton(),
             _profileAppBarButton(context),
           ],
         );

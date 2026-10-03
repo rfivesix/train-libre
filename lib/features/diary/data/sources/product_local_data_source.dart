@@ -1,5 +1,9 @@
 // lib/data/product_database_helper.dart
 
+import 'dart:convert';
+import 'dart:async';
+import 'dart:collection';
+
 import 'package:path_provider/path_provider.dart';
 import 'package:drift/drift.dart';
 import '../../../../data/database_helper.dart';
@@ -9,6 +13,43 @@ import '../../domain/models/food_item.dart';
 import '../../../../services/catalog_file_migration.dart';
 import '../../../../util/perf_debug_timer.dart';
 import '../../domain/use_cases/evaluate_food_source_use_case.dart';
+
+/// One scan shares recent-use weights and in-flight catalog searches across
+/// all ingredients and repair rounds. Both values stay on-device.
+class AiCatalogSearchSession {
+  final ProductLocalDataSource _source;
+  late final Future<({String barcodes, String ids})> scores =
+      _source._loadRecentAiScores();
+  final Map<String, Future<List<FoodItem>>> _terms = {};
+  final Queue<Completer<void>> _waiting = Queue<Completer<void>>();
+  int _active = 0;
+
+  AiCatalogSearchSession(this._source);
+
+  Future<List<FoodItem>> search(String term) => _terms.putIfAbsent(
+        term.trim().toLowerCase(),
+        () => _runBounded(term),
+      );
+
+  Future<List<FoodItem>> _runBounded(String term) async {
+    if (_active >= 4) {
+      final ready = Completer<void>();
+      _waiting.add(ready);
+      await ready.future;
+    } else {
+      _active++;
+    }
+    try {
+      return await _source.searchProducts(term, aiSession: this);
+    } finally {
+      if (_waiting.isNotEmpty) {
+        _waiting.removeFirst().complete();
+      } else {
+        _active--;
+      }
+    }
+  }
+}
 
 /// Helper class for managing food product data in the Drift database.
 ///
@@ -23,6 +64,32 @@ class ProductLocalDataSource {
       DatabaseHelper.instance.productLocalDataSource;
 
   db.AppDatabase get dbInstance => _dbInstance;
+
+  AiCatalogSearchSession createAiSearchSession() =>
+      AiCatalogSearchSession(this);
+
+  Future<({String barcodes, String ids})> _loadRecentAiScores() async {
+    final dbInstance = await database;
+    final cutoff = DateTime.now().subtract(const Duration(days: 30));
+    Future<Map<String, int>> scores(String field) async {
+      final rows = await dbInstance.customSelect(
+        'SELECT $field AS key, COUNT(*) * 10 AS score FROM nutrition_logs '
+        'WHERE consumed_at >= ? AND $field IS NOT NULL AND $field != \'\' '
+        'GROUP BY $field',
+        variables: [Variable.withDateTime(cutoff)],
+        readsFrom: {dbInstance.nutritionLogs},
+      ).get();
+      return {
+        for (final row in rows) row.read<String>('key'): row.read<int>('score'),
+      };
+    }
+
+    final results = await Future.wait([
+      scores('legacy_barcode'),
+      scores('product_id'),
+    ]);
+    return (barcodes: jsonEncode(results[0]), ids: jsonEncode(results[1]));
+  }
 
   ProductLocalDataSource.forTesting(this._dbInstance);
 
@@ -480,7 +547,8 @@ class ProductLocalDataSource {
   }
 
   /// Performs a global search across user-created, base, and Open Food Facts products.
-  Future<List<FoodItem>> searchProducts(String keyword) async {
+  Future<List<FoodItem>> searchProducts(String keyword,
+      {AiCatalogSearchSession? aiSession}) async {
     final tokens = _tokenizeAndClean(keyword);
     if (tokens.isEmpty) return [];
 
@@ -494,8 +562,14 @@ class ProductLocalDataSource {
     final String historyScoreExpr =
         'COALESCE(rbl.score, 0) + COALESCE(ril.score, 0) AS history_priority_score';
     // Must be the first variables because they match the FIRST two `?` in the CTEs!
-    variables.add(Variable.withDateTime(thirtyDaysAgo));
-    variables.add(Variable.withDateTime(thirtyDaysAgo));
+    if (aiSession == null) {
+      variables.add(Variable.withDateTime(thirtyDaysAgo));
+      variables.add(Variable.withDateTime(thirtyDaysAgo));
+    } else {
+      final scores = await aiSession.scores;
+      variables.add(Variable.withString(scores.barcodes));
+      variables.add(Variable.withString(scores.ids));
+    }
 
     // Pass raw search term for relevance scoring in ORDER BY
     final rawSearchLower = keyword.trim().toLowerCase();
@@ -538,16 +612,24 @@ class ProductLocalDataSource {
 
     final query = '''
       WITH RecentBarcodeLogs AS (
+          ${aiSession == null ? '''
           SELECT legacy_barcode AS barcode, COUNT(*) * 10 AS score
           FROM nutrition_logs
           WHERE consumed_at >= ? AND legacy_barcode IS NOT NULL AND legacy_barcode != ''
           GROUP BY legacy_barcode
+          ''' : '''
+          SELECT key AS barcode, CAST(value AS INTEGER) AS score FROM json_each(?)
+          '''}
       ),
       RecentIdLogs AS (
+          ${aiSession == null ? '''
           SELECT product_id AS id, COUNT(*) * 10 AS score
           FROM nutrition_logs
           WHERE consumed_at >= ? AND product_id IS NOT NULL AND product_id != ''
           GROUP BY product_id
+          ''' : '''
+          SELECT key AS id, CAST(value AS INTEGER) AS score FROM json_each(?)
+          '''}
       )
       SELECT p.*,
              $historyScoreExpr,
@@ -629,6 +711,7 @@ class ProductLocalDataSource {
     String aiName, {
     String? catalogSearchTerm,
     Iterable<String> searchTerms = const [],
+    AiCatalogSearchSession? aiSession,
   }) async {
     final terms = <String>{
       aiName.trim(),
@@ -636,7 +719,7 @@ class ProductLocalDataSource {
       if (catalogSearchTerm != null) catalogSearchTerm.trim(),
     }..removeWhere((term) => term.isEmpty);
     final resultSets = await Future.wait(
-      terms.map(searchProducts),
+      terms.map((term) => aiSession?.search(term) ?? searchProducts(term)),
     );
     final candidates = <FoodItem>[];
     for (final results in resultSets) {

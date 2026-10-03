@@ -18,6 +18,7 @@ enum MealAnalysisPhase {
   preparing,
   analyzing,
   matching,
+  repairing,
   failed,
 }
 
@@ -151,6 +152,7 @@ class _MealAnalysisScreenState extends State<MealAnalysisScreen> {
       MealAnalysisPhase.preparing => l10n.mealAnalysisPreparing,
       MealAnalysisPhase.analyzing => l10n.mealAnalysisAnalyzing,
       MealAnalysisPhase.matching => l10n.mealAnalysisMatching,
+      MealAnalysisPhase.repairing => l10n.mealAnalysisRepairing,
       MealAnalysisPhase.failed => l10n.mealAnalysisFailed,
     };
   }
@@ -258,14 +260,12 @@ class _MealAnalysisScreenState extends State<MealAnalysisScreen> {
 
                           // Clean Status Text
                           Padding(
-                            padding:
-                                const EdgeInsets.symmetric(horizontal: 32),
+                            padding: const EdgeInsets.symmetric(horizontal: 32),
                             child: ValueListenableBuilder<MealAnalysisPhase>(
                               valueListenable: widget.controller,
                               builder: (context, phase, _) {
                                 return AnimatedSwitcher(
-                                  duration:
-                                      const Duration(milliseconds: 320),
+                                  duration: const Duration(milliseconds: 320),
                                   transitionBuilder: (child, animation) {
                                     return FadeTransition(
                                       opacity: animation,

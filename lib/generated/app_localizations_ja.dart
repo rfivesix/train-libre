@@ -2746,6 +2746,24 @@ class AppLocalizationsJa extends AppLocalizations {
   String get aiReviewSaveToDiary => '日記に保存';
 
   @override
+  String aiReviewTokensUsed(int count) {
+    return 'AI使用量: $countトークン';
+  }
+
+  @override
+  String get aiReviewTokensPending => 'AI使用量: 更新中…';
+
+  @override
+  String get aiReviewTokensUnknown => 'AI使用量: 取得できません';
+
+  @override
+  String get aiFastModeTitle => '高速モード';
+
+  @override
+  String get aiFastModeSubtitle =>
+      '4秒後に2回目のリクエストを送信する場合があります。APIの追加料金が発生することがあります。';
+
+  @override
   String get aiReviewFeedbackHint => 'AI が何を間違えたのか説明してください...';
 
   @override
@@ -6083,6 +6101,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get mealAnalysisMatching => '食材を照合しています';
 
   @override
+  String get mealAnalysisRepairing => '結果を改善しています';
+
+  @override
   String get mealAnalysisFailed => 'うまくいきませんでした';
 
   @override
@@ -7748,4 +7769,174 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get setTimerStop => 'タイマーを停止';
+
+  @override
+  String get aiScanLogsTitle => 'AI食事認識ログ';
+
+  @override
+  String get aiScanLogsPrivacy => 'この端末にのみ保存。食事の文章・写真・キーは含みません。最大20件。';
+
+  @override
+  String get aiScanLogsEmpty => 'まだ食事スキャンのログはありません。';
+
+  @override
+  String aiScanLogsCount(int count) {
+    return '$count件のスキャン';
+  }
+
+  @override
+  String get aiScanLogsCopyAll => 'すべてコピー';
+
+  @override
+  String get aiScanLogsClear => 'ログを消去';
+
+  @override
+  String get aiScanLogsCopy => 'ログをコピー';
+
+  @override
+  String get aiScanLogsCopied => 'ログをクリップボードにコピーしました';
+
+  @override
+  String get aiScanLogsPhotos => '写真';
+
+  @override
+  String get aiScanLogsFirstPass => '初回検証に合格';
+
+  @override
+  String get aiScanLogsValidations => '選択した検証 / 合計';
+
+  @override
+  String get aiScanLogsRepairs => '自動修正';
+
+  @override
+  String get aiScanLogsHedge => '並列リクエスト';
+
+  @override
+  String get aiScanLogsTokens => '合計トークン（入力 / 出力）';
+
+  @override
+  String get aiScanLogsUnknown => '不明';
+
+  @override
+  String get aiScanLogsCalls => 'プロバイダーへのリクエスト';
+
+  @override
+  String get aiScanLogsReview => 'レビュー結果';
+
+  @override
+  String get aiScanLogsCorrections => 'ユーザーによるAI修正';
+
+  @override
+  String get aiScanLogsTimeline => 'タイムライン';
+
+  @override
+  String get aiScanLogsInputText => 'テキスト';
+
+  @override
+  String get aiScanLogsInputPhoto => '写真';
+
+  @override
+  String get aiScanLogsInputMixed => '写真＋テキスト';
+
+  @override
+  String get aiScanLogsRunning => '実行中';
+
+  @override
+  String get aiScanLogsAccepted => '承認';
+
+  @override
+  String get aiScanLogsNeedsRepair => '修正が必要';
+
+  @override
+  String get aiScanLogsFailed => '失敗';
+
+  @override
+  String get aiScanLogsCancelled => 'キャンセル';
+
+  @override
+  String get aiScanLogsSavedUnchanged => '変更せず保存';
+
+  @override
+  String get aiScanLogsSavedEdited => '編集後に保存';
+
+  @override
+  String get aiScanLogsSavedCorrected => 'AI修正後に保存';
+
+  @override
+  String get aiScanLogsDiscarded => '破棄';
+
+  @override
+  String get aiScanLogsStageRequested => 'スキャン開始';
+
+  @override
+  String get aiScanLogsStagePrepared => '準備完了';
+
+  @override
+  String get aiScanLogsStagePrimary => '最初のAIリクエスト開始';
+
+  @override
+  String get aiScanLogsStageHedge => '並列AIリクエスト開始';
+
+  @override
+  String get aiScanLogsStageProvider => 'AI応答受信';
+
+  @override
+  String get aiScanLogsStageValidation => 'ローカル検証完了';
+
+  @override
+  String get aiScanLogsStageRepairStart => 'AI修正開始';
+
+  @override
+  String get aiScanLogsStageRepairEnd => 'AI修正応答受信';
+
+  @override
+  String get aiScanLogsStageReview => 'レビュー表示';
+
+  @override
+  String get aiScanLogsStageCorrectionStart => 'ユーザー修正開始';
+
+  @override
+  String get aiScanLogsStageCorrectionEnd => 'ユーザー修正完了';
+
+  @override
+  String get aiScanLogsClearConfirm => '端末に保存されたAIスキャンログをすべて削除しますか？';
+
+  @override
+  String get aiScanLogsStageSelected => '候補を選択';
+
+  @override
+  String get aiScanLogsCandidatePrimary => '最初のリクエスト';
+
+  @override
+  String get aiScanLogsCandidateHedge => '並列リクエスト';
+
+  @override
+  String get aiScanLogsScore => 'スコア';
+
+  @override
+  String get aiScanLogsIssueSemantic => 'カタログ選択';
+
+  @override
+  String get aiScanLogsIssueCatalog => 'カタログ照合';
+
+  @override
+  String get aiScanLogsIssueQuantity => '分量';
+
+  @override
+  String get aiScanLogsIssueNutrition => '栄養基準';
+
+  @override
+  String get aiScanLogsIssuePreparation => '調理状態';
+
+  @override
+  String get aiScanLogsIssueConfidence => '確信度';
+
+  @override
+  String get aiScanLogsIssueOther => 'その他の検証';
+
+  @override
+  String get aiScanLogsStageUsage => 'プロバイダー使用量を受信';
+
+  @override
+  String get aiScanLogsCall => 'リクエスト';
 }

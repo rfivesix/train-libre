@@ -691,7 +691,7 @@ class PostHogTelemetryService implements TelemetryService {
       if (hasTextInput != null) 'has_text_input': hasTextInput,
       if (validationPassed != null) 'validation_passed': validationPassed,
       if (repairAttemptsCount != null)
-        'repair_attempts_count': repairAttemptsCount,
+        'repair_rounds_count': repairAttemptsCount,
       if (suggestedItemsCountBucket != null)
         'suggested_items_count_bucket': suggestedItemsCountBucket,
       if (preparationSeconds != null) 'preparation_seconds': preparationSeconds,
@@ -705,7 +705,8 @@ class PostHogTelemetryService implements TelemetryService {
         'selected_validation_rounds_count': selectedValidationRoundsCount,
       if (validationRunsTotalCount != null)
         'validation_runs_total_count': validationRunsTotalCount,
-      if (repairLimitReached != null) 'repair_limit_reached': repairLimitReached,
+      if (repairLimitReached != null)
+        'repair_limit_reached': repairLimitReached,
       if (firstPassIssueCategories != null)
         'first_pass_issue_categories': firstPassIssueCategories,
       if (fastMode != null) 'fast_mode': fastMode,
@@ -737,6 +738,10 @@ class PostHogTelemetryService implements TelemetryService {
     required bool success,
     int? repairAttemptsCount,
     String? errorCode,
+    int? inputTokens,
+    int? outputTokens,
+    int? totalTokens,
+    bool? usageComplete,
   }) async {
     await track('ai_meal_correction_completed', properties: {
       'has_images': hasImages,
@@ -745,6 +750,10 @@ class PostHogTelemetryService implements TelemetryService {
       if (repairAttemptsCount != null)
         'repair_attempts_count': repairAttemptsCount,
       if (errorCode != null) 'error_code': errorCode,
+      if (inputTokens != null) 'input_tokens': inputTokens,
+      if (outputTokens != null) 'output_tokens': outputTokens,
+      if (totalTokens != null) 'total_tokens': totalTokens,
+      if (usageComplete != null) 'usage_complete': usageComplete,
     });
   }
 
@@ -926,11 +935,11 @@ class PostHogTelemetryService implements TelemetryService {
     const validSources = {'profile', 'onboarding'};
 
     final safePreset = validPresets.contains(preset) ? preset : 'custom';
-    final safeMode =
-        validTrackingModes.contains(trackingMode) ? trackingMode : 'weekly_rate';
-    final safeDirection = validRateDirections.contains(rateDirection)
-        ? rateDirection
-        : 'neutral';
+    final safeMode = validTrackingModes.contains(trackingMode)
+        ? trackingMode
+        : 'weekly_rate';
+    final safeDirection =
+        validRateDirections.contains(rateDirection) ? rateDirection : 'neutral';
     final safeSource = validSources.contains(source) ? source : 'profile';
 
     await track('nutrition_goal_created', properties: {
@@ -958,10 +967,10 @@ class PostHogTelemetryService implements TelemetryService {
       'neutral'
     };
 
-    final safeType = validTypes.contains(adjustmentType) ? adjustmentType : 'pace';
-    final safeDirection = validRateDirections.contains(rateDirection)
-        ? rateDirection
-        : 'neutral';
+    final safeType =
+        validTypes.contains(adjustmentType) ? adjustmentType : 'pace';
+    final safeDirection =
+        validRateDirections.contains(rateDirection) ? rateDirection : 'neutral';
 
     await track('nutrition_goal_adjusted', properties: {
       'adjustment_type': safeType,
@@ -995,12 +1004,7 @@ class PostHogTelemetryService implements TelemetryService {
   }) async {
     const validTrajectories = {'on_track', 'slower', 'faster', 'calibrating'};
     const validConfidences = {'high', 'moderate', 'low', 'uncalibrated'};
-    const validDecisions = {
-      'applied',
-      'deferred',
-      'dismissed',
-      'goal_changed'
-    };
+    const validDecisions = {'applied', 'deferred', 'dismissed', 'goal_changed'};
     const validCalorieDirections = {'increase', 'decrease', 'maintain', 'none'};
 
     final safeTrajectory = validTrajectories.contains(trajectoryStatus)

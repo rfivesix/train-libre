@@ -398,6 +398,11 @@ void main() {
       expect(searchAfterLog[0].barcode,
           '555555'); // Apfelmus ungezuckert (now first!)
       expect(searchAfterLog[1].barcode, '444444'); // Apfel Elstar
+      final scanSession = dataSource.createAiSearchSession();
+      final cached = await scanSession.search('Apfel');
+      expect(cached.map((item) => item.barcode).toList(),
+          searchAfterLog.map((item) => item.barcode).toList());
+      expect(identical(cached, await scanSession.search('apfel')), isTrue);
     });
 
     test(
@@ -459,17 +464,21 @@ void main() {
     test(
         'searchProducts supports searching by brand name before or after product name',
         () async {
-      await dataSource.insertProduct(testBaseItem1); // Brokkoli frisch (brand: Gartenfrisch)
+      await dataSource.insertProduct(
+          testBaseItem1); // Brokkoli frisch (brand: Gartenfrisch)
       await dataSource.insertProduct(testUserItem); // Apfel Elstar (brand: Bio)
-      await dataSource.insertProduct(testOffItem); // Apfelmus ungezuckert (brand: Kaufland Bio)
+      await dataSource.insertProduct(
+          testOffItem); // Apfelmus ungezuckert (brand: Kaufland Bio)
 
       // 1. Search brand before product name: "Gartenfrisch Brokkoli"
-      final brandBefore = await dataSource.searchProducts('Gartenfrisch Brokkoli');
+      final brandBefore =
+          await dataSource.searchProducts('Gartenfrisch Brokkoli');
       expect(brandBefore.isNotEmpty, isTrue);
       expect(brandBefore[0].barcode, '111111'); // Brokkoli frisch
 
       // 2. Search brand after product name: "Apfelmus Kaufland Bio"
-      final brandAfter = await dataSource.searchProducts('Apfelmus Kaufland Bio');
+      final brandAfter =
+          await dataSource.searchProducts('Apfelmus Kaufland Bio');
       expect(brandAfter.isNotEmpty, isTrue);
       expect(brandAfter[0].barcode, '555555'); // Apfelmus ungezuckert
 

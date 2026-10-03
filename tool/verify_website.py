@@ -138,6 +138,9 @@ def validate_security_headers() -> None:
         assert metadata.csp, f"Page missing Content-Security-Policy meta tag: {path}"
         assert metadata.content_type_options == "nosniff", f"Page missing X-Content-Type-Options: {path}"
         assert metadata.referrer == "strict-origin-when-cross-origin", f"Page missing referrer policy: {path}"
+        if "script-src" in metadata.csp:
+            script_directive = metadata.csp.split("script-src")[1].split(";")[0]
+            assert "unsafe-inline" not in script_directive, f"Page has unsafe-inline in script-src: {path}"
 
 
 def main() -> None:

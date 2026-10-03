@@ -608,6 +608,21 @@ class AiService {
   // Analysis
   // ---------------------------------------------------------------------------
 
+  Future<bool> _supportsMealSchema() async {
+    final provider = await getSelectedProvider();
+    final model = await getSelectedModel(provider);
+    if (provider == AiProvider.openai) {
+      return model.startsWith('gpt-4o') ||
+          model.startsWith('gpt-5') ||
+          model.startsWith('gpt-6');
+    }
+    if (provider == AiProvider.anthropic || provider == AiProvider.mistral) {
+      return true;
+    }
+    return provider == AiProvider.gemini &&
+        (model.startsWith('gemini-2.5') || model.startsWith('gemini-3'));
+  }
+
   /// Analyzes one or more meal images and returns suggested food items.
   /// [depthMap] is appended after the photos and described by [depthMapLegend];
   /// both must be given together or not at all, since a false-colour image with
@@ -622,6 +637,7 @@ class AiService {
     String? depthMapLegend,
     AiUsageCollector? usageCollector,
   }) async {
+    final structuredOutput = await _supportsMealSchema();
     final userContent =
         textHint ?? 'Analyze this meal and identify all food components.';
     final attachDepthMap = depthMap != null &&
@@ -634,6 +650,7 @@ class AiService {
       catalogLanguage: matchingContext?.catalogLanguage,
       depthFacts: depthFacts,
       depthMapLegend: attachDepthMap ? depthMapLegend : null,
+      structuredOutput: structuredOutput,
     );
 
     final raw = await _callSelectedProviderRaw(
@@ -642,6 +659,7 @@ class AiService {
       images: attachDepthMap ? [...images, depthMap] : images,
       temperature: 0.3,
       usageCollector: usageCollector,
+      structuredOutput: structuredOutput,
     );
 
     return _parseMealCandidateFromContent(raw);
@@ -654,10 +672,12 @@ class AiService {
     AiMatchingContext? matchingContext,
     AiUsageCollector? usageCollector,
   }) async {
+    final structuredOutput = await _supportsMealSchema();
     final prompt = _AiPrompts.buildSystemPrompt(
       languageCode: languageCode,
       appLanguage: matchingContext?.appLanguage,
       catalogLanguage: matchingContext?.catalogLanguage,
+      structuredOutput: structuredOutput,
     );
 
     final raw = await _callSelectedProviderRaw(
@@ -665,6 +685,7 @@ class AiService {
       systemPrompt: prompt,
       temperature: 0.3,
       usageCollector: usageCollector,
+      structuredOutput: structuredOutput,
     );
 
     return _parseMealCandidateFromContent(raw);
@@ -757,6 +778,7 @@ class AiService {
     AiMatchingContext? matchingContext,
     AiUsageCollector? usageCollector,
   }) async {
+    final structuredOutput = await _supportsMealSchema();
     final previousJson = jsonEncode(
       previousResults.map((e) => e.toJson()).toList(),
     );
@@ -772,6 +794,7 @@ Please provide an updated analysis incorporating the user's feedback. Return the
       languageCode: languageCode,
       appLanguage: matchingContext?.appLanguage,
       catalogLanguage: matchingContext?.catalogLanguage,
+      structuredOutput: structuredOutput,
     );
 
     final raw = await _callSelectedProviderRaw(
@@ -780,6 +803,7 @@ Please provide an updated analysis incorporating the user's feedback. Return the
       images: images,
       temperature: 0.3,
       usageCollector: usageCollector,
+      structuredOutput: structuredOutput,
     );
 
     return _parseMealCandidateFromContent(raw);
@@ -813,9 +837,27 @@ Please provide an updated analysis incorporating the user's feedback. Return the
     DepthScaleFacts? depthFacts,
     AiUsageCollector? usageCollector,
   }) async {
+    final actionable = validation.allIssues
+        .where((issue) => issue.severity != AiValidationSeverity.info)
+        .toList(growable: false);
+    final affectedIndices = actionable
+        .map((issue) => issue.itemIndex)
+        .whereType<int>()
+        .where((index) => index >= 0 && index < candidate.items.length)
+        .toSet()
+        .toList()
+      ..sort();
+    final semanticOnly = actionable.isNotEmpty &&
+        affectedIndices.isNotEmpty &&
+        actionable.every((issue) =>
+            issue.code == 'ambiguous_nutrition_match' &&
+            issue.itemIndex != null);
+    final itemsForPrompt = semanticOnly
+        ? [for (final index in affectedIndices) candidate.items[index]]
+        : candidate.items;
     final userContent = '''
 Previous meal capture candidate:
-${jsonEncode(candidate.items.map((item) => {
+${jsonEncode(itemsForPrompt.map((item) => {
               'name': item.name,
               if (item.servedGrams != null) 'servedGrams': item.servedGrams,
               'estimatedGrams': item.grams,
@@ -831,28 +873,46 @@ ${jsonEncode(candidate.items.map((item) => {
 Deterministic validation feedback:
 ${validation.toRepairFeedback()}
 
-Repair the candidate. When database candidates are listed, pick the EXACT name from the list. Adjust grams to fit the meal context anchor.''';
+${semanticOnly ? 'Return only the listed items in the same order. Select the exact catalog name and ID from the verified candidates. Preserve servedGrams and estimatedGrams.' : 'Repair the candidate. When database candidates are listed, pick the EXACT name from the list. Adjust grams to fit the meal context anchor.'}''';
 
     final raw = await _callSelectedProviderRaw(
       userContent: userContent,
       // A catalog ambiguity can be resolved from the original candidate and
       // the verified local menu; resend photos only for visual/quantity issues.
-      images: validation.allIssues.every(
-        (issue) => issue.code == 'ambiguous_nutrition_match',
-      )
-          ? null
-          : images,
-      systemPrompt: _AiPrompts.buildRepairPrompt(
-        languageCode: languageCode,
-        appLanguage: matchingContext?.appLanguage,
-        catalogLanguage: matchingContext?.catalogLanguage,
-        mealContext: mealContext,
-        depthFacts: depthFacts,
-      ),
+      images: semanticOnly ? null : images,
+      systemPrompt: semanticOnly
+          ? 'Resolve only catalog selection for the listed food items. Choose an exact verified candidate name and matchedBarcode for each item. Preserve quantities, food identity and order. Return only a JSON array of items with name, matchedBarcode, servedGrams, estimatedGrams, confidence, stateHint and searchTerms.'
+          : _AiPrompts.buildRepairPrompt(
+              languageCode: languageCode,
+              appLanguage: matchingContext?.appLanguage,
+              catalogLanguage: matchingContext?.catalogLanguage,
+              mealContext: mealContext,
+              depthFacts: depthFacts,
+            ),
       temperature: 0.1,
       usageCollector: usageCollector,
     );
     final repaired = await _parseItemsFromContent(raw);
+
+    if (semanticOnly) {
+      if (repaired.length != affectedIndices.length) {
+        throw const AiParseException();
+      }
+      final updated = List<AiMealCandidateItem>.from(candidate.items);
+      for (var i = 0; i < affectedIndices.length; i++) {
+        final index = affectedIndices[i];
+        final selected = repaired[i];
+        final previous = updated[index];
+        updated[index] = previous.copyWith(
+          name: selected.name,
+          matchedBarcode: selected.matchedBarcode,
+          searchTerms: selected.searchTerms.isEmpty
+              ? previous.searchTerms
+              : selected.searchTerms,
+        );
+      }
+      return candidate.copyWith(items: updated);
+    }
 
     return AiMealCandidate(
       items: List.generate(repaired.length, (index) {
@@ -883,11 +943,12 @@ Repair the candidate. When database candidates are listed, pick the EXACT name f
     List<File>? images,
     double temperature = 0.3,
     AiUsageCollector? usageCollector,
+    bool structuredOutput = false,
+    bool modelRefreshAttempted = false,
   }) async {
-    usageCollector?.startRequest();
-    final providerEnum = await getSelectedProvider();
-
+    final usageRequestId = usageCollector?.startRequest();
     try {
+      final providerEnum = await getSelectedProvider();
       String? apiKey;
       if (providerEnum != AiProvider.ollama) {
         apiKey = await getApiKey(providerEnum);
@@ -921,6 +982,7 @@ Repair the candidate. When database candidates are listed, pick the EXACT name f
             imageDataList,
             systemPrompt: systemPrompt,
             temperature: temperature,
+            structuredOutput: structuredOutput,
           );
           break;
         case AiProvider.ollama:
@@ -956,6 +1018,7 @@ Repair the candidate. When database candidates are listed, pick the EXACT name f
             imageDataList,
             systemPrompt: systemPrompt,
             temperature: temperature,
+            structuredOutput: structuredOutput,
           );
           break;
         case AiProvider.anthropic:
@@ -966,6 +1029,7 @@ Repair the candidate. When database candidates are listed, pick the EXACT name f
             imageDataList,
             systemPrompt: systemPrompt,
             temperature: temperature,
+            structuredOutput: structuredOutput,
           );
           break;
         case AiProvider.mistral:
@@ -976,6 +1040,7 @@ Repair the candidate. When database candidates are listed, pick the EXACT name f
             imageDataList,
             systemPrompt: systemPrompt,
             temperature: temperature,
+            structuredOutput: structuredOutput,
           );
           break;
         case AiProvider.xai:
@@ -990,10 +1055,35 @@ Repair the candidate. When database candidates are listed, pick the EXACT name f
           break;
       }
 
-      usageCollector?.finishRequest(rawResult.usage);
+      usageCollector?.finishRequest(rawResult.usage, requestId: usageRequestId);
       return rawResult.text;
     } catch (e) {
-      usageCollector?.finishRequest(null);
+      usageCollector?.finishRequest(null, requestId: usageRequestId);
+      if (!modelRefreshAttempted &&
+          e is AiNetworkException &&
+          RegExp(r'(model not found|model does not exist|unknown model|invalid model|model is not supported)',
+                  caseSensitive: false)
+              .hasMatch(e.message)) {
+        final provider = await getSelectedProvider();
+        if (provider != AiProvider.ollama && provider != AiProvider.custom) {
+          final rejected = await getSelectedModel(provider);
+          final options = await loadModelOptions(provider);
+          final alternatives =
+              options.options.where((option) => option.id != rejected);
+          if (alternatives.isNotEmpty) {
+            await setSelectedModel(provider, alternatives.first.id);
+            return _callSelectedProviderRaw(
+              userContent: userContent,
+              systemPrompt: systemPrompt,
+              images: images,
+              temperature: temperature,
+              usageCollector: usageCollector,
+              structuredOutput: structuredOutput,
+              modelRefreshAttempted: true,
+            );
+          }
+        }
+      }
       rethrow;
     }
   }

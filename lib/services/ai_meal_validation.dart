@@ -15,25 +15,31 @@ class AiMealValidationEngine {
 
   AiMealValidationEngine({
     AiFoodMatchLoader? matchLoader,
-  }) : _matchLoader = matchLoader ?? defaultMatchLoader;
+  }) : _matchLoader = matchLoader ?? _createDefaultMatchLoader();
 
-  static Future<List<FoodItem>> defaultMatchLoader(
-    AiMealCandidateItem item,
-  ) async {
+  static AiFoodMatchLoader _createDefaultMatchLoader() {
+    final session = ProductLocalDataSource.instance.createAiSearchSession();
+    return (item) => defaultMatchLoader(item, aiSession: session);
+  }
+
+  static Future<List<FoodItem>> defaultMatchLoader(AiMealCandidateItem item,
+      {AiCatalogSearchSession? aiSession}) async {
     final helper = ProductLocalDataSource.instance;
     final matches = <FoodItem>[];
     final barcode = item.matchedBarcode?.trim();
+    final fuzzyFuture = helper.fuzzyMatchForAi(
+      item.name,
+      catalogSearchTerm: item.catalogSearchTerm,
+      searchTerms: item.searchTerms,
+      aiSession: aiSession,
+    );
     if (barcode != null && barcode.isNotEmpty) {
       final selected = await helper.getProductByBarcode(barcode);
       if (selected != null) {
         matches.add(selected);
       }
     }
-    final fuzzy = await helper.fuzzyMatchForAi(
-      item.name,
-      catalogSearchTerm: item.catalogSearchTerm,
-      searchTerms: item.searchTerms,
-    );
+    final fuzzy = await fuzzyFuture;
     for (final food in fuzzy) {
       if (!matches.any((existing) => existing.barcode == food.barcode)) {
         matches.add(food);
@@ -263,29 +269,35 @@ class AiRepairOrchestrator {
 
   Future<AiRepairOutcome> run({
     required AiMealCandidate initialCandidate,
+    AiValidationResult? initialValidation,
     required AiValidationMode mode,
     required AiCandidateRepairer repairer,
     AiMacroTargetContext? targetContext,
     int maxPasses = maxRepairPasses,
+    void Function(
+            int round, AiValidationResult result, int durationMilliseconds)?
+        onRepairValidation,
   }) async {
     var candidate = initialCandidate;
-    var validation = await validationEngine.validateMealCandidate(
-      candidate: candidate,
-      mode: mode,
-      targetContext: targetContext,
-    );
+    var validation = initialValidation ??
+        await validationEngine.validateMealCandidate(
+          candidate: candidate,
+          mode: mode,
+          targetContext: targetContext,
+        );
     final firstPassAccepted =
         validation.passed && !validation.needsSemanticSelection;
     final firstPassIssueCategories = <String>{
       for (final issue in validation.allIssues)
-        if (issue.code == 'ambiguous_nutrition_match')
-          'semantic_match'
-        else if (issue.code.contains('quantity') ||
-            issue.code.contains('kcal') ||
-            issue.code.contains('macro'))
-          'quantity_or_anchor'
-        else
-          'other_validation',
+        if (issue.severity != AiValidationSeverity.info)
+          if (issue.code == 'ambiguous_nutrition_match')
+            'semantic_match'
+          else if (issue.code.contains('quantity') ||
+              issue.code.contains('kcal') ||
+              issue.code.contains('macro'))
+            'quantity_or_anchor'
+          else
+            'other_validation',
     };
     var repairPasses = 0;
 
@@ -293,11 +305,15 @@ class AiRepairOrchestrator {
         repairPasses < maxPasses) {
       repairPasses += 1;
       candidate = await repairer(candidate, validation, repairPasses);
+      final validationWatch = Stopwatch()..start();
       validation = await validationEngine.validateMealCandidate(
         candidate: candidate,
         mode: mode,
         targetContext: targetContext,
       );
+      validationWatch.stop();
+      onRepairValidation?.call(
+          repairPasses, validation, validationWatch.elapsedMilliseconds);
     }
 
     final limitReached =
