@@ -69,12 +69,12 @@ AiService _serviceWith({
 }
 
 void main() {
-  test('speed mode defaults on and can be disabled', () async {
+  test('speed mode defaults off and can be toggled', () async {
     SharedPreferences.setMockInitialValues({});
     final service = _serviceWith(storage: _InMemorySecureStorage());
-    expect(await service.isFastModeEnabled(), isTrue);
-    await service.setFastModeEnabled(false);
     expect(await service.isFastModeEnabled(), isFalse);
+    await service.setFastModeEnabled(true);
+    expect(await service.isFastModeEnabled(), isTrue);
   });
 
   group('AiService provider persistence', () {

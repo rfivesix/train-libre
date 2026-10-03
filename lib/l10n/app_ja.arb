@@ -1119,8 +1119,7 @@
   "@aiReviewTokensUsed": {"placeholders": {"count": {"type": "int"}}},
   "aiReviewTokensPending": "AI使用量: 更新中…",
   "aiReviewTokensUnknown": "AI使用量: 取得できません",
-  "aiFastModeTitle": "高速モード",
-  "aiFastModeSubtitle": "4秒後に2回目のリクエストを送信する場合があります。APIの追加料金が発生することがあります。",
+
   "aiReviewFeedbackHint": "AI が何を間違えたのか説明してください...",
   "aiReviewRetryButton": "フィードバック付きで再試行",
   "aiReviewFeedbackSection": "修正",

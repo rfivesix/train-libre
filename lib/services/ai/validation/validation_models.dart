@@ -250,11 +250,13 @@ class AiMatchResult {
   final AiMatchQuality quality;
   final bool isAmbiguous;
   final double score;
+  final List<FoodItem> competingAlternatives;
 
   const AiMatchResult({
     required this.query,
     required this.bestMatch,
     required this.alternatives,
+    this.competingAlternatives = const [],
     required this.quality,
     required this.isAmbiguous,
     required this.score,

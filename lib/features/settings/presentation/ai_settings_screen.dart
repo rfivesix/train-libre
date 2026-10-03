@@ -9,7 +9,7 @@ import '../../../services/theme_service.dart';
 import '../../../util/design_constants.dart';
 import '../../../widgets/common/common.dart';
 import '../../../widgets/common/global_app_bar.dart';
-import '../../../widgets/common/seamless_loading_overlay.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 import '../../../widgets/common/bottom_content_spacer.dart';
 import '../../../widgets/common/summary_card.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
@@ -43,7 +43,6 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
   /// Why the picker is showing the built-in list instead of the provider's.
   /// Null while the live list loaded fine.
   AiModelListError? _modelListError;
-  bool _isLoading = true;
   bool _isLoadingModels = false;
   bool _isTesting = false;
   bool _obscureKey = true;
@@ -56,8 +55,6 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
   bool _scaleHintEnabled = true;
   bool _depthImageEnabled = true;
   bool _voiceTidyEnabled = true;
-  bool _fastModeEnabled = true;
-
   @override
   void initState() {
     super.initState();
@@ -66,12 +63,6 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
     _loadSettings();
     unawaited(_loadDepthSettings());
     unawaited(_loadVoiceSettings());
-    unawaited(_loadFastModeSetting());
-  }
-
-  Future<void> _loadFastModeSetting() async {
-    final enabled = await AiService.instance.isFastModeEnabled();
-    if (mounted) setState(() => _fastModeEnabled = enabled);
   }
 
   Future<void> _loadDepthSettings() async {
@@ -102,74 +93,114 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
 
   Future<void> _loadSettings() async {
     final provider = await AiService.instance.getSelectedProvider();
-    final model = await AiService.instance.resolveAndPersistSelectedModel(
-      provider,
-    );
+    final savedModel = await AiService.instance.getSelectedModel(provider);
     final key = await AiService.instance.getApiKey(provider);
-    final modelList = await AiService.instance.loadModelOptions(provider);
-    final models = modelList.options;
-    final resolvedModel = _resolveModelSelection(model, models, provider);
     final customBaseUrl = await AiService.instance.getCustomBaseUrl();
     final customModel = await AiService.instance.getCustomModel();
     final timeout = await AiService.instance.getAiTimeoutSeconds();
 
+    final isCloud =
+        provider != AiProvider.ollama && provider != AiProvider.custom;
+    final meta = AiService.instance.getProviderMetadata(provider);
+    final effectiveModel =
+        savedModel.isNotEmpty ? savedModel : meta.defaultModel;
+
     if (mounted) {
       setState(() {
         _selectedProvider = provider;
-        _selectedModel = resolvedModel;
+        _selectedModel = effectiveModel;
         _modelOptions = _buildModelOptionsWithSelection(
-          models,
-          resolvedModel,
+          meta.emergencyFallbackModels
+              .map((m) => AiModelOption(id: m, label: m, isFallback: true))
+              .toList(),
+          effectiveModel,
           provider,
         );
-        _modelListError = modelList.error;
         _hasKey = key != null && key.isNotEmpty;
         _timeoutSeconds = timeout;
-        if (_hasKey) {
-          // Show masked placeholder — never display the real key
+        if (_hasKey && provider != AiProvider.ollama) {
           _keyController.text = '••••••••••••••••••••';
         }
         _baseUrlController.text = customBaseUrl ?? '';
         _customModelController.text = customModel ?? '';
-        _isLoading = false;
+        _isLoadingModels = isCloud;
       });
+    }
+
+    if (isCloud) {
+      unawaited(_loadDynamicModels(provider));
+    }
+  }
+
+  Future<void> _loadDynamicModels(AiProvider provider) async {
+    try {
+      final modelList = await AiService.instance.loadModelOptions(provider);
+      final models = modelList.options;
+      final selected = await AiService.instance.getSelectedModel(provider);
+      final resolvedModel = _resolveModelSelection(
+        selected.isNotEmpty ? selected : _selectedModel,
+        models,
+        provider,
+      );
+      if (resolvedModel != selected) {
+        await AiService.instance.setSelectedModel(provider, resolvedModel);
+      }
+      if (mounted && _selectedProvider == provider) {
+        setState(() {
+          _selectedModel = resolvedModel;
+          _modelOptions = _buildModelOptionsWithSelection(
+            models,
+            resolvedModel,
+            provider,
+          );
+          _modelListError = modelList.error;
+          _isLoadingModels = false;
+        });
+      }
+    } catch (_) {
+      if (mounted && _selectedProvider == provider) {
+        setState(() => _isLoadingModels = false);
+      }
     }
   }
 
   Future<void> _onProviderChanged(AiProvider? provider) async {
     if (provider == null) return;
-    setState(() => _isLoading = true);
-    await AiService.instance.setSelectedProvider(provider);
-    final selectedModel =
-        await AiService.instance.resolveAndPersistSelectedModel(provider);
-    final modelList = await AiService.instance.loadModelOptions(provider);
-    final models = modelList.options;
-    final resolvedModel = _resolveModelSelection(
-      selectedModel,
-      models,
-      provider,
-    );
-    await AiService.instance.setSelectedModel(provider, resolvedModel);
+    final isCloud =
+        provider != AiProvider.ollama && provider != AiProvider.custom;
+    final meta = AiService.instance.getProviderMetadata(provider);
+    final savedModel = await AiService.instance.getSelectedModel(provider);
+    final effectiveModel =
+        savedModel.isNotEmpty ? savedModel : meta.defaultModel;
     final key = await AiService.instance.getApiKey(provider);
     final customBaseUrl = await AiService.instance.getCustomBaseUrl();
     final customModel = await AiService.instance.getCustomModel();
 
+    await AiService.instance.setSelectedProvider(provider);
+
     if (mounted) {
       setState(() {
         _selectedProvider = provider;
-        _selectedModel = resolvedModel;
+        _selectedModel = effectiveModel;
         _modelOptions = _buildModelOptionsWithSelection(
-          models,
-          resolvedModel,
+          meta.emergencyFallbackModels
+              .map((m) => AiModelOption(id: m, label: m, isFallback: true))
+              .toList(),
+          effectiveModel,
           provider,
         );
-        _modelListError = modelList.error;
+        _modelListError = null;
         _hasKey = key != null && key.isNotEmpty;
-        _keyController.text = _hasKey ? '••••••••••••••••••••' : '';
+        _keyController.text =
+            _hasKey && provider != AiProvider.ollama ? '••••••••••••••••••••' : '';
         _baseUrlController.text = customBaseUrl ?? '';
         _customModelController.text = customModel ?? '';
-        _isLoading = false;
+        _isLoadingModels = isCloud;
       });
+    }
+
+    if (isCloud) {
+      unawaited(_loadDynamicModels(provider));
     }
   }
 
@@ -246,28 +277,7 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
       return;
     }
     setState(() => _isLoadingModels = true);
-    final modelList =
-        await AiService.instance.loadModelOptions(_selectedProvider);
-    final models = modelList.options;
-    final selectedModel = await AiService.instance
-        .resolveAndPersistSelectedModel(_selectedProvider);
-    final resolvedModel = _resolveModelSelection(
-      selectedModel,
-      models,
-      _selectedProvider,
-    );
-    await AiService.instance.setSelectedModel(_selectedProvider, resolvedModel);
-    if (!mounted) return;
-    setState(() {
-      _selectedModel = resolvedModel;
-      _modelOptions = _buildModelOptionsWithSelection(
-        models,
-        resolvedModel,
-        _selectedProvider,
-      );
-      _modelListError = modelList.error;
-      _isLoadingModels = false;
-    });
+    await _loadDynamicModels(_selectedProvider);
   }
 
   /// One sentence explaining why the picker is showing the built-in list.
@@ -363,8 +373,16 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
     if (models.isEmpty) {
       final defaultModel =
           AiService.instance.getProviderMetadata(provider).defaultModel;
+      final effective =
+          selectedModel.isNotEmpty ? selectedModel : defaultModel;
       return [
-        AiModelOption(id: defaultModel, label: defaultModel, isFallback: true),
+        AiModelOption(id: effective, label: effective, isFallback: true),
+      ];
+    }
+    if (selectedModel.isNotEmpty && !models.any((m) => m.id == selectedModel)) {
+      return [
+        AiModelOption(id: selectedModel, label: selectedModel),
+        ...models,
       ];
     }
     return models;
@@ -410,15 +428,12 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: GlobalAppBar(title: l10n.aiSettingsTitle),
-      body: SeamlessLoadingOverlay(
-        isLoading: _isLoading,
-        isEmpty: false, // always show content
-        extendBodyBehindAppBar: true,
-        child: ListView(
-          padding: DesignConstants.cardPadding.copyWith(
-            top: DesignConstants.cardPadding.top + topPadding,
-          ),
-          children: [
+      body: ListView(
+        key: const PageStorageKey<String>('ai_settings_list'),
+        padding: DesignConstants.cardPadding.copyWith(
+          top: DesignConstants.cardPadding.top + topPadding,
+        ),
+        children: [
             AppInfoRow(
               title: l10n.aiSettingsInstructionTitle,
               subtitle: l10n.aiSettingsInstructionBody,
@@ -464,20 +479,7 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                       value: aiEnabled,
                       onChanged: (value) => themeService.setAiEnabled(value),
                     ),
-                    if (aiEnabled) ...[
-                      const SizedBox(height: 12),
-                      PlatformAdaptiveSwitchListTile(
-                        contentPadding: EdgeInsets.zero,
-                        secondary: const Icon(LucideIcons.zap),
-                        title: Text(l10n.aiFastModeTitle),
-                        subtitle: Text(l10n.aiFastModeSubtitle),
-                        value: _fastModeEnabled,
-                        onChanged: (value) async {
-                          await AiService.instance.setFastModeEnabled(value);
-                          if (mounted) setState(() => _fastModeEnabled = value);
-                        },
-                      ),
-                    ],
+
                     if (aiEnabled && _hasLidar) ...[
                       const SizedBox(height: 12),
                       PlatformAdaptiveSwitchListTile(
@@ -557,30 +559,30 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                       const SizedBox(height: 10),
                       if (_selectedProvider != AiProvider.ollama &&
                           _selectedProvider != AiProvider.custom) ...[
-                        _isLoadingModels
-                            ? const Center(
-                                child: CircularProgressIndicator(),
-                              )
-                            : PlatformAdaptiveDropdownFormField<String>(
-                                initialValue: _selectedModel,
-                                decoration: InputDecoration(
-                                  labelText: l10n.aiModelLabel,
-                                  border: const OutlineInputBorder(),
-                                  contentPadding: const EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                    vertical: 8,
-                                  ),
-                                ),
-                                items: _modelOptions
-                                    .map(
-                                      (model) => DropdownMenuItem(
-                                        value: model.id,
-                                        child: Text(model.label),
-                                      ),
-                                    )
-                                    .toList(),
-                                onChanged: _onModelChanged,
+                        Skeletonizer(
+                          enabled: _isLoadingModels,
+                          child: PlatformAdaptiveDropdownFormField<String>(
+                            key: ValueKey('ai_model_dropdown_$_selectedProvider'),
+                            initialValue: _selectedModel.isNotEmpty ? _selectedModel : null,
+                            decoration: InputDecoration(
+                              labelText: l10n.aiModelLabel,
+                              border: const OutlineInputBorder(),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 8,
                               ),
+                            ),
+                            items: _modelOptions
+                                .map(
+                                  (model) => DropdownMenuItem(
+                                    value: model.id,
+                                    child: Text(model.label),
+                                  ),
+                                )
+                                .toList(),
+                            onChanged: _isLoadingModels ? null : _onModelChanged,
+                          ),
+                        ),
                         const SizedBox(height: 10),
                         if (!_isLoadingModels && _modelListError != null)
                           _buildModelListFallbackNotice(
@@ -900,7 +902,6 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
             const BottomContentSpacer(),
           ],
         ),
-      ),
-    );
+      );
   }
 }

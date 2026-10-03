@@ -2855,13 +2855,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get aiReviewTokensUnknown => 'Utilisation de l’IA : indisponible';
 
   @override
-  String get aiFastModeTitle => 'Mode rapide';
-
-  @override
-  String get aiFastModeSubtitle =>
-      'Peut envoyer une deuxième requête après 4 secondes. Des frais d’API supplémentaires peuvent s’appliquer.';
-
-  @override
   String get aiReviewFeedbackHint => 'Décrivez ce que l\'IA s\'est trompé...';
 
   @override

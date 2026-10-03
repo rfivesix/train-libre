@@ -1119,8 +1119,7 @@
   "@aiReviewTokensUsed": {"placeholders": {"count": {"type": "int"}}},
   "aiReviewTokensPending": "Utilizzo IA: aggiornamento…",
   "aiReviewTokensUnknown": "Utilizzo IA: non disponibile",
-  "aiFastModeTitle": "Modalità veloce",
-  "aiFastModeSubtitle": "Può inviare una seconda richiesta dopo 4 secondi. Potrebbero esserci costi API aggiuntivi.",
+
   "aiReviewFeedbackHint": "Descrivi cosa ha sbagliato l'intelligenza artificiale...",
   "aiReviewRetryButton": "Riprova con feedback",
   "aiReviewFeedbackSection": "Correzione",

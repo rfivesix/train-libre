@@ -100,7 +100,7 @@ class AiService {
 
   Future<bool> isFastModeEnabled() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getBool(_fastModeKey) ?? true;
+    return prefs.getBool(_fastModeKey) ?? false;
   }
 
   Future<void> setFastModeEnabled(bool enabled) async {
@@ -877,9 +877,9 @@ ${semanticOnly ? 'Return only the listed items in the same order. Select the exa
 
     final raw = await _callSelectedProviderRaw(
       userContent: userContent,
-      // A catalog ambiguity can be resolved from the original candidate and
-      // the verified local menu; resend photos only for visual/quantity issues.
-      images: semanticOnly ? null : images,
+      // Candidate repair reconciles catalog matches and portion bounds from text
+      // feedback; resending images wastes 15+ seconds and thousands of tokens.
+      images: null,
       systemPrompt: semanticOnly
           ? 'Resolve only catalog selection for the listed food items. Choose an exact verified candidate name and matchedBarcode for each item. Preserve quantities, food identity and order. Return only a JSON array of items with name, matchedBarcode, servedGrams, estimatedGrams, confidence, stateHint and searchTerms.'
           : _AiPrompts.buildRepairPrompt(

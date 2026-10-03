@@ -31,3 +31,26 @@ Another two-photo scan with `gpt-5.4-nano` took **16.30 s** and was saved unchan
 The primary validation finished at 9.43 s; selecting the parallel candidate finished at 10.76 s, a 1.33 s critical-path wait. Local validation across all candidates used 3.30 s. The repair accounts for 42% of the 13,454 tokens and 5.46 s on the critical path. The parallel candidate had a better validation score than the primary, so removing the parallel request cannot be assumed accuracy-neutral.
 
 The selected candidate's only logged issue categories were catalog ambiguity and low confidence. In the current `repairMealCaptureCandidate` routing, *any* low-confidence warning prevents the short catalog-only path. The repair therefore resends both photos and all candidate items; this contributes to its 4,845 input tokens versus 3,032 for each initial request. The closed categories do not reveal issue counts or affected items, and the log does not prove that a text-only catalog repair would preserve food identity. A conservative experiment would allow catalog-only selection when all low-confidence warnings concern the same ambiguous items, preserve the original food identity and gram amounts, then run the full local validator. Compare the resulting corrections and saved-unchanged rate on a fixed meal set before adopting it.
+
+## Fourth exploratory log & Optimization Resolution — 2026-10-03
+
+Subsequent scans and iterative improvements revealed four key structural optimizations:
+
+1. **Retirement of Speculative Parallel Hedging ("Speed mode"):**
+   Telemetry proved that speculative parallel requests ("Speed mode") launched after 4 seconds consistently inflated token usage by 1.8–2.0x (accumulating up to 13,454 tokens) and frequently prolonged scans by 1.3–5.2 s while waiting for the secondary candidate. Hedging was deactivated by default (`enableHedge = false`) and the setting removed from AI Settings, eliminating token waste and provider API contention.
+
+2. **Reasoning Budget Configuration:**
+   Configuring `'reasoning_effort': 'low'` for OpenAI reasoning models (`gpt-6-luna`, `o1`, `o3`, etc.) and `thinkingBudget: 0` for Gemini lowered first-pass inference time from ~16–20 s down to:
+   - `gemini-flash-latest`: **4.78 s**
+   - `gpt-4o`: **4.84 s**
+   - `gpt-5.4-mini`: **5.69 s**
+   - `gpt-5.6-luna`: **9.08 s**
+
+3. **Validation Rule Calibration & Text-Only Repair:**
+   - In `RulesLogic`, `ambiguous_nutrition_match` was restricted to genuinely competing candidates within $\le 0.08$ score delta of the top match (rather than comparing the top match against the entire 20-item SQLite search set). This eliminated false-positive repair triggers on normal produce variations.
+   - Demoted `tiny_quantity` ($\le 5\,\text{g}$) and `low_ai_confidence` to `info` severity so they no longer penalize validation scores.
+   - In `repairMealCaptureCandidate`, images are no longer resent (`images: null`), dropping repair latency from 15.2 s down to 3.2–4.2 s and saving thousands of input tokens.
+   - A subsequent `gpt-5.6-luna` scan achieved **13.07 s total duration**, **First pass: true**, **Score: 100**, **0 repairs**, and used only **2,548 total tokens** (down from 11,812).
+
+4. **Progressive Review Screen Reveal with Skeleton Loading:**
+   Instead of holding the user on a blocking full-screen waiting orb until local validation and candidate repair complete, the capture flow now immediately navigates to `AiMealReviewScreen` as soon as Call 1 completes (`onCandidateReady`). The recognized food items and photos appear immediately, while local database matching completes in the background. The macro header, ingredient cards, and diary save button use elegant `Skeletonizer` shimmer loading until background matching finishes, reducing perceived latency to ~4.8–11.0 s.

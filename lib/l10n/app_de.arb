@@ -1119,8 +1119,7 @@
   "@aiReviewTokensUsed": {"placeholders": {"count": {"type": "int"}}},
   "aiReviewTokensPending": "KI-Nutzung: wird aktualisiert…",
   "aiReviewTokensUnknown": "KI-Nutzung: nicht verfügbar",
-  "aiFastModeTitle": "Geschwindigkeitsmodus",
-  "aiFastModeSubtitle": "Kann nach 4 Sekunden eine zweite Anfrage senden. Dadurch können zusätzliche API-Kosten entstehen.",
+
   "aiReviewFeedbackHint": "Beschreibe, was die KI falsch erkannt hat...",
   "aiReviewRetryButton": "Mit Korrektur erneut versuchen",
   "aiReviewFeedbackSection": "Korrektur",

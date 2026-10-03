@@ -2830,13 +2830,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get aiReviewTokensUnknown => 'KI-Nutzung: nicht verfügbar';
 
   @override
-  String get aiFastModeTitle => 'Geschwindigkeitsmodus';
-
-  @override
-  String get aiFastModeSubtitle =>
-      'Kann nach 4 Sekunden eine zweite Anfrage senden. Dadurch können zusätzliche API-Kosten entstehen.';
-
-  @override
   String get aiReviewFeedbackHint =>
       'Beschreibe, was die KI falsch erkannt hat...';
 

@@ -2757,13 +2757,6 @@ class AppLocalizationsJa extends AppLocalizations {
   String get aiReviewTokensUnknown => 'AI使用量: 取得できません';
 
   @override
-  String get aiFastModeTitle => '高速モード';
-
-  @override
-  String get aiFastModeSubtitle =>
-      '4秒後に2回目のリクエストを送信する場合があります。APIの追加料金が発生することがあります。';
-
-  @override
   String get aiReviewFeedbackHint => 'AI が何を間違えたのか説明してください...';
 
   @override

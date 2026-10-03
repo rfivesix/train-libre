@@ -22,7 +22,7 @@ extension RulesLogic on AiMealValidationEngine {
     } else if (item.grams <= 5) {
       issues.add(
         AiValidationIssue(
-          severity: AiValidationSeverity.warning,
+          severity: AiValidationSeverity.info,
           code: 'tiny_quantity',
           message: 'Quantity is very small; review the gram amount.',
           itemIndex: index,
@@ -51,7 +51,7 @@ extension RulesLogic on AiMealValidationEngine {
     if ((item.confidence ?? 1.0) < 0.5) {
       issues.add(
         AiValidationIssue(
-          severity: AiValidationSeverity.warning,
+          severity: AiValidationSeverity.info,
           code: 'low_ai_confidence',
           message: 'AI confidence is low for this item.',
           itemIndex: index,
@@ -102,14 +102,17 @@ extension RulesLogic on AiMealValidationEngine {
       );
     }
 
-    // A generic name can look like a perfect text match while concealing
+    // A generic name can look like a plausible text match while concealing
     // radically different nutrition bases (for example dry vs. cooked rice).
-    // Do not silently pick one until the repair pass selects a real database
-    // candidate by barcode.
+    // Only flag ambiguous nutrition when there are genuinely competing ambiguous
+    // matches with a material calorie spread.
     final hasVerifiedCandidate = item.matchedBarcode != null &&
         item.matchedBarcode == match.bestMatch?.barcode;
     if (!hasVerifiedCandidate &&
-        _hasMaterialNutritionSpread(match.alternatives)) {
+        match.bestMatch != null &&
+        match.competingAlternatives.isNotEmpty &&
+        _hasMaterialNutritionSpread(
+            [match.bestMatch!, ...match.competingAlternatives])) {
       issues.add(
         AiValidationIssue(
           severity: AiValidationSeverity.warning,
@@ -343,21 +346,8 @@ extension RulesLogic on AiMealValidationEngine {
     return highest / lowest >= 1.75;
   }
 
-  bool _isPreparedState(String? stateHint) {
-    if (stateHint == null) return false;
-    const preparedStates = {
-      'cooked',
-      'boiled',
-      'gekocht',
-      'fried',
-      'gebraten',
-      'baked',
-      'gebacken',
-      'grilled',
-      'gegrillt',
-    };
-    return preparedStates.contains(stateHint.toLowerCase());
-  }
+  bool _isPreparedState(String? stateHint) =>
+      AiMealValidationEngine.isPreparedState(stateHint);
 
   List<AiValidationIssue> _validateMeal({
     required List<AiValidatedMealItem> items,

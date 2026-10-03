@@ -12,6 +12,7 @@ import '../domain/repositories/diary_repository.dart';
 import '../data/meal_photo_store.dart';
 import '../domain/models/meal_capture_meta.dart';
 import '../../../services/ai_meal_validation.dart';
+import '../../../services/ai_meal_context.dart';
 import '../../../services/ai_meal_review_telemetry.dart';
 import '../../../services/ai_meal_scan_log_service.dart';
 import '../../../services/ai_matching_language_service.dart';
@@ -37,6 +38,7 @@ import '../../depth_scan/presentation/widgets/depth_legend.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../widgets/common/common.dart';
 import 'package:provider/provider.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 import '../../../services/theme_service.dart';
 import '../../../services/base_food_language_service.dart';
 import '../../../widgets/common/app_button.dart';
@@ -47,6 +49,8 @@ import 'dart:async';
 class AiMealReviewScreen extends StatefulWidget {
   final List<AiSuggestedItem> suggestions;
   final AiValidationResult? initialValidation;
+  final Future<AiValidationResult>? validationFuture;
+  final AiMealContext? mealContext;
   final List<File> originalImages;
   final DateTime? initialDate;
   final String? initialMealType;
@@ -66,6 +70,8 @@ class AiMealReviewScreen extends StatefulWidget {
     super.key,
     required this.suggestions,
     this.initialValidation,
+    this.validationFuture,
+    this.mealContext,
     required this.originalImages,
     this.initialDate,
     this.initialMealType,
@@ -193,7 +199,8 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
 
   String _getDerivedMealTitle(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final dish = _validation?.candidate.context?.dishType;
+    final dish = _validation?.candidate.context?.dishType ??
+        widget.mealContext?.dishType;
     if (dish != null && dish.trim().isNotEmpty) return dish;
     final mealName = _validation?.candidate.mealName;
     if (mealName != null && mealName.trim().isNotEmpty) return mealName;
@@ -278,6 +285,20 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
     if (initialValidation != null) {
       _applyValidationResult(initialValidation);
       _isMatching = false;
+    } else if (widget.validationFuture != null) {
+      _items =
+          widget.suggestions.map((s) => _ReviewItem(suggestion: s)).toList();
+      _isMatching = true;
+      widget.validationFuture!.then((result) {
+        if (!mounted) return;
+        setState(() {
+          _applyValidationResult(result);
+          _isMatching = false;
+        });
+      }).catchError((_) {
+        if (!mounted) return;
+        _validateCurrentItems();
+      });
     } else {
       _items =
           widget.suggestions.map((s) => _ReviewItem(suggestion: s)).toList();
@@ -1252,28 +1273,40 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
                             ),
                           ],
                           const SizedBox(height: 8),
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              Text(
-                                '$_totalKcal kcal',
-                                style: TextStyle(
-                                  fontFamily: 'Plus Jakarta Sans',
-                                  fontWeight: FontWeight.w800,
-                                  fontSize: 24,
-                                  color: titleColor,
+                          Skeletonizer(
+                            enabled: _isMatching,
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Text(
+                                  '${_isMatching && _totalKcal == 0 ? 550 : _totalKcal} kcal',
+                                  style: TextStyle(
+                                    fontFamily: 'Plus Jakarta Sans',
+                                    fontWeight: FontWeight.w800,
+                                    fontSize: 24,
+                                    color: titleColor,
+                                  ),
                                 ),
-                              ),
-                              const Spacer(),
-                              _buildMacroPill('P', '${_totalProtein.round()}g',
-                                  const Color(0xFFFF453A)),
-                              const SizedBox(width: 8),
-                              _buildMacroPill('C', '${_totalCarbs.round()}g',
-                                  const Color(0xFF30D158)),
-                              const SizedBox(width: 8),
-                              _buildMacroPill('F', '${_totalFat.round()}g',
-                                  const Color(0xFFBF5AF2)),
-                            ],
+                                const Spacer(),
+                                _buildMacroPill(
+                                  'P',
+                                  '${_isMatching && _totalProtein == 0 ? 35 : _totalProtein.round()}g',
+                                  const Color(0xFFFF453A),
+                                ),
+                                const SizedBox(width: 8),
+                                _buildMacroPill(
+                                  'C',
+                                  '${_isMatching && _totalCarbs == 0 ? 50 : _totalCarbs.round()}g',
+                                  const Color(0xFF30D158),
+                                ),
+                                const SizedBox(width: 8),
+                                _buildMacroPill(
+                                  'F',
+                                  '${_isMatching && _totalFat == 0 ? 15 : _totalFat.round()}g',
+                                  const Color(0xFFBF5AF2),
+                                ),
+                              ],
+                            ),
                           ),
                         ],
                       ),
@@ -1348,25 +1381,47 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
                               ),
                             ],
                           )
-                        : MealIngredientsSummary(
-                            ingredients: _items
-                                .map(
-                                  (item) => MealIngredientSummaryItem(
-                                    name: item.suggestion.name,
-                                    grams: item.suggestion.estimatedGrams,
-                                    kcal: item.nutrition.kcalRounded,
-                                  ),
-                                )
-                                .toList(growable: false),
-                            onEdit: () => setState(() => _isEditing = true),
-                            onIngredientTap: (index) {
-                              final item = _items[index];
-                              if (item.matchedFood != null) {
-                                _inspectFood(index);
-                              } else {
-                                _replaceWithFood(index);
-                              }
-                            },
+                        : Skeletonizer(
+                            enabled: _isMatching,
+                            child: MealIngredientsSummary(
+                              ingredients: _items.isNotEmpty
+                                  ? _items
+                                      .map(
+                                        (item) => MealIngredientSummaryItem(
+                                          name: item.suggestion.name,
+                                          grams: item.suggestion.estimatedGrams,
+                                          kcal: item.nutrition.kcalRounded > 0
+                                              ? item.nutrition.kcalRounded
+                                              : 150,
+                                        ),
+                                      )
+                                      .toList(growable: false)
+                                  : const [
+                                      MealIngredientSummaryItem(
+                                        name: 'Zutat',
+                                        grams: 150,
+                                        kcal: 200,
+                                      ),
+                                      MealIngredientSummaryItem(
+                                        name: 'Zutat',
+                                        grams: 200,
+                                        kcal: 300,
+                                      ),
+                                    ],
+                              onEdit: _isMatching
+                                  ? () {}
+                                  : () => setState(() => _isEditing = true),
+                              onIngredientTap: _isMatching
+                                  ? null
+                                  : (index) {
+                                      final item = _items[index];
+                                      if (item.matchedFood != null) {
+                                        _inspectFood(index);
+                                      } else {
+                                        _replaceWithFood(index);
+                                      }
+                                    },
+                            ),
                           ),
                   ),
 
@@ -1511,13 +1566,16 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
                     flex: 3,
                     child: SizedBox(
                       height: 48,
-                      child: AppButton.primary(
-                        onPressed:
-                            (_items.isNotEmpty && !_isSaving && !_isMatching)
-                                ? _saveToDiary
-                                : null,
-                        label: l10n.aiReviewSaveToDiary,
-                        tooltip: l10n.aiReviewSaveToDiary,
+                      child: Skeletonizer(
+                        enabled: _isMatching,
+                        child: AppButton.primary(
+                          onPressed:
+                              (_items.isNotEmpty && !_isSaving && !_isMatching)
+                                  ? _saveToDiary
+                                  : null,
+                          label: l10n.aiReviewSaveToDiary,
+                          tooltip: l10n.aiReviewSaveToDiary,
+                        ),
                       ),
                     ),
                   ),

@@ -48,10 +48,12 @@ class _CandidateCheck {
 class AiMealScanRunner {
   final AiMealValidationEngine validationEngine;
   final Duration hedgeDelay;
+  final bool enableHedge;
 
   const AiMealScanRunner({
     required this.validationEngine,
     this.hedgeDelay = const Duration(seconds: 4),
+    this.enableHedge = false,
   });
 
   Future<AiScanRunResult> run({
@@ -60,6 +62,7 @@ class AiMealScanRunner {
     required bool fastMode,
     bool Function()? isCancelled,
     void Function()? onValidating,
+    void Function(AiMealCandidate candidate)? onCandidateReady,
     void Function(AiMealScanLogStage stage, int elapsedMilliseconds,
             {int? durationMilliseconds,
             AiMealScanLogResult? result,
@@ -92,7 +95,10 @@ class AiMealScanRunner {
             runWatch.elapsedMilliseconds,
             candidate: source);
         final candidate = await analyze();
-        if (primaryCall) primaryResponseReceived = true;
+        if (primaryCall) {
+          primaryResponseReceived = true;
+          onCandidateReady?.call(candidate);
+        }
         providerMilliseconds += providerWatch.elapsedMilliseconds;
         providerWatch.stop();
         onProgress?.call(
@@ -134,7 +140,7 @@ class AiMealScanRunner {
     var primarySettled = false;
     unawaited(primary.then((_) => primarySettled = true));
     Future<_CandidateCheck>? hedge;
-    if (fastMode) {
+    if (enableHedge && fastMode) {
       await Future.any<void>([
         primary.then((_) {}),
         Future<void>.delayed(hedgeDelay),

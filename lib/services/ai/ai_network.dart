@@ -711,6 +711,7 @@ extension AiNetwork on AiService {
 
     final sendTemperature =
         _openAiSupportsCustomTemperature(effectiveModel, provider: provider);
+    final isReasoningModel = !sendTemperature && provider == AiProvider.openai;
 
     final requestMap = <String, dynamic>{
       'model': effectiveModel,
@@ -729,6 +730,7 @@ extension AiNetwork on AiService {
           },
         },
       if (sendTemperature) 'temperature': temperature,
+      if (isReasoningModel) 'reasoning_effort': 'low',
     };
 
     final body = jsonEncode(requestMap);
@@ -758,6 +760,27 @@ extension AiNetwork on AiService {
         if (message != null && message.toLowerCase().contains('temperature')) {
           final retryMap = Map<String, dynamic>.from(requestMap)
             ..remove('temperature');
+          response = await http
+              .post(
+                Uri.parse(endpoint),
+                headers: headers,
+                body: jsonEncode(retryMap),
+              )
+              .timeout(Duration(seconds: timeoutSeconds));
+        }
+      }
+
+      // Automatic fallback retry for any model rejecting reasoning_effort
+      if (response.statusCode == 400 &&
+          requestMap.containsKey('reasoning_effort')) {
+        final message = _extractProviderErrorMessage(response.body);
+        if (message != null &&
+            (message.toLowerCase().contains('reasoning_effort') ||
+                message
+                    .toLowerCase()
+                    .contains('unrecognized request argument'))) {
+          final retryMap = Map<String, dynamic>.from(requestMap)
+            ..remove('reasoning_effort');
           response = await http
               .post(
                 Uri.parse(endpoint),
@@ -856,6 +879,9 @@ extension AiNetwork on AiService {
       'generationConfig': {
         'temperature': temperature,
         'maxOutputTokens': 8192,
+        'thinkingConfig': {
+          'thinkingBudget': 0,
+        },
         if (structuredOutput) ...{
           'responseMimeType': 'application/json',
           'responseJsonSchema': _AiPrompts.mealSchema,
@@ -869,6 +895,25 @@ extension AiNetwork on AiService {
         model: model,
         body: jsonEncode(request),
       );
+      if (response.statusCode == 400 &&
+          (request['generationConfig'] as Map<String, dynamic>)
+              .containsKey('thinkingConfig')) {
+        final message =
+            (_extractProviderErrorMessage(response.body) ?? '').toLowerCase();
+        if (message.contains('thinkingconfig') ||
+            message.contains('thinkingbudget') ||
+            message.contains('thinking') ||
+            message.contains('unknown field') ||
+            message.contains('invalid argument')) {
+          (request['generationConfig'] as Map<String, dynamic>)
+              .remove('thinkingConfig');
+          response = await _postGeminiGenerateContent(
+            apiKey: apiKey,
+            model: model,
+            body: jsonEncode(request),
+          );
+        }
+      }
       if (structuredOutput && response.statusCode == 400) {
         final message =
             (_extractProviderErrorMessage(response.body) ?? '').toLowerCase();

@@ -59,6 +59,21 @@ void main() {
     expect(await result.validationRunsTotalCount, 1);
   });
 
+  test('onCandidateReady is invoked immediately when primary completes', () async {
+    AiMealCandidate? readyCandidate;
+    final result = await AiMealScanRunner(
+      validationEngine: testEngine(),
+      hedgeDelay: const Duration(milliseconds: 20),
+    ).run(
+      fastMode: true,
+      onCandidateReady: (candidate) => readyCandidate = candidate,
+      analyze: () async => accepted,
+      repairer: (candidate, validation, attempt) async => candidate,
+    );
+    expect(readyCandidate, equals(accepted));
+    expect(result.outcome.validation.passed, isTrue);
+  });
+
   test('late primary is counted separately when hedge is accepted', () async {
     final primary = Completer<AiMealCandidate>();
     var calls = 0;
@@ -66,6 +81,7 @@ void main() {
     final result = await AiMealScanRunner(
       validationEngine: testEngine(),
       hedgeDelay: const Duration(milliseconds: 1),
+      enableHedge: true,
     ).run(
       fastMode: true,
       analyze: () {

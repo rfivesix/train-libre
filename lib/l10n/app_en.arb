@@ -1125,8 +1125,7 @@
   "@aiReviewTokensUsed": {"placeholders": {"count": {"type": "int"}}},
   "aiReviewTokensPending": "AI usage: updating…",
   "aiReviewTokensUnknown": "AI usage: unavailable",
-  "aiFastModeTitle": "Speed mode",
-  "aiFastModeSubtitle": "May send a second request after 4 seconds. This can add API costs.",
+
   "aiReviewFeedbackHint": "Describe what the AI got wrong...",
   "aiReviewRetryButton": "Retry with Feedback",
   "aiReviewFeedbackSection": "Correction",

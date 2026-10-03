@@ -5120,18 +5120,6 @@ abstract class AppLocalizations {
   /// **'AI usage: unavailable'**
   String get aiReviewTokensUnknown;
 
-  /// No description provided for @aiFastModeTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Speed mode'**
-  String get aiFastModeTitle;
-
-  /// No description provided for @aiFastModeSubtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'May send a second request after 4 seconds. This can add API costs.'**
-  String get aiFastModeSubtitle;
-
   /// No description provided for @aiReviewFeedbackHint.
   ///
   /// In en, this message translates to:

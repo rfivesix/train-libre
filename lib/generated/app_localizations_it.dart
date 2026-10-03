@@ -2841,13 +2841,6 @@ class AppLocalizationsIt extends AppLocalizations {
   String get aiReviewTokensUnknown => 'Utilizzo IA: non disponibile';
 
   @override
-  String get aiFastModeTitle => 'Modalità veloce';
-
-  @override
-  String get aiFastModeSubtitle =>
-      'Può inviare una seconda richiesta dopo 4 secondi. Potrebbero esserci costi API aggiuntivi.';
-
-  @override
   String get aiReviewFeedbackHint =>
       'Descrivi cosa ha sbagliato l\'intelligenza artificiale...';
 

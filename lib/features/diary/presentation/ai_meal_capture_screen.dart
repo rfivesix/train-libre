@@ -19,6 +19,7 @@ import '../../../services/ai_meal_scan_log_service.dart';
 import '../../../services/ai_service.dart';
 import 'util/photo_pre_processor.dart';
 import '../../../services/ai_matching_language_service.dart';
+import '../../../services/ai_meal_context.dart';
 import '../../../services/haptic_feedback_service.dart';
 import '../../depth_scan/data/depth_map_attachment.dart';
 import '../../depth_scan/data/depth_scan_settings.dart';
@@ -803,9 +804,97 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
       final fastMode = await AiService.instance.isFastModeEnabled();
       final cloudProvider = provider != 'ollama' && provider != 'custom';
       final engine = AiMealValidationEngine();
+      final validationCompleter = Completer<AiValidationResult>();
+      final savedCompleter = Completer<bool?>();
+      var reviewNavigated = false;
+      int revealStartedMilliseconds = 0;
+
+      void navigateToReview({
+        required List<AiMealCandidateItem> items,
+        AiValidationResult? validation,
+        AiMealContext? mealContext,
+      }) {
+        if (reviewNavigated || !mounted || _analysisCancelled) return;
+        reviewNavigated = true;
+        _stopAiWaitingHaptics();
+        if (mounted) {
+          setState(() => _isAnalyzing = false);
+        }
+
+        // Smoothly contract cloud back into circle and pause before organic vapor dispersion
+        // Mark analysis finished so MealAnalysisScreen's orb and UI are completely hidden beneath review
+        controller.isFinished.value = true;
+
+        final detectedType = _detectMealTypeFromText(text);
+        final resolvedMealType = widget.initialMealType ??
+            detectedType ??
+            MealTypeTimeExtension.fromCurrentTime().toMealTypeKey;
+
+        final reviewRoute = AiMealReviewRevealRoute<bool>(
+          builder: (context) => AiMealReviewScreen(
+            suggestions: items
+                .map(
+                  (item) => AiSuggestedItem(
+                    name: item.name,
+                    estimatedGrams: item.grams,
+                    servedGrams: item.servedGrams,
+                    confidence: item.confidence ?? 1.0,
+                    matchedBarcode: item.matchedBarcode,
+                    stateHint: item.stateHint,
+                    catalogSearchTerm: item.catalogSearchTerm,
+                    searchTerms: item.searchTerms,
+                  ),
+                )
+                .toList(growable: false),
+            initialValidation: validation,
+            validationFuture:
+                validation == null ? validationCompleter.future : null,
+            mealContext: mealContext,
+            originalImages: _images,
+            initialDate: widget.initialDate,
+            initialMealType: resolvedMealType,
+            depthResult: _lastDepthCapture,
+            depthResultsByPath: _depthCaptures,
+            depthFacts: _lastDepthCapture?.scaleFacts,
+            voiceTranscript: text.isNotEmpty ? text : null,
+            scanRequestId: requestId,
+            usageCollector: usageCollector,
+          ),
+        );
+
+        final oldAnalysisRoute = _analysisRoute;
+        _analysisRoute = null;
+        revealStartedMilliseconds = stopwatch.elapsedMilliseconds;
+        final navFuture = Navigator.of(context).push<bool>(reviewRoute);
+        navFuture
+            .then((v) {
+              if (!savedCompleter.isCompleted) savedCompleter.complete(v);
+            })
+            .catchError((e, s) {
+              if (!savedCompleter.isCompleted) {
+                savedCompleter.completeError(e, s);
+              }
+            });
+        if (oldAnalysisRoute != null && oldAnalysisRoute.isActive) {
+          Navigator.of(context).removeRoute(oldAnalysisRoute);
+        }
+        completionScheduled = true;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          final durationMilliseconds = stopwatch.elapsedMilliseconds;
+          unawaited(scanLog.event(requestId, AiMealScanLogStage.reviewVisible,
+              elapsedMilliseconds: durationMilliseconds));
+        });
+      }
+
       final runResult = await AiMealScanRunner(validationEngine: engine).run(
         fastMode: fastMode && cloudProvider,
         isCancelled: () => _analysisCancelled || !mounted,
+        onCandidateReady: (candidate) {
+          navigateToReview(
+            items: candidate.items,
+            mealContext: candidate.context,
+          );
+        },
         onValidating: () {
           if (!_analysisCancelled &&
               mounted &&
@@ -857,6 +946,16 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
         },
       );
       final validationOutcome = runResult.outcome;
+      if (!validationCompleter.isCompleted) {
+        validationCompleter.complete(validationOutcome.validation);
+      }
+      if (!reviewNavigated) {
+        navigateToReview(
+          items: validationOutcome.validation.candidate.items,
+          validation: validationOutcome.validation,
+          mealContext: validationOutcome.validation.candidate.context,
+        );
+      }
 
       if (!mounted) return;
       // The user walked away from the wait; their result is no longer wanted.
@@ -865,111 +964,57 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
       final itemCountBucket = TelemetryBuckets.getItemCountBucket(
           validationOutcome.validation.candidate.items.length);
 
-      _stopAiWaitingHaptics();
-      if (mounted) {
-        setState(() => _isAnalyzing = false);
-      }
-
-      // Smoothly contract cloud back into circle and pause before organic vapor dispersion
-      // Mark analysis finished so MealAnalysisScreen's orb and UI are completely hidden beneath review
-      controller.isFinished.value = true;
-
-      final detectedType = _detectMealTypeFromText(text);
-      final resolvedMealType = widget.initialMealType ??
-          detectedType ??
-          MealTypeTimeExtension.fromCurrentTime().toMealTypeKey;
-
-      final reviewRoute = AiMealReviewRevealRoute<bool>(
-        builder: (context) => AiMealReviewScreen(
-          suggestions: validationOutcome.validation.candidate.items
-              .map(
-                (item) => AiSuggestedItem(
-                  name: item.name,
-                  estimatedGrams: item.grams,
-                  servedGrams: item.servedGrams,
-                  confidence: item.confidence ?? 1.0,
-                  matchedBarcode: item.matchedBarcode,
-                  stateHint: item.stateHint,
-                  catalogSearchTerm: item.catalogSearchTerm,
-                  searchTerms: item.searchTerms,
-                ),
-              )
-              .toList(growable: false),
-          initialValidation: validationOutcome.validation,
-          originalImages: _images,
-          initialDate: widget.initialDate,
-          initialMealType: resolvedMealType,
-          depthResult: _lastDepthCapture,
-          depthResultsByPath: _depthCaptures,
-          depthFacts: _lastDepthCapture?.scaleFacts,
-          voiceTranscript: text.isNotEmpty ? text : null,
-          scanRequestId: requestId,
-          usageCollector: usageCollector,
-        ),
-      );
-
-      final oldAnalysisRoute = _analysisRoute;
-      _analysisRoute = null;
-      final revealStartedMilliseconds = stopwatch.elapsedMilliseconds;
-      final savedFuture = Navigator.of(context).push<bool>(reviewRoute);
-      if (oldAnalysisRoute != null && oldAnalysisRoute.isActive) {
-        Navigator.of(context).removeRoute(oldAnalysisRoute);
-      }
-      completionScheduled = true;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        final durationSeconds = (stopwatch.elapsedMilliseconds / 1000).round();
-        final durationMilliseconds = stopwatch.elapsedMilliseconds;
-        unawaited(scanLog.event(requestId, AiMealScanLogStage.reviewVisible,
-            elapsedMilliseconds: durationMilliseconds));
-        final revealSeconds =
-            ((stopwatch.elapsedMilliseconds - revealStartedMilliseconds) / 1000)
-                .round();
-        unawaited(() async {
-          final firstPass = await runResult.primaryFirstPassAccepted;
-          final categories = await runResult.primaryIssueCategories;
-          final validationRuns = await runResult.validationRunsTotalCount;
-          final providerSeconds = await runResult.providerSeconds;
-          final validationSeconds = await runResult.validationSeconds;
-          await scanLog.finish(requestId,
-              result: validationOutcome.validation.passed
-                  ? AiMealScanLogResult.accepted
-                  : AiMealScanLogResult.needsRepair,
-              durationMilliseconds: durationMilliseconds,
-              selectedValidationRounds: validationOutcome.validationRunsCount,
-              totalValidationRuns: validationRuns,
-              repairRounds: validationOutcome.repairPassesUsed,
-              primaryFirstPassAccepted: firstPass,
-              hedgeStarted: runResult.hedgeStarted);
-          await TelemetryService.instance.trackAiMealScanCompleted(
-            requestId: requestId,
-            provider: provider,
-            durationSeconds: durationSeconds,
-            success: true,
-            inputMode: inputMode,
-            photoCount: _images.length,
-            hasLidar: hasLidar,
-            hasVoiceInput: hasVoice,
-            hasTextInput: hasText,
-            validationPassed: validationOutcome.validation.passed,
-            repairAttemptsCount: validationOutcome.repairPassesUsed,
-            suggestedItemsCountBucket: itemCountBucket,
-            preparationSeconds: preparationSeconds,
-            providerSeconds: providerSeconds,
-            validationSeconds: validationSeconds,
-            repairSeconds: runResult.repairSeconds,
-            revealSeconds: revealSeconds,
+      final durationSeconds = (stopwatch.elapsedMilliseconds / 1000).round();
+      final durationMilliseconds = stopwatch.elapsedMilliseconds;
+      final revealSeconds =
+          ((stopwatch.elapsedMilliseconds - revealStartedMilliseconds) / 1000)
+              .round();
+      unawaited(() async {
+        final firstPass = await runResult.primaryFirstPassAccepted;
+        final categories = await runResult.primaryIssueCategories;
+        final validationRuns = await runResult.validationRunsTotalCount;
+        final providerSeconds = await runResult.providerSeconds;
+        final validationSeconds = await runResult.validationSeconds;
+        await scanLog.finish(requestId,
+            result: validationOutcome.validation.passed
+                ? AiMealScanLogResult.accepted
+                : AiMealScanLogResult.needsRepair,
+            durationMilliseconds: durationMilliseconds,
+            selectedValidationRounds: validationOutcome.validationRunsCount,
+            totalValidationRuns: validationRuns,
+            repairRounds: validationOutcome.repairPassesUsed,
             primaryFirstPassAccepted: firstPass,
-            selectedValidationRoundsCount:
-                validationOutcome.validationRunsCount,
-            validationRunsTotalCount: validationRuns,
-            repairLimitReached: validationOutcome.repairLimitReached,
-            firstPassIssueCategories: categories,
-            fastMode: fastMode && cloudProvider,
-            hedgeStarted: runResult.hedgeStarted,
-          );
-        }());
-      });
-      final saved = await savedFuture;
+            hedgeStarted: runResult.hedgeStarted);
+        await TelemetryService.instance.trackAiMealScanCompleted(
+          requestId: requestId,
+          provider: provider,
+          durationSeconds: durationSeconds,
+          success: true,
+          inputMode: inputMode,
+          photoCount: _images.length,
+          hasLidar: hasLidar,
+          hasVoiceInput: hasVoice,
+          hasTextInput: hasText,
+          validationPassed: validationOutcome.validation.passed,
+          repairAttemptsCount: validationOutcome.repairPassesUsed,
+          suggestedItemsCountBucket: itemCountBucket,
+          preparationSeconds: preparationSeconds,
+          providerSeconds: providerSeconds,
+          validationSeconds: validationSeconds,
+          repairSeconds: runResult.repairSeconds,
+          revealSeconds: revealSeconds,
+          primaryFirstPassAccepted: firstPass,
+          selectedValidationRoundsCount:
+              validationOutcome.validationRunsCount,
+          validationRunsTotalCount: validationRuns,
+          repairLimitReached: validationOutcome.repairLimitReached,
+          firstPassIssueCategories: categories,
+          fastMode: fastMode && cloudProvider,
+          hedgeStarted: runResult.hedgeStarted,
+        );
+      }());
+
+      final saved = await savedCompleter.future;
       // Leaving the review returns to wherever the capture was started from,
       // saved or not. Dropping back into the viewfinder after reviewing a meal
       // is never what the user meant by "back".

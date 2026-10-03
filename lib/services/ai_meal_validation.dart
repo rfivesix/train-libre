@@ -258,6 +258,22 @@ class AiMealValidationEngine {
 
   static int _maxInt(int a, int b) => a > b ? a : b;
   static double _maxDouble(double a, double b) => a > b ? a : b;
+
+  static bool isPreparedState(String? stateHint) {
+    if (stateHint == null) return false;
+    const preparedStates = {
+      'cooked',
+      'boiled',
+      'gekocht',
+      'fried',
+      'gebraten',
+      'baked',
+      'gebacken',
+      'grilled',
+      'gegrillt',
+    };
+    return preparedStates.contains(stateHint.toLowerCase());
+  }
 }
 
 class AiRepairOrchestrator {
