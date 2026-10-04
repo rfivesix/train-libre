@@ -99,7 +99,7 @@ class WeeklyGoalReviewGenerationResult {
 /// background checks safe and idempotent. A backdated goal never creates
 /// historical reviews for periods that were not actually reviewed.
 class WeeklyGoalReviewOrchestrator {
-  static const String algorithmVersion = 'weekly_goal_review_2_0';
+  static const String algorithmVersion = 'weekly_goal_review_2_1';
 
   final IGoalRepository _goalRepository;
   final WeeklyGoalReviewInputSource _inputSource;
@@ -124,8 +124,7 @@ class WeeklyGoalReviewOrchestrator {
 
     final createdAt = now ?? DateTime.now();
     final effectiveNow = _day(createdAt);
-    final windowEndDay =
-        RecommendationScheduler.stableWindowEndDayForDueWeek(
+    final windowEndDay = RecommendationScheduler.stableWindowEndDayForDueWeek(
       effectiveNow,
       checkInWeekday: goal.startDate.weekday,
     );
@@ -169,6 +168,13 @@ class WeeklyGoalReviewOrchestrator {
       windowStart,
       windowEnd,
     );
+    if (existing != null && existing.status != 'pending') {
+      return WeeklyGoalReviewGenerationResult(
+        goal: goal,
+        review: existing,
+        wasCreated: false,
+      );
+    }
     if (existing?.algorithmVersion == algorithmVersion &&
         existing?.assessment != null) {
       return WeeklyGoalReviewGenerationResult(
@@ -208,6 +214,7 @@ class WeeklyGoalReviewOrchestrator {
         recentRateKgPerWeek: input.observedRateKgPerWeek,
         weightObservationCount: input.weightObservationCount,
         nutritionLoggedDays: input.loggedIntakeDaysCount,
+        currentCalories: input.currentCalories,
         averageLoggedCalories: input.averageLoggedCalories,
         dataQuality: 'insufficient',
         nutritionAction: 'insufficient_data',

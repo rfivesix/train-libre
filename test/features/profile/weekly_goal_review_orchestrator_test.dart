@@ -64,10 +64,13 @@ void main() {
     expect(first.wasCreated, isTrue);
     expect(first.review?.trajectoryStatus, 'calibrating');
     expect(first.review?.status, 'pending');
+    expect(first.review?.assessment?.currentCalories, 2000);
     expect(second.review?.id, first.review?.id);
     expect(source.calls, 1);
     expect(await database.select(database.goalReviews).get(), hasLength(1));
-    expect((await repository.getPendingReview(goal.id))?.id, first.review?.id);
+    final persisted = await repository.getPendingReview(goal.id);
+    expect(persisted?.id, first.review?.id);
+    expect(persisted?.assessment?.currentCalories, 2000);
   });
 
   test('uses existing thresholds and persists a sufficient slower review',

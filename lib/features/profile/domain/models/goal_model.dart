@@ -405,6 +405,7 @@ class GoalReviewAssessment {
   final DateTime? projectedTargetDate;
   final int weightObservationCount;
   final int nutritionLoggedDays;
+  final int? currentCalories;
   final double? averageLoggedCalories;
   final String dataQuality;
   final String nutritionAction;
@@ -423,6 +424,7 @@ class GoalReviewAssessment {
     this.projectedTargetDate,
     required this.weightObservationCount,
     required this.nutritionLoggedDays,
+    this.currentCalories,
     this.averageLoggedCalories,
     required this.dataQuality,
     required this.nutritionAction,
@@ -442,6 +444,7 @@ class GoalReviewAssessment {
         'projectedTargetDate': projectedTargetDate?.toIso8601String(),
         'weightObservationCount': weightObservationCount,
         'nutritionLoggedDays': nutritionLoggedDays,
+        'currentCalories': currentCalories,
         'averageLoggedCalories': averageLoggedCalories,
         'dataQuality': dataQuality,
         'nutritionAction': nutritionAction,
@@ -466,6 +469,7 @@ class GoalReviewAssessment {
             : DateTime.tryParse(map['projectedTargetDate'] as String),
         weightObservationCount: map['weightObservationCount'] as int? ?? 0,
         nutritionLoggedDays: map['nutritionLoggedDays'] as int? ?? 0,
+        currentCalories: map['currentCalories'] as int?,
         averageLoggedCalories:
             (map['averageLoggedCalories'] as num?)?.toDouble(),
         dataQuality: map['dataQuality'] as String? ?? 'insufficient',

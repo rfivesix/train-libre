@@ -242,8 +242,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 100));
     }
 
-    final keepCurrentButton =
-        find.text('Ziel beibehalten und Tagesziele aktualisieren');
+    final keepCurrentButton = find.text('Ziel beibehalten');
     expect(keepCurrentButton, findsOneWidget);
 
     await tester.tap(keepCurrentButton);
@@ -289,7 +288,7 @@ void main() {
     }
 
     // Find the "Empfohlene Tageswerte übernehmen" button
-    final applyButton = find.text('Empfohlene Tageswerte übernehmen');
+    final applyButton = find.text('Tagesziele übernehmen');
     expect(applyButton, findsOneWidget);
 
     await tester.tap(applyButton);
@@ -298,5 +297,58 @@ void main() {
     }
 
     expect(mockService.recalculateAndApplyCalls, 1);
+  });
+
+  testWidgets(
+      'insufficient data defers the review without applying nutrition targets',
+      (tester) async {
+    tester.view.physicalSize = const Size(1080, 4000);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    final insufficientReview = GoalReviewRecord(
+      id: 'review-insufficient',
+      goalId: testGoal.id,
+      windowStart: DateTime(2026, 1, 1),
+      windowEnd: DateTime(2026, 1, 7),
+      status: 'pending',
+      trajectoryStatus: 'behind',
+      algorithmVersion: 'test',
+      assessment: const GoalReviewAssessment(
+        overallStatus: 'behind',
+        recentMomentumStatus: 'unclear',
+        weightObservationCount: 1,
+        nutritionLoggedDays: 2,
+        dataQuality: 'insufficient',
+        nutritionAction: 'insufficient_data',
+      ),
+      createdAt: DateTime(2026, 1, 8),
+    );
+    await repository.saveReview(insufficientReview);
+    final mockService = _MockRecommendationService();
+
+    await tester.pumpWidget(
+      createTestWidget(
+        child: WeeklyGoalReviewScreen(
+          goal: testGoal,
+          review: insufficientReview,
+          repository: repository,
+          recommendationService: mockService,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Weiter protokollieren'), findsOneWidget);
+    expect(find.text('Empfohlene Tageswerte übernehmen'), findsNothing);
+    await tester.tap(find.text('Weiter protokollieren'));
+    await tester.pumpAndSettle();
+
+    expect(mockService.recalculateAndApplyCalls, 0);
+    expect(
+      (await repository.getReviewById(insufficientReview.id))?.status,
+      'deferred',
+    );
   });
 }

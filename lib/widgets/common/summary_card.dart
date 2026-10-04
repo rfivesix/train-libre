@@ -27,6 +27,12 @@ class SummaryCard extends StatelessWidget {
   /// Whether to use the secondary surface color (tertiarySystemGroupedBackground in iOS).
   final bool useSecondarySurface;
 
+  /// Optional outline for emphasizing a summary card.
+  final Color? borderColor;
+
+  /// Outline width when [borderColor] is provided.
+  final double borderWidth;
+
   const SummaryCard({
     super.key,
     required this.child,
@@ -36,6 +42,8 @@ class SummaryCard extends StatelessWidget {
     this.disableShadow = false,
     this.backgroundColor,
     this.useSecondarySurface = false,
+    this.borderColor,
+    this.borderWidth = 1,
   });
 
   @override
@@ -65,8 +73,8 @@ class SummaryCard extends StatelessWidget {
 
     final Color inputFill;
     if (isDark) {
-      inputFill = theme.inputDecorationTheme.fillColor ??
-          const Color(0xFF2C2C2E);
+      inputFill =
+          theme.inputDecorationTheme.fillColor ?? const Color(0xFF2C2C2E);
     } else {
       // In light mode:
       // If the card background is white (the default for summary cards),
@@ -106,7 +114,9 @@ class SummaryCard extends StatelessWidget {
             decoration: ShapeDecoration(
               color: cardBg,
               shape: squircle.copyWith(
-                side: BorderSide.none,
+                side: borderColor == null
+                    ? BorderSide.none
+                    : BorderSide(color: borderColor!, width: borderWidth),
               ),
             ),
             child: Material(

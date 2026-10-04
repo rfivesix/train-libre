@@ -7661,8 +7661,70 @@ class AppLocalizationsFr extends AppLocalizations {
   String get weeklyReviewCardHeaderBadge => 'Bilan hebdomadaire';
 
   @override
+  String get weeklyReviewCardOverallLabel => 'Progression globale';
+
+  @override
+  String get weeklyReviewCardRecentLabel => '7 derniers jours';
+
+  @override
   String get weeklyReviewPendingDefaultExplanation =>
       'Le moteur adaptatif compare votre tendance sur 7 jours avec votre trajectoire cible.';
+
+  @override
+  String get weeklyReviewNutritionSectionTitle =>
+      'Recommandation nutritionnelle';
+
+  @override
+  String get weeklyReviewCaloriesTitle => 'Objectif calorique quotidien';
+
+  @override
+  String get weeklyReviewCaloriesCurrent => 'Actuel';
+
+  @override
+  String get weeklyReviewCaloriesRecommended => 'Recommandé';
+
+  @override
+  String weeklyReviewCaloriesChange(String change) {
+    return '$change kcal/jour';
+  }
+
+  @override
+  String weeklyReviewCaloriesComparison(
+      String current, String recommended, String change) {
+    return '$current → $recommended kcal/jour ($change)';
+  }
+
+  @override
+  String get weeklyReviewWeightProgressTitle =>
+      'Progression vers l’objectif de poids';
+
+  @override
+  String get weeklyReviewWeightPlannedLabel => 'Prévu à ce stade';
+
+  @override
+  String get weeklyReviewWeightTrendLabel => 'Tendance récente';
+
+  @override
+  String get weeklyReviewAdjustPlanTitle => 'Ajuster votre objectif';
+
+  @override
+  String get weeklyReviewAdjustRate => 'Ajuster le rythme hebdomadaire';
+
+  @override
+  String get weeklyReviewAdjustDate => 'Modifier la date cible';
+
+  @override
+  String get weeklyReviewDetailsTitle => 'Détails de la progression';
+
+  @override
+  String get weeklyReviewDecisionTitle => 'Votre prochaine étape';
+
+  @override
+  String get weeklyReviewContinueLogging => 'Continuer le suivi';
+
+  @override
+  String get weeklyReviewPreviewNoChanges =>
+      'Aperçu de la sandbox : aucune modification n\'a été enregistrée.';
 
   @override
   String get reviewOpenDetailsButton => 'Voir le bilan';
@@ -7705,7 +7767,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get reviewNutritionAdjustTargets =>
-      'Votre journal alimentaire est suffisamment complet pour calculer de nouveaux objectifs quotidiens.';
+      'Votre tendance pondérale s’écarte du rythme prévu. Les journées enregistrées suffisent pour recommander un changement de vos objectifs quotidiens.';
 
   @override
   String get reviewNutritionKeepTargetsIntakeDiffers =>
@@ -7740,12 +7802,18 @@ class AppLocalizationsFr extends AppLocalizations {
       'Appliquer les nouvelles valeurs recommandées';
 
   @override
+  String get weeklyReviewApplyTargetsAction => 'Appliquer les objectifs';
+
+  @override
   String get reviewActionAdjustTrajectory =>
       'Ajuster l\'objectif et la trajectoire';
 
   @override
   String get reviewActionKeepCurrent =>
       'Conserver l’objectif et actualiser les objectifs quotidiens';
+
+  @override
+  String get weeklyReviewKeepGoalAction => 'Garder l’objectif';
 
   @override
   String get reviewDismissedSnack =>

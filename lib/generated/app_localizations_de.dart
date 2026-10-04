@@ -7594,8 +7594,68 @@ class AppLocalizationsDe extends AppLocalizations {
   String get weeklyReviewCardHeaderBadge => 'Wöchentlicher Review';
 
   @override
+  String get weeklyReviewCardOverallLabel => 'Gesamtverlauf';
+
+  @override
+  String get weeklyReviewCardRecentLabel => 'Letzte 7 Tage';
+
+  @override
   String get weeklyReviewPendingDefaultExplanation =>
       'Die adaptive Engine vergleicht deinen 7-Tage-Trend mit deiner Zieltrajektorie.';
+
+  @override
+  String get weeklyReviewNutritionSectionTitle => 'Ernährungsempfehlung';
+
+  @override
+  String get weeklyReviewCaloriesTitle => 'Tägliches Kalorienziel';
+
+  @override
+  String get weeklyReviewCaloriesCurrent => 'Aktuell';
+
+  @override
+  String get weeklyReviewCaloriesRecommended => 'Empfohlen';
+
+  @override
+  String weeklyReviewCaloriesChange(String change) {
+    return '$change kcal pro Tag';
+  }
+
+  @override
+  String weeklyReviewCaloriesComparison(
+      String current, String recommended, String change) {
+    return '$current → $recommended kcal/Tag ($change)';
+  }
+
+  @override
+  String get weeklyReviewWeightProgressTitle => 'Verlauf zum Gewichtsziel';
+
+  @override
+  String get weeklyReviewWeightPlannedLabel => 'Bis jetzt geplant';
+
+  @override
+  String get weeklyReviewWeightTrendLabel => 'Aktueller Trend';
+
+  @override
+  String get weeklyReviewAdjustPlanTitle => 'Gewichtsziel anpassen';
+
+  @override
+  String get weeklyReviewAdjustRate => 'Rate anpassen';
+
+  @override
+  String get weeklyReviewAdjustDate => 'Zieldatum ändern';
+
+  @override
+  String get weeklyReviewDetailsTitle => 'Details zum Verlauf';
+
+  @override
+  String get weeklyReviewDecisionTitle => 'Dein nächster Schritt';
+
+  @override
+  String get weeklyReviewContinueLogging => 'Weiter protokollieren';
+
+  @override
+  String get weeklyReviewPreviewNoChanges =>
+      'Sandbox-Vorschau: Es wurden keine Änderungen gespeichert.';
 
   @override
   String get reviewOpenDetailsButton => 'Review ansehen';
@@ -7638,7 +7698,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get reviewNutritionAdjustTargets =>
-      'Deine protokollierte Ernährung ist aussagekräftig genug, um angepasste Tagesziele zu berechnen.';
+      'Dein Gewichtsverlauf weicht vom geplanten Tempo ab. Die protokollierten Tage reichen aus, um eine Anpassung deiner Tagesziele zu empfehlen.';
 
   @override
   String get reviewNutritionKeepTargetsIntakeDiffers =>
@@ -7673,11 +7733,17 @@ class AppLocalizationsDe extends AppLocalizations {
       'Empfohlene Tageswerte übernehmen';
 
   @override
+  String get weeklyReviewApplyTargetsAction => 'Tagesziele übernehmen';
+
+  @override
   String get reviewActionAdjustTrajectory => 'Ziel & Trajektorie anpassen';
 
   @override
   String get reviewActionKeepCurrent =>
       'Ziel beibehalten und Tagesziele aktualisieren';
+
+  @override
+  String get weeklyReviewKeepGoalAction => 'Ziel beibehalten';
 
   @override
   String get reviewDismissedSnack =>

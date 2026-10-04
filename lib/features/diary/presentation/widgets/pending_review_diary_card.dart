@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../../../generated/app_localizations.dart';
 import '../../../nutrition_recommendation/data/recommendation_service.dart';
 import '../../../profile/data/goal_repository_impl.dart';
 import '../../../profile/domain/models/goal_model.dart';
@@ -34,7 +33,6 @@ class _PendingReviewDiaryCardState extends State<PendingReviewDiaryCard> {
   GoalReviewRecord? _pendingReview;
   bool _isRecommendationDue = false;
   DateTime? _nextDueAt;
-  bool _isApplying = false;
 
   @override
   void initState() {
@@ -73,28 +71,6 @@ class _PendingReviewDiaryCardState extends State<PendingReviewDiaryCard> {
     });
   }
 
-  Future<void> _applyRecommendation() async {
-    if (_isApplying) return;
-    setState(() => _isApplying = true);
-
-    final applied =
-        await _recommendationService.applyLatestRecommendationToActiveTargets();
-    if (!mounted) return;
-
-    setState(() => _isApplying = false);
-    final l10n = AppLocalizations.of(context)!;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          applied
-              ? l10n.adaptiveRecommendationAppliedToGoalsSnack
-              : l10n.adaptiveRecommendationNotAvailableSnack,
-        ),
-      ),
-    );
-    await _load();
-  }
-
   @override
   Widget build(BuildContext context) {
     // This deliberately matches the Nutrition Hub's current placement rule:
@@ -108,7 +84,6 @@ class _PendingReviewDiaryCardState extends State<PendingReviewDiaryCard> {
       pendingReview: _pendingReview,
       isRecommendationDue: _isRecommendationDue,
       nextDueAt: _nextDueAt,
-      onApply: _isApplying ? null : _applyRecommendation,
       onRefresh: _load,
     );
   }

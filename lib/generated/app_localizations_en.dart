@@ -7537,8 +7537,68 @@ class AppLocalizationsEn extends AppLocalizations {
   String get weeklyReviewCardHeaderBadge => 'Weekly Review';
 
   @override
+  String get weeklyReviewCardOverallLabel => 'Overall progress';
+
+  @override
+  String get weeklyReviewCardRecentLabel => 'Last 7 days';
+
+  @override
   String get weeklyReviewPendingDefaultExplanation =>
       'The adaptive engine compares your 7-day trend against your target trajectory.';
+
+  @override
+  String get weeklyReviewNutritionSectionTitle => 'Nutrition recommendation';
+
+  @override
+  String get weeklyReviewCaloriesTitle => 'Daily calorie target';
+
+  @override
+  String get weeklyReviewCaloriesCurrent => 'Current';
+
+  @override
+  String get weeklyReviewCaloriesRecommended => 'Recommended';
+
+  @override
+  String weeklyReviewCaloriesChange(String change) {
+    return '$change kcal/day';
+  }
+
+  @override
+  String weeklyReviewCaloriesComparison(
+      String current, String recommended, String change) {
+    return '$current → $recommended kcal/day ($change)';
+  }
+
+  @override
+  String get weeklyReviewWeightProgressTitle => 'Weight goal progress';
+
+  @override
+  String get weeklyReviewWeightPlannedLabel => 'Planned by now';
+
+  @override
+  String get weeklyReviewWeightTrendLabel => 'Recent trend';
+
+  @override
+  String get weeklyReviewAdjustPlanTitle => 'Adjust your goal plan';
+
+  @override
+  String get weeklyReviewAdjustRate => 'Adjust weekly rate';
+
+  @override
+  String get weeklyReviewAdjustDate => 'Change target date';
+
+  @override
+  String get weeklyReviewDetailsTitle => 'Progress details';
+
+  @override
+  String get weeklyReviewDecisionTitle => 'Your next step';
+
+  @override
+  String get weeklyReviewContinueLogging => 'Continue logging';
+
+  @override
+  String get weeklyReviewPreviewNoChanges =>
+      'Sandbox preview: no changes were saved.';
 
   @override
   String get reviewOpenDetailsButton => 'View Review';
@@ -7581,7 +7641,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get reviewNutritionAdjustTargets =>
-      'Your logged intake is consistent enough to calculate adjusted daily targets.';
+      'Your weight trend differs from the planned pace. Your logged days give us enough information to recommend a change to your daily targets.';
 
   @override
   String get reviewNutritionKeepTargetsIntakeDiffers =>
@@ -7616,10 +7676,16 @@ class AppLocalizationsEn extends AppLocalizations {
       'Apply recommended daily targets';
 
   @override
+  String get weeklyReviewApplyTargetsAction => 'Apply targets';
+
+  @override
   String get reviewActionAdjustTrajectory => 'Adjust goal & trajectory';
 
   @override
   String get reviewActionKeepCurrent => 'Keep goal and update daily targets';
+
+  @override
+  String get weeklyReviewKeepGoalAction => 'Keep goal';
 
   @override
   String get reviewDismissedSnack =>

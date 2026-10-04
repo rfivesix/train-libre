@@ -425,7 +425,6 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
                         recommendationState.isAdaptiveRecommendationDueNow,
                     nextDueAt:
                         recommendationState.nextAdaptiveRecommendationDueAt,
-                    onApply: _applyRecommendation,
                     onRefresh: _refreshData,
                   ),
                   const SizedBox(height: DesignConstants.spacingL),

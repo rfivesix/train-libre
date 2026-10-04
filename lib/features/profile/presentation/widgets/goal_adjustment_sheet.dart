@@ -29,6 +29,7 @@ class GoalAdjustmentSheet extends StatefulWidget {
   final VoidCallback? onSaved;
   final DateTime? recommendedTargetDate;
   final double? recommendedWeeklyRateKg;
+  final GoalTrackingMode? initialTrackingMode;
   final bool embedded;
   final bool showSaveButton;
 
@@ -40,6 +41,7 @@ class GoalAdjustmentSheet extends StatefulWidget {
     this.onSaved,
     this.recommendedTargetDate,
     this.recommendedWeeklyRateKg,
+    this.initialTrackingMode,
     this.embedded = false,
     this.showSaveButton = true,
   });
@@ -50,6 +52,9 @@ class GoalAdjustmentSheet extends StatefulWidget {
     required Goal goal,
     required double startWeightKg,
     required IGoalRepository repository,
+    GoalTrackingMode? initialTrackingMode,
+    DateTime? recommendedTargetDate,
+    double? recommendedWeeklyRateKg,
   }) {
     final l10n = AppLocalizations.of(context)!;
     return showGlassBottomMenu<bool>(
@@ -60,6 +65,9 @@ class GoalAdjustmentSheet extends StatefulWidget {
           goal: goal,
           startWeightKg: startWeightKg,
           repository: repository,
+          initialTrackingMode: initialTrackingMode,
+          recommendedTargetDate: recommendedTargetDate,
+          recommendedWeeklyRateKg: recommendedWeeklyRateKg,
           onSaved: () => Navigator.of(ctx).pop(true),
         ),
       ),
@@ -85,12 +93,13 @@ class GoalAdjustmentSheetState extends State<GoalAdjustmentSheet> {
     super.initState();
     final now = DateTime.now();
     _adjustmentDate = DateTime(now.year, now.month, now.day);
-    _trackingMode = widget.goal.preset == GoalPreset.recomposition
-        ? GoalTrackingMode.open
-        : widget.goal.preset == GoalPreset.maintainWeight &&
-                widget.goal.trackingMode == GoalTrackingMode.weeklyRate
+    _trackingMode = widget.initialTrackingMode ??
+        (widget.goal.preset == GoalPreset.recomposition
             ? GoalTrackingMode.open
-            : widget.goal.trackingMode;
+            : widget.goal.preset == GoalPreset.maintainWeight &&
+                    widget.goal.trackingMode == GoalTrackingMode.weeklyRate
+                ? GoalTrackingMode.open
+                : widget.goal.trackingMode);
     _hasTargetDate = widget.goal.targetDate != null;
     _targetWeightKg = widget.goal.targetValue ?? widget.startWeightKg;
     _targetDate =

@@ -152,6 +152,7 @@ class WeeklyGoalTrajectoryAssessmentService {
       projectedTargetDate: projectedDate,
       weightObservationCount: weightObservationCount,
       nutritionLoggedDays: nutritionLoggedDays,
+      currentCalories: currentCalories,
       averageLoggedCalories: averageLoggedCalories,
       dataQuality: sufficient ? 'sufficient' : 'insufficient',
       nutritionAction: nutritionAction,

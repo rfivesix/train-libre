@@ -236,7 +236,7 @@ class NutritionSandboxState extends ChangeNotifier {
       recommendedProtein: canAdjust ? _recommendedProtein : null,
       recommendedCarbs: canAdjust ? _recommendedCarbs : null,
       recommendedFat: canAdjust ? _recommendedFat : null,
-      algorithmVersion: 'weekly_goal_review_2_0',
+      algorithmVersion: 'weekly_goal_review_2_1',
       explanation: buildExplanation(assessment),
       assessment: assessment,
       createdAt: DateTime.now(),

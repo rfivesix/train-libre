@@ -6,11 +6,14 @@ import 'package:intl/intl.dart';
 
 import '../../../../util/design_constants.dart';
 import '../../../../widgets/common/app_button.dart';
+import '../../../../widgets/common/app_segmented_control.dart';
 import '../../../../widgets/common/app_section_header.dart';
 import '../../../../widgets/common/summary_card.dart';
 import '../../../profile/presentation/weekly_goal_review_screen.dart';
 import '../../../profile/presentation/widgets/adaptive_review_card.dart';
 import 'nutrition_sandbox_state.dart';
+
+enum _ReviewPreviewMode { card, screen }
 
 class NutritionSandboxWidget extends StatefulWidget {
   final NutritionSandboxState state;
@@ -30,6 +33,7 @@ class NutritionSandboxWidget extends StatefulWidget {
 
 class _NutritionSandboxWidgetState extends State<NutritionSandboxWidget> {
   NutritionSandboxState get _state => widget.state;
+  _ReviewPreviewMode _previewMode = _ReviewPreviewMode.card;
 
   @override
   void initState() {
@@ -120,314 +124,360 @@ class _NutritionSandboxWidgetState extends State<NutritionSandboxWidget> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (widget.showOverview) ...[
-          // Live HUD Card
-          SummaryCard(
-            child: Padding(
-              padding: DesignConstants.cardPadding,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Icon(LucideIcons.gauge,
-                          color: theme.colorScheme.primary, size: 20),
-                      const SizedBox(width: DesignConstants.spacingS),
-                      Text(
-                        'Live Engine Bewertung',
-                        style: theme.textTheme.titleMedium
-                            ?.copyWith(fontWeight: FontWeight.bold),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: DesignConstants.spacingM),
-                  Text(
-                    _humanStatus(assessment.nutritionAction),
-                    style: theme.textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: -0.3,
-                    ),
-                  ),
-                  const SizedBox(height: DesignConstants.spacingS),
-                  Text(
-                    _state.buildExplanation(assessment),
-                    style: theme.textTheme.bodyMedium?.copyWith(height: 1.35),
-                  ),
-                  const SizedBox(height: DesignConstants.spacingM),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: [
-                      _buildBadge('Status: ${assessment.overallStatus}',
-                          _statusColor(assessment.overallStatus)),
-                      _buildBadge(
-                          'Momentum: ${assessment.recentMomentumStatus}',
-                          Colors.indigo),
-                      _buildBadge('Action: ${assessment.nutritionAction}',
-                          _actionColor(assessment.nutritionAction)),
-                      _buildBadge(
-                          'Quality: ${assessment.dataQuality}',
-                          assessment.dataQuality == 'sufficient'
-                              ? Colors.green
-                              : Colors.orange),
-                    ],
-                  ),
-                  const Divider(height: DesignConstants.spacingL),
-                  // Key metrics row
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildMetricItem(
-                          'Erwartet',
-                          assessment.expectedValue != null
-                              ? '${assessment.expectedValue!.toStringAsFixed(1)} kg'
-                              : '--',
-                        ),
-                      ),
-                      Expanded(
-                        child: _buildMetricItem(
-                          'Abweichung (Gap)',
-                          assessment.trajectoryGap != null
-                              ? '${assessment.trajectoryGap! > 0 ? '+' : ''}${assessment.trajectoryGap!.toStringAsFixed(1)} kg'
-                              : '--',
-                          highlight: assessment.trajectoryGap != null &&
-                              assessment.trajectoryGap!.abs() > 0.5,
-                        ),
-                      ),
-                      Expanded(
-                        child: _buildMetricItem(
-                          'Erforderl. Rate',
-                          assessment.requiredRemainingRateKgPerWeek != null
-                              ? '${assessment.requiredRemainingRateKgPerWeek!.toStringAsFixed(2)} kg/W'
-                              : '--',
-                        ),
-                      ),
-                    ],
-                  ),
-                  if (assessment.projectedTargetDate != null) ...[
-                    const SizedBox(height: DesignConstants.spacingS),
+          AppSectionHeader(title: 'Live Review-Vorschau'),
+          AppSegmentedControl<_ReviewPreviewMode>(
+            children: const {
+              _ReviewPreviewMode.card: 'Karte',
+              _ReviewPreviewMode.screen: 'Review-Screen',
+            },
+            groupValue: _previewMode,
+            onValueChanged: (value) => setState(() => _previewMode = value),
+          ),
+          const SizedBox(height: DesignConstants.spacingM),
+          if (_previewMode == _ReviewPreviewMode.card)
+            AdaptiveReviewCard(
+              activeGoal: syntheticGoal,
+              pendingReview: reviewRecord,
+              isRecommendationDue: true,
+              onOpenReview: _openFullScreenPreview,
+            )
+          else
+            SummaryCard(
+              child: Padding(
+                padding: DesignConstants.cardPadding,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
                     Text(
-                      'Hochgerechnetes Zieldatum: ${dateFormat.format(assessment.projectedTargetDate!)}',
-                      style: theme.textTheme.bodySmall
-                          ?.copyWith(color: theme.colorScheme.primary),
+                      'Vollständiger Weekly Review mit den aktuellen Sandbox-Werten.',
+                      style: theme.textTheme.bodyMedium?.copyWith(height: 1.35),
+                    ),
+                    const SizedBox(height: DesignConstants.spacingM),
+                    SizedBox(
+                      width: double.infinity,
+                      child: AppButton.primary(
+                        label: 'Review-Screen öffnen',
+                        onPressed: _openFullScreenPreview,
+                      ),
                     ),
                   ],
-                  const SizedBox(height: DesignConstants.spacingL),
-                  // Button to open full review screen
-                  AppButton.primary(
-                    label: 'In Wochen-Review Screen öffnen',
-                    tooltip:
-                        'Öffnet WeeklyGoalReviewScreen mit diesen Sandbox-Werten',
-                    onPressed: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => WeeklyGoalReviewScreen(
-                            goal: syntheticGoal,
-                            review: reviewRecord,
+                ),
+              ),
+            ),
+          const SizedBox(height: DesignConstants.spacingM),
+          SummaryCard(
+            margin: EdgeInsets.zero,
+            child: Theme(
+              data: theme.copyWith(dividerColor: Colors.transparent),
+              child: ExpansionTile(
+                tilePadding: EdgeInsets.zero,
+                childrenPadding: EdgeInsets.zero,
+                title: const Text('Engine-Diagnose'),
+                subtitle: Text(
+                  '${assessment.overallStatus} · '
+                  '${assessment.recentMomentumStatus} · '
+                  '${assessment.nutritionAction}',
+                ),
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(
+                      bottom: DesignConstants.spacingM,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          _humanStatus(assessment.nutritionAction),
+                          style: theme.textTheme.titleSmall
+                              ?.copyWith(fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: DesignConstants.spacingS),
+                        Text(
+                          _state.buildExplanation(assessment),
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            height: 1.35,
                           ),
                         ),
-                      );
-                    },
+                        const SizedBox(height: DesignConstants.spacingM),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: [
+                            _buildBadge(
+                              'Status: ${assessment.overallStatus}',
+                              _statusColor(assessment.overallStatus),
+                            ),
+                            _buildBadge(
+                              'Momentum: ${assessment.recentMomentumStatus}',
+                              Colors.indigo,
+                            ),
+                            _buildBadge(
+                              'Action: ${assessment.nutritionAction}',
+                              _actionColor(assessment.nutritionAction),
+                            ),
+                            _buildBadge(
+                              'Quality: ${assessment.dataQuality}',
+                              assessment.dataQuality == 'sufficient'
+                                  ? Colors.green
+                                  : Colors.orange,
+                            ),
+                          ],
+                        ),
+                        const Divider(height: DesignConstants.spacingL),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _buildMetricItem(
+                                'Erwartet',
+                                assessment.expectedValue != null
+                                    ? '${assessment.expectedValue!.toStringAsFixed(1)} kg'
+                                    : '--',
+                              ),
+                            ),
+                            Expanded(
+                              child: _buildMetricItem(
+                                'Abweichung',
+                                assessment.trajectoryGap != null
+                                    ? '${assessment.trajectoryGap! > 0 ? '+' : ''}${assessment.trajectoryGap!.toStringAsFixed(1)} kg'
+                                    : '--',
+                                highlight: assessment.trajectoryGap != null &&
+                                    assessment.trajectoryGap!.abs() > 0.5,
+                              ),
+                            ),
+                            Expanded(
+                              child: _buildMetricItem(
+                                'Erforderliche Rate',
+                                assessment.requiredRemainingRateKgPerWeek !=
+                                        null
+                                    ? '${assessment.requiredRemainingRateKgPerWeek!.toStringAsFixed(2)} kg/W'
+                                    : '--',
+                              ),
+                            ),
+                          ],
+                        ),
+                        if (assessment.projectedTargetDate != null) ...[
+                          const SizedBox(height: DesignConstants.spacingS),
+                          Text(
+                            'Prognostiziertes Zieldatum: ${dateFormat.format(assessment.projectedTargetDate!)}',
+                            style: theme.textTheme.bodySmall
+                                ?.copyWith(color: theme.colorScheme.primary),
+                          ),
+                        ],
+                      ],
+                    ),
                   ),
                 ],
               ),
             ),
-          ),
-
-          const SizedBox(height: DesignConstants.spacingL),
-
-          // Live Embedded Card Preview
-          AppSectionHeader(title: 'Live Vorschau: Review Card (im Hub)'),
-          AdaptiveReviewCard(
-            activeGoal: syntheticGoal,
-            pendingReview: reviewRecord,
-            isRecommendationDue: true,
-            onApply: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                    content: Text('Test-Aktion: Empfehlung angewendet')),
-              );
-            },
           ),
         ],
         if (widget.showControls) ...[
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  'Engine inputs',
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+          const SizedBox(height: DesignConstants.spacingM),
+          SummaryCard(
+            margin: EdgeInsets.zero,
+            child: Theme(
+              data: theme.copyWith(dividerColor: Colors.transparent),
+              child: ExpansionTile(
+                tilePadding: EdgeInsets.zero,
+                childrenPadding: EdgeInsets.zero,
+                title: const Text('Sandbox-Eingaben'),
+                subtitle: const Text(
+                  'Änderungen aktualisieren die Vorschau direkt.',
                 ),
-              ),
-              AppButton.secondary(
-                label: 'Reset',
-                onPressed: _state.reset,
-              ),
-            ],
-          ),
-
-          const SizedBox(height: DesignConstants.spacingXL),
-
-          // --- Parameter Control Sliders ---
-          AppSectionHeader(title: '1. Ziel & Zeitachse'),
-          SummaryCard(
-            child: Padding(
-              padding: DesignConstants.cardPadding,
-              child: Column(
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextButton(
+                      onPressed: _state.reset,
+                      child: const Text('Zurücksetzen'),
+                    ),
+                    const Icon(LucideIcons.chevron_down),
+                  ],
+                ),
                 children: [
-                  _buildSliderRow(
-                    label: 'Startgewicht (Baseline)',
-                    value: _state.baselineWeightKg,
-                    min: 50.0,
-                    max: 140.0,
-                    divisions: 180,
-                    unit: 'kg',
-                    onChanged: _state.setBaselineWeight,
+                  const AppSectionHeader(title: '1. Ziel & Zeitachse'),
+                  _buildGoalTimelineInputs(),
+                  const SizedBox(height: DesignConstants.spacingM),
+                  const AppSectionHeader(title: '2. Gewichtsverlauf'),
+                  _buildProgressInputs(),
+                  const SizedBox(height: DesignConstants.spacingM),
+                  const AppSectionHeader(
+                    title: '3. Ernährung & Datenbasis',
                   ),
-                  _buildSliderRow(
-                    label: 'Zielgewicht',
-                    value: _state.targetWeightKg,
-                    min: 50.0,
-                    max: 140.0,
-                    divisions: 180,
-                    unit: 'kg',
-                    onChanged: _state.setTargetWeight,
-                  ),
-                  _buildSliderRow(
-                    label: 'Geplante Gesamtdauer',
-                    value: _state.totalPlannedWeeks.toDouble(),
-                    min: 2,
-                    max: 40,
-                    divisions: 38,
-                    unit: 'Wochen',
-                    decimals: 0,
-                    onChanged: (v) => _state.setTotalPlannedWeeks(v.round()),
-                  ),
-                  _buildSliderRow(
-                    label: 'Verstrichene Zeit',
-                    value: _state.elapsedWeeks.toDouble(),
-                    min: 0,
-                    max: 40,
-                    divisions: 40,
-                    unit: 'Wochen',
-                    decimals: 0,
-                    onChanged: (v) => _state.setElapsedWeeks(v.round()),
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          const SizedBox(height: DesignConstants.spacingL),
-
-          AppSectionHeader(title: '2. Aktueller Gewichtsverlauf'),
-          SummaryCard(
-            child: Padding(
-              padding: DesignConstants.cardPadding,
-              child: Column(
-                children: [
-                  _buildSliderRow(
-                    label: 'Aktuelles Gewicht (geglättet)',
-                    value: _state.currentWeightKg,
-                    min: 50.0,
-                    max: 140.0,
-                    divisions: 180,
-                    unit: 'kg',
-                    onChanged: _state.setCurrentWeight,
-                  ),
-                  _buildSliderRow(
-                    label: 'Trend letzte 7 Tage (recent rate)',
-                    value: _state.recentRateKgPerWeek,
-                    min: -2.0,
-                    max: 2.0,
-                    divisions: 80,
-                    unit: 'kg/Woche',
-                    decimals: 2,
-                    onChanged: _state.setRecentRate,
-                  ),
-                  _buildSliderRow(
-                    label: 'Trend letzte 21 Tage (operating rate)',
-                    value: _state.operatingRateKgPerWeek,
-                    min: -2.0,
-                    max: 2.0,
-                    divisions: 80,
-                    unit: 'kg/Woche',
-                    decimals: 2,
-                    onChanged: _state.setOperatingRate,
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          const SizedBox(height: DesignConstants.spacingL),
-
-          AppSectionHeader(
-              title: '3. Compliance & Datenbasis (Sufficiency Gate)'),
-          SummaryCard(
-            child: Padding(
-              padding: DesignConstants.cardPadding,
-              child: Column(
-                children: [
-                  _buildSliderRow(
-                    label: 'Wiegungen in letzten 7 Tagen (Gate >= 3)',
-                    value: _state.weightObservationCount.toDouble(),
-                    min: 0,
-                    max: 7,
-                    divisions: 7,
-                    unit: '/ 7',
-                    decimals: 0,
-                    onChanged: (v) =>
-                        _state.setWeightObservationCount(v.round()),
-                  ),
-                  _buildSliderRow(
-                    label: 'Geloggte Tage in letzten 7 Tagen (Gate >= 4)',
-                    value: _state.nutritionLoggedDays.toDouble(),
-                    min: 0,
-                    max: 7,
-                    divisions: 7,
-                    unit: '/ 7',
-                    decimals: 0,
-                    onChanged: (v) => _state.setNutritionLoggedDays(v.round()),
-                  ),
-                  _buildSliderRow(
-                    label: 'Aktuelles Kalorienziel',
-                    value: _state.currentCalories.toDouble(),
-                    min: 1200,
-                    max: 4000,
-                    divisions: 56,
-                    unit: 'kcal',
-                    decimals: 0,
-                    onChanged: (v) => _state.setCurrentCalories(v.round()),
-                  ),
-                  _buildSliderRow(
-                    label: 'Durchschnittlich geloggte Kalorien',
-                    value: _state.averageLoggedCalories.toDouble(),
-                    min: 1200,
-                    max: 4500,
-                    divisions: 66,
-                    unit: 'kcal',
-                    decimals: 0,
-                    onChanged: (v) =>
-                        _state.setAverageLoggedCalories(v.round()),
-                  ),
-                  _buildSliderRow(
-                    label: 'TDEE Schätzung',
-                    value: _state.tdeeEstimate,
-                    min: 1500,
-                    max: 4000,
-                    divisions: 50,
-                    unit: 'kcal',
-                    decimals: 0,
-                    onChanged: _state.setTdeeEstimate,
-                  ),
+                  _buildDataInputs(),
                 ],
               ),
             ),
           ),
         ],
       ],
+    );
+  }
+
+  void _openFullScreenPreview() {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => _SandboxReviewPreview(state: _state),
+      ),
+    );
+  }
+
+  Widget _buildGoalTimelineInputs() {
+    return SummaryCard(
+      margin: EdgeInsets.zero,
+      child: Padding(
+        padding: DesignConstants.cardPadding,
+        child: Column(
+          children: [
+            _buildSliderRow(
+              label: 'Startgewicht (Baseline)',
+              value: _state.baselineWeightKg,
+              min: 50,
+              max: 140,
+              divisions: 180,
+              unit: 'kg',
+              onChanged: _state.setBaselineWeight,
+            ),
+            _buildSliderRow(
+              label: 'Zielgewicht',
+              value: _state.targetWeightKg,
+              min: 50,
+              max: 140,
+              divisions: 180,
+              unit: 'kg',
+              onChanged: _state.setTargetWeight,
+            ),
+            _buildSliderRow(
+              label: 'Geplante Gesamtdauer',
+              value: _state.totalPlannedWeeks.toDouble(),
+              min: 2,
+              max: 40,
+              divisions: 38,
+              unit: 'Wochen',
+              decimals: 0,
+              onChanged: (value) => _state.setTotalPlannedWeeks(value.round()),
+            ),
+            _buildSliderRow(
+              label: 'Verstrichene Zeit',
+              value: _state.elapsedWeeks.toDouble(),
+              min: 0,
+              max: 40,
+              divisions: 40,
+              unit: 'Wochen',
+              decimals: 0,
+              onChanged: (value) => _state.setElapsedWeeks(value.round()),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildProgressInputs() {
+    return SummaryCard(
+      margin: EdgeInsets.zero,
+      child: Padding(
+        padding: DesignConstants.cardPadding,
+        child: Column(
+          children: [
+            _buildSliderRow(
+              label: 'Aktuelles Gewicht (geglättet)',
+              value: _state.currentWeightKg,
+              min: 50,
+              max: 140,
+              divisions: 180,
+              unit: 'kg',
+              onChanged: _state.setCurrentWeight,
+            ),
+            _buildSliderRow(
+              label: 'Trend letzte 7 Tage (recent rate)',
+              value: _state.recentRateKgPerWeek,
+              min: -2,
+              max: 2,
+              divisions: 80,
+              unit: 'kg/Woche',
+              decimals: 2,
+              onChanged: _state.setRecentRate,
+            ),
+            _buildSliderRow(
+              label: 'Trend letzte 21 Tage (operating rate)',
+              value: _state.operatingRateKgPerWeek,
+              min: -2,
+              max: 2,
+              divisions: 80,
+              unit: 'kg/Woche',
+              decimals: 2,
+              onChanged: _state.setOperatingRate,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDataInputs() {
+    return SummaryCard(
+      margin: EdgeInsets.zero,
+      child: Padding(
+        padding: DesignConstants.cardPadding,
+        child: Column(
+          children: [
+            _buildSliderRow(
+              label: 'Wiegungen in letzten 7 Tagen (mind. 3)',
+              value: _state.weightObservationCount.toDouble(),
+              min: 0,
+              max: 7,
+              divisions: 7,
+              unit: '/ 7',
+              decimals: 0,
+              onChanged: (value) =>
+                  _state.setWeightObservationCount(value.round()),
+            ),
+            _buildSliderRow(
+              label: 'Geloggte Tage in letzten 7 Tagen (mind. 4)',
+              value: _state.nutritionLoggedDays.toDouble(),
+              min: 0,
+              max: 7,
+              divisions: 7,
+              unit: '/ 7',
+              decimals: 0,
+              onChanged: (value) =>
+                  _state.setNutritionLoggedDays(value.round()),
+            ),
+            _buildSliderRow(
+              label: 'Aktuelles Kalorienziel',
+              value: _state.currentCalories.toDouble(),
+              min: 1200,
+              max: 4000,
+              divisions: 56,
+              unit: 'kcal',
+              decimals: 0,
+              onChanged: (value) => _state.setCurrentCalories(value.round()),
+            ),
+            _buildSliderRow(
+              label: 'Durchschnittlich geloggte Kalorien',
+              value: _state.averageLoggedCalories.toDouble(),
+              min: 1200,
+              max: 4500,
+              divisions: 66,
+              unit: 'kcal',
+              decimals: 0,
+              onChanged: (value) =>
+                  _state.setAverageLoggedCalories(value.round()),
+            ),
+            _buildSliderRow(
+              label: 'TDEE-Schätzung',
+              value: _state.tdeeEstimate,
+              min: 1500,
+              max: 4000,
+              divisions: 50,
+              unit: 'kcal',
+              decimals: 0,
+              onChanged: _state.setTdeeEstimate,
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -576,5 +626,23 @@ class _NutritionSandboxWidgetState extends State<NutritionSandboxWidget> {
     );
     controller.dispose();
     if (result != null) onChanged(result);
+  }
+}
+
+class _SandboxReviewPreview extends StatelessWidget {
+  final NutritionSandboxState state;
+
+  const _SandboxReviewPreview({required this.state});
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: state,
+      builder: (context, _) => WeeklyGoalReviewScreen(
+        goal: state.buildSyntheticGoal(),
+        review: state.buildSyntheticReviewRecord(),
+        previewOnly: true,
+      ),
+    );
   }
 }

@@ -8,6 +8,7 @@ import '../../../../generated/app_localizations.dart';
 import '../../../../util/design_constants.dart';
 import '../../../../widgets/common/app_button.dart';
 import '../../../../widgets/common/summary_card.dart';
+import '../../../../widgets/common/value_summary_card.dart';
 import '../../domain/models/goal_model.dart';
 import '../weekly_goal_review_screen.dart';
 
@@ -16,7 +17,7 @@ class AdaptiveReviewCard extends StatelessWidget {
   final GoalReviewRecord? pendingReview;
   final bool isRecommendationDue;
   final DateTime? nextDueAt;
-  final VoidCallback? onApply;
+  final VoidCallback? onOpenReview;
   final VoidCallback? onRefresh;
 
   const AdaptiveReviewCard({
@@ -25,7 +26,7 @@ class AdaptiveReviewCard extends StatelessWidget {
     this.pendingReview,
     this.isRecommendationDue = false,
     this.nextDueAt,
-    this.onApply,
+    this.onOpenReview,
     this.onRefresh,
   });
 
@@ -132,9 +133,22 @@ class AdaptiveReviewCard extends StatelessWidget {
     }
 
     final assessment = review?.assessment;
-    final primaryStatus = assessment?.overallStatus ?? review?.trajectoryStatus;
+    final hasInsufficientData =
+        assessment?.nutritionAction == 'insufficient_data';
+    final primaryStatus = hasInsufficientData
+        ? 'calibrating'
+        : assessment?.overallStatus ?? review?.trajectoryStatus;
     final statusColor = _statusColor(primaryStatus, theme);
     final statusLabel = _statusLabel(context, primaryStatus);
+    final recommendedCalories =
+        hasInsufficientData ? null : review?.recommendedCalories;
+    final currentCalories = assessment?.currentCalories;
+    final hasCalories = currentCalories != null || recommendedCalories != null;
+    final locale = Localizations.localeOf(context).toString();
+    final numberFormat = NumberFormat.decimalPattern(locale);
+    final signedDelta = currentCalories == null || recommendedCalories == null
+        ? null
+        : recommendedCalories - currentCalories;
 
     return SummaryCard(
       child: Padding(
@@ -144,98 +158,165 @@ class AdaptiveReviewCard extends StatelessWidget {
           children: [
             Row(
               children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 4,
+                Expanded(
+                  child: Text(
+                    l10n.weeklyReviewCardHeaderBadge,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                  decoration: BoxDecoration(
-                    color: statusColor.withValues(alpha: 0.15),
-                    borderRadius:
-                        BorderRadius.circular(DesignConstants.borderRadiusS),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        width: 8,
-                        height: 8,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: statusColor,
+                ),
+                const SizedBox(width: DesignConstants.spacingS),
+                Flexible(
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: DesignConstants.spacingS,
+                        vertical: DesignConstants.spacingXS,
+                      ),
+                      decoration: BoxDecoration(
+                        color: statusColor.withValues(alpha: 0.14),
+                        borderRadius: BorderRadius.circular(
+                          DesignConstants.borderRadiusS,
                         ),
                       ),
-                      const SizedBox(width: 6),
-                      Text(
+                      child: Text(
                         statusLabel,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: theme.textTheme.labelMedium?.copyWith(
                           color: statusColor,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                    ],
-                  ),
-                ),
-                const Spacer(),
-                Text(
-                  l10n.weeklyReviewCardHeaderBadge,
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                    ),
                   ),
                 ),
               ],
             ),
             const SizedBox(height: DesignConstants.spacingM),
-            Text(
-              assessment == null
-                  ? l10n.weeklyReviewPendingDefaultExplanation
-                  : l10n.reviewOverallSummary(
-                      statusLabel,
-                      _momentumLabel(
+            if (hasCalories)
+              IntrinsicHeight(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Expanded(
+                      child: ValueSummaryCard(
+                        label: l10n.weeklyReviewCaloriesCurrent,
+                        value: currentCalories == null
+                            ? '—'
+                            : '${numberFormat.format(currentCalories)} kcal',
+                        useSecondarySurface: true,
+                        disableShadow: true,
+                        mainAxisAlignment: MainAxisAlignment.start,
+                      ),
+                    ),
+                    const SizedBox(width: DesignConstants.spacingS),
+                    Expanded(
+                      child: ValueSummaryCard(
+                        label: l10n.weeklyReviewCaloriesRecommended,
+                        value: recommendedCalories == null
+                            ? '—'
+                            : '${numberFormat.format(recommendedCalories)} kcal',
+                        subtitle: signedDelta == null
+                            ? null
+                            : l10n.weeklyReviewCaloriesChange(
+                                '${signedDelta > 0 ? '+' : ''}${numberFormat.format(signedDelta)}',
+                              ),
+                        valueColor: theme.colorScheme.primary,
+                        borderColor: theme.colorScheme.primary,
+                        useSecondarySurface: true,
+                        disableShadow: true,
+                        mainAxisAlignment: MainAxisAlignment.start,
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            else
+              _ReviewFactRow(
+                label: l10n.weeklyReviewCardRecentLabel,
+                value: assessment == null
+                    ? l10n.reviewMomentumUnclear
+                    : _momentumLabel(
                         context,
                         assessment.recentMomentumStatus,
                       ),
-                    ),
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurface.withValues(alpha: 0.85),
-                height: 1.35,
               ),
-              maxLines: 3,
-              overflow: TextOverflow.ellipsis,
-            ),
-            const SizedBox(height: DesignConstants.spacingL),
-            Row(
-              children: [
-                Expanded(
-                  child: AppButton.secondary(
-                    label: l10n.reviewOpenDetailsButton,
-                    onPressed: () async {
-                      await Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => WeeklyGoalReviewScreen(
-                            goal: activeGoal!,
-                            review: review,
-                          ),
-                        ),
-                      );
-                      onRefresh?.call();
-                    },
-                  ),
+            if (assessment == null && review?.explanation != null) ...[
+              const SizedBox(height: DesignConstants.spacingS),
+              Text(
+                review!.explanation!,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+                  height: 1.35,
                 ),
-                if (review?.recommendedCalories != null && onApply != null) ...[
-                  const SizedBox(width: DesignConstants.spacingM),
-                  Expanded(
-                    child: AppButton.primary(
-                      label: l10n.applyRecommendationButton,
-                      onPressed: onApply,
-                    ),
-                  ),
-                ],
-              ],
+              ),
+            ],
+            const SizedBox(height: DesignConstants.spacingL),
+            SizedBox(
+              width: double.infinity,
+              child: AppButton.primary(
+                label: l10n.reviewOpenDetailsButton,
+                onPressed: () async {
+                  final openReview = onOpenReview;
+                  if (openReview != null) {
+                    openReview();
+                  } else {
+                    await Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => WeeklyGoalReviewScreen(
+                          goal: activeGoal!,
+                          review: review,
+                        ),
+                      ),
+                    );
+                    onRefresh?.call();
+                  }
+                },
+              ),
             ),
           ],
         ),
       ),
+    );
+  }
+}
+
+class _ReviewFactRow extends StatelessWidget {
+  final String label;
+  final String value;
+
+  const _ReviewFactRow({
+    required this.label,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: theme.textTheme.labelMedium?.copyWith(
+            color: theme.colorScheme.onSurface.withValues(alpha: 0.62),
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          value,
+          style: theme.textTheme.bodyLarge?.copyWith(
+            color: theme.colorScheme.onSurface,
+            fontWeight: FontWeight.w600,
+            height: 1.3,
+          ),
+        ),
+      ],
     );
   }
 }

@@ -7270,8 +7270,67 @@ class AppLocalizationsJa extends AppLocalizations {
   String get weeklyReviewCardHeaderBadge => '週間レビュー';
 
   @override
+  String get weeklyReviewCardOverallLabel => '全体の進捗';
+
+  @override
+  String get weeklyReviewCardRecentLabel => '過去7日間';
+
+  @override
   String get weeklyReviewPendingDefaultExplanation =>
       'アダプティブエンジンが7日間のトレンドと目標の軌跡を比較します。';
+
+  @override
+  String get weeklyReviewNutritionSectionTitle => '栄養のおすすめ';
+
+  @override
+  String get weeklyReviewCaloriesTitle => '1日のカロリー目標';
+
+  @override
+  String get weeklyReviewCaloriesCurrent => '現在';
+
+  @override
+  String get weeklyReviewCaloriesRecommended => 'おすすめ';
+
+  @override
+  String weeklyReviewCaloriesChange(String change) {
+    return '1日あたり $change kcal';
+  }
+
+  @override
+  String weeklyReviewCaloriesComparison(
+      String current, String recommended, String change) {
+    return '1日 $current → $recommended kcal（$change）';
+  }
+
+  @override
+  String get weeklyReviewWeightProgressTitle => '体重目標の進捗';
+
+  @override
+  String get weeklyReviewWeightPlannedLabel => '現在の予定値';
+
+  @override
+  String get weeklyReviewWeightTrendLabel => '最近の傾向';
+
+  @override
+  String get weeklyReviewAdjustPlanTitle => '目標プランを調整';
+
+  @override
+  String get weeklyReviewAdjustRate => '週間ペースを調整';
+
+  @override
+  String get weeklyReviewAdjustDate => '目標日を変更';
+
+  @override
+  String get weeklyReviewDetailsTitle => '進捗の詳細';
+
+  @override
+  String get weeklyReviewDecisionTitle => '次のステップ';
+
+  @override
+  String get weeklyReviewContinueLogging => '記録を続ける';
+
+  @override
+  String get weeklyReviewPreviewNoChanges => 'サンドボックスのプレビューです。変更は保存されていません。';
 
   @override
   String get reviewOpenDetailsButton => 'レビューを見る';
@@ -7313,7 +7372,8 @@ class AppLocalizationsJa extends AppLocalizations {
   String get reviewProjectedDateLabel => '予測目標日';
 
   @override
-  String get reviewNutritionAdjustTargets => '食事記録は、1日の目標を調整するのに十分です。';
+  String get reviewNutritionAdjustTargets =>
+      '体重の推移が計画したペースと異なっています。記録された日数から、1日の目標を調整する提案ができます。';
 
   @override
   String get reviewNutritionKeepTargetsIntakeDiffers =>
@@ -7346,10 +7406,16 @@ class AppLocalizationsJa extends AppLocalizations {
   String get reviewActionApplyRecommendation => '推奨される日次目標を適用する';
 
   @override
+  String get weeklyReviewApplyTargetsAction => '目標値を適用';
+
+  @override
   String get reviewActionAdjustTrajectory => '目標と軌跡を調整する';
 
   @override
   String get reviewActionKeepCurrent => '目標を維持して1日の目標値を更新';
+
+  @override
+  String get weeklyReviewKeepGoalAction => '目標を維持';
 
   @override
   String get reviewDismissedSnack => 'レビューを閉じました。現在の目標値が維持されます。';

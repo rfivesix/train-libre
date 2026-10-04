@@ -7639,8 +7639,69 @@ class AppLocalizationsIt extends AppLocalizations {
   String get weeklyReviewCardHeaderBadge => 'Bilancio settimanale';
 
   @override
+  String get weeklyReviewCardOverallLabel => 'Andamento complessivo';
+
+  @override
+  String get weeklyReviewCardRecentLabel => 'Ultimi 7 giorni';
+
+  @override
   String get weeklyReviewPendingDefaultExplanation =>
       'Il motore adattivo confronta il tuo trend a 7 giorni con la traiettoria dell\'obiettivo.';
+
+  @override
+  String get weeklyReviewNutritionSectionTitle => 'Consiglio nutrizionale';
+
+  @override
+  String get weeklyReviewCaloriesTitle => 'Obiettivo calorico giornaliero';
+
+  @override
+  String get weeklyReviewCaloriesCurrent => 'Attuale';
+
+  @override
+  String get weeklyReviewCaloriesRecommended => 'Consigliato';
+
+  @override
+  String weeklyReviewCaloriesChange(String change) {
+    return '$change kcal al giorno';
+  }
+
+  @override
+  String weeklyReviewCaloriesComparison(
+      String current, String recommended, String change) {
+    return '$current → $recommended kcal al giorno ($change)';
+  }
+
+  @override
+  String get weeklyReviewWeightProgressTitle =>
+      'Progressi verso l’obiettivo di peso';
+
+  @override
+  String get weeklyReviewWeightPlannedLabel => 'Previsto a oggi';
+
+  @override
+  String get weeklyReviewWeightTrendLabel => 'Andamento recente';
+
+  @override
+  String get weeklyReviewAdjustPlanTitle => 'Modifica il tuo obiettivo';
+
+  @override
+  String get weeklyReviewAdjustRate => 'Modifica il ritmo settimanale';
+
+  @override
+  String get weeklyReviewAdjustDate => 'Modifica la data obiettivo';
+
+  @override
+  String get weeklyReviewDetailsTitle => 'Dettagli dell\'andamento';
+
+  @override
+  String get weeklyReviewDecisionTitle => 'Il tuo prossimo passo';
+
+  @override
+  String get weeklyReviewContinueLogging => 'Continua a registrare';
+
+  @override
+  String get weeklyReviewPreviewNoChanges =>
+      'Anteprima sandbox: non è stata salvata alcuna modifica.';
 
   @override
   String get reviewOpenDetailsButton => 'Vedi bilancio';
@@ -7683,7 +7744,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get reviewNutritionAdjustTargets =>
-      'Il diario alimentare è abbastanza completo per calcolare nuovi obiettivi giornalieri.';
+      'L’andamento del peso si discosta dal ritmo previsto. I giorni registrati sono sufficienti per consigliare una modifica degli obiettivi giornalieri.';
 
   @override
   String get reviewNutritionKeepTargetsIntakeDiffers =>
@@ -7718,11 +7779,17 @@ class AppLocalizationsIt extends AppLocalizations {
       'Applica i nuovi valori raccomandati';
 
   @override
+  String get weeklyReviewApplyTargetsAction => 'Applica obiettivi';
+
+  @override
   String get reviewActionAdjustTrajectory => 'Adatta obiettivo e traiettoria';
 
   @override
   String get reviewActionKeepCurrent =>
       'Mantieni l’obiettivo e aggiorna gli obiettivi giornalieri';
+
+  @override
+  String get weeklyReviewKeepGoalAction => 'Mantieni obiettivo';
 
   @override
   String get reviewDismissedSnack =>

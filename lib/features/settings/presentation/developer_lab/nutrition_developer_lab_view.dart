@@ -10,9 +10,6 @@ import '../../../../widgets/common/summary_card.dart';
 import '../../../diary/presentation/nutrition_hub_screen.dart';
 import '../../../profile/presentation/create_goal_flow.dart';
 import '../../../profile/presentation/my_goals_screen.dart';
-import '../../../profile/presentation/weekly_goal_review_screen.dart';
-import '../../../profile/presentation/widgets/adaptive_review_card.dart';
-import '../../../profile/domain/models/goal_model.dart';
 import 'canonical_scenarios.dart';
 import 'notification_test_view.dart';
 import 'nutrition_sandbox_state.dart';
@@ -29,14 +26,12 @@ class NutritionDeveloperLabView extends StatefulWidget {
 
 class _NutritionDeveloperLabViewState extends State<NutritionDeveloperLabView> {
   final NutritionSandboxState _sandboxState = NutritionSandboxState();
-  int _selectedSectionIndex =
-      0; // 0: Overview, 1: Scenarios, 2: Controls, 3: Screens & alerts
+  int _selectedSectionIndex = 0; // 0: Review, 1: Scenarios, 2: Screens & alerts
   bool _isSeedingDb = false;
 
   final List<String> _sections = [
-    'Overview',
+    'Review',
     'Scenarios',
-    'Controls',
     'Screens & Alerts',
   ];
 
@@ -121,35 +116,11 @@ class _NutritionDeveloperLabViewState extends State<NutritionDeveloperLabView> {
         ),
         const SizedBox(height: DesignConstants.spacingL),
 
-        // 0: Live Sandbox
+        // 0: Unified live preview and controls
         if (_selectedSectionIndex == 0) ...[
-          LayoutBuilder(
-            builder: (context, constraints) {
-              if (constraints.maxWidth < 900) {
-                return NutritionSandboxWidget(
-                  state: _sandboxState,
-                  showControls: false,
-                );
-              }
-              return Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: NutritionSandboxWidget(
-                      state: _sandboxState,
-                      showControls: false,
-                    ),
-                  ),
-                  const SizedBox(width: DesignConstants.spacingL),
-                  Expanded(
-                    child: NutritionSandboxWidget(
-                      state: _sandboxState,
-                      showOverview: false,
-                    ),
-                  ),
-                ],
-              );
-            },
+          NutritionSandboxWidget(
+            state: _sandboxState,
+            showControls: true,
           ),
         ],
 
@@ -211,59 +182,12 @@ class _NutritionDeveloperLabViewState extends State<NutritionDeveloperLabView> {
           ),
         ],
 
-        // 2: Exact engine controls
+        // 2: Other product screen launchers and notification tester
         if (_selectedSectionIndex == 2) ...[
-          NutritionSandboxWidget(
-            state: _sandboxState,
-            showOverview: false,
-          ),
-        ],
-
-        // 3: Product screen launcher and notification tester
-        if (_selectedSectionIndex == 3) ...[
           AppSectionHeader(title: 'Alle neuen Screens & Flows direkt öffnen'),
           SummaryCard(
             child: Column(
               children: [
-                ListTile(
-                  leading: const Icon(LucideIcons.clipboard_check),
-                  title: const Text('Wöchentlicher Review Screen'),
-                  subtitle: const Text(
-                      'Öffnet WeeklyGoalReviewScreen mit aktuellem Sandbox-Model'),
-                  trailing: const Icon(LucideIcons.chevron_right),
-                  onTap: () {
-                    final goal = _sandboxState.buildSyntheticGoal();
-                    final review = _sandboxState.buildSyntheticReviewRecord();
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) =>
-                            WeeklyGoalReviewScreen(goal: goal, review: review),
-                      ),
-                    );
-                  },
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(LucideIcons.panel_top),
-                  title: const Text('Wöchentliche Review-Karte'),
-                  subtitle: const Text(
-                    'Zeigt dieselbe Karte wie oben im Diary und im Nutrition Hub',
-                  ),
-                  trailing: const Icon(LucideIcons.chevron_right),
-                  onTap: () {
-                    final goal = _sandboxState.buildSyntheticGoal();
-                    final review = _sandboxState.buildSyntheticReviewRecord();
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => _WeeklyReviewCardPreviewScreen(
-                          goal: goal,
-                          review: review,
-                        ),
-                      ),
-                    );
-                  },
-                ),
-                const Divider(height: 1),
                 ListTile(
                   leading: const Icon(LucideIcons.compass),
                   title: const Text('Nutrition Hub Screen'),
@@ -389,33 +313,6 @@ class _NutritionDeveloperLabViewState extends State<NutritionDeveloperLabView> {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _WeeklyReviewCardPreviewScreen extends StatelessWidget {
-  final Goal goal;
-  final GoalReviewRecord review;
-
-  const _WeeklyReviewCardPreviewScreen({
-    required this.goal,
-    required this.review,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Wöchentliche Review-Karte')),
-      body: ListView(
-        padding: DesignConstants.cardPadding,
-        children: [
-          AdaptiveReviewCard(
-            activeGoal: goal,
-            pendingReview: review,
-            onRefresh: () {},
-          ),
-        ],
       ),
     );
   }

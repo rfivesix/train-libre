@@ -50,7 +50,7 @@ void main() {
 
       final review = state.buildSyntheticReviewRecord();
       expect(review.status, 'pending');
-      expect(review.algorithmVersion, 'weekly_goal_review_2_0');
+      expect(review.algorithmVersion, 'weekly_goal_review_2_1');
       expect(review.assessment, isNotNull);
     });
   });

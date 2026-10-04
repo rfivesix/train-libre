@@ -13201,11 +13201,120 @@ abstract class AppLocalizations {
   /// **'Weekly Review'**
   String get weeklyReviewCardHeaderBadge;
 
+  /// No description provided for @weeklyReviewCardOverallLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Overall progress'**
+  String get weeklyReviewCardOverallLabel;
+
+  /// No description provided for @weeklyReviewCardRecentLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Last 7 days'**
+  String get weeklyReviewCardRecentLabel;
+
   /// No description provided for @weeklyReviewPendingDefaultExplanation.
   ///
   /// In en, this message translates to:
   /// **'The adaptive engine compares your 7-day trend against your target trajectory.'**
   String get weeklyReviewPendingDefaultExplanation;
+
+  /// No description provided for @weeklyReviewNutritionSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Nutrition recommendation'**
+  String get weeklyReviewNutritionSectionTitle;
+
+  /// No description provided for @weeklyReviewCaloriesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily calorie target'**
+  String get weeklyReviewCaloriesTitle;
+
+  /// No description provided for @weeklyReviewCaloriesCurrent.
+  ///
+  /// In en, this message translates to:
+  /// **'Current'**
+  String get weeklyReviewCaloriesCurrent;
+
+  /// No description provided for @weeklyReviewCaloriesRecommended.
+  ///
+  /// In en, this message translates to:
+  /// **'Recommended'**
+  String get weeklyReviewCaloriesRecommended;
+
+  /// No description provided for @weeklyReviewCaloriesChange.
+  ///
+  /// In en, this message translates to:
+  /// **'{change} kcal/day'**
+  String weeklyReviewCaloriesChange(String change);
+
+  /// No description provided for @weeklyReviewCaloriesComparison.
+  ///
+  /// In en, this message translates to:
+  /// **'{current} → {recommended} kcal/day ({change})'**
+  String weeklyReviewCaloriesComparison(
+      String current, String recommended, String change);
+
+  /// No description provided for @weeklyReviewWeightProgressTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight goal progress'**
+  String get weeklyReviewWeightProgressTitle;
+
+  /// No description provided for @weeklyReviewWeightPlannedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Planned by now'**
+  String get weeklyReviewWeightPlannedLabel;
+
+  /// No description provided for @weeklyReviewWeightTrendLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent trend'**
+  String get weeklyReviewWeightTrendLabel;
+
+  /// No description provided for @weeklyReviewAdjustPlanTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Adjust your goal plan'**
+  String get weeklyReviewAdjustPlanTitle;
+
+  /// No description provided for @weeklyReviewAdjustRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Adjust weekly rate'**
+  String get weeklyReviewAdjustRate;
+
+  /// No description provided for @weeklyReviewAdjustDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Change target date'**
+  String get weeklyReviewAdjustDate;
+
+  /// No description provided for @weeklyReviewDetailsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Progress details'**
+  String get weeklyReviewDetailsTitle;
+
+  /// No description provided for @weeklyReviewDecisionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your next step'**
+  String get weeklyReviewDecisionTitle;
+
+  /// No description provided for @weeklyReviewContinueLogging.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue logging'**
+  String get weeklyReviewContinueLogging;
+
+  /// No description provided for @weeklyReviewPreviewNoChanges.
+  ///
+  /// In en, this message translates to:
+  /// **'Sandbox preview: no changes were saved.'**
+  String get weeklyReviewPreviewNoChanges;
 
   /// No description provided for @reviewOpenDetailsButton.
   ///
@@ -13288,7 +13397,7 @@ abstract class AppLocalizations {
   /// No description provided for @reviewNutritionAdjustTargets.
   ///
   /// In en, this message translates to:
-  /// **'Your logged intake is consistent enough to calculate adjusted daily targets.'**
+  /// **'Your weight trend differs from the planned pace. Your logged days give us enough information to recommend a change to your daily targets.'**
   String get reviewNutritionAdjustTargets;
 
   /// No description provided for @reviewNutritionKeepTargetsIntakeDiffers.
@@ -13345,6 +13454,12 @@ abstract class AppLocalizations {
   /// **'Apply recommended daily targets'**
   String get reviewActionApplyRecommendation;
 
+  /// No description provided for @weeklyReviewApplyTargetsAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply targets'**
+  String get weeklyReviewApplyTargetsAction;
+
   /// No description provided for @reviewActionAdjustTrajectory.
   ///
   /// In en, this message translates to:
@@ -13356,6 +13471,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Keep goal and update daily targets'**
   String get reviewActionKeepCurrent;
+
+  /// No description provided for @weeklyReviewKeepGoalAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep goal'**
+  String get weeklyReviewKeepGoalAction;
 
   /// No description provided for @reviewDismissedSnack.
   ///
