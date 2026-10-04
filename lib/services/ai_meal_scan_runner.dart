@@ -63,6 +63,8 @@ class AiMealScanRunner {
     bool Function()? isCancelled,
     void Function()? onValidating,
     void Function(AiMealCandidate candidate)? onCandidateReady,
+    void Function(AiValidationResult validation, int elapsedMilliseconds)?
+        onValidationReady,
     void Function(AiMealScanLogStage stage, int elapsedMilliseconds,
             {int? durationMilliseconds,
             AiMealScanLogResult? result,
@@ -111,6 +113,7 @@ class AiMealScanRunner {
           candidate: candidate,
           mode: AiValidationMode.capture,
         );
+        onValidationReady?.call(validation, runWatch.elapsedMilliseconds);
         validationMilliseconds += validationWatch.elapsedMilliseconds;
         validationWatch.stop();
         onProgress?.call(
@@ -213,6 +216,7 @@ class AiMealScanRunner {
         });
       },
       onRepairValidation: (round, validation, durationMilliseconds) {
+        onValidationReady?.call(validation, runWatch.elapsedMilliseconds);
         onProgress?.call(
             AiMealScanLogStage.validationFinished, runWatch.elapsedMilliseconds,
             durationMilliseconds: durationMilliseconds,

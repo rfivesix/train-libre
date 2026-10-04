@@ -461,6 +461,8 @@ void main() {
         requestId: 'random-scan-id',
         provider: 'gemini',
         durationSeconds: 12,
+        reviewVisibleSeconds: 5,
+        preliminaryNutritionSeconds: 8,
         success: true,
         repairAttemptsCount: 1,
         primaryFirstPassAccepted: false,
@@ -470,6 +472,8 @@ void main() {
       );
       final properties = recorder.events['ai_meal_scan_completed']!;
       expect(properties['duration_seconds'], 12);
+      expect(properties['review_visible_seconds'], 5);
+      expect(properties['preliminary_nutrition_seconds'], 8);
       expect(properties['repair_rounds_count'], 1);
       expect(properties['primary_first_pass_accepted'], false);
       expect(properties['selected_validation_rounds_count'], 2);

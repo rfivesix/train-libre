@@ -641,6 +641,19 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
     var completionScheduled = false;
     var requestedSent = false;
     var provider = 'unknown';
+    Completer<AiValidationResult>? pendingValidation;
+    var reviewNavigated = false;
+    int? reviewVisibleMilliseconds;
+    int? preliminaryNutritionMilliseconds;
+    int? revealDurationMilliseconds;
+    final reviewVisibleCompleter = Completer<void>();
+    void failPendingReview(Object error, StackTrace stackTrace) {
+      final completer = pendingValidation;
+      if (completer != null && !completer.isCompleted) {
+        completer.completeError(error, stackTrace);
+      }
+    }
+
     final text = _textController.text.trim();
     final hasImages = _images.isNotEmpty;
     final hasText = text.isNotEmpty;
@@ -805,8 +818,12 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
       final cloudProvider = provider != 'ollama' && provider != 'custom';
       final engine = AiMealValidationEngine();
       final validationCompleter = Completer<AiValidationResult>();
+      pendingValidation = validationCompleter;
+      // The route may not have built yet when a fast validation fails.
+      unawaited(validationCompleter.future
+          .then<void>((_) {}, onError: (Object _, StackTrace __) {}));
+      final progressiveValidation = ValueNotifier<AiValidationResult?>(null);
       final savedCompleter = Completer<bool?>();
-      var reviewNavigated = false;
       int revealStartedMilliseconds = 0;
 
       void navigateToReview({
@@ -849,6 +866,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
             initialValidation: validation,
             validationFuture:
                 validation == null ? validationCompleter.future : null,
+            progressiveValidation: progressiveValidation,
             mealContext: mealContext,
             originalImages: _images,
             initialDate: widget.initialDate,
@@ -866,21 +884,25 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
         _analysisRoute = null;
         revealStartedMilliseconds = stopwatch.elapsedMilliseconds;
         final navFuture = Navigator.of(context).push<bool>(reviewRoute);
-        navFuture
-            .then((v) {
-              if (!savedCompleter.isCompleted) savedCompleter.complete(v);
-            })
-            .catchError((e, s) {
-              if (!savedCompleter.isCompleted) {
-                savedCompleter.completeError(e, s);
-              }
-            });
+        navFuture.then((v) {
+          if (!savedCompleter.isCompleted) savedCompleter.complete(v);
+        }).catchError((e, s) {
+          if (!savedCompleter.isCompleted) {
+            savedCompleter.completeError(e, s);
+          }
+        });
         if (oldAnalysisRoute != null && oldAnalysisRoute.isActive) {
           Navigator.of(context).removeRoute(oldAnalysisRoute);
         }
         completionScheduled = true;
         WidgetsBinding.instance.addPostFrameCallback((_) {
           final durationMilliseconds = stopwatch.elapsedMilliseconds;
+          reviewVisibleMilliseconds = durationMilliseconds;
+          revealDurationMilliseconds =
+              durationMilliseconds - revealStartedMilliseconds;
+          if (!reviewVisibleCompleter.isCompleted) {
+            reviewVisibleCompleter.complete();
+          }
           unawaited(scanLog.event(requestId, AiMealScanLogStage.reviewVisible,
               elapsedMilliseconds: durationMilliseconds));
         });
@@ -894,6 +916,19 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
             items: candidate.items,
             mealContext: candidate.context,
           );
+        },
+        onValidationReady: (validation, _) {
+          if (!reviewNavigated || !mounted) return;
+          if (!validation.items.any((item) => item.match.bestMatch != null)) {
+            return;
+          }
+          progressiveValidation.value = validation;
+          if (preliminaryNutritionMilliseconds == null) {
+            preliminaryNutritionMilliseconds = stopwatch.elapsedMilliseconds;
+            unawaited(scanLog.event(
+                requestId, AiMealScanLogStage.preliminaryNutritionReady,
+                elapsedMilliseconds: preliminaryNutritionMilliseconds!));
+          }
         },
         onValidating: () {
           if (!_analysisCancelled &&
@@ -949,6 +984,9 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
       if (!validationCompleter.isCompleted) {
         validationCompleter.complete(validationOutcome.validation);
       }
+      final readyMilliseconds = stopwatch.elapsedMilliseconds;
+      unawaited(scanLog.event(requestId, AiMealScanLogStage.reviewReady,
+          elapsedMilliseconds: readyMilliseconds));
       if (!reviewNavigated) {
         navigateToReview(
           items: validationOutcome.validation.candidate.items,
@@ -956,6 +994,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
           mealContext: validationOutcome.validation.candidate.context,
         );
       }
+      if (reviewNavigated) await reviewVisibleCompleter.future;
 
       if (!mounted) return;
       // The user walked away from the wait; their result is no longer wanted.
@@ -964,11 +1003,18 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
       final itemCountBucket = TelemetryBuckets.getItemCountBucket(
           validationOutcome.validation.candidate.items.length);
 
-      final durationSeconds = (stopwatch.elapsedMilliseconds / 1000).round();
-      final durationMilliseconds = stopwatch.elapsedMilliseconds;
-      final revealSeconds =
-          ((stopwatch.elapsedMilliseconds - revealStartedMilliseconds) / 1000)
-              .round();
+      final durationSeconds = (readyMilliseconds / 1000).round();
+      final durationMilliseconds = readyMilliseconds;
+      final reviewVisibleSeconds = reviewVisibleMilliseconds == null
+          ? null
+          : (reviewVisibleMilliseconds! / 1000).round();
+      final preliminaryNutritionSeconds =
+          preliminaryNutritionMilliseconds == null
+              ? null
+              : (preliminaryNutritionMilliseconds! / 1000).round();
+      final revealSeconds = revealDurationMilliseconds == null
+          ? null
+          : (revealDurationMilliseconds! / 1000).round();
       unawaited(() async {
         final firstPass = await runResult.primaryFirstPassAccepted;
         final categories = await runResult.primaryIssueCategories;
@@ -989,6 +1035,8 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
           requestId: requestId,
           provider: provider,
           durationSeconds: durationSeconds,
+          reviewVisibleSeconds: reviewVisibleSeconds,
+          preliminaryNutritionSeconds: preliminaryNutritionSeconds,
           success: true,
           inputMode: inputMode,
           photoCount: _images.length,
@@ -1004,8 +1052,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
           repairSeconds: runResult.repairSeconds,
           revealSeconds: revealSeconds,
           primaryFirstPassAccepted: firstPass,
-          selectedValidationRoundsCount:
-              validationOutcome.validationRunsCount,
+          selectedValidationRoundsCount: validationOutcome.validationRunsCount,
           validationRunsTotalCount: validationRuns,
           repairLimitReached: validationOutcome.repairLimitReached,
           firstPassIssueCategories: categories,
@@ -1021,7 +1068,8 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
       if (mounted) {
         Navigator.of(context).pop(saved == true);
       }
-    } on AiKeyMissingException {
+    } on AiKeyMissingException catch (e, stackTrace) {
+      failPendingReview(e, stackTrace);
       if (_analysisCancelled) return;
       stopwatch.stop();
       unawaited(scanLog.finish(requestId,
@@ -1033,6 +1081,12 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
         requestId: requestId,
         provider: provider,
         durationSeconds: (stopwatch.elapsedMilliseconds / 1000).round(),
+        reviewVisibleSeconds: reviewVisibleMilliseconds == null
+            ? null
+            : (reviewVisibleMilliseconds! / 1000).round(),
+        preliminaryNutritionSeconds: preliminaryNutritionMilliseconds == null
+            ? null
+            : (preliminaryNutritionMilliseconds! / 1000).round(),
         success: false,
         errorCode: 'key_missing',
         inputMode: inputMode,
@@ -1043,8 +1097,9 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
       ));
       _dismissAnalysisScreen();
       if (!mounted) return;
-      _showKeyMissingDialog();
-    } on AiServiceException catch (e) {
+      if (!reviewNavigated) _showKeyMissingDialog();
+    } on AiServiceException catch (e, stackTrace) {
+      failPendingReview(e, stackTrace);
       if (_analysisCancelled) return;
       stopwatch.stop();
       unawaited(scanLog.finish(requestId,
@@ -1056,6 +1111,12 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
         requestId: requestId,
         provider: provider,
         durationSeconds: (stopwatch.elapsedMilliseconds / 1000).round(),
+        reviewVisibleSeconds: reviewVisibleMilliseconds == null
+            ? null
+            : (reviewVisibleMilliseconds! / 1000).round(),
+        preliminaryNutritionSeconds: preliminaryNutritionMilliseconds == null
+            ? null
+            : (preliminaryNutritionMilliseconds! / 1000).round(),
         success: false,
         errorCode: aiServiceErrorCode(e),
         inputMode: inputMode,
@@ -1066,14 +1127,17 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
       ));
       _dismissAnalysisScreen();
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(e.message),
-          behavior: SnackBarBehavior.floating,
-          backgroundColor: Theme.of(context).colorScheme.error,
-        ),
-      );
-    } catch (e) {
+      if (!reviewNavigated) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.message),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+      }
+    } catch (e, stackTrace) {
+      failPendingReview(e, stackTrace);
       if (_analysisCancelled) return;
       stopwatch.stop();
       unawaited(scanLog.finish(requestId,
@@ -1085,6 +1149,12 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
         requestId: requestId,
         provider: provider,
         durationSeconds: (stopwatch.elapsedMilliseconds / 1000).round(),
+        reviewVisibleSeconds: reviewVisibleMilliseconds == null
+            ? null
+            : (reviewVisibleMilliseconds! / 1000).round(),
+        preliminaryNutritionSeconds: preliminaryNutritionMilliseconds == null
+            ? null
+            : (preliminaryNutritionMilliseconds! / 1000).round(),
         success: false,
         errorCode: 'unexpected',
         inputMode: inputMode,
@@ -1096,13 +1166,15 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
       _dismissAnalysisScreen();
       if (!mounted) return;
       final l10n = AppLocalizations.of(context)!;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(l10n.error),
-          behavior: SnackBarBehavior.floating,
-          backgroundColor: Theme.of(context).colorScheme.error,
-        ),
-      );
+      if (!reviewNavigated) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(l10n.error),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+      }
     } finally {
       sendRequested();
       scheduleUsage();

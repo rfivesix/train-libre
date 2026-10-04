@@ -257,6 +257,8 @@ extension AiNetwork on AiService {
       final text = textPart['text'] as String?;
       if (text == null || text.isEmpty) throw const AiParseException();
       return _AiRawResponse(text, _anthropicUsage(json));
+    } on TimeoutException {
+      throw const AiTimeoutException();
     } on SocketException {
       throw const AiNetworkException();
     } catch (e) {
@@ -385,6 +387,8 @@ extension AiNetwork on AiService {
         choices[0]['message']['content'] as String? ?? '',
         _openAiUsage(json),
       );
+    } on TimeoutException {
+      throw const AiTimeoutException();
     } on SocketException {
       throw const AiNetworkException();
     } catch (e) {
@@ -471,6 +475,8 @@ extension AiNetwork on AiService {
       return const AiModelIdsFetch.failure(
         AiModelListError(AiModelListErrorKind.timeout),
       );
+    } on TimeoutException {
+      throw const AiTimeoutException();
     } on SocketException catch (e) {
       return AiModelIdsFetch.failure(
         AiModelListError(
@@ -879,9 +885,10 @@ extension AiNetwork on AiService {
       'generationConfig': {
         'temperature': temperature,
         'maxOutputTokens': 8192,
-        'thinkingConfig': {
-          'thinkingBudget': 0,
-        },
+        if (model.toLowerCase().startsWith('gemini-2.5-flash'))
+          'thinkingConfig': {
+            'thinkingBudget': 0,
+          },
         if (structuredOutput) ...{
           'responseMimeType': 'application/json',
           'responseJsonSchema': _AiPrompts.mealSchema,
@@ -962,6 +969,8 @@ extension AiNetwork on AiService {
         }
       }
       return _AiRawResponse(buffer.toString(), _geminiUsage(json));
+    } on TimeoutException {
+      throw const AiTimeoutException();
     } on SocketException {
       throw const AiNetworkException();
     } catch (e) {

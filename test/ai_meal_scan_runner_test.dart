@@ -59,7 +59,8 @@ void main() {
     expect(await result.validationRunsTotalCount, 1);
   });
 
-  test('onCandidateReady is invoked immediately when primary completes', () async {
+  test('onCandidateReady is invoked immediately when primary completes',
+      () async {
     AiMealCandidate? readyCandidate;
     final result = await AiMealScanRunner(
       validationEngine: testEngine(),
@@ -105,6 +106,7 @@ void main() {
   test('invalid candidate is repaired and every validation is counted',
       () async {
     var repairs = 0;
+    final preliminary = <AiValidationResult>[];
     final stages = <AiMealScanLogStage>[];
     final validationResults = <AiMealScanLogResult>[];
     final selectedCandidates = <AiMealScanLogCandidate>[];
@@ -112,6 +114,7 @@ void main() {
       validationEngine: testEngine(),
     ).run(
       fastMode: false,
+      onValidationReady: (validation, _) => preliminary.add(validation),
       onProgress: (stage, elapsedMilliseconds,
           {durationMilliseconds,
           result,
@@ -134,6 +137,9 @@ void main() {
       },
     );
     expect(repairs, 1);
+    expect(preliminary.map((result) => result.passed), [false, true]);
+    expect(preliminary.first.totals.kcalRounded, 0);
+    expect(preliminary.last.totals.kcalRounded, 130);
     expect(await result.primaryFirstPassAccepted, isFalse);
     expect(result.outcome.validationRunsCount, 2);
     expect(await result.validationRunsTotalCount, 2);

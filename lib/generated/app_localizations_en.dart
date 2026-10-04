@@ -2817,6 +2817,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get aiReviewTokensUnknown => 'AI usage: unavailable';
 
   @override
+  String get aiReviewPreliminaryNutrition =>
+      'Preliminary nutrition – still checking.';
+
+  @override
+  String get aiReviewScanFailed =>
+      'The scan could not be completed. Please go back and try again.';
+
+  @override
+  String get aiReviewScanTimedOut =>
+      'The AI request took too long. The scan has stopped. Please go back and try again.';
+
+  @override
   String get aiReviewFeedbackHint => 'Describe what the AI got wrong...';
 
   @override
@@ -8181,6 +8193,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get aiScanLogsStageReview => 'Review visible';
+
+  @override
+  String get aiScanLogsStagePreliminaryNutrition =>
+      'First nutrition estimate ready';
+
+  @override
+  String get aiScanLogsStageReviewReady => 'Review ready to save';
 
   @override
   String get aiScanLogsStageCorrectionStart => 'User correction started';

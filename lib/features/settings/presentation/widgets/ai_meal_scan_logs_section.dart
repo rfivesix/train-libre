@@ -305,6 +305,9 @@ class _LogCard extends StatelessWidget {
         AiMealScanLogStage.repairStarted => l10n.aiScanLogsStageRepairStart,
         AiMealScanLogStage.repairFinished => l10n.aiScanLogsStageRepairEnd,
         AiMealScanLogStage.reviewVisible => l10n.aiScanLogsStageReview,
+        AiMealScanLogStage.preliminaryNutritionReady =>
+          l10n.aiScanLogsStagePreliminaryNutrition,
+        AiMealScanLogStage.reviewReady => l10n.aiScanLogsStageReviewReady,
         AiMealScanLogStage.correctionStarted =>
           l10n.aiScanLogsStageCorrectionStart,
         AiMealScanLogStage.correctionFinished =>

@@ -2,9 +2,9 @@
 
 The synthetic regression set lives in `test/ai_meal_scan_runner_test.dart`. It compares ingredient identity, raw gram amounts, catalog barcode, validation result, and repair count against the prior single-request orchestration. The catalog test also compares the cached search order with the original SQL search.
 
-The cloud latency target requires a real device, a fixed network, and the user's own API keys. For each of `gpt-5.4-mini` and `gemini-2.5-flash`, run at least 30 text and 30 one-photo scans with the same fixed inputs in both the baseline build and this build. Alternate build order to reduce network drift. Keep the camera, input images, model, device, and connection identical. Record tap-to-visible-review time from `ai_meal_scan_completed.duration_seconds`; use the random request ID to join `ai_meal_scan_usage` and `ai_meal_review_finished`.
+The cloud latency target requires a real device, a fixed network, and the user's own API keys. For each of `gpt-5.4-mini` and `gemini-2.5-flash`, run at least 30 text and 30 one-photo scans with the same fixed inputs in both the baseline build and this build. Alternate build order to reduce network drift. Keep the camera, input images, model, device, and connection identical. Record tap-to-visible-review time from `ai_meal_scan_completed.review_visible_seconds`, first displayed nutrition from `preliminary_nutrition_seconds`, and completed automatic processing from `duration_seconds`; use the random request ID to join `ai_meal_scan_usage` and `ai_meal_review_finished`.
 
-For each model and input mode, both conditions must hold: the new median is at least 30% lower than baseline, and the new median is below 10 seconds. Also report P90, three-photo scans, `primary_first_pass_accepted`, `repair_rounds_count`, `validation_runs_total_count`, review outcome, and total tokens. The speed mode can add a second billable call after four seconds, so include provider call count and cost in the comparison.
+For each model and input mode, both conditions must hold: the new median is at least 30% lower than baseline, and the new median is below 10 seconds. Also report P90, three-photo scans, `primary_first_pass_accepted`, `repair_rounds_count`, `validation_runs_total_count`, review outcome, and total tokens. The earlier speed mode could add a second billable call after four seconds; keep provider call count and cost in the comparison to quantify its removal.
 
 Do not shorten or remove local validation based on first-pass acceptance alone. Check validation time and the proportion of initially accepted meals saved unchanged before proposing that separately.
 
@@ -40,7 +40,7 @@ Subsequent scans and iterative improvements revealed four key structural optimiz
    Telemetry proved that speculative parallel requests ("Speed mode") launched after 4 seconds consistently inflated token usage by 1.8–2.0x (accumulating up to 13,454 tokens) and frequently prolonged scans by 1.3–5.2 s while waiting for the secondary candidate. Hedging was deactivated by default (`enableHedge = false`) and the setting removed from AI Settings, eliminating token waste and provider API contention.
 
 2. **Reasoning Budget Configuration:**
-   Configuring `'reasoning_effort': 'low'` for OpenAI reasoning models (`gpt-6-luna`, `o1`, `o3`, etc.) and `thinkingBudget: 0` for Gemini lowered first-pass inference time from ~16–20 s down to:
+   Exploratory scans with `'reasoning_effort': 'low'` for OpenAI reasoning models (`gpt-6-luna`, `o1`, `o3`, etc.) and `thinkingBudget: 0` for Gemini lowered first-pass inference time from ~16–20 s down to:
    - `gemini-flash-latest`: **4.78 s**
    - `gpt-4o`: **4.84 s**
    - `gpt-5.4-mini`: **5.69 s**
@@ -49,8 +49,10 @@ Subsequent scans and iterative improvements revealed four key structural optimiz
 3. **Validation Rule Calibration & Text-Only Repair:**
    - In `RulesLogic`, `ambiguous_nutrition_match` was restricted to genuinely competing candidates within $\le 0.08$ score delta of the top match (rather than comparing the top match against the entire 20-item SQLite search set). This eliminated false-positive repair triggers on normal produce variations.
    - Demoted `tiny_quantity` ($\le 5\,\text{g}$) and `low_ai_confidence` to `info` severity so they no longer penalize validation scores.
-   - In `repairMealCaptureCandidate`, images are no longer resent (`images: null`), dropping repair latency from 15.2 s down to 3.2–4.2 s and saving thousands of input tokens.
+   - The exploratory text-only repair omitted photos and took 3.2–4.2 s. Catalog-only repairs still omit them; visual and quantity repairs now retain the photos so the model can check the original evidence.
    - A subsequent `gpt-5.6-luna` scan achieved **13.07 s total duration**, **First pass: true**, **Score: 100**, **0 repairs**, and used only **2,548 total tokens** (down from 11,812).
 
 4. **Progressive Review Screen Reveal with Skeleton Loading:**
    Instead of holding the user on a blocking full-screen waiting orb until local validation and candidate repair complete, the capture flow now immediately navigates to `AiMealReviewScreen` as soon as Call 1 completes (`onCandidateReady`). The recognized food items and photos appear immediately, while local database matching completes in the background. The macro header, ingredient cards, and diary save button use elegant `Skeletonizer` shimmer loading until background matching finishes, reducing perceived latency to ~4.8–11.0 s.
+
+Current requests only send `thinkingBudget: 0` to explicit Gemini 2.5 Flash variants. Other Gemini models keep their supported defaults. The exploratory times above are not a controlled accuracy or latency comparison.

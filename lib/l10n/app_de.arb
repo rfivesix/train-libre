@@ -1119,6 +1119,9 @@
   "@aiReviewTokensUsed": {"placeholders": {"count": {"type": "int"}}},
   "aiReviewTokensPending": "KI-Nutzung: wird aktualisiert…",
   "aiReviewTokensUnknown": "KI-Nutzung: nicht verfügbar",
+  "aiReviewPreliminaryNutrition": "Vorläufige Nährwerte – die Prüfung läuft noch.",
+  "aiReviewScanFailed": "Der Scan konnte nicht abgeschlossen werden. Bitte gehe zurück und versuche es erneut.",
+  "aiReviewScanTimedOut": "Die KI-Anfrage hat zu lange gedauert. Der Scan wurde beendet. Bitte gehe zurück und versuche es erneut.",
 
   "aiReviewFeedbackHint": "Beschreibe, was die KI falsch erkannt hat...",
   "aiReviewRetryButton": "Mit Korrektur erneut versuchen",
@@ -3434,6 +3437,8 @@
   "aiScanLogsStageRepairStart": "KI-Reparatur gestartet",
   "aiScanLogsStageRepairEnd": "KI-Reparaturantwort erhalten",
   "aiScanLogsStageReview": "Review sichtbar",
+  "aiScanLogsStagePreliminaryNutrition": "Erste Nährwerte verfügbar",
+  "aiScanLogsStageReviewReady": "Review speicherbereit",
   "aiScanLogsStageCorrectionStart": "Nutzerkorrektur gestartet",
   "aiScanLogsStageCorrectionEnd": "Nutzerkorrektur beendet",
   "aiScanLogsClearConfirm": "Alle lokal gespeicherten KI-Scan-Logs löschen?",

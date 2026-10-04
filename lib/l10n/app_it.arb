@@ -1119,6 +1119,9 @@
   "@aiReviewTokensUsed": {"placeholders": {"count": {"type": "int"}}},
   "aiReviewTokensPending": "Utilizzo IA: aggiornamento…",
   "aiReviewTokensUnknown": "Utilizzo IA: non disponibile",
+  "aiReviewPreliminaryNutrition": "Valori nutrizionali provvisori – verifica in corso.",
+  "aiReviewScanFailed": "La scansione non è stata completata. Torna indietro e riprova.",
+  "aiReviewScanTimedOut": "La richiesta IA ha impiegato troppo tempo. La scansione è stata interrotta. Torna indietro e riprova.",
 
   "aiReviewFeedbackHint": "Descrivi cosa ha sbagliato l'intelligenza artificiale...",
   "aiReviewRetryButton": "Riprova con feedback",
@@ -3434,6 +3437,8 @@
   "aiScanLogsStageRepairStart": "Correzione IA avviata",
   "aiScanLogsStageRepairEnd": "Risposta correzione IA ricevuta",
   "aiScanLogsStageReview": "Revisione visibile",
+  "aiScanLogsStagePreliminaryNutrition": "Prima stima nutrizionale disponibile",
+  "aiScanLogsStageReviewReady": "Revisione pronta per il salvataggio",
   "aiScanLogsStageCorrectionStart": "Correzione utente avviata",
   "aiScanLogsStageCorrectionEnd": "Correzione utente completata",
   "aiScanLogsClearConfirm": "Eliminare tutti i log delle scansioni IA salvati localmente?",

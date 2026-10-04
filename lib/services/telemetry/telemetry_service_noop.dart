@@ -123,6 +123,8 @@ class NoOpTelemetryService implements TelemetryService {
     required String requestId,
     required String provider,
     required int durationSeconds,
+    int? reviewVisibleSeconds,
+    int? preliminaryNutritionSeconds,
     required bool success,
     String? errorCode,
     String? inputMode,

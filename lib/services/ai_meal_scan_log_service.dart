@@ -306,6 +306,8 @@ enum AiMealScanLogStage {
   repairStarted,
   repairFinished,
   reviewVisible,
+  preliminaryNutritionReady,
+  reviewReady,
   correctionStarted,
   correctionFinished,
 }

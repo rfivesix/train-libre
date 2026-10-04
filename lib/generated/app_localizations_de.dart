@@ -2830,6 +2830,18 @@ class AppLocalizationsDe extends AppLocalizations {
   String get aiReviewTokensUnknown => 'KI-Nutzung: nicht verfügbar';
 
   @override
+  String get aiReviewPreliminaryNutrition =>
+      'Vorläufige Nährwerte – die Prüfung läuft noch.';
+
+  @override
+  String get aiReviewScanFailed =>
+      'Der Scan konnte nicht abgeschlossen werden. Bitte gehe zurück und versuche es erneut.';
+
+  @override
+  String get aiReviewScanTimedOut =>
+      'Die KI-Anfrage hat zu lange gedauert. Der Scan wurde beendet. Bitte gehe zurück und versuche es erneut.';
+
+  @override
   String get aiReviewFeedbackHint =>
       'Beschreibe, was die KI falsch erkannt hat...';
 
@@ -8242,6 +8254,12 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get aiScanLogsStageReview => 'Review sichtbar';
+
+  @override
+  String get aiScanLogsStagePreliminaryNutrition => 'Erste Nährwerte verfügbar';
+
+  @override
+  String get aiScanLogsStageReviewReady => 'Review speicherbereit';
 
   @override
   String get aiScanLogsStageCorrectionStart => 'Nutzerkorrektur gestartet';

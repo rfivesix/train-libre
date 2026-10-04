@@ -1119,6 +1119,9 @@
   "@aiReviewTokensUsed": {"placeholders": {"count": {"type": "int"}}},
   "aiReviewTokensPending": "Utilisation de l’IA : mise à jour…",
   "aiReviewTokensUnknown": "Utilisation de l’IA : indisponible",
+  "aiReviewPreliminaryNutrition": "Valeurs nutritionnelles provisoires – vérification en cours.",
+  "aiReviewScanFailed": "L’analyse n’a pas pu être terminée. Revenez en arrière et réessayez.",
+  "aiReviewScanTimedOut": "La requête IA a pris trop de temps. L’analyse a été arrêtée. Revenez en arrière et réessayez.",
 
   "aiReviewFeedbackHint": "Décrivez ce que l'IA s'est trompé...",
   "aiReviewRetryButton": "Réessayez avec commentaires",
@@ -3434,6 +3437,8 @@
   "aiScanLogsStageRepairStart": "Correction IA lancée",
   "aiScanLogsStageRepairEnd": "Réponse de correction IA reçue",
   "aiScanLogsStageReview": "Vérification affichée",
+  "aiScanLogsStagePreliminaryNutrition": "Première estimation nutritionnelle disponible",
+  "aiScanLogsStageReviewReady": "Vérification prête à enregistrer",
   "aiScanLogsStageCorrectionStart": "Correction utilisateur lancée",
   "aiScanLogsStageCorrectionEnd": "Correction utilisateur terminée",
   "aiScanLogsClearConfirm": "Supprimer tous les journaux d’analyse IA enregistrés localement ?",

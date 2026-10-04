@@ -314,6 +314,10 @@ class AiNetworkException extends AiServiceException {
   ]);
 }
 
+class AiTimeoutException extends AiServiceException {
+  const AiTimeoutException() : super('AI request timed out. Please try again.');
+}
+
 class AiParseException extends AiServiceException {
   const AiParseException([super.message = 'Could not parse the AI response.']);
 }
@@ -334,6 +338,7 @@ String aiServiceErrorCode(AiServiceException error) => switch (error) {
       AiKeyMissingException() => 'key_missing',
       AiAuthException() => 'auth',
       AiNetworkException() => 'network',
+      AiTimeoutException() => 'timeout',
       AiParseException() => 'parse',
       AiRateLimitException() => 'rate_limit',
       AiUnsupportedFeatureException() => 'unsupported',

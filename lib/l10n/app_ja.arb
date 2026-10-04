@@ -1119,6 +1119,9 @@
   "@aiReviewTokensUsed": {"placeholders": {"count": {"type": "int"}}},
   "aiReviewTokensPending": "AI使用量: 更新中…",
   "aiReviewTokensUnknown": "AI使用量: 取得できません",
+  "aiReviewPreliminaryNutrition": "栄養値は暫定です。確認を続けています。",
+  "aiReviewScanFailed": "スキャンを完了できませんでした。戻ってもう一度お試しください。",
+  "aiReviewScanTimedOut": "AIへのリクエストがタイムアウトしたため、スキャンを終了しました。戻ってもう一度お試しください。",
 
   "aiReviewFeedbackHint": "AI が何を間違えたのか説明してください...",
   "aiReviewRetryButton": "フィードバック付きで再試行",
@@ -3434,6 +3437,8 @@
   "aiScanLogsStageRepairStart": "AI修正開始",
   "aiScanLogsStageRepairEnd": "AI修正応答受信",
   "aiScanLogsStageReview": "レビュー表示",
+  "aiScanLogsStagePreliminaryNutrition": "最初の栄養推定値を表示",
+  "aiScanLogsStageReviewReady": "レビューの保存準備完了",
   "aiScanLogsStageCorrectionStart": "ユーザー修正開始",
   "aiScanLogsStageCorrectionEnd": "ユーザー修正完了",
   "aiScanLogsClearConfirm": "端末に保存されたAIスキャンログをすべて削除しますか？",

@@ -2855,6 +2855,18 @@ class AppLocalizationsFr extends AppLocalizations {
   String get aiReviewTokensUnknown => 'Utilisation de l’IA : indisponible';
 
   @override
+  String get aiReviewPreliminaryNutrition =>
+      'Valeurs nutritionnelles provisoires – vérification en cours.';
+
+  @override
+  String get aiReviewScanFailed =>
+      'L’analyse n’a pas pu être terminée. Revenez en arrière et réessayez.';
+
+  @override
+  String get aiReviewScanTimedOut =>
+      'La requête IA a pris trop de temps. L’analyse a été arrêtée. Revenez en arrière et réessayez.';
+
+  @override
   String get aiReviewFeedbackHint => 'Décrivez ce que l\'IA s\'est trompé...';
 
   @override
@@ -8316,6 +8328,13 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get aiScanLogsStageReview => 'Vérification affichée';
+
+  @override
+  String get aiScanLogsStagePreliminaryNutrition =>
+      'Première estimation nutritionnelle disponible';
+
+  @override
+  String get aiScanLogsStageReviewReady => 'Vérification prête à enregistrer';
 
   @override
   String get aiScanLogsStageCorrectionStart => 'Correction utilisateur lancée';

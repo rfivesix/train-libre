@@ -2841,6 +2841,18 @@ class AppLocalizationsIt extends AppLocalizations {
   String get aiReviewTokensUnknown => 'Utilizzo IA: non disponibile';
 
   @override
+  String get aiReviewPreliminaryNutrition =>
+      'Valori nutrizionali provvisori – verifica in corso.';
+
+  @override
+  String get aiReviewScanFailed =>
+      'La scansione non è stata completata. Torna indietro e riprova.';
+
+  @override
+  String get aiReviewScanTimedOut =>
+      'La richiesta IA ha impiegato troppo tempo. La scansione è stata interrotta. Torna indietro e riprova.';
+
+  @override
   String get aiReviewFeedbackHint =>
       'Descrivi cosa ha sbagliato l\'intelligenza artificiale...';
 
@@ -8291,6 +8303,14 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get aiScanLogsStageReview => 'Revisione visibile';
+
+  @override
+  String get aiScanLogsStagePreliminaryNutrition =>
+      'Prima stima nutrizionale disponibile';
+
+  @override
+  String get aiScanLogsStageReviewReady =>
+      'Revisione pronta per il salvataggio';
 
   @override
   String get aiScanLogsStageCorrectionStart => 'Correzione utente avviata';

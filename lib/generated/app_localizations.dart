@@ -5120,6 +5120,24 @@ abstract class AppLocalizations {
   /// **'AI usage: unavailable'**
   String get aiReviewTokensUnknown;
 
+  /// No description provided for @aiReviewPreliminaryNutrition.
+  ///
+  /// In en, this message translates to:
+  /// **'Preliminary nutrition – still checking.'**
+  String get aiReviewPreliminaryNutrition;
+
+  /// No description provided for @aiReviewScanFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The scan could not be completed. Please go back and try again.'**
+  String get aiReviewScanFailed;
+
+  /// No description provided for @aiReviewScanTimedOut.
+  ///
+  /// In en, this message translates to:
+  /// **'The AI request took too long. The scan has stopped. Please go back and try again.'**
+  String get aiReviewScanTimedOut;
+
   /// No description provided for @aiReviewFeedbackHint.
   ///
   /// In en, this message translates to:
@@ -14347,6 +14365,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Review visible'**
   String get aiScanLogsStageReview;
+
+  /// No description provided for @aiScanLogsStagePreliminaryNutrition.
+  ///
+  /// In en, this message translates to:
+  /// **'First nutrition estimate ready'**
+  String get aiScanLogsStagePreliminaryNutrition;
+
+  /// No description provided for @aiScanLogsStageReviewReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Review ready to save'**
+  String get aiScanLogsStageReviewReady;
 
   /// No description provided for @aiScanLogsStageCorrectionStart.
   ///

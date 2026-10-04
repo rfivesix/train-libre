@@ -2757,6 +2757,16 @@ class AppLocalizationsJa extends AppLocalizations {
   String get aiReviewTokensUnknown => 'AI使用量: 取得できません';
 
   @override
+  String get aiReviewPreliminaryNutrition => '栄養値は暫定です。確認を続けています。';
+
+  @override
+  String get aiReviewScanFailed => 'スキャンを完了できませんでした。戻ってもう一度お試しください。';
+
+  @override
+  String get aiReviewScanTimedOut =>
+      'AIへのリクエストがタイムアウトしたため、スキャンを終了しました。戻ってもう一度お試しください。';
+
+  @override
   String get aiReviewFeedbackHint => 'AI が何を間違えたのか説明してください...';
 
   @override
@@ -7884,6 +7894,12 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get aiScanLogsStageReview => 'レビュー表示';
+
+  @override
+  String get aiScanLogsStagePreliminaryNutrition => '最初の栄養推定値を表示';
+
+  @override
+  String get aiScanLogsStageReviewReady => 'レビューの保存準備完了';
 
   @override
   String get aiScanLogsStageCorrectionStart => 'ユーザー修正開始';

@@ -42,6 +42,12 @@ void main() {
           outputTokens: 1800,
           totalTokens: 4000,
           usageComplete: true);
+      await logs.event('scan-1', AiMealScanLogStage.reviewVisible,
+          elapsedMilliseconds: 18000);
+      await logs.event('scan-1', AiMealScanLogStage.preliminaryNutritionReady,
+          elapsedMilliseconds: 20100);
+      await logs.event('scan-1', AiMealScanLogStage.reviewReady,
+          elapsedMilliseconds: 37000);
       await logs.finish('scan-1',
           result: AiMealScanLogResult.accepted,
           durationMilliseconds: 37000,
@@ -90,6 +96,8 @@ void main() {
     expect(clipboardText, contains('candidate=primary'));
     expect(clipboardText, contains('issues=semanticMatch'));
     expect(clipboardText, contains('call=1 tokens=2200/1800/4000'));
+    expect(clipboardText, contains('preliminaryNutritionReady'));
+    expect(clipboardText, contains('reviewReady'));
     expect(clipboardText, isNot(contains('API key')));
 
     await tester.tap(find.byKey(const Key('ai_scan_log_scan-1')));

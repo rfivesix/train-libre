@@ -655,6 +655,8 @@ class PostHogTelemetryService implements TelemetryService {
     required String requestId,
     required String provider,
     required int durationSeconds,
+    int? reviewVisibleSeconds,
+    int? preliminaryNutritionSeconds,
     required bool success,
     String? errorCode,
     String? inputMode,
@@ -682,6 +684,10 @@ class PostHogTelemetryService implements TelemetryService {
       'request_id': requestId,
       'provider': provider,
       'duration_seconds': durationSeconds,
+      if (reviewVisibleSeconds != null)
+        'review_visible_seconds': reviewVisibleSeconds,
+      if (preliminaryNutritionSeconds != null)
+        'preliminary_nutrition_seconds': preliminaryNutritionSeconds,
       'success': success,
       if (errorCode != null) 'error_code': errorCode,
       if (inputMode != null) 'input_mode': inputMode,

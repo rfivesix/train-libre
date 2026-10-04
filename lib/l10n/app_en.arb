@@ -1125,6 +1125,9 @@
   "@aiReviewTokensUsed": {"placeholders": {"count": {"type": "int"}}},
   "aiReviewTokensPending": "AI usage: updating…",
   "aiReviewTokensUnknown": "AI usage: unavailable",
+  "aiReviewPreliminaryNutrition": "Preliminary nutrition – still checking.",
+  "aiReviewScanFailed": "The scan could not be completed. Please go back and try again.",
+  "aiReviewScanTimedOut": "The AI request took too long. The scan has stopped. Please go back and try again.",
 
   "aiReviewFeedbackHint": "Describe what the AI got wrong...",
   "aiReviewRetryButton": "Retry with Feedback",
@@ -3650,6 +3653,8 @@
   "aiScanLogsStageRepairStart": "AI repair started",
   "aiScanLogsStageRepairEnd": "AI repair response received",
   "aiScanLogsStageReview": "Review visible",
+  "aiScanLogsStagePreliminaryNutrition": "First nutrition estimate ready",
+  "aiScanLogsStageReviewReady": "Review ready to save",
   "aiScanLogsStageCorrectionStart": "User correction started",
   "aiScanLogsStageCorrectionEnd": "User correction finished",
   "aiScanLogsClearConfirm": "Delete all locally saved AI scan logs?",

@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:ui' as ui;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 import '../../../data/database_helper.dart';
@@ -50,6 +51,7 @@ class AiMealReviewScreen extends StatefulWidget {
   final List<AiSuggestedItem> suggestions;
   final AiValidationResult? initialValidation;
   final Future<AiValidationResult>? validationFuture;
+  final ValueListenable<AiValidationResult?>? progressiveValidation;
   final AiMealContext? mealContext;
   final List<File> originalImages;
   final DateTime? initialDate;
@@ -71,6 +73,7 @@ class AiMealReviewScreen extends StatefulWidget {
     required this.suggestions,
     this.initialValidation,
     this.validationFuture,
+    this.progressiveValidation,
     this.mealContext,
     required this.originalImages,
     this.initialDate,
@@ -104,6 +107,8 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
   bool _isRetrying = false;
   bool _isSaving = false;
   bool _isMatching = true;
+  bool _scanFailed = false;
+  bool _scanTimedOut = false;
   bool _isEditing = false;
   bool _aiWaitingHapticActive = false;
   MealAnalysisController? _analysisController;
@@ -117,6 +122,12 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
 
   void _onUsageChanged() {
     if (mounted) setState(() {});
+  }
+
+  void _onProgressiveValidation() {
+    final result = widget.progressiveValidation?.value;
+    if (!mounted || !_isMatching || _scanFailed || result == null) return;
+    setState(() => _applyValidationResult(result));
   }
 
   String _tokenUsageLabel(AppLocalizations l10n) {
@@ -289,15 +300,23 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
       _items =
           widget.suggestions.map((s) => _ReviewItem(suggestion: s)).toList();
       _isMatching = true;
+      widget.progressiveValidation?.addListener(_onProgressiveValidation);
+      final preliminary = widget.progressiveValidation?.value;
+      if (preliminary != null) _applyValidationResult(preliminary);
       widget.validationFuture!.then((result) {
         if (!mounted) return;
         setState(() {
           _applyValidationResult(result);
           _isMatching = false;
         });
-      }).catchError((_) {
+      }).catchError((Object error) {
         if (!mounted) return;
-        _validateCurrentItems();
+        setState(() {
+          _scanFailed = true;
+          _scanTimedOut =
+              error is AiTimeoutException || error is TimeoutException;
+          _isMatching = false;
+        });
       });
     } else {
       _items =
@@ -308,6 +327,7 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
 
   @override
   void dispose() {
+    widget.progressiveValidation?.removeListener(_onProgressiveValidation);
     widget.usageCollector?.removeListener(_onUsageChanged);
     _correctionUsage.removeListener(_onUsageChanged);
     unawaited(
@@ -1102,7 +1122,9 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
                 size: 20,
               ),
               tooltip: _isEditing ? l10n.mealDetailViewMode : l10n.edit,
-              onPressed: () => setState(() => _isEditing = !_isEditing),
+              onPressed: _isMatching || _scanFailed
+                  ? null
+                  : () => setState(() => _isEditing = !_isEditing),
             ),
           ],
         ),
@@ -1273,13 +1295,13 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
                             ),
                           ],
                           const SizedBox(height: 8),
-                          Skeletonizer(
-                            enabled: _isMatching,
+                          if (!_scanFailed) Skeletonizer(
+                            enabled: _isMatching && _validation == null,
                             child: Row(
                               crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
                                 Text(
-                                  '${_isMatching && _totalKcal == 0 ? 550 : _totalKcal} kcal',
+                                  '${_isMatching && _validation == null && _totalKcal == 0 ? 550 : _totalKcal} kcal',
                                   style: TextStyle(
                                     fontFamily: 'Plus Jakarta Sans',
                                     fontWeight: FontWeight.w800,
@@ -1290,24 +1312,31 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
                                 const Spacer(),
                                 _buildMacroPill(
                                   'P',
-                                  '${_isMatching && _totalProtein == 0 ? 35 : _totalProtein.round()}g',
+                                  '${_isMatching && _validation == null && _totalProtein == 0 ? 35 : _totalProtein.round()}g',
                                   const Color(0xFFFF453A),
                                 ),
                                 const SizedBox(width: 8),
                                 _buildMacroPill(
                                   'C',
-                                  '${_isMatching && _totalCarbs == 0 ? 50 : _totalCarbs.round()}g',
+                                  '${_isMatching && _validation == null && _totalCarbs == 0 ? 50 : _totalCarbs.round()}g',
                                   const Color(0xFF30D158),
                                 ),
                                 const SizedBox(width: 8),
                                 _buildMacroPill(
                                   'F',
-                                  '${_isMatching && _totalFat == 0 ? 15 : _totalFat.round()}g',
+                                  '${_isMatching && _validation == null && _totalFat == 0 ? 15 : _totalFat.round()}g',
                                   const Color(0xFFBF5AF2),
                                 ),
                               ],
                             ),
                           ),
+                          if (_isMatching && _validation != null)
+                            Text(
+                              l10n.aiReviewPreliminaryNutrition,
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: subtitleColor,
+                              ),
+                            ),
                         ],
                       ),
                     ),
@@ -1315,7 +1344,21 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
 
                   const SizedBox(height: 16),
 
-                  if (_validation != null &&
+                  if (_scanFailed)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Text(
+                        _scanTimedOut
+                            ? l10n.aiReviewScanTimedOut
+                            : l10n.aiReviewScanFailed,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.colorScheme.error,
+                        ),
+                      ),
+                    ),
+
+                  if (!_scanFailed &&
+                      _validation != null &&
                       (!_validation!.passed ||
                           (_isEditing &&
                               _validation!.allIssues.any((i) =>
@@ -1331,7 +1374,7 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
                     const SizedBox(height: DesignConstants.spacingM),
                   ],
 
-                  Padding(
+                  if (!_scanFailed) Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
                     child: _isEditing
                         ? Column(
@@ -1382,7 +1425,7 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
                             ],
                           )
                         : Skeletonizer(
-                            enabled: _isMatching,
+                            enabled: _isMatching && _validation == null,
                             child: MealIngredientsSummary(
                               ingredients: _items.isNotEmpty
                                   ? _items
@@ -1392,7 +1435,10 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
                                           grams: item.suggestion.estimatedGrams,
                                           kcal: item.nutrition.kcalRounded > 0
                                               ? item.nutrition.kcalRounded
-                                              : 150,
+                                              : _validation == null &&
+                                                      _isMatching
+                                                  ? 150
+                                                  : 0,
                                         ),
                                       )
                                       .toList(growable: false)
@@ -1480,7 +1526,9 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
                             const SizedBox(height: DesignConstants.spacingS),
                             AppButton.secondary(
                               onPressed:
-                                  _isRetrying ? null : _retryWithFeedback,
+                                  _isRetrying || _isMatching || _scanFailed
+                                      ? null
+                                      : _retryWithFeedback,
                               label: l10n.aiReviewRetryButton,
                               tooltip: l10n.aiReviewRetryButton,
                             ),
@@ -1569,10 +1617,12 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
                       child: Skeletonizer(
                         enabled: _isMatching,
                         child: AppButton.primary(
-                          onPressed:
-                              (_items.isNotEmpty && !_isSaving && !_isMatching)
-                                  ? _saveToDiary
-                                  : null,
+                          onPressed: (_items.isNotEmpty &&
+                                  !_isSaving &&
+                                  !_isMatching &&
+                                  !_scanFailed)
+                              ? _saveToDiary
+                              : null,
                           label: l10n.aiReviewSaveToDiary,
                           tooltip: l10n.aiReviewSaveToDiary,
                         ),
