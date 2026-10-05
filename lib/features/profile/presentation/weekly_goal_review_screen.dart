@@ -765,131 +765,121 @@ class _WeeklyGoalReviewScreenState extends State<WeeklyGoalReviewScreen> {
             ),
           ),
         ),
-        if (_showReviewDetails)
-          SummaryCard(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                if (review?.recommendedProtein != null ||
-                    review?.recommendedCarbs != null ||
-                    review?.recommendedFat != null) ...[
-                  _buildDetailHeading(context, l10n.reviewRecommendationTitle),
-                  MacroBadgeRow(
-                    protein: review?.recommendedProtein?.toDouble(),
-                    carbs: review?.recommendedCarbs?.toDouble(),
-                    fat: review?.recommendedFat?.toDouble(),
-                  ),
-                  const SizedBox(height: DesignConstants.spacingM),
-                ],
-                if (assessment?.expectedValue != null ||
-                    assessment?.currentSmoothedValue != null) ...[
-                  _buildDetailHeading(context, l10n.reviewPlanVsRealityTitle),
-                  _buildValueRow(
-                    context,
-                    l10n.reviewExpectedByNowLabel,
-                    _formatWeight(assessment?.expectedValue, unitService),
-                  ),
-                  const SizedBox(height: DesignConstants.spacingS),
-                  _buildValueRow(
-                    context,
-                    l10n.reviewSmoothedCurrentLabel,
-                    _formatWeight(
-                        assessment?.currentSmoothedValue, unitService),
-                  ),
-                  const Divider(height: DesignConstants.spacingL),
-                  _buildValueRow(
-                    context,
-                    l10n.reviewTrajectoryGapLabel,
-                    _formatWeight(
-                      assessment?.trajectoryGap,
-                      unitService,
-                      signed: true,
-                    ),
-                  ),
-                  const SizedBox(height: DesignConstants.spacingM),
-                ],
-                if (review?.observedRateKgPerWeek != null ||
-                    widget.goal.desiredWeeklyRateKg != null) ...[
-                  _buildDetailHeading(
-                      context, l10n.reviewTrajectoryComparisonTitle),
-                  _buildValueRow(
-                    context,
-                    l10n.reviewObservedRateLabel,
-                    _formatRate(
-                        review?.observedRateKgPerWeek, unitService, l10n),
-                  ),
-                  const SizedBox(height: DesignConstants.spacingS),
-                  _buildValueRow(
-                    context,
-                    l10n.reviewTargetRateLabel,
-                    _formatRate(
-                      assessment?.plannedRateKgPerWeek ??
-                          widget.goal.desiredWeeklyRateKg,
-                      unitService,
-                      l10n,
-                    ),
-                  ),
-                  if (assessment?.requiredRemainingRateKgPerWeek != null) ...[
-                    const SizedBox(height: DesignConstants.spacingS),
-                    _buildValueRow(
-                      context,
-                      l10n.reviewRequiredRateLabel,
-                      _formatRate(
-                        assessment?.requiredRemainingRateKgPerWeek,
-                        unitService,
-                        l10n,
-                      ),
-                    ),
-                  ],
-                  if (assessment?.projectedTargetDate != null) ...[
-                    const SizedBox(height: DesignConstants.spacingS),
-                    _buildValueRow(
-                      context,
-                      l10n.reviewProjectedDateLabel,
-                      dateFormat.format(assessment!.projectedTargetDate!),
-                    ),
-                  ],
-                  if (review?.tdeeEstimate != null) ...[
-                    const SizedBox(height: DesignConstants.spacingS),
-                    _buildValueRow(
-                      context,
-                      l10n.reviewEstimatedTDEELabel,
-                      '${review!.tdeeEstimate!.round()} kcal',
-                    ),
-                  ],
-                  const SizedBox(height: DesignConstants.spacingM),
-                ],
-                _buildDetailHeading(context, l10n.reviewSufficiencyGateTitle),
-                Text(
-                  '${l10n.reviewWeighInsCountLabel}: $_weightObservationCount • '
-                  '${l10n.reviewLoggedDaysCountLabel}: $_loggedIntakeDaysCount',
-                  style: theme.textTheme.bodySmall,
-                ),
-                const SizedBox(height: DesignConstants.spacingM),
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildGateMetric(
-                        context,
-                        label: l10n.reviewWeighInsCountLabel,
-                        value: '$_weightObservationCount / 3',
-                        isMet: _weightObservationCount >= 3,
-                      ),
-                    ),
-                    const SizedBox(width: DesignConstants.spacingM),
-                    Expanded(
-                      child: _buildGateMetric(
-                        context,
-                        label: l10n.reviewLoggedDaysCountLabel,
-                        value: '$_loggedIntakeDaysCount / 4',
-                        isMet: _loggedIntakeDaysCount >= 4,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
+        if (_showReviewDetails) ...[
+          const SizedBox(height: DesignConstants.spacingS),
+          if (review?.recommendedProtein != null ||
+              review?.recommendedCarbs != null ||
+              review?.recommendedFat != null) ...[
+            _buildDetailHeading(context, l10n.reviewRecommendationTitle),
+            MacroBadgeRow(
+              useBadges: true,
+              protein: review?.recommendedProtein?.toDouble(),
+              carbs: review?.recommendedCarbs?.toDouble(),
+              fat: review?.recommendedFat?.toDouble(),
             ),
+            const SizedBox(height: DesignConstants.spacingL),
+          ],
+          if (assessment?.expectedValue != null ||
+              assessment?.currentSmoothedValue != null) ...[
+            _buildDetailHeading(context, l10n.reviewPlanVsRealityTitle),
+            _buildValueRow(
+              context,
+              l10n.reviewExpectedByNowLabel,
+              _formatWeight(assessment?.expectedValue, unitService),
+            ),
+            const SizedBox(height: DesignConstants.spacingS),
+            _buildValueRow(
+              context,
+              l10n.reviewSmoothedCurrentLabel,
+              _formatWeight(
+                  assessment?.currentSmoothedValue, unitService),
+            ),
+            const SizedBox(height: DesignConstants.spacingS),
+            _buildValueRow(
+              context,
+              l10n.reviewTrajectoryGapLabel,
+              _formatWeight(
+                assessment?.trajectoryGap,
+                unitService,
+                signed: true,
+              ),
+            ),
+            const SizedBox(height: DesignConstants.spacingL),
+          ],
+          if (review?.observedRateKgPerWeek != null ||
+              widget.goal.desiredWeeklyRateKg != null) ...[
+            _buildDetailHeading(
+                context, l10n.reviewTrajectoryComparisonTitle),
+            _buildValueRow(
+              context,
+              l10n.reviewObservedRateLabel,
+              _formatRate(
+                  review?.observedRateKgPerWeek, unitService, l10n),
+            ),
+            const SizedBox(height: DesignConstants.spacingS),
+            _buildValueRow(
+              context,
+              l10n.reviewTargetRateLabel,
+              _formatRate(
+                assessment?.plannedRateKgPerWeek ??
+                    widget.goal.desiredWeeklyRateKg,
+                unitService,
+                l10n,
+              ),
+            ),
+            if (assessment?.requiredRemainingRateKgPerWeek != null) ...[
+              const SizedBox(height: DesignConstants.spacingS),
+              _buildValueRow(
+                context,
+                l10n.reviewRequiredRateLabel,
+                _formatRate(
+                  assessment?.requiredRemainingRateKgPerWeek,
+                  unitService,
+                  l10n,
+                ),
+              ),
+            ],
+            if (assessment?.projectedTargetDate != null) ...[
+              const SizedBox(height: DesignConstants.spacingS),
+              _buildValueRow(
+                context,
+                l10n.reviewProjectedDateLabel,
+                dateFormat.format(assessment!.projectedTargetDate!),
+              ),
+            ],
+            if (review?.tdeeEstimate != null) ...[
+              const SizedBox(height: DesignConstants.spacingS),
+              _buildValueRow(
+                context,
+                l10n.reviewEstimatedTDEELabel,
+                '${review!.tdeeEstimate!.round()} kcal',
+              ),
+            ],
+            const SizedBox(height: DesignConstants.spacingL),
+          ],
+          _buildDetailHeading(context, l10n.reviewSufficiencyGateTitle),
+          Row(
+            children: [
+              Expanded(
+                child: _buildGateMetric(
+                  context,
+                  label: l10n.reviewWeighInsCountLabel,
+                  value: '$_weightObservationCount / 3',
+                  isMet: _weightObservationCount >= 3,
+                ),
+              ),
+              const SizedBox(width: DesignConstants.spacingM),
+              Expanded(
+                child: _buildGateMetric(
+                  context,
+                  label: l10n.reviewLoggedDaysCountLabel,
+                  value: '$_loggedIntakeDaysCount / 4',
+                  isMet: _loggedIntakeDaysCount >= 4,
+                ),
+              ),
+            ],
           ),
+        ],
       ],
     );
   }
@@ -898,13 +888,10 @@ class _WeeklyGoalReviewScreenState extends State<WeeklyGoalReviewScreen> {
     final theme = Theme.of(context);
     return Padding(
       padding: const EdgeInsets.only(bottom: DesignConstants.spacingS),
-      child: Align(
-        alignment: Alignment.centerLeft,
-        child: Text(
-          label,
-          style: theme.textTheme.titleSmall?.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
+      child: Text(
+        label,
+        style: theme.textTheme.titleMedium?.copyWith(
+          fontWeight: FontWeight.bold,
         ),
       ),
     );
@@ -918,7 +905,10 @@ class _WeeklyGoalReviewScreenState extends State<WeeklyGoalReviewScreen> {
   }) {
     final theme = Theme.of(context);
     return Container(
-      padding: const EdgeInsets.all(DesignConstants.spacingM),
+      padding: const EdgeInsets.symmetric(
+        horizontal: DesignConstants.spacingM,
+        vertical: DesignConstants.spacingS,
+      ),
       decoration: BoxDecoration(
         color: isMet
             ? Colors.green.withValues(alpha: 0.1)
@@ -930,7 +920,7 @@ class _WeeklyGoalReviewScreenState extends State<WeeklyGoalReviewScreen> {
           Icon(
             isMet ? LucideIcons.circle_check : LucideIcons.circle_alert,
             color: isMet ? Colors.green : Colors.orange,
-            size: 18,
+            size: 16,
           ),
           const SizedBox(width: DesignConstants.spacingS),
           Expanded(
