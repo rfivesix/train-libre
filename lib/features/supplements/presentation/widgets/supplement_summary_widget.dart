@@ -39,26 +39,33 @@ class SupplementSummaryWidget extends StatelessWidget {
     return Column(
       children: [
         ...goalOnlySupplements.map(
-          (ts) => GestureDetector(
-            onTap: () => onTapSupplement(ts),
-            child: _CheckmarkCard(trackedSupplement: ts),
+          (ts) => Semantics(
+            button: true,
+            child: GestureDetector(
+              onTap: () => onTapSupplement(ts),
+              child: _CheckmarkCard(trackedSupplement: ts),
+            ),
           ),
         ),
         ...progressSupplements.map((ts) {
           final supplement = ts.supplement;
-          return GestureDetector(
-            onTap: () => onTapSupplement(ts),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(
-                  vertical: DesignConstants.spacingXS),
-              child: GlassProgressBar(
-                label: supplement.getLocalizedName(context),
-                unit: supplement.unit,
-                value: ts.totalDosedToday,
-                target: supplement.dailyLimit ?? supplement.dailyGoal!,
-                color: Colors.amber.shade600,
-                height: 54,
-                borderRadius: DesignConstants.borderRadiusL,
+          return Semantics(
+            button: true,
+            child: GestureDetector(
+              onTap: () => onTapSupplement(ts),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  vertical: DesignConstants.spacingXS,
+                ),
+                child: GlassProgressBar(
+                  label: supplement.getLocalizedName(context),
+                  unit: supplement.unit,
+                  value: ts.totalDosedToday,
+                  target: supplement.dailyLimit ?? supplement.dailyGoal!,
+                  color: Colors.amber.shade600,
+                  height: 54,
+                  borderRadius: DesignConstants.borderRadiusL,
+                ),
               ),
             ),
           );
