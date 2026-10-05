@@ -7805,6 +7805,35 @@ class AppLocalizationsFr extends AppLocalizations {
   String get weeklyReviewApplyTargetsAction => 'Appliquer les objectifs';
 
   @override
+  String get weeklyReviewDateExtensionTitle => 'Date cible prolongée';
+
+  @override
+  String weeklyReviewDateExtensionContent(String rate, String date) {
+    return 'Le rythme nécessaire pour respecter votre date actuelle n\'est pas recommandé physiologiquement. Votre rythme a été plafonné à $rate et la date cible a été reportée au $date.';
+  }
+
+  @override
+  String get weeklyReviewRateTitle => 'Rythme hebdomadaire';
+
+  @override
+  String get weeklyReviewDateTitle => 'Date cible';
+
+  @override
+  String get weeklyReviewRateNoChange => 'Inchangé';
+
+  @override
+  String get weeklyReviewDateOnTrack => 'Dans les temps';
+
+  @override
+  String weeklyReviewDateDaysChange(String days) {
+    return '$days jours';
+  }
+
+  @override
+  String get weeklyReviewPlanUpdatedSnack =>
+      'Objectifs quotidiens et trajectoire mis à jour avec succès.';
+
+  @override
   String get reviewActionAdjustTrajectory =>
       'Ajuster l\'objectif et la trajectoire';
 

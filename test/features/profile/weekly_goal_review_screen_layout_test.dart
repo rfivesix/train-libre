@@ -70,6 +70,7 @@ GoalReviewRecord _review({
 Future<void> _pumpPreview(
   WidgetTester tester, {
   required GoalReviewRecord review,
+  Goal? goal,
 }) async {
   final unitService = UnitService();
   await tester.pumpWidget(
@@ -80,7 +81,7 @@ Future<void> _pumpPreview(
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         home: WeeklyGoalReviewScreen(
-          goal: _goal(),
+          goal: goal ?? _goal(),
           review: review,
           previewOnly: true,
         ),
@@ -125,11 +126,14 @@ void main() {
     expect(find.text('PROGRESS DETAILS'), findsOneWidget);
     expect(find.text('Plan vs. reality'), findsNothing);
     expect(find.text('Apply targets'), findsOneWidget);
-    expect(find.text('Keep goal'), findsOneWidget);
-    expect(find.byType(ValueSummaryCard), findsNWidgets(4));
+    expect(find.text('WEEKLY PACE'), findsOneWidget);
+    expect(find.text('TARGET DATE'), findsOneWidget);
+    expect(find.byType(ValueSummaryCard), findsNWidgets(8));
 
-    final recommendedCard =
-        find.widgetWithText(ValueSummaryCard, 'Recommended');
+    final recommendedCard = find.ancestor(
+      of: find.text('-150 kcal/day'),
+      matching: find.byType(ValueSummaryCard),
+    );
     expect(recommendedCard, findsOneWidget);
     expect(
       find.descendant(
@@ -224,4 +228,62 @@ void main() {
       expect(find.text('Plan vs. reality'), findsOneWidget);
     });
   }
+
+  testWidgets(
+      'does not display weekly pace or target date cards for maintainWeight preset',
+      (tester) async {
+    tester.view.physicalSize = const Size(900, 2400);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    final maintainGoal = Goal(
+      id: 'sandbox-maintain',
+      preset: GoalPreset.maintainWeight,
+      title: 'Maintain',
+      status: GoalStatus.active,
+      startDate: DateTime(2026, 1, 1),
+      targetMetric: 'weight',
+      targetValue: 75,
+      targetUnit: 'kg',
+      createdAt: DateTime(2026, 1, 1),
+      updatedAt: DateTime(2026, 1, 1),
+    );
+
+    await _pumpPreview(
+      tester,
+      goal: maintainGoal,
+      review: _review(action: 'adjust_targets', recommendedCalories: 2000),
+    );
+
+    expect(find.text('WEEKLY PACE'), findsNothing);
+    expect(find.text('TARGET DATE'), findsNothing);
+    expect(find.byType(ValueSummaryCard), findsNWidgets(4));
+  });
+
+  testWidgets(
+      'displays safe adjusted pace and on-schedule date when rate adjustment is safe',
+      (tester) async {
+    tester.view.physicalSize = const Size(900, 2400);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    // requiredRemainingRateKgPerWeek is -0.7 kg/week, which is safe (< 1.0 kg/week)
+    await _pumpPreview(
+      tester,
+      review: _review(
+        action: 'adjust_targets',
+        status: 'behind',
+        recommendedCalories: 1950,
+      ),
+    );
+
+    expect(find.text('WEEKLY PACE'), findsOneWidget);
+    expect(find.text('-0.50 kg/week'), findsOneWidget); // Current
+    expect(find.text('-0.70 kg/week'), findsOneWidget); // Recommended
+    expect(find.text('-0.20 kg/week'), findsOneWidget); // Delta subtitle
+    expect(find.text('TARGET DATE'), findsOneWidget);
+    expect(find.text('On schedule'), findsOneWidget);
+  });
 }

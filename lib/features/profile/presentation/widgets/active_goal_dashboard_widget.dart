@@ -383,6 +383,7 @@ class ActiveGoalDashboardWidget extends StatelessWidget {
                   unit: unitService.unitString(UnitDimension.weight),
                   emptyStateLabel: l10n.emptyStateMeasurements,
                   edgeToEdge: true,
+                  smoothWeightTrend: true,
                 ),
               );
 

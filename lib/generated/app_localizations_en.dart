@@ -7679,6 +7679,35 @@ class AppLocalizationsEn extends AppLocalizations {
   String get weeklyReviewApplyTargetsAction => 'Apply targets';
 
   @override
+  String get weeklyReviewDateExtensionTitle => 'Target Date Extended';
+
+  @override
+  String weeklyReviewDateExtensionContent(String rate, String date) {
+    return 'The pace required to meet your current target date would be physiologically unsafe. Your weekly pace has been capped at $rate, and your target date has been moved to $date to protect your health.';
+  }
+
+  @override
+  String get weeklyReviewRateTitle => 'Weekly pace';
+
+  @override
+  String get weeklyReviewDateTitle => 'Target date';
+
+  @override
+  String get weeklyReviewRateNoChange => 'No change';
+
+  @override
+  String get weeklyReviewDateOnTrack => 'On schedule';
+
+  @override
+  String weeklyReviewDateDaysChange(String days) {
+    return '$days days';
+  }
+
+  @override
+  String get weeklyReviewPlanUpdatedSnack =>
+      'Targets and goal trajectory successfully updated.';
+
+  @override
   String get reviewActionAdjustTrajectory => 'Adjust goal & trajectory';
 
   @override

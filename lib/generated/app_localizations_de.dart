@@ -7736,6 +7736,35 @@ class AppLocalizationsDe extends AppLocalizations {
   String get weeklyReviewApplyTargetsAction => 'Tagesziele übernehmen';
 
   @override
+  String get weeklyReviewDateExtensionTitle => 'Zieldatum angepasst';
+
+  @override
+  String weeklyReviewDateExtensionContent(String rate, String date) {
+    return 'Das erforderliche Tempo für dein bisheriges Enddatum wäre gesundheitlich bedenklich. Dein wöchentliches Tempo wurde auf $rate begrenzt und das Zieldatum auf den $date verschoben.';
+  }
+
+  @override
+  String get weeklyReviewRateTitle => 'Wöchentliche Rate';
+
+  @override
+  String get weeklyReviewDateTitle => 'Zieldatum';
+
+  @override
+  String get weeklyReviewRateNoChange => 'Unverändert';
+
+  @override
+  String get weeklyReviewDateOnTrack => 'Planmäßig';
+
+  @override
+  String weeklyReviewDateDaysChange(String days) {
+    return '$days Tage';
+  }
+
+  @override
+  String get weeklyReviewPlanUpdatedSnack =>
+      'Tagesziele und Zieltrajektorie erfolgreich aktualisiert.';
+
+  @override
   String get reviewActionAdjustTrajectory => 'Ziel & Trajektorie anpassen';
 
   @override

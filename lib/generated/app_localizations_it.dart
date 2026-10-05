@@ -7782,6 +7782,35 @@ class AppLocalizationsIt extends AppLocalizations {
   String get weeklyReviewApplyTargetsAction => 'Applica obiettivi';
 
   @override
+  String get weeklyReviewDateExtensionTitle => 'Data obiettivo posticipata';
+
+  @override
+  String weeklyReviewDateExtensionContent(String rate, String date) {
+    return 'Il ritmo necessario per mantenere la data attuale non è fisiologicamente sicuro. Il tuo ritmo è stato limitato a $rate e la data obiettivo è stata spostata al $date.';
+  }
+
+  @override
+  String get weeklyReviewRateTitle => 'Ritmo settimanale';
+
+  @override
+  String get weeklyReviewDateTitle => 'Data obiettivo';
+
+  @override
+  String get weeklyReviewRateNoChange => 'Invariato';
+
+  @override
+  String get weeklyReviewDateOnTrack => 'In tabella';
+
+  @override
+  String weeklyReviewDateDaysChange(String days) {
+    return '$days giorni';
+  }
+
+  @override
+  String get weeklyReviewPlanUpdatedSnack =>
+      'Obiettivi giornalieri e traiettoria aggiornati con successo.';
+
+  @override
   String get reviewActionAdjustTrajectory => 'Adatta obiettivo e traiettoria';
 
   @override

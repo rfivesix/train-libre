@@ -7,13 +7,14 @@ import '../../analytics/domain/models/chart_data_point.dart';
 import '../../diary/domain/models/fluid_entry.dart';
 import '../../../services/health/steps_sync_service.dart';
 import '../../../data/drift_database.dart' as db;
+import '../../../util/weight_smoothing_util.dart';
 import '../domain/goal_models.dart';
 import '../domain/recommendation_models.dart';
 
 class RecommendationInputAdapter {
   static const int defaultPriorStepsLookbackDays = 21;
   static const int adaptiveLookbackDays = 14;
-  static const double weightEwmaAlpha = 0.35;
+  static const double weightEwmaAlpha = WeightSmoothingUtil.defaultAlpha;
 
   final DatabaseHelper _databaseHelper;
 

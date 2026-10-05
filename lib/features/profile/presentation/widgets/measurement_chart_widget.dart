@@ -13,6 +13,7 @@ import '../../../analytics/domain/models/chart_data_point.dart';
 import '../../../../services/unit_service.dart';
 import '../../../../util/design_constants.dart';
 import '../../domain/repositories/profile_repository.dart';
+import '../../../../util/weight_smoothing_util.dart';
 
 enum MeasurementChartAxisMode { day, time }
 
@@ -39,6 +40,7 @@ class MeasurementChartWidget extends StatefulWidget {
     this.domainDateRange,
     this.trajectoryStart,
     this.trajectoryEnd,
+    this.smoothWeightTrend,
   })  : dataPoints = null,
         axisMode = MeasurementChartAxisMode.day;
 
@@ -59,6 +61,7 @@ class MeasurementChartWidget extends StatefulWidget {
     this.domainDateRange,
     this.trajectoryStart,
     this.trajectoryEnd,
+    this.smoothWeightTrend,
   })  : chartType = null,
         dateRange = null;
 
@@ -110,6 +113,10 @@ class MeasurementChartWidget extends StatefulWidget {
   /// Optional bottom axis label formatter.
   final String Function(DateTime value, int spanUnits)? axisLabelBuilder;
 
+  /// Whether to render an EWMA smoothed weight trend curve alongside a ghost
+  /// line connecting raw measurements. Defaults to true when [chartType] is 'weight' or 'body_weight'.
+  final bool? smoothWeightTrend;
+
   bool get usesExternalData => dataPoints != null;
 
   @override
@@ -121,6 +128,12 @@ class _MeasurementChartWidgetState extends State<MeasurementChartWidget> {
   bool _isLoadingChart = true;
   int? _touchedIndex;
   StreamSubscription<List<ChartDataPoint>>? _chartDataSubscription;
+
+  bool get _shouldSmoothWeight {
+    if (widget.smoothWeightTrend != null) return widget.smoothWeightTrend!;
+    final type = widget.chartType?.toLowerCase();
+    return type == 'weight' || type == 'body_weight';
+  }
 
   @override
   void initState() {
@@ -245,7 +258,11 @@ class _MeasurementChartWidgetState extends State<MeasurementChartWidget> {
 
     final spots = response?.lineBarSpots;
     if (spots != null && spots.isNotEmpty) {
-      final idx = spots.first.spotIndex;
+      final matchingSpot = spots.firstWhere(
+        (s) => s.bar.spots.length == _dataPoints.length,
+        orElse: () => spots.first,
+      );
+      final idx = matchingSpot.spotIndex;
       _setTouchedIndexWithHaptics(idx);
     }
   }
@@ -363,6 +380,14 @@ class _MeasurementChartWidgetState extends State<MeasurementChartWidget> {
     final List<FlSpot> spots = _dataPoints
         .map((point) => FlSpot(xForPoint(point), _displayValue(point.value)))
         .toList();
+
+    final bool shouldSmooth = _shouldSmoothWeight && _dataPoints.length >= 2;
+    final List<FlSpot> smoothedSpots = shouldSmooth
+        ? WeightSmoothingUtil.calculateEwma(_dataPoints)
+            .map((p) => FlSpot(xForPoint(p), _displayValue(p.value)))
+            .toList()
+        : const [];
+
     // Resolved once per build: `bar.spots.indexOf(spot)` inside `checkToShowDot`
     // is called for every spot on every frame, so it turns a drag along the
     // chart into O(n^2) work.
@@ -569,44 +594,100 @@ class _MeasurementChartWidgetState extends State<MeasurementChartWidget> {
                         ),
                       ),
                     ),
-                  LineChartBarData(
-                    spots: spots,
-                    isCurved: true,
-                    curveSmoothness: 0.05,
-                    color: Theme.of(context).colorScheme.primary,
-                    barWidth: widget.edgeToEdge ? 3.5 : 4.0,
-                    isStrokeCapRound: true,
-                    dotData: FlDotData(
-                      show: true,
-                      checkToShowDot: (spot, bar) =>
-                          spots.length == 1 ||
-                          (touchedSpot != null && spot == touchedSpot),
-                      getDotPainter: (spot, percent, bar, index) =>
-                          FlDotCirclePainter(
-                        radius: 6,
-                        color: Theme.of(context).colorScheme.primary,
-                        strokeWidth: 2,
-                        strokeColor: Theme.of(
-                          context,
-                        ).scaffoldBackgroundColor,
+                  if (shouldSmooth) ...[
+                    // Raw measurement line: muted grey line matching the smoothed line's width, without distracting permanent dots
+                    LineChartBarData(
+                      spots: spots,
+                      isCurved: true,
+                      curveSmoothness: 0.05,
+                      color: Theme.of(context)
+                          .colorScheme
+                          .onSurface
+                          .withValues(alpha: 0.28),
+                      barWidth: widget.edgeToEdge ? 3.5 : 4.0,
+                      isStrokeCapRound: true,
+                      dotData: FlDotData(
+                        show: true,
+                        checkToShowDot: (spot, bar) =>
+                            touchedSpot != null &&
+                            spot.x == touchedSpot.x &&
+                            spot.y == touchedSpot.y,
+                        getDotPainter: (spot, percent, bar, index) =>
+                            FlDotCirclePainter(
+                          radius: 6,
+                          color: Theme.of(context).colorScheme.primary,
+                          strokeWidth: 2,
+                          strokeColor:
+                              Theme.of(context).scaffoldBackgroundColor,
+                        ),
                       ),
                     ),
-                    belowBarData: BarAreaData(
-                      show: true,
-                      gradient: LinearGradient(
-                        colors: [
-                          Theme.of(
-                            context,
-                          ).colorScheme.primary.withValues(alpha: 0.3),
-                          Theme.of(
-                            context,
-                          ).colorScheme.primary.withValues(alpha: 0.0),
-                        ],
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
+                    // Smoothed trend line: clean prominent curve in primary color
+                    LineChartBarData(
+                      spots: smoothedSpots,
+                      isCurved: true,
+                      curveSmoothness: 0.15,
+                      color: Theme.of(context).colorScheme.primary,
+                      barWidth: widget.edgeToEdge ? 3.5 : 4.0,
+                      isStrokeCapRound: true,
+                      dotData: const FlDotData(show: false),
+                      belowBarData: BarAreaData(
+                        show: true,
+                        gradient: LinearGradient(
+                          colors: [
+                            Theme.of(context)
+                                .colorScheme
+                                .primary
+                                .withValues(alpha: 0.25),
+                            Theme.of(context)
+                                .colorScheme
+                                .primary
+                                .withValues(alpha: 0.0),
+                          ],
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                        ),
                       ),
                     ),
-                  ),
+                  ] else
+                    LineChartBarData(
+                      spots: spots,
+                      isCurved: true,
+                      curveSmoothness: 0.05,
+                      color: Theme.of(context).colorScheme.primary,
+                      barWidth: widget.edgeToEdge ? 3.5 : 4.0,
+                      isStrokeCapRound: true,
+                      dotData: FlDotData(
+                        show: true,
+                        checkToShowDot: (spot, bar) =>
+                            spots.length == 1 ||
+                            (touchedSpot != null && spot == touchedSpot),
+                        getDotPainter: (spot, percent, bar, index) =>
+                            FlDotCirclePainter(
+                          radius: 6,
+                          color: Theme.of(context).colorScheme.primary,
+                          strokeWidth: 2,
+                          strokeColor: Theme.of(
+                            context,
+                          ).scaffoldBackgroundColor,
+                        ),
+                      ),
+                      belowBarData: BarAreaData(
+                        show: true,
+                        gradient: LinearGradient(
+                          colors: [
+                            Theme.of(
+                              context,
+                            ).colorScheme.primary.withValues(alpha: 0.3),
+                            Theme.of(
+                              context,
+                            ).colorScheme.primary.withValues(alpha: 0.0),
+                          ],
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                        ),
+                      ),
+                    ),
                 ],
               ),
             ),

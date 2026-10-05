@@ -12,6 +12,7 @@ import 'package:train_libre/features/nutrition_recommendation/data/recommendatio
 import 'package:train_libre/features/nutrition_recommendation/domain/confidence_models.dart';
 import 'package:train_libre/features/nutrition_recommendation/domain/goal_models.dart';
 import 'package:train_libre/features/nutrition_recommendation/domain/recommendation_models.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:train_libre/features/profile/data/goal_repository_impl.dart';
 import 'package:train_libre/features/profile/domain/models/goal_model.dart';
 import 'package:train_libre/features/profile/presentation/weekly_goal_review_screen.dart';
@@ -131,6 +132,7 @@ void main() {
   late NutritionRecommendation dummyRecommendation;
 
   setUp(() async {
+    SharedPreferences.setMockInitialValues(<String, Object>{});
     database = AppDatabase(NativeDatabase.memory());
     DatabaseHelper.setDriftDb(database);
     repository = GoalRepositoryImpl(database: database);
@@ -349,6 +351,160 @@ void main() {
     expect(
       (await repository.getReviewById(insufficientReview.id))?.status,
       'deferred',
+    );
+  });
+
+  testWidgets(
+      'WeeklyGoalReviewScreen auto-adjusts weekly rate when required rate is safe',
+      (tester) async {
+    tester.view.physicalSize = const Size(1080, 4000);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    // Goal with target 75kg, current 78kg, target date 2026-06-01, current rate -0.5
+    // Required rate -0.65 kg/wk is safe (-1.5 to +0.75).
+    final behindReview = GoalReviewRecord(
+      id: 'review-behind-safe',
+      goalId: testGoal.id,
+      windowStart: DateTime(2026, 1, 1),
+      windowEnd: DateTime(2026, 1, 7),
+      status: 'pending',
+      trajectoryStatus: 'behind',
+      recommendedCalories: 2050,
+      recommendedProtein: 160,
+      recommendedCarbs: 200,
+      recommendedFat: 65,
+      algorithmVersion: 'test',
+      assessment: const GoalReviewAssessment(
+        overallStatus: 'behind',
+        recentMomentumStatus: 'slower',
+        currentSmoothedValue: 78.0,
+        plannedRateKgPerWeek: -0.5,
+        requiredRemainingRateKgPerWeek: -0.65,
+        weightObservationCount: 4,
+        nutritionLoggedDays: 6,
+        dataQuality: 'sufficient',
+        nutritionAction: 'adjust_targets',
+      ),
+      createdAt: DateTime(2026, 1, 8),
+    );
+    await repository.saveReview(behindReview);
+
+    final mockService =
+        _MockRecommendationService(resultToReturn: dummyRecommendation);
+
+    await tester.pumpWidget(
+      createTestWidget(
+        child: WeeklyGoalReviewScreen(
+          goal: testGoal,
+          review: behindReview,
+          repository: repository,
+          recommendationService: mockService,
+        ),
+      ),
+    );
+    for (int i = 0; i < 5; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+
+    final applyButton = find.text('Tagesziele übernehmen');
+    expect(applyButton, findsOneWidget);
+
+    await tester.tap(applyButton);
+    for (int i = 0; i < 5; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+
+    expect(mockService.recalculateAndApplyCalls, 1);
+    final updatedGoal = await repository.getGoalById(testGoal.id);
+    expect(updatedGoal?.desiredWeeklyRateKg, -0.65);
+    expect(updatedGoal?.targetDate, testGoal.targetDate);
+    expect(
+      (await repository.getReviewById(behindReview.id))?.status,
+      'applied',
+    );
+  });
+
+  testWidgets(
+      'WeeklyGoalReviewScreen shows confirmation and extends target date when required rate is unsafe',
+      (tester) async {
+    tester.view.physicalSize = const Size(1080, 4000);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    // Required rate -2.5 kg/wk is unsafe!
+    final unsafeReview = GoalReviewRecord(
+      id: 'review-behind-unsafe',
+      goalId: testGoal.id,
+      windowStart: DateTime(2026, 1, 1),
+      windowEnd: DateTime(2026, 1, 7),
+      status: 'pending',
+      trajectoryStatus: 'behind',
+      recommendedCalories: 1900,
+      recommendedProtein: 160,
+      recommendedCarbs: 180,
+      recommendedFat: 60,
+      algorithmVersion: 'test',
+      assessment: const GoalReviewAssessment(
+        overallStatus: 'behind',
+        recentMomentumStatus: 'slower',
+        currentSmoothedValue: 79.0,
+        plannedRateKgPerWeek: -0.5,
+        requiredRemainingRateKgPerWeek: -2.5,
+        weightObservationCount: 4,
+        nutritionLoggedDays: 6,
+        dataQuality: 'sufficient',
+        nutritionAction: 'adjust_targets',
+      ),
+      createdAt: DateTime(2026, 1, 8),
+    );
+    await repository.saveReview(unsafeReview);
+
+    final mockService =
+        _MockRecommendationService(resultToReturn: dummyRecommendation);
+
+    await tester.pumpWidget(
+      createTestWidget(
+        child: WeeklyGoalReviewScreen(
+          goal: testGoal,
+          review: unsafeReview,
+          repository: repository,
+          recommendationService: mockService,
+        ),
+      ),
+    );
+    for (int i = 0; i < 5; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+
+    final applyButton = find.text('Tagesziele übernehmen');
+    expect(applyButton, findsOneWidget);
+
+    await tester.tap(applyButton);
+    for (int i = 0; i < 10; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+
+    // Confirmation sheet should be shown with title "Zieldatum angepasst"
+    expect(find.text('Zieldatum angepasst'), findsOneWidget);
+
+    // Confirm the action
+    await tester.tap(find.text('Tagesziele übernehmen').last);
+    for (int i = 0; i < 10; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+
+    expect(mockService.recalculateAndApplyCalls, 1);
+    final updatedGoal = await repository.getGoalById(testGoal.id);
+    // Rate is capped to safe rate (-0.5)
+    expect(updatedGoal?.desiredWeeklyRateKg, -0.5);
+    // Target date was extended beyond testGoal.targetDate
+    expect(updatedGoal?.targetDate, isNotNull);
+    expect(
+      (await repository.getReviewById(unsafeReview.id))?.status,
+      'applied',
     );
   });
 }

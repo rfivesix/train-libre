@@ -7409,6 +7409,34 @@ class AppLocalizationsJa extends AppLocalizations {
   String get weeklyReviewApplyTargetsAction => '目標値を適用';
 
   @override
+  String get weeklyReviewDateExtensionTitle => '目標期日を調整';
+
+  @override
+  String weeklyReviewDateExtensionContent(String rate, String date) {
+    return '現在の期日を守るために必要なペースは生理学的に過度な負担となります。安全のため、週間ペースを$rateに制限し、目標期日を$dateへ変更しました。';
+  }
+
+  @override
+  String get weeklyReviewRateTitle => '週のペース';
+
+  @override
+  String get weeklyReviewDateTitle => '目標日';
+
+  @override
+  String get weeklyReviewRateNoChange => '変更なし';
+
+  @override
+  String get weeklyReviewDateOnTrack => '予定通り';
+
+  @override
+  String weeklyReviewDateDaysChange(String days) {
+    return '$days日';
+  }
+
+  @override
+  String get weeklyReviewPlanUpdatedSnack => '目標値および目標の軌跡を正常に更新しました。';
+
+  @override
   String get reviewActionAdjustTrajectory => '目標と軌跡を調整する';
 
   @override

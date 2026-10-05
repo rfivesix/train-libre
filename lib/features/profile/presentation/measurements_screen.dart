@@ -444,6 +444,7 @@ class _MeasurementsScreenState extends State<MeasurementsScreen> {
             axisMode: MeasurementChartAxisMode.day,
             unit: _getMeasurementUnit(chartType, unitService),
             edgeToEdge: true,
+            smoothWeightTrend: chartType == 'weight',
           )
         else
           MeasurementChartWidget(

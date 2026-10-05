@@ -13460,6 +13460,54 @@ abstract class AppLocalizations {
   /// **'Apply targets'**
   String get weeklyReviewApplyTargetsAction;
 
+  /// No description provided for @weeklyReviewDateExtensionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Target Date Extended'**
+  String get weeklyReviewDateExtensionTitle;
+
+  /// No description provided for @weeklyReviewDateExtensionContent.
+  ///
+  /// In en, this message translates to:
+  /// **'The pace required to meet your current target date would be physiologically unsafe. Your weekly pace has been capped at {rate}, and your target date has been moved to {date} to protect your health.'**
+  String weeklyReviewDateExtensionContent(String rate, String date);
+
+  /// No description provided for @weeklyReviewRateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly pace'**
+  String get weeklyReviewRateTitle;
+
+  /// No description provided for @weeklyReviewDateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Target date'**
+  String get weeklyReviewDateTitle;
+
+  /// No description provided for @weeklyReviewRateNoChange.
+  ///
+  /// In en, this message translates to:
+  /// **'No change'**
+  String get weeklyReviewRateNoChange;
+
+  /// No description provided for @weeklyReviewDateOnTrack.
+  ///
+  /// In en, this message translates to:
+  /// **'On schedule'**
+  String get weeklyReviewDateOnTrack;
+
+  /// No description provided for @weeklyReviewDateDaysChange.
+  ///
+  /// In en, this message translates to:
+  /// **'{days} days'**
+  String weeklyReviewDateDaysChange(String days);
+
+  /// No description provided for @weeklyReviewPlanUpdatedSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Targets and goal trajectory successfully updated.'**
+  String get weeklyReviewPlanUpdatedSnack;
+
   /// No description provided for @reviewActionAdjustTrajectory.
   ///
   /// In en, this message translates to:

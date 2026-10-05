@@ -18,8 +18,10 @@ import '../../../widgets/common/macro_badge_row.dart';
 import '../../../widgets/common/summary_card.dart';
 import '../../../widgets/common/value_summary_card.dart';
 import '../../nutrition_recommendation/data/recommendation_service.dart';
+import '../../app/presentation/widgets/glass_bottom_menu.dart';
 import '../domain/models/goal_model.dart';
 import '../domain/repositories/goal_repository.dart';
+import '../domain/services/goal_notification_orchestrator.dart';
 import '../domain/services/goal_trajectory_calculator.dart';
 import '../data/goal_repository_impl.dart';
 import 'widgets/goal_adjustment_sheet.dart';
@@ -86,11 +88,15 @@ class _WeeklyGoalReviewScreenState extends State<WeeklyGoalReviewScreen> {
     }
 
     final progress = await _goalRepository!.getGoalProgress(widget.goal);
-    _currentWeightKg = progress?.currentValue ?? progress?.baselineValue;
+    _currentWeightKg = progress?.currentValue ??
+        progress?.baselineValue ??
+        widget.review?.assessment?.currentSmoothedValue ??
+        widget.goal.baselineValueKg;
     if (_review == null) {
       final pending = await _goalRepository!.getPendingReview(widget.goal.id);
       _review = pending;
     }
+    _currentWeightKg ??= _review?.assessment?.currentSmoothedValue;
 
     final rev = _review;
     if (rev != null) {
@@ -219,39 +225,119 @@ class _WeeklyGoalReviewScreenState extends State<WeeklyGoalReviewScreen> {
       return;
     }
     if (_isApplying) return;
+
+    final review = _review;
+    final assessment = review?.assessment;
+    final currentWeight = _currentWeightKg;
+    final targetWeight = widget.goal.targetValue;
+    final l10n = AppLocalizations.of(context)!;
+    final unitService = context.read<UnitService>();
+    final dateFormat = DateFormat.yMMMd(
+      Localizations.localeOf(context).toString(),
+    );
+
+    double? targetRate;
+    DateTime? targetDate;
+    bool shouldReviseGoal = false;
+    bool targetDateNeedsExtension = false;
+
+    if (review != null &&
+        _goalRepository != null &&
+        currentWeight != null &&
+        targetWeight != null &&
+        widget.goal.preset != GoalPreset.maintainWeight &&
+        widget.goal.preset != GoalPreset.recomposition &&
+        (assessment?.overallStatus == 'behind' ||
+            assessment?.overallStatus == 'target_date_needs_review')) {
+      final recRate = _recommendedRate(assessment);
+      final recDate = _recommendedDate(
+        assessment: assessment,
+        rateKgPerWeek: recRate,
+      );
+
+      if (recRate != null && recDate != null) {
+        final currentRate = widget.goal.desiredWeeklyRateKg;
+        final currentDate = widget.goal.targetDate;
+
+        final rateChanged = currentRate == null ||
+            (currentRate - recRate).abs() >= 0.001;
+        final dateChanged = currentDate == null ||
+            !DateUtils.isSameDay(currentDate, recDate);
+
+        if (rateChanged || dateChanged) {
+          shouldReviseGoal = true;
+          targetRate = recRate;
+          targetDate = recDate;
+          targetDateNeedsExtension = dateChanged;
+        }
+      }
+    }
+
+    if (targetDateNeedsExtension && targetDate != null && targetRate != null) {
+      final formattedRate = _formatRate(targetRate, unitService, l10n);
+      final formattedDate = dateFormat.format(targetDate);
+      final confirmed = await showGlassConfirmation(
+        context: context,
+        title: l10n.weeklyReviewDateExtensionTitle,
+        content: l10n.weeklyReviewDateExtensionContent(
+          formattedRate,
+          formattedDate,
+        ),
+        confirmLabel: l10n.weeklyReviewApplyTargetsAction,
+      );
+      if (!confirmed || !mounted) return;
+    }
+
     setState(() => _isApplying = true);
 
     try {
+      if (shouldReviseGoal && targetRate != null && targetDate != null) {
+        await _goalRepository!.reviseGoal(
+          currentGoal: widget.goal,
+          trackingMode: widget.goal.trackingMode,
+          targetValue: widget.goal.targetValue,
+          targetDate: targetDate,
+          desiredWeeklyRateKg: targetRate,
+          anchorValue: currentWeight,
+          reason: 'Weekly review: auto-adjusted pace and target date',
+        );
+        final notifications =
+            GoalNotificationOrchestrator(goalRepository: _goalRepository!);
+        await notifications.synchronize();
+      }
+
       final rec = await _recommendationService!.recalculateAndApply();
-      final review = _review;
       if (rec != null && review != null) {
         await _goalRepository!.updateReviewStatus(
           review.id,
           'applied',
-          decision: 'apply_recommendation',
+          decision: shouldReviseGoal ? 'plan_adjusted' : 'apply_recommendation',
         );
         final base = rec.baselineCalories;
         final dir = base == null || rec.recommendedCalories == base
             ? 'maintain'
             : (rec.recommendedCalories > base ? 'increase' : 'decrease');
-        _trackReviewCompleted('applied',
-            calorieDirection: dir, hasMacroAdjustments: true);
+        _trackReviewCompleted(
+          shouldReviseGoal ? 'goal_changed' : 'applied',
+          calorieDirection: dir,
+          hasMacroAdjustments: true,
+        );
       }
       if (!mounted) return;
-      final l10n = AppLocalizations.of(context)!;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            rec != null
-                ? l10n.adaptiveRecommendationAppliedToGoalsSnack
-                : l10n.adaptiveRecommendationNotAvailableSnack,
+            shouldReviseGoal
+                ? l10n.weeklyReviewPlanUpdatedSnack
+                : (rec != null
+                    ? l10n.adaptiveRecommendationAppliedToGoalsSnack
+                    : l10n.adaptiveRecommendationNotAvailableSnack),
           ),
         ),
       );
-      if (rec != null) Navigator.of(context).pop(true);
+      if (rec != null || shouldReviseGoal) Navigator.of(context).pop(true);
     } catch (e) {
       if (mounted) {
-        final l10n = AppLocalizations.of(context)!;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(l10n.reviewActionError(e.toString()))),
         );
@@ -508,7 +594,7 @@ class _WeeklyGoalReviewScreenState extends State<WeeklyGoalReviewScreen> {
     final recommendedCalories =
         assessment?.nutritionAction == 'insufficient_data'
             ? null
-            : review.recommendedCalories;
+            : (review.recommendedCalories ?? currentCalories);
     final currentTrend = assessment?.currentSmoothedValue ?? _currentWeightKg;
     final expectedTrend = assessment?.expectedValue;
     final unitService = context.read<UnitService>();
@@ -516,9 +602,58 @@ class _WeeklyGoalReviewScreenState extends State<WeeklyGoalReviewScreen> {
         ? (review.explanation ?? l10n.weeklyReviewPendingDefaultExplanation)
         : _nutritionExplanation(context, assessment.nutritionAction);
     final theme = Theme.of(context);
-    final signedDelta = currentCalories == null || recommendedCalories == null
-        ? null
-        : recommendedCalories - currentCalories;
+    final isCalorieChanged = currentCalories != null &&
+        recommendedCalories != null &&
+        recommendedCalories != currentCalories;
+    final signedDelta = isCalorieChanged
+        ? recommendedCalories - currentCalories
+        : null;
+
+    final isNonMaintenance = widget.goal.preset != GoalPreset.maintainWeight &&
+        widget.goal.preset != GoalPreset.recomposition;
+    final currentRate = widget.goal.desiredWeeklyRateKg;
+    final currentDate = widget.goal.targetDate;
+
+    double? candidateRate;
+    DateTime? candidateDate;
+    if (isNonMaintenance &&
+        (assessment?.overallStatus == 'behind' ||
+            assessment?.overallStatus == 'target_date_needs_review')) {
+      candidateRate = _recommendedRate(assessment);
+      candidateDate = _recommendedDate(
+        assessment: assessment,
+        rateKgPerWeek: candidateRate,
+      );
+    }
+
+    final isRateChanged = currentRate != null &&
+        candidateRate != null &&
+        (currentRate - candidateRate).abs() >= 0.001;
+    final effectiveRecRate = isRateChanged ? candidateRate : currentRate;
+    final currentRateText =
+        currentRate != null ? _formatRate(currentRate, unitService, l10n) : '—';
+    final recommendedRateText = effectiveRecRate != null
+        ? _formatRate(effectiveRecRate, unitService, l10n)
+        : '—';
+    final rateDeltaSubtitle = isRateChanged
+        ? _formatRate(candidateRate - currentRate, unitService, l10n)
+        : null;
+
+    final dateFormat = DateFormat.yMMMd(locale);
+    final isDateChanged = currentDate != null &&
+        candidateDate != null &&
+        !DateUtils.isSameDay(currentDate, candidateDate);
+    final effectiveRecDate = isDateChanged ? candidateDate : currentDate;
+    final currentDateText =
+        currentDate != null ? dateFormat.format(currentDate) : '—';
+    final recommendedDateText = effectiveRecDate != null
+        ? dateFormat.format(effectiveRecDate)
+        : '—';
+    final dateDeltaSubtitle = isDateChanged
+        ? l10n.weeklyReviewDateDaysChange(
+            '${candidateDate.difference(currentDate).inDays > 0 ? '+' : ''}${candidateDate.difference(currentDate).inDays}',
+          )
+        : null;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -593,13 +728,17 @@ class _WeeklyGoalReviewScreenState extends State<WeeklyGoalReviewScreen> {
                   value: recommendedCalories == null
                       ? '—'
                       : '${numberFormat.format(recommendedCalories)} kcal',
-                  subtitle: signedDelta == null
-                      ? null
-                      : l10n.weeklyReviewCaloriesChange(
-                          '${signedDelta > 0 ? '+' : ''}${numberFormat.format(signedDelta)}',
-                        ),
-                  valueColor: theme.colorScheme.primary,
-                  borderColor: theme.colorScheme.primary,
+                  subtitle: isCalorieChanged
+                      ? l10n.weeklyReviewCaloriesChange(
+                          '${signedDelta! > 0 ? '+' : ''}${numberFormat.format(signedDelta)}',
+                        )
+                      : (recommendedCalories != null
+                          ? l10n.weeklyReviewRateNoChange
+                          : null),
+                  valueColor:
+                      isCalorieChanged ? theme.colorScheme.primary : null,
+                  borderColor:
+                      isCalorieChanged ? theme.colorScheme.primary : null,
                   mainAxisAlignment: MainAxisAlignment.start,
                 ),
               ),
@@ -614,6 +753,72 @@ class _WeeklyGoalReviewScreenState extends State<WeeklyGoalReviewScreen> {
             height: 1.35,
           ),
         ),
+        if (isNonMaintenance) ...[
+          const SizedBox(height: DesignConstants.spacingL),
+          AppSectionHeader(title: l10n.weeklyReviewRateTitle),
+          IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Expanded(
+                  child: ValueSummaryCard(
+                    label: l10n.weeklyReviewCaloriesCurrent,
+                    value: currentRateText,
+                    mainAxisAlignment: MainAxisAlignment.start,
+                  ),
+                ),
+                const SizedBox(width: DesignConstants.spacingM),
+                Expanded(
+                  child: ValueSummaryCard(
+                    label: l10n.weeklyReviewCaloriesRecommended,
+                    value: recommendedRateText,
+                    subtitle: isRateChanged
+                        ? rateDeltaSubtitle
+                        : l10n.weeklyReviewRateNoChange,
+                    valueColor:
+                        isRateChanged ? theme.colorScheme.primary : null,
+                    borderColor:
+                        isRateChanged ? theme.colorScheme.primary : null,
+                    mainAxisAlignment: MainAxisAlignment.start,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (currentDate != null) ...[
+            const SizedBox(height: DesignConstants.spacingL),
+            AppSectionHeader(title: l10n.weeklyReviewDateTitle),
+            IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Expanded(
+                    child: ValueSummaryCard(
+                      label: l10n.weeklyReviewCaloriesCurrent,
+                      value: currentDateText,
+                      mainAxisAlignment: MainAxisAlignment.start,
+                    ),
+                  ),
+                  const SizedBox(width: DesignConstants.spacingM),
+                  Expanded(
+                    child: ValueSummaryCard(
+                      label: l10n.weeklyReviewCaloriesRecommended,
+                      value: recommendedDateText,
+                      subtitle: isDateChanged
+                          ? dateDeltaSubtitle
+                          : l10n.weeklyReviewDateOnTrack,
+                      valueColor:
+                          isDateChanged ? theme.colorScheme.primary : null,
+                      borderColor:
+                          isDateChanged ? theme.colorScheme.primary : null,
+                      mainAxisAlignment: MainAxisAlignment.start,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
       ],
     );
   }
