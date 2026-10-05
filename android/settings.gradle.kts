@@ -24,7 +24,7 @@ plugins {
     // Both are needed by the home screen widgets: Glance composes through the
     // Compose compiler, and the snapshot the app writes is parsed with
     // kotlinx.serialization.
-    id("org.jetbrains.kotlin.plugin.compose") version "2.2.20" apply false
+    id("org.jetbrains.kotlin.plugin.compose") version "2.4.20" apply false
     id("org.jetbrains.kotlin.plugin.serialization") version "2.2.20" apply false
 }
 
