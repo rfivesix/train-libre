@@ -55,7 +55,11 @@ Future<void> _advanceToMeasurements(WidgetTester tester) async {
   await tester.tap(nextButton);
   await tester.pumpAndSettle();
 
-  // Page 3: Name
+  // Page 3: Experience Level
+  await tester.tap(nextButton);
+  await tester.pumpAndSettle();
+
+  // Page 4: Name
   await tester.enterText(
     find.byKey(const Key('onboarding_name_text_field')),
     'Alex',

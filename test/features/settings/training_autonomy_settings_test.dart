@@ -163,6 +163,11 @@ void main() {
           findsOneWidget);
       expect(find.text('Trainingsprogression'), findsOneWidget);
       expect(find.textContaining('Aus'), findsOneWidget);
+
+      expect(find.byKey(const Key('settings_training_experience_entry')),
+          findsOneWidget);
+      expect(find.text('Trainingserfahrung'), findsOneWidget);
+      expect(find.textContaining('Profi'), findsOneWidget);
     });
   });
 }

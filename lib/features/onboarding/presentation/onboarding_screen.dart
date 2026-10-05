@@ -63,6 +63,8 @@ import '../../health_export/adapters/health_connect/health_connect_export_adapte
 import '../../health_export/models/export_models.dart';
 import 'package:uuid/uuid.dart';
 import '../../../services/telemetry/telemetry_service.dart';
+import '../../../services/experience_level_service.dart';
+import 'widgets/experience_level_slide.dart';
 import '../../../widgets/common/app_button.dart';
 import '../../../widgets/common/app_ruler_picker.dart';
 import '../../../widgets/common/app_restart.dart';
@@ -94,19 +96,20 @@ class OnboardingScreen extends StatefulWidget {
 class _OnboardingScreenState extends State<OnboardingScreen> {
   static const int _unitSystemPageIndex = 1;
   static const int _regionSelectionPageIndex = 2;
-  static const int _namePageIndex = 3;
-  static const int _bioDataPageIndex = 4;
-  static const int _heightPageIndex = 5;
-  static const int _measurementsPageIndex = 6;
-  static const int _activityPageIndex = 7;
-  static const int _goalDecisionPageIndex = 8;
-  static const int _goalPresetPageIndex = 9;
-  static const int _goalTargetPageIndex = 10;
-  static const int _goalPaceTimelinePageIndex = 11;
-  static const int _goalMotivationPageIndex = 12;
-  static const int _nutritionPageIndex = 13;
-  static const int _permissionsPageIndex = 14;
-  static const int _totalPageCount = 15;
+  static const int _experienceLevelPageIndex = 3;
+  static const int _namePageIndex = 4;
+  static const int _bioDataPageIndex = 5;
+  static const int _heightPageIndex = 6;
+  static const int _measurementsPageIndex = 7;
+  static const int _activityPageIndex = 8;
+  static const int _goalDecisionPageIndex = 9;
+  static const int _goalPresetPageIndex = 10;
+  static const int _goalTargetPageIndex = 11;
+  static const int _goalPaceTimelinePageIndex = 12;
+  static const int _goalMotivationPageIndex = 13;
+  static const int _nutritionPageIndex = 14;
+  static const int _permissionsPageIndex = 15;
+  static const int _totalPageCount = 16;
   static const int _lastPageIndex = _permissionsPageIndex;
 
   bool _isImportedMode = false;
@@ -133,6 +136,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     'welcome',
     'unit_system',
     'region_selection',
+    'experience_level',
     'name',
     'age_and_gender',
     'height',
@@ -147,6 +151,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     'permissions_consent',
   ];
 
+  ExperienceLevel _selectedExperienceLevel = ExperienceLevel.pro;
   OffCatalogCountry _selectedOffCountry = OffCatalogCountry.de;
   final PageController _pageController = PageController();
   int _currentPage = 0;
@@ -652,6 +657,18 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     }
     if (prefs.getInt('targetSalt') == null) await prefs.setInt('targetSalt', 6);
 
+    // Save selected experience level
+    if (mounted) {
+      try {
+        await context
+            .read<ExperienceLevelService>()
+            .setLevel(_selectedExperienceLevel);
+      } catch (_) {
+        // Safe fallback in widget tests where ExperienceLevelService is omitted
+        await ExperienceLevelService().setLevel(_selectedExperienceLevel);
+      }
+    }
+
     // 5. Fertig markieren
     await prefs.setBool('hasSeenOnboarding', true);
     await AppTourService.instance.queuePostOnboardingOffer();
@@ -924,6 +941,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     }
 
     if (!_isImportedMode) {
+      if (_currentPage == _experienceLevelPageIndex) {
+        // Experience level is chosen with a card (defaults to pro), no text validation needed
+      }
+
       if (_currentPage == _namePageIndex) {
         if (_nameController.text.trim().isEmpty) return;
       }
@@ -1307,6 +1328,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       onSelectCountry: (country) {
                         setState(() {
                           _selectedOffCountry = country;
+                        });
+                      },
+                    ),
+                    ExperienceLevelSlide(
+                      selectedLevel: _selectedExperienceLevel,
+                      onSelectLevel: (level) {
+                        setState(() {
+                          _selectedExperienceLevel = level;
                         });
                       },
                     ),

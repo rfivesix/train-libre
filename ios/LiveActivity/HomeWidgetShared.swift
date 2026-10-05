@@ -253,6 +253,26 @@ public struct HomeWidgetMeasurementPoint: Codable, Hashable {
   public var date: Date { Date(timeIntervalSince1970: epochMs / 1000) }
 }
 
+extension Array where Element == HomeWidgetMeasurementPoint {
+  /// Calculates an Exponentially Weighted Moving Average (EWMA) series.
+  ///
+  /// Uses alpha = 0.35, matching the Adaptive TDEE Engine and Flutter graphs.
+  public func smoothedEwma(alpha: Double = 0.35) -> [HomeWidgetMeasurementPoint] {
+    guard count > 1 else { return self }
+    let sorted = self.sorted { $0.epochMs < $1.epochMs }
+    var result: [HomeWidgetMeasurementPoint] = []
+    result.reserveCapacity(sorted.count)
+    var previous = sorted[0].value
+
+    for point in sorted {
+      let next = (alpha * point.value) + ((1.0 - alpha) * previous)
+      result.append(HomeWidgetMeasurementPoint(epochMs: point.epochMs, value: next))
+      previous = next
+    }
+    return result
+  }
+}
+
 /// One selectable metric of the configurable Measurements widget.
 ///
 /// Carries the whole series rather than a pre-sliced timeframe: the timeframe is

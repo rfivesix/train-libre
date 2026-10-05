@@ -35,13 +35,13 @@ void main() {
     expect(ExperienceLevelService().level, ExperienceLevel.pro);
   });
 
-  test('advanced hides the column but keeps nothing else from pro', () async {
+  test('advanced enables precise muscle names while keeping the set interface simple', () async {
     SharedPreferences.setMockInitialValues({});
     final service = ExperienceLevelService();
     await service.setLevel(ExperienceLevel.advanced);
 
     expect(service.showsIntensity, isFalse);
-    expect(service.usesCoarseMuscleNames, isTrue);
+    expect(service.usesCoarseMuscleNames, isFalse);
     expect(
       SharedPreferences.getInstance().then(
         (prefs) => prefs.getString('experience_level'),

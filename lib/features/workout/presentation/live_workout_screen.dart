@@ -44,6 +44,10 @@ import '../../../util/time_util.dart';
 import '../../../widgets/common/app_button.dart';
 import '../../../widgets/common/empty_states/cold_start_empty_state.dart';
 import '../../../services/telemetry/telemetry_service.dart';
+import '../../../services/training_autonomy_service.dart';
+import '../domain/models/prescription_enums.dart';
+import '../../diary/presentation/widgets/ai_neural_cloud_orb_widget.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../domain/models/workout_log.dart';
 
@@ -339,6 +343,8 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
 
       if (widget.initialAction == 'add_exercise') {
         _addExercise();
+      } else {
+        _checkAndPromptProgressionEngine();
       }
     });
   }
@@ -816,6 +822,191 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
         });
       }
       await manager.addExercise(selectedExercise);
+      if (mounted) {
+        _checkAndPromptProgressionEngine();
+      }
+    }
+  }
+
+  static const String _progressionEnginePromptKey =
+      'has_prompted_progression_engine';
+  bool _isCheckingProgressionPrompt = false;
+
+  Future<void> _checkAndPromptProgressionEngine() async {
+    if (_isCheckingProgressionPrompt || !mounted) return;
+    _isCheckingProgressionPrompt = true;
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      if (!mounted) return;
+      if (prefs.getBool(_progressionEnginePromptKey) == true) return;
+
+      final trainingAutonomyService =
+          Provider.of<TrainingAutonomyService?>(context, listen: false);
+      if (trainingAutonomyService == null ||
+          trainingAutonomyService.level != AutonomyLevel.off) {
+        return;
+      }
+
+      final manager = Provider.of<LiveWorkoutViewModel>(context, listen: false);
+      // Check if any exercise has prior working set data and supports load-rep progression
+      bool hasEligibleHistoricalData = false;
+      for (final re in manager.exercises) {
+        final mask = ExerciseLogMask.forExercise(re.exercise);
+        if (!mask.supportsLoadRepProgression) continue;
+
+        final priorSets = manager.lastPerformances[re.exercise.canonicalName];
+        if (priorSets != null &&
+            priorSets.any((s) => WorkoutSetPositionMapper.isWorking(s.setType))) {
+          hasEligibleHistoricalData = true;
+          break;
+        }
+      }
+
+      if (!hasEligibleHistoricalData || !mounted) return;
+
+      // Mark prompted before showing to prevent duplicate concurrent prompts
+      await prefs.setBool(_progressionEnginePromptKey, true);
+      if (!mounted) return;
+
+      final l10n = AppLocalizations.of(context)!;
+      final theme = Theme.of(context);
+
+      final accepted = await showGlassBottomMenu<bool>(
+        context: context,
+        title: l10n.progressionPromptTitle,
+        contentBuilder: (sheetContext, close) {
+          return Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: DesignConstants.spacingM,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Center(
+                  child: Container(
+                    width: 72,
+                    height: 72,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: theme.colorScheme.primary.withValues(alpha: 0.12),
+                    ),
+                    child: Center(
+                      child: AiNeuralCloudOrbWidget(
+                        size: 54,
+                        showAmbientGlow: true,
+                        baseColor: theme.colorScheme.primary,
+                        accentColor: theme.colorScheme.primary,
+                        energy: 0.45,
+                        flowSpeed: 2.0,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: DesignConstants.spacingL),
+                Text(
+                  l10n.progressionPromptDescription,
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                    height: 1.4,
+                  ),
+                ),
+                const SizedBox(height: DesignConstants.spacingL),
+                Container(
+                  padding: const EdgeInsets.all(DesignConstants.spacingM),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.surfaceContainerHighest
+                        .withValues(alpha: 0.35),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Column(
+                    children: [
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Icon(
+                            LucideIcons.trending_up,
+                            size: 20,
+                            color: theme.colorScheme.primary,
+                          ),
+                          const SizedBox(width: DesignConstants.spacingM),
+                          Expanded(
+                            child: Text(
+                              l10n.progressionPromptFeatureSmartWeights,
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: DesignConstants.spacingM),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Icon(
+                            LucideIcons.sliders_horizontal,
+                            size: 20,
+                            color: theme.colorScheme.primary,
+                          ),
+                          const SizedBox(width: DesignConstants.spacingM),
+                          Expanded(
+                            child: Text(
+                              l10n.progressionPromptFeatureStayInControl,
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: DesignConstants.spacingXL),
+                Row(
+                  children: [
+                    Expanded(
+                      child: AppButton.secondary(
+                        onPressed: () {
+                          close();
+                          Navigator.of(sheetContext).pop(false);
+                        },
+                        label: l10n.progressionPromptDismissAction,
+                        tooltip: l10n.progressionPromptDismissAction,
+                      ),
+                    ),
+                    const SizedBox(width: DesignConstants.spacingM),
+                    Expanded(
+                      child: AppButton.primary(
+                        onPressed: () {
+                          close();
+                          Navigator.of(sheetContext).pop(true);
+                        },
+                        label: l10n.progressionPromptEnableAction,
+                        tooltip: l10n.progressionPromptEnableAction,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: DesignConstants.spacingS),
+              ],
+            ),
+          );
+        },
+      );
+
+      if (accepted == true && mounted) {
+        await trainingAutonomyService.setLevel(AutonomyLevel.suggest);
+        unawaited(TelemetryService.instance.trackSettingToggled(
+          settingKey: 'training_autonomy_level',
+          value: AutonomyLevel.suggest.name,
+        ));
+      }
+    } finally {
+      _isCheckingProgressionPrompt = false;
     }
   }
 

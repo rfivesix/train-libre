@@ -475,8 +475,6 @@ extension AiNetwork on AiService {
       return const AiModelIdsFetch.failure(
         AiModelListError(AiModelListErrorKind.timeout),
       );
-    } on TimeoutException {
-      throw const AiTimeoutException();
     } on SocketException catch (e) {
       return AiModelIdsFetch.failure(
         AiModelListError(

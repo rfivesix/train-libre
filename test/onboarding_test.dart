@@ -42,7 +42,11 @@ void main() {
     await tester.tap(nextButton);
     await tester.pumpAndSettle();
 
-    // 4. Name screen
+    // 4. Experience Level Screen (defaults to pro)
+    await tester.tap(nextButton);
+    await tester.pumpAndSettle();
+
+    // 5. Name screen
     expect(find.text('This field cannot be empty.'), findsNothing);
 
     await tester.enterText(

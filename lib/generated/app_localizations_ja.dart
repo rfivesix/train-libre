@@ -2538,6 +2538,13 @@ class AppLocalizationsJa extends AppLocalizations {
   String get onboardingGoalWater => '水';
 
   @override
+  String get onboardingExperienceLevelTitle => 'トレーニングの経験はどのくらいですか？';
+
+  @override
+  String get onboardingExperienceLevelSubtitle =>
+      '知識レベルに合わせて、筋肉用語の表示やワークアウト画面のオプションを調整します。';
+
+  @override
   String get onboardingNext => '次';
 
   @override
@@ -6696,15 +6703,15 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get experienceLevelBeginnerDescription =>
-      'RIR とカーディオ強度は表示されません。筋肉は部位単位で表示され、例えば三角筋前部・中部・後部の代わりに「肩」となります。';
+      'トレーニング入門に最適：重量と回数の基本に集中。筋肉名も「肩」など日常的で分かりやすい表現です。';
 
   @override
   String get experienceLevelAdvancedDescription =>
-      'RIR とカーディオ強度は表示されません。筋肉は部位単位で表示され、例えば三角筋前部・中部・後部の代わりに「肩」となります。';
+      '定期的に鍛えている方向け：カタログや種目で詳細な解剖学的部位（三角筋前部・中部・後部など）を表示します。';
 
   @override
   String get experienceLevelProDescription =>
-      'RIR とカーディオ強度を表示し、筋肉は正確な解剖学的名称のままになります。';
+      '限界までの余力を正確に把握できる経験者向け：RIR (余力回数) による強度管理や有酸素運動の強度ゾーンを追加します。';
 
   @override
   String get diaryWeightLabel => '体重';
@@ -6742,10 +6749,36 @@ class AppLocalizationsJa extends AppLocalizations {
   String get diaryWeightRetry => '再試行';
 
   @override
+  String get settingsTrainingExperienceTitle => 'トレーニング経験';
+
+  @override
+  String get settingsTrainingExperienceSubtitle => '筋肉の専門用語の詳細度と強度列の表示';
+
+  @override
   String get settingsTrainingProgressionTitle => 'トレーニングの進捗';
 
   @override
   String get settingsTrainingProgressionSubtitle => '履歴に基づいた重量の提案';
+
+  @override
+  String get progressionPromptTitle => 'Progressive Engine を有効にしますか？';
+
+  @override
+  String get progressionPromptDescription =>
+      'Train Libre でこの種目の以前の記録が見つかりました。Progressive Engine は過去のセットから次のセットの適切な重量を自動提案できます。';
+
+  @override
+  String get progressionPromptFeatureSmartWeights => '直近のセットに基づいた自動重量提案';
+
+  @override
+  String get progressionPromptFeatureStayInControl =>
+      'いつでもすべての数値を手動で変更・上書きできます';
+
+  @override
+  String get progressionPromptEnableAction => '提案を有効にする';
+
+  @override
+  String get progressionPromptDismissAction => '後で';
 
   @override
   String get trainingProgressionOff => 'オフ';

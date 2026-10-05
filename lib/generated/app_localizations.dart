@@ -4712,6 +4712,18 @@ abstract class AppLocalizations {
   /// **'Water'**
   String get onboardingGoalWater;
 
+  /// No description provided for @onboardingExperienceLevelTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'How much training experience do you have?'**
+  String get onboardingExperienceLevelTitle;
+
+  /// No description provided for @onboardingExperienceLevelSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'We customize terminology and workout interface options to match your knowledge.'**
+  String get onboardingExperienceLevelSubtitle;
+
   /// No description provided for @onboardingNext.
   ///
   /// In en, this message translates to:
@@ -12118,19 +12130,19 @@ abstract class AppLocalizations {
   /// No description provided for @experienceLevelBeginnerDescription.
   ///
   /// In en, this message translates to:
-  /// **'No RIR and no cardio intensity. Muscles are named by region, e.g. “Shoulders” instead of front, lateral and rear deltoid.'**
+  /// **'Best when starting out: focuses on the essentials with weight and reps. Uses simple everyday muscle terms like “Shoulders”.'**
   String get experienceLevelBeginnerDescription;
 
   /// No description provided for @experienceLevelAdvancedDescription.
   ///
   /// In en, this message translates to:
-  /// **'No RIR and no cardio intensity. Muscles are named by region, e.g. “Shoulders” instead of front, lateral and rear deltoid.'**
+  /// **'For regular gym-goers: detailed anatomical muscle breakdowns across the catalog and workouts (e.g. front, lateral, and rear deltoid).'**
   String get experienceLevelAdvancedDescription;
 
   /// No description provided for @experienceLevelProDescription.
   ///
   /// In en, this message translates to:
-  /// **'RIR and cardio intensity are shown, and muscles keep their precise anatomical names.'**
+  /// **'Recommended only for experienced lifters with reliable gauge of failure: adds intensity logging via RIR (Reps in Reserve) and cardio intensity zones.'**
   String get experienceLevelProDescription;
 
   /// No description provided for @diaryWeightLabel.
@@ -12199,6 +12211,18 @@ abstract class AppLocalizations {
   /// **'Try again'**
   String get diaryWeightRetry;
 
+  /// No description provided for @settingsTrainingExperienceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Training experience'**
+  String get settingsTrainingExperienceTitle;
+
+  /// No description provided for @settingsTrainingExperienceSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Detail level for muscle terminology and intensity columns'**
+  String get settingsTrainingExperienceSubtitle;
+
   /// No description provided for @settingsTrainingProgressionTitle.
   ///
   /// In en, this message translates to:
@@ -12210,6 +12234,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Weight suggestions based on your history'**
   String get settingsTrainingProgressionSubtitle;
+
+  /// No description provided for @progressionPromptTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable Progressive Engine?'**
+  String get progressionPromptTitle;
+
+  /// No description provided for @progressionPromptDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Train Libre found previous performances for this exercise. The Progressive Engine can automatically suggest the ideal weight for your next set and adapt your training progressively.'**
+  String get progressionPromptDescription;
+
+  /// No description provided for @progressionPromptFeatureSmartWeights.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatic weight suggestions based on your recent sets'**
+  String get progressionPromptFeatureSmartWeights;
+
+  /// No description provided for @progressionPromptFeatureStayInControl.
+  ///
+  /// In en, this message translates to:
+  /// **'You always stay in full control and can overwrite any value anytime'**
+  String get progressionPromptFeatureStayInControl;
+
+  /// No description provided for @progressionPromptEnableAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable suggestions'**
+  String get progressionPromptEnableAction;
+
+  /// No description provided for @progressionPromptDismissAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Not now'**
+  String get progressionPromptDismissAction;
 
   /// No description provided for @trainingProgressionOff.
   ///

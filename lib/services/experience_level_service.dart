@@ -37,7 +37,9 @@ class ExperienceLevelService extends ChangeNotifier {
   /// Whether to name a muscle by its region ("shoulders") rather than by the
   /// individual head ("front deltoid"). The body map stays fine-grained either
   /// way — this is about words, not about the drawing.
-  bool get usesCoarseMuscleNames => _level != ExperienceLevel.pro;
+  /// Beginner uses coarse regions ("shoulders"), while Advanced and Pro use
+  /// precise anatomical heads ("front deltoid").
+  bool get usesCoarseMuscleNames => _level == ExperienceLevel.beginner;
 
   Future<void> reload() async {
     await _loadLevel();

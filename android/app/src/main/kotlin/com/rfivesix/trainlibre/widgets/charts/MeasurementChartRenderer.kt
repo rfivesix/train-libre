@@ -29,6 +29,7 @@ object MeasurementChartRenderer {
         palette: StatsPalette,
         widthPx: Int,
         heightPx: Int,
+        isWeight: Boolean = false,
     ): Bitmap {
         val bitmap = createChartBitmap(widthPx, heightPx)
         val canvas = Canvas(bitmap)
@@ -36,13 +37,51 @@ object MeasurementChartRenderer {
 
         val width = bitmap.width.toFloat()
         val height = bitmap.height.toFloat()
-        val positions = positions(points, width, height, c.dp(INSET_DP))
+
+        val shouldSmooth = isWeight && points.size > 1
+        val smoothedPoints = if (shouldSmooth) calculateEwma(points) else emptyList()
+
+        val allValues = (points + smoothedPoints).map { it.value }
+        val minValue = allValues.minOrNull() ?: 0.0
+        val maxValue = allValues.maxOrNull() ?: 0.0
+        val span = maxValue - minValue
+
+        val rawPositions = positions(points, width, height, c.dp(INSET_DP), minValue, span)
+        val smoothedPositions = if (shouldSmooth) {
+            positions(smoothedPoints, width, height, c.dp(INSET_DP), minValue, span)
+        } else {
+            emptyList()
+        }
 
         when {
-            positions.size == 1 -> drawSinglePoint(c, canvas, palette, positions[0], width, height)
-            positions.size > 1 -> drawSeries(c, canvas, palette, positions, height)
+            rawPositions.size == 1 -> drawSinglePoint(c, canvas, palette, rawPositions[0], width, height)
+            rawPositions.size > 1 -> {
+                if (shouldSmooth) {
+                    drawDualSeries(c, canvas, palette, rawPositions, smoothedPositions, height)
+                } else {
+                    drawSeries(c, canvas, palette, rawPositions, height)
+                }
+            }
         }
         return bitmap
+    }
+
+    /** Calculates EWMA smoothing matching alpha = 0.35. */
+    private fun calculateEwma(
+        source: List<HomeWidgetMeasurementPoint>,
+        alpha: Double = 0.35,
+    ): List<HomeWidgetMeasurementPoint> {
+        if (source.size <= 1) return source
+        val sorted = source.sortedBy { it.epochMs }
+        val smoothed = ArrayList<HomeWidgetMeasurementPoint>(sorted.size)
+        var previous = sorted.first().value
+
+        for (point in sorted) {
+            val next = (alpha * point.value) + ((1.0 - alpha) * previous)
+            smoothed.add(HomeWidgetMeasurementPoint(point.epochMs, next))
+            previous = next
+        }
+        return smoothed
     }
 
     /**
@@ -65,6 +104,34 @@ object MeasurementChartRenderer {
         }
         canvas.drawLine(0f, height / 2f, width, height / 2f, baseline)
         canvas.drawCircle(position.x, position.y, c.dp(4.5f), c.fillPaint(palette.accent))
+    }
+
+    private fun drawDualSeries(
+        c: ChartCanvas,
+        canvas: Canvas,
+        palette: StatsPalette,
+        rawPositions: List<PointF2>,
+        smoothedPositions: List<PointF2>,
+        height: Float,
+    ) {
+        // 1. Raw measurements background ghost line (subtle muted grey, no dots)
+        val rawLine = Path().apply {
+            moveTo(rawPositions.first().x, rawPositions.first().y)
+            for (point in rawPositions.drop(1)) lineTo(point.x, point.y)
+        }
+        canvas.drawPath(
+            rawLine,
+            Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                style = Paint.Style.STROKE
+                strokeWidth = c.dp(2.5f)
+                strokeCap = Paint.Cap.ROUND
+                strokeJoin = Paint.Join.ROUND
+                color = palette.onSurface.copy(alpha = 0.28f).toArgb()
+            },
+        )
+
+        // 2. Smoothed trend line with gradient fill below
+        drawSeries(c, canvas, palette, smoothedPositions, height)
     }
 
     private fun drawSeries(
@@ -121,19 +188,16 @@ object MeasurementChartRenderer {
         width: Float,
         height: Float,
         inset: Float,
+        minValue: Double,
+        span: Double,
     ): List<PointF2> {
         if (points.isEmpty()) return emptyList()
         if (points.size == 1) return listOf(PointF2(width / 2f, height / 2f))
 
         val plotHeight = (height - inset * 2f).coerceAtLeast(1f)
-        val values = points.map { it.value }
-        val minValue = values.min()
-        val span = values.max() - minValue
 
         return points.mapIndexed { index, point ->
             val x = width * index / (points.size - 1).toFloat()
-            // A perfectly flat series has no span to scale against; centring it
-            // beats dividing by zero or pinning it to the floor.
             val ratio = if (span > 0) (point.value - minValue) / span else 0.5
             PointF2(x, inset + plotHeight * (1f - ratio.toFloat()))
         }

@@ -2626,6 +2626,14 @@ class AppLocalizationsFr extends AppLocalizations {
   String get onboardingGoalWater => 'Eau';
 
   @override
+  String get onboardingExperienceLevelTitle =>
+      'Quelle est votre expérience en musculation ?';
+
+  @override
+  String get onboardingExperienceLevelSubtitle =>
+      'Nous adaptons les termes musculaires et les options de séance à vos connaissances.';
+
+  @override
   String get onboardingNext => 'Suivant';
 
   @override
@@ -7035,15 +7043,15 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get experienceLevelBeginnerDescription =>
-      'Pas de RIR ni d’intensité cardio. Les muscles sont nommés par région, p. ex. « Épaules » au lieu des deltoïdes antérieur, latéral et postérieur.';
+      'Idéal pour débuter : va à l\'essentiel avec charges et répétitions. Noms de muscles simples du quotidien (ex. « Épaules »).';
 
   @override
   String get experienceLevelAdvancedDescription =>
-      'Pas de RIR ni d’intensité cardio. Les muscles sont nommés par région, p. ex. « Épaules » au lieu des deltoïdes antérieur, latéral et postérieur.';
+      'Pour les habitués de la salle : découpage anatomique détaillé des muscles dans le catalogue et les séances (ex. deltoïde antérieur, latéral et postérieur).';
 
   @override
   String get experienceLevelProDescription =>
-      'Le RIR et l’intensité cardio sont affichés, et les muscles conservent leurs noms anatomiques précis.';
+      'Recommandé uniquement aux pratiquants expérimentés qui évaluent précisément l\'échec : ajoute le RIR (répétitions en réserve) et les zones d\'intensité cardio.';
 
   @override
   String get diaryWeightLabel => 'Poids';
@@ -7090,12 +7098,40 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diaryWeightRetry => 'Réessayer';
 
   @override
+  String get settingsTrainingExperienceTitle => 'Expérience d\'entraînement';
+
+  @override
+  String get settingsTrainingExperienceSubtitle =>
+      'Niveau de détail des termes musculaires et colonnes d\'intensité';
+
+  @override
   String get settingsTrainingProgressionTitle =>
       'Progression de l\'entraînement';
 
   @override
   String get settingsTrainingProgressionSubtitle =>
       'Suggestions de poids basées sur votre historique';
+
+  @override
+  String get progressionPromptTitle => 'Activer le moteur progressif ?';
+
+  @override
+  String get progressionPromptDescription =>
+      'Train Libre a trouvé des performances passées pour cet exercice. Le moteur progressif peut vous suggérer automatiquement la charge idéale pour votre prochaine série.';
+
+  @override
+  String get progressionPromptFeatureSmartWeights =>
+      'Suggestions automatiques de charge basées sur vos séries récentes';
+
+  @override
+  String get progressionPromptFeatureStayInControl =>
+      'Vous gardez le contrôle total et pouvez modifier chaque valeur à tout moment';
+
+  @override
+  String get progressionPromptEnableAction => 'Activer les suggestions';
+
+  @override
+  String get progressionPromptDismissAction => 'Pas maintenant';
 
   @override
   String get trainingProgressionOff => 'Désactivé';

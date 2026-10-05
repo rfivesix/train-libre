@@ -162,6 +162,8 @@ class MeasurementsWidget : SnapshotWidget() {
                         palette = palette,
                         widthPx = chartWidth.toPx(),
                         heightPx = chartHeight.toPx(),
+                        isWeight = metric?.id?.equals("weight", ignoreCase = true) == true ||
+                            metric?.id?.equals("body_weight", ignoreCase = true) == true,
                     ),
                 ),
                 contentDescription = null,

@@ -39,6 +39,7 @@ import '../../../services/app_tour_service.dart';
 import '../../../services/telemetry/telemetry_service.dart';
 import '../../../widgets/common/app_restart.dart';
 import '../../../services/training_autonomy_service.dart';
+import '../../../services/experience_level_service.dart';
 import '../../workout/domain/models/prescription_enums.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -286,6 +287,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final autonomyLabel = currentAutonomy == AutonomyLevel.suggest
         ? l10n.trainingProgressionSuggest
         : l10n.trainingProgressionOff;
+
+    final experienceLevelService =
+        Provider.of<ExperienceLevelService?>(context) ??
+            ExperienceLevelService();
+    final currentExperienceLevel = experienceLevelService.level;
+    final experienceLevelLabel = switch (currentExperienceLevel) {
+      ExperienceLevel.beginner => l10n.experienceLevelBeginner,
+      ExperienceLevel.advanced => l10n.experienceLevelAdvanced,
+      ExperienceLevel.pro => l10n.experienceLevelPro,
+    };
     final topPadding = MediaQuery.of(context).padding.top + kToolbarHeight;
 
     return Scaffold(
@@ -444,6 +455,53 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           ? 'Metric (kg, cm, ml)'
                           : 'Imperial (lbs, in, fl oz)',
                     ),
+                    trailing: const Icon(LucideIcons.chevron_right),
+                  ),
+                ),
+                const Divider(height: 1),
+                PlatformAdaptivePopupMenu<ExperienceLevel>(
+                  key: const Key('settings_training_experience_entry'),
+                  selectedValue: currentExperienceLevel,
+                  onSelected: (value) async {
+                    if (value == currentExperienceLevel) return;
+                    await experienceLevelService.setLevel(value);
+                    unawaited(TelemetryService.instance.trackSettingToggled(
+                      settingKey: 'training_experience_level',
+                      value: value.name,
+                    ));
+                  },
+                  items: [
+                    PlatformAdaptivePopupMenuItem(
+                      value: ExperienceLevel.beginner,
+                      label: l10n.experienceLevelBeginner,
+                      icon: LucideIcons.sprout,
+                    ),
+                    PlatformAdaptivePopupMenuItem(
+                      value: ExperienceLevel.advanced,
+                      label: l10n.experienceLevelAdvanced,
+                      icon: LucideIcons.dumbbell,
+                    ),
+                    PlatformAdaptivePopupMenuItem(
+                      value: ExperienceLevel.pro,
+                      label: l10n.experienceLevelPro,
+                      icon: LucideIcons.flame,
+                    ),
+                  ],
+                  icon: ListTile(
+                    contentPadding: DesignConstants.screenPadding,
+                    leading: Icon(
+                      LucideIcons.award,
+                      size: 36,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                    title: Text(
+                      l10n.settingsTrainingExperienceTitle,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    subtitle: Text(
+                      '${l10n.settingsTrainingExperienceSubtitle}\n$experienceLevelLabel',
+                    ),
+                    isThreeLine: true,
                     trailing: const Icon(LucideIcons.chevron_right),
                   ),
                 ),
