@@ -146,3 +146,4 @@ appId: com.rfivesix.trainlibre
 - tapOn:
     point: 91%,59%
 - takeScreenshot: 07_runnning_workout
+- takeScreenshot: 08_weekly_goal_review
