@@ -25,17 +25,20 @@ class EvaluateFoodSourceUseCase {
         final fullName1 = brand.isEmpty ? name : '$brand $name';
         final fullName2 = brand.isEmpty ? name : '$name $brand';
 
-        return searchLowers.map((term) {
+        // BOLT OPTIMIZATION: Avoid chained .map().reduce() inside the O(N log N)
+        // sort comparator. Replaced with a single-pass loop that short-circuits.
+        var minScore = 2;
+        for (final term in searchLowers) {
           if (name == term || fullName1 == term || fullName2 == term) {
-            return 0;
+            return 0; // Short-circuit on exact match (best possible score)
           }
           if (name.startsWith(term) ||
               fullName1.startsWith(term) ||
               fullName2.startsWith(term)) {
-            return 1;
+            minScore = 1;
           }
-          return 2;
-        }).reduce((a, b) => a < b ? a : b);
+        }
+        return minScore;
       }
 
       final sa = score(a);
