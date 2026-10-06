@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import '../../util/design_constants.dart';
 
 import '../../generated/app_localizations.dart';
 import '../../util/cancellation_token.dart';
+import 'operation_progress_widget.dart';
 
 class LongRunningOperationOverlay extends StatefulWidget {
   final String title;
@@ -101,8 +101,11 @@ class _LongRunningOperationOverlayState
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     final l10n = AppLocalizations.of(context)!;
+
+    final displayTitle = widget.title.isNotEmpty ? widget.title : _status;
+    final displayDetail =
+        widget.title.isNotEmpty && _status != widget.title ? _status : null;
 
     return PopScope(
       canPop: false,
@@ -113,53 +116,25 @@ class _LongRunningOperationOverlayState
         backgroundColor: theme.scaffoldBackgroundColor,
         body: SafeArea(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 40.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Icon(
-                  widget.icon,
-                  size: 64,
-                  color: theme.colorScheme.primary,
-                ),
-                const SizedBox(height: 40),
-                Text(
-                  _status,
-                  textAlign: TextAlign.center,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: DesignConstants.spacingL),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
-                  child: LinearProgressIndicator(
-                    value:
-                        _progress >= 0 && _progress <= 1.0 ? _progress : null,
-                    minHeight: 8,
-                    backgroundColor: isDark
-                        ? Colors.white10
-                        : Theme.of(context).colorScheme.onSurfaceVariant,
-                    color: theme.colorScheme.primary,
-                  ),
-                ),
-                const SizedBox(height: DesignConstants.spacingXXL),
-                Center(
-                  child: TextButton(
-                    onPressed: _isCanceling ? null : _cancel,
-                    child: Text(
-                      _isCanceling ? "${l10n.cancel}..." : l10n.cancel,
-                      style: TextStyle(
-                        color: theme.colorScheme.error,
-                        fontWeight: FontWeight.bold,
-                      ),
+            padding: const EdgeInsets.symmetric(horizontal: 24.0),
+            child: Center(
+              child: OperationProgressWidget(
+                icon: widget.icon,
+                title: displayTitle,
+                detail: displayDetail,
+                progress:
+                    _progress >= 0 && _progress <= 1.0 ? _progress : null,
+                action: TextButton(
+                  onPressed: _isCanceling ? null : _cancel,
+                  child: Text(
+                    _isCanceling ? "${l10n.cancel}..." : l10n.cancel,
+                    style: TextStyle(
+                      color: theme.colorScheme.error,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),
-              ],
+              ),
             ),
           ),
         ),

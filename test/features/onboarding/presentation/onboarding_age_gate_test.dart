@@ -1,14 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:train_libre/data/database_helper.dart';
-import 'package:train_libre/features/nutrition_recommendation/data/recommendation_repository.dart';
-import 'package:train_libre/features/nutrition_recommendation/data/recommendation_service.dart';
 import 'package:train_libre/features/onboarding/presentation/onboarding_screen.dart';
 import 'package:train_libre/features/onboarding/presentation/widgets/profile_slide.dart';
-import 'package:train_libre/features/profile/data/goal_repository_impl.dart';
 import 'package:train_libre/generated/app_localizations.dart';
 import 'package:train_libre/services/unit_service.dart';
 

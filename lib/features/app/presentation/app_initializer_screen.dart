@@ -25,7 +25,9 @@ import 'package:package_info_plus/package_info_plus.dart';
 import '../../../services/telemetry/telemetry_service.dart';
 import '../../onboarding/data/telemetry_consent_prompt.dart';
 import '../../diary/presentation/widgets/ai_neural_cloud_orb_widget.dart';
+import 'package:intl/intl.dart';
 import '../../diary/presentation/ai_meal_review_reveal_route.dart';
+import '../../../widgets/common/operation_progress_widget.dart';
 
 /// A splash screen responsible for app-wide initialization.
 ///
@@ -56,12 +58,14 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
   bool _skipRemoteCatalogRequested = false;
   bool _isContractingForExit = false;
   bool _isCloudHiddenForVaporExit = false;
+  bool _isDownloading = false;
   _PendingStartupProgress? _pendingProgress;
   bool _progressFrameScheduled = false;
 
   @override
   void initState() {
     super.initState();
+    _isDownloading = widget.isModal;
     // Start initialization right after the first frame is rendered.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _initialize();
@@ -99,8 +103,11 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
         _queueStartupProgress(
           task: task,
           detail: detail,
-          progress: _screenProgressFor(task, progress),
+          progress: widget.isModal
+              ? progress.clamp(0.0, 1.0)
+              : _screenProgressFor(task, progress),
           canSkipRemoteCatalog: false,
+          isDownloading: false,
         );
       },
       onRemoteProgress: (task, detail, progress, {required canSkip}) {
@@ -111,8 +118,9 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
           detail: _skipRemoteCatalogRequested
               ? l10n.appInitSkippingRemoteDownload
               : detail,
-          progress: _screenProgressFor(task, progress),
+          progress: progress.clamp(0.0, 1.0),
           canSkipRemoteCatalog: canSkip && !_skipRemoteCatalogRequested,
+          isDownloading: true,
         );
       },
       isRemoteSkipRequested: () => _skipRemoteCatalogRequested,
@@ -125,14 +133,18 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
       setState(() {
         _currentTask = l10n.appInitFinalizing;
         _currentDetail = l10n.appInitCheckingBackups;
-        _progress = 0.97;
+        _progress = widget.isModal ? 1.0 : 0.97;
         _canSkipRemoteCatalog = false;
+        _isDownloading = false;
       });
     }
 
     if (widget.isModal) {
       if (mounted) {
-        Navigator.of(context).pop(true);
+        await Future<void>.delayed(const Duration(milliseconds: 300));
+        if (mounted) {
+          Navigator.of(context).pop(true);
+        }
       }
       return;
     }
@@ -208,6 +220,7 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
     required String detail,
     required double progress,
     required bool canSkipRemoteCatalog,
+    bool isDownloading = false,
   }) {
     if (!mounted) return;
     _pendingProgress = _PendingStartupProgress(
@@ -215,6 +228,7 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
       detail: detail,
       progress: progress,
       canSkipRemoteCatalog: canSkipRemoteCatalog,
+      isDownloading: isDownloading,
     );
     if (_progressFrameScheduled) return;
     _progressFrameScheduled = true;
@@ -233,6 +247,7 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
       detail: update.detail,
       progress: update.progress,
       canSkipRemoteCatalog: update.canSkipRemoteCatalog,
+      isDownloading: update.isDownloading,
     );
   }
 
@@ -241,12 +256,20 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
     required String detail,
     required double progress,
     bool? canSkipRemoteCatalog,
+    bool? isDownloading,
   }) {
     if (!mounted) return;
     setState(() {
       _currentTask = task;
       _currentDetail = detail;
-      _progress = progress.clamp(_progress, 1.0);
+      if (isDownloading != null) {
+        _isDownloading = isDownloading;
+      }
+      if (widget.isModal || _isDownloading) {
+        _progress = progress.clamp(0.0, 1.0);
+      } else {
+        _progress = progress.clamp(_progress, 1.0);
+      }
       if (canSkipRemoteCatalog != null) {
         _canSkipRemoteCatalog = canSkipRemoteCatalog;
       }
@@ -447,21 +470,32 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
     final updateDbReg = RegExp(r'^Update Produktdatenbank \((.+)\)$');
     if (updateDbReg.hasMatch(raw)) {
       final country = updateDbReg.firstMatch(raw)!.group(1) ?? '';
-      return l10n.initUpdateTask(
-          l10n.initCheckingProductDatabase(country).replaceAll('...', ''));
+      final dbName = country.isNotEmpty
+          ? '${l10n.settingsFoodDbSectionTitle} ($country)'
+          : l10n.settingsFoodDbSectionTitle;
+      return l10n.initUpdateTask(dbName);
     }
 
     final dbReg = RegExp(r'^Produktdatenbank \((.+)\)$');
     if (dbReg.hasMatch(raw)) {
       final country = dbReg.firstMatch(raw)!.group(1) ?? '';
-      return l10n.initCheckingProductDatabase(country).replaceAll('...', '');
+      return country.isNotEmpty
+          ? '${l10n.settingsFoodDbSectionTitle} ($country)'
+          : l10n.settingsFoodDbSectionTitle;
     }
 
     final uebersetzungenReg = RegExp(r'^(\d+)\s*/\s*(\d+)\s+Übersetzungen$');
     if (uebersetzungenReg.hasMatch(raw)) {
       final match = uebersetzungenReg.firstMatch(raw)!;
-      final processed = match.group(1) ?? '';
-      final total = match.group(2) ?? '';
+      final rawProcessed = match.group(1) ?? '';
+      final rawTotal = match.group(2) ?? '';
+      final processedNum = int.tryParse(rawProcessed);
+      final totalNum = int.tryParse(rawTotal);
+      final locale = Localizations.localeOf(context).toString();
+      final formatter = NumberFormat.decimalPattern(locale);
+      final processed =
+          processedNum != null ? formatter.format(processedNum) : rawProcessed;
+      final total = totalNum != null ? formatter.format(totalNum) : rawTotal;
       return l10n.initEntriesProgress(processed, total);
     }
 
@@ -472,8 +506,15 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
     final eintraegeReg = RegExp(r'^(\d+)\s*/\s*(\d+)\s+Einträge$');
     if (eintraegeReg.hasMatch(raw)) {
       final match = eintraegeReg.firstMatch(raw)!;
-      final processed = match.group(1) ?? '';
-      final total = match.group(2) ?? '';
+      final rawProcessed = match.group(1) ?? '';
+      final rawTotal = match.group(2) ?? '';
+      final processedNum = int.tryParse(rawProcessed);
+      final totalNum = int.tryParse(rawTotal);
+      final locale = Localizations.localeOf(context).toString();
+      final formatter = NumberFormat.decimalPattern(locale);
+      final processed =
+          processedNum != null ? formatter.format(processedNum) : rawProcessed;
+      final total = totalNum != null ? formatter.format(totalNum) : rawTotal;
       return l10n.initEntriesProgress(processed, total);
     }
 
@@ -494,56 +535,75 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
         ? l10n.appInitInitializing
         : _getLocalizedProgress(context, _currentDetail);
 
+    final isDownloadMode = widget.isModal || _isDownloading;
+
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 40.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Semantics(
-              label: l10n.appInitStarting,
-              value: '$percentage%',
-              child: _buildStartupCloud(theme),
-            ),
-            const SizedBox(height: 28),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24.0),
+          child: Center(
+            child: isDownloadMode
+                ? Semantics(
+                    label: displayTask.isNotEmpty
+                        ? displayTask
+                        : l10n.offDownloadCTA,
+                    value: '$percentage%',
+                    child: OperationProgressWidget(
+                      icon: LucideIcons.download,
+                      title: displayTask,
+                      detail: displayDetail,
+                      progress: (_progress >= 0.0 && _progress <= 1.0)
+                          ? _progress
+                          : null,
+                      action: _canSkipRemoteCatalog
+                          ? TextButton.icon(
+                              onPressed: () {
+                                setState(() {
+                                  _skipRemoteCatalogRequested = true;
+                                  _canSkipRemoteCatalog = false;
+                                  _currentDetail =
+                                      l10n.appInitSkippingRemoteDownload;
+                                });
+                              },
+                              icon: const Icon(LucideIcons.skip_forward),
+                              label: Text(l10n.appInitSkipDownload),
+                            )
+                          : null,
+                    ),
+                  )
+                : Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Semantics(
+                        label: l10n.appInitStarting,
+                        value: '$percentage%',
+                        child: _buildStartupCloud(theme),
+                      ),
+                      const SizedBox(height: 28),
 
-            // Main status text.
-            Text(
-              displayTask,
-              textAlign: TextAlign.center,
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: DesignConstants.spacingS),
+                      // Main status text.
+                      Text(
+                        displayTask,
+                        textAlign: TextAlign.center,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: DesignConstants.spacingS),
 
-            // Secondary detail text.
-            Text(
-              displayDetail,
-              textAlign: TextAlign.center,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-            if (_canSkipRemoteCatalog) ...[
-              const SizedBox(height: 20),
-              Center(
-                child: TextButton.icon(
-                  onPressed: () {
-                    setState(() {
-                      _skipRemoteCatalogRequested = true;
-                      _canSkipRemoteCatalog = false;
-                      _currentDetail = l10n.appInitSkippingRemoteDownload;
-                    });
-                  },
-                  icon: const Icon(LucideIcons.skip_forward),
-                  label: Text(l10n.appInitSkipDownload),
-                ),
-              ),
-            ],
-          ],
+                      // Secondary detail text.
+                      Text(
+                        displayDetail,
+                        textAlign: TextAlign.center,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+          ),
         ),
       ),
     );
@@ -585,10 +645,12 @@ class _PendingStartupProgress {
     required this.detail,
     required this.progress,
     required this.canSkipRemoteCatalog,
+    this.isDownloading = false,
   });
 
   final String task;
   final String detail;
   final double progress;
   final bool canSkipRemoteCatalog;
+  final bool isDownloading;
 }
