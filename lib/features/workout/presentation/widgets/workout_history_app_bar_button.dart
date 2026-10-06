@@ -28,6 +28,7 @@ class WorkoutHistoryAppBarButton extends StatelessWidget {
       ),
       child: Center(
         child: Tooltip(
+          excludeFromSemantics: true,
           message: tooltip,
           child: Semantics(
             label: tooltip,
