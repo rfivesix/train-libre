@@ -46,7 +46,7 @@ void main() {
 
     expect(find.text('Beginner'), findsOneWidget);
     // The description tells the tester what the level actually changes.
-    expect(find.textContaining('No RIR'), findsOneWidget);
+    expect(find.textContaining('focuses on the essentials'), findsOneWidget);
   });
 
   testWidgets('choosing a level writes it through', (tester) async {

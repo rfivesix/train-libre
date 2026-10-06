@@ -47,6 +47,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Strict Weight Validation & Historical Measurement Fallback (`RecommendationInputAdapter`, `DatabaseHelper`, `AdaptiveNutritionRecommendationService`):** Eliminated artificial 75 kg fallbacks in recommendation, onboarding, and goal tracking, strictly requiring verified body weight observations or immutable baseline snapshots.
 - **1RM Guidance Copy:** Corrected the workout summary, workout detail, and exercise detail info sheets to identify the Brzycki formula and its 1–12 repetition input range.
 - **Local Notification Banners & iOS Foreground Delegate Setup (`AppDelegate.swift`, `LocalNotificationService`):** Registered iOS foreground notification delegates to properly show alert banners and play sounds while the app is active.
+- **Onboarding Flow & Experience Level Test Suite Reconciliation (`adaptive_recommendation_settings_flow_test.dart`, `developer_settings_screen_test.dart`):** Updated widget test navigation sequences and expectation assertions to account for the new Experience Level slide and refined progressive experience level descriptions.
 
 ## [1.4.1] — 2026-09-14
 
