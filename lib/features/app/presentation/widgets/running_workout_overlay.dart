@@ -208,6 +208,7 @@ class _RunningWorkoutRow extends StatelessWidget {
           button: true,
           label: l10n.discard_button,
           child: Tooltip(
+            excludeFromSemantics: true,
             message: l10n.discard_button,
             child: GestureDetector(
               behavior: HitTestBehavior.opaque,

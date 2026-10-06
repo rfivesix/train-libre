@@ -1966,6 +1966,7 @@ class _MainScreenState extends State<MainScreen>
         right: DesignConstants.screenPaddingHorizontal,
       ),
       child: Tooltip(
+        excludeFromSemantics: true,
         message: AppLocalizations.of(context)!.profile,
         child: Semantics(
           label: AppLocalizations.of(context)!.profile,
