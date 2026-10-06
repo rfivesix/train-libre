@@ -157,7 +157,7 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
         WhatsNewEntry(
           icon: LucideIcons.camera,
           title: 'Log a meal from a photo',
-          body: 'Point the camera at your plate and the AI turns it into individual foods with amounts, calories and macros - all correctable before you save. Packaged products are recognised by barcode in the very same view, iPhones with LiDAR measure the portion instead of guessing it, and the microphone button lets you add what a photo cannot show.',
+          body: 'Point the camera at your plate and the AI turns it into individual foods with amounts, calories and macros - all correctable before you save. Packaged products are recognised by barcode in the very same view, iPhones with LiDAR capture depth scale to assist portion estimation, and the microphone button lets you add what a photo cannot show.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.utensils,
@@ -377,7 +377,7 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
         WhatsNewEntry(
           icon: LucideIcons.camera,
           title: 'Mahlzeiten per Foto erfassen',
-          body: 'Richte die Kamera auf deinen Teller, und die KI macht daraus einzelne Lebensmittel mit Menge, Kalorien und Makros - vor dem Speichern alles korrigierbar. Verpackte Produkte erkennt dieselbe Ansicht am Barcode, iPhones mit LiDAR messen die Portion statt zu schätzen, und per Mikrofontaste ergänzt du, was das Foto nicht zeigt.',
+          body: 'Richte die Kamera auf deinen Teller, und die KI macht daraus einzelne Lebensmittel mit Menge, Kalorien und Makros - vor dem Speichern alles korrigierbar. Verpackte Produkte erkennt dieselbe Ansicht am Barcode, iPhones mit LiDAR erfassen Tiefendaten, um die Portionsschätzung zu unterstützen, und per Mikrofontaste ergänzt du, was das Foto nicht zeigt.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.utensils,
@@ -597,7 +597,7 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
         WhatsNewEntry(
           icon: LucideIcons.camera,
           title: 'Enregistrer un repas à partir d\'une photo',
-          body: 'vise ton assiette et l\'IA en fait des aliments distincts, avec quantités, calories et macros - tout reste corrigeable avant l\'enregistrement. Les produits emballés sont reconnus par leur code-barres dans la même vue, les iPhone équipés du LiDAR mesurent la portion au lieu de la deviner, et le bouton micro permet d\'ajouter ce qu\'une photo ne montre pas.',
+          body: 'vise ton assiette et l\'IA en fait des aliments distincts, avec quantités, calories et macros - tout reste corrigeable avant l\'enregistrement. Les produits emballés sont reconnus par leur code-barres dans la même vue, les iPhone équipés du LiDAR capturent les données de profondeur pour faciliter l\'estimation de la portion, et le bouton micro permet d\'ajouter ce qu\'une photo ne montre pas.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.utensils,
@@ -817,7 +817,7 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
         WhatsNewEntry(
           icon: LucideIcons.camera,
           title: 'Registra un pasto da una foto',
-          body: 'inquadra il piatto e l\'IA lo trasforma in singoli alimenti con quantità, calorie e macro, tutto correggibile prima di salvare. I prodotti confezionati vengono riconosciuti dal codice a barre nella stessa schermata, gli iPhone con LiDAR misurano la porzione invece di stimarla e il pulsante del microfono ti fa aggiungere ciò che una foto non mostra.',
+          body: 'inquadra il piatto e l\'IA lo trasforma in singoli alimenti con quantità, calorie e macro, tutto correggibile prima di salvare. I prodotti confezionati vengono riconosciuti dal codice a barre nella stessa schermata, gli iPhone con LiDAR acquisiscono dati di profondità per facilitare la stima della porzione e il pulsante del microfono ti fa aggiungere ciò che una foto non mostra.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.utensils,
@@ -1039,7 +1039,7 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
         WhatsNewEntry(
           icon: LucideIcons.camera,
           title: '写真から食事を記録',
-          body: 'カメラをお皿に向けるだけで、AIが個々の食品として量・カロリー・PFCに分解します。保存前にすべて修正でき、市販の包装食品は同じ画面のままバーコードで認識、LiDAR搭載のiPhoneでは分量を推測せずに計測し、マイクボタンで写真に写らない情報を補足できます。',
+          body: 'カメラをお皿に向けるだけで、AIが個々の食品として量・カロリー・PFCに分解します。保存前にすべて修正でき、市販の包装食品は同じ画面のままバーコードで認識、LiDAR搭載のiPhoneでは深度データを取得して分量の推定をサポートし、マイクボタンで写真に写らない情報を補足できます。',
         ),
         WhatsNewEntry(
           icon: LucideIcons.utensils,

@@ -45,7 +45,7 @@ KEY FEATURES:
 
 5. BYOK AI MEAL CAPTURE (Optional)
 • Bring Your Own Key (BYOK): optional AI meal recognition that runs on your own API key. Disabled by default.
-• Photo, Barcode and Voice in One View: photograph your plate, let the same screen pick up the barcode of a packaged product, or simply describe the meal by voice. On iPhone models with LiDAR, portion size is measured instead of guessed.
+• Photo, Barcode and Voice in One View: photograph your plate, let the same screen pick up the barcode of a packaged product, or simply describe the meal by voice. On iPhone models with LiDAR, depth scale is captured to assist portion estimation.
 • State-Aware Matching: a local "Top-N Fuzzy Alternatives" system uses Open Food Facts to find plausible matches while keeping every result reviewable before saving.
 • 100% Transparent: every AI suggestion is fully reviewable and adjustable before saving.
 

@@ -60,7 +60,7 @@
 
 ## 1.2.0 (2026-08-30)
 
-{camera} Enregistrer un repas à partir d'une photo : vise ton assiette et l'IA en fait des aliments distincts, avec quantités, calories et macros - tout reste corrigeable avant l'enregistrement. Les produits emballés sont reconnus par leur code-barres dans la même vue, les iPhone équipés du LiDAR mesurent la portion au lieu de la deviner, et le bouton micro permet d'ajouter ce qu'une photo ne montre pas.
+{camera} Enregistrer un repas à partir d'une photo : vise ton assiette et l'IA en fait des aliments distincts, avec quantités, calories et macros - tout reste corrigeable avant l'enregistrement. Les produits emballés sont reconnus par leur code-barres dans la même vue, les iPhone équipés du LiDAR capturent les données de profondeur pour faciliter l'estimation de la portion, et le bouton micro permet d'ajouter ce qu'une photo ne montre pas.
 
 {utensils} Un journal plus lisible : un repas scanné reste une seule entrée avec sa photo et se déplie sur ses ingrédients. Les entrées sont triées par calories, les plus élevées d'abord.
 

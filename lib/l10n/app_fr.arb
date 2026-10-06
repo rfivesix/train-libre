@@ -1026,6 +1026,7 @@
   "onboardingDobLabel": "Date de naissance",
   "onboardingDobPlaceholder": "Sélectionnez votre date de naissance",
   "onboardingDobError": "Veuillez sélectionner votre date de naissance",
+  "onboardingDobUnderageError": "Vous devez avoir au moins 16 ans pour utiliser Train Libre.",
   "onboardingWeightTitle": "Poids actuel",
   "onboardingWeightLabel": "Poids",
   "onboardingWeightError": "Veuillez entrer un poids valide",

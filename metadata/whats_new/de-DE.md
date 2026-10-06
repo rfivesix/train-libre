@@ -60,7 +60,7 @@
 
 ## 1.2.0 (2026-08-30)
 
-{camera} Mahlzeiten per Foto erfassen: Richte die Kamera auf deinen Teller, und die KI macht daraus einzelne Lebensmittel mit Menge, Kalorien und Makros - vor dem Speichern alles korrigierbar. Verpackte Produkte erkennt dieselbe Ansicht am Barcode, iPhones mit LiDAR messen die Portion statt zu schätzen, und per Mikrofontaste ergänzt du, was das Foto nicht zeigt.
+{camera} Mahlzeiten per Foto erfassen: Richte die Kamera auf deinen Teller, und die KI macht daraus einzelne Lebensmittel mit Menge, Kalorien und Makros - vor dem Speichern alles korrigierbar. Verpackte Produkte erkennt dieselbe Ansicht am Barcode, iPhones mit LiDAR erfassen Tiefendaten, um die Portionsschätzung zu unterstützen, und per Mikrofontaste ergänzt du, was das Foto nicht zeigt.
 
 {utensils} Übersichtlicheres Tagebuch: Eine erfasste Mahlzeit bleibt ein Eintrag mit Foto und lässt sich zu ihren Zutaten aufklappen. Einträge sind nach Kalorien sortiert, die größten zuerst.
 

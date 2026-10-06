@@ -2508,6 +2508,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get onboardingDobError => '生年月日を選択してください';
 
   @override
+  String get onboardingDobUnderageError => 'Train Libreを利用するには16歳以上である必要があります。';
+
+  @override
   String get onboardingWeightTitle => '現在の体重';
 
   @override

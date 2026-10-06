@@ -1026,6 +1026,7 @@
   "onboardingDobLabel": "生年月日",
   "onboardingDobPlaceholder": "生年月日を選択",
   "onboardingDobError": "生年月日を選択してください",
+  "onboardingDobUnderageError": "Train Libreを利用するには16歳以上である必要があります。",
   "onboardingWeightTitle": "現在の体重",
   "onboardingWeightLabel": "重さ",
   "onboardingWeightError": "有効な体重を入力してください",
