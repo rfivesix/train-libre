@@ -354,24 +354,13 @@ class _WeeklyGoalReviewScreenState extends State<WeeklyGoalReviewScreen> {
     }
     if (_isApplying) return;
     final l10n = AppLocalizations.of(context)!;
-    final confirmed = await showDialog<bool>(
+    final confirmed = await showGlassConfirmation(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(l10n.reviewKeepAndApplyTitle),
-        content: Text(l10n.reviewKeepAndApplyBody),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: Text(l10n.cancel),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: Text(l10n.reviewActionKeepCurrent),
-          ),
-        ],
-      ),
+      title: l10n.reviewKeepAndApplyTitle,
+      content: l10n.reviewKeepAndApplyBody,
+      confirmLabel: l10n.reviewActionKeepCurrent,
     );
-    if (confirmed != true || !mounted) return;
+    if (!confirmed || !mounted) return;
     setState(() => _isApplying = true);
 
     try {
