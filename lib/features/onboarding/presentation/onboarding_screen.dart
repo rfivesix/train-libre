@@ -957,6 +957,18 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         if (_selectedDate == null) {
           _dobError = l10n.onboardingFieldCannotBeEmpty;
           hasProfileErrors = true;
+        } else {
+          final now = DateTime.now();
+          var age = now.year - _selectedDate!.year;
+          final hadBirthdayThisYear = now.month > _selectedDate!.month ||
+              (now.month == _selectedDate!.month && now.day >= _selectedDate!.day);
+          if (!hadBirthdayThisYear) {
+            age--;
+          }
+          if (age < 16) {
+            _dobError = l10n.onboardingDobUnderageError;
+            hasProfileErrors = true;
+          }
         }
         if (_selectedGender == null) {
           _genderError = l10n.onboardingFieldCannotBeEmpty;
@@ -1348,9 +1360,20 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       dobError: _dobError,
                       genderError: _genderError,
                       onSelectDate: (picked) {
+                        final now = DateTime.now();
+                        var age = now.year - picked.year;
+                        final hadBirthdayThisYear = now.month > picked.month ||
+                            (now.month == picked.month && now.day >= picked.day);
+                        if (!hadBirthdayThisYear) {
+                          age--;
+                        }
                         setState(() {
                           _selectedDate = picked;
-                          _dobError = null;
+                          if (age < 16) {
+                            _dobError = l10n.onboardingDobUnderageError;
+                          } else {
+                            _dobError = null;
+                          }
                         });
                         if (_currentPage >= _nutritionPageIndex) {
                           _refreshOnboardingRecommendationPreview();

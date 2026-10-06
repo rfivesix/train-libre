@@ -45,7 +45,7 @@ FONCTIONNALITÉS CLÉS :
 
 5. SAISIE DE REPAS PAR IA (optionnel — BYOK)
 • Apportez votre propre clé API (BYOK) : suivi optionnel des repas par IA, fonctionnant avec votre propre clé. Désactivé par défaut.
-• Photo, code-barres et voix dans un même écran : photographiez votre assiette, laissez l'écran lire un code-barres, ou décrivez le repas à la voix. Avec le LiDAR, la portion est mesurée, pas devinée.
+• Photo, code-barres et voix dans un même écran : photographiez votre assiette, laissez l'écran lire un code-barres, ou décrivez le repas à la voix. Avec le LiDAR, les données de profondeur sont capturées pour faciliter l'estimation de la portion.
 • Correspondance intelligente : la recherche locale avec Open Food Facts propose des résultats vérifiables avant l'enregistrement.
 • 100 % transparent : chaque suggestion de l'IA est entièrement vérifiable et modifiable avant enregistrement.
 

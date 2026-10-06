@@ -4652,6 +4652,12 @@ abstract class AppLocalizations {
   /// **'Please select your date of birth'**
   String get onboardingDobError;
 
+  /// No description provided for @onboardingDobUnderageError.
+  ///
+  /// In en, this message translates to:
+  /// **'You must be at least 16 years old to use Train Libre.'**
+  String get onboardingDobUnderageError;
+
   /// No description provided for @onboardingWeightTitle.
   ///
   /// In en, this message translates to:

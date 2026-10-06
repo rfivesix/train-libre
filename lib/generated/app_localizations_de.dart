@@ -2571,6 +2571,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get onboardingDobError => 'Bitte wähle dein Geburtsdatum';
 
   @override
+  String get onboardingDobUnderageError =>
+      'Du musst mindestens 16 Jahre alt sein, um Train Libre nutzen zu können.';
+
+  @override
   String get onboardingWeightTitle => 'Aktuelles Gewicht';
 
   @override

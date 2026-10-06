@@ -1025,6 +1025,7 @@
   "onboardingDobLabel": "Date of Birth",
   "onboardingDobPlaceholder": "Select your date of birth",
   "onboardingDobError": "Please select your date of birth",
+  "onboardingDobUnderageError": "You must be at least 16 years old to use Train Libre.",
   "onboardingWeightTitle": "Current Weight",
   "onboardingWeightLabel": "Weight",
   "onboardingWeightError": "Please enter a valid weight",
