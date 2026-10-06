@@ -36,7 +36,8 @@ class ColdStartEmptyState extends StatelessWidget {
         children: [
           const Spacer(flex: 1),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingL),
+            padding: const EdgeInsets.symmetric(
+                horizontal: DesignConstants.spacingL),
             child: AdaptiveGlass(
               settings: LiquidGlassSettings(
                 thickness: 0,
@@ -52,22 +53,24 @@ class ColdStartEmptyState extends StatelessWidget {
                 padding: const EdgeInsets.all(DesignConstants.spacingXL),
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: isDark 
-                      ? Colors.white.withValues(alpha: 0.05) 
+                  color: isDark
+                      ? Colors.white.withValues(alpha: 0.05)
                       : Colors.white.withValues(alpha: 0.8),
                   border: Border.all(
-                    color: isDark 
-                        ? Colors.white.withValues(alpha: 0.1) 
+                    color: isDark
+                        ? Colors.white.withValues(alpha: 0.1)
                         : Colors.black.withValues(alpha: 0.08),
                     width: 1,
                   ),
-                  boxShadow: isDark ? [] : [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.03),
-                      blurRadius: 10,
-                      spreadRadius: 2,
-                    ),
-                  ],
+                  boxShadow: isDark
+                      ? []
+                      : [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.03),
+                            blurRadius: 10,
+                            spreadRadius: 2,
+                          ),
+                        ],
                 ),
                 child: Icon(
                   icon,
@@ -79,7 +82,8 @@ class ColdStartEmptyState extends StatelessWidget {
           ),
           const SizedBox(height: DesignConstants.spacingL),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingL),
+            padding: const EdgeInsets.symmetric(
+                horizontal: DesignConstants.spacingL),
             child: Text(
               title,
               style: theme.textTheme.headlineSmall?.copyWith(
@@ -90,7 +94,8 @@ class ColdStartEmptyState extends StatelessWidget {
           ),
           const SizedBox(height: DesignConstants.spacingS),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingL),
+            padding: const EdgeInsets.symmetric(
+                horizontal: DesignConstants.spacingL),
             child: Text(
               subtitle,
               style: theme.textTheme.bodyLarge?.copyWith(
@@ -101,7 +106,8 @@ class ColdStartEmptyState extends StatelessWidget {
           ),
           const SizedBox(height: DesignConstants.spacingXXL),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: DesignConstants.spacingL),
+            padding: const EdgeInsets.symmetric(
+                horizontal: DesignConstants.spacingL),
             child: Text(
               callToAction,
               style: theme.textTheme.bodyLarge?.copyWith(

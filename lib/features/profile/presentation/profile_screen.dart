@@ -104,12 +104,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
       text: _userProfile?.height == null
           ? ''
           : unitService
-                .convertDisplayValue(
-                  _userProfile!.height!.toDouble(),
-                  UnitDimension.height,
-                )
-                .toStringAsFixed(1)
-                .replaceAll('.0', ''),
+              .convertDisplayValue(
+                _userProfile!.height!.toDouble(),
+                UnitDimension.height,
+              )
+              .toStringAsFixed(1)
+              .replaceAll('.0', ''),
     );
 
     await showGlassBottomMenu(
@@ -232,11 +232,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           final heightMetric = parsedHeight == null
                               ? null
                               : unitService
-                                    .convertToMetric(
-                                      parsedHeight,
-                                      UnitDimension.height,
-                                    )
-                                    .round();
+                                  .convertToMetric(
+                                    parsedHeight,
+                                    UnitDimension.height,
+                                  )
+                                  .round();
 
                           final profileService = context.read<ProfileService>();
                           await _repository.saveUserProfile(
@@ -337,14 +337,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                         .withValues(alpha: 0.1),
                                     backgroundImage:
                                         profileService.profileImagePath != null
-                                        ? FileImage(
-                                            File(
-                                              profileService.profileImagePath!,
-                                            ),
-                                          )
-                                        : null,
-                                    child:
-                                        profileService.profileImagePath == null
+                                            ? FileImage(
+                                                File(
+                                                  profileService
+                                                      .profileImagePath!,
+                                                ),
+                                              )
+                                            : null,
+                                    child: profileService.profileImagePath ==
+                                            null
                                         ? Icon(
                                             LucideIcons.user,
                                             size: 40,

@@ -85,8 +85,8 @@ void main() {
         isEditMode: true,
       ),
     );
-    final state =
-        tester.state<_TestWorkoutReorderListState>(find.byType(_TestWorkoutReorderList));
+    final state = tester.state<_TestWorkoutReorderListState>(
+        find.byType(_TestWorkoutReorderList));
 
     // Scroll to offset 600
     controller.jumpTo(600.0);
@@ -113,8 +113,8 @@ void main() {
         isEditMode: false,
       ),
     );
-    final state =
-        tester.state<_TestWorkoutReorderListState>(find.byType(_TestWorkoutReorderList));
+    final state = tester.state<_TestWorkoutReorderListState>(
+        find.byType(_TestWorkoutReorderList));
 
     final initialY = tester.getTopLeft(find.text('Exercise 3')).dy;
     state.startReorder('Exercise 3');
@@ -215,5 +215,3 @@ void main() {
     ReorderHapticFeedback.onDragEnd();
   });
 }
-
-

@@ -88,7 +88,8 @@ class MacroAnalyticsDataAdapter {
   }) async {
     final startDay = normalizeDay(range.start);
     final endDay = normalizeDay(range.end);
-    final endOfDay = DateTime(endDay.year, endDay.month, endDay.day, 23, 59, 59);
+    final endOfDay =
+        DateTime(endDay.year, endDay.month, endDay.day, 23, 59, 59);
 
     final results = await Future.wait([
       _databaseHelper.getEntriesForDateRange(startDay, endOfDay),
@@ -115,7 +116,8 @@ class MacroAnalyticsDataAdapter {
 
     for (int i = 0; i < totalDays; i++) {
       final currentDay = startDay.add(Duration(days: i));
-      final dayKey = DateTime.utc(currentDay.year, currentDay.month, currentDay.day);
+      final dayKey =
+          DateTime.utc(currentDay.year, currentDay.month, currentDay.day);
       final intake = dailyMap[dayKey] ??
           DailyMacroIntake(
             date: currentDay,
@@ -136,7 +138,8 @@ class MacroAnalyticsDataAdapter {
 
     // Averages are calculated across days with actual tracking when available,
     // or across total days if trackedDays == 0.
-    final divisor = trackedDays > 0 ? trackedDays : (totalDays > 0 ? totalDays : 1);
+    final divisor =
+        trackedDays > 0 ? trackedDays : (totalDays > 0 ? totalDays : 1);
 
     return MacroPeriodSummary(
       range: range,
@@ -157,7 +160,8 @@ class MacroAnalyticsDataAdapter {
   }) async {
     final end = normalizeDay(anchorDate ?? DateTime.now());
     final start = end.subtract(Duration(days: days - 1));
-    final summary = await fetchSummary(range: DateTimeRange(start: start, end: end));
+    final summary =
+        await fetchSummary(range: DateTimeRange(start: start, end: end));
     return summary.dailyIntakes;
   }
 
@@ -169,7 +173,8 @@ class MacroAnalyticsDataAdapter {
     final offset = target.weekday - DateTime.monday;
     final monday = target.subtract(Duration(days: offset));
     final sunday = monday.add(const Duration(days: 6));
-    final summary = await fetchSummary(range: DateTimeRange(start: monday, end: sunday));
+    final summary =
+        await fetchSummary(range: DateTimeRange(start: monday, end: sunday));
     return summary.dailyIntakes;
   }
 
@@ -194,8 +199,8 @@ class MacroAnalyticsDataAdapter {
     final Map<String, FoodItem> legacyProductsMap = {};
 
     if (archiveIdsSet.isNotEmpty) {
-      final archivedProducts =
-          await _productDataSource.getProductsByArchiveIds(archiveIdsSet.toList());
+      final archivedProducts = await _productDataSource
+          .getProductsByArchiveIds(archiveIdsSet.toList());
       archiveProductsMap.addAll(archivedProducts);
     }
 
@@ -266,7 +271,12 @@ class MacroAnalyticsDataAdapter {
     }
 
     final Map<DateTime, DailyMacroIntake> result = {};
-    final allDays = {...caloriesByDay.keys, ...proteinByDay.keys, ...carbsByDay.keys, ...fatByDay.keys};
+    final allDays = {
+      ...caloriesByDay.keys,
+      ...proteinByDay.keys,
+      ...carbsByDay.keys,
+      ...fatByDay.keys
+    };
 
     for (final day in allDays) {
       result[day] = DailyMacroIntake(

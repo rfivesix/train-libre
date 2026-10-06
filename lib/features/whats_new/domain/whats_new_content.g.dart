@@ -22,27 +22,32 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
         WhatsNewEntry(
           icon: LucideIcons.chart_line,
           title: 'Goals that adapt with you',
-          body: 'Set a long-term weight goal with a real starting measurement, follow your trajectory, and review your progress in calm weekly check-ins. New calorie and macro recommendations remain proposals until you choose to apply them.',
+          body:
+              'Set a long-term weight goal with a real starting measurement, follow your trajectory, and review your progress in calm weekly check-ins. New calorie and macro recommendations remain proposals until you choose to apply them.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.dumbbell,
           title: 'Custom workout plans & flexible sequences',
-          body: 'Arrange saved routines as a weekly schedule or a flexible 1–14 day sequence, include rest days, set optional reminders, and start due sessions directly from the Diary without any catch-up pressure.',
+          body:
+              'Arrange saved routines as a weekly schedule or a flexible 1–14 day sequence, include rest days, set optional reminders, and start due sessions directly from the Diary without any catch-up pressure.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.sparkles,
           title: 'Tailored training experience levels',
-          body: 'Choose your experience level (Beginner, Advanced, Pro) in Settings or onboarding. Muscle group breakdowns, RIR (reps in reserve), and workout views adapt to match your training background.',
+          body:
+              'Choose your experience level (Beginner, Advanced, Pro) in Settings or onboarding. Muscle group breakdowns, RIR (reps in reserve), and workout views adapt to match your training background.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.timer,
           title: 'Set timer & redesigned Workout home',
-          body: 'Start and pause timed sets directly during your workout or from your Lock Screen Live Activity. The refreshed Workout tab brings your active plan, routines, and history together in one place.',
+          body:
+              'Start and pause timed sets directly during your workout or from your Lock Screen Live Activity. The refreshed Workout tab brings your active plan, routines, and history together in one place.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.activity,
           title: 'Smoothed weight trends & new analytics',
-          body: 'Metabolic trend smoothing with a subtle check-in ghost line reveals your true weight direction across the app and home widgets, complemented by macro analytics and Apple Health / Health Connect measurement imports.',
+          body:
+              'Metabolic trend smoothing with a subtle check-in ghost line reveals your true weight direction across the app and home widgets, complemented by macro analytics and Apple Health / Health Connect measurement imports.',
         ),
       ],
     ),
@@ -53,22 +58,26 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
         WhatsNewEntry(
           icon: LucideIcons.activity,
           title: 'Smarter Muscle Recovery',
-          body: 'Recovery tracking now uses a time-decaying residual-load model for every single set. Muscle rows show readiness and remaining recovery hours at a glance, and tapping any card reveals detailed session dose and forecast insights.',
+          body:
+              'Recovery tracking now uses a time-decaying residual-load model for every single set. Muscle rows show readiness and remaining recovery hours at a glance, and tapping any card reveals detailed session dose and forecast insights.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.mic,
           title: 'Streamlined Voice Dictation',
-          body: 'The transcript now sits at the top for natural reading while dictating, with the recording button moved to the bottom for comfortable thumb ergonomics. Smooth color transitions guide you from recording to processing.',
+          body:
+              'The transcript now sits at the top for natural reading while dictating, with the recording button moved to the bottom for comfortable thumb ergonomics. Smooth color transitions guide you from recording to processing.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.utensils,
           title: 'Cleaner Meal Capture',
-          body: 'Newly captured AI meals now open with compact ingredient cards and instant meal-type selection (breakfast, lunch, dinner, snack) right from the review screen.',
+          body:
+              'Newly captured AI meals now open with compact ingredient cards and instant meal-type selection (breakfast, lunch, dinner, snack) right from the review screen.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.bug,
           title: 'Visual Polish & Stability',
-          body: 'Fixed a rendering glitch with the readiness scale background in muscle cards and improved overall app stability.',
+          body:
+              'Fixed a rendering glitch with the readiness scale background in muscle cards and improved overall app stability.',
         ),
       ],
     ),
@@ -79,27 +88,32 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
         WhatsNewEntry(
           icon: LucideIcons.layout_grid,
           title: 'Browse your diary by date',
-          body: 'A new, scrollable day strip lets you jump between nearby days in one tap. The calendar opens directly when you choose a date in the Diary.',
+          body:
+              'A new, scrollable day strip lets you jump between nearby days in one tap. The calendar opens directly when you choose a date in the Diary.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.sparkles,
           title: 'Smarter next-set suggestions',
-          body: 'When you enable training suggestions in Settings, Train Libre can prefill the next working set with a weight based on your recent performance. You can always change it before logging.',
+          body:
+              'When you enable training suggestions in Settings, Train Libre can prefill the next working set with a weight based on your recent performance. You can always change it before logging.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.heart,
           title: 'Recovery where you train',
-          body: 'Muscle Recovery is now at the top of the Workout tab. Muscle Group Analytics also shows your movement patterns alongside muscle coverage and frequency.',
+          body:
+              'Muscle Recovery is now at the top of the Workout tab. Muscle Group Analytics also shows your movement patterns alongside muscle coverage and frequency.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.layout_grid,
           title: 'Muscle groups at a glance',
-          body: 'The analysis now offers a complete overview of every muscle group and movement pattern, a permanent distribution heatmap, and weekly or total working-set values.',
+          body:
+              'The analysis now offers a complete overview of every muscle group and movement pattern, a permanent distribution heatmap, and weekly or total working-set values.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.chart_line,
           title: 'A clearer view of training and records',
-          body: 'Training Rhythm presents your workouts, streak and calendar more clearly. New personal bests now appear in a progress feed with a record overview.',
+          body:
+              'Training Rhythm presents your workouts, streak and calendar more clearly. New personal bests now appear in a progress feed with a record overview.',
         ),
       ],
     ),
@@ -110,27 +124,32 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
         WhatsNewEntry(
           icon: LucideIcons.dumbbell,
           title: 'Supersets',
-          body: 'Join exercises in your routines into supersets, trisets or larger groups. During a workout you alternate between them round by round, and the rest timer only starts after the last exercise of a round.',
+          body:
+              'Join exercises in your routines into supersets, trisets or larger groups. During a workout you alternate between them round by round, and the rest timer only starts after the last exercise of a round.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.timer,
           title: 'The right fields for every exercise',
-          body: 'Log hold time for planks, reps and optional added weight for pull-ups, and assistance for assisted exercises. Previous workout values and charts adapt too.',
+          body:
+              'Log hold time for planks, reps and optional added weight for pull-ups, and assistance for assisted exercises. Previous workout values and charts adapt too.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.layout_grid,
           title: 'A reworked exercise catalog',
-          body: 'The catalog now uses OpenExerciseDB, with more detailed information about muscles and movements and names in your app language. Filter by equipment, difficulty and other details, including while building your routines.',
+          body:
+              'The catalog now uses OpenExerciseDB, with more detailed information about muscles and movements and names in your app language. Filter by equipment, difficulty and other details, including while building your routines.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.activity,
           title: 'Log weight from your diary',
-          body: 'Record your weight in the new card below Supplements, with a smooth ruler in kilograms or pounds. Your measurement history opens from the same place.',
+          body:
+              'Record your weight in the new card below Supplements, with a smooth ruler in kilograms or pounds. Your measurement history opens from the same place.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.chart_line,
           title: 'A clearer picture of your progress',
-          body: 'Training volume and strength records for bodyweight exercises now account for your logged body weight, added weight increases the load and assistance reduces it. Stretching and mobility exercises no longer count as strength sets.',
+          body:
+              'Training volume and strength records for bodyweight exercises now account for your logged body weight, added weight increases the load and assistance reduces it. Stretching and mobility exercises no longer count as strength sets.',
         ),
       ],
     ),
@@ -141,12 +160,14 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
         WhatsNewEntry(
           icon: LucideIcons.utensils,
           title: 'Improved macronutrient recommendations',
-          body: 'The adaptive nutrition calculation now distributes fats and carbohydrates in a more balanced way based on your body weight and goal.',
+          body:
+              'The adaptive nutrition calculation now distributes fats and carbohydrates in a more balanced way based on your body weight and goal.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.bug,
           title: 'Bug fixes',
-          body: 'Fixed minor issues with caffeine logging in the diary and resolved visual glitches during card transitions and animations.',
+          body:
+              'Fixed minor issues with caffeine logging in the diary and resolved visual glitches during card transitions and animations.',
         ),
       ],
     ),
@@ -157,27 +178,32 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
         WhatsNewEntry(
           icon: LucideIcons.camera,
           title: 'Log a meal from a photo',
-          body: 'Point the camera at your plate and the AI turns it into individual foods with amounts, calories and macros - all correctable before you save. Packaged products are recognised by barcode in the very same view, iPhones with LiDAR capture depth scale to assist portion estimation, and the microphone button lets you add what a photo cannot show.',
+          body:
+              'Point the camera at your plate and the AI turns it into individual foods with amounts, calories and macros - all correctable before you save. Packaged products are recognised by barcode in the very same view, iPhones with LiDAR capture depth scale to assist portion estimation, and the microphone button lets you add what a photo cannot show.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.utensils,
           title: 'A clearer diary',
-          body: 'A scanned meal stays one entry with its photo and unfolds into its ingredients. Entries are sorted by calories, largest first.',
+          body:
+              'A scanned meal stays one entry with its photo and unfolds into its ingredients. Entries are sorted by calories, largest first.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.dumbbell,
           title: 'More from your training',
-          body: 'Keep up to 4 photos per workout, and the bar above the tab bar always shows whether you are working or resting and which exercise comes next. Tapping it grows the workout out of the bar.',
+          body:
+              'Keep up to 4 photos per workout, and the bar above the tab bar always shows whether you are working or resting and which exercise comes next. Tapping it grows the workout out of the bar.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.cloud,
           title: 'Your photos in the iCloud backup',
-          body: 'The automatic backup now carries the photos of your meals and workouts. Restoring no longer needs a restart and keeps the previous backup as a spare copy.',
+          body:
+              'The automatic backup now carries the photos of your meals and workouts. Restoring no longer needs a restart and keeps the previous backup as a spare copy.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.sparkles,
           title: 'Smoother to use',
-          body: 'Cards grow into full screen instead of switching abruptly, numbers count themselves up, and removed exercises fold away gently instead of popping out.',
+          body:
+              'Cards grow into full screen instead of switching abruptly, numbers count themselves up, and removed exercises fold away gently instead of popping out.',
         ),
       ],
     ),
@@ -188,17 +214,20 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
         WhatsNewEntry(
           icon: LucideIcons.layout_grid,
           title: 'Home screen widgets on Android',
-          body: 'The widget family has arrived on Android - your last workout with its muscle map, muscle recovery, your steps of the last 7 days, body measurements, today\'s nutrition and quick actions. Add them from your launcher\'s widget picker; nutrition, measurements and quick actions can be reconfigured at any time.',
+          body:
+              'The widget family has arrived on Android - your last workout with its muscle map, muscle recovery, your steps of the last 7 days, body measurements, today\'s nutrition and quick actions. Add them from your launcher\'s widget picker; nutrition, measurements and quick actions can be reconfigured at any time.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.activity,
           title: 'Your running workout in the notification shade',
-          body: 'A workout in progress now sits in your notifications with its rest countdown, and on Android 16 it becomes a Live Update with a chip in the status bar. Tick off a set, add or drop 15 seconds and skip the rest right there, without opening the app.',
+          body:
+              'A workout in progress now sits in your notifications with its rest countdown, and on Android 16 it becomes a Live Update with a chip in the status bar. Tick off a set, add or drop 15 seconds and skip the rest right there, without opening the app.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.zap,
           title: 'Quick Settings tiles',
-          body: 'All seven quick actions - barcode scanner, AI meal capture, start workout, add water, log a supplement, add a measurement and add food - are now available as tiles in your Quick Settings panel.',
+          body:
+              'All seven quick actions - barcode scanner, AI meal capture, start workout, add water, log a supplement, add a measurement and add food - are now available as tiles in your Quick Settings panel.',
         ),
       ],
     ),
@@ -209,27 +238,32 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
         WhatsNewEntry(
           icon: LucideIcons.activity,
           title: 'Live Activity & Dynamic Island',
-          body: 'Follow your running workout straight from the Lock Screen and the Dynamic Island - current exercise, set, weight and rest countdown, without unlocking your phone. Skip or extend the rest timer right there.',
+          body:
+              'Follow your running workout straight from the Lock Screen and the Dynamic Island - current exercise, set, weight and rest countdown, without unlocking your phone. Skip or extend the rest timer right there.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.layout_grid,
           title: 'Home & Lock Screen Widgets',
-          body: 'New widgets for your last workout, muscle recovery, 7-day steps, body measurements and today\'s nutrition. Add them to the Home Screen or the Lock Screen and see your numbers at a glance.',
+          body:
+              'New widgets for your last workout, muscle recovery, 7-day steps, body measurements and today\'s nutrition. Add them to the Home Screen or the Lock Screen and see your numbers at a glance.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.mic,
           title: 'Siri, Shortcuts & Action Button',
-          body: 'Barcode scanner, AI meal capture, start workout, add water, log a supplement, add a measurement and add food are now available as Shortcuts, Control Center buttons and Action Button mappings.',
+          body:
+              'Barcode scanner, AI meal capture, start workout, add water, log a supplement, add a measurement and add food are now available as Shortcuts, Control Center buttons and Action Button mappings.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.zap,
           title: 'Faster catalog updates',
-          body: 'The database update screen no longer stalls near the end - the slow step behind it now takes milliseconds instead of about 20 seconds.',
+          body:
+              'The database update screen no longer stalls near the end - the slow step behind it now takes milliseconds instead of about 20 seconds.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.dumbbell,
           title: 'Straight to your next set',
-          body: 'Opening a running workout now scrolls directly to the exercise with the next open set.',
+          body:
+              'Opening a running workout now scrolls directly to the exercise with the next open set.',
         ),
       ],
     ),
@@ -242,27 +276,32 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
         WhatsNewEntry(
           icon: LucideIcons.chart_line,
           title: 'Ziele, die sich mit dir weiterentwickeln',
-          body: 'Lege ein langfristiges Gewichtsziel mit echter Startmessung fest, verfolge deinen Zielpfad und ordne deinen Fortschritt in ruhigen wöchentlichen Rückblicken ein. Neue Kalorien- und Makroempfehlungen bleiben Vorschläge, bis du sie selbst anwendest.',
+          body:
+              'Lege ein langfristiges Gewichtsziel mit echter Startmessung fest, verfolge deinen Zielpfad und ordne deinen Fortschritt in ruhigen wöchentlichen Rückblicken ein. Neue Kalorien- und Makroempfehlungen bleiben Vorschläge, bis du sie selbst anwendest.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.dumbbell,
           title: 'Eigene Trainingspläne & flexible Sequenzen',
-          body: 'Ordne gespeicherte Routinen als Wochenplan oder flexible Abfolge von 1–14 Tagen an, plane Ruhetage ein, erhalte optionale Erinnerungen und starte anstehende Einheiten direkt aus dem Tagebuch – ganz ohne Nachholdruck.',
+          body:
+              'Ordne gespeicherte Routinen als Wochenplan oder flexible Abfolge von 1–14 Tagen an, plane Ruhetage ein, erhalte optionale Erinnerungen und starte anstehende Einheiten direkt aus dem Tagebuch – ganz ohne Nachholdruck.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.sparkles,
           title: 'Dein Trainingslevel nach Maß',
-          body: 'Wähle in den Einstellungen oder beim Start dein Erfahrungslevel (Einsteiger, Fortgeschritten, Profi). Die Detailtiefe bei Muskelgruppen, RIR (Wiederholungen in Reserve) und Trainingsansichten passt sich passend an dein Niveau an.',
+          body:
+              'Wähle in den Einstellungen oder beim Start dein Erfahrungslevel (Einsteiger, Fortgeschritten, Profi). Die Detailtiefe bei Muskelgruppen, RIR (Wiederholungen in Reserve) und Trainingsansichten passt sich passend an dein Niveau an.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.timer,
           title: 'Satz-Timer & aufgeräumter Workout-Tab',
-          body: 'Starte und stoppe Satz-Timer direkt im Live-Workout oder bequem über die Live-Aktivität auf dem Sperrbildschirm. Der neu gestaltete Workout-Tab bündelt deinen aktiven Plan, Routinen und Verlauf an einem zentralen Ort.',
+          body:
+              'Starte und stoppe Satz-Timer direkt im Live-Workout oder bequem über die Live-Aktivität auf dem Sperrbildschirm. Der neu gestaltete Workout-Tab bündelt deinen aktiven Plan, Routinen und Verlauf an einem zentralen Ort.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.activity,
           title: 'Geglättete Gewichtstrends & neue Analysen',
-          body: 'Die metabolische Trendglättung mit dezenter Messpunkt-Linie zeigt deinen wahren Gewichtsverlauf in App und Widgets. Ergänzt durch neue Makro-Statistiken sowie nahtlosen Messungs-Import aus Apple Health und Health Connect.',
+          body:
+              'Die metabolische Trendglättung mit dezenter Messpunkt-Linie zeigt deinen wahren Gewichtsverlauf in App und Widgets. Ergänzt durch neue Makro-Statistiken sowie nahtlosen Messungs-Import aus Apple Health und Health Connect.',
         ),
       ],
     ),
@@ -273,22 +312,26 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
         WhatsNewEntry(
           icon: LucideIcons.activity,
           title: 'Präzisere Muskelregeneration',
-          body: 'Die Regenerationsanzeige nutzt jetzt ein zeitdynamisches Belastungsmodell für jeden einzelnen Satz. Die Muskelkarten zeigen Bereitschaft und verbleibende Erholungszeit noch übersichtlicher; ein Tipp öffnet detaillierte Einblicke zu Belastungsdosis und Prognose.',
+          body:
+              'Die Regenerationsanzeige nutzt jetzt ein zeitdynamisches Belastungsmodell für jeden einzelnen Satz. Die Muskelkarten zeigen Bereitschaft und verbleibende Erholungszeit noch übersichtlicher; ein Tipp öffnet detaillierte Einblicke zu Belastungsdosis und Prognose.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.mic,
           title: 'Komfortablere Spracheingabe',
-          body: 'Das Diktatfeld sitzt nun ergonomisch oben, während der Aufnahme-Button bequem mit dem Daumen erreichbar ist. Ein flüssiger Farbwechsel von Aufnahme-Rot zu Verarbeitungs-Grün signalisiert den Status.',
+          body:
+              'Das Diktatfeld sitzt nun ergonomisch oben, während der Aufnahme-Button bequem mit dem Daumen erreichbar ist. Ein flüssiger Farbwechsel von Aufnahme-Rot zu Verarbeitungs-Grün signalisiert den Status.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.utensils,
           title: 'Aufgeräumte Mahlzeiten-Vorschau',
-          body: 'Neu erkannte KI-Mahlzeiten präsentieren sich mit kompakten Zutatenkarten und direktem Zugriff auf die Mahlzeiten-Kategorie (Frühstück, Mittag, Abendessen, Snack), bevor du sie speicherst.',
+          body:
+              'Neu erkannte KI-Mahlzeiten präsentieren sich mit kompakten Zutatenkarten und direktem Zugriff auf die Mahlzeiten-Kategorie (Frühstück, Mittag, Abendessen, Snack), bevor du sie speicherst.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.bug,
           title: 'Fehlerbehebungen & Feinschliff',
-          body: 'Ein Darstellungsfehler der Farbskala in den Muskelkarten wurde behoben und die allgemeine Stabilität weiter optimiert.',
+          body:
+              'Ein Darstellungsfehler der Farbskala in den Muskelkarten wurde behoben und die allgemeine Stabilität weiter optimiert.',
         ),
       ],
     ),
@@ -299,27 +342,32 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
         WhatsNewEntry(
           icon: LucideIcons.layout_grid,
           title: 'Tagebuch nach Datum durchsuchen',
-          body: 'Über eine neue, horizontal scrollbare Tagesleiste wechselst du mit einem Tipp zu nahegelegenen Tagen. Wenn du im Tagebuch ein Datum auswählst, öffnet sich direkt der Kalender.',
+          body:
+              'Über eine neue, horizontal scrollbare Tagesleiste wechselst du mit einem Tipp zu nahegelegenen Tagen. Wenn du im Tagebuch ein Datum auswählst, öffnet sich direkt der Kalender.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.sparkles,
           title: 'Intelligentere Vorschläge für den nächsten Satz',
-          body: 'Aktivierst du Trainingsvorschläge in den Einstellungen, kann Train Libre das Gewicht für den nächsten Arbeitssatz anhand deiner letzten Leistung vorausfüllen. Vor dem Speichern kannst du es jederzeit ändern.',
+          body:
+              'Aktivierst du Trainingsvorschläge in den Einstellungen, kann Train Libre das Gewicht für den nächsten Arbeitssatz anhand deiner letzten Leistung vorausfüllen. Vor dem Speichern kannst du es jederzeit ändern.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.heart,
           title: 'Regeneration dort, wo du trainierst',
-          body: 'Die Muskelregeneration steht jetzt ganz oben im Workout-Tab. Die Muskelgruppen-Analyse zeigt neben Muskelabdeckung und Häufigkeit auch deine Bewegungsmuster.',
+          body:
+              'Die Muskelregeneration steht jetzt ganz oben im Workout-Tab. Die Muskelgruppen-Analyse zeigt neben Muskelabdeckung und Häufigkeit auch deine Bewegungsmuster.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.layout_grid,
           title: 'Muskelgruppen auf einen Blick',
-          body: 'Die Analyse bietet jetzt eine vollständige Übersicht aller Muskelgruppen und Bewegungsmuster, eine permanente Verteilungs-Heatmap sowie Wochen- und Gesamtwerte für Arbeitssätze.',
+          body:
+              'Die Analyse bietet jetzt eine vollständige Übersicht aller Muskelgruppen und Bewegungsmuster, eine permanente Verteilungs-Heatmap sowie Wochen- und Gesamtwerte für Arbeitssätze.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.chart_line,
           title: 'Training und Rekorde klarer verstehen',
-          body: 'Trainingsrhythmus zeigt dir verständlich deine Einheiten, Serie und den Kalender. Deine neuen Bestleistungen erscheinen als Feed mit Fortschritt und Rekordübersicht.',
+          body:
+              'Trainingsrhythmus zeigt dir verständlich deine Einheiten, Serie und den Kalender. Deine neuen Bestleistungen erscheinen als Feed mit Fortschritt und Rekordübersicht.',
         ),
       ],
     ),
@@ -330,27 +378,32 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
         WhatsNewEntry(
           icon: LucideIcons.dumbbell,
           title: 'Supersätze',
-          body: 'Verbinde Übungen in deinen Trainingsplänen zu Supersätzen, Trisätzen oder größeren Gruppen. Im Training wechselst du rundenweise zwischen ihnen, und die Pause startet erst nach der letzten Übung einer Runde.',
+          body:
+              'Verbinde Übungen in deinen Trainingsplänen zu Supersätzen, Trisätzen oder größeren Gruppen. Im Training wechselst du rundenweise zwischen ihnen, und die Pause startet erst nach der letzten Übung einer Runde.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.timer,
           title: 'Für jede Übung die passenden Felder',
-          body: 'Bei Planks erfasst du die Haltezeit, bei Klimmzügen Wiederholungen und optionales Zusatzgewicht, bei unterstützten Übungen die Unterstützung. Auch die Werte vom letzten Training und die Diagramme passen sich an.',
+          body:
+              'Bei Planks erfasst du die Haltezeit, bei Klimmzügen Wiederholungen und optionales Zusatzgewicht, bei unterstützten Übungen die Unterstützung. Auch die Werte vom letzten Training und die Diagramme passen sich an.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.layout_grid,
           title: 'Überarbeiteter Übungskatalog',
-          body: 'Der Katalog basiert jetzt auf OpenExerciseDB, mit genaueren Angaben zu Muskeln und Bewegungen und Namen in deiner App-Sprache. Filtere nach Geräten, Schwierigkeitsgrad und weiteren Merkmalen, auch beim Zusammenstellen deiner Trainingspläne.',
+          body:
+              'Der Katalog basiert jetzt auf OpenExerciseDB, mit genaueren Angaben zu Muskeln und Bewegungen und Namen in deiner App-Sprache. Filtere nach Geräten, Schwierigkeitsgrad und weiteren Merkmalen, auch beim Zusammenstellen deiner Trainingspläne.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.activity,
           title: 'Gewicht direkt im Tagebuch erfassen',
-          body: 'Trage dein Gewicht über die neue Karte unter den Supplementen ein, mit einem flüssigen Regler in Kilogramm oder Pfund. Von dort öffnest du auch deinen Messverlauf.',
+          body:
+              'Trage dein Gewicht über die neue Karte unter den Supplementen ein, mit einem flüssigen Regler in Kilogramm oder Pfund. Von dort öffnest du auch deinen Messverlauf.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.chart_line,
           title: 'Fortschritte richtig einordnen',
-          body: 'Bei Eigengewichtsübungen berücksichtigen Trainingsvolumen und Kraftrekorde jetzt dein erfasstes Körpergewicht, Zusatzgewicht zählt dazu und Unterstützung wird abgezogen. Dehnen und Mobilitätsübungen zählen nicht mehr als Kraftsätze.',
+          body:
+              'Bei Eigengewichtsübungen berücksichtigen Trainingsvolumen und Kraftrekorde jetzt dein erfasstes Körpergewicht, Zusatzgewicht zählt dazu und Unterstützung wird abgezogen. Dehnen und Mobilitätsübungen zählen nicht mehr als Kraftsätze.',
         ),
       ],
     ),
@@ -361,12 +414,14 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
         WhatsNewEntry(
           icon: LucideIcons.utensils,
           title: 'Verbesserte Makronährstoff-Empfehlungen',
-          body: 'Die adaptive Berechnung verteilt Fett und Kohlenhydrate jetzt noch ausgewogener basierend auf deinem Körpergewicht und Ziel.',
+          body:
+              'Die adaptive Berechnung verteilt Fett und Kohlenhydrate jetzt noch ausgewogener basierend auf deinem Körpergewicht und Ziel.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.bug,
           title: 'Fehlerbehebungen',
-          body: 'Kleinere Fehler bei der Erfassung von Koffein im Tagebuch sowie Darstellungsfehler bei Animationen und Kartenübergängen behoben.',
+          body:
+              'Kleinere Fehler bei der Erfassung von Koffein im Tagebuch sowie Darstellungsfehler bei Animationen und Kartenübergängen behoben.',
         ),
       ],
     ),
@@ -377,27 +432,32 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
         WhatsNewEntry(
           icon: LucideIcons.camera,
           title: 'Mahlzeiten per Foto erfassen',
-          body: 'Richte die Kamera auf deinen Teller, und die KI macht daraus einzelne Lebensmittel mit Menge, Kalorien und Makros - vor dem Speichern alles korrigierbar. Verpackte Produkte erkennt dieselbe Ansicht am Barcode, iPhones mit LiDAR erfassen Tiefendaten, um die Portionsschätzung zu unterstützen, und per Mikrofontaste ergänzt du, was das Foto nicht zeigt.',
+          body:
+              'Richte die Kamera auf deinen Teller, und die KI macht daraus einzelne Lebensmittel mit Menge, Kalorien und Makros - vor dem Speichern alles korrigierbar. Verpackte Produkte erkennt dieselbe Ansicht am Barcode, iPhones mit LiDAR erfassen Tiefendaten, um die Portionsschätzung zu unterstützen, und per Mikrofontaste ergänzt du, was das Foto nicht zeigt.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.utensils,
           title: 'Übersichtlicheres Tagebuch',
-          body: 'Eine erfasste Mahlzeit bleibt ein Eintrag mit Foto und lässt sich zu ihren Zutaten aufklappen. Einträge sind nach Kalorien sortiert, die größten zuerst.',
+          body:
+              'Eine erfasste Mahlzeit bleibt ein Eintrag mit Foto und lässt sich zu ihren Zutaten aufklappen. Einträge sind nach Kalorien sortiert, die größten zuerst.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.dumbbell,
           title: 'Mehr von deinem Training',
-          body: 'Halte Workouts mit bis zu 4 Fotos fest, und die Leiste über der Navigation zeigt jederzeit, ob du trainierst oder pausierst und welche Übung als Nächstes ansteht. Ein Tipp lässt das Workout aus der Leiste herauswachsen.',
+          body:
+              'Halte Workouts mit bis zu 4 Fotos fest, und die Leiste über der Navigation zeigt jederzeit, ob du trainierst oder pausierst und welche Übung als Nächstes ansteht. Ein Tipp lässt das Workout aus der Leiste herauswachsen.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.cloud,
           title: 'Deine Fotos im iCloud-Backup',
-          body: 'Das automatische Backup nimmt jetzt auch die Fotos deiner Mahlzeiten und Workouts mit. Das Wiederherstellen braucht außerdem keinen Neustart mehr und behält das vorherige Backup als Reservekopie.',
+          body:
+              'Das automatische Backup nimmt jetzt auch die Fotos deiner Mahlzeiten und Workouts mit. Das Wiederherstellen braucht außerdem keinen Neustart mehr und behält das vorherige Backup als Reservekopie.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.sparkles,
           title: 'Flüssigere Bedienung',
-          body: 'Karten wachsen zum Vollbild heran statt hart umzuschalten, Zahlen zählen sich hoch, und entfernte Übungen klappen sanft zusammen, statt wegzuspringen.',
+          body:
+              'Karten wachsen zum Vollbild heran statt hart umzuschalten, Zahlen zählen sich hoch, und entfernte Übungen klappen sanft zusammen, statt wegzuspringen.',
         ),
       ],
     ),
@@ -408,17 +468,20 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
         WhatsNewEntry(
           icon: LucideIcons.layout_grid,
           title: 'Homescreen-Widgets für Android',
-          body: 'Die Widget-Familie gibt es jetzt auch auf Android - dein letztes Workout mit Muskelkarte, die Muskelregeneration, deine Schritte der letzten 7 Tage, Körpermaße, die heutige Ernährung und Schnellaktionen. Du fügst sie über die Widget-Auswahl deines Launchers hinzu; Ernährung, Körpermaße und Schnellaktionen kannst du jederzeit neu einstellen.',
+          body:
+              'Die Widget-Familie gibt es jetzt auch auf Android - dein letztes Workout mit Muskelkarte, die Muskelregeneration, deine Schritte der letzten 7 Tage, Körpermaße, die heutige Ernährung und Schnellaktionen. Du fügst sie über die Widget-Auswahl deines Launchers hinzu; Ernährung, Körpermaße und Schnellaktionen kannst du jederzeit neu einstellen.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.activity,
           title: 'Laufendes Workout in der Benachrichtigung',
-          body: 'Dein Workout liegt jetzt mit Pausen-Countdown in den Benachrichtigungen, auf Android 16 wird daraus ein Live Update mit Chip in der Statusleiste. Satz abhaken, 15 Sekunden drauflegen oder abziehen und Pause überspringen geht direkt dort, ohne die App zu öffnen.',
+          body:
+              'Dein Workout liegt jetzt mit Pausen-Countdown in den Benachrichtigungen, auf Android 16 wird daraus ein Live Update mit Chip in der Statusleiste. Satz abhaken, 15 Sekunden drauflegen oder abziehen und Pause überspringen geht direkt dort, ohne die App zu öffnen.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.zap,
           title: 'Kacheln in den Schnelleinstellungen',
-          body: 'Alle sieben Schnellaktionen - Barcode-Scanner, KI-Mahlzeitenerfassung, Workout starten, Wasser hinzufügen, Supplement eintragen, Körpermaß erfassen und Lebensmittel hinzufügen - gibt es jetzt als Kacheln in deinen Schnelleinstellungen.',
+          body:
+              'Alle sieben Schnellaktionen - Barcode-Scanner, KI-Mahlzeitenerfassung, Workout starten, Wasser hinzufügen, Supplement eintragen, Körpermaß erfassen und Lebensmittel hinzufügen - gibt es jetzt als Kacheln in deinen Schnelleinstellungen.',
         ),
       ],
     ),
@@ -429,27 +492,32 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
         WhatsNewEntry(
           icon: LucideIcons.activity,
           title: 'Live-Aktivität & Dynamic Island',
-          body: 'Verfolge dein laufendes Workout direkt auf dem Sperrbildschirm und in der Dynamic Island - aktuelle Übung, Satz, Gewicht und Pausen-Countdown, ohne das Handy zu entsperren. Pause verlängern oder überspringen geht gleich dort.',
+          body:
+              'Verfolge dein laufendes Workout direkt auf dem Sperrbildschirm und in der Dynamic Island - aktuelle Übung, Satz, Gewicht und Pausen-Countdown, ohne das Handy zu entsperren. Pause verlängern oder überspringen geht gleich dort.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.layout_grid,
           title: 'Widgets für Home- und Sperrbildschirm',
-          body: 'Neue Widgets für dein letztes Workout, die Muskelregeneration, deine Schritte der letzten 7 Tage, Körpermaße und die heutige Ernährung. Einfach auf den Home- oder Sperrbildschirm legen und alle Werte auf einen Blick sehen.',
+          body:
+              'Neue Widgets für dein letztes Workout, die Muskelregeneration, deine Schritte der letzten 7 Tage, Körpermaße und die heutige Ernährung. Einfach auf den Home- oder Sperrbildschirm legen und alle Werte auf einen Blick sehen.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.mic,
           title: 'Siri, Kurzbefehle & Action Button',
-          body: 'Barcode-Scanner, KI-Mahlzeitenerfassung, Workout starten, Wasser hinzufügen, Supplement eintragen, Körpermaß erfassen und Lebensmittel hinzufügen gibt es jetzt als Kurzbefehle, Kontrollzentrum-Buttons und für den Action Button.',
+          body:
+              'Barcode-Scanner, KI-Mahlzeitenerfassung, Workout starten, Wasser hinzufügen, Supplement eintragen, Körpermaß erfassen und Lebensmittel hinzufügen gibt es jetzt als Kurzbefehle, Kontrollzentrum-Buttons und für den Action Button.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.zap,
           title: 'Schnellere Katalog-Updates',
-          body: 'Der Ladebildschirm beim Datenbank-Update bleibt nicht mehr kurz vor Schluss hängen - der langsame Schritt dahinter dauert jetzt Millisekunden statt rund 20 Sekunden.',
+          body:
+              'Der Ladebildschirm beim Datenbank-Update bleibt nicht mehr kurz vor Schluss hängen - der langsame Schritt dahinter dauert jetzt Millisekunden statt rund 20 Sekunden.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.dumbbell,
           title: 'Direkt zum nächsten Satz',
-          body: 'Wenn du ein laufendes Workout öffnest, springt die App jetzt direkt zur Übung mit dem nächsten offenen Satz.',
+          body:
+              'Wenn du ein laufendes Workout öffnest, springt die App jetzt direkt zur Übung mit dem nächsten offenen Satz.',
         ),
       ],
     ),
@@ -462,27 +530,32 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
         WhatsNewEntry(
           icon: LucideIcons.chart_line,
           title: 'Des objectifs qui évoluent avec toi',
-          body: 'Définis un objectif de poids à long terme à partir d\'une mesure réelle, suis ta trajectoire et fais le point sereinement chaque semaine. Les nouvelles recommandations de calories et de macros restent des propositions tant que tu ne les appliques pas.',
+          body:
+              'Définis un objectif de poids à long terme à partir d\'une mesure réelle, suis ta trajectoire et fais le point sereinement chaque semaine. Les nouvelles recommandations de calories et de macros restent des propositions tant que tu ne les appliques pas.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.dumbbell,
           title: 'Programmes d\'entraînement personnalisés',
-          body: 'Organise tes routines en semaine fixe ou en séquence flexible de 1 à 14 jours, ajoute des jours de repos, active des rappels et lance tes séances prévues depuis le journal sans pression de rattrapage.',
+          body:
+              'Organise tes routines en semaine fixe ou en séquence flexible de 1 à 14 jours, ajoute des jours de repos, active des rappels et lance tes séances prévues depuis le journal sans pression de rattrapage.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.sparkles,
           title: 'Niveaux d\'expérience sur mesure',
-          body: 'Choisis ton niveau (Débutant, Avancé, Pro) dans les réglages ou l\'onboarding. Le détail des groupes musculaires, le RIR et les écrans d\'entraînement s\'adaptent à ton niveau de pratique.',
+          body:
+              'Choisis ton niveau (Débutant, Avancé, Pro) dans les réglages ou l\'onboarding. Le détail des groupes musculaires, le RIR et les écrans d\'entraînement s\'adaptent à ton niveau de pratique.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.timer,
           title: 'Minuteur de série & onglet Entraînement repensé',
-          body: 'Lance et mets en pause le minuteur de série directement pendant l\'entraînement ou depuis l\'Activité en direct sur l\'écran verrouillé. L\'onglet Entraînement réunit programme actif, routines et historique.',
+          body:
+              'Lance et mets en pause le minuteur de série directement pendant l\'entraînement ou depuis l\'Activité en direct sur l\'écran verrouillé. L\'onglet Entraînement réunit programme actif, routines et historique.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.activity,
           title: 'Tendances de poids lissées & nouvelles analyses',
-          body: 'Le lissage métabolique avec ligne d\'historique discrète révèle ta véritable évolution dans l\'app et les widgets, complété par les statistiques de macros et l\'import de mesures depuis Apple Santé et Health Connect.',
+          body:
+              'Le lissage métabolique avec ligne d\'historique discrète révèle ta véritable évolution dans l\'app et les widgets, complété par les statistiques de macros et l\'import de mesures depuis Apple Santé et Health Connect.',
         ),
       ],
     ),
@@ -493,22 +566,26 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
         WhatsNewEntry(
           icon: LucideIcons.activity,
           title: 'Récupération musculaire plus précise',
-          body: 'Le suivi de la récupération utilise désormais un modèle de charge résiduelle décroissante par série. Les cartes musculaires affichent la disponibilité et les heures restantes en un coup d’œil ; appuyez sur une carte pour voir les détails de dose et de prévision.',
+          body:
+              'Le suivi de la récupération utilise désormais un modèle de charge résiduelle décroissante par série. Les cartes musculaires affichent la disponibilité et les heures restantes en un coup d’œil ; appuyez sur une carte pour voir les détails de dose et de prévision.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.mic,
           title: 'Dictée vocale optimisée',
-          body: 'Le texte apparaît désormais en haut pour une lecture naturelle pendant la dictée, avec le bouton d’enregistrement placé en bas à portée de pouce. Des transitions de couleur fluides indiquent l’enregistrement et le traitement.',
+          body:
+              'Le texte apparaît désormais en haut pour une lecture naturelle pendant la dictée, avec le bouton d’enregistrement placé en bas à portée de pouce. Des transitions de couleur fluides indiquent l’enregistrement et le traitement.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.utensils,
           title: 'Aperçu des repas simplifié',
-          body: 'Les repas reconnus par IA s\'ouvrent avec des fiches d\'ingrédients compactes et le choix direct du type de repas (petit-déjeuner, déjeuner, dîner, collation) avant d\'enregistrer.',
+          body:
+              'Les repas reconnus par IA s\'ouvrent avec des fiches d\'ingrédients compactes et le choix direct du type de repas (petit-déjeuner, déjeuner, dîner, collation) avant d\'enregistrer.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.bug,
           title: 'Corrections et stabilité',
-          body: 'Correction d\'un problème d\'affichage de la jauge de récupération et amélioration de la stabilité générale.',
+          body:
+              'Correction d\'un problème d\'affichage de la jauge de récupération et amélioration de la stabilité générale.',
         ),
       ],
     ),
@@ -519,27 +596,32 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
         WhatsNewEntry(
           icon: LucideIcons.layout_grid,
           title: 'Parcours ton journal par date',
-          body: 'une nouvelle barre de jours défilante te permet d\'accéder aux jours proches en un geste. Lorsque tu choisis une date dans le journal, le calendrier s\'ouvre directement.',
+          body:
+              'une nouvelle barre de jours défilante te permet d\'accéder aux jours proches en un geste. Lorsque tu choisis une date dans le journal, le calendrier s\'ouvre directement.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.sparkles,
           title: 'Des suggestions plus intelligentes pour la prochaine série',
-          body: 'si tu actives les suggestions d\'entraînement dans les réglages, Train Libre peut préremplir le poids de ta prochaine série de travail selon tes dernières performances. Tu peux toujours le modifier avant de l\'enregistrer.',
+          body:
+              'si tu actives les suggestions d\'entraînement dans les réglages, Train Libre peut préremplir le poids de ta prochaine série de travail selon tes dernières performances. Tu peux toujours le modifier avant de l\'enregistrer.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.heart,
           title: 'La récupération là où tu t\'entraînes',
-          body: 'la récupération musculaire se trouve maintenant en haut de l\'onglet Entraînement. L\'analyse des groupes musculaires affiche aussi tes schémas de mouvement, en plus de la couverture et de la fréquence.',
+          body:
+              'la récupération musculaire se trouve maintenant en haut de l\'onglet Entraînement. L\'analyse des groupes musculaires affiche aussi tes schémas de mouvement, en plus de la couverture et de la fréquence.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.layout_grid,
           title: 'Groupes musculaires en un coup d\'œil',
-          body: 'l\'analyse propose désormais une vue complète de chaque groupe musculaire et schéma de mouvement, une heatmap de répartition permanente et des séries de travail hebdomadaires ou totales.',
+          body:
+              'l\'analyse propose désormais une vue complète de chaque groupe musculaire et schéma de mouvement, une heatmap de répartition permanente et des séries de travail hebdomadaires ou totales.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.chart_line,
           title: 'Entraînement et records plus lisibles',
-          body: 'le rythme d\'entraînement présente plus clairement tes séances, ta série et ton calendrier. Tes nouvelles meilleures performances apparaissent dans un fil de progression avec une vue des records.',
+          body:
+              'le rythme d\'entraînement présente plus clairement tes séances, ta série et ton calendrier. Tes nouvelles meilleures performances apparaissent dans un fil de progression avec une vue des records.',
         ),
       ],
     ),
@@ -550,27 +632,32 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
         WhatsNewEntry(
           icon: LucideIcons.dumbbell,
           title: 'Superséries',
-          body: 'regroupe des exercices de tes programmes en superséries, trisets ou groupes plus larges. Pendant la séance, tu alternes entre eux tour après tour, et le temps de repos ne démarre qu\'après le dernier exercice d\'un tour.',
+          body:
+              'regroupe des exercices de tes programmes en superséries, trisets ou groupes plus larges. Pendant la séance, tu alternes entre eux tour après tour, et le temps de repos ne démarre qu\'après le dernier exercice d\'un tour.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.timer,
           title: 'Les bons champs pour chaque exercice',
-          body: 'note la durée d\'une planche, les répétitions et le lest éventuel des tractions, ou l\'assistance des exercices assistés. Les valeurs de la dernière séance et les graphiques s\'adaptent aussi.',
+          body:
+              'note la durée d\'une planche, les répétitions et le lest éventuel des tractions, ou l\'assistance des exercices assistés. Les valeurs de la dernière séance et les graphiques s\'adaptent aussi.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.layout_grid,
           title: 'Un catalogue d\'exercices enrichi',
-          body: 'le catalogue utilise désormais OpenExerciseDB, avec des informations plus précises sur les muscles et les mouvements et des noms dans la langue de ton app. Filtre par matériel, difficulté et autres caractéristiques, y compris pendant la création de tes programmes.',
+          body:
+              'le catalogue utilise désormais OpenExerciseDB, avec des informations plus précises sur les muscles et les mouvements et des noms dans la langue de ton app. Filtre par matériel, difficulté et autres caractéristiques, y compris pendant la création de tes programmes.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.activity,
           title: 'Enregistre ton poids depuis le journal',
-          body: 'note ton poids dans la nouvelle carte sous les compléments, avec une règle fluide en kilogrammes ou en livres. Ton historique de mesures s\'ouvre au même endroit.',
+          body:
+              'note ton poids dans la nouvelle carte sous les compléments, avec une règle fluide en kilogrammes ou en livres. Ton historique de mesures s\'ouvre au même endroit.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.chart_line,
           title: 'Une progression mieux représentée',
-          body: 'pour les exercices au poids du corps, le volume d\'entraînement et les records de force tiennent compte de ton poids enregistré, le lest s\'ajoute à la charge et l\'assistance s\'en déduit. Les étirements et la mobilité ne comptent plus comme des séries de musculation.',
+          body:
+              'pour les exercices au poids du corps, le volume d\'entraînement et les records de force tiennent compte de ton poids enregistré, le lest s\'ajoute à la charge et l\'assistance s\'en déduit. Les étirements et la mobilité ne comptent plus comme des séries de musculation.',
         ),
       ],
     ),
@@ -581,12 +668,14 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
         WhatsNewEntry(
           icon: LucideIcons.utensils,
           title: 'Recommandations de macronutriments améliorées',
-          body: 'le calcul adaptatif répartit désormais les lipides et les glucides de manière plus équilibrée selon ton poids corporel et ton objectif.',
+          body:
+              'le calcul adaptatif répartit désormais les lipides et les glucides de manière plus équilibrée selon ton poids corporel et ton objectif.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.bug,
           title: 'Corrections d\'erreurs',
-          body: 'correction de légers soucis liés au suivi de la caféine dans le journal et amélioration des transitions et animations de cartes.',
+          body:
+              'correction de légers soucis liés au suivi de la caféine dans le journal et amélioration des transitions et animations de cartes.',
         ),
       ],
     ),
@@ -597,27 +686,32 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
         WhatsNewEntry(
           icon: LucideIcons.camera,
           title: 'Enregistrer un repas à partir d\'une photo',
-          body: 'vise ton assiette et l\'IA en fait des aliments distincts, avec quantités, calories et macros - tout reste corrigeable avant l\'enregistrement. Les produits emballés sont reconnus par leur code-barres dans la même vue, les iPhone équipés du LiDAR capturent les données de profondeur pour faciliter l\'estimation de la portion, et le bouton micro permet d\'ajouter ce qu\'une photo ne montre pas.',
+          body:
+              'vise ton assiette et l\'IA en fait des aliments distincts, avec quantités, calories et macros - tout reste corrigeable avant l\'enregistrement. Les produits emballés sont reconnus par leur code-barres dans la même vue, les iPhone équipés du LiDAR capturent les données de profondeur pour faciliter l\'estimation de la portion, et le bouton micro permet d\'ajouter ce qu\'une photo ne montre pas.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.utensils,
           title: 'Un journal plus lisible',
-          body: 'un repas scanné reste une seule entrée avec sa photo et se déplie sur ses ingrédients. Les entrées sont triées par calories, les plus élevées d\'abord.',
+          body:
+              'un repas scanné reste une seule entrée avec sa photo et se déplie sur ses ingrédients. Les entrées sont triées par calories, les plus élevées d\'abord.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.dumbbell,
           title: 'Plus de tes entraînements',
-          body: 'garde jusqu\'à 4 photos par séance, et la barre au-dessus de la navigation indique en permanence si tu travailles ou récupères et quel exercice arrive ensuite. Un appui fait grandir l\'entraînement depuis la barre.',
+          body:
+              'garde jusqu\'à 4 photos par séance, et la barre au-dessus de la navigation indique en permanence si tu travailles ou récupères et quel exercice arrive ensuite. Un appui fait grandir l\'entraînement depuis la barre.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.cloud,
           title: 'Tes photos dans la sauvegarde iCloud',
-          body: 'la sauvegarde automatique emporte désormais les photos de tes repas et de tes entraînements. La restauration ne demande plus de redémarrage et conserve la sauvegarde précédente comme copie de secours.',
+          body:
+              'la sauvegarde automatique emporte désormais les photos de tes repas et de tes entraînements. La restauration ne demande plus de redémarrage et conserve la sauvegarde précédente comme copie de secours.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.sparkles,
           title: 'Une utilisation plus fluide',
-          body: 'les cartes s\'agrandissent en plein écran au lieu de basculer d\'un coup, les chiffres défilent jusqu\'à leur valeur, et les exercices supprimés se replient en douceur au lieu de disparaître brusquement.',
+          body:
+              'les cartes s\'agrandissent en plein écran au lieu de basculer d\'un coup, les chiffres défilent jusqu\'à leur valeur, et les exercices supprimés se replient en douceur au lieu de disparaître brusquement.',
         ),
       ],
     ),
@@ -628,17 +722,20 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
         WhatsNewEntry(
           icon: LucideIcons.layout_grid,
           title: 'Widgets d\'écran d\'accueil sur Android',
-          body: 'la famille de widgets arrive sur Android - ta dernière séance avec sa carte musculaire, la récupération musculaire, tes pas des 7 derniers jours, tes mensurations, la nutrition du jour et les actions rapides. Ajoute-les depuis le sélecteur de widgets de ton lanceur ; nutrition, mensurations et actions rapides se reconfigurent à tout moment.',
+          body:
+              'la famille de widgets arrive sur Android - ta dernière séance avec sa carte musculaire, la récupération musculaire, tes pas des 7 derniers jours, tes mensurations, la nutrition du jour et les actions rapides. Ajoute-les depuis le sélecteur de widgets de ton lanceur ; nutrition, mensurations et actions rapides se reconfigurent à tout moment.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.activity,
           title: 'Ta séance en cours dans les notifications',
-          body: 'une séance en cours s\'affiche désormais dans tes notifications avec le compte à rebours de repos, et sur Android 16 elle devient une Live Update avec une pastille dans la barre d\'état. Valider une série, ajouter ou retirer 15 secondes et passer le repos se font sur place, sans ouvrir l\'app.',
+          body:
+              'une séance en cours s\'affiche désormais dans tes notifications avec le compte à rebours de repos, et sur Android 16 elle devient une Live Update avec une pastille dans la barre d\'état. Valider une série, ajouter ou retirer 15 secondes et passer le repos se font sur place, sans ouvrir l\'app.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.zap,
           title: 'Tuiles des réglages rapides',
-          body: 'les sept actions rapides - scanner de code-barres, capture de repas par IA, démarrer une séance, ajouter de l\'eau, enregistrer un complément, ajouter une mensuration et ajouter un aliment - sont maintenant disponibles comme tuiles dans tes réglages rapides.',
+          body:
+              'les sept actions rapides - scanner de code-barres, capture de repas par IA, démarrer une séance, ajouter de l\'eau, enregistrer un complément, ajouter une mensuration et ajouter un aliment - sont maintenant disponibles comme tuiles dans tes réglages rapides.',
         ),
       ],
     ),
@@ -649,27 +746,32 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
         WhatsNewEntry(
           icon: LucideIcons.activity,
           title: 'Activité en direct et Dynamic Island',
-          body: 'suis ta séance en cours directement depuis l\'écran verrouillé et la Dynamic Island - exercice actuel, série, charge et compte à rebours de repos, sans déverrouiller ton téléphone. Tu peux prolonger ou passer le repos sur place.',
+          body:
+              'suis ta séance en cours directement depuis l\'écran verrouillé et la Dynamic Island - exercice actuel, série, charge et compte à rebours de repos, sans déverrouiller ton téléphone. Tu peux prolonger ou passer le repos sur place.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.layout_grid,
           title: 'Widgets pour l\'écran d\'accueil et l\'écran verrouillé',
-          body: 'de nouveaux widgets pour ta dernière séance, la récupération musculaire, tes pas des 7 derniers jours, tes mensurations et la nutrition du jour. Ajoute-les et vois tout d\'un coup d\'œil.',
+          body:
+              'de nouveaux widgets pour ta dernière séance, la récupération musculaire, tes pas des 7 derniers jours, tes mensurations et la nutrition du jour. Ajoute-les et vois tout d\'un coup d\'œil.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.mic,
           title: 'Siri, Raccourcis et bouton Action',
-          body: 'scanner de code-barres, capture de repas par IA, démarrer une séance, ajouter de l\'eau, enregistrer un complément, ajouter une mensuration et ajouter un aliment sont désormais disponibles comme raccourcis, boutons du centre de contrôle et pour le bouton Action.',
+          body:
+              'scanner de code-barres, capture de repas par IA, démarrer une séance, ajouter de l\'eau, enregistrer un complément, ajouter une mensuration et ajouter un aliment sont désormais disponibles comme raccourcis, boutons du centre de contrôle et pour le bouton Action.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.zap,
           title: 'Mises à jour de catalogue plus rapides',
-          body: 'l\'écran de mise à jour de la base de données ne bloque plus juste avant la fin - l\'étape lente derrière prend maintenant quelques millisecondes au lieu d\'environ 20 secondes.',
+          body:
+              'l\'écran de mise à jour de la base de données ne bloque plus juste avant la fin - l\'étape lente derrière prend maintenant quelques millisecondes au lieu d\'environ 20 secondes.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.dumbbell,
           title: 'Directement à ta prochaine série',
-          body: 'à l\'ouverture d\'une séance en cours, l\'app défile directement jusqu\'à l\'exercice contenant la prochaine série ouverte.',
+          body:
+              'à l\'ouverture d\'une séance en cours, l\'app défile directement jusqu\'à l\'exercice contenant la prochaine série ouverte.',
         ),
       ],
     ),
@@ -682,27 +784,32 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
         WhatsNewEntry(
           icon: LucideIcons.chart_line,
           title: 'Obiettivi che si adattano a te',
-          body: 'Imposta un obiettivo di peso a lungo termine partendo da una misurazione reale, segui la traiettoria e verifica i progressi con tranquilli riepiloghi settimanali. Le nuove raccomandazioni su calorie e macro restano proposte finché non scegli di applicarle.',
+          body:
+              'Imposta un obiettivo di peso a lungo termine partendo da una misurazione reale, segui la traiettoria e verifica i progressi con tranquilli riepiloghi settimanali. Le nuove raccomandazioni su calorie e macro restano proposte finché non scegli di applicarle.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.dumbbell,
           title: 'Piani di allenamento personalizzati',
-          body: 'Organizza le routine come programma settimanale o sequenza flessibile da 1 a 14 giorni, includi i giorni di riposo, imposta promemoria e avvia le sessioni dal diario senza alcuna pressione di recupero.',
+          body:
+              'Organizza le routine come programma settimanale o sequenza flessibile da 1 a 14 giorni, includi i giorni di riposo, imposta promemoria e avvia le sessioni dal diario senza alcuna pressione di recupero.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.sparkles,
           title: 'Livelli di esperienza su misura',
-          body: 'Scegli il tuo livello (Principiante, Avanzato, Pro) nelle impostazioni o nell\'onboarding. I dettagli dei gruppi muscolari, il RIR e le schermate di allenamento si adattano al tuo livello.',
+          body:
+              'Scegli il tuo livello (Principiante, Avanzato, Pro) nelle impostazioni o nell\'onboarding. I dettagli dei gruppi muscolari, il RIR e le schermate di allenamento si adattano al tuo livello.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.timer,
           title: 'Timer per serie & scheda Allenamento rinnovata',
-          body: 'Avvia e metti in pausa i timer delle serie durante l\'allenamento o dall\'Attività dal vivo sulla schermata di blocco. La scheda Allenamento riunisce piano attivo, routine e cronologia.',
+          body:
+              'Avvia e metti in pausa i timer delle serie durante l\'allenamento o dall\'Attività dal vivo sulla schermata di blocco. La scheda Allenamento riunisce piano attivo, routine e cronologia.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.activity,
           title: 'Trend del peso attenuati & nuove analisi',
-          body: 'Il trend del peso attenuato con linea discreta dei punti mostra la tua reale evoluzione nell\'app e nei widget, affiancato da statistiche dei macro e importazione delle misurazioni da Apple Salute e Health Connect.',
+          body:
+              'Il trend del peso attenuato con linea discreta dei punti mostra la tua reale evoluzione nell\'app e nei widget, affiancato da statistiche dei macro e importazione delle misurazioni da Apple Salute e Health Connect.',
         ),
       ],
     ),
@@ -713,22 +820,26 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
         WhatsNewEntry(
           icon: LucideIcons.activity,
           title: 'Recupero muscolare più preciso',
-          body: 'Il monitoraggio del recupero utilizza ora un modello a carico residuo dinamico per ogni singola serie. Le schede muscolari mostrano prontezza e ore di recupero a colpo d\'occhio; toccando una scheda si aprono dettagli su dosaggio e previsioni.',
+          body:
+              'Il monitoraggio del recupero utilizza ora un modello a carico residuo dinamico per ogni singola serie. Le schede muscolari mostrano prontezza e ore di recupero a colpo d\'occhio; toccando una scheda si aprono dettagli su dosaggio e previsioni.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.mic,
           title: 'Dettatura vocale migliorata',
-          body: 'La trascrizione si trova ora in alto per una lettura naturale, con il pulsante di registrazione posizionato comodamente in basso. Transizioni cromatiche fluide guidano dalla registrazione all\'elaborazione.',
+          body:
+              'La trascrizione si trova ora in alto per una lettura naturale, con il pulsante di registrazione posizionato comodamente in basso. Transizioni cromatiche fluide guidano dalla registrazione all\'elaborazione.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.utensils,
           title: 'Revisione pasti più chiara',
-          body: 'I pasti acquisiti con l\'IA mostrano schede ingredienti compatte e selezione diretta del tipo di pasto (colazione, pranzo, cena, spuntino) prima del salvataggio.',
+          body:
+              'I pasti acquisiti con l\'IA mostrano schede ingredienti compatte e selezione diretta del tipo di pasto (colazione, pranzo, cena, spuntino) prima del salvataggio.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.bug,
           title: 'Correzioni e rifiniture',
-          body: 'Risolto un problema di visualizzazione della scala di recupero e migliorata la stabilità complessiva.',
+          body:
+              'Risolto un problema di visualizzazione della scala di recupero e migliorata la stabilità complessiva.',
         ),
       ],
     ),
@@ -739,27 +850,32 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
         WhatsNewEntry(
           icon: LucideIcons.layout_grid,
           title: 'Sfoglia il diario per data',
-          body: 'una nuova barra dei giorni scorrevole ti permette di passare ai giorni vicini con un tocco. Quando scegli una data nel diario, il calendario si apre direttamente.',
+          body:
+              'una nuova barra dei giorni scorrevole ti permette di passare ai giorni vicini con un tocco. Quando scegli una data nel diario, il calendario si apre direttamente.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.sparkles,
           title: 'Suggerimenti più intelligenti per la prossima serie',
-          body: 'se attivi i suggerimenti di allenamento nelle Impostazioni, Train Libre può precompilare il peso della prossima serie di lavoro in base alle tue prestazioni recenti. Puoi sempre modificarlo prima di registrarlo.',
+          body:
+              'se attivi i suggerimenti di allenamento nelle Impostazioni, Train Libre può precompilare il peso della prossima serie di lavoro in base alle tue prestazioni recenti. Puoi sempre modificarlo prima di registrarlo.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.heart,
           title: 'Recupero dove ti alleni',
-          body: 'il recupero muscolare ora è in cima alla scheda Allenamento. L\'analisi dei gruppi muscolari mostra anche i tuoi schemi di movimento, oltre a copertura e frequenza.',
+          body:
+              'il recupero muscolare ora è in cima alla scheda Allenamento. L\'analisi dei gruppi muscolari mostra anche i tuoi schemi di movimento, oltre a copertura e frequenza.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.layout_grid,
           title: 'Gruppi muscolari a colpo d\'occhio',
-          body: 'l\'analisi ora offre una panoramica completa di ogni gruppo muscolare e schema di movimento, una heatmap di distribuzione sempre visibile e serie di lavoro settimanali o totali.',
+          body:
+              'l\'analisi ora offre una panoramica completa di ogni gruppo muscolare e schema di movimento, una heatmap di distribuzione sempre visibile e serie di lavoro settimanali o totali.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.chart_line,
           title: 'Allenamento e record più chiari',
-          body: 'il ritmo di allenamento mostra in modo più leggibile allenamenti, serie e calendario. I nuovi record personali compaiono in un feed dei progressi con una panoramica dei record.',
+          body:
+              'il ritmo di allenamento mostra in modo più leggibile allenamenti, serie e calendario. I nuovi record personali compaiono in un feed dei progressi con una panoramica dei record.',
         ),
       ],
     ),
@@ -770,27 +886,32 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
         WhatsNewEntry(
           icon: LucideIcons.dumbbell,
           title: 'Superserie',
-          body: 'unisci gli esercizi delle tue schede in superserie, triset o gruppi più ampi. Durante l\'allenamento li alterni giro dopo giro e il recupero parte solo dopo l\'ultimo esercizio del giro.',
+          body:
+              'unisci gli esercizi delle tue schede in superserie, triset o gruppi più ampi. Durante l\'allenamento li alterni giro dopo giro e il recupero parte solo dopo l\'ultimo esercizio del giro.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.timer,
           title: 'I campi giusti per ogni esercizio',
-          body: 'registra il tempo di tenuta per i plank, le ripetizioni e l\'eventuale peso aggiuntivo per le trazioni, oppure l\'assistenza per gli esercizi assistiti. Anche i valori dell\'ultimo allenamento e i grafici si adattano.',
+          body:
+              'registra il tempo di tenuta per i plank, le ripetizioni e l\'eventuale peso aggiuntivo per le trazioni, oppure l\'assistenza per gli esercizi assistiti. Anche i valori dell\'ultimo allenamento e i grafici si adattano.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.layout_grid,
           title: 'Catalogo degli esercizi rinnovato',
-          body: 'il catalogo ora utilizza OpenExerciseDB, con informazioni più precise su muscoli e movimenti e nomi nella lingua dell\'app. Filtra per attrezzatura, difficoltà e altre caratteristiche, anche mentre crei le tue schede.',
+          body:
+              'il catalogo ora utilizza OpenExerciseDB, con informazioni più precise su muscoli e movimenti e nomi nella lingua dell\'app. Filtra per attrezzatura, difficoltà e altre caratteristiche, anche mentre crei le tue schede.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.activity,
           title: 'Registra il peso dal diario',
-          body: 'annota il peso nella nuova scheda sotto Integratori, con un righello fluido in chilogrammi o libbre. Da lì apri anche la cronologia delle misurazioni.',
+          body:
+              'annota il peso nella nuova scheda sotto Integratori, con un righello fluido in chilogrammi o libbre. Da lì apri anche la cronologia delle misurazioni.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.chart_line,
           title: 'Progressi rappresentati meglio',
-          body: 'per gli esercizi a corpo libero, il volume di allenamento e i record di forza tengono conto del peso corporeo registrato, il peso aggiuntivo aumenta il carico e l\'assistenza lo riduce. Stretching e mobilità non contano più come serie di forza.',
+          body:
+              'per gli esercizi a corpo libero, il volume di allenamento e i record di forza tengono conto del peso corporeo registrato, il peso aggiuntivo aumenta il carico e l\'assistenza lo riduce. Stretching e mobilità non contano più come serie di forza.',
         ),
       ],
     ),
@@ -801,12 +922,14 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
         WhatsNewEntry(
           icon: LucideIcons.utensils,
           title: 'Raccomandazioni dei macronutrienti migliorate',
-          body: 'il calcolo adattivo distribuisce ora grassi e carboidrati in modo più bilanciato in base al peso corporeo e all\'obiettivo.',
+          body:
+              'il calcolo adattivo distribuisce ora grassi e carboidrati in modo più bilanciato in base al peso corporeo e all\'obiettivo.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.bug,
           title: 'Correzione di bug',
-          body: 'risolti piccoli problemi con la registrazione della caffeina nel diario e migliorate le transizioni e le animazioni delle schede.',
+          body:
+              'risolti piccoli problemi con la registrazione della caffeina nel diario e migliorate le transizioni e le animazioni delle schede.',
         ),
       ],
     ),
@@ -817,27 +940,32 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
         WhatsNewEntry(
           icon: LucideIcons.camera,
           title: 'Registra un pasto da una foto',
-          body: 'inquadra il piatto e l\'IA lo trasforma in singoli alimenti con quantità, calorie e macro, tutto correggibile prima di salvare. I prodotti confezionati vengono riconosciuti dal codice a barre nella stessa schermata, gli iPhone con LiDAR acquisiscono dati di profondità per facilitare la stima della porzione e il pulsante del microfono ti fa aggiungere ciò che una foto non mostra.',
+          body:
+              'inquadra il piatto e l\'IA lo trasforma in singoli alimenti con quantità, calorie e macro, tutto correggibile prima di salvare. I prodotti confezionati vengono riconosciuti dal codice a barre nella stessa schermata, gli iPhone con LiDAR acquisiscono dati di profondità per facilitare la stima della porzione e il pulsante del microfono ti fa aggiungere ciò che una foto non mostra.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.utensils,
           title: 'Un diario più chiaro',
-          body: 'un pasto scansionato resta una sola voce con la sua foto e si espande sui suoi ingredienti. Le voci sono ordinate per calorie, dalle più alte.',
+          body:
+              'un pasto scansionato resta una sola voce con la sua foto e si espande sui suoi ingredienti. Le voci sono ordinate per calorie, dalle più alte.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.dumbbell,
           title: 'Di più dai tuoi allenamenti',
-          body: 'conserva fino a 4 foto per sessione e la barra sopra la navigazione mostra sempre se stai lavorando o recuperando e quale esercizio viene dopo. Un tocco fa crescere l\'allenamento dalla barra.',
+          body:
+              'conserva fino a 4 foto per sessione e la barra sopra la navigazione mostra sempre se stai lavorando o recuperando e quale esercizio viene dopo. Un tocco fa crescere l\'allenamento dalla barra.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.cloud,
           title: 'Le tue foto nel backup iCloud',
-          body: 'il backup automatico porta con sé anche le foto dei tuoi pasti e dei tuoi allenamenti. Il ripristino non richiede più un riavvio e conserva il backup precedente come copia di riserva.',
+          body:
+              'il backup automatico porta con sé anche le foto dei tuoi pasti e dei tuoi allenamenti. Il ripristino non richiede più un riavvio e conserva il backup precedente come copia di riserva.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.sparkles,
           title: 'Uso più fluido',
-          body: 'le schede si aprono a schermo intero invece di cambiare di scatto, i numeri si contano da soli e gli esercizi rimossi si richiudono con delicatezza invece di sparire di colpo.',
+          body:
+              'le schede si aprono a schermo intero invece di cambiare di scatto, i numeri si contano da soli e gli esercizi rimossi si richiudono con delicatezza invece di sparire di colpo.',
         ),
       ],
     ),
@@ -848,17 +976,20 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
         WhatsNewEntry(
           icon: LucideIcons.layout_grid,
           title: 'Widget per la schermata Home su Android',
-          body: 'la famiglia di widget arriva su Android - il tuo ultimo allenamento con la mappa muscolare, il recupero muscolare, i passi degli ultimi 7 giorni, le misure corporee, la nutrizione di oggi e le azioni rapide. Aggiungili dal selettore di widget del tuo launcher; nutrizione, misure e azioni rapide si possono riconfigurare in qualsiasi momento.',
+          body:
+              'la famiglia di widget arriva su Android - il tuo ultimo allenamento con la mappa muscolare, il recupero muscolare, i passi degli ultimi 7 giorni, le misure corporee, la nutrizione di oggi e le azioni rapide. Aggiungili dal selettore di widget del tuo launcher; nutrizione, misure e azioni rapide si possono riconfigurare in qualsiasi momento.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.activity,
           title: 'L\'allenamento in corso nelle notifiche',
-          body: 'un allenamento in corso compare ora nelle notifiche con il conto alla rovescia del recupero e, su Android 16, diventa una Live Update con un indicatore nella barra di stato. Completare una serie, aggiungere o togliere 15 secondi e saltare il recupero si fanno da lì, senza aprire l\'app.',
+          body:
+              'un allenamento in corso compare ora nelle notifiche con il conto alla rovescia del recupero e, su Android 16, diventa una Live Update con un indicatore nella barra di stato. Completare una serie, aggiungere o togliere 15 secondi e saltare il recupero si fanno da lì, senza aprire l\'app.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.zap,
           title: 'Riquadri delle impostazioni rapide',
-          body: 'tutte e sette le azioni rapide - scanner di codici a barre, riconoscimento pasti con IA, avvia allenamento, aggiungi acqua, registra un integratore, aggiungi una misura e aggiungi un alimento - sono ora disponibili come riquadri nelle tue impostazioni rapide.',
+          body:
+              'tutte e sette le azioni rapide - scanner di codici a barre, riconoscimento pasti con IA, avvia allenamento, aggiungi acqua, registra un integratore, aggiungi una misura e aggiungi un alimento - sono ora disponibili come riquadri nelle tue impostazioni rapide.',
         ),
       ],
     ),
@@ -869,27 +1000,32 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
         WhatsNewEntry(
           icon: LucideIcons.activity,
           title: 'Attività in tempo reale e Dynamic Island',
-          body: 'segui l\'allenamento in corso direttamente dalla schermata di blocco e dalla Dynamic Island - esercizio attuale, serie, peso e conto alla rovescia del recupero, senza sbloccare il telefono. Puoi prolungare o saltare il recupero da lì.',
+          body:
+              'segui l\'allenamento in corso direttamente dalla schermata di blocco e dalla Dynamic Island - esercizio attuale, serie, peso e conto alla rovescia del recupero, senza sbloccare il telefono. Puoi prolungare o saltare il recupero da lì.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.layout_grid,
           title: 'Widget per schermata Home e di blocco',
-          body: 'nuovi widget per l\'ultimo allenamento, il recupero muscolare, i passi degli ultimi 7 giorni, le misure corporee e la nutrizione di oggi. Aggiungili e vedi tutto a colpo d\'occhio.',
+          body:
+              'nuovi widget per l\'ultimo allenamento, il recupero muscolare, i passi degli ultimi 7 giorni, le misure corporee e la nutrizione di oggi. Aggiungili e vedi tutto a colpo d\'occhio.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.mic,
           title: 'Siri, Comandi rapidi e tasto Azione',
-          body: 'scanner di codici a barre, riconoscimento pasti con IA, avvia allenamento, aggiungi acqua, registra un integratore, aggiungi una misura e aggiungi un alimento sono ora disponibili come comandi rapidi, pulsanti del Centro di Controllo e per il tasto Azione.',
+          body:
+              'scanner di codici a barre, riconoscimento pasti con IA, avvia allenamento, aggiungi acqua, registra un integratore, aggiungi una misura e aggiungi un alimento sono ora disponibili come comandi rapidi, pulsanti del Centro di Controllo e per il tasto Azione.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.zap,
           title: 'Aggiornamenti del catalogo più veloci',
-          body: 'la schermata di aggiornamento del database non si blocca più poco prima della fine - il passaggio lento dietro le quinte ora richiede millisecondi invece di circa 20 secondi.',
+          body:
+              'la schermata di aggiornamento del database non si blocca più poco prima della fine - il passaggio lento dietro le quinte ora richiede millisecondi invece di circa 20 secondi.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.dumbbell,
           title: 'Subito alla prossima serie',
-          body: 'aprendo un allenamento in corso l\'app scorre direttamente all\'esercizio con la prossima serie da completare.',
+          body:
+              'aprendo un allenamento in corso l\'app scorre direttamente all\'esercizio con la prossima serie da completare.',
         ),
       ],
     ),
@@ -902,27 +1038,32 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
         WhatsNewEntry(
           icon: LucideIcons.chart_line,
           title: 'あなたに合わせて進む目標管理',
-          body: '実際の開始時の体重記録から長期目標を設定し、軌道と進捗を落ち着いた週次レビューで確認できます。新しいカロリー・PFCバランスの提案は、自分で適用するまで目標値を変更しません。',
+          body:
+              '実際の開始時の体重記録から長期目標を設定し、軌道と進捗を落ち着いた週次レビューで確認できます。新しいカロリー・PFCバランスの提案は、自分で適用するまで目標値を変更しません。',
         ),
         WhatsNewEntry(
           icon: LucideIcons.dumbbell,
           title: 'カスタムトレーニングプランと柔軟なシーケンス',
-          body: '保存済みルーティンを週間スケジュールまたは1〜14日の柔軟なシーケンスに配置し、休養日を含めて予定セッションを日記から直接開始できます。取り戻す負担は一切ありません。',
+          body:
+              '保存済みルーティンを週間スケジュールまたは1〜14日の柔軟なシーケンスに配置し、休養日を含めて予定セッションを日記から直接開始できます。取り戻す負担は一切ありません。',
         ),
         WhatsNewEntry(
           icon: LucideIcons.sparkles,
           title: 'レベルに応じたトレーニング体験',
-          body: '初級・中級・上級の3段階から経験レベルを選択できます。筋肉の内訳、RIR（予備反復回数）、ワークアウト画面の表示があなたのレベルに合わせて最適化されます。',
+          body:
+              '初級・中級・上級の3段階から経験レベルを選択できます。筋肉の内訳、RIR（予備反復回数）、ワークアウト画面の表示があなたのレベルに合わせて最適化されます。',
         ),
         WhatsNewEntry(
           icon: LucideIcons.timer,
           title: 'セットタイマーと新しくなったワークアウト画面',
-          body: 'ワークアウト中やロック画面のライブアクティビティから直接セットタイマーを操作できます。進行中のプラン、ルーティン、履歴を1つの画面にまとめました。',
+          body:
+              'ワークアウト中やロック画面のライブアクティビティから直接セットタイマーを操作できます。進行中のプラン、ルーティン、履歴を1つの画面にまとめました。',
         ),
         WhatsNewEntry(
           icon: LucideIcons.activity,
           title: '平滑化された体重トレンドと新しい分析機能',
-          body: '指数平滑化と薄い実測プロットにより、アプリやホーム画面ウィジェットで真の体重傾向を把握できます。新しいPFC統計やApple Health・Health Connectからの測定値インポートにも対応しました。',
+          body:
+              '指数平滑化と薄い実測プロットにより、アプリやホーム画面ウィジェットで真の体重傾向を把握できます。新しいPFC統計やApple Health・Health Connectからの測定値インポートにも対応しました。',
         ),
       ],
     ),
@@ -933,17 +1074,20 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
         WhatsNewEntry(
           icon: LucideIcons.activity,
           title: 'より正確な筋肉回復トラッキング',
-          body: 'セットごとの時間減衰負荷モデルを導入しました。筋肉カードで準備状態と残り回復時間をひと目で確認でき、タップすると直近セッションの負荷や予測の詳細を表示します。',
+          body:
+              'セットごとの時間減衰負荷モデルを導入しました。筋肉カードで準備状態と残り回復時間をひと目で確認でき、タップすると直近セッションの負荷や予測の詳細を表示します。',
         ),
         WhatsNewEntry(
           icon: LucideIcons.mic,
           title: '音声入力の操作性を改善',
-          body: 'ディクテーション中に読みやすいようテキスト欄を上部に配置し、録音ボタンを下部に配置して親指で操作しやすくしました。録音から処理への色アニメーションも滑らかになりました。',
+          body:
+              'ディクテーション中に読みやすいようテキスト欄を上部に配置し、録音ボタンを下部に配置して親指で操作しやすくしました。録音から処理への色アニメーションも滑らかになりました。',
         ),
         WhatsNewEntry(
           icon: LucideIcons.utensils,
           title: 'AI食事レビューの効率化',
-          body: 'AIが認識した食事はコンパクトな食材カードで表示され、保存前に食事タイプ（朝食・昼食・夕食・間食）をスムーズに切り替えられます。',
+          body:
+              'AIが認識した食事はコンパクトな食材カードで表示され、保存前に食事タイプ（朝食・昼食・夕食・間食）をスムーズに切り替えられます。',
         ),
         WhatsNewEntry(
           icon: LucideIcons.bug,
@@ -964,7 +1108,8 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
         WhatsNewEntry(
           icon: LucideIcons.sparkles,
           title: '次のセットをより賢く提案',
-          body: '設定でトレーニングの提案を有効にすると、最近の記録をもとに次のワーキングセットの重量をあらかじめ入力できます。記録する前にいつでも変更できます。',
+          body:
+              '設定でトレーニングの提案を有効にすると、最近の記録をもとに次のワーキングセットの重量をあらかじめ入力できます。記録する前にいつでも変更できます。',
         ),
         WhatsNewEntry(
           icon: LucideIcons.heart,
@@ -981,7 +1126,8 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
         WhatsNewEntry(
           icon: LucideIcons.chart_line,
           title: 'トレーニングと記録をより分かりやすく',
-          body: 'トレーニングリズムでワークアウト、ストリーク、カレンダーを見やすく確認できます。新しい自己ベストは進歩フィードと記録の概要に表示されます。',
+          body:
+              'トレーニングリズムでワークアウト、ストリーク、カレンダーを見やすく確認できます。新しい自己ベストは進歩フィードと記録の概要に表示されます。',
         ),
       ],
     ),
@@ -992,27 +1138,32 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
         WhatsNewEntry(
           icon: LucideIcons.dumbbell,
           title: 'スーパーセット',
-          body: 'メニューの種目をスーパーセット、トライセット、さらに大きなグループとしてまとめられます。ワークアウト中はラウンドごとに種目を交互に行い、休憩はラウンド最後の種目を終えてから始まります。',
+          body:
+              'メニューの種目をスーパーセット、トライセット、さらに大きなグループとしてまとめられます。ワークアウト中はラウンドごとに種目を交互に行い、休憩はラウンド最後の種目を終えてから始まります。',
         ),
         WhatsNewEntry(
           icon: LucideIcons.timer,
           title: '種目に合った項目で記録',
-          body: 'プランクは保持時間、懸垂は回数と必要に応じた追加重量、補助付きの種目は補助重量を記録できます。前回の記録やグラフも種目に合わせて表示されます。',
+          body:
+              'プランクは保持時間、懸垂は回数と必要に応じた追加重量、補助付きの種目は補助重量を記録できます。前回の記録やグラフも種目に合わせて表示されます。',
         ),
         WhatsNewEntry(
           icon: LucideIcons.layout_grid,
           title: '種目カタログを刷新',
-          body: 'OpenExerciseDBを採用し、筋肉や動作の情報がより詳しくなり、種目名もアプリの言語で表示されます。器具や難易度などの条件で絞り込め、メニューを作成しているときも利用できます。',
+          body:
+              'OpenExerciseDBを採用し、筋肉や動作の情報がより詳しくなり、種目名もアプリの言語で表示されます。器具や難易度などの条件で絞り込め、メニューを作成しているときも利用できます。',
         ),
         WhatsNewEntry(
           icon: LucideIcons.activity,
           title: '日記から体重を記録',
-          body: 'サプリメントの下にある新しいカードから、キログラムまたはポンドの滑らかな目盛りで体重を記録できます。同じ場所から測定履歴も開けます。',
+          body:
+              'サプリメントの下にある新しいカードから、キログラムまたはポンドの滑らかな目盛りで体重を記録できます。同じ場所から測定履歴も開けます。',
         ),
         WhatsNewEntry(
           icon: LucideIcons.chart_line,
           title: '進歩をより正確に確認',
-          body: '自重種目のトレーニング総負荷量や自己記録に、記録済みの体重を反映します。追加重量は負荷に加え、補助重量は差し引きます。ストレッチやモビリティ種目は筋力トレーニングのセットに数えません。',
+          body:
+              '自重種目のトレーニング総負荷量や自己記録に、記録済みの体重を反映します。追加重量は負荷に加え、補助重量は差し引きます。ストレッチやモビリティ種目は筋力トレーニングのセットに数えません。',
         ),
       ],
     ),
@@ -1039,7 +1190,8 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
         WhatsNewEntry(
           icon: LucideIcons.camera,
           title: '写真から食事を記録',
-          body: 'カメラをお皿に向けるだけで、AIが個々の食品として量・カロリー・PFCに分解します。保存前にすべて修正でき、市販の包装食品は同じ画面のままバーコードで認識、LiDAR搭載のiPhoneでは深度データを取得して分量の推定をサポートし、マイクボタンで写真に写らない情報を補足できます。',
+          body:
+              'カメラをお皿に向けるだけで、AIが個々の食品として量・カロリー・PFCに分解します。保存前にすべて修正でき、市販の包装食品は同じ画面のままバーコードで認識、LiDAR搭載のiPhoneでは深度データを取得して分量の推定をサポートし、マイクボタンで写真に写らない情報を補足できます。',
         ),
         WhatsNewEntry(
           icon: LucideIcons.utensils,
@@ -1049,12 +1201,14 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
         WhatsNewEntry(
           icon: LucideIcons.dumbbell,
           title: 'トレーニングをもっと記録',
-          body: 'ワークアウトに最大4枚の写真を残せます。ナビゲーションの上のバーには、トレーニング中か休憩中か、次の種目は何かが常に表示され、タップするとワークアウトがバーから広がって開きます。',
+          body:
+              'ワークアウトに最大4枚の写真を残せます。ナビゲーションの上のバーには、トレーニング中か休憩中か、次の種目は何かが常に表示され、タップするとワークアウトがバーから広がって開きます。',
         ),
         WhatsNewEntry(
           icon: LucideIcons.cloud,
           title: 'iCloudバックアップに写真も保存',
-          body: '自動バックアップが食事やワークアウトの写真も一緒に保存します。復元は再起動が不要になり、直前のバックアップは予備として残ります。',
+          body:
+              '自動バックアップが食事やワークアウトの写真も一緒に保存します。復元は再起動が不要になり、直前のバックアップは予備として残ります。',
         ),
         WhatsNewEntry(
           icon: LucideIcons.sparkles,
@@ -1070,17 +1224,20 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
         WhatsNewEntry(
           icon: LucideIcons.layout_grid,
           title: 'Androidのホーム画面ウィジェット',
-          body: 'ウィジェットがAndroidにも登場しました。直近のワークアウト（筋肉マップ付き）、筋肉の回復状況、過去7日間の歩数、身体計測、今日の栄養、クイックアクションの6種類です。ランチャーのウィジェット一覧から追加でき、栄養・身体計測・クイックアクションは後からいつでも設定を変更できます。',
+          body:
+              'ウィジェットがAndroidにも登場しました。直近のワークアウト（筋肉マップ付き）、筋肉の回復状況、過去7日間の歩数、身体計測、今日の栄養、クイックアクションの6種類です。ランチャーのウィジェット一覧から追加でき、栄養・身体計測・クイックアクションは後からいつでも設定を変更できます。',
         ),
         WhatsNewEntry(
           icon: LucideIcons.activity,
           title: '進行中のワークアウトを通知に表示',
-          body: 'ワークアウト中は休憩のカウントダウンが通知に表示され、Android 16ではステータスバーにチップが出るライブアップデートになります。セットの完了、休憩の15秒延長・短縮、スキップは、アプリを開かずにその場で行えます。',
+          body:
+              'ワークアウト中は休憩のカウントダウンが通知に表示され、Android 16ではステータスバーにチップが出るライブアップデートになります。セットの完了、休憩の15秒延長・短縮、スキップは、アプリを開かずにその場で行えます。',
         ),
         WhatsNewEntry(
           icon: LucideIcons.zap,
           title: 'クイック設定のタイル',
-          body: 'バーコードスキャナー、AI食事記録、ワークアウト開始、水分の追加、サプリの記録、身体計測の追加、食品の追加という7つのクイックアクションが、クイック設定のタイルとして使えるようになりました。',
+          body:
+              'バーコードスキャナー、AI食事記録、ワークアウト開始、水分の追加、サプリの記録、身体計測の追加、食品の追加という7つのクイックアクションが、クイック設定のタイルとして使えるようになりました。',
         ),
       ],
     ),
@@ -1091,17 +1248,20 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
         WhatsNewEntry(
           icon: LucideIcons.activity,
           title: 'ライブアクティビティとダイナミックアイランド',
-          body: '進行中のワークアウトをロック画面とダイナミックアイランドから確認できます。現在の種目、セット、重量、休憩のカウントダウンを、ロックを解除せずに表示。休憩の延長やスキップもその場で行えます。',
+          body:
+              '進行中のワークアウトをロック画面とダイナミックアイランドから確認できます。現在の種目、セット、重量、休憩のカウントダウンを、ロックを解除せずに表示。休憩の延長やスキップもその場で行えます。',
         ),
         WhatsNewEntry(
           icon: LucideIcons.layout_grid,
           title: 'ホーム画面・ロック画面ウィジェット',
-          body: '直近のワークアウト、筋肉の回復状況、過去7日間の歩数、身体計測、今日の栄養のウィジェットを追加しました。ホーム画面やロック画面に置けば、数値をひと目で確認できます。',
+          body:
+              '直近のワークアウト、筋肉の回復状況、過去7日間の歩数、身体計測、今日の栄養のウィジェットを追加しました。ホーム画面やロック画面に置けば、数値をひと目で確認できます。',
         ),
         WhatsNewEntry(
           icon: LucideIcons.mic,
           title: 'Siri・ショートカット・アクションボタン',
-          body: 'バーコードスキャナー、AI食事記録、ワークアウト開始、水分の追加、サプリの記録、身体計測の追加、食品の追加が、ショートカット、コントロールセンターのボタン、アクションボタンから使えるようになりました。',
+          body:
+              'バーコードスキャナー、AI食事記録、ワークアウト開始、水分の追加、サプリの記録、身体計測の追加、食品の追加が、ショートカット、コントロールセンターのボタン、アクションボタンから使えるようになりました。',
         ),
         WhatsNewEntry(
           icon: LucideIcons.zap,

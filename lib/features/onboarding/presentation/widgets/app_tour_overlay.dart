@@ -94,7 +94,8 @@ class AppTourOverlay extends StatelessWidget {
                 child: ClipPath(
                   clipper: _InvertedHolesClipper(
                     holes: baseHoles
-                        .map((h) => _inflateRRect(h, (blurTiers - 1 - i) * stepDistance))
+                        .map((h) => _inflateRRect(
+                            h, (blurTiers - 1 - i) * stepDistance))
                         .toList(),
                   ),
                   child: BackdropFilter(
@@ -195,9 +196,8 @@ class AppTourOverlay extends StatelessWidget {
                               child: Text(
                                 skipLabel,
                                 style: TextStyle(
-                                  color: isDark
-                                      ? Colors.white54
-                                      : Colors.black54,
+                                  color:
+                                      isDark ? Colors.white54 : Colors.black54,
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
@@ -220,13 +220,12 @@ class AppTourOverlay extends StatelessWidget {
                       targetRect!.center.dy > constraints.maxHeight * 0.45;
 
                   if (isLowerHalf) {
-                    final bottomPos = (constraints.maxHeight -
-                            targetRect!.top +
-                            spotlightGap)
-                        .clamp(
-                            safeBottom,
-                            (constraints.maxHeight - safeTop - 220)
-                                .clamp(safeBottom, double.infinity));
+                    final bottomPos =
+                        (constraints.maxHeight - targetRect!.top + spotlightGap)
+                            .clamp(
+                                safeBottom,
+                                (constraints.maxHeight - safeTop - 220)
+                                    .clamp(safeBottom, double.infinity));
                     return Stack(
                       children: [
                         Positioned(
@@ -242,8 +241,8 @@ class AppTourOverlay extends StatelessWidget {
 
                 final defaultBottom = safeBottom + 24.0;
                 final topPos = (targetRect != null
-                        ? targetRect!.bottom + spotlightGap
-                        : null);
+                    ? targetRect!.bottom + spotlightGap
+                    : null);
 
                 return Stack(
                   children: [

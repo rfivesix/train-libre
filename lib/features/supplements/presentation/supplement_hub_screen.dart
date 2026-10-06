@@ -179,7 +179,8 @@ class _SupplementHubScreenState extends State<SupplementHubScreen> {
                       ].join('  •  '),
                     )
                   : null,
-              trailing: isBuiltin ? null : const Icon(LucideIcons.chevron_right),
+              trailing:
+                  isBuiltin ? null : const Icon(LucideIcons.chevron_right),
               onTap: () => _navigateToEdit(
                 s,
                 sourceContext: cardCtx,

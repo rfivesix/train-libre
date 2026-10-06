@@ -874,7 +874,6 @@ Future<double?> showGlassRateRulerInput({
   );
 }
 
-
 /// Represents the user's choice when there is an active workout conflict.
 enum ActiveWorkoutConflictResult {
   resume,

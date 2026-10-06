@@ -1295,41 +1295,42 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
                             ),
                           ],
                           const SizedBox(height: 8),
-                          if (!_scanFailed) Skeletonizer(
-                            enabled: _isMatching && _validation == null,
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                Text(
-                                  '${_isMatching && _validation == null && _totalKcal == 0 ? 550 : _totalKcal} kcal',
-                                  style: TextStyle(
-                                    fontFamily: 'Plus Jakarta Sans',
-                                    fontWeight: FontWeight.w800,
-                                    fontSize: 24,
-                                    color: titleColor,
+                          if (!_scanFailed)
+                            Skeletonizer(
+                              enabled: _isMatching && _validation == null,
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    '${_isMatching && _validation == null && _totalKcal == 0 ? 550 : _totalKcal} kcal',
+                                    style: TextStyle(
+                                      fontFamily: 'Plus Jakarta Sans',
+                                      fontWeight: FontWeight.w800,
+                                      fontSize: 24,
+                                      color: titleColor,
+                                    ),
                                   ),
-                                ),
-                                const Spacer(),
-                                _buildMacroPill(
-                                  'P',
-                                  '${_isMatching && _validation == null && _totalProtein == 0 ? 35 : _totalProtein.round()}g',
-                                  const Color(0xFFFF453A),
-                                ),
-                                const SizedBox(width: 8),
-                                _buildMacroPill(
-                                  'C',
-                                  '${_isMatching && _validation == null && _totalCarbs == 0 ? 50 : _totalCarbs.round()}g',
-                                  const Color(0xFF30D158),
-                                ),
-                                const SizedBox(width: 8),
-                                _buildMacroPill(
-                                  'F',
-                                  '${_isMatching && _validation == null && _totalFat == 0 ? 15 : _totalFat.round()}g',
-                                  const Color(0xFFBF5AF2),
-                                ),
-                              ],
+                                  const Spacer(),
+                                  _buildMacroPill(
+                                    'P',
+                                    '${_isMatching && _validation == null && _totalProtein == 0 ? 35 : _totalProtein.round()}g',
+                                    const Color(0xFFFF453A),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  _buildMacroPill(
+                                    'C',
+                                    '${_isMatching && _validation == null && _totalCarbs == 0 ? 50 : _totalCarbs.round()}g',
+                                    const Color(0xFF30D158),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  _buildMacroPill(
+                                    'F',
+                                    '${_isMatching && _validation == null && _totalFat == 0 ? 15 : _totalFat.round()}g',
+                                    const Color(0xFFBF5AF2),
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
                           if (_isMatching && _validation != null)
                             Text(
                               l10n.aiReviewPreliminaryNutrition,
@@ -1374,102 +1375,105 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
                     const SizedBox(height: DesignConstants.spacingM),
                   ],
 
-                  if (!_scanFailed) Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: _isEditing
-                        ? Column(
-                            children: [
-                              if (_isMatching)
-                                const Center(
-                                  child: Padding(
-                                    padding: EdgeInsets.all(
-                                        DesignConstants.spacingXL),
-                                    child: CircularProgressIndicator(),
+                  if (!_scanFailed)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: _isEditing
+                          ? Column(
+                              children: [
+                                if (_isMatching)
+                                  const Center(
+                                    child: Padding(
+                                      padding: EdgeInsets.all(
+                                          DesignConstants.spacingXL),
+                                      child: CircularProgressIndicator(),
+                                    ),
+                                  )
+                                else
+                                  ..._items.asMap().entries.map((entry) {
+                                    final index = entry.key;
+                                    final item = entry.value;
+                                    return MealReviewComparisonCard(
+                                      dismissibleKey: ValueKey(item.hashCode),
+                                      name: item.suggestion.name,
+                                      estimatedGrams:
+                                          item.suggestion.estimatedGrams,
+                                      confidence: item.suggestion.confidence,
+                                      matchedFood: item.matchedFood,
+                                      issues: item.issues,
+                                      nutrition: item.nutrition,
+                                      onDismissed: () => _removeItem(index),
+                                      onTap: item.matchedFood != null
+                                          ? () => _inspectFood(index)
+                                          : () => _replaceWithFood(index),
+                                      onReplace: () => _replaceWithFood(index),
+                                      onEditQuantity: () =>
+                                          _editQuantity(index),
+                                      onQuickAdjustQuantity: (delta) =>
+                                          _adjustQuantityBy(index, delta),
+                                    );
+                                  }),
+
+                                const SizedBox(height: 8),
+
+                                // Add item button (compact, centered)
+                                Center(
+                                  child: AppButton.secondary(
+                                    onPressed: _addManualItem,
+                                    label: l10n.aiReviewAddItem,
+                                    tooltip: l10n.aiReviewAddItem,
+                                    icon: LucideIcons.plus,
                                   ),
-                                )
-                              else
-                                ..._items.asMap().entries.map((entry) {
-                                  final index = entry.key;
-                                  final item = entry.value;
-                                  return MealReviewComparisonCard(
-                                    dismissibleKey: ValueKey(item.hashCode),
-                                    name: item.suggestion.name,
-                                    estimatedGrams:
-                                        item.suggestion.estimatedGrams,
-                                    confidence: item.suggestion.confidence,
-                                    matchedFood: item.matchedFood,
-                                    issues: item.issues,
-                                    nutrition: item.nutrition,
-                                    onDismissed: () => _removeItem(index),
-                                    onTap: item.matchedFood != null
-                                        ? () => _inspectFood(index)
-                                        : () => _replaceWithFood(index),
-                                    onReplace: () => _replaceWithFood(index),
-                                    onEditQuantity: () => _editQuantity(index),
-                                    onQuickAdjustQuantity: (delta) =>
-                                        _adjustQuantityBy(index, delta),
-                                  );
-                                }),
-
-                              const SizedBox(height: 8),
-
-                              // Add item button (compact, centered)
-                              Center(
-                                child: AppButton.secondary(
-                                  onPressed: _addManualItem,
-                                  label: l10n.aiReviewAddItem,
-                                  tooltip: l10n.aiReviewAddItem,
-                                  icon: LucideIcons.plus,
                                 ),
-                              ),
-                            ],
-                          )
-                        : Skeletonizer(
-                            enabled: _isMatching && _validation == null,
-                            child: MealIngredientsSummary(
-                              ingredients: _items.isNotEmpty
-                                  ? _items
-                                      .map(
-                                        (item) => MealIngredientSummaryItem(
-                                          name: item.suggestion.name,
-                                          grams: item.suggestion.estimatedGrams,
-                                          kcal: item.nutrition.kcalRounded > 0
-                                              ? item.nutrition.kcalRounded
-                                              : _validation == null &&
-                                                      _isMatching
-                                                  ? 150
-                                                  : 0,
+                              ],
+                            )
+                          : Skeletonizer(
+                              enabled: _isMatching && _validation == null,
+                              child: MealIngredientsSummary(
+                                ingredients: _items.isNotEmpty
+                                    ? _items
+                                        .map(
+                                          (item) => MealIngredientSummaryItem(
+                                            name: item.suggestion.name,
+                                            grams:
+                                                item.suggestion.estimatedGrams,
+                                            kcal: item.nutrition.kcalRounded > 0
+                                                ? item.nutrition.kcalRounded
+                                                : _validation == null &&
+                                                        _isMatching
+                                                    ? 150
+                                                    : 0,
+                                          ),
+                                        )
+                                        .toList(growable: false)
+                                    : const [
+                                        MealIngredientSummaryItem(
+                                          name: 'Zutat',
+                                          grams: 150,
+                                          kcal: 200,
                                         ),
-                                      )
-                                      .toList(growable: false)
-                                  : const [
-                                      MealIngredientSummaryItem(
-                                        name: 'Zutat',
-                                        grams: 150,
-                                        kcal: 200,
-                                      ),
-                                      MealIngredientSummaryItem(
-                                        name: 'Zutat',
-                                        grams: 200,
-                                        kcal: 300,
-                                      ),
-                                    ],
-                              onEdit: _isMatching
-                                  ? () {}
-                                  : () => setState(() => _isEditing = true),
-                              onIngredientTap: _isMatching
-                                  ? null
-                                  : (index) {
-                                      final item = _items[index];
-                                      if (item.matchedFood != null) {
-                                        _inspectFood(index);
-                                      } else {
-                                        _replaceWithFood(index);
-                                      }
-                                    },
+                                        MealIngredientSummaryItem(
+                                          name: 'Zutat',
+                                          grams: 200,
+                                          kcal: 300,
+                                        ),
+                                      ],
+                                onEdit: _isMatching
+                                    ? () {}
+                                    : () => setState(() => _isEditing = true),
+                                onIngredientTap: _isMatching
+                                    ? null
+                                    : (index) {
+                                        final item = _items[index];
+                                        if (item.matchedFood != null) {
+                                          _inspectFood(index);
+                                        } else {
+                                          _replaceWithFood(index);
+                                        }
+                                      },
+                              ),
                             ),
-                          ),
-                  ),
+                    ),
 
                   // Matching diagnostics and retry controls are useful when a
                   // person explicitly edits, but overwhelm the normal result.

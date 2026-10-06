@@ -96,7 +96,8 @@ void main() {
     SharedPreferences.setMockInitialValues(<String, Object>{});
   });
 
-  testWidgets('settings screen contains app tour restart tile and triggers restart', (
+  testWidgets(
+      'settings screen contains app tour restart tile and triggers restart', (
     tester,
   ) async {
     await tester.binding.setSurfaceSize(const Size(900, 2200));

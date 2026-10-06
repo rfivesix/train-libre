@@ -14,8 +14,6 @@ void main() {
     await Future.delayed(Duration.zero);
   });
 
-
-
   group('WeeklyTargetRateCatalog custom rate support', () {
     test('coerces preset rates properly', () {
       final defaultGain = WeeklyTargetRateCatalog.defaultForGoal(
@@ -31,7 +29,6 @@ void main() {
       );
       expect(coerced, equals(defaultGain.kgPerWeek));
     });
-
 
     test('preserves custom rate for gain goal', () {
       // User case: 370 g/week = 0.37 kg/week
@@ -84,4 +81,3 @@ void main() {
     });
   });
 }
-

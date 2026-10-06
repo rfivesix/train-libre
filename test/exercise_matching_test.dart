@@ -20,7 +20,9 @@ void main() {
           id: const drift.Value('ex-1'),
           source: const drift.Value('wger'),
         ));
-    await database.into(database.exerciseTranslations).insert(db.ExerciseTranslationsCompanion(
+    await database
+        .into(database.exerciseTranslations)
+        .insert(db.ExerciseTranslationsCompanion(
           exerciseId: const drift.Value('ex-1'),
           languageCode: const drift.Value('de'),
           name: const drift.Value('Rumänisches Kreuzheben'),
@@ -30,7 +32,9 @@ void main() {
           id: const drift.Value('ex-2'),
           source: const drift.Value('wger'),
         ));
-    await database.into(database.exerciseTranslations).insert(db.ExerciseTranslationsCompanion(
+    await database
+        .into(database.exerciseTranslations)
+        .insert(db.ExerciseTranslationsCompanion(
           exerciseId: const drift.Value('ex-2'),
           languageCode: const drift.Value('de'),
           name: const drift.Value('Brustpresse'),
@@ -40,7 +44,9 @@ void main() {
           id: const drift.Value('ex-3'),
           source: const drift.Value('wger'),
         ));
-    await database.into(database.exerciseTranslations).insert(db.ExerciseTranslationsCompanion(
+    await database
+        .into(database.exerciseTranslations)
+        .insert(db.ExerciseTranslationsCompanion(
           exerciseId: const drift.Value('ex-3'),
           languageCode: const drift.Value('de'),
           name: const drift.Value('Beinstrecker'),
@@ -50,7 +56,9 @@ void main() {
           id: const drift.Value('ex-4'),
           source: const drift.Value('wger'),
         ));
-    await database.into(database.exerciseTranslations).insert(db.ExerciseTranslationsCompanion(
+    await database
+        .into(database.exerciseTranslations)
+        .insert(db.ExerciseTranslationsCompanion(
           exerciseId: const drift.Value('ex-4'),
           languageCode: const drift.Value('de'),
           name: const drift.Value('Wadenheben Stehend'),
@@ -63,7 +71,8 @@ void main() {
 
   group('Exercise Matching & Multi-pass Search Tests', () {
     test('getExerciseByName strips parenthetical equipment tags', () async {
-      final match1 = await helper.getExerciseByName('Rumänisches Kreuzheben (Langhantel)');
+      final match1 =
+          await helper.getExerciseByName('Rumänisches Kreuzheben (Langhantel)');
       expect(match1, isNotNull);
       expect(match1!.uuid, 'ex-1');
 
@@ -72,21 +81,28 @@ void main() {
       expect(match2!.uuid, 'ex-2');
     });
 
-    test('searchExercises matches synonyms and stripped equipment tags', () async {
-      final results1 = await helper.searchExercises(query: 'Beinstrecken (Maschine)');
+    test('searchExercises matches synonyms and stripped equipment tags',
+        () async {
+      final results1 =
+          await helper.searchExercises(query: 'Beinstrecken (Maschine)');
       expect(results1, isNotEmpty);
       expect(results1.first.uuid, 'ex-3');
 
-      final results2 = await helper.searchExercises(query: 'Wadendrücken (Maschine)');
+      final results2 =
+          await helper.searchExercises(query: 'Wadendrücken (Maschine)');
       expect(results2, isNotEmpty);
       expect(results2.first.uuid, 'ex-4');
     });
-    test('getExactExerciseByName requires exact match and rejects parenthetical variants', () async {
-      final exactMatch = await helper.getExactExerciseByName('Rumänisches Kreuzheben');
+    test(
+        'getExactExerciseByName requires exact match and rejects parenthetical variants',
+        () async {
+      final exactMatch =
+          await helper.getExactExerciseByName('Rumänisches Kreuzheben');
       expect(exactMatch, isNotNull);
       expect(exactMatch!.uuid, 'ex-1');
 
-      final variantMatch = await helper.getExactExerciseByName('Rumänisches Kreuzheben (Langhantel)');
+      final variantMatch = await helper
+          .getExactExerciseByName('Rumänisches Kreuzheben (Langhantel)');
       expect(variantMatch, isNull);
     });
   });

@@ -289,7 +289,8 @@ class _MealEntryCardState extends State<MealEntryCard> {
                                     Key('meal_item_${tracked.entry.id}'),
                                 onEdit: () => widget.onEditItem?.call(tracked),
                                 onDelete: () => tracked.entry.id != null
-                                    ? widget.onDeleteItem?.call(tracked.entry.id!)
+                                    ? widget.onDeleteItem
+                                        ?.call(tracked.entry.id!)
                                     : null,
                                 child: DiaryFoodRow(
                                   name: tracked.item.name,

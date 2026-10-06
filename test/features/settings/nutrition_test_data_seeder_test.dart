@@ -36,21 +36,24 @@ void main() {
 
       final products = await database.select(database.products).get();
       expect(products.length, 1);
-      expect(products.first.barcode, NutritionTestDataSeeder.testFixtureBarcode);
+      expect(
+          products.first.barcode, NutritionTestDataSeeder.testFixtureBarcode);
 
       await NutritionTestDataSeeder.clearNutritionTestData(dbHelper: dbHelper);
 
       final remainingGoals = await database.select(database.userGoals).get();
       expect(remainingGoals, isEmpty);
 
-      final remainingReviews = await database.select(database.goalReviews).get();
+      final remainingReviews =
+          await database.select(database.goalReviews).get();
       expect(remainingReviews, isEmpty);
 
       final remainingProducts = await database.select(database.products).get();
       expect(remainingProducts, isEmpty);
     });
 
-    test('seedScenario is idempotent and does not fail on repeated injection', () async {
+    test('seedScenario is idempotent and does not fail on repeated injection',
+        () async {
       // 1. Seed first scenario (on track)
       await NutritionTestDataSeeder.seedScenario(
         CanonicalNutritionScenarios.all[0],
@@ -77,7 +80,8 @@ void main() {
 
       // Products table should have exactly 1 test product without unique constraint crashes
       final products = await (database.select(database.products)
-            ..where((t) => t.barcode.equals(NutritionTestDataSeeder.testFixtureBarcode)))
+            ..where((t) =>
+                t.barcode.equals(NutritionTestDataSeeder.testFixtureBarcode)))
           .get();
       expect(products.length, 1);
     });

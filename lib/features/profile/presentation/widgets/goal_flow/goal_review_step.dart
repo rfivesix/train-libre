@@ -58,82 +58,83 @@ class GoalReviewStep extends StatelessWidget {
             ),
           ),
           const SizedBox(height: DesignConstants.spacingXL),
-        SummaryCard(
-          margin: EdgeInsets.zero,
-          child: Column(
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildPreviewMetric(
-                      context,
-                      l10n.goalBaselineHeader,
-                      formatWeight(baseline),
+          SummaryCard(
+            margin: EdgeInsets.zero,
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildPreviewMetric(
+                        context,
+                        l10n.goalBaselineHeader,
+                        formatWeight(baseline),
+                      ),
                     ),
-                  ),
-                  Text(
-                    '→',
-                    style: theme.textTheme.headlineSmall?.copyWith(
-                      color: theme.colorScheme.primary,
-                      fontWeight: FontWeight.bold,
+                    Text(
+                      '→',
+                      style: theme.textTheme.headlineSmall?.copyWith(
+                        color: theme.colorScheme.primary,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  ),
-                  Expanded(
-                    child: _buildPreviewMetric(
-                      context,
-                      l10n.goalTargetHeader,
-                      isMaintain
-                          ? '${formatWeight(baseline)} (± 1.0 $unit)'
-                          : formatWeight(target),
-                      alignEnd: true,
+                    Expanded(
+                      child: _buildPreviewMetric(
+                        context,
+                        l10n.goalTargetHeader,
+                        isMaintain
+                            ? '${formatWeight(baseline)} (± 1.0 $unit)'
+                            : formatWeight(target),
+                        alignEnd: true,
+                      ),
                     ),
-                  ),
-                ],
-              ),
-              const Divider(height: DesignConstants.spacingXL),
-              _buildReviewRow(
-                context,
-                label: l10n.goalWeeklyRateLabel,
-                value: isMaintain
-                    ? '0.00 $unit / ${l10n.weekShort} (${l10n.goalPresetMaintainWeight})'
-                    : '${state.weeklyRateKg.toStringAsFixed(2)} $unit / ${l10n.weekShort}',
-              ),
-              const SizedBox(height: DesignConstants.spacingM),
-              _buildReviewRow(
-                context,
-                label: l10n.goalTargetDateLabel,
-                value: state.targetDate == null
-                    ? l10n.goalNoDeadlineOption
-                    : dateFormat.format(state.targetDate!),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: DesignConstants.spacingM),
-        SummaryCard(
-          margin: EdgeInsets.zero,
-          child: PlatformAdaptiveSwitchListTile(
-            contentPadding: EdgeInsets.zero,
-            title: Text(
-              l10n.goalDriverSettingLabel,
-              style: theme.textTheme.titleSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+                  ],
+                ),
+                const Divider(height: DesignConstants.spacingXL),
+                _buildReviewRow(
+                  context,
+                  label: l10n.goalWeeklyRateLabel,
+                  value: isMaintain
+                      ? '0.00 $unit / ${l10n.weekShort} (${l10n.goalPresetMaintainWeight})'
+                      : '${state.weeklyRateKg.toStringAsFixed(2)} $unit / ${l10n.weekShort}',
+                ),
+                const SizedBox(height: DesignConstants.spacingM),
+                _buildReviewRow(
+                  context,
+                  label: l10n.goalTargetDateLabel,
+                  value: state.targetDate == null
+                      ? l10n.goalNoDeadlineOption
+                      : dateFormat.format(state.targetDate!),
+                ),
+              ],
             ),
-            subtitle: Text(
-              l10n.goalDriverSettingDescription,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
-              ),
-            ),
-            value: state.isNutritionDriver,
-            onChanged: (value) {
-              state.setNutritionDriver(value);
-            },
           ),
-        ),
-      ],
-    ),);
+          const SizedBox(height: DesignConstants.spacingM),
+          SummaryCard(
+            margin: EdgeInsets.zero,
+            child: PlatformAdaptiveSwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: Text(
+                l10n.goalDriverSettingLabel,
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              subtitle: Text(
+                l10n.goalDriverSettingDescription,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+                ),
+              ),
+              value: state.isNutritionDriver,
+              onChanged: (value) {
+                state.setNutritionDriver(value);
+              },
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildPreviewMetric(

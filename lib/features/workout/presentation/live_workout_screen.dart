@@ -857,7 +857,8 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
 
         final priorSets = manager.lastPerformances[re.exercise.canonicalName];
         if (priorSets != null &&
-            priorSets.any((s) => WorkoutSetPositionMapper.isWorking(s.setType))) {
+            priorSets
+                .any((s) => WorkoutSetPositionMapper.isWorking(s.setType))) {
           hasEligibleHistoricalData = true;
           break;
         }

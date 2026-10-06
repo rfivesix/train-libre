@@ -269,7 +269,8 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
                             ),
                             title: Text(
                               routine.name,
-                              style: const TextStyle(fontWeight: FontWeight.bold),
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.bold),
                             ),
                             subtitle: Text(l10n.editRoutineSubtitle),
                             trailing: interactive

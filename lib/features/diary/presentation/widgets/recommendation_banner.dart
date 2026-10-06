@@ -206,80 +206,77 @@ class _RecommendationBannerState extends State<RecommendationBanner>
                 width: 1.0,
               ),
             ),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: DesignConstants.spacingL, vertical: 14.0),
-                    child: Row(
-                      children: [
-                        Icon(
-                          LucideIcons.lightbulb,
-                          color: accent,
-                          size: DesignConstants.iconSizeL,
-                        ),
-                        const SizedBox(width: DesignConstants.spacingM),
-                        Expanded(
-                          child: Text(
-                            l10n.recommendationBannerText(deltaStr),
-                            style: TextStyle(
-                              fontSize: 14.0,
-                              fontWeight: FontWeight.w500,
-                              color: isDark ? Colors.white : Colors.black87,
-                              height: 1.3,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: DesignConstants.spacingM),
-                        // Interactive "Apply" Pill Button
-                        Semantics(
-                          label: l10n.semanticsApplyRecommendation,
-                          button: true,
-                          child: GestureDetector(
-                            behavior: HitTestBehavior.opaque,
-                            onTap: _applyRecommendation,
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: DesignConstants.spacingM,
-                                  vertical: 6),
-                              decoration: BoxDecoration(
-                                color: accent.withValues(
-                                    alpha: isDark ? 0.2 : 0.1),
-                                borderRadius: BorderRadius.circular(
-                                    DesignConstants.borderRadiusS),
-                                border: Border.all(
-                                    color: accent.withValues(alpha: 0.3)),
-                              ),
-                              child: Text(
-                                l10n.recommendationBannerApply,
-                                style: TextStyle(
-                                  color: accent,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: DesignConstants.spacingS),
-                        Semantics(
-                          label: l10n.semanticsDismissBanner,
-                          button: true,
-                          child: GestureDetector(
-                            behavior: HitTestBehavior.opaque,
-                            onTap: _dismissBanner,
-                            child: Padding(
-                              padding: const EdgeInsets.all(
-                                  DesignConstants.spacingS),
-                              child: Icon(
-                                LucideIcons.x,
-                                size: DesignConstants.iconSizeM,
-                                color: isDark ? Colors.white60 : Colors.black54,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                  horizontal: DesignConstants.spacingL, vertical: 14.0),
+              child: Row(
+                children: [
+                  Icon(
+                    LucideIcons.lightbulb,
+                    color: accent,
+                    size: DesignConstants.iconSizeL,
+                  ),
+                  const SizedBox(width: DesignConstants.spacingM),
+                  Expanded(
+                    child: Text(
+                      l10n.recommendationBannerText(deltaStr),
+                      style: TextStyle(
+                        fontSize: 14.0,
+                        fontWeight: FontWeight.w500,
+                        color: isDark ? Colors.white : Colors.black87,
+                        height: 1.3,
+                      ),
                     ),
                   ),
+                  const SizedBox(width: DesignConstants.spacingM),
+                  // Interactive "Apply" Pill Button
+                  Semantics(
+                    label: l10n.semanticsApplyRecommendation,
+                    button: true,
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: _applyRecommendation,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: DesignConstants.spacingM, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: accent.withValues(alpha: isDark ? 0.2 : 0.1),
+                          borderRadius: BorderRadius.circular(
+                              DesignConstants.borderRadiusS),
+                          border:
+                              Border.all(color: accent.withValues(alpha: 0.3)),
+                        ),
+                        child: Text(
+                          l10n.recommendationBannerApply,
+                          style: TextStyle(
+                            color: accent,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: DesignConstants.spacingS),
+                  Semantics(
+                    label: l10n.semanticsDismissBanner,
+                    button: true,
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: _dismissBanner,
+                      child: Padding(
+                        padding: const EdgeInsets.all(DesignConstants.spacingS),
+                        child: Icon(
+                          LucideIcons.x,
+                          size: DesignConstants.iconSizeM,
+                          color: isDark ? Colors.white60 : Colors.black54,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
       ),

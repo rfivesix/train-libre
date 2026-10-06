@@ -26,7 +26,9 @@ void main() {
   );
 
   group('SummaryCard nested input & dropdown contrast', () {
-    testWidgets('light mode: inputs and dropdowns on white SummaryCard get secondary surface fill color', (tester) async {
+    testWidgets(
+        'light mode: inputs and dropdowns on white SummaryCard get secondary surface fill color',
+        (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           theme: lightTheme,
@@ -94,7 +96,8 @@ void main() {
           matching: find.byType(InputDecorator),
         ),
       );
-      expect(cardInputDecorator.decoration.fillColor, DesignConstants.summaryCardSecondaryLightMode);
+      expect(cardInputDecorator.decoration.fillColor,
+          DesignConstants.summaryCardSecondaryLightMode);
 
       // Verify card dropdown has contrasting secondary surface fill (0xFFF2F2F7)
       final cardDropdownDecorator = tester.widget<InputDecorator>(
@@ -103,10 +106,13 @@ void main() {
           matching: find.byType(InputDecorator),
         ),
       );
-      expect(cardDropdownDecorator.decoration.fillColor, DesignConstants.summaryCardSecondaryLightMode);
+      expect(cardDropdownDecorator.decoration.fillColor,
+          DesignConstants.summaryCardSecondaryLightMode);
     });
 
-    testWidgets('light mode: inputs on secondary surface SummaryCard invert to white fill color', (tester) async {
+    testWidgets(
+        'light mode: inputs on secondary surface SummaryCard invert to white fill color',
+        (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           theme: lightTheme,
@@ -130,7 +136,9 @@ void main() {
       expect(cardInputDecorator.decoration.fillColor, Colors.white);
     });
 
-    testWidgets('dark mode: inputs both inside and outside SummaryCard preserve dark fill color', (tester) async {
+    testWidgets(
+        'dark mode: inputs both inside and outside SummaryCard preserve dark fill color',
+        (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           theme: darkTheme,
@@ -168,7 +176,8 @@ void main() {
           matching: find.byType(InputDecorator),
         ),
       );
-      expect(cardDropdownDecorator.decoration.fillColor, const Color(0xFF2C2C2E));
+      expect(
+          cardDropdownDecorator.decoration.fillColor, const Color(0xFF2C2C2E));
     });
   });
 }

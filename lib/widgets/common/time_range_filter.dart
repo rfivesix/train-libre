@@ -73,8 +73,7 @@ class _TimeRangeFilterState extends State<TimeRangeFilter> {
     final chipContext = key.currentContext;
     if (chipContext != null && _scrollController.hasClients) {
       final chipBox = chipContext.findRenderObject() as RenderBox?;
-      final scrollBox = _scrollController
-          .position.context.storageContext
+      final scrollBox = _scrollController.position.context.storageContext
           .findRenderObject() as RenderBox?;
       if (chipBox != null &&
           scrollBox != null &&
@@ -86,8 +85,8 @@ class _TimeRangeFilterState extends State<TimeRangeFilter> {
         final targetOffset = currentScroll +
             localOffset.dx -
             DesignConstants.cardPaddingInternal;
-        final clamped = targetOffset.clamp(
-            0.0, _scrollController.position.maxScrollExtent);
+        final clamped =
+            targetOffset.clamp(0.0, _scrollController.position.maxScrollExtent);
 
         if (force) {
           if ((clamped - currentScroll).abs() > 0.5) {
@@ -190,14 +189,14 @@ class _TimeRangeFilterState extends State<TimeRangeFilter> {
                                         }
                                       : null,
                                   child: Padding(
-                                    padding:
-                                        const EdgeInsets.symmetric(horizontal: 8),
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 8),
                                     child: Center(
                                       child: Icon(
                                         LucideIcons.chevron_left,
-                                        semanticLabel: MaterialLocalizations.of(
-                                                context)
-                                            .previousPageTooltip,
+                                        semanticLabel:
+                                            MaterialLocalizations.of(context)
+                                                .previousPageTooltip,
                                         size: 16,
                                         color: widget.onPrevious != null
                                             ? theme.colorScheme.onPrimary
@@ -218,12 +217,13 @@ class _TimeRangeFilterState extends State<TimeRangeFilter> {
                                         }
                                       : null,
                                   child: Padding(
-                                    padding:
-                                        const EdgeInsets.symmetric(horizontal: 4),
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 4),
                                     child: Center(
                                       child: Text(
                                         widget.displayDate!,
-                                        style: theme.textTheme.labelMedium?.copyWith(
+                                        style: theme.textTheme.labelMedium
+                                            ?.copyWith(
                                           fontWeight: FontWeight.w600,
                                           color: theme.colorScheme.onPrimary,
                                         ),
@@ -233,11 +233,12 @@ class _TimeRangeFilterState extends State<TimeRangeFilter> {
                                 ),
 
                               Tooltip(
-                                message:
-                                    MaterialLocalizations.of(context).nextPageTooltip,
+                                message: MaterialLocalizations.of(context)
+                                    .nextPageTooltip,
                                 child: InkWell(
                                   key: const Key('time-range-next'),
-                                  onTap: widget.nextEnabled && widget.onNext != null
+                                  onTap: widget.nextEnabled &&
+                                          widget.onNext != null
                                       ? () {
                                           HapticFeedbackService.instance
                                               .selectionFeedback();
@@ -247,8 +248,8 @@ class _TimeRangeFilterState extends State<TimeRangeFilter> {
                                   borderRadius: const BorderRadius.horizontal(
                                       right: Radius.circular(100)),
                                   child: Padding(
-                                    padding:
-                                        const EdgeInsets.symmetric(horizontal: 10),
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 10),
                                     child: Center(
                                       child: Icon(
                                         LucideIcons.chevron_right,

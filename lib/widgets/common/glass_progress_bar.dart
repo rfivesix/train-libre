@@ -144,7 +144,6 @@ class _GlassProgressBarPainter extends StatelessWidget {
     final rawProgress = hasTarget ? (value / target) : 0.0;
     final progress = rawProgress.clamp(0.0, 1.0);
 
-
     // Text color follows theme brightness: black in light mode, white in dark mode.
     final Color textColor = isDark ? Colors.white : const Color(0xFF1C1C1E);
 

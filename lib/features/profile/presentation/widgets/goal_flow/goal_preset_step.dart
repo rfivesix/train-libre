@@ -43,76 +43,77 @@ class GoalPresetStep extends StatelessWidget {
             ),
           ),
           const SizedBox(height: DesignConstants.spacingXL),
-        _buildPresetTile(
-          context,
-          preset: GoalPreset.loseWeight,
-          title: l10n.goalPresetLoseWeight,
-          subtitle: l10n.goalPresetLoseWeightDescription,
-          icon: LucideIcons.trending_down,
-        ),
-        _buildPresetTile(
-          context,
-          preset: GoalPreset.gainWeight,
-          title: l10n.goalPresetGainWeight,
-          subtitle: l10n.goalPresetGainWeightDescription,
-          icon: LucideIcons.trending_up,
-        ),
-        _buildPresetTile(
-          context,
-          preset: GoalPreset.maintainWeight,
-          title: l10n.goalPresetMaintainWeight,
-          subtitle: l10n.goalPresetMaintainWeightDescription,
-          icon: LucideIcons.scale,
-        ),
-        _buildPresetTile(
-          context,
-          preset: GoalPreset.recomposition,
-          title: l10n.goalPresetRecomposition,
-          subtitle: l10n.goalPresetRecompositionDescription,
-          icon: LucideIcons.refresh_cw,
-        ),
-        _buildPresetTile(
-          context,
-          preset: GoalPreset.custom,
-          title: l10n.goalPresetCustom,
-          subtitle: l10n.goalPresetCustomDescription,
-          icon: LucideIcons.target,
-        ),
-        if (state.preset == GoalPreset.custom) ...[
-          const SizedBox(height: DesignConstants.spacingM),
-          TextField(
-            controller: state.customTitleController,
-            decoration: InputDecoration(
-              labelText: l10n.goalCustomTitleLabel,
-              hintText: l10n.goalCustomTitleHint,
-              border: OutlineInputBorder(
-                borderRadius:
-                    BorderRadius.circular(DesignConstants.borderRadiusM),
+          _buildPresetTile(
+            context,
+            preset: GoalPreset.loseWeight,
+            title: l10n.goalPresetLoseWeight,
+            subtitle: l10n.goalPresetLoseWeightDescription,
+            icon: LucideIcons.trending_down,
+          ),
+          _buildPresetTile(
+            context,
+            preset: GoalPreset.gainWeight,
+            title: l10n.goalPresetGainWeight,
+            subtitle: l10n.goalPresetGainWeightDescription,
+            icon: LucideIcons.trending_up,
+          ),
+          _buildPresetTile(
+            context,
+            preset: GoalPreset.maintainWeight,
+            title: l10n.goalPresetMaintainWeight,
+            subtitle: l10n.goalPresetMaintainWeightDescription,
+            icon: LucideIcons.scale,
+          ),
+          _buildPresetTile(
+            context,
+            preset: GoalPreset.recomposition,
+            title: l10n.goalPresetRecomposition,
+            subtitle: l10n.goalPresetRecompositionDescription,
+            icon: LucideIcons.refresh_cw,
+          ),
+          _buildPresetTile(
+            context,
+            preset: GoalPreset.custom,
+            title: l10n.goalPresetCustom,
+            subtitle: l10n.goalPresetCustomDescription,
+            icon: LucideIcons.target,
+          ),
+          if (state.preset == GoalPreset.custom) ...[
+            const SizedBox(height: DesignConstants.spacingM),
+            TextField(
+              controller: state.customTitleController,
+              decoration: InputDecoration(
+                labelText: l10n.goalCustomTitleLabel,
+                hintText: l10n.goalCustomTitleHint,
+                border: OutlineInputBorder(
+                  borderRadius:
+                      BorderRadius.circular(DesignConstants.borderRadiusM),
+                ),
               ),
             ),
-          ),
-          const SizedBox(height: DesignConstants.spacingM),
-          Text(
-            l10n.goalCustomDirectionPrompt,
-            style: theme.textTheme.titleSmall?.copyWith(
-              fontWeight: FontWeight.bold,
+            const SizedBox(height: DesignConstants.spacingM),
+            Text(
+              l10n.goalCustomDirectionPrompt,
+              style: theme.textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
             ),
-          ),
-          const SizedBox(height: 8),
-          AppSegmentedControl<String>(
-            children: {
-              'lose': l10n.goalPresetLoseWeight,
-              'gain': l10n.goalPresetGainWeight,
-              'maintain': l10n.goalPresetMaintainWeight,
-            },
-            groupValue: state.customDirection,
-            onValueChanged: (val) {
-              state.updateCustomDirection(val);
-            },
-          ),
+            const SizedBox(height: 8),
+            AppSegmentedControl<String>(
+              children: {
+                'lose': l10n.goalPresetLoseWeight,
+                'gain': l10n.goalPresetGainWeight,
+                'maintain': l10n.goalPresetMaintainWeight,
+              },
+              groupValue: state.customDirection,
+              onValueChanged: (val) {
+                state.updateCustomDirection(val);
+              },
+            ),
+          ],
         ],
-      ],
-    ),);
+      ),
+    );
   }
 
   Widget _buildPresetTile(

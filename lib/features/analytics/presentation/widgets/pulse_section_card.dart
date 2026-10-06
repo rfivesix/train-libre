@@ -28,7 +28,6 @@ class PulseSectionCard extends StatelessWidget {
     final sectionId = StatisticsHubSectionId.pulse;
     final title = l10n.pulseTitle;
 
-
     if (state.hasError && !state.hasData) {
       return AnalyticsCardBase.buildSectionErrorCard(
         context,

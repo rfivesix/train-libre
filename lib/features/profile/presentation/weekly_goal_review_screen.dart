@@ -259,10 +259,10 @@ class _WeeklyGoalReviewScreenState extends State<WeeklyGoalReviewScreen> {
         final currentRate = widget.goal.desiredWeeklyRateKg;
         final currentDate = widget.goal.targetDate;
 
-        final rateChanged = currentRate == null ||
-            (currentRate - recRate).abs() >= 0.001;
-        final dateChanged = currentDate == null ||
-            !DateUtils.isSameDay(currentDate, recDate);
+        final rateChanged =
+            currentRate == null || (currentRate - recRate).abs() >= 0.001;
+        final dateChanged =
+            currentDate == null || !DateUtils.isSameDay(currentDate, recDate);
 
         if (rateChanged || dateChanged) {
           shouldReviseGoal = true;
@@ -594,9 +594,8 @@ class _WeeklyGoalReviewScreenState extends State<WeeklyGoalReviewScreen> {
     final isCalorieChanged = currentCalories != null &&
         recommendedCalories != null &&
         recommendedCalories != currentCalories;
-    final signedDelta = isCalorieChanged
-        ? recommendedCalories - currentCalories
-        : null;
+    final signedDelta =
+        isCalorieChanged ? recommendedCalories - currentCalories : null;
 
     final isNonMaintenance = widget.goal.preset != GoalPreset.maintainWeight &&
         widget.goal.preset != GoalPreset.recomposition;
@@ -635,9 +634,8 @@ class _WeeklyGoalReviewScreenState extends State<WeeklyGoalReviewScreen> {
     final effectiveRecDate = isDateChanged ? candidateDate : currentDate;
     final currentDateText =
         currentDate != null ? dateFormat.format(currentDate) : '—';
-    final recommendedDateText = effectiveRecDate != null
-        ? dateFormat.format(effectiveRecDate)
-        : '—';
+    final recommendedDateText =
+        effectiveRecDate != null ? dateFormat.format(effectiveRecDate) : '—';
     final dateDeltaSubtitle = isDateChanged
         ? l10n.weeklyReviewDateDaysChange(
             '${candidateDate.difference(currentDate).inDays > 0 ? '+' : ''}${candidateDate.difference(currentDate).inDays}',
@@ -985,8 +983,7 @@ class _WeeklyGoalReviewScreenState extends State<WeeklyGoalReviewScreen> {
             _buildValueRow(
               context,
               l10n.reviewSmoothedCurrentLabel,
-              _formatWeight(
-                  assessment?.currentSmoothedValue, unitService),
+              _formatWeight(assessment?.currentSmoothedValue, unitService),
             ),
             const SizedBox(height: DesignConstants.spacingS),
             _buildValueRow(
@@ -1002,13 +999,11 @@ class _WeeklyGoalReviewScreenState extends State<WeeklyGoalReviewScreen> {
           ],
           if (review?.observedRateKgPerWeek != null ||
               widget.goal.desiredWeeklyRateKg != null) ...[
-            _buildDetailHeading(
-                context, l10n.reviewTrajectoryComparisonTitle),
+            _buildDetailHeading(context, l10n.reviewTrajectoryComparisonTitle),
             _buildValueRow(
               context,
               l10n.reviewObservedRateLabel,
-              _formatRate(
-                  review?.observedRateKgPerWeek, unitService, l10n),
+              _formatRate(review?.observedRateKgPerWeek, unitService, l10n),
             ),
             const SizedBox(height: DesignConstants.spacingS),
             _buildValueRow(

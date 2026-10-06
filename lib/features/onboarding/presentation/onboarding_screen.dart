@@ -961,7 +961,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           final now = DateTime.now();
           var age = now.year - _selectedDate!.year;
           final hadBirthdayThisYear = now.month > _selectedDate!.month ||
-              (now.month == _selectedDate!.month && now.day >= _selectedDate!.day);
+              (now.month == _selectedDate!.month &&
+                  now.day >= _selectedDate!.day);
           if (!hadBirthdayThisYear) {
             age--;
           }
@@ -1363,7 +1364,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         final now = DateTime.now();
                         var age = now.year - picked.year;
                         final hadBirthdayThisYear = now.month > picked.month ||
-                            (now.month == picked.month && now.day >= picked.day);
+                            (now.month == picked.month &&
+                                now.day >= picked.day);
                         if (!hadBirthdayThisYear) {
                           age--;
                         }

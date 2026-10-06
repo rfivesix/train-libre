@@ -136,7 +136,9 @@ class _GlassMenuState extends State<GlassMenu>
                                 ),
                                 Text(
                                   item.label,
-                                  style: Theme.of(context).textTheme.titleLarge
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleLarge
                                       ?.copyWith(
                                         color: Colors.white,
                                         fontWeight: FontWeight.bold,

@@ -66,75 +66,76 @@ class GoalPaceTimelineStep extends StatelessWidget {
             ),
           ),
           const SizedBox(height: DesignConstants.spacingXL),
-        Text(
-          l10n.goalTargetDateLabel,
-          style: theme.textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.bold,
+          Text(
+            l10n.goalTargetDateLabel,
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
           ),
-        ),
-        const SizedBox(height: DesignConstants.spacingS),
-        PlatformAdaptiveDropdownFormField<String>(
-          key: ValueKey('maintain_duration_${state.selectedDurationPreset}'),
-          value: state.selectedDurationPreset == '24'
-              ? 'custom'
-              : state.selectedDurationPreset,
-          items: [
-            DropdownMenuItem(
-              value: 'ongoing',
-              child: Text(l10n.goalNoDeadlineOption),
-            ),
-            DropdownMenuItem(
-              value: '8',
-              child: Text(l10n.goalEstimatedDuration(8)),
-            ),
-            DropdownMenuItem(
-              value: '12',
-              child: Text(l10n.goalEstimatedDuration(12)),
-            ),
-            DropdownMenuItem(
-              value: '16',
-              child: Text(l10n.goalEstimatedDuration(16)),
-            ),
-            DropdownMenuItem(
-              value: 'custom',
-              child: Text(l10n.goalDurationCustom),
+          const SizedBox(height: DesignConstants.spacingS),
+          PlatformAdaptiveDropdownFormField<String>(
+            key: ValueKey('maintain_duration_${state.selectedDurationPreset}'),
+            value: state.selectedDurationPreset == '24'
+                ? 'custom'
+                : state.selectedDurationPreset,
+            items: [
+              DropdownMenuItem(
+                value: 'ongoing',
+                child: Text(l10n.goalNoDeadlineOption),
+              ),
+              DropdownMenuItem(
+                value: '8',
+                child: Text(l10n.goalEstimatedDuration(8)),
+              ),
+              DropdownMenuItem(
+                value: '12',
+                child: Text(l10n.goalEstimatedDuration(12)),
+              ),
+              DropdownMenuItem(
+                value: '16',
+                child: Text(l10n.goalEstimatedDuration(16)),
+              ),
+              DropdownMenuItem(
+                value: 'custom',
+                child: Text(l10n.goalDurationCustom),
+              ),
+            ],
+            onChanged: (val) {
+              if (val == null) return;
+              state.setDurationPreset(val);
+            },
+          ),
+          if (state.selectedDurationPreset == 'custom') ...[
+            const SizedBox(height: DesignConstants.spacingM),
+            SummaryCard(
+              child: ListTile(
+                title: Text(
+                  state.targetDate != null
+                      ? dateFormat.format(state.targetDate!)
+                      : l10n.goalNoDeadlineOption,
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                subtitle: Text(l10n.goalTargetDateLabel),
+                onTap: () async {
+                  final picked = await showAdaptiveDatePicker(
+                    context: context,
+                    initialDate: state.targetDate ??
+                        state.startDate.add(const Duration(days: 84)),
+                    firstDate: state.startDate.add(const Duration(days: 7)),
+                    lastDate: state.startDate.add(const Duration(days: 730)),
+                  );
+                  if (picked != null) {
+                    state.setTargetDate(picked);
+                  }
+                },
+              ),
             ),
           ],
-          onChanged: (val) {
-            if (val == null) return;
-            state.setDurationPreset(val);
-          },
-        ),
-        if (state.selectedDurationPreset == 'custom') ...[
-          const SizedBox(height: DesignConstants.spacingM),
-          SummaryCard(
-            child: ListTile(
-              title: Text(
-                state.targetDate != null
-                    ? dateFormat.format(state.targetDate!)
-                    : l10n.goalNoDeadlineOption,
-                style: theme.textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              subtitle: Text(l10n.goalTargetDateLabel),
-              onTap: () async {
-                final picked = await showAdaptiveDatePicker(
-                  context: context,
-                  initialDate: state.targetDate ??
-                      state.startDate.add(const Duration(days: 84)),
-                  firstDate: state.startDate.add(const Duration(days: 7)),
-                  lastDate: state.startDate.add(const Duration(days: 730)),
-                );
-                if (picked != null) {
-                  state.setTargetDate(picked);
-                }
-              },
-            ),
-          ),
         ],
-      ],
-    ),);
+      ),
+    );
   }
 
   Widget _buildChangeTimeline(BuildContext context) {
@@ -149,7 +150,8 @@ class GoalPaceTimelineStep extends StatelessWidget {
     final isLosing = state.isLosing;
     final dailyCalorieImpact = (state.weeklyRateKg * 7700 / 7).round();
     final int weeks = state.targetDate != null
-        ? max(1, (state.targetDate!.difference(state.startDate).inDays / 7).round())
+        ? max(1,
+            (state.targetDate!.difference(state.startDate).inDays / 7).round())
         : 12;
 
     return SingleChildScrollView(
@@ -318,13 +320,17 @@ class GoalPaceTimelineStep extends StatelessWidget {
             onChanged: (val) {
               if (val == null) return;
               if (val == 'gentle') {
-                state.onWeeklyRateChanged(0.25, unitService, ratePreset: 'gentle');
+                state.onWeeklyRateChanged(0.25, unitService,
+                    ratePreset: 'gentle');
               } else if (val == 'moderate') {
-                state.onWeeklyRateChanged(0.50, unitService, ratePreset: 'moderate');
+                state.onWeeklyRateChanged(0.50, unitService,
+                    ratePreset: 'moderate');
               } else if (val == 'athletic') {
-                state.onWeeklyRateChanged(0.75, unitService, ratePreset: 'athletic');
+                state.onWeeklyRateChanged(0.75, unitService,
+                    ratePreset: 'athletic');
               } else if (val == 'aggressive') {
-                state.onWeeklyRateChanged(1.00, unitService, ratePreset: 'aggressive');
+                state.onWeeklyRateChanged(1.00, unitService,
+                    ratePreset: 'aggressive');
               } else {
                 state.setRatePresetCustom();
               }
@@ -398,7 +404,8 @@ class GoalPaceTimelineStep extends StatelessWidget {
               } else {
                 final w = int.tryParse(val) ?? 12;
                 final newDate = state.startDate.add(Duration(days: w * 7));
-                state.onTargetDateChanged(newDate, unitService, durationPreset: val);
+                state.onTargetDateChanged(newDate, unitService,
+                    durationPreset: val);
               }
             },
           ),

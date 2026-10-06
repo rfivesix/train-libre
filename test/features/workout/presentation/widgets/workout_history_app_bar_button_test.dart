@@ -98,7 +98,8 @@ void main() {
     expect(materialFinder, findsOneWidget);
   });
 
-  testWidgets('applies onSurface background and surface icon matching profile button', (
+  testWidgets(
+      'applies onSurface background and surface icon matching profile button', (
     tester,
   ) async {
     // Dark mode

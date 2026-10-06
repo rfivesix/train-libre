@@ -101,7 +101,6 @@ class ProfileService extends ChangeNotifier {
     notifyListeners();
   }
 
-
   /// Updates the user's gender and persists it to the database.
   Future<void> updateGender(
       UserGender newGender, IProfileRepository repository) async {

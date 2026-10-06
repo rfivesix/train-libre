@@ -35,7 +35,9 @@ void main() {
     expect(ExperienceLevelService().level, ExperienceLevel.pro);
   });
 
-  test('advanced enables precise muscle names while keeping the set interface simple', () async {
+  test(
+      'advanced enables precise muscle names while keeping the set interface simple',
+      () async {
     SharedPreferences.setMockInitialValues({});
     final service = ExperienceLevelService();
     await service.setLevel(ExperienceLevel.advanced);

@@ -207,8 +207,8 @@ class _MacroHistoryStackedBarChartState
                           // Tap toggles a single day and stores touch X for the chip
                           onTapUp: (d) {
                             if (widget.onDaySelected == null) return;
-                            final idx = _indexFromX(
-                                d.localPosition.dx, barsWidth);
+                            final idx =
+                                _indexFromX(d.localPosition.dx, barsWidth);
                             if (idx < 0) return;
                             final tapped = widget.dailyIntakes[idx];
                             final isSame = widget.selectedDay != null &&
@@ -228,8 +228,8 @@ class _MacroHistoryStackedBarChartState
                           },
                           child: Row(
                             crossAxisAlignment: CrossAxisAlignment.end,
-                            children: List.generate(
-                                widget.dailyIntakes.length, (index) {
+                            children: List.generate(widget.dailyIntakes.length,
+                                (index) {
                               final item = widget.dailyIntakes[index];
                               final isSelected = widget.selectedDay != null &&
                                   widget.selectedDay!.date.year ==
@@ -250,8 +250,7 @@ class _MacroHistoryStackedBarChartState
                                             : 0.5),
                                   ),
                                   child: AnimatedOpacity(
-                                    duration:
-                                        const Duration(milliseconds: 120),
+                                    duration: const Duration(milliseconds: 120),
                                     opacity: isOtherSelected ? 0.35 : 1.0,
                                     child: _buildStackedBar(
                                       context,
@@ -369,11 +368,11 @@ class _MacroHistoryStackedBarChartState
             Text(
               '--',
               style: theme.textTheme.labelSmall?.copyWith(
-                    fontSize: 9,
-                    color: isSelected
-                        ? theme.colorScheme.primary
-                        : theme.colorScheme.onSurface.withValues(alpha: 0.4),
-                  ),
+                fontSize: 9,
+                color: isSelected
+                    ? theme.colorScheme.primary
+                    : theme.colorScheme.onSurface.withValues(alpha: 0.4),
+              ),
             ),
             const SizedBox(height: 4),
           ],
@@ -421,12 +420,12 @@ class _MacroHistoryStackedBarChartState
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-
               Container(
                 height: barHeight,
                 decoration: isSelected
                     ? BoxDecoration(
-                        borderRadius: BorderRadius.circular(showDetails ? 5 : 3),
+                        borderRadius:
+                            BorderRadius.circular(showDetails ? 5 : 3),
                         border: Border.all(
                           color: theme.colorScheme.primary,
                           width: 1.5,
@@ -529,7 +528,8 @@ class _MacroHistoryStackedBarChartState
       return Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: widget.dailyIntakes.map((d) {
-          final raw = DateFormat.E(locale).format(d.date).replaceAll('.', '').trim();
+          final raw =
+              DateFormat.E(locale).format(d.date).replaceAll('.', '').trim();
           final label = raw.length > 2 ? raw.substring(0, 2) : raw;
           return Expanded(
             child: Text(
@@ -589,7 +589,8 @@ class _MacroGridPainter extends CustomPainter {
       ..strokeWidth = 1.0
       ..style = PaintingStyle.stroke;
 
-    final double availableHeight = size.height - 20; // reserve space for x labels
+    final double availableHeight =
+        size.height - 20; // reserve space for x labels
 
     // Top line (ceiling)
     canvas.drawLine(const Offset(0, 8), Offset(size.width - 32, 8), paint);
@@ -599,8 +600,8 @@ class _MacroGridPainter extends CustomPainter {
     canvas.drawLine(Offset(0, midY), Offset(size.width - 32, midY), paint);
 
     // Bottom line (0)
-    canvas.drawLine(
-        Offset(0, availableHeight), Offset(size.width - 32, availableHeight), paint);
+    canvas.drawLine(Offset(0, availableHeight),
+        Offset(size.width - 32, availableHeight), paint);
   }
 
   @override

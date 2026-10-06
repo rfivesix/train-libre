@@ -79,21 +79,21 @@ void main() {
     });
     database = AppDatabase(NativeDatabase.memory());
     await database.into(database.exercises).insert(
-      const ExercisesCompanion(
-        id: Value('bench'),
-        trackingType: Value('weight_reps'),
-        loadMode: Value('external'),
-        categoryName: Value('Strength'),
-      ),
-    );
+          const ExercisesCompanion(
+            id: Value('bench'),
+            trackingType: Value('weight_reps'),
+            loadMode: Value('external'),
+            categoryName: Value('Strength'),
+          ),
+        );
     await database.into(database.exercises).insert(
-      const ExercisesCompanion(
-        id: Value('squat'),
-        trackingType: Value('weight_reps'),
-        loadMode: Value('external'),
-        categoryName: Value('Strength'),
-      ),
-    );
+          const ExercisesCompanion(
+            id: Value('squat'),
+            trackingType: Value('weight_reps'),
+            loadMode: Value('external'),
+            categoryName: Value('Strength'),
+          ),
+        );
     dataSource = WorkoutLocalDataSource.forTesting(database);
     repository = WorkoutRepository(localDataSource: dataSource);
     unitService = UnitService();

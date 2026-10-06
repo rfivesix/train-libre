@@ -70,8 +70,8 @@ class PatchedMethodChannelICloudStorage extends MethodChannelICloudStorage {
       final stream = gatherEventChannel
           .receiveBroadcastStream()
           .where((event) => event is List)
-          .map<List<ICloudFile>>((event) => _mapSanitizedFiles(
-              List<Map<dynamic, dynamic>>.from(event)));
+          .map<List<ICloudFile>>((event) =>
+              _mapSanitizedFiles(List<Map<dynamic, dynamic>>.from(event)));
 
       onUpdate(stream);
     }
@@ -600,7 +600,8 @@ class ICloudSyncService {
     String schema,
     String table,
   ) async {
-    if (!_safeIdentifier.hasMatch(schema) || !_safeIdentifier.hasMatch(table)) return const [];
+    if (!_safeIdentifier.hasMatch(schema) || !_safeIdentifier.hasMatch(table))
+      return const [];
     try {
       final rows =
           await db.customSelect('PRAGMA $schema.table_info("$table")').get();

@@ -122,8 +122,7 @@ class _LongRunningOperationOverlayState
                 icon: widget.icon,
                 title: displayTitle,
                 detail: displayDetail,
-                progress:
-                    _progress >= 0 && _progress <= 1.0 ? _progress : null,
+                progress: _progress >= 0 && _progress <= 1.0 ? _progress : null,
                 action: TextButton(
                   onPressed: _isCanceling ? null : _cancel,
                   child: Text(

@@ -6,7 +6,9 @@ import 'package:train_libre/features/depth_scan/data/depth_scale_calculator.dart
 
 void main() {
   group('DepthScaleCalculator', () {
-    test('calculates accurate distance and dimensions for known synthetic buffer', () {
+    test(
+        'calculates accurate distance and dimensions for known synthetic buffer',
+        () {
       const width = 100;
       const height = 100;
       final buffer = Float32List(width * height);
@@ -44,7 +46,9 @@ void main() {
       expect(facts.frameHeightCm, closeTo(50.0, 0.1));
     });
 
-    test('rejects buffers with distance outside quality gate (< 15cm or > 120cm)', () {
+    test(
+        'rejects buffers with distance outside quality gate (< 15cm or > 120cm)',
+        () {
       const width = 10;
       const height = 10;
       final buffer = Float32List(width * height);

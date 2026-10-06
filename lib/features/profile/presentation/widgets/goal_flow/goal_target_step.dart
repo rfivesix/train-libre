@@ -220,8 +220,8 @@ class GoalTargetStep extends StatelessWidget {
                       TextField(
                         key: const Key('goal_target_weight_input'),
                         controller: state.targetWeightController,
-                        keyboardType:
-                            const TextInputType.numberWithOptions(decimal: true),
+                        keyboardType: const TextInputType.numberWithOptions(
+                            decimal: true),
                         textAlign: TextAlign.center,
                         onChanged: (_) {
                           final newTarget = state.getTargetKg(unitService);

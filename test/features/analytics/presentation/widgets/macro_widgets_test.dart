@@ -43,7 +43,9 @@ void main() {
     expect(find.byType(MacroHistoryStackedBarChart), findsOneWidget);
   });
 
-  testWidgets('MacroHistoryStackedBarChart triggers onDaySelected when bar tapped', (tester) async {
+  testWidgets(
+      'MacroHistoryStackedBarChart triggers onDaySelected when bar tapped',
+      (tester) async {
     final now = DateTime(2026, 4, 10);
     DailyMacroIntake? selected;
     final days = [

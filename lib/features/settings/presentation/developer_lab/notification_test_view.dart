@@ -34,8 +34,8 @@ class _NotificationTestViewState extends State<NotificationTestView> {
   }
 
   Future<void> _requestPermissions() async {
-    final granted =
-        await LocalNotificationService.instance.requestNotificationPermissions();
+    final granted = await LocalNotificationService.instance
+        .requestNotificationPermissions();
     await _checkPermissionStatus();
     _setMessage(granted
         ? 'Berechtigung erteilt oder aktiv'
@@ -62,7 +62,8 @@ class _NotificationTestViewState extends State<NotificationTestView> {
   }
 
   Future<void> _triggerWeeklyReviewIn5Seconds() async {
-    _setMessage('Wochen-Review in 5 Sekunden im System geplant... (App jetzt minimieren)');
+    _setMessage(
+        'Wochen-Review in 5 Sekunden im System geplant... (App jetzt minimieren)');
     final success = await LocalNotificationService.instance
         .showWeeklyGoalReviewNotification(
       goalId: 'sandbox-goal-id',
@@ -84,7 +85,8 @@ class _NotificationTestViewState extends State<NotificationTestView> {
   }
 
   Future<void> _triggerRecommendationDueIn5Seconds() async {
-    _setMessage('Empfehlung in 5 Sekunden im System geplant... (App jetzt minimieren)');
+    _setMessage(
+        'Empfehlung in 5 Sekunden im System geplant... (App jetzt minimieren)');
     final success = await LocalNotificationService.instance
         .showAdaptiveRecommendationDueNotification(
       ignorePreferences: true,
@@ -126,11 +128,13 @@ class _NotificationTestViewState extends State<NotificationTestView> {
           children: [
             Row(
               children: [
-                Icon(LucideIcons.bell_ring, color: theme.colorScheme.primary, size: 20),
+                Icon(LucideIcons.bell_ring,
+                    color: theme.colorScheme.primary, size: 20),
                 const SizedBox(width: DesignConstants.spacingS),
                 Text(
                   'Lokale Benachrichtigungen testen',
-                  style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                  style: theme.textTheme.titleMedium
+                      ?.copyWith(fontWeight: FontWeight.bold),
                 ),
               ],
             ),
@@ -179,12 +183,14 @@ class _NotificationTestViewState extends State<NotificationTestView> {
             const SizedBox(height: DesignConstants.spacingS),
             Text(
               'Status: $_statusMessage',
-              style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurface.withValues(alpha: 0.7)),
+              style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.7)),
             ),
             const Divider(height: DesignConstants.spacingL),
             Text(
               '1. Wöchentlicher Ziel-Review',
-              style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+              style: theme.textTheme.bodyMedium
+                  ?.copyWith(fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: DesignConstants.spacingS),
             Row(
@@ -208,7 +214,8 @@ class _NotificationTestViewState extends State<NotificationTestView> {
             const SizedBox(height: DesignConstants.spacingL),
             Text(
               '2. Neue adaptive Empfehlung fällig',
-              style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+              style: theme.textTheme.bodyMedium
+                  ?.copyWith(fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: DesignConstants.spacingS),
             Row(
@@ -231,7 +238,8 @@ class _NotificationTestViewState extends State<NotificationTestView> {
             const SizedBox(height: DesignConstants.spacingL),
             Text(
               '3. Zieldatum-Erinnerung',
-              style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+              style: theme.textTheme.bodyMedium
+                  ?.copyWith(fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: DesignConstants.spacingS),
             AppButton.secondary(

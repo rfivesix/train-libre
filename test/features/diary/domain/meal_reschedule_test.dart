@@ -47,7 +47,8 @@ void main() {
       expect(result.items.single.entry.timestamp, DateTime(2026, 3, 12, 19, 0));
     });
 
-    test('items keep their offset from the meal, matching what the database '
+    test(
+        'items keep their offset from the meal, matching what the database '
         'writes', () {
       final result = rescheduleMeal(
         entry: mealAt(DateTime(2026, 3, 10, 12, 30)),
@@ -99,7 +100,8 @@ void main() {
       );
 
       expect(result.entry.consumedAt, DateTime(2026, 3, 10, 12, 30));
-      expect(result.items.single.entry.timestamp, DateTime(2026, 3, 10, 12, 30));
+      expect(
+          result.items.single.entry.timestamp, DateTime(2026, 3, 10, 12, 30));
     });
 
     test('a meal with no items is handled', () {

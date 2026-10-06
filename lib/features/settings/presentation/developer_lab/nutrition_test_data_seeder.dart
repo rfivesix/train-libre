@@ -108,7 +108,8 @@ class NutritionTestDataSeeder {
       final elapsedDays = sandbox.elapsedWeeks * 7;
       final startWeight = sandbox.baselineWeightKg;
       final endWeight = sandbox.currentWeightKg;
-      final totalSlope = elapsedDays > 0 ? (endWeight - startWeight) / elapsedDays : 0.0;
+      final totalSlope =
+          elapsedDays > 0 ? (endWeight - startWeight) / elapsedDays : 0.0;
 
       // Seed historical weight measurements leading up to today
       for (int day = elapsedDays; day >= 7; day -= 3) {
@@ -132,7 +133,8 @@ class NutritionTestDataSeeder {
       for (int i = 0; i < obsCount; i++) {
         final dayOffset = (6 - i);
         final date = now.subtract(Duration(days: dayOffset));
-        final weight = endWeight - (sandbox.recentRateKgPerWeek / 7.0 * dayOffset);
+        final weight =
+            endWeight - (sandbox.recentRateKgPerWeek / 7.0 * dayOffset);
         await database.into(database.measurements).insert(
               db.MeasurementsCompanion.insert(
                 id: drift.Value('test-weight-${_uuid.v4()}'),
@@ -189,7 +191,9 @@ class NutritionTestDataSeeder {
               trajectoryStatus: drift.Value(assessment.overallStatus),
               observedRateKgPerWeek: drift.Value(sandbox.recentRateKgPerWeek),
               confidenceLevel: drift.Value(
-                  assessment.dataQuality == 'sufficient' ? 'high' : 'uncalibrated'),
+                  assessment.dataQuality == 'sufficient'
+                      ? 'high'
+                      : 'uncalibrated'),
               tdeeEstimate: drift.Value(sandbox.tdeeEstimate),
               recommendedCalories: canAdjust
                   ? drift.Value(sandbox.recommendedCalories)
@@ -227,7 +231,8 @@ class NutritionTestDataSeeder {
 
     // 2. Delete test user goals & associated events
     final testGoals = await (database.select(database.userGoals)
-          ..where((t) => t.title.like('$testGoalPrefix%') | t.id.like('test-goal%')))
+          ..where((t) =>
+              t.title.like('$testGoalPrefix%') | t.id.like('test-goal%')))
         .get();
     for (final g in testGoals) {
       await (database.delete(database.goalEvents)
@@ -245,7 +250,9 @@ class NutritionTestDataSeeder {
 
     // 4. Delete test nutrition logs
     await (database.delete(database.nutritionLogs)
-          ..where((t) => t.productId.equals('test-product-dev-lab') | t.id.like('test-log%')))
+          ..where((t) =>
+              t.productId.equals('test-product-dev-lab') |
+              t.id.like('test-log%')))
         .go();
 
     // 5. Delete test product

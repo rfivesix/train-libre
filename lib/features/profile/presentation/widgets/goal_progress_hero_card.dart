@@ -256,7 +256,8 @@ class GoalProgressHeroCard extends StatelessWidget {
                     child: LinearProgressIndicator(
                       value: currentProgress!.progressPercentage,
                       minHeight: 6,
-                      backgroundColor: theme.colorScheme.surfaceContainerHighest,
+                      backgroundColor:
+                          theme.colorScheme.surfaceContainerHighest,
                       valueColor: AlwaysStoppedAnimation<Color>(
                         theme.colorScheme.primary,
                       ),

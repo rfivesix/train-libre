@@ -46,7 +46,8 @@ class LegacyGoalMigration {
 
     final day = now ?? baseline.date;
     final offsetFromMonday = (day.weekday - DateTime.monday) % 7;
-    final activation = DateTime(day.year, day.month, day.day).subtract(Duration(days: offsetFromMonday));
+    final activation = DateTime(day.year, day.month, day.day)
+        .subtract(Duration(days: offsetFromMonday));
 
     final legacyGoal = await _legacyRepository.getGoal();
     final rate = await _legacyRepository.getTargetRateKgPerWeek();

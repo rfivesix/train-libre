@@ -41,7 +41,8 @@ class GoalProgress {
     required this.state,
   });
 
-  bool get isWaitingForBaseline => state == GoalProgressState.waitingForBaseline;
+  bool get isWaitingForBaseline =>
+      state == GoalProgressState.waitingForBaseline;
   bool get isTargetMet => state == GoalProgressState.targetMet;
 
   factory GoalProgress.calculate({

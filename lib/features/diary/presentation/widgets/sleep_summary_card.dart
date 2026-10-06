@@ -74,7 +74,9 @@ class SleepSummaryCard extends StatelessWidget {
           return const SizedBox.shrink();
         }
 
-        final durationText = showSkeleton ? '8h 0m' : _formatSleepDuration(overview!.totalSleepDuration);
+        final durationText = showSkeleton
+            ? '8h 0m'
+            : _formatSleepDuration(overview!.totalSleepDuration);
         final score = showSkeleton ? 100.0 : overview!.analysis.score;
         final scoreText = score == null ? '--' : score.round().toString();
 

@@ -51,8 +51,7 @@ void main() {
     expect(find.byType(Switch), findsNothing);
   });
 
-  testWidgets('gives the decline the same width as the accept',
-      (tester) async {
+  testWidgets('gives the decline the same width as the accept', (tester) async {
     await open(tester);
 
     // Equal weight is the point: a decline squeezed into a smaller control, or

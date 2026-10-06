@@ -236,8 +236,7 @@ class _GlassActionableCardState extends State<GlassActionableCard> {
     final customSemanticsActions = <CustomSemanticsAction, VoidCallback>{};
     if (widget.onEdit != null) {
       customSemanticsActions[CustomSemanticsAction(
-              label: widget.editLabel ?? l10n?.edit ?? 'Edit')] =
-          widget.onEdit!;
+          label: widget.editLabel ?? l10n?.edit ?? 'Edit')] = widget.onEdit!;
     }
     if (widget.onDelete != null) {
       customSemanticsActions[CustomSemanticsAction(

@@ -239,8 +239,8 @@ class AdaptiveNutritionRecommendationService {
   }) async {
     final effectiveNow = now ?? DateTime.now();
     final checkInWeekday = await _resolveCheckInWeekday();
-    final dueWeekKey =
-        RecommendationScheduler.dueWeekKeyFor(effectiveNow, checkInWeekday: checkInWeekday);
+    final dueWeekKey = RecommendationScheduler.dueWeekKeyFor(effectiveNow,
+        checkInWeekday: checkInWeekday);
     final lastGeneratedDueWeekKey =
         await _repository.getLastGeneratedDueWeekKey();
     final latestGeneratedRecommendation =
@@ -310,8 +310,9 @@ class AdaptiveNutritionRecommendationService {
     final latestMaintenanceEstimate = latestSnapshot?.maintenanceEstimate;
     final lastGeneratedDueWeekKey = results[4] as String?;
     final checkInWeekday = results[5] as int;
-    final currentDueWeekKey =
-        RecommendationScheduler.dueWeekKeyFor(effectiveNow, checkInWeekday: checkInWeekday);
+    final currentDueWeekKey = RecommendationScheduler.dueWeekKeyFor(
+        effectiveNow,
+        checkInWeekday: checkInWeekday);
     final isAdaptiveRecommendationDueNow = RecommendationScheduler.isDueNow(
       now: effectiveNow,
       lastGeneratedDueWeekKey: lastGeneratedDueWeekKey,
@@ -348,8 +349,8 @@ class AdaptiveNutritionRecommendationService {
     }
     final checkInWeekday = activeGoal?.startDate.weekday ?? DateTime.monday;
     final effectiveNow = now ?? DateTime.now();
-    final dueWeekKey =
-        RecommendationScheduler.dueWeekKeyFor(effectiveNow, checkInWeekday: checkInWeekday);
+    final dueWeekKey = RecommendationScheduler.dueWeekKeyFor(effectiveNow,
+        checkInWeekday: checkInWeekday);
     // Keep the adaptive input window stable within one due week by anchoring to
     // the completed day prior to check-in day. This makes in-week force refreshes
     // deterministic instead of drifting with "today".
@@ -559,10 +560,11 @@ class AdaptiveNutritionRecommendationService {
     );
 
     final checkInWeekday = await _resolveCheckInWeekday();
-    final dueWeekKey =
-        RecommendationScheduler.dueWeekKeyFor(effectiveNow, checkInWeekday: checkInWeekday);
-    final onboardingPhaseAnchorDay =
-        RecommendationScheduler.dueWeekStart(effectiveNow, checkInWeekday: checkInWeekday);
+    final dueWeekKey = RecommendationScheduler.dueWeekKeyFor(effectiveNow,
+        checkInWeekday: checkInWeekday);
+    final onboardingPhaseAnchorDay = RecommendationScheduler.dueWeekStart(
+        effectiveNow,
+        checkInWeekday: checkInWeekday);
     final onboardingPhaseState = AdaptiveDietPhaseTrackingState.bootstrap(
       phase: goal.canonicalDietPhase,
       asOfDay: onboardingPhaseAnchorDay,

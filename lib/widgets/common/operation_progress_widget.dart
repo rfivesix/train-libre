@@ -37,9 +37,8 @@ class OperationProgressWidget extends StatelessWidget {
     final isDeterminate =
         progress != null && progress! >= 0.0 && progress! <= 1.0;
     final normalizedProgress = isDeterminate ? progress!.clamp(0.0, 1.0) : null;
-    final percentageText = isDeterminate
-        ? '${(normalizedProgress! * 100).round()}%'
-        : null;
+    final percentageText =
+        isDeterminate ? '${(normalizedProgress! * 100).round()}%' : null;
     final statusText =
         (detail != null && detail!.trim().isNotEmpty) ? detail! : null;
     final hasStatusRow = statusText != null || percentageText != null;

@@ -89,7 +89,8 @@ void main() {
   }
 
   group('AiMealCaptureTourService', () {
-    test('isTourCompleted defaults to false and can be marked or reset', () async {
+    test('isTourCompleted defaults to false and can be marked or reset',
+        () async {
       SharedPreferences.setMockInitialValues({});
       final service = AiMealCaptureTourService.instance;
 
@@ -104,7 +105,8 @@ void main() {
   });
 
   group('AiMealCaptureTourOverlay', () {
-    testWidgets('renders title, description, progress, next and skip labels', (tester) async {
+    testWidgets('renders title, description, progress, next and skip labels',
+        (tester) async {
       var nextClicked = false;
       var skipClicked = false;
 
@@ -140,7 +142,9 @@ void main() {
   });
 
   group('AiMealCaptureScreen Interactive Tour', () {
-    testWidgets('automatically starts tour on first launch and steps through all 6 steps', (tester) async {
+    testWidgets(
+        'automatically starts tour on first launch and steps through all 6 steps',
+        (tester) async {
       tester.view.physicalSize = const Size(390 * 3, 844 * 3);
       tester.view.devicePixelRatio = 3.0;
       addTearDown(() {
@@ -203,7 +207,9 @@ void main() {
       expect(await AiMealCaptureTourService.instance.isTourCompleted(), isTrue);
     });
 
-    testWidgets('skipping tour immediately dismisses overlay and marks tour completed', (tester) async {
+    testWidgets(
+        'skipping tour immediately dismisses overlay and marks tour completed',
+        (tester) async {
       tester.view.physicalSize = const Size(390 * 3, 844 * 3);
       tester.view.devicePixelRatio = 3.0;
       addTearDown(() {
@@ -230,7 +236,8 @@ void main() {
       expect(await AiMealCaptureTourService.instance.isTourCompleted(), isTrue);
     });
 
-    testWidgets('info button in app bar can restart the tour at any time', (tester) async {
+    testWidgets('info button in app bar can restart the tour at any time',
+        (tester) async {
       tester.view.physicalSize = const Size(390 * 3, 844 * 3);
       tester.view.devicePixelRatio = 3.0;
       addTearDown(() {

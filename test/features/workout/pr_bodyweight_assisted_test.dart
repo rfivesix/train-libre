@@ -27,8 +27,7 @@ Exercise _exercise({
       loadMode: loadMode,
     );
 
-final _barbell =
-    _exercise(trackingType: 'weight_reps', loadMode: 'external');
+final _barbell = _exercise(trackingType: 'weight_reps', loadMode: 'external');
 final _pullUp =
     _exercise(trackingType: 'bodyweight_reps', loadMode: 'bodyweight');
 final _assisted =
@@ -153,8 +152,7 @@ void main() {
       );
       expect(
         result.alerts.map((a) => a.recordType),
-        containsAll(
-            ['Best Max Weight', 'Best Volume Set', 'Best 1-Rep Max']),
+        containsAll(['Best Max Weight', 'Best Volume Set', 'Best 1-Rep Max']),
       );
     });
 

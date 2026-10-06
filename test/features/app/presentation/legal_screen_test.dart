@@ -47,7 +47,8 @@ void main() {
     expect(tester.getSize(sizeTransitionFinder).height, greaterThan(100.0));
 
     // RotationTransition should be rotated
-    final rotation = tester.widget<RotationTransition>(find.byType(RotationTransition).first);
+    final rotation = tester
+        .widget<RotationTransition>(find.byType(RotationTransition).first);
     expect(rotation.turns.value, equals(0.5));
 
     // SizeTransition should be vertical

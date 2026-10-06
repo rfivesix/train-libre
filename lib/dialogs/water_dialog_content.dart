@@ -210,7 +210,8 @@ class WaterDialogContentState extends State<WaterDialogContent> {
                       children: [
                         const Icon(LucideIcons.calendar, size: 20),
                         const SizedBox(width: DesignConstants.spacingS),
-                        Text(formattedDate, style: const TextStyle(fontSize: 16)),
+                        Text(formattedDate,
+                            style: const TextStyle(fontSize: 16)),
                       ],
                     ),
                   ),
@@ -227,7 +228,8 @@ class WaterDialogContentState extends State<WaterDialogContent> {
                       children: [
                         const Icon(LucideIcons.clock, size: 20),
                         const SizedBox(width: DesignConstants.spacingS),
-                        Text(formattedTime, style: const TextStyle(fontSize: 16)),
+                        Text(formattedTime,
+                            style: const TextStyle(fontSize: 16)),
                       ],
                     ),
                   ),

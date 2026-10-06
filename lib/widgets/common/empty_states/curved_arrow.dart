@@ -59,19 +59,19 @@ class _CurvedArrowPainter extends CustomPainter {
       ..strokeCap = StrokeCap.round;
 
     final path = Path();
-    
+
     // Start under the text (top center)
     final startX = size.width * 0.5;
     final startY = 0.0;
 
     // End at the center of the FAB or Center Bottom Button
-    final endX = targetCenter 
-        ? size.width * 0.5 
+    final endX = targetCenter
+        ? size.width * 0.5
         : size.width - (customEndXOffset ?? 48.0);
-    
+
     // The top of the FAB is exactly 96px from the bottom of the screen (12 bottom offset + 20 vertical padding + 64 height).
     // If targetCenter is true, assume a bottom dock height of 86px.
-    final targetY = customTargetYOffset != null 
+    final targetY = customTargetYOffset != null
         ? size.height - customTargetYOffset!
         : (targetCenter ? size.height - 96.0 : size.height - 126.0);
 
@@ -95,7 +95,7 @@ class _CurvedArrowPainter extends CustomPainter {
     // Straight lines with rounded corners
     double R = 32.0;
     final availableWidth = endX - startX;
-    
+
     // Scale down radius if space is tight
     R = min(R, availableHeight / 3);
     R = min(R, availableWidth / 2);
@@ -106,19 +106,19 @@ class _CurvedArrowPainter extends CustomPainter {
     final turnY = max(startY + R, targetY - R - 30.0);
 
     path.moveTo(startX, startY);
-    
+
     // 1. Straight down
     path.lineTo(startX, turnY - R);
-    
+
     // 2. Rounded corner right
     path.quadraticBezierTo(startX, turnY, startX + R, turnY);
-    
+
     // 3. Straight right
     path.lineTo(endX - R, turnY);
-    
+
     // 4. Rounded corner down
     path.quadraticBezierTo(endX, turnY, endX, turnY + R);
-    
+
     // 5. Straight down to target
     path.lineTo(endX, targetY - 10);
 
@@ -129,7 +129,7 @@ class _CurvedArrowPainter extends CustomPainter {
   void _drawArrowHead(Canvas canvas, Paint paint, double x, double y) {
     final arrowLength = 14.0;
     final arrowWidth = 10.0;
-    
+
     final arrowPath = Path()
       ..moveTo(x, y)
       ..lineTo(x - arrowWidth, y - arrowLength)
@@ -141,8 +141,8 @@ class _CurvedArrowPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _CurvedArrowPainter oldDelegate) {
-    return oldDelegate.color != color || 
-           oldDelegate.strokeWidth != strokeWidth ||
-           oldDelegate.bottomSafeArea != bottomSafeArea;
+    return oldDelegate.color != color ||
+        oldDelegate.strokeWidth != strokeWidth ||
+        oldDelegate.bottomSafeArea != bottomSafeArea;
   }
 }

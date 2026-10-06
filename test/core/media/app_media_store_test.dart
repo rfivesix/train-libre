@@ -291,12 +291,12 @@ void main() {
         {
           'photo': 'media/workouts/w1.jpg',
           'thumb': 'media/workouts/w1_thumb.jpg',
-          'extras': jsonEncode(['media/workouts/w2.jpg', 'media/workouts/w3.jpg']),
+          'extras':
+              jsonEncode(['media/workouts/w2.jpg', 'media/workouts/w3.jpg']),
         },
       ]);
 
-      final placement =
-          await AppMediaStore.instance.workoutThumbPlacement(db);
+      final placement = await AppMediaStore.instance.workoutThumbPlacement(db);
 
       expect(
         placement.directoryFor('w1_thumb.jpg').path,

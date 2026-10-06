@@ -1345,7 +1345,9 @@ void main() {
       expect(prefs.getString('installed_off_version_de'), '202512310001');
     });
 
-    test('user goals and baseline measurements survive backup restore without FK failure', () async {
+    test(
+        'user goals and baseline measurements survive backup restore without FK failure',
+        () async {
       final goalRepo = GoalRepositoryImpl(database: db);
       final date = DateTime(2026, 3, 15, 8, 30);
       final goal = await goalRepo.createGoal(
@@ -1370,7 +1372,8 @@ void main() {
       expect(payload['measurements'], isNotEmpty);
 
       // Restore into the database
-      final success = await backupManager.importBackupPayloadForTesting(payload);
+      final success =
+          await backupManager.importBackupPayloadForTesting(payload);
       expect(success, isTrue);
 
       final restoredGoals = await goalRepo.getActiveGoal();
@@ -1384,7 +1387,9 @@ void main() {
       expect(restoredGoals.baselineMeasurementId, measurementsAfter.single.id);
     });
 
-    test('restore sanitizes orphan goal baseline measurement references instead of throwing FK error', () async {
+    test(
+        'restore sanitizes orphan goal baseline measurement references instead of throwing FK error',
+        () async {
       final payload = await backupManager.generateBackupPayloadForTesting();
       // Simulate an old backup where user_goals has an unknown UUID and measurements is empty or different
       payload['user_goals'] = [
@@ -1404,7 +1409,8 @@ void main() {
       ];
       payload['measurements'] = <Map<String, dynamic>>[];
 
-      final success = await backupManager.importBackupPayloadForTesting(payload);
+      final success =
+          await backupManager.importBackupPayloadForTesting(payload);
       expect(success, isTrue);
 
       final goals = await db.select(db.userGoals).get();

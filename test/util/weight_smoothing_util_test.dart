@@ -43,7 +43,8 @@ void main() {
       expect(smoothed[2].value, closeTo(85.1225, 0.0001));
     });
 
-    test('calculateEwmaDailyPoints smoothes DailyValuePoint series identically', () {
+    test('calculateEwmaDailyPoints smoothes DailyValuePoint series identically',
+        () {
       final d1 = DateTime.utc(2026, 1, 1);
       final d2 = DateTime.utc(2026, 1, 2);
       final d3 = DateTime.utc(2026, 1, 3);

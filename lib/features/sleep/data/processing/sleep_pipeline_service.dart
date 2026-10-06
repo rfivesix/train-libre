@@ -992,7 +992,8 @@ class SleepPipelineService {
       // Advance endIdx to include all dailyStates up to and including 'night'.
       // Since both targetNights and dailyStates are sorted chronologically,
       // endIdx only moves forward, reducing complexity from O(N*M) to O(N+M).
-      while (endIdx < dailyStates.length && !dailyStates[endIdx].day.isAfter(night)) {
+      while (endIdx < dailyStates.length &&
+          !dailyStates[endIdx].day.isAfter(night)) {
         endIdx++;
       }
 

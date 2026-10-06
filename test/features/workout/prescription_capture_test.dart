@@ -33,13 +33,13 @@ void main() {
     database = AppDatabase(NativeDatabase.memory());
     for (var i = 1; i <= 3; i++) {
       await database.into(database.exercises).insert(
-        ExercisesCompanion(
-          id: Value('uuid-ex-$i'),
-          trackingType: const Value('weight_reps'),
-          loadMode: const Value('external'),
-          categoryName: const Value('Strength'),
-        ),
-      );
+            ExercisesCompanion(
+              id: Value('uuid-ex-$i'),
+              trackingType: const Value('weight_reps'),
+              loadMode: const Value('external'),
+              categoryName: const Value('Strength'),
+            ),
+          );
     }
     workoutDb = WorkoutLocalDataSource.forTesting(database);
     manager = buildManager();

@@ -23,7 +23,8 @@ void main() {
       expect(OffCatalogCountry.jp.primaryLanguageCode, equals('ja'));
     });
 
-    test('AiMatchingContext identifies different catalog language correctly', () {
+    test('AiMatchingContext identifies different catalog language correctly',
+        () {
       const same = AiMatchingContext(appLanguage: 'de', catalogLanguage: 'de');
       expect(same.hasDifferentCatalogLanguage, isFalse);
 
@@ -31,11 +32,14 @@ void main() {
       expect(diff.hasDifferentCatalogLanguage, isTrue);
     });
 
-    test('writeActiveCountry sets catalog language correctly in prefs', () async {
+    test('writeActiveCountry sets catalog language correctly in prefs',
+        () async {
       final prefs = await SharedPreferences.getInstance();
-      await OffCatalogCountryService.writeActiveCountry(OffCatalogCountry.fr, prefs: prefs);
+      await OffCatalogCountryService.writeActiveCountry(OffCatalogCountry.fr,
+          prefs: prefs);
 
-      final country = OffCatalogCountryService.readActiveCountryFromPrefs(prefs);
+      final country =
+          OffCatalogCountryService.readActiveCountryFromPrefs(prefs);
       expect(country, equals(OffCatalogCountry.fr));
       expect(country.primaryLanguageCode, equals('fr'));
     });

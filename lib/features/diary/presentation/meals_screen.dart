@@ -254,7 +254,9 @@ class _MealsScreenState extends State<MealsScreen> {
         }
       }
 
-      if (created != null && (created['name'] as String) == defaultName && items.isEmpty) {
+      if (created != null &&
+          (created['name'] as String) == defaultName &&
+          items.isEmpty) {
         await DatabaseHelper.instance.deleteMeal(newMealId);
         await _reloadMeals();
       }
@@ -321,14 +323,16 @@ class _MealsScreenState extends State<MealsScreen> {
                             Text(
                               l10n.mealsEmptyBodyWithShortcut,
                               textAlign: TextAlign.center,
-                              style:
-                                  Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .onSurfaceVariant
-                                            .withValues(alpha: 0.75),
-                                        height: 1.45,
-                                      ),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyMedium
+                                  ?.copyWith(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurfaceVariant
+                                        .withValues(alpha: 0.75),
+                                    height: 1.45,
+                                  ),
                             ),
                             const SizedBox(height: DesignConstants.spacingL),
                             // Outlined CTA to build a template from scratch

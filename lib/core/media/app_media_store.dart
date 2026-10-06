@@ -403,7 +403,8 @@ class AppMediaStore {
         directories[p.basename(relative)] = p.dirname(relative);
       }
     } catch (e) {
-      debugPrint('[AppMediaStore] reading workout preview locations failed: $e');
+      debugPrint(
+          '[AppMediaStore] reading workout preview locations failed: $e');
     }
     return MediaThumbPlacement(
       basePath: base,

@@ -124,8 +124,7 @@ extension RulesLogic on AiMealValidationEngine {
       );
     }
 
-    final usesRawEquivalentForPreparedPortion =
-        item.servedGrams != null &&
+    final usesRawEquivalentForPreparedPortion = item.servedGrams != null &&
         item.servedGrams != item.grams &&
         _isPreparedState(item.stateHint);
     bool stateMismatch = usesRawEquivalentForPreparedPortion

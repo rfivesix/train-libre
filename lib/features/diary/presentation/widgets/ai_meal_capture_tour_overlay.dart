@@ -28,7 +28,8 @@ class AiMealCaptureTourOverlay extends StatelessWidget {
     required this.skipLabel,
     required this.onNext,
     required this.onSkip,
-  }) : targetRects = targetRects ?? (targetRect != null ? [targetRect] : const []);
+  }) : targetRects =
+            targetRects ?? (targetRect != null ? [targetRect] : const []);
 
   @override
   Widget build(BuildContext context) {
@@ -91,7 +92,8 @@ class AiMealCaptureTourOverlay extends StatelessWidget {
                 child: ClipPath(
                   clipper: _InvertedHolesClipper(
                     holes: holes
-                        .map((h) => _inflateRRect(h, (blurTiers - 1 - i) * stepDistance))
+                        .map((h) => _inflateRRect(
+                            h, (blurTiers - 1 - i) * stepDistance))
                         .toList(),
                   ),
                   child: BackdropFilter(
@@ -192,9 +194,8 @@ class AiMealCaptureTourOverlay extends StatelessWidget {
                               child: Text(
                                 skipLabel,
                                 style: TextStyle(
-                                  color: isDark
-                                      ? Colors.white54
-                                      : Colors.black54,
+                                  color:
+                                      isDark ? Colors.white54 : Colors.black54,
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
