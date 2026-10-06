@@ -47,6 +47,10 @@ Designed for lifters and health-conscious users who want serious tracking withou
         <sub><b>Diary</b></sub>
       </td>
       <td width="24%" align="center">
+        <img src="assets/screenshots/iOS/en-US/dark/iOS_dark_ai.png" alt="AI Meal Capture" width="100%"><br>
+        <sub><b>AI Meal Capture</b></sub>
+      </td>
+      <td width="24%" align="center">
         <img src="assets/screenshots/iOS/en-US/dark/iOS_dark_running_workout.png" alt="Workout Tracking" width="100%"><br>
         <sub><b>Workout</b></sub>
       </td>
@@ -54,12 +58,12 @@ Designed for lifters and health-conscious users who want serious tracking withou
         <img src="assets/screenshots/iOS/en-US/dark/iOS_dark_nutrition.png" alt="Nutrition Tracking" width="100%"><br>
         <sub><b>Nutrition</b></sub>
       </td>
-      <td width="24%" align="center">
-        <img src="assets/screenshots/iOS/en-US/dark/iOS_dark_ai.png" alt="AI Meal Capture" width="100%"><br>
-        <sub><b>AI Meal Capture</b></sub>
-      </td>
     </tr>
     <tr>
+      <td width="24%" align="center">
+        <img src="assets/screenshots/iOS/en-US/dark/iOS_dark_weekly_goal_review.png" alt="Goal Review" width="100%"><br>
+        <sub><b>Goal Review</b></sub>
+      </td>
       <td width="24%" align="center">
         <img src="assets/screenshots/iOS/en-US/dark/iOS_dark_recovery.png" alt="Recovery Trends" width="100%"><br>
         <sub><b>Recovery</b></sub>
@@ -72,7 +76,6 @@ Designed for lifters and health-conscious users who want serious tracking withou
         <img src="assets/screenshots/iOS/en-US/dark/iOS_dark_data.png" alt="Data Insights" width="100%"><br>
         <sub><b>Data Insights</b></sub>
       </td>
-      <td width="24%"></td>
     </tr>
   </table>
 </div>

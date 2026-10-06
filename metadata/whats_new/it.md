@@ -6,7 +6,7 @@
   Poi esegui: python3 script/build_whats_new.py --write --sync-store
 -->
 
-## 1.5.0-beta.1 (2026-10-06)
+## 1.5.0 (2026-10-07)
 
 {chart_line} Obiettivi che si adattano a te : Imposta un obiettivo di peso a lungo termine partendo da una misurazione reale, segui la traiettoria e verifica i progressi con tranquilli riepiloghi settimanali. Le nuove raccomandazioni su calorie e macro restano proposte finché non scegli di applicarle.
 

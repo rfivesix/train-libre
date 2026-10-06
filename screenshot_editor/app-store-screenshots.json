@@ -45,6 +45,37 @@
         }
       },
       {
+        "id": "s_iphone_3",
+        "layout": "device-bottom",
+        "label": {
+          "en": "AI CAPTURE",
+          "de": "KI-ERKENNUNG"
+        },
+        "headline": {
+          "en": "Snap a Photo to Log Your Meals Instantly",
+          "de": "Mahlzeiten einfach per Foto loggen"
+        },
+        "screenshot": "/screenshots/{locale}/iOS_dark_ai.png",
+        "transforms": {
+          "caption": {
+            "x": 105.6,
+            "y": 200,
+            "width": 1108.8,
+            "height": 900,
+            "rotation": 0,
+            "zIndex": 4
+          },
+          "device": {
+            "x": -49.07331378299273,
+            "y": 869.5366568914955,
+            "width": 1140,
+            "height": 2322.53,
+            "rotation": 7,
+            "zIndex": 2
+          }
+        }
+      },
+      {
         "id": "s_iphone_2",
         "layout": "device-bottom",
         "label": {
@@ -76,37 +107,6 @@
         }
       },
       {
-        "id": "s_iphone_3",
-        "layout": "device-bottom",
-        "label": {
-          "en": "AI CAPTURE",
-          "de": "KI-ERKENNUNG"
-        },
-        "headline": {
-          "en": "Snap a Photo to Log Your Meals Instantly",
-          "de": "Mahlzeiten einfach per Foto loggen"
-        },
-        "screenshot": "/screenshots/{locale}/iOS_dark_ai.png",
-        "transforms": {
-          "caption": {
-            "x": 105.6,
-            "y": 200,
-            "width": 1108.8,
-            "height": 900,
-            "rotation": 0,
-            "zIndex": 4
-          },
-          "device": {
-            "x": 400,
-            "y": 900,
-            "width": 1140,
-            "height": 2322.53,
-            "rotation": -7,
-            "zIndex": 2
-          }
-        }
-      },
-      {
         "id": "s_iphone_4",
         "layout": "device-bottom",
         "label": {
@@ -128,12 +128,12 @@
             "zIndex": 4
           },
           "device": {
-            "x": 122.754982415006,
-            "y": 948.5977491207503,
+            "x": 400,
+            "y": 900,
             "width": 1140,
             "height": 2322.53,
-            "rotation": 0,
-            "zIndex": 3
+            "rotation": -7,
+            "zIndex": 2
           }
         }
       },
@@ -159,8 +159,8 @@
             "zIndex": 4
           },
           "device": {
-            "x": 90,
-            "y": 950,
+            "x": 122.754982415006,
+            "y": 948.5977491207503,
             "width": 1140,
             "height": 2322.53,
             "rotation": 0,
@@ -268,7 +268,7 @@
         "layout": "device-bottom",
         "label": {
           "en": "DIARY",
-          "de": "DIARY"
+          "de": "TAGEBUCH"
         },
         "headline": {
           "en": "All-in-One Diary: Macros, Water & More",
@@ -277,8 +277,21 @@
         "screenshot": "/screenshots/{locale}/iOS_dark_diary.png"
       },
       {
+        "id": "s_android_4",
+        "layout": "device-bottom",
+        "label": {
+          "en": "AI CAPTURE",
+          "de": "KI-ERKENNUNG"
+        },
+        "headline": {
+          "en": "Snap a Photo to Log Your Meals Instantly",
+          "de": "Mahlzeiten einfach per Foto loggen"
+        },
+        "screenshot": "/screenshots/{locale}/iOS_dark_ai.png"
+      },
+      {
         "id": "s_android_2",
-        "layout": "device-top",
+        "layout": "device-bottom",
         "label": {
           "en": "WORKOUT",
           "de": "WORKOUT"
@@ -287,15 +300,14 @@
           "en": "Intuitive Workout Tracking (Sets, Reps, RIR)",
           "de": "Intuitives Workout-Tracking"
         },
-        "screenshot": "/screenshots/{locale}/iOS_dark_running_workout.png",
-        "inverted": true
+        "screenshot": "/screenshots/{locale}/iOS_dark_running_workout.png"
       },
       {
         "id": "s_android_3",
         "layout": "device-bottom",
         "label": {
           "en": "METABOLISM / TDEE",
-          "de": "METABOLISM / TDEE"
+          "de": "STOFFWECHSEL / TDEE"
         },
         "headline": {
           "en": "Adaptive TDEE & Smart Calorie Recommendations",
@@ -317,24 +329,11 @@
         "screenshot": "/screenshots/{locale}/iOS_dark_weekly_goal_review.png"
       },
       {
-        "id": "s_android_4",
-        "layout": "device-bottom",
-        "label": {
-          "en": "AI CAPTURE",
-          "de": "AI CAPTURE"
-        },
-        "headline": {
-          "en": "Snap a Photo to Log Your Meals Instantly",
-          "de": "Mahlzeiten einfach per Foto loggen"
-        },
-        "screenshot": "/screenshots/{locale}/iOS_dark_ai.png"
-      },
-      {
         "id": "s_android_5",
         "layout": "device-top",
         "label": {
           "en": "RECOVERY",
-          "de": "RECOVERY"
+          "de": "ERHOLUNG"
         },
         "headline": {
           "en": "Know Exactly When Your Muscles Are Recovered",
@@ -344,11 +343,24 @@
         "inverted": true
       },
       {
+        "id": "s_android_8",
+        "layout": "device-bottom",
+        "label": {
+          "en": "PROGRESS",
+          "de": "FORTSCHRITT"
+        },
+        "headline": {
+          "en": "Track Body Weight & Measurements Over Time",
+          "de": "Verfolge Gewicht & Maße über die Zeit"
+        },
+        "screenshot": "/screenshots/{locale}/iOS_dark_measurements.png"
+      },
+      {
         "id": "s_android_6",
         "layout": "device-bottom",
         "label": {
           "en": "PRIVACY / DATA",
-          "de": "PRIVACY / DATA"
+          "de": "PRIVATSPHÄRE / DATEN"
         },
         "headline": {
           "en": "Your Data Belongs to You: 100% Offline & Secure",

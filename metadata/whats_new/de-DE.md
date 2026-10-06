@@ -6,7 +6,7 @@
   Danach ausführen: python3 script/build_whats_new.py --write --sync-store
 -->
 
-## 1.5.0-beta.1 (2026-10-06)
+## 1.5.0 (2026-10-07)
 
 {chart_line} Ziele, die sich mit dir weiterentwickeln: Lege ein langfristiges Gewichtsziel mit echter Startmessung fest, verfolge deinen Zielpfad und ordne deinen Fortschritt in ruhigen wöchentlichen Rückblicken ein. Neue Kalorien- und Makroempfehlungen bleiben Vorschläge, bis du sie selbst anwendest.
 
