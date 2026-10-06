@@ -3031,7 +3031,7 @@
   "settingsTrainingProgressionTitle": "Progressione dell'allenamento",
   "settingsTrainingProgressionSubtitle": "Suggerimenti di carico basati sulla tua cronologia",
   "progressionPromptTitle": "Attivare la Progressive Engine?",
-  "progressionPromptDescription": "Train Libre ha trovato prestazioni precedenti per questo esercizio. La Progressive Engine può suggerirti automaticamente il carico ideale per la tua prossima serie.",
+  "progressionPromptDescription": "Train Libre ha trovato prestazioni precedenti per i tuoi allenamenti. La Progressive Engine può suggerirti automaticamente il carico ideale per la tua prossima serie.",
   "progressionPromptFeatureSmartWeights": "Suggerimenti automatici di carico basati sulle tue serie recenti",
   "progressionPromptFeatureStayInControl": "Mantieni sempre il pieno controllo e puoi modificare qualsiasi valore",
   "progressionPromptEnableAction": "Attiva suggerimenti",

@@ -6765,7 +6765,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get progressionPromptDescription =>
-      'Train Libre でこの種目の以前の記録が見つかりました。Progressive Engine は過去のセットから次のセットの適切な重量を自動提案できます。';
+      'Train Libre でトレーニングの以前の記録が見つかりました。Progressive Engine は過去のセットから次のセットの適切な重量を自動提案できます。';
 
   @override
   String get progressionPromptFeatureSmartWeights => '直近のセットに基づいた自動重量提案';

@@ -3030,7 +3030,7 @@
   "settingsTrainingProgressionTitle": "Trainingsprogression",
   "settingsTrainingProgressionSubtitle": "Gewichtsvorschläge aus deiner Historie",
   "progressionPromptTitle": "Progressive Engine aktivieren?",
-  "progressionPromptDescription": "Train Libre hat frühere Leistungen für diese Übung gefunden. Die Progressive Engine kann dir automatisch das passende Gewicht für deinen nächsten Satz vorschlagen und dein Training intelligent steigern.",
+  "progressionPromptDescription": "Train Libre hat frühere Leistungen für dein Training gefunden. Die Progressive Engine kann dir automatisch das passende Gewicht für deinen nächsten Satz vorschlagen und dein Training intelligent steigern.",
   "progressionPromptFeatureSmartWeights": "Automatische Gewichtsvorschläge basierend auf deinen letzten Sätzen",
   "progressionPromptFeatureStayInControl": "Du behältst jederzeit die volle Kontrolle und kannst jeden Wert überschreiben",
   "progressionPromptEnableAction": "Vorschläge aktivieren",

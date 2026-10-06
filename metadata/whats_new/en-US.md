@@ -6,17 +6,17 @@
   Newest version first. Regenerate with: python3 script/build_whats_new.py
 -->
 
-## 1.5.0 (2026-09-25)
+## 1.5.0 (2026-10-06)
 
 {chart_line} Goals that adapt with you: Set a long-term weight goal with a real starting measurement, follow your trajectory, and review your progress in calm weekly check-ins. New calorie and macro recommendations remain proposals until you choose to apply them.
 
-{dumbbell} Build your own workout plan: Arrange saved routines as a weekly schedule or a flexible 1–14 day sequence, include rest days, see what is next, and start planned sessions directly from the Diary.
+{dumbbell} Custom workout plans & flexible sequences: Arrange saved routines as a weekly schedule or a flexible 1–14 day sequence, include rest days, set optional reminders, and start due sessions directly from the Diary without any catch-up pressure.
 
-{bell} Helpful reminders, never catch-up pressure: Optional local reminders keep goal reviews and planned workouts visible. Missed sessions do not create extra work or a workout debt.
+{sparkles} Tailored training experience levels: Choose your experience level (Beginner, Advanced, Pro) in Settings or onboarding. Muscle group breakdowns, RIR (reps in reserve), and workout views adapt to match your training background.
 
-{layout_grid} A clearer Workout home: The redesigned Workout tab brings your active plan, recovery, quick starts, recently used routines, history, and the exercise catalogue into one focused place.
+{timer} Set timer & redesigned Workout home: Start and pause timed sets directly during your workout or from your Lock Screen Live Activity. The refreshed Workout tab brings your active plan, routines, and history together in one place.
 
-{utensils} Understand your nutrition trends: New macro statistics and a rolling seven-day intake comparison make calories, protein, fat, and carbohydrates easier to inspect over time.
+{activity} Smoothed weight trends & new analytics: Metabolic trend smoothing with a subtle check-in ghost line reveals your true weight direction across the app and home widgets, complemented by macro analytics and Apple Health / Health Connect measurement imports.
 
 ## 1.4.1 (2026-09-14)
 

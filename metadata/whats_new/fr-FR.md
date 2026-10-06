@@ -6,17 +6,17 @@
   récente en premier. Ensuite : python3 script/build_whats_new.py --write --sync-store
 -->
 
-## 1.5.0 (2026-09-25)
+## 1.5.0 (2026-10-06)
 
-{chart_line} Des objectifs qui évoluent avec toi : définis un objectif de poids à long terme à partir d'une mesure réelle, suis ta trajectoire et fais le point sereinement chaque semaine. Les nouvelles recommandations de calories et de macros restent des propositions tant que tu ne les appliques pas.
+{chart_line} Des objectifs qui évoluent avec toi : Définis un objectif de poids à long terme à partir d'une mesure réelle, suis ta trajectoire et fais le point sereinement chaque semaine. Les nouvelles recommandations de calories et de macros restent des propositions tant que tu ne les appliques pas.
 
-{dumbbell} Crée ton propre programme d'entraînement : organise tes routines enregistrées en semaine fixe ou en séquence flexible de 1 à 14 jours, ajoute des jours de repos, vois la prochaine séance et lance-la directement depuis le journal.
+{dumbbell} Programmes d'entraînement personnalisés : Organise tes routines en semaine fixe ou en séquence flexible de 1 à 14 jours, ajoute des jours de repos, active des rappels et lance tes séances prévues depuis le journal sans pression de rattrapage.
 
-{bell} Des rappels utiles, sans pression de rattrapage : des notifications locales facultatives gardent les bilans d'objectif et les séances prévues bien visibles. Une séance manquée ne crée ni travail supplémentaire ni dette d'entraînement.
+{sparkles} Niveaux d'expérience sur mesure : Choisis ton niveau (Débutant, Avancé, Pro) dans les réglages ou l'onboarding. Le détail des groupes musculaires, le RIR et les écrans d'entraînement s'adaptent à ton niveau de pratique.
 
-{layout_grid} Un espace Entraînement plus clair : l'onglet repensé réunit ton programme actif, la récupération, les démarrages rapides, les routines récentes, l'historique et le catalogue d'exercices en un seul endroit.
+{timer} Minuteur de série & onglet Entraînement repensé : Lance et mets en pause le minuteur de série directement pendant l'entraînement ou depuis l'Activité en direct sur l'écran verrouillé. L'onglet Entraînement réunit programme actif, routines et historique.
 
-{utensils} Comprends mieux tes tendances nutritionnelles : de nouvelles statistiques de macros et une comparaison glissante sur sept jours facilitent le suivi des calories, protéines, lipides et glucides dans le temps.
+{activity} Tendances de poids lissées & nouvelles analyses : Le lissage métabolique avec ligne d'historique discrète révèle ta véritable évolution dans l'app et les widgets, complété par les statistiques de macros et l'import de mesures depuis Apple Santé et Health Connect.
 
 ## 1.4.1 (2026-09-14)
 

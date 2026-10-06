@@ -6,17 +6,17 @@
   Poi esegui: python3 script/build_whats_new.py --write --sync-store
 -->
 
-## 1.5.0 (2026-09-25)
+## 1.5.0 (2026-10-06)
 
-{chart_line} Obiettivi che si adattano a te: imposta un obiettivo di peso a lungo termine partendo da una misurazione reale, segui la traiettoria e verifica i progressi con tranquilli riepiloghi settimanali. Le nuove raccomandazioni su calorie e macro restano proposte finché non scegli di applicarle.
+{chart_line} Obiettivi che si adattano a te : Imposta un obiettivo di peso a lungo termine partendo da una misurazione reale, segui la traiettoria e verifica i progressi con tranquilli riepiloghi settimanali. Le nuove raccomandazioni su calorie e macro restano proposte finché non scegli di applicarle.
 
-{dumbbell} Crea il tuo piano di allenamento: organizza le routine salvate come programma settimanale o sequenza flessibile da 1 a 14 giorni, includi i giorni di riposo, controlla la prossima sessione e avviala direttamente dal diario.
+{dumbbell} Piani di allenamento personalizzati : Organizza le routine come programma settimanale o sequenza flessibile da 1 a 14 giorni, includi i giorni di riposo, imposta promemoria e avvia le sessioni dal diario senza alcuna pressione di recupero.
 
-{bell} Promemoria utili, senza pressioni per recuperare: notifiche locali facoltative mantengono visibili i riepiloghi degli obiettivi e gli allenamenti programmati. Una sessione saltata non crea lavoro extra né debiti di allenamento.
+{sparkles} Livelli di esperienza su misura : Scegli il tuo livello (Principiante, Avanzato, Pro) nelle impostazioni o nell'onboarding. I dettagli dei gruppi muscolari, il RIR e le schermate di allenamento si adattano al tuo livello.
 
-{layout_grid} Una schermata Allenamento più chiara: la scheda ridisegnata riunisce piano attivo, recupero, avvii rapidi, routine recenti, cronologia e catalogo degli esercizi in un unico spazio.
+{timer} Timer per serie & scheda Allenamento rinnovata : Avvia e metti in pausa i timer delle serie durante l'allenamento o dall'Attività dal vivo sulla schermata di blocco. La scheda Allenamento riunisce piano attivo, routine e cronologia.
 
-{utensils} Comprendi meglio le tendenze nutrizionali: nuove statistiche dei macro e un confronto mobile di sette giorni rendono più semplice seguire calorie, proteine, grassi e carboidrati nel tempo.
+{activity} Trend del peso attenuati & nuove analisi : Il trend del peso attenuato con linea discreta dei punti mostra la tua reale evoluzione nell'app e nei widget, affiancato da statistiche dei macro e importazione delle misurazioni da Apple Salute e Health Connect.
 
 ## 1.4.1 (2026-09-14)
 

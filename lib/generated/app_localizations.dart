@@ -12244,7 +12244,7 @@ abstract class AppLocalizations {
   /// No description provided for @progressionPromptDescription.
   ///
   /// In en, this message translates to:
-  /// **'Train Libre found previous performances for this exercise. The Progressive Engine can automatically suggest the ideal weight for your next set and adapt your training progressively.'**
+  /// **'Train Libre found previous workout data for your training. The Progressive Engine can automatically suggest the ideal weight for your next set and adapt your progression progressively.'**
   String get progressionPromptDescription;
 
   /// No description provided for @progressionPromptFeatureSmartWeights.

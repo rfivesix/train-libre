@@ -1,11 +1,13 @@
 Train Libre 1.5.0
 
-Please focus your testing on adaptive goals, manual workout plans, and the redesigned Workout tab:
+Please focus your testing on adaptive goals, workout plans, and new tracking features:
 
-• Adaptive Nutrition Goals: Create a weight goal from a real weight measurement, inspect its trajectory, and complete a weekly review. Confirm that a recommendation does not change calorie or macro targets until you explicitly apply it.
-• Manual Workout Plans: Build both a fixed weekly plan and a flexible sequence from saved routines. Include a rest day, start the due workout from the Diary, and verify complete, partial, and skipped states. A missed sequence workout should remain next; no catch-up workout should be added.
-• Workout Reminders: Enable a plan reminder, change its time, and verify that opening the notification leads to the active plan. Retiring or replacing the plan should remove obsolete reminders.
-• Workout Hub & Routines: Check routine ordering after creating, editing, and starting a routine. Test edit, duplicate, share, delete, quick start, workout history, and exercise catalogue navigation.
+• Adaptive Nutrition Goals & Weekly Reviews: Create a weight goal from a real weight measurement (in onboarding or Profile -> My Goals), inspect its trajectory, and complete a weekly review. Confirm that a recommendation does not change calorie or macro targets until you explicitly apply it.
+• Training Experience Levels: Select Beginner, Advanced, or Pro in Settings or onboarding, and check the adjusted workout interface, muscle anatomy details, and RIR controls.
+• Manual Workout Plans & Reminders: Build both a fixed weekly plan and a flexible sequence from saved routines. Include a rest day, enable reminders, start the due workout from the Diary, and verify complete, partial, and skipped states.
+• Timed Sets & Live Activities: Start a workout, tap the play/stop timer on set rows, and verify pause/resume from the Lock Screen / Dynamic Island Live Activity.
+• Weight Trend Smoothing & Health Import: Check the metabolic trend smoothing curve with touch points in Measurements and Home Screen widgets. Test importing body measurements under Settings -> Health & Tracking.
+• Workout Hub & Routines: Check routine ordering after creating, editing, and starting a routine. Test edit, duplicate, share, delete, quick start, and workout history.
 • Nutrition Statistics: Inspect several time ranges, navigate between periods, and press or drag across macro bars to verify the selected day's values.
 
 Please also report any localisation, accessibility, notification timing, backup/restore, layout, or general stability issues.

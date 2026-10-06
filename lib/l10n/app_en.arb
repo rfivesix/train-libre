@@ -3225,7 +3225,7 @@
   "settingsTrainingProgressionTitle": "Training progression",
   "settingsTrainingProgressionSubtitle": "Weight suggestions based on your history",
   "progressionPromptTitle": "Enable Progressive Engine?",
-  "progressionPromptDescription": "Train Libre found previous performances for this exercise. The Progressive Engine can automatically suggest the ideal weight for your next set and adapt your training progressively.",
+  "progressionPromptDescription": "Train Libre found previous workout data for your training. The Progressive Engine can automatically suggest the ideal weight for your next set and adapt your progression progressively.",
   "progressionPromptFeatureSmartWeights": "Automatic weight suggestions based on your recent sets",
   "progressionPromptFeatureStayInControl": "You always stay in full control and can overwrite any value anytime",
   "progressionPromptEnableAction": "Enable suggestions",

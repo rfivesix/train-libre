@@ -3031,7 +3031,7 @@
   "settingsTrainingProgressionTitle": "Progression de l'entraînement",
   "settingsTrainingProgressionSubtitle": "Suggestions de poids basées sur votre historique",
   "progressionPromptTitle": "Activer le moteur progressif ?",
-  "progressionPromptDescription": "Train Libre a trouvé des performances passées pour cet exercice. Le moteur progressif peut vous suggérer automatiquement la charge idéale pour votre prochaine série.",
+  "progressionPromptDescription": "Train Libre a trouvé des performances passées pour vos entraînements. Le moteur progressif peut vous suggérer automatiquement la charge idéale pour votre prochaine série.",
   "progressionPromptFeatureSmartWeights": "Suggestions automatiques de charge basées sur vos séries récentes",
   "progressionPromptFeatureStayInControl": "Vous gardez le contrôle total et pouvez modifier chaque valeur à tout moment",
   "progressionPromptEnableAction": "Activer les suggestions",

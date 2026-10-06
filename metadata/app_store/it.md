@@ -56,15 +56,15 @@ OPEN SOURCE E DATI APERTI:
 Sviluppato in modo trasparente sui database aperti e affidabili di Open Food Facts e OpenExerciseDB. Il codice sorgente completo è pubblicamente accessibile: le nostre promesse sulla privacy si verificano, non si prendono per buone.
 
 ## Release Notes (What's New / Release Notes in this version)
-Obiettivi che si adattano a te: imposta un obiettivo di peso a lungo termine partendo da una misurazione reale, segui la traiettoria e verifica i progressi con tranquilli riepiloghi settimanali. Le nuove raccomandazioni su calorie e macro restano proposte finché non scegli di applicarle.
+Obiettivi che si adattano a te: Imposta un obiettivo di peso a lungo termine partendo da una misurazione reale, segui la traiettoria e verifica i progressi con tranquilli riepiloghi settimanali. Le nuove raccomandazioni su calorie e macro restano proposte finché non scegli di applicarle.
 
-Crea il tuo piano di allenamento: organizza le routine salvate come programma settimanale o sequenza flessibile da 1 a 14 giorni, includi i giorni di riposo, controlla la prossima sessione e avviala direttamente dal diario.
+Piani di allenamento personalizzati: Organizza le routine come programma settimanale o sequenza flessibile da 1 a 14 giorni, includi i giorni di riposo, imposta promemoria e avvia le sessioni dal diario senza alcuna pressione di recupero.
 
-Promemoria utili, senza pressioni per recuperare: notifiche locali facoltative mantengono visibili i riepiloghi degli obiettivi e gli allenamenti programmati. Una sessione saltata non crea lavoro extra né debiti di allenamento.
+Livelli di esperienza su misura: Scegli il tuo livello (Principiante, Avanzato, Pro) nelle impostazioni o nell'onboarding. I dettagli dei gruppi muscolari, il RIR e le schermate di allenamento si adattano al tuo livello.
 
-Una schermata Allenamento più chiara: la scheda ridisegnata riunisce piano attivo, recupero, avvii rapidi, routine recenti, cronologia e catalogo degli esercizi in un unico spazio.
+Timer per serie & scheda Allenamento rinnovata: Avvia e metti in pausa i timer delle serie durante l'allenamento o dall'Attività dal vivo sulla schermata di blocco. La scheda Allenamento riunisce piano attivo, routine e cronologia.
 
-Comprendi meglio le tendenze nutrizionali: nuove statistiche dei macro e un confronto mobile di sette giorni rendono più semplice seguire calorie, proteine, grassi e carboidrati nel tempo.
+Trend del peso attenuati & nuove analisi: Il trend del peso attenuato con linea discreta dei punti mostra la tua reale evoluzione nell'app e nei widget, affiancato da statistiche dei macro e importazione delle misurazioni da Apple Salute e Health Connect.
 
 ## Support URL (Support Web Page URL)
 https://trainlibre.com/support

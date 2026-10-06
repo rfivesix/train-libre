@@ -56,15 +56,15 @@ OPEN SOURCE & DONNÉES OUVERTES :
 Développé de manière transparente à partir des catalogues communautaires de confiance Open Food Facts et OpenExerciseDB. Le code source complet est accessible publiquement : nos promesses de confidentialité se vérifient au lieu de se croire.
 
 ## Release Notes (What's New / Release Notes in this version)
-Des objectifs qui évoluent avec toi: définis un objectif de poids à long terme à partir d'une mesure réelle, suis ta trajectoire et fais le point sereinement chaque semaine. Les nouvelles recommandations de calories et de macros restent des propositions tant que tu ne les appliques pas.
+Des objectifs qui évoluent avec toi: Définis un objectif de poids à long terme à partir d'une mesure réelle, suis ta trajectoire et fais le point sereinement chaque semaine. Les nouvelles recommandations de calories et de macros restent des propositions tant que tu ne les appliques pas.
 
-Crée ton propre programme d'entraînement: organise tes routines enregistrées en semaine fixe ou en séquence flexible de 1 à 14 jours, ajoute des jours de repos, vois la prochaine séance et lance-la directement depuis le journal.
+Programmes d'entraînement personnalisés: Organise tes routines en semaine fixe ou en séquence flexible de 1 à 14 jours, ajoute des jours de repos, active des rappels et lance tes séances prévues depuis le journal sans pression de rattrapage.
 
-Des rappels utiles, sans pression de rattrapage: des notifications locales facultatives gardent les bilans d'objectif et les séances prévues bien visibles. Une séance manquée ne crée ni travail supplémentaire ni dette d'entraînement.
+Niveaux d'expérience sur mesure: Choisis ton niveau (Débutant, Avancé, Pro) dans les réglages ou l'onboarding. Le détail des groupes musculaires, le RIR et les écrans d'entraînement s'adaptent à ton niveau de pratique.
 
-Un espace Entraînement plus clair: l'onglet repensé réunit ton programme actif, la récupération, les démarrages rapides, les routines récentes, l'historique et le catalogue d'exercices en un seul endroit.
+Minuteur de série & onglet Entraînement repensé: Lance et mets en pause le minuteur de série directement pendant l'entraînement ou depuis l'Activité en direct sur l'écran verrouillé. L'onglet Entraînement réunit programme actif, routines et historique.
 
-Comprends mieux tes tendances nutritionnelles: de nouvelles statistiques de macros et une comparaison glissante sur sept jours facilitent le suivi des calories, protéines, lipides et glucides dans le temps.
+Tendances de poids lissées & nouvelles analyses: Le lissage métabolique avec ligne d'historique discrète révèle ta véritable évolution dans l'app et les widgets, complété par les statistiques de macros et l'import de mesures depuis Apple Santé et Health Connect.
 
 ## Support URL (Support Web Page URL)
 https://trainlibre.com/support

@@ -7117,7 +7117,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get progressionPromptDescription =>
-      'Train Libre a trouvé des performances passées pour cet exercice. Le moteur progressif peut vous suggérer automatiquement la charge idéale pour votre prochaine série.';
+      'Train Libre a trouvé des performances passées pour vos entraînements. Le moteur progressif peut vous suggérer automatiquement la charge idéale pour votre prochaine série.';
 
   @override
   String get progressionPromptFeatureSmartWeights =>

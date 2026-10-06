@@ -3031,7 +3031,7 @@
   "settingsTrainingProgressionTitle": "トレーニングの進捗",
   "settingsTrainingProgressionSubtitle": "履歴に基づいた重量の提案",
   "progressionPromptTitle": "Progressive Engine を有効にしますか？",
-  "progressionPromptDescription": "Train Libre でこの種目の以前の記録が見つかりました。Progressive Engine は過去のセットから次のセットの適切な重量を自動提案できます。",
+  "progressionPromptDescription": "Train Libre でトレーニングの以前の記録が見つかりました。Progressive Engine は過去のセットから次のセットの適切な重量を自動提案できます。",
   "progressionPromptFeatureSmartWeights": "直近のセットに基づいた自動重量提案",
   "progressionPromptFeatureStayInControl": "いつでもすべての数値を手動で変更・上書きできます",
   "progressionPromptEnableAction": "提案を有効にする",

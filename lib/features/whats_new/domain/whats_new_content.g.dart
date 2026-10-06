@@ -17,7 +17,7 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
   'en': <WhatsNewRelease>[
     WhatsNewRelease(
       version: '1.5.0',
-      releasedOn: '2026-09-25',
+      releasedOn: '2026-10-06',
       entries: <WhatsNewEntry>[
         WhatsNewEntry(
           icon: LucideIcons.chart_line,
@@ -26,23 +26,23 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
         ),
         WhatsNewEntry(
           icon: LucideIcons.dumbbell,
-          title: 'Build your own workout plan',
-          body: 'Arrange saved routines as a weekly schedule or a flexible 1–14 day sequence, include rest days, see what is next, and start planned sessions directly from the Diary.',
+          title: 'Custom workout plans & flexible sequences',
+          body: 'Arrange saved routines as a weekly schedule or a flexible 1–14 day sequence, include rest days, set optional reminders, and start due sessions directly from the Diary without any catch-up pressure.',
         ),
         WhatsNewEntry(
-          icon: LucideIcons.bell,
-          title: 'Helpful reminders, never catch-up pressure',
-          body: 'Optional local reminders keep goal reviews and planned workouts visible. Missed sessions do not create extra work or a workout debt.',
+          icon: LucideIcons.sparkles,
+          title: 'Tailored training experience levels',
+          body: 'Choose your experience level (Beginner, Advanced, Pro) in Settings or onboarding. Muscle group breakdowns, RIR (reps in reserve), and workout views adapt to match your training background.',
         ),
         WhatsNewEntry(
-          icon: LucideIcons.layout_grid,
-          title: 'A clearer Workout home',
-          body: 'The redesigned Workout tab brings your active plan, recovery, quick starts, recently used routines, history, and the exercise catalogue into one focused place.',
+          icon: LucideIcons.timer,
+          title: 'Set timer & redesigned Workout home',
+          body: 'Start and pause timed sets directly during your workout or from your Lock Screen Live Activity. The refreshed Workout tab brings your active plan, routines, and history together in one place.',
         ),
         WhatsNewEntry(
-          icon: LucideIcons.utensils,
-          title: 'Understand your nutrition trends',
-          body: 'New macro statistics and a rolling seven-day intake comparison make calories, protein, fat, and carbohydrates easier to inspect over time.',
+          icon: LucideIcons.activity,
+          title: 'Smoothed weight trends & new analytics',
+          body: 'Metabolic trend smoothing with a subtle check-in ghost line reveals your true weight direction across the app and home widgets, complemented by macro analytics and Apple Health / Health Connect measurement imports.',
         ),
       ],
     ),
@@ -237,7 +237,7 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
   'de': <WhatsNewRelease>[
     WhatsNewRelease(
       version: '1.5.0',
-      releasedOn: '2026-09-25',
+      releasedOn: '2026-10-06',
       entries: <WhatsNewEntry>[
         WhatsNewEntry(
           icon: LucideIcons.chart_line,
@@ -246,23 +246,23 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
         ),
         WhatsNewEntry(
           icon: LucideIcons.dumbbell,
-          title: 'Erstelle deinen eigenen Trainingsplan',
-          body: 'Ordne gespeicherte Routinen als Wochenplan oder flexible Abfolge von 1–14 Tagen an, plane Ruhetage ein, sieh direkt, was als Nächstes ansteht, und starte geplante Einheiten aus dem Tagebuch.',
+          title: 'Eigene Trainingspläne & flexible Sequenzen',
+          body: 'Ordne gespeicherte Routinen als Wochenplan oder flexible Abfolge von 1–14 Tagen an, plane Ruhetage ein, erhalte optionale Erinnerungen und starte anstehende Einheiten direkt aus dem Tagebuch – ganz ohne Nachholdruck.',
         ),
         WhatsNewEntry(
-          icon: LucideIcons.bell,
-          title: 'Hilfreiche Erinnerungen ohne Nachholdruck',
-          body: 'Optionale lokale Benachrichtigungen erinnern an Zielrückblicke und geplante Workouts. Verpasste Einheiten erzeugen weder Zusatztraining noch Trainingsschulden.',
+          icon: LucideIcons.sparkles,
+          title: 'Dein Trainingslevel nach Maß',
+          body: 'Wähle in den Einstellungen oder beim Start dein Erfahrungslevel (Einsteiger, Fortgeschritten, Profi). Die Detailtiefe bei Muskelgruppen, RIR (Wiederholungen in Reserve) und Trainingsansichten passt sich passend an dein Niveau an.',
         ),
         WhatsNewEntry(
-          icon: LucideIcons.layout_grid,
-          title: 'Ein klareres Zuhause fürs Training',
-          body: 'Der überarbeitete Workout-Tab bündelt deinen aktiven Plan, Regeneration, Schnellstarts, zuletzt verwendete Routinen, Verlauf und Übungskatalog an einem Ort.',
+          icon: LucideIcons.timer,
+          title: 'Satz-Timer & aufgeräumter Workout-Tab',
+          body: 'Starte und stoppe Satz-Timer direkt im Live-Workout oder bequem über die Live-Aktivität auf dem Sperrbildschirm. Der neu gestaltete Workout-Tab bündelt deinen aktiven Plan, Routinen und Verlauf an einem zentralen Ort.',
         ),
         WhatsNewEntry(
-          icon: LucideIcons.utensils,
-          title: 'Ernährungstrends besser verstehen',
-          body: 'Neue Makrostatistiken und ein rollierender 7-Tage-Vergleich machen Kalorien, Protein, Fett und Kohlenhydrate über die Zeit leichter nachvollziehbar.',
+          icon: LucideIcons.activity,
+          title: 'Geglättete Gewichtstrends & neue Analysen',
+          body: 'Die metabolische Trendglättung mit dezenter Messpunkt-Linie zeigt deinen wahren Gewichtsverlauf in App und Widgets. Ergänzt durch neue Makro-Statistiken sowie nahtlosen Messungs-Import aus Apple Health und Health Connect.',
         ),
       ],
     ),
@@ -457,32 +457,32 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
   'fr': <WhatsNewRelease>[
     WhatsNewRelease(
       version: '1.5.0',
-      releasedOn: '2026-09-25',
+      releasedOn: '2026-10-06',
       entries: <WhatsNewEntry>[
         WhatsNewEntry(
           icon: LucideIcons.chart_line,
           title: 'Des objectifs qui évoluent avec toi',
-          body: 'définis un objectif de poids à long terme à partir d\'une mesure réelle, suis ta trajectoire et fais le point sereinement chaque semaine. Les nouvelles recommandations de calories et de macros restent des propositions tant que tu ne les appliques pas.',
+          body: 'Définis un objectif de poids à long terme à partir d\'une mesure réelle, suis ta trajectoire et fais le point sereinement chaque semaine. Les nouvelles recommandations de calories et de macros restent des propositions tant que tu ne les appliques pas.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.dumbbell,
-          title: 'Crée ton propre programme d\'entraînement',
-          body: 'organise tes routines enregistrées en semaine fixe ou en séquence flexible de 1 à 14 jours, ajoute des jours de repos, vois la prochaine séance et lance-la directement depuis le journal.',
+          title: 'Programmes d\'entraînement personnalisés',
+          body: 'Organise tes routines en semaine fixe ou en séquence flexible de 1 à 14 jours, ajoute des jours de repos, active des rappels et lance tes séances prévues depuis le journal sans pression de rattrapage.',
         ),
         WhatsNewEntry(
-          icon: LucideIcons.bell,
-          title: 'Des rappels utiles, sans pression de rattrapage',
-          body: 'des notifications locales facultatives gardent les bilans d\'objectif et les séances prévues bien visibles. Une séance manquée ne crée ni travail supplémentaire ni dette d\'entraînement.',
+          icon: LucideIcons.sparkles,
+          title: 'Niveaux d\'expérience sur mesure',
+          body: 'Choisis ton niveau (Débutant, Avancé, Pro) dans les réglages ou l\'onboarding. Le détail des groupes musculaires, le RIR et les écrans d\'entraînement s\'adaptent à ton niveau de pratique.',
         ),
         WhatsNewEntry(
-          icon: LucideIcons.layout_grid,
-          title: 'Un espace Entraînement plus clair',
-          body: 'l\'onglet repensé réunit ton programme actif, la récupération, les démarrages rapides, les routines récentes, l\'historique et le catalogue d\'exercices en un seul endroit.',
+          icon: LucideIcons.timer,
+          title: 'Minuteur de série & onglet Entraînement repensé',
+          body: 'Lance et mets en pause le minuteur de série directement pendant l\'entraînement ou depuis l\'Activité en direct sur l\'écran verrouillé. L\'onglet Entraînement réunit programme actif, routines et historique.',
         ),
         WhatsNewEntry(
-          icon: LucideIcons.utensils,
-          title: 'Comprends mieux tes tendances nutritionnelles',
-          body: 'de nouvelles statistiques de macros et une comparaison glissante sur sept jours facilitent le suivi des calories, protéines, lipides et glucides dans le temps.',
+          icon: LucideIcons.activity,
+          title: 'Tendances de poids lissées & nouvelles analyses',
+          body: 'Le lissage métabolique avec ligne d\'historique discrète révèle ta véritable évolution dans l\'app et les widgets, complété par les statistiques de macros et l\'import de mesures depuis Apple Santé et Health Connect.',
         ),
       ],
     ),
@@ -677,32 +677,32 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
   'it': <WhatsNewRelease>[
     WhatsNewRelease(
       version: '1.5.0',
-      releasedOn: '2026-09-25',
+      releasedOn: '2026-10-06',
       entries: <WhatsNewEntry>[
         WhatsNewEntry(
           icon: LucideIcons.chart_line,
           title: 'Obiettivi che si adattano a te',
-          body: 'imposta un obiettivo di peso a lungo termine partendo da una misurazione reale, segui la traiettoria e verifica i progressi con tranquilli riepiloghi settimanali. Le nuove raccomandazioni su calorie e macro restano proposte finché non scegli di applicarle.',
+          body: 'Imposta un obiettivo di peso a lungo termine partendo da una misurazione reale, segui la traiettoria e verifica i progressi con tranquilli riepiloghi settimanali. Le nuove raccomandazioni su calorie e macro restano proposte finché non scegli di applicarle.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.dumbbell,
-          title: 'Crea il tuo piano di allenamento',
-          body: 'organizza le routine salvate come programma settimanale o sequenza flessibile da 1 a 14 giorni, includi i giorni di riposo, controlla la prossima sessione e avviala direttamente dal diario.',
+          title: 'Piani di allenamento personalizzati',
+          body: 'Organizza le routine come programma settimanale o sequenza flessibile da 1 a 14 giorni, includi i giorni di riposo, imposta promemoria e avvia le sessioni dal diario senza alcuna pressione di recupero.',
         ),
         WhatsNewEntry(
-          icon: LucideIcons.bell,
-          title: 'Promemoria utili, senza pressioni per recuperare',
-          body: 'notifiche locali facoltative mantengono visibili i riepiloghi degli obiettivi e gli allenamenti programmati. Una sessione saltata non crea lavoro extra né debiti di allenamento.',
+          icon: LucideIcons.sparkles,
+          title: 'Livelli di esperienza su misura',
+          body: 'Scegli il tuo livello (Principiante, Avanzato, Pro) nelle impostazioni o nell\'onboarding. I dettagli dei gruppi muscolari, il RIR e le schermate di allenamento si adattano al tuo livello.',
         ),
         WhatsNewEntry(
-          icon: LucideIcons.layout_grid,
-          title: 'Una schermata Allenamento più chiara',
-          body: 'la scheda ridisegnata riunisce piano attivo, recupero, avvii rapidi, routine recenti, cronologia e catalogo degli esercizi in un unico spazio.',
+          icon: LucideIcons.timer,
+          title: 'Timer per serie & scheda Allenamento rinnovata',
+          body: 'Avvia e metti in pausa i timer delle serie durante l\'allenamento o dall\'Attività dal vivo sulla schermata di blocco. La scheda Allenamento riunisce piano attivo, routine e cronologia.',
         ),
         WhatsNewEntry(
-          icon: LucideIcons.utensils,
-          title: 'Comprendi meglio le tendenze nutrizionali',
-          body: 'nuove statistiche dei macro e un confronto mobile di sette giorni rendono più semplice seguire calorie, proteine, grassi e carboidrati nel tempo.',
+          icon: LucideIcons.activity,
+          title: 'Trend del peso attenuati & nuove analisi',
+          body: 'Il trend del peso attenuato con linea discreta dei punti mostra la tua reale evoluzione nell\'app e nei widget, affiancato da statistiche dei macro e importazione delle misurazioni da Apple Salute e Health Connect.',
         ),
       ],
     ),
@@ -897,7 +897,7 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
   'ja': <WhatsNewRelease>[
     WhatsNewRelease(
       version: '1.5.0',
-      releasedOn: '2026-09-25',
+      releasedOn: '2026-10-06',
       entries: <WhatsNewEntry>[
         WhatsNewEntry(
           icon: LucideIcons.chart_line,
@@ -906,23 +906,23 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
         ),
         WhatsNewEntry(
           icon: LucideIcons.dumbbell,
-          title: '自分のトレーニングプランを作成',
-          body: '保存済みルーティンを週間スケジュールまたは1〜14日の柔軟なシーケンスに配置し、休養日を含めて次のセッションを確認できます。予定したワークアウトは日記から直接開始できます。',
+          title: 'カスタムトレーニングプランと柔軟なシーケンス',
+          body: '保存済みルーティンを週間スケジュールまたは1〜14日の柔軟なシーケンスに配置し、休養日を含めて予定セッションを日記から直接開始できます。取り戻す負担は一切ありません。',
         ),
         WhatsNewEntry(
-          icon: LucideIcons.bell,
-          title: '取り戻す負担を生まないリマインダー',
-          body: '任意のローカル通知で目標レビューと予定したワークアウトを確認できます。セッションを逃しても、追加トレーニングや埋め合わせは発生しません。',
+          icon: LucideIcons.sparkles,
+          title: 'レベルに応じたトレーニング体験',
+          body: '初級・中級・上級の3段階から経験レベルを選択できます。筋肉の内訳、RIR（予備反復回数）、ワークアウト画面の表示があなたのレベルに合わせて最適化されます。',
         ),
         WhatsNewEntry(
-          icon: LucideIcons.layout_grid,
-          title: 'より分かりやすいトレーニング画面',
-          body: '新しくなったワークアウトタブに、進行中のプラン、回復状況、クイックスタート、最近のルーティン、履歴、種目カタログをまとめました。',
+          icon: LucideIcons.timer,
+          title: 'セットタイマーと新しくなったワークアウト画面',
+          body: 'ワークアウト中やロック画面のライブアクティビティから直接セットタイマーを操作できます。進行中のプラン、ルーティン、履歴を1つの画面にまとめました。',
         ),
         WhatsNewEntry(
-          icon: LucideIcons.utensils,
-          title: '栄養の傾向を把握',
-          body: '新しいPFC統計と直近7日間の摂取比較で、カロリー・たんぱく質・脂質・炭水化物の変化を追いやすくなりました。',
+          icon: LucideIcons.activity,
+          title: '平滑化された体重トレンドと新しい分析機能',
+          body: '指数平滑化と薄い実測プロットにより、アプリやホーム画面ウィジェットで真の体重傾向を把握できます。新しいPFC統計やApple Health・Health Connectからの測定値インポートにも対応しました。',
         ),
       ],
     ),

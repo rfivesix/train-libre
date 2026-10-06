@@ -58,13 +58,13 @@ Transparent aufgebaut auf den vertrauenswürdigen Community-Katalogen von Open F
 ## Release Notes (What's New / Release Notes in this version)
 Ziele, die sich mit dir weiterentwickeln: Lege ein langfristiges Gewichtsziel mit echter Startmessung fest, verfolge deinen Zielpfad und ordne deinen Fortschritt in ruhigen wöchentlichen Rückblicken ein. Neue Kalorien- und Makroempfehlungen bleiben Vorschläge, bis du sie selbst anwendest.
 
-Erstelle deinen eigenen Trainingsplan: Ordne gespeicherte Routinen als Wochenplan oder flexible Abfolge von 1–14 Tagen an, plane Ruhetage ein, sieh direkt, was als Nächstes ansteht, und starte geplante Einheiten aus dem Tagebuch.
+Eigene Trainingspläne & flexible Sequenzen: Ordne gespeicherte Routinen als Wochenplan oder flexible Abfolge von 1–14 Tagen an, plane Ruhetage ein, erhalte optionale Erinnerungen und starte anstehende Einheiten direkt aus dem Tagebuch – ganz ohne Nachholdruck.
 
-Hilfreiche Erinnerungen ohne Nachholdruck: Optionale lokale Benachrichtigungen erinnern an Zielrückblicke und geplante Workouts. Verpasste Einheiten erzeugen weder Zusatztraining noch Trainingsschulden.
+Dein Trainingslevel nach Maß: Wähle in den Einstellungen oder beim Start dein Erfahrungslevel (Einsteiger, Fortgeschritten, Profi). Die Detailtiefe bei Muskelgruppen, RIR (Wiederholungen in Reserve) und Trainingsansichten passt sich passend an dein Niveau an.
 
-Ein klareres Zuhause fürs Training: Der überarbeitete Workout-Tab bündelt deinen aktiven Plan, Regeneration, Schnellstarts, zuletzt verwendete Routinen, Verlauf und Übungskatalog an einem Ort.
+Satz-Timer & aufgeräumter Workout-Tab: Starte und stoppe Satz-Timer direkt im Live-Workout oder bequem über die Live-Aktivität auf dem Sperrbildschirm. Der neu gestaltete Workout-Tab bündelt deinen aktiven Plan, Routinen und Verlauf an einem zentralen Ort.
 
-Ernährungstrends besser verstehen: Neue Makrostatistiken und ein rollierender 7-Tage-Vergleich machen Kalorien, Protein, Fett und Kohlenhydrate über die Zeit leichter nachvollziehbar.
+Geglättete Gewichtstrends & neue Analysen: Die metabolische Trendglättung mit dezenter Messpunkt-Linie zeigt deinen wahren Gewichtsverlauf in App und Widgets. Ergänzt durch neue Makro-Statistiken sowie nahtlosen Messungs-Import aus Apple Health und Health Connect.
 
 ## Support URL (Support Web Page URL)
 https://trainlibre.com/support

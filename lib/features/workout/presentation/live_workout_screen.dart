@@ -892,14 +892,11 @@ class _LiveWorkoutScreenState extends State<LiveWorkoutScreen>
                       shape: BoxShape.circle,
                       color: theme.colorScheme.primary.withValues(alpha: 0.12),
                     ),
-                    child: Center(
+                    child: const Center(
                       child: AiNeuralCloudOrbWidget(
                         size: 54,
+                        morph: 1.0,
                         showAmbientGlow: true,
-                        baseColor: theme.colorScheme.primary,
-                        accentColor: theme.colorScheme.primary,
-                        energy: 0.45,
-                        flowSpeed: 2.0,
                       ),
                     ),
                   ),
