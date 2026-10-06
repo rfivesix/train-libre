@@ -112,6 +112,7 @@ KEYS=(
   "recovery"
   "ai"
   "running_workout"
+  "weekly_goal_review"
 )
 
 # Helper to get the correct asset filename key based on platform
@@ -125,8 +126,13 @@ get_asset_key() {
   fi
 }
 
+NUM_KEYS=${#KEYS[@]}
+
 # Array to hold matched source file paths
-declare -a MATCHED_SOURCES=( "" "" "" "" "" "" "" )
+declare -a MATCHED_SOURCES
+for ((i=0; i<NUM_KEYS; i++)); do
+  MATCHED_SOURCES[i]=""
+done
 
 # 1. Attempt Name-Based Matching (Preferred)
 log_info "Searching for name-based screenshot matches in '$SRC_DIR'..."
@@ -138,10 +144,11 @@ PATTERNS=(
   "*05_recovery*"
   "*06_ai*"
   "*07_run*workout*"  # Handles double-n typo "runnning" or corrected "running"
+  "*08*"              # Handles 08_weekly_goal_review, 08_goal_review, etc.
 )
 
 NAME_MATCH_COUNT=0
-for i in {0..6}; do
+for ((i=0; i<NUM_KEYS; i++)); do
   pattern="${PATTERNS[$i]}"
   match=""
   # Find first matching png file (case-insensitive)
@@ -153,30 +160,30 @@ for i in {0..6}; do
 done
 
 # 2. Sequential Fallback Matching if Name-Based Matching is incomplete
-if [ "$NAME_MATCH_COUNT" -eq 7 ]; then
-  log_info "All 7 screenshots matched via filename patterns."
+if [ "$NAME_MATCH_COUNT" -eq "$NUM_KEYS" ]; then
+  log_info "All $NUM_KEYS screenshots matched via filename patterns."
 else
-  log_warn "Only matched $NAME_MATCH_COUNT/7 screenshots via filename patterns. Falling back to alphabetical/creation sort..."
+  log_warn "Only matched $NAME_MATCH_COUNT/$NUM_KEYS screenshots via filename patterns. Falling back to alphabetical/creation sort..."
   
   # List files, sorting alphabetically as default sequential mapping
   # (which matches sequential naming output from test suites)
   IFS=$'\n' sorted_pngs=($(find -L "$SRC_DIR" -maxdepth 1 -type f -name "*.png" | sort))
   unset IFS
   
-  if [ "${#sorted_pngs[@]}" -lt 7 ]; then
-    log_error "Not enough PNG images in source directory '$SRC_DIR'. Found ${#sorted_pngs[@]}, need at least 7."
+  if [ "${#sorted_pngs[@]}" -lt "$NUM_KEYS" ]; then
+    log_error "Not enough PNG images in source directory '$SRC_DIR'. Found ${#sorted_pngs[@]}, need at least $NUM_KEYS."
     exit 1
   fi
   
-  log_info "Mapping first 7 sorted PNG files sequentially:"
-  for i in {0..6}; do
+  log_info "Mapping first $NUM_KEYS sorted PNG files sequentially:"
+  for ((i=0; i<NUM_KEYS; i++)); do
     MATCHED_SOURCES[$i]="${sorted_pngs[$i]}"
   done
 fi
 
 # Pre-flight integrity validation
 log_info "Validating matched files..."
-for i in {0..6}; do
+for ((i=0; i<NUM_KEYS; i++)); do
   src="${MATCHED_SOURCES[$i]}"
   if [ -z "$src" ] || [ ! -f "$src" ]; then
     log_error "Missing or invalid source file for step $((i+1)) (key: ${KEYS[$i]})."
@@ -205,7 +212,7 @@ mkdir -p "$ASSET_DIR"
 
 # Copy to Assets with atomic writes
 log_info "Copying raw screenshots to assets folder..."
-for i in {0..6}; do
+for ((i=0; i<NUM_KEYS; i++)); do
   src="${MATCHED_SOURCES[$i]}"
   key=$(get_asset_key "$i")
   dest=""
@@ -218,6 +225,18 @@ for i in {0..6}; do
   cp "$src" "${dest}.tmp"
   mv "${dest}.tmp" "$dest"
   log_info "  Updated asset: $dest"
+
+  # Provide convenience alias goal_review if key is weekly_goal_review
+  if [ "$key" = "weekly_goal_review" ]; then
+    if [ "$PLATFORM" = "android" ]; then
+      alias_dest="$ASSET_DIR/android_${THEME}_goal_review.png"
+    else
+      alias_dest="$ASSET_DIR/iOS_${THEME}_goal_review.png"
+    fi
+    cp "$dest" "${alias_dest}.tmp"
+    mv "${alias_dest}.tmp" "$alias_dest"
+    log_info "  Updated alias asset: $alias_dest"
+  fi
 done
 log_success "Asset folder synchronization complete."
 
@@ -235,7 +254,7 @@ if [ "$PLATFORM" = "android" ]; then
     mkdir -p "$TEMP_WORKSPACE/ios"
     
     # Copy assets with names expected by generate_store_screenshots.py
-    for i in {0..6}; do
+    for ((i=0; i<NUM_KEYS; i++)); do
       src="${MATCHED_SOURCES[$i]}"
       key=$(get_asset_key "$i")
       cp "$src" "$TEMP_WORKSPACE/android/android_${key}.png"
@@ -250,7 +269,7 @@ if [ "$PLATFORM" = "android" ]; then
     
     # Copy framed output to Fastlane directory
     log_info "Copying framed screenshots to Fastlane..."
-    for i in {0..6}; do
+    for ((i=0; i<NUM_KEYS; i++)); do
       key=$(get_asset_key "$i")
       framed_src="$TEMP_WORKSPACE/store_output/android/android_${key}.png"
       step_num=$(printf "%02d" $((i+1)))
@@ -268,7 +287,7 @@ if [ "$PLATFORM" = "android" ]; then
   else
     # Copy raw screenshots directly to Fastlane
     log_info "Copying raw screenshots to Fastlane..."
-    for i in {0..6}; do
+    for ((i=0; i<NUM_KEYS; i++)); do
       src="${MATCHED_SOURCES[$i]}"
       step_num=$(printf "%02d" $((i+1)))
       dest="$FASTLANE_DIR/${step_num}.png"
@@ -284,7 +303,7 @@ if [ "$PLATFORM" = "android" ]; then
   for file in "$FASTLANE_DIR"/*; do
     if [ -f "$file" ]; then
       bn=$(basename "$file")
-      if [[ ! "$bn" =~ ^0[1-7]\.png$ ]]; then
+      if [[ ! "$bn" =~ ^0[1-9]\.png$ ]]; then
         log_warn "  Removing stale file: $bn"
         rm -f "$file"
       fi
