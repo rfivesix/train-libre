@@ -138,6 +138,37 @@
         }
       },
       {
+        "id": "s_iphone_8",
+        "layout": "device-bottom",
+        "label": {
+          "en": "GOAL REVIEW",
+          "de": "ZIEL-REVIEW"
+        },
+        "headline": {
+          "en": "Goals That Evolve With You: Weekly Reviews",
+          "de": "Ziele, die sich anpassen: Wöchentliche Reviews"
+        },
+        "screenshot": "/screenshots/{locale}/iOS_dark_weekly_goal_review.png",
+        "transforms": {
+          "caption": {
+            "x": 105.60000000000036,
+            "y": 200,
+            "width": 1108.8,
+            "height": 900,
+            "rotation": 0,
+            "zIndex": 4
+          },
+          "device": {
+            "x": 90,
+            "y": 950,
+            "width": 1140,
+            "height": 2322.53,
+            "rotation": 0,
+            "zIndex": 3
+          }
+        }
+      },
+      {
         "id": "s_iphone_5",
         "layout": "device-top",
         "label": {
@@ -271,6 +302,19 @@
           "de": "Errechne deinen echten Kalorienverbrauch (TDEE)"
         },
         "screenshot": "/screenshots/{locale}/iOS_dark_nutrition.png"
+      },
+      {
+        "id": "s_android_7",
+        "layout": "device-bottom",
+        "label": {
+          "en": "GOAL REVIEW",
+          "de": "ZIEL-REVIEW"
+        },
+        "headline": {
+          "en": "Goals That Evolve With You: Weekly Reviews",
+          "de": "Ziele, die sich anpassen: Wöchentliche Reviews"
+        },
+        "screenshot": "/screenshots/{locale}/iOS_dark_weekly_goal_review.png"
       },
       {
         "id": "s_android_4",
