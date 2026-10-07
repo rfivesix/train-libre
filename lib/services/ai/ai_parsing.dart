@@ -256,6 +256,66 @@ extension AiParsing on AiService {
       }
     }
 
+    // Check if the response was emitted as {"mealContext": {...}}, {"name": ...}
+    // where on-device models close mealContext prematurely and append item objects.
+    final mealContextMatch = RegExp(r'^\{\s*"mealContext"\s*:\s*\{').firstMatch(cleaned);
+    if (mealContextMatch != null) {
+      try {
+        final mcStart = cleaned.indexOf('{', mealContextMatch.end - 1);
+        var depth = 0;
+        var mcEnd = -1;
+        var inStr = false;
+        for (var i = mcStart; i < cleaned.length; i++) {
+          final c = cleaned[i];
+          if (c == '"' && (i == 0 || cleaned[i - 1] != '\\')) {
+            inStr = !inStr;
+          }
+          if (inStr) continue;
+          if (c == '{') {
+            depth++;
+          } else if (c == '}') {
+            depth--;
+            if (depth == 0) {
+              mcEnd = i;
+              break;
+            }
+          }
+        }
+        if (mcEnd != -1) {
+          final mcStr = cleaned.substring(mcStart, mcEnd + 1);
+          final mcJson = jsonDecode(mcStr);
+          AiMealContext? ctx;
+          if (mcJson is Map<String, dynamic>) {
+            ctx = AiMealContext.fromJson(mcJson);
+          }
+
+          var afterMc = cleaned.substring(mcEnd + 1).trim();
+          if (afterMc.startsWith(',')) afterMc = afterMc.substring(1).trim();
+          final itemMatches = RegExp(r'\{[^{}]*\}').allMatches(afterMc);
+          final items = <AiMealCandidateItem>[];
+          for (final im in itemMatches) {
+            final objStr = im.group(0);
+            if (objStr != null) {
+              try {
+                final objDecoded = jsonDecode(objStr);
+                if (objDecoded is Map<String, dynamic> && objDecoded.containsKey('name')) {
+                  items.add(_parseCandidateItem(objDecoded));
+                }
+              } catch (_) {}
+            }
+          }
+          if (items.isNotEmpty) {
+            return AiMealCandidate(
+              context: ctx,
+              items: items,
+            );
+          }
+        }
+      } catch (e) {
+        debugPrint('[AiParsing] mealContext recovery failed: $e');
+      }
+    }
+
     // Try extracting all top-level JSON objects from the text if it's a sequence of objects
     // e.g. {"mealContext": ...}, {"name": "Fladenbrot", ...} {"name": "Hähnchenbrust", ...}
     final objectMatches = RegExp(r'\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}').allMatches(cleaned);

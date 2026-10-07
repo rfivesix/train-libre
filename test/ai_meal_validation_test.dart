@@ -635,5 +635,23 @@ void main() {
       expect(candidate.items.length, 1);
       expect(candidate.items[0].name, 'Test');
     });
+
+    test('parses exact Apple Intelligence test connection output with unclosed items', () {
+      const raw = '''{"mealContext": {"dishType": "Test", "expectedKcalRange": [500, 800], "expectedMacroProfile": {"proteinPercent": [15, 25], "carbsPercent": [45, 55], "fatPercent": [25, 35]}, "cookingMethod": "baked", "contextNotes": "placeholder test meal"}, {"name": "Test", "catalogSearchTerm": null, "servedGrams": 1, "estimatedGrams": 1, "confidence": 1.0, "stateHint": "raw", "searchTerms": ["Test", "single item", "basic test"]}''';
+      final candidate = AiService.instance.parseMealCandidateForTesting(raw);
+      expect(candidate.context?.dishType, 'Test');
+      expect(candidate.items.length, 1);
+      expect(candidate.items[0].name, 'Test');
+      expect(candidate.items[0].grams, 1);
+    });
+
+    test('parses exact Apple Intelligence sandwich output with trailing triple braces', () {
+      const raw = '''{"mealContext": {"dishType": "Sandwich mit Fladenbrot", "expectedKcalRange": [500, 800], "expectedMacroProfile": {"proteinPercent": [15, 25], "carbsPercent": [45, 55], "fatPercent": [25, 35]}, "cookingMethod": "baked", "contextNotes": "Sandwich with flatbread, vegetables, and meat"}, {"name": "Fladenbrot", "catalogSearchTerm": null, "servedGrams": 150, "estimatedGrams": 150, "confidence": 0.9, "stateHint": "baked", "searchTerms": ["flatbread", "bread", "loaf"]}}}''';
+      final candidate = AiService.instance.parseMealCandidateForTesting(raw);
+      expect(candidate.context?.dishType, 'Sandwich mit Fladenbrot');
+      expect(candidate.items.length, 1);
+      expect(candidate.items[0].name, 'Fladenbrot');
+      expect(candidate.items[0].grams, 150);
+    });
   });
 }

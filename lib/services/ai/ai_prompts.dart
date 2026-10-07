@@ -135,17 +135,9 @@ DEPTH MAP IMAGE: The attached relief image indicates physical food height/volume
         ? 'Output the mealContext and items structure matching the required schema.'
         : '''Respond ONLY with this JSON structure:
 {
-  "mealContext": {
-    "dishType": "Meal title in $effectiveAppLang",
-    "expectedKcalRange": [500, 800],
-    "expectedMacroProfile": {
-      "proteinPercent": [15, 25],
-      "carbsPercent": [45, 55],
-      "fatPercent": [25, 35]
-    },
-    "cookingMethod": "baked",
-    "contextNotes": "brief note"
-  },
+  "dishType": "Meal title in $effectiveAppLang",
+  "expectedKcalRange": [500, 800],
+  "cookingMethod": "baked",
   "items": [
     {
       "name": "Food component in $effectiveAppLang",
