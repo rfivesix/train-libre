@@ -40,10 +40,10 @@ enum AppleFoundationPlugin {
       if #available(iOS 26.0, *) {
         Task {
           do {
-            let session = try await LanguageModelSession.make()
+            let session = LanguageModelSession()
             let response = try await session.respond(to: prompt)
             DispatchQueue.main.async {
-              result(response.text)
+              result(response.content)
             }
           } catch {
             DispatchQueue.main.async {

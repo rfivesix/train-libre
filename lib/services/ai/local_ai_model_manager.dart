@@ -99,6 +99,13 @@ class LocalAiModelManager extends ChangeNotifier {
   bool get isInitialized => _initialized;
   String get selectedModelId => _selectedModelId;
 
+  LocalAiModelDefinition get selectedModel {
+    return availableModels.firstWhere(
+      (m) => m.id == _selectedModelId,
+      orElse: () => availableModels.first,
+    );
+  }
+
   LocalModelDownloadState? getDownloadState(String modelId) =>
       _downloadStates[modelId];
 

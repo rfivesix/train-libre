@@ -432,6 +432,25 @@ class AiService {
     return selected;
   }
 
+  /// Returns a clean, user-facing display name for the currently active model.
+  Future<String> getActiveModelDisplayName() async {
+    final provider = await getSelectedProvider();
+    if (provider == AiProvider.appleFoundation) {
+      return 'Apple Intelligence';
+    }
+    if (provider == AiProvider.localModel) {
+      final selected = LocalAiModelManager.instance.selectedModel;
+      final name = selected.name.replaceAll(' (Empfohlen)', '').trim();
+      return '$name (Lokal)';
+    }
+    final modelId = await getSelectedModel(provider);
+    if (provider == AiProvider.custom) {
+      return 'Custom · $modelId';
+    }
+    final meta = getProviderMetadata(provider);
+    return '${meta.displayName} · $modelId';
+  }
+
   @visibleForTesting
   bool openAiSupportsCustomTemperature(String modelId) =>
       _openAiSupportsCustomTemperature(modelId);

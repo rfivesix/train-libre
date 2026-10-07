@@ -3,7 +3,9 @@ import 'dart:io';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../generated/app_localizations.dart';
+import '../../../services/ai_service.dart';
 import '../../../services/haptic_feedback_service.dart';
 import '../../../services/telemetry/telemetry_service.dart';
 import 'meal_analysis_morph_route.dart';
@@ -53,12 +55,14 @@ class MealAnalysisController extends ValueNotifier<MealAnalysisPhase> {
 class MealAnalysisScreen extends StatefulWidget {
   final MealAnalysisController controller;
   final File? previewImage;
+  final String? activeModelName;
   final VoidCallback? onCancel;
 
   const MealAnalysisScreen({
     super.key,
     required this.controller,
     this.previewImage,
+    this.activeModelName,
     this.onCancel,
   });
 
@@ -66,6 +70,7 @@ class MealAnalysisScreen extends StatefulWidget {
   static Route<void> route({
     required MealAnalysisController controller,
     File? previewImage,
+    String? activeModelName,
     VoidCallback? onCancel,
     BuildContext? sourceContext,
     Rect? sourceRect,
@@ -76,6 +81,7 @@ class MealAnalysisScreen extends StatefulWidget {
       builder: (_) => MealAnalysisScreen(
         controller: controller,
         previewImage: previewImage,
+        activeModelName: activeModelName,
         onCancel: onCancel,
       ),
     );
@@ -91,6 +97,7 @@ class _MealAnalysisScreenState extends State<MealAnalysisScreen> {
 
   bool _isTransitionComplete = false;
   Animation<double>? _routeAnimation;
+  String? _activeModelName;
 
   @override
   void initState() {
@@ -98,6 +105,19 @@ class _MealAnalysisScreenState extends State<MealAnalysisScreen> {
     unawaited(TelemetryService.instance
         .trackScreenView(screenName: ScreenName.mealAnalysis));
     widget.controller.addListener(_onPhaseChanged);
+    _activeModelName = widget.activeModelName;
+    if (_activeModelName == null) {
+      _loadActiveModelName();
+    }
+  }
+
+  Future<void> _loadActiveModelName() async {
+    try {
+      final name = await AiService.instance.getActiveModelDisplayName();
+      if (mounted) {
+        setState(() => _activeModelName = name);
+      }
+    } catch (_) {}
   }
 
   @override
@@ -236,6 +256,43 @@ class _MealAnalysisScreenState extends State<MealAnalysisScreen> {
                       duration: const Duration(milliseconds: 180),
                       child: Column(
                         children: [
+                          // Top Model Indicator
+                          if (_activeModelName != null &&
+                              _activeModelName!.isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 16),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: isDark
+                                      ? Colors.white.withValues(alpha: 0.08)
+                                      : Colors.black.withValues(alpha: 0.05),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: isDark
+                                        ? Colors.white.withValues(alpha: 0.12)
+                                        : Colors.black.withValues(alpha: 0.08),
+                                    width: 0.5,
+                                  ),
+                                ),
+                                child: Text(
+                                  _activeModelName!,
+                                  style: TextStyle(
+                                    fontFamily: 'Plus Jakarta Sans',
+                                    fontWeight: FontWeight.w500,
+                                    fontSize: 12,
+                                    color: isDark
+                                        ? const Color(0xFFE4E4E7)
+                                        : const Color(0xFF3F3F46),
+                                    letterSpacing: 0.1,
+                                  ),
+                                ),
+                              ),
+                            ),
+
                           const Spacer(flex: 3),
 
                           // Center Living Cloud Orb

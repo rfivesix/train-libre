@@ -11,12 +11,29 @@ void main() {
 
   setUp(() {
     SharedPreferences.setMockInitialValues({});
+    final storage = <String, String>{};
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(
       const MethodChannel('plugins.flutter.io/path_provider'),
       (call) async {
         if (call.method == 'getApplicationSupportDirectory') {
           return '/tmp';
+        }
+        return null;
+      },
+    );
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
+      const MethodChannel('plugins.it_nomads.com/flutter_secure_storage'),
+      (call) async {
+        if (call.method == 'write') {
+          final args = call.arguments as Map;
+          storage[args['key'] as String] = args['value'] as String;
+          return null;
+        }
+        if (call.method == 'read') {
+          final args = call.arguments as Map;
+          return storage[args['key'] as String];
         }
         return null;
       },
@@ -83,6 +100,23 @@ void main() {
       final appleMeta = service.getProviderMetadata(AiProvider.appleFoundation);
       expect(appleMeta.defaultModel, 'apple-foundation-system');
       expect(appleMeta.supportsVision, isTrue);
+    });
+
+    test('getActiveModelDisplayName returns formatted model name for providers',
+        () async {
+      final service = AiService.instance;
+      final manager = LocalAiModelManager.instance;
+      await manager.initialize();
+
+      await service.setSelectedProvider(AiProvider.localModel);
+      await manager.selectModel('qwen-3-vl-4b');
+      final localName = await service.getActiveModelDisplayName();
+      expect(localName, contains('Qwen-3-VL'));
+      expect(localName, contains('(Lokal)'));
+
+      await service.setSelectedProvider(AiProvider.appleFoundation);
+      final appleName = await service.getActiveModelDisplayName();
+      expect(appleName, 'Apple Intelligence');
     });
   });
 }

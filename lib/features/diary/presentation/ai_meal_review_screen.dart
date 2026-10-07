@@ -130,14 +130,21 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
     setState(() => _applyValidationResult(result));
   }
 
-  String _tokenUsageLabel(AppLocalizations l10n) {
+  String? _tokenUsageLabel(AppLocalizations l10n) {
+    if (widget.usageCollector == null) return null;
     final scan = widget.usageCollector!;
     final total = scan.totalTokens + _correctionUsage.totalTokens;
+    // For local / unmetered models without token tracking, total is 0.
+    // Do not show "wird aktualisiert..." or "0 Tokens".
+    if (total <= 0 && scan.usageComplete && _correctionUsage.usageComplete) {
+      return null;
+    }
     final pending = scan.pendingCount + _correctionUsage.pendingCount;
     if (pending > 0) return l10n.aiReviewTokensPending;
     if (!scan.usageComplete || !_correctionUsage.usageComplete) {
-      return l10n.aiReviewTokensUnknown;
+      return null;
     }
+    if (total <= 0) return null;
     return l10n.aiReviewTokensUsed(total);
   }
 
@@ -1101,6 +1108,7 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
     );
     final localizedMealType = _getLocalizedMealName(context, _selectedMealType);
     final mealTitle = _getDerivedMealTitle(context);
+    final tokenUsageText = _tokenUsageLabel(l10n);
 
     return PopScope(
       canPop: false,
@@ -1166,11 +1174,14 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
                   Transform.translate(
                     offset:
                         Offset(0, widget.originalImages.isNotEmpty ? -32 : 0),
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
                           Text(
                             mealTitle,
                             style: TextStyle(
@@ -1181,9 +1192,10 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
                             ),
                           ),
                           Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-                              Flexible(
+                              Expanded(
                                 child: InkWell(
                                   key: const ValueKey(
                                       'ai_review_timestamp_button'),
@@ -1198,13 +1210,14 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
                                         Flexible(
                                           child: Text(
                                             '$localizedMealType · $timeStr',
-                                            overflow: TextOverflow.ellipsis,
                                             style: TextStyle(
                                               fontFamily: 'Plus Jakarta Sans',
                                               fontWeight: FontWeight.w500,
                                               fontSize: 14,
                                               color: subtitleColor,
                                             ),
+                                            overflow: TextOverflow.ellipsis,
+                                            maxLines: 1,
                                           ),
                                         ),
                                         const SizedBox(width: 4),
@@ -1220,19 +1233,20 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
                                   ),
                                 ),
                               ),
-                              const Spacer(),
-                              if (widget.usageCollector != null)
+                              if (tokenUsageText != null)
                                 Padding(
                                   padding: const EdgeInsets.symmetric(
                                       horizontal: 4, vertical: 2),
                                   child: Text(
-                                    _tokenUsageLabel(l10n),
+                                    tokenUsageText,
                                     style: TextStyle(
                                       fontFamily: 'Plus Jakarta Sans',
                                       fontWeight: FontWeight.w500,
                                       fontSize: 14,
                                       color: subtitleColor,
                                     ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
                               if (_showDepthMap &&
@@ -1337,7 +1351,6 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
                         ],
                       ),
                     ),
-                  ),
 
                   const SizedBox(height: 16),
 
@@ -1536,6 +1549,9 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
                         ],
                       ),
                     ),
+                  ],
+                ),
+              ),
 
                   const SizedBox(height: 80), // Bottom padding for save button
                 ],

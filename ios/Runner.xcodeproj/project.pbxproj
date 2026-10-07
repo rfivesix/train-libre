@@ -29,6 +29,8 @@
 		4B2C71022F9A000100000003 /* DepthScanPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B2C71032F9A000100000003 /* DepthScanPlugin.swift */; };
 		4B2C71052F9A000100000005 /* SpeechCapabilityPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B2C71042F9A000100000004 /* SpeechCapabilityPlugin.swift */; };
 		4B2C71072F9A000100000007 /* TLExceptionCatcher.m in Sources */ = {isa = PBXBuildFile; fileRef = 4B2C71062F9A000100000006 /* TLExceptionCatcher.m */; };
+		4B2C71092F9A00010000000A /* AppleFoundationPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B2C710A2F9A00010000000A /* AppleFoundationPlugin.swift */; };
+		4B2C710B2F9A00010000000C /* LocalModelPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B2C710C2F9A00010000000C /* LocalModelPlugin.swift */; };
 		4B2C72002F9A000100000009 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 4B2C72012F9A000100000009 /* PrivacyInfo.xcprivacy */; };
 		74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74858FAE1ED2DC5600515810 /* AppDelegate.swift */; };
 		78A318202AECB46A00862997 /* FlutterGeneratedPluginSwiftPackage in Frameworks */ = {isa = PBXBuildFile; productRef = 78A3181F2AECB46A00862997 /* FlutterGeneratedPluginSwiftPackage */; };
@@ -107,6 +109,8 @@
 		4B2C71042F9A000100000004 /* SpeechCapabilityPlugin.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SpeechCapabilityPlugin.swift; sourceTree = "<group>"; };
 		4B2C71062F9A000100000006 /* TLExceptionCatcher.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TLExceptionCatcher.m; sourceTree = "<group>"; };
 		4B2C71082F9A000100000008 /* TLExceptionCatcher.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TLExceptionCatcher.h; sourceTree = "<group>"; };
+		4B2C710A2F9A00010000000A /* AppleFoundationPlugin.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppleFoundationPlugin.swift; sourceTree = "<group>"; };
+		4B2C710C2F9A00010000000C /* LocalModelPlugin.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LocalModelPlugin.swift; sourceTree = "<group>"; };
 		4B2C72012F9A000100000009 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		686FCBAFEAECC386A279E638 /* Pods-Runner.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.profile.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.profile.xcconfig"; sourceTree = "<group>"; };
 		6C085F5964F5D65202219610 /* Pods-RunnerTests.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.profile.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.profile.xcconfig"; sourceTree = "<group>"; };
@@ -306,6 +310,8 @@
 				4B2C71042F9A000100000004 /* SpeechCapabilityPlugin.swift */,
 				4B2C71082F9A000100000008 /* TLExceptionCatcher.h */,
 				4B2C71062F9A000100000006 /* TLExceptionCatcher.m */,
+				4B2C710A2F9A00010000000A /* AppleFoundationPlugin.swift */,
+				4B2C710C2F9A00010000000C /* LocalModelPlugin.swift */,
 				74858FAD1ED2DC5600515810 /* Runner-Bridging-Header.h */,
 				3E64C4AB2F8EF3E3004782FB /* trainlibre_icon_v2.icon */,
 			);
@@ -596,6 +602,8 @@
 				4B2C71022F9A000100000003 /* DepthScanPlugin.swift in Sources */,
 				4B2C71052F9A000100000005 /* SpeechCapabilityPlugin.swift in Sources */,
 				4B2C71072F9A000100000007 /* TLExceptionCatcher.m in Sources */,
+				4B2C71092F9A00010000000A /* AppleFoundationPlugin.swift in Sources */,
+				4B2C710B2F9A00010000000C /* LocalModelPlugin.swift in Sources */,
 				1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
