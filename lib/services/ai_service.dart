@@ -1079,10 +1079,10 @@ ${semanticOnly ? 'Return only the listed items in the same order. Select the exa
       final _AiRawResponse rawResult;
       switch (providerEnum) {
         case AiProvider.appleFoundation:
-          final fullPrompt = '$systemPrompt\n\nUser request: $userContent';
           final response =
               await AppleFoundationService.instance.generateMealJson(
-            prompt: fullPrompt,
+            prompt: userContent,
+            systemPrompt: systemPrompt,
             imagesBase64: imageDataList,
           );
           rawResult = _AiRawResponse(response, null);

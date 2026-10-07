@@ -38,18 +38,23 @@ class AppleFoundationService {
 
   /// Prewarms the Apple Foundation Models session in the background so the model
   /// is already cached in memory when the user triggers an analysis.
-  Future<bool> prewarm() async {
+  Future<bool> prewarm({String? systemPrompt}) async {
     if (!kIsWeb && !Platform.isIOS) return false;
     try {
-      return await _channel.invokeMethod<bool>('prewarm') ?? false;
+      return await _channel.invokeMethod<bool>('prewarm', {
+            if (systemPrompt != null) 'systemPrompt': systemPrompt,
+          }) ??
+          false;
     } catch (_) {
       return false;
     }
   }
 
   /// Sends a structured prompt (and optional base64 images) to Apple's on-device Foundation Model.
+  /// [systemPrompt] specifies the model instructions separately from the user [prompt].
   Future<String> generateMealJson({
     required String prompt,
+    String? systemPrompt,
     List<String>? imagesBase64,
   }) async {
     if (!kIsWeb && !Platform.isIOS) {
@@ -62,6 +67,7 @@ class AppleFoundationService {
         'generateMealJson',
         {
           'prompt': prompt,
+          if (systemPrompt != null) 'systemPrompt': systemPrompt,
           'images': imagesBase64 ?? const <String>[],
         },
       );

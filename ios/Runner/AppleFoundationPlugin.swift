@@ -33,12 +33,18 @@ enum AppleFoundationPlugin {
       #endif
 
     case "prewarm":
+      let systemPrompt = (call.arguments as? [String: Any])?["systemPrompt"] as? String
       #if canImport(FoundationModels)
       if #available(iOS 26.0, *) {
         let model = SystemLanguageModel.default
         if case .available = model.availability {
           Task {
-            let session = LanguageModelSession()
+            let session: LanguageModelSession
+            if let sysPrompt = systemPrompt, !sysPrompt.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+              session = LanguageModelSession(instructions: sysPrompt)
+            } else {
+              session = LanguageModelSession()
+            }
             _warmSession = session
             session.prewarm()
             DispatchQueue.main.async {
@@ -58,6 +64,7 @@ enum AppleFoundationPlugin {
         return
       }
 
+      let systemPrompt = args["systemPrompt"] as? String
       let imagesBase64 = (args["images"] as? [String]) ?? []
       var cgImages: [CGImage] = []
       for b64 in imagesBase64 {
@@ -73,7 +80,11 @@ enum AppleFoundationPlugin {
         Task {
           do {
             let session: LanguageModelSession
-            if let existing = _warmSession as? LanguageModelSession {
+            if let sysPrompt = systemPrompt, !sysPrompt.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+              // Dedicated instructions parameter separates system prompt from conversation turns
+              session = LanguageModelSession(instructions: sysPrompt)
+              _warmSession = nil
+            } else if let existing = _warmSession as? LanguageModelSession {
               session = existing
               _warmSession = nil
             } else {
