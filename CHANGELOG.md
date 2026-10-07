@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.5.1] - 2026-10-07
+
 ## [1.5.0] — 2026-10-07
 - **Minimum Age Verification & Age Gate (`OnboardingScreen`, `BioDataSlide`, `app_*.arb`):** Enforced a minimum age requirement of 16 years during the onboarding sequence. Users entering a birth date corresponding to an age under 16 are presented with an immediate localized error message (`onboardingDobUnderageError`) and prevented from advancing through setup until updating their date of birth.
 - **Training Experience Level in Onboarding & Settings (`OnboardingScreen`, `ExperienceLevelSlide`, `SettingsScreen`, `ExperienceLevelService`):** Integrated a dedicated training experience selection slide (`beginner`, `advanced`, `pro`) directly into the onboarding sequence and added an adaptive setting tile in `SettingsScreen`. Refined definitions so each level explains positive, progressive capabilities: Beginner offers a streamlined workout interface focused on weight and reps with everyday muscle terms; Advanced unlocks detailed anatomical muscle breakdowns across the catalog and exercise views; Pro adds full intensity control with RIR (Reps in Reserve) on lifts and cardio intensity columns.
