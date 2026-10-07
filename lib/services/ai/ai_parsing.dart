@@ -37,6 +37,7 @@ extension AiParsing on AiService {
   }
 
   AiMealCandidate _parseMealCandidateFromContentSync(String content) {
+    debugPrint('[AiParsing] Attempting to parse meal candidate from AI response:\n$content');
     var cleaned = content.trim();
     if (cleaned.startsWith('```')) {
       cleaned = cleaned.replaceFirst(RegExp(r'^```\w*\n?'), '');
@@ -73,7 +74,9 @@ extension AiParsing on AiService {
             .toList();
         return AiMealCandidate(items: items);
       }
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('[AiParsing] Direct jsonDecode failed: $e');
+    }
 
     final startBracket = cleaned.indexOf('{');
     final endBracket = cleaned.lastIndexOf('}');
@@ -97,8 +100,16 @@ extension AiParsing on AiService {
             context: mealContext,
             items: items,
           );
+        } else if (decoded.containsKey('name')) {
+          // In case model returned a single food item object instead of a list
+          return AiMealCandidate(
+            context: mealContext,
+            items: [_parseCandidateItem(decoded)],
+          );
         }
-      } catch (_) {}
+      } catch (e) {
+        debugPrint('[AiParsing] Bracket extraction jsonDecode failed: $e');
+      }
     }
 
     final startArray = cleaned.indexOf('[');
@@ -112,9 +123,12 @@ extension AiParsing on AiService {
             .map(_parseCandidateItem)
             .toList();
         return AiMealCandidate(items: items);
-      } catch (_) {}
+      } catch (e) {
+        debugPrint('[AiParsing] Array extraction jsonDecode failed: $e');
+      }
     }
 
+    debugPrint('[AiParsing] Failed to parse meal candidate. Raw AI response:\n$content');
     throw const AiParseException(
         'No valid JSON object or array found in response.');
   }
@@ -125,6 +139,7 @@ extension AiParsing on AiService {
   }
 
   List<AiSuggestedItem> _parseItemsFromContentSync(String content) {
+    debugPrint('[AiParsing] Attempting to parse suggested items from AI response:\n$content');
     var cleaned = content.trim();
     if (cleaned.startsWith('```')) {
       cleaned = cleaned.replaceFirst(RegExp(r'^```\w*\n?'), '');
@@ -149,9 +164,13 @@ extension AiParsing on AiService {
               .map((e) => AiSuggestedItem.fromJson(e))
               .toList();
           if (list.isNotEmpty) return list;
+        } else if (decoded.containsKey('name')) {
+          return [AiSuggestedItem.fromJson(decoded)];
         }
       }
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('[AiParsing] Direct items jsonDecode failed: $e');
+    }
 
     // Second attempt: search for array delimiters [ ... ]
     final startIdx = cleaned.indexOf('[');
@@ -166,7 +185,9 @@ extension AiParsing on AiService {
               .map((e) => AiSuggestedItem.fromJson(e))
               .toList();
         }
-      } catch (_) {}
+      } catch (e) {
+        debugPrint('[AiParsing] Items array extraction failed: $e');
+      }
     }
 
     // Third attempt: search for object delimiters { ... } containing "items"
@@ -183,11 +204,16 @@ extension AiParsing on AiService {
                 .whereType<Map<String, dynamic>>()
                 .map((e) => AiSuggestedItem.fromJson(e))
                 .toList();
+          } else if (decoded.containsKey('name')) {
+            return [AiSuggestedItem.fromJson(decoded)];
           }
         }
-      } catch (_) {}
+      } catch (e) {
+        debugPrint('[AiParsing] Items object extraction failed: $e');
+      }
     }
 
+    debugPrint('[AiParsing] Failed to parse items. Raw AI response:\n$content');
     throw const AiParseException('No JSON array found in response.');
   }
 }

@@ -1089,14 +1089,19 @@ ${semanticOnly ? 'Return only the listed items in the same order. Select the exa
           break;
         case AiProvider.localModel:
           final isDownloaded =
-              LocalAiModelManager.instance.isDownloaded(model);
+              await LocalAiModelManager.instance.ensureDownloaded(model);
           if (!isDownloaded) {
             throw const AiUnsupportedFeatureException(
-              'Das gewählte lokale Modell ist noch nicht heruntergeladen. Bitte lade es in den KI-Einstellungen herunter.',
+              'Das gewählte lokale Modell ist noch nicht vollständig heruntergeladen. Bitte lade es in den KI-Einstellungen herunter.',
             );
           }
           final modelFile =
               await LocalAiModelManager.instance.getModelFile(model);
+          if (!await modelFile.exists()) {
+            throw const AiUnsupportedFeatureException(
+              'Die Modelldatei wurde auf dem Gerät nicht gefunden. Bitte lade das Modell erneut herunter.',
+            );
+          }
           final projectorFile =
               await LocalAiModelManager.instance.getProjectorFile(model);
           final response = await _callNativeLocalModelRaw(
@@ -1192,6 +1197,7 @@ ${semanticOnly ? 'Return only the listed items in the same order. Select the exa
       }
 
       usageCollector?.finishRequest(rawResult.usage, requestId: usageRequestId);
+      debugPrint('[AiService] Provider ($providerEnum, model: $model) raw output:\n${rawResult.text}');
       return rawResult.text;
     } catch (e) {
       usageCollector?.finishRequest(null, requestId: usageRequestId);

@@ -1266,6 +1266,7 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                         ],
                         Expanded(
                           child: AppButton.secondary(
+                            isLoading: _isTesting,
                             onPressed: ((_hasKey ||
                                         _selectedProvider ==
                                             AiProvider.ollama ||

@@ -134,6 +134,12 @@ class LocalAiModelManager extends ChangeNotifier {
 
   bool isDownloaded(String modelId) => _downloadedModelIds.contains(modelId);
 
+  /// Checks whether the model files actually exist on disk and meet size criteria.
+  Future<bool> ensureDownloaded(String modelId) async {
+    await _refreshDownloadedModels();
+    return isDownloaded(modelId);
+  }
+
   Future<void> initialize() async {
     if (_initialized) return;
     try {
