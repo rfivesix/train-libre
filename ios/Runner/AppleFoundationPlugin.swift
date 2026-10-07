@@ -12,6 +12,7 @@ enum AppleFoundationPlugin {
   static let channelName = "trainlibre.ai/apple_foundation"
 
   private static var _warmSession: Any? = nil
+  private static var _warmSessionPrompt: String? = nil
 
   static func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
     switch call.method {
@@ -46,6 +47,7 @@ enum AppleFoundationPlugin {
               session = LanguageModelSession()
             }
             _warmSession = session
+            _warmSessionPrompt = systemPrompt
             session.prewarm()
             DispatchQueue.main.async {
               result(true)
@@ -80,13 +82,18 @@ enum AppleFoundationPlugin {
         Task {
           do {
             let session: LanguageModelSession
-            if let sysPrompt = systemPrompt, !sysPrompt.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-              // Dedicated instructions parameter separates system prompt from conversation turns
-              session = LanguageModelSession(instructions: sysPrompt)
-              _warmSession = nil
-            } else if let existing = _warmSession as? LanguageModelSession {
+            let trimmedSysPrompt = systemPrompt?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            if let existing = _warmSession as? LanguageModelSession,
+               (trimmedSysPrompt.isEmpty || _warmSessionPrompt == systemPrompt) {
+              // Reuse prewarmed session with its already cached neural weights and instructions
               session = existing
               _warmSession = nil
+              _warmSessionPrompt = nil
+            } else if !trimmedSysPrompt.isEmpty {
+              // Dedicated instructions parameter separates system prompt from conversation turns
+              session = LanguageModelSession(instructions: trimmedSysPrompt)
+              _warmSession = nil
+              _warmSessionPrompt = nil
             } else {
               session = LanguageModelSession()
             }

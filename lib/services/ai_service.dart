@@ -700,11 +700,14 @@ class AiService {
 
   /// Pre-warms the currently selected AI provider (e.g. Apple Foundation Models)
   /// in the background so that model weights/caches are loaded before the user initiates a scan.
-  Future<void> prewarm() async {
+  Future<void> prewarm({String? languageCode}) async {
     try {
       final provider = await getSelectedProvider();
       if (provider == AiProvider.appleFoundation) {
-        await AppleFoundationService.instance.prewarm();
+        final prompt = _AiPrompts.buildSystemPrompt(
+          languageCode: languageCode,
+        );
+        await AppleFoundationService.instance.prewarm(systemPrompt: prompt);
       }
     } catch (_) {}
   }
