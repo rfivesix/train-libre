@@ -591,5 +591,49 @@ void main() {
       expect(items[1].name, 'Tomato');
       expect(items[1].estimatedGrams, 30);
     });
+
+    test('parses sequence of mealContext and item objects from Apple Intelligence response', () {
+      const raw = '''{"mealContext": {"dishType": "Pizza mit Fleisch", "expectedKcalRange": [600, 1200], "expectedMacroProfile": {"proteinPercent": 20, "carbsPercent": 40, "fatPercent": 30}, "cookingMethod": "baked", "contextNotes": "Traditional pizza base with meat and toppings"}, {"name": "Fladenbrot", "catalogSearchTerm": null, "servedGrams": 250, "estimatedGrams": 250, "confidence": 0.95, "stateHint": "baked", "searchTerms": ["Fladenbrot", "Pizza", "Crust"]} {"name": "Hähnchenbrust", "catalogSearchTerm": "Hähnchenbrust", "servedGrams": 100, "estimatedGrams": 100, "confidence": 0.90, "stateHint": "cooked", "searchTerms": ["Hähnchenbrust", "Chicken breast"]}''';
+      final candidate = AiService.instance.parseMealCandidateForTesting(raw);
+      expect(candidate.context?.dishType, 'Pizza mit Fleisch');
+      expect(candidate.items.length, 2);
+      expect(candidate.items[0].name, 'Fladenbrot');
+      expect(candidate.items[0].grams, 250);
+      expect(candidate.items[1].name, 'Hähnchenbrust');
+      expect(candidate.items[1].grams, 100);
+    });
+
+    test('parses response with angle-bracketed range values gracefully', () {
+      const raw = '''
+```json
+{
+  "mealContext": {
+    "dishType": "Test",
+    "expectedKcalRange": [<100, 200],
+    "expectedMacroProfile": {
+      "proteinPercent": [0%, 5%],
+      "carbsPercent": [10%, 20%],
+      "fatPercent": [0%, 10%]
+    },
+    "cookingMethod": "raw",
+    "contextNotes": "Simple test component with minimal ingredients."
+  },
+  "items": [
+    {
+      "name": "Test",
+      "catalogSearchTerm": ["Test", "placeholder"],
+      "servedGrams": 1,
+      "estimatedGrams": 1,
+      "confidence": 1.0,
+      "stateHint": "raw",
+      "searchTerms": ["Test", "raw", "simple"]
+    }
+  ]
+}
+```''';
+      final candidate = AiService.instance.parseMealCandidateForTesting(raw);
+      expect(candidate.items.length, 1);
+      expect(candidate.items[0].name, 'Test');
+    });
   });
 }

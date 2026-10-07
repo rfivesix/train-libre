@@ -136,25 +136,25 @@ DEPTH MAP IMAGE: The attached relief image indicates physical food height/volume
         : '''Respond ONLY with this JSON structure:
 {
   "mealContext": {
-    "dishType": "<Meal name in $effectiveAppLang>",
-    "expectedKcalRange": [<low_kcal>, <high_kcal>],
+    "dishType": "Meal title in $effectiveAppLang",
+    "expectedKcalRange": [500, 800],
     "expectedMacroProfile": {
-      "proteinPercent": [<low%>, <high%>],
-      "carbsPercent": [<low%>, <high%>],
-      "fatPercent": [<low%>, <high%>]
+      "proteinPercent": [15, 25],
+      "carbsPercent": [45, 55],
+      "fatPercent": [25, 35]
     },
-    "cookingMethod": "<e.g. pan-fried, raw, baked>",
-    "contextNotes": "<brief culinary note>"
+    "cookingMethod": "baked",
+    "contextNotes": "brief note"
   },
   "items": [
     {
-      "name": "<Food component in $effectiveAppLang>",
-      "catalogSearchTerm": "<search term in $effectiveCatalogLang or null>",
-      "servedGrams": <portion_grams>,
-      "estimatedGrams": <portion_grams>,
-      "confidence": <0.0_to_1.0>,
-      "stateHint": "<cooked|raw|fried|baked|boiled>",
-      "searchTerms": ["<query1>", "<query2>"]
+      "name": "Food component in $effectiveAppLang",
+      "catalogSearchTerm": null,
+      "servedGrams": 150,
+      "estimatedGrams": 150,
+      "confidence": 0.9,
+      "stateHint": "cooked",
+      "searchTerms": ["food component", "alternative search term"]
     }
   ]
 }''';
@@ -250,13 +250,13 @@ CRITICAL: Return ONLY a valid JSON array starting with "[" and ending with "]". 
 Return ONLY this format:
 [
   {
-    "name": "<Food name in $effectiveLang>",
-    "servedGrams": <grams>,
-    "estimatedGrams": <grams>,
-    "confidence": <0.0_to_1.0>,
-    "stateHint": "<cooked|raw|fried|etc>",
-    "searchTerms": ["<term1>"],
-    "matchedBarcode": "<candidate_id_or_null>"
+    "name": "Food name in $effectiveLang",
+    "servedGrams": 150,
+    "estimatedGrams": 150,
+    "confidence": 0.9,
+    "stateHint": "cooked",
+    "searchTerms": ["food name"],
+    "matchedBarcode": null
   }
 ]
 No markdown, no explanations, no extra text.''';

@@ -18,6 +18,11 @@ AiMealCandidateItem _parseCandidateItem(Map<String, dynamic> e) {
   final served = (e['servedGrams'] as num?)?.toInt() ??
       (e['estimatedGrams'] as num?)?.toInt() ??
       (e['grams'] as num?)?.toInt();
+  final rawCatalog = e['catalogSearchTerm'];
+  final catalogSearchTerm = rawCatalog is String
+      ? rawCatalog
+      : (rawCatalog is List && rawCatalog.isNotEmpty ? rawCatalog.first?.toString() : null);
+
   return AiMealCandidateItem(
     name: (e['name'] as String?) ?? '',
     grams: grams,
@@ -25,7 +30,7 @@ AiMealCandidateItem _parseCandidateItem(Map<String, dynamic> e) {
     servedGrams: served,
     matchedBarcode: e['matchedBarcode'] as String?,
     stateHint: e['stateHint'] as String?,
-    catalogSearchTerm: e['catalogSearchTerm'] as String?,
+    catalogSearchTerm: catalogSearchTerm,
     searchTerms: _parseSearchTerms(e['searchTerms']),
   );
 }
@@ -144,6 +149,11 @@ extension AiParsing on AiService {
       cleaned = cleaned.trim();
     }
 
+    // Sanitize non-standard JSON tokens like [<100, 200] or [0%, 5%] emitted by some on-device models
+    cleaned = cleaned
+        .replaceAllMapped(RegExp(r'\[\s*<\s*(\d+)'), (m) => '[${m.group(1)}')
+        .replaceAllMapped(RegExp(r'(\d+)\s*%\s*([,\]])'), (m) => '${m.group(1)}${m.group(2)}');
+
     try {
       final decoded = jsonDecode(cleaned);
       if (decoded is Map<String, dynamic>) {
@@ -246,27 +256,49 @@ extension AiParsing on AiService {
       }
     }
 
-    final startArray = cleaned.indexOf('[');
-    final endArray = cleaned.lastIndexOf(']');
-    if (startArray != -1 && endArray != -1 && endArray > startArray) {
-      try {
-        final jsonStr = cleaned.substring(startArray, endArray + 1);
-        final List<dynamic> itemsList = jsonDecode(jsonStr) as List<dynamic>;
-        final items = <AiMealCandidateItem>[];
-        for (final el in itemsList) {
-          if (el is Map<String, dynamic>) {
-            items.add(_parseCandidateItem(el));
-          } else if (el is String && el.trim().isNotEmpty) {
-            items.add(AiMealCandidateItem(
-              name: el.trim(),
-              grams: 100,
-              confidence: 0.8,
-            ));
+    // Try extracting all top-level JSON objects from the text if it's a sequence of objects
+    // e.g. {"mealContext": ...}, {"name": "Fladenbrot", ...} {"name": "Hähnchenbrust", ...}
+    final objectMatches = RegExp(r'\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}').allMatches(cleaned);
+    if (objectMatches.isNotEmpty) {
+      AiMealContext? extractedContext;
+      final extractedItems = <AiMealCandidateItem>[];
+
+      for (final match in objectMatches) {
+        final rawObj = match.group(0);
+        if (rawObj == null) continue;
+        try {
+          // Sanitize raw object for potential angle brackets in numbers like [<100, 200]
+          final sanitized = rawObj
+              .replaceAll(RegExp(r'\[\s*<\s*(\d+)'), '[\$1')
+              .replaceAll(RegExp(r'(\d+)\s*%\s*([,\]])'), '\$1\$2');
+          final decodedObj = jsonDecode(sanitized);
+          if (decodedObj is Map<String, dynamic>) {
+            if (decodedObj.containsKey('mealContext') && decodedObj['mealContext'] is Map<String, dynamic>) {
+              extractedContext ??= AiMealContext.fromJson(decodedObj['mealContext'] as Map<String, dynamic>);
+            } else if (decodedObj.containsKey('dishType') && !decodedObj.containsKey('name')) {
+              extractedContext ??= AiMealContext(
+                dishType: decodedObj['dishType']?.toString() ?? '',
+                expectedKcalRange: const [0, 9999],
+                expectedMacroProfile: const {},
+              );
+            }
+
+            if (decodedObj.containsKey('items') ||
+                decodedObj.containsKey('meal') ||
+                decodedObj.containsKey('food_components')) {
+              extractedItems.addAll(_extractCandidateItemsFromMap(decodedObj));
+            } else if (decodedObj.containsKey('name')) {
+              extractedItems.add(_parseCandidateItem(decodedObj));
+            }
           }
-        }
-        if (items.isNotEmpty) return AiMealCandidate(items: items);
-      } catch (e) {
-        debugPrint('[AiParsing] Array extraction jsonDecode failed: $e');
+        } catch (_) {}
+      }
+
+      if (extractedItems.isNotEmpty) {
+        return AiMealCandidate(
+          context: extractedContext,
+          items: extractedItems,
+        );
       }
     }
 
@@ -399,6 +431,30 @@ extension AiParsing on AiService {
       } catch (e) {
         debugPrint('[AiParsing] Items object extraction failed: $e');
       }
+    }
+
+    // Fourth attempt: Extract sequence of JSON objects from the text
+    // e.g. {"mealContext": ...}, {"name": "Fladenbrot", ...} {"name": "Hähnchenbrust", ...}
+    final objMatches = RegExp(r'\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}').allMatches(cleaned);
+    if (objMatches.isNotEmpty) {
+      final items = <AiSuggestedItem>[];
+      for (final match in objMatches) {
+        final rawObj = match.group(0);
+        if (rawObj == null) continue;
+        try {
+          final decodedObj = jsonDecode(rawObj);
+          if (decodedObj is Map<String, dynamic>) {
+            if (decodedObj.containsKey('items') ||
+                decodedObj.containsKey('meal') ||
+                decodedObj.containsKey('food_components')) {
+              items.addAll(_extractSuggestedItemsFromMap(decodedObj));
+            } else if (decodedObj.containsKey('name')) {
+              items.add(AiSuggestedItem.fromJson(decodedObj));
+            }
+          }
+        } catch (_) {}
+      }
+      if (items.isNotEmpty) return items;
     }
 
     // Fourth attempt: If model returned plain text bullet points (e.g. "- Bread\n- Tomato")
