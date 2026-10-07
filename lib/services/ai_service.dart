@@ -15,6 +15,9 @@ import 'ai_meal_validation.dart';
 import 'ai_meal_context.dart';
 import 'ai_matching_language_service.dart';
 import '../features/depth_scan/domain/models/depth_scale_facts.dart';
+import 'package:flutter/services.dart';
+import 'ai/local_ai_model_manager.dart';
+import 'ai/apple_foundation_service.dart';
 
 part 'ai/ai_models.dart';
 part 'ai/ai_prompts.dart';
@@ -246,6 +249,38 @@ class AiService {
       supportsVision: true,
       supportsDynamicModelLoading: false,
     ),
+    AiProvider.appleFoundation: AiProviderMetadata(
+      provider: AiProvider.appleFoundation,
+      displayName: 'Apple Intelligence',
+      keyHint: 'System Model (On-Device)',
+      defaultModel: 'apple-foundation-system',
+      rankingHints: [
+        'apple-foundation-system',
+      ],
+      emergencyFallbackModels: [
+        'apple-foundation-system',
+      ],
+      supportsVision: true,
+      supportsDynamicModelLoading: false,
+    ),
+    AiProvider.localModel: AiProviderMetadata(
+      provider: AiProvider.localModel,
+      displayName: 'On-Device (Hugging Face)',
+      keyHint: 'Offline Local Model',
+      defaultModel: 'qwen-3-vl-4b',
+      rankingHints: [
+        'qwen-3-vl-4b',
+        'qwen-2.5-vl-3b',
+        'smolvlm-2.2b',
+      ],
+      emergencyFallbackModels: [
+        'qwen-3-vl-4b',
+        'qwen-2.5-vl-3b',
+        'smolvlm-2.2b',
+      ],
+      supportsVision: true,
+      supportsDynamicModelLoading: false,
+    ),
   };
 
   // ---------------------------------------------------------------------------
@@ -353,7 +388,14 @@ class AiService {
   }
 
   List<AiProviderMetadata> getSupportedProviders() =>
-      _providerRegistry.values.toList(growable: false);
+      _providerRegistry.values.where((p) {
+        if (p.provider == AiProvider.appleFoundation &&
+            !kIsWeb &&
+            !Platform.isIOS) {
+          return false;
+        }
+        return true;
+      }).toList(growable: false);
 
   AiProviderMetadata getProviderMetadata(AiProvider provider) =>
       _providerRegistry[provider]!;
@@ -374,6 +416,9 @@ class AiService {
   }
 
   Future<String> getSelectedModel(AiProvider provider) async {
+    if (provider == AiProvider.localModel) {
+      return LocalAiModelManager.instance.selectedModelId;
+    }
     if (provider == AiProvider.ollama || provider == AiProvider.custom) {
       final customModel = await getCustomModel();
       if (customModel != null && customModel.isNotEmpty) return customModel;
@@ -392,6 +437,10 @@ class AiService {
       _openAiSupportsCustomTemperature(modelId);
 
   Future<void> setSelectedModel(AiProvider provider, String model) async {
+    if (provider == AiProvider.localModel) {
+      await LocalAiModelManager.instance.selectModel(model);
+      return;
+    }
     if (provider == AiProvider.ollama || provider == AiProvider.custom) {
       await setCustomModel(model);
       return;
@@ -950,10 +999,13 @@ ${semanticOnly ? 'Return only the listed items in the same order. Select the exa
     try {
       final providerEnum = await getSelectedProvider();
       String? apiKey;
-      if (providerEnum != AiProvider.ollama) {
+      final isOfflineProvider = providerEnum == AiProvider.ollama ||
+          providerEnum == AiProvider.custom ||
+          providerEnum == AiProvider.appleFoundation ||
+          providerEnum == AiProvider.localModel;
+      if (!isOfflineProvider) {
         apiKey = await getApiKey(providerEnum);
-        if (providerEnum != AiProvider.custom &&
-            (apiKey == null || apiKey.isEmpty)) {
+        if (apiKey == null || apiKey.isEmpty) {
           throw const AiKeyMissingException();
         }
       }
@@ -974,6 +1026,33 @@ ${semanticOnly ? 'Return only the listed items in the same order. Select the exa
 
       final _AiRawResponse rawResult;
       switch (providerEnum) {
+        case AiProvider.appleFoundation:
+          final fullPrompt = '$systemPrompt\n\nUser request: $userContent';
+          final response =
+              await AppleFoundationService.instance.generateMealJson(
+            prompt: fullPrompt,
+            imagesBase64: imageDataList,
+          );
+          rawResult = _AiRawResponse(response, null);
+          break;
+        case AiProvider.localModel:
+          final isDownloaded =
+              LocalAiModelManager.instance.isDownloaded(model);
+          if (!isDownloaded) {
+            throw const AiUnsupportedFeatureException(
+              'Das gewählte lokale Modell ist noch nicht heruntergeladen. Bitte lade es in den KI-Einstellungen herunter.',
+            );
+          }
+          final modelFile =
+              await LocalAiModelManager.instance.getModelFile(model);
+          final response = await _callNativeLocalModelRaw(
+            modelPath: modelFile.path,
+            userContent: userContent,
+            systemPrompt: systemPrompt,
+            imageDataList: imageDataList,
+          );
+          rawResult = _AiRawResponse(response, null);
+          break;
         case AiProvider.openai:
           rawResult = await _callOpenAiRaw(
             apiKey!,
@@ -1085,6 +1164,33 @@ ${semanticOnly ? 'Return only the listed items in the same order. Select the exa
         }
       }
       rethrow;
+    }
+  }
+
+  Future<String> _callNativeLocalModelRaw({
+    required String modelPath,
+    required String userContent,
+    required String systemPrompt,
+    required List<String> imageDataList,
+  }) async {
+    const channel = MethodChannel('trainlibre.ai/local_model');
+    try {
+      final fullPrompt = '$systemPrompt\n\nUser request: $userContent';
+      final response = await channel.invokeMethod<String>('runInference', {
+        'modelPath': modelPath,
+        'prompt': fullPrompt,
+        'images': imageDataList,
+      });
+      if (response == null || response.trim().isEmpty) {
+        throw StateError('Lokales Modell lieferte eine leere Antwort.');
+      }
+      return response;
+    } on PlatformException catch (e) {
+      throw StateError('Lokales Modell Inferenzfehler: ${e.message ?? e.code}');
+    } on MissingPluginException {
+      throw const AiUnsupportedFeatureException(
+        'Lokale Inferenz wird auf dieser Plattform noch vorbereitet.',
+      );
     }
   }
 }

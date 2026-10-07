@@ -21,17 +21,24 @@ class EvaluateFoodSourceUseCase {
     items.sort((a, b) {
       int score(FoodItem item) {
         final name = item.name.toLowerCase();
+        final strippedName =
+            name.replaceAll(RegExp(r'\s*\([^)]*\)'), '').trim();
         final brand = item.brand.trim().toLowerCase();
         final fullName1 = brand.isEmpty ? name : '$brand $name';
         final fullName2 = brand.isEmpty ? name : '$name $brand';
 
         return searchLowers.map((term) {
-          if (name == term || fullName1 == term || fullName2 == term) {
+          if (name == term ||
+              fullName1 == term ||
+              fullName2 == term ||
+              (item.source == FoodItemSource.base && strippedName == term)) {
             return 0;
           }
           if (name.startsWith(term) ||
               fullName1.startsWith(term) ||
-              fullName2.startsWith(term)) {
+              fullName2.startsWith(term) ||
+              (item.source == FoodItemSource.base &&
+                  strippedName.startsWith(term))) {
             return 1;
           }
           return 2;

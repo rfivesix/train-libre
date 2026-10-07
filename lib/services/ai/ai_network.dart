@@ -565,6 +565,8 @@ extension AiNetwork on AiService {
         return _loadAnthropicModels(apiKey);
       case AiProvider.ollama:
       case AiProvider.custom:
+      case AiProvider.appleFoundation:
+      case AiProvider.localModel:
         return const AiModelIdsFetch.failure(
           AiModelListError(AiModelListErrorKind.unsupported),
         );

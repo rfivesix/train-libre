@@ -578,6 +578,8 @@ class ProductLocalDataSource {
         .add(Variable.withString(rawSearchLower)); // Exact match (Brand + Name)
     variables
         .add(Variable.withString(rawSearchLower)); // Exact match (Name + Brand)
+    variables.add(Variable.withString(
+        '$rawSearchLower (%')); // Exact match (Base Food parenthetical stem: e.g. "Reis (weiß, gekocht)")
     variables
         .add(Variable.withString('$rawSearchLower%')); // Prefix match (Name)
     variables.add(
@@ -639,6 +641,7 @@ class ProductLocalDataSource {
                WHEN LOWER(p.name) = ? 
                  OR LOWER(COALESCE(p.brand, '') || ' ' || p.name) = ? 
                  OR LOWER(p.name || ' ' || COALESCE(p.brand, '')) = ? 
+                 OR (p.source = 'base' AND LOWER(p.name) LIKE ?)
                THEN 1 ELSE 0 
               END) AS is_exact_match,
              (CASE 
@@ -797,16 +800,22 @@ class ProductLocalDataSource {
       final searchLower = aiName.trim().toLowerCase();
       int textScore(FoodItem item) {
         final name = item.getLocalizedName(null).toLowerCase();
+        final strippedName =
+            name.replaceAll(RegExp(r'\s*\([^)]*\)'), '').trim();
         final brand = item.brand.toLowerCase();
         final fullName1 = brand.isEmpty ? name : '$brand $name';
         final fullName2 = brand.isEmpty ? name : '$name $brand';
 
         if (name == searchLower ||
+            (item.source == FoodItemSource.base &&
+                strippedName == searchLower) ||
             fullName1 == searchLower ||
             fullName2 == searchLower) {
           return 0;
         }
         if (name.startsWith(searchLower) ||
+            (item.source == FoodItemSource.base &&
+                strippedName.startsWith(searchLower)) ||
             fullName1.startsWith(searchLower) ||
             fullName2.startsWith(searchLower)) {
           return 1;

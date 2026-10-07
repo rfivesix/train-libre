@@ -11,6 +11,7 @@ FoodItem food(
   double protein = 10,
   double carbs = 10,
   double fat = 2,
+  FoodItemSource source = FoodItemSource.base,
 }) {
   return FoodItem(
     barcode: barcode ?? name,
@@ -21,7 +22,7 @@ FoodItem food(
     protein: protein,
     carbs: carbs,
     fat: fat,
-    source: FoodItemSource.base,
+    source: source,
   );
 }
 
@@ -33,6 +34,47 @@ AiMealValidationEngine engineWith(Map<String, List<FoodItem>> matches) {
 
 void main() {
   group('AiMealValidationEngine', () {
+    test('prioritizes base food parenthetical stem matches over generic off matches for Reis', () async {
+      final engine = engineWith({
+        'reis': [
+          food(
+            'Reis',
+            barcode: 'off_reis',
+            kcal: 350,
+            protein: 7,
+            carbs: 78,
+            fat: 1,
+            source: FoodItemSource.off,
+          ),
+          food(
+            'Reis (weiß, gekocht)',
+            barcode: 'base_reis_gekocht',
+            kcal: 130,
+            protein: 2.7,
+            carbs: 28.2,
+            fat: 0.3,
+            source: FoodItemSource.base,
+          ),
+        ],
+      });
+
+      final result = await engine.validateMealCandidate(
+        candidate: const AiMealCandidate(
+          items: [
+            AiMealCandidateItem(
+              name: 'Reis',
+              grams: 200,
+              stateHint: 'cooked',
+            ),
+          ],
+        ),
+        mode: AiValidationMode.capture,
+      );
+
+      expect(result.items.single.match.bestMatch?.barcode, 'base_reis_gekocht');
+      expect(result.items.single.match.bestMatch?.calories, 130);
+      expect(result.totals.kcalRounded, 260); // 200g of 130 kcal/100g
+    });
     test('computes local totals from matched database entries', () async {
       final engine = engineWith({
         'chicken breast': [

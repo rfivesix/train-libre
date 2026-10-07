@@ -130,20 +130,32 @@ extension MatchingLogic on AiMealValidationEngine {
   double _matchScoreForQuery(String query, FoodItem food) {
     final normalizedQuery = AiMealValidationEngine._normalizeText(query);
     if (normalizedQuery.isEmpty) return 0;
-    final names = {
+    final rawNames = {
       food.name,
       food.nameDe,
       food.nameEn,
-    }
-        .where((name) => name.trim().isNotEmpty)
-        .map(AiMealValidationEngine._normalizeText)
-        .toSet();
+    }.where((name) => name.trim().isNotEmpty).toSet();
+
+    final names = rawNames.map(AiMealValidationEngine._normalizeText).toSet();
 
     if (names.any((name) => name == normalizedQuery)) return 1.0;
+
+    // Check stripped parenthetical stem for base foods (e.g. "Reis (weiß, gekocht)" -> "reis")
+    if (food.source == FoodItemSource.base) {
+      final strippedNames = rawNames
+          .map((n) => n.replaceAll(RegExp(r'\s*\([^)]*\)'), '').trim())
+          .map(AiMealValidationEngine._normalizeText)
+          .toSet();
+      if (strippedNames.any((name) => name == normalizedQuery)) {
+        return 1.0;
+      }
+    }
+
     if (names.any((name) => name.startsWith(normalizedQuery))) return 0.86;
     if (names.any((name) => normalizedQuery.startsWith(name))) return 0.78;
 
-    final queryTokens = normalizedQuery.split(' ').where((t) => t.length > 1);
+    final queryTokens =
+        normalizedQuery.split(' ').where((t) => t.length > 1).toList();
     var best = 0.0;
     for (final name in names) {
       if (name.contains(normalizedQuery)) {
@@ -153,10 +165,10 @@ extension MatchingLogic on AiMealValidationEngine {
       if (nameTokens.isEmpty) continue;
       final overlap = queryTokens.where(nameTokens.contains).length;
       if (overlap > 0) {
-        best = AiMealValidationEngine._maxDouble(
-          best,
-          overlap / queryTokens.length * 0.65,
-        );
+        final score = (queryTokens.isNotEmpty && overlap == queryTokens.length)
+            ? (food.source == FoodItemSource.base ? 0.88 : 0.82)
+            : (overlap / queryTokens.length * 0.65);
+        best = AiMealValidationEngine._maxDouble(best, score);
       }
     }
     return best;

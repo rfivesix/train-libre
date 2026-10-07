@@ -214,6 +214,22 @@ import UserNotifications
       SpeechCapabilityPlugin.handle(call, result: result)
     }
 
+    let appleFoundationChannel = FlutterMethodChannel(
+      name: AppleFoundationPlugin.channelName,
+      binaryMessenger: messenger
+    )
+    appleFoundationChannel.setMethodCallHandler { call, result in
+      AppleFoundationPlugin.handle(call, result: result)
+    }
+
+    let localModelChannel = FlutterMethodChannel(
+      name: LocalModelPlugin.channelName,
+      binaryMessenger: messenger
+    )
+    localModelChannel.setMethodCallHandler { call, result in
+      LocalModelPlugin.handle(call, result: result)
+    }
+
     channelsConfigured = true
   }
 

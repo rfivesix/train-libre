@@ -487,5 +487,46 @@ void main() {
       expect(brandOnly.isNotEmpty, isTrue);
       expect(brandOnly[0].barcode, '555555');
     });
+
+    test(
+        'searchProducts and fuzzyMatchForAi prioritize base food parenthetical stem matches over generic off matches (e.g. Reis)',
+        () async {
+      // 1. OFF product with exact name "Reis" (raw, dry rice)
+      await dataSource.insertProduct(FoodItem(
+        barcode: 'off_rice_123',
+        name: 'Reis',
+        brand: 'Ja!',
+        calories: 350,
+        protein: 7.0,
+        carbs: 78.0,
+        fat: 1.0,
+        source: FoodItemSource.off,
+        category: 'grains',
+      ));
+
+      // 2. Base food with parenthetical description "Reis (weiß, gekocht)"
+      await dataSource.insertProduct(FoodItem(
+        barcode: 'base_food_rice_white_cooked',
+        name: 'Reis (weiß, gekocht)',
+        brand: '',
+        calories: 130,
+        protein: 2.7,
+        carbs: 28.2,
+        fat: 0.3,
+        source: FoodItemSource.base,
+        category: 'grains',
+      ));
+
+      // Search for 'Reis'
+      final searchResults = await dataSource.searchProducts('Reis');
+      expect(searchResults, isNotEmpty);
+      // Base food with parenthetical stem should rank first over unverified OFF product
+      expect(searchResults[0].barcode, 'base_food_rice_white_cooked');
+
+      // AI fuzzy match for 'Reis'
+      final aiResults = await dataSource.fuzzyMatchForAi('Reis');
+      expect(aiResults, isNotEmpty);
+      expect(aiResults[0].barcode, 'base_food_rice_white_cooked');
+    });
   });
 }
