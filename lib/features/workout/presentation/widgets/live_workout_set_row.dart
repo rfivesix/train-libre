@@ -6,7 +6,6 @@ import 'package:provider/provider.dart';
 import '../../../../generated/app_localizations.dart';
 import '../../../../services/haptic_feedback_service.dart';
 import '../../../../services/unit_service.dart';
-import '../../../app/presentation/widgets/glass_bottom_menu.dart';
 import '../../domain/classification/exercise_log_mask.dart';
 import '../../domain/classification/workout_set_position.dart';
 import 'log_mask_labels.dart';
@@ -17,6 +16,7 @@ import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../../util/time_util.dart';
 import '../../../../util/design_constants.dart';
 import 'generated_value_morph.dart';
+import 'set_type_menu.dart';
 
 /// An interactive row representing a single set in an active workout session.
 ///
@@ -67,61 +67,6 @@ class LiveWorkoutSetRow extends StatelessWidget {
 
   void _changeSetType(int templateId, String newType) {
     manager.updateSet(templateId, setType: newType);
-  }
-
-  void _showSetTypePicker(BuildContext context, int templateId) {
-    final l10n = AppLocalizations.of(context)!;
-
-    Widget buildSymbol(String char, Color color) {
-      return Text(
-        char,
-        style: TextStyle(
-          color: color,
-          fontSize: 20,
-          fontWeight: FontWeight.bold,
-        ),
-      );
-    }
-
-    final options = [
-      {
-        'type': 'normal',
-        'label': l10n.set_type_normal,
-        'subtitle': l10n.set_type_normal_help,
-        'symbol': buildSymbol('N', Colors.grey),
-      },
-      {
-        'type': 'warmup',
-        'label': l10n.set_type_warmup,
-        'subtitle': l10n.set_type_warmup_help,
-        'symbol': buildSymbol('W', Colors.orange),
-      },
-      {
-        'type': 'failure',
-        'label': l10n.set_type_failure,
-        'subtitle': l10n.set_type_failure_help,
-        'symbol': buildSymbol('F', DesignConstants.brandRedColor),
-      },
-      {
-        'type': 'dropset',
-        'label': l10n.set_type_dropset,
-        'subtitle': l10n.set_type_dropset_help,
-        'symbol': buildSymbol('D', Colors.blue),
-      },
-    ];
-
-    showGlassBottomMenu(
-      context: context,
-      title: l10n.changeSetTypTitle,
-      actions: options.map((opt) {
-        return GlassMenuAction(
-          customIcon: opt['symbol'] as Widget,
-          label: opt['label'] as String,
-          subtitle: opt['subtitle'] as String,
-          onTap: () => _changeSetType(templateId, opt['type'] as String),
-        );
-      }).toList(),
-    );
   }
 
   String _getSetDisplayText(String setType, int setIndex) {
@@ -313,19 +258,27 @@ class LiveWorkoutSetRow extends StatelessWidget {
         Expanded(
           flex: flex.index,
           child: Center(
-            child: GestureDetector(
-              onTap: () =>
-                  isCompleted ? null : _showSetTypePicker(context, templateId),
-              child: Text(
-                _getSetDisplayText(log.setType, setIndex),
-                style: TextStyle(
-                  color: isCompleted
-                      ? (log.setType == 'normal'
-                          ? (isLightMode ? Colors.black : Colors.white)
-                          : _getSetTypeColor(log.setType))
-                      : _getSetTypeColor(log.setType),
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
+            child: SetTypeMenu(
+              currentSetType: log.setType,
+              enabled: !isCompleted,
+              onSetTypeChanged: (newType) =>
+                  _changeSetType(templateId, newType),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 4.0,
+                  vertical: 8.0,
+                ),
+                child: Text(
+                  _getSetDisplayText(log.setType, setIndex),
+                  style: TextStyle(
+                    color: isCompleted
+                        ? (log.setType == 'normal'
+                            ? (isLightMode ? Colors.black : Colors.white)
+                            : _getSetTypeColor(log.setType))
+                        : _getSetTypeColor(log.setType),
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ),

@@ -36,6 +36,7 @@ import 'widgets/workout_heart_rate_section.dart';
 import '../domain/classification/exercise_log_mask.dart';
 import '../domain/classification/set_load.dart';
 import 'widgets/workout_exercise_log_card.dart';
+import 'widgets/set_type_menu.dart';
 import 'widgets/muscle_color_helper.dart';
 import '../../app/presentation/widgets/glass_bottom_menu.dart';
 import '../../exercise_catalog/domain/body_slug_mapper.dart';
@@ -1508,6 +1509,8 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                                 onAddSet: () {},
                                 onDeleteSet: (setId) {},
                                 onSetTypeTap: (setId) {},
+                                onSetTypeChanged: (setId, newType) =>
+                                    _changeSetType(setId, newType),
                                 index: -1,
                                 supersetLabel: supersetStyle?.label,
                                 supersetColor: supersetStyle?.color,
@@ -1580,6 +1583,7 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                                       onAddSet: () {},
                                       onDeleteSet: (_) {},
                                       onSetTypeTap: (_) {},
+                                      onSetTypeChanged: (_, __) {},
                                       index: index,
                                       supersetLabel: supersetStyle?.label,
                                       supersetColor: supersetStyle?.color,
@@ -1735,6 +1739,11 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                                                       onSetTypeTap: (setId) =>
                                                           _showSetTypePicker(
                                                               setId),
+                                                      onSetTypeChanged:
+                                                          (setId, newType) =>
+                                                              _changeSetType(
+                                                                  setId,
+                                                                  newType),
                                                       index: index,
                                                       supersetLabel:
                                                           supersetStyle?.label,
@@ -1915,53 +1924,9 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
   }
 
   void _showSetTypePicker(int setLogId) {
-    final l10n = AppLocalizations.of(context)!;
-
-    Widget buildSymbol(String char, Color color) {
-      return Text(
-        char,
-        style: TextStyle(
-          color: color,
-          fontSize: 20,
-          fontWeight: FontWeight.bold,
-        ),
-      );
-    }
-
-    final options = [
-      {
-        'type': 'normal',
-        'label': l10n.set_type_normal,
-        'symbol':
-            buildSymbol('N', Theme.of(context).colorScheme.onSurfaceVariant),
-      },
-      {
-        'type': 'warmup',
-        'label': l10n.set_type_warmup,
-        'symbol': buildSymbol('W', Colors.orange),
-      },
-      {
-        'type': 'failure',
-        'label': l10n.set_type_failure,
-        'symbol': buildSymbol('F', Theme.of(context).colorScheme.error),
-      },
-      {
-        'type': 'dropset',
-        'label': l10n.set_type_dropset,
-        'symbol': buildSymbol('D', Colors.blue),
-      },
-    ];
-
-    showGlassBottomMenu(
+    showExplanationRichSetTypeSheet(
       context: context,
-      title: l10n.changeSetTypTitle,
-      actions: options.map((opt) {
-        return GlassMenuAction(
-          customIcon: opt['symbol'] as Widget,
-          label: opt['label'] as String,
-          onTap: () => _changeSetType(setLogId, opt['type'] as String),
-        );
-      }).toList(),
+      onSelected: (newType) => _changeSetType(setLogId, newType),
     );
   }
 }

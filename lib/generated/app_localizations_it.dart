@@ -1234,6 +1234,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get set_type_dropset => 'Dropset';
 
   @override
+  String get set_type_info => 'Info e spiegazioni';
+
+  @override
   String get set_type_normal_help =>
       'Una normale serie di lavoro. Dopo il riscaldamento, la prima è di solito la serie pesante principale; conta per la progressione.';
 

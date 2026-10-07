@@ -39,7 +39,8 @@ class WorkoutExerciseLogCard extends StatelessWidget {
   final Function(String exerciseName) onDeleteExercise;
   final VoidCallback onAddSet;
   final Function(int setLogId) onDeleteSet;
-  final Function(int setLogId) onSetTypeTap;
+  final Function(int setLogId)? onSetTypeTap;
+  final void Function(int setLogId, String newType)? onSetTypeChanged;
   final int index;
   final bool isDragging;
   final bool isDraggedItem;
@@ -76,7 +77,8 @@ class WorkoutExerciseLogCard extends StatelessWidget {
     required this.onDeleteExercise,
     required this.onAddSet,
     required this.onDeleteSet,
-    required this.onSetTypeTap,
+    this.onSetTypeTap,
+    this.onSetTypeChanged,
     required this.index,
     this.isDragging = false,
     this.isDraggedItem = false,
@@ -359,7 +361,13 @@ class WorkoutExerciseLogCard extends StatelessWidget {
                                   repsController: repsControllers[setLog.id],
                                   rirController: rirControllers[setLog.id],
                                   onDelete: () => onDeleteSet(setLog.id!),
-                                  onSetTypeTap: () => onSetTypeTap(setLog.id!),
+                                  onSetTypeTap: onSetTypeTap != null
+                                      ? () => onSetTypeTap!(setLog.id!)
+                                      : null,
+                                  onSetTypeChanged: onSetTypeChanged != null
+                                      ? (newType) => onSetTypeChanged!(
+                                          setLog.id!, newType)
+                                      : null,
                                 );
                               }),
 

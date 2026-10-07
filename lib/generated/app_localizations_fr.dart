@@ -1240,6 +1240,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get set_type_dropset => 'Ensemble de gouttes';
 
   @override
+  String get set_type_info => 'Infos et explications';
+
+  @override
   String get set_type_normal_help =>
       'Une série de travail normale. Après l\'échauffement, la première est généralement votre série lourde de référence ; elle compte pour la progression.';
 

@@ -2180,6 +2180,12 @@ abstract class AppLocalizations {
   /// **'Dropset'**
   String get set_type_dropset;
 
+  /// No description provided for @set_type_info.
+  ///
+  /// In en, this message translates to:
+  /// **'Info & Explanations'**
+  String get set_type_info;
+
   /// No description provided for @set_type_normal_help.
   ///
   /// In en, this message translates to:

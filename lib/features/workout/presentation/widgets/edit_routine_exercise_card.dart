@@ -32,6 +32,7 @@ class EditRoutineExerciseCard extends StatelessWidget {
   final VoidCallback onDeleteExercise;
   final VoidCallback onAddSet;
   final Function(SetTemplate) onShowSetTypePicker;
+  final Function(SetTemplate, String)? onSetTypeChanged;
   final Function(SetTemplate, int listIndex) onRemoveSet;
   final bool isDragging;
   final bool isDraggedItem;
@@ -67,6 +68,7 @@ class EditRoutineExerciseCard extends StatelessWidget {
     required this.onDeleteExercise,
     required this.onAddSet,
     required this.onShowSetTypePicker,
+    this.onSetTypeChanged,
     required this.onRemoveSet,
     this.isDragging = false,
     this.isDraggedItem = false,
@@ -282,6 +284,10 @@ class EditRoutineExerciseCard extends StatelessWidget {
                                       rirControllers[setTemplate.id!]!,
                                   onShowSetTypePicker: () =>
                                       onShowSetTypePicker(setTemplate),
+                                  onSetTypeChanged: onSetTypeChanged != null
+                                      ? (newType) => onSetTypeChanged!(
+                                          setTemplate, newType)
+                                      : null,
                                   onRemoveSet: () =>
                                       onRemoveSet(setTemplate, setIndex),
                                   isEditMode: isEditMode,

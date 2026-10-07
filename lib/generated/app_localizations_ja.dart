@@ -1218,6 +1218,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get set_type_dropset => 'ドロップセット';
 
   @override
+  String get set_type_info => '情報と説明';
+
+  @override
   String get set_type_normal_help =>
       '通常のワーキングセットです。ウォームアップ後の最初のセットは、通常は重いメインセットです。漸進に反映されます。';
 

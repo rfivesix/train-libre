@@ -1228,6 +1228,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get set_type_dropset => 'Dropset';
 
   @override
+  String get set_type_info => 'Info & Explanations';
+
+  @override
   String get set_type_normal_help =>
       'A regular working set. After warming up, the first is usually your heavy focus set; it counts towards progression.';
 

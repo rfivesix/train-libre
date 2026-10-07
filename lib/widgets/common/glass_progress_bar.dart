@@ -38,6 +38,9 @@ class GlassProgressBar extends StatefulWidget {
   /// Optional custom subtitle to display instead of the default "value / target unit".
   final String? customSubtitle;
 
+  /// Number of decimal digits to format the value with. Defaults to 0 (no post-comma).
+  final int decimalDigits;
+
   const GlassProgressBar({
     super.key,
     required this.label,
@@ -49,6 +52,7 @@ class GlassProgressBar extends StatefulWidget {
     this.borderRadius = DesignConstants.borderRadiusL,
     this.disableShadow = false,
     this.customSubtitle,
+    this.decimalDigits = 0,
   });
 
   @override
@@ -103,6 +107,7 @@ class _GlassProgressBarState extends State<GlassProgressBar> {
               borderRadius: widget.borderRadius,
               disableShadow: widget.disableShadow,
               customSubtitle: widget.customSubtitle,
+              decimalDigits: widget.decimalDigits,
             );
           },
         );
@@ -122,6 +127,7 @@ class _GlassProgressBarPainter extends StatelessWidget {
   final double borderRadius;
   final bool disableShadow;
   final String? customSubtitle;
+  final int decimalDigits;
 
   const _GlassProgressBarPainter({
     required this.label,
@@ -133,6 +139,7 @@ class _GlassProgressBarPainter extends StatelessWidget {
     required this.borderRadius,
     required this.disableShadow,
     this.customSubtitle,
+    required this.decimalDigits,
   });
 
   @override
@@ -221,8 +228,8 @@ class _GlassProgressBarPainter extends StatelessWidget {
                       Text(
                         customSubtitle ??
                             (hasTarget
-                                ? '${value.toStringAsFixed(1)} / ${target.toStringAsFixed(0)} $unit'
-                                : '${value.toStringAsFixed(1)} $unit'),
+                                ? '${value.toStringAsFixed(decimalDigits)} / ${target.toStringAsFixed(0)}${unit.isEmpty ? '' : ' $unit'}'
+                                : '${value.toStringAsFixed(decimalDigits)}${unit.isEmpty ? '' : ' $unit'}'),
                         style: theme.textTheme.bodyMedium?.copyWith(
                           color: secondaryColor,
                           shadows: shadows,

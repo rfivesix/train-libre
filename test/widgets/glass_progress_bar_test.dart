@@ -51,4 +51,28 @@ void main() {
     expect(size.height, greaterThan(0));
     expect(size.width, greaterThan(0));
   });
+
+  testWidgets('renders numbers without post-comma decimals by default',
+      (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: GlassProgressBar(
+            label: 'Calories',
+            unit: 'kcal',
+            value: 2734.4,
+            target: 2986.0,
+            color: Colors.orange,
+          ),
+        ),
+      ),
+    );
+    // Let tween animations finish
+    await tester.pumpAndSettle();
+
+    // Dual-layer clipping renders unfilled and filled layers
+    expect(find.text('2734 / 2986 kcal'), findsNWidgets(2));
+    expect(find.textContaining('.'), findsNothing);
+  });
 }
+

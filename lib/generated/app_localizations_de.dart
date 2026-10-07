@@ -1234,6 +1234,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get set_type_dropset => 'Dropset';
 
   @override
+  String get set_type_info => 'Info & Erklärungen';
+
+  @override
   String get set_type_normal_help =>
       'Regulärer Arbeitssatz. Nach dem Warm-up ist der erste meist dein schwerer Fokus-Satz; zählt für die Progression.';
 

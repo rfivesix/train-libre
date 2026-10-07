@@ -29,6 +29,7 @@ import 'widgets/edit_routine_exercise_card.dart';
 import 'widgets/exercise_notes_dialog.dart';
 import 'widgets/reorder_drag_proxy.dart';
 import 'widgets/routine_pause_time_dialog.dart';
+import 'widgets/set_type_menu.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../widgets/common/app_button.dart';
 import '../../../widgets/common/empty_states/cold_start_empty_state.dart';
@@ -730,53 +731,9 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
   }
 
   void _showSetTypePicker(SetTemplate setTemplate) {
-    final l10n = AppLocalizations.of(context)!;
-
-    Widget buildSymbol(String char, Color color) {
-      return Text(
-        char,
-        style: TextStyle(
-          color: color,
-          fontSize: 20,
-          fontWeight: FontWeight.bold,
-        ),
-      );
-    }
-
-    final options = [
-      {
-        'type': 'normal',
-        'label': l10n.set_type_normal,
-        'symbol':
-            buildSymbol('N', Theme.of(context).colorScheme.onSurfaceVariant),
-      },
-      {
-        'type': 'warmup',
-        'label': l10n.set_type_warmup,
-        'symbol': buildSymbol('W', Colors.orange),
-      },
-      {
-        'type': 'failure',
-        'label': l10n.set_type_failure,
-        'symbol': buildSymbol('F', Theme.of(context).colorScheme.error),
-      },
-      {
-        'type': 'dropset',
-        'label': l10n.set_type_dropset,
-        'symbol': buildSymbol('D', Colors.blue),
-      },
-    ];
-
-    showGlassBottomMenu(
+    showExplanationRichSetTypeSheet(
       context: context,
-      title: l10n.changeSetTypTitle,
-      actions: options.map((opt) {
-        return GlassMenuAction(
-          customIcon: opt['symbol'] as Widget,
-          label: opt['label'] as String,
-          onTap: () => _changeSetType(setTemplate, opt['type'] as String),
-        );
-      }).toList(),
+      onSelected: (newType) => _changeSetType(setTemplate, newType),
     );
   }
 
@@ -1100,6 +1057,7 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                                             onDeleteExercise: () {},
                                             onAddSet: () {},
                                             onShowSetTypePicker: (_) {},
+                                            onSetTypeChanged: (_, __) {},
                                             onRemoveSet: (_, __) {},
                                           );
                                           return buildReorderDragProxy(
@@ -1264,6 +1222,8 @@ class _EditRoutineScreenState extends State<EditRoutineScreen> {
                                                                 routineExercise),
                                                             onShowSetTypePicker:
                                                                 _showSetTypePicker,
+                                                            onSetTypeChanged:
+                                                                _changeSetType,
                                                             onRemoveSet: (template,
                                                                     listIndex) =>
                                                                 _removeSet(

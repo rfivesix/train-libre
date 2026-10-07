@@ -11,6 +11,7 @@ import '../../../../util/time_util.dart';
 import '../../../../widgets/common/platform_adaptive_pickers.dart'
     as adaptive_pickers;
 import '../../../../util/design_constants.dart';
+import 'set_type_menu.dart';
 
 /// A single row representing a set within an exercise log.
 /// Supports both view mode and edit mode (via nullable text controllers).
@@ -29,8 +30,9 @@ class WorkoutLogSetRow extends StatelessWidget {
   final TextEditingController? weightController;
   final TextEditingController? repsController;
   final TextEditingController? rirController;
-  final VoidCallback onDelete;
-  final VoidCallback onSetTypeTap;
+  final VoidCallback? onDelete;
+  final VoidCallback? onSetTypeTap;
+  final ValueChanged<String>? onSetTypeChanged;
 
   const WorkoutLogSetRow({
     super.key,
@@ -44,8 +46,9 @@ class WorkoutLogSetRow extends StatelessWidget {
     this.weightController,
     this.repsController,
     this.rirController,
-    required this.onDelete,
-    required this.onSetTypeTap,
+    this.onDelete,
+    this.onSetTypeTap,
+    this.onSetTypeChanged,
   });
 
   /// True where the old flag was: distance in one column, duration in the other.
@@ -108,19 +111,45 @@ class WorkoutLogSetRow extends StatelessWidget {
         Expanded(
           flex: 2,
           child: Center(
-            child: GestureDetector(
-              onTap: () {
-                if (isEditMode) onSetTypeTap();
-              },
-              child: Text(
-                _getSetDisplayText(setType, workingSetIndex),
-                style: TextStyle(
-                  color: _getSetTypeColor(setType),
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
+            child: onSetTypeChanged != null
+                ? SetTypeMenu(
+                    currentSetType: setType,
+                    enabled: isEditMode,
+                    onSetTypeChanged: onSetTypeChanged!,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 4.0,
+                        vertical: 8.0,
+                      ),
+                      child: Text(
+                        _getSetDisplayText(setType, workingSetIndex),
+                        style: TextStyle(
+                          color: _getSetTypeColor(setType),
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  )
+                : GestureDetector(
+                    onTap: () {
+                      if (isEditMode && onSetTypeTap != null) onSetTypeTap!();
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 4.0,
+                        vertical: 8.0,
+                      ),
+                      child: Text(
+                        _getSetDisplayText(setType, workingSetIndex),
+                        style: TextStyle(
+                          color: _getSetTypeColor(setType),
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
           ),
         ),
 
