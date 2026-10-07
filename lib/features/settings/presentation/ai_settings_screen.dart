@@ -456,7 +456,9 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
 
   Future<void> _startModelDownload(LocalAiModelDefinition model) async {
     try {
-      await LocalAiModelManager.instance.startDownload(model.id);
+      final completed =
+          await LocalAiModelManager.instance.startDownload(model.id);
+      if (!completed) return; // User cancelled download
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

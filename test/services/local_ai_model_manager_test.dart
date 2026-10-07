@@ -48,7 +48,7 @@ void main() {
       final qwen3 = models.firstWhere((m) => m.id == 'qwen-3-vl-4b');
       expect(qwen3.name, contains('Qwen-3-VL'));
       expect(qwen3.isRecommended, isTrue);
-      expect(qwen3.formattedSize, '2.4 GB'); // 2576980377 bytes = ~2.4 GB
+      expect(qwen3.formattedSize, '2.3 GB'); // 2497281664 bytes = ~2.3 GB
       expect(qwen3.downloadUrl, contains('Qwen3-VL-4B-Instruct-GGUF'));
 
       final qwen25 = models.firstWhere((m) => m.id == 'qwen-2.5-vl-3b');

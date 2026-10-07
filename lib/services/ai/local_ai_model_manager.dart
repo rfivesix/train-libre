@@ -60,10 +60,10 @@ class LocalAiModelManager extends ChangeNotifier {
       tag: 'Empfohlen · Vision',
       description:
           'Alibaba Qwen-3 Vision (4B) – Höchste Präzision bei Nährwerten, Zutaten und Portionsgrößen.',
-      sizeBytes: 2576980377, // ~2.58 GB
-      fileName: 'qwen-3-vl-4b-instruct-q4_k_m.gguf',
+      sizeBytes: 2497281664, // ~2.33 GB
+      fileName: 'Qwen3VL-4B-Instruct-Q4_K_M.gguf',
       downloadUrl:
-          'https://huggingface.co/Qwen/Qwen3-VL-4B-Instruct-GGUF/resolve/main/qwen-3-vl-4b-instruct-q4_k_m.gguf',
+          'https://huggingface.co/Qwen/Qwen3-VL-4B-Instruct-GGUF/resolve/main/Qwen3VL-4B-Instruct-Q4_K_M.gguf',
       isRecommended: true,
     ),
     LocalAiModelDefinition(
@@ -72,10 +72,10 @@ class LocalAiModelManager extends ChangeNotifier {
       tag: 'Kompakt · Vision',
       description:
           'Alibaba Qwen-2.5 Vision (3B) – Sehr schnell und ressourcensparend auf mobilen Geräten.',
-      sizeBytes: 2040109465, // ~2.04 GB
-      fileName: 'qwen2.5-vl-3b-instruct-q4_k_m.gguf',
+      sizeBytes: 1929901056, // ~1.80 GB
+      fileName: 'Qwen2.5-VL-3B-Instruct-Q4_K_M.gguf',
       downloadUrl:
-          'https://huggingface.co/Qwen/Qwen2.5-VL-3B-Instruct-GGUF/resolve/main/qwen2.5-vl-3b-instruct-q4_k_m.gguf',
+          'https://huggingface.co/ggml-org/Qwen2.5-VL-3B-Instruct-GGUF/resolve/main/Qwen2.5-VL-3B-Instruct-Q4_K_M.gguf',
     ),
     LocalAiModelDefinition(
       id: 'smolvlm-2.2b',
@@ -83,15 +83,17 @@ class LocalAiModelManager extends ChangeNotifier {
       tag: 'Leichtgewicht',
       description:
           'Hugging Face SmolVLM – Extrem geringer Speicher- und RAM-Bedarf für schnelle Scans.',
-      sizeBytes: 1503238553, // ~1.50 GB
-      fileName: 'smolvlm-instruct-q4_k_m.gguf',
+      sizeBytes: 1112602656, // ~1.04 GB
+      fileName: 'SmolVLM2-2.2B-Instruct-Q4_K_M.gguf',
       downloadUrl:
-          'https://huggingface.co/HuggingFaceTB/SmolVLM-Instruct-GGUF/resolve/main/smolvlm-instruct-q4_k_m.gguf',
+          'https://huggingface.co/ggml-org/SmolVLM2-2.2B-Instruct-GGUF/resolve/main/SmolVLM2-2.2B-Instruct-Q4_K_M.gguf',
     ),
   ];
 
   final Map<String, LocalModelDownloadState> _downloadStates = {};
   final Map<String, HttpClientRequest> _activeRequests = {};
+  final Map<String, HttpClient> _activeClients = {};
+  final Set<String> _cancelledModelIds = {};
   final Set<String> _downloadedModelIds = {};
   bool _initialized = false;
   String _selectedModelId = 'qwen-3-vl-4b';
@@ -163,9 +165,9 @@ class LocalAiModelManager extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Starts downloading the model from Hugging Face.
-  Future<void> startDownload(String modelId) async {
-    if (isDownloading(modelId)) return;
+  /// Starts downloading the model from Hugging Face. Returns true if completed, false if cancelled.
+  Future<bool> startDownload(String modelId) async {
+    if (isDownloading(modelId)) return false;
 
     final def = availableModels.firstWhere(
       (m) => m.id == modelId,
@@ -177,12 +179,18 @@ class LocalAiModelManager extends ChangeNotifier {
     final finalFile = File('${dir.path}/${def.fileName}');
 
     if (await tempFile.exists()) {
-      await tempFile.delete();
+      try {
+        await tempFile.delete();
+      } catch (_) {}
     }
 
     final client = HttpClient();
     client.autoUncompress = true;
+    client.userAgent = 'TrainLibre/1.5 (Mobile; On-Device-AI)';
+    _activeClients[modelId] = client;
+    _cancelledModelIds.remove(modelId);
 
+    IOSink? sink;
     try {
       _downloadStates[modelId] = LocalModelDownloadState(
         progress: 0.0,
@@ -193,9 +201,15 @@ class LocalAiModelManager extends ChangeNotifier {
 
       final uri = Uri.parse(def.downloadUrl);
       final request = await client.getUrl(uri);
+      request.followRedirects = true;
+      request.maxRedirects = 5;
       _activeRequests[modelId] = request;
 
       final response = await request.close();
+      if (_cancelledModelIds.contains(modelId)) {
+        return false;
+      }
+
       if (response.statusCode != 200) {
         throw HttpException('HTTP status ${response.statusCode}');
       }
@@ -204,9 +218,12 @@ class LocalAiModelManager extends ChangeNotifier {
           ? response.contentLength
           : def.sizeBytes;
       var received = 0;
-      final sink = tempFile.openWrite();
+      sink = tempFile.openWrite();
 
       await for (final chunk in response) {
+        if (_cancelledModelIds.contains(modelId)) {
+          break;
+        }
         sink.add(chunk);
         received += chunk.length;
         _downloadStates[modelId] = LocalModelDownloadState(
@@ -219,6 +236,21 @@ class LocalAiModelManager extends ChangeNotifier {
 
       await sink.flush();
       await sink.close();
+      sink = null;
+
+      if (_cancelledModelIds.contains(modelId)) {
+        if (await tempFile.exists()) {
+          try {
+            await tempFile.delete();
+          } catch (_) {}
+        }
+        _downloadStates.remove(modelId);
+        _activeRequests.remove(modelId);
+        _activeClients.remove(modelId);
+        _cancelledModelIds.remove(modelId);
+        notifyListeners();
+        return false;
+      }
 
       if (await finalFile.exists()) {
         await finalFile.delete();
@@ -227,11 +259,37 @@ class LocalAiModelManager extends ChangeNotifier {
 
       _downloadStates.remove(modelId);
       _activeRequests.remove(modelId);
+      _activeClients.remove(modelId);
       _downloadedModelIds.add(modelId);
       notifyListeners();
+      return true;
     } catch (e) {
+      if (_cancelledModelIds.contains(modelId)) {
+        _downloadStates.remove(modelId);
+        _activeRequests.remove(modelId);
+        _activeClients.remove(modelId);
+        _cancelledModelIds.remove(modelId);
+        if (sink != null) {
+          try {
+            await sink.close();
+          } catch (_) {}
+        }
+        if (await tempFile.exists()) {
+          try {
+            await tempFile.delete();
+          } catch (_) {}
+        }
+        notifyListeners();
+        return false;
+      }
       _downloadStates.remove(modelId);
       _activeRequests.remove(modelId);
+      _activeClients.remove(modelId);
+      if (sink != null) {
+        try {
+          await sink.close();
+        } catch (_) {}
+      }
       if (await tempFile.exists()) {
         try {
           await tempFile.delete();
@@ -241,15 +299,26 @@ class LocalAiModelManager extends ChangeNotifier {
       debugPrint('[LocalAiModelManager] Download error for $modelId: $e');
       rethrow;
     } finally {
-      client.close();
+      try {
+        client.close(force: true);
+      } catch (_) {}
+      _activeClients.remove(modelId);
     }
   }
 
-  /// Cancels an in-progress download and cleans up temporary files.
+  /// Cancels an in-progress download and cleans up temporary files immediately.
   Future<void> cancelDownload(String modelId) async {
+    _cancelledModelIds.add(modelId);
+    _downloadStates.remove(modelId);
+    notifyListeners();
+
     final req = _activeRequests.remove(modelId);
     req?.abort();
-    _downloadStates.remove(modelId);
+
+    final client = _activeClients.remove(modelId);
+    try {
+      client?.close(force: true);
+    } catch (_) {}
 
     try {
       final def = availableModels.firstWhere((m) => m.id == modelId);

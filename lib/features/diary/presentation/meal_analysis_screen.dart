@@ -193,7 +193,7 @@ class _MealAnalysisScreenState extends State<MealAnalysisScreen> {
       // half-finished request cannot be left behind by accident.
       canPop: false,
       child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
+        behavior: HitTestBehavior.translucent,
         onTap: () {
           _orbKey.currentState?.incrementCharge();
         },

@@ -613,12 +613,11 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
 
   /// Closes the blocking analysis screen if it is still up.
   void _dismissAnalysisScreen() {
-    if (_analysisRoute == null) return;
-    final navigator = Navigator.of(context);
-    if (navigator.canPop()) {
-      navigator.removeRoute(_analysisRoute!);
-    }
+    final route = _analysisRoute;
     _analysisRoute = null;
+    if (route != null && route.isActive) {
+      route.navigator?.removeRoute(route);
+    }
   }
 
   Future<void> _analyze() async {
