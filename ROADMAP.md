@@ -11,19 +11,23 @@
 * **Training experience levels:** The app includes experience-level support for tailoring training guidance.
 
 ## Mid-term
+* **Multimodal AI Routine, Plan & Recipe Creation & Import:** Create or import routines, complete training plans, or recipes from raw text prompts, web URLs, or screenshots/photos. Uses the BYOK AI framework to parse content and strictly validate/match exercises and ingredients against the local SQLite catalog.
 * **Wearable-/watch‑first logging experiences:** Implement wear-focused tracking modules for minimal‑friction set tracking directly from a smartwatch during active workouts.
 * Official Google Play Store release.
 
 ## Long-term
 * **Optional private account & sync (self‑hostable first):** Long‑term, there could be an optional account layer for encrypted backup and multi‑device sync, designed to be self‑hostable (e.g. via a small Docker setup, possibly on top of something like Supabase or a similar backend). A public, centrally hosted instance might exist later, but would remain strictly optional because Train Libre should work fully without any account or external server.
+  * **Server-Backed Share Links (Phase 2):** Expand serverless link sharing with a lightweight backend/worker service generating clean shortlinks (e.g. `trainlibre.com/p/xyz`) for large training plans or recipe collections, serving a fallback web preview and app download call-to-action when opened on an unsupported device.
 * **Server-Backed Web Application & Profile Dashboard:** A clean, larger-scale web interface connecting to the personal self-hosted or cloud server instance, allowing users to analyze historical trends on a big screen and manage cross-device profile configurations.
 * **Decentralized Social & Sharing Features:** Secure, opt-in mechanisms to share custom recipes and specialized training plans directly with friends or other users hosted on the same server instance.
-* Strava and other privacy‑respecting FOSS ecosystem integrations where they make sense.
+* **Strava & FOSS Fitness Ecosystem Integrations:** Synchronize workout sessions and cardio activities with Strava and open fitness data platforms with privacy-respecting controls.
 * Deeper AI‑assisted workflows (meal capture, planning) while keeping BYOK and strict on‑device validation.
 
 ## Ideas / Potential
 *These are early ideas, not commitments. They will only happen if they make sense for users and for the project.*
+* **Gym Machine Vision Recognition:** Snap a photo of gym equipment or a workout machine to automatically identify the station, map it to the corresponding exercise in the local catalog, and jump straight into logging sets. Planned for exploration once dedicated, high-quality exercise illustrations or animations are in place to ensure visual confirmation and prevent ambiguity.
 * **Optional low‑cost AI add‑on:** If there is enough demand, Train Libre might offer a privacy‑respecting subscription where the app manages the AI API key for you (no manual key setup, no per‑token billing hassle). The core app would stay open source, offline‑first, and fully usable without any subscription.
 * **On-Device Local AI Insights (BYOM - Bring Your Own Model):** Explore running ultra-lightweight, quantized LLMs directly on-device to provide intelligent, 100% private coaching adjustments and sleep/nutrition correlations without cloud leaks.
 * **Evidenced-Based Fatigue & Periodization Tracking:** Advanced metrics for powerlifters (fatigue accumulation patterns, volume-load velocity tracking, and automated deload recommendations derived from historical RIR trends).
 * **On-Device Adaptive Biometric Fine-Tuning:** Investigate a lightweight, purely mathematical on-device ML model (e.g., using Bayesian Regression) to correlate individual sleep scores, recovery metrics, and macro nutrition directly with lift-specific e1RM progression. By initializing the system with expert-vetted sports science principles (Priors), the model provides immediate value from day one and progressively fine-tunes itself entirely offline to map the user's unique biological fatigue signatures without needing central user datasets.
+
