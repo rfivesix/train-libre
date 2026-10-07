@@ -30,6 +30,97 @@ AiMealCandidateItem _parseCandidateItem(Map<String, dynamic> e) {
   );
 }
 
+List<AiMealCandidateItem> _extractCandidateItemsFromMap(Map<String, dynamic> map) {
+  // Check common wrapper keys
+  for (final key in ['items', 'meal', 'food_components', 'components', 'foods', 'ingredients', 'dish']) {
+    final val = map[key];
+    if (val is List && val.isNotEmpty) {
+      final items = <AiMealCandidateItem>[];
+      for (final el in val) {
+        if (el is Map<String, dynamic>) {
+          items.add(_parseCandidateItem(el));
+        } else if (el is String && el.trim().isNotEmpty) {
+          items.add(AiMealCandidateItem(
+            name: el.trim(),
+            grams: 100,
+            confidence: 0.8,
+          ));
+        }
+      }
+      if (items.isNotEmpty) return items;
+    }
+  }
+
+  // Fallback: check if the map itself represents a single food item
+  if (map.containsKey('name')) {
+    return [_parseCandidateItem(map)];
+  }
+
+  // Check any list value in the map
+  for (final val in map.values) {
+    if (val is List && val.isNotEmpty) {
+      final items = <AiMealCandidateItem>[];
+      for (final el in val) {
+        if (el is Map<String, dynamic>) {
+          items.add(_parseCandidateItem(el));
+        } else if (el is String && el.trim().isNotEmpty) {
+          items.add(AiMealCandidateItem(
+            name: el.trim(),
+            grams: 100,
+            confidence: 0.8,
+          ));
+        }
+      }
+      if (items.isNotEmpty) return items;
+    }
+  }
+  return const [];
+}
+
+List<AiSuggestedItem> _extractSuggestedItemsFromMap(Map<String, dynamic> map) {
+  for (final key in ['items', 'meal', 'food_components', 'components', 'foods', 'ingredients', 'dish']) {
+    final val = map[key];
+    if (val is List && val.isNotEmpty) {
+      final items = <AiSuggestedItem>[];
+      for (final el in val) {
+        if (el is Map<String, dynamic>) {
+          items.add(AiSuggestedItem.fromJson(el));
+        } else if (el is String && el.trim().isNotEmpty) {
+          items.add(AiSuggestedItem(
+            name: el.trim(),
+            estimatedGrams: 100,
+            confidence: 0.8,
+          ));
+        }
+      }
+      if (items.isNotEmpty) return items;
+    }
+  }
+
+  if (map.containsKey('name')) {
+    return [AiSuggestedItem.fromJson(map)];
+  }
+
+  for (final val in map.values) {
+    if (val is List && val.isNotEmpty) {
+      final items = <AiSuggestedItem>[];
+      for (final el in val) {
+        if (el is Map<String, dynamic>) {
+          items.add(AiSuggestedItem.fromJson(el));
+        } else if (el is String && el.trim().isNotEmpty) {
+          items.add(AiSuggestedItem(
+            name: el.trim(),
+            estimatedGrams: 100,
+            confidence: 0.8,
+          ));
+        }
+      }
+      if (items.isNotEmpty) return items;
+    }
+  }
+  return const [];
+}
+
 extension AiParsing on AiService {
   /// Extracts the meal candidate (holistic context and items) from the AI response off the main thread.
   Future<AiMealCandidate> _parseMealCandidateFromContent(String content) async {
@@ -54,12 +145,8 @@ extension AiParsing on AiService {
                 ? AiMealContext.fromJson(contextMap)
                 : null;
 
-        final rawItems = decoded['items'];
-        if (rawItems is List) {
-          final items = rawItems
-              .whereType<Map<String, dynamic>>()
-              .map(_parseCandidateItem)
-              .toList();
+        final items = _extractCandidateItemsFromMap(decoded);
+        if (items.isNotEmpty) {
           return AiMealCandidate(
             context: mealContext,
             items: items,
@@ -68,14 +155,39 @@ extension AiParsing on AiService {
       }
 
       if (decoded is List) {
-        final items = decoded
-            .whereType<Map<String, dynamic>>()
-            .map(_parseCandidateItem)
-            .toList();
-        return AiMealCandidate(items: items);
+        final items = <AiMealCandidateItem>[];
+        for (final el in decoded) {
+          if (el is Map<String, dynamic>) {
+            items.add(_parseCandidateItem(el));
+          } else if (el is String && el.trim().isNotEmpty) {
+            items.add(AiMealCandidateItem(
+              name: el.trim(),
+              grams: 100,
+              confidence: 0.8,
+            ));
+          }
+        }
+        if (items.isNotEmpty) return AiMealCandidate(items: items);
       }
     } catch (e) {
       debugPrint('[AiParsing] Direct jsonDecode failed: $e');
+    }
+
+    // Try wrapping in brackets if it looks like comma-separated JSON objects without outer array
+    if (cleaned.startsWith('{') && cleaned.endsWith('}') && cleaned.contains('},{')) {
+      try {
+        final wrapped = '[$cleaned]';
+        final decoded = jsonDecode(wrapped);
+        if (decoded is List) {
+          final items = decoded
+              .whereType<Map<String, dynamic>>()
+              .map(_parseCandidateItem)
+              .toList();
+          if (items.isNotEmpty) return AiMealCandidate(items: items);
+        }
+      } catch (e) {
+        debugPrint('[AiParsing] Wrapped objects jsonDecode failed: $e');
+      }
     }
 
     final startBracket = cleaned.indexOf('{');
@@ -83,29 +195,21 @@ extension AiParsing on AiService {
     if (startBracket != -1 && endBracket != -1 && endBracket > startBracket) {
       try {
         final jsonStr = cleaned.substring(startBracket, endBracket + 1);
-        final decoded = jsonDecode(jsonStr) as Map<String, dynamic>;
-        final contextMap = decoded['mealContext'];
-        final AiMealContext? mealContext =
-            contextMap != null && contextMap is Map<String, dynamic>
-                ? AiMealContext.fromJson(contextMap)
-                : null;
+        final decoded = jsonDecode(jsonStr);
+        if (decoded is Map<String, dynamic>) {
+          final contextMap = decoded['mealContext'];
+          final AiMealContext? mealContext =
+              contextMap != null && contextMap is Map<String, dynamic>
+                  ? AiMealContext.fromJson(contextMap)
+                  : null;
 
-        final rawItems = decoded['items'];
-        if (rawItems is List) {
-          final items = rawItems
-              .whereType<Map<String, dynamic>>()
-              .map(_parseCandidateItem)
-              .toList();
-          return AiMealCandidate(
-            context: mealContext,
-            items: items,
-          );
-        } else if (decoded.containsKey('name')) {
-          // In case model returned a single food item object instead of a list
-          return AiMealCandidate(
-            context: mealContext,
-            items: [_parseCandidateItem(decoded)],
-          );
+          final items = _extractCandidateItemsFromMap(decoded);
+          if (items.isNotEmpty) {
+            return AiMealCandidate(
+              context: mealContext,
+              items: items,
+            );
+          }
         }
       } catch (e) {
         debugPrint('[AiParsing] Bracket extraction jsonDecode failed: $e');
@@ -118,11 +222,19 @@ extension AiParsing on AiService {
       try {
         final jsonStr = cleaned.substring(startArray, endArray + 1);
         final List<dynamic> itemsList = jsonDecode(jsonStr) as List<dynamic>;
-        final items = itemsList
-            .whereType<Map<String, dynamic>>()
-            .map(_parseCandidateItem)
-            .toList();
-        return AiMealCandidate(items: items);
+        final items = <AiMealCandidateItem>[];
+        for (final el in itemsList) {
+          if (el is Map<String, dynamic>) {
+            items.add(_parseCandidateItem(el));
+          } else if (el is String && el.trim().isNotEmpty) {
+            items.add(AiMealCandidateItem(
+              name: el.trim(),
+              grams: 100,
+              confidence: 0.8,
+            ));
+          }
+        }
+        if (items.isNotEmpty) return AiMealCandidate(items: items);
       } catch (e) {
         debugPrint('[AiParsing] Array extraction jsonDecode failed: $e');
       }
@@ -140,7 +252,6 @@ extension AiParsing on AiService {
     if (bulletLines.isNotEmpty) {
       debugPrint('[AiParsing] Fallback parsing bullet points into candidate items: $bulletLines');
       final fallbackItems = bulletLines.map((line) {
-        // Check for grams or amounts in bullet line if any (e.g. "Bread (50g)" or "50g Bread")
         final gramMatch = RegExp(r'(\d+)\s*g\b', caseSensitive: false).firstMatch(line);
         final grams = gramMatch != null ? int.tryParse(gramMatch.group(1)!) ?? 100 : 100;
         final cleanName = line
@@ -182,25 +293,45 @@ extension AiParsing on AiService {
     try {
       final decoded = jsonDecode(cleaned);
       if (decoded is List) {
-        final list = decoded
-            .whereType<Map<String, dynamic>>()
-            .map((e) => AiSuggestedItem.fromJson(e))
-            .toList();
-        if (list.isNotEmpty) return list;
-      } else if (decoded is Map<String, dynamic>) {
-        final rawItems = decoded['items'];
-        if (rawItems is List) {
-          final list = rawItems
-              .whereType<Map<String, dynamic>>()
-              .map((e) => AiSuggestedItem.fromJson(e))
-              .toList();
-          if (list.isNotEmpty) return list;
-        } else if (decoded.containsKey('name')) {
-          return [AiSuggestedItem.fromJson(decoded)];
+        final items = <AiSuggestedItem>[];
+        for (final el in decoded) {
+          if (el is Map<String, dynamic>) {
+            items.add(AiSuggestedItem.fromJson(el));
+          } else if (el is String && el.trim().isNotEmpty) {
+            items.add(AiSuggestedItem(name: el.trim(), estimatedGrams: 100, confidence: 0.8));
+          }
         }
+        if (items.isNotEmpty) return items;
+      } else if (decoded is Map<String, dynamic>) {
+        final items = _extractSuggestedItemsFromMap(decoded);
+        if (items.isNotEmpty) return items;
       }
     } catch (e) {
       debugPrint('[AiParsing] Direct items jsonDecode failed: $e');
+    }
+
+    // Try wrapping in brackets if it looks like comma-separated JSON objects without outer array
+    // e.g. {"name":"Banh Canh..."},{"name":"Tomato"...}
+    if (cleaned.startsWith('{') && cleaned.contains('},{')) {
+      try {
+        var toWrap = cleaned;
+        if (toWrap.endsWith(']}')) {
+          toWrap = toWrap.substring(0, toWrap.length - 2);
+        } else if (toWrap.endsWith('}')) {
+          // keep
+        }
+        final wrapped = '[$toWrap]';
+        final decoded = jsonDecode(wrapped);
+        if (decoded is List) {
+          final items = decoded
+              .whereType<Map<String, dynamic>>()
+              .map((e) => AiSuggestedItem.fromJson(e))
+              .toList();
+          if (items.isNotEmpty) return items;
+        }
+      } catch (e) {
+        debugPrint('[AiParsing] Wrapped objects suggested items jsonDecode failed: $e');
+      }
     }
 
     // Second attempt: search for array delimiters [ ... ]
@@ -209,19 +340,22 @@ extension AiParsing on AiService {
     if (startIdx != -1 && endIdx != -1 && endIdx > startIdx) {
       try {
         final jsonStr = cleaned.substring(startIdx, endIdx + 1);
-        final List<dynamic> items = jsonDecode(jsonStr) as List<dynamic>;
-        if (items.isNotEmpty) {
-          return items
-              .whereType<Map<String, dynamic>>()
-              .map((e) => AiSuggestedItem.fromJson(e))
-              .toList();
+        final List<dynamic> itemsRaw = jsonDecode(jsonStr) as List<dynamic>;
+        final items = <AiSuggestedItem>[];
+        for (final el in itemsRaw) {
+          if (el is Map<String, dynamic>) {
+            items.add(AiSuggestedItem.fromJson(el));
+          } else if (el is String && el.trim().isNotEmpty) {
+            items.add(AiSuggestedItem(name: el.trim(), estimatedGrams: 100, confidence: 0.8));
+          }
         }
+        if (items.isNotEmpty) return items;
       } catch (e) {
         debugPrint('[AiParsing] Items array extraction failed: $e');
       }
     }
 
-    // Third attempt: search for object delimiters { ... } containing "items"
+    // Third attempt: search for object delimiters { ... }
     final startObj = cleaned.indexOf('{');
     final endObj = cleaned.lastIndexOf('}');
     if (startObj != -1 && endObj != -1 && endObj > startObj) {
@@ -229,15 +363,8 @@ extension AiParsing on AiService {
         final jsonStr = cleaned.substring(startObj, endObj + 1);
         final decoded = jsonDecode(jsonStr);
         if (decoded is Map<String, dynamic>) {
-          final rawItems = decoded['items'];
-          if (rawItems is List && rawItems.isNotEmpty) {
-            return rawItems
-                .whereType<Map<String, dynamic>>()
-                .map((e) => AiSuggestedItem.fromJson(e))
-                .toList();
-          } else if (decoded.containsKey('name')) {
-            return [AiSuggestedItem.fromJson(decoded)];
-          }
+          final items = _extractSuggestedItemsFromMap(decoded);
+          if (items.isNotEmpty) return items;
         }
       } catch (e) {
         debugPrint('[AiParsing] Items object extraction failed: $e');

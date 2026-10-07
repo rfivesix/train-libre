@@ -225,7 +225,9 @@ RULES:
 3. Keep names simple and in the "$effectiveLang" language.
 4. Do NOT output calorie numbers in the JSON array.$anchorBlock$depthBlock
 
-Return ONLY a valid JSON array:
+CRITICAL: Return ONLY a valid JSON array starting with "[" and ending with "]". Do NOT return comma-separated objects without the outer array brackets.
+
+Return ONLY this format:
 [
   {
     "name": "<Food name in $effectiveLang>",
