@@ -1180,29 +1180,10 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
                               color: titleColor,
                             ),
                           ),
-                          const SizedBox(height: 4),
-                          if (widget.usageCollector != null) ...[
-                            Text(
-                              _tokenUsageLabel(l10n),
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: subtitleColor,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                          ],
                           Row(
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-                              // The one place the capture flow shows when the
-                              // meal happened, so it is also the place to
-                              // change it — an AI-captured meal is otherwise
-                              // stuck at whatever moment it was photographed.
-                              // Expanded rather than Flexible + Spacer: the
-                              // label takes only the width it needs, and the
-                              // slack it leaves still pushes the depth toggle
-                              // to the right edge.
-                              Expanded(
+                              Flexible(
                                 child: InkWell(
                                   key: const ValueKey(
                                       'ai_review_timestamp_button'),
@@ -1239,6 +1220,21 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
                                   ),
                                 ),
                               ),
+                              const Spacer(),
+                              if (widget.usageCollector != null)
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 4, vertical: 2),
+                                  child: Text(
+                                    _tokenUsageLabel(l10n),
+                                    style: TextStyle(
+                                      fontFamily: 'Plus Jakarta Sans',
+                                      fontWeight: FontWeight.w500,
+                                      fontSize: 14,
+                                      color: subtitleColor,
+                                    ),
+                                  ),
+                                ),
                               if (_showDepthMap &&
                                   (_depthRenders[_currentPhotoIndex] ??
                                           (_currentPhotoIndex == 0
