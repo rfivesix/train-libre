@@ -106,26 +106,33 @@ class AppSegmentedControl<T> extends StatelessWidget {
                   final label = children[key]!;
 
                   return Expanded(
-                    child: GestureDetector(
-                      onTap: () {
-                        if (!isSelected) {
-                          HapticFeedbackService.instance.selectionFeedback();
-                          onValueChanged(key);
-                        }
-                      },
-                      behavior: HitTestBehavior.opaque,
-                      child: Center(
-                        child: Text(
-                          label,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.labelMedium?.copyWith(
-                            fontWeight:
-                                isSelected ? FontWeight.bold : FontWeight.w500,
-                            color: isSelected
-                                ? theme.colorScheme.onSurface
-                                : theme.colorScheme.onSurface
-                                    .withValues(alpha: 0.60),
+                    child: Semantics(
+                      button: true,
+                      label: label,
+                      selected: isSelected,
+                      inMutuallyExclusiveGroup: true,
+                      excludeSemantics: true,
+                      child: GestureDetector(
+                        onTap: () {
+                          if (!isSelected) {
+                            HapticFeedbackService.instance.selectionFeedback();
+                            onValueChanged(key);
+                          }
+                        },
+                        behavior: HitTestBehavior.opaque,
+                        child: Center(
+                          child: Text(
+                            label,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.labelMedium?.copyWith(
+                              fontWeight:
+                                  isSelected ? FontWeight.bold : FontWeight.w500,
+                              color: isSelected
+                                  ? theme.colorScheme.onSurface
+                                  : theme.colorScheme.onSurface
+                                      .withValues(alpha: 0.60),
+                            ),
                           ),
                         ),
                       ),
