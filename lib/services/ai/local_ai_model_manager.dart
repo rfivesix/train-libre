@@ -239,9 +239,6 @@ class LocalAiModelManager extends ChangeNotifier {
         throw HttpException('HTTP status ${response.statusCode} for $downloadUrl');
       }
 
-      final contentLength = response.contentLength > 0
-          ? response.contentLength
-          : fileExpectedBytes;
       var fileReceived = 0;
       sink = tempFile.openWrite();
 

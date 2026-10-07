@@ -9,6 +9,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:intl/intl.dart';
 import '../dialogs/delete_meal_entry_bottom_sheet.dart';
+import 'package:provider/provider.dart';
+import '../../../../services/theme_service.dart';
+import '../../../../services/base_food_language_service.dart';
+import '../../domain/models/food_item.dart';
 import '../../domain/models/meal_entry.dart';
 import '../../domain/models/tracked_food_item.dart';
 import '../../../../widgets/common/glass_actionable_card.dart';
@@ -76,6 +80,14 @@ class _MealEntryCardState extends State<MealEntryCard> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    ThemeService? themeService;
+    try {
+      themeService = Provider.of<ThemeService>(context, listen: false);
+    } catch (_) {}
+    final baseFoodLang = BaseFoodLanguageService.resolveLanguageCode(
+      choice: themeService?.baseFoodLanguage ?? BaseFoodLanguage.auto,
+      context: context,
+    );
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final titleColor = isDark ? Colors.white : const Color(0xFF12120F);
     final subtitleColor =
@@ -293,7 +305,13 @@ class _MealEntryCardState extends State<MealEntryCard> {
                                         ?.call(tracked.entry.id!)
                                     : null,
                                 child: DiaryFoodRow(
-                                  name: tracked.item.name,
+                                  name: tracked.item.source ==
+                                          FoodItemSource.base
+                                      ? tracked.item.getLocalizedName(
+                                          context,
+                                          languageCode: baseFoodLang,
+                                        )
+                                      : tracked.item.getLocalizedName(context),
                                   amountLabel:
                                       '${tracked.entry.quantityInGrams} g',
                                   energyLabel: '$itemKcal kcal',

@@ -3,7 +3,6 @@ import 'dart:io';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../../generated/app_localizations.dart';
 import '../../../services/ai_service.dart';
 import '../../../services/haptic_feedback_service.dart';

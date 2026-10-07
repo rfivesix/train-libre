@@ -1097,6 +1097,14 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
+    ThemeService? themeService;
+    try {
+      themeService = Provider.of<ThemeService>(context, listen: false);
+    } catch (_) {}
+    final baseFoodLang = BaseFoodLanguageService.resolveLanguageCode(
+      choice: themeService?.baseFoodLanguage ?? BaseFoodLanguage.auto,
+      context: context,
+    );
     final isDark = theme.brightness == Brightness.dark;
     final titleColor = isDark ? Colors.white : const Color(0xFF12120F);
     final subtitleColor =
@@ -1442,7 +1450,20 @@ class _AiMealReviewScreenState extends State<AiMealReviewScreen> {
                                     ? _items
                                         .map(
                                           (item) => MealIngredientSummaryItem(
-                                            name: item.suggestion.name,
+                                            name: (item.matchedFood != null
+                                                    ? (item.matchedFood!.source ==
+                                                            FoodItemSource.base
+                                                        ? item.matchedFood!
+                                                            .getLocalizedName(
+                                                            context,
+                                                            languageCode:
+                                                                baseFoodLang,
+                                                          )
+                                                        : item.matchedFood!
+                                                            .getLocalizedName(
+                                                                context))
+                                                    : null) ??
+                                                item.suggestion.name,
                                             grams:
                                                 item.suggestion.estimatedGrams,
                                             kcal: item.nutrition.kcalRounded > 0

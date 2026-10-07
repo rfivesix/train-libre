@@ -34,6 +34,8 @@ import 'widgets/meal_ingredients_summary.dart';
 import 'general_food_selection_screen.dart';
 import 'food_detail_screen.dart';
 import 'util/meal_moment_format.dart';
+import '../../../services/theme_service.dart';
+import '../../../services/base_food_language_service.dart';
 
 /// Full detail and editing screen for a logged meal entry (Screens D3 & D6b).
 class MealEntryScreen extends StatefulWidget {
@@ -153,10 +155,21 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
     final controller =
         TextEditingController(text: '${current.entry.quantityInGrams}');
     final l10n = AppLocalizations.of(context)!;
+    ThemeService? themeService;
+    try {
+      themeService = Provider.of<ThemeService>(context, listen: false);
+    } catch (_) {}
+    final baseFoodLang = BaseFoodLanguageService.resolveLanguageCode(
+      choice: themeService?.baseFoodLanguage ?? BaseFoodLanguage.auto,
+      context: context,
+    );
+    final foodName = current.item.source == FoodItemSource.base
+        ? current.item.getLocalizedName(context, languageCode: baseFoodLang)
+        : current.item.getLocalizedName(context);
 
     final result = await showGlassBottomMenu<int>(
       context: context,
-      title: current.item.name,
+      title: foodName,
       contentBuilder: (ctx, close) {
         return Column(
           mainAxisSize: MainAxisSize.min,
@@ -572,6 +585,14 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
+    ThemeService? themeService;
+    try {
+      themeService = Provider.of<ThemeService>(context, listen: false);
+    } catch (_) {}
+    final baseFoodLang = BaseFoodLanguageService.resolveLanguageCode(
+      choice: themeService?.baseFoodLanguage ?? BaseFoodLanguage.auto,
+      context: context,
+    );
     final isDark = theme.brightness == Brightness.dark;
     final bg = theme.scaffoldBackgroundColor;
     final titleColor = isDark ? Colors.white : const Color(0xFF12120F);
@@ -763,7 +784,14 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
                                       return MealReviewComparisonCard(
                                         dismissibleKey: ValueKey(
                                             'meal_item_${tracked.entry.id ?? tracked.item.barcode}_$idx'),
-                                        name: tracked.item.name,
+                                        name: tracked.item.source ==
+                                                FoodItemSource.base
+                                            ? tracked.item.getLocalizedName(
+                                                context,
+                                                languageCode: baseFoodLang,
+                                              )
+                                            : tracked.item
+                                                .getLocalizedName(context),
                                         estimatedGrams:
                                             tracked.entry.quantityInGrams,
                                         // A saved entry carries no open uncertainty; the
@@ -804,7 +832,14 @@ class _MealEntryScreenState extends State<MealEntryScreen> {
                                   ingredients: _items
                                       .map(
                                         (item) => MealIngredientSummaryItem(
-                                          name: item.item.name,
+                                          name: item.item.source ==
+                                                  FoodItemSource.base
+                                              ? item.item.getLocalizedName(
+                                                  context,
+                                                  languageCode: baseFoodLang,
+                                                )
+                                              : item.item
+                                                  .getLocalizedName(context),
                                           grams: item.entry.quantityInGrams,
                                           kcal: item.calculatedCalories,
                                         ),

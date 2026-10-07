@@ -175,7 +175,7 @@ class MealReanalysisComparisonDialog extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  it.item.name,
+                                  it.item.getLocalizedName(context),
                                   style: TextStyle(
                                     fontFamily: 'Plus Jakarta Sans',
                                     fontWeight: FontWeight.w600,

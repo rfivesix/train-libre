@@ -98,8 +98,8 @@ abstract class _AiPrompts {
     final langRuleBuffer = StringBuffer();
     if (effectiveAppLang != null && effectiveAppLang.isNotEmpty) {
       langRuleBuffer.write(
-        '\n10. IMPORTANT: All primary food "name" values MUST be in the "$effectiveAppLang" language '
-        '(e.g. use "Apfel" instead of "Apple" when app language is "de").',
+        '\n10. IMPORTANT: Both the overall meal name ("dishType") and all individual food "name" values MUST be in the "$effectiveAppLang" language '
+        '(e.g. use "Gebratener Reis" instead of "fried rice", "Apfel" instead of "Apple" when app language is "$effectiveAppLang").',
       );
     }
     if (effectiveCatalogLang != null &&
@@ -165,7 +165,7 @@ CRITICAL RULES:
 Respond ONLY with a valid JSON object. No markdown, no explanation, no extra text.
 The JSON object must have exactly these two fields:
 1. "mealContext": An object containing:
-   - "dishType": string (the name of the dish/meal)
+   - "dishType": string (the name of the dish/meal in ${effectiveAppLang ?? 'app'} language)
    - "expectedKcalRange": array of two integers [low, high]
    - "expectedMacroProfile": an object with keys "proteinPercent", "carbsPercent", "fatPercent", each being an array of two integers [low, high]
    - "cookingMethod": string (overall cooking method)
