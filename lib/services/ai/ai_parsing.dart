@@ -132,21 +132,62 @@ extension AiParsing on AiService {
       cleaned = cleaned.trim();
     }
 
+    // First attempt: try full jsonDecode in case the response is clean JSON
+    try {
+      final decoded = jsonDecode(cleaned);
+      if (decoded is List) {
+        final list = decoded
+            .whereType<Map<String, dynamic>>()
+            .map((e) => AiSuggestedItem.fromJson(e))
+            .toList();
+        if (list.isNotEmpty) return list;
+      } else if (decoded is Map<String, dynamic>) {
+        final rawItems = decoded['items'];
+        if (rawItems is List) {
+          final list = rawItems
+              .whereType<Map<String, dynamic>>()
+              .map((e) => AiSuggestedItem.fromJson(e))
+              .toList();
+          if (list.isNotEmpty) return list;
+        }
+      }
+    } catch (_) {}
+
+    // Second attempt: search for array delimiters [ ... ]
     final startIdx = cleaned.indexOf('[');
     final endIdx = cleaned.lastIndexOf(']');
-    if (startIdx == -1 || endIdx == -1 || endIdx <= startIdx) {
-      throw const AiParseException('No JSON array found in response.');
+    if (startIdx != -1 && endIdx != -1 && endIdx > startIdx) {
+      try {
+        final jsonStr = cleaned.substring(startIdx, endIdx + 1);
+        final List<dynamic> items = jsonDecode(jsonStr) as List<dynamic>;
+        if (items.isNotEmpty) {
+          return items
+              .whereType<Map<String, dynamic>>()
+              .map((e) => AiSuggestedItem.fromJson(e))
+              .toList();
+        }
+      } catch (_) {}
     }
 
-    final jsonStr = cleaned.substring(startIdx, endIdx + 1);
-    final List<dynamic> items = jsonDecode(jsonStr) as List<dynamic>;
-
-    if (items.isEmpty) {
-      throw const AiParseException('AI returned an empty list.');
+    // Third attempt: search for object delimiters { ... } containing "items"
+    final startObj = cleaned.indexOf('{');
+    final endObj = cleaned.lastIndexOf('}');
+    if (startObj != -1 && endObj != -1 && endObj > startObj) {
+      try {
+        final jsonStr = cleaned.substring(startObj, endObj + 1);
+        final decoded = jsonDecode(jsonStr);
+        if (decoded is Map<String, dynamic>) {
+          final rawItems = decoded['items'];
+          if (rawItems is List && rawItems.isNotEmpty) {
+            return rawItems
+                .whereType<Map<String, dynamic>>()
+                .map((e) => AiSuggestedItem.fromJson(e))
+                .toList();
+          }
+        }
+      } catch (_) {}
     }
 
-    return items
-        .map((e) => AiSuggestedItem.fromJson(e as Map<String, dynamic>))
-        .toList();
+    throw const AiParseException('No JSON array found in response.');
   }
 }

@@ -116,18 +116,9 @@ DEPTH MAP: The attached relief image indicates physical food height/volume. $dep
         ? '\n- For regional or packaged foods, provide "catalogSearchTerm" in "$effectiveCatalogLang".'
         : '';
 
-    return '''
-You are an expert nutrition assistant. Analyze the meal image(s) or description and break it down into loggable ingredients.${depthBlockBuffer.toString()}
-
-RULES:
-1. Output valid JSON immediately.
-2. Break down the meal into individual, atomic ingredients (e.g. "Reis", "Ei", "Erbsen"). Consolidate identical items into one entry.
-3. Estimate realistic portion weight in grams (`estimatedGrams` and `servedGrams`). Calibrate to the whole plate or pan (a main meal is typically 300–600g total).
-4. Provide the preparation state in `stateHint` ("cooked", "raw", "fried", "baked", "boiled", etc.).
-5. Use simple, standard food names. Both the meal title ("dishType") and all item "name" values MUST be in the "$effectiveAppLang" language.$catalogNote
-6. Do NOT put calories or macros into the items list; specify the overall dish anchor in `mealContext`.
-
-Respond ONLY with this JSON structure:
+    final outputRule = structuredOutput
+        ? 'Output the mealContext and items structure matching the required schema.'
+        : '''Respond ONLY with this JSON structure:
 {
   "mealContext": {
     "dishType": "<Meal name in $effectiveAppLang, e.g. Gebratener Reis>",
@@ -152,6 +143,19 @@ Respond ONLY with this JSON structure:
     }
   ]
 }''';
+
+    return '''
+You are an expert nutrition assistant. Analyze the meal image(s) or description and break it down into loggable ingredients.${depthBlockBuffer.toString()}
+
+RULES:
+1. Output valid JSON immediately.
+2. Break down the meal into individual, atomic ingredients (e.g. "Reis", "Ei", "Erbsen"). Consolidate identical items into one entry.
+3. Estimate realistic portion weight in grams (`estimatedGrams` and `servedGrams`). Calibrate to the whole plate or pan (a main meal is typically 300–600g total).
+4. Provide the preparation state in `stateHint` ("cooked", "raw", "fried", "baked", "boiled", etc.).
+5. Use simple, standard food names. Both the meal title ("dishType") and all item "name" values MUST be in the "$effectiveAppLang" language.$catalogNote
+6. Do NOT put calories or macros into the items list; specify the overall dish anchor in `mealContext`.
+
+$outputRule''';
   }
 
   /// Prompt for turning a raw dictation transcript into bullets.

@@ -157,6 +157,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
     WidgetsBinding.instance.addObserver(this);
     _checkDbStatus();
     unawaited(_prepareCamera());
+    unawaited(AiService.instance.prewarm());
 
     _analyzeButtonAnimationController = AnimationController(
       vsync: this,

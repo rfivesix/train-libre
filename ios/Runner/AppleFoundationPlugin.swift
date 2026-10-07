@@ -11,6 +11,8 @@ import FoundationModels
 enum AppleFoundationPlugin {
   static let channelName = "trainlibre.ai/apple_foundation"
 
+  private static var _warmSession: Any? = nil
+
   static func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
     switch call.method {
     case "isAvailable":
@@ -29,6 +31,25 @@ enum AppleFoundationPlugin {
       #else
       result(false)
       #endif
+
+    case "prewarm":
+      #if canImport(FoundationModels)
+      if #available(iOS 26.0, *) {
+        let model = SystemLanguageModel.default
+        if case .available = model.availability {
+          Task {
+            let session = LanguageModelSession()
+            _warmSession = session
+            session.prewarm()
+            DispatchQueue.main.async {
+              result(true)
+            }
+          }
+          return
+        }
+      }
+      #endif
+      result(false)
 
     case "generateMealJson":
       guard let args = call.arguments as? [String: Any],
@@ -51,7 +72,13 @@ enum AppleFoundationPlugin {
       if #available(iOS 26.0, *) {
         Task {
           do {
-            let session = LanguageModelSession()
+            let session: LanguageModelSession
+            if let existing = _warmSession as? LanguageModelSession {
+              session = existing
+              _warmSession = nil
+            } else {
+              session = LanguageModelSession()
+            }
             let responseContent: String
 
             #if compiler(>=6.4)

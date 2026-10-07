@@ -36,6 +36,17 @@ class AppleFoundationService {
     }
   }
 
+  /// Prewarms the Apple Foundation Models session in the background so the model
+  /// is already cached in memory when the user triggers an analysis.
+  Future<bool> prewarm() async {
+    if (!kIsWeb && !Platform.isIOS) return false;
+    try {
+      return await _channel.invokeMethod<bool>('prewarm') ?? false;
+    } catch (_) {
+      return false;
+    }
+  }
+
   /// Sends a structured prompt (and optional base64 images) to Apple's on-device Foundation Model.
   Future<String> generateMealJson({
     required String prompt,
