@@ -83,7 +83,7 @@ abstract class _AiPrompts {
     'required': ['mealContext', 'items'],
   };
 
-  /// Builds the system prompt, optionally localised to [appLanguage] and [catalogLanguage].
+  /// Builds a streamlined, highly effective system prompt for all AI providers.
   static String buildSystemPrompt({
     String? languageCode,
     String? appLanguage,
@@ -92,113 +92,66 @@ abstract class _AiPrompts {
     String? depthMapLegend,
     bool structuredOutput = false,
   }) {
-    final effectiveAppLang = appLanguage ?? languageCode;
+    final effectiveAppLang = appLanguage ?? languageCode ?? 'de';
     final effectiveCatalogLang = catalogLanguage;
-
-    final langRuleBuffer = StringBuffer();
-    if (effectiveAppLang != null && effectiveAppLang.isNotEmpty) {
-      langRuleBuffer.write(
-        '\n10. IMPORTANT: Both the overall meal name ("dishType") and all individual food "name" values MUST be in the "$effectiveAppLang" language '
-        '(e.g. use "Gebratener Reis" instead of "fried rice", "Apfel" instead of "Apple" when app language is "$effectiveAppLang").',
-      );
-    }
-    if (effectiveCatalogLang != null &&
-        effectiveCatalogLang.isNotEmpty &&
-        effectiveAppLang != null &&
-        effectiveCatalogLang != effectiveAppLang) {
-      langRuleBuffer.write(
-        '\n11. DUAL LANGUAGE SEARCH: The active regional food catalog uses "$effectiveCatalogLang". '
-        'If an item represents a packaged product, brand, or regional dish, also provide a "catalogSearchTerm" '
-        'field in "$effectiveCatalogLang" (e.g. name: "Schinkenbaguette", catalogSearchTerm: "Baguette au jambon").',
-      );
-    }
 
     final depthBlockBuffer = StringBuffer();
     if (depthFacts != null && depthFacts.isValid) {
       depthBlockBuffer.write('''
 
-LIDAR SCALE MEASUREMENT (measured, not estimated — trust these numbers over your visual impression):
-- Distance from camera to the food: ${depthFacts.subjectDistanceCm.toStringAsFixed(0)} cm
-- The visible frame covers ${depthFacts.frameWidthCm.toStringAsFixed(0)} cm x ${depthFacts.frameHeightCm.toStringAsFixed(0)} cm at that distance
-- Nearest surface: ${depthFacts.nearCm.toStringAsFixed(0)} cm, farthest: ${depthFacts.farCm.toStringAsFixed(0)} cm
-
-Use this to calibrate the absolute size of everything in the image. Do NOT rely on assumed plate or cutlery sizes when this measurement is present — derive plate diameter and portion dimensions from the frame size above.
-''');
+LIDAR SCALE MEASUREMENT:
+- Distance: ${depthFacts.subjectDistanceCm.toStringAsFixed(0)} cm. Visible frame: ${depthFacts.frameWidthCm.toStringAsFixed(0)} x ${depthFacts.frameHeightCm.toStringAsFixed(0)} cm.
+Use this to judge real object and plate size.''');
     }
 
     if (depthMapLegend != null && depthMapLegend.trim().isNotEmpty) {
       depthBlockBuffer.write('''
 
-DEPTH MAP IMAGE:
-The LAST attached image is not a photo. It is a false-colour depth map of the
-same scene, captured at the same instant through the same lens, framed
-identically to the photo.
-$depthMapLegend
-
-Read it as a relief of the meal: it shows which parts stand higher and by how
-much, which a photo alone cannot tell you. Use it to judge volume rather than
-outline — a heaped portion and a flat one cover the same area but differ here.
-Weigh it against the photo; where the two disagree, the photo identifies the
-food and the depth map gives its shape.
-''');
+DEPTH MAP: The attached relief image indicates physical food height/volume. $depthMapLegend''');
     }
 
-    final langRule = langRuleBuffer.toString();
-    final depthBlock = depthBlockBuffer.toString();
+    final catalogNote = (effectiveCatalogLang != null &&
+            effectiveCatalogLang.isNotEmpty &&
+            effectiveCatalogLang != effectiveAppLang)
+        ? '\n- For regional or packaged foods, provide "catalogSearchTerm" in "$effectiveCatalogLang".'
+        : '';
 
     return '''
-You are a nutrition analysis assistant. Analyze the provided meal image(s) or description.$depthBlock
+You are an expert nutrition assistant. Analyze the meal image(s) or description and break it down into loggable ingredients.${depthBlockBuffer.toString()}
 
-CRITICAL RULES:
-1. Be direct, concise, and fast. Output JSON immediately without verbose reasoning or long explanations. Keep "contextNotes" extremely brief (under 10 words, or empty string). Establish a concise meal context anchor (dish, expected kcal, macro percentages).
-2. Break down EVERY meal into its individual, atomic, loggable ingredient components — each as a separate item with its own estimated weight.
-3. Do NOT return composite meal names. Always decompose into individual ingredients.
-4. Estimate weights in grams as accurately as possible based on visual cues or typical serving sizes.
-5. Set confidence between 0.0 and 1.0 based on how certain you are about each item and its quantity.
-6. Provide a "stateHint" string for each item (e.g. "cooked", "raw", "fried", "baked", "boiled", "grilled", etc.) to help the matching engine select the correct database variant.
-7. CONSOLIDATE duplicate items: if the user mentions or you detect multiple quantities of the same food (e.g. "4 eggs"), return ONE single entry with the total combined weight. Never return duplicate rows for the same food item.
-8. Do NOT estimate, guess, or return any nutritional data (calories, protein, fat, carbs, etc.) inside the items array. The items array must ONLY contain identification and estimated weight. The holistic "mealContext" anchor *does* contain expected macronutrient ranges for the overall meal.
-9. Use SIMPLE, SHORT base food names only. For example, use "Banane" not "Reife Banane", "Ei" not "Gekochtes Ei", "Apfel" not "Grüner Apfel". Keep names as generic and simple as possible to maximize database matching.$langRule
-10. The local food database commonly stores nutrition for RAW or UNPREPARED food. For every photographed or described prepared food, return BOTH the visible served amount and the RAW-EQUIVALENT amount. "servedGrams" is the portion as seen or eaten; "estimatedGrams" is the amount of the raw/unprepared ingredient that should be used for nutrition calculation. Estimate this raw equivalent yourself from the food, its state and preparation. For raw foods the two values are normally the same.
-11. Return 1-3 short "searchTerms" for each item. They must be useful local catalog queries for the underlying ingredient, including a specific variety or raw-form synonym where it improves recall. Do not use recipes or nutrient claims as search terms.
+RULES:
+1. Output valid JSON immediately.
+2. Break down the meal into individual, atomic ingredients (e.g. "Reis", "Ei", "Erbsen"). Consolidate identical items into one entry.
+3. Estimate realistic portion weight in grams (`estimatedGrams` and `servedGrams`). Calibrate to the whole plate or pan (a main meal is typically 300–600g total).
+4. Provide the preparation state in `stateHint` ("cooked", "raw", "fried", "baked", "boiled", etc.).
+5. Use simple, standard food names. Both the meal title ("dishType") and all item "name" values MUST be in the "$effectiveAppLang" language.$catalogNote
+6. Do NOT put calories or macros into the items list; specify the overall dish anchor in `mealContext`.
 
-Respond ONLY with a valid JSON object. No markdown, no explanation, no extra text.
-The JSON object must have exactly these two fields:
-1. "mealContext": An object containing:
-   - "dishType": string (the name of the dish/meal in ${effectiveAppLang ?? 'app'} language)
-   - "expectedKcalRange": array of two integers [low, high]
-   - "expectedMacroProfile": an object with keys "proteinPercent", "carbsPercent", "fatPercent", each being an array of two integers [low, high]
-   - "cookingMethod": string (overall cooking method)
-   - "contextNotes": string (contextual culinary details)
-2. "items": An array where each element has:
-   - "name": string (individual food component name in user UI language)
-   - "catalogSearchTerm": string or null (optional search keyword in catalog language if different from UI language)
-   - "servedGrams": integer (visible/eaten portion in grams)
-   - "estimatedGrams": integer (raw-equivalent grams used for database nutrition)
-   - "confidence": number (0.0 to 1.0)
-   - "stateHint": string or null (e.g. "cooked", "raw", "boiled")
-   - "searchTerms": array of 1-3 short strings for local catalog retrieval
-
-${structuredOutput ? '' : '''Example response:
+Respond ONLY with this JSON structure:
 {
   "mealContext": {
-    "dishType": "Omelette with Butter",
-    "expectedKcalRange": [250, 350],
+    "dishType": "<Meal name in $effectiveAppLang, e.g. Gebratener Reis>",
+    "expectedKcalRange": [<low_kcal>, <high_kcal>],
     "expectedMacroProfile": {
-      "proteinPercent": [20, 30],
-      "carbsPercent": [1, 5],
-      "fatPercent": [70, 80]
+      "proteinPercent": [<low%>, <high%>],
+      "carbsPercent": [<low%>, <high%>],
+      "fatPercent": [<low%>, <high%>]
     },
-    "cookingMethod": "pan-fried in butter",
-    "contextNotes": "Made with 3 eggs and 10g of butter"
+    "cookingMethod": "<e.g. pan-fried>",
+    "contextNotes": "<brief note or empty>"
   },
   "items": [
-    {"name": "Rice", "catalogSearchTerm": "Riz", "servedGrams": 180, "estimatedGrams": 65, "confidence": 0.82, "stateHint": "cooked", "searchTerms": ["Rice", "Basmati rice", "dry rice"]},
-    {"name": "Butter", "catalogSearchTerm": "Beurre", "servedGrams": 10, "estimatedGrams": 10, "confidence": 0.8, "stateHint": "raw", "searchTerms": ["Butter"]}
+    {
+      "name": "<Food name in $effectiveAppLang, e.g. Reis>",
+      "catalogSearchTerm": "<search term or null>",
+      "servedGrams": <portion_grams>,
+      "estimatedGrams": <portion_grams>,
+      "confidence": <0.0_to_1.0>,
+      "stateHint": "<cooked|raw|fried|etc>",
+      "searchTerms": ["<term1>", "<term2>"]
+    }
   ]
-}
-'''}
-''';
+}''';
   }
 
   /// Prompt for turning a raw dictation transcript into bullets.
@@ -242,40 +195,43 @@ Rules:
     AiMealContext? mealContext,
     DepthScaleFacts? depthFacts,
   }) {
-    final effectiveLang = appLanguage ?? languageCode;
-    final langRule = (effectiveLang != null && effectiveLang.isNotEmpty)
-        ? '\n- Return food names in the "$effectiveLang" language.'
-        : '';
+    final effectiveLang = appLanguage ?? languageCode ?? 'de';
 
     final anchorBlock = mealContext != null
         ? '\n\nMEAL CONTEXT ANCHOR:\n'
             '- Dish: ${mealContext.dishType}\n'
-            '- Expected total kcal: ${mealContext.expectedKcalRange[0]}-${mealContext.expectedKcalRange[1]}\n'
-            '- Expected macro profile: P${mealContext.expectedMacroProfile["proteinPercent"]}% '
+            '- Target calories: ${mealContext.expectedKcalRange[0]}-${mealContext.expectedKcalRange[1]} kcal\n'
+            '- Target macros: P${mealContext.expectedMacroProfile["proteinPercent"]}% '
             'C${mealContext.expectedMacroProfile["carbsPercent"]}% '
             'F${mealContext.expectedMacroProfile["fatPercent"]}%\n'
-            '- Cooking: ${mealContext.cookingMethod ?? "unknown"}\n'
-            'Adjust gram amounts so the total aligns with this anchor.'
+            'Adjust portion grams so the total calories match this target.'
         : '';
 
     final depthBlock = (depthFacts != null && depthFacts.isValid)
-        ? '\n\nLIDAR SCALE MEASUREMENT: ${depthFacts.subjectDistanceCm.toStringAsFixed(0)} cm distance, visible frame ${depthFacts.frameWidthCm.toStringAsFixed(0)}x${depthFacts.frameHeightCm.toStringAsFixed(0)} cm. Trust this measurement over assumed portion sizes.'
+        ? '\n\nLIDAR SCALE: distance ${depthFacts.subjectDistanceCm.toStringAsFixed(0)} cm, frame ${depthFacts.frameWidthCm.toStringAsFixed(0)}x${depthFacts.frameHeightCm.toStringAsFixed(0)} cm.'
         : '';
 
     return '''
-You are repairing an AI meal candidate after deterministic local validation.
+You are adjusting the meal items after automated validation.
 
-Rules:
-- When CANDIDATES are listed for an item, you MUST pick one of the provided exact names. Do NOT invent new names.
-- If no candidates are listed, use simple, generic, local-database-matchable food names.
-- `servedGrams` is the visible/eaten amount. `estimatedGrams` is the raw-equivalent amount used for nutrition. Keep both plausible for the stated preparation, and revise the raw equivalent when a verified database candidate makes the prior amount implausible.
-- Correct unrealistic quantities.
-- Do not invent or return nutrition values.
-- Respect strict target macros when provided; local code will verify kcal/protein/carbs/fat again.
-- Use low creativity and keep the output deterministic.$langRule$anchorBlock$depthBlock
+RULES:
+1. When CANDIDATES are listed for an item, pick the exact matching name and include its `matchedBarcode`.
+2. Adjust the portion weights (`estimatedGrams` and `servedGrams`) so the overall meal calories align with the target meal context.
+3. Keep names simple and in the "$effectiveLang" language.
+4. Do NOT output calorie numbers in the JSON array.$anchorBlock$depthBlock
 
-Return ONLY a valid JSON array. Every item must preserve or return stateHint, servedGrams, estimatedGrams and searchTerms. When selecting a listed candidate, return its exact `matchedBarcode` too:
-[{"name":"Food name","servedGrams":180,"estimatedGrams":65,"confidence":0.8,"stateHint":"cooked","searchTerms":["Food name"],"matchedBarcode":"candidate-id"}]
+Return ONLY a valid JSON array:
+[
+  {
+    "name": "<Food name in $effectiveLang>",
+    "servedGrams": <grams>,
+    "estimatedGrams": <grams>,
+    "confidence": <0.0_to_1.0>,
+    "stateHint": "<cooked|raw|fried|etc>",
+    "searchTerms": ["<term1>"],
+    "matchedBarcode": "<candidate_id_or_null>"
+  }
+]
 No markdown, no explanations, no extra text.''';
   }
 }

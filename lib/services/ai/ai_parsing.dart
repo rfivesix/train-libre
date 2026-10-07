@@ -10,6 +10,26 @@ List<String> _parseSearchTerms(dynamic raw) {
       .toList(growable: false);
 }
 
+AiMealCandidateItem _parseCandidateItem(Map<String, dynamic> e) {
+  final grams = (e['estimatedGrams'] as num?)?.toInt() ??
+      (e['grams'] as num?)?.toInt() ??
+      (e['servedGrams'] as num?)?.toInt() ??
+      0;
+  final served = (e['servedGrams'] as num?)?.toInt() ??
+      (e['estimatedGrams'] as num?)?.toInt() ??
+      (e['grams'] as num?)?.toInt();
+  return AiMealCandidateItem(
+    name: (e['name'] as String?) ?? '',
+    grams: grams,
+    confidence: (e['confidence'] as num?)?.toDouble(),
+    servedGrams: served,
+    matchedBarcode: e['matchedBarcode'] as String?,
+    stateHint: e['stateHint'] as String?,
+    catalogSearchTerm: e['catalogSearchTerm'] as String?,
+    searchTerms: _parseSearchTerms(e['searchTerms']),
+  );
+}
+
 extension AiParsing on AiService {
   /// Extracts the meal candidate (holistic context and items) from the AI response off the main thread.
   Future<AiMealCandidate> _parseMealCandidateFromContent(String content) async {
@@ -36,16 +56,8 @@ extension AiParsing on AiService {
         final rawItems = decoded['items'];
         if (rawItems is List) {
           final items = rawItems
-              .map((e) => AiMealCandidateItem(
-                    name: (e['name'] as String?) ?? '',
-                    grams: (e['estimatedGrams'] as num?)?.toInt() ?? 0,
-                    confidence: (e['confidence'] as num?)?.toDouble(),
-                    servedGrams: (e['servedGrams'] as num?)?.toInt(),
-                    matchedBarcode: e['matchedBarcode'] as String?,
-                    stateHint: e['stateHint'] as String?,
-                    catalogSearchTerm: e['catalogSearchTerm'] as String?,
-                    searchTerms: _parseSearchTerms(e['searchTerms']),
-                  ))
+              .whereType<Map<String, dynamic>>()
+              .map(_parseCandidateItem)
               .toList();
           return AiMealCandidate(
             context: mealContext,
@@ -56,16 +68,8 @@ extension AiParsing on AiService {
 
       if (decoded is List) {
         final items = decoded
-            .map((e) => AiMealCandidateItem(
-                  name: (e['name'] as String?) ?? '',
-                  grams: (e['estimatedGrams'] as num?)?.toInt() ?? 0,
-                  confidence: (e['confidence'] as num?)?.toDouble(),
-                  servedGrams: (e['servedGrams'] as num?)?.toInt(),
-                  matchedBarcode: e['matchedBarcode'] as String?,
-                  stateHint: e['stateHint'] as String?,
-                  catalogSearchTerm: e['catalogSearchTerm'] as String?,
-                  searchTerms: _parseSearchTerms(e['searchTerms']),
-                ))
+            .whereType<Map<String, dynamic>>()
+            .map(_parseCandidateItem)
             .toList();
         return AiMealCandidate(items: items);
       }
@@ -86,16 +90,8 @@ extension AiParsing on AiService {
         final rawItems = decoded['items'];
         if (rawItems is List) {
           final items = rawItems
-              .map((e) => AiMealCandidateItem(
-                    name: (e['name'] as String?) ?? '',
-                    grams: (e['estimatedGrams'] as num?)?.toInt() ?? 0,
-                    confidence: (e['confidence'] as num?)?.toDouble(),
-                    servedGrams: (e['servedGrams'] as num?)?.toInt(),
-                    matchedBarcode: e['matchedBarcode'] as String?,
-                    stateHint: e['stateHint'] as String?,
-                    catalogSearchTerm: e['catalogSearchTerm'] as String?,
-                    searchTerms: _parseSearchTerms(e['searchTerms']),
-                  ))
+              .whereType<Map<String, dynamic>>()
+              .map(_parseCandidateItem)
               .toList();
           return AiMealCandidate(
             context: mealContext,
@@ -112,16 +108,8 @@ extension AiParsing on AiService {
         final jsonStr = cleaned.substring(startArray, endArray + 1);
         final List<dynamic> itemsList = jsonDecode(jsonStr) as List<dynamic>;
         final items = itemsList
-            .map((e) => AiMealCandidateItem(
-                  name: (e['name'] as String?) ?? '',
-                  grams: (e['estimatedGrams'] as num?)?.toInt() ?? 0,
-                  confidence: (e['confidence'] as num?)?.toDouble(),
-                  servedGrams: (e['servedGrams'] as num?)?.toInt(),
-                  matchedBarcode: e['matchedBarcode'] as String?,
-                  stateHint: e['stateHint'] as String?,
-                  catalogSearchTerm: e['catalogSearchTerm'] as String?,
-                  searchTerms: _parseSearchTerms(e['searchTerms']),
-                ))
+            .whereType<Map<String, dynamic>>()
+            .map(_parseCandidateItem)
             .toList();
         return AiMealCandidate(items: items);
       } catch (_) {}
