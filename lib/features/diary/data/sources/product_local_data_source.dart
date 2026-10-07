@@ -72,6 +72,10 @@ class ProductLocalDataSource {
     final dbInstance = await database;
     final cutoff = DateTime.now().subtract(const Duration(days: 30));
     Future<Map<String, int>> scores(String field) async {
+      // Prevent SQL injection by validating the dynamically interpolated field name
+      if (!RegExp(r'^[a-zA-Z0-9_]+$').hasMatch(field)) {
+        return {};
+      }
       final rows = await dbInstance.customSelect(
         'SELECT $field AS key, COUNT(*) * 10 AS score FROM nutrition_logs '
         'WHERE consumed_at >= ? AND $field IS NOT NULL AND $field != \'\' '
