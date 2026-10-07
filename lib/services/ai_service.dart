@@ -402,22 +402,44 @@ class AiService {
 
   /// Returns the currently selected provider (default: OpenAI).
   Future<AiProvider> getSelectedProvider() async {
-    final value = await _secureStorage.read(key: _providerKey);
-    if (value == null || value.isEmpty) return AiProvider.openai;
-    for (final provider in AiProvider.values) {
-      if (provider.name == value) return provider;
-    }
+    try {
+      final value = await _secureStorage.read(key: _providerKey);
+      if (value != null && value.isNotEmpty) {
+        for (final provider in AiProvider.values) {
+          if (provider.name == value) return provider;
+        }
+        return AiProvider.openai;
+      }
+    } catch (_) {}
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final prefValue = prefs.getString(_providerKey);
+      if (prefValue != null && prefValue.isNotEmpty) {
+        for (final provider in AiProvider.values) {
+          if (provider.name == prefValue) return provider;
+        }
+      }
+    } catch (_) {}
+
     return AiProvider.openai;
   }
 
   /// Persists the selected provider.
   Future<void> setSelectedProvider(AiProvider provider) async {
     await _secureStorage.write(key: _providerKey, value: provider.name);
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_providerKey, provider.name);
+    } catch (_) {}
   }
 
   Future<String> getSelectedModel(AiProvider provider) async {
     if (provider == AiProvider.localModel) {
       return LocalAiModelManager.instance.selectedModelId;
+    }
+    if (provider == AiProvider.appleFoundation) {
+      return getProviderMetadata(provider).defaultModel;
     }
     if (provider == AiProvider.ollama || provider == AiProvider.custom) {
       final customModel = await getCustomModel();
@@ -1064,8 +1086,13 @@ ${semanticOnly ? 'Return only the listed items in the same order. Select the exa
           }
           final modelFile =
               await LocalAiModelManager.instance.getModelFile(model);
+          final projectorFile =
+              await LocalAiModelManager.instance.getProjectorFile(model);
           final response = await _callNativeLocalModelRaw(
             modelPath: modelFile.path,
+            mmprojPath: (projectorFile != null && await projectorFile.exists())
+                ? projectorFile.path
+                : null,
             userContent: userContent,
             systemPrompt: systemPrompt,
             imageDataList: imageDataList,
@@ -1188,6 +1215,7 @@ ${semanticOnly ? 'Return only the listed items in the same order. Select the exa
 
   Future<String> _callNativeLocalModelRaw({
     required String modelPath,
+    String? mmprojPath,
     required String userContent,
     required String systemPrompt,
     required List<String> imageDataList,
@@ -1197,6 +1225,7 @@ ${semanticOnly ? 'Return only the listed items in the same order. Select the exa
       final fullPrompt = '$systemPrompt\n\nUser request: $userContent';
       final response = await channel.invokeMethod<String>('runInference', {
         'modelPath': modelPath,
+        'mmprojPath': mmprojPath,
         'prompt': fullPrompt,
         'images': imageDataList,
       });

@@ -139,6 +139,7 @@ class PlatformAdaptiveDropdownFormField<T> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FormField<T>(
+      key: ValueKey(_effectiveValue),
       initialValue: _effectiveValue,
       validator: validator,
       onSaved: onSaved,

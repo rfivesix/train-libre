@@ -632,6 +632,9 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                     ),
                     const SizedBox(height: 12),
                     PlatformAdaptiveDropdownFormField<AiProvider>(
+                      key: ValueKey(
+                          'ai_provider_dropdown_${_selectedProvider.name}'),
+                      value: _selectedProvider,
                       initialValue: _selectedProvider,
                       decoration: InputDecoration(
                         labelText: l10n.aiProviderLabel,

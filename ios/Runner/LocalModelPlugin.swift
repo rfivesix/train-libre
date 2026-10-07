@@ -1,6 +1,7 @@
 // ios/Runner/LocalModelPlugin.swift
 
 import Flutter
+import UIKit
 import Foundation
 
 enum LocalModelPlugin {
@@ -9,7 +10,7 @@ enum LocalModelPlugin {
   static func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
     switch call.method {
     case "isSupported":
-      result(true)
+      result(LocalModelRunner.isAvailable())
 
     case "runInference":
       guard let args = call.arguments as? [String: Any],
@@ -19,23 +20,43 @@ enum LocalModelPlugin {
         return
       }
 
+      let mmprojPath = args["mmprojPath"] as? String
+      let imagesBase64 = (args["images"] as? [String]) ?? []
+
       let fileManager = FileManager.default
       guard fileManager.fileExists(atPath: modelPath) else {
         result(FlutterError(code: "MODEL_NOT_FOUND", message: "Model file not found at \(modelPath)", details: nil))
         return
       }
 
-      // If native embedded MLX runner is linked in Xcode build, invoke it;
-      // otherwise provide structured response format confirmation.
+      if !imagesBase64.isEmpty && (nullOrEmpty(mmprojPath) || !fileManager.fileExists(atPath: mmprojPath!)) {
+        result(FlutterError(
+          code: "MMPROJ_MISSING",
+          message: "Für die On-Device Bilderkennung wird der Vision-Projektor (mmproj) benötigt. Bitte lade das Modell in den KI-Einstellungen vollständig herunter.",
+          details: nil
+        ))
+        return
+      }
+
       DispatchQueue.global(qos: .userInitiated).async {
-        // Mock/Fallback inference placeholder for local testing if MLX runtime is loading
-        let fallbackJson = """
-        [
-          {"name": "Mahlzeit erkannt", "estimatedGrams": 200, "confidence": 0.85}
-        ]
-        """
-        DispatchQueue.main.async {
-          result(fallbackJson)
+        do {
+          let output = try LocalModelRunner.runInference(
+            withModelPath: modelPath,
+            mmprojPath: mmprojPath,
+            prompt: prompt,
+            imagesBase64: imagesBase64
+          )
+          DispatchQueue.main.async {
+            result(output)
+          }
+        } catch {
+          DispatchQueue.main.async {
+            result(FlutterError(
+              code: "LOCAL_INFERENCE_ERROR",
+              message: error.localizedDescription,
+              details: nil
+            ))
+          }
         }
       }
 
@@ -43,4 +64,11 @@ enum LocalModelPlugin {
       result(FlutterMethodNotImplemented)
     }
   }
+
+  private static func nullOrEmpty(_ str: String?) -> Bool {
+    guard let s = str else { return true }
+    return s.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+  }
 }
+
+

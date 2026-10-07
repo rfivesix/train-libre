@@ -13,6 +13,9 @@ class LocalAiModelDefinition {
   final int sizeBytes;
   final String fileName;
   final String downloadUrl;
+  final String? mmprojFileName;
+  final String? mmprojDownloadUrl;
+  final int mmprojSizeBytes;
   final bool isRecommended;
 
   const LocalAiModelDefinition({
@@ -23,11 +26,15 @@ class LocalAiModelDefinition {
     required this.sizeBytes,
     required this.fileName,
     required this.downloadUrl,
+    this.mmprojFileName,
+    this.mmprojDownloadUrl,
+    this.mmprojSizeBytes = 0,
     this.isRecommended = false,
   });
 
   String get formattedSize {
-    final gb = sizeBytes / (1024 * 1024 * 1024);
+    final total = sizeBytes + mmprojSizeBytes;
+    final gb = total / (1024 * 1024 * 1024);
     return '${gb.toStringAsFixed(1)} GB';
   }
 }
@@ -64,6 +71,10 @@ class LocalAiModelManager extends ChangeNotifier {
       fileName: 'Qwen3VL-4B-Instruct-Q4_K_M.gguf',
       downloadUrl:
           'https://huggingface.co/Qwen/Qwen3-VL-4B-Instruct-GGUF/resolve/main/Qwen3VL-4B-Instruct-Q4_K_M.gguf',
+      mmprojFileName: 'mmproj-Qwen3VL-4B-Instruct-Q8_0.gguf',
+      mmprojDownloadUrl:
+          'https://huggingface.co/Qwen/Qwen3-VL-4B-Instruct-GGUF/resolve/main/mmproj-Qwen3VL-4B-Instruct-Q8_0.gguf',
+      mmprojSizeBytes: 453974304, // ~433 MB
       isRecommended: true,
     ),
     LocalAiModelDefinition(
@@ -76,6 +87,10 @@ class LocalAiModelManager extends ChangeNotifier {
       fileName: 'Qwen2.5-VL-3B-Instruct-Q4_K_M.gguf',
       downloadUrl:
           'https://huggingface.co/ggml-org/Qwen2.5-VL-3B-Instruct-GGUF/resolve/main/Qwen2.5-VL-3B-Instruct-Q4_K_M.gguf',
+      mmprojFileName: 'mmproj-Qwen2.5-VL-3B-Instruct-Q8_0.gguf',
+      mmprojDownloadUrl:
+          'https://huggingface.co/ggml-org/Qwen2.5-VL-3B-Instruct-GGUF/resolve/main/mmproj-Qwen2.5-VL-3B-Instruct-Q8_0.gguf',
+      mmprojSizeBytes: 844757728, // ~805 MB
     ),
     LocalAiModelDefinition(
       id: 'smolvlm-2.2b',
@@ -87,6 +102,10 @@ class LocalAiModelManager extends ChangeNotifier {
       fileName: 'SmolVLM2-2.2B-Instruct-Q4_K_M.gguf',
       downloadUrl:
           'https://huggingface.co/ggml-org/SmolVLM2-2.2B-Instruct-GGUF/resolve/main/SmolVLM2-2.2B-Instruct-Q4_K_M.gguf',
+      mmprojFileName: 'mmproj-SmolVLM2-2.2B-Instruct-Q8_0.gguf',
+      mmprojDownloadUrl:
+          'https://huggingface.co/ggml-org/SmolVLM2-2.2B-Instruct-GGUF/resolve/main/mmproj-SmolVLM2-2.2B-Instruct-Q8_0.gguf',
+      mmprojSizeBytes: 592523200, // ~565 MB
     ),
   ];
 
@@ -148,11 +167,31 @@ class LocalAiModelManager extends ChangeNotifier {
     return File('${dir.path}/${def.fileName}');
   }
 
+  Future<File?> getProjectorFile(String modelId) async {
+    final def = availableModels.firstWhere(
+      (m) => m.id == modelId,
+      orElse: () => availableModels.first,
+    );
+    if (def.mmprojFileName == null) return null;
+    final dir = await _getModelDirectory();
+    return File('${dir.path}/${def.mmprojFileName}');
+  }
+
   Future<void> _refreshDownloadedModels() async {
     _downloadedModelIds.clear();
     for (final model in availableModels) {
       final file = await getModelFile(model.id);
-      if (await file.exists() && await file.length() > 1024 * 1024) {
+      final hasBase = await file.exists() && await file.length() > 1024 * 1024;
+      if (!hasBase) continue;
+
+      if (model.mmprojFileName != null) {
+        final proj = await getProjectorFile(model.id);
+        final hasProj =
+            proj != null && await proj.exists() && await proj.length() > 1024 * 1024;
+        if (hasProj) {
+          _downloadedModelIds.add(model.id);
+        }
+      } else {
         _downloadedModelIds.add(model.id);
       }
     }
@@ -165,18 +204,19 @@ class LocalAiModelManager extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Starts downloading the model from Hugging Face. Returns true if completed, false if cancelled.
-  Future<bool> startDownload(String modelId) async {
-    if (isDownloading(modelId)) return false;
-
-    final def = availableModels.firstWhere(
-      (m) => m.id == modelId,
-      orElse: () => throw ArgumentError('Model $modelId not found'),
-    );
-
+  /// Downloads a single file via streaming HTTP, updating progress.
+  Future<bool> _downloadFile({
+    required HttpClient client,
+    required String modelId,
+    required String downloadUrl,
+    required String targetFileName,
+    required int fileExpectedBytes,
+    required int previouslyReceivedBytes,
+    required int totalCombinedBytes,
+  }) async {
     final dir = await _getModelDirectory();
-    final tempFile = File('${dir.path}/${def.fileName}.tmp');
-    final finalFile = File('${dir.path}/${def.fileName}');
+    final tempFile = File('${dir.path}/$targetFileName.tmp');
+    final finalFile = File('${dir.path}/$targetFileName');
 
     if (await tempFile.exists()) {
       try {
@@ -184,52 +224,36 @@ class LocalAiModelManager extends ChangeNotifier {
       } catch (_) {}
     }
 
-    final client = HttpClient();
-    client.autoUncompress = true;
-    client.userAgent = 'TrainLibre/1.5 (Mobile; On-Device-AI)';
-    _activeClients[modelId] = client;
-    _cancelledModelIds.remove(modelId);
-
     IOSink? sink;
     try {
-      _downloadStates[modelId] = LocalModelDownloadState(
-        progress: 0.0,
-        receivedBytes: 0,
-        totalBytes: def.sizeBytes,
-      );
-      notifyListeners();
-
-      final uri = Uri.parse(def.downloadUrl);
+      final uri = Uri.parse(downloadUrl);
       final request = await client.getUrl(uri);
       request.followRedirects = true;
       request.maxRedirects = 5;
       _activeRequests[modelId] = request;
 
       final response = await request.close();
-      if (_cancelledModelIds.contains(modelId)) {
-        return false;
-      }
+      if (_cancelledModelIds.contains(modelId)) return false;
 
       if (response.statusCode != 200) {
-        throw HttpException('HTTP status ${response.statusCode}');
+        throw HttpException('HTTP status ${response.statusCode} for $downloadUrl');
       }
 
       final contentLength = response.contentLength > 0
           ? response.contentLength
-          : def.sizeBytes;
-      var received = 0;
+          : fileExpectedBytes;
+      var fileReceived = 0;
       sink = tempFile.openWrite();
 
       await for (final chunk in response) {
-        if (_cancelledModelIds.contains(modelId)) {
-          break;
-        }
+        if (_cancelledModelIds.contains(modelId)) break;
         sink.add(chunk);
-        received += chunk.length;
+        fileReceived += chunk.length;
+        final totalReceived = previouslyReceivedBytes + fileReceived;
         _downloadStates[modelId] = LocalModelDownloadState(
-          progress: (received / contentLength).clamp(0.0, 1.0),
-          receivedBytes: received,
-          totalBytes: contentLength,
+          progress: (totalReceived / totalCombinedBytes).clamp(0.0, 1.0),
+          receivedBytes: totalReceived,
+          totalBytes: totalCombinedBytes,
         );
         notifyListeners();
       }
@@ -244,11 +268,6 @@ class LocalAiModelManager extends ChangeNotifier {
             await tempFile.delete();
           } catch (_) {}
         }
-        _downloadStates.remove(modelId);
-        _activeRequests.remove(modelId);
-        _activeClients.remove(modelId);
-        _cancelledModelIds.remove(modelId);
-        notifyListeners();
         return false;
       }
 
@@ -256,35 +275,8 @@ class LocalAiModelManager extends ChangeNotifier {
         await finalFile.delete();
       }
       await tempFile.rename(finalFile.path);
-
-      _downloadStates.remove(modelId);
-      _activeRequests.remove(modelId);
-      _activeClients.remove(modelId);
-      _downloadedModelIds.add(modelId);
-      notifyListeners();
       return true;
     } catch (e) {
-      if (_cancelledModelIds.contains(modelId)) {
-        _downloadStates.remove(modelId);
-        _activeRequests.remove(modelId);
-        _activeClients.remove(modelId);
-        _cancelledModelIds.remove(modelId);
-        if (sink != null) {
-          try {
-            await sink.close();
-          } catch (_) {}
-        }
-        if (await tempFile.exists()) {
-          try {
-            await tempFile.delete();
-          } catch (_) {}
-        }
-        notifyListeners();
-        return false;
-      }
-      _downloadStates.remove(modelId);
-      _activeRequests.remove(modelId);
-      _activeClients.remove(modelId);
       if (sink != null) {
         try {
           await sink.close();
@@ -295,8 +287,80 @@ class LocalAiModelManager extends ChangeNotifier {
           await tempFile.delete();
         } catch (_) {}
       }
+      rethrow;
+    }
+  }
+
+  /// Starts downloading the model (and its vision projector if present).
+  Future<bool> startDownload(String modelId) async {
+    if (isDownloading(modelId)) return false;
+
+    final def = availableModels.firstWhere(
+      (m) => m.id == modelId,
+      orElse: () => throw ArgumentError('Model $modelId not found'),
+    );
+
+    final totalCombinedBytes = def.sizeBytes + def.mmprojSizeBytes;
+    final client = HttpClient();
+    client.autoUncompress = true;
+    client.userAgent = 'TrainLibre/1.5 (Mobile; On-Device-AI)';
+    _activeClients[modelId] = client;
+    _cancelledModelIds.remove(modelId);
+
+    try {
+      _downloadStates[modelId] = LocalModelDownloadState(
+        progress: 0.0,
+        receivedBytes: 0,
+        totalBytes: totalCombinedBytes,
+      );
       notifyListeners();
+
+      // Stage 1: Download Base Model GGUF
+      final baseSuccess = await _downloadFile(
+        client: client,
+        modelId: modelId,
+        downloadUrl: def.downloadUrl,
+        targetFileName: def.fileName,
+        fileExpectedBytes: def.sizeBytes,
+        previouslyReceivedBytes: 0,
+        totalCombinedBytes: totalCombinedBytes,
+      );
+
+      if (!baseSuccess || _cancelledModelIds.contains(modelId)) {
+        _cleanupCancelled(modelId, def);
+        return false;
+      }
+
+      // Stage 2: Download Vision Projector GGUF (if model has mmproj)
+      if (def.mmprojDownloadUrl != null && def.mmprojFileName != null) {
+        final projSuccess = await _downloadFile(
+          client: client,
+          modelId: modelId,
+          downloadUrl: def.mmprojDownloadUrl!,
+          targetFileName: def.mmprojFileName!,
+          fileExpectedBytes: def.mmprojSizeBytes,
+          previouslyReceivedBytes: def.sizeBytes,
+          totalCombinedBytes: totalCombinedBytes,
+        );
+
+        if (!projSuccess || _cancelledModelIds.contains(modelId)) {
+          _cleanupCancelled(modelId, def);
+          return false;
+        }
+      }
+
+      _downloadStates.remove(modelId);
+      _activeRequests.remove(modelId);
+      _activeClients.remove(modelId);
+      _downloadedModelIds.add(modelId);
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _cleanupCancelled(modelId, def);
       debugPrint('[LocalAiModelManager] Download error for $modelId: $e');
+      if (_cancelledModelIds.contains(modelId)) {
+        return false;
+      }
       rethrow;
     } finally {
       try {
@@ -304,6 +368,23 @@ class LocalAiModelManager extends ChangeNotifier {
       } catch (_) {}
       _activeClients.remove(modelId);
     }
+  }
+
+  void _cleanupCancelled(String modelId, LocalAiModelDefinition def) async {
+    _downloadStates.remove(modelId);
+    _activeRequests.remove(modelId);
+    _activeClients.remove(modelId);
+    _cancelledModelIds.remove(modelId);
+    try {
+      final dir = await _getModelDirectory();
+      final baseTmp = File('${dir.path}/${def.fileName}.tmp');
+      if (await baseTmp.exists()) await baseTmp.delete();
+      if (def.mmprojFileName != null) {
+        final projTmp = File('${dir.path}/${def.mmprojFileName}.tmp');
+        if (await projTmp.exists()) await projTmp.delete();
+      }
+    } catch (_) {}
+    notifyListeners();
   }
 
   /// Cancels an in-progress download and cleans up temporary files immediately.
@@ -323,9 +404,11 @@ class LocalAiModelManager extends ChangeNotifier {
     try {
       final def = availableModels.firstWhere((m) => m.id == modelId);
       final dir = await _getModelDirectory();
-      final tempFile = File('${dir.path}/${def.fileName}.tmp');
-      if (await tempFile.exists()) {
-        await tempFile.delete();
+      final baseTmp = File('${dir.path}/${def.fileName}.tmp');
+      if (await baseTmp.exists()) await baseTmp.delete();
+      if (def.mmprojFileName != null) {
+        final projTmp = File('${dir.path}/${def.mmprojFileName}.tmp');
+        if (await projTmp.exists()) await projTmp.delete();
       }
     } catch (_) {}
 
@@ -338,6 +421,10 @@ class LocalAiModelManager extends ChangeNotifier {
       final file = await getModelFile(modelId);
       if (await file.exists()) {
         await file.delete();
+      }
+      final proj = await getProjectorFile(modelId);
+      if (proj != null && await proj.exists()) {
+        await proj.delete();
       }
       _downloadedModelIds.remove(modelId);
       notifyListeners();
@@ -355,7 +442,12 @@ class LocalAiModelManager extends ChangeNotifier {
       if (await file.exists()) {
         total += await file.length();
       }
+      final proj = await getProjectorFile(model.id);
+      if (proj != null && await proj.exists()) {
+        total += await proj.length();
+      }
     }
     return total;
   }
 }
+

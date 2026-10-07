@@ -29,6 +29,7 @@
 		4B2C71022F9A000100000003 /* DepthScanPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B2C71032F9A000100000003 /* DepthScanPlugin.swift */; };
 		4B2C71052F9A000100000005 /* SpeechCapabilityPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B2C71042F9A000100000004 /* SpeechCapabilityPlugin.swift */; };
 		4B2C71072F9A000100000007 /* TLExceptionCatcher.m in Sources */ = {isa = PBXBuildFile; fileRef = 4B2C71062F9A000100000006 /* TLExceptionCatcher.m */; };
+		4B2C71112F9A000100000011 /* LocalModelRunner.m in Sources */ = {isa = PBXBuildFile; fileRef = 4B2C71102F9A000100000010 /* LocalModelRunner.m */; };
 		4B2C71092F9A00010000000A /* AppleFoundationPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B2C710A2F9A00010000000A /* AppleFoundationPlugin.swift */; };
 		4B2C710B2F9A00010000000C /* LocalModelPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B2C710C2F9A00010000000C /* LocalModelPlugin.swift */; };
 		4B2C72002F9A000100000009 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 4B2C72012F9A000100000009 /* PrivacyInfo.xcprivacy */; };
@@ -109,6 +110,8 @@
 		4B2C71042F9A000100000004 /* SpeechCapabilityPlugin.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SpeechCapabilityPlugin.swift; sourceTree = "<group>"; };
 		4B2C71062F9A000100000006 /* TLExceptionCatcher.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TLExceptionCatcher.m; sourceTree = "<group>"; };
 		4B2C71082F9A000100000008 /* TLExceptionCatcher.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TLExceptionCatcher.h; sourceTree = "<group>"; };
+		4B2C710E2F9A00010000000E /* LocalModelRunner.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LocalModelRunner.h; sourceTree = "<group>"; };
+		4B2C71102F9A000100000010 /* LocalModelRunner.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LocalModelRunner.m; sourceTree = "<group>"; };
 		4B2C710A2F9A00010000000A /* AppleFoundationPlugin.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppleFoundationPlugin.swift; sourceTree = "<group>"; };
 		4B2C710C2F9A00010000000C /* LocalModelPlugin.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LocalModelPlugin.swift; sourceTree = "<group>"; };
 		4B2C72012F9A000100000009 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
@@ -310,6 +313,8 @@
 				4B2C71042F9A000100000004 /* SpeechCapabilityPlugin.swift */,
 				4B2C71082F9A000100000008 /* TLExceptionCatcher.h */,
 				4B2C71062F9A000100000006 /* TLExceptionCatcher.m */,
+				4B2C710E2F9A00010000000E /* LocalModelRunner.h */,
+				4B2C71102F9A000100000010 /* LocalModelRunner.m */,
 				4B2C710A2F9A00010000000A /* AppleFoundationPlugin.swift */,
 				4B2C710C2F9A00010000000C /* LocalModelPlugin.swift */,
 				74858FAD1ED2DC5600515810 /* Runner-Bridging-Header.h */,
@@ -372,6 +377,7 @@
 				3EFAF4383028BE78002B89E7 /* Embed Foundation Extensions */,
 				9705A1C41CF9048500538489 /* Embed Frameworks */,
 				3B06AD1E1E4923F5004D2608 /* Thin Binary */,
+				4B2C71122F9A000100000012 /* Embed Local Metal Framework */,
 				FEDB6C36897C2004C00165C5 /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
@@ -489,6 +495,21 @@
 			shellPath = /bin/sh;
 			shellScript = "/bin/sh \"$FLUTTER_ROOT/packages/flutter_tools/bin/xcode_backend.sh\" embed_and_thin";
 		};
+		4B2C71122F9A000100000012 /* Embed Local Metal Framework */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Embed Local Metal Framework";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "if [ \"$PLATFORM_NAME\" = \"iphoneos\" ]; then\n  FRAMEWORKS_DIR=\"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}\"\n  mkdir -p \"$FRAMEWORKS_DIR\"\n  SRC_FRAMEWORK=\"${SRCROOT}/Frameworks/llama.framework\"\n  if [ -d \"$SRC_FRAMEWORK\" ]; then\n    echo \"Embedding llama.framework for device build...\"\n    rsync --delete -av --links --filter \"- Headers\" --filter \"- Modules\" \"$SRC_FRAMEWORK\" \"$FRAMEWORKS_DIR/\"\n    if [ -n \"${EXPANDED_CODE_SIGN_IDENTITY:-}\" ]; then\n      /usr/bin/codesign --force --sign \"${EXPANDED_CODE_SIGN_IDENTITY}\" --preserve-metadata=identifier,entitlements,flags --timestamp=none \"${FRAMEWORKS_DIR}/llama.framework\" || true\n    fi\n  fi\nfi\n";
+		};
 		9740EEB61CF901F6004384FC /* Run Script */ = {
 			isa = PBXShellScriptBuildPhase;
 			alwaysOutOfDate = 1;
@@ -602,6 +623,7 @@
 				4B2C71022F9A000100000003 /* DepthScanPlugin.swift in Sources */,
 				4B2C71052F9A000100000005 /* SpeechCapabilityPlugin.swift in Sources */,
 				4B2C71072F9A000100000007 /* TLExceptionCatcher.m in Sources */,
+				4B2C71112F9A000100000011 /* LocalModelRunner.m in Sources */,
 				4B2C71092F9A00010000000A /* AppleFoundationPlugin.swift in Sources */,
 				4B2C710B2F9A00010000000C /* LocalModelPlugin.swift in Sources */,
 				1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */,
