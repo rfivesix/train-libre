@@ -161,7 +161,7 @@ CRITICAL RULES:
 4. Estimate weights in grams realistically. Calibrate to the whole serving (a standard full main meal typically weighs 350–700g total).
 5. The database commonly stores nutrition for RAW or UNPREPARED food. Provide both "servedGrams" (visible cooked/eaten weight) and "estimatedGrams" (raw equivalent weight used for database lookup). For raw or non-swelling foods, both numbers are identical.
 6. Provide "stateHint" ("cooked", "raw", "fried", "baked", "boiled", "grilled") to resolve the correct database preparation state.
-7. Provide 1-3 short "searchTerms" for each item to maximize database query recall.
+7. Provide 1-2 specific "searchTerms" for each item using only synonyms of the ingredient itself. NEVER use broad category words like "fruit", "vegetable", "dairy", "starch", "topping", "snack" as search terms.
 8. Consolidate duplicate items into a single entry with total combined weight.$langRule
 
 CRITICAL: Return ONLY valid JSON starting with "{" and ending with "}".
