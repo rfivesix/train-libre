@@ -80,6 +80,25 @@ jobs:
           TAG_NAME: ${{ steps.release.outputs.tag }}
         run: |
           gh release download "$TAG_NAME" --pattern "*.apk" --dir fdroid/repo
+          # Prefer ABI-specific split APKs (arm64-v8a, armeabi-v7a, x86_64) for F-Droid.
+          # The universal fat APK (app-release.apk) bundles all ABIs together, exceeding
+          # GitHub's strict 100 MB file limit for Git commits on gh-pages, and is completely
+          # redundant when per-ABI APKs cover 100% of supported Android devices.
+          if ls fdroid/repo/app-*-release.apk 1> /dev/null 2>&1; then
+            echo "ABI-split APKs present. Removing redundant universal app-release.apk to respect GitHub file size limits..."
+            rm -f fdroid/repo/app-release.apk
+          fi
+
+          # Safety check: Verify that no APK exceeds GitHub's 100 MB limit
+          for apk in fdroid/repo/*.apk; do
+            if [ -f "$apk" ]; then
+              size=$(stat -c%s "$apk" 2>/dev/null || stat -f%z "$apk" 2>/dev/null || echo 0)
+              if [ "$size" -gt 104857600 ]; then
+                echo "Error: $apk exceeds GitHub's 100 MB file size limit ($size bytes)."
+                exit 1
+              fi
+            fi
+          done
 
       - name: Decode F-Droid Keystore
         env:
@@ -255,3 +274,4 @@ jobs:
           publish_branch: gh-pages
           destination_dir: fdroid/repo
           keep_files: true
+          exclude_assets: '.github,app-release.apk'

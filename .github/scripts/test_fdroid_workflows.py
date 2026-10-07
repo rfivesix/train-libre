@@ -112,6 +112,33 @@ class FdroidWorkflowTests(unittest.TestCase):
         self.assertEqual(download["env"]["TAG_NAME"], "${{ steps.release.outputs.tag }}")
         self.assertIn('gh release download "$TAG_NAME"', download["run"])
 
+    def test_download_apks_excludes_universal_apk_when_splits_present(self):
+        mock = '''
+        gh() {
+          touch fdroid/repo/app-arm64-v8a-release.apk
+          touch fdroid/repo/app-armeabi-v7a-release.apk
+          touch fdroid/repo/app-x86_64-release.apk
+          touch fdroid/repo/app-release.apk
+        }
+        '''
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "fdroid/repo").mkdir(parents=True)
+            result = run_script(
+                mock + step("Download Release APKs")["run"],
+                directory, TAG_NAME="v1.5.0",
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertTrue((root / "fdroid/repo/app-arm64-v8a-release.apk").is_file())
+            self.assertTrue((root / "fdroid/repo/app-armeabi-v7a-release.apk").is_file())
+            self.assertTrue((root / "fdroid/repo/app-x86_64-release.apk").is_file())
+            self.assertFalse((root / "fdroid/repo/app-release.apk").exists())
+
+    def test_deploy_step_excludes_universal_apk(self):
+        deploy = step("Deploy to GitHub Pages")
+        exclude = deploy["with"].get("exclude_assets", "")
+        self.assertIn("app-release.apk", exclude)
+
     def test_metadata_comes_from_release_not_workflow_branch(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
