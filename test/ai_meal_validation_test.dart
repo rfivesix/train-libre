@@ -645,12 +645,21 @@ void main() {
       expect(candidate.items[0].grams, 1);
     });
 
-    test('parses exact Apple Intelligence sandwich output with trailing triple braces', () {
-      const raw = '''{"mealContext": {"dishType": "Sandwich mit Fladenbrot", "expectedKcalRange": [500, 800], "expectedMacroProfile": {"proteinPercent": [15, 25], "carbsPercent": [45, 55], "fatPercent": [25, 35]}, "cookingMethod": "baked", "contextNotes": "Sandwich with flatbread, vegetables, and meat"}, {"name": "Fladenbrot", "catalogSearchTerm": null, "servedGrams": 150, "estimatedGrams": 150, "confidence": 0.9, "stateHint": "baked", "searchTerms": ["flatbread", "bread", "loaf"]}}}''';
+    test('parses exact Apple Intelligence pizza output with uncomma-separated objects in items', () {
+      const raw = '''{"dishType": "Pizza", "expectedKcalRange": [500, 800], "cookingMethod": "baked", "items": [{"name": "Fladenbrot", "catalogSearchTerm": null, "servedGrams": 150, "estimatedGrams": 150, "confidence": 0.9, "stateHint": "cooked", "searchTerms": ["fladenbrot", "base", "bread"]} {"name": "Fleisch", "catalogSearchTerm": null, "servedGrams": 100, "estimatedGrams": 100, "confidence": 0.85, "stateHint": "cooked", "searchTerms": ["fleisch", "meat", "hähnchen"]}]}''';
       final candidate = AiService.instance.parseMealCandidateForTesting(raw);
-      expect(candidate.context?.dishType, 'Sandwich mit Fladenbrot');
-      expect(candidate.items.length, 1);
+      expect(candidate.context?.dishType, 'Pizza');
+      expect(candidate.items.length, 2);
       expect(candidate.items[0].name, 'Fladenbrot');
+      expect(candidate.items[1].name, 'Fleisch');
+    });
+
+    test('parses exact Apple Intelligence output with double bracket closing error', () {
+      const raw = '''{"dishType": "Pilz und Reis", "expectedKcalRange": [500, 800], "cookingMethod": "fried", "items": [{"name": "Reis", "catalogSearchTerm": ["Reis", "alternative search term"], "servedGrams": 150, "estimatedGrams": 150, "confidence": 0.9, "stateHint": "cooked", "searchTerms": ["Reis", "cooked rice"]}]]}''';
+      final candidate = AiService.instance.parseMealCandidateForTesting(raw);
+      expect(candidate.context?.dishType, 'Pilz und Reis');
+      expect(candidate.items.length, 1);
+      expect(candidate.items[0].name, 'Reis');
       expect(candidate.items[0].grams, 150);
     });
   });

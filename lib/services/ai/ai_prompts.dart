@@ -164,7 +164,9 @@ CRITICAL RULES:
 7. Provide 1-3 short "searchTerms" for each item to maximize database query recall.
 8. Consolidate duplicate items into a single entry with total combined weight.$langRule
 
-CRITICAL: Return ONLY valid JSON starting with "{" and ending with "}". No commentary or markdown outside the JSON.
+CRITICAL: Return ONLY valid JSON starting with "{" and ending with "}".
+Separate all items in the "items" array with commas (e.g. `[{"name": "..."}, {"name": "..."}]`).
+No commentary or markdown outside the JSON.
 
 $outputRule''';
   }

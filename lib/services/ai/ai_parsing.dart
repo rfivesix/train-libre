@@ -154,6 +154,16 @@ extension AiParsing on AiService {
         .replaceAllMapped(RegExp(r'\[\s*<\s*(\d+)'), (m) => '[${m.group(1)}')
         .replaceAllMapped(RegExp(r'(\d+)\s*%\s*([,\]])'), (m) => '${m.group(1)}${m.group(2)}');
 
+    // Fix uncomma-separated adjacent JSON objects emitted by on-device models inside arrays:
+    // e.g. `{"name": "A"} {"name": "B"}` -> `{"name": "A"}, {"name": "B"}`
+    cleaned = cleaned.replaceAll(RegExp(r'\}\s*\{'), '}, {');
+
+    // Fix duplicate or mismatched closing brackets emitted by on-device models:
+    // e.g. `}]]}` -> `}]}` or `]}}}` -> `]}`
+    cleaned = cleaned
+        .replaceAll(RegExp(r'\]\s*\]\s*\}'), ']}')
+        .replaceAll(RegExp(r'\}\s*\}\s*\}\s*$'), '}}');
+
     try {
       final decoded = jsonDecode(cleaned);
       if (decoded is Map<String, dynamic>) {
@@ -410,6 +420,14 @@ extension AiParsing on AiService {
       cleaned = cleaned.replaceFirst(RegExp(r'\n?```$'), '');
       cleaned = cleaned.trim();
     }
+
+    // Fix uncomma-separated adjacent JSON objects: `{"name": "A"} {"name": "B"}` -> `{"name": "A"}, {"name": "B"}`
+    cleaned = cleaned.replaceAll(RegExp(r'\}\s*\{'), '}, {');
+
+    // Fix duplicate or mismatched closing brackets: `}]]}` -> `}]}`
+    cleaned = cleaned
+        .replaceAll(RegExp(r'\]\s*\]\s*\}'), ']}')
+        .replaceAll(RegExp(r'\}\s*\}\s*\}\s*$'), '}}');
 
     // First attempt: try full jsonDecode in case the response is clean JSON
     try {
