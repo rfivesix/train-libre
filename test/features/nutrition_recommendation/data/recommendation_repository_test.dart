@@ -11,7 +11,6 @@ import 'package:train_libre/features/nutrition_recommendation/domain/recommendat
 import 'package:train_libre/services/unit_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -19,10 +18,10 @@ void main() {
     late RecommendationRepository repository;
 
     setUp(() {
-      SharedPreferences.setMockInitialValues(<String, Object>{'unit_system': 'metric'});
+      SharedPreferences.setMockInitialValues(
+          <String, Object>{'unit_system': 'metric'});
       repository = RecommendationRepository();
     });
-
 
     test('returns maintain defaults when nothing persisted', () async {
       expect(await repository.getGoal(), BodyweightGoal.maintainWeight);
@@ -46,14 +45,13 @@ void main() {
         targetRateKgPerWeek: -5.0,
       );
 
-
       final defaultGain = WeeklyTargetRateCatalog.defaultForGoal(
         BodyweightGoal.gainWeight,
         UnitService(),
       ).kgPerWeek;
-      expect(await repository.getTargetRateKgPerWeek(), closeTo(defaultGain, 0.001));
+      expect(await repository.getTargetRateKgPerWeek(),
+          closeTo(defaultGain, 0.001));
     });
-
 
     test('preserves custom valid target rate', () async {
       await repository.saveGoalAndTargetRate(
@@ -64,7 +62,6 @@ void main() {
       expect(await repository.getGoal(), BodyweightGoal.gainWeight);
       expect(await repository.getTargetRateKgPerWeek(), equals(0.37));
     });
-
 
     test('persists and restores canonical snapshot + generated/applied',
         () async {

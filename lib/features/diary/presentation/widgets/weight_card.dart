@@ -166,7 +166,8 @@ class _WeightCardState extends State<WeightCard>
             ]),
           );
         }
-        if (snapshot.connectionState == ConnectionState.waiting && !isSkeleton) {
+        if (snapshot.connectionState == ConnectionState.waiting &&
+            !isSkeleton) {
           return const AppCardContainer(
             padding: EdgeInsets.all(DesignConstants.spacingM),
             child: Center(child: CircularProgressIndicator()),

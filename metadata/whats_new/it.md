@@ -6,6 +6,18 @@
   Poi esegui: python3 script/build_whats_new.py --write --sync-store
 -->
 
+## 1.5.0 (2026-10-07)
+
+{chart_line} Obiettivi che si adattano a te : Imposta un obiettivo di peso a lungo termine partendo da una misurazione reale, segui la traiettoria e verifica i progressi con tranquilli riepiloghi settimanali. Le nuove raccomandazioni su calorie e macro restano proposte finché non scegli di applicarle.
+
+{dumbbell} Piani di allenamento personalizzati : Organizza le routine come programma settimanale o sequenza flessibile da 1 a 14 giorni, includi i giorni di riposo, imposta promemoria e avvia le sessioni dal diario senza alcuna pressione di recupero.
+
+{sparkles} Livelli di esperienza su misura : Scegli il tuo livello (Principiante, Avanzato, Pro) nelle impostazioni o nell'onboarding. I dettagli dei gruppi muscolari, il RIR e le schermate di allenamento si adattano al tuo livello.
+
+{timer} Timer per serie & scheda Allenamento rinnovata : Avvia e metti in pausa i timer delle serie durante l'allenamento o dall'Attività dal vivo sulla schermata di blocco. La scheda Allenamento riunisce piano attivo, routine e cronologia.
+
+{activity} Trend del peso attenuati & nuove analisi : Il trend del peso attenuato con linea discreta dei punti mostra la tua reale evoluzione nell'app e nei widget, affiancato da statistiche dei macro e importazione delle misurazioni da Apple Salute e Health Connect.
+
 ## 1.4.1 (2026-09-14)
 
 {activity} Recupero muscolare più preciso: Il monitoraggio del recupero utilizza ora un modello a carico residuo dinamico per ogni singola serie. Le schede muscolari mostrano prontezza e ore di recupero a colpo d'occhio; toccando una scheda si aprono dettagli su dosaggio e previsioni.
@@ -48,7 +60,7 @@
 
 ## 1.2.0 (2026-08-30)
 
-{camera} Registra un pasto da una foto: inquadra il piatto e l'IA lo trasforma in singoli alimenti con quantità, calorie e macro, tutto correggibile prima di salvare. I prodotti confezionati vengono riconosciuti dal codice a barre nella stessa schermata, gli iPhone con LiDAR misurano la porzione invece di stimarla e il pulsante del microfono ti fa aggiungere ciò che una foto non mostra.
+{camera} Registra un pasto da una foto: inquadra il piatto e l'IA lo trasforma in singoli alimenti con quantità, calorie e macro, tutto correggibile prima di salvare. I prodotti confezionati vengono riconosciuti dal codice a barre nella stessa schermata, gli iPhone con LiDAR acquisiscono dati di profondità per facilitare la stima della porzione e il pulsante del microfono ti fa aggiungere ciò che una foto non mostra.
 
 {utensils} Un diario più chiaro: un pasto scansionato resta una sola voce con la sua foto e si espande sui suoi ingredienti. Le voci sono ordinate per calorie, dalle più alte.
 

@@ -51,7 +51,8 @@ class CardEmptyStateOverlay extends StatelessWidget {
                         color: Theme.of(context).brightness == Brightness.dark
                             ? Colors.black.withValues(alpha: 0.6)
                             : Colors.white.withValues(alpha: 0.8),
-                        borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
+                        borderRadius: BorderRadius.circular(
+                            DesignConstants.borderRadiusM),
                         border: Border.all(
                           color: Theme.of(context).brightness == Brightness.dark
                               ? Colors.white.withValues(alpha: 0.1)
@@ -62,7 +63,8 @@ class CardEmptyStateOverlay extends StatelessWidget {
                         message,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                               fontWeight: FontWeight.w600,
-                              color: Theme.of(context).brightness == Brightness.dark
+                              color: Theme.of(context).brightness ==
+                                      Brightness.dark
                                   ? Colors.white70
                                   : Colors.black87,
                             ),

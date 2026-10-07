@@ -1,6 +1,7 @@
 // lib/main.dart
 
 import 'dart:async';
+import 'dart:io';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'util/design_constants.dart';
 
@@ -44,12 +45,15 @@ import 'features/diary/domain/repositories/diary_repository.dart';
 import 'features/diary/data/nutrition_repository.dart';
 import 'features/workout/domain/repositories/workout_repository.dart';
 import 'features/workout/data/workout_repository.dart';
+import 'features/workout/data/manual_training_plan_repository.dart';
 import 'features/exercise_catalog/domain/repositories/exercise_catalog_repository.dart';
 import 'features/exercise_catalog/data/exercise_catalog_repository.dart';
 import 'features/profile/domain/repositories/profile_repository.dart';
 import 'data/drift_database.dart' as db;
 import 'data/database_helper.dart';
 import 'features/profile/data/profile_repository.dart';
+import 'features/profile/domain/repositories/goal_repository.dart';
+import 'features/profile/data/goal_repository_impl.dart';
 import 'features/diary/data/sources/diary_local_data_source.dart';
 import 'features/workout/data/sources/workout_local_data_source.dart';
 import 'features/exercise_catalog/data/sources/exercise_catalog_local_data_source.dart';
@@ -68,7 +72,12 @@ import 'package:workmanager/workmanager.dart';
 import 'features/nutrition_recommendation/data/recommendation_service.dart';
 import 'services/ai_service.dart';
 import 'services/local_notification_service.dart';
+import 'features/profile/domain/services/goal_notification_orchestrator.dart';
+import 'features/workout/domain/services/workout_plan_notification_orchestrator.dart';
 import 'services/telemetry/telemetry_service.dart';
+import 'services/health/health_connect_weight_import.dart';
+import 'services/health/apple_health_weight_import.dart';
+import 'features/health_export/health_export_coordinator.dart';
 
 @pragma('vm:entry-point')
 void callbackDispatcher() {
@@ -88,11 +97,17 @@ void callbackDispatcher() {
       // Attempt to generate/refresh if due, which will also notify the user
       // via the stream in LocalNotificationService.
       await service.refreshRecommendationIfDue();
+      await GoalNotificationOrchestrator(
+        goalRepository: GoalRepositoryImpl(database: database),
+      ).synchronize();
+      await WorkoutPlanNotificationOrchestrator(
+        repository: ManualTrainingPlanRepository(database: database),
+      ).synchronize();
 
-      return Future.value(true);
+      return true;
     } catch (e) {
       debugPrint("Background task error: $e");
-      return Future.value(false);
+      return false;
     }
   });
 }
@@ -177,11 +192,29 @@ void main() async {
 
   final database = db.AppDatabase();
   DatabaseHelper.setDriftDb(database);
+  final healthExportCoordinator = HealthExportCoordinator(database: database);
+  // Weight imports run only after the user enabled them in Health settings;
+  // cold start never opens a permission prompt on either platform.
+  unawaited(() async {
+    try {
+      final WeightImportService weightImport = Platform.isIOS
+          ? AppleHealthWeightImportService()
+          : HealthConnectWeightImportService();
+      await weightImport.importOnColdStart();
+    } catch (error) {
+      debugPrint('Health weight import failed: $error');
+    }
+  }());
   final diaryLocalDataSource = DiaryLocalDataSource(database);
   final workoutLocalDataSource = WorkoutLocalDataSource(database);
   final exerciseCatalogLocalDataSource =
       ExerciseCatalogLocalDataSource(database);
   final profileLocalDataSource = ProfileLocalDataSource(database);
+  final profileRepository =
+      ProfileRepository(localDataSource: profileLocalDataSource);
+  final profileService = ProfileService();
+  await profileService.initialize(profileRepository);
+
   final supplementLocalDataSource = SupplementLocalDataSource(database);
 
   final workoutRepository =
@@ -237,24 +270,18 @@ void main() async {
               localDataSource: exerciseCatalogLocalDataSource,
             ),
           ),
-          Provider<IProfileRepository>(
-            create: (_) => ProfileRepository(
-              localDataSource: profileLocalDataSource,
-            ),
+          Provider<IProfileRepository>.value(
+            value: profileRepository,
+          ),
+          Provider<IGoalRepository>(
+            create: (_) => GoalRepositoryImpl(),
           ),
           ChangeNotifierProvider.value(value: workoutSessionManager),
           ChangeNotifierProvider.value(value: trainingAutonomyService),
           Provider<WorkoutProgressionService>.value(
             value: workoutProgressionService,
           ),
-          ChangeNotifierProvider(
-            create: (context) {
-              final profileService = ProfileService();
-              final repository = context.read<IProfileRepository>();
-              profileService.initialize(repository);
-              return profileService;
-            },
-          ),
+          ChangeNotifierProvider.value(value: profileService),
           ChangeNotifierProvider.value(value: unitService),
           ChangeNotifierProvider.value(value: themeService),
           ChangeNotifierProvider.value(value: experienceLevelService),
@@ -270,6 +297,7 @@ void main() async {
           ),
         ],
         child: MyApp(
+          healthExportCoordinator: healthExportCoordinator,
           home: isFreshInstall
               ? const InitialConsentScreen(
                   nextScreen: AppInitializerScreen(skipOffDatabase: true))
@@ -332,9 +360,14 @@ class _RestartWidgetState extends State<RestartWidget> {
 
 class MyApp extends StatefulWidget {
   final Widget home;
+  final HealthExportCoordinator? healthExportCoordinator;
 
   /// Creates the root widget for the application.
-  const MyApp({super.key, required this.home});
+  const MyApp({
+    super.key,
+    required this.home,
+    this.healthExportCoordinator,
+  });
 
   @override
   State<MyApp> createState() => _MyAppState();
@@ -353,14 +386,20 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     _lifecycleListener = AppLifecycleListener(
       onPause: _onAppPause,
       onHide: _onAppPause,
-      onResume: () => _hasHandledCurrentBackground = false,
+      onResume: () {
+        _hasHandledCurrentBackground = false;
+        final coordinator = widget.healthExportCoordinator;
+        if (coordinator != null) unawaited(coordinator.syncNow());
+      },
     );
+    widget.healthExportCoordinator?.start();
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _lifecycleListener.dispose();
+    widget.healthExportCoordinator?.dispose();
     super.dispose();
   }
 

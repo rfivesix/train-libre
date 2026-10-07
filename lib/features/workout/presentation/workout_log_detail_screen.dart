@@ -790,6 +790,7 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
       context: context,
       initialDuration: initialDuration,
       title: AppLocalizations.of(context)!.durationLabel,
+      allowClear: true,
     );
     if (selected == null || !mounted) return;
 
@@ -1393,18 +1394,15 @@ class _WorkoutLogDetailScreenState extends State<WorkoutLogDetailScreen> {
                                 title: l10n.workoutSummaryNewRecordsTitle,
                                 padding: EdgeInsets.zero,
                                 action: AlgorithmInfoButton(
-                                  title:
-                                      "Estimated 1-Rep Max Heuristic (Epley Equation)",
+                                  title: l10n.estimatedOneRepMaxInfoTitle,
                                   explanation:
-                                      "Estimates maximal strength capacities based on submaximal workloads to allow safe, non-clinical progression tracking.",
-                                  keyPoints: const [
-                                    "1RM ≈ w * (36 / (37 - r)) where w = weight, r = repetitions (valid for r <= 10).",
-                                    "Estimates are sports-science heuristics designed for healthy individuals.",
-                                    "Provides a safe way to track strength progression without testing true failure.",
-                                  ],
-                                  technicalTitle: "Epley Equation Details",
+                                      l10n.estimatedOneRepMaxInfoExplanation,
+                                  keyPoints: l10n.estimatedOneRepMaxInfoPoints
+                                      .split('\n'),
+                                  technicalTitle:
+                                      l10n.estimatedOneRepMaxInfoDetailsTitle,
                                   technicalExplanation:
-                                      "The Epley equation estimates one-repetition maximum (1RM) as 1RM = w * (1 + r/30) which simplifies to w * (36 / (37 - r)) for r <= 10. Research suggests this linear approximation is reliable for low repetitions (2-10 reps) in healthy active individuals, but tends to overestimate capacity beyond 10 repetitions.",
+                                      l10n.estimatedOneRepMaxInfoDetails,
                                   citationUrl:
                                       "https://trainlibre.com/docs/features/intelligent-workouts/#evidence",
                                 ),

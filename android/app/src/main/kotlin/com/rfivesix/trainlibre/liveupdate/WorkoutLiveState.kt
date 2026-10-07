@@ -87,10 +87,68 @@ enum class WorkoutPhase(val wireName: String) {
  * no field changes every second — the rest countdown is a pair of timestamps so
  * the notification's own chronometer can run it without an update being pushed.
  */
+data class WorkoutLiveSetSnapshot(
+    val exerciseName: String,
+    val setPosition: String,
+    val badgeText: String,
+    val badgeColorHex: String,
+    val metricPrimary: String,
+    val metricSecondary: String,
+    val metricTertiary: String,
+    val metricSeparator: String,
+    val compactPrimary: String,
+    val compactSecondary: String,
+    val setTimerTemplateId: Int?,
+    val canCompleteSet: Boolean,
+) {
+    fun toJson(): JSONObject = JSONObject().apply {
+        put("exerciseName", exerciseName)
+        put("setPosition", setPosition)
+        put("badgeText", badgeText)
+        put("badgeColorHex", badgeColorHex)
+        put("metricPrimary", metricPrimary)
+        put("metricSecondary", metricSecondary)
+        put("metricTertiary", metricTertiary)
+        put("metricSeparator", metricSeparator)
+        put("compactPrimary", compactPrimary)
+        put("compactSecondary", compactSecondary)
+        put("setTimerTemplateId", setTimerTemplateId ?: JSONObject.NULL)
+        put("canCompleteSet", canCompleteSet)
+    }
+
+    companion object {
+        fun fromMap(map: Map<String, Any?>) = WorkoutLiveSetSnapshot(
+            exerciseName = map["exerciseName"] as? String ?: "",
+            setPosition = map["setPosition"] as? String ?: "",
+            badgeText = map["badgeText"] as? String ?: "",
+            badgeColorHex = map["badgeColorHex"] as? String ?: "#8E8E93",
+            metricPrimary = map["metricPrimary"] as? String ?: "",
+            metricSecondary = map["metricSecondary"] as? String ?: "",
+            metricTertiary = map["metricTertiary"] as? String ?: "",
+            metricSeparator = map["metricSeparator"] as? String ?: "×",
+            compactPrimary = map["compactPrimary"] as? String ?: "",
+            compactSecondary = map["compactSecondary"] as? String ?: "",
+            setTimerTemplateId = (map["setTimerTemplateId"] as? Number)?.toInt(),
+            canCompleteSet = map["canCompleteSet"] as? Boolean ?: false,
+        )
+
+        fun fromJson(json: JSONObject) = fromMap(json.keys().asSequence().associateWith { key ->
+            json.opt(key).let { if (it == JSONObject.NULL) null else it }
+        })
+    }
+}
+
 data class WorkoutLiveContent(
     val phase: WorkoutPhase,
     val restEndsAtEpochMs: Long?,
     val restStartedAtEpochMs: Long?,
+    val setTimerStartedAtEpochMs: Long?,
+    val setTimerDeadlineEpochMs: Long?,
+    val setTimerTemplateId: Int?,
+    val setTimerElapsedSeconds: Int,
+    val labelStartTimer: String,
+    val labelStopTimer: String,
+    val labelTimerRunning: String,
     val exerciseName: String,
     val setPosition: String,
     val badgeText: String,
@@ -102,6 +160,7 @@ data class WorkoutLiveContent(
     val compactPrimary: String,
     val compactSecondary: String,
     val canCompleteSet: Boolean,
+    val upcomingSets: List<WorkoutLiveSetSnapshot> = emptyList(),
 ) {
     /**
      * The metrics line as the card shows it — `80 kg × 8 · RIR 2`.
@@ -135,6 +194,13 @@ data class WorkoutLiveContent(
         put("phase", phase.wireName)
         put("restEndsAtEpochMs", restEndsAtEpochMs ?: JSONObject.NULL)
         put("restStartedAtEpochMs", restStartedAtEpochMs ?: JSONObject.NULL)
+        put("setTimerStartedAtEpochMs", setTimerStartedAtEpochMs ?: JSONObject.NULL)
+        put("setTimerDeadlineEpochMs", setTimerDeadlineEpochMs ?: JSONObject.NULL)
+        put("setTimerTemplateId", setTimerTemplateId ?: JSONObject.NULL)
+        put("setTimerElapsedSeconds", setTimerElapsedSeconds)
+        put("labelStartTimer", labelStartTimer)
+        put("labelStopTimer", labelStopTimer)
+        put("labelTimerRunning", labelTimerRunning)
         put("exerciseName", exerciseName)
         put("setPosition", setPosition)
         put("badgeText", badgeText)
@@ -146,6 +212,9 @@ data class WorkoutLiveContent(
         put("compactPrimary", compactPrimary)
         put("compactSecondary", compactSecondary)
         put("canCompleteSet", canCompleteSet)
+        put("upcomingSets", JSONArray().apply {
+            upcomingSets.forEach { put(it.toJson()) }
+        })
     }
 
     companion object {
@@ -153,6 +222,13 @@ data class WorkoutLiveContent(
             phase = WorkoutPhase.fromWire(map["phase"] as? String),
             restEndsAtEpochMs = (map["restEndsAtEpochMs"] as? Number)?.toLong(),
             restStartedAtEpochMs = (map["restStartedAtEpochMs"] as? Number)?.toLong(),
+            setTimerStartedAtEpochMs = (map["setTimerStartedAtEpochMs"] as? Number)?.toLong(),
+            setTimerDeadlineEpochMs = (map["setTimerDeadlineEpochMs"] as? Number)?.toLong(),
+            setTimerTemplateId = (map["setTimerTemplateId"] as? Number)?.toInt(),
+            setTimerElapsedSeconds = (map["setTimerElapsedSeconds"] as? Number)?.toInt() ?: 0,
+            labelStartTimer = map["labelStartTimer"] as? String ?: "",
+            labelStopTimer = map["labelStopTimer"] as? String ?: "",
+            labelTimerRunning = map["labelTimerRunning"] as? String ?: "",
             exerciseName = map["exerciseName"] as? String ?: "",
             setPosition = map["setPosition"] as? String ?: "",
             badgeText = map["badgeText"] as? String ?: "",
@@ -164,12 +240,22 @@ data class WorkoutLiveContent(
             compactPrimary = map["compactPrimary"] as? String ?: "",
             compactSecondary = map["compactSecondary"] as? String ?: "",
             canCompleteSet = map["canCompleteSet"] as? Boolean ?: false,
+            upcomingSets = (map["upcomingSets"] as? List<*>)
+                .orEmpty()
+                .mapNotNull { (it as? Map<String, Any?>)?.let(WorkoutLiveSetSnapshot::fromMap) },
         )
 
         fun fromJson(json: JSONObject): WorkoutLiveContent = WorkoutLiveContent(
             phase = WorkoutPhase.fromWire(json.optString("phase")),
             restEndsAtEpochMs = json.optLong("restEndsAtEpochMs").takeIf { it > 0 },
             restStartedAtEpochMs = json.optLong("restStartedAtEpochMs").takeIf { it > 0 },
+            setTimerStartedAtEpochMs = json.optLong("setTimerStartedAtEpochMs").takeIf { it > 0 },
+            setTimerDeadlineEpochMs = json.optLong("setTimerDeadlineEpochMs").takeIf { it > 0 },
+            setTimerTemplateId = json.optInt("setTimerTemplateId").takeIf { it != 0 },
+            setTimerElapsedSeconds = json.optInt("setTimerElapsedSeconds"),
+            labelStartTimer = json.optString("labelStartTimer"),
+            labelStopTimer = json.optString("labelStopTimer"),
+            labelTimerRunning = json.optString("labelTimerRunning"),
             exerciseName = json.optString("exerciseName"),
             setPosition = json.optString("setPosition"),
             badgeText = json.optString("badgeText"),
@@ -181,6 +267,11 @@ data class WorkoutLiveContent(
             compactPrimary = json.optString("compactPrimary"),
             compactSecondary = json.optString("compactSecondary"),
             canCompleteSet = json.optBoolean("canCompleteSet"),
+            upcomingSets = json.optJSONArray("upcomingSets")?.let { array ->
+                (0 until array.length()).mapNotNull { index ->
+                    array.optJSONObject(index)?.let(WorkoutLiveSetSnapshot::fromJson)
+                }
+            }.orEmpty(),
         )
     }
 }

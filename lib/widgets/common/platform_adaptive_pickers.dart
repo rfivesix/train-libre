@@ -806,6 +806,7 @@ Future<TimeframeSelection?> showAdaptiveTimeframePicker({
   required TimeframeBlock activeBlock,
   required DateTime initialAnchor,
   required DateTime earliestAvailableDay,
+  DateTime? latestAvailableDay,
   bool initialIsRolling = false,
   bool supportRolling = true,
 }) async {
@@ -820,19 +821,20 @@ Future<TimeframeSelection?> showAdaptiveTimeframePicker({
       : Colors.black.withValues(alpha: 0.3);
 
   final now = DateTime.now();
+  final latest = latestAvailableDay ?? now;
 
-  // Generate the list of allowed anchor dates from earliestAvailableDay to now
+  // Generate selectable calendar blocks inside the caller's real data range.
   final List<DateTime> options = [];
   DateTime current =
       activeBlock.getBounds(earliestAvailableDay, earliestAvailableDay).start;
 
-  while (current.isBefore(now) ||
-      current.isAtSameMomentAs(now) ||
-      current.year == now.year && current.month == now.month) {
+  while (current.isBefore(latest) ||
+      current.isAtSameMomentAs(latest) ||
+      current.year == latest.year && current.month == latest.month) {
     if (activeBlock
         .getBounds(current, earliestAvailableDay)
         .start
-        .isAfter(now)) {
+        .isAfter(latest)) {
       break;
     }
     options.add(current);
@@ -870,7 +872,7 @@ Future<TimeframeSelection?> showAdaptiveTimeframePicker({
 
   // Fallback if empty
   if (options.isEmpty) {
-    options.add(now);
+    options.add(earliestAvailableDay);
   }
 
   // Insert rolling option
@@ -1136,6 +1138,7 @@ Future<Duration?> showAdaptiveDurationPicker({
   required BuildContext context,
   required Duration initialDuration,
   String? title,
+  bool allowClear = false,
 }) async {
   final isDark = Theme.of(context).brightness == Brightness.dark;
   final l10n = AppLocalizations.of(context);
@@ -1181,27 +1184,30 @@ Future<Duration?> showAdaptiveDurationPicker({
                   ),
                   SizedBox(
                     width: 100,
-                    child: Align(
-                      alignment: Alignment.centerRight,
-                      child: TextButton(
-                        style: TextButton.styleFrom(
-                          padding: EdgeInsets.zero,
-                          minimumSize: const Size(0, 0),
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        ),
-                        onPressed: () {
-                          HapticFeedbackService.instance.selectionFeedback();
-                          Navigator.pop(ctx, Duration.zero);
-                        },
-                        child: Text(
-                          l10n?.removeTimer ?? 'Timer entfernen',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w600,
-                            color: theme.colorScheme.error,
-                          ),
-                        ),
-                      ),
-                    ),
+                    child: allowClear
+                        ? Align(
+                            alignment: Alignment.centerRight,
+                            child: TextButton(
+                              style: TextButton.styleFrom(
+                                padding: EdgeInsets.zero,
+                                minimumSize: const Size(0, 0),
+                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              ),
+                              onPressed: () {
+                                HapticFeedbackService.instance
+                                    .selectionFeedback();
+                                Navigator.pop(ctx, Duration.zero);
+                              },
+                              child: Text(
+                                l10n?.clearDuration ?? 'Clear duration',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  color: theme.colorScheme.error,
+                                ),
+                              ),
+                            ),
+                          )
+                        : const SizedBox.shrink(),
                   ),
                 ],
               ),

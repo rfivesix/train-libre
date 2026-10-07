@@ -24,6 +24,14 @@ class ValueSummaryCard extends StatelessWidget {
   /// Optional custom background color override.
   final Color? backgroundColor;
 
+  /// Optional outline color for emphasizing a value.
+  final Color? borderColor;
+
+  /// Vertical alignment of the card content. Defaults to center; use
+  /// [MainAxisAlignment.start] to top-align the value/label/subtitle when the
+  /// card is stretched to match a taller sibling in the same row.
+  final MainAxisAlignment mainAxisAlignment;
+
   const ValueSummaryCard({
     super.key,
     required this.label,
@@ -34,60 +42,66 @@ class ValueSummaryCard extends StatelessWidget {
     this.disableShadow = false,
     this.useSecondarySurface = false,
     this.backgroundColor,
+    this.borderColor,
+    this.mainAxisAlignment = MainAxisAlignment.center,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return SummaryCard(
-      margin: EdgeInsets.zero,
-      onTap: onTap,
-      disableShadow: disableShadow,
-      useSecondarySurface: useSecondarySurface,
-      backgroundColor: backgroundColor,
-      padding: const EdgeInsets.symmetric(
-        horizontal: DesignConstants.spacingM,
-        vertical: DesignConstants.spacingS,
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            alignment: Alignment.centerLeft,
-            child: Text(
-              value,
-              maxLines: 1,
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: valueColor,
+    return SizedBox(
+      width: double.infinity,
+      child: SummaryCard(
+        margin: EdgeInsets.zero,
+        onTap: onTap,
+        disableShadow: disableShadow,
+        useSecondarySurface: useSecondarySurface,
+        backgroundColor: backgroundColor,
+        borderColor: borderColor,
+        padding: const EdgeInsets.symmetric(
+          horizontal: DesignConstants.spacingM,
+          vertical: DesignConstants.spacingS,
+        ),
+        child: Column(
+          mainAxisAlignment: mainAxisAlignment,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Text(
+                value,
+                maxLines: 1,
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: valueColor,
+                ),
               ),
             ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            label,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurface,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          if (subtitle != null) ...[
             const SizedBox(height: 2),
             Text(
-              subtitle!,
+              label,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurface.withValues(alpha: 0.55),
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurface,
+                fontWeight: FontWeight.w500,
               ),
             ),
+            if (subtitle != null) ...[
+              const SizedBox(height: 2),
+              Text(
+                subtitle!,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.55),
+                ),
+              ),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }

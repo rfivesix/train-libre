@@ -45,8 +45,8 @@ KEY FEATURES:
 
 5. BYOK AI MEAL CAPTURE (Optional)
 • Bring Your Own Key (BYOK): optional AI meal recognition that runs on your own API key. Disabled by default.
-• Photo, Barcode and Voice in One View: photograph your plate, let the same screen pick up the barcode of a packaged product, or simply describe the meal by voice. On iPhone models with LiDAR, portion size is measured instead of guessed.
-• State-Aware Matching: a local "Top-N Fuzzy Alternatives" system integrated with Open Food Facts matches your plate accurately while strictly preventing hallucinations.
+• Photo, Barcode and Voice in One View: photograph your plate, let the same screen pick up the barcode of a packaged product, or simply describe the meal by voice. On iPhone models with LiDAR, depth scale is captured to assist portion estimation.
+• State-Aware Matching: a local "Top-N Fuzzy Alternatives" system uses Open Food Facts to find plausible matches while keeping every result reviewable before saving.
 • 100% Transparent: every AI suggestion is fully reviewable and adjustable before saving.
 
 DISCLAIMER:
@@ -56,13 +56,15 @@ OPEN SOURCE & OPEN DATA:
 Built transparently on trusted community catalogs from Open Food Facts and OpenExerciseDB. The full source code is publicly accessible, so our privacy claims can be verified rather than just believed.
 
 ## Release Notes (What's New / Release Notes in this version)
-Smarter Muscle Recovery: Recovery tracking now uses a time-decaying residual-load model for every single set. Muscle rows show readiness and remaining recovery hours at a glance, and tapping any card reveals detailed session dose and forecast insights.
+Goals that adapt with you: Set a long-term weight goal with a real starting measurement, follow your trajectory, and review your progress in calm weekly check-ins. New calorie and macro recommendations remain proposals until you choose to apply them.
 
-Streamlined Voice Dictation: The transcript now sits at the top for natural reading while dictating, with the recording button moved to the bottom for comfortable thumb ergonomics. Smooth color transitions guide you from recording to processing.
+Custom workout plans & flexible sequences: Arrange saved routines as a weekly schedule or a flexible 1–14 day sequence, include rest days, set optional reminders, and start due sessions directly from the Diary without any catch-up pressure.
 
-Cleaner Meal Capture: Newly captured AI meals now open with compact ingredient cards and instant meal-type selection (breakfast, lunch, dinner, snack) right from the review screen.
+Tailored training experience levels: Choose your experience level (Beginner, Advanced, Pro) in Settings or onboarding. Muscle group breakdowns, RIR (reps in reserve), and workout views adapt to match your training background.
 
-Visual Polish & Stability: Fixed a rendering glitch with the readiness scale background in muscle cards and improved overall app stability.
+Set timer & redesigned Workout home: Start and pause timed sets directly during your workout or from your Lock Screen Live Activity. The refreshed Workout tab brings your active plan, routines, and history together in one place.
+
+Smoothed weight trends & new analytics: Metabolic trend smoothing with a subtle check-in ghost line reveals your true weight direction across the app and home widgets, complemented by macro analytics and Apple Health / Health Connect measurement imports.
 
 ## Support URL (Support Web Page URL)
 https://trainlibre.com/support

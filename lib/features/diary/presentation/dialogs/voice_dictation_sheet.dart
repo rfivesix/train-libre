@@ -234,7 +234,6 @@ class _VoiceDictationViewState extends State<_VoiceDictationView> {
   /// Already 0 to 1 — `VoiceDictationService` normalises the platform scale.
   double get _normalizedLevel => _level.clamp(0.0, 1.0);
 
-
   /// True while the cloud should be a cloud rather than a resting circle.
   bool get _isRecordingShape =>
       _phase == _DictationPhase.starting ||
@@ -382,9 +381,8 @@ class _VoiceDictationViewState extends State<_VoiceDictationView> {
     return ListTile(
       dense: true,
       title: Text(label),
-      trailing: isSelected
-          ? Icon(LucideIcons.check, size: 18, color: accent)
-          : null,
+      trailing:
+          isSelected ? Icon(LucideIcons.check, size: 18, color: accent) : null,
       onTap: () => Navigator.of(ctx).pop(id ?? _systemSentinel),
     );
   }
@@ -789,8 +787,8 @@ class _VoiceDictationViewState extends State<_VoiceDictationView> {
                           textAlignVertical: TextAlignVertical.top,
                           keyboardType: TextInputType.multiline,
                           textCapitalization: TextCapitalization.sentences,
-                          style: TextStyle(
-                              fontSize: 17, height: 1.4, color: ink),
+                          style:
+                              TextStyle(fontSize: 17, height: 1.4, color: ink),
                           decoration: InputDecoration.collapsed(
                             hintText: l10n.voiceTranscriptHint,
                             hintStyle: TextStyle(color: muted),

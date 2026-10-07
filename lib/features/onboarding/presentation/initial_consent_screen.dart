@@ -158,7 +158,8 @@ class _InitialConsentScreenState extends State<InitialConsentScreen> {
                     SizedBox(
                       width: double.infinity,
                       child: AppButton.primary(
-                        onPressed: _healthDataAccepted ? _acceptAndProceed : null,
+                        onPressed:
+                            _healthDataAccepted ? _acceptAndProceed : null,
                         label: l10n.accept_and_get_started,
                         tooltip: l10n.accept_and_get_started,
                       ),
@@ -229,7 +230,8 @@ class _InitialConsentScreenState extends State<InitialConsentScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Padding(
-              padding: const EdgeInsets.only(top: 2.0, right: DesignConstants.spacingM),
+              padding: const EdgeInsets.only(
+                  top: 2.0, right: DesignConstants.spacingM),
               child: Icon(
                 value ? LucideIcons.circle_check : LucideIcons.circle,
                 color: value

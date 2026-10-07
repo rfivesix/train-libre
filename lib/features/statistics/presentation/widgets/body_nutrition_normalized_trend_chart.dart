@@ -15,6 +15,7 @@ import '../../../analytics/presentation/widgets/analytics_chart_defaults.dart';
 import '../../domain/analytics_state.dart';
 import '../../domain/body_nutrition_analytics_models.dart';
 import '../../../../services/unit_service.dart';
+import '../../../../util/weight_smoothing_util.dart';
 
 class BodyNutritionNormalizedTrendChart extends StatefulWidget {
   const BodyNutritionNormalizedTrendChart({
@@ -79,7 +80,7 @@ class _BodyNutritionNormalizedTrendChartState
     // Convert weight series (stored in metric kg) into display units according
     // to the user's preference so scales, ticks and tooltips show the right
     // values (kg or lbs).
-    final displayWeightSeries = weightSeries
+    final rawDisplayWeightSeries = weightSeries
         .map((p) => DailyValuePoint(
               day: p.day,
               value: unitService.convertDisplayValue(
@@ -88,6 +89,11 @@ class _BodyNutritionNormalizedTrendChartState
               ),
             ))
         .toList(growable: false);
+
+    // Always use EWMA smoothed weight trend curve (matching alpha = 0.35)
+    // so fluctuations do not obscure true long-term weight correlation.
+    final displayWeightSeries =
+        WeightSmoothingUtil.calculateEwmaDailyPoints(rawDisplayWeightSeries);
 
     final weightScale = _SeriesScale.fromSeries(
       displayWeightSeries,

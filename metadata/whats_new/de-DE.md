@@ -6,6 +6,18 @@
   Danach ausführen: python3 script/build_whats_new.py --write --sync-store
 -->
 
+## 1.5.0 (2026-10-07)
+
+{chart_line} Ziele, die sich mit dir weiterentwickeln: Lege ein langfristiges Gewichtsziel mit echter Startmessung fest, verfolge deinen Zielpfad und ordne deinen Fortschritt in ruhigen wöchentlichen Rückblicken ein. Neue Kalorien- und Makroempfehlungen bleiben Vorschläge, bis du sie selbst anwendest.
+
+{dumbbell} Eigene Trainingspläne & flexible Sequenzen: Ordne gespeicherte Routinen als Wochenplan oder flexible Abfolge von 1–14 Tagen an, plane Ruhetage ein, erhalte optionale Erinnerungen und starte anstehende Einheiten direkt aus dem Tagebuch – ganz ohne Nachholdruck.
+
+{sparkles} Dein Trainingslevel nach Maß: Wähle in den Einstellungen oder beim Start dein Erfahrungslevel (Einsteiger, Fortgeschritten, Profi). Die Detailtiefe bei Muskelgruppen, RIR (Wiederholungen in Reserve) und Trainingsansichten passt sich passend an dein Niveau an.
+
+{timer} Satz-Timer & aufgeräumter Workout-Tab: Starte und stoppe Satz-Timer direkt im Live-Workout oder bequem über die Live-Aktivität auf dem Sperrbildschirm. Der neu gestaltete Workout-Tab bündelt deinen aktiven Plan, Routinen und Verlauf an einem zentralen Ort.
+
+{activity} Geglättete Gewichtstrends & neue Analysen: Die metabolische Trendglättung mit dezenter Messpunkt-Linie zeigt deinen wahren Gewichtsverlauf in App und Widgets. Ergänzt durch neue Makro-Statistiken sowie nahtlosen Messungs-Import aus Apple Health und Health Connect.
+
 ## 1.4.1 (2026-09-14)
 
 {activity} Präzisere Muskelregeneration: Die Regenerationsanzeige nutzt jetzt ein zeitdynamisches Belastungsmodell für jeden einzelnen Satz. Die Muskelkarten zeigen Bereitschaft und verbleibende Erholungszeit noch übersichtlicher; ein Tipp öffnet detaillierte Einblicke zu Belastungsdosis und Prognose.
@@ -48,7 +60,7 @@
 
 ## 1.2.0 (2026-08-30)
 
-{camera} Mahlzeiten per Foto erfassen: Richte die Kamera auf deinen Teller, und die KI macht daraus einzelne Lebensmittel mit Menge, Kalorien und Makros - vor dem Speichern alles korrigierbar. Verpackte Produkte erkennt dieselbe Ansicht am Barcode, iPhones mit LiDAR messen die Portion statt zu schätzen, und per Mikrofontaste ergänzt du, was das Foto nicht zeigt.
+{camera} Mahlzeiten per Foto erfassen: Richte die Kamera auf deinen Teller, und die KI macht daraus einzelne Lebensmittel mit Menge, Kalorien und Makros - vor dem Speichern alles korrigierbar. Verpackte Produkte erkennt dieselbe Ansicht am Barcode, iPhones mit LiDAR erfassen Tiefendaten, um die Portionsschätzung zu unterstützen, und per Mikrofontaste ergänzt du, was das Foto nicht zeigt.
 
 {utensils} Übersichtlicheres Tagebuch: Eine erfasste Mahlzeit bleibt ein Eintrag mit Foto und lässt sich zu ihren Zutaten aufklappen. Einträge sind nach Kalorien sortiert, die größten zuerst.
 

@@ -283,16 +283,17 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    final restartTile =
-        find.byKey(const Key('settings_restart_app_tour_tile'));
+    final restartTile = find.byKey(const Key('settings_restart_app_tour_tile'));
     expect(restartTile, findsOneWidget);
     expect(
-      find.descendant(of: restartTile, matching: find.byIcon(LucideIcons.compass)),
+      find.descendant(
+          of: restartTile, matching: find.byIcon(LucideIcons.compass)),
       findsOneWidget,
     );
   });
 
-  testWidgets('overview extra nutrient shows dynamic icon for selected nutrient', (
+  testWidgets(
+      'overview extra nutrient shows dynamic icon for selected nutrient', (
     tester,
   ) async {
     await tester.binding.setSurfaceSize(const Size(900, 3000));

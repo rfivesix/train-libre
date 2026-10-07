@@ -27,6 +27,12 @@ class SummaryCard extends StatelessWidget {
   /// Whether to use the secondary surface color (tertiarySystemGroupedBackground in iOS).
   final bool useSecondarySurface;
 
+  /// Optional outline for emphasizing a summary card.
+  final Color? borderColor;
+
+  /// Outline width when [borderColor] is provided.
+  final double borderWidth;
+
   const SummaryCard({
     super.key,
     required this.child,
@@ -36,6 +42,8 @@ class SummaryCard extends StatelessWidget {
     this.disableShadow = false,
     this.backgroundColor,
     this.useSecondarySurface = false,
+    this.borderColor,
+    this.borderWidth = 1,
   });
 
   @override
@@ -63,6 +71,33 @@ class SummaryCard extends StatelessWidget {
     final squircle = SmoothRectangleBorder(borderRadius: squircleRadius);
     final clipper = ShapeBorderClipper(shape: squircle);
 
+    final Color inputFill;
+    if (isDark) {
+      inputFill =
+          theme.inputDecorationTheme.fillColor ?? const Color(0xFF2C2C2E);
+    } else {
+      // In light mode:
+      // If the card background is white (the default for summary cards),
+      // nested form inputs and dropdowns must take the contrasting secondary
+      // surface color (#F2F2F7) to prevent white-on-white blending.
+      // If the card already uses the secondary surface (#F2F2F7), nested inputs
+      // take white.
+      final isWhiteCard = (cardBg == Colors.white ||
+              cardBg.toARGB32() == 0xFFFFFFFF ||
+              cardBg.computeLuminance() > 0.95) &&
+          cardBg != DesignConstants.summaryCardSecondaryLightMode;
+      inputFill = isWhiteCard
+          ? DesignConstants.summaryCardSecondaryLightMode
+          : Colors.white;
+    }
+
+    final cardTheme = theme.copyWith(
+      cardColor: cardBg,
+      inputDecorationTheme: theme.inputDecorationTheme.copyWith(
+        fillColor: inputFill,
+      ),
+    );
+
     final card = Padding(
       padding: margin,
       child: Container(
@@ -79,12 +114,17 @@ class SummaryCard extends StatelessWidget {
             decoration: ShapeDecoration(
               color: cardBg,
               shape: squircle.copyWith(
-                side: BorderSide.none,
+                side: borderColor == null
+                    ? BorderSide.none
+                    : BorderSide(color: borderColor!, width: borderWidth),
               ),
             ),
             child: Material(
               color: Colors.transparent,
-              child: child,
+              child: Theme(
+                data: cardTheme,
+                child: child,
+              ),
             ),
           ),
         ),

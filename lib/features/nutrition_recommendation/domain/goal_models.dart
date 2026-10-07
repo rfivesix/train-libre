@@ -180,5 +180,3 @@ class WeeklyTargetRateCatalog {
     return defaultForGoal(goal, unitService).kgPerWeek;
   }
 }
-
-

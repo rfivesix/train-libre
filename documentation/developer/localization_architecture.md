@@ -140,11 +140,11 @@ class ProductTranslations extends Table with HybridId, MetaColumns {
 
 ### Drift Database Migration (Historical Migration: Version 22 to 23)
 
-While `AppDatabase` currently operates at **schema version 31**, the transition from version 22 to 23 is the foundational migration that introduced normalized 1:N translation tables. The migration logic in `AppDatabase.migration.onUpgrade` created the translation tables, copied legacy column values to the normalized tables, and dropped obsolete columns using standard SQLite schema-altering syntax:
+While `AppDatabase` currently operates at **schema version 38**, the transition from version 22 to 23 is the foundational migration that introduced normalized 1:N translation tables. The migration logic in `AppDatabase.migration.onUpgrade` created the translation tables, copied legacy column values to the normalized tables, and dropped obsolete columns using standard SQLite schema-altering syntax:
 
 ```dart
 // lib/data/drift_database.dart
-// (Current schemaVersion is 31; historical migration block shown below)
+// (Current schemaVersion is 38; historical migration block shown below)
 
 // In MigrationStrategy onUpgrade:
 if (from < 23) {

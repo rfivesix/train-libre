@@ -82,6 +82,15 @@ class TrainLibreBackup {
   /// Snapshots of offline OFF products transaction history.
   final List<Map<String, dynamic>> offProductsArchive;
 
+  /// User goals records.
+  final List<Map<String, dynamic>> userGoals;
+
+  /// Audit log events for goals.
+  final List<Map<String, dynamic>> goalEvents;
+
+  /// Goal reviews history.
+  final List<Map<String, dynamic>> goalReviews;
+
   /// Creates a new [TrainLibreBackup] instance.
   TrainLibreBackup({
     required this.schemaVersion,
@@ -105,6 +114,9 @@ class TrainLibreBackup {
     this.userFoodOverrideTranslations = const [],
     this.healthStepSegments = const [],
     this.offProductsArchive = const [],
+    this.userGoals = const [],
+    this.goalEvents = const [],
+    this.goalReviews = const [],
   });
 
   /// Creates a [TrainLibreBackup] instance from a JSON map.
@@ -253,6 +265,18 @@ class TrainLibreBackup {
               ?.map((e) => Map<String, dynamic>.from(e as Map))
               .toList() ??
           [],
+      userGoals: (json['userGoals'] as List<dynamic>?)
+              ?.map((e) => Map<String, dynamic>.from(e as Map))
+              .toList() ??
+          [],
+      goalEvents: (json['goalEvents'] as List<dynamic>?)
+              ?.map((e) => Map<String, dynamic>.from(e as Map))
+              .toList() ??
+          [],
+      goalReviews: (json['goalReviews'] as List<dynamic>?)
+              ?.map((e) => Map<String, dynamic>.from(e as Map))
+              .toList() ??
+          [],
     );
   }
 
@@ -297,6 +321,9 @@ class TrainLibreBackup {
       'userFoodOverrideTranslations': userFoodOverrideTranslations,
       'healthStepSegments': healthStepSegments,
       'offProductsArchive': offProductsArchive,
+      'userGoals': userGoals,
+      'goalEvents': goalEvents,
+      'goalReviews': goalReviews,
     };
   }
 }

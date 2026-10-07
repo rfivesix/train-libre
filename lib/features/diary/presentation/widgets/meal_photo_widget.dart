@@ -106,8 +106,7 @@ class _MealPhotoWidgetState extends State<MealPhotoWidget> {
           Image.network(
             widget.photoUrl!,
             fit: BoxFit.cover,
-            errorBuilder: (_, __, ___) =>
-                _buildPlaceholderBackground(context),
+            errorBuilder: (_, __, ___) => _buildPlaceholderBackground(context),
           )
         else
           _buildPlaceholderBackground(context),
@@ -148,14 +147,12 @@ class _MealPhotoWidgetState extends State<MealPhotoWidget> {
           fit: StackFit.expand,
           children: [
             imageLayer,
-
             if (widget.overlayTrailing != null)
               Positioned(
                 top: 12,
                 right: 16,
                 child: widget.overlayTrailing!,
               ),
-
             if (hasMultiple)
               Positioned(
                 bottom: 42,

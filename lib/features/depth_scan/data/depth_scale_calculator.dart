@@ -116,15 +116,18 @@ class DepthScaleCalculator {
 
     final medianMeters = targetCenter[targetCenter.length ~/ 2];
     final nearMeters = validAll[(validAll.length * 0.05).floor()];
-    final farMeters = validAll[((validAll.length * 0.95) - 1).clamp(0, validAll.length - 1).toInt()];
+    final farMeters = validAll[
+        ((validAll.length * 0.95) - 1).clamp(0, validAll.length - 1).toInt()];
 
     final subjectDistanceCm = medianMeters * 100.0;
     final nearCm = nearMeters * 100.0;
     final farCm = farMeters * 100.0;
 
     // Scale focal length to the photo pixel dimensions if reference dimension differs
-    final scaleX = imageWidthPx / (intrinsics.refWidth > 0 ? intrinsics.refWidth : imageWidthPx);
-    final scaleY = imageHeightPx / (intrinsics.refHeight > 0 ? intrinsics.refHeight : imageHeightPx);
+    final scaleX = imageWidthPx /
+        (intrinsics.refWidth > 0 ? intrinsics.refWidth : imageWidthPx);
+    final scaleY = imageHeightPx /
+        (intrinsics.refHeight > 0 ? intrinsics.refHeight : imageHeightPx);
     final effectiveFx = intrinsics.fx * scaleX;
     final effectiveFy = intrinsics.fy * scaleY;
 
@@ -136,7 +139,8 @@ class DepthScaleCalculator {
         : 0.0;
 
     // Quality gate
-    final isDistanceOk = subjectDistanceCm >= minDistanceCm && subjectDistanceCm <= maxDistanceCm;
+    final isDistanceOk = subjectDistanceCm >= minDistanceCm &&
+        subjectDistanceCm <= maxDistanceCm;
     final isAccuracyOk = accuracy.toLowerCase() == 'absolute';
     final isValid = isDistanceOk && isAccuracyOk && validRatio >= minValidRatio;
 

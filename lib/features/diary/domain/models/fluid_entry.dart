@@ -16,7 +16,7 @@ class FluidEntry {
   /// The name of the beverage.
   final String name;
 
-  /// Calories per 100ml.
+  /// Total calories of this beverage entry in kcal (precalculated based on quantity).
   final int? kcal;
 
   /// Sugar in grams per 100ml.

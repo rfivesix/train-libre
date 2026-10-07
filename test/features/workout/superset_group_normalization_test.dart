@@ -71,7 +71,9 @@ void main() {
     expect(moved.map((e) => e.supersetGroup), [1, 1, 1]);
   });
 
-  test('moving one exercise out of a 2-exercise superset dissolves it into standalone exercises', () {
+  test(
+      'moving one exercise out of a 2-exercise superset dissolves it into standalone exercises',
+      () {
     final moved = reorderRoutineExercise([
       exercise(1, 1),
       exercise(2, 1),
@@ -82,7 +84,9 @@ void main() {
     expect(moved.map((e) => e.supersetGroup), [null, null, null]);
   });
 
-  test('moving one exercise out of a triset leaves the remaining pair as a superset', () {
+  test(
+      'moving one exercise out of a triset leaves the remaining pair as a superset',
+      () {
     final moved = reorderRoutineExercise([
       exercise(1, 1),
       exercise(2, 1),
@@ -94,7 +98,9 @@ void main() {
     expect(moved.map((e) => e.supersetGroup), [1, 1, null, null]);
   });
 
-  test('dragging top exercise from first superset to bottom in 4-exercise 2-superset setup', () {
+  test(
+      'dragging top exercise from first superset to bottom in 4-exercise 2-superset setup',
+      () {
     final moved = reorderRoutineExercise([
       exercise(1, 1),
       exercise(2, 1),
@@ -106,7 +112,9 @@ void main() {
     expect(moved.map((e) => e.supersetGroup), [null, 2, 2, null]);
   });
 
-  test('inserting an exercise strictly between members of a superset joins that superset', () {
+  test(
+      'inserting an exercise strictly between members of a superset joins that superset',
+      () {
     final moved = reorderRoutineExercise([
       exercise(1, null),
       exercise(2, 5),
@@ -117,7 +125,9 @@ void main() {
     expect(moved.map((e) => e.supersetGroup), [5, 5, 5]);
   });
 
-  test('dropping an exercise at the outer boundary of a superset does not join it', () {
+  test(
+      'dropping an exercise at the outer boundary of a superset does not join it',
+      () {
     final moved = reorderRoutineExercise([
       exercise(1, null),
       exercise(2, 5),

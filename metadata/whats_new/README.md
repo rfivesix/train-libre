@@ -39,7 +39,8 @@ One file per store locale:
   Without it, `sparkles` is used. Allowed names live in
   `script/build_whats_new.py` (`ICON_MAP`) — among them `sparkles cloud zap
   layout_grid smartphone mic activity shield bug bell timer dumbbell heart star
-  rocket lock chart_line utensils moon footprints camera watch circle_check`.
+  rocket lock chart_line utensils moon footprints camera watch circle_check
+  wand_sparkles`.
 - Everything before the first `: ` is the **headline**, the rest is the
   description. Without a colon the whole paragraph is rendered as the headline.
 - 3–5 entries per release. User-visible changes only, no refactorings.

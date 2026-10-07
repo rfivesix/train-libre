@@ -11,6 +11,88 @@ enum AiProvider {
   custom,
 }
 
+/// Usage reported by a provider, never inferred from prompt length.
+class AiTokenUsage {
+  final int? inputTokens;
+  final int? outputTokens;
+  final int? totalTokens;
+
+  const AiTokenUsage({this.inputTokens, this.outputTokens, this.totalTokens});
+
+  bool get isComplete =>
+      inputTokens != null && outputTokens != null && totalTokens != null;
+}
+
+/// Scan-scoped counter. A late hedged response can update the review screen.
+class AiUsageCollector extends ChangeNotifier {
+  AiUsageCollector({this.onRequestCompleted});
+
+  final void Function(AiUsageRequestReport report)? onRequestCompleted;
+  final Map<int, Stopwatch> _requestWatches = {};
+  int inputTokens = 0;
+  int outputTokens = 0;
+  int totalTokens = 0;
+  int requestCount = 0;
+  int pendingCount = 0;
+  bool usageComplete = true;
+  Completer<void>? _idleCompleter;
+
+  Future<void> get whenIdle => pendingCount == 0
+      ? Future<void>.value()
+      : (_idleCompleter ??= Completer<void>()).future;
+
+  int startRequest() {
+    requestCount++;
+    pendingCount++;
+    _requestWatches[requestCount] = Stopwatch()..start();
+    notifyListeners();
+    return requestCount;
+  }
+
+  void finishRequest(AiTokenUsage? usage, {int? requestId}) {
+    final completedId = requestId ?? _requestWatches.keys.firstOrNull;
+    final watch = _requestWatches.remove(completedId);
+    watch?.stop();
+    pendingCount = pendingCount > 0 ? pendingCount - 1 : 0;
+    if (usage == null || !usage.isComplete) {
+      usageComplete = false;
+    }
+    inputTokens += usage?.inputTokens ?? 0;
+    outputTokens += usage?.outputTokens ?? 0;
+    totalTokens += usage?.totalTokens ?? 0;
+    if (completedId != null) {
+      onRequestCompleted?.call(AiUsageRequestReport(
+        requestIndex: completedId,
+        durationMilliseconds: watch?.elapsedMilliseconds ?? 0,
+        usage: usage,
+      ));
+    }
+    if (pendingCount == 0) {
+      _idleCompleter?.complete();
+      _idleCompleter = null;
+    }
+    notifyListeners();
+  }
+}
+
+class AiUsageRequestReport {
+  final int requestIndex;
+  final int durationMilliseconds;
+  final AiTokenUsage? usage;
+
+  const AiUsageRequestReport(
+      {required this.requestIndex,
+      required this.durationMilliseconds,
+      required this.usage});
+}
+
+class _AiRawResponse {
+  final String text;
+  final AiTokenUsage? usage;
+
+  const _AiRawResponse(this.text, this.usage);
+}
+
 /// Provider registry metadata.
 class AiProviderMetadata {
   final AiProvider provider;
@@ -232,6 +314,10 @@ class AiNetworkException extends AiServiceException {
   ]);
 }
 
+class AiTimeoutException extends AiServiceException {
+  const AiTimeoutException() : super('AI request timed out. Please try again.');
+}
+
 class AiParseException extends AiServiceException {
   const AiParseException([super.message = 'Could not parse the AI response.']);
 }
@@ -246,6 +332,17 @@ class AiUnsupportedFeatureException extends AiServiceException {
   const AiUnsupportedFeatureException(
       [super.message = 'Feature not supported.']);
 }
+
+/// Fixed telemetry vocabulary; provider error text is never transmitted.
+String aiServiceErrorCode(AiServiceException error) => switch (error) {
+      AiKeyMissingException() => 'key_missing',
+      AiAuthException() => 'auth',
+      AiNetworkException() => 'network',
+      AiTimeoutException() => 'timeout',
+      AiParseException() => 'parse',
+      AiRateLimitException() => 'rate_limit',
+      AiUnsupportedFeatureException() => 'unsupported',
+    };
 
 /// One bullet of a tidied dictation transcript.
 class VoiceTranscriptBullet {

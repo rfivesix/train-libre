@@ -52,19 +52,25 @@ class DoubleProgressionEngine {
     }
 
     // Sort sessions chronologically by the latest set in each session to find the last session.
+    // BOLT OPTIMIZATION: Pre-calculate session latest dates before sort to avoid O(N log N) map/reduce
+    final sessionLatestDates = <List<ProgressionSetEntry>, DateTime>{};
+    for (final session in sessionMap.values) {
+      DateTime latest = session.first.performedAt;
+      for (var i = 1; i < session.length; i++) {
+        if (session[i].performedAt.isAfter(latest)) {
+          latest = session[i].performedAt;
+        }
+      }
+      sessionLatestDates[session] = latest;
+    }
+
     final sortedSessions = sessionMap.values.toList()
       ..sort((a, b) {
-        final aLatest =
-            a.map((s) => s.performedAt).reduce((x, y) => x.isAfter(y) ? x : y);
-        final bLatest =
-            b.map((s) => s.performedAt).reduce((x, y) => x.isAfter(y) ? x : y);
-        return aLatest.compareTo(bLatest);
+        return sessionLatestDates[a]!.compareTo(sessionLatestDates[b]!);
       });
 
     final lastSessionSets = sortedSessions.last;
-    final lastSessionDate = lastSessionSets
-        .map((s) => s.performedAt)
-        .reduce((a, b) => a.isAfter(b) ? a : b);
+    final lastSessionDate = sessionLatestDates[lastSessionSets]!;
 
     // Rule 9: Determine baseline working load from the last session.
     final weights =
@@ -182,12 +188,21 @@ class DoubleProgressionEngine {
           : '${set.performedAt.year}-${set.performedAt.month}-${set.performedAt.day}';
       sessions.putIfAbsent(key, () => []).add(set);
     }
+    // BOLT OPTIMIZATION: Pre-calculate session latest dates before sort to avoid O(N log N) map/reduce
+    final sessionLatestDates = <List<ProgressionSetEntry>, DateTime>{};
+    for (final session in sessions.values) {
+      DateTime latest = session.first.performedAt;
+      for (var i = 1; i < session.length; i++) {
+        if (session[i].performedAt.isAfter(latest)) {
+          latest = session[i].performedAt;
+        }
+      }
+      sessionLatestDates[session] = latest;
+    }
+
     final orderedSessions = sessions.values.toList()
       ..sort((left, right) {
-        DateTime latest(List<ProgressionSetEntry> session) => session
-            .map((entry) => entry.performedAt)
-            .reduce((a, b) => a.isAfter(b) ? a : b);
-        return latest(left).compareTo(latest(right));
+        return sessionLatestDates[left]!.compareTo(sessionLatestDates[right]!);
       });
     final lastSession = List<ProgressionSetEntry>.from(orderedSessions.last)
       ..sort((left, right) {
@@ -211,14 +226,21 @@ class DoubleProgressionEngine {
     // set, a range and an honest performance at its own range maximum.
     final hasCompleteComparableSession =
         lastSession.isNotEmpty && lastSession.length <= positions.length;
-    final allToppedOut = hasCompleteComparableSession &&
-        List.generate(lastSession.length, (index) {
-          final range = positions[index].range;
-          final previous = lastSession[index];
-          return range != null &&
-              !previous.valuesAutoFilled &&
-              (previous.reps ?? 0) >= range.max;
-        }).every((value) => value);
+
+    // BOLT OPTIMIZATION: Replace List.generate(...).every() with short-circuiting loop
+    bool allToppedOut = hasCompleteComparableSession;
+    if (allToppedOut) {
+      for (var index = 0; index < lastSession.length; index++) {
+        final range = positions[index].range;
+        final previous = lastSession[index];
+        if (range == null ||
+            previous.valuesAutoFilled ||
+            (previous.reps ?? 0) < range.max) {
+          allToppedOut = false;
+          break;
+        }
+      }
+    }
 
     return List.generate(positions.length, (index) {
       if (index >= lastSession.length || lastSession[index].weight == null) {

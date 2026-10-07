@@ -250,11 +250,13 @@ class AiMatchResult {
   final AiMatchQuality quality;
   final bool isAmbiguous;
   final double score;
+  final List<FoodItem> competingAlternatives;
 
   const AiMatchResult({
     required this.query,
     required this.bestMatch,
     required this.alternatives,
+    this.competingAlternatives = const [],
     required this.quality,
     required this.isAmbiguous,
     required this.score,
@@ -455,11 +457,17 @@ class AiRepairOutcome {
   final AiValidationResult validation;
   final int repairPassesUsed;
   final bool repairLimitReached;
+  final bool firstPassAccepted;
+  final int validationRunsCount;
+  final List<String> firstPassIssueCategories;
 
   const AiRepairOutcome({
     required this.validation,
     required this.repairPassesUsed,
     required this.repairLimitReached,
+    this.firstPassAccepted = false,
+    this.validationRunsCount = 1,
+    this.firstPassIssueCategories = const [],
   });
 }
 

@@ -33,9 +33,9 @@
 
 <br />
 
-Train Libre is an open-source, offline-first fitness app for logging workouts, calories, macros, bodyweight, and recovery — without ads, mandatory accounts, or commercial tracking.
+Train Libre is an open-source, offline-first strength training and fitness app for logging workouts, routines, calories, macros, bodyweight, and recovery — without ads, mandatory accounts, or commercial tracking.
 
-Designed for people who want serious tracking without social feeds, gamification, or subscription pressure, Train Libre prioritizes **privacy**, **local data ownership**, and **transparent analytics**.
+Designed for lifters and health-conscious users who want serious tracking without social feeds, gamification, or subscription pressure, Train Libre prioritizes **privacy**, **local data ownership**, and **transparent analytics**.
 
 ### Screenshots
 
@@ -47,6 +47,10 @@ Designed for people who want serious tracking without social feeds, gamification
         <sub><b>Diary</b></sub>
       </td>
       <td width="24%" align="center">
+        <img src="assets/screenshots/iOS/en-US/dark/iOS_dark_ai.png" alt="AI Meal Capture" width="100%"><br>
+        <sub><b>AI Meal Capture</b></sub>
+      </td>
+      <td width="24%" align="center">
         <img src="assets/screenshots/iOS/en-US/dark/iOS_dark_running_workout.png" alt="Workout Tracking" width="100%"><br>
         <sub><b>Workout</b></sub>
       </td>
@@ -54,12 +58,12 @@ Designed for people who want serious tracking without social feeds, gamification
         <img src="assets/screenshots/iOS/en-US/dark/iOS_dark_nutrition.png" alt="Nutrition Tracking" width="100%"><br>
         <sub><b>Nutrition</b></sub>
       </td>
-      <td width="24%" align="center">
-        <img src="assets/screenshots/iOS/en-US/dark/iOS_dark_ai.png" alt="AI Meal Capture" width="100%"><br>
-        <sub><b>AI Meal Capture</b></sub>
-      </td>
     </tr>
     <tr>
+      <td width="24%" align="center">
+        <img src="assets/screenshots/iOS/en-US/dark/iOS_dark_weekly_goal_review.png" alt="Goal Review" width="100%"><br>
+        <sub><b>Goal Review</b></sub>
+      </td>
       <td width="24%" align="center">
         <img src="assets/screenshots/iOS/en-US/dark/iOS_dark_recovery.png" alt="Recovery Trends" width="100%"><br>
         <sub><b>Recovery</b></sub>
@@ -72,7 +76,6 @@ Designed for people who want serious tracking without social feeds, gamification
         <img src="assets/screenshots/iOS/en-US/dark/iOS_dark_data.png" alt="Data Insights" width="100%"><br>
         <sub><b>Data Insights</b></sub>
       </td>
-      <td width="24%"></td>
     </tr>
   </table>
 </div>
@@ -120,20 +123,22 @@ Designed for people who want serious tracking without social feeds, gamification
 
 ## Platform Support
 
-Train Libre is built with Flutter and supports:
-- **iOS** (Active)
-- **Android** (Active)
+Train Libre is built with Flutter and natively supports:
+- **iOS** (Active — Available on App Store)
+- **Android** (Active — Available via Obtainium & F-Droid)
 
 ## Key Features
 
-- **Workout Tracker:** Log sets (warm-up, failure, dropsets), routines, and session history.
-- **Calorie & Macro Tracker:** Track nutrition, hydration, and supplements with adaptive weekly guidance.
-- **Bodyweight & Recovery Analytics:** Deep insights into muscle readiness, volume trends, and body measurements.
-- **Sleep & Vitals:** Sleep Health Score across five domains, plus steps and heart-rate aggregates imported from Apple Health or Health Connect.
-- **Meal Logging, Four Ways:** Barcode, catalog search, saved templates, or the camera — barcodes are detected passively while the meal camera is open, so there is no mode to pick in advance.
-- **Next-Gen AI Meal Capture:** Capture meals from photos, dictated speech or text via BYOK (Bring Your Own Key) setup. Fully integrated with a holistic culinary anchor (`mealContext`) and a state-aware "Top-N Fuzzy Alternatives" SQLite matching system that prevents hallucinations. Always reviewable and self-repairing before saving. Self-hosted Ollama and any OpenAI-compatible endpoint are supported alongside the commercial providers.
-- **LiDAR Scale Hint:** On supported iPhones, a measured scale of the scene is handed to the model instead of a guessed plate size — the largest single source of error in estimating a portion from a photo. Switchable, and silently skipped everywhere else.
-- **Privacy & Local-First:** Data stays on device. Optional one-way health export to Apple Health and Google Health Connect.
+- **Workout & Routine Tracker (Hypertrophy & Strength):** Built for progressive overload, bodybuilding, and serious lifting. Create saved workout templates, customizable routines, and flexible training splits (PPL, Upper/Lower, Full Body). Log sets with warm-ups, working sets, failure sets, dropsets, timed sets, and RIR (Reps in Reserve) alongside rest timers and live session tracking.
+- **400+ Offline Exercise Library:** Bundled offline exercise database derived from [OpenExerciseDB](https://github.com/rfivesix/OpenExerciseDB) and wger. Filter by primary and secondary muscle groups, equipment, and movement patterns, or create custom exercises.
+- **Progress Tracking & Analytics:** Real-time personal record (PR) detection, estimated 1-Rep Max (1RM) progression curves (Brzycki model), volume load trends per muscle group, and comprehensive body measurement tracking (arms, chest, waist, hips, calves, thighs) with trend smoothing.
+- **Wearable & Health Sync:** Native bi-directional sync with **Apple Health** (iOS) and **Health Connect** (Android) for daily steps, sleep stages, active and resting heart rate aggregates, and body weight, backed by an idempotent local export pipeline.
+- **Muscle Recovery & Readiness:** Per-set RIR-aware residual load model with muscle-specific recovery decay and readiness heatmaps, paired with an algorithmic Sleep Health Score across five domains.
+- **Calorie & Macro Tracker:** Track nutrition, hydration, caffeine, creatine, and custom supplements in one unified local diary with adaptive weekly guidance and a Bayesian TDEE Estimator.
+- **Meal Logging, Four Ways:** Barcode scanning, offline food catalog search, saved meal templates, or the camera — barcodes are detected passively while the meal camera is open, so there is no mode to pick in advance.
+- **Next-Gen AI Meal Capture:** Capture meals from photos, dictated speech, or text via BYOK (Bring Your Own Key) setup. Fully integrated with a holistic culinary anchor (`mealContext`) and a state-aware "Top-N Fuzzy Alternatives" SQLite matching system that prevents hallucinations. Always reviewable and self-repairing before saving. Self-hosted Ollama and any OpenAI-compatible endpoint are supported alongside commercial providers.
+- **LiDAR Scale Hint:** On supported iPhones, a measured physical scale of the scene assists the model instead of a guessed plate size — tackling the largest source of portion estimation error. Switchable and silently skipped everywhere else.
+- **Privacy & Local-First:** 100% offline-first architecture. All data stays securely on your device. No ads, no commercial tracking, and no mandatory cloud accounts.
 
 ## Privacy & Philosophy
 
@@ -162,7 +167,10 @@ This project features a comprehensive, modular documentation suite split by targ
 *   [**Native Health Sync & Export**](documentation/features/health_sync_export.md): Bidirectional vital synchronization (Steps, Sleep), outbound manual log export pipelines, SQLite-backed idempotency tracking, and fault-tolerance patterns.
 *   [Sleep Health Score Engine](documentation/features/sleep_scoring_engine.md): The five scoring domains, their curve shapes, and the soft-cap penalty logic.
 *   [Muscle Recovery & Readiness Model](documentation/features/muscle_recovery_model.md): Per-set RIR-aware residual load, role-weighted exposure, muscle-specific decay, and readiness.
-*   [Estimated 1-Rep Max Heuristic](documentation/features/intelligent_workouts.md): The Epley-based submaximal strength model behind PRs and progression.
+*   [Estimated 1-Rep Max Heuristic](documentation/features/intelligent_workouts.md): The Brzycki-based submaximal strength model behind PRs and progression.
+*   [Adaptive Nutrition Goals](documentation/features/adaptive_nutrition_goals.md): Long-term weight goals, weekly reviews, and proposed calorie and macro adjustments.
+*   [Manual Workout Plans](documentation/features/manual_workout_plans.md): Fixed weekly plans and flexible sequences with rest days and planned-session tracking.
+*   [Macronutrient Analytics](documentation/features/macro_analytics.md): Calorie and macro intake trends across selectable time ranges.
 *   [Live Activity & Workout Session](documentation/features/live_activity_workout.md): The iOS Live Activity and Dynamic Island surface for a running workout.
 *   [Telemetry & Privacy Architecture](TELEMETRY.md): The complete opt-in telemetry event catalog and the anti-profiling safeguards around it.
 

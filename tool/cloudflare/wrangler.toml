@@ -1,0 +1,9 @@
+name = "trainlibre-security-headers"
+main = "_worker.js"
+compatibility_date = "2024-09-01"
+
+# Routes for trainlibre.com when using Cloudflare Workers
+# routes = [
+#   { pattern = "trainlibre.com/*", zone_name = "trainlibre.com" },
+#   { pattern = "www.trainlibre.com/*", zone_name = "trainlibre.com" }
+# ]

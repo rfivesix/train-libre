@@ -26,11 +26,24 @@ class PriorActivityHelpBlock extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            l10n.adaptivePriorActivityHelpIntro,
-            style: theme.textTheme.bodySmall?.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(
+                LucideIcons.info,
+                size: 16,
+                color: theme.colorScheme.primary,
+              ),
+              const SizedBox(width: DesignConstants.spacingS),
+              Expanded(
+                child: Text(
+                  l10n.adaptivePriorActivityHelpIntro,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: DesignConstants.spacingS),
           _helpLine(context, l10n.adaptivePriorActivityHelpLowLine),

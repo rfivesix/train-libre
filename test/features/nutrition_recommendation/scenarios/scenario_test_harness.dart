@@ -491,34 +491,29 @@ void expectDueWeekAnchorsStable(
   }
 }
 
-void expectPhaseRampProgression(List<WeekScenarioOutput> weeks) {
+void expectFixedEnergyDensityAndPhaseVariance(
+  List<WeekScenarioOutput> weeks,
+) {
   expect(weeks, isNotEmpty);
 
-  final kcalPerKgByWeek =
-      weeks.map((week) => week.debugValue('effectiveKcalPerKg')).toList();
-
-  expect(kcalPerKgByWeek.first, closeTo(3000, 0.001));
-
-  for (var i = 1; i < kcalPerKgByWeek.length; i++) {
+  for (final week in weeks) {
+    expect(week.debugValue('effectiveKcalPerKg'), closeTo(7700, 0.001));
+  }
+  expect(
+    weeks.first.debugValue('observationPhaseVarianceMultiplier'),
+    closeTo(2.25, 0.001),
+  );
+  if (weeks.length >= 2) {
     expect(
-      kcalPerKgByWeek[i],
-      greaterThanOrEqualTo(kcalPerKgByWeek[i - 1] - 0.001),
-      reason: 'Phase ramp regressed at week index $i',
+      weeks[1].debugValue('observationPhaseVarianceMultiplier'),
+      closeTo(1.50, 0.001),
     );
   }
-
-  if (kcalPerKgByWeek.length >= 9) {
-    // Local-date arithmetic across DST boundaries can shift inclusive day
-    // differences by one day in scenario tests. We assert week-9 is near mature
-    // and week-10+ is at the mature cap.
-    expect(kcalPerKgByWeek[8], greaterThanOrEqualTo(7400));
-  }
-
-  if (kcalPerKgByWeek.length >= 10) {
-    expect(kcalPerKgByWeek[9], closeTo(7700, 0.001));
-    for (var i = 9; i < kcalPerKgByWeek.length; i++) {
-      expect(kcalPerKgByWeek[i], closeTo(7700, 0.001));
-    }
+  for (final week in weeks.skip(2)) {
+    expect(
+      week.debugValue('observationPhaseVarianceMultiplier'),
+      closeTo(1.0, 0.001),
+    );
   }
 }
 

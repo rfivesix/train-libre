@@ -93,7 +93,9 @@ import WidgetKit
     ) -> some View {
       switch context.state.phase {
       case .resting:
-        if let end = context.state.restEndsAt {
+        if context.state.setTimerStartedAt != nil {
+          setTimerChip(context.state, minimal: false)
+        } else if let end = context.state.restEndsAt {
           // `.timer` counts down to the date and then keeps counting up, so
           // the pill never freezes at 0:00. The red backing latches exactly at
           // the deadline without needing a re-render — see LAOverdueFill.
@@ -117,7 +119,9 @@ import WidgetKit
           icon
         }
       case .setPending:
-        if context.state.badge.text.isEmpty {
+        if context.state.setTimerStartedAt != nil {
+          setTimerChip(context.state, minimal: false)
+        } else if context.state.badge.text.isEmpty {
           icon
         } else {
           // As tall as the compact zone allows — it is the only thing there.
@@ -138,7 +142,9 @@ import WidgetKit
     ) -> some View {
       switch context.state.phase {
       case .resting:
-        if let end = context.state.restEndsAt {
+        if context.state.setTimerStartedAt != nil {
+          setTimerChip(context.state, minimal: true)
+        } else if let end = context.state.restEndsAt {
           Text(end, style: .timer)
             .font(.system(size: 10, weight: .bold).monospacedDigit())
             .foregroundStyle(.white)
@@ -153,10 +159,14 @@ import WidgetKit
           icon
         }
       case .setPending:
-        // Identical to the compact trailing zone. With a second Live Activity
-        // on screen this is the only place the set appears at all, so it shows
-        // the same two lines rather than a shortened variant.
-        LACompactTrailing(state: context.state)
+        if context.state.setTimerStartedAt != nil {
+          setTimerChip(context.state, minimal: true)
+        } else {
+          // Identical to the compact trailing zone. With a second Live Activity
+          // on screen this is the only place the set appears at all, so it shows
+          // the same two lines rather than a shortened variant.
+          LACompactTrailing(state: context.state)
+        }
       case .noSetsLeft, .empty:
         icon
       }
@@ -167,6 +177,27 @@ import WidgetKit
         .resizable()
         .scaledToFit()
         .frame(width: 14, height: 14)
+    }
+
+    @ViewBuilder
+    private func setTimerChip(
+      _ state: WorkoutActivityAttributes.ContentState,
+      minimal: Bool
+    ) -> some View {
+      if let startedAt = state.setTimerStartedAt {
+        Text(state.setTimerDeadline ?? startedAt, style: .timer)
+          .font(.system(size: minimal ? 8 : 10, weight: .bold).monospacedDigit())
+          .foregroundStyle(.white)
+          .lineLimit(1)
+          .minimumScaleFactor(0.5)
+          .multilineTextAlignment(.center)
+          .frame(width: minimal ? 34 : 50, alignment: .center)
+          .padding(.horizontal, minimal ? 2 : 4)
+          .padding(.vertical, minimal ? 1 : 2)
+          .background(LATheme.controlFill, in: RoundedRectangle(cornerRadius: minimal ? 6 : 7))
+      } else {
+        icon
+      }
     }
   }
 

@@ -276,9 +276,13 @@ struct MeasurementsWidgetView: View {
           stats
             .frame(width: 128, alignment: .leading)
 
-          MeasurementSparkline(points: points, palette: palette)
-            .frame(height: 78)
-            .frame(maxWidth: .infinity)
+          MeasurementSparkline(
+            points: points,
+            palette: palette,
+            isWeight: entry.metric?.id.lowercased() == "weight" || entry.metric?.id.lowercased() == "body_weight"
+          )
+          .frame(height: 78)
+          .frame(maxWidth: .infinity)
         }
       }
     }
@@ -393,13 +397,26 @@ struct MeasurementsWidgetView: View {
 struct MeasurementSparkline: View {
   let points: [HomeWidgetMeasurementPoint]
   let palette: StatsPalette
+  var isWeight: Bool = false
 
   var body: some View {
     GeometryReader { geo in
-      let positions = positions(in: geo.size)
+      let shouldSmooth = isWeight && points.count > 1
+      let smoothedPoints = shouldSmooth ? points.smoothedEwma() : []
+
+      // Shared span so both raw and smoothed series align perfectly on the same vertical scale
+      let allValues = points.map(\.value) + smoothedPoints.map(\.value)
+      let minValue = allValues.min() ?? 0
+      let maxValue = allValues.max() ?? 0
+      let span = maxValue - minValue
+
+      let rawPositions = positions(for: points, in: geo.size, minValue: minValue, span: span)
+      let smoothedPositions = shouldSmooth
+        ? positions(for: smoothedPoints, in: geo.size, minValue: minValue, span: span)
+        : []
 
       ZStack {
-        if positions.count == 1, let only = positions.first {
+        if rawPositions.count == 1, let only = rawPositions.first {
           // A single reading has no line to draw. The design document puts it on
           // a dashed baseline so the point still reads as "a value in a range"
           // rather than as a stray dot.
@@ -412,53 +429,83 @@ struct MeasurementSparkline: View {
             .fill(palette.accent)
             .frame(width: 9, height: 9)
             .position(only)
-        } else if positions.count > 1 {
-          fill(positions, in: geo.size)
-            .fill(
-              LinearGradient(
-                colors: [palette.accent.opacity(0.38), palette.accent.opacity(0)],
-                startPoint: .top,
-                endPoint: .bottom
+        } else if rawPositions.count > 1 {
+          if shouldSmooth {
+            // 1. Raw measurements background ghost line (subtle muted grey, no dots)
+            line(rawPositions)
+              .stroke(
+                palette.onSurface.opacity(0.28),
+                style: StrokeStyle(lineWidth: 2.5, lineCap: .round, lineJoin: .round)
               )
-            )
 
-          line(positions)
-            .stroke(
-              palette.accent,
-              style: StrokeStyle(lineWidth: 2.5, lineCap: .round, lineJoin: .round)
-            )
+            // 2. Smoothed trend fill and line
+            fill(smoothedPositions, in: geo.size)
+              .fill(
+                LinearGradient(
+                  colors: [palette.accent.opacity(0.38), palette.accent.opacity(0)],
+                  startPoint: .top,
+                  endPoint: .bottom
+                )
+              )
 
-          if let last = positions.last {
-            Circle()
-              .fill(palette.accent)
-              .frame(width: 6, height: 6)
-              .position(last)
+            line(smoothedPositions)
+              .stroke(
+                palette.accent,
+                style: StrokeStyle(lineWidth: 2.5, lineCap: .round, lineJoin: .round)
+              )
+
+            if let last = smoothedPositions.last {
+              Circle()
+                .fill(palette.accent)
+                .frame(width: 6, height: 6)
+                .position(last)
+            }
+          } else {
+            fill(rawPositions, in: geo.size)
+              .fill(
+                LinearGradient(
+                  colors: [palette.accent.opacity(0.38), palette.accent.opacity(0)],
+                  startPoint: .top,
+                  endPoint: .bottom
+                )
+              )
+
+            line(rawPositions)
+              .stroke(
+                palette.accent,
+                style: StrokeStyle(lineWidth: 2.5, lineCap: .round, lineJoin: .round)
+              )
+
+            if let last = rawPositions.last {
+              Circle()
+                .fill(palette.accent)
+                .frame(width: 6, height: 6)
+                .position(last)
+            }
           }
         }
       }
     }
   }
 
-  /// Maps the series into the box, with a little vertical breathing room so the
+  /// Maps a series into the box, with a little vertical breathing room so the
   /// extremes are not clipped by the stroke width.
-  private func positions(in size: CGSize) -> [CGPoint] {
-    guard !points.isEmpty else { return [] }
+  private func positions(
+    for series: [HomeWidgetMeasurementPoint],
+    in size: CGSize,
+    minValue: Double,
+    span: Double
+  ) -> [CGPoint] {
+    guard !series.isEmpty else { return [] }
     let inset: CGFloat = 4
     let height = max(size.height - inset * 2, 1)
 
-    let values = points.map(\.value)
-    let minValue = values.min() ?? 0
-    let maxValue = values.max() ?? 0
-    let span = maxValue - minValue
-
-    if points.count == 1 {
+    if series.count == 1 {
       return [CGPoint(x: size.width / 2, y: size.height / 2)]
     }
 
-    return points.enumerated().map { index, point in
-      let x = size.width * CGFloat(index) / CGFloat(points.count - 1)
-      // A perfectly flat series has no span to scale against; centring it beats
-      // dividing by zero or pinning it to the floor.
+    return series.enumerated().map { index, point in
+      let x = size.width * CGFloat(index) / CGFloat(series.count - 1)
       let ratio = span > 0 ? (point.value - minValue) / span : 0.5
       return CGPoint(x: x, y: inset + height * (1 - ratio))
     }

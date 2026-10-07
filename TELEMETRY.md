@@ -122,8 +122,9 @@ Train Libre enforces a strict zero-PII (Personally Identifiable Information) pol
 
 ### 2. Onboarding Funnel
 * **`onboarding_step_viewed`**:
-  * `step_index` (int: `0` to `7`)
-  * `step_name` (string: `"welcome"`, `"unit_system"`, `"region_selection"`, `"profile_basics"`, `"body_measurements"`, `"adaptive_goals"`, `"permissions_consent"`, `"completion"`)
+  * `step_index` (int: `0` to `14`)
+  * `step_name` (string enum identifying the funnel step)
+  * `screen_name` (string enum identifying the screen currently shown; for example `"name"`, `"age_and_gender"`, or `"height"`)
   * `duration_seconds` (int: time spent on previous step)
   * `session_id` (ephemeral RAM UUID)
 * **`onboarding_completed`**:
@@ -141,10 +142,10 @@ The closed set of values lives in `ScreenName` (`lib/services/telemetry/telemetr
 * **`screen_viewed`**:
   * `screen_name` (string enum):
     * **Tabs:** `"workout_tab"`, `"diary_tab"`, `"analytics_tab"`, `"profile_tab"`, `"settings_tab"`
-    * **Workout:** `"live_workout"`, `"routine_editor"`, `"routine_list"`, `"workout_summary"`, `"workout_history"`, `"workout_detail"`, `"exercise_catalog"`, `"exercise_detail"`, `"create_exercise"`
+    * **Workout:** `"live_workout"`, `"routine_editor"`, `"routine_list"`, `"workout_summary"`, `"workout_history"`, `"workout_detail"`, `"exercise_catalog"`, `"exercise_detail"`, `"create_exercise"`, `"training_plan_hub"`, `"training_plan_editor"`
     * **Diary:** `"diary_day_view"`, `"nutrition_hub"`, `"meal_list"`, `"add_food_search"`, `"food_detail"`, `"create_food"`, `"ai_meal_capture"`, `"ai_meal_review"`, `"meal_analysis"`, `"barcode_scanner"`, `"meal_editor"`, `"food_explorer"`
     * **Analytics:** `"statistics_hub"`, `"muscle_group_analytics"`, `"pr_dashboard"`, `"consistency_tracker"`, `"body_nutrition_correlation"`, `"recovery_tracker"`
-    * **Health & Utilities:** `"body_measurements"`, `"goal_editor"`, `"pulse_overview"`, `"sleep_overview"`, `"steps_overview"`, `"supplements_overview"`, `"settings_main"`, `"ai_settings"`, `"voice_dictation_settings"`, `"data_management"`, `"about_app"`, `"legal_privacy"`, `"feedback_report"`
+    * **Health & Utilities:** `"body_measurements"`, `"goal_editor"`, `"my_goals"`, `"create_goal_flow"`, `"goal_detail"`, `"weekly_goal_review"`, `"pulse_overview"`, `"sleep_overview"`, `"steps_overview"`, `"supplements_overview"`, `"settings_main"`, `"ai_settings"`, `"voice_dictation_settings"`, `"data_management"`, `"about_app"`, `"legal_privacy"`, `"feedback_report"`
 
 > **Reconciled against the app:** `"workout_overview"` was folded into `"workout_tab"` (same screen). `"cloud_backup"`, `"export_data"`, `"import_data"` and `"data_privacy_settings"` were replaced by the single `"data_management"` — backup, CSV export, import and local-data deletion all live on `DataManagementScreen`. `"fasting_tracker"` and `"qr_share"` were removed: the app has no fasting tracker, and routine sharing is text/image based with no QR screen. `"feedback_report"` and `"meal_analysis"` were added to reflect real screens.
 
@@ -152,11 +153,11 @@ The closed set of values lives in `ScreenName` (`lib/services/telemetry/telemetr
 The closed set of values lives in `FeatureKey` (`lib/services/telemetry/telemetry_service.dart`).
 
 * **`feature_used`**:
-  * `feature_key` (string): `"routine_created"`, `"routine_started"`, `"routine_shared"`, `"workout_imported"`, `"custom_exercise_created"`, `"barcode_scanned"`, `"custom_food_created"`, `"recipe_created"`, `"supplement_logged"`, `"voice_dictation_used"`, `"lidar_depth_captured"`, `"lidar_depth_visualized"`, `"ai_meal_correction_submitted"`, `"off_catalog_installed"`, `"off_catalog_updated"`, `"body_measurement_logged"`, `"apple_health_exported"`, `"health_connect_exported"`, `"json_backup_created"`, `"json_backup_restored"`, `"icloud_sync_triggered"`, `"csv_exported"`, `"app_tour_started"`, `"app_tour_completed"`, `"whats_new_viewed"`
+  * `feature_key` (string): `"routine_created"`, `"routine_started"`, `"routine_shared"`, `"workout_imported"`, `"custom_exercise_created"`, `"barcode_scanned"`, `"custom_food_created"`, `"recipe_created"`, `"supplement_logged"`, `"voice_dictation_used"`, `"lidar_depth_captured"`, `"lidar_depth_visualized"`, `"ai_meal_correction_submitted"`, `"off_catalog_installed"`, `"off_catalog_updated"`, `"body_measurement_logged"`, `"apple_health_exported"`, `"health_connect_exported"`, `"json_backup_created"`, `"json_backup_restored"`, `"icloud_sync_triggered"`, `"csv_exported"`, `"app_tour_started"`, `"app_tour_completed"`, `"whats_new_viewed"`, `"training_plan_created"`, `"training_plan_updated"`, `"training_plan_toggled"`, `"training_plan_deleted"`, `"training_plan_session_started"`, `"nutrition_goal_created"`, `"nutrition_goal_adjusted"`, `"nutrition_goal_retired"`, `"weekly_goal_review_completed"`
 
 > **Reconciled against the app:** `"routine_shared_qr"` became `"routine_shared"` — sharing goes through `ShareService`'s text/image sheet, there is no QR flow. `"routine_scanned_qr"` was replaced by `"workout_imported"` (CSV/XLSX import via `ImportManager`). `"fasting_timer_started"`, `"fasting_timer_completed"` and `"plate_calculator_used"` were removed: neither a fasting timer nor a plate calculator exists in the app.
 >
-> Keys whose event can fire from several screens are tracked at their data-layer choke point (`recipe_created`, `supplement_logged`, `body_measurement_logged`, `json_backup_created`, `json_backup_restored`, `csv_exported`, `off_catalog_installed`, `off_catalog_updated`) so no call site can bypass them. `icloud_sync_triggered` is tracked when the user enables iCloud sync or triggers a manual backup ("Backup Now"); automatic background syncs perform zero telemetry tracking.
+> Keys whose event can fire from several screens are tracked at their data-layer choke point (`recipe_created`, `supplement_logged`, `body_measurement_logged`, `json_backup_created`, `json_backup_restored`, `csv_exported`, `off_catalog_installed`, `off_catalog_updated`, `training_plan_toggled`, `nutrition_goal_created`, `nutrition_goal_adjusted`, `nutrition_goal_retired`) so no call site can bypass them. `icloud_sync_triggered` is tracked when the user enables iCloud sync or triggers a manual backup ("Backup Now"); automatic background syncs perform zero telemetry tracking.
 
 ### 5. Aggregated Food Logging (`daily_food_logged`)
 * **`daily_food_logged`**:
@@ -180,6 +181,7 @@ The closed set of values lives in `FeatureKey` (`lib/services/telemetry/telemetr
   * `has_failure_sets` (bool)
   * `used_plate_calculator` (bool — reserved; the app has no plate calculator yet, so this is always `false`)
   * `has_workout_notes` (bool)
+  * `from_training_plan` (bool: whether the workout session was started from a scheduled training plan day)
 
 `workout_type` is coerced to `"routine"` or `"custom"` in `trackWorkoutCompleted` before it is sent, so a user-authored routine title can never leak through this field.
 
@@ -214,9 +216,15 @@ The closed set of values lives in `FeatureKey` (`lib/services/telemetry/telemetr
   **Excluded by `_isSensitiveDiagnosticKey`:** any key carrying a body measurement or a nutrition quantity — `diag_latest_logged_weight_kg`, `diag_input_weight_reference_kg`, `diag_*_kcal`, `diag_*_protein_g` / `_carbs_g` / `_fat_g`, `diag_*maintenance*`, `diag_target_rate_kg_per_week` and anything else matching `weight` / `_kg` / `kcal` / `calorie` / `protein` / `carbs` / `fat` / `maintenance` (pure `*_count` and `*_days` keys are kept, since a count reveals no measured value). The user-authored note is never added to the map at all.
 
 * **`ai_meal_scan_requested`**: `request_id`, `provider`, `input_mode` (`"photo"`, `"text_only"`, `"multimodal"`), `photo_count`, `has_lidar`, `has_voice_input`, `has_text_input`
-* **`ai_meal_scan_completed`**: `request_id`, `provider`, `latency_bucket`, `success`, `error_code`, `input_mode`, `photo_count`, `has_lidar`, `has_voice_input`, `has_text_input`, `validation_passed`, `repair_attempts_count`, `suggested_items_count_bucket`
+* **`ai_meal_scan_completed`**: `request_id`, `provider`, `duration_seconds` (tap to completed automatic validation and repair, failure, or cancellation), `review_visible_seconds` (tap to first review frame when shown), `preliminary_nutrition_seconds` (tap to first local nutrition estimate when available), `success`, closed `error_code` (including `timeout`), `input_mode`, `photo_count`, `has_lidar`, `has_voice_input`, `has_text_input`, `validation_passed`, `repair_rounds_count` (0–3), `suggested_items_count_bucket`, `preparation_seconds`, `provider_seconds`, `validation_seconds`, `repair_seconds`, `reveal_seconds` (review transition only), `primary_first_pass_accepted`, `selected_validation_rounds_count` (1–4), `validation_runs_total_count`, `repair_limit_reached`, `first_pass_issue_categories` (only `semantic_match`, `quantity_or_anchor`, `other_validation`), `fast_mode`, `hedge_started`. Exactly one completion is emitted per user scan. Provider and validation phases may overlap during background validation while the review screen is progressively revealed. Missing milestones are omitted rather than reported as zero. The schema properties `fast_mode` and `hedge_started` are retained for dashboard compatibility (defaulting to false as speculative hedging was retired).
+* **`ai_meal_scan_usage`**: `request_id`, `provider`, `input_tokens`, `output_tokens`, `total_tokens`, `usage_complete`, `provider_calls_count`. Totals include every scan and automatic repair request. A missing provider count is never estimated; `usage_complete` is false.
+* **`ai_meal_review_finished`**: `request_id`, `outcome` (`saved_unchanged`, `saved_after_manual_edit`, `saved_after_ai_correction`, `discarded`), `ai_correction_rounds_count`, `review_duration_seconds`. Emitted once after a successful diary write or confirmed discard; a failed save does not close the review.
 * **`voice_dictation_completed`**: `duration_bucket` (`"<5s"`, `"5-15s"`, `"15-30s"`, `">30s"`), `ai_tidy_up_enabled`, `surface`, `success`, `error_code`
-* **`ai_meal_correction_completed`**: `has_images`, `latency_bucket`, `success`, `repair_attempts_count`, `error_code`
+* **`ai_meal_correction_completed`**: `has_images`, `duration_seconds`, `success`, `repair_attempts_count`, closed `error_code`, `input_tokens`, `output_tokens`, `total_tokens`, `usage_complete`. Token counts are omitted when a provider did not report complete usage.
+
+The Developer Lab also keeps up to 20 AI scan diagnostic logs **only on the device**. These logs are separate from PostHog and available regardless of telemetry opt-in. They contain a random scan ID, provider/model identifier, input mode and photo count, timestamps and phase durations, validation/repair outcomes, selected primary or parallel candidate, validation score and closed issue categories, provider-reported token counts per request and in total, and the final review outcome. They never store prompts, meal names, food details, photos, file paths, endpoints, API keys, or free-form error messages. Copying or clearing the logs requires an explicit action in the Developer Lab.
+
+AI telemetry is sent only under the existing opt-in. The scan ID is a fresh random UUID, used only to join the three scan/review events. Seconds and token counts are operational measures, not meal content. No photo, transcript, food name, nutrition value, API key, raw prompt, model response, or free-form provider error is included. The first-pass flag always refers to the primary AI candidate, even if a later parallel candidate wins; review outcomes show whether an automatically accepted result was actually kept by the user. These metrics are needed to evaluate latency and quality before changing any validation step.
 * **`db_migration_status`**: `from_version`, `to_version`, `success`
 
 * **`app_review_prompt_responded`** (Post-workout App Store review menu):
@@ -235,6 +243,58 @@ The closed set of values lives in `FeatureKey` (`lib/services/telemetry/telemetr
   * `session_stall_index` (int: 1–5, position within the current app session)
 
   **Frame statistics never leave the device on their own.** Continuous measurement runs locally and is visible under *Settings → Performance Log*; only this stall event and a user-initiated feedback report ever transmit any of it.
+
+### 9. Training Plans (Workout Plans)
+* **`training_plan_created`**:
+  * `kind` (string: `"week"` or `"sequence"`)
+  * `day_count` (int: e.g. `7` for weekly plans or length for sequence plans)
+  * `workout_days_count` (int: number of non-rest workout days)
+  * `rest_days_count` (int: number of rest days)
+  * `is_active` (bool: whether the plan was activated upon creation)
+* **`training_plan_updated`**:
+  * `kind` (string: `"week"` or `"sequence"`)
+  * `day_count` (int)
+  * `workout_days_count` (int)
+  * `rest_days_count` (int)
+  * `effective_timing` (string: `"from_today"` or `"next_cycle"`)
+* **`training_plan_toggled`**:
+  * `action` (string: `"activated"` or `"deactivated"`)
+  * `kind` (string: `"week"` or `"sequence"`)
+* **`training_plan_deleted`**:
+  * `kind` (string: `"week"` or `"sequence"`)
+* **`training_plan_session_started`**:
+  * `kind` (string: `"week"` or `"sequence"`)
+  * `is_rest_day_override` (bool: true if the user started a workout on a scheduled rest day)
+  * `day_index` (int: 0-based calendar slot index)
+
+> **Zero PII Guarantee:** Plan titles, routine names, exercise configurations, and note texts are strictly forbidden and never transmitted. Only structural schedule metrics (kinds, day counts, rest days) are recorded.
+
+### 10. Nutrition Plans & Adaptive Goals
+* **`nutrition_goal_created`**:
+  * `preset` (string: `"lose_weight"`, `"gain_weight"`, `"maintain_weight"`, `"recomposition"`, `"custom"`)
+  * `tracking_mode` (string: `"open"`, `"weekly_rate"`, `"target_weight"`)
+  * `is_nutrition_driver` (bool: whether this goal actively drives diary daily macro/calorie targets)
+  * `has_target_date` (bool: whether a completion deadline is set)
+  * `has_numeric_target` (bool: whether a specific numerical target is specified)
+  * `rate_direction` (string: `"deficit"`, `"surplus"`, `"maintenance"`, `"neutral"`)
+  * `source` (string: `"profile"` or `"onboarding"`)
+* **`nutrition_goal_adjusted`**:
+  * `adjustment_type` (string: `"pace"`, `"target"`, or `"timeline"`)
+  * `is_nutrition_driver` (bool)
+  * `rate_direction` (string: `"deficit"`, `"surplus"`, `"maintenance"`, `"neutral"`)
+* **`nutrition_goal_retired`**:
+  * `reason` (string: `"completed"`, `"abandoned"`, `"superseded"`, or `"manual"`)
+  * `duration_days_bucket` (string enum: `"<7d"`, `"1-4w"`, `"1-3m"`, `"3-6m"`, `">6m"`)
+* **`weekly_goal_review_completed`**:
+  * `trajectory_status` (string: `"on_track"`, `"slower"`, `"faster"`, or `"calibrating"`)
+  * `confidence_level` (string: `"high"`, `"moderate"`, `"low"`, or `"uncalibrated"`)
+  * `decision` (string: `"applied"`, `"deferred"`, `"dismissed"`, or `"goal_changed"`)
+  * `weight_observation_count_bucket` (string: `"0"`, `"1-2"`, `"3-5"`, `"6+"`)
+  * `logged_intake_days_bucket` (string: `"0"`, `"1-2"`, `"3-5"`, `"6+"`)
+  * `calorie_adjustment_direction` (string: `"increase"`, `"decrease"`, `"maintain"`, or `"none"`)
+  * `has_macro_adjustments` (bool: whether protein/carbs/fat targets were updated)
+
+> **Zero PII Guarantee:** Absolute user body weights (baseline weight, target weight), exact weight change quantities, and caloric numbers (e.g. target kcal, deficit kcal) are strictly excluded. Only standardized presets, rates/directions, and bucketed observation counts are captured.
 
 ---
 

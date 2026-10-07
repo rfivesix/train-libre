@@ -270,6 +270,109 @@ import WidgetKit
     }
   }
 
+  /// A single-row timer control for the height-limited Dynamic Island view.
+  @available(iOS 17.0, *)
+  struct LAInlineSetTimerControl: View {
+    let state: WorkoutActivityAttributes.ContentState
+
+    var body: some View {
+      HStack(spacing: 7) {
+        timerCard
+        if let startedAt = state.setTimerStartedAt {
+          Button(intent: StopSetTimerIntent()) {
+            Image(systemName: "stop.fill")
+              .font(.system(size: 14, weight: .bold))
+              .foregroundStyle(LATheme.onAccent)
+              .frame(width: LATheme.tickSize, height: LATheme.tickSize)
+              .background(
+                LATheme.accent,
+                in: RoundedRectangle(cornerRadius: LATheme.controlRadius)
+              )
+          }
+          .buttonStyle(.plain)
+        } else {
+          Button(intent: StartSetTimerIntent()) {
+            Image(systemName: "play.fill")
+              .font(.system(size: 16, weight: .bold))
+              .foregroundStyle(LATheme.onAccent)
+              .frame(width: LATheme.tickSize, height: LATheme.tickSize)
+              .background(
+                LATheme.accent,
+                in: RoundedRectangle(cornerRadius: LATheme.controlRadius)
+              )
+          }
+          .buttonStyle(.plain)
+        }
+      }
+      // Give the metrics, timer and checkmark stable widths in the Dynamic
+      // Island. A system `.timer` Text with `.fixedSize()` expands as its
+      // hour digits change and can make ActivityKit drop the entire bottom
+      // region; the rest control avoids this with a centered timer card.
+      .frame(width: 120, alignment: .leading)
+    }
+
+    @ViewBuilder
+    private var timerCard: some View {
+      Group {
+        if let startedAt = state.setTimerStartedAt {
+          Text(startedAt, style: .timer)
+        } else {
+          Text(LAClockText.string(state.setTimerElapsedSeconds ?? 0))
+        }
+      }
+      .font(.system(size: 17, weight: .bold).monospacedDigit())
+      .foregroundStyle(.white)
+      .lineLimit(1)
+      .minimumScaleFactor(0.55)
+      .multilineTextAlignment(.center)
+      .frame(width: 76, height: LATheme.controlHeight, alignment: .center)
+      .background(
+        LATheme.controlFill,
+        in: RoundedRectangle(cornerRadius: LATheme.controlRadius)
+      )
+    }
+  }
+
+  private enum LAClockText {
+    static func string(_ seconds: Int) -> String {
+      let total = max(0, seconds)
+      let hours = total / 3600
+      let minutes = (total / 60) % 60
+      let remainder = total % 60
+      return hours > 0
+        ? String(format: "%d:%02d:%02d", hours, minutes, remainder)
+        : String(format: "%02d:%02d", minutes, remainder)
+    }
+  }
+
+  @available(iOS 16.2, *)
+  struct LASetTimerReadout: View {
+    let state: WorkoutActivityAttributes.ContentState
+    var body: some View {
+      if let startedAt = state.setTimerStartedAt {
+        Text(startedAt, style: .timer)
+          .font(.system(size: 17, weight: .bold).monospacedDigit())
+          .foregroundStyle(.white)
+          .lineLimit(1)
+          .minimumScaleFactor(0.6)
+          .multilineTextAlignment(.center)
+          .frame(maxWidth: .infinity)
+          .frame(height: LATheme.controlHeight)
+          .background(LATheme.controlFill, in: RoundedRectangle(cornerRadius: LATheme.controlRadius))
+      } else {
+        Text(LAClockText.string(state.setTimerElapsedSeconds ?? 0))
+          .font(.system(size: 17, weight: .bold).monospacedDigit())
+          .foregroundStyle(.white)
+          .lineLimit(1)
+          .minimumScaleFactor(0.6)
+          .multilineTextAlignment(.center)
+          .frame(maxWidth: .infinity)
+          .frame(height: LATheme.controlHeight)
+          .background(LATheme.controlFill, in: RoundedRectangle(cornerRadius: LATheme.controlRadius))
+      }
+    }
+  }
+
   @available(iOS 16.2, *)
   struct LAWideButton: View {
     let title: String
@@ -336,6 +439,14 @@ import WidgetKit
           showTertiary: showTertiary,
           prominent: prominent
         )
+        if context.state.setTimerTemplateId != nil {
+          if #available(iOS 17.0, *) {
+            LAInlineSetTimerControl(state: context.state)
+          } else {
+            LASetTimerReadout(state: context.state)
+              .frame(width: 60, height: LATheme.tickSize)
+          }
+        }
         Spacer(minLength: 4)
         LATickButton(
           attributes: context.attributes,
@@ -388,6 +499,14 @@ import WidgetKit
           showTertiary: showTertiary,
           prominent: prominent
         )
+        if context.state.setTimerTemplateId != nil {
+          if #available(iOS 17.0, *) {
+            LAInlineSetTimerControl(state: context.state)
+          } else {
+            LASetTimerReadout(state: context.state)
+              .frame(width: 60, height: LATheme.tickSize)
+          }
+        }
         Spacer(minLength: 4)
         LATickButton(
           attributes: context.attributes,

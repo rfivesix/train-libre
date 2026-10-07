@@ -447,6 +447,7 @@ class PostHogTelemetryService implements TelemetryService {
     bool hasFailureSets = false,
     bool usedPlateCalculator = false,
     bool hasWorkoutNotes = false,
+    bool fromTrainingPlan = false,
   }) async {
     // Force workoutType to enum 'routine' or 'custom' ONLY to prevent custom title leaks
     final safeType = workoutType == 'routine' ? 'routine' : 'custom';
@@ -466,6 +467,7 @@ class PostHogTelemetryService implements TelemetryService {
       'has_failure_sets': hasFailureSets,
       'used_plate_calculator': usedPlateCalculator,
       'has_workout_notes': hasWorkoutNotes,
+      'from_training_plan': fromTrainingPlan,
     });
   }
 
@@ -588,12 +590,14 @@ class PostHogTelemetryService implements TelemetryService {
   Future<void> trackOnboardingStep({
     required int stepIndex,
     required String stepName,
+    required String screenName,
     required int durationSeconds,
     required String sessionId,
   }) async {
     await track('onboarding_step_viewed', properties: {
       'step_index': stepIndex,
       'step_name': stepName,
+      'screen_name': screenName,
       'duration_seconds': durationSeconds,
       'session_id': sessionId,
     });
@@ -650,7 +654,9 @@ class PostHogTelemetryService implements TelemetryService {
   Future<void> trackAiMealScanCompleted({
     required String requestId,
     required String provider,
-    required String latencyBucket,
+    required int durationSeconds,
+    int? reviewVisibleSeconds,
+    int? preliminaryNutritionSeconds,
     required bool success,
     String? errorCode,
     String? inputMode,
@@ -661,11 +667,27 @@ class PostHogTelemetryService implements TelemetryService {
     bool? validationPassed,
     int? repairAttemptsCount,
     String? suggestedItemsCountBucket,
+    int? preparationSeconds,
+    int? providerSeconds,
+    int? validationSeconds,
+    int? repairSeconds,
+    int? revealSeconds,
+    bool? primaryFirstPassAccepted,
+    int? selectedValidationRoundsCount,
+    int? validationRunsTotalCount,
+    bool? repairLimitReached,
+    List<String>? firstPassIssueCategories,
+    bool? fastMode,
+    bool? hedgeStarted,
   }) async {
     await track('ai_meal_scan_completed', properties: {
       'request_id': requestId,
       'provider': provider,
-      'latency_bucket': latencyBucket,
+      'duration_seconds': durationSeconds,
+      if (reviewVisibleSeconds != null)
+        'review_visible_seconds': reviewVisibleSeconds,
+      if (preliminaryNutritionSeconds != null)
+        'preliminary_nutrition_seconds': preliminaryNutritionSeconds,
       'success': success,
       if (errorCode != null) 'error_code': errorCode,
       if (inputMode != null) 'input_mode': inputMode,
@@ -675,9 +697,26 @@ class PostHogTelemetryService implements TelemetryService {
       if (hasTextInput != null) 'has_text_input': hasTextInput,
       if (validationPassed != null) 'validation_passed': validationPassed,
       if (repairAttemptsCount != null)
-        'repair_attempts_count': repairAttemptsCount,
+        'repair_rounds_count': repairAttemptsCount,
       if (suggestedItemsCountBucket != null)
         'suggested_items_count_bucket': suggestedItemsCountBucket,
+      if (preparationSeconds != null) 'preparation_seconds': preparationSeconds,
+      if (providerSeconds != null) 'provider_seconds': providerSeconds,
+      if (validationSeconds != null) 'validation_seconds': validationSeconds,
+      if (repairSeconds != null) 'repair_seconds': repairSeconds,
+      if (revealSeconds != null) 'reveal_seconds': revealSeconds,
+      if (primaryFirstPassAccepted != null)
+        'primary_first_pass_accepted': primaryFirstPassAccepted,
+      if (selectedValidationRoundsCount != null)
+        'selected_validation_rounds_count': selectedValidationRoundsCount,
+      if (validationRunsTotalCount != null)
+        'validation_runs_total_count': validationRunsTotalCount,
+      if (repairLimitReached != null)
+        'repair_limit_reached': repairLimitReached,
+      if (firstPassIssueCategories != null)
+        'first_pass_issue_categories': firstPassIssueCategories,
+      if (fastMode != null) 'fast_mode': fastMode,
+      if (hedgeStarted != null) 'hedge_started': hedgeStarted,
     });
   }
 
@@ -701,18 +740,26 @@ class PostHogTelemetryService implements TelemetryService {
   @override
   Future<void> trackAiMealCorrectionCompleted({
     required bool hasImages,
-    required String latencyBucket,
+    required int durationSeconds,
     required bool success,
     int? repairAttemptsCount,
     String? errorCode,
+    int? inputTokens,
+    int? outputTokens,
+    int? totalTokens,
+    bool? usageComplete,
   }) async {
     await track('ai_meal_correction_completed', properties: {
       'has_images': hasImages,
-      'latency_bucket': latencyBucket,
+      'duration_seconds': durationSeconds,
       'success': success,
       if (repairAttemptsCount != null)
         'repair_attempts_count': repairAttemptsCount,
       if (errorCode != null) 'error_code': errorCode,
+      if (inputTokens != null) 'input_tokens': inputTokens,
+      if (outputTokens != null) 'output_tokens': outputTokens,
+      if (totalTokens != null) 'total_tokens': totalTokens,
+      if (usageComplete != null) 'usage_complete': usageComplete,
     });
   }
 
@@ -789,6 +836,204 @@ class PostHogTelemetryService implements TelemetryService {
   }) async {
     await track('app_review_prompt_responded', properties: {
       'response': AppReviewPromptResponse.sanitize(response),
+    });
+  }
+
+  @override
+  Future<void> trackTrainingPlanCreated({
+    required String kind,
+    required int dayCount,
+    required int workoutDaysCount,
+    required int restDaysCount,
+    required bool isActive,
+  }) async {
+    final safeKind = kind == 'sequence' ? 'sequence' : 'week';
+    await track('training_plan_created', properties: {
+      'kind': safeKind,
+      'day_count': dayCount,
+      'workout_days_count': workoutDaysCount,
+      'rest_days_count': restDaysCount,
+      'is_active': isActive,
+    });
+  }
+
+  @override
+  Future<void> trackTrainingPlanUpdated({
+    required String kind,
+    required int dayCount,
+    required int workoutDaysCount,
+    required int restDaysCount,
+    required String effectiveTiming,
+  }) async {
+    final safeKind = kind == 'sequence' ? 'sequence' : 'week';
+    final safeTiming =
+        effectiveTiming == 'next_cycle' ? 'next_cycle' : 'from_today';
+    await track('training_plan_updated', properties: {
+      'kind': safeKind,
+      'day_count': dayCount,
+      'workout_days_count': workoutDaysCount,
+      'rest_days_count': restDaysCount,
+      'effective_timing': safeTiming,
+    });
+  }
+
+  @override
+  Future<void> trackTrainingPlanToggled({
+    required String action,
+    required String kind,
+  }) async {
+    final safeAction = action == 'activated' ? 'activated' : 'deactivated';
+    final safeKind = kind == 'sequence' ? 'sequence' : 'week';
+    await track('training_plan_toggled', properties: {
+      'action': safeAction,
+      'kind': safeKind,
+    });
+  }
+
+  @override
+  Future<void> trackTrainingPlanDeleted({
+    required String kind,
+  }) async {
+    final safeKind = kind == 'sequence' ? 'sequence' : 'week';
+    await track('training_plan_deleted', properties: {
+      'kind': safeKind,
+    });
+  }
+
+  @override
+  Future<void> trackTrainingPlanSessionStarted({
+    required String kind,
+    required bool isRestDayOverride,
+    required int dayIndex,
+  }) async {
+    final safeKind = kind == 'sequence' ? 'sequence' : 'week';
+    await track('training_plan_session_started', properties: {
+      'kind': safeKind,
+      'is_rest_day_override': isRestDayOverride,
+      'day_index': dayIndex,
+    });
+  }
+
+  @override
+  Future<void> trackNutritionGoalCreated({
+    required String preset,
+    required String trackingMode,
+    required bool isNutritionDriver,
+    required bool hasTargetDate,
+    required bool hasNumericTarget,
+    required String rateDirection,
+    required String source,
+  }) async {
+    const validPresets = {
+      'lose_weight',
+      'gain_weight',
+      'maintain_weight',
+      'recomposition',
+      'custom'
+    };
+    const validTrackingModes = {'open', 'weekly_rate', 'target_weight'};
+    const validRateDirections = {
+      'deficit',
+      'surplus',
+      'maintenance',
+      'neutral'
+    };
+    const validSources = {'profile', 'onboarding'};
+
+    final safePreset = validPresets.contains(preset) ? preset : 'custom';
+    final safeMode = validTrackingModes.contains(trackingMode)
+        ? trackingMode
+        : 'weekly_rate';
+    final safeDirection =
+        validRateDirections.contains(rateDirection) ? rateDirection : 'neutral';
+    final safeSource = validSources.contains(source) ? source : 'profile';
+
+    await track('nutrition_goal_created', properties: {
+      'preset': safePreset,
+      'tracking_mode': safeMode,
+      'is_nutrition_driver': isNutritionDriver,
+      'has_target_date': hasTargetDate,
+      'has_numeric_target': hasNumericTarget,
+      'rate_direction': safeDirection,
+      'source': safeSource,
+    });
+  }
+
+  @override
+  Future<void> trackNutritionGoalAdjusted({
+    required String adjustmentType,
+    required bool isNutritionDriver,
+    required String rateDirection,
+  }) async {
+    const validTypes = {'pace', 'target', 'timeline'};
+    const validRateDirections = {
+      'deficit',
+      'surplus',
+      'maintenance',
+      'neutral'
+    };
+
+    final safeType =
+        validTypes.contains(adjustmentType) ? adjustmentType : 'pace';
+    final safeDirection =
+        validRateDirections.contains(rateDirection) ? rateDirection : 'neutral';
+
+    await track('nutrition_goal_adjusted', properties: {
+      'adjustment_type': safeType,
+      'is_nutrition_driver': isNutritionDriver,
+      'rate_direction': safeDirection,
+    });
+  }
+
+  @override
+  Future<void> trackNutritionGoalRetired({
+    required String reason,
+    required String durationDaysBucket,
+  }) async {
+    const validReasons = {'completed', 'abandoned', 'superseded', 'manual'};
+    final safeReason = validReasons.contains(reason) ? reason : 'manual';
+    await track('nutrition_goal_retired', properties: {
+      'reason': safeReason,
+      'duration_days_bucket': durationDaysBucket,
+    });
+  }
+
+  @override
+  Future<void> trackWeeklyGoalReviewCompleted({
+    required String trajectoryStatus,
+    required String confidenceLevel,
+    required String decision,
+    required String weightObservationCountBucket,
+    required String loggedIntakeDaysBucket,
+    required String calorieAdjustmentDirection,
+    required bool hasMacroAdjustments,
+  }) async {
+    const validTrajectories = {'on_track', 'slower', 'faster', 'calibrating'};
+    const validConfidences = {'high', 'moderate', 'low', 'uncalibrated'};
+    const validDecisions = {'applied', 'deferred', 'dismissed', 'goal_changed'};
+    const validCalorieDirections = {'increase', 'decrease', 'maintain', 'none'};
+
+    final safeTrajectory = validTrajectories.contains(trajectoryStatus)
+        ? trajectoryStatus
+        : 'calibrating';
+    final safeConfidence = validConfidences.contains(confidenceLevel)
+        ? confidenceLevel
+        : 'uncalibrated';
+    final safeDecision =
+        validDecisions.contains(decision) ? decision : 'dismissed';
+    final safeCalorieDirection =
+        validCalorieDirections.contains(calorieAdjustmentDirection)
+            ? calorieAdjustmentDirection
+            : 'none';
+
+    await track('weekly_goal_review_completed', properties: {
+      'trajectory_status': safeTrajectory,
+      'confidence_level': safeConfidence,
+      'decision': safeDecision,
+      'weight_observation_count_bucket': weightObservationCountBucket,
+      'logged_intake_days_bucket': loggedIntakeDaysBucket,
+      'calorie_adjustment_direction': safeCalorieDirection,
+      'has_macro_adjustments': hasMacroAdjustments,
     });
   }
 }

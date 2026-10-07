@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 
 import '../../../core/performance/jank_route_observer.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
@@ -34,6 +35,7 @@ import '../../diary/presentation/nutrition_hub_screen.dart';
 import '../../profile/presentation/profile_screen.dart';
 import '../../analytics/presentation/statistics_hub_screen.dart';
 import '../../workout/presentation/workout_hub_screen.dart';
+import '../../workout/presentation/widgets/workout_history_app_bar_button.dart';
 import '../../../services/profile_service.dart';
 import '../../steps/data/steps_aggregation_repository.dart';
 import '../../../services/haptic_feedback_service.dart';
@@ -59,6 +61,12 @@ import '../../onboarding/presentation/widgets/app_tour_overlay.dart';
 import '../../../widgets/common/app_button.dart';
 import '../../home_widgets/application/home_widget_sync_service.dart';
 import '../../home_widgets/home_widget_deep_link.dart';
+import '../../../services/local_notification_service.dart';
+import '../../../services/notification_navigation.dart';
+import '../../profile/data/goal_repository_impl.dart';
+import '../../profile/presentation/goal_detail_screen.dart';
+import '../../profile/presentation/weekly_goal_review_screen.dart';
+import '../../workout/presentation/manual_plan_screen.dart';
 
 /// The root scaffold containing the main navigation structure.
 ///
@@ -108,6 +116,7 @@ class _MainScreenState extends State<MainScreen>
   late final AnimationController _menuController;
   final StepsAggregationRepository _stepsRepository =
       HealthStepsAggregationRepository();
+  StreamSubscription<AppNotificationPayload>? _notificationTapSubscription;
 
   ThemeService get themeService =>
       Provider.of<ThemeService>(context, listen: false);
@@ -150,8 +159,10 @@ class _MainScreenState extends State<MainScreen>
       duration: const Duration(milliseconds: 400),
     );
     MainScreen.drainPendingWidgetAction = _drainPendingWidgetAction;
+    _notificationTapSubscription = LocalNotificationService
+        .instance.notificationTaps
+        .listen(_handleNotificationTap);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      unawaited(_runStartupPrompts());
       if (_currentIndex >= 0 && _currentIndex < _tabScreenNames.length) {
         _publishPerfTabLabel(_currentIndex);
         unawaited(TelemetryService.instance.trackScreenView(
@@ -160,12 +171,22 @@ class _MainScreenState extends State<MainScreen>
       }
       // Cold launch from a widget: the deep link arrived before this screen
       // existed, so the action was parked rather than run.
-      _drainPendingWidgetAction();
-      // First population, so a freshly added widget is not stuck on placeholders
-      // until the user happens to log something.
-      refreshHomeWidgets();
+      _scheduleIdleStartupWork();
     });
     _startWidgetRefreshTimer();
+  }
+
+  void _scheduleIdleStartupWork() {
+    SchedulerBinding.instance.scheduleTask(() async {
+      if (!mounted) return;
+      unawaited(_runStartupPrompts());
+      _drainPendingWidgetAction();
+      final pendingTap =
+          LocalNotificationService.instance.takePendingNotificationTap();
+      if (pendingTap != null) unawaited(_handleNotificationTap(pendingTap));
+      unawaited(_tagebuchKey.currentState?.syncHealthData());
+      refreshHomeWidgets();
+    }, Priority.idle, debugLabel: 'deferred-main-startup');
   }
 
   /// Runs a quick action parked by the Home Screen widget deep link, if any.
@@ -187,6 +208,34 @@ class _MainScreenState extends State<MainScreen>
     }
 
     _executeAddMenuAction(action);
+  }
+
+  Future<void> _handleNotificationTap(AppNotificationPayload payload) async {
+    LocalNotificationService.instance.takePendingNotificationTap();
+    final destination =
+        await AppNotificationRouter(GoalRepositoryImpl()).resolve(payload);
+    if (!mounted) return;
+    switch (destination) {
+      case WorkoutPlanNotificationDestination():
+        _onNavigationTapped(1);
+        await Navigator.of(context).push(MaterialPageRoute(
+          builder: (_) => const ManualPlanScreen(),
+        ));
+        return;
+      case NutritionHubNotificationDestination():
+        _onNavigationTapped(3);
+        return;
+      case GoalDetailNotificationDestination(:final goal):
+        await Navigator.of(context).push(MaterialPageRoute(
+          builder: (_) => GoalDetailScreen(goalId: goal.id),
+        ));
+        return;
+      case WeeklyReviewNotificationDestination(:final goal, :final review):
+        await Navigator.of(context).push(MaterialPageRoute(
+          builder: (_) => WeeklyGoalReviewScreen(goal: goal, review: review),
+        ));
+        return;
+    }
   }
 
   @override
@@ -267,6 +316,7 @@ class _MainScreenState extends State<MainScreen>
   @override
   void dispose() {
     _widgetRefreshTimer?.cancel();
+    _notificationTapSubscription?.cancel();
     WidgetsBinding.instance.removeObserver(this);
     if (_isRouteObserverAttached) {
       appRouteObserver.unsubscribe(this);
@@ -1103,7 +1153,10 @@ class _MainScreenState extends State<MainScreen>
       case 1: // Workout
         return GlobalAppBar(
           title: l10n.workout,
-          actions: [_profileAppBarButton(context)],
+          actions: [
+            const WorkoutHistoryAppBarButton(),
+            _profileAppBarButton(context),
+          ],
         );
       case 2: // Stats
         return GlobalAppBar(
@@ -1606,7 +1659,10 @@ class _MainScreenState extends State<MainScreen>
               children: <Widget>[
                 KeepAlivePage(
                   storageKey: const PageStorageKey('tab_tagebuch'),
-                  child: DiaryScreen(contentKey: _tagebuchKey),
+                  child: DiaryScreen(
+                    contentKey: _tagebuchKey,
+                    deferInitialHealthSync: true,
+                  ),
                 ),
                 const KeepAlivePage(
                   storageKey: PageStorageKey('tab_workout'),
@@ -1910,6 +1966,7 @@ class _MainScreenState extends State<MainScreen>
         right: DesignConstants.screenPaddingHorizontal,
       ),
       child: Tooltip(
+        excludeFromSemantics: true,
         message: AppLocalizations.of(context)!.profile,
         child: Semantics(
           label: AppLocalizations.of(context)!.profile,

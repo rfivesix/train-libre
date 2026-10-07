@@ -7,11 +7,14 @@ import '../../analytics/domain/models/chart_data_point.dart';
 import '../../diary/domain/models/fluid_entry.dart';
 import '../../../services/health/steps_sync_service.dart';
 import '../../../data/drift_database.dart' as db;
+import '../../../util/weight_smoothing_util.dart';
 import '../domain/goal_models.dart';
 import '../domain/recommendation_models.dart';
 
 class RecommendationInputAdapter {
   static const int defaultPriorStepsLookbackDays = 21;
+  static const int adaptiveLookbackDays = 14;
+  static const double weightEwmaAlpha = WeightSmoothingUtil.defaultAlpha;
 
   final DatabaseHelper _databaseHelper;
 
@@ -29,9 +32,10 @@ class RecommendationInputAdapter {
 
   Future<RecommendationGenerationInput> buildInput({
     required DateTime now,
-    int rollingWindowDays = 21,
+    int rollingWindowDays = adaptiveLookbackDays,
     PriorActivityLevel declaredActivityLevel = PriorActivityLevel.moderate,
     ExtraCardioHoursOption extraCardioHoursOption = ExtraCardioHoursOption.h0,
+    double? baselineWeightKg,
   }) async {
     final windowEndDay = normalizeDay(now);
     final windowStartDay = windowEndDay
@@ -52,6 +56,7 @@ class RecommendationInputAdapter {
       _databaseHelper.getLatestBodyFatPercentageBefore(rangeEnd),
       _databaseHelper.getAverageCompletedWorkoutsPerWeek(now: rangeEnd),
       _databaseHelper.getAppSettings(),
+      _databaseHelper.getLatestWeightBefore(rangeEnd),
     ]);
 
     final weightPoints = results[0] as List<ChartDataPoint>;
@@ -62,6 +67,7 @@ class RecommendationInputAdapter {
     final bodyFatPercent = results[5] as double?;
     final averageCompletedWorkoutsPerWeek = results[6] as double;
     final appSettings = results[7] as db.AppSetting?;
+    final latestHistoricalWeight = results[8] as double?;
     final recentAverageActualSteps = await loadRecentAverageActualSteps(
       databaseHelper: _databaseHelper,
       endDay: windowEndDay,
@@ -83,7 +89,7 @@ class RecommendationInputAdapter {
 
     final smoothedWeightSeries = _ewma(
       sortedWeightSeries,
-      alpha: 0.35,
+      alpha: weightEwmaAlpha,
     );
     final weightSlopeKgPerWeek =
         _trendSlopeKgPerWeek(smoothedWeightSeries, sortedWeightSeries);
@@ -96,8 +102,14 @@ class RecommendationInputAdapter {
     final avgLoggedCalories =
         intakeLoggedDays == 0 ? 0.0 : loggedCaloriesTotal / intakeLoggedDays;
 
-    final currentWeightKg =
-        sortedWeightSeries.isNotEmpty ? sortedWeightSeries.last.value : 75.0;
+    final currentWeightKg = sortedWeightSeries.isNotEmpty
+        ? sortedWeightSeries.last.value
+        : (latestHistoricalWeight ?? baselineWeightKg);
+    if (currentWeightKg == null || currentWeightKg <= 0) {
+      throw StateError(
+        'A real weight measurement or baseline snapshot is required.',
+      );
+    }
     final priorMaintenanceCalories = estimatePriorMaintenanceCalories(
       profile: profile,
       currentWeightKg: currentWeightKg,
@@ -138,6 +150,8 @@ class RecommendationInputAdapter {
       smoothedWeightSlopeKgPerWeek: weightSlopeKgPerWeek,
       avgLoggedCalories: avgLoggedCalories,
       currentWeightKg: currentWeightKg,
+      smoothedCurrentWeightKg:
+          smoothedWeightSeries.isEmpty ? null : smoothedWeightSeries.last.value,
       priorMaintenanceCalories: priorMaintenanceCalories,
       activeTargetCalories: activeGoals?.targetCalories,
       qualityFlags: qualityFlags,
@@ -156,7 +170,14 @@ class RecommendationInputAdapter {
     int? recentAverageSteps,
     int fallbackHeightCm = 175,
   }) {
-    final weightKg = currentWeightKg > 0 ? currentWeightKg : 75.0;
+    if (currentWeightKg <= 0) {
+      throw ArgumentError.value(
+        currentWeightKg,
+        'currentWeightKg',
+        'A positive measured weight is required.',
+      );
+    }
+    final weightKg = currentWeightKg;
     final heightCm = profile?.height ?? fallbackHeightCm;
     final ageYears = _estimateAgeYears(profile?.birthday, now) ?? 30;
     final gender = profile?.gender;

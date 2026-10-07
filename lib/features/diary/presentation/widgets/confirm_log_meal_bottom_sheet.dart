@@ -161,10 +161,6 @@ class _ConfirmLogMealBottomSheetState extends State<ConfirmLogMealBottomSheet> {
             labelText: l10n.mealTypeLabel,
             border: const OutlineInputBorder(),
             isDense: true,
-            filled: true,
-            fillColor: Theme.of(context).brightness == Brightness.dark
-                ? (Theme.of(context).inputDecorationTheme.fillColor ?? const Color(0xFF2C2C2E))
-                : Colors.white,
           ),
           items: _internalTypes
               .map(
@@ -230,11 +226,6 @@ class _ConfirmLogMealBottomSheetState extends State<ConfirmLogMealBottomSheet> {
                       decoration: InputDecoration(
                         labelText: displayName,
                         suffixText: unit,
-                        filled: true,
-                        fillColor:
-                            Theme.of(context).brightness == Brightness.dark
-                                ? (Theme.of(context).inputDecorationTheme.fillColor ?? const Color(0xFF2C2C2E))
-                                : Colors.black.withValues(alpha: 0.05),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(
                               DesignConstants.borderRadiusM),

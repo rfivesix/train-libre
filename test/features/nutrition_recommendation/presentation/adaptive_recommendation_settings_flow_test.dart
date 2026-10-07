@@ -10,6 +10,7 @@ import 'package:train_libre/features/profile/data/profile_repository.dart';
 import 'package:train_libre/features/profile/data/sources/profile_local_data_source.dart';
 import 'package:train_libre/features/profile/presentation/goals_screen.dart';
 import 'package:train_libre/features/onboarding/presentation/onboarding_screen.dart';
+import 'package:train_libre/features/settings/presentation/calculation_basis_screen.dart';
 import 'package:train_libre/services/unit_service.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -61,6 +62,8 @@ void main() {
         name,
       );
       await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('onboarding_bottom_next_button')));
+      await tester.pumpAndSettle();
 
       final genderDropdown =
           find.byKey(const Key('onboarding_gender_dropdown'));
@@ -77,14 +80,12 @@ void main() {
       await tester.tap(okButton);
       await tester.pumpAndSettle();
 
-      await tester.enterText(
-        find.byKey(const Key('onboarding_height_text_field')),
-        height,
-      );
+      // Advance from BioDataSlide to HeightSlide
+      await tester.tap(find.byKey(const Key('onboarding_bottom_next_button')));
       await tester.pumpAndSettle();
     }
 
-    testWidgets('goals screen keeps adaptive sections above daily goals',
+    testWidgets('daily targets screen no longer exposes legacy goal controls',
         (tester) async {
       await tester.pumpWidget(
         wrapWithProviders(
@@ -102,37 +103,15 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      final adaptiveSection =
-          find.byKey(const Key('goals_adaptive_section_title'));
-      final personalSection =
-          find.byKey(const Key('goals_personal_section_title'));
-      final recommendationSettingsSection = find.byKey(
-        const Key('goals_recommendation_settings_section_title'),
-      );
       final dailyGoalsSection =
           find.byKey(const Key('goals_daily_section_title'));
-      final heightField = find.byKey(const Key('goals_height_field'));
-
-      expect(personalSection, findsOneWidget);
-      expect(adaptiveSection, findsOneWidget);
-      expect(recommendationSettingsSection, findsOneWidget);
       expect(dailyGoalsSection, findsOneWidget);
-      expect(heightField, findsOneWidget);
-      expect(find.byKey(const Key('goals_prior_activity_dropdown')),
-          findsOneWidget);
       expect(
-          find.byKey(const Key('goals_extra_cardio_dropdown')), findsOneWidget);
-
-      final personalTop = tester.getTopLeft(personalSection).dy;
-      final heightFieldTop = tester.getTopLeft(heightField).dy;
-      final adaptiveTop = tester.getTopLeft(adaptiveSection).dy;
-      final settingsTop = tester.getTopLeft(recommendationSettingsSection).dy;
-      final dailyTop = tester.getTopLeft(dailyGoalsSection).dy;
-
-      expect(personalTop, lessThan(adaptiveTop));
-      expect(heightFieldTop, lessThan(adaptiveTop));
-      expect(adaptiveTop, lessThan(settingsTop));
-      expect(settingsTop, lessThan(dailyTop));
+          find.byKey(const Key('goals_personal_section_title')), findsNothing);
+      expect(
+          find.byKey(const Key('goals_adaptive_section_title')), findsNothing);
+      expect(
+          find.byKey(const Key('goals_prior_activity_dropdown')), findsNothing);
     });
 
     testWidgets(
@@ -156,7 +135,9 @@ void main() {
           .tap(find.byKey(const Key('onboarding_continue_setup_button')));
       await tester.pumpAndSettle();
 
-      // Navigate past unit selection and region selection slides to profile slide
+      // Navigate past unit selection, region selection, and experience level slides to profile slide
+      await tester.tap(find.byKey(const Key('onboarding_bottom_next_button')));
+      await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('onboarding_bottom_next_button')));
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('onboarding_bottom_next_button')));
@@ -171,11 +152,13 @@ void main() {
       expect(find.byKey(const Key('onboarding_measurements_page')),
           findsOneWidget);
       expect(
-        find.byKey(const Key('onboarding_weight_text_field')),
+        find.byKey(const Key('onboarding_weight_edit_button')),
         findsOneWidget,
       );
+      await tester.tap(find.byKey(const Key('onboarding_body_fat_expansion')));
+      await tester.pumpAndSettle();
       expect(
-        find.byKey(const Key('onboarding_body_fat_text_field')),
+        find.byKey(const Key('onboarding_body_fat_edit_button')),
         findsOneWidget,
       );
       expect(
@@ -188,6 +171,8 @@ void main() {
       );
 
       // Enter weight before advancing
+      await tester.tap(find.byKey(const Key('onboarding_weight_edit_button')));
+      await tester.pumpAndSettle();
       await tester.enterText(
         find.byKey(const Key('onboarding_weight_text_field')),
         '70',
@@ -230,7 +215,9 @@ void main() {
           .tap(find.byKey(const Key('onboarding_continue_setup_button')));
       await tester.pumpAndSettle();
 
-      // Navigate past unit selection and region selection slides to profile slide
+      // Navigate past unit selection, region selection, and experience level slides to profile slide
+      await tester.tap(find.byKey(const Key('onboarding_bottom_next_button')));
+      await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('onboarding_bottom_next_button')));
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('onboarding_bottom_next_button')));
@@ -242,8 +229,13 @@ void main() {
       await tester.tap(find.byKey(const Key('onboarding_bottom_next_button')));
       await tester.pumpAndSettle();
 
+      await tester.tap(find.byKey(const Key('onboarding_body_fat_expansion')));
+      await tester.pumpAndSettle();
+
       final bodyFatHelpButton =
           find.byKey(const Key('onboarding_body_fat_help_button'));
+      await tester.ensureVisible(bodyFatHelpButton);
+      await tester.pumpAndSettle();
       await tester.tap(bodyFatHelpButton);
       await tester.pumpAndSettle();
 
@@ -286,7 +278,9 @@ void main() {
           .tap(find.byKey(const Key('onboarding_continue_setup_button')));
       await tester.pumpAndSettle();
 
-      // Navigate past unit selection and region selection slides to profile slide
+      // Navigate past unit selection, region selection, and experience level slides to profile slide
+      await tester.tap(find.byKey(const Key('onboarding_bottom_next_button')));
+      await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('onboarding_bottom_next_button')));
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('onboarding_bottom_next_button')));
@@ -297,6 +291,8 @@ void main() {
       await tester.tap(find.byKey(const Key('onboarding_bottom_next_button')));
       await tester.pumpAndSettle();
 
+      await tester.tap(find.byKey(const Key('onboarding_weight_edit_button')));
+      await tester.pumpAndSettle();
       await tester.enterText(
         find.byKey(const Key('onboarding_weight_text_field')),
         '70',
@@ -326,24 +322,21 @@ void main() {
           MaterialApp(
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
-            home: GoalsScreen(
+            home: CalculationBasisScreen(
               recommendationService: recommendationService,
-              repository: ProfileRepository(
-                localDataSource: ProfileLocalDataSource(database),
-              ),
             ),
           ),
         ),
       );
       await tester.pumpAndSettle();
 
-      final goalsDropdown =
-          find.byKey(const Key('goals_prior_activity_dropdown'));
-      expect(goalsDropdown, findsOneWidget);
-      await Scrollable.ensureVisible(tester.element(goalsDropdown),
+      final settingsDropdown =
+          find.byKey(const Key('calculation_basis_activity'));
+      expect(settingsDropdown, findsOneWidget);
+      await Scrollable.ensureVisible(tester.element(settingsDropdown),
           alignment: 0.5);
       await tester.pumpAndSettle();
-      await tester.tap(goalsDropdown);
+      await tester.tap(settingsDropdown);
       await tester.pumpAndSettle();
       expect(find.text(l10n.adaptivePriorActivityVeryHigh), findsOneWidget);
     });
@@ -371,7 +364,9 @@ void main() {
           .tap(find.byKey(const Key('onboarding_continue_setup_button')));
       await tester.pumpAndSettle();
 
-      // Navigate past unit selection and region selection slides to profile slide
+      // Navigate past unit selection, region selection, and experience level slides to profile slide
+      await tester.tap(nextButton);
+      await tester.pumpAndSettle();
       await tester.tap(nextButton);
       await tester.pumpAndSettle();
       await tester.tap(nextButton);
@@ -384,6 +379,8 @@ void main() {
       await tester.tap(nextButton); // profile -> measurements
       await tester.pumpAndSettle();
 
+      await tester.tap(find.byKey(const Key('onboarding_weight_edit_button')));
+      await tester.pumpAndSettle();
       await tester.enterText(
         find.byKey(const Key('onboarding_weight_text_field')),
         '70',
@@ -402,20 +399,32 @@ void main() {
       });
       await tester.pump();
 
-      // 2. Tap nextButton on adaptive page (5 -> 6)
+      // 2. Tap nextButton on adaptive page (5 -> 6: goal decision)
       await tester.tap(nextButton);
+      await tester.pumpAndSettle();
+
+      // Tap "Später einrichten" to skip directly to nutrition review
+      final laterButton =
+          find.byKey(const Key('onboarding_goal_decision_later_button'));
+      await tester.ensureVisible(laterButton);
+      await tester.pumpAndSettle();
+      await tester.tap(laterButton);
       await tester.pump();
 
-      // 3. Wait for _nextPage async preview re-check and animateToPage(6) to complete
+      // 3. Wait for animateToPage to complete
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(
+          find.byKey(const Key('onboarding_nutrition_page')), findsOneWidget);
+
+      // Wait for recommendation computation to finish so next button is enabled
       await tester.runAsync(() async {
         await Future.delayed(const Duration(milliseconds: 600));
       });
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
-      expect(
-          find.byKey(const Key('onboarding_nutrition_page')), findsOneWidget);
 
-      await tester.tap(nextButton); // nutrition(6) -> ai_health(7, last page)
+      await tester.tap(nextButton); // nutrition -> ai_health (last page)
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 400));
       expect(

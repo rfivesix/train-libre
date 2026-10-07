@@ -1,6 +1,7 @@
 import '../../../core/performance/startup_trace.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import '../../../util/design_constants.dart';
 
 import '../../../core/infrastructure/backup_manager.dart';
@@ -12,6 +13,10 @@ import '../../workout/presentation/live_workout_view_model.dart';
 import 'main_screen.dart';
 import '../../onboarding/presentation/onboarding_screen.dart';
 import '../../nutrition_recommendation/data/recommendation_service.dart';
+import '../../profile/data/goal_repository_impl.dart';
+import '../../profile/data/legacy_goal_migration.dart';
+import '../../profile/domain/services/goal_notification_orchestrator.dart';
+import '../../workout/domain/services/workout_plan_notification_orchestrator.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
@@ -19,6 +24,10 @@ import 'dart:io';
 import 'package:package_info_plus/package_info_plus.dart';
 import '../../../services/telemetry/telemetry_service.dart';
 import '../../onboarding/data/telemetry_consent_prompt.dart';
+import '../../diary/presentation/widgets/ai_neural_cloud_orb_widget.dart';
+import 'package:intl/intl.dart';
+import '../../diary/presentation/ai_meal_review_reveal_route.dart';
+import '../../../widgets/common/operation_progress_widget.dart';
 
 /// A splash screen responsible for app-wide initialization.
 ///
@@ -45,13 +54,18 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
   String _currentTask = '';
   String _currentDetail = '';
   double _progress = 0.0;
-  bool _isDone = false;
   bool _canSkipRemoteCatalog = false;
   bool _skipRemoteCatalogRequested = false;
+  bool _isContractingForExit = false;
+  bool _isCloudHiddenForVaporExit = false;
+  bool _isDownloading = false;
+  _PendingStartupProgress? _pendingProgress;
+  bool _progressFrameScheduled = false;
 
   @override
   void initState() {
     super.initState();
+    _isDownloading = widget.isModal;
     // Start initialization right after the first frame is rendered.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _initialize();
@@ -63,6 +77,14 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
       await StartupTrace.instance.measure(
         'core_services',
         _prepareCoreServices,
+      );
+
+      // The screen is already visible at this point. Advance it before the
+      // catalog work starts so the cloud reflects the complete startup path.
+      _setStartupProgress(
+        task: 'Initialisiere...',
+        detail: 'Vorbereitung...',
+        progress: 0.12,
       );
 
       // Cold Start first launch prompt is handled during onboarding region selection.
@@ -78,43 +100,51 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
       force: widget.forceUpdate,
       skipOffDatabase: skipOffDb,
       onProgress: (task, detail, progress) {
-        if (!mounted) return;
-        setState(() {
-          _currentTask = task;
-          _currentDetail = detail;
-          _progress = progress;
-          _canSkipRemoteCatalog = false;
-        });
+        _queueStartupProgress(
+          task: task,
+          detail: detail,
+          progress: widget.isModal
+              ? progress.clamp(0.0, 1.0)
+              : _screenProgressFor(task, progress),
+          canSkipRemoteCatalog: false,
+          isDownloading: false,
+        );
       },
       onRemoteProgress: (task, detail, progress, {required canSkip}) {
         if (!mounted) return;
         final l10n = AppLocalizations.of(context)!;
-        setState(() {
-          _currentTask = task;
-          _currentDetail = _skipRemoteCatalogRequested
+        _queueStartupProgress(
+          task: task,
+          detail: _skipRemoteCatalogRequested
               ? l10n.appInitSkippingRemoteDownload
-              : detail;
-          _progress = progress;
-          _canSkipRemoteCatalog = canSkip && !_skipRemoteCatalogRequested;
-        });
+              : detail,
+          progress: progress.clamp(0.0, 1.0),
+          canSkipRemoteCatalog: canSkip && !_skipRemoteCatalogRequested,
+          isDownloading: true,
+        );
       },
       isRemoteSkipRequested: () => _skipRemoteCatalogRequested,
     );
 
     // Show completion feedback before navigation.
+    _flushQueuedProgress();
     if (mounted) {
       final l10n = AppLocalizations.of(context)!;
       setState(() {
         _currentTask = l10n.appInitFinalizing;
         _currentDetail = l10n.appInitCheckingBackups;
-        _progress = 1.0;
+        _progress = widget.isModal ? 1.0 : 0.97;
         _canSkipRemoteCatalog = false;
+        _isDownloading = false;
       });
     }
 
     if (widget.isModal) {
       if (mounted) {
-        Navigator.of(context).pop(true);
+        await Future<void>.delayed(const Duration(milliseconds: 300));
+        if (mounted) {
+          Navigator.of(context).pop(true);
+        }
       }
       return;
     }
@@ -135,19 +165,115 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
 
     if (!mounted) return;
 
-    // Navigate to the next screen.
-    setState(() => _isDone = true);
+    // Like the AI meal flow, the living cloud first contracts into the calm
+    // circle that is the source shape for the vapor reveal.
+    setState(() {
+      _progress = 1.0;
+      _isContractingForExit = true;
+    });
+    await Future<void>.delayed(const Duration(milliseconds: 620));
+    if (!mounted) return;
 
-    Widget targetScreen =
+    // The route below is transparent while its vapor starts. Hide the source
+    // cloud before the next frame so its contracted core cannot show through
+    // behind the first dispersing puffs.
+    setState(() => _isCloudHiddenForVaporExit = true);
+    await WidgetsBinding.instance.endOfFrame;
+    if (!mounted) return;
+
+    final targetScreen =
         hasSeenOnboarding ? const MainScreen() : const OnboardingScreen();
-
+    // Use the exact, proven reveal route from the AI meal scan instead of a
+    // second startup-specific implementation of the vapor transition.
     Navigator.of(context).pushReplacement(
-      PageRouteBuilder(
-        pageBuilder: (_, __, ___) => targetScreen,
-        transitionsBuilder: (_, anim, __, child) =>
-            FadeTransition(opacity: anim, child: child),
+      AiMealReviewRevealRoute<void>(
+        originCenter: Offset(
+          MediaQuery.sizeOf(context).width / 2,
+          MediaQuery.sizeOf(context).height * 0.455,
+        ),
+        vaporCoreRadius: 42,
+        duration: const Duration(milliseconds: 760),
+        builder: (_) => targetScreen,
       ),
     );
+  }
+
+  /// Converts each catalog's local 0–1 import progress into one continuous
+  /// startup journey. A later stage never makes the cloud move backwards.
+  double _screenProgressFor(String task, double progress) {
+    final normalized = progress.clamp(0.0, 1.0);
+    final (start, end) = switch (task) {
+      final value when value.contains('Übungen') => (0.12, 0.40),
+      final value when value.contains('Basis-Produkte') => (0.40, 0.62),
+      final value when value.contains('Kategorien') => (0.62, 0.76),
+      final value when value.contains('Produktdatenbank') => (0.76, 0.94),
+      _ => (0.12, 0.94),
+    };
+    return (start + (end - start) * normalized).clamp(_progress, 0.94);
+  }
+
+  /// Importers can report many batches per second. Retaining only the newest
+  /// update until the next frame protects the raster thread from a burst of
+  /// full-screen rebuilds while preserving the visible final progress.
+  void _queueStartupProgress({
+    required String task,
+    required String detail,
+    required double progress,
+    required bool canSkipRemoteCatalog,
+    bool isDownloading = false,
+  }) {
+    if (!mounted) return;
+    _pendingProgress = _PendingStartupProgress(
+      task: task,
+      detail: detail,
+      progress: progress,
+      canSkipRemoteCatalog: canSkipRemoteCatalog,
+      isDownloading: isDownloading,
+    );
+    if (_progressFrameScheduled) return;
+    _progressFrameScheduled = true;
+    SchedulerBinding.instance.scheduleFrameCallback((_) {
+      _progressFrameScheduled = false;
+      _flushQueuedProgress();
+    });
+  }
+
+  void _flushQueuedProgress() {
+    final update = _pendingProgress;
+    _pendingProgress = null;
+    if (!mounted || update == null) return;
+    _setStartupProgress(
+      task: update.task,
+      detail: update.detail,
+      progress: update.progress,
+      canSkipRemoteCatalog: update.canSkipRemoteCatalog,
+      isDownloading: update.isDownloading,
+    );
+  }
+
+  void _setStartupProgress({
+    required String task,
+    required String detail,
+    required double progress,
+    bool? canSkipRemoteCatalog,
+    bool? isDownloading,
+  }) {
+    if (!mounted) return;
+    setState(() {
+      _currentTask = task;
+      _currentDetail = detail;
+      if (isDownloading != null) {
+        _isDownloading = isDownloading;
+      }
+      if (widget.isModal || _isDownloading) {
+        _progress = progress.clamp(0.0, 1.0);
+      } else {
+        _progress = progress.clamp(_progress, 1.0);
+      }
+      if (canSkipRemoteCatalog != null) {
+        _canSkipRemoteCatalog = canSkipRemoteCatalog;
+      }
+    });
   }
 
   Future<void> _prepareCoreServices() async {
@@ -161,9 +287,9 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
     final tasks = <Future<void>>[
       StartupTrace.instance
           .measure(
-            'standard_supplements',
-            DatabaseHelper.instance.ensureStandardSupplements,
-          )
+        'standard_supplements',
+        DatabaseHelper.instance.ensureStandardSupplements,
+      )
           .catchError((e) {
         debugPrint("Standard supplement setup failed: $e");
       }),
@@ -182,12 +308,17 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
         'notifications_init',
         () async {
           await LocalNotificationService.instance.initialize();
-          unawaited(AdaptiveNutritionRecommendationService()
-              .refreshRecommendationIfDue()
-              .catchError((e) {
-            debugPrint("Startup recommendation check failed: $e");
-            return null;
-          }));
+          try {
+            await LegacyGoalMigration().run();
+            await AdaptiveNutritionRecommendationService()
+                .refreshRecommendationIfDue();
+            await GoalNotificationOrchestrator(
+              goalRepository: GoalRepositoryImpl(),
+            ).synchronize();
+            await WorkoutPlanNotificationOrchestrator().synchronize();
+          } catch (e) {
+            debugPrint("Startup goal/recommendation check failed: $e");
+          }
         },
       ).catchError((e) {
         debugPrint("Local notification initialization failed: $e");
@@ -195,9 +326,9 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
       if (workoutSessionManager != null)
         StartupTrace.instance
             .measure(
-              'workout_restore',
-              workoutSessionManager.tryRestoreSession,
-            )
+          'workout_restore',
+          workoutSessionManager.tryRestoreSession,
+        )
             .catchError((e) {
           debugPrint("Workout session restore failed: $e");
         }),
@@ -339,21 +470,32 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
     final updateDbReg = RegExp(r'^Update Produktdatenbank \((.+)\)$');
     if (updateDbReg.hasMatch(raw)) {
       final country = updateDbReg.firstMatch(raw)!.group(1) ?? '';
-      return l10n.initUpdateTask(
-          l10n.initCheckingProductDatabase(country).replaceAll('...', ''));
+      final dbName = country.isNotEmpty
+          ? '${l10n.settingsFoodDbSectionTitle} ($country)'
+          : l10n.settingsFoodDbSectionTitle;
+      return l10n.initUpdateTask(dbName);
     }
 
     final dbReg = RegExp(r'^Produktdatenbank \((.+)\)$');
     if (dbReg.hasMatch(raw)) {
       final country = dbReg.firstMatch(raw)!.group(1) ?? '';
-      return l10n.initCheckingProductDatabase(country).replaceAll('...', '');
+      return country.isNotEmpty
+          ? '${l10n.settingsFoodDbSectionTitle} ($country)'
+          : l10n.settingsFoodDbSectionTitle;
     }
 
     final uebersetzungenReg = RegExp(r'^(\d+)\s*/\s*(\d+)\s+Übersetzungen$');
     if (uebersetzungenReg.hasMatch(raw)) {
       final match = uebersetzungenReg.firstMatch(raw)!;
-      final processed = match.group(1) ?? '';
-      final total = match.group(2) ?? '';
+      final rawProcessed = match.group(1) ?? '';
+      final rawTotal = match.group(2) ?? '';
+      final processedNum = int.tryParse(rawProcessed);
+      final totalNum = int.tryParse(rawTotal);
+      final locale = Localizations.localeOf(context).toString();
+      final formatter = NumberFormat.decimalPattern(locale);
+      final processed =
+          processedNum != null ? formatter.format(processedNum) : rawProcessed;
+      final total = totalNum != null ? formatter.format(totalNum) : rawTotal;
       return l10n.initEntriesProgress(processed, total);
     }
 
@@ -364,8 +506,15 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
     final eintraegeReg = RegExp(r'^(\d+)\s*/\s*(\d+)\s+Einträge$');
     if (eintraegeReg.hasMatch(raw)) {
       final match = eintraegeReg.firstMatch(raw)!;
-      final processed = match.group(1) ?? '';
-      final total = match.group(2) ?? '';
+      final rawProcessed = match.group(1) ?? '';
+      final rawTotal = match.group(2) ?? '';
+      final processedNum = int.tryParse(rawProcessed);
+      final totalNum = int.tryParse(rawTotal);
+      final locale = Localizations.localeOf(context).toString();
+      final formatter = NumberFormat.decimalPattern(locale);
+      final processed =
+          processedNum != null ? formatter.format(processedNum) : rawProcessed;
+      final total = totalNum != null ? formatter.format(totalNum) : rawTotal;
       return l10n.initEntriesProgress(processed, total);
     }
 
@@ -374,14 +523,9 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // If initialization is done, render an empty container until navigation completes.
-    if (_isDone) {
-      return Container(color: Theme.of(context).scaffoldBackgroundColor);
-    }
-
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     final l10n = AppLocalizations.of(context)!;
+    final percentage = (_progress * 100).round();
 
     final displayTask = _currentTask.isEmpty
         ? l10n.appInitStarting
@@ -391,75 +535,122 @@ class _AppInitializerScreenState extends State<AppInitializerScreen> {
         ? l10n.appInitInitializing
         : _getLocalizedProgress(context, _currentDetail);
 
+    final isDownloadMode = widget.isModal || _isDownloading;
+
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 40.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Icon shown during startup.
-            Icon(
-              LucideIcons.download,
-              size: 64,
-              color: theme.colorScheme.primary,
-            ),
-            const SizedBox(height: 40),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24.0),
+          child: Center(
+            child: isDownloadMode
+                ? Semantics(
+                    label: displayTask.isNotEmpty
+                        ? displayTask
+                        : l10n.offDownloadCTA,
+                    value: '$percentage%',
+                    child: OperationProgressWidget(
+                      icon: LucideIcons.download,
+                      title: displayTask,
+                      detail: displayDetail,
+                      progress: (_progress >= 0.0 && _progress <= 1.0)
+                          ? _progress
+                          : null,
+                      action: _canSkipRemoteCatalog
+                          ? TextButton.icon(
+                              onPressed: () {
+                                setState(() {
+                                  _skipRemoteCatalogRequested = true;
+                                  _canSkipRemoteCatalog = false;
+                                  _currentDetail =
+                                      l10n.appInitSkippingRemoteDownload;
+                                });
+                              },
+                              icon: const Icon(LucideIcons.skip_forward),
+                              label: Text(l10n.appInitSkipDownload),
+                            )
+                          : null,
+                    ),
+                  )
+                : Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Semantics(
+                        label: l10n.appInitStarting,
+                        value: '$percentage%',
+                        child: _buildStartupCloud(theme),
+                      ),
+                      const SizedBox(height: 28),
 
-            // Main status text.
-            Text(
-              displayTask,
-              textAlign: TextAlign.center,
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: DesignConstants.spacingL),
+                      // Main status text.
+                      Text(
+                        displayTask,
+                        textAlign: TextAlign.center,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: DesignConstants.spacingS),
 
-            // Progress bar.
-            ClipRRect(
-              borderRadius: BorderRadius.circular(10),
-              child: LinearProgressIndicator(
-                value: _progress > 0
-                    ? _progress
-                    : null, // null renders an indeterminate spinner style.
-                minHeight: 8,
-                backgroundColor: isDark
-                    ? Colors.white10
-                    : Theme.of(context).colorScheme.onSurfaceVariant,
-                color: theme.colorScheme.primary,
-              ),
-            ),
-            const SizedBox(height: DesignConstants.spacingM),
-
-            // Secondary detail text.
-            Text(
-              displayDetail,
-              textAlign: TextAlign.center,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-            if (_canSkipRemoteCatalog) ...[
-              const SizedBox(height: 20),
-              Center(
-                child: TextButton.icon(
-                  onPressed: () {
-                    setState(() {
-                      _skipRemoteCatalogRequested = true;
-                      _canSkipRemoteCatalog = false;
-                      _currentDetail = l10n.appInitSkippingRemoteDownload;
-                    });
-                  },
-                  icon: const Icon(LucideIcons.skip_forward),
-                  label: Text(l10n.appInitSkipDownload),
-                ),
-              ),
-            ],
-          ],
+                      // Secondary detail text.
+                      Text(
+                        displayDetail,
+                        textAlign: TextAlign.center,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+          ),
         ),
       ),
     );
   }
+
+  Widget _buildStartupCloud(ThemeData theme) {
+    if (_isCloudHiddenForVaporExit) {
+      return const SizedBox(width: 172, height: 172);
+    }
+
+    final cloud = RepaintBoundary(
+      child: AiNeuralCloudOrbWidget(
+        size: 172,
+        // Stage 1 is already the living, uncoloured cloud. The startup
+        // percentage only charges its colour; it contracts only for the
+        // intentional vapor exit.
+        morph: _isContractingForExit ? 0 : 1,
+        // Fade the charged colour back to the same base tone as the vapor
+        // during the contraction, so circle and first vapor frame meet.
+        tint: _isContractingForExit ? 0 : _progress,
+        // This is a small, isolated vector paint. The slow flow keeps the
+        // intended alive-at-rest feel, while the disabled ambient glow avoids
+        // an expensive fullscreen-style blur.
+        animate: true,
+        flowSpeed: 0.35,
+        showAmbientGlow: false,
+        showDetachedSatellite: false,
+        baseColor: theme.colorScheme.onSurfaceVariant,
+        accentColor: theme.colorScheme.primary,
+      ),
+    );
+    return cloud;
+  }
+}
+
+class _PendingStartupProgress {
+  const _PendingStartupProgress({
+    required this.task,
+    required this.detail,
+    required this.progress,
+    required this.canSkipRemoteCatalog,
+    this.isDownloading = false,
+  });
+
+  final String task;
+  final String detail;
+  final double progress;
+  final bool canSkipRemoteCatalog;
+  final bool isDownloading;
 }

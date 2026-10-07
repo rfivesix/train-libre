@@ -1,6 +1,46 @@
 part of '../ai_service.dart';
 
 extension AiNetwork on AiService {
+  int? _tokenCount(dynamic value) => value is int && value >= 0 ? value : null;
+
+  AiTokenUsage? _openAiUsage(Map<String, dynamic> json) {
+    final usage = json['usage'];
+    if (usage is! Map) return null;
+    return AiTokenUsage(
+      inputTokens: _tokenCount(usage['prompt_tokens']),
+      outputTokens: _tokenCount(usage['completion_tokens']),
+      totalTokens: _tokenCount(usage['total_tokens']),
+    );
+  }
+
+  AiTokenUsage? _anthropicUsage(Map<String, dynamic> json) {
+    final usage = json['usage'];
+    if (usage is! Map) return null;
+    final uncached = _tokenCount(usage['input_tokens']);
+    final created = _tokenCount(usage['cache_creation_input_tokens']) ?? 0;
+    final read = _tokenCount(usage['cache_read_input_tokens']) ?? 0;
+    final input = uncached == null ? null : uncached + created + read;
+    final output = _tokenCount(usage['output_tokens']);
+    return AiTokenUsage(
+      inputTokens: input,
+      outputTokens: output,
+      totalTokens: input != null && output != null ? input + output : null,
+    );
+  }
+
+  AiTokenUsage? _geminiUsage(Map<String, dynamic> json) {
+    final usage = json['usageMetadata'];
+    if (usage is! Map) return null;
+    final input = _tokenCount(usage['promptTokenCount']);
+    final total = _tokenCount(usage['totalTokenCount']);
+    return AiTokenUsage(
+      inputTokens: input,
+      // Gemini's total includes thinking tokens, unlike candidatesTokenCount.
+      outputTokens: input != null && total != null ? total - input : null,
+      totalTokens: total,
+    );
+  }
+
   /// Strips OpenAI's `-YYYY-MM-DD` snapshot suffix so `gpt-5.4-2026-03-01` and
   /// `gpt-5.4` collapse into one entry.
   ///
@@ -92,29 +132,40 @@ extension AiNetwork on AiService {
   }) async {
     http.Response? lastResponse;
     final candidates = _geminiModelCandidates(model);
+    final cachedRoute = _geminiResolvedRoutes[model];
+    final routes = <(String, String)>[
+      if (cachedRoute != null) cachedRoute,
+      for (final candidate in candidates)
+        for (final version in const ['v1beta', 'v1'])
+          if ((candidate, version) != cachedRoute) (candidate, version),
+    ];
 
-    for (final candidate in candidates) {
-      for (final version in const ['v1beta', 'v1']) {
-        final uri = Uri.parse(
-          'https://generativelanguage.googleapis.com/$version/models/$candidate:generateContent?key=$apiKey',
-        );
-        final timeoutSeconds = await getAiTimeoutSeconds();
-        final response = await http
-            .post(
-              uri,
-              headers: {'Content-Type': 'application/json'},
-              body: body,
-            )
-            .timeout(Duration(seconds: timeoutSeconds));
+    for (final (candidate, version) in routes) {
+      final uri = Uri.parse(
+        'https://generativelanguage.googleapis.com/$version/models/$candidate:generateContent?key=$apiKey',
+      );
+      final timeoutSeconds = await getAiTimeoutSeconds();
+      final response = await http
+          .post(
+            uri,
+            headers: {'Content-Type': 'application/json'},
+            body: body,
+          )
+          .timeout(Duration(seconds: timeoutSeconds));
 
-        if (response.statusCode == 200) return response;
-        lastResponse = response;
+      if (response.statusCode == 200) {
+        _geminiResolvedRoutes[model] = (candidate, version);
+        return response;
+      }
+      lastResponse = response;
 
-        if (response.statusCode == 401 ||
-            response.statusCode == 403 ||
-            response.statusCode == 429) {
-          return response;
-        }
+      final message =
+          (_extractProviderErrorMessage(response.body) ?? '').toLowerCase();
+      final retryAnotherRoute = response.statusCode == 404 ||
+          (response.statusCode == 400 &&
+              (message.contains('model') || message.contains('version')));
+      if (!retryAnotherRoute) {
+        return response;
       }
     }
 
@@ -125,13 +176,14 @@ extension AiNetwork on AiService {
         );
   }
 
-  Future<String> _callAnthropicRaw(
+  Future<_AiRawResponse> _callAnthropicRaw(
     String apiKey,
     String model,
     String userContent,
     List<String> imagesBase64, {
     required String systemPrompt,
     double temperature = 0.3,
+    bool structuredOutput = false,
   }) async {
     final content = <Map<String, dynamic>>[];
     for (final img64 in imagesBase64) {
@@ -142,19 +194,23 @@ extension AiNetwork on AiService {
     }
     content.add({'type': 'text', 'text': userContent});
 
-    final body = jsonEncode({
+    final request = <String, dynamic>{
       'model': model,
       'system': systemPrompt,
       'max_tokens': 2000,
       'temperature': temperature,
+      if (structuredOutput)
+        'output_config': {
+          'format': {'type': 'json_schema', 'schema': _AiPrompts.mealSchema},
+        },
       'messages': [
         {'role': 'user', 'content': content},
       ],
-    });
+    };
 
     try {
       final timeoutSeconds = await getAiTimeoutSeconds();
-      final response = await http
+      var response = await http
           .post(
             Uri.parse('https://api.anthropic.com/v1/messages'),
             headers: {
@@ -162,9 +218,27 @@ extension AiNetwork on AiService {
               'x-api-key': apiKey,
               'anthropic-version': '2023-06-01',
             },
-            body: body,
+            body: jsonEncode(request),
           )
           .timeout(Duration(seconds: timeoutSeconds));
+      if (structuredOutput && response.statusCode == 400) {
+        final message =
+            (_extractProviderErrorMessage(response.body) ?? '').toLowerCase();
+        if (message.contains('output_config') || message.contains('schema')) {
+          request.remove('output_config');
+          response = await http
+              .post(
+                Uri.parse('https://api.anthropic.com/v1/messages'),
+                headers: {
+                  'Content-Type': 'application/json',
+                  'x-api-key': apiKey,
+                  'anthropic-version': '2023-06-01',
+                },
+                body: jsonEncode(request),
+              )
+              .timeout(Duration(seconds: timeoutSeconds));
+        }
+      }
       if (response.statusCode == 401 || response.statusCode == 403) {
         throw const AiAuthException();
       }
@@ -182,7 +256,9 @@ extension AiNetwork on AiService {
           orElse: () => <String, dynamic>{});
       final text = textPart['text'] as String?;
       if (text == null || text.isEmpty) throw const AiParseException();
-      return text;
+      return _AiRawResponse(text, _anthropicUsage(json));
+    } on TimeoutException {
+      throw const AiTimeoutException();
     } on SocketException {
       throw const AiNetworkException();
     } catch (e) {
@@ -191,13 +267,14 @@ extension AiNetwork on AiService {
     }
   }
 
-  Future<String> _callMistralRaw(
+  Future<_AiRawResponse> _callMistralRaw(
     String apiKey,
     String model,
     String userContent,
     List<String> imagesBase64, {
     required String systemPrompt,
     double temperature = 0.3,
+    bool structuredOutput = false,
   }) {
     return _callOpenAiCompatibleRaw(
       endpoint: 'https://api.mistral.ai/v1/chat/completions',
@@ -207,10 +284,11 @@ extension AiNetwork on AiService {
       imagesBase64: imagesBase64,
       systemPrompt: systemPrompt,
       temperature: temperature,
+      structuredOutput: structuredOutput,
     );
   }
 
-  Future<String> _callXaiRaw(
+  Future<_AiRawResponse> _callXaiRaw(
     String apiKey,
     String model,
     String userContent,
@@ -229,7 +307,7 @@ extension AiNetwork on AiService {
     );
   }
 
-  Future<String> _callOpenAiCompatibleRaw({
+  Future<_AiRawResponse> _callOpenAiCompatibleRaw({
     required String endpoint,
     required String authHeader,
     required String model,
@@ -237,6 +315,7 @@ extension AiNetwork on AiService {
     required List<String> imagesBase64,
     required String systemPrompt,
     double temperature = 0.3,
+    bool structuredOutput = false,
   }) async {
     final contentParts = <Map<String, dynamic>>[];
     for (final img64 in imagesBase64) {
@@ -247,7 +326,7 @@ extension AiNetwork on AiService {
     }
     contentParts.add({'type': 'text', 'text': userContent});
 
-    final body = jsonEncode({
+    final request = <String, dynamic>{
       'model': model,
       'messages': [
         {'role': 'system', 'content': systemPrompt},
@@ -255,20 +334,45 @@ extension AiNetwork on AiService {
       ],
       'max_tokens': 2000,
       'temperature': temperature,
-    });
+      if (structuredOutput)
+        'response_format': {
+          'type': 'json_schema',
+          'json_schema': {
+            'name': 'meal_capture',
+            'schema': _AiPrompts.mealSchema
+          },
+        },
+    };
 
     try {
       final timeoutSeconds = await getAiTimeoutSeconds();
-      final response = await http
+      var response = await http
           .post(
             Uri.parse(endpoint),
             headers: {
               'Content-Type': 'application/json',
               'Authorization': authHeader,
             },
-            body: body,
+            body: jsonEncode(request),
           )
           .timeout(Duration(seconds: timeoutSeconds));
+      if (structuredOutput && response.statusCode == 400) {
+        final message =
+            (_extractProviderErrorMessage(response.body) ?? '').toLowerCase();
+        if (message.contains('response_format') || message.contains('schema')) {
+          request.remove('response_format');
+          response = await http
+              .post(
+                Uri.parse(endpoint),
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': authHeader,
+                },
+                body: jsonEncode(request),
+              )
+              .timeout(Duration(seconds: timeoutSeconds));
+        }
+      }
       if (response.statusCode == 401 || response.statusCode == 403) {
         throw const AiAuthException();
       }
@@ -279,7 +383,12 @@ extension AiNetwork on AiService {
       final json = jsonDecode(response.body) as Map<String, dynamic>;
       final choices = json['choices'] as List<dynamic>?;
       if (choices == null || choices.isEmpty) throw const AiParseException();
-      return choices[0]['message']['content'] as String? ?? '';
+      return _AiRawResponse(
+        choices[0]['message']['content'] as String? ?? '',
+        _openAiUsage(json),
+      );
+    } on TimeoutException {
+      throw const AiTimeoutException();
     } on SocketException {
       throw const AiNetworkException();
     } catch (e) {
@@ -583,7 +692,7 @@ extension AiNetwork on AiService {
     return !isFixedTemperature;
   }
 
-  Future<String> _callOpenAiRaw(
+  Future<_AiRawResponse> _callOpenAiRaw(
     String apiKey,
     String model,
     String userContent,
@@ -592,6 +701,7 @@ extension AiNetwork on AiService {
     double temperature = 0.3,
     String? baseUrlOverride,
     AiProvider provider = AiProvider.openai,
+    bool structuredOutput = false,
   }) async {
     final effectiveModel = _normalizeOpenAiModelId(model);
     final contentParts = <Map<String, dynamic>>[];
@@ -605,6 +715,7 @@ extension AiNetwork on AiService {
 
     final sendTemperature =
         _openAiSupportsCustomTemperature(effectiveModel, provider: provider);
+    final isReasoningModel = !sendTemperature && provider == AiProvider.openai;
 
     final requestMap = <String, dynamic>{
       'model': effectiveModel,
@@ -613,7 +724,17 @@ extension AiNetwork on AiService {
         {'role': 'user', 'content': contentParts},
       ],
       ..._openAiTokenParams(effectiveModel, provider: provider),
+      if (structuredOutput && provider == AiProvider.openai)
+        'response_format': {
+          'type': 'json_schema',
+          'json_schema': {
+            'name': 'meal_capture',
+            'strict': true,
+            'schema': _AiPrompts.mealSchema,
+          },
+        },
       if (sendTemperature) 'temperature': temperature,
+      if (isReasoningModel) 'reasoning_effort': 'low',
     };
 
     final body = jsonEncode(requestMap);
@@ -653,6 +774,43 @@ extension AiNetwork on AiService {
         }
       }
 
+      // Automatic fallback retry for any model rejecting reasoning_effort
+      if (response.statusCode == 400 &&
+          requestMap.containsKey('reasoning_effort')) {
+        final message = _extractProviderErrorMessage(response.body);
+        if (message != null &&
+            (message.toLowerCase().contains('reasoning_effort') ||
+                message
+                    .toLowerCase()
+                    .contains('unrecognized request argument'))) {
+          final retryMap = Map<String, dynamic>.from(requestMap)
+            ..remove('reasoning_effort');
+          response = await http
+              .post(
+                Uri.parse(endpoint),
+                headers: headers,
+                body: jsonEncode(retryMap),
+              )
+              .timeout(Duration(seconds: timeoutSeconds));
+        }
+      }
+
+      if (structuredOutput && response.statusCode == 400) {
+        final message =
+            (_extractProviderErrorMessage(response.body) ?? '').toLowerCase();
+        if (message.contains('response_format') || message.contains('schema')) {
+          final retryMap = Map<String, dynamic>.from(requestMap)
+            ..remove('response_format');
+          response = await http
+              .post(
+                Uri.parse(endpoint),
+                headers: headers,
+                body: jsonEncode(retryMap),
+              )
+              .timeout(Duration(seconds: timeoutSeconds));
+        }
+      }
+
       if (response.statusCode == 401) throw const AiAuthException();
       if (response.statusCode == 429) throw const AiRateLimitException();
       if (response.statusCode != 200) {
@@ -667,7 +825,10 @@ extension AiNetwork on AiService {
       final json = jsonDecode(response.body) as Map<String, dynamic>;
       final choices = json['choices'] as List<dynamic>?;
       if (choices == null || choices.isEmpty) throw const AiParseException();
-      return choices[0]['message']['content'] as String? ?? '';
+      return _AiRawResponse(
+        choices[0]['message']['content'] as String? ?? '',
+        _openAiUsage(json),
+      );
     } on SocketException catch (e) {
       if (provider == AiProvider.ollama) {
         throw const AiNetworkException(
@@ -698,13 +859,14 @@ extension AiNetwork on AiService {
     }
   }
 
-  Future<String> _callGeminiRaw(
+  Future<_AiRawResponse> _callGeminiRaw(
     String apiKey,
     String model,
     String userContent,
     List<String> imagesBase64, {
     required String systemPrompt,
     double temperature = 0.3,
+    bool structuredOutput = false,
   }) async {
     final parts = <Map<String, dynamic>>[];
     for (final img64 in imagesBase64) {
@@ -714,22 +876,64 @@ extension AiNetwork on AiService {
     }
     parts.add({'text': '$systemPrompt\n\n$userContent'});
 
-    final body = jsonEncode({
+    final request = <String, dynamic>{
       'contents': [
         {'parts': parts},
       ],
       'generationConfig': {
         'temperature': temperature,
         'maxOutputTokens': 8192,
+        if (model.toLowerCase().startsWith('gemini-2.5-flash'))
+          'thinkingConfig': {
+            'thinkingBudget': 0,
+          },
+        if (structuredOutput) ...{
+          'responseMimeType': 'application/json',
+          'responseJsonSchema': _AiPrompts.mealSchema,
+        },
       },
-    });
+    };
 
     try {
-      final response = await _postGeminiGenerateContent(
+      var response = await _postGeminiGenerateContent(
         apiKey: apiKey,
         model: model,
-        body: body,
+        body: jsonEncode(request),
       );
+      if (response.statusCode == 400 &&
+          (request['generationConfig'] as Map<String, dynamic>)
+              .containsKey('thinkingConfig')) {
+        final message =
+            (_extractProviderErrorMessage(response.body) ?? '').toLowerCase();
+        if (message.contains('thinkingconfig') ||
+            message.contains('thinkingbudget') ||
+            message.contains('thinking') ||
+            message.contains('unknown field') ||
+            message.contains('invalid argument')) {
+          (request['generationConfig'] as Map<String, dynamic>)
+              .remove('thinkingConfig');
+          response = await _postGeminiGenerateContent(
+            apiKey: apiKey,
+            model: model,
+            body: jsonEncode(request),
+          );
+        }
+      }
+      if (structuredOutput && response.statusCode == 400) {
+        final message =
+            (_extractProviderErrorMessage(response.body) ?? '').toLowerCase();
+        if (message.contains('responsejsonschema') ||
+            message.contains('schema')) {
+          (request['generationConfig'] as Map<String, dynamic>)
+            ..remove('responseMimeType')
+            ..remove('responseJsonSchema');
+          response = await _postGeminiGenerateContent(
+            apiKey: apiKey,
+            model: model,
+            body: jsonEncode(request),
+          );
+        }
+      }
       if (response.statusCode == 401 || response.statusCode == 403) {
         throw const AiAuthException();
       }
@@ -762,7 +966,9 @@ extension AiNetwork on AiService {
           buffer.write(partMap['text'] as String);
         }
       }
-      return buffer.toString();
+      return _AiRawResponse(buffer.toString(), _geminiUsage(json));
+    } on TimeoutException {
+      throw const AiTimeoutException();
     } on SocketException {
       throw const AiNetworkException();
     } catch (e) {

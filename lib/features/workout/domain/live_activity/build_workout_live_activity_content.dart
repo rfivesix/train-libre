@@ -1,6 +1,7 @@
 import 'package:intl/intl.dart';
 
 import '../../../../services/unit_service.dart';
+import '../classification/exercise_log_mask.dart';
 import '../models/routine_exercise.dart';
 import '../models/set_log.dart';
 import '../models/set_template.dart';
@@ -34,6 +35,12 @@ WorkoutLiveActivityContent buildWorkoutLiveActivityContent({
   required String localeName,
   DateTime? restEndsAt,
   DateTime? restStartedAt,
+  int? setTimerTemplateId,
+  DateTime? setTimerStartedAt,
+  int setTimerElapsedSeconds = 0,
+  String labelStartTimer = '',
+  String labelStopTimer = '',
+  String labelTimerRunning = '',
 }) {
   final next = _findNextSet(exercises, setLogs);
 
@@ -55,9 +62,13 @@ WorkoutLiveActivityContent buildWorkoutLiveActivityContent({
   // to `setPending` here would erase the overdue state.
   final hasRest = restEndsAt != null;
 
-  final isCardio = next.exercise.exercise.isCardio;
-  final metrics = isCardio
-      ? _cardioMetrics(next, unitService, strings, localeName)
+  // Duration-based exercises need the same metric format as cardio even if
+  // their catalog category is not Cardio (for example a plank). Category is a
+  // browsing concern; tracking type describes what the current set contains.
+  final mask = ExerciseLogMask.forExercise(next.exercise.exercise);
+  final isDurationBased = mask.logsDuration;
+  final metrics = isDurationBased
+      ? _durationMetrics(next, mask, unitService, strings, localeName)
       : _strengthMetrics(next, unitService, strings, localeName);
 
   return WorkoutLiveActivityContent(
@@ -66,21 +77,81 @@ WorkoutLiveActivityContent buildWorkoutLiveActivityContent({
         : WorkoutLiveActivityPhase.setPending,
     restEndsAt: restEndsAt,
     restStartedAt: restStartedAt,
+    setTimerStartedAt:
+        setTimerTemplateId == next.templateId ? setTimerStartedAt : null,
+    setTimerDeadline: null,
+    setTimerTemplateId: isDurationBased &&
+            (setTimerTemplateId == null ||
+                setTimerTemplateId == next.templateId)
+        ? next.templateId
+        : null,
+    setTimerElapsedSeconds: isDurationBased ? setTimerElapsedSeconds : 0,
+    labelStartTimer: labelStartTimer,
+    labelStopTimer: labelStopTimer,
+    labelTimerRunning: labelTimerRunning,
     exerciseName: next.localizedName(_languageCode(localeName)),
     setPosition:
         strings.setPosition(next.indexInExercise, next.totalInExercise),
     // Cardio sends no badge — the metrics line starts at the leading edge and
     // the compact leading zone falls back to the app icon.
-    badgeText: isCardio ? '' : _badgeText(next),
-    badgeColorHex: isCardio ? _colorNeutral : _badgeColor(next.setType),
+    badgeText: isDurationBased ? '' : _badgeText(next),
+    badgeColorHex: isDurationBased ? _colorNeutral : _badgeColor(next.setType),
     metricPrimary: metrics.primary,
     metricSecondary: metrics.secondary,
     metricTertiary: metrics.tertiary,
     metricSeparator: metrics.separator,
     compactPrimary: metrics.compactPrimary,
     compactSecondary: metrics.compactSecondary,
-    canCompleteSet: metrics.complete,
+    canCompleteSet:
+        metrics.complete || (isDurationBased && setTimerStartedAt != null),
+    upcomingSets: _upcomingSetSnapshots(
+      current: next,
+      exercises: exercises,
+      setLogs: setLogs,
+      unitService: unitService,
+      strings: strings,
+      localeName: localeName,
+    ),
   );
+}
+
+List<WorkoutLiveActivitySetSnapshot> _upcomingSetSnapshots({
+  required _NextSet current,
+  required List<RoutineExercise> exercises,
+  required Map<int, SetLog> setLogs,
+  required UnitService unitService,
+  required WorkoutLiveActivityStrings strings,
+  required String localeName,
+}) {
+  final upcoming = <WorkoutLiveActivitySetSnapshot>[];
+  final simulatedLogs = Map<int, SetLog>.of(setLogs)
+    ..[current.templateId] = current.log.copyWith(isCompleted: true);
+  while (upcoming.length < 30) {
+    final next = _findNextSet(exercises, simulatedLogs);
+    if (next == null) break;
+    final mask = ExerciseLogMask.forExercise(next.exercise.exercise);
+    final metrics = mask.logsDuration
+        ? _durationMetrics(next, mask, unitService, strings, localeName)
+        : _strengthMetrics(next, unitService, strings, localeName);
+    upcoming.add(WorkoutLiveActivitySetSnapshot(
+      exerciseName: next.localizedName(_languageCode(localeName)),
+      setPosition:
+          strings.setPosition(next.indexInExercise, next.totalInExercise),
+      badgeText: mask.logsDuration ? '' : _badgeText(next),
+      badgeColorHex:
+          mask.logsDuration ? _colorNeutral : _badgeColor(next.setType),
+      metricPrimary: metrics.primary,
+      metricSecondary: metrics.secondary,
+      metricTertiary: metrics.tertiary,
+      metricSeparator: metrics.separator,
+      compactPrimary: metrics.compactPrimary,
+      compactSecondary: metrics.compactSecondary,
+      setTimerTemplateId: mask.logsDuration ? next.templateId : null,
+      canCompleteSet: metrics.complete,
+    ));
+    simulatedLogs[next.templateId] = next.log.copyWith(isCompleted: true);
+  }
+  return upcoming;
 }
 
 /// `localeName` arrives as a full language tag such as `de-DE`.
@@ -155,8 +226,9 @@ _MetricLine _strengthMetrics(
 /// only reps, weight and RIR. The line therefore falls back to values already
 /// entered on the set, and stays empty for a fresh cardio set. Once templates
 /// gain duration and distance targets, only this function changes.
-_MetricLine _cardioMetrics(
+_MetricLine _durationMetrics(
   _NextSet next,
+  ExerciseLogMask mask,
   UnitService unitService,
   WorkoutLiveActivityStrings strings,
   String localeName,
@@ -169,25 +241,39 @@ _MetricLine _cardioMetrics(
       ? ''
       : '${_formatDecimal(unitService.convertDisplayValue(distanceKm, UnitDimension.distance), localeName, decimals: 2)} ${strings.distanceUnit}';
 
+  final weight = next.log.weightKg ?? next.template?.targetWeight;
+  final weightText = weight == null
+      ? ''
+      : '${_formatDecimal(unitService.convertDisplayValue(weight, UnitDimension.weight), localeName)} ${strings.weightUnit}';
+
   final rpe = next.log.rpe;
   final rpeText = rpe == null ? '' : '(${strings.rpeLabel} $rpe)';
 
-  // Cardio needs at least one of the two to be meaningful; there is no
-  // planned value to fall back on (see the note above).
-  final hasAny = durationText.isNotEmpty || distanceText.isNotEmpty;
+  final primaryText = mask.logsWeight
+      ? weightText
+      : durationText.isEmpty
+          ? distanceText
+          : durationText;
+  final secondaryText = mask.logsWeight
+      ? durationText
+      : durationText.isEmpty
+          ? ''
+          : distanceText;
+
+  final complete = mask.logsWeight
+      ? weightText.isNotEmpty && durationText.isNotEmpty
+      : mask.logsDistance
+          ? durationText.isNotEmpty || distanceText.isNotEmpty
+          : durationText.isNotEmpty;
 
   return _MetricLine(
-    primary: durationText.isEmpty
-        ? (distanceText.isEmpty ? _unknownValue : distanceText)
-        : durationText,
-    secondary: durationText.isEmpty ? '' : distanceText,
+    primary: primaryText.isEmpty ? _unknownValue : primaryText,
+    secondary: secondaryText,
     tertiary: rpeText,
     separator: '·',
-    compactPrimary: durationText.isEmpty
-        ? (distanceText.isEmpty ? _unknownValue : distanceText)
-        : durationText,
-    compactSecondary: durationText.isEmpty ? '' : distanceText,
-    complete: hasAny,
+    compactPrimary: primaryText.isEmpty ? _unknownValue : primaryText,
+    compactSecondary: secondaryText,
+    complete: complete,
   );
 }
 
@@ -224,6 +310,7 @@ String _badgeColor(String setType) => switch (setType) {
     };
 
 class _NextSet {
+  final int templateId;
   final RoutineExercise exercise;
   final SetTemplate? template;
   final SetLog log;
@@ -231,6 +318,7 @@ class _NextSet {
   final int totalInExercise;
 
   const _NextSet({
+    required this.templateId,
     required this.exercise,
     required this.template,
     required this.log,
@@ -261,6 +349,7 @@ _NextSet? _findNextSet(
   if (log == null) return null;
 
   return _NextSet(
+    templateId: next.templateId,
     exercise: exercise,
     template: template,
     log: log,

@@ -92,13 +92,17 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
   @override
   void initState() {
     super.initState();
-    unawaited(TelemetryService.instance
-        .trackScreenView(screenName: ScreenName.exerciseCatalog));
+    unawaited(
+      TelemetryService.instance.trackScreenView(
+        screenName: ScreenName.exerciseCatalog,
+      ),
+    );
     _searchController.addListener(_onSearchChanged);
     _checkDbStatus();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      await BasisDataManager.instance
-          .promptOffDatabaseDownloadIfFirstTime(context);
+      await BasisDataManager.instance.promptOffDatabaseDownloadIfFirstTime(
+        context,
+      );
       await _checkDbStatus();
     });
   }
@@ -257,8 +261,9 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
                             ),
                           )
                         : ListView.builder(
-                            scrollCacheExtent:
-                                const ScrollCacheExtent.pixels(1500.0),
+                            scrollCacheExtent: const ScrollCacheExtent.pixels(
+                              1500.0,
+                            ),
                             padding: DesignConstants.cardPadding,
                             itemCount: _foundExercises.length,
                             itemBuilder: (context, index) {
@@ -279,16 +284,18 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
                                                 exercise
                                                     .getLocalizedName(context),
                                                 style: const TextStyle(
-                                                    fontWeight:
-                                                        FontWeight.bold),
+                                                  fontWeight: FontWeight.bold,
+                                                ),
                                               ),
                                             ),
                                             if (exercise.source == 'user') ...[
                                               const SizedBox(
-                                                  width:
-                                                      DesignConstants.spacingS),
+                                                width: DesignConstants.spacingS,
+                                              ),
                                               _buildSourceBadge(
-                                                  context, exercise.source),
+                                                context,
+                                                exercise.source,
+                                              ),
                                             ],
                                           ],
                                         ),
@@ -305,13 +312,12 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
                                                   LucideIcons.circle_plus,
                                                   color: colorScheme.primary,
                                                 ),
-                                                onPressed: () =>
-                                                    Navigator.of(context)
-                                                        .pop(exercise),
+                                                onPressed: () => Navigator.of(
+                                                  context,
+                                                ).pop(exercise),
                                               )
                                             : const Icon(
-                                                LucideIcons.chevron_right,
-                                              ),
+                                                LucideIcons.chevron_right),
                                         onTap: () {
                                           if (widget.onExerciseSelected !=
                                               null) {
@@ -329,15 +335,16 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
                                                     setHidden,
                                                 builder: (context) =>
                                                     ExerciseDetailScreen(
-                                                        exercise: exercise,
-                                                        repository:
-                                                            _repository),
+                                                  exercise: exercise,
+                                                  repository: _repository,
+                                                ),
                                               ),
                                             )
                                                 .then((result) {
                                               if (result == 'deleted') {
                                                 _runFilter(
-                                                    _searchController.text);
+                                                  _searchController.text,
+                                                );
                                               }
                                             });
                                           }
@@ -433,26 +440,36 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
     final iconColor =
         hasFilter ? colorScheme.onPrimary : colorScheme.onSurfaceVariant;
 
-    return GestureDetector(
-      onTap: () => _showFilterSheet(context, l10n),
-      behavior: HitTestBehavior.opaque,
-      child: Container(
-        height: 48,
-        width: 48,
-        decoration: BoxDecoration(
-          color: fillColor,
-          borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
-        ),
-        child: Center(
-          child: hasFilter
-              ? Text(
-                  '$activeCount',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    color: iconColor,
-                    fontWeight: FontWeight.bold,
-                  ),
-                )
-              : Icon(LucideIcons.list_filter, color: iconColor, size: 22),
+    return Tooltip(
+      message: l10n.catalogFilterTitle,
+      excludeFromSemantics: true,
+      child: Semantics(
+        button: true,
+        label: l10n.catalogFilterTitle,
+        child: GestureDetector(
+          onTap: () => _showFilterSheet(context, l10n),
+          behavior: HitTestBehavior.opaque,
+          child: Container(
+            height: 48,
+            width: 48,
+            decoration: BoxDecoration(
+              color: fillColor,
+              borderRadius: BorderRadius.circular(
+                DesignConstants.borderRadiusM,
+              ),
+            ),
+            child: Center(
+              child: hasFilter
+                  ? Text(
+                      '$activeCount',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        color: iconColor,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    )
+                  : Icon(LucideIcons.list_filter, color: iconColor, size: 22),
+            ),
+          ),
         ),
       ),
     );
@@ -499,7 +516,9 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
                   ExerciseFilterOption(
                     value: tag,
                     label: ExerciseClassificationLabels.usageTag(
-                        sheetContext, tag)!,
+                      sheetContext,
+                      tag,
+                    )!,
                   ),
             ],
           ),
@@ -509,12 +528,16 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
             options: [
               for (final value in _allMechanics)
                 if (ExerciseClassificationLabels.mechanic(
-                        sheetContext, value) !=
+                      sheetContext,
+                      value,
+                    ) !=
                     null)
                   ExerciseFilterOption(
                     value: value,
                     label: ExerciseClassificationLabels.mechanic(
-                        sheetContext, value)!,
+                      sheetContext,
+                      value,
+                    )!,
                   ),
             ],
           ),
@@ -524,12 +547,16 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
             options: [
               for (final value in _allLateralities)
                 if (ExerciseClassificationLabels.laterality(
-                        sheetContext, value) !=
+                      sheetContext,
+                      value,
+                    ) !=
                     null)
                   ExerciseFilterOption(
                     value: value,
                     label: ExerciseClassificationLabels.laterality(
-                        sheetContext, value)!,
+                      sheetContext,
+                      value,
+                    )!,
                   ),
             ],
           ),
@@ -539,12 +566,16 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
             options: [
               for (final value in _allDifficulties)
                 if (ExerciseClassificationLabels.difficulty(
-                        sheetContext, value) !=
+                      sheetContext,
+                      value,
+                    ) !=
                     null)
                   ExerciseFilterOption(
                     value: value,
                     label: ExerciseClassificationLabels.difficulty(
-                        sheetContext, value)!,
+                      sheetContext,
+                      value,
+                    )!,
                   ),
             ],
           ),
@@ -565,7 +596,9 @@ class _ExerciseCatalogScreenState extends State<ExerciseCatalogScreen> {
 
     return Container(
       padding: const EdgeInsets.symmetric(
-          horizontal: DesignConstants.spacingS, vertical: 3),
+        horizontal: DesignConstants.spacingS,
+        vertical: 3,
+      ),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(6),

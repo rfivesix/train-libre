@@ -25,7 +25,6 @@ import 'package:flutter_lucide/flutter_lucide.dart';
 import 'dart:async';
 import '../../../../services/telemetry/telemetry_service.dart';
 
-
 class SleepDayOverviewPage extends StatefulWidget {
   const SleepDayOverviewPage({
     super.key,
@@ -138,7 +137,8 @@ class _SleepDayOverviewPageState extends State<SleepDayOverviewPage> {
           return const Center(child: CircularProgressIndicator());
         }
         final aggregation = _weekAggregation;
-        final hasNoData = aggregation == null || aggregation.days.every((day) => day.score == null);
+        final hasNoData = aggregation == null ||
+            aggregation.days.every((day) => day.score == null);
 
         final displayAggregation = hasNoData
             ? const SleepPeriodAggregationEngine().aggregateWeek(
@@ -181,7 +181,8 @@ class _SleepDayOverviewPageState extends State<SleepDayOverviewPage> {
           return const Center(child: CircularProgressIndicator());
         }
         final aggregation = _monthAggregation;
-        final hasNoData = aggregation == null || aggregation.days.every((day) => day.score == null);
+        final hasNoData = aggregation == null ||
+            aggregation.days.every((day) => day.score == null);
 
         final displayAggregation = hasNoData
             ? const SleepPeriodAggregationEngine().aggregateMonth(
@@ -374,8 +375,8 @@ class _SleepDayOverviewContent extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.symmetric(
                 horizontal: DesignConstants.spacingL),
-            child:
-                SleepScoreBreakdownCard(scoringResult: displayOverview.scoringResult!),
+            child: SleepScoreBreakdownCard(
+                scoringResult: displayOverview.scoringResult!),
           ),
           const SizedBox(height: DesignConstants.spacingS),
         ],

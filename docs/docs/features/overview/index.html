@@ -3,6 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; font-src 'self' data: https://cdn.jsdelivr.net; img-src 'self' data: https:; connect-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests;">
+  <meta http-equiv="X-Content-Type-Options" content="nosniff">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
   <meta name="description" content="Smart processing boundaries, native secure storage, and opt-in telemetry.">
   <title>Feature Transparency &amp; Privacy Architecture | Train Libre Documentation</title>
   <link rel="canonical" href="https://trainlibre.com/docs/features/overview/">
@@ -26,47 +29,18 @@
   <link rel="stylesheet" href="../../../style.css">
   <link rel="stylesheet" href="../../docs.css">
 
+  <!-- Theme Script (Synchronous in head to prevent theme flash) -->
+  <script src="../../../theme.js"></script>
+
   <!-- KaTeX Auto-render Script -->
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js" defer></script>
-  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" defer onload="renderMathInElement(document.body, {
-    delimiters: [
-      {left: '$$', right: '$$', display: true},
-      {left: '$', right: '$', display: false}
-    ],
-    throwOnError: false
-  });"></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" defer></script>
 
   <!-- Mermaid.js for Architecture Diagrams -->
-  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
-  <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      if (typeof mermaid !== "undefined") {
-        const isDark = document.documentElement.getAttribute("data-theme") !== "light";
-        mermaid.initialize({
-          startOnLoad: true,
-          theme: isDark ? "dark" : "default",
-          themeVariables: isDark ? {
-            darkMode: true,
-            background: "#151815",
-            primaryColor: "#1b1f1b",
-            primaryTextColor: "#f4f6f4",
-            primaryBorderColor: "rgba(221, 255, 0, 0.4)",
-            lineColor: "#ddff00",
-            secondaryColor: "#151815",
-            tertiaryColor: "#0e100e"
-          } : {}
-        });
-      }
-    });
-  </script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js" defer></script>
 
-  <!-- Prevent Theme Flash -->
-  <script>
-    (function () {
-      const theme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: light)').matches ? "light" : "dark");
-      document.documentElement.setAttribute("data-theme", theme);
-    })();
-  </script>
+  <!-- Dedicated Docs Client Interactions -->
+  <script src="../../docs.js" defer></script>
 </head>
 <body class="docs-body">
   <div class="page">
@@ -161,14 +135,14 @@
 
         <article class="docs-article">
           <h1 class="doc-title">Feature Transparency & Privacy Architecture</h1>
-<p>Train Libre leverages advanced computational intelligence to provide users with adaptive nutrition recommendations, intelligent meal capture, workout progression, recovery analytics, and robust health metrics synchronization. Crucially, all calculations and integrations are designed around strict <strong>local-first</strong> and <strong>privacy-first</strong> principles.</p>
+<p>Train Libre provides adaptive nutrition goals and recommendations, manual workout plans, intelligent meal capture, workout progression, recovery analytics, and health metrics synchronization. All calculations and integrations are designed around strict <strong>local-first</strong> and <strong>privacy-first</strong> principles.</p>
 <hr class="divider">
 <h2 id="architectural-privacy-invariants" class="doc-h2">Architectural Privacy Invariants<a href="#architectural-privacy-invariants" class="header-anchor" aria-label="Link to section">#</a></h2>
 <p>To achieve true user privacy and data ownership, the application enforces the following technical boundaries:</p>
 <ol class="doc-list">
 <li><strong>Zero Mandatory Cloud Intermediaries</strong>: The application does not require a custom backend server to function. There is no central user database, no mandatory registration, and no login wall. All diary, workout, sleep, and metric records reside in local SQLite storage.</li>
 <li><strong>On-Device Encryption & Security</strong>: Sensitive credentials, specifically the user-provided API keys required for Bring Your Own Key (BYOK) Large Language Models, are stored in hardware-backed system secure vaults (iOS Keychain and Android Keystore) via <code>FlutterSecureStorage</code> with device-only accessibility.</li>
-<li><strong>Local Algorithmic Execution</strong>: High-level statistical and physiological logic — including the Kalman filter for TDEE, macronutrient distributions, the Sleep Health Score engine, muscle recovery timelines, and Brzycki 1RM heuristics — executes entirely on-device. Personal logs, bodyweight measurements, and physical metrics are never transmitted to external servers for analytical evaluation.</li>
+<li><strong>Local Algorithmic Execution</strong>: High-level statistical and physiological logic — including the Kalman filter for TDEE, macronutrient distributions, adaptive goal reviews, the Sleep Health Score engine, muscle recovery timelines, and Brzycki 1RM heuristics — executes entirely on-device. Personal logs, bodyweight measurements, and physical metrics are never transmitted to external servers for analytical evaluation.</li>
 <li><strong>Strictly Opt-In, Zero-Profiling Usage Telemetry</strong>:</li>
 <li>Disabled by default upon installation.</li>
 <li>No network connection or SDK initialization occurs before explicit consent.</li>
@@ -181,7 +155,7 @@
 <h2 id="smart-capabilities-overview" class="doc-h2">Smart Capabilities Overview<a href="#smart-capabilities-overview" class="header-anchor" aria-label="Link to section">#</a></h2>
 <p>The core computational modules of Train Libre are split into isolated, mathematically transparent features:</p>
 <h3 id="1-bayesian-tdee-estimator" class="doc-h3">1. Bayesian TDEE Estimator<a href="#1-bayesian-tdee-estimator" class="header-anchor" aria-label="Link to section">#</a></h3>
-<p>A mathematical engine utilizing a recursive Kalman Filter. It combines daily bodyweight slope calculations with logged calorie intakes to predict the user's Total Daily Energy Expenditure (TDEE). By applying Bayesian priors and calculating real-time observation variance, the system adjusts calorie recommendations while automatically penalizing poor-quality or sparse data. <em>   </em>Learn more in the <a href="../bayesian-tdee-estimator/index.html"><strong>Bayesian TDEE Estimator Documentation</strong></a>.*</p>
+<p>A mathematical engine utilizing a recursive Kalman filter. It combines a recent 14-day bodyweight trend with logged calorie intake to estimate Total Daily Energy Expenditure (TDEE), increases observation uncertainty around diet-phase transitions, and uses a separate bounded controller for persistent goal-rate divergence. Poor-quality or sparse data reduces trust and suppresses trajectory corrections. <em>   </em>Learn more in the <a href="../bayesian-tdee-estimator/index.html"><strong>Bayesian TDEE Estimator Documentation</strong></a>.*</p>
 <h3 id="2-macronutrient-distribution" class="doc-h3">2. Macronutrient Distribution<a href="#2-macronutrient-distribution" class="header-anchor" aria-label="Link to section">#</a></h3>
 <p>The deterministic second stage of the nutrition recommendation. It turns the estimator's calorie target into protein, carbohydrate, and fat figures: protein and fat are anchored per kilogram of body weight and scaled with the goal, carbohydrates take the remainder, and a fat floor bounds how far the distribution may give way on a budget too small to carry both targets. <em>   </em>Learn more in the <a href="../macro-distribution/index.html"><strong>Macronutrient Distribution Documentation</strong></a>.*</p>
 <h3 id="3-byok-ai-meal-capture-validation" class="doc-h3">3. BYOK AI Meal Capture & Validation<a href="#3-byok-ai-meal-capture-validation" class="header-anchor" aria-label="Link to section">#</a></h3>
@@ -199,6 +173,12 @@
 <p>The workout recommendation uses the most recent first working set to suggest the next first set, then derives later-set targets from the completed first set with a transparent fatigue back-off. The user can edit every generated value directly. <em>   </em>Learn more in the <a href="../workout-progression-engine/index.html"><strong>Workout Progression Documentation</strong></a>.*</p>
 <h3 id="9-live-activity-cross-platform-widgets" class="doc-h3">9. Live Activity & Cross-Platform Widgets<a href="#9-live-activity-cross-platform-widgets" class="header-anchor" aria-label="Link to section">#</a></h3>
 <p>Real-time glanceable surfaces mirroring active workouts and daily wellness metrics: <em>   <strong>Workout Live Activity</strong>: iOS Lock Screen and Dynamic Island card displaying live set targets, active rest timers, and exercise navigation without background network polling. </em>   <strong>Home Screen Widgets</strong>: Shared Dart snapshot engine delivering six glanceable widgets (Today Glance, Quick Actions, Steps, Measurements, Muscle Recovery, Last Workout) on both iOS 18+ and Android 12+. <em>   </em>Learn more in the <a href="../live-activity-workout/index.html"><strong>Live Activity Documentation</strong></a> and <a href="../../developer/ios-home-screen-widgets/index.html"><strong>Home Screen Widgets Guide</strong></a>.*</p>
+<h3 id="10-adaptive-nutrition-goals" class="doc-h3">10. Adaptive Nutrition Goals<a href="#10-adaptive-nutrition-goals" class="header-anchor" aria-label="Link to section">#</a></h3>
+<p>Users can set a long-term weight goal from a recorded baseline and review its trajectory over time. Weekly reviews require sufficient weigh-ins and food logs before proposing calorie and macro changes. Recommendations remain proposals until the user applies them. <em>   </em>Learn more in the <a href="adaptive-nutrition-goals/"><strong>Adaptive Nutrition Goals Documentation</strong></a>.*</p>
+<h3 id="11-manual-workout-plans" class="doc-h3">11. Manual Workout Plans<a href="#11-manual-workout-plans" class="header-anchor" aria-label="Link to section">#</a></h3>
+<p>Saved routines can be arranged as a fixed weekly schedule or a repeating 1–14 day sequence with rest days. Plans track completed, partial, and skipped sessions. Missed sequence sessions remain next until completed or skipped; optional local reminders open the active plan. <em>   </em>Learn more in the <a href="manual-workout-plans/"><strong>Manual Workout Plans Documentation</strong></a>.*</p>
+<h3 id="12-macronutrient-analytics" class="doc-h3">12. Macronutrient Analytics<a href="#12-macronutrient-analytics" class="header-anchor" aria-label="Link to section">#</a></h3>
+<p>The Statistics hub carries its selected date range into macro analytics, with period navigation, daily intake detail, and a rolling seven-day intake-versus-target comparison in Nutrition. <em>   </em>Learn more in the <a href="macro-analytics/"><strong>Macronutrient Analytics Documentation</strong></a>.*</p>
         </article>
 
         <nav class="docs-pager" aria-label="Documentation navigation">
@@ -220,6 +200,9 @@
 <li class="toc-item toc-item-l3"><a href="#7-estimated-1-rep-max-1rm-heuristics">7. Estimated 1-Rep Max (1RM) Heuristics</a></li>
 <li class="toc-item toc-item-l3"><a href="#8-workout-progression">8. Workout Progression</a></li>
 <li class="toc-item toc-item-l3"><a href="#9-live-activity-cross-platform-widgets">9. Live Activity &amp; Cross-Platform Widgets</a></li>
+<li class="toc-item toc-item-l3"><a href="#10-adaptive-nutrition-goals">10. Adaptive Nutrition Goals</a></li>
+<li class="toc-item toc-item-l3"><a href="#11-manual-workout-plans">11. Manual Workout Plans</a></li>
+<li class="toc-item toc-item-l3"><a href="#12-macronutrient-analytics">12. Macronutrient Analytics</a></li>
 </ul></div></aside>
     </div>
 
@@ -247,93 +230,5 @@
       </div>
     </footer>
   </div>
-
-  <!-- Documentation Interactions Script -->
-  <script>
-    // Theme toggle interaction
-    const themeBtn = document.getElementById("theme-toggle");
-    if (themeBtn) {
-      themeBtn.addEventListener("click", () => {
-        const current = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
-        document.documentElement.setAttribute("data-theme", current);
-        localStorage.setItem("theme", current);
-        if (typeof mermaid !== "undefined") {
-          const mNodes = document.querySelectorAll(".mermaid");
-          if (mNodes.length > 0) {
-            mNodes.forEach(node => {
-              if (node.hasAttribute("data-mermaid")) {
-                node.removeAttribute("data-processed");
-                node.innerHTML = node.getAttribute("data-mermaid");
-              }
-            });
-            mermaid.initialize({
-              startOnLoad: false,
-              theme: current === "light" ? "default" : "dark"
-            });
-            mermaid.run();
-          }
-        }
-      });
-    }
-
-    // Mobile sidebar toggle
-    const sidebarToggle = document.getElementById("sidebar-toggle");
-    const sidebar = document.getElementById("docs-sidebar");
-    if (sidebarToggle && sidebar) {
-      sidebarToggle.addEventListener("click", () => {
-        const expanded = sidebar.classList.toggle("open");
-        sidebarToggle.setAttribute("aria-expanded", expanded);
-      });
-
-      document.addEventListener("click", (e) => {
-        if (sidebar.classList.contains("open") && !sidebar.contains(e.target) && !sidebarToggle.contains(e.target)) {
-          sidebar.classList.remove("open");
-          sidebarToggle.setAttribute("aria-expanded", "false");
-        }
-      });
-    }
-
-    // Sidebar filter/search
-    const filterInput = document.getElementById("sidebar-filter");
-    if (filterInput) {
-      filterInput.addEventListener("input", (e) => {
-        const val = e.target.value.toLowerCase().trim();
-        document.querySelectorAll(".sidebar-nav-list li").forEach(li => {
-          const text = li.textContent.toLowerCase();
-          li.style.display = text.includes(val) ? "" : "none";
-        });
-        document.querySelectorAll(".sidebar-group").forEach(group => {
-          const hasVisible = Array.from(group.querySelectorAll("li")).some(li => li.style.display !== "none");
-          group.style.display = hasVisible ? "" : "none";
-        });
-      });
-    }
-
-    // Scroll-spy for Table of Contents
-    const tocItems = document.querySelectorAll(".toc-list a");
-    if (tocItems.length > 0) {
-      const headingElements = Array.from(tocItems).map(a => {
-        const id = a.getAttribute("href").substring(1);
-        return document.getElementById(id);
-      }).filter(Boolean);
-
-      const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            const id = entry.target.getAttribute("id");
-            tocItems.forEach(a => {
-              if (a.getAttribute("href") === "#" + id) {
-                a.classList.add("active");
-              } else {
-                a.classList.remove("active");
-              }
-            });
-          }
-        });
-      }, { rootMargin: "0px 0px -70% 0px", threshold: 0.1 });
-
-      headingElements.forEach(h => observer.observe(h));
-    }
-  </script>
 </body>
 </html>

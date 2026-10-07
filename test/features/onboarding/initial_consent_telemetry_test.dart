@@ -47,7 +47,8 @@ void main() {
       ),
     ));
     await tester.pumpAndSettle();
-    return AppLocalizations.of(tester.element(find.byType(InitialConsentScreen)))!;
+    return AppLocalizations.of(
+        tester.element(find.byType(InitialConsentScreen)))!;
   }
 
   /// Ticks the mandatory consent and taps through.

@@ -6,6 +6,18 @@
   récente en premier. Ensuite : python3 script/build_whats_new.py --write --sync-store
 -->
 
+## 1.5.0 (2026-10-07)
+
+{chart_line} Des objectifs qui évoluent avec toi : Définis un objectif de poids à long terme à partir d'une mesure réelle, suis ta trajectoire et fais le point sereinement chaque semaine. Les nouvelles recommandations de calories et de macros restent des propositions tant que tu ne les appliques pas.
+
+{dumbbell} Programmes d'entraînement personnalisés : Organise tes routines en semaine fixe ou en séquence flexible de 1 à 14 jours, ajoute des jours de repos, active des rappels et lance tes séances prévues depuis le journal sans pression de rattrapage.
+
+{sparkles} Niveaux d'expérience sur mesure : Choisis ton niveau (Débutant, Avancé, Pro) dans les réglages ou l'onboarding. Le détail des groupes musculaires, le RIR et les écrans d'entraînement s'adaptent à ton niveau de pratique.
+
+{timer} Minuteur de série & onglet Entraînement repensé : Lance et mets en pause le minuteur de série directement pendant l'entraînement ou depuis l'Activité en direct sur l'écran verrouillé. L'onglet Entraînement réunit programme actif, routines et historique.
+
+{activity} Tendances de poids lissées & nouvelles analyses : Le lissage métabolique avec ligne d'historique discrète révèle ta véritable évolution dans l'app et les widgets, complété par les statistiques de macros et l'import de mesures depuis Apple Santé et Health Connect.
+
 ## 1.4.1 (2026-09-14)
 
 {activity} Récupération musculaire plus précise : Le suivi de la récupération utilise désormais un modèle de charge résiduelle décroissante par série. Les cartes musculaires affichent la disponibilité et les heures restantes en un coup d’œil ; appuyez sur une carte pour voir les détails de dose et de prévision.
@@ -48,7 +60,7 @@
 
 ## 1.2.0 (2026-08-30)
 
-{camera} Enregistrer un repas à partir d'une photo : vise ton assiette et l'IA en fait des aliments distincts, avec quantités, calories et macros - tout reste corrigeable avant l'enregistrement. Les produits emballés sont reconnus par leur code-barres dans la même vue, les iPhone équipés du LiDAR mesurent la portion au lieu de la deviner, et le bouton micro permet d'ajouter ce qu'une photo ne montre pas.
+{camera} Enregistrer un repas à partir d'une photo : vise ton assiette et l'IA en fait des aliments distincts, avec quantités, calories et macros - tout reste corrigeable avant l'enregistrement. Les produits emballés sont reconnus par leur code-barres dans la même vue, les iPhone équipés du LiDAR capturent les données de profondeur pour faciliter l'estimation de la portion, et le bouton micro permet d'ajouter ce qu'une photo ne montre pas.
 
 {utensils} Un journal plus lisible : un repas scanné reste une seule entrée avec sa photo et se déplie sur ses ingrédients. Les entrées sont triées par calories, les plus élevées d'abord.
 

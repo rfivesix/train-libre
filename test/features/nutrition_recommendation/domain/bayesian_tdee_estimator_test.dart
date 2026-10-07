@@ -33,9 +33,13 @@ void main() {
           ) +
           _debugDouble(run.estimate, 'observationIntakeVarianceCalories2') +
           _debugDouble(run.estimate, 'observationSlopeVarianceCalories2');
+      final phaseMultiplier = _debugDouble(
+        run.estimate,
+        'observationPhaseVarianceMultiplier',
+      );
       final cap = _debugDouble(run.estimate, 'varianceCapCalories2');
       final expectedP0 = math.min(
-        defaultConfig.initialVarianceMultiplier * referenceR,
+        defaultConfig.initialVarianceMultiplier * referenceR * phaseMultiplier,
         cap,
       );
 
@@ -239,7 +243,7 @@ void main() {
       expect(variance, closeTo(gain * r, 0.0000001));
     });
 
-    test('phase ramp uses 3000 kcalPerKg in confirmed phase week 1', () {
+    test('uses fixed 7700 kcalPerKg in every confirmed phase week', () {
       final week1 = estimator.estimate(
         input: _input(
           priorMaintenanceCalories: 2400,
@@ -254,10 +258,15 @@ void main() {
       );
 
       expect(_debugDouble(week1.estimate, 'effectiveKcalPerKg'),
-          closeTo(3000, 0.0001));
+          closeTo(7700, 0.0001));
+      expect(
+        week1.estimate.debugInfo['effectiveKcalPerKgMode'],
+        'fixed_energy_density',
+      );
     });
 
-    test('phase ramp increases linearly and monotonically with phase age', () {
+    test('phase transition inflates R for two weeks then returns to normal',
+        () {
       final week1 = estimator.estimate(
         input: _input(
           priorMaintenanceCalories: 2400,
@@ -270,7 +279,7 @@ void main() {
         dueWeekKey: '2026-04-06',
         phaseContext: _phaseContext(confirmedPhaseAgeDays: 1),
       );
-      final week5 = estimator.estimate(
+      final week2 = estimator.estimate(
         input: _input(
           priorMaintenanceCalories: 2400,
           avgLoggedCalories: 2200,
@@ -280,9 +289,9 @@ void main() {
           intakeLoggedDays: 8,
         ),
         dueWeekKey: '2026-04-06',
-        phaseContext: _phaseContext(confirmedPhaseAgeDays: 29),
+        phaseContext: _phaseContext(confirmedPhaseAgeDays: 8),
       );
-      final week8 = estimator.estimate(
+      final week3 = estimator.estimate(
         input: _input(
           priorMaintenanceCalories: 2400,
           avgLoggedCalories: 2200,
@@ -292,21 +301,38 @@ void main() {
           intakeLoggedDays: 8,
         ),
         dueWeekKey: '2026-04-06',
-        phaseContext: _phaseContext(confirmedPhaseAgeDays: 50),
+        phaseContext: _phaseContext(confirmedPhaseAgeDays: 15),
       );
 
-      final week1Kcal = _debugDouble(week1.estimate, 'effectiveKcalPerKg');
-      final week5Kcal = _debugDouble(week5.estimate, 'effectiveKcalPerKg');
-      final week8Kcal = _debugDouble(week8.estimate, 'effectiveKcalPerKg');
-
-      expect(week1Kcal, closeTo(3000, 0.0001));
-      expect(week5Kcal, closeTo(5350, 0.0001));
-      expect(week8Kcal, closeTo(7112.5, 0.001));
-      expect(week5Kcal, greaterThan(week1Kcal));
-      expect(week8Kcal, greaterThan(week5Kcal));
+      expect(
+        _debugDouble(week1.estimate, 'observationPhaseVarianceMultiplier'),
+        closeTo(2.25, 0.0001),
+      );
+      expect(
+        _debugDouble(week2.estimate, 'observationPhaseVarianceMultiplier'),
+        closeTo(1.50, 0.0001),
+      );
+      expect(
+        _debugDouble(week3.estimate, 'observationPhaseVarianceMultiplier'),
+        closeTo(1.0, 0.0001),
+      );
+      expect(
+        _debugDouble(week1.estimate, 'observationVarianceCalories2'),
+        greaterThan(_debugDouble(
+          week2.estimate,
+          'observationVarianceCalories2',
+        )),
+      );
+      expect(
+        _debugDouble(week2.estimate, 'observationVarianceCalories2'),
+        greaterThan(_debugDouble(
+          week3.estimate,
+          'observationVarianceCalories2',
+        )),
+      );
     });
 
-    test('phase ramp reaches 7700 by week 9 and stays there', () {
+    test('fixed energy density remains unchanged at long phase ages', () {
       final week9 = estimator.estimate(
         input: _input(
           priorMaintenanceCalories: 2400,
@@ -338,7 +364,7 @@ void main() {
           closeTo(7700, 0.0001));
     });
 
-    test('phase ramp depends on confirmed phase age, not window length', () {
+    test('fixed energy density does not depend on window length', () {
       final shortWindow = estimator.estimate(
         input: _input(
           priorMaintenanceCalories: 2400,
@@ -368,7 +394,7 @@ void main() {
           _debugDouble(shortWindow.estimate, 'effectiveKcalPerKg');
       final longKcal = _debugDouble(longWindow.estimate, 'effectiveKcalPerKg');
       expect(shortKcal, closeTo(longKcal, 0.0001));
-      expect(shortKcal, closeTo(5350, 0.0001));
+      expect(shortKcal, closeTo(7700, 0.0001));
     });
 
     test('posterior stays closer to prior when R is high (sparse data)', () {
@@ -619,10 +645,10 @@ void main() {
         lastObservationUsed: true,
         recentPosteriorMeansCalories: <double>[2440, 2470, 2490, 2500],
         recentObservationResidualsCalories: <double>[
-          -520,
-          510,
-          -540,
-          530,
+          -920,
+          910,
+          -940,
+          930,
         ],
       );
 
@@ -637,6 +663,7 @@ void main() {
         ),
         recursiveState: priorState,
         dueWeekKey: '2026-04-13',
+        phaseContext: _phaseContext(confirmedPhaseAgeDays: 21),
       );
 
       expect(run.estimate.isStillStabilizing, isTrue);

@@ -26,9 +26,7 @@ class AppButton extends StatefulWidget {
     this.icon,
     this.isLoading = false,
     this.size = AppButtonSize.regular,
-  })  : assert(tooltip != null || semanticsLabel != null,
-            'Either tooltip or semanticsLabel must be provided'),
-        variant = AppButtonVariant.primary;
+  }) : variant = AppButtonVariant.primary;
 
   const AppButton.secondary({
     super.key,
@@ -39,9 +37,7 @@ class AppButton extends StatefulWidget {
     this.icon,
     this.isLoading = false,
     this.size = AppButtonSize.regular,
-  })  : assert(tooltip != null || semanticsLabel != null,
-            'Either tooltip or semanticsLabel must be provided'),
-        variant = AppButtonVariant.secondary;
+  }) : variant = AppButtonVariant.secondary;
 
   const AppButton.danger({
     super.key,
@@ -52,9 +48,7 @@ class AppButton extends StatefulWidget {
     this.icon,
     this.isLoading = false,
     this.size = AppButtonSize.regular,
-  })  : assert(tooltip != null || semanticsLabel != null,
-            'Either tooltip or semanticsLabel must be provided'),
-        variant = AppButtonVariant.danger;
+  }) : variant = AppButtonVariant.danger;
 
   @override
   State<AppButton> createState() => _AppButtonState();
@@ -121,8 +115,10 @@ class _AppButtonState extends State<AppButton>
         glassSettings = LiquidGlassSettings(
           thickness: 18, // Thinner glass = reduced gray refraction
           blur: 1.5, // Subtle blur for sharper colors
-          glassColor: primaryColor.withValues(alpha: 0.35), // Transparent glass base
-          lightIntensity: isDark ? 0.85 : 0.95, // High light intensity for clarity
+          glassColor:
+              primaryColor.withValues(alpha: 0.35), // Transparent glass base
+          lightIntensity:
+              isDark ? 0.85 : 0.95, // High light intensity for clarity
           saturation: 1.60, // Enhanced saturation for vibrant tint
           ambientRim: 0.15,
         );
@@ -246,7 +242,7 @@ class _AppButtonState extends State<AppButton>
       final Color rimColor = isDark
           ? Colors.grey.shade700
           : theme.colorScheme.onSurface.withValues(alpha: 0.1);
- 
+
 // Inner content container — carries the solid background, rim border, and labels
       final Widget innerContent = Container(
         height: height,

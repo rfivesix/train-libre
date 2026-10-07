@@ -69,12 +69,16 @@ class PulseSummaryCard extends StatelessWidget {
           return const SizedBox.shrink();
         }
 
-        final rangeText = showSkeleton ? '60-120 ${l10n.sleepBpmUnit}' : (summary!.hasCoreMetrics
-            ? '${summary.minBpm!.round()}-${summary.maxBpm!.round()} ${l10n.sleepBpmUnit}'
-            : '--');
-        final restingText = showSkeleton ? '65 ${l10n.sleepBpmUnit}' : (summary!.restingBpm != null
-            ? '${summary.restingBpm!.round()} ${l10n.sleepBpmUnit}'
-            : '--');
+        final rangeText = showSkeleton
+            ? '60-120 ${l10n.sleepBpmUnit}'
+            : (summary!.hasCoreMetrics
+                ? '${summary.minBpm!.round()}-${summary.maxBpm!.round()} ${l10n.sleepBpmUnit}'
+                : '--');
+        final restingText = showSkeleton
+            ? '65 ${l10n.sleepBpmUnit}'
+            : (summary!.restingBpm != null
+                ? '${summary.restingBpm!.round()} ${l10n.sleepBpmUnit}'
+                : '--');
 
         return RepaintBoundary(
           child: SummaryCard(

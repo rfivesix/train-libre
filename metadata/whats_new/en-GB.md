@@ -6,6 +6,18 @@
   Newest version first. Regenerate with: python3 script/build_whats_new.py
 -->
 
+## 1.5.0 (2026-10-07)
+
+{chart_line} Goals that adapt with you: Set a long-term weight goal with a real starting measurement, follow your trajectory, and review your progress in calm weekly check-ins. New calorie and macro recommendations remain proposals until you choose to apply them.
+
+{dumbbell} Custom workout plans & flexible sequences: Arrange saved routines as a weekly schedule or a flexible 1–14 day sequence, include rest days, set optional reminders, and start due sessions directly from the Diary without any catch-up pressure.
+
+{sparkles} Tailored training experience levels: Choose your experience level (Beginner, Advanced, Pro) in Settings or onboarding. Muscle group breakdowns, RIR (reps in reserve), and workout views adapt to match your training background.
+
+{timer} Set timer & redesigned Workout home: Start and pause timed sets directly during your workout or from your Lock Screen Live Activity. The refreshed Workout tab brings your active plan, routines, and history together in one place.
+
+{activity} Smoothed weight trends & new analytics: Metabolic trend smoothing with a subtle check-in ghost line reveals your true weight direction across the app and home widgets, complemented by macro analytics and Apple Health / Health Connect measurement imports.
+
 ## 1.4.1 (2026-09-14)
 
 {activity} Smarter Muscle Recovery: Recovery tracking now uses a time-decaying residual-load model for every single set. Muscle rows show readiness and remaining recovery hours at a glance, and tapping any card reveals detailed session dose and forecast insights.
@@ -48,7 +60,7 @@
 
 ## 1.2.0 (2026-08-30)
 
-{camera} Log a meal from a photo: Point the camera at your plate and the AI turns it into individual foods with amounts, calories and macros - all correctable before you save. Packaged products are recognised by barcode in the very same view, iPhones with LiDAR measure the portion instead of guessing it, and the microphone button lets you add what a photo cannot show.
+{camera} Log a meal from a photo: Point the camera at your plate and the AI turns it into individual foods with amounts, calories and macros - all correctable before you save. Packaged products are recognised by barcode in the very same view, iPhones with LiDAR capture depth scale to assist portion estimation, and the microphone button lets you add what a photo cannot show.
 
 {utensils} A clearer diary: A scanned meal stays one entry with its photo and unfolds into its ingredients. Entries are sorted by calories, largest first.
 

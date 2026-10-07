@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -20,10 +21,13 @@ import 'ai_settings_screen.dart';
 import 'appearance_settings_screen.dart';
 import 'developer_settings_screen.dart';
 import 'data_management_screen.dart';
+import 'goal_notification_settings_screen.dart';
+import 'calculation_basis_screen.dart';
 import 'health_export_settings_screen.dart';
 import 'pulse_settings_screen.dart';
 import 'sleep_settings_screen.dart';
 import 'steps_settings_screen.dart';
+import '../../profile/presentation/measurement_import_settings_screen.dart';
 import '../../../services/local_app_data_reset_service.dart';
 import '../../workout/presentation/live_workout_view_model.dart';
 import '../../../widgets/common/common.dart';
@@ -35,6 +39,7 @@ import '../../../services/app_tour_service.dart';
 import '../../../services/telemetry/telemetry_service.dart';
 import '../../../widgets/common/app_restart.dart';
 import '../../../services/training_autonomy_service.dart';
+import '../../../services/experience_level_service.dart';
 import '../../workout/domain/models/prescription_enums.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -282,6 +287,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final autonomyLabel = currentAutonomy == AutonomyLevel.suggest
         ? l10n.trainingProgressionSuggest
         : l10n.trainingProgressionOff;
+
+    final experienceLevelService =
+        Provider.of<ExperienceLevelService?>(context) ??
+            ExperienceLevelService();
+    final currentExperienceLevel = experienceLevelService.level;
+    final experienceLevelLabel = switch (currentExperienceLevel) {
+      ExperienceLevel.beginner => l10n.experienceLevelBeginner,
+      ExperienceLevel.advanced => l10n.experienceLevelAdvanced,
+      ExperienceLevel.pro => l10n.experienceLevelPro,
+    };
     final topPadding = MediaQuery.of(context).padding.top + kToolbarHeight;
 
     return Scaffold(
@@ -317,6 +332,42 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     );
                   },
                   tileKey: const Key('settings_appearance_entry'),
+                  wrapInCard: false,
+                ),
+                const Divider(height: 1),
+                _buildNavigationCard(
+                  context: context,
+                  icon: LucideIcons.bell,
+                  title: l10n.notificationSettingsTitle,
+                  subtitle: l10n.notificationSettingsSubtitle,
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            const GoalNotificationSettingsScreen(),
+                      ),
+                    );
+                  },
+                  tileKey: const Key('settings_goal_notifications_entry'),
+                  wrapInCard: false,
+                ),
+                const Divider(height: 1),
+                _buildNavigationCard(
+                  context: context,
+                  icon: LucideIcons.calculator,
+                  title: l10n.calculationBasisTitle,
+                  subtitle: l10n.calculationBasisSubtitle,
+                  onTap: () async {
+                    final changed = await Navigator.of(context).push<bool>(
+                      MaterialPageRoute(
+                        builder: (context) => const CalculationBasisScreen(),
+                      ),
+                    );
+                    if (_settingsChildMayHaveChanged(changed)) {
+                      hasStepsSettingsChanged = true;
+                    }
+                  },
+                  tileKey: const Key('settings_calculation_basis_entry'),
                   wrapInCard: false,
                 ),
                 const Divider(height: 1),
@@ -404,6 +455,53 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           ? 'Metric (kg, cm, ml)'
                           : 'Imperial (lbs, in, fl oz)',
                     ),
+                    trailing: const Icon(LucideIcons.chevron_right),
+                  ),
+                ),
+                const Divider(height: 1),
+                PlatformAdaptivePopupMenu<ExperienceLevel>(
+                  key: const Key('settings_training_experience_entry'),
+                  selectedValue: currentExperienceLevel,
+                  onSelected: (value) async {
+                    if (value == currentExperienceLevel) return;
+                    await experienceLevelService.setLevel(value);
+                    unawaited(TelemetryService.instance.trackSettingToggled(
+                      settingKey: 'training_experience_level',
+                      value: value.name,
+                    ));
+                  },
+                  items: [
+                    PlatformAdaptivePopupMenuItem(
+                      value: ExperienceLevel.beginner,
+                      label: l10n.experienceLevelBeginner,
+                      icon: LucideIcons.sprout,
+                    ),
+                    PlatformAdaptivePopupMenuItem(
+                      value: ExperienceLevel.advanced,
+                      label: l10n.experienceLevelAdvanced,
+                      icon: LucideIcons.dumbbell,
+                    ),
+                    PlatformAdaptivePopupMenuItem(
+                      value: ExperienceLevel.pro,
+                      label: l10n.experienceLevelPro,
+                      icon: LucideIcons.flame,
+                    ),
+                  ],
+                  icon: ListTile(
+                    contentPadding: DesignConstants.screenPadding,
+                    leading: Icon(
+                      LucideIcons.award,
+                      size: 36,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                    title: Text(
+                      l10n.settingsTrainingExperienceTitle,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    subtitle: Text(
+                      '${l10n.settingsTrainingExperienceSubtitle}\n$experienceLevelLabel',
+                    ),
+                    isThreeLine: true,
                     trailing: const Icon(LucideIcons.chevron_right),
                   ),
                 ),
@@ -511,6 +609,30 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     final changed = await Navigator.of(context).push<bool>(
                       MaterialPageRoute(
                         builder: (context) => const PulseSettingsScreen(),
+                      ),
+                    );
+                    if (_settingsChildMayHaveChanged(changed)) {
+                      hasStepsSettingsChanged = true;
+                    }
+                  },
+                  wrapInCard: false,
+                ),
+                const Divider(height: 1),
+                _buildNavigationCard(
+                  context: context,
+                  icon: LucideIcons.ruler,
+                  title: Platform.isIOS
+                      ? l10n.appleHealthWeightImportTitle
+                      : l10n.healthConnectWeightImportTitle,
+                  subtitle: Platform.isIOS
+                      ? l10n.appleHealthWeightImportSubtitle
+                      : l10n.healthConnectWeightImportSubtitle,
+                  tileKey: const Key('settings_measurement_import_entry'),
+                  onTap: () async {
+                    final changed = await Navigator.of(context).push<bool>(
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            const MeasurementImportSettingsScreen(),
                       ),
                     );
                     if (_settingsChildMayHaveChanged(changed)) {

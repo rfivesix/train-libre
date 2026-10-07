@@ -1,10 +1,19 @@
 import 'dart:convert';
 
+import 'package:crypto/crypto.dart';
+
 enum HealthExportPlatform { appleHealth, healthConnect }
 
 enum HealthExportDomain { measurements, nutritionHydration, workouts }
 
-enum HealthExportState { idle, exporting, success, failed, disabled }
+enum HealthExportState {
+  idle,
+  exporting,
+  success,
+  failed,
+  permissionRequired,
+  disabled,
+}
 
 enum ExportMeasurementType { weight, bodyFatPercentage, bmi }
 
@@ -17,6 +26,8 @@ class ExportMeasurementRecord {
     this.zoneOffsetMinutes,
     required this.type,
     required this.value,
+    this.externalId,
+    this.exportRevision,
   });
 
   final String idempotencyKey;
@@ -24,13 +35,34 @@ class ExportMeasurementRecord {
   final int? zoneOffsetMinutes;
   final ExportMeasurementType type;
   final double value;
+  final String? externalId;
+  final int? exportRevision;
 
-  Map<String, dynamic> toMap() => {
+  Map<String, dynamic> get contentMap => {
         'idempotencyKey': idempotencyKey,
         'timestampUtcIso': timestampUtc.toUtc().toIso8601String(),
         'zoneOffsetMinutes': zoneOffsetMinutes,
         'type': type.name,
         'value': value,
+      };
+
+  String get payloadFingerprint => _fingerprint(contentMap);
+
+  ExportMeasurementRecord withExportIdentity(String id, int revision) =>
+      ExportMeasurementRecord(
+        idempotencyKey: idempotencyKey,
+        timestampUtc: timestampUtc,
+        zoneOffsetMinutes: zoneOffsetMinutes,
+        type: type,
+        value: value,
+        externalId: id,
+        exportRevision: revision,
+      );
+
+  Map<String, dynamic> toMap() => {
+        ...contentMap,
+        if (externalId != null) 'externalId': externalId,
+        if (exportRevision != null) 'exportRevision': exportRevision,
       };
 }
 
@@ -46,6 +78,8 @@ class ExportNutritionRecord {
     this.fiberGrams,
     this.sugarGrams,
     this.sodiumGrams,
+    this.externalId,
+    this.exportRevision,
   });
 
   final String idempotencyKey;
@@ -58,6 +92,8 @@ class ExportNutritionRecord {
   final double? fiberGrams;
   final double? sugarGrams;
   final double? sodiumGrams;
+  final String? externalId;
+  final int? exportRevision;
 
   bool get hasAnyValue =>
       caloriesKcal != null ||
@@ -68,7 +104,7 @@ class ExportNutritionRecord {
       sugarGrams != null ||
       sodiumGrams != null;
 
-  Map<String, dynamic> toMap() => {
+  Map<String, dynamic> get contentMap => {
         'idempotencyKey': idempotencyKey,
         'timestampUtcIso': timestampUtc.toUtc().toIso8601String(),
         'zoneOffsetMinutes': zoneOffsetMinutes,
@@ -80,6 +116,30 @@ class ExportNutritionRecord {
         'sugarGrams': sugarGrams,
         'sodiumGrams': sodiumGrams,
       };
+
+  String get payloadFingerprint => _fingerprint(contentMap);
+
+  ExportNutritionRecord withExportIdentity(String id, int revision) =>
+      ExportNutritionRecord(
+        idempotencyKey: idempotencyKey,
+        timestampUtc: timestampUtc,
+        zoneOffsetMinutes: zoneOffsetMinutes,
+        caloriesKcal: caloriesKcal,
+        proteinGrams: proteinGrams,
+        carbsGrams: carbsGrams,
+        fatGrams: fatGrams,
+        fiberGrams: fiberGrams,
+        sugarGrams: sugarGrams,
+        sodiumGrams: sodiumGrams,
+        externalId: id,
+        exportRevision: revision,
+      );
+
+  Map<String, dynamic> toMap() => {
+        ...contentMap,
+        if (externalId != null) 'externalId': externalId,
+        if (exportRevision != null) 'exportRevision': exportRevision,
+      };
 }
 
 class ExportHydrationRecord {
@@ -88,18 +148,40 @@ class ExportHydrationRecord {
     required this.timestampUtc,
     this.zoneOffsetMinutes,
     required this.volumeLiters,
+    this.externalId,
+    this.exportRevision,
   });
 
   final String idempotencyKey;
   final DateTime timestampUtc;
   final int? zoneOffsetMinutes;
   final double volumeLiters;
+  final String? externalId;
+  final int? exportRevision;
 
-  Map<String, dynamic> toMap() => {
+  Map<String, dynamic> get contentMap => {
         'idempotencyKey': idempotencyKey,
         'timestampUtcIso': timestampUtc.toUtc().toIso8601String(),
         'zoneOffsetMinutes': zoneOffsetMinutes,
         'volumeLiters': volumeLiters,
+      };
+
+  String get payloadFingerprint => _fingerprint(contentMap);
+
+  ExportHydrationRecord withExportIdentity(String id, int revision) =>
+      ExportHydrationRecord(
+        idempotencyKey: idempotencyKey,
+        timestampUtc: timestampUtc,
+        zoneOffsetMinutes: zoneOffsetMinutes,
+        volumeLiters: volumeLiters,
+        externalId: id,
+        exportRevision: revision,
+      );
+
+  Map<String, dynamic> toMap() => {
+        ...contentMap,
+        if (externalId != null) 'externalId': externalId,
+        if (exportRevision != null) 'exportRevision': exportRevision,
       };
 }
 
@@ -114,6 +196,8 @@ class ExportWorkoutRecord {
     this.caloriesBurnedKcal,
     this.title,
     this.notes,
+    this.externalId,
+    this.exportRevision,
   });
 
   final String idempotencyKey;
@@ -125,8 +209,10 @@ class ExportWorkoutRecord {
   final double? caloriesBurnedKcal;
   final String? title;
   final String? notes;
+  final String? externalId;
+  final int? exportRevision;
 
-  Map<String, dynamic> toMap() => {
+  Map<String, dynamic> get contentMap => {
         'idempotencyKey': idempotencyKey,
         'startUtcIso': startUtc.toUtc().toIso8601String(),
         'endUtcIso': endUtc.toUtc().toIso8601String(),
@@ -137,7 +223,33 @@ class ExportWorkoutRecord {
         'title': title,
         'notes': notes,
       };
+
+  String get payloadFingerprint => _fingerprint(contentMap);
+
+  ExportWorkoutRecord withExportIdentity(String id, int revision) =>
+      ExportWorkoutRecord(
+        idempotencyKey: idempotencyKey,
+        startUtc: startUtc,
+        endUtc: endUtc,
+        startZoneOffsetMinutes: startZoneOffsetMinutes,
+        endZoneOffsetMinutes: endZoneOffsetMinutes,
+        workoutType: workoutType,
+        caloriesBurnedKcal: caloriesBurnedKcal,
+        title: title,
+        notes: notes,
+        externalId: id,
+        exportRevision: revision,
+      );
+
+  Map<String, dynamic> toMap() => {
+        ...contentMap,
+        if (externalId != null) 'externalId': externalId,
+        if (exportRevision != null) 'exportRevision': exportRevision,
+      };
 }
+
+String _fingerprint(Map<String, dynamic> value) =>
+    sha256.convert(utf8.encode(jsonEncode(value))).toString();
 
 class HealthExportDomainStatus {
   const HealthExportDomainStatus({

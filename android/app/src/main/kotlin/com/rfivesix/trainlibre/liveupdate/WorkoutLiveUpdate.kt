@@ -67,6 +67,7 @@ object WorkoutLiveUpdate {
         content: WorkoutLiveContent,
     ): android.app.Notification {
         val isResting = content.phase == WorkoutPhase.Resting && content.restEndsAtEpochMs != null
+        val isSetTimerRunning = content.setTimerStartedAtEpochMs != null
 
         val builder = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_widget_start_workout)
@@ -83,7 +84,12 @@ object WorkoutLiveUpdate {
             .setCategory(NotificationCompat.CATEGORY_PROGRESS)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
 
-        if (isResting) {
+        if (isSetTimerRunning) {
+            builder.setWhen(content.setTimerStartedAtEpochMs!!)
+                .setUsesChronometer(true)
+                .setChronometerCountDown(false)
+                .setShowWhen(true)
+        } else if (isResting) {
             // The countdown runs in the notification itself. Pushing a new
             // notification every second would be the wrong shape entirely — and
             // is exactly what the content model was designed to avoid.
@@ -96,7 +102,7 @@ object WorkoutLiveUpdate {
         }
 
         addActions(context, builder, attributes, content)
-        promote(builder, content, isResting)
+        promote(builder, content, isResting || isSetTimerRunning)
         return builder.build()
     }
 
@@ -133,13 +139,33 @@ object WorkoutLiveUpdate {
 
     private fun text(content: WorkoutLiveContent): String = when (content.phase) {
         WorkoutPhase.Resting ->
-            listOf(content.setPosition, content.metricsLine).filter { it.isNotEmpty() }
-                .joinToString(" · ")
+            listOf(content.setPosition, content.metricsLine, pausedTimerText(content))
+                .filterNotNull().filter { it.isNotEmpty() }.joinToString(" · ")
         WorkoutPhase.SetPending ->
-            listOf(content.setPosition, content.metricsLine).filter { it.isNotEmpty() }
-                .joinToString(" · ")
+            listOf(
+                content.setPosition,
+                content.metricsLine,
+                pausedTimerText(content),
+            ).filterNotNull().filter { it.isNotEmpty() }.joinToString(" · ")
         WorkoutPhase.NoSetsLeft -> content.setPosition
         WorkoutPhase.Empty -> content.setPosition
+    }
+
+    private fun pausedTimerText(content: WorkoutLiveContent): String? =
+        content.setTimerElapsedSeconds
+            .takeIf { content.setTimerTemplateId != null && content.setTimerStartedAtEpochMs == null && it > 0 }
+            ?.let(::formatClock)
+
+    private fun formatClock(seconds: Int): String {
+        val total = seconds.coerceAtLeast(0)
+        val hours = total / 3600
+        val minutes = (total / 60) % 60
+        val remainder = total % 60
+        return if (hours > 0) {
+            "%d:%02d:%02d".format(hours, minutes, remainder)
+        } else {
+            "%02d:%02d".format(minutes, remainder)
+        }
     }
 
     private fun addActions(
@@ -150,6 +176,7 @@ object WorkoutLiveUpdate {
     ) {
         when (content.phase) {
             WorkoutPhase.Resting -> {
+                addSetTimerAction(context, builder, content)
                 builder.addAction(
                     0,
                     "−15 s",
@@ -170,6 +197,7 @@ object WorkoutLiveUpdate {
             }
 
             WorkoutPhase.SetPending -> {
+                addSetTimerAction(context, builder, content)
                 // The checkmark carries no input of its own, so it is only
                 // offered when the set already holds the values it would log.
                 if (content.canCompleteSet) {
@@ -189,6 +217,23 @@ object WorkoutLiveUpdate {
         }
     }
 
+    private fun addSetTimerAction(
+        context: Context,
+        builder: NotificationCompat.Builder,
+        content: WorkoutLiveContent,
+    ) {
+        val templateId = content.setTimerTemplateId ?: return
+        val running = content.setTimerStartedAtEpochMs != null
+        val label = if (running) content.labelStopTimer else content.labelStartTimer
+        if (label.isNotEmpty()) {
+            builder.addAction(
+                0,
+                label,
+                command(context, if (running) LiveUpdateAction.STOP_SET_TIMER else LiveUpdateAction.START_SET_TIMER, templateId = templateId),
+            )
+        }
+    }
+
     private fun openApp(context: Context, attributes: WorkoutLiveAttributes): PendingIntent =
         PendingIntent.getActivity(
             context,
@@ -201,10 +246,12 @@ object WorkoutLiveUpdate {
         context: Context,
         action: String,
         deltaSeconds: Int? = null,
+        templateId: Int? = null,
     ): PendingIntent {
         val intent = Intent(context, LiveUpdateActionReceiver::class.java).apply {
             this.action = action
             if (deltaSeconds != null) putExtra(LiveUpdateAction.EXTRA_DELTA_SECONDS, deltaSeconds)
+            if (templateId != null) putExtra(LiveUpdateAction.EXTRA_TEMPLATE_ID, templateId)
         }
         // The request code has to differ per action, or the two rest buttons
         // would share one PendingIntent and both would carry the same delta.
@@ -225,4 +272,7 @@ object LiveUpdateAction {
     const val SKIP_REST = "com.rfivesix.trainlibre.LIVE_SKIP_REST"
 
     const val EXTRA_DELTA_SECONDS = "deltaSeconds"
+    const val START_SET_TIMER = "com.rfivesix.trainlibre.LIVE_START_SET_TIMER"
+    const val STOP_SET_TIMER = "com.rfivesix.trainlibre.LIVE_STOP_SET_TIMER"
+    const val EXTRA_TEMPLATE_ID = "templateId"
 }

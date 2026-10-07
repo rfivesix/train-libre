@@ -56,6 +56,15 @@ extension MatchingLogic on AiMealValidationEngine {
     final isAmbiguous = scored.length > 1 &&
         best.score < 0.95 &&
         (best.score - secondScore).abs() <= 0.08;
+    final competingAlternatives = isAmbiguous
+        ? scored
+            .skip(1)
+            .where((e) =>
+                (best.score - e.score) <= 0.08 &&
+                e.food.barcode != best.food.barcode)
+            .map((e) => e.food)
+            .toList(growable: false)
+        : const <FoodItem>[];
 
     final quality = switch (best.score) {
       >= 0.95 => AiMatchQuality.exact,
@@ -69,6 +78,7 @@ extension MatchingLogic on AiMealValidationEngine {
       query: query,
       bestMatch: best.food,
       alternatives: alternatives,
+      competingAlternatives: competingAlternatives,
       quality: quality,
       isAmbiguous: isAmbiguous,
       score: best.score,
@@ -88,6 +98,32 @@ extension MatchingLogic on AiMealValidationEngine {
         _matchScoreForQuery(query, food),
       );
     }
+
+    // State alignment boost: if the AI specified a preparation state (e.g. cooked,
+    // raw) and the candidate catalog item explicitly matches that state, give a
+    // small boost so a state-matched item (e.g. "Reis gekocht") isn't penalized
+    // against a raw entry when cooked was photographed.
+    final hint = item.stateHint?.trim().toLowerCase();
+    if (hint != null && hint.isNotEmpty && bestScore >= 0.65) {
+      final dbName = AiMealValidationEngine._normalizeText(food.name);
+      final isPreparedHint = AiMealValidationEngine.isPreparedState(hint);
+      final isRawHint = hint == 'raw' || hint == 'roh';
+
+      final isPreparedDb = dbName.contains('cooked') ||
+          dbName.contains('boiled') ||
+          dbName.contains('gekocht') ||
+          dbName.contains('fried') ||
+          dbName.contains('gebraten') ||
+          dbName.contains('baked') ||
+          dbName.contains('gebacken') ||
+          dbName.contains('zubereitet');
+      final isRawDb = dbName.contains('raw') || dbName.contains('roh');
+
+      if ((isPreparedHint && isPreparedDb) || (isRawHint && isRawDb)) {
+        bestScore = (bestScore + 0.04).clamp(0.0, 1.0);
+      }
+    }
+
     return bestScore;
   }
 

@@ -418,9 +418,8 @@ class HealthPulseAnalysisRepository implements PulseAnalysisRepository {
       var sampleCount = 0;
       var sumBpm = 0.0;
       DateTime? firstBucketStart;
-      final end = (i + groupSize < buckets.length)
-          ? i + groupSize
-          : buckets.length;
+      final end =
+          (i + groupSize < buckets.length) ? i + groupSize : buckets.length;
       for (var j = i; j < end; j++) {
         final bucket = buckets[j];
         firstBucketStart ??= bucket.bucketStartUtc;

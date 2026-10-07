@@ -14,8 +14,20 @@ class Routine {
   /// The list of exercises included in this routine.
   final List<RoutineExercise> exercises;
 
+  /// Timestamp when the routine was last used (created, saved, or started).
+  final DateTime? lastUsedAt;
+
+  /// Timestamp when the routine was originally created.
+  final DateTime? createdAt;
+
   /// Creates a new [Routine] instance.
-  Routine({this.id, required this.name, this.exercises = const []});
+  Routine({
+    this.id,
+    required this.name,
+    this.exercises = const [],
+    this.lastUsedAt,
+    this.createdAt,
+  });
 
   /// Converts the [Routine] instance to a Map for database storage.
   Map<String, dynamic> toMap() {
@@ -23,6 +35,8 @@ class Routine {
       'id': id,
       'name': name,
       'exercises': exercises.map((re) => re.toMap()).toList(),
+      if (lastUsedAt != null) 'last_used_at': lastUsedAt!.toIso8601String(),
+      if (createdAt != null) 'created_at': createdAt!.toIso8601String(),
     };
   }
 }

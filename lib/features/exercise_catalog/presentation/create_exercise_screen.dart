@@ -11,8 +11,10 @@ import '../../../widgets/common/common.dart';
 import '../../../widgets/common/global_app_bar.dart';
 import '../../../widgets/common/seamless_loading_overlay.dart';
 import '../domain/body_slug_mapper.dart';
+import '../domain/muscle_group_normalizer.dart';
 import 'dart:async';
 import '../../../services/telemetry/telemetry_service.dart';
+import '../../../services/experience_level_service.dart';
 
 /// A screen for creating custom exercises.
 class CreateExerciseScreen extends StatefulWidget {
@@ -106,10 +108,10 @@ class _CreateExerciseScreenState extends State<CreateExerciseScreen> {
       final categories = await _repository.getAllCategories();
       final dbMuscles = await _repository.getAllMuscleGroups();
 
-      final mergedMuscles = <String>{
+      final mergedMuscles = deduplicateMuscleGroups([
         ..._defaultMuscles,
         ...dbMuscles,
-      }.toList();
+      ]);
 
       if (mounted) {
         setState(() {
@@ -126,8 +128,12 @@ class _CreateExerciseScreenState extends State<CreateExerciseScreen> {
             _descriptionController.text =
                 toEdit.localizedDescriptionFor(_languageCode);
             _selectedCategory = toEdit.categoryName;
-            _selectedPrimaryMuscles.addAll(toEdit.primaryMuscles);
-            _selectedSecondaryMuscles.addAll(toEdit.secondaryMuscles);
+            _selectedPrimaryMuscles.addAll(
+              deduplicateMuscleGroups(toEdit.primaryMuscles),
+            );
+            _selectedSecondaryMuscles.addAll(
+              deduplicateMuscleGroups(toEdit.secondaryMuscles),
+            );
             _selectedMechanic = toEdit.mechanic;
             _selectedForceVector = toEdit.forceVector;
             _selectedMovementPattern = toEdit.movementPattern;
@@ -321,6 +327,9 @@ class _CreateExerciseScreenState extends State<CreateExerciseScreen> {
                 _buildMuscleSelector(
                   availableMuscles: _allMuscleGroups,
                   selectedMuscles: _selectedPrimaryMuscles,
+                  coarse: context
+                      .watch<ExperienceLevelService>()
+                      .usesCoarseMuscleNames,
                 ),
                 const SizedBox(height: DesignConstants.spacingXL),
                 AppSectionHeader(title: l10n.secondary_muscles_label),
@@ -328,6 +337,9 @@ class _CreateExerciseScreenState extends State<CreateExerciseScreen> {
                 _buildMuscleSelector(
                   availableMuscles: _allMuscleGroups,
                   selectedMuscles: _selectedSecondaryMuscles,
+                  coarse: context
+                      .watch<ExperienceLevelService>()
+                      .usesCoarseMuscleNames,
                 ),
                 const SizedBox(height: DesignConstants.spacingXL),
                 AppSectionHeader(title: l10n.exerciseClassificationTitle),
@@ -397,23 +409,54 @@ class _CreateExerciseScreenState extends State<CreateExerciseScreen> {
   Widget _buildMuscleSelector({
     required List<String> availableMuscles,
     required List<String> selectedMuscles,
+    required bool coarse,
   }) {
+    final candidates =
+        coarse ? coarsenMuscleGroups(availableMuscles) : availableMuscles;
+    final choices = coarse
+        ? deduplicateMuscleGroupsByLabel(
+            candidates,
+            (muscle) => BodySlugMapper.localize(context, muscle),
+          )
+        : candidates;
     return Wrap(
       spacing: 8.0,
       runSpacing: 4.0,
-      children: availableMuscles.map((muscle) {
-        final isSelected = selectedMuscles.contains(muscle);
+      children: choices.map((muscle) {
+        final label = coarse
+            ? BodySlugMapper.localize(context, muscle)
+            : preciseMuscleLabel(muscle);
+        final isSelected = coarse
+            ? selectedMuscles.any(
+                (selected) => coarseMuscleGroupKey(selected) == muscle,
+              )
+            : selectedMuscles.contains(muscle);
         return FilterChip(
-          label: Text(BodySlugMapper.localize(context, muscle)),
+          label: Text(label),
           selected: isSelected,
           onSelected: _isReadOnly
               ? null
               : (bool selected) {
                   setState(() {
                     if (selected) {
+                      if (coarse) {
+                        selectedMuscles.removeWhere(
+                          (selected) =>
+                              coarseMuscleGroupKey(selected) == muscle,
+                        );
+                      } else {
+                        selectedMuscles.remove(muscle);
+                      }
                       selectedMuscles.add(muscle);
                     } else {
-                      selectedMuscles.remove(muscle);
+                      if (coarse) {
+                        selectedMuscles.removeWhere(
+                          (selected) =>
+                              coarseMuscleGroupKey(selected) == muscle,
+                        );
+                      } else {
+                        selectedMuscles.remove(muscle);
+                      }
                     }
                   });
                 },

@@ -3,6 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; font-src 'self' data: https://cdn.jsdelivr.net; img-src 'self' data: https:; connect-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests;">
+  <meta http-equiv="X-Content-Type-Options" content="nosniff">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
   <meta name="description" content="iOS Live Activity, Dynamic Island, and workout session state synchronization.">
   <title>Workout Live Activity | Train Libre Documentation</title>
   <link rel="canonical" href="https://trainlibre.com/docs/features/live-activity-workout/">
@@ -26,47 +29,18 @@
   <link rel="stylesheet" href="../../../style.css">
   <link rel="stylesheet" href="../../docs.css">
 
+  <!-- Theme Script (Synchronous in head to prevent theme flash) -->
+  <script src="../../../theme.js"></script>
+
   <!-- KaTeX Auto-render Script -->
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js" defer></script>
-  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" defer onload="renderMathInElement(document.body, {
-    delimiters: [
-      {left: '$$', right: '$$', display: true},
-      {left: '$', right: '$', display: false}
-    ],
-    throwOnError: false
-  });"></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" defer></script>
 
   <!-- Mermaid.js for Architecture Diagrams -->
-  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
-  <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      if (typeof mermaid !== "undefined") {
-        const isDark = document.documentElement.getAttribute("data-theme") !== "light";
-        mermaid.initialize({
-          startOnLoad: true,
-          theme: isDark ? "dark" : "default",
-          themeVariables: isDark ? {
-            darkMode: true,
-            background: "#151815",
-            primaryColor: "#1b1f1b",
-            primaryTextColor: "#f4f6f4",
-            primaryBorderColor: "rgba(221, 255, 0, 0.4)",
-            lineColor: "#ddff00",
-            secondaryColor: "#151815",
-            tertiaryColor: "#0e100e"
-          } : {}
-        });
-      }
-    });
-  </script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js" defer></script>
 
-  <!-- Prevent Theme Flash -->
-  <script>
-    (function () {
-      const theme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: light)').matches ? "light" : "dark");
-      document.documentElement.setAttribute("data-theme", theme);
-    })();
-  </script>
+  <!-- Dedicated Docs Client Interactions -->
+  <script src="../../docs.js" defer></script>
 </head>
 <body class="docs-body">
   <div class="page">
@@ -167,7 +141,7 @@
 <hr class="divider">
 <h2 id="what-it-shows" class="doc-h2">What it shows<a href="#what-it-shows" class="header-anchor" aria-label="Link to section">#</a></h2>
 <p>The card always carries the same four pieces of information:</p>
-<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">text</span><button class="copy-btn" onclick="navigator.clipboard.writeText(this.closest('.code-block-wrapper').querySelector('code').innerText); this.textContent='Copied!'; setTimeout(()=>this.textContent='Copy', 1500);">Copy</button></div><pre><code>[icon]  Push Day                                          17:06
+<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">text</span><button class="copy-btn">Copy</button></div><pre><code>[icon]  Push Day                                          17:06
         Bench Press                                 Set 3 of 5
         W  72.5 kg  ×  8 reps  (RIR 2)                     [✓]</code></pre></div>
 <ul class="doc-list">
@@ -178,11 +152,12 @@
 </ul>
 <p>The <strong>set-type badge</strong> uses the same letters and colours as the app's own set rows: <code>W</code> warm-up in orange, <code>F</code> failure in red, <code>D</code> drop set in blue, <code>S</code> superset and <code>O</code> other in neutral grey. Normal working sets show <code>N</code> — the position is already spelled out as "Set 3 of 5" beside it, so repeating the number would add nothing.</p>
 <p>While a rest timer runs, a control row appears beneath the set:</p>
-<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">text</span><button class="copy-btn" onclick="navigator.clipboard.writeText(this.closest('.code-block-wrapper').querySelector('code').innerText); this.textContent='Copied!'; setTimeout(()=>this.textContent='Copy', 1500);">Copy</button></div><pre><code>        [ −15s ]        1:07        [ +15s ]        [ Skip ]</code></pre></div>
+<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">text</span><button class="copy-btn">Copy</button></div><pre><code>        [ −15s ]        1:07        [ +15s ]        [ Skip ]</code></pre></div>
+<p>For a duration-based exercise, the set also carries its own timer controls. It starts at zero and counts up. Stop pauses the elapsed time, and Play resumes it; completing the set stores the accumulated duration. Start and stop are also available from the iOS Live Activity (interactive on iOS 17+) and Android workout Live Update. Those controls update the activity without foregrounding the app; their database commands are applied when the app next resumes.</p>
 <p>When there are no sets left the card offers <strong>Add exercise</strong>; if a workout is running with no exercises at all, it offers <strong>Open app</strong>. The workout is never finished from the card — that stays a deliberate action inside the app.</p>
 <h3 id="cardio" class="doc-h3">Cardio<a href="#cardio" class="header-anchor" aria-label="Link to section">#</a></h3>
 <p>Cardio sets use the same card with different numbers: duration, distance and RPE instead of weight, reps and RIR, separated by <code>·</code> instead of <code>×</code>, and without a set-type badge.</p>
-<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">text</span><button class="copy-btn" onclick="navigator.clipboard.writeText(this.closest('.code-block-wrapper').querySelector('code').innerText); this.textContent='Copied!'; setTimeout(()=>this.textContent='Copy', 1500);">Copy</button></div><pre><code>        Treadmill                                   Set 1 of 1
+<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">text</span><button class="copy-btn">Copy</button></div><pre><code>        Treadmill                                   Set 1 of 1
         20:00  ·  5.00 km  (RPE 7)                         [✓]</code></pre></div>
 <p>Routines currently store no target duration or distance for cardio, so a cardio set shows values only once they have been entered. Until then the line reads <code>–</code> and the set cannot be completed from the card.</p>
 <hr class="divider">
@@ -217,7 +192,7 @@
 <hr class="divider">
 <h2 id="known-limits" class="doc-h2">Known limits<a href="#known-limits" class="header-anchor" aria-label="Link to section">#</a></h2>
 <ul class="doc-list">
-<li><strong>Android is not covered.</strong> Live Activities are an iOS feature; the equivalent there is a foreground-service notification and has not been built.</li>
+<li><strong>Android uses its workout Live Update notification.</strong> Its set timer runs in the notification chronometer; system promotion to the Live Update surface depends on Android 16 and device policy.</li>
 <li><strong>Cardio targets do not exist yet.</strong> Routines store no planned duration or distance, so cardio sets stay empty until values are entered.</li>
 <li><strong>The numbers cannot be edited from the card.</strong> Weight and reps are shown as planned; changing them means opening the app.</li>
 </ul>
@@ -266,93 +241,5 @@
       </div>
     </footer>
   </div>
-
-  <!-- Documentation Interactions Script -->
-  <script>
-    // Theme toggle interaction
-    const themeBtn = document.getElementById("theme-toggle");
-    if (themeBtn) {
-      themeBtn.addEventListener("click", () => {
-        const current = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
-        document.documentElement.setAttribute("data-theme", current);
-        localStorage.setItem("theme", current);
-        if (typeof mermaid !== "undefined") {
-          const mNodes = document.querySelectorAll(".mermaid");
-          if (mNodes.length > 0) {
-            mNodes.forEach(node => {
-              if (node.hasAttribute("data-mermaid")) {
-                node.removeAttribute("data-processed");
-                node.innerHTML = node.getAttribute("data-mermaid");
-              }
-            });
-            mermaid.initialize({
-              startOnLoad: false,
-              theme: current === "light" ? "default" : "dark"
-            });
-            mermaid.run();
-          }
-        }
-      });
-    }
-
-    // Mobile sidebar toggle
-    const sidebarToggle = document.getElementById("sidebar-toggle");
-    const sidebar = document.getElementById("docs-sidebar");
-    if (sidebarToggle && sidebar) {
-      sidebarToggle.addEventListener("click", () => {
-        const expanded = sidebar.classList.toggle("open");
-        sidebarToggle.setAttribute("aria-expanded", expanded);
-      });
-
-      document.addEventListener("click", (e) => {
-        if (sidebar.classList.contains("open") && !sidebar.contains(e.target) && !sidebarToggle.contains(e.target)) {
-          sidebar.classList.remove("open");
-          sidebarToggle.setAttribute("aria-expanded", "false");
-        }
-      });
-    }
-
-    // Sidebar filter/search
-    const filterInput = document.getElementById("sidebar-filter");
-    if (filterInput) {
-      filterInput.addEventListener("input", (e) => {
-        const val = e.target.value.toLowerCase().trim();
-        document.querySelectorAll(".sidebar-nav-list li").forEach(li => {
-          const text = li.textContent.toLowerCase();
-          li.style.display = text.includes(val) ? "" : "none";
-        });
-        document.querySelectorAll(".sidebar-group").forEach(group => {
-          const hasVisible = Array.from(group.querySelectorAll("li")).some(li => li.style.display !== "none");
-          group.style.display = hasVisible ? "" : "none";
-        });
-      });
-    }
-
-    // Scroll-spy for Table of Contents
-    const tocItems = document.querySelectorAll(".toc-list a");
-    if (tocItems.length > 0) {
-      const headingElements = Array.from(tocItems).map(a => {
-        const id = a.getAttribute("href").substring(1);
-        return document.getElementById(id);
-      }).filter(Boolean);
-
-      const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            const id = entry.target.getAttribute("id");
-            tocItems.forEach(a => {
-              if (a.getAttribute("href") === "#" + id) {
-                a.classList.add("active");
-              } else {
-                a.classList.remove("active");
-              }
-            });
-          }
-        });
-      }, { rootMargin: "0px 0px -70% 0px", threshold: 0.1 });
-
-      headingElements.forEach(h => observer.observe(h));
-    }
-  </script>
 </body>
 </html>

@@ -29,7 +29,6 @@ class RecoverySectionCard extends StatelessWidget {
     final sectionId = StatisticsHubSectionId.recovery;
     final title = l10n.metricsMuscleReadiness;
 
-
     if (state.hasError && !state.hasData) {
       return AnalyticsCardBase.buildSectionErrorCard(
         context,

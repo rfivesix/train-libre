@@ -266,7 +266,7 @@ class MarkdownParser:
             html_block = (
                 f'<div class="code-block-wrapper">'
                 f'<div class="code-block-header"><span class="code-lang">{html.escape(lang or "text")}</span>'
-                f'<button class="copy-btn" onclick="navigator.clipboard.writeText(this.closest(\'.code-block-wrapper\').querySelector(\'code\').innerText); this.textContent=\'Copied!\'; setTimeout(()=>this.textContent=\'Copy\', 1500);">Copy</button>'
+                f'<button class="copy-btn">Copy</button>'
                 f'</div>'
                 f'<pre><code{code_class}>{escaped_code}</code></pre></div>'
             )
@@ -578,6 +578,8 @@ def build_page_html(
 
     style_href = f"{rel_to_docs}/style.css"
     docs_css_href = f"{rel_to_suite}/docs.css"
+    docs_js_href = f"{rel_to_suite}/docs.js"
+    theme_js_href = f"{rel_to_docs}/theme.js"
     katex_css_href = f"{rel_to_docs}/katex.min.css"
     favicon_href = f"{rel_to_docs}/favicon.png?v=2"
     apple_icon_href = f"{rel_to_docs}/assets/apple-touch-icon.png"
@@ -663,6 +665,9 @@ def build_page_html(
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; font-src 'self' data: https://cdn.jsdelivr.net; img-src 'self' data: https:; connect-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests;">
+  <meta http-equiv="X-Content-Type-Options" content="nosniff">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
   <meta name="description" content="{html.escape(description)}">
   <title>{html.escape(title)} | Train Libre Documentation</title>
   <link rel="canonical" href="https://trainlibre.com{current_item['url']}">
@@ -686,47 +691,18 @@ def build_page_html(
   <link rel="stylesheet" href="{style_href}">
   <link rel="stylesheet" href="{docs_css_href}">
 
+  <!-- Theme Script (Synchronous in head to prevent theme flash) -->
+  <script src="{theme_js_href}"></script>
+
   <!-- KaTeX Auto-render Script -->
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js" defer></script>
-  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" defer onload="renderMathInElement(document.body, {{
-    delimiters: [
-      {{left: '$$', right: '$$', display: true}},
-      {{left: '$', right: '$', display: false}}
-    ],
-    throwOnError: false
-  }});"></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" defer></script>
 
   <!-- Mermaid.js for Architecture Diagrams -->
-  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
-  <script>
-    document.addEventListener("DOMContentLoaded", () => {{
-      if (typeof mermaid !== "undefined") {{
-        const isDark = document.documentElement.getAttribute("data-theme") !== "light";
-        mermaid.initialize({{
-          startOnLoad: true,
-          theme: isDark ? "dark" : "default",
-          themeVariables: isDark ? {{
-            darkMode: true,
-            background: "#151815",
-            primaryColor: "#1b1f1b",
-            primaryTextColor: "#f4f6f4",
-            primaryBorderColor: "rgba(221, 255, 0, 0.4)",
-            lineColor: "#ddff00",
-            secondaryColor: "#151815",
-            tertiaryColor: "#0e100e"
-          }} : {{}}
-        }});
-      }}
-    }});
-  </script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js" defer></script>
 
-  <!-- Prevent Theme Flash -->
-  <script>
-    (function () {{
-      const theme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: light)').matches ? "light" : "dark");
-      document.documentElement.setAttribute("data-theme", theme);
-    }})();
-  </script>
+  <!-- Dedicated Docs Client Interactions -->
+  <script src="{docs_js_href}" defer></script>
 </head>
 <body class="docs-body">
   <div class="page">
@@ -831,117 +807,26 @@ def build_page_html(
       </div>
     </footer>
   </div>
-
-  <!-- Documentation Interactions Script -->
-  <script>
-    // Theme toggle interaction
-    const themeBtn = document.getElementById("theme-toggle");
-    if (themeBtn) {{
-      themeBtn.addEventListener("click", () => {{
-        const current = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
-        document.documentElement.setAttribute("data-theme", current);
-        localStorage.setItem("theme", current);
-        if (typeof mermaid !== "undefined") {{
-          const mNodes = document.querySelectorAll(".mermaid");
-          if (mNodes.length > 0) {{
-            mNodes.forEach(node => {{
-              if (node.hasAttribute("data-mermaid")) {{
-                node.removeAttribute("data-processed");
-                node.innerHTML = node.getAttribute("data-mermaid");
-              }}
-            }});
-            mermaid.initialize({{
-              startOnLoad: false,
-              theme: current === "light" ? "default" : "dark"
-            }});
-            mermaid.run();
-          }}
-        }}
-      }});
-    }}
-
-    // Mobile sidebar toggle
-    const sidebarToggle = document.getElementById("sidebar-toggle");
-    const sidebar = document.getElementById("docs-sidebar");
-    if (sidebarToggle && sidebar) {{
-      sidebarToggle.addEventListener("click", () => {{
-        const expanded = sidebar.classList.toggle("open");
-        sidebarToggle.setAttribute("aria-expanded", expanded);
-      }});
-
-      document.addEventListener("click", (e) => {{
-        if (sidebar.classList.contains("open") && !sidebar.contains(e.target) && !sidebarToggle.contains(e.target)) {{
-          sidebar.classList.remove("open");
-          sidebarToggle.setAttribute("aria-expanded", "false");
-        }}
-      }});
-    }}
-
-    // Sidebar filter/search
-    const filterInput = document.getElementById("sidebar-filter");
-    if (filterInput) {{
-      filterInput.addEventListener("input", (e) => {{
-        const val = e.target.value.toLowerCase().trim();
-        document.querySelectorAll(".sidebar-nav-list li").forEach(li => {{
-          const text = li.textContent.toLowerCase();
-          li.style.display = text.includes(val) ? "" : "none";
-        }});
-        document.querySelectorAll(".sidebar-group").forEach(group => {{
-          const hasVisible = Array.from(group.querySelectorAll("li")).some(li => li.style.display !== "none");
-          group.style.display = hasVisible ? "" : "none";
-        }});
-      }});
-    }}
-
-    // Scroll-spy for Table of Contents
-    const tocItems = document.querySelectorAll(".toc-list a");
-    if (tocItems.length > 0) {{
-      const headingElements = Array.from(tocItems).map(a => {{
-        const id = a.getAttribute("href").substring(1);
-        return document.getElementById(id);
-      }}).filter(Boolean);
-
-      const observer = new IntersectionObserver((entries) => {{
-        entries.forEach(entry => {{
-          if (entry.isIntersecting) {{
-            const id = entry.target.getAttribute("id");
-            tocItems.forEach(a => {{
-              if (a.getAttribute("href") === "#" + id) {{
-                a.classList.add("active");
-              }} else {{
-                a.classList.remove("active");
-              }}
-            }});
-          }}
-        }});
-      }}, {{ rootMargin: "0px 0px -70% 0px", threshold: 0.1 }});
-
-      headingElements.forEach(h => observer.observe(h));
-    }}
-  </script>
 </body>
 </html>
 """
 
 
 def build_redirect_stub(rel_target: str, canonical_url: str, title: str) -> str:
-    """Creates a lightweight, hash-preserving redirect HTML page with relative target."""
+    """Creates a lightweight redirect HTML page with relative target."""
     return f"""<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests;">
+  <meta http-equiv="X-Content-Type-Options" content="nosniff">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
   <meta name="description" content="Redirecting to {html.escape(title)} documentation.">
   <meta name="robots" content="noindex, follow">
   <title>Redirecting to {html.escape(title)} — Train Libre Documentation</title>
   <meta http-equiv="refresh" content="0; url={rel_target}">
   <link rel="canonical" href="{canonical_url}">
-  <script>
-    (function () {{
-      var hash = window.location.hash || '';
-      window.location.replace('{rel_target}' + hash);
-    }})();
-  </script>
 </head>
 <body style="background:#070807;color:#f4f6f4;font-family:-apple-system,BlinkMacSystemFont,sans-serif;padding:60px 20px;text-align:center;">
   <p style="font-size:1.1rem;">Redirecting to <a href="{rel_target}" style="color:#ddff00;text-decoration:underline;">{html.escape(title)} Documentation</a>...</p>

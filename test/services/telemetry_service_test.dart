@@ -10,6 +10,16 @@ import 'package:train_libre/services/telemetry/telemetry_buckets.dart';
 import 'package:train_libre/services/telemetry/telemetry_service_noop.dart';
 import 'package:train_libre/services/telemetry/telemetry_service_posthog.dart';
 
+class _RecordingPostHog extends PostHogTelemetryService {
+  final events = <String, Map<String, dynamic>>{};
+
+  @override
+  Future<void> track(String eventName,
+      {Map<String, dynamic>? properties}) async {
+    events[eventName] = properties ?? {};
+  }
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -50,6 +60,57 @@ void main() {
       await noOpService.incrementFoodLogCount(source: 'barcode_scan');
       await noOpService.flushDailyFoodLog();
       await noOpService.trackAppReviewPromptResponded(response: 'later');
+      await noOpService.trackTrainingPlanCreated(
+        kind: 'week',
+        dayCount: 7,
+        workoutDaysCount: 4,
+        restDaysCount: 3,
+        isActive: true,
+      );
+      await noOpService.trackTrainingPlanUpdated(
+        kind: 'sequence',
+        dayCount: 5,
+        workoutDaysCount: 3,
+        restDaysCount: 2,
+        effectiveTiming: 'from_today',
+      );
+      await noOpService.trackTrainingPlanToggled(
+        action: 'activated',
+        kind: 'week',
+      );
+      await noOpService.trackTrainingPlanDeleted(kind: 'week');
+      await noOpService.trackTrainingPlanSessionStarted(
+        kind: 'week',
+        isRestDayOverride: false,
+        dayIndex: 1,
+      );
+      await noOpService.trackNutritionGoalCreated(
+        preset: 'lose_weight',
+        trackingMode: 'weekly_rate',
+        isNutritionDriver: true,
+        hasTargetDate: true,
+        hasNumericTarget: true,
+        rateDirection: 'deficit',
+        source: 'profile',
+      );
+      await noOpService.trackNutritionGoalAdjusted(
+        adjustmentType: 'pace',
+        isNutritionDriver: true,
+        rateDirection: 'deficit',
+      );
+      await noOpService.trackNutritionGoalRetired(
+        reason: 'completed',
+        durationDaysBucket: '1-3m',
+      );
+      await noOpService.trackWeeklyGoalReviewCompleted(
+        trajectoryStatus: 'on_track',
+        confidenceLevel: 'high',
+        decision: 'applied',
+        weightObservationCountBucket: '3-5',
+        loggedIntakeDaysBucket: '6+',
+        calorieAdjustmentDirection: 'maintain',
+        hasMacroAdjustments: true,
+      );
     });
 
     test(
@@ -113,6 +174,7 @@ void main() {
       await postHogService.trackOnboardingStep(
         stepIndex: 0,
         stepName: 'welcome',
+        screenName: 'welcome',
         durationSeconds: 15,
         sessionId: sessionId,
       );
@@ -364,7 +426,7 @@ void main() {
       await postHogService.trackAiMealScanCompleted(
         requestId: 'scan-req-123',
         provider: 'gemini',
-        latencyBucket: '2-5s',
+        durationSeconds: 4,
         success: true,
         inputMode: 'multimodal',
         photoCount: 2,
@@ -385,11 +447,39 @@ void main() {
 
       await postHogService.trackAiMealCorrectionCompleted(
         hasImages: true,
-        latencyBucket: '2-5s',
+        durationSeconds: 4,
         success: true,
         repairAttemptsCount: 1,
       );
       await postHogService.trackAppReviewPromptResponded(response: 'later');
+    });
+
+    test('AI scan telemetry uses seconds and closed validation counters',
+        () async {
+      final recorder = _RecordingPostHog();
+      await recorder.trackAiMealScanCompleted(
+        requestId: 'random-scan-id',
+        provider: 'gemini',
+        durationSeconds: 12,
+        reviewVisibleSeconds: 5,
+        preliminaryNutritionSeconds: 8,
+        success: true,
+        repairAttemptsCount: 1,
+        primaryFirstPassAccepted: false,
+        selectedValidationRoundsCount: 2,
+        validationRunsTotalCount: 3,
+        firstPassIssueCategories: const ['semantic_match'],
+      );
+      final properties = recorder.events['ai_meal_scan_completed']!;
+      expect(properties['duration_seconds'], 12);
+      expect(properties['review_visible_seconds'], 5);
+      expect(properties['preliminary_nutrition_seconds'], 8);
+      expect(properties['repair_rounds_count'], 1);
+      expect(properties['primary_first_pass_accepted'], false);
+      expect(properties['selected_validation_rounds_count'], 2);
+      expect(properties['validation_runs_total_count'], 3);
+      expect(properties.containsKey('latency_bucket'), false);
+      expect(properties.keys, isNot(contains('meal_name')));
     });
 
     test(
@@ -419,7 +509,152 @@ void main() {
       expect(trackedEvents[0]['setting_key'], equals('icloud_sync_enabled'));
       expect(trackedEvents[0]['value'], equals(false));
     });
+
+    test(
+        'TelemetryBuckets handles observation counts and goal duration buckets accurately',
+        () {
+      expect(TelemetryBuckets.getObservationCountBucket(0), '0');
+      expect(TelemetryBuckets.getObservationCountBucket(1), '1-2');
+      expect(TelemetryBuckets.getObservationCountBucket(2), '1-2');
+      expect(TelemetryBuckets.getObservationCountBucket(4), '3-5');
+      expect(TelemetryBuckets.getObservationCountBucket(5), '3-5');
+      expect(TelemetryBuckets.getObservationCountBucket(10), '6+');
+
+      expect(TelemetryBuckets.getGoalDurationBucket(const Duration(days: 3)),
+          '<7d');
+      expect(TelemetryBuckets.getGoalDurationBucket(const Duration(days: 14)),
+          '1-4w');
+      expect(TelemetryBuckets.getGoalDurationBucket(const Duration(days: 60)),
+          '1-3m');
+      expect(TelemetryBuckets.getGoalDurationBucket(const Duration(days: 120)),
+          '3-6m');
+      expect(TelemetryBuckets.getGoalDurationBucket(const Duration(days: 300)),
+          '>6m');
+    });
+
+    test('PostHogTelemetryService tracks training plan events without PII',
+        () async {
+      final recorder = TestRecordingPostHogService();
+
+      await recorder.trackTrainingPlanCreated(
+        kind: 'week',
+        dayCount: 7,
+        workoutDaysCount: 4,
+        restDaysCount: 3,
+        isActive: true,
+      );
+      expect(recorder.recorded.last.event, 'training_plan_created');
+      expect(recorder.recorded.last.properties?['kind'], 'week');
+      expect(recorder.recorded.last.properties?['day_count'], 7);
+      expect(recorder.recorded.last.properties?['workout_days_count'], 4);
+      expect(recorder.recorded.last.properties?['rest_days_count'], 3);
+      expect(recorder.recorded.last.properties?['is_active'], isTrue);
+
+      await recorder.trackTrainingPlanUpdated(
+        kind: 'sequence',
+        dayCount: 6,
+        workoutDaysCount: 4,
+        restDaysCount: 2,
+        effectiveTiming: 'next_cycle',
+      );
+      expect(recorder.recorded.last.event, 'training_plan_updated');
+      expect(recorder.recorded.last.properties?['kind'], 'sequence');
+      expect(
+          recorder.recorded.last.properties?['effective_timing'], 'next_cycle');
+
+      await recorder.trackTrainingPlanToggled(
+          action: 'activated', kind: 'week');
+      expect(recorder.recorded.last.event, 'training_plan_toggled');
+      expect(recorder.recorded.last.properties?['action'], 'activated');
+
+      await recorder.trackTrainingPlanDeleted(kind: 'week');
+      expect(recorder.recorded.last.event, 'training_plan_deleted');
+
+      await recorder.trackTrainingPlanSessionStarted(
+        kind: 'sequence',
+        isRestDayOverride: true,
+        dayIndex: 2,
+      );
+      expect(recorder.recorded.last.event, 'training_plan_session_started');
+      expect(
+          recorder.recorded.last.properties?['is_rest_day_override'], isTrue);
+      expect(recorder.recorded.last.properties?['day_index'], 2);
+    });
+
+    test(
+        'PostHogTelemetryService tracks nutrition goal and review events without PII',
+        () async {
+      final recorder = TestRecordingPostHogService();
+
+      await recorder.trackNutritionGoalCreated(
+        preset: 'lose_weight',
+        trackingMode: 'weekly_rate',
+        isNutritionDriver: true,
+        hasTargetDate: true,
+        hasNumericTarget: true,
+        rateDirection: 'deficit',
+        source: 'profile',
+      );
+      expect(recorder.recorded.last.event, 'nutrition_goal_created');
+      expect(recorder.recorded.last.properties?['preset'], 'lose_weight');
+      expect(
+          recorder.recorded.last.properties?['tracking_mode'], 'weekly_rate');
+      expect(recorder.recorded.last.properties?['is_nutrition_driver'], isTrue);
+      expect(recorder.recorded.last.properties?['rate_direction'], 'deficit');
+      // Verify no target weight or baseline numbers leak
+      expect(recorder.recorded.last.properties?.containsKey('target_weight'),
+          isFalse);
+      expect(recorder.recorded.last.properties?.containsKey('baseline_weight'),
+          isFalse);
+
+      await recorder.trackNutritionGoalAdjusted(
+        adjustmentType: 'pace',
+        isNutritionDriver: true,
+        rateDirection: 'deficit',
+      );
+      expect(recorder.recorded.last.event, 'nutrition_goal_adjusted');
+      expect(recorder.recorded.last.properties?['adjustment_type'], 'pace');
+
+      await recorder.trackNutritionGoalRetired(
+        reason: 'completed',
+        durationDaysBucket: '1-3m',
+      );
+      expect(recorder.recorded.last.event, 'nutrition_goal_retired');
+      expect(recorder.recorded.last.properties?['reason'], 'completed');
+      expect(
+          recorder.recorded.last.properties?['duration_days_bucket'], '1-3m');
+
+      await recorder.trackWeeklyGoalReviewCompleted(
+        trajectoryStatus: 'on_track',
+        confidenceLevel: 'high',
+        decision: 'applied',
+        weightObservationCountBucket: '3-5',
+        loggedIntakeDaysBucket: '6+',
+        calorieAdjustmentDirection: 'increase',
+        hasMacroAdjustments: true,
+      );
+      expect(recorder.recorded.last.event, 'weekly_goal_review_completed');
+      expect(
+          recorder.recorded.last.properties?['trajectory_status'], 'on_track');
+      expect(recorder.recorded.last.properties?['decision'], 'applied');
+      expect(recorder.recorded.last.properties?['calorie_adjustment_direction'],
+          'increase');
+      // Verify no raw kcal or kg leak
+      expect(
+          recorder.recorded.last.properties?.containsKey('calories'), isFalse);
+      expect(recorder.recorded.last.properties?.containsKey('weight'), isFalse);
+    });
   });
+}
+
+class TestRecordingPostHogService extends PostHogTelemetryService {
+  final List<({String event, Map<String, dynamic>? properties})> recorded = [];
+
+  @override
+  Future<void> track(String eventName,
+      {Map<String, dynamic>? properties}) async {
+    recorded.add((event: eventName, properties: properties));
+  }
 }
 
 class TestTelemetryService extends NoOpTelemetryService {

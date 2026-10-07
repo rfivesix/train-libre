@@ -366,4 +366,19 @@ final class HomeWidgetSharedTests: XCTestCase {
     XCTAssertEqual(tile(value: 500, target: 0).progress, 0.0, "no target means no fill")
     XCTAssertEqual(tile(value: 0, target: 2000).progress, 0.0)
   }
+
+  func testMeasurementPointSmoothedEwma() {
+    let p1 = HomeWidgetMeasurementPoint(epochMs: 1000, value: 85.0)
+    let p2 = HomeWidgetMeasurementPoint(epochMs: 2000, value: 84.0)
+    let p3 = HomeWidgetMeasurementPoint(epochMs: 3000, value: 86.0)
+
+    let smoothed = [p2, p1, p3].smoothedEwma(alpha: 0.35)
+    XCTAssertEqual(smoothed.count, 3)
+    XCTAssertEqual(smoothed[0].epochMs, 1000)
+    XCTAssertEqual(smoothed[0].value, 85.0)
+    XCTAssertEqual(smoothed[1].epochMs, 2000)
+    XCTAssertEqual(smoothed[1].value, 84.65, accuracy: 0.0001)
+    XCTAssertEqual(smoothed[2].epochMs, 3000)
+    XCTAssertEqual(smoothed[2].value, 85.1225, accuracy: 0.0001)
+  }
 }

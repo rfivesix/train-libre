@@ -1,8 +1,10 @@
 import 'contracts/health_export_adapter.dart';
 import 'data/health_export_data_source.dart';
+import 'data/health_export_identity_store.dart';
 import 'data/health_export_status_store.dart';
 import 'models/export_models.dart';
 import 'dart:async';
+import 'package:flutter/services.dart';
 import '../../services/telemetry/telemetry_service.dart';
 
 class HealthExportResult {
@@ -31,13 +33,16 @@ class HealthExportService {
     required List<HealthExportAdapter> adapters,
     HealthExportDataSource? dataSource,
     HealthExportStatusStore? statusStore,
+    HealthExportIdentityStore? identityStore,
   })  : _adapters = {for (final adapter in adapters) adapter.platform: adapter},
         _dataSource = dataSource ?? HealthExportDataSource(),
-        _statusStore = statusStore ?? HealthExportStatusStore();
+        _statusStore = statusStore ?? HealthExportStatusStore(),
+        _identityStore = identityStore ?? HealthExportIdentityStore();
 
   final Map<HealthExportPlatform, HealthExportAdapter> _adapters;
   final HealthExportDataSource _dataSource;
   final HealthExportStatusStore _statusStore;
+  final HealthExportIdentityStore _identityStore;
 
   Future<void> setPlatformEnabled(
     HealthExportPlatform platform,
@@ -74,30 +79,52 @@ class HealthExportService {
       );
     }
 
-    final availability = await adapter.getAvailability();
-    if (availability != HealthExportAvailability.available) {
-      await setPlatformEnabled(platform, false);
+    try {
+      final availability = await adapter.getAvailability();
+      if (availability != HealthExportAvailability.available) {
+        await setPlatformEnabled(platform, false);
+        return HealthExportResult(
+          platform: platform,
+          success: false,
+          message: availability == HealthExportAvailability.notInstalled
+              ? 'Platform not installed'
+              : 'Platform unavailable',
+        );
+      }
+
+      final granted = await adapter.requestPermissions();
+      if (!granted) {
+        await setPlatformEnabled(platform, false);
+        return HealthExportResult(
+          platform: platform,
+          success: false,
+          message: 'Permission denied',
+        );
+      }
+
+      await setPlatformEnabled(platform, true);
+      return HealthExportResult(platform: platform, success: true);
+    } on PlatformException catch (error) {
+      await _statusStore.setPlatformEnabled(platform, false);
+      final state = _isPermissionDenied(error)
+          ? HealthExportState.permissionRequired
+          : HealthExportState.failed;
+      for (final domain in HealthExportDomain.values) {
+        await _statusStore.markDomainState(
+          platform: platform,
+          domain: domain,
+          state: state,
+          lastError: error.toString(),
+        );
+      }
       return HealthExportResult(
         platform: platform,
         success: false,
-        message: availability == HealthExportAvailability.notInstalled
-            ? 'Platform not installed'
-            : 'Platform unavailable',
+        message: _isPermissionDenied(error)
+            ? 'Permission denied'
+            : error.message ?? 'Platform unavailable',
       );
     }
-
-    final granted = await adapter.requestPermissions();
-    if (!granted) {
-      await setPlatformEnabled(platform, false);
-      return HealthExportResult(
-        platform: platform,
-        success: false,
-        message: 'Permission denied',
-      );
-    }
-
-    await setPlatformEnabled(platform, true);
-    return HealthExportResult(platform: platform, success: true);
   }
 
   Future<HealthExportResult> exportNow(
@@ -138,6 +165,17 @@ class HealthExportService {
     final platformStatus =
         statuses[platform] ?? HealthExportPlatformStatus.initial(platform);
     final checkpoints = _domainIncrementalCheckpoints(platformStatus);
+    // Advance successful checkpoints only to the instant before the payload
+    // snapshot. Mutations arriving while native writes are in flight then stay
+    // eligible for the coordinator's queued rerun instead of being skipped.
+    final nowUtc = DateTime.now().toUtc();
+    // Drift's SQLite DateTime columns are second-precision. Round down and
+    // overlap by one second so a write in the boundary second cannot compare
+    // older than the persisted checkpoint. Fingerprints suppress duplicates.
+    final exportBoundaryUtc = DateTime.fromMillisecondsSinceEpoch(
+      (nowUtc.millisecondsSinceEpoch ~/ 1000) * 1000,
+      isUtc: true,
+    ).subtract(const Duration(seconds: 1));
 
     final measurementsPayload = await _dataSource.loadMeasurements(
       options: HealthExportLoadOptions(
@@ -147,6 +185,7 @@ class HealthExportService {
             ? null
             : lookbackDays,
         updatedSinceUtc: checkpoints[HealthExportDomain.measurements],
+        platform: platform,
       ),
     );
     final nutritionPayload = await _dataSource.loadNutrition(
@@ -155,6 +194,7 @@ class HealthExportService {
             ? null
             : lookbackDays,
         updatedSinceUtc: checkpoints[HealthExportDomain.nutritionHydration],
+        platform: platform,
       ),
     );
     final hydrationPayload = await _dataSource.loadHydration(
@@ -163,6 +203,7 @@ class HealthExportService {
             ? null
             : lookbackDays,
         updatedSinceUtc: checkpoints[HealthExportDomain.nutritionHydration],
+        platform: platform,
       ),
     );
     final workoutsPayload = await _dataSource.loadWorkouts(
@@ -171,6 +212,7 @@ class HealthExportService {
             ? null
             : lookbackDays,
         updatedSinceUtc: checkpoints[HealthExportDomain.workouts],
+        platform: platform,
       ),
     );
     final payload = HealthExportPayload(
@@ -185,11 +227,17 @@ class HealthExportService {
     domainOutcomes[HealthExportDomain.measurements] = await _exportDomain(
       platform: platform,
       domain: HealthExportDomain.measurements,
-      keys: payload.measurements.map((record) => record.idempotencyKey),
-      writer: (alreadyExported) async {
-        final pending = payload.measurements
-            .where((record) => !alreadyExported.contains(record.idempotencyKey))
-            .toList(growable: false);
+      successCheckpointUtc: exportBoundaryUtc,
+      writer: () async {
+        final pending = await _prepareRecords<ExportMeasurementRecord>(
+          platform: platform,
+          domain: HealthExportDomain.measurements,
+          records: payload.measurements,
+          keyOf: (record) => record.idempotencyKey,
+          fingerprintOf: (record) => record.payloadFingerprint,
+          withIdentity: (record, id, revision) =>
+              record.withExportIdentity(id, revision),
+        );
         final writeable = platform == HealthExportPlatform.healthConnect
             ? pending
                 .where((record) => record.type != ExportMeasurementType.bmi)
@@ -198,6 +246,15 @@ class HealthExportService {
         // Android Health Connect currently does not support BMI in this writer path.
         for (final batch in _chunkRecords(writeable)) {
           await adapter.writeMeasurementsBatch(batch);
+          await _commitRecords(
+            platform: platform,
+            domain: HealthExportDomain.measurements,
+            records: batch,
+            keyOf: (record) => record.idempotencyKey,
+            fingerprintOf: (record) => record.payloadFingerprint,
+            externalIdOf: (record) => record.externalId!,
+            revisionOf: (record) => record.exportRevision!,
+          );
           await _statusStore.markExported(
             platform: platform,
             domain: HealthExportDomain.measurements,
@@ -210,17 +267,26 @@ class HealthExportService {
     domainOutcomes[HealthExportDomain.nutritionHydration] = await _exportDomain(
       platform: platform,
       domain: HealthExportDomain.nutritionHydration,
-      keys: [
-        ...payload.nutrition.map((record) => record.idempotencyKey),
-        ...payload.hydration.map((record) => record.idempotencyKey),
-      ],
-      writer: (alreadyExported) async {
-        final pendingNutrition = payload.nutrition
-            .where((record) => !alreadyExported.contains(record.idempotencyKey))
-            .toList(growable: false);
-        final pendingHydration = payload.hydration
-            .where((record) => !alreadyExported.contains(record.idempotencyKey))
-            .toList(growable: false);
+      successCheckpointUtc: exportBoundaryUtc,
+      writer: () async {
+        final pendingNutrition = await _prepareRecords<ExportNutritionRecord>(
+          platform: platform,
+          domain: HealthExportDomain.nutritionHydration,
+          records: payload.nutrition,
+          keyOf: (record) => record.idempotencyKey,
+          fingerprintOf: (record) => record.payloadFingerprint,
+          withIdentity: (record, id, revision) =>
+              record.withExportIdentity(id, revision),
+        );
+        final pendingHydration = await _prepareRecords<ExportHydrationRecord>(
+          platform: platform,
+          domain: HealthExportDomain.nutritionHydration,
+          records: payload.hydration,
+          keyOf: (record) => record.idempotencyKey,
+          fingerprintOf: (record) => record.payloadFingerprint,
+          withIdentity: (record, id, revision) =>
+              record.withExportIdentity(id, revision),
+        );
 
         var nutritionExportedCount = 0;
         var hydrationExportedCount = 0;
@@ -232,17 +298,37 @@ class HealthExportService {
         for (final batch in _chunkRecords(pendingNutrition)) {
           try {
             await adapter.writeNutritionBatch(batch);
+            await _commitRecords(
+              platform: platform,
+              domain: HealthExportDomain.nutritionHydration,
+              records: batch,
+              keyOf: (record) => record.idempotencyKey,
+              fingerprintOf: (record) => record.payloadFingerprint,
+              externalIdOf: (record) => record.externalId!,
+              revisionOf: (record) => record.exportRevision!,
+            );
             nutritionChunkExportedKeys.addAll(
               batch.map((record) => record.idempotencyKey),
             );
             nutritionExportedCount += batch.length;
           } catch (error) {
+            if (_isPermissionDenied(error)) rethrow;
             for (final record in batch) {
               try {
                 await adapter.writeNutrition(record);
+                await _commitRecords(
+                  platform: platform,
+                  domain: HealthExportDomain.nutritionHydration,
+                  records: [record],
+                  keyOf: (item) => item.idempotencyKey,
+                  fingerprintOf: (item) => item.payloadFingerprint,
+                  externalIdOf: (item) => item.externalId!,
+                  revisionOf: (item) => item.exportRevision!,
+                );
                 nutritionChunkExportedKeys.add(record.idempotencyKey);
                 nutritionExportedCount += 1;
               } catch (recordError) {
+                if (_isPermissionDenied(recordError)) rethrow;
                 nutritionFailures.add('${record.idempotencyKey}: $recordError');
               }
             }
@@ -261,17 +347,37 @@ class HealthExportService {
         for (final batch in _chunkRecords(pendingHydration)) {
           try {
             await adapter.writeHydrationBatch(batch);
+            await _commitRecords(
+              platform: platform,
+              domain: HealthExportDomain.nutritionHydration,
+              records: batch,
+              keyOf: (record) => record.idempotencyKey,
+              fingerprintOf: (record) => record.payloadFingerprint,
+              externalIdOf: (record) => record.externalId!,
+              revisionOf: (record) => record.exportRevision!,
+            );
             hydrationChunkExportedKeys.addAll(
               batch.map((record) => record.idempotencyKey),
             );
             hydrationExportedCount += batch.length;
           } catch (error) {
+            if (_isPermissionDenied(error)) rethrow;
             for (final record in batch) {
               try {
                 await adapter.writeHydration(record);
+                await _commitRecords(
+                  platform: platform,
+                  domain: HealthExportDomain.nutritionHydration,
+                  records: [record],
+                  keyOf: (item) => item.idempotencyKey,
+                  fingerprintOf: (item) => item.payloadFingerprint,
+                  externalIdOf: (item) => item.externalId!,
+                  revisionOf: (item) => item.exportRevision!,
+                );
                 hydrationChunkExportedKeys.add(record.idempotencyKey);
                 hydrationExportedCount += 1;
               } catch (recordError) {
+                if (_isPermissionDenied(recordError)) rethrow;
                 hydrationFailures.add('${record.idempotencyKey}: $recordError');
               }
             }
@@ -305,13 +411,28 @@ class HealthExportService {
     domainOutcomes[HealthExportDomain.workouts] = await _exportDomain(
       platform: platform,
       domain: HealthExportDomain.workouts,
-      keys: payload.workouts.map((record) => record.idempotencyKey),
-      writer: (alreadyExported) async {
-        final pending = payload.workouts
-            .where((record) => !alreadyExported.contains(record.idempotencyKey))
-            .toList(growable: false);
+      successCheckpointUtc: exportBoundaryUtc,
+      writer: () async {
+        final pending = await _prepareRecords<ExportWorkoutRecord>(
+          platform: platform,
+          domain: HealthExportDomain.workouts,
+          records: payload.workouts,
+          keyOf: (record) => record.idempotencyKey,
+          fingerprintOf: (record) => record.payloadFingerprint,
+          withIdentity: (record, id, revision) =>
+              record.withExportIdentity(id, revision),
+        );
         for (final batch in _chunkRecords(pending)) {
           await adapter.writeWorkoutsBatch(batch);
+          await _commitRecords(
+            platform: platform,
+            domain: HealthExportDomain.workouts,
+            records: batch,
+            keyOf: (record) => record.idempotencyKey,
+            fingerprintOf: (record) => record.payloadFingerprint,
+            externalIdOf: (record) => record.externalId!,
+            revisionOf: (record) => record.exportRevision!,
+          );
           await _statusStore.markExported(
             platform: platform,
             domain: HealthExportDomain.workouts,
@@ -348,8 +469,8 @@ class HealthExportService {
   Future<_DomainExportOutcome> _exportDomain({
     required HealthExportPlatform platform,
     required HealthExportDomain domain,
-    required Iterable<String> keys,
-    required Future<void> Function(Set<String> alreadyExported) writer,
+    required DateTime successCheckpointUtc,
+    required Future<void> Function() writer,
   }) async {
     try {
       await _statusStore.markDomainState(
@@ -358,29 +479,76 @@ class HealthExportService {
         state: HealthExportState.exporting,
         lastError: null,
       );
-      final allKeys = keys.toList(growable: false);
-      final alreadyExported = await _statusStore.getAlreadyExported(
-        platform: platform,
-        domain: domain,
-        idempotencyKeys: allKeys,
-      );
-      await writer(alreadyExported);
+      await writer();
       await _statusStore.markDomainState(
         platform: platform,
         domain: domain,
         state: HealthExportState.success,
         lastError: null,
-        lastSuccessUtc: DateTime.now().toUtc(),
+        lastSuccessUtc: successCheckpointUtc,
       );
       return const _DomainExportOutcome(success: true);
     } catch (error) {
+      final permissionRequired = _isPermissionDenied(error);
       await _statusStore.markDomainState(
         platform: platform,
         domain: domain,
-        state: HealthExportState.failed,
+        state: permissionRequired
+            ? HealthExportState.permissionRequired
+            : HealthExportState.failed,
         lastError: error.toString(),
       );
       return _DomainExportOutcome(success: false, error: error.toString());
+    }
+  }
+
+  bool _isPermissionDenied(Object error) =>
+      error is PlatformException && error.code == 'permission_denied';
+
+  Future<List<T>> _prepareRecords<T>({
+    required HealthExportPlatform platform,
+    required HealthExportDomain domain,
+    required Iterable<T> records,
+    required String Function(T record) keyOf,
+    required String Function(T record) fingerprintOf,
+    required T Function(T record, String externalId, int revision) withIdentity,
+  }) async {
+    final prepared = <T>[];
+    for (final record in records) {
+      final identity = await _identityStore.prepare(
+        platform: platform,
+        domain: domain,
+        sourceKey: keyOf(record),
+        payloadFingerprint: fingerprintOf(record),
+      );
+      if (identity == null) continue;
+      prepared.add(
+        withIdentity(record, identity.externalId, identity.revision),
+      );
+    }
+    return prepared;
+  }
+
+  Future<void> _commitRecords<T>({
+    required HealthExportPlatform platform,
+    required HealthExportDomain domain,
+    required Iterable<T> records,
+    required String Function(T record) keyOf,
+    required String Function(T record) fingerprintOf,
+    required String Function(T record) externalIdOf,
+    required int Function(T record) revisionOf,
+  }) async {
+    for (final record in records) {
+      await _identityStore.commit(
+        platform: platform,
+        domain: domain,
+        sourceKey: keyOf(record),
+        identity: PreparedHealthExportIdentity(
+          externalId: externalIdOf(record),
+          revision: revisionOf(record),
+          payloadFingerprint: fingerprintOf(record),
+        ),
+      );
     }
   }
 

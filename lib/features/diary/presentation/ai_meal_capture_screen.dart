@@ -14,9 +14,12 @@ import 'package:uuid/uuid.dart';
 import '../../../generated/app_localizations.dart';
 import '../../../navigation/app_route_observer.dart';
 import '../../../services/ai_meal_validation.dart';
+import '../../../services/ai_meal_scan_runner.dart';
+import '../../../services/ai_meal_scan_log_service.dart';
 import '../../../services/ai_service.dart';
 import 'util/photo_pre_processor.dart';
 import '../../../services/ai_matching_language_service.dart';
+import '../../../services/ai_meal_context.dart';
 import '../../../services/haptic_feedback_service.dart';
 import '../../depth_scan/data/depth_map_attachment.dart';
 import '../../depth_scan/data/depth_scan_settings.dart';
@@ -96,6 +99,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
 
   // Voice dictation state
   bool _isDictating = false;
+  bool _textCameFromVoice = false;
 
   // Photo state
   final List<File> _images = [];
@@ -619,9 +623,96 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
 
   Future<void> _analyze() async {
     if (!_hasInput) return;
+    final stopwatch = Stopwatch()..start();
+    final startedAt = DateTime.now();
+    final requestId = const Uuid().v4();
+    final scanLog = AiMealScanLogService.instance;
+    final usageCollector = AiUsageCollector(onRequestCompleted: (report) {
+      unawaited(scanLog.event(
+          requestId, AiMealScanLogStage.providerUsageReported,
+          elapsedMilliseconds: stopwatch.elapsedMilliseconds,
+          durationMilliseconds: report.durationMilliseconds,
+          callIndex: report.requestIndex,
+          inputTokens: report.usage?.inputTokens,
+          outputTokens: report.usage?.outputTokens,
+          totalTokens: report.usage?.totalTokens,
+          usageComplete: report.usage?.isComplete ?? false));
+    });
+    var completionScheduled = false;
+    var requestedSent = false;
+    var provider = 'unknown';
+    Completer<AiValidationResult>? pendingValidation;
+    var reviewNavigated = false;
+    int? reviewVisibleMilliseconds;
+    int? preliminaryNutritionMilliseconds;
+    int? revealDurationMilliseconds;
+    final reviewVisibleCompleter = Completer<void>();
+    void failPendingReview(Object error, StackTrace stackTrace) {
+      final completer = pendingValidation;
+      if (completer != null && !completer.isCompleted) {
+        completer.completeError(error, stackTrace);
+      }
+    }
+
+    final text = _textController.text.trim();
+    final hasImages = _images.isNotEmpty;
+    final hasText = text.isNotEmpty;
+    final hasVoice = hasText && _textCameFromVoice;
+    final hasLidar = _depthCaptures.values.any((c) => c.depthBuffer != null);
+    final inputMode = hasImages && hasText
+        ? 'multimodal'
+        : (hasImages ? 'photo' : 'text_only');
+    unawaited(scanLog.start(
+      id: requestId,
+      provider: provider,
+      inputMode: inputMode,
+      photoCount: _images.length,
+      startedAt: startedAt,
+    ));
+    unawaited(scanLog.event(requestId, AiMealScanLogStage.requested,
+        elapsedMilliseconds: 0));
+    void sendRequested() {
+      if (requestedSent) return;
+      requestedSent = true;
+      unawaited(TelemetryService.instance.trackAiMealScanRequested(
+        requestId: requestId,
+        provider: provider,
+        inputMode: inputMode,
+        photoCount: _images.length,
+        hasLidar: hasLidar,
+        hasVoiceInput: hasVoice,
+        hasTextInput: hasText,
+      ));
+    }
+
+    var usageScheduled = false;
+    void scheduleUsage() {
+      if (usageScheduled || usageCollector.requestCount == 0) return;
+      usageScheduled = true;
+      unawaited(() async {
+        await usageCollector.whenIdle;
+        await scanLog.usage(requestId,
+            calls: usageCollector.requestCount,
+            inputTokens: usageCollector.inputTokens,
+            outputTokens: usageCollector.outputTokens,
+            totalTokens: usageCollector.totalTokens,
+            complete: usageCollector.usageComplete);
+        await TelemetryService.instance
+            .track('ai_meal_scan_usage', properties: {
+          'request_id': requestId,
+          'provider': provider,
+          'input_tokens': usageCollector.inputTokens,
+          'output_tokens': usageCollector.outputTokens,
+          'total_tokens': usageCollector.totalTokens,
+          'usage_complete': usageCollector.usageComplete,
+          'provider_calls_count': usageCollector.requestCount,
+        });
+      }());
+    }
+
     setState(() => _isAnalyzing = true);
     _startAiWaitingHaptics();
-    await _suspendCamera();
+    final cameraSuspended = _suspendCamera();
 
     // A blocking screen while the request is in flight: previously the capture
     // screen stayed editable underneath, so images could be added or removed
@@ -638,6 +729,27 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
       previewImage: _images.isNotEmpty ? _images.first : null,
       onCancel: () {
         _analysisCancelled = true;
+        if (!completionScheduled) {
+          completionScheduled = true;
+          stopwatch.stop();
+          unawaited(scanLog.finish(requestId,
+              result: AiMealScanLogResult.cancelled,
+              durationMilliseconds: stopwatch.elapsedMilliseconds));
+          sendRequested();
+          scheduleUsage();
+          unawaited(TelemetryService.instance.trackAiMealScanCompleted(
+            requestId: requestId,
+            provider: provider,
+            durationSeconds: (stopwatch.elapsedMilliseconds / 1000).round(),
+            success: false,
+            errorCode: 'cancelled',
+            inputMode: inputMode,
+            photoCount: _images.length,
+            hasLidar: hasLidar,
+            hasVoiceInput: hasVoice,
+            hasTextInput: hasText,
+          ));
+        }
         _stopAiWaitingHaptics();
         _dismissAnalysisScreen();
         if (mounted) {
@@ -649,174 +761,332 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
       },
     );
     _analysisCancelled = false;
-    if (!mounted) return;
-    unawaited(Navigator.of(context).push(_analysisRoute!));
-
-    if (!mounted) return;
-    final matchingContext =
-        await AiMatchingLanguageService.resolveMatchingContext(
-      context: context,
-    );
-
-    if (_images.isNotEmpty) {
-      await _preProcessor.waitForCompletion(_images);
-    }
-    if (!mounted) return;
-
-    // Switchable so the same meal can be shot with and without the hint;
-    // otherwise there is no way to tell whether the measurement helps.
-    final scaleHintEnabled =
-        await DepthScanSettings.instance.isScaleHintEnabled();
-    final depthFacts = scaleHintEnabled ? _lastDepthCapture?.scaleFacts : null;
-
-    // The relief of the meal, as a second image. Rendered here rather than kept
-    // around: the band scale is fitted to the frame, so it only exists once the
-    // capture it belongs to does.
-    final capture = _lastDepthCapture;
-    DepthMapAttachment? depthMap;
-    if (capture != null &&
-        await DepthScanSettings.instance.isDepthImageEnabled()) {
-      depthMap = await buildDepthMapAttachment(capture);
-    }
-    if (!mounted) return;
-
-    controller.value = MealAnalysisPhase.analyzing;
-
-    final stopwatch = Stopwatch()..start();
-    final requestId = const Uuid().v4();
-    final provider = (await AiService.instance.getSelectedProvider()).name;
-    final text = _textController.text.trim();
-    final hasImages = _images.isNotEmpty;
-    final hasText = text.isNotEmpty;
-    final hasVoice = _isDictating || text.isNotEmpty;
-    final hasLidar = _depthCaptures.values.any((c) => c.depthBuffer != null);
-    final inputMode = hasImages && hasText
-        ? 'multimodal'
-        : (hasImages ? 'photo' : 'text_only');
-
-    unawaited(TelemetryService.instance.trackAiMealScanRequested(
-      requestId: requestId,
-      provider: provider,
-      inputMode: inputMode,
-      photoCount: _images.length,
-      hasLidar: hasLidar,
-      hasVoiceInput: hasVoice,
-      hasTextInput: hasText,
-    ));
+    if (mounted) unawaited(Navigator.of(context).push(_analysisRoute!));
 
     try {
-      AiMealCandidate candidate;
+      final selectedProvider = await AiService.instance.getSelectedProvider();
+      provider = selectedProvider.name;
+      unawaited(scanLog.setProvider(requestId, provider));
+      unawaited(() async {
+        try {
+          final model =
+              await AiService.instance.getSelectedModel(selectedProvider);
+          await scanLog.setModel(requestId, model);
+        } catch (_) {
+          // Diagnostic metadata must not affect the scan.
+        }
+      }());
+      sendRequested();
+      if (!mounted || _analysisCancelled) return;
+      final matchingContextFuture =
+          AiMatchingLanguageService.resolveMatchingContext(context: context);
+      final imagesReady = _images.isNotEmpty
+          ? _preProcessor.waitForCompletion(_images)
+          : Future<void>.value();
+      final depthReady = () async {
+        final enabled = await DepthScanSettings.instance.isDepthImageEnabled();
+        return enabled && _lastDepthCapture != null
+            ? buildDepthMapAttachment(_lastDepthCapture!)
+            : null;
+      }();
+      await Future.wait([cameraSuspended, imagesReady]);
+      final matchingContext = await matchingContextFuture;
+      if (!mounted || _analysisCancelled) return;
 
-      if (_images.isNotEmpty) {
-        candidate = await AiService.instance.analyzeImages(
-          _images,
-          textHint: text.isNotEmpty ? text : null,
-          matchingContext: matchingContext,
-          depthFacts: depthFacts,
-          depthMap: depthMap?.file,
-          depthMapLegend: depthMap?.describeForPrompt(),
+      // Switchable so the same meal can be shot with and without the hint;
+      // otherwise there is no way to tell whether the measurement helps.
+      final scaleHintEnabled =
+          await DepthScanSettings.instance.isScaleHintEnabled();
+      final depthFacts =
+          scaleHintEnabled ? _lastDepthCapture?.scaleFacts : null;
+
+      // The relief of the meal, as a second image. Rendered here rather than kept
+      // around: the band scale is fitted to the frame, so it only exists once the
+      // capture it belongs to does.
+      final depthMap = await depthReady;
+      if (!mounted || _analysisCancelled) return;
+
+      if (_analysisCancelled) return;
+      controller.value = MealAnalysisPhase.analyzing;
+
+      final preparationSeconds = (stopwatch.elapsedMilliseconds / 1000).round();
+      final runBaseMilliseconds = stopwatch.elapsedMilliseconds;
+      unawaited(scanLog.event(requestId, AiMealScanLogStage.preparationFinished,
+          elapsedMilliseconds: runBaseMilliseconds,
+          durationMilliseconds: runBaseMilliseconds));
+      final fastMode = await AiService.instance.isFastModeEnabled();
+      final cloudProvider = provider != 'ollama' && provider != 'custom';
+      final engine = AiMealValidationEngine();
+      final validationCompleter = Completer<AiValidationResult>();
+      pendingValidation = validationCompleter;
+      // The route may not have built yet when a fast validation fails.
+      unawaited(validationCompleter.future
+          .then<void>((_) {}, onError: (Object _, StackTrace __) {}));
+      final progressiveValidation = ValueNotifier<AiValidationResult?>(null);
+      final savedCompleter = Completer<bool?>();
+      int revealStartedMilliseconds = 0;
+
+      void navigateToReview({
+        required List<AiMealCandidateItem> items,
+        AiValidationResult? validation,
+        AiMealContext? mealContext,
+      }) {
+        if (reviewNavigated || !mounted || _analysisCancelled) return;
+        reviewNavigated = true;
+        _stopAiWaitingHaptics();
+        if (mounted) {
+          setState(() => _isAnalyzing = false);
+        }
+
+        // Smoothly contract cloud back into circle and pause before organic vapor dispersion
+        // Mark analysis finished so MealAnalysisScreen's orb and UI are completely hidden beneath review
+        controller.isFinished.value = true;
+
+        final detectedType = _detectMealTypeFromText(text);
+        final resolvedMealType = widget.initialMealType ??
+            detectedType ??
+            MealTypeTimeExtension.fromCurrentTime().toMealTypeKey;
+
+        final reviewRoute = AiMealReviewRevealRoute<bool>(
+          builder: (context) => AiMealReviewScreen(
+            suggestions: items
+                .map(
+                  (item) => AiSuggestedItem(
+                    name: item.name,
+                    estimatedGrams: item.grams,
+                    servedGrams: item.servedGrams,
+                    confidence: item.confidence ?? 1.0,
+                    matchedBarcode: item.matchedBarcode,
+                    stateHint: item.stateHint,
+                    catalogSearchTerm: item.catalogSearchTerm,
+                    searchTerms: item.searchTerms,
+                  ),
+                )
+                .toList(growable: false),
+            initialValidation: validation,
+            validationFuture:
+                validation == null ? validationCompleter.future : null,
+            progressiveValidation: progressiveValidation,
+            mealContext: mealContext,
+            originalImages: _images,
+            initialDate: widget.initialDate,
+            initialMealType: resolvedMealType,
+            depthResult: _lastDepthCapture,
+            depthResultsByPath: _depthCaptures,
+            depthFacts: _lastDepthCapture?.scaleFacts,
+            voiceTranscript: text.isNotEmpty ? text : null,
+            scanRequestId: requestId,
+            usageCollector: usageCollector,
+          ),
         );
-      } else {
-        candidate = await AiService.instance.analyzeText(
-          text,
-          matchingContext: matchingContext,
-        );
+
+        final oldAnalysisRoute = _analysisRoute;
+        _analysisRoute = null;
+        revealStartedMilliseconds = stopwatch.elapsedMilliseconds;
+        final navFuture = Navigator.of(context).push<bool>(reviewRoute);
+        navFuture.then((v) {
+          if (!savedCompleter.isCompleted) savedCompleter.complete(v);
+        }).catchError((e, s) {
+          if (!savedCompleter.isCompleted) {
+            savedCompleter.completeError(e, s);
+          }
+        });
+        if (oldAnalysisRoute != null && oldAnalysisRoute.isActive) {
+          Navigator.of(context).removeRoute(oldAnalysisRoute);
+        }
+        completionScheduled = true;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          final durationMilliseconds = stopwatch.elapsedMilliseconds;
+          reviewVisibleMilliseconds = durationMilliseconds;
+          revealDurationMilliseconds =
+              durationMilliseconds - revealStartedMilliseconds;
+          if (!reviewVisibleCompleter.isCompleted) {
+            reviewVisibleCompleter.complete();
+          }
+          unawaited(scanLog.event(requestId, AiMealScanLogStage.reviewVisible,
+              elapsedMilliseconds: durationMilliseconds));
+        });
       }
 
-      controller.value = MealAnalysisPhase.matching;
-      final validationOutcome =
-          await _validateAndRepair(candidate, matchingContext);
+      final runResult = await AiMealScanRunner(validationEngine: engine).run(
+        fastMode: fastMode && cloudProvider,
+        isCancelled: () => _analysisCancelled || !mounted,
+        onCandidateReady: (candidate) {
+          navigateToReview(
+            items: candidate.items,
+            mealContext: candidate.context,
+          );
+        },
+        onValidationReady: (validation, _) {
+          if (!reviewNavigated || !mounted) return;
+          if (!validation.items.any((item) => item.match.bestMatch != null)) {
+            return;
+          }
+          progressiveValidation.value = validation;
+          if (preliminaryNutritionMilliseconds == null) {
+            preliminaryNutritionMilliseconds = stopwatch.elapsedMilliseconds;
+            unawaited(scanLog.event(
+                requestId, AiMealScanLogStage.preliminaryNutritionReady,
+                elapsedMilliseconds: preliminaryNutritionMilliseconds!));
+          }
+        },
+        onValidating: () {
+          if (!_analysisCancelled &&
+              mounted &&
+              controller.value != MealAnalysisPhase.repairing) {
+            controller.value = MealAnalysisPhase.matching;
+          }
+        },
+        onProgress: (stage, elapsedMilliseconds,
+            {durationMilliseconds,
+            result,
+            round,
+            candidate,
+            validationScore,
+            issueCategories}) {
+          unawaited(scanLog.event(requestId, stage,
+              elapsedMilliseconds: runBaseMilliseconds + elapsedMilliseconds,
+              durationMilliseconds: durationMilliseconds,
+              result: result,
+              round: round,
+              candidate: candidate,
+              validationScore: validationScore,
+              issueCategories: issueCategories));
+        },
+        analyze: () => _images.isNotEmpty
+            ? AiService.instance.analyzeImages(
+                _images,
+                textHint: text.isNotEmpty ? text : null,
+                matchingContext: matchingContext,
+                depthFacts: depthFacts,
+                depthMap: depthMap?.file,
+                depthMapLegend: depthMap?.describeForPrompt(),
+                usageCollector: usageCollector,
+              )
+            : AiService.instance.analyzeText(
+                text,
+                matchingContext: matchingContext,
+                usageCollector: usageCollector,
+              ),
+        repairer: (candidate, validation, attempt) {
+          controller.value = MealAnalysisPhase.repairing;
+          return AiService.instance.repairMealCaptureCandidate(
+            candidate: candidate,
+            validation: validation,
+            images: _images.isNotEmpty ? _images : null,
+            matchingContext: matchingContext,
+            mealContext: candidate.context,
+            usageCollector: usageCollector,
+          );
+        },
+      );
+      final validationOutcome = runResult.outcome;
+      if (!validationCompleter.isCompleted) {
+        validationCompleter.complete(validationOutcome.validation);
+      }
+      final readyMilliseconds = stopwatch.elapsedMilliseconds;
+      unawaited(scanLog.event(requestId, AiMealScanLogStage.reviewReady,
+          elapsedMilliseconds: readyMilliseconds));
+      if (!reviewNavigated) {
+        navigateToReview(
+          items: validationOutcome.validation.candidate.items,
+          validation: validationOutcome.validation,
+          mealContext: validationOutcome.validation.candidate.context,
+        );
+      }
+      if (reviewNavigated) await reviewVisibleCompleter.future;
 
       if (!mounted) return;
       // The user walked away from the wait; their result is no longer wanted.
       if (_analysisCancelled) return;
 
-      stopwatch.stop();
-      final latencyBucket =
-          TelemetryBuckets.getLatencyBucket(stopwatch.elapsed);
       final itemCountBucket = TelemetryBuckets.getItemCountBucket(
           validationOutcome.validation.candidate.items.length);
 
-      unawaited(TelemetryService.instance.trackAiMealScanCompleted(
-        requestId: requestId,
-        provider: provider,
-        latencyBucket: latencyBucket,
-        success: true,
-        inputMode: inputMode,
-        photoCount: _images.length,
-        hasLidar: hasLidar,
-        hasVoiceInput: hasVoice,
-        hasTextInput: hasText,
-        validationPassed: validationOutcome.validation.passed,
-        repairAttemptsCount: validationOutcome.repairPassesUsed,
-        suggestedItemsCountBucket: itemCountBucket,
-      ));
+      final durationSeconds = (readyMilliseconds / 1000).round();
+      final durationMilliseconds = readyMilliseconds;
+      final reviewVisibleSeconds = reviewVisibleMilliseconds == null
+          ? null
+          : (reviewVisibleMilliseconds! / 1000).round();
+      final preliminaryNutritionSeconds =
+          preliminaryNutritionMilliseconds == null
+              ? null
+              : (preliminaryNutritionMilliseconds! / 1000).round();
+      final revealSeconds = revealDurationMilliseconds == null
+          ? null
+          : (revealDurationMilliseconds! / 1000).round();
+      unawaited(() async {
+        final firstPass = await runResult.primaryFirstPassAccepted;
+        final categories = await runResult.primaryIssueCategories;
+        final validationRuns = await runResult.validationRunsTotalCount;
+        final providerSeconds = await runResult.providerSeconds;
+        final validationSeconds = await runResult.validationSeconds;
+        await scanLog.finish(requestId,
+            result: validationOutcome.validation.passed
+                ? AiMealScanLogResult.accepted
+                : AiMealScanLogResult.needsRepair,
+            durationMilliseconds: durationMilliseconds,
+            selectedValidationRounds: validationOutcome.validationRunsCount,
+            totalValidationRuns: validationRuns,
+            repairRounds: validationOutcome.repairPassesUsed,
+            primaryFirstPassAccepted: firstPass,
+            hedgeStarted: runResult.hedgeStarted);
+        await TelemetryService.instance.trackAiMealScanCompleted(
+          requestId: requestId,
+          provider: provider,
+          durationSeconds: durationSeconds,
+          reviewVisibleSeconds: reviewVisibleSeconds,
+          preliminaryNutritionSeconds: preliminaryNutritionSeconds,
+          success: true,
+          inputMode: inputMode,
+          photoCount: _images.length,
+          hasLidar: hasLidar,
+          hasVoiceInput: hasVoice,
+          hasTextInput: hasText,
+          validationPassed: validationOutcome.validation.passed,
+          repairAttemptsCount: validationOutcome.repairPassesUsed,
+          suggestedItemsCountBucket: itemCountBucket,
+          preparationSeconds: preparationSeconds,
+          providerSeconds: providerSeconds,
+          validationSeconds: validationSeconds,
+          repairSeconds: runResult.repairSeconds,
+          revealSeconds: revealSeconds,
+          primaryFirstPassAccepted: firstPass,
+          selectedValidationRoundsCount: validationOutcome.validationRunsCount,
+          validationRunsTotalCount: validationRuns,
+          repairLimitReached: validationOutcome.repairLimitReached,
+          firstPassIssueCategories: categories,
+          fastMode: fastMode && cloudProvider,
+          hedgeStarted: runResult.hedgeStarted,
+        );
+      }());
 
-      _stopAiWaitingHaptics();
-      if (mounted) {
-        setState(() => _isAnalyzing = false);
-      }
-
-      // Smoothly contract cloud back into circle and pause before organic vapor dispersion
-      await controller.contractToCircle();
-      if (!mounted) return;
-
-      // Mark analysis finished so MealAnalysisScreen's orb and UI are completely hidden beneath review
-      controller.isFinished.value = true;
-
-      final detectedType = _detectMealTypeFromText(text);
-      final resolvedMealType = widget.initialMealType ??
-          detectedType ??
-          MealTypeTimeExtension.fromCurrentTime().toMealTypeKey;
-
-      final reviewRoute = AiMealReviewRevealRoute<bool>(
-        builder: (context) => AiMealReviewScreen(
-          suggestions: validationOutcome.validation.candidate.items
-              .map(
-                (item) => AiSuggestedItem(
-                  name: item.name,
-                  estimatedGrams: item.grams,
-                  servedGrams: item.servedGrams,
-                  confidence: item.confidence ?? 1.0,
-                  matchedBarcode: item.matchedBarcode,
-                  stateHint: item.stateHint,
-                  catalogSearchTerm: item.catalogSearchTerm,
-                  searchTerms: item.searchTerms,
-                ),
-              )
-              .toList(growable: false),
-          initialValidation: validationOutcome.validation,
-          originalImages: _images,
-          initialDate: widget.initialDate,
-          initialMealType: resolvedMealType,
-          depthResult: _lastDepthCapture,
-          depthResultsByPath: _depthCaptures,
-          depthFacts: _lastDepthCapture?.scaleFacts,
-          voiceTranscript: text.isNotEmpty ? text : null,
-        ),
-      );
-
-      final oldAnalysisRoute = _analysisRoute;
-      _analysisRoute = null;
-      final savedFuture = Navigator.of(context).push<bool>(reviewRoute);
-      if (oldAnalysisRoute != null && oldAnalysisRoute.isActive) {
-        Navigator.of(context).removeRoute(oldAnalysisRoute);
-      }
-      final saved = await savedFuture;
+      final saved = await savedCompleter.future;
       // Leaving the review returns to wherever the capture was started from,
       // saved or not. Dropping back into the viewfinder after reviewing a meal
       // is never what the user meant by "back".
       if (mounted) {
         Navigator.of(context).pop(saved == true);
       }
-    } on AiKeyMissingException {
+    } on AiKeyMissingException catch (e, stackTrace) {
+      failPendingReview(e, stackTrace);
+      if (_analysisCancelled) return;
       stopwatch.stop();
-      final latencyBucket =
-          TelemetryBuckets.getLatencyBucket(stopwatch.elapsed);
+      unawaited(scanLog.finish(requestId,
+          result: AiMealScanLogResult.failed,
+          durationMilliseconds: stopwatch.elapsedMilliseconds));
+      completionScheduled = true;
+      sendRequested();
       unawaited(TelemetryService.instance.trackAiMealScanCompleted(
         requestId: requestId,
         provider: provider,
-        latencyBucket: latencyBucket,
+        durationSeconds: (stopwatch.elapsedMilliseconds / 1000).round(),
+        reviewVisibleSeconds: reviewVisibleMilliseconds == null
+            ? null
+            : (reviewVisibleMilliseconds! / 1000).round(),
+        preliminaryNutritionSeconds: preliminaryNutritionMilliseconds == null
+            ? null
+            : (preliminaryNutritionMilliseconds! / 1000).round(),
         success: false,
         errorCode: 'key_missing',
         inputMode: inputMode,
@@ -827,17 +1097,28 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
       ));
       _dismissAnalysisScreen();
       if (!mounted) return;
-      _showKeyMissingDialog();
-    } on AiServiceException catch (e) {
+      if (!reviewNavigated) _showKeyMissingDialog();
+    } on AiServiceException catch (e, stackTrace) {
+      failPendingReview(e, stackTrace);
+      if (_analysisCancelled) return;
       stopwatch.stop();
-      final latencyBucket =
-          TelemetryBuckets.getLatencyBucket(stopwatch.elapsed);
+      unawaited(scanLog.finish(requestId,
+          result: AiMealScanLogResult.failed,
+          durationMilliseconds: stopwatch.elapsedMilliseconds));
+      completionScheduled = true;
+      sendRequested();
       unawaited(TelemetryService.instance.trackAiMealScanCompleted(
         requestId: requestId,
         provider: provider,
-        latencyBucket: latencyBucket,
+        durationSeconds: (stopwatch.elapsedMilliseconds / 1000).round(),
+        reviewVisibleSeconds: reviewVisibleMilliseconds == null
+            ? null
+            : (reviewVisibleMilliseconds! / 1000).round(),
+        preliminaryNutritionSeconds: preliminaryNutritionMilliseconds == null
+            ? null
+            : (preliminaryNutritionMilliseconds! / 1000).round(),
         success: false,
-        errorCode: e.runtimeType.toString(),
+        errorCode: aiServiceErrorCode(e),
         inputMode: inputMode,
         photoCount: _images.length,
         hasLidar: hasLidar,
@@ -846,23 +1127,36 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
       ));
       _dismissAnalysisScreen();
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(e.message),
-          behavior: SnackBarBehavior.floating,
-          backgroundColor: Theme.of(context).colorScheme.error,
-        ),
-      );
-    } catch (e) {
+      if (!reviewNavigated) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.message),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+      }
+    } catch (e, stackTrace) {
+      failPendingReview(e, stackTrace);
+      if (_analysisCancelled) return;
       stopwatch.stop();
-      final latencyBucket =
-          TelemetryBuckets.getLatencyBucket(stopwatch.elapsed);
+      unawaited(scanLog.finish(requestId,
+          result: AiMealScanLogResult.failed,
+          durationMilliseconds: stopwatch.elapsedMilliseconds));
+      completionScheduled = true;
+      sendRequested();
       unawaited(TelemetryService.instance.trackAiMealScanCompleted(
         requestId: requestId,
         provider: provider,
-        latencyBucket: latencyBucket,
+        durationSeconds: (stopwatch.elapsedMilliseconds / 1000).round(),
+        reviewVisibleSeconds: reviewVisibleMilliseconds == null
+            ? null
+            : (reviewVisibleMilliseconds! / 1000).round(),
+        preliminaryNutritionSeconds: preliminaryNutritionMilliseconds == null
+            ? null
+            : (preliminaryNutritionMilliseconds! / 1000).round(),
         success: false,
-        errorCode: e.runtimeType.toString(),
+        errorCode: 'unexpected',
         inputMode: inputMode,
         photoCount: _images.length,
         hasLidar: hasLidar,
@@ -872,14 +1166,28 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
       _dismissAnalysisScreen();
       if (!mounted) return;
       final l10n = AppLocalizations.of(context)!;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(l10n.error),
-          behavior: SnackBarBehavior.floating,
-          backgroundColor: Theme.of(context).colorScheme.error,
-        ),
-      );
+      if (!reviewNavigated) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(l10n.error),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+      }
     } finally {
+      sendRequested();
+      scheduleUsage();
+      if (!completionScheduled) {
+        unawaited(TelemetryService.instance.trackAiMealScanCompleted(
+          requestId: requestId,
+          provider: provider,
+          durationSeconds: (stopwatch.elapsedMilliseconds / 1000).round(),
+          success: false,
+          errorCode: 'cancelled',
+          inputMode: inputMode,
+        ));
+      }
       _stopAiWaitingHaptics();
       _dismissAnalysisScreen();
       if (mounted) {
@@ -889,27 +1197,6 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
         }
       }
     }
-  }
-
-  Future<AiRepairOutcome> _validateAndRepair(
-    AiMealCandidate candidate,
-    AiMatchingContext matchingContext,
-  ) {
-    final engine = AiMealValidationEngine();
-    final orchestrator = AiRepairOrchestrator(validationEngine: engine);
-    return orchestrator.run(
-      initialCandidate: candidate,
-      mode: AiValidationMode.capture,
-      repairer: (candidate, validation, attempt) {
-        return AiService.instance.repairMealCaptureCandidate(
-          candidate: candidate,
-          validation: validation,
-          images: _images.isNotEmpty ? _images : null,
-          matchingContext: matchingContext,
-          mealContext: candidate.context,
-        );
-      },
-    );
   }
 
   void _showKeyMissingDialog() async {
@@ -1172,6 +1459,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
                                 left: DesignConstants.spacingL),
                             child: TextField(
                               controller: _textController,
+                              onChanged: (_) => _textCameFromVoice = false,
                               autofocus: true,
                               minLines: 1,
                               maxLines: 4,
@@ -1898,6 +2186,7 @@ class _AiMealCaptureScreenState extends State<AiMealCaptureScreen>
       _isDictating = false;
       if (result != null) {
         _textController.text = result.text.trim();
+        _textCameFromVoice = _textController.text.isNotEmpty;
         _showTextInput = _textController.text.isNotEmpty;
       }
     });

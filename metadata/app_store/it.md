@@ -45,8 +45,8 @@ CARATTERISTICHE PRINCIPALI:
 
 5. RICONOSCIMENTO PASTI CON IA (opzionale — BYOK)
 • Chiave API personale (BYOK): riconoscimento dei pasti tramite IA che funziona con la tua chiave. Disattivato di default.
-• Foto, codice a barre e voce in un'unica schermata: fotografa il piatto, lascia che la stessa schermata riconosca il codice a barre di un prodotto confezionato, oppure descrivi il pasto a voce. Sugli iPhone con LiDAR la porzione viene misurata, non stimata.
-• Abbinamento contestuale: un sistema di ricerca locale "Top-N alternative" combinato con Open Food Facts identifica accuratamente gli alimenti ed evita allucinazioni.
+• Foto, codice a barre e voce in un'unica schermata: fotografa il piatto, lascia che la stessa schermata riconosca il codice a barre di un prodotto confezionato, oppure descrivi il pasto a voce. Sugli iPhone con LiDAR vengono acquisiti dati di profondità per facilitare la stima della porzione.
+• Abbinamento contestuale: un sistema di ricerca locale "Top-N alternative" usa Open Food Facts per proporre corrispondenze plausibili, tutte verificabili prima del salvataggio.
 • 100% trasparente: ogni suggerimento dell'IA è completamente revisionabile e modificabile prima del salvataggio.
 
 AVVERTENZA:
@@ -56,13 +56,15 @@ OPEN SOURCE E DATI APERTI:
 Sviluppato in modo trasparente sui database aperti e affidabili di Open Food Facts e OpenExerciseDB. Il codice sorgente completo è pubblicamente accessibile: le nostre promesse sulla privacy si verificano, non si prendono per buone.
 
 ## Release Notes (What's New / Release Notes in this version)
-Recupero muscolare più preciso: Il monitoraggio del recupero utilizza ora un modello a carico residuo dinamico per ogni singola serie. Le schede muscolari mostrano prontezza e ore di recupero a colpo d'occhio; toccando una scheda si aprono dettagli su dosaggio e previsioni.
+Obiettivi che si adattano a te: Imposta un obiettivo di peso a lungo termine partendo da una misurazione reale, segui la traiettoria e verifica i progressi con tranquilli riepiloghi settimanali. Le nuove raccomandazioni su calorie e macro restano proposte finché non scegli di applicarle.
 
-Dettatura vocale migliorata: La trascrizione si trova ora in alto per una lettura naturale, con il pulsante di registrazione posizionato comodamente in basso. Transizioni cromatiche fluide guidano dalla registrazione all'elaborazione.
+Piani di allenamento personalizzati: Organizza le routine come programma settimanale o sequenza flessibile da 1 a 14 giorni, includi i giorni di riposo, imposta promemoria e avvia le sessioni dal diario senza alcuna pressione di recupero.
 
-Revisione pasti più chiara: I pasti acquisiti con l'IA mostrano schede ingredienti compatte e selezione diretta del tipo di pasto (colazione, pranzo, cena, spuntino) prima del salvataggio.
+Livelli di esperienza su misura: Scegli il tuo livello (Principiante, Avanzato, Pro) nelle impostazioni o nell'onboarding. I dettagli dei gruppi muscolari, il RIR e le schermate di allenamento si adattano al tuo livello.
 
-Correzioni e rifiniture: Risolto un problema di visualizzazione della scala di recupero e migliorata la stabilità complessiva.
+Timer per serie & scheda Allenamento rinnovata: Avvia e metti in pausa i timer delle serie durante l'allenamento o dall'Attività dal vivo sulla schermata di blocco. La scheda Allenamento riunisce piano attivo, routine e cronologia.
+
+Trend del peso attenuati & nuove analisi: Il trend del peso attenuato con linea discreta dei punti mostra la tua reale evoluzione nell'app e nei widget, affiancato da statistiche dei macro e importazione delle misurazioni da Apple Salute e Health Connect.
 
 ## Support URL (Support Web Page URL)
 https://trainlibre.com/support

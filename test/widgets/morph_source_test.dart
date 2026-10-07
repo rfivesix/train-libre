@@ -15,7 +15,8 @@ void main() {
       );
 
   group('MorphSource', () {
-    testWidgets('draws the child fully opaque and hit-testable while nothing '
+    testWidgets(
+        'draws the child fully opaque and hit-testable while nothing '
         'is in flight', (tester) async {
       await tester.pumpWidget(const MaterialApp(
         home: MorphSource(hidden: false, child: Text('card')),
@@ -57,8 +58,8 @@ void main() {
       // not move while the route flies a copy.
       expect(find.text('card'), findsOneWidget);
       expect(tester.widget<Opacity>(opacityInside()).opacity, 0.0);
-      expect(tester.widget<IgnorePointer>(ignorePointerInside()).ignoring,
-          isTrue);
+      expect(
+          tester.widget<IgnorePointer>(ignorePointerInside()).ignoring, isTrue);
     });
 
     testWidgets('keeps the hidden child at its original size', (tester) async {

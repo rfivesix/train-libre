@@ -107,7 +107,8 @@ class _FakeProfileRepo implements IProfileRepository {
 }
 
 void main() {
-  testWidgets('LogSupplementMenu renders supplement items with titleMedium font style',
+  testWidgets(
+      'LogSupplementMenu renders supplement items with titleMedium font style',
       (tester) async {
     final fakeRepo = _FakeSupplementRepo([
       Supplement(
@@ -147,7 +148,8 @@ void main() {
     expect(textWidget.style?.fontSize, 16.0); // titleMedium default size
   });
 
-  testWidgets('MeasurementFormSheet uses Clip.none and top headroom padding on SingleChildScrollView',
+  testWidgets(
+      'MeasurementFormSheet uses Clip.none and top headroom padding on SingleChildScrollView',
       (tester) async {
     await tester.pumpWidget(
       MultiProvider(
@@ -186,7 +188,8 @@ void main() {
     );
   });
 
-  testWidgets('showGlassBottomMenu contentBuilder SingleChildScrollView uses Clip.none',
+  testWidgets(
+      'showGlassBottomMenu contentBuilder SingleChildScrollView uses Clip.none',
       (tester) async {
     await tester.pumpWidget(
       MaterialApp(

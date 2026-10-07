@@ -16,6 +16,37 @@ import 'whats_new_release.dart';
 const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
   'en': <WhatsNewRelease>[
     WhatsNewRelease(
+      version: '1.5.0',
+      releasedOn: '2026-10-07',
+      entries: <WhatsNewEntry>[
+        WhatsNewEntry(
+          icon: LucideIcons.chart_line,
+          title: 'Goals that adapt with you',
+          body: 'Set a long-term weight goal with a real starting measurement, follow your trajectory, and review your progress in calm weekly check-ins. New calorie and macro recommendations remain proposals until you choose to apply them.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.dumbbell,
+          title: 'Custom workout plans & flexible sequences',
+          body: 'Arrange saved routines as a weekly schedule or a flexible 1–14 day sequence, include rest days, set optional reminders, and start due sessions directly from the Diary without any catch-up pressure.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.sparkles,
+          title: 'Tailored training experience levels',
+          body: 'Choose your experience level (Beginner, Advanced, Pro) in Settings or onboarding. Muscle group breakdowns, RIR (reps in reserve), and workout views adapt to match your training background.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.timer,
+          title: 'Set timer & redesigned Workout home',
+          body: 'Start and pause timed sets directly during your workout or from your Lock Screen Live Activity. The refreshed Workout tab brings your active plan, routines, and history together in one place.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.activity,
+          title: 'Smoothed weight trends & new analytics',
+          body: 'Metabolic trend smoothing with a subtle check-in ghost line reveals your true weight direction across the app and home widgets, complemented by macro analytics and Apple Health / Health Connect measurement imports.',
+        ),
+      ],
+    ),
+    WhatsNewRelease(
       version: '1.4.1',
       releasedOn: '2026-09-14',
       entries: <WhatsNewEntry>[
@@ -126,7 +157,7 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
         WhatsNewEntry(
           icon: LucideIcons.camera,
           title: 'Log a meal from a photo',
-          body: 'Point the camera at your plate and the AI turns it into individual foods with amounts, calories and macros - all correctable before you save. Packaged products are recognised by barcode in the very same view, iPhones with LiDAR measure the portion instead of guessing it, and the microphone button lets you add what a photo cannot show.',
+          body: 'Point the camera at your plate and the AI turns it into individual foods with amounts, calories and macros - all correctable before you save. Packaged products are recognised by barcode in the very same view, iPhones with LiDAR capture depth scale to assist portion estimation, and the microphone button lets you add what a photo cannot show.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.utensils,
@@ -204,6 +235,37 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
     ),
   ],
   'de': <WhatsNewRelease>[
+    WhatsNewRelease(
+      version: '1.5.0',
+      releasedOn: '2026-10-07',
+      entries: <WhatsNewEntry>[
+        WhatsNewEntry(
+          icon: LucideIcons.chart_line,
+          title: 'Ziele, die sich mit dir weiterentwickeln',
+          body: 'Lege ein langfristiges Gewichtsziel mit echter Startmessung fest, verfolge deinen Zielpfad und ordne deinen Fortschritt in ruhigen wöchentlichen Rückblicken ein. Neue Kalorien- und Makroempfehlungen bleiben Vorschläge, bis du sie selbst anwendest.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.dumbbell,
+          title: 'Eigene Trainingspläne & flexible Sequenzen',
+          body: 'Ordne gespeicherte Routinen als Wochenplan oder flexible Abfolge von 1–14 Tagen an, plane Ruhetage ein, erhalte optionale Erinnerungen und starte anstehende Einheiten direkt aus dem Tagebuch – ganz ohne Nachholdruck.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.sparkles,
+          title: 'Dein Trainingslevel nach Maß',
+          body: 'Wähle in den Einstellungen oder beim Start dein Erfahrungslevel (Einsteiger, Fortgeschritten, Profi). Die Detailtiefe bei Muskelgruppen, RIR (Wiederholungen in Reserve) und Trainingsansichten passt sich passend an dein Niveau an.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.timer,
+          title: 'Satz-Timer & aufgeräumter Workout-Tab',
+          body: 'Starte und stoppe Satz-Timer direkt im Live-Workout oder bequem über die Live-Aktivität auf dem Sperrbildschirm. Der neu gestaltete Workout-Tab bündelt deinen aktiven Plan, Routinen und Verlauf an einem zentralen Ort.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.activity,
+          title: 'Geglättete Gewichtstrends & neue Analysen',
+          body: 'Die metabolische Trendglättung mit dezenter Messpunkt-Linie zeigt deinen wahren Gewichtsverlauf in App und Widgets. Ergänzt durch neue Makro-Statistiken sowie nahtlosen Messungs-Import aus Apple Health und Health Connect.',
+        ),
+      ],
+    ),
     WhatsNewRelease(
       version: '1.4.1',
       releasedOn: '2026-09-14',
@@ -315,7 +377,7 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
         WhatsNewEntry(
           icon: LucideIcons.camera,
           title: 'Mahlzeiten per Foto erfassen',
-          body: 'Richte die Kamera auf deinen Teller, und die KI macht daraus einzelne Lebensmittel mit Menge, Kalorien und Makros - vor dem Speichern alles korrigierbar. Verpackte Produkte erkennt dieselbe Ansicht am Barcode, iPhones mit LiDAR messen die Portion statt zu schätzen, und per Mikrofontaste ergänzt du, was das Foto nicht zeigt.',
+          body: 'Richte die Kamera auf deinen Teller, und die KI macht daraus einzelne Lebensmittel mit Menge, Kalorien und Makros - vor dem Speichern alles korrigierbar. Verpackte Produkte erkennt dieselbe Ansicht am Barcode, iPhones mit LiDAR erfassen Tiefendaten, um die Portionsschätzung zu unterstützen, und per Mikrofontaste ergänzt du, was das Foto nicht zeigt.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.utensils,
@@ -393,6 +455,37 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
     ),
   ],
   'fr': <WhatsNewRelease>[
+    WhatsNewRelease(
+      version: '1.5.0',
+      releasedOn: '2026-10-07',
+      entries: <WhatsNewEntry>[
+        WhatsNewEntry(
+          icon: LucideIcons.chart_line,
+          title: 'Des objectifs qui évoluent avec toi',
+          body: 'Définis un objectif de poids à long terme à partir d\'une mesure réelle, suis ta trajectoire et fais le point sereinement chaque semaine. Les nouvelles recommandations de calories et de macros restent des propositions tant que tu ne les appliques pas.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.dumbbell,
+          title: 'Programmes d\'entraînement personnalisés',
+          body: 'Organise tes routines en semaine fixe ou en séquence flexible de 1 à 14 jours, ajoute des jours de repos, active des rappels et lance tes séances prévues depuis le journal sans pression de rattrapage.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.sparkles,
+          title: 'Niveaux d\'expérience sur mesure',
+          body: 'Choisis ton niveau (Débutant, Avancé, Pro) dans les réglages ou l\'onboarding. Le détail des groupes musculaires, le RIR et les écrans d\'entraînement s\'adaptent à ton niveau de pratique.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.timer,
+          title: 'Minuteur de série & onglet Entraînement repensé',
+          body: 'Lance et mets en pause le minuteur de série directement pendant l\'entraînement ou depuis l\'Activité en direct sur l\'écran verrouillé. L\'onglet Entraînement réunit programme actif, routines et historique.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.activity,
+          title: 'Tendances de poids lissées & nouvelles analyses',
+          body: 'Le lissage métabolique avec ligne d\'historique discrète révèle ta véritable évolution dans l\'app et les widgets, complété par les statistiques de macros et l\'import de mesures depuis Apple Santé et Health Connect.',
+        ),
+      ],
+    ),
     WhatsNewRelease(
       version: '1.4.1',
       releasedOn: '2026-09-14',
@@ -504,7 +597,7 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
         WhatsNewEntry(
           icon: LucideIcons.camera,
           title: 'Enregistrer un repas à partir d\'une photo',
-          body: 'vise ton assiette et l\'IA en fait des aliments distincts, avec quantités, calories et macros - tout reste corrigeable avant l\'enregistrement. Les produits emballés sont reconnus par leur code-barres dans la même vue, les iPhone équipés du LiDAR mesurent la portion au lieu de la deviner, et le bouton micro permet d\'ajouter ce qu\'une photo ne montre pas.',
+          body: 'vise ton assiette et l\'IA en fait des aliments distincts, avec quantités, calories et macros - tout reste corrigeable avant l\'enregistrement. Les produits emballés sont reconnus par leur code-barres dans la même vue, les iPhone équipés du LiDAR capturent les données de profondeur pour faciliter l\'estimation de la portion, et le bouton micro permet d\'ajouter ce qu\'une photo ne montre pas.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.utensils,
@@ -582,6 +675,37 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
     ),
   ],
   'it': <WhatsNewRelease>[
+    WhatsNewRelease(
+      version: '1.5.0',
+      releasedOn: '2026-10-07',
+      entries: <WhatsNewEntry>[
+        WhatsNewEntry(
+          icon: LucideIcons.chart_line,
+          title: 'Obiettivi che si adattano a te',
+          body: 'Imposta un obiettivo di peso a lungo termine partendo da una misurazione reale, segui la traiettoria e verifica i progressi con tranquilli riepiloghi settimanali. Le nuove raccomandazioni su calorie e macro restano proposte finché non scegli di applicarle.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.dumbbell,
+          title: 'Piani di allenamento personalizzati',
+          body: 'Organizza le routine come programma settimanale o sequenza flessibile da 1 a 14 giorni, includi i giorni di riposo, imposta promemoria e avvia le sessioni dal diario senza alcuna pressione di recupero.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.sparkles,
+          title: 'Livelli di esperienza su misura',
+          body: 'Scegli il tuo livello (Principiante, Avanzato, Pro) nelle impostazioni o nell\'onboarding. I dettagli dei gruppi muscolari, il RIR e le schermate di allenamento si adattano al tuo livello.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.timer,
+          title: 'Timer per serie & scheda Allenamento rinnovata',
+          body: 'Avvia e metti in pausa i timer delle serie durante l\'allenamento o dall\'Attività dal vivo sulla schermata di blocco. La scheda Allenamento riunisce piano attivo, routine e cronologia.',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.activity,
+          title: 'Trend del peso attenuati & nuove analisi',
+          body: 'Il trend del peso attenuato con linea discreta dei punti mostra la tua reale evoluzione nell\'app e nei widget, affiancato da statistiche dei macro e importazione delle misurazioni da Apple Salute e Health Connect.',
+        ),
+      ],
+    ),
     WhatsNewRelease(
       version: '1.4.1',
       releasedOn: '2026-09-14',
@@ -693,7 +817,7 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
         WhatsNewEntry(
           icon: LucideIcons.camera,
           title: 'Registra un pasto da una foto',
-          body: 'inquadra il piatto e l\'IA lo trasforma in singoli alimenti con quantità, calorie e macro, tutto correggibile prima di salvare. I prodotti confezionati vengono riconosciuti dal codice a barre nella stessa schermata, gli iPhone con LiDAR misurano la porzione invece di stimarla e il pulsante del microfono ti fa aggiungere ciò che una foto non mostra.',
+          body: 'inquadra il piatto e l\'IA lo trasforma in singoli alimenti con quantità, calorie e macro, tutto correggibile prima di salvare. I prodotti confezionati vengono riconosciuti dal codice a barre nella stessa schermata, gli iPhone con LiDAR acquisiscono dati di profondità per facilitare la stima della porzione e il pulsante del microfono ti fa aggiungere ciò che una foto non mostra.',
         ),
         WhatsNewEntry(
           icon: LucideIcons.utensils,
@@ -771,6 +895,37 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
     ),
   ],
   'ja': <WhatsNewRelease>[
+    WhatsNewRelease(
+      version: '1.5.0',
+      releasedOn: '2026-10-07',
+      entries: <WhatsNewEntry>[
+        WhatsNewEntry(
+          icon: LucideIcons.chart_line,
+          title: 'あなたに合わせて進む目標管理',
+          body: '実際の開始時の体重記録から長期目標を設定し、軌道と進捗を落ち着いた週次レビューで確認できます。新しいカロリー・PFCバランスの提案は、自分で適用するまで目標値を変更しません。',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.dumbbell,
+          title: 'カスタムトレーニングプランと柔軟なシーケンス',
+          body: '保存済みルーティンを週間スケジュールまたは1〜14日の柔軟なシーケンスに配置し、休養日を含めて予定セッションを日記から直接開始できます。取り戻す負担は一切ありません。',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.sparkles,
+          title: 'レベルに応じたトレーニング体験',
+          body: '初級・中級・上級の3段階から経験レベルを選択できます。筋肉の内訳、RIR（予備反復回数）、ワークアウト画面の表示があなたのレベルに合わせて最適化されます。',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.timer,
+          title: 'セットタイマーと新しくなったワークアウト画面',
+          body: 'ワークアウト中やロック画面のライブアクティビティから直接セットタイマーを操作できます。進行中のプラン、ルーティン、履歴を1つの画面にまとめました。',
+        ),
+        WhatsNewEntry(
+          icon: LucideIcons.activity,
+          title: '平滑化された体重トレンドと新しい分析機能',
+          body: '指数平滑化と薄い実測プロットにより、アプリやホーム画面ウィジェットで真の体重傾向を把握できます。新しいPFC統計やApple Health・Health Connectからの測定値インポートにも対応しました。',
+        ),
+      ],
+    ),
     WhatsNewRelease(
       version: '1.4.1',
       releasedOn: '2026-09-14',
@@ -884,7 +1039,7 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
         WhatsNewEntry(
           icon: LucideIcons.camera,
           title: '写真から食事を記録',
-          body: 'カメラをお皿に向けるだけで、AIが個々の食品として量・カロリー・PFCに分解します。保存前にすべて修正でき、市販の包装食品は同じ画面のままバーコードで認識、LiDAR搭載のiPhoneでは分量を推測せずに計測し、マイクボタンで写真に写らない情報を補足できます。',
+          body: 'カメラをお皿に向けるだけで、AIが個々の食品として量・カロリー・PFCに分解します。保存前にすべて修正でき、市販の包装食品は同じ画面のままバーコードで認識、LiDAR搭載のiPhoneでは深度データを取得して分量の推定をサポートし、マイクボタンで写真に写らない情報を補足できます。',
         ),
         WhatsNewEntry(
           icon: LucideIcons.utensils,
@@ -967,4 +1122,4 @@ const Map<String, List<WhatsNewRelease>> kWhatsNewContent = {
 const String kWhatsNewFallbackLanguage = 'en';
 
 /// The version this catalog was generated for, taken from pubspec.yaml.
-const String kWhatsNewGeneratedForVersion = '1.4.1';
+const String kWhatsNewGeneratedForVersion = '1.5.0';

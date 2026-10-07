@@ -5,6 +5,8 @@ import '../../../../util/design_constants.dart';
 import '../../../../widgets/common/common.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 
+import 'onboarding_info_box.dart';
+
 class RegionSelectionSlide extends StatelessWidget {
   final OffCatalogCountry selectedCountry;
   final ValueChanged<OffCatalogCountry> onSelectCountry;
@@ -29,21 +31,19 @@ class RegionSelectionSlide extends StatelessWidget {
           const SizedBox(height: DesignConstants.spacingXL),
           Text(
             l10n.onboardingRegionTitle,
-            textAlign: TextAlign.center,
             style: theme.textTheme.headlineSmall?.copyWith(
               fontWeight: FontWeight.bold,
             ),
           ),
-          const SizedBox(height: DesignConstants.spacingM),
+          const SizedBox(height: DesignConstants.spacingS),
           Text(
             l10n.onboardingRegionExplanation,
-            textAlign: TextAlign.center,
             style: theme.textTheme.bodyMedium?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
               height: 1.4,
             ),
           ),
-          const SizedBox(height: DesignConstants.spacingXXL),
+          const SizedBox(height: DesignConstants.spacingXL),
           DropdownButtonHideUnderline(
             child: PlatformAdaptiveDropdownFormField<OffCatalogCountry>(
               key: const Key('onboarding_region_dropdown'),
@@ -77,24 +77,9 @@ class RegionSelectionSlide extends StatelessWidget {
               },
             ),
           ),
-          const SizedBox(height: DesignConstants.spacingXXL),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: theme.colorScheme.surfaceContainerHighest
-                  .withValues(alpha: 0.45),
-              borderRadius:
-                  BorderRadius.circular(DesignConstants.borderRadiusM),
-            ),
-            child: Text(
-              l10n.onboardingRegionSettingsHint,
-              textAlign: TextAlign.center,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-                height: 1.35,
-              ),
-            ),
+          const SizedBox(height: DesignConstants.spacingXL),
+          OnboardingInfoBox(
+            text: l10n.onboardingRegionSettingsHint,
           ),
         ],
       ),

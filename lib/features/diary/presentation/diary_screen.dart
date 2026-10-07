@@ -39,6 +39,7 @@ import '../../../services/base_food_language_service.dart';
 import '../../../services/haptic_feedback_service.dart';
 import '../../workout/presentation/workout_history_screen.dart';
 import '../../workout/presentation/widgets/todays_workout_summary_card.dart';
+import '../../workout/presentation/widgets/manual_plan_diary_card.dart';
 import 'widgets/weight_card.dart';
 import 'widgets/steps_summary_card.dart';
 import 'widgets/sleep_summary_card.dart';
@@ -50,7 +51,7 @@ import 'dialogs/delete_meal_entry_bottom_sheet.dart';
 import 'meal_entry_screen.dart';
 import '../data/meal_photo_store.dart';
 import '../domain/models/meal_entry.dart';
-import 'widgets/recommendation_banner.dart';
+import 'widgets/pending_review_diary_card.dart';
 import 'meal_screen.dart';
 import '../../../core/infrastructure/share_service.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
@@ -65,8 +66,14 @@ import 'package:skeletonizer/skeletonizer.dart';
 class DiaryScreen extends StatelessWidget {
   final DateTime? initialDate;
   final GlobalKey<DiaryScreenState>? contentKey;
+  final bool deferInitialHealthSync;
 
-  const DiaryScreen({super.key, this.initialDate, this.contentKey});
+  const DiaryScreen({
+    super.key,
+    this.initialDate,
+    this.contentKey,
+    this.deferInitialHealthSync = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -76,6 +83,7 @@ class DiaryScreen extends StatelessWidget {
         supplementRepo: context.read<SupplementRepository>(),
         workoutRepo: context.read<IWorkoutRepository>(),
         initialDate: initialDate,
+        deferInitialHealthSync: deferInitialHealthSync,
       ),
       child: _DiaryScreenContent(key: contentKey ?? key),
     );
@@ -1001,11 +1009,8 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          if (dailyNutrition != null &&
-                              data.selectedDate.isSameDate(DateTime.now()))
-                            RecommendationBanner(
-                              currentCalories: dailyNutrition.targetCalories,
-                            ),
+                          if (data.selectedDate.isSameDate(DateTime.now()))
+                            const PendingReviewDiaryCard(),
                           AppSectionHeader(title: l10n.today_overview_text),
                           if (dailyNutrition != null)
                             RepaintBoundary(
@@ -1058,71 +1063,75 @@ class DiaryScreenState extends State<_DiaryScreenContent> {
                   if (stepsEnabled) const StepsSummaryCard(),
                   if (sleepEnabled) const SleepSummaryCard(),
                   if (pulseEnabled) const PulseSummaryCard(),
-                  // New section: insert workout summary here.
-                  if (hasWorkoutSummary || showSkeleton)
-                    Selector<DiaryViewModel, Map<String, dynamic>?>(
-                      selector: (context, vm) => showSkeleton
-                          ? {
-                              'duration': const Duration(minutes: 45),
-                              'volume': 10000.0,
-                              'sets': 15,
-                              'count': 1,
-                            }
-                          : vm.workoutSummary,
-                      builder: (context, workoutSummary, child) {
-                        return AnimatedSize(
-                          duration: const Duration(milliseconds: 250),
-                          curve: Curves.fastOutSlowIn,
-                          child: AnimatedSwitcher(
-                            duration: const Duration(milliseconds: 250),
-                            child: workoutSummary == null
-                                ? const SizedBox.shrink(
-                                    key: ValueKey('no_summary'))
-                                : Builder(
-                                    key: const ValueKey('has_summary'),
-                                    builder: (cardCtx) {
-                                      Widget buildSummaryCard(
-                                              {VoidCallback? onTap}) =>
-                                          RepaintBoundary(
-                                            child: TodaysWorkoutSummaryCard(
-                                              duration:
-                                                  workoutSummary['duration']
-                                                      as Duration,
-                                              volume: workoutSummary['volume']
-                                                  as double,
-                                              sets:
-                                                  workoutSummary['sets'] as int,
-                                              workoutCount:
-                                                  workoutSummary['count']
-                                                      as int,
-                                              onTap: onTap ?? () {},
-                                            ),
-                                          );
+                  ManualPlanDiaryCard(
+                    date: selectedDate,
+                    fallback: hasWorkoutSummary || showSkeleton
+                        ? Selector<DiaryViewModel, Map<String, dynamic>?>(
+                            selector: (context, vm) => showSkeleton
+                                ? {
+                                    'duration': const Duration(minutes: 45),
+                                    'volume': 10000.0,
+                                    'sets': 15,
+                                    'count': 1,
+                                  }
+                                : vm.workoutSummary,
+                            builder: (context, workoutSummary, child) {
+                              return AnimatedSize(
+                                duration: const Duration(milliseconds: 250),
+                                curve: Curves.fastOutSlowIn,
+                                child: AnimatedSwitcher(
+                                  duration: const Duration(milliseconds: 250),
+                                  child: workoutSummary == null
+                                      ? const SizedBox.shrink(
+                                          key: ValueKey('no_summary'))
+                                      : Builder(
+                                          key: const ValueKey('has_summary'),
+                                          builder: (cardCtx) {
+                                            Widget buildSummaryCard(
+                                                    {VoidCallback? onTap}) =>
+                                                RepaintBoundary(
+                                                  child:
+                                                      TodaysWorkoutSummaryCard(
+                                                    duration: workoutSummary[
+                                                        'duration'] as Duration,
+                                                    volume:
+                                                        workoutSummary['volume']
+                                                            as double,
+                                                    sets: workoutSummary['sets']
+                                                        as int,
+                                                    workoutCount:
+                                                        workoutSummary['count']
+                                                            as int,
+                                                    onTap: onTap ?? () {},
+                                                  ),
+                                                );
 
-                                      return MorphSourceScope(
-                                        builder: (context, setHidden) =>
-                                            buildSummaryCard(
-                                          onTap: () {
-                                            Navigator.of(context).push(
-                                              CardMorphRoute(
-                                                sourceContext: cardCtx,
-                                                sourceBuilder: (_) =>
-                                                    buildSummaryCard(),
-                                                onSourceVisibilityChanged:
-                                                    setHidden,
-                                                builder: (context) =>
-                                                    const WorkoutHistoryScreen(),
+                                            return MorphSourceScope(
+                                              builder: (context, setHidden) =>
+                                                  buildSummaryCard(
+                                                onTap: () {
+                                                  Navigator.of(context).push(
+                                                    CardMorphRoute(
+                                                      sourceContext: cardCtx,
+                                                      sourceBuilder: (_) =>
+                                                          buildSummaryCard(),
+                                                      onSourceVisibilityChanged:
+                                                          setHidden,
+                                                      builder: (context) =>
+                                                          const WorkoutHistoryScreen(),
+                                                    ),
+                                                  );
+                                                },
                                               ),
                                             );
                                           },
                                         ),
-                                      );
-                                    },
-                                  ),
-                          ),
-                        );
-                      },
-                    ),
+                                ),
+                              );
+                            },
+                          )
+                        : null,
+                  ),
                 ],
               ),
             ),

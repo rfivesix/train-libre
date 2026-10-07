@@ -118,27 +118,34 @@ class _GlassMenuState extends State<GlassMenu>
                       scale: animation,
                       child: FadeTransition(
                         opacity: animation,
-                        child: GestureDetector(
-                          onTap: () {
-                            item.onTap();
-                            widget.onDismiss();
-                          },
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              _buildGlassIcon(item.icon),
-                              const SizedBox(height: DesignConstants.spacingM),
-                              Text(
-                                item.label,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .titleLarge
-                                    ?.copyWith(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                              ),
-                            ],
+                        child: Semantics(
+                          button: true,
+                          label: item.label,
+                          excludeSemantics: true,
+                          child: GestureDetector(
+                            onTap: () {
+                              item.onTap();
+                              widget.onDismiss();
+                            },
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                _buildGlassIcon(item.icon),
+                                const SizedBox(
+                                  height: DesignConstants.spacingM,
+                                ),
+                                Text(
+                                  item.label,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleLarge
+                                      ?.copyWith(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ),

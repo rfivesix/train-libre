@@ -1,28 +1,56 @@
-// lib/screens/nutrition_hub_screen.dart
+// lib/features/diary/presentation/nutrition_hub_screen.dart
+
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
+
 import '../../../data/database_helper.dart';
+import '../../../data/drift_database.dart' as db;
 import '../../../generated/app_localizations.dart';
-import 'add_food_screen.dart';
-import 'meal_screen.dart';
-import '../../profile/presentation/goals_screen.dart';
-import '../../supplements/presentation/supplement_hub_screen.dart';
+import '../../../services/haptic_feedback_service.dart';
+import '../../../services/telemetry/telemetry_service.dart';
 import '../../../util/design_constants.dart';
+import '../../../widgets/common/app_button.dart';
 import '../../../widgets/common/bottom_content_spacer.dart';
 import '../../../widgets/common/card_morph_route.dart';
 import '../../../widgets/common/common.dart';
 import '../../../widgets/common/summary_card.dart';
+import 'package:provider/provider.dart';
+import '../../analytics/domain/models/chart_data_point.dart';
 import '../../nutrition_recommendation/data/recommendation_service.dart';
 import '../../nutrition_recommendation/presentation/nutrition_recommendation_card.dart';
-import 'package:flutter_lucide/flutter_lucide.dart';
-import '../../../widgets/common/app_button.dart';
-import 'dart:async';
+import '../../statistics/data/macro_analytics_data_adapter.dart';
+import '../../profile/data/goal_repository_impl.dart';
+import '../../profile/domain/models/goal_model.dart';
+import '../../profile/domain/models/goal_progress.dart';
+import '../../profile/domain/repositories/goal_repository.dart';
+import '../../profile/domain/services/goal_notification_orchestrator.dart';
+import '../../profile/domain/repositories/profile_repository.dart';
+import '../../profile/presentation/goal_detail_screen.dart';
+import '../../profile/presentation/widgets/active_goal_dashboard_widget.dart';
+import '../../profile/presentation/widgets/adaptive_review_card.dart';
+import '../../supplements/presentation/supplement_hub_screen.dart';
+import '../data/sources/product_local_data_source.dart';
+import '../domain/models/food_entry.dart';
+import '../domain/models/food_item.dart';
+import '../../supplements/domain/models/supplement.dart';
+import '../../supplements/domain/models/supplement_log.dart';
+import '../../app/presentation/widgets/glass_bottom_menu.dart';
+import 'meal_screen.dart';
+import 'widgets/confirm_log_meal_bottom_sheet.dart';
 
-/// A portal for overviewing nutrition and meal planning.
+/// A portal for overviewing nutrition, progress, and meal planning.
 ///
-/// Displays general targets, recommendations based on recent logs,
-/// and quick access to meal management and supplement tracking.
+/// Designed as a coherent progress dashboard featuring:
+/// 1. Status & Active Goal / Trajectory
+/// 2. Adaptive Review & Recommendations
+/// 3. Daily Operating Targets
+/// 4. Saved Meals
+/// 5. Tools & Library
 class NutritionHubScreen extends StatefulWidget {
-  const NutritionHubScreen({super.key});
+  final IGoalRepository? goalRepository;
+
+  const NutritionHubScreen({super.key, this.goalRepository});
 
   @override
   State<NutritionHubScreen> createState() => _NutritionHubScreenState();
@@ -31,14 +59,23 @@ class NutritionHubScreen extends StatefulWidget {
 class _NutritionHubScreenState extends State<NutritionHubScreen> {
   Future<Map<String, dynamic>>? _hubDataFuture;
   final _recommendationService = AdaptiveNutritionRecommendationService();
-  bool _isRecalculatingRecommendation = false;
+  late final IGoalRepository _goalRepository;
   bool _isApplyingRecommendation = false;
+  final Map<int, Future<List<Map<String, dynamic>>>> _mealItemsCache = {};
+
+  IProfileRepository? _profileRepo;
+
+  @override
+  void initState() {
+    super.initState();
+    _goalRepository = widget.goalRepository ?? GoalRepositoryImpl();
+  }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    _profileRepo ??= context.read<IProfileRepository>();
     if (_hubDataFuture == null) {
-      // Instant load of cached state first for 120 FPS navigation
       _hubDataFuture = _loadHubData(refreshIfDue: false);
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _checkBackgroundRecommendationDue();
@@ -50,7 +87,6 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
     if (!mounted) return;
     final state = await _recommendationService.loadState(refreshIfDue: false);
     if (state.isAdaptiveRecommendationDueNow) {
-      // Offloaded to background Isolate via compute()
       await _recommendationService.refreshRecommendationIfDue();
       if (mounted) {
         setState(() {
@@ -61,75 +97,228 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
   }
 
   Future<void> _refreshData() async {
-    // Called by RefreshIndicator to reload data.
     setState(() {
+      _mealItemsCache.clear();
       _hubDataFuture = _loadHubData(refreshIfDue: true);
     });
+  }
+
+  Future<List<Map<String, dynamic>>> _mealItems(int mealId) =>
+      _mealItemsCache.putIfAbsent(
+        mealId,
+        () async => List<Map<String, dynamic>>.from(
+          await DatabaseHelper.instance.getMealItems(mealId),
+        ),
+      );
+
+  Future<Map<String, FoodItem>> _productsForMealItems(
+    List<Map<String, dynamic>> items,
+  ) async {
+    final barcodes = items
+        .map((item) => item['barcode'] as String?)
+        .whereType<String>()
+        .toSet()
+        .toList();
+    final products =
+        await ProductLocalDataSource.instance.getProductsByBarcodes(barcodes);
+    return {for (final product in products) product.barcode: product};
+  }
+
+  Future<void> _logRecipe(Map<String, dynamic> meal) async {
+    final l10n = AppLocalizations.of(context)!;
+    final mealId = meal['id'] as int;
+    final items = await _mealItems(mealId);
+    if (items.isEmpty || !mounted) return;
+
+    final products = await _productsForMealItems(items);
+    if (!mounted) return;
+
+    await showGlassBottomMenu<bool>(
+      context: context,
+      title: l10n.mealsAddToDiary,
+      contentBuilder: (sheetContext, close) => ConfirmLogMealBottomSheet(
+        mealName: meal['name'] as String,
+        rawItems: items,
+        products: products,
+        initialDate: DateTime.now(),
+        initialMealType: 'mealtypeBreakfast',
+        onClose: close,
+        onSave: (date, mealType, quantities) async {
+          for (final item in items) {
+            final barcode = item['barcode'] as String;
+            final quantity =
+                quantities[barcode] ?? (item['quantity_in_grams'] as int);
+            final foodEntryId = await DatabaseHelper.instance.insertFoodEntry(
+              FoodEntry(
+                barcode: barcode,
+                timestamp: date,
+                quantityInGrams: quantity,
+                mealType: mealType,
+              ),
+              telemetrySource: FoodLogSource.meal,
+            );
+            final product = products[barcode];
+            final caffeinePer100ml = product?.caffeineMgPer100ml;
+            if (product?.isLiquid == true &&
+                caffeinePer100ml != null &&
+                caffeinePer100ml > 0) {
+              await _logCaffeineDose(
+                caffeinePer100ml * (quantity / 100.0),
+                date,
+                foodEntryId: foodEntryId,
+              );
+            }
+          }
+          if (!mounted) return;
+          HapticFeedbackService.instance.confirmationFeedback();
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(l10n.mealAddedToDiarySuccess)),
+          );
+        },
+      ),
+    );
+  }
+
+  Future<void> _logCaffeineDose(
+    double doseMg,
+    DateTime timestamp, {
+    required int foodEntryId,
+  }) async {
+    if (doseMg <= 0) return;
+    final supplements = await DatabaseHelper.instance.getAllSupplements();
+    final caffeine = supplements.firstWhere(
+      (supplement) => supplement.isCaffeine,
+      orElse: () => Supplement(
+        name: 'Caffeine',
+        defaultDose: 100,
+        unit: 'mg',
+        dailyLimit: 400,
+        code: 'caffeine',
+        isBuiltin: true,
+      ),
+    );
+    final caffeineId =
+        caffeine.id ?? await DatabaseHelper.instance.insertSupplement(caffeine);
+    await DatabaseHelper.instance.insertSupplementLog(
+      SupplementLog(
+        supplementId: caffeineId,
+        dose: doseMg,
+        unit: 'mg',
+        timestamp: timestamp,
+        sourceFoodEntryId: foodEntryId,
+      ),
+    );
   }
 
   Future<Map<String, dynamic>> _loadHubData({bool refreshIfDue = false}) async {
     final today = DateTime.now();
     final goals = await DatabaseHelper.instance.getGoalsForDate(today);
-    final targetCalories = goals?.targetCalories ?? 2500;
     final meals = await DatabaseHelper.instance.getMeals();
+
+    await GoalNotificationOrchestrator(goalRepository: _goalRepository)
+        .synchronize();
+    final activeGoal = await _goalRepository.getActiveGoal();
+    GoalProgress? activeProgress;
+    GoalReviewRecord? pendingReview;
+    List<ChartDataPoint> chartPoints = [];
+    if (activeGoal != null) {
+      activeProgress = await _goalRepository.getGoalProgress(activeGoal);
+      pendingReview = await _goalRepository.getPendingReview(activeGoal.id);
+
+      final profileRepo = _profileRepo;
+      final startDate = activeGoal.startDate.subtract(const Duration(days: 1));
+      final endDate = DateTime.now().add(const Duration(days: 1));
+      if (profileRepo != null) {
+        try {
+          chartPoints = await profileRepo.getChartDataForTypeAndRange(
+            'weight',
+            DateTimeRange(start: startDate, end: endDate),
+          );
+        } catch (_) {
+          chartPoints = [];
+        }
+      }
+
+      final baseline = activeProgress?.baselineValue;
+      if (baseline != null) {
+        if (chartPoints.isEmpty) {
+          chartPoints = [
+            ChartDataPoint(
+              date: activeGoal.startDate,
+              value: baseline,
+            ),
+          ];
+        } else if (chartPoints.first.date.isAfter(activeGoal.startDate)) {
+          chartPoints.insert(
+            0,
+            ChartDataPoint(
+              date: activeGoal.startDate,
+              value: baseline,
+            ),
+          );
+        }
+      }
+    }
+
     final recommendationState =
         await _recommendationService.loadState(refreshIfDue: refreshIfDue);
+    final recentDailyIntakes =
+        await const MacroAnalyticsDataAdapter().fetchRecentDays(days: 7);
 
     return {
       'meals': meals,
-      'targetCalories': targetCalories,
+      'dailyGoals': goals,
+      'activeGoal': activeGoal,
+      'activeProgress': activeProgress,
+      'pendingReview': pendingReview,
+      'chartPoints': chartPoints,
       'recommendationState': recommendationState,
+      'recentDailyIntakes': recentDailyIntakes,
     };
   }
 
   Future<void> _applyRecommendation() async {
     if (_isApplyingRecommendation) return;
     setState(() => _isApplyingRecommendation = true);
+
     final applied =
         await _recommendationService.applyLatestRecommendationToActiveTargets();
     if (!mounted) return;
     setState(() => _isApplyingRecommendation = false);
 
+    final l10n = AppLocalizations.of(context)!;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
           applied
-              ? AppLocalizations.of(context)!
-                  .adaptiveRecommendationAppliedToGoalsSnack
-              : AppLocalizations.of(context)!
-                  .adaptiveRecommendationNotAvailableSnack,
+              ? l10n.adaptiveRecommendationAppliedToGoalsSnack
+              : l10n.adaptiveRecommendationNotAvailableSnack,
         ),
       ),
     );
     await _refreshData();
   }
 
+  bool _isRecalculatingRecommendation = false;
+
   Future<void> _recalculateRecommendationNow() async {
     if (_isRecalculatingRecommendation) return;
     setState(() => _isRecalculatingRecommendation = true);
 
-    final recalculated =
-        await _recommendationService.recalculateRecommendationNow();
+    await _recommendationService.recalculateRecommendationNow();
     if (!mounted) return;
     setState(() => _isRecalculatingRecommendation = false);
 
     final l10n = AppLocalizations.of(context)!;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(
-          recalculated == null
-              ? l10n.adaptiveRecommendationNotAvailableSnack
-              : l10n.adaptiveRecommendationRecalculatedSnack,
-        ),
+        content: Text(l10n.adaptiveRecommendationRecalculatedSnack),
       ),
     );
     await _refreshData();
   }
 
-  Future<void> _createMealAndOpenEditor([
-    BuildContext? sourceContext,
-    MorphSourceVisibilityCallback? onSourceVisibilityChanged,
-  ]) async {
+  Future<void> _createMealAndOpenEditor() async {
     final l10n = AppLocalizations.of(context)!;
     final defaultName = l10n.mealNameLabel;
     final newMealId = await DatabaseHelper.instance.insertMeal(
@@ -139,23 +328,11 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
     final meal = {'id': newMealId, 'name': defaultName, 'notes': ''};
 
     if (!mounted) return;
-    if (sourceContext != null && sourceContext.mounted) {
-      await Navigator.of(context).push(
-        CardMorphRoute(
-          sourceContext: sourceContext,
-          sourceBuilder: (_) => _buildCreateMealCard(context, l10n),
-          sourceBorderRadius: DesignConstants.borderRadiusM,
-          onSourceVisibilityChanged: onSourceVisibilityChanged,
-          builder: (_) => MealScreen(meal: meal, startInEdit: true),
-        ),
-      );
-    } else {
-      await Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (_) => MealScreen(meal: meal, startInEdit: true),
-        ),
-      );
-    }
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => MealScreen(meal: meal, startInEdit: true),
+      ),
+    );
 
     final items = await DatabaseHelper.instance.getMealItems(newMealId);
     final createdMeals = await DatabaseHelper.instance.getMeals();
@@ -177,17 +354,10 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
-    final double appBarHeight = MediaQuery.of(
-      context,
-    ).padding.top; // + kToolbarHeight;
+    final double appBarHeight = MediaQuery.of(context).padding.top;
 
-    // 2. Get your base padding from your design constants
-    const EdgeInsets basePadding = DesignConstants
-        .cardPadding; // This is EdgeInsets.all(DesignConstants.spacingL)
-
-    // 3. Create the final combined padding
+    const EdgeInsets basePadding = DesignConstants.cardPadding;
     final EdgeInsets finalPadding = basePadding.copyWith(
-      // Take the original top value (16.0) and add the app bar height
       top: basePadding.top + appBarHeight,
     );
 
@@ -196,12 +366,6 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
       body: FutureBuilder<Map<String, dynamic>>(
         future: _hubDataFuture,
         builder: (context, snapshot) {
-          // Only on the very first load. A reload keeps the data it already
-          // has — `AsyncSnapshot.inState` carries it across the new future —
-          // so the cards stay put instead of being replaced by a spinner. The
-          // reload runs while a morph back into one of those cards is still in
-          // flight, and swapping the whole subtree out mid-flight both breaks
-          // the animation and deactivates the card the route is drawing.
           if (snapshot.connectionState == ConnectionState.waiting &&
               !snapshot.hasData) {
             return const Center(child: CircularProgressIndicator());
@@ -213,7 +377,11 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
 
           final data = snapshot.data!;
           final meals = data['meals'] as List<Map<String, dynamic>>;
-          final targetCalories = data['targetCalories'] as int;
+          final activeGoal = data['activeGoal'] as Goal?;
+          final activeProgress = data['activeProgress'] as GoalProgress?;
+          final chartPoints =
+              (data['chartPoints'] as List<ChartDataPoint>?) ?? const [];
+          final pendingReview = data['pendingReview'] as GoalReviewRecord?;
           final recommendationState = data['recommendationState']
               as AdaptiveNutritionRecommendationState;
 
@@ -222,129 +390,124 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
             child: ListView(
               padding: finalPadding,
               children: [
-                AppSectionHeader(
-                    isFirst: true,
-                    title: l10n.adaptiveRecommendationCardTitle.toUpperCase()),
-                RepaintBoundary(
-                  child: _buildGoalsAndRecommendationCard(
+                // Modul 1: Ziel- & Fortschrittskarte (Vollständiges Goal-Dashboard)
+                ActiveGoalDashboardWidget(
+                  goal: activeGoal,
+                  progress: activeProgress,
+                  chartPoints: chartPoints,
+                  onRefresh: _refreshData,
+                  onBaselineRecorded: () async {
+                    await _goalRepository
+                        .captureMissingBaseline(activeGoal!.id);
+                    await _refreshData();
+                  },
+                  bleedChartToEdges: true,
+                  onHeaderTap: activeGoal != null
+                      ? () async {
+                          await Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) =>
+                                  GoalDetailScreen(goalId: activeGoal.id),
+                            ),
+                          );
+                          _refreshData();
+                        }
+                      : null,
+                ),
+                const SizedBox(height: DesignConstants.spacingL),
+
+                // Modul 2: Wöchentlicher Review (falls fällig oder ausstehend)
+                if (pendingReview != null) ...[
+                  AdaptiveReviewCard(
+                    activeGoal: activeGoal,
+                    pendingReview: pendingReview,
+                    isRecommendationDue:
+                        recommendationState.isAdaptiveRecommendationDueNow,
+                    nextDueAt:
+                        recommendationState.nextAdaptiveRecommendationDueAt,
+                    onRefresh: _refreshData,
+                  ),
+                  const SizedBox(height: DesignConstants.spacingL),
+                ],
+
+                // A pending review is the single primary action. It already
+                // contains the recommendation, so the standalone card returns
+                // after the review has been completed.
+                if (pendingReview == null) ...[
+                  AppSectionHeader(
+                    title: l10n.adaptiveRecommendationCardTitle,
+                  ),
+                  _buildGoalsAndRecommendationCard(
                     context,
                     recommendationState,
-                    targetCalories,
+                    data['dailyGoals'] as db.DailyGoalsHistoryData?,
+                    data['recentDailyIntakes'] as List<DailyMacroIntake>?,
                   ),
-                ),
-                const SizedBox(height: DesignConstants.spacingXL),
-                AppSectionHeader(title: l10n.nutritionSectionMyMeals),
-                RepaintBoundary(
-                  child: SizedBox(
-                    height: 160,
-                    child: meals.isEmpty
-                        ? Row(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              _buildCreateMealCard(context, l10n),
-                              Expanded(
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: DesignConstants.spacingS,
-                                    vertical: DesignConstants.spacingM,
-                                  ),
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        l10n.emptyStateNutritionRecipesCallout,
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .bodyMedium
-                                            ?.copyWith(
-                                              color: Theme.of(context)
-                                                  .colorScheme
-                                                  .onSurface
-                                                  .withValues(alpha: 0.6),
-                                              height: 1.3,
-                                            ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ],
-                          )
-                        : ListView.builder(
-                            scrollDirection: Axis.horizontal,
-                            clipBehavior: Clip.none,
-                            itemCount: meals.length + 1,
-                            itemBuilder: (context, index) {
-                              if (index == 0) {
-                                return _buildCreateMealCard(context, l10n);
-                              }
-                              return _buildMealCard(context, meals[index - 1]);
-                            },
+                  const SizedBox(height: DesignConstants.spacingXL),
+                ],
+
+                // Supplements are a first-class nutrition workflow, not a
+                // utility hidden after recipes or exploration tools.
+                AppSectionHeader(title: l10n.supplementTrackerTitle),
+                Builder(
+                  builder: (sourceCtx) => MorphSourceScope(
+                    builder: (context, setHidden) => _buildNavigationCard(
+                      context: context,
+                      icon: LucideIcons.pill,
+                      title: l10n.supplementTrackerTitle,
+                      subtitle: l10n.supplementTrackerDescription,
+                      onTap: () {
+                        Navigator.of(context).push(
+                          CardMorphRoute(
+                            sourceContext: sourceCtx,
+                            sourceBuilder: (_) => _buildNavigationCard(
+                              context: context,
+                              icon: LucideIcons.pill,
+                              title: l10n.supplementTrackerTitle,
+                              subtitle: l10n.supplementTrackerDescription,
+                              onTap: () {},
+                            ),
+                            sourceBorderRadius: DesignConstants.borderRadiusM,
+                            onSourceVisibilityChanged: setHidden,
+                            builder: (_) => const SupplementHubScreen(),
                           ),
+                        );
+                      },
+                    ),
                   ),
                 ),
                 const SizedBox(height: DesignConstants.spacingXL),
-                AppSectionHeader(title: l10n.nutritionSectionToolsAndLibrary),
-                RepaintBoundary(
-                  child: Builder(
-                    builder: (sourceCtx) => MorphSourceScope(
-                      builder: (context, setHidden) => _buildNavigationCard(
-                        context: context,
-                        icon: LucideIcons.pill,
-                        title: l10n.supplementTrackerTitle,
-                        subtitle: l10n.supplementTrackerDescription,
-                        onTap: () {
-                          Navigator.of(context).push(
-                            CardMorphRoute(
-                              sourceContext: sourceCtx,
-                              sourceBuilder: (_) => _buildNavigationCard(
-                                context: context,
-                                icon: LucideIcons.pill,
-                                title: l10n.supplementTrackerTitle,
-                                subtitle: l10n.supplementTrackerDescription,
-                                onTap: () {},
-                              ),
-                              sourceBorderRadius: DesignConstants.borderRadiusM,
-                              onSourceVisibilityChanged: setHidden,
-                              builder: (_) => const SupplementHubScreen(),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
+
+                // Recipes mirror workout routines: one clear creation action,
+                // followed by the complete saved collection in a vertical list.
+                AppSectionHeader(title: l10n.nutritionSectionMyMeals),
+                SizedBox(
+                  width: double.infinity,
+                  child: AppButton.primary(
+                    label: l10n.mealsCreate,
+                    icon: LucideIcons.plus,
+                    onPressed: _createMealAndOpenEditor,
                   ),
                 ),
-                RepaintBoundary(
-                  child: Builder(
-                    builder: (sourceCtx) => MorphSourceScope(
-                      builder: (context, setHidden) => _buildNavigationCard(
-                        context: context,
-                        icon: LucideIcons.search,
-                        title: l10n.drawerFoodExplorer,
-                        subtitle: l10n.data_from_off_and_wger,
-                        onTap: () {
-                          Navigator.of(context).push(
-                            CardMorphRoute(
-                              sourceContext: sourceCtx,
-                              sourceBuilder: (_) => _buildNavigationCard(
-                                context: context,
-                                icon: LucideIcons.search,
-                                title: l10n.drawerFoodExplorer,
-                                subtitle: l10n.data_from_off_and_wger,
-                                onTap: () {},
-                              ),
-                              sourceBorderRadius: DesignConstants.borderRadiusM,
-                              onSourceVisibilityChanged: setHidden,
-                              builder: (_) => const AddFoodScreen(),
-                            ),
-                          );
-                        },
-                      ),
+                const SizedBox(height: DesignConstants.spacingM),
+                if (meals.isEmpty)
+                  SummaryCard(
+                    child: Text(
+                      l10n.emptyStateNutritionRecipesCallout,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onSurface
+                                .withValues(alpha: 0.6),
+                            height: 1.3,
+                          ),
                     ),
-                  ),
-                ),
+                  )
+                else
+                  for (final meal in meals) ...[
+                    _buildRecipeCard(context, meal),
+                    const SizedBox(height: DesignConstants.spacingS),
+                  ],
                 const BottomContentSpacer(),
               ],
             ),
@@ -357,174 +520,117 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
   Widget _buildGoalsAndRecommendationCard(
     BuildContext context,
     AdaptiveNutritionRecommendationState recommendationState,
-    int targetCalories,
+    db.DailyGoalsHistoryData? currentGoals,
+    List<DailyMacroIntake>? recentDailyIntakes,
   ) {
-    return Column(
-      children: [
-        NutritionRecommendationCard(
-          goal: recommendationState.goal,
-          targetRateKgPerWeek: recommendationState.targetRateKgPerWeek,
-          recommendation: recommendationState.latestGeneratedRecommendation,
-          maintenanceEstimate: recommendationState.latestMaintenanceEstimate,
-          generatedAt: recommendationState.latestGeneratedAt,
-          nextAdaptiveRecommendationDueAt:
-              recommendationState.nextAdaptiveRecommendationDueAt,
-          isAdaptiveRecommendationDueNow:
-              recommendationState.isAdaptiveRecommendationDueNow,
-          isRecalculating: _isRecalculatingRecommendation,
-          isApplying: _isApplyingRecommendation,
-          onRecalculate: _recalculateRecommendationNow,
-          onApply: _applyRecommendation,
-        ),
-        const SizedBox(height: 10),
-        Align(
-          alignment: Alignment.centerLeft,
-          child: AppButton.primary(
-            onPressed: () {
-              Navigator.of(
-                context,
-              ).push(MaterialPageRoute(builder: (_) => const GoalsScreen()));
-            },
-            label: AppLocalizations.of(context)!.my_goals,
-            tooltip: AppLocalizations.of(context)!.my_goals,
-          ),
-        ),
-      ],
+    return NutritionRecommendationCard(
+      goal: recommendationState.goal,
+      targetRateKgPerWeek: recommendationState.targetRateKgPerWeek,
+      recommendation: recommendationState.latestGeneratedRecommendation,
+      maintenanceEstimate: recommendationState.latestMaintenanceEstimate,
+      generatedAt: recommendationState.latestGeneratedAt,
+      nextAdaptiveRecommendationDueAt:
+          recommendationState.nextAdaptiveRecommendationDueAt,
+      isAdaptiveRecommendationDueNow:
+          recommendationState.isAdaptiveRecommendationDueNow,
+      isRecalculating: _isRecalculatingRecommendation,
+      isApplying: _isApplyingRecommendation,
+      onRecalculate: _recalculateRecommendationNow,
+      onApply: _applyRecommendation,
+      currentCalories: currentGoals?.targetCalories,
+      currentProteinGrams: currentGoals?.targetProtein,
+      currentCarbsGrams: currentGoals?.targetCarbs,
+      currentFatGrams: currentGoals?.targetFat,
+      recentDailyIntakes: recentDailyIntakes,
     );
   }
 
-  Widget _buildCreateMealCard(BuildContext context, AppLocalizations l10n) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final cardWidth = (screenWidth - 32 - 12) / 2.5;
-    return SizedBox(
-      width: cardWidth,
-      child: Padding(
-        padding: const EdgeInsets.only(right: DesignConstants.spacingM),
-        child: MorphSourceScope(
-          builder: (context, setHidden) => Builder(
-            builder: (sourceCtx) {
-              Widget cardWidget() => SummaryCard(
-                    child: InkWell(
-                      onTap: () =>
-                          _createMealAndOpenEditor(sourceCtx, setHidden),
-                      borderRadius:
-                          BorderRadius.circular(DesignConstants.borderRadiusM),
-                      child: Padding(
-                        padding: DesignConstants.cardPadding,
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              LucideIcons.circle_plus,
-                              size: 40,
-                              color: Theme.of(context).colorScheme.primary,
-                            ),
-                            const SizedBox(height: DesignConstants.spacingS),
-                            Text(l10n.mealsCreate, textAlign: TextAlign.center),
-                          ],
-                        ),
-                      ),
-                    ),
-                  );
-
-              return cardWidget();
-            },
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMealCard(BuildContext context, Map<String, dynamic> meal) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final cardWidth = (screenWidth - 32 - 12) / 2;
+  Widget _buildRecipeCard(BuildContext context, Map<String, dynamic> meal) {
     final l10n = AppLocalizations.of(context)!;
+    return MorphSourceScope(
+      builder: (context, setHidden) => Builder(
+        builder: (sourceContext) {
+          late final Widget card;
+          Future<void> openRecipe({bool edit = false}) async {
+            await Navigator.of(context).push(
+              CardMorphRoute(
+                sourceContext: sourceContext,
+                sourceBuilder: (_) => card,
+                onSourceVisibilityChanged: setHidden,
+                builder: (_) => MealScreen(meal: meal, startInEdit: edit),
+              ),
+            );
+            await _refreshData();
+          }
 
-    return SizedBox(
-      width: cardWidth,
-      child: Padding(
-        padding: const EdgeInsets.only(right: DesignConstants.spacingM),
-        child: MorphSourceScope(
-          builder: (context, setHidden) => Builder(
-            builder: (sourceCtx) {
-              Widget buildCardBody({bool showButton = true}) => SummaryCard(
-                    child: Padding(
-                      padding: DesignConstants.cardPadding,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            meal['name'] as String,
-                            style:
-                                Theme.of(context).textTheme.titleMedium?.copyWith(
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          if (showButton)
-                            AppButton.primary(
-                              onPressed: () {},
-                              label: l10n.edit,
-                              tooltip: l10n.edit,
-                              size: AppButtonSize.medium,
-                            ),
-                        ],
-                      ),
-                    ),
-                  );
-
-              void openEditor() {
-                Navigator.of(context)
-                    .push(
-                      CardMorphRoute(
-                        sourceContext: sourceCtx,
-                        sourceBuilder: (_) => buildCardBody(showButton: true),
-                        sourceBorderRadius: DesignConstants.borderRadiusM,
-                        onSourceVisibilityChanged: setHidden,
-                        builder: (_) => MealScreen(meal: meal),
-                      ),
-                    )
-                    .then((_) => _refreshData());
-              }
-
-              return SummaryCard(
-                child: InkWell(
-                  onTap: openEditor,
-                  borderRadius:
-                      BorderRadius.circular(DesignConstants.borderRadiusM),
-                  child: Padding(
-                    padding: DesignConstants.cardPadding,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
+          card = SummaryCard(
+            onTap: openRecipe,
+            child: Padding(
+              padding: const EdgeInsets.all(DesignConstants.spacingS),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
                           meal['name'] as String,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
                           style:
                               Theme.of(context).textTheme.titleMedium?.copyWith(
                                     fontWeight: FontWeight.bold,
                                   ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
                         ),
-                        AppButton.primary(
-                          onPressed: openEditor,
-                          label: l10n.edit,
-                          tooltip: l10n.edit,
-                          size: AppButtonSize.medium,
-                        ),
-                      ],
+                      ),
+                      IconButton(
+                        tooltip: l10n.mealsEdit,
+                        icon: const Icon(LucideIcons.pencil),
+                        onPressed: () => openRecipe(edit: true),
+                      ),
+                      IconButton(
+                        tooltip: l10n.mealsDelete,
+                        icon: const Icon(LucideIcons.trash),
+                        onPressed: () => _deleteRecipe(meal, l10n),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: DesignConstants.spacingS),
+                  SizedBox(
+                    width: double.infinity,
+                    child: AppButton.primary(
+                      label: l10n.mealsAddToDiary,
+                      icon: LucideIcons.circle_plus,
+                      onPressed: () => _logRecipe(meal),
                     ),
                   ),
-                ),
-              );
-            },
-          ),
-        ),
+                ],
+              ),
+            ),
+          );
+          return card;
+        },
       ),
     );
+  }
+
+  Future<void> _deleteRecipe(
+    Map<String, dynamic> meal,
+    AppLocalizations l10n,
+  ) async {
+    final confirmed = await showDeleteConfirmation(
+      context,
+      title: l10n.mealDeleteConfirmTitle,
+      content: l10n.mealDeleteConfirmBody(meal['name'] as String),
+    );
+    if (!confirmed) return;
+    await DatabaseHelper.instance.deleteMeal(meal['id'] as int);
+    await _refreshData();
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.mealDeleted)),
+      );
+    }
   }
 
   Widget _buildNavigationCard({

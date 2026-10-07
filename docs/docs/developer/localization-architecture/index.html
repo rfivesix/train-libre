@@ -3,6 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; font-src 'self' data: https://cdn.jsdelivr.net; img-src 'self' data: https:; connect-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests;">
+  <meta http-equiv="X-Content-Type-Options" content="nosniff">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
   <meta name="description" content="Multi-locale catalog translation pipeline, relational tables, and fallback chains.">
   <title>Offline-First Relational Localization Architecture | Train Libre Documentation</title>
   <link rel="canonical" href="https://trainlibre.com/docs/developer/localization-architecture/">
@@ -26,47 +29,18 @@
   <link rel="stylesheet" href="../../../style.css">
   <link rel="stylesheet" href="../../docs.css">
 
+  <!-- Theme Script (Synchronous in head to prevent theme flash) -->
+  <script src="../../../theme.js"></script>
+
   <!-- KaTeX Auto-render Script -->
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js" defer></script>
-  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" defer onload="renderMathInElement(document.body, {
-    delimiters: [
-      {left: '$$', right: '$$', display: true},
-      {left: '$', right: '$', display: false}
-    ],
-    throwOnError: false
-  });"></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" defer></script>
 
   <!-- Mermaid.js for Architecture Diagrams -->
-  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
-  <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      if (typeof mermaid !== "undefined") {
-        const isDark = document.documentElement.getAttribute("data-theme") !== "light";
-        mermaid.initialize({
-          startOnLoad: true,
-          theme: isDark ? "dark" : "default",
-          themeVariables: isDark ? {
-            darkMode: true,
-            background: "#151815",
-            primaryColor: "#1b1f1b",
-            primaryTextColor: "#f4f6f4",
-            primaryBorderColor: "rgba(221, 255, 0, 0.4)",
-            lineColor: "#ddff00",
-            secondaryColor: "#151815",
-            tertiaryColor: "#0e100e"
-          } : {}
-        });
-      }
-    });
-  </script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js" defer></script>
 
-  <!-- Prevent Theme Flash -->
-  <script>
-    (function () {
-      const theme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: light)').matches ? "light" : "dark");
-      document.documentElement.setAttribute("data-theme", theme);
-    })();
-  </script>
+  <!-- Dedicated Docs Client Interactions -->
+  <script src="../../docs.js" defer></script>
 </head>
 <body class="docs-body">
   <div class="page">
@@ -258,7 +232,7 @@
     EXERCISES ||--o{ EXERCISE_TRANSLATIONS : &quot;has&quot;
     PRODUCTS ||--o{ PRODUCT_TRANSLATIONS : &quot;has&quot;</pre></div>
 <h3 id="drift-tables-mapping" class="doc-h3">Drift Tables Mapping<a href="#drift-tables-mapping" class="header-anchor" aria-label="Link to section">#</a></h3>
-<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">dart</span><button class="copy-btn" onclick="navigator.clipboard.writeText(this.closest('.code-block-wrapper').querySelector('code').innerText); this.textContent='Copied!'; setTimeout(()=>this.textContent='Copy', 1500);">Copy</button></div><pre><code class="language-dart">// lib/data/drift_database.dart
+<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">dart</span><button class="copy-btn">Copy</button></div><pre><code class="language-dart">// lib/data/drift_database.dart
 
 // Normalized Exercises Table (No localization columns)
 class Exercises extends Table with HybridId, MetaColumns {
@@ -326,9 +300,9 @@ class ProductTranslations extends Table with HybridId, MetaColumns {
       ];
 }</code></pre></div>
 <h3 id="drift-database-migration-historical-migration-version-22-to-23" class="doc-h3">Drift Database Migration (Historical Migration: Version 22 to 23)<a href="#drift-database-migration-historical-migration-version-22-to-23" class="header-anchor" aria-label="Link to section">#</a></h3>
-<p>While <code>AppDatabase</code> currently operates at <strong>schema version 31</strong>, the transition from version 22 to 23 is the foundational migration that introduced normalized 1:N translation tables. The migration logic in <code>AppDatabase.migration.onUpgrade</code> created the translation tables, copied legacy column values to the normalized tables, and dropped obsolete columns using standard SQLite schema-altering syntax:</p>
-<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">dart</span><button class="copy-btn" onclick="navigator.clipboard.writeText(this.closest('.code-block-wrapper').querySelector('code').innerText); this.textContent='Copied!'; setTimeout(()=>this.textContent='Copy', 1500);">Copy</button></div><pre><code class="language-dart">// lib/data/drift_database.dart
-// (Current schemaVersion is 31; historical migration block shown below)
+<p>While <code>AppDatabase</code> currently operates at <strong>schema version 38</strong>, the transition from version 22 to 23 is the foundational migration that introduced normalized 1:N translation tables. The migration logic in <code>AppDatabase.migration.onUpgrade</code> created the translation tables, copied legacy column values to the normalized tables, and dropped obsolete columns using standard SQLite schema-altering syntax:</p>
+<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">dart</span><button class="copy-btn">Copy</button></div><pre><code class="language-dart">// lib/data/drift_database.dart
+// (Current schemaVersion is 38; historical migration block shown below)
 
 // In MigrationStrategy onUpgrade:
 if (from &lt; 23) {
@@ -377,7 +351,7 @@ if (from &lt; 23) {
 <h3 id="database-layer-drift-queries-with-fallback" class="doc-h3">Database Layer (Drift Queries with Fallback)<a href="#database-layer-drift-queries-with-fallback" class="header-anchor" aria-label="Link to section">#</a></h3>
 <p>To fetch translated values, queries join the main table on the translation table using the target locale (e.g., Japanese <code>ja</code>). In case a specific language record is missing, the query must fall back: 1. Target Locale (e.g., <code>ja</code>) 2. Default Fallback Locale (<code>en</code>) 3. Primary fallback (<code>de</code>) 4. Any available localized name in the translations table</p>
 <h4 id="drift-query-implementation-exercises" class="doc-h4">Drift Query Implementation (Exercises)<a href="#drift-query-implementation-exercises" class="header-anchor" aria-label="Link to section">#</a></h4>
-<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">dart</span><button class="copy-btn" onclick="navigator.clipboard.writeText(this.closest('.code-block-wrapper').querySelector('code').innerText); this.textContent='Copied!'; setTimeout(()=>this.textContent='Copy', 1500);">Copy</button></div><pre><code class="language-dart">// lib/features/workout/data/sources/parts/exercises_queries.dart
+<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">dart</span><button class="copy-btn">Copy</button></div><pre><code class="language-dart">// lib/features/workout/data/sources/parts/exercises_queries.dart
 
 Future&lt;List&lt;Exercise&gt;&gt; searchExercises({
   required String query,
@@ -462,7 +436,7 @@ Future&lt;List&lt;Exercise&gt;&gt; searchExercises({
 <li><code>lib/l10n/app_it.arb</code></li>
 </ol>
 <p>Each file contains JSON matching the keys of <code>lib/l10n/app_en.arb</code>. Example (<code>app_ja.arb</code>):</p>
-<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">json</span><button class="copy-btn" onclick="navigator.clipboard.writeText(this.closest('.code-block-wrapper').querySelector('code').innerText); this.textContent='Copied!'; setTimeout(()=>this.textContent='Copy', 1500);">Copy</button></div><pre><code class="language-json">   {
+<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">json</span><button class="copy-btn">Copy</button></div><pre><code class="language-json">   {
      &quot;@@locale&quot;: &quot;ja&quot;,
      &quot;appTitle&quot;: &quot;トレイン・リブレ&quot;,
      &quot;settingsBaseFoodLanguageTitle&quot;: &quot;食品データベースの言語&quot;,
@@ -476,20 +450,20 @@ Future&lt;List&lt;Exercise&gt;&gt; searchExercises({
 <ol class="doc-list">
 <li><strong>Run Generator</strong>:</li>
 </ol>
-<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">bash</span><button class="copy-btn" onclick="navigator.clipboard.writeText(this.closest('.code-block-wrapper').querySelector('code').innerText); this.textContent='Copied!'; setTimeout(()=>this.textContent='Copy', 1500);">Copy</button></div><pre><code class="language-bash">   flutter gen-l10n
+<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">bash</span><button class="copy-btn">Copy</button></div><pre><code class="language-bash">   flutter gen-l10n
    </code></pre></div>
 <p>This compiles classes in <code>lib/generated/app_localizations.dart</code> and automatically populates <code>AppLocalizations.supportedLocales</code> with <code>Locale(&#x27;ja&#x27;)</code>, <code>Locale(&#x27;fr&#x27;)</code>, and <code>Locale(&#x27;it&#x27;)</code>. No routing configuration updates are required since <code>lib/main.dart</code> binds directly to <code>AppLocalizations.supportedLocales</code>.</p>
 <ol class="doc-list">
 <li><strong>Expand Locale Picker</strong>: Update <code>lib/services/base_food_language_service.dart</code> and <code>lib/services/ai_matching_language_service.dart</code> enums to register the new languages:</li>
 </ol>
-<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">dart</span><button class="copy-btn" onclick="navigator.clipboard.writeText(this.closest('.code-block-wrapper').querySelector('code').innerText); this.textContent='Copied!'; setTimeout(()=>this.textContent='Copy', 1500);">Copy</button></div><pre><code class="language-dart">   enum BaseFoodLanguage { auto, en, de, ja, fr, it }
+<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">dart</span><button class="copy-btn">Copy</button></div><pre><code class="language-dart">   enum BaseFoodLanguage { auto, en, de, ja, fr, it }
    </code></pre></div>
 <hr class="divider">
 <h2 id="3-data-processing-pipelines" class="doc-h2">3. Data Processing Pipelines<a href="#3-data-processing-pipelines" class="header-anchor" aria-label="Link to section">#</a></h2>
 <h3 id="wger-catalog-fetch-pipeline" class="doc-h3">wger Catalog Fetch Pipeline<a href="#wger-catalog-fetch-pipeline" class="header-anchor" aria-label="Link to section">#</a></h3>
 <p>The python script <code>script/create_wger_exercise_db.py</code> queries the wger API and generates the SQLite database <code>train_libre_training.db</code> deployed as a release asset.</p>
 <p><strong>Required Updates for Multi-Language Relational Model</strong>: 1. <strong>API Language Fetching</strong>: Map standard wger language IDs (<code>1: de</code>, <code>2: en</code>, <code>3: ja</code>, <code>4: fr</code>, <code>5: it</code>, etc.). 2. <strong>Normalized DB Output</strong>: Alter tables created in SQLite output.</p>
-<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">python</span><button class="copy-btn" onclick="navigator.clipboard.writeText(this.closest('.code-block-wrapper').querySelector('code').innerText); this.textContent='Copied!'; setTimeout(()=>this.textContent='Copy', 1500);">Copy</button></div><pre><code class="language-python"># script/create_wger_exercise_db.py
+<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">python</span><button class="copy-btn">Copy</button></div><pre><code class="language-python"># script/create_wger_exercise_db.py
 
 # Map wger API language IDs to ISO 639-1 language codes
 LANGUAGE_ID_MAP = {
@@ -554,7 +528,7 @@ def process_and_create_db(db_out=&quot;train_libre_training.db&quot;, ...):
 <h3 id="open-food-facts-parquet-pipeline" class="doc-h3">Open Food Facts Parquet Pipeline<a href="#open-food-facts-parquet-pipeline" class="header-anchor" aria-label="Link to section">#</a></h3>
 <p>The python script <code>script/create_off_food_db.py</code> filters Open Food Facts parquet exports to compile country-specific SQLite databases.</p>
 <p><strong>Required Updates</strong>: Register configuration objects for Japan (<code>jp</code>), France (<code>fr</code>), and Italy (<code>it</code>) in the country map to support parquet-to-SQLite filtering, correctly prioritizing respective local language tags (<code>ja</code>, <code>fr</code>, <code>it</code>) during extraction.</p>
-<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">python</span><button class="copy-btn" onclick="navigator.clipboard.writeText(this.closest('.code-block-wrapper').querySelector('code').innerText); this.textContent='Copied!'; setTimeout(()=>this.textContent='Copy', 1500);">Copy</button></div><pre><code class="language-python"># script/create_off_food_db.py
+<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">python</span><button class="copy-btn">Copy</button></div><pre><code class="language-python"># script/create_off_food_db.py
 
 COUNTRY_CONFIG: Dict[str, Dict[str, Any]] = {
     &quot;de&quot;: {
@@ -591,7 +565,7 @@ COUNTRY_CONFIG: Dict[str, Dict[str, Any]] = {
 <p>The base food SQLite database <code>train_libre_base_foods.db</code> is manually compiled and managed. Rather than using relational translation tables, it uses a flat-column schema to store translations for target languages.</p>
 <p><strong>Required Base Food Updates & Verified Schema</strong>: The physical schema in <code>train_libre_base_foods.db</code> contains flat column names matching the newly integrated French, Italian, and Japanese locales:</p>
 <h4 id="categories-table-schema" class="doc-h4"><code>categories</code> table schema<a href="#categories-table-schema" class="header-anchor" aria-label="Link to section">#</a></h4>
-<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">sql</span><button class="copy-btn" onclick="navigator.clipboard.writeText(this.closest('.code-block-wrapper').querySelector('code').innerText); this.textContent='Copied!'; setTimeout(()=>this.textContent='Copy', 1500);">Copy</button></div><pre><code class="language-sql">CREATE TABLE categories (
+<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">sql</span><button class="copy-btn">Copy</button></div><pre><code class="language-sql">CREATE TABLE categories (
   key      TEXT PRIMARY KEY,
   name_de  TEXT NOT NULL,
   name_en  TEXT NOT NULL,
@@ -601,7 +575,7 @@ COUNTRY_CONFIG: Dict[str, Dict[str, Any]] = {
   name_ja  TEXT
 );</code></pre></div>
 <h4 id="products-table-schema" class="doc-h4"><code>products</code> table schema<a href="#products-table-schema" class="header-anchor" aria-label="Link to section">#</a></h4>
-<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">sql</span><button class="copy-btn" onclick="navigator.clipboard.writeText(this.closest('.code-block-wrapper').querySelector('code').innerText); this.textContent='Copied!'; setTimeout(()=>this.textContent='Copy', 1500);">Copy</button></div><pre><code class="language-sql">CREATE TABLE products (
+<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">sql</span><button class="copy-btn">Copy</button></div><pre><code class="language-sql">CREATE TABLE products (
   barcode                      TEXT PRIMARY KEY,
   name                         TEXT NOT NULL,
   name_de                      TEXT NOT NULL,
@@ -643,7 +617,7 @@ COUNTRY_CONFIG: Dict[str, Dict[str, Any]] = {
 <li><strong>Translation Registry</strong>: A central dictionary (<code>TRANSLATIONS</code> inside <a href="https://github.com/rfivesix/train-libre/blob/main/docs/script.js" target="_blank" rel="noopener noreferrer">script.js <span class="ext-icon">↗</span></a>) stores translation strings nested under each locale key (<code>en</code>, <code>de</code>, <code>fr</code>, <code>it</code>, <code>ja</code>).</li>
 <li><strong>Dropdown Menu Navigation</strong>: Each compliance page hosts a language selection dropdown. To support new locales, dropdown items must be appended to the menu list:</li>
 </ol>
-<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">html</span><button class="copy-btn" onclick="navigator.clipboard.writeText(this.closest('.code-block-wrapper').querySelector('code').innerText); this.textContent='Copied!'; setTimeout(()=>this.textContent='Copy', 1500);">Copy</button></div><pre><code class="language-html">   &lt;!-- Example: French language selector added to all docs/*.html pages --&gt;
+<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">html</span><button class="copy-btn">Copy</button></div><pre><code class="language-html">   &lt;!-- Example: French language selector added to all docs/*.html pages --&gt;
    &lt;button class=&quot;dropdown-item&quot; data-lang=&quot;fr&quot;&gt;
      &lt;span&gt;Français&lt;/span&gt;
      &lt;svg class=&quot;check-icon&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;3&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;&gt;
@@ -681,7 +655,7 @@ COUNTRY_CONFIG: Dict[str, Dict[str, Any]] = {
 <li>Open <a href="https://github.com/rfivesix/train-libre/blob/main/script/create_off_food_db.py" target="_blank" rel="noopener noreferrer">create_off_food_db.py <span class="ext-icon">↗</span></a>.</li>
 <li>Add <code>es</code> to the <code>COUNTRY_CONFIG</code> map under country key <code>es</code> (Spain) or <code>mx</code> (Mexico) containing preferred languages list and country tags:</li>
 </ul>
-<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">python</span><button class="copy-btn" onclick="navigator.clipboard.writeText(this.closest('.code-block-wrapper').querySelector('code').innerText); this.textContent='Copied!'; setTimeout(()=>this.textContent='Copy', 1500);">Copy</button></div><pre><code class="language-python">     &quot;es&quot;: {
+<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">python</span><button class="copy-btn">Copy</button></div><pre><code class="language-python">     &quot;es&quot;: {
          &quot;preferred_languages&quot;: (&quot;es&quot;, &quot;en&quot;),
          &quot;country_tags&quot;: (&quot;en:spain&quot;, &quot;en:es&quot;),
      }
@@ -701,12 +675,12 @@ COUNTRY_CONFIG: Dict[str, Dict[str, Any]] = {
 <ol class="doc-list">
 <li>Run local translation compilation:</li>
 </ol>
-<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">bash</span><button class="copy-btn" onclick="navigator.clipboard.writeText(this.closest('.code-block-wrapper').querySelector('code').innerText); this.textContent='Copied!'; setTimeout(()=>this.textContent='Copy', 1500);">Copy</button></div><pre><code class="language-bash">   flutter gen-l10n
+<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">bash</span><button class="copy-btn">Copy</button></div><pre><code class="language-bash">   flutter gen-l10n
    </code></pre></div>
 <ol class="doc-list">
 <li>Build and run app:</li>
 </ol>
-<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">bash</span><button class="copy-btn" onclick="navigator.clipboard.writeText(this.closest('.code-block-wrapper').querySelector('code').innerText); this.textContent='Copied!'; setTimeout(()=>this.textContent='Copy', 1500);">Copy</button></div><pre><code class="language-bash">   flutter run
+<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang">bash</span><button class="copy-btn">Copy</button></div><pre><code class="language-bash">   flutter run
    </code></pre></div>
 <p>The UI setting, the database queries, and the import scripts will now fully support Spanish.</p>
         </article>
@@ -766,93 +740,5 @@ COUNTRY_CONFIG: Dict[str, Dict[str, Any]] = {
       </div>
     </footer>
   </div>
-
-  <!-- Documentation Interactions Script -->
-  <script>
-    // Theme toggle interaction
-    const themeBtn = document.getElementById("theme-toggle");
-    if (themeBtn) {
-      themeBtn.addEventListener("click", () => {
-        const current = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
-        document.documentElement.setAttribute("data-theme", current);
-        localStorage.setItem("theme", current);
-        if (typeof mermaid !== "undefined") {
-          const mNodes = document.querySelectorAll(".mermaid");
-          if (mNodes.length > 0) {
-            mNodes.forEach(node => {
-              if (node.hasAttribute("data-mermaid")) {
-                node.removeAttribute("data-processed");
-                node.innerHTML = node.getAttribute("data-mermaid");
-              }
-            });
-            mermaid.initialize({
-              startOnLoad: false,
-              theme: current === "light" ? "default" : "dark"
-            });
-            mermaid.run();
-          }
-        }
-      });
-    }
-
-    // Mobile sidebar toggle
-    const sidebarToggle = document.getElementById("sidebar-toggle");
-    const sidebar = document.getElementById("docs-sidebar");
-    if (sidebarToggle && sidebar) {
-      sidebarToggle.addEventListener("click", () => {
-        const expanded = sidebar.classList.toggle("open");
-        sidebarToggle.setAttribute("aria-expanded", expanded);
-      });
-
-      document.addEventListener("click", (e) => {
-        if (sidebar.classList.contains("open") && !sidebar.contains(e.target) && !sidebarToggle.contains(e.target)) {
-          sidebar.classList.remove("open");
-          sidebarToggle.setAttribute("aria-expanded", "false");
-        }
-      });
-    }
-
-    // Sidebar filter/search
-    const filterInput = document.getElementById("sidebar-filter");
-    if (filterInput) {
-      filterInput.addEventListener("input", (e) => {
-        const val = e.target.value.toLowerCase().trim();
-        document.querySelectorAll(".sidebar-nav-list li").forEach(li => {
-          const text = li.textContent.toLowerCase();
-          li.style.display = text.includes(val) ? "" : "none";
-        });
-        document.querySelectorAll(".sidebar-group").forEach(group => {
-          const hasVisible = Array.from(group.querySelectorAll("li")).some(li => li.style.display !== "none");
-          group.style.display = hasVisible ? "" : "none";
-        });
-      });
-    }
-
-    // Scroll-spy for Table of Contents
-    const tocItems = document.querySelectorAll(".toc-list a");
-    if (tocItems.length > 0) {
-      const headingElements = Array.from(tocItems).map(a => {
-        const id = a.getAttribute("href").substring(1);
-        return document.getElementById(id);
-      }).filter(Boolean);
-
-      const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            const id = entry.target.getAttribute("id");
-            tocItems.forEach(a => {
-              if (a.getAttribute("href") === "#" + id) {
-                a.classList.add("active");
-              } else {
-                a.classList.remove("active");
-              }
-            });
-          }
-        });
-      }, { rootMargin: "0px 0px -70% 0px", threshold: 0.1 });
-
-      headingElements.forEach(h => observer.observe(h));
-    }
-  </script>
 </body>
 </html>

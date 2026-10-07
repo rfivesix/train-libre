@@ -54,7 +54,8 @@ class WorkoutHeatmapPublisher {
   /// wrong source here: the widget follows the *system* appearance, and the app
   /// may well be pinned to the other one. A mid grey at partial opacity is
   /// legible either way.
-  static final Color baseColor = const Color(0xFF8E8E93).withValues(alpha: 0.32);
+  static final Color baseColor =
+      const Color(0xFF8E8E93).withValues(alpha: 0.32);
   static final Color outlineColor =
       const Color(0xFF8E8E93).withValues(alpha: 0.55);
 

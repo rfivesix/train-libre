@@ -7,8 +7,8 @@ class BobbingArrow extends StatefulWidget {
   final IconData icon;
 
   const BobbingArrow({
-    super.key, 
-    this.color, 
+    super.key,
+    this.color,
     this.size = 32,
     this.icon = LucideIcons.arrow_down,
   });
@@ -17,7 +17,8 @@ class BobbingArrow extends StatefulWidget {
   State<BobbingArrow> createState() => _BobbingArrowState();
 }
 
-class _BobbingArrowState extends State<BobbingArrow> with SingleTickerProviderStateMixin {
+class _BobbingArrowState extends State<BobbingArrow>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _animation;
 

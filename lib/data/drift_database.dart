@@ -322,6 +322,7 @@ class Routines extends Table with HybridId, MetaColumns {
       text().nullable()(); // Nullable for local use without login
   TextColumn get name => text()();
   BoolColumn get isPublic => boolean().withDefault(const Constant(false))();
+  DateTimeColumn get lastUsedAt => dateTime().nullable()();
 }
 
 // 5. RoutineExercises
@@ -784,6 +785,123 @@ class UserFoodOverrideTranslations extends Table with HybridId, MetaColumns {
       ];
 }
 
+// 22. UserGoals
+class UserGoals extends Table with HybridId, MetaColumns {
+  TextColumn get userId => text().nullable()();
+  TextColumn get area =>
+      text().withDefault(const Constant('body_composition'))();
+  TextColumn get preset =>
+      text()(); // 'loseWeight', 'gainWeight', 'maintainWeight', 'recomposition', 'custom'
+  TextColumn get title => text()();
+  TextColumn get reason => text().nullable()();
+  TextColumn get status => text().withDefault(
+      const Constant('active'))(); // 'active', 'retired', 'superseded', 'draft'
+  DateTimeColumn get startDate => dateTime()();
+  TextColumn get trackingMode =>
+      text().withDefault(const Constant('weeklyRate'))();
+  TextColumn get baselineMeasurementId => text()
+      .nullable()
+      .references(Measurements, #id, onDelete: KeyAction.setNull)();
+  RealColumn get baselineValueKg => real().nullable()();
+  DateTimeColumn get baselineDate => dateTime().nullable()();
+  DateTimeColumn get targetDate => dateTime().nullable()();
+  TextColumn get targetMetric =>
+      text().nullable()(); // 'weight', 'body_fat', 'waist', etc.
+  RealColumn get targetValue => real().nullable()();
+  TextColumn get targetUnit =>
+      text().nullable()(); // 'kg', 'lbs', '%', 'cm', 'in'
+  RealColumn get desiredWeeklyRateKg => real().nullable()();
+  BoolColumn get isNutritionDriver =>
+      boolean().withDefault(const Constant(false))();
+  TextColumn get predecessorGoalId =>
+      text().nullable().references(UserGoals, #id)();
+  DateTimeColumn get retiredAt => dateTime().nullable()();
+}
+
+// 23. GoalEvents
+class GoalEvents extends Table with HybridId, MetaColumns {
+  TextColumn get goalId =>
+      text().references(UserGoals, #id, onDelete: KeyAction.cascade)();
+  TextColumn get eventType =>
+      text()(); // 'created', 'superseded', 'retired', 'resumed'
+  TextColumn get actor => text().withDefault(const Constant(
+      'user'))(); // 'user', 'user_accepted_recommendation', 'engine'
+  DateTimeColumn get occurredAt => dateTime().withDefault(currentDateAndTime)();
+  TextColumn get recommendationId => text().nullable()();
+  TextColumn get reason => text().nullable()();
+  TextColumn get algorithmVersion => text().nullable()();
+}
+
+// 24. GoalReviews
+class GoalReviews extends Table with HybridId, MetaColumns {
+  TextColumn get goalId =>
+      text().references(UserGoals, #id, onDelete: KeyAction.cascade)();
+  DateTimeColumn get windowStart => dateTime()();
+  DateTimeColumn get windowEnd => dateTime()();
+  TextColumn get status => text().withDefault(const Constant(
+      'pending'))(); // 'pending', 'applied', 'deferred', 'dismissed', 'goal_changed'
+  TextColumn get trajectoryStatus =>
+      text().nullable()(); // 'on_track', 'slower', 'faster', 'calibrating'
+  RealColumn get observedRateKgPerWeek => real().nullable()();
+  TextColumn get confidenceLevel =>
+      text().nullable()(); // 'high', 'moderate', 'low', 'uncalibrated'
+  RealColumn get tdeeEstimate => real().nullable()();
+  IntColumn get recommendedCalories => integer().nullable()();
+  IntColumn get recommendedProtein => integer().nullable()();
+  IntColumn get recommendedCarbs => integer().nullable()();
+  IntColumn get recommendedFat => integer().nullable()();
+  TextColumn get decision => text().nullable()();
+  TextColumn get algorithmVersion => text()();
+  TextColumn get explanation => text().nullable()();
+  TextColumn get assessmentJson => text().nullable()();
+}
+
+/// A manually authored calendar. Only one row may be active at a time.
+class TrainingPlans extends Table with HybridId, MetaColumns {
+  TextColumn get name => text()();
+  TextColumn get kind => text()(); // week, sequence
+  IntColumn get lengthDays => integer()();
+  BoolColumn get isActive => boolean().withDefault(const Constant(false))();
+  DateTimeColumn get startedOn => dateTime().nullable()();
+  DateTimeColumn get pausedOn => dateTime().nullable()();
+  IntColumn get sequenceCursor => integer().withDefault(const Constant(0))();
+  IntColumn get sequenceCycle => integer().withDefault(const Constant(0))();
+}
+
+/// Immutable authored content. A new edit appends a row instead of replacing it.
+class TrainingPlanRevisions extends Table with HybridId, MetaColumns {
+  TextColumn get planId => text().references(TrainingPlans, #id)();
+  IntColumn get number => integer()();
+  DateTimeColumn get effectiveOn => dateTime()();
+  IntColumn get effectiveCycle => integer().nullable()();
+  TextColumn get daysJson => text()();
+}
+
+/// Every activation has its own timeline; resetting never erases old cycles.
+class TrainingPlanActivations extends Table with HybridId, MetaColumns {
+  TextColumn get planId => text().references(TrainingPlans, #id)();
+  DateTimeColumn get startedOn => dateTime()();
+  DateTimeColumn get endedOn => dateTime().nullable()();
+  IntColumn get initialCursor => integer().withDefault(const Constant(0))();
+  IntColumn get initialCycle => integer().withDefault(const Constant(0))();
+}
+
+/// One resolution of a scheduled slot, including explicit skips and partials.
+class TrainingPlanOccurrences extends Table with HybridId, MetaColumns {
+  TextColumn get planId => text().references(TrainingPlans, #id)();
+  TextColumn get activationId =>
+      text().references(TrainingPlanActivations, #id)();
+  TextColumn get revisionId => text().references(TrainingPlanRevisions, #id)();
+  DateTimeColumn get scheduledOn => dateTime()();
+  IntColumn get slotIndex => integer()();
+  TextColumn get status => text()(); // ongoing, completed, partial, skipped
+  TextColumn get workoutLogId => text()
+      .nullable()
+      .references(WorkoutLogs, #id, onDelete: KeyAction.setNull)();
+  TextColumn get routineSnapshotJson => text().nullable()();
+  DateTimeColumn get resolvedAt => dateTime().nullable()();
+}
+
 @DriftDatabase(
   tables: [
     Profiles,
@@ -826,6 +944,13 @@ class UserFoodOverrideTranslations extends Table with HybridId, MetaColumns {
     UserFoodOverrideTranslations,
     OffProductsArchive, // Added
     MealEntries, // Added
+    UserGoals,
+    GoalEvents,
+    GoalReviews,
+    TrainingPlans,
+    TrainingPlanRevisions,
+    TrainingPlanActivations,
+    TrainingPlanOccurrences,
   ],
 )
 
@@ -834,7 +959,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
-  int get schemaVersion => 31;
+  int get schemaVersion => 38;
 
   /// Adds whatever the file is missing compared to the generated tables.
   ///
@@ -895,6 +1020,12 @@ class AppDatabase extends _$AppDatabase {
       await customStatement(
         'CREATE INDEX IF NOT EXISTS idx_nutrition_logs_meal_entry_id ON nutrition_logs (meal_entry_id);',
       );
+      await customStatement(
+        'CREATE UNIQUE INDEX IF NOT EXISTS idx_training_plan_active ON training_plans (is_active) WHERE is_active = 1;',
+      );
+      await customStatement(
+        'CREATE UNIQUE INDEX IF NOT EXISTS idx_training_occurrence_slot ON training_plan_occurrences (activation_id, scheduled_on, slot_index);',
+      );
     }
     return repaired;
   }
@@ -902,10 +1033,19 @@ class AppDatabase extends _$AppDatabase {
   @override
   MigrationStrategy get migration => MigrationStrategy(
         beforeOpen: (details) async {
+          // Also enforce references for injected/test executors. The production
+          // connection enables this pragma during setup, but database semantics
+          // must not depend on how the executor was constructed.
+          await customStatement('PRAGMA busy_timeout = 30000;');
+          await customStatement('PRAGMA foreign_keys = ON;');
           await reconcileSchema();
         },
         onCreate: (Migrator m) async {
           await m.createAll();
+          await customStatement(
+              'CREATE UNIQUE INDEX IF NOT EXISTS idx_training_plan_active ON training_plans (is_active) WHERE is_active = 1;');
+          await customStatement(
+              'CREATE UNIQUE INDEX IF NOT EXISTS idx_training_occurrence_slot ON training_plan_occurrences (activation_id, scheduled_on, slot_index);');
           await _createSleepPersistenceSchema(this);
           await customStatement('''
           CREATE TABLE IF NOT EXISTS health_export_records (
@@ -916,6 +1056,32 @@ class AppDatabase extends _$AppDatabase {
             idempotency_key TEXT NOT NULL,
             exported_at INTEGER NOT NULL,
             UNIQUE(platform, domain, idempotency_key)
+          )
+        ''');
+          await customStatement('''
+          CREATE TABLE IF NOT EXISTS health_import_records (
+            platform TEXT NOT NULL,
+            domain TEXT NOT NULL,
+            external_record_id TEXT NOT NULL,
+            local_measurement_id INTEGER NOT NULL,
+            last_modified_at INTEGER NULL,
+            payload_fingerprint TEXT NOT NULL,
+            PRIMARY KEY (platform, domain, external_record_id),
+            FOREIGN KEY (local_measurement_id) REFERENCES measurements(local_id) ON DELETE CASCADE
+          )
+        ''');
+          await customStatement('''
+          CREATE TABLE IF NOT EXISTS health_export_identities (
+            platform TEXT NOT NULL,
+            domain TEXT NOT NULL,
+            source_key TEXT NOT NULL,
+            external_id TEXT NOT NULL,
+            revision INTEGER NOT NULL DEFAULT -1,
+            payload_fingerprint TEXT NULL,
+            is_legacy INTEGER NOT NULL DEFAULT 0,
+            exported_at INTEGER NULL,
+            PRIMARY KEY (platform, domain, source_key),
+            UNIQUE(platform, domain, external_id)
           )
         ''');
           await _createPulsePersistenceSchema(this);
@@ -937,9 +1103,69 @@ class AppDatabase extends _$AppDatabase {
           await customStatement(
             'CREATE INDEX IF NOT EXISTS idx_nutrition_logs_meal_entry_id ON nutrition_logs (meal_entry_id);',
           );
+          await customStatement(
+            'CREATE UNIQUE INDEX IF NOT EXISTS idx_goal_reviews_window ON goal_reviews (goal_id, window_start, window_end);',
+          );
         },
         onUpgrade: (Migrator m, int from, int to) async {
           try {
+            if (from < 38) {
+              await customStatement('''
+                CREATE TABLE IF NOT EXISTS health_export_identities (
+                  platform TEXT NOT NULL,
+                  domain TEXT NOT NULL,
+                  source_key TEXT NOT NULL,
+                  external_id TEXT NOT NULL,
+                  revision INTEGER NOT NULL DEFAULT -1,
+                  payload_fingerprint TEXT NULL,
+                  is_legacy INTEGER NOT NULL DEFAULT 0,
+                  exported_at INTEGER NULL,
+                  PRIMARY KEY (platform, domain, source_key),
+                  UNIQUE(platform, domain, external_id)
+                )
+              ''');
+            }
+            if (from < 37) {
+              await customStatement('''
+                CREATE TABLE IF NOT EXISTS health_import_records (
+                  platform TEXT NOT NULL,
+                  domain TEXT NOT NULL,
+                  external_record_id TEXT NOT NULL,
+                  local_measurement_id INTEGER NOT NULL,
+                  last_modified_at INTEGER NULL,
+                  payload_fingerprint TEXT NOT NULL,
+                  PRIMARY KEY (platform, domain, external_record_id),
+                  FOREIGN KEY (local_measurement_id) REFERENCES measurements(local_id) ON DELETE CASCADE
+                )
+              ''');
+            }
+            if (from < 36) {
+              final cols = await _columnsOf(this, routines.actualTableName);
+              if (!cols.contains('last_used_at')) {
+                await m.addColumn(routines, routines.lastUsedAt);
+              }
+            }
+            if (from < 35) {
+              if (!await _tableExists(this, trainingPlans.actualTableName)) {
+                await m.createTable(trainingPlans);
+              }
+              if (!await _tableExists(
+                  this, trainingPlanRevisions.actualTableName)) {
+                await m.createTable(trainingPlanRevisions);
+              }
+              if (!await _tableExists(
+                  this, trainingPlanActivations.actualTableName)) {
+                await m.createTable(trainingPlanActivations);
+              }
+              if (!await _tableExists(
+                  this, trainingPlanOccurrences.actualTableName)) {
+                await m.createTable(trainingPlanOccurrences);
+              }
+              await customStatement(
+                  'CREATE UNIQUE INDEX IF NOT EXISTS idx_training_plan_active ON training_plans (is_active) WHERE is_active = 1;');
+              await customStatement(
+                  'CREATE UNIQUE INDEX IF NOT EXISTS idx_training_occurrence_slot ON training_plan_occurrences (activation_id, scheduled_on, slot_index);');
+            }
             if (from < 2) {
               await m.createTable(favorites);
               // Important: add the missing column.
@@ -1510,6 +1736,79 @@ class AppDatabase extends _$AppDatabase {
                 await m.addColumn(setLogs, setLogs.progressionData);
               }
             }
+            if (from < 34) {
+              // Released v1.4.x and some development v32/v33 databases may
+              // have none, some, or all goal tables. Always establish the
+              // complete base schema before cleanup, indexes, or columns.
+              if (!await _tableExists(this, userGoals.actualTableName)) {
+                await m.createTable(userGoals);
+              }
+              if (!await _tableExists(this, goalEvents.actualTableName)) {
+                await m.createTable(goalEvents);
+              }
+              if (!await _tableExists(this, goalReviews.actualTableName)) {
+                await m.createTable(goalReviews);
+              }
+            }
+            if (from < 32) {
+              // Keep the newest row if a development build managed to create
+              // duplicates before window-level idempotency was enforced.
+              await customStatement('''
+                DELETE FROM goal_reviews
+                WHERE local_id NOT IN (
+                  SELECT MAX(local_id) FROM goal_reviews
+                  GROUP BY goal_id, window_start, window_end
+                );
+              ''');
+              await customStatement(
+                'CREATE UNIQUE INDEX IF NOT EXISTS idx_goal_reviews_window ON goal_reviews (goal_id, window_start, window_end);',
+              );
+            }
+            if (from < 33 &&
+                !await _columnExists(
+                    this, goalReviews.actualTableName, 'assessment_json')) {
+              await m.addColumn(goalReviews, goalReviews.assessmentJson);
+            }
+            if (from < 34) {
+              Future<void> addGoalColumnIfMissing(
+                GeneratedColumn column,
+              ) async {
+                if (!await _columnExists(
+                    this, userGoals.actualTableName, column.name)) {
+                  await m.addColumn(userGoals, column);
+                }
+              }
+
+              await addGoalColumnIfMissing(userGoals.trackingMode);
+              await addGoalColumnIfMissing(userGoals.baselineMeasurementId);
+              await addGoalColumnIfMissing(userGoals.baselineValueKg);
+              await addGoalColumnIfMissing(userGoals.baselineDate);
+
+              // Snapshot the historical baseline once. It must not drift when
+              // measurements are later added, edited or deleted.
+              await customStatement('''
+                UPDATE user_goals
+                SET baseline_measurement_id = (
+                      SELECT id FROM measurements
+                      WHERE type = 'weight' AND date <= user_goals.start_date
+                      ORDER BY date DESC, local_id DESC LIMIT 1
+                    ),
+                    baseline_value_kg = (
+                      SELECT value FROM measurements
+                      WHERE type = 'weight' AND date <= user_goals.start_date
+                      ORDER BY date DESC, local_id DESC LIMIT 1
+                    ),
+                    baseline_date = (
+                      SELECT date FROM measurements
+                      WHERE type = 'weight' AND date <= user_goals.start_date
+                      ORDER BY date DESC, local_id DESC LIMIT 1
+                    )
+                WHERE baseline_value_kg IS NULL;
+              ''');
+              await customStatement(
+                'CREATE UNIQUE INDEX IF NOT EXISTS idx_goal_reviews_window ON goal_reviews (goal_id, window_start, window_end);',
+              );
+            }
             unawaited(TelemetryService.instance.trackDbMigrationStatus(
               fromVersion: from,
               toVersion: to,
@@ -1706,6 +2005,7 @@ LazyDatabase _openConnection() {
     return NativeDatabase.createInBackground(
       file,
       setup: (rawDb) {
+        rawDb.execute('PRAGMA busy_timeout = 30000;');
         rawDb.execute('PRAGMA foreign_keys = ON;');
       },
     );
@@ -1754,8 +2054,11 @@ String calculateProductContentHash({
   return sha256.convert(bytes).toString();
 }
 
+final _safeIdentifier = RegExp(r'^[a-zA-Z0-9_]+$');
+
 /// Column names of [table], or an empty set when the table does not exist.
 Future<Set<String>> _columnsOf(GeneratedDatabase db, String table) async {
+  if (!_safeIdentifier.hasMatch(table)) return const {};
   final rows = await db.customSelect('PRAGMA table_info($table);').get();
   return rows.map((row) => row.read<String>('name')).toSet();
 }

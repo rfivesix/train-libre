@@ -64,6 +64,13 @@ class WorkoutLiveActivityContent {
 
   final DateTime? restEndsAt;
   final DateTime? restStartedAt;
+  final DateTime? setTimerStartedAt;
+  final DateTime? setTimerDeadline;
+  final int? setTimerTemplateId;
+  final int setTimerElapsedSeconds;
+  final String labelStartTimer;
+  final String labelStopTimer;
+  final String labelTimerRunning;
 
   final String exerciseName;
   final String setPosition;
@@ -86,11 +93,19 @@ class WorkoutLiveActivityContent {
   /// missing — the checkmark must not invent values, so it goes grey and only
   /// opens the app.
   final bool canCompleteSet;
+  final List<WorkoutLiveActivitySetSnapshot> upcomingSets;
 
   const WorkoutLiveActivityContent({
     required this.phase,
     this.restEndsAt,
     this.restStartedAt,
+    this.setTimerStartedAt,
+    this.setTimerDeadline,
+    this.setTimerTemplateId,
+    this.setTimerElapsedSeconds = 0,
+    this.labelStartTimer = '',
+    this.labelStopTimer = '',
+    this.labelTimerRunning = '',
     this.exerciseName = '',
     this.setPosition = '',
     this.badgeText = '',
@@ -102,12 +117,20 @@ class WorkoutLiveActivityContent {
     this.compactPrimary = '',
     this.compactSecondary = '',
     this.canCompleteSet = false,
+    this.upcomingSets = const [],
   });
 
   Map<String, Object?> toMap() => {
         'phase': phase.wireName,
         'restEndsAtEpochMs': restEndsAt?.millisecondsSinceEpoch,
         'restStartedAtEpochMs': restStartedAt?.millisecondsSinceEpoch,
+        'setTimerStartedAtEpochMs': setTimerStartedAt?.millisecondsSinceEpoch,
+        'setTimerDeadlineEpochMs': setTimerDeadline?.millisecondsSinceEpoch,
+        'setTimerTemplateId': setTimerTemplateId,
+        'setTimerElapsedSeconds': setTimerElapsedSeconds,
+        'labelStartTimer': labelStartTimer,
+        'labelStopTimer': labelStopTimer,
+        'labelTimerRunning': labelTimerRunning,
         'exerciseName': exerciseName,
         'setPosition': setPosition,
         'badgeText': badgeText,
@@ -119,6 +142,7 @@ class WorkoutLiveActivityContent {
         'compactPrimary': compactPrimary,
         'compactSecondary': compactSecondary,
         'canCompleteSet': canCompleteSet,
+        'upcomingSets': upcomingSets.map((set) => set.toMap()).toList(),
       };
 
   @override
@@ -127,6 +151,13 @@ class WorkoutLiveActivityContent {
       other.phase == phase &&
       other.restEndsAt == restEndsAt &&
       other.restStartedAt == restStartedAt &&
+      other.setTimerStartedAt == setTimerStartedAt &&
+      other.setTimerDeadline == setTimerDeadline &&
+      other.setTimerTemplateId == setTimerTemplateId &&
+      other.setTimerElapsedSeconds == setTimerElapsedSeconds &&
+      other.labelStartTimer == labelStartTimer &&
+      other.labelStopTimer == labelStopTimer &&
+      other.labelTimerRunning == labelTimerRunning &&
       other.exerciseName == exerciseName &&
       other.setPosition == setPosition &&
       other.badgeText == badgeText &&
@@ -137,13 +168,23 @@ class WorkoutLiveActivityContent {
       other.metricSeparator == metricSeparator &&
       other.compactPrimary == compactPrimary &&
       other.compactSecondary == compactSecondary &&
-      other.canCompleteSet == canCompleteSet;
+      other.canCompleteSet == canCompleteSet &&
+      other.upcomingSets.length == upcomingSets.length &&
+      List.generate(upcomingSets.length, (index) => index)
+          .every((index) => other.upcomingSets[index] == upcomingSets[index]);
 
   @override
-  int get hashCode => Object.hash(
+  int get hashCode => Object.hashAll([
         phase,
         restEndsAt,
         restStartedAt,
+        setTimerStartedAt,
+        setTimerDeadline,
+        setTimerTemplateId,
+        setTimerElapsedSeconds,
+        labelStartTimer,
+        labelStopTimer,
+        labelTimerRunning,
         exerciseName,
         setPosition,
         badgeText,
@@ -154,6 +195,86 @@ class WorkoutLiveActivityContent {
         metricSeparator,
         compactPrimary,
         compactSecondary,
+        canCompleteSet,
+        Object.hashAll(upcomingSets),
+      ]);
+}
+
+/// The native Live Activity keeps a small workout-order snapshot so its
+/// complete action can advance the card without opening the Flutter app.
+class WorkoutLiveActivitySetSnapshot {
+  final String exerciseName;
+  final String setPosition;
+  final String badgeText;
+  final String badgeColorHex;
+  final String metricPrimary;
+  final String metricSecondary;
+  final String metricTertiary;
+  final String metricSeparator;
+  final String compactPrimary;
+  final String compactSecondary;
+  final int? setTimerTemplateId;
+  final bool canCompleteSet;
+
+  const WorkoutLiveActivitySetSnapshot({
+    required this.exerciseName,
+    required this.setPosition,
+    required this.badgeText,
+    required this.badgeColorHex,
+    required this.metricPrimary,
+    required this.metricSecondary,
+    required this.metricTertiary,
+    required this.metricSeparator,
+    required this.compactPrimary,
+    required this.compactSecondary,
+    required this.setTimerTemplateId,
+    required this.canCompleteSet,
+  });
+
+  Map<String, Object?> toMap() => {
+        'exerciseName': exerciseName,
+        'setPosition': setPosition,
+        'badgeText': badgeText,
+        'badgeColorHex': badgeColorHex,
+        'metricPrimary': metricPrimary,
+        'metricSecondary': metricSecondary,
+        'metricTertiary': metricTertiary,
+        'metricSeparator': metricSeparator,
+        'compactPrimary': compactPrimary,
+        'compactSecondary': compactSecondary,
+        'setTimerTemplateId': setTimerTemplateId,
+        'canCompleteSet': canCompleteSet,
+      };
+
+  @override
+  bool operator ==(Object other) =>
+      other is WorkoutLiveActivitySetSnapshot &&
+      other.exerciseName == exerciseName &&
+      other.setPosition == setPosition &&
+      other.badgeText == badgeText &&
+      other.badgeColorHex == badgeColorHex &&
+      other.metricPrimary == metricPrimary &&
+      other.metricSecondary == metricSecondary &&
+      other.metricTertiary == metricTertiary &&
+      other.metricSeparator == metricSeparator &&
+      other.compactPrimary == compactPrimary &&
+      other.compactSecondary == compactSecondary &&
+      other.setTimerTemplateId == setTimerTemplateId &&
+      other.canCompleteSet == canCompleteSet;
+
+  @override
+  int get hashCode => Object.hash(
+        exerciseName,
+        setPosition,
+        badgeText,
+        badgeColorHex,
+        metricPrimary,
+        metricSecondary,
+        metricTertiary,
+        metricSeparator,
+        compactPrimary,
+        compactSecondary,
+        setTimerTemplateId,
         canCompleteSet,
       );
 }

@@ -3,6 +3,7 @@ import 'bayesian_tdee_estimator.dart';
 import 'goal_models.dart';
 import 'recommendation_engine.dart';
 import 'recommendation_models.dart';
+import 'rate_trajectory_controller.dart';
 
 class BayesianNutritionRecommendationResult {
   final NutritionRecommendation recommendation;
@@ -23,10 +24,14 @@ class BayesianNutritionRecommendationResult {
 
 class BayesianNutritionRecommendationEngine {
   final BayesianTdeeEstimator _estimator;
+  final RateTrajectoryController _trajectoryController;
 
   const BayesianNutritionRecommendationEngine({
     BayesianTdeeEstimator estimator = const BayesianTdeeEstimator(),
-  }) : _estimator = estimator;
+    RateTrajectoryController trajectoryController =
+        const RateTrajectoryController(),
+  })  : _estimator = estimator,
+        _trajectoryController = trajectoryController;
 
   BayesianNutritionRecommendationResult generate({
     required RecommendationGenerationInput input,
@@ -39,18 +44,27 @@ class BayesianNutritionRecommendationEngine {
     NutritionRecommendation? previousRecommendation,
     BayesianObservationPhaseContext? phaseContext,
   }) {
+    final effectivePhaseContext = phaseContext ??
+        BayesianObservationPhaseContext.bootstrap(
+          phase: goal.canonicalDietPhase,
+        );
     final estimatorRun = _estimator.estimate(
       input: input,
       recursiveState: recursiveState,
       dueWeekKey: dueWeekKey,
-      phaseContext: phaseContext ??
-          BayesianObservationPhaseContext.bootstrap(
-            phase: goal.canonicalDietPhase,
-          ),
+      phaseContext: effectivePhaseContext,
     );
     final maintenanceEstimate = estimatorRun.estimate;
     final phaseEffectiveKcalPerKg =
         maintenanceEstimate.debugInfo['effectiveKcalPerKg'] as double?;
+    final trajectoryCorrection = _trajectoryController.evaluate(
+      input: input,
+      goal: goal,
+      targetRateKgPerWeek: targetRateKgPerWeek,
+      algorithmVersion: algorithmVersion,
+      phaseContext: effectivePhaseContext,
+      previousRecommendation: previousRecommendation,
+    );
 
     final recommendation =
         AdaptiveNutritionRecommendationEngine.generateFromMaintenanceEstimate(
@@ -65,6 +79,9 @@ class BayesianNutritionRecommendationEngine {
       phaseEffectiveKcalPerKg: phaseEffectiveKcalPerKg,
       dueWeekKey: dueWeekKey,
       previousRecommendation: previousRecommendation,
+      trajectoryCorrectionCalories: trajectoryCorrection.calories,
+      trajectoryRateErrorKgPerWeek: trajectoryCorrection.rateErrorKgPerWeek,
+      trajectoryCorrectionStatus: trajectoryCorrection.status,
     );
 
     return BayesianNutritionRecommendationResult(

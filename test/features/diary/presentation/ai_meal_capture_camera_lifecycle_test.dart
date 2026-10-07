@@ -83,8 +83,7 @@ void main() {
     for (var i = 0; i < 20; i++) {
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(
-              MethodChannel('net.touchcapture.qr.flutterqr/qrview_$i'),
-              null);
+              MethodChannel('net.touchcapture.qr.flutterqr/qrview_$i'), null);
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(
               MethodChannel('net.touchcapture.qr.flutterqrplus/qrview_$i'),
@@ -223,7 +222,8 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
 
-      expect(find.widgetWithIcon(IconButton, LucideIcons.zap_off), findsOneWidget);
+      expect(
+          find.widgetWithIcon(IconButton, LucideIcons.zap_off), findsOneWidget);
     });
   });
 

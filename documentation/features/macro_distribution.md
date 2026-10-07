@@ -12,7 +12,7 @@ All of it runs on-device, in `AdaptiveNutritionRecommendationEngine._computeMacr
 
 The distribution takes three inputs:
 
-*   **Recommended calories** (*C*): the estimator's maintenance figure plus the goal's rate adjustment, clamped to a floor of 1200 kcal.
+*   **Recommended calories** (*C*): the estimator's maintenance figure plus the goal's rate adjustment and any bounded trajectory correction, clamped to a floor of 1200 kcal. The trajectory correction is a separate control output and never changes the displayed maintenance estimate.
 *   **Body weight** (*w*): the most recent logged weight. If it is missing or non-positive, a neutral default of 75 kg is substituted so the recommendation degrades to something plausible rather than to zero.
 *   **Goal**: lose weight, maintain weight, or gain weight.
 

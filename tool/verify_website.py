@@ -20,13 +20,26 @@ class MetadataParser(HTMLParser):
         self.canonical: str | None = None
         self.robots: str = ""
         self.links: list[str] = []
+        self.csp: str | None = None
+        self.content_type_options: str | None = None
+        self.referrer: str | None = None
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         attributes = dict(attrs)
         if tag == "link" and attributes.get("rel") == "canonical":
             self.canonical = attributes.get("href")
-        elif tag == "meta" and attributes.get("name") == "robots":
-            self.robots = attributes.get("content", "")
+        elif tag == "meta":
+            name = (attributes.get("name") or "").lower()
+            http_equiv = (attributes.get("http-equiv") or "").lower()
+            content = attributes.get("content", "")
+            if name == "robots":
+                self.robots = content
+            elif http_equiv == "content-security-policy":
+                self.csp = content
+            elif http_equiv == "x-content-type-options":
+                self.content_type_options = content
+            elif name == "referrer":
+                self.referrer = content
         elif tag == "a" and attributes.get("href"):
             self.links.append(attributes["href"])
 
@@ -102,8 +115,37 @@ def validate_404() -> None:
         assert target.is_file(), f"404 page links to missing local path: {href}"
 
 
+def validate_security_headers() -> None:
+    headers_file = DOCS_DIR / "_headers"
+    assert headers_file.is_file(), "Missing docs/_headers file"
+    headers_content = headers_file.read_text(encoding="utf-8")
+    required_headers = [
+        "Strict-Transport-Security:",
+        "X-Content-Type-Options: nosniff",
+        "X-Frame-Options: DENY",
+        "Referrer-Policy: strict-origin-when-cross-origin",
+        "Permissions-Policy:",
+        "Content-Security-Policy:",
+        "Cross-Origin-Opener-Policy: same-origin",
+        "Cross-Origin-Resource-Policy: same-origin",
+    ]
+    for header in required_headers:
+        assert header in headers_content, f"docs/_headers missing header directive: {header}"
+
+    for path in indexable_canonical_paths():
+        page = public_path_to_file(path)
+        metadata = parse_html(page)
+        assert metadata.csp, f"Page missing Content-Security-Policy meta tag: {path}"
+        assert metadata.content_type_options == "nosniff", f"Page missing X-Content-Type-Options: {path}"
+        assert metadata.referrer == "strict-origin-when-cross-origin", f"Page missing referrer policy: {path}"
+        if "script-src" in metadata.csp:
+            script_directive = metadata.csp.split("script-src")[1].split(";")[0]
+            assert "unsafe-inline" not in script_directive, f"Page has unsafe-inline in script-src: {path}"
+
+
 def main() -> None:
     validate_sitemap()
+    validate_security_headers()
     validate_404()
     validate_noindex("/privacy-policy/")
     validate_redirect("/ai-nutrition/", "/docs/features/meal-capture-pipeline/")
@@ -113,7 +155,7 @@ def main() -> None:
     validate_redirect("/sleep-score/", "/docs/features/sleep-scoring-engine/")
     validate_redirect("/docs/features/", "/docs/features/overview/")
     validate_redirect("/docs/developer/", "/docs/developer/overview/")
-    print("Validated sitemap, redirects, and GitHub Pages 404 page.")
+    print("Validated sitemap, security headers, redirects, and GitHub Pages 404 page.")
 
 
 if __name__ == "__main__":

@@ -124,8 +124,12 @@ class PulseAnalysisEngine {
     for (var i = 0; i < samples.length; i++) {
       final current = samples[i];
       final currentUs = current.sampledAtUtc.microsecondsSinceEpoch;
-      final previousUs = i == 0 ? windowStartUs : samples[i - 1].sampledAtUtc.microsecondsSinceEpoch;
-      final nextUs = i == samples.length - 1 ? windowEndUs : samples[i + 1].sampledAtUtc.microsecondsSinceEpoch;
+      final previousUs = i == 0
+          ? windowStartUs
+          : samples[i - 1].sampledAtUtc.microsecondsSinceEpoch;
+      final nextUs = i == samples.length - 1
+          ? windowEndUs
+          : samples[i + 1].sampledAtUtc.microsecondsSinceEpoch;
 
       final startUs = previousUs + ((currentUs - previousUs) ~/ 2);
       final endUs = currentUs + ((nextUs - currentUs) ~/ 2);

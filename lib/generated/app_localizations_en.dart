@@ -214,9 +214,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get caffeine => 'Caffeine';
 
   @override
-  String get explorerScreenTitle => 'Food Explorer';
-
-  @override
   String get nutritionScreenTitle => 'Nutrition Analysis';
 
   @override
@@ -314,9 +311,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get drawerDashboard => 'Dashboard';
-
-  @override
-  String get drawerFoodExplorer => 'Food Explorer';
 
   @override
   String get drawerDataManagement => 'Data Backup';
@@ -1160,6 +1154,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get durationLabel => 'Duration';
+
+  @override
+  String get clearDuration => 'Clear duration';
 
   @override
   String get volumeLabel => 'Volume';
@@ -2538,16 +2535,33 @@ class AppLocalizationsEn extends AppLocalizations {
   String get onboardingNameLabel => 'Your Name';
 
   @override
+  String get onboardingProfilePhotoSubtitle =>
+      'Optionally add a profile photo to make this profile feel like yours from the start.';
+
+  @override
+  String get onboardingProfilePhotoAdd => 'Add profile photo';
+
+  @override
   String get onboardingNameError => 'Please enter your name';
 
   @override
   String get onboardingDobTitle => 'When were you born?';
 
   @override
+  String get onboardingAgeTitle => 'How old are you?';
+
+  @override
   String get onboardingDobLabel => 'Date of Birth';
 
   @override
+  String get onboardingDobPlaceholder => 'Select your date of birth';
+
+  @override
   String get onboardingDobError => 'Please select your date of birth';
+
+  @override
+  String get onboardingDobUnderageError =>
+      'You must be at least 16 years old to use Train Libre.';
 
   @override
   String get onboardingWeightTitle => 'Current Weight';
@@ -2579,6 +2593,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get onboardingGoalWater => 'Water';
+
+  @override
+  String get onboardingExperienceLevelTitle =>
+      'How much training experience do you have?';
+
+  @override
+  String get onboardingExperienceLevelSubtitle =>
+      'We customize terminology and workout interface options to match your knowledge.';
 
   @override
   String get onboardingNext => 'Next';
@@ -2622,6 +2644,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get onboardingHeightLabel => 'Height';
 
   @override
+  String get onboardingHeightTitle => 'How tall are you?';
+
+  @override
+  String get onboardingHeightSubtitle =>
+      'Drag the ruler up or down to set your height.';
+
+  @override
   String get onboardingGenderLabel => 'Gender';
 
   @override
@@ -2645,6 +2674,27 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get onboardingMeasurementsDisclaimer =>
       'You can enter and log your weight, body fat, and other measurements at any time in the dashboard.';
+
+  @override
+  String get onboardingActivityTitle => 'How active are you currently?';
+
+  @override
+  String get onboardingActivitySubtitle =>
+      'Your daily activity and existing cardio help estimate your baseline energy expenditure. Future training plans are not factored in here.';
+
+  @override
+  String get onboardingGoalDecisionTitle =>
+      'Would you like to set a personal nutrition goal?';
+
+  @override
+  String get onboardingGoalDecisionSubtitle =>
+      'Set your direction, target weight, and pace. You can also skip this and maintain your current weight.';
+
+  @override
+  String get onboardingGoalDecisionSetupNow => 'Set up now';
+
+  @override
+  String get onboardingGoalDecisionSetupLater => 'Set up later';
 
   @override
   String onboardingWaterNeedLabel(String unit) {
@@ -2766,6 +2816,29 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get aiReviewSaveToDiary => 'Save to Diary';
+
+  @override
+  String aiReviewTokensUsed(int count) {
+    return 'AI usage: $count tokens';
+  }
+
+  @override
+  String get aiReviewTokensPending => 'AI usage: updating…';
+
+  @override
+  String get aiReviewTokensUnknown => 'AI usage: unavailable';
+
+  @override
+  String get aiReviewPreliminaryNutrition =>
+      'Preliminary nutrition – still checking.';
+
+  @override
+  String get aiReviewScanFailed =>
+      'The scan could not be completed. Please go back and try again.';
+
+  @override
+  String get aiReviewScanTimedOut =>
+      'The AI request took too long. The scan has stopped. Please go back and try again.';
 
   @override
   String get aiReviewFeedbackHint => 'Describe what the AI got wrong...';
@@ -4740,6 +4813,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get adaptiveRecommendationMaintenanceLabel => 'Estimated maintenance';
 
   @override
+  String get adaptiveRecommendationWhyTitle => 'Why this recommendation?';
+
+  @override
+  String get adaptiveRecommendationWhySubtitle =>
+      'Maintenance estimate, data quality and calculation details';
+
+  @override
   String get adaptiveRecommendationMaintenanceSourceLabel =>
       'Profile prior + recent logs';
 
@@ -4750,23 +4830,27 @@ class AppLocalizationsEn extends AppLocalizations {
   String get adaptiveRecommendationMacroTargetsLabel => 'Recommended targets';
 
   @override
+  String get adaptiveRecommendationAlreadyActive => 'Already active';
+
+  @override
+  String adaptiveRecommendationTargetChange(String value) {
+    return '$value from current';
+  }
+
+  @override
   String get adaptiveRecommendationTargetCaloriesLabel => 'Target kcal';
 
   @override
   String get adaptiveRecommendationDataQualityLabel => 'Data quality';
 
   @override
-  String get adaptiveRecommendationEnergyDensityLabel =>
-      'Effective energy density';
-
-  @override
-  String adaptiveRecommendationEnergyDensityValue(int value) {
-    return '$value kcal/kg';
+  String adaptiveRecommendationTrajectoryCorrectionLine(String value) {
+    return 'Trajectory adjustment: $value kcal/day';
   }
 
   @override
-  String get adaptiveRecommendationEnergyDensityExplanation =>
-      'Dynamic value based on weight and water-loss ratio';
+  String get adaptiveRecommendationTrajectoryCorrectionExplanation =>
+      'A bounded adjustment is helping bring your recent weight-change rate back toward your goal.';
 
   @override
   String get adaptiveRecommendationRecalculateNowAction => 'Recalculate now';
@@ -5052,6 +5136,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get healthExportStateFailed => 'Failed';
 
   @override
+  String get healthExportStatePermissionRequired => 'Permission required';
+
+  @override
   String get healthExportStateDisabled => 'Disabled';
 
   @override
@@ -5062,7 +5149,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get healthExportAppleHealthSubtitle =>
-      'One-way export from Train Libre to Apple Health';
+      'One-way export to Apple Health. Train Libre reads only its own exported records so edits can safely replace them.';
 
   @override
   String get healthExportHealthConnectSubtitle =>
@@ -5074,6 +5161,41 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get healthExportHealthConnectStatusTitle =>
       'Health Connect export status';
+
+  @override
+  String get healthConnectWeightImportTitle =>
+      'Import body measurements from Health Connect';
+
+  @override
+  String get healthConnectWeightImportSubtitle =>
+      'Import weight and body-fat values from scales and other apps. Train Libre records are ignored.';
+
+  @override
+  String get appleHealthWeightImportTitle =>
+      'Import body measurements from Apple Health';
+
+  @override
+  String get appleHealthWeightImportSubtitle =>
+      'Import weight, body fat, and waist measurements from Apple Health. Train Libre records are ignored.';
+
+  @override
+  String get healthConnectWeightImportReady => 'Full history access enabled';
+
+  @override
+  String get healthConnectWeightImportLimited =>
+      'Limited to the available recent history';
+
+  @override
+  String get healthConnectWeightImportUnavailable =>
+      'Health Connect is unavailable';
+
+  @override
+  String get healthConnectWeightImportNow => 'Import now';
+
+  @override
+  String healthConnectWeightImportResult(int imported, int updated) {
+    return 'Imported $imported, updated $updated';
+  }
 
   @override
   String get settingsBaseFoodLanguageTitle => 'Base food display language';
@@ -5510,7 +5632,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get infoTdeeKeyPoints =>
-      '• Smooths out daily weight fluctuations using a recursive trend model.\n• Uses a Bayesian-inspired approach to adapt weekly targets conservatively.\n• Alerts you if your logging consistency is too sparse for high-confidence updates.';
+      '• Uses your latest 14 days of weight and intake logs to estimate maintenance.\n• Treats early phase-change weight fluctuations as extra uncertainty.\n• Uses a separate bounded adjustment when your rate persistently differs from your goal.';
 
   @override
   String get infoTdeeTechnicalTitle =>
@@ -5518,7 +5640,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get infoTdeeTechnicalExplanation =>
-      'Rather than relying on static formulas, Train Libre models your metabolism as a dynamic \'hidden state\' estimated recursively. Daily observed maintenance is computed by adjusting intake against body mass changes. A process noise coefficient is added on unlogged days to increase the estimation uncertainty, which dampens updates and prevents skewing from short-term water retention.';
+      'Train Libre estimates maintenance as a dynamic hidden state with a recursive Kalman filter. Weekly process uncertainty lets the estimate follow real metabolic changes, while observation uncertainty limits reactions to water weight and incomplete logs. A separate capped trajectory controller may adjust the calorie target after two consistent rate errors without changing the maintenance estimate.';
 
   @override
   String get infoRecoveryTitle => 'Muscle Recovery Estimator';
@@ -6200,6 +6322,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mealAnalysisMatching => 'Matching the ingredients';
 
   @override
+  String get mealAnalysisRepairing => 'Refining the result';
+
+  @override
   String get mealAnalysisFailed => 'That did not work';
 
   @override
@@ -6807,15 +6932,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get experienceLevelBeginnerDescription =>
-      'No RIR and no cardio intensity. Muscles are named by region, e.g. “Shoulders” instead of front, lateral and rear deltoid.';
+      'Best when starting out: focuses on the essentials with weight and reps. Uses simple everyday muscle terms like “Shoulders”.';
 
   @override
   String get experienceLevelAdvancedDescription =>
-      'No RIR and no cardio intensity. Muscles are named by region, e.g. “Shoulders” instead of front, lateral and rear deltoid.';
+      'For regular gym-goers: detailed anatomical muscle breakdowns across the catalog and workouts (e.g. front, lateral, and rear deltoid).';
 
   @override
   String get experienceLevelProDescription =>
-      'RIR and cardio intensity are shown, and muscles keep their precise anatomical names.';
+      'Recommended only for experienced lifters with reliable gauge of failure: adds intensity logging via RIR (Reps in Reserve) and cardio intensity zones.';
 
   @override
   String get diaryWeightLabel => 'Weight';
@@ -6861,11 +6986,39 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diaryWeightRetry => 'Try again';
 
   @override
+  String get settingsTrainingExperienceTitle => 'Training experience';
+
+  @override
+  String get settingsTrainingExperienceSubtitle =>
+      'Detail level for muscle terminology and intensity columns';
+
+  @override
   String get settingsTrainingProgressionTitle => 'Training progression';
 
   @override
   String get settingsTrainingProgressionSubtitle =>
       'Weight suggestions based on your history';
+
+  @override
+  String get progressionPromptTitle => 'Enable Progressive Engine?';
+
+  @override
+  String get progressionPromptDescription =>
+      'Train Libre found previous workout data for your training. The Progressive Engine can automatically suggest the ideal weight for your next set and adapt your progression progressively.';
+
+  @override
+  String get progressionPromptFeatureSmartWeights =>
+      'Automatic weight suggestions based on your recent sets';
+
+  @override
+  String get progressionPromptFeatureStayInControl =>
+      'You always stay in full control and can overwrite any value anytime';
+
+  @override
+  String get progressionPromptEnableAction => 'Enable suggestions';
+
+  @override
+  String get progressionPromptDismissAction => 'Not now';
 
   @override
   String get trainingProgressionOff => 'Off';
@@ -7001,4 +7154,1233 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get progressionAssisted => 'Assistance';
+
+  @override
+  String get createGoalTitle => 'Set New Goal';
+
+  @override
+  String get goalConfirmCreateButton => 'Activate Goal';
+
+  @override
+  String get goalStep1Question => 'What would you like to achieve?';
+
+  @override
+  String get goalStep1Description =>
+      'Choose a direction or describe your milestone in your own words.';
+
+  @override
+  String goalStepProgress(int current, int total) {
+    return 'Step $current of $total';
+  }
+
+  @override
+  String get goalStartingPointAndTargetTitle =>
+      'Your starting point and destination';
+
+  @override
+  String get goalStartingPointAndTargetDescription =>
+      'Confirm where you are starting, then choose a target that matches your direction.';
+
+  @override
+  String get goalTargetDirectionLoseError =>
+      'For a weight-loss goal, choose a target below your starting weight.';
+
+  @override
+  String get goalTargetDirectionGainError =>
+      'For a weight-gain goal, choose a target above your starting weight.';
+
+  @override
+  String get goalDriverSettingDescription =>
+      'Train Libre uses this goal to adapt your daily calorie and macro targets.';
+
+  @override
+  String get goalPresetLoseWeight => 'Lose weight';
+
+  @override
+  String get goalPresetLoseWeightDescription =>
+      'Reduce body fat and target weight in a controlled manner.';
+
+  @override
+  String get goalPresetGainWeight => 'Gain weight';
+
+  @override
+  String get goalPresetGainWeightDescription =>
+      'Build muscle mass and body weight steadily.';
+
+  @override
+  String get goalPresetMaintainWeight => 'Maintain weight';
+
+  @override
+  String get goalPresetMaintainWeightDescription =>
+      'Stabilize body weight within a balanced corridor.';
+
+  @override
+  String get goalPresetRecomposition => 'Body Recomposition';
+
+  @override
+  String get goalPresetRecompositionDescription =>
+      'Lose fat while simultaneously building muscle.';
+
+  @override
+  String get goalPresetCustom => 'Custom Goal';
+
+  @override
+  String get goalPresetCustomDescription =>
+      'Define an open milestone in your own words.';
+
+  @override
+  String get goalCustomTitleLabel => 'Title of your goal';
+
+  @override
+  String get goalCustomTitleHint =>
+      'e.g. Summer shape or half marathon preparation';
+
+  @override
+  String get goalStep2Question => 'How do you want to measure progress?';
+
+  @override
+  String get goalStep2Description =>
+      'Select the primary metric for tracking your goal.';
+
+  @override
+  String get goalMetricWeightTitle => 'Body weight';
+
+  @override
+  String get goalMetricWeightSubtitle =>
+      'Track weight in kg or lbs via regular weigh-ins.';
+
+  @override
+  String get goalMetricBodyFatTitle => 'Body fat percentage';
+
+  @override
+  String get goalMetricBodyFatSubtitle =>
+      'Track body fat percentage over time.';
+
+  @override
+  String get goalMetricCircumferenceTitle => 'Body measurement / Girth';
+
+  @override
+  String get goalMetricCircumferenceSubtitle =>
+      'Track waist or other body measurements.';
+
+  @override
+  String get goalMetricDirectionalOnlyTitle => 'Direction only';
+
+  @override
+  String get goalMetricDirectionalOnlySubtitle =>
+      'Follow the process without a fixed target number.';
+
+  @override
+  String get goalStep3Question => 'Pace & Parameters';
+
+  @override
+  String get goalStep3Description =>
+      'Optionally specify a target value and weekly rate.';
+
+  @override
+  String get goalCustomDirectionPrompt =>
+      'Should this goal drive your nutrition targets?';
+
+  @override
+  String get goalCustomDirectionNone => 'Documentation only';
+
+  @override
+  String get goalTargetValueOptionalLabel => 'Target value (optional)';
+
+  @override
+  String get goalWeeklyRateLabel => 'Planned weekly rate';
+
+  @override
+  String get goalStep4Question => 'Is there a target date?';
+
+  @override
+  String get goalStep4Description =>
+      'A target date is purely optional. Train Libre never puts you under pressure.';
+
+  @override
+  String get goalNoDeadlineOption => 'No target date';
+
+  @override
+  String get goalSelectDatePrompt => 'Select date';
+
+  @override
+  String get goalRemoveDeadlineChip => 'Remove target date';
+
+  @override
+  String get goalStep5Question => 'Start Date & Baseline';
+
+  @override
+  String get goalStep5Description =>
+      'When does or did this goal start? Train Libre automatically looks for the baseline measurement.';
+
+  @override
+  String get goalStartDateLabel => 'Start date';
+
+  @override
+  String get goalBaselineFoundTitle => 'Baseline measurement found';
+
+  @override
+  String get goalBaselineNotFoundTitle => 'No baseline measurement found';
+
+  @override
+  String get goalBaselineNotFoundDescription =>
+      'The goal will start in \'Waiting for measurement\' status until your first weigh-in.';
+
+  @override
+  String get goalStep6Question => 'Why is this important to you?';
+
+  @override
+  String get goalStep6Description =>
+      'Your personal motivation helps you stay focused. Stored purely locally.';
+
+  @override
+  String get goalStepBaselineQuestion => 'Start Date & Baseline Weight';
+
+  @override
+  String get goalStepBaselineDescription =>
+      'When does this goal start? Train Libre uses your weight on this date as the starting baseline.';
+
+  @override
+  String get goalStepTargetWeightQuestion => 'What is your target weight?';
+
+  @override
+  String get goalStepTargetWeightDescription =>
+      'Enter your desired target weight.';
+
+  @override
+  String get goalStepTrajectoryQuestion => 'Plan Pace & Target Date';
+
+  @override
+  String get goalStepTrajectoryDescription =>
+      'Pick a target date or a weekly rate – the other will be calculated interactively in real time.';
+
+  @override
+  String goalEnterBaselineWeightPrompt(String unit) {
+    return 'Enter starting weight ($unit)';
+  }
+
+  @override
+  String goalTargetWeightLabel(String unit) {
+    return 'Target weight ($unit)';
+  }
+
+  @override
+  String get goalWeightDifferenceLabel => 'Planned change';
+
+  @override
+  String get goalPlanByDate => 'Plan by target date';
+
+  @override
+  String get goalPlanByRate => 'Plan by weekly pace';
+
+  @override
+  String get goalEstimatedDailyDelta => 'Daily calorie adjustment';
+
+  @override
+  String goalEstimatedDuration(int weeks) {
+    return 'Duration: $weeks weeks';
+  }
+
+  @override
+  String get goalRateGentle => 'Gentle (0.25 kg/wk)';
+
+  @override
+  String get goalRateModerate => 'Moderate (0.50 kg/wk)';
+
+  @override
+  String get goalRateAthletic => 'Athletic (0.75 kg/wk)';
+
+  @override
+  String get goalRateAggressive => 'Aggressive (1.00 kg/wk)';
+
+  @override
+  String get goalRateCustom => 'Custom pace (slider)';
+
+  @override
+  String get goalDurationCustom => 'Custom target date...';
+
+  @override
+  String get goalPaceFeedbackSafe =>
+      'Recommended, sustainable pace (0.5% - 1.0% body weight/week).';
+
+  @override
+  String get goalPaceFeedbackAggressive =>
+      'Aggressive pace. Pay close attention to adequate protein and recovery.';
+
+  @override
+  String get goalPaceFeedbackGentle =>
+      'Very gentle pace, very easy to sustain long term.';
+
+  @override
+  String get goalPaceFeedbackMaintain =>
+      'Maintain weight with a balanced energy intake.';
+
+  @override
+  String get goalReasonSuggestionHealth => 'Health & vitality';
+
+  @override
+  String get goalReasonSuggestionFitness => 'Fitness & performance';
+
+  @override
+  String get goalReasonSuggestionShape => 'Comfortable weight & aesthetics';
+
+  @override
+  String get goalReasonSuggestionEvent => 'Athletic competition or event';
+
+  @override
+  String get goalReasonSuggestionEnergy => 'More daily energy';
+
+  @override
+  String get goalReasonSuggestionStrength => 'Strength & muscle building';
+
+  @override
+  String get goalReasonSuggestionConfidence => 'Confidence & well-being';
+
+  @override
+  String get goalReasonSuggestionLongevity => 'Longevity & prevention';
+
+  @override
+  String get goalReasonSuggestionHabits => 'Healthy routine & discipline';
+
+  @override
+  String get goalReasonSuggestionClothing => 'Feel great in clothes';
+
+  @override
+  String get goalReasonPlaceholder =>
+      'e.g. I want to feel fitter and more agile again...';
+
+  @override
+  String get goalReasonPrivacyNotice =>
+      'Your note stays 100% private on your device and is never shared.';
+
+  @override
+  String get goalStep7Question => 'Review & Activate';
+
+  @override
+  String get goalStep7Description =>
+      'Review your parameters before activating the goal.';
+
+  @override
+  String get goalAreaLabel => 'Goal area';
+
+  @override
+  String get goalStartLabel => 'Baseline';
+
+  @override
+  String get goalWaitingForMeasurementShort => 'Waiting for measurement';
+
+  @override
+  String get goalTargetLabel => 'Target';
+
+  @override
+  String get goalDirectionalOnly => 'Process-driven';
+
+  @override
+  String get goalTargetDateLabel => 'Target date';
+
+  @override
+  String get goalDriverSettingLabel => 'Drives nutrition';
+
+  @override
+  String get noActiveGoalTitle => 'No active goal';
+
+  @override
+  String get noActiveGoalSubtitle =>
+      'Train Libre works completely without preset goals.';
+
+  @override
+  String get noActiveGoalDescription =>
+      'You can set a goal for body weight, body fat, or a custom milestone anytime to enable trajectory tracking and weekly reviews.';
+
+  @override
+  String get createGoalButton => 'Set a goal';
+
+  @override
+  String get goalWaitingForBaselineLabel => 'Waiting for measurement';
+
+  @override
+  String get goalBaselineHeader => 'Start (Baseline)';
+
+  @override
+  String get goalCurrentHeader => 'Current';
+
+  @override
+  String get goalTargetHeader => 'Target';
+
+  @override
+  String get goalProgressSectionTitle => 'Progress';
+
+  @override
+  String goalRemainingDistanceLabel(String distance) {
+    return '$distance remaining';
+  }
+
+  @override
+  String get weekShort => 'week';
+
+  @override
+  String get goalNoTargetDateShort => 'No target date';
+
+  @override
+  String get reviewStatusOnTrack => 'On track';
+
+  @override
+  String get reviewStatusSlower => 'Slower than planned';
+
+  @override
+  String get reviewStatusFaster => 'Faster than planned';
+
+  @override
+  String get reviewStatusCalibrating => 'Calibrating';
+
+  @override
+  String get reviewStatusBehind => 'Behind plan';
+
+  @override
+  String get reviewStatusAhead => 'Ahead of plan';
+
+  @override
+  String get reviewStatusTargetReached => 'Target reached';
+
+  @override
+  String get reviewStatusTargetDateNeedsReview => 'Target date needs review';
+
+  @override
+  String reviewOverallSummary(String overall, String momentum) {
+    return 'Overall: $overall. Last 7 days: $momentum.';
+  }
+
+  @override
+  String get reviewMomentumMatchingPlan => 'matching the plan';
+
+  @override
+  String get reviewMomentumCatchingUp => 'catching up';
+
+  @override
+  String get reviewMomentumFallingBehind => 'falling further behind';
+
+  @override
+  String get reviewMomentumMovingFaster => 'moving faster';
+
+  @override
+  String get reviewMomentumMovingSlower => 'moving slower';
+
+  @override
+  String get reviewMomentumUnclear => 'not yet clear';
+
+  @override
+  String reviewNextAnalysisScheduled(String date) {
+    return 'Next adaptive review on $date (min. 3 weigh-ins & 4 calorie days)';
+  }
+
+  @override
+  String get weeklyReviewCardHeaderBadge => 'Weekly Review';
+
+  @override
+  String get weeklyReviewCardOverallLabel => 'Overall progress';
+
+  @override
+  String get weeklyReviewCardRecentLabel => 'Last 7 days';
+
+  @override
+  String get weeklyReviewPendingDefaultExplanation =>
+      'The adaptive engine compares your 7-day trend against your target trajectory.';
+
+  @override
+  String get weeklyReviewNutritionSectionTitle => 'Nutrition recommendation';
+
+  @override
+  String get weeklyReviewCaloriesTitle => 'Daily calorie target';
+
+  @override
+  String get weeklyReviewCaloriesCurrent => 'Current';
+
+  @override
+  String get weeklyReviewCaloriesRecommended => 'Recommended';
+
+  @override
+  String weeklyReviewCaloriesChange(String change) {
+    return '$change kcal/day';
+  }
+
+  @override
+  String weeklyReviewCaloriesComparison(
+      String current, String recommended, String change) {
+    return '$current → $recommended kcal/day ($change)';
+  }
+
+  @override
+  String get weeklyReviewWeightProgressTitle => 'Weight goal progress';
+
+  @override
+  String get weeklyReviewWeightPlannedLabel => 'Planned by now';
+
+  @override
+  String get weeklyReviewWeightTrendLabel => 'Recent trend';
+
+  @override
+  String get weeklyReviewAdjustPlanTitle => 'Adjust your goal plan';
+
+  @override
+  String get weeklyReviewAdjustRate => 'Adjust weekly rate';
+
+  @override
+  String get weeklyReviewAdjustDate => 'Change target date';
+
+  @override
+  String get weeklyReviewDetailsTitle => 'Progress details';
+
+  @override
+  String get weeklyReviewDecisionTitle => 'Your next step';
+
+  @override
+  String get weeklyReviewContinueLogging => 'Continue logging';
+
+  @override
+  String get weeklyReviewPreviewNoChanges =>
+      'Sandbox preview: no changes were saved.';
+
+  @override
+  String get reviewOpenDetailsButton => 'View Review';
+
+  @override
+  String get applyRecommendationButton => 'Apply recommendation';
+
+  @override
+  String get weeklyReviewScreenTitle => 'Weekly Goal Review';
+
+  @override
+  String get reviewSufficiencyGateTitle => 'Data Basis (Last 7 Days)';
+
+  @override
+  String get reviewWeighInsCountLabel => 'Weigh-ins';
+
+  @override
+  String get reviewLoggedDaysCountLabel => 'Nutrition Logged Days';
+
+  @override
+  String get reviewTrajectoryComparisonTitle => 'Trajectory Comparison';
+
+  @override
+  String get reviewPlanVsRealityTitle => 'Plan vs. reality';
+
+  @override
+  String get reviewExpectedByNowLabel => 'Expected by now';
+
+  @override
+  String get reviewSmoothedCurrentLabel => 'Smoothed current';
+
+  @override
+  String get reviewTrajectoryGapLabel => 'Gap to plan';
+
+  @override
+  String get reviewRequiredRateLabel => 'Needed from now';
+
+  @override
+  String get reviewProjectedDateLabel => 'Projected target date';
+
+  @override
+  String get reviewNutritionAdjustTargets =>
+      'Your weight trend differs from the planned pace. Your logged days give us enough information to recommend a change to your daily targets.';
+
+  @override
+  String get reviewNutritionKeepTargetsIntakeDiffers =>
+      'Your current targets still fit. Your logged intake differs from them, so changing the plan would not solve the main deviation.';
+
+  @override
+  String get reviewNutritionKeepTargets =>
+      'No change to your daily targets is recommended this week.';
+
+  @override
+  String get reviewNutritionTrajectoryChangeNeeded =>
+      'The rate needed to keep the current date is not a sensible nutrition adjustment. Change the goal, rate, or date instead.';
+
+  @override
+  String get reviewNutritionInsufficientData =>
+      'Keep logging normally. There is not enough recent data for a reliable nutrition adjustment yet.';
+
+  @override
+  String get reviewObservedRateLabel => 'Observed Trend';
+
+  @override
+  String get reviewTargetRateLabel => 'Planned Rate';
+
+  @override
+  String get reviewEstimatedTDEELabel => 'Estimated Maintenance (TDEE)';
+
+  @override
+  String get reviewRecommendationTitle => 'Recommended Daily Targets';
+
+  @override
+  String get reviewActionApplyRecommendation =>
+      'Apply recommended daily targets';
+
+  @override
+  String get weeklyReviewApplyTargetsAction => 'Apply targets';
+
+  @override
+  String get weeklyReviewDateExtensionTitle => 'Target Date Extended';
+
+  @override
+  String weeklyReviewDateExtensionContent(String rate, String date) {
+    return 'The pace required to meet your current target date would be physiologically unsafe. Your weekly pace has been capped at $rate, and your target date has been moved to $date to protect your health.';
+  }
+
+  @override
+  String get weeklyReviewRateTitle => 'Weekly pace';
+
+  @override
+  String get weeklyReviewDateTitle => 'Target date';
+
+  @override
+  String get weeklyReviewRateNoChange => 'No change';
+
+  @override
+  String get weeklyReviewDateOnTrack => 'On schedule';
+
+  @override
+  String weeklyReviewDateDaysChange(String days) {
+    return '$days days';
+  }
+
+  @override
+  String get weeklyReviewPlanUpdatedSnack =>
+      'Targets and goal trajectory successfully updated.';
+
+  @override
+  String get reviewActionAdjustTrajectory => 'Adjust goal & trajectory';
+
+  @override
+  String get reviewActionKeepCurrent => 'Keep goal and update daily targets';
+
+  @override
+  String get weeklyReviewKeepGoalAction => 'Keep goal';
+
+  @override
+  String get reviewDismissedSnack =>
+      'Review dismissed. Current targets remain active.';
+
+  @override
+  String get adjustGoalTitle => 'Adjust Goal';
+
+  @override
+  String get adjustGoalDescription =>
+      'Adjust target weight, date, or weekly rate. The remaining variables recalculate synchronously.';
+
+  @override
+  String get adjustGoalFixOptionKeepDate => 'Fixed date';
+
+  @override
+  String get adjustGoalFixOptionKeepRate => 'Fixed rate';
+
+  @override
+  String get adjustGoalExtremeRateWarning =>
+      'Notice: This rate deviates significantly from standard physiological recommendations.';
+
+  @override
+  String get adjustGoalApplyAsSuccessorButton => 'Apply as successor goal';
+
+  @override
+  String get adjustGoalConfirmTitle => 'Update plan?';
+
+  @override
+  String get adjustGoalConfirmContent =>
+      'Your existing progress and all measurements remain intact. The revised trajectory starts today.';
+
+  @override
+  String get adjustGoalUpdatePlanButton => 'Update plan';
+
+  @override
+  String get adjustGoalAcceptRecommendationAndUpdatePlan =>
+      'Accept recommendation and update plan';
+
+  @override
+  String get adjustGoalRecommendedTitle => 'Recommended adjustment';
+
+  @override
+  String adjustGoalRecommendedPlan(String date, String rate) {
+    return 'Keep a realistic pace and move the target date to $date ($rate).';
+  }
+
+  @override
+  String adjustGoalRecommendedKeepDatePlan(String date, String rate) {
+    return 'Keep the $date target date and adjust the pace to $rate.';
+  }
+
+  @override
+  String get adjustGoalSelectRecommendedPlan => 'Select recommendation';
+
+  @override
+  String get adjustGoalConfirmButton => 'Apply';
+
+  @override
+  String get adjustGoalTargetWeightLabel => 'Target weight';
+
+  @override
+  String get adjustGoalTargetDateLabel => 'Target date';
+
+  @override
+  String get adjustGoalWeeklyRateLabel => 'Planned weekly rate';
+
+  @override
+  String get goalDetailScreenTitle => 'Goal Details';
+
+  @override
+  String get retireGoalDialogTitle => 'Retire goal?';
+
+  @override
+  String get retireGoalDialogContent =>
+      'The goal will be archived and will no longer drive adaptive nutrition. You can reactivate it at any time.';
+
+  @override
+  String get retireGoalConfirmButton => 'Retire goal';
+
+  @override
+  String get goalRetiredSuccessSnack => 'Goal has been retired and archived.';
+
+  @override
+  String get resumeGoalDialogTitle => 'Reactivate goal?';
+
+  @override
+  String get resumeGoalDialogContent =>
+      'This goal will become your active goal again and drive adaptive nutrition.';
+
+  @override
+  String get resumeGoalConfirmButton => 'Reactivate';
+
+  @override
+  String get goalResumedSuccessSnack =>
+      'Goal has been reactivated successfully.';
+
+  @override
+  String get goalStatusActive => 'Active';
+
+  @override
+  String get goalStatusRetired => 'Retired';
+
+  @override
+  String get goalStatusSuperseded => 'Superseded';
+
+  @override
+  String goalStartedOnLabel(String date) {
+    return 'Started on $date';
+  }
+
+  @override
+  String get goalDrivesNutritionBadge => 'Drives nutrition';
+
+  @override
+  String get goalDocumentationOnlyBadge => 'Documentation only';
+
+  @override
+  String get goalWaitingForBaselineCalloutTitle =>
+      'Baseline measurement required';
+
+  @override
+  String get goalWaitingForBaselineCalloutDescription =>
+      'No measurement exists on or before the start date for this goal. Log your first weigh-in to calculate progress and trajectory.';
+
+  @override
+  String get recordFirstMeasurementButton => 'Log first measurement';
+
+  @override
+  String get goalWeightHistoryChartTitle => 'Weight Trend & Target Line';
+
+  @override
+  String get goalPersonalMotivationTitle => 'Your Motivation';
+
+  @override
+  String get retireGoalButton => 'Retire goal';
+
+  @override
+  String get resumeGoalButton => 'Reactivate goal';
+
+  @override
+  String get myGoalsOperativeTargetsBanner =>
+      'Go to daily operating targets (Calories, Macros & Water)';
+
+  @override
+  String get myGoalsActiveGoalSectionHeader => 'Active Goal';
+
+  @override
+  String get myGoalsHistorySectionHeader => 'Goal History';
+
+  @override
+  String get goalsScreenToMyGoalsBannerTitle => 'Looking for long-term goals?';
+
+  @override
+  String get goalsScreenToMyGoalsBannerSubtitle =>
+      'Manage your weight trajectories and weekly reviews in \'My Goals\'.';
+
+  @override
+  String get dailyOperatingTargetsTitle => 'Daily Targets';
+
+  @override
+  String get dailyOperatingTargetsSubtitle =>
+      'Calories, Macronutrients & Water';
+
+  @override
+  String get adjustDailyTargetsButton => 'Adjust daily targets';
+
+  @override
+  String get targetCaloriesLabel => 'Daily target';
+
+  @override
+  String get goalNotificationSettingsTitle => 'Goal & Review Notifications';
+
+  @override
+  String get goalNotificationWeeklyReviewTitle => 'Weekly review ready';
+
+  @override
+  String get goalNotificationWeeklyReviewSubtitle =>
+      'Notifies you as soon as a 7-day review is available.';
+
+  @override
+  String get goalNotificationAdaptiveDueTitle => 'Adaptive recommendation due';
+
+  @override
+  String get goalNotificationAdaptiveDueSubtitle =>
+      'Informs you when adjustments to daily targets are available.';
+
+  @override
+  String get goalNotificationTargetDateTitle => 'Target date guidance';
+
+  @override
+  String get goalNotificationTargetDateSubtitle =>
+      'Gentle reminder as your target date approaches (no pressure).';
+
+  @override
+  String get goalNotificationPrivacyNotice =>
+      'All notifications are handled purely locally on your device. Private weight or calorie numbers never appear on the lock screen.';
+
+  @override
+  String get goalMaintainCorridor => '± 1.0 kg (Maintenance)';
+
+  @override
+  String get goalNeedsFirstMeasurementPrompt =>
+      'Log your first weigh-in to view progress and trend.';
+
+  @override
+  String goalRemainingDistanceText(String distance) {
+    return '$distance remaining';
+  }
+
+  @override
+  String get goalMaintenanceStable => 'Stable in target corridor';
+
+  @override
+  String get goalMaintenanceDrifting => 'Slight deviation from corridor';
+
+  @override
+  String get goalJourneyInProgress => 'Your goal is in motion';
+
+  @override
+  String get goalJourneyTargetReached => 'You reached your target';
+
+  @override
+  String get goalNotifyWeeklyReviewTitle => 'Weekly review ready';
+
+  @override
+  String get goalNotifyWeeklyReviewSubtitle =>
+      'Notifies you as soon as a 7-day review is available.';
+
+  @override
+  String get goalNotifyRecommendationDueTitle => 'Adaptive recommendation due';
+
+  @override
+  String get goalNotifyRecommendationDueSubtitle =>
+      'Informs you when adjustments to daily targets are available.';
+
+  @override
+  String get goalNotifyTargetDateTitle => 'Target date guidance';
+
+  @override
+  String get goalNotifyTargetDateSubtitle =>
+      'Gentle reminder as your target date approaches (no pressure).';
+
+  @override
+  String get goalNotifyPrivacyTitle => 'Privacy & Local Handling';
+
+  @override
+  String get goalNotifyPrivacyBody =>
+      'Goal and review notifications are handled locally and may include useful goal, weight, or calorie details. Use your operating system settings to control lock-screen previews and quiet hours.';
+
+  @override
+  String get goalNotificationSettingsSubtitle =>
+      'Local notifications for reviews and target dates';
+
+  @override
+  String get notificationSettingsTitle => 'Notifications';
+
+  @override
+  String get notificationSettingsSubtitle =>
+      'Workout, goal, and review reminders';
+
+  @override
+  String get notificationWorkoutSectionTitle => 'Workout plan';
+
+  @override
+  String get notificationGoalsSectionTitle => 'Goals & reviews';
+
+  @override
+  String get workoutPlanNotifyTitle => 'Remind me on workout days';
+
+  @override
+  String get workoutPlanNotifySubtitle =>
+      'Only on planned workout days. No catch-up or guilt reminders.';
+
+  @override
+  String get workoutPlanNotifyTimeTitle => 'Reminder time';
+
+  @override
+  String get workoutPlanNotifyNoActivePlan =>
+      'Reminders become active when a training plan is active.';
+
+  @override
+  String get notificationPermissionDenied =>
+      'Notifications are disabled in system settings.';
+
+  @override
+  String get notificationPrivacyTitle => 'Local and in your control';
+
+  @override
+  String get notificationPrivacyBody =>
+      'These reminders are scheduled locally. Manage lock-screen previews and quiet hours in your operating system settings.';
+
+  @override
+  String get workoutPlanReminderTitle => 'Your workout is planned';
+
+  @override
+  String workoutPlanReminderBody(String routineName, String planName) {
+    return '$routineName is up next in $planName.';
+  }
+
+  @override
+  String get weeklyGoalReviewNotificationTitle => 'Weekly review ready';
+
+  @override
+  String get weeklyGoalReviewNotificationBody =>
+      'Your new 7-day review is available in the Nutrition Hub.';
+
+  @override
+  String weeklyGoalReviewNotificationDetailedBody(
+      String goalTitle, int calories) {
+    return '$goalTitle: your updated recommendation is $calories kcal per day. Open the review for the full reasoning.';
+  }
+
+  @override
+  String get goalTargetDateReminderTitle => 'Goal target date';
+
+  @override
+  String goalTargetDateReachedBody(String goalTitle) {
+    return 'Your target date for \'$goalTitle\' is today.';
+  }
+
+  @override
+  String goalTargetDateApproachingBody(String goalTitle) {
+    return 'Your target date for \'$goalTitle\' is approaching.';
+  }
+
+  @override
+  String get back => 'Back';
+
+  @override
+  String get yes => 'Yes';
+
+  @override
+  String get no => 'No';
+
+  @override
+  String get retry => 'Retry';
+
+  @override
+  String get saving => 'Saving...';
+
+  @override
+  String get emptyStateMeasurements => 'No measurements recorded yet.';
+
+  @override
+  String get goalTrackingModeTitle => 'How do you want to plan?';
+
+  @override
+  String get goalTrackingModeDescription =>
+      'Choose what should define your nutrition goal.';
+
+  @override
+  String get goalTrackingModeOpen => 'Open goal';
+
+  @override
+  String get goalTrackingModeOpenDescription =>
+      'No target weight, date, or custom weekly rate.';
+
+  @override
+  String get goalTrackingModeWeeklyRate => 'Weekly rate';
+
+  @override
+  String get goalTrackingModeWeeklyRateDescription =>
+      'Set how much weight you want to change per week.';
+
+  @override
+  String get goalTrackingModeTargetWeight => 'Target weight';
+
+  @override
+  String get goalTrackingModeTargetWeightDescription =>
+      'Set a target weight, with an optional date.';
+
+  @override
+  String goalTrackingModeDefaultRateInfo(String rate) {
+    return 'The safe default of $rate is used and shown in recommendations.';
+  }
+
+  @override
+  String get goalTrackingOpenReady =>
+      'Your open goal is ready. Recommendations use the safe default for this direction.';
+
+  @override
+  String get goalTargetDateOptional => 'Target date (optional)';
+
+  @override
+  String get goalReplaceActiveTitle => 'Replace active nutrition goal?';
+
+  @override
+  String get goalReplaceActiveBody =>
+      'Your current nutrition goal will be completed and replaced. Daily targets are not changed until a recommendation is applied.';
+
+  @override
+  String get goalReplaceActiveConfirm => 'Replace goal';
+
+  @override
+  String goalCreateError(String error) {
+    return 'The goal could not be saved: $error';
+  }
+
+  @override
+  String goalAdjustError(String error) {
+    return 'The goal could not be adjusted: $error';
+  }
+
+  @override
+  String get reviewKeepAndApplyTitle => 'Keep goal and update daily targets?';
+
+  @override
+  String get reviewKeepAndApplyBody =>
+      'The goal remains unchanged. The recommendation will be recalculated and the resulting calorie and nutrient targets will be applied immediately.';
+
+  @override
+  String reviewActionError(String error) {
+    return 'The review action failed: $error';
+  }
+
+  @override
+  String get calculationBasisTitle => 'Calculation basis';
+
+  @override
+  String get calculationBasisSubtitle =>
+      'Everyday activity and additional cardio';
+
+  @override
+  String get estimatedOneRepMaxInfoTitle =>
+      'Estimated 1-Rep Max Heuristic (Brzycki Formula)';
+
+  @override
+  String get estimatedOneRepMaxInfoExplanation =>
+      'Estimates strength from a completed set to support progress tracking.';
+
+  @override
+  String get estimatedOneRepMaxInfoPoints =>
+      '1RM ≈ effective load × (36 / (37 − reps)), for 1–12 repetitions.\nThis is an estimate from a completed set, not a direct maximum test.\nBodyweight and assisted exercises use effective load, including body weight and assistance.';
+
+  @override
+  String get estimatedOneRepMaxInfoDetailsTitle => 'Brzycki Formula Details';
+
+  @override
+  String get estimatedOneRepMaxInfoDetails =>
+      'Train Libre estimates one-repetition maximum (1RM) from effective set load using the Brzycki formula: 1RM = effective load × (36 / (37 − repetitions)). Sets above 12 repetitions are not used. This remains an estimate; individual technique and performance can differ from the calculation.';
+
+  @override
+  String get setTimerStart => 'Start timer';
+
+  @override
+  String get setTimerRunning => 'Timer running';
+
+  @override
+  String get setTimerStop => 'Stop timer';
+
+  @override
+  String get aiScanLogsTitle => 'AI meal scan logs';
+
+  @override
+  String get aiScanLogsPrivacy =>
+      'Stored only on this device. No meal text, photos or keys. Up to 20 scans.';
+
+  @override
+  String get aiScanLogsEmpty => 'No AI meal scans logged yet.';
+
+  @override
+  String aiScanLogsCount(int count) {
+    return '$count scans';
+  }
+
+  @override
+  String get aiScanLogsCopyAll => 'Copy all';
+
+  @override
+  String get aiScanLogsClear => 'Clear logs';
+
+  @override
+  String get aiScanLogsCopy => 'Copy log';
+
+  @override
+  String get aiScanLogsCopied => 'Log copied to clipboard';
+
+  @override
+  String get aiScanLogsPhotos => 'Photos';
+
+  @override
+  String get aiScanLogsFirstPass => 'First validation passed';
+
+  @override
+  String get aiScanLogsValidations => 'Validations selected / total';
+
+  @override
+  String get aiScanLogsRepairs => 'Automatic repairs';
+
+  @override
+  String get aiScanLogsHedge => 'Parallel request';
+
+  @override
+  String get aiScanLogsTokens => 'Tokens total (in / out)';
+
+  @override
+  String get aiScanLogsUnknown => 'Unknown';
+
+  @override
+  String get aiScanLogsCalls => 'Provider requests';
+
+  @override
+  String get aiScanLogsReview => 'Review outcome';
+
+  @override
+  String get aiScanLogsCorrections => 'User AI corrections';
+
+  @override
+  String get aiScanLogsTimeline => 'Timeline';
+
+  @override
+  String get aiScanLogsInputText => 'Text';
+
+  @override
+  String get aiScanLogsInputPhoto => 'Photo';
+
+  @override
+  String get aiScanLogsInputMixed => 'Photo + text';
+
+  @override
+  String get aiScanLogsRunning => 'Running';
+
+  @override
+  String get aiScanLogsAccepted => 'Accepted';
+
+  @override
+  String get aiScanLogsNeedsRepair => 'Needs repair';
+
+  @override
+  String get aiScanLogsFailed => 'Failed';
+
+  @override
+  String get aiScanLogsCancelled => 'Cancelled';
+
+  @override
+  String get aiScanLogsSavedUnchanged => 'Saved unchanged';
+
+  @override
+  String get aiScanLogsSavedEdited => 'Saved after edit';
+
+  @override
+  String get aiScanLogsSavedCorrected => 'Saved after AI correction';
+
+  @override
+  String get aiScanLogsDiscarded => 'Discarded';
+
+  @override
+  String get aiScanLogsStageRequested => 'Scan started';
+
+  @override
+  String get aiScanLogsStagePrepared => 'Preparation finished';
+
+  @override
+  String get aiScanLogsStagePrimary => 'First AI request started';
+
+  @override
+  String get aiScanLogsStageHedge => 'Parallel AI request started';
+
+  @override
+  String get aiScanLogsStageProvider => 'AI response received';
+
+  @override
+  String get aiScanLogsStageValidation => 'Local validation finished';
+
+  @override
+  String get aiScanLogsStageRepairStart => 'AI repair started';
+
+  @override
+  String get aiScanLogsStageRepairEnd => 'AI repair response received';
+
+  @override
+  String get aiScanLogsStageReview => 'Review visible';
+
+  @override
+  String get aiScanLogsStagePreliminaryNutrition =>
+      'First nutrition estimate ready';
+
+  @override
+  String get aiScanLogsStageReviewReady => 'Review ready to save';
+
+  @override
+  String get aiScanLogsStageCorrectionStart => 'User correction started';
+
+  @override
+  String get aiScanLogsStageCorrectionEnd => 'User correction finished';
+
+  @override
+  String get aiScanLogsClearConfirm => 'Delete all locally saved AI scan logs?';
+
+  @override
+  String get aiScanLogsStageSelected => 'Candidate selected';
+
+  @override
+  String get aiScanLogsCandidatePrimary => 'First request';
+
+  @override
+  String get aiScanLogsCandidateHedge => 'Parallel request';
+
+  @override
+  String get aiScanLogsScore => 'Score';
+
+  @override
+  String get aiScanLogsIssueSemantic => 'Catalog choice';
+
+  @override
+  String get aiScanLogsIssueCatalog => 'Catalog match';
+
+  @override
+  String get aiScanLogsIssueQuantity => 'Quantity';
+
+  @override
+  String get aiScanLogsIssueNutrition => 'Nutrition anchor';
+
+  @override
+  String get aiScanLogsIssuePreparation => 'Preparation state';
+
+  @override
+  String get aiScanLogsIssueConfidence => 'Confidence';
+
+  @override
+  String get aiScanLogsIssueOther => 'Other validation';
+
+  @override
+  String get aiScanLogsStageUsage => 'Provider usage reported';
+
+  @override
+  String get aiScanLogsCall => 'Call';
 }

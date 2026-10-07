@@ -45,8 +45,8 @@ FONCTIONNALITÉS CLÉS :
 
 5. SAISIE DE REPAS PAR IA (optionnel — BYOK)
 • Apportez votre propre clé API (BYOK) : suivi optionnel des repas par IA, fonctionnant avec votre propre clé. Désactivé par défaut.
-• Photo, code-barres et voix dans un même écran : photographiez votre assiette, laissez l'écran lire un code-barres, ou décrivez le repas à la voix. Avec le LiDAR, la portion est mesurée, pas devinée.
-• Correspondance intelligente : un système de recherche locale floue (« Top-N alternatives ») couplé à Open Food Facts identifie précisément votre assiette, sans hallucinations.
+• Photo, code-barres et voix dans un même écran : photographiez votre assiette, laissez l'écran lire un code-barres, ou décrivez le repas à la voix. Avec le LiDAR, les données de profondeur sont capturées pour faciliter l'estimation de la portion.
+• Correspondance intelligente : la recherche locale avec Open Food Facts propose des résultats vérifiables avant l'enregistrement.
 • 100 % transparent : chaque suggestion de l'IA est entièrement vérifiable et modifiable avant enregistrement.
 
 AVERTISSEMENT :
@@ -56,13 +56,15 @@ OPEN SOURCE & DONNÉES OUVERTES :
 Développé de manière transparente à partir des catalogues communautaires de confiance Open Food Facts et OpenExerciseDB. Le code source complet est accessible publiquement : nos promesses de confidentialité se vérifient au lieu de se croire.
 
 ## Release Notes (What's New / Release Notes in this version)
-Récupération musculaire plus précise: Le suivi de la récupération utilise désormais un modèle de charge résiduelle décroissante par série. Les cartes musculaires affichent la disponibilité et les heures restantes en un coup d’œil ; appuyez sur une carte pour voir les détails de dose et de prévision.
+Des objectifs qui évoluent avec toi: Définis un objectif de poids à long terme à partir d'une mesure réelle, suis ta trajectoire et fais le point sereinement chaque semaine. Les nouvelles recommandations de calories et de macros restent des propositions tant que tu ne les appliques pas.
 
-Dictée vocale optimisée: Le texte apparaît désormais en haut pour une lecture naturelle pendant la dictée, avec le bouton d’enregistrement placé en bas à portée de pouce. Des transitions de couleur fluides indiquent l’enregistrement et le traitement.
+Programmes d'entraînement personnalisés: Organise tes routines en semaine fixe ou en séquence flexible de 1 à 14 jours, ajoute des jours de repos, active des rappels et lance tes séances prévues depuis le journal sans pression de rattrapage.
 
-Aperçu des repas simplifié: Les repas reconnus par IA s'ouvrent avec des fiches d'ingrédients compactes et le choix direct du type de repas (petit-déjeuner, déjeuner, dîner, collation) avant d'enregistrer.
+Niveaux d'expérience sur mesure: Choisis ton niveau (Débutant, Avancé, Pro) dans les réglages ou l'onboarding. Le détail des groupes musculaires, le RIR et les écrans d'entraînement s'adaptent à ton niveau de pratique.
 
-Corrections et stabilité: Correction d'un problème d'affichage de la jauge de récupération et amélioration de la stabilité générale.
+Minuteur de série & onglet Entraînement repensé: Lance et mets en pause le minuteur de série directement pendant l'entraînement ou depuis l'Activité en direct sur l'écran verrouillé. L'onglet Entraînement réunit programme actif, routines et historique.
+
+Tendances de poids lissées & nouvelles analyses: Le lissage métabolique avec ligne d'historique discrète révèle ta véritable évolution dans l'app et les widgets, complété par les statistiques de macros et l'import de mesures depuis Apple Santé et Health Connect.
 
 ## Support URL (Support Web Page URL)
 https://trainlibre.com/support

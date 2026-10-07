@@ -20,10 +20,15 @@ class AdaptiveNutritionRecommendationEngine {
     String? dueWeekKey,
     NutritionRecommendation? previousRecommendation,
     List<String> additionalWarningReasons = const [],
+    int trajectoryCorrectionCalories = 0,
+    double? trajectoryRateErrorKgPerWeek,
+    String trajectoryCorrectionStatus = 'inactive',
   }) {
     var effectiveConfidence = confidence;
     final calorieAdjustment = rateAdjustmentKcalPerDay(targetRateKgPerWeek);
-    var recommendedCalories = estimatedMaintenanceCalories + calorieAdjustment;
+    var recommendedCalories = estimatedMaintenanceCalories +
+        calorieAdjustment +
+        trajectoryCorrectionCalories;
     final safetyWarningReasons = <String>[];
 
     if (recommendedCalories < _minimumRecommendedCalories) {
@@ -82,6 +87,9 @@ class AdaptiveNutritionRecommendationEngine {
       ),
       baselineCalories: baselineCalories,
       dueWeekKey: dueWeekKey,
+      trajectoryCorrectionCalories: trajectoryCorrectionCalories,
+      trajectoryRateErrorKgPerWeek: trajectoryRateErrorKgPerWeek,
+      trajectoryCorrectionStatus: trajectoryCorrectionStatus,
     );
   }
 
@@ -94,15 +102,21 @@ class AdaptiveNutritionRecommendationEngine {
     required double currentWeightKg,
     required int recommendedCalories,
   }) {
-    final normalizedWeight = currentWeightKg <= 0 ? 75.0 : currentWeightKg;
-    var proteinGrams = (normalizedWeight * _proteinPerKg(goal)).round();
+    if (currentWeightKg <= 0) {
+      throw ArgumentError.value(
+        currentWeightKg,
+        'currentWeightKg',
+        'A positive measured weight is required.',
+      );
+    }
+    var proteinGrams = (currentWeightKg * _proteinPerKg(goal)).round();
 
     // Fat is targeted per kilogram like protein is, and only falls back to the
     // floor when the calorie budget cannot carry the target. Carbohydrates
     // take whatever is left.
-    final fatFloor = (normalizedWeight * _kFatFloorPerKg).round().clamp(35, 130);
+    final fatFloor = (currentWeightKg * _kFatFloorPerKg).round().clamp(35, 130);
     var fatGrams =
-        (normalizedWeight * _fatPerKg(goal)).round().clamp(fatFloor, 250);
+        (currentWeightKg * _fatPerKg(goal)).round().clamp(fatFloor, 250);
 
     var carbsGrams =
         ((recommendedCalories - (proteinGrams * 4) - (fatGrams * 9)) / 4)

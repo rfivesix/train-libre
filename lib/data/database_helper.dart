@@ -69,10 +69,15 @@ class DatabaseHelper {
     await dbInst.customStatement('PRAGMA foreign_keys = OFF');
     try {
       await dbInst.transaction(() async {
+        await dbInst.delete(dbInst.goalReviews).go();
+        await dbInst.delete(dbInst.goalEvents).go();
+        await dbInst.delete(dbInst.userGoals).go();
         await dbInst.delete(dbInst.dailyGoalsHistory).go();
         await dbInst.delete(dbInst.supplementSettingsHistory).go();
         await dbInst.customStatement('DELETE FROM health_step_segments');
         await dbInst.customStatement('DELETE FROM health_export_records');
+        await dbInst.customStatement('DELETE FROM health_export_identities');
+        await dbInst.customStatement('DELETE FROM health_import_records');
         await dbInst.customStatement('DELETE FROM sleep_nightly_analyses');
         await dbInst
             .customStatement('DELETE FROM sleep_canonical_stage_segments');
@@ -439,6 +444,8 @@ class DatabaseHelper {
 
   Future<double?> getLatestBodyFatPercentageBefore(DateTime b) =>
       profileLocalDataSource.getLatestBodyFatPercentageBefore(b);
+  Future<double?> getLatestWeightBefore(DateTime b) =>
+      profileLocalDataSource.getLatestWeightBefore(b);
   Future<void> saveUserProfile(
           {String? name,
           double? weight,

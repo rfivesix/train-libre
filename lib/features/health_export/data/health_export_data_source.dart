@@ -39,10 +39,15 @@ class HealthExportPayload {
 }
 
 class HealthExportLoadOptions {
-  const HealthExportLoadOptions({this.lookbackDays, this.updatedSinceUtc});
+  const HealthExportLoadOptions({
+    this.lookbackDays,
+    this.updatedSinceUtc,
+    this.platform,
+  });
 
   final int? lookbackDays;
   final DateTime? updatedSinceUtc;
+  final HealthExportPlatform? platform;
 }
 
 class HealthExportDataSource {
@@ -88,11 +93,33 @@ class HealthExportDataSource {
       lookbackDays: lookbackDays,
       options: options,
     );
-    return _buildMeasurements(
+    final records = await _buildMeasurements(
       start: start,
       end: end,
       updatedSinceUtc: options.updatedSinceUtc,
     );
+    if (options.platform != HealthExportPlatform.healthConnect ||
+        records.isEmpty) {
+      return records;
+    }
+    final ids = records
+        .map((record) => int.tryParse(record.idempotencyKey.split(':').last))
+        .whereType<int>()
+        .toList(growable: false);
+    if (ids.isEmpty) return records;
+    final dbInstance = await _db.database;
+    final imported = await dbInstance.customSelect(
+      '''SELECT local_measurement_id FROM health_import_records
+         WHERE platform = 'healthConnect' AND domain = 'weight'
+           AND local_measurement_id IN (${List.filled(ids.length, '?').join(',')})''',
+      variables: ids.map(Variable.withInt).toList(growable: false),
+    ).get();
+    final importedIds =
+        imported.map((row) => row.read<int>('local_measurement_id')).toSet();
+    return records.where((record) {
+      final id = int.tryParse(record.idempotencyKey.split(':').last);
+      return id == null || !importedIds.contains(id);
+    }).toList(growable: false);
   }
 
   Future<List<ExportNutritionRecord>> loadNutrition({
@@ -568,11 +595,9 @@ class HealthExportDataSource {
     for (final set in workout.sets) {
       final name = set.exerciseName.trim();
       if (name.isEmpty) continue;
-      final weight = set.weightKg;
-      final reps = set.reps;
-      if (weight == null || reps == null) continue;
-      final setText =
-          '${_setTypeAbbreviation(set.setType)} ${_formatWeightKg(weight)}kg x $reps';
+      final metrics = _formatSetMetrics(set);
+      if (metrics == null) continue;
+      final setText = '${_setTypeAbbreviation(set.setType)} $metrics';
       final exerciseSets = linesByExercise.putIfAbsent(name, () {
         exerciseOrder.add(name);
         return <String>[];
@@ -603,6 +628,41 @@ class HealthExportDataSource {
     return description ?? summary;
   }
 
+  /// Formats the metric the set actually logged.
+  ///
+  /// Duration-based rows can retain legacy/default zeroes in the weight and
+  /// reps columns. Looking at those columns first produced `0kg x 0` in Health
+  /// Connect and hid the real duration. Duration/distance therefore take
+  /// precedence, followed by ordinary weight/reps and reps-only bodyweight
+  /// sets.
+  String? _formatSetMetrics(SetLog set) {
+    final durationSeconds = set.durationSeconds;
+    final distanceKm = set.distanceKm;
+    final hasDuration = durationSeconds != null && durationSeconds > 0;
+    final hasDistance = distanceKm != null && distanceKm > 0;
+
+    if (hasDuration || hasDistance) {
+      final parts = <String>[];
+      final weight = set.weightKg;
+      if (weight != null && weight > 0) {
+        parts.add('${_formatWeightKg(weight)}kg');
+      }
+      if (hasDistance) {
+        parts.add('${_formatDistanceKm(distanceKm)}km');
+      }
+      if (hasDuration) {
+        parts.add(_formatDuration(durationSeconds));
+      }
+      return parts.join(' · ');
+    }
+
+    final reps = set.reps;
+    if (reps == null || reps <= 0) return null;
+    final weight = set.weightKg;
+    if (weight == null || weight <= 0) return '$reps reps';
+    return '${_formatWeightKg(weight)}kg x $reps';
+  }
+
   String _setTypeAbbreviation(String rawSetType) {
     final normalized = rawSetType.trim().toLowerCase();
     if (normalized == 'warmup') return 'W';
@@ -620,5 +680,17 @@ class HealthExportDataSource {
         .toStringAsFixed(2)
         .replaceFirst(RegExp(r'0+$'), '')
         .replaceFirst(RegExp(r'\.$'), '');
+  }
+
+  String _formatDistanceKm(double distanceKm) => _formatWeightKg(distanceKm);
+
+  String _formatDuration(int totalSeconds) {
+    final hours = totalSeconds ~/ 3600;
+    final minutes = (totalSeconds % 3600) ~/ 60;
+    final seconds = totalSeconds % 60;
+    if (hours > 0) {
+      return '$hours:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
+    }
+    return '$minutes:${seconds.toString().padLeft(2, '0')}';
   }
 }

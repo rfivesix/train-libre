@@ -25,7 +25,7 @@ class ActiveGapOverlay extends StatelessWidget {
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 2.0, sigmaY: 2.0),
               child: Container(
-                color: isDark 
+                color: isDark
                     ? Colors.black.withValues(alpha: 0.2)
                     : Colors.white.withValues(alpha: 0.4),
                 child: Center(
@@ -38,7 +38,8 @@ class ActiveGapOverlay extends StatelessWidget {
                       color: isDark
                           ? Colors.black.withValues(alpha: 0.6)
                           : Colors.white.withValues(alpha: 0.8),
-                      borderRadius: BorderRadius.circular(DesignConstants.borderRadiusM),
+                      borderRadius:
+                          BorderRadius.circular(DesignConstants.borderRadiusM),
                       border: Border.all(
                         color: isDark
                             ? Colors.white.withValues(alpha: 0.1)

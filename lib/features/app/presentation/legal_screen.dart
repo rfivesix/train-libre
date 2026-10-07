@@ -30,6 +30,7 @@ class _LegalScreenState extends State<LegalScreen> {
     unawaited(TelemetryService.instance
         .trackScreenView(screenName: ScreenName.legalPrivacy));
   }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -196,8 +197,7 @@ class _LegalScreenState extends State<LegalScreen> {
 
   Widget _buildBrowserButton(AppLocalizations l10n) {
     return AppButton.primary(
-      onPressed: () =>
-          _handleLink('https://trainlibre.com/privacy.html'),
+      onPressed: () => _handleLink('https://trainlibre.com/privacy.html'),
       label: l10n.view_in_browser,
       tooltip: l10n.view_in_browser,
       icon: LucideIcons.globe,

@@ -215,7 +215,7 @@ void main() {
     });
 
     test(
-        'phase changes preserve convergence direction and deterministic ramping',
+        'phase changes preserve convergence direction and deterministic uncertainty',
         () async {
       final scenario = SyntheticTruthScenario(
         name: 'cut_maintain_bulk_truth',
@@ -292,11 +292,13 @@ void main() {
             w.debugValue('confirmedPhaseAgeDays') >= 8,
         orElse: () => firstMaintain,
       );
-      expect(firstMaintain.debugValue('effectiveKcalPerKg'),
-          lessThanOrEqualTo(4200));
       expect(
-        laterMaintain.debugValue('effectiveKcalPerKg'),
-        greaterThanOrEqualTo(firstMaintain.debugValue('effectiveKcalPerKg')),
+          firstMaintain.debugValue('effectiveKcalPerKg'), closeTo(7700, 0.001));
+      expect(
+        firstMaintain.debugValue('observationPhaseVarianceMultiplier'),
+        greaterThanOrEqualTo(
+          laterMaintain.debugValue('observationPhaseVarianceMultiplier'),
+        ),
       );
 
       expectNoAbsurdMaintenanceJumps(model, maxJumpCalories: 620);

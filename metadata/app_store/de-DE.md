@@ -45,8 +45,8 @@ KERN-FEATURES:
 
 5. KI-MAHLZEITEN-ERFASSUNG (Optional)
 • Bring Your Own Key (BYOK): Optionale KI-Erkennung von Mahlzeiten über deinen eigenen API-Schlüssel. Standardmäßig deaktiviert.
-• Foto, Barcode und Sprache in einer Ansicht: Fotografiere deinen Teller, lass dieselbe Ansicht den Barcode eines verpackten Produkts erkennen oder beschreibe die Mahlzeit einfach per Sprache. Auf iPhones mit LiDAR wird die Portionsgröße gemessen statt geschätzt.
-• Intelligenter Abgleich: Ein lokales „Top-N Fuzzy Alternatives"-System in Kombination mit Open Food Facts ordnet deine Mahlzeit präzise zu und verhindert Halluzinationen zuverlässig.
+• Foto, Barcode und Sprache in einer Ansicht: Fotografiere deinen Teller, lass dieselbe Ansicht den Barcode eines verpackten Produkts erkennen oder beschreibe die Mahlzeit einfach per Sprache. Auf iPhones mit LiDAR werden Tiefendaten erfasst, um die Portionsschätzung zu unterstützen.
+• Intelligenter Abgleich: Ein lokales „Top-N Fuzzy Alternatives“-System nutzt Open Food Facts, um passende Treffer zu finden. Jedes Ergebnis bleibt vor dem Speichern vollständig prüfbar.
 • 100 % transparent: Jeder KI-Vorschlag ist vor dem Speichern vollständig überprüfbar und anpassbar.
 
 RECHTLICHER HINWEIS:
@@ -56,13 +56,15 @@ OPEN SOURCE & OFFENE DATEN:
 Transparent aufgebaut auf den vertrauenswürdigen Community-Katalogen von Open Food Facts und OpenExerciseDB. Der vollständige Quellcode ist öffentlich einsehbar – unsere Datenschutzversprechen kann man also nachprüfen, statt sie nur zu glauben.
 
 ## Release Notes (What's New / Release Notes in this version)
-Präzisere Muskelregeneration: Die Regenerationsanzeige nutzt jetzt ein zeitdynamisches Belastungsmodell für jeden einzelnen Satz. Die Muskelkarten zeigen Bereitschaft und verbleibende Erholungszeit noch übersichtlicher; ein Tipp öffnet detaillierte Einblicke zu Belastungsdosis und Prognose.
+Ziele, die sich mit dir weiterentwickeln: Lege ein langfristiges Gewichtsziel mit echter Startmessung fest, verfolge deinen Zielpfad und ordne deinen Fortschritt in ruhigen wöchentlichen Rückblicken ein. Neue Kalorien- und Makroempfehlungen bleiben Vorschläge, bis du sie selbst anwendest.
 
-Komfortablere Spracheingabe: Das Diktatfeld sitzt nun ergonomisch oben, während der Aufnahme-Button bequem mit dem Daumen erreichbar ist. Ein flüssiger Farbwechsel von Aufnahme-Rot zu Verarbeitungs-Grün signalisiert den Status.
+Eigene Trainingspläne & flexible Sequenzen: Ordne gespeicherte Routinen als Wochenplan oder flexible Abfolge von 1–14 Tagen an, plane Ruhetage ein, erhalte optionale Erinnerungen und starte anstehende Einheiten direkt aus dem Tagebuch – ganz ohne Nachholdruck.
 
-Aufgeräumte Mahlzeiten-Vorschau: Neu erkannte KI-Mahlzeiten präsentieren sich mit kompakten Zutatenkarten und direktem Zugriff auf die Mahlzeiten-Kategorie (Frühstück, Mittag, Abendessen, Snack), bevor du sie speicherst.
+Dein Trainingslevel nach Maß: Wähle in den Einstellungen oder beim Start dein Erfahrungslevel (Einsteiger, Fortgeschritten, Profi). Die Detailtiefe bei Muskelgruppen, RIR (Wiederholungen in Reserve) und Trainingsansichten passt sich passend an dein Niveau an.
 
-Fehlerbehebungen & Feinschliff: Ein Darstellungsfehler der Farbskala in den Muskelkarten wurde behoben und die allgemeine Stabilität weiter optimiert.
+Satz-Timer & aufgeräumter Workout-Tab: Starte und stoppe Satz-Timer direkt im Live-Workout oder bequem über die Live-Aktivität auf dem Sperrbildschirm. Der neu gestaltete Workout-Tab bündelt deinen aktiven Plan, Routinen und Verlauf an einem zentralen Ort.
+
+Geglättete Gewichtstrends & neue Analysen: Die metabolische Trendglättung mit dezenter Messpunkt-Linie zeigt deinen wahren Gewichtsverlauf in App und Widgets. Ergänzt durch neue Makro-Statistiken sowie nahtlosen Messungs-Import aus Apple Health und Health Connect.
 
 ## Support URL (Support Web Page URL)
 https://trainlibre.com/support

@@ -4,6 +4,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:train_libre/services/ai_service.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 class _InMemorySecureStorage extends FlutterSecureStorage {
   _InMemorySecureStorage();
@@ -68,6 +69,14 @@ AiService _serviceWith({
 }
 
 void main() {
+  test('speed mode defaults off and can be toggled', () async {
+    SharedPreferences.setMockInitialValues({});
+    final service = _serviceWith(storage: _InMemorySecureStorage());
+    expect(await service.isFastModeEnabled(), isFalse);
+    await service.setFastModeEnabled(true);
+    expect(await service.isFastModeEnabled(), isTrue);
+  });
+
   group('AiService provider persistence', () {
     test('setSelectedProvider persists and loads every provider', () async {
       final storage = _InMemorySecureStorage();

@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import '../features/diary/data/sources/product_local_data_source.dart';
 import '../features/diary/domain/models/food_item.dart';
 import 'ai_meal_context.dart';
@@ -9,28 +11,35 @@ part 'ai/validation/rules_logic.dart';
 
 class AiMealValidationEngine {
   final AiFoodMatchLoader _matchLoader;
+  final Map<String, Future<List<FoodItem>>> _matchCache = {};
 
   AiMealValidationEngine({
     AiFoodMatchLoader? matchLoader,
-  }) : _matchLoader = matchLoader ?? defaultMatchLoader;
+  }) : _matchLoader = matchLoader ?? _createDefaultMatchLoader();
 
-  static Future<List<FoodItem>> defaultMatchLoader(
-    AiMealCandidateItem item,
-  ) async {
+  static AiFoodMatchLoader _createDefaultMatchLoader() {
+    final session = ProductLocalDataSource.instance.createAiSearchSession();
+    return (item) => defaultMatchLoader(item, aiSession: session);
+  }
+
+  static Future<List<FoodItem>> defaultMatchLoader(AiMealCandidateItem item,
+      {AiCatalogSearchSession? aiSession}) async {
     final helper = ProductLocalDataSource.instance;
     final matches = <FoodItem>[];
     final barcode = item.matchedBarcode?.trim();
+    final fuzzyFuture = helper.fuzzyMatchForAi(
+      item.name,
+      catalogSearchTerm: item.catalogSearchTerm,
+      searchTerms: item.searchTerms,
+      aiSession: aiSession,
+    );
     if (barcode != null && barcode.isNotEmpty) {
       final selected = await helper.getProductByBarcode(barcode);
       if (selected != null) {
         matches.add(selected);
       }
     }
-    final fuzzy = await helper.fuzzyMatchForAi(
-      item.name,
-      catalogSearchTerm: item.catalogSearchTerm,
-      searchTerms: item.searchTerms,
-    );
+    final fuzzy = await fuzzyFuture;
     for (final food in fuzzy) {
       if (!matches.any((existing) => existing.barcode == food.barcode)) {
         matches.add(food);
@@ -47,29 +56,46 @@ class AiMealValidationEngine {
     final normalized = _normalize(candidate);
     final mealIssues = <AiValidationIssue>[...normalized.issues];
     final validatedItems = <AiValidatedMealItem>[];
-
-    for (var i = 0; i < normalized.candidate.items.length; i++) {
-      final item = normalized.candidate.items[i];
-      final matches = await _matchLoader(item);
-      final match = _evaluateMatch(item, matches);
-      final nutrition = match.bestMatch == null
-          ? AiNutritionTotals.zero
-          : AiNutritionTotals.fromFood(match.bestMatch!, item.grams);
-      final issues = _validateItem(
-        index: i,
-        item: item,
-        match: match,
-        nutrition: nutrition,
-        mode: mode,
-      );
-      validatedItems.add(
-        AiValidatedMealItem(
-          candidate: item,
+    final items = normalized.candidate.items;
+    // SQLite can serve independent reads concurrently; keep a small bound so a
+    // complex meal does not flood the database worker. Future.wait retains order.
+    for (var start = 0; start < items.length; start += 4) {
+      final end = (start + 4).clamp(0, items.length);
+      final matchesByItem = await Future.wait([
+        for (var i = start; i < end; i++)
+          _matchCache.putIfAbsent(
+            jsonEncode([
+              items[i].name,
+              items[i].matchedBarcode,
+              items[i].catalogSearchTerm,
+              items[i].searchTerms,
+            ]),
+            () => _matchLoader(items[i]),
+          ),
+      ]);
+      for (var i = start; i < end; i++) {
+        final item = items[i];
+        final matches = matchesByItem[i - start];
+        final match = _evaluateMatch(item, matches);
+        final nutrition = match.bestMatch == null
+            ? AiNutritionTotals.zero
+            : AiNutritionTotals.fromFood(match.bestMatch!, item.grams);
+        final issues = _validateItem(
+          index: i,
+          item: item,
           match: match,
           nutrition: nutrition,
-          issues: issues,
-        ),
-      );
+          mode: mode,
+        );
+        validatedItems.add(
+          AiValidatedMealItem(
+            candidate: item,
+            match: match,
+            nutrition: nutrition,
+            issues: issues,
+          ),
+        );
+      }
     }
 
     final totals = validatedItems.fold<AiNutritionTotals>(
@@ -232,6 +258,22 @@ class AiMealValidationEngine {
 
   static int _maxInt(int a, int b) => a > b ? a : b;
   static double _maxDouble(double a, double b) => a > b ? a : b;
+
+  static bool isPreparedState(String? stateHint) {
+    if (stateHint == null) return false;
+    const preparedStates = {
+      'cooked',
+      'boiled',
+      'gekocht',
+      'fried',
+      'gebraten',
+      'baked',
+      'gebacken',
+      'grilled',
+      'gegrillt',
+    };
+    return preparedStates.contains(stateHint.toLowerCase());
+  }
 }
 
 class AiRepairOrchestrator {
@@ -243,28 +285,51 @@ class AiRepairOrchestrator {
 
   Future<AiRepairOutcome> run({
     required AiMealCandidate initialCandidate,
+    AiValidationResult? initialValidation,
     required AiValidationMode mode,
     required AiCandidateRepairer repairer,
     AiMacroTargetContext? targetContext,
     int maxPasses = maxRepairPasses,
+    void Function(
+            int round, AiValidationResult result, int durationMilliseconds)?
+        onRepairValidation,
   }) async {
     var candidate = initialCandidate;
-    var validation = await validationEngine.validateMealCandidate(
-      candidate: candidate,
-      mode: mode,
-      targetContext: targetContext,
-    );
+    var validation = initialValidation ??
+        await validationEngine.validateMealCandidate(
+          candidate: candidate,
+          mode: mode,
+          targetContext: targetContext,
+        );
+    final firstPassAccepted =
+        validation.passed && !validation.needsSemanticSelection;
+    final firstPassIssueCategories = <String>{
+      for (final issue in validation.allIssues)
+        if (issue.severity != AiValidationSeverity.info)
+          if (issue.code == 'ambiguous_nutrition_match')
+            'semantic_match'
+          else if (issue.code.contains('quantity') ||
+              issue.code.contains('kcal') ||
+              issue.code.contains('macro'))
+            'quantity_or_anchor'
+          else
+            'other_validation',
+    };
     var repairPasses = 0;
 
     while ((!validation.passed || validation.needsSemanticSelection) &&
         repairPasses < maxPasses) {
       repairPasses += 1;
       candidate = await repairer(candidate, validation, repairPasses);
+      final validationWatch = Stopwatch()..start();
       validation = await validationEngine.validateMealCandidate(
         candidate: candidate,
         mode: mode,
         targetContext: targetContext,
       );
+      validationWatch.stop();
+      onRepairValidation?.call(
+          repairPasses, validation, validationWatch.elapsedMilliseconds);
     }
 
     final limitReached =
@@ -277,6 +342,10 @@ class AiRepairOrchestrator {
       ),
       repairPassesUsed: repairPasses,
       repairLimitReached: limitReached,
+      firstPassAccepted: firstPassAccepted,
+      validationRunsCount: repairPasses + 1,
+      firstPassIssueCategories:
+          firstPassIssueCategories.toList(growable: false),
     );
   }
 }

@@ -220,7 +220,7 @@ void main() {
           await harness.service.generateOnboardingRecommendation(
         goal: BodyweightGoal.maintainWeight,
         targetRateKgPerWeek: 0,
-        weightKg: null,
+        weightKg: 75,
         heightCm: null,
         birthday: null,
         gender: null,
@@ -236,6 +236,22 @@ void main() {
         inInclusiveRange(1200, 5000),
       );
       expect(recommendation.dueWeekKey, isNotNull);
+
+      await expectLater(
+        harness.service.generateOnboardingRecommendation(
+          goal: BodyweightGoal.maintainWeight,
+          targetRateKgPerWeek: 0,
+          weightKg: null,
+          heightCm: null,
+          birthday: null,
+          gender: null,
+          bodyFatPercent: null,
+          declaredActivityLevel: null,
+          extraCardioHoursOption: null,
+          now: DateTime(2026, 7, 2, 9),
+        ),
+        throwsArgumentError,
+      );
     });
   });
 }

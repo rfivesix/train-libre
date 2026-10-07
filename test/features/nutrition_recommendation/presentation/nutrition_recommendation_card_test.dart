@@ -5,6 +5,7 @@ import 'package:train_libre/features/nutrition_recommendation/domain/confidence_
 import 'package:train_libre/features/nutrition_recommendation/domain/goal_models.dart';
 import 'package:train_libre/features/nutrition_recommendation/domain/recommendation_models.dart';
 import 'package:train_libre/features/nutrition_recommendation/presentation/nutrition_recommendation_card.dart';
+import 'package:train_libre/features/statistics/data/macro_analytics_data_adapter.dart';
 import 'package:train_libre/generated/app_localizations.dart';
 
 void main() {
@@ -44,6 +45,41 @@ void main() {
     expect(find.text(l10n.adaptiveRecommendationApplyAction), findsNothing);
   });
 
+  testWidgets(
+      'keeps explanation state separate from the nutrition scroll offset',
+      (tester) async {
+    final bucket = PageStorageBucket();
+
+    await tester.pumpWidget(
+      MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: PageStorage(
+          bucket: bucket,
+          child: KeyedSubtree(
+            key: const PageStorageKey('tab_nutrition'),
+            child: Builder(
+              builder: (context) {
+                // This is the value a ListView restores for the tab's scroll
+                // position after it has been scrolled off screen.
+                PageStorage.of(context).writeState(context, 480.0);
+                return Scaffold(body: _recommendationCard());
+              },
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(tester.takeException(), isNull);
+    expect(
+      find.byKey(
+        const PageStorageKey('adaptive_recommendation_explanation'),
+      ),
+      findsOneWidget,
+    );
+  });
+
   testWidgets('renders recommendation details and apply action',
       (tester) async {
     var applyTapped = false;
@@ -70,6 +106,15 @@ void main() {
             onApply: () {
               applyTapped = true;
             },
+            recentDailyIntakes: [
+              DailyMacroIntake(
+                date: DateTime(2026, 4, 5),
+                calories: 2400,
+                proteinGrams: 175,
+                carbsGrams: 275,
+                fatGrams: 70,
+              ),
+            ],
           ),
         ),
       ),
@@ -77,6 +122,16 @@ void main() {
 
     final context = tester.element(find.byType(NutritionRecommendationCard));
     final l10n = AppLocalizations.of(context)!;
+    await _expandExplanation(tester);
+
+    expect(
+      tester
+          .getTopLeft(find.text(l10n.adaptiveRecommendationDataQualityLabel))
+          .dx,
+      tester
+          .getTopLeft(find.text(l10n.adaptiveRecommendationMaintenanceLabel))
+          .dx,
+    );
 
     expect(find.text('2500 kcal'), findsOneWidget);
     expect(
@@ -229,6 +284,7 @@ void main() {
 
     final context = tester.element(find.byType(NutritionRecommendationCard));
     final l10n = AppLocalizations.of(context)!;
+    await _expandExplanation(tester);
     expect(
       find.text(l10n.adaptiveRecommendationDataBasisHintPriorOnly),
       findsOneWidget,
@@ -296,6 +352,7 @@ void main() {
 
     final context = tester.element(find.byType(NutritionRecommendationCard));
     final l10n = AppLocalizations.of(context)!;
+    await _expandExplanation(tester);
     expect(find.byKey(const Key('adaptive_recommendation_range_line')),
         findsOneWidget);
     expect(find.byKey(const Key('adaptive_recommendation_uncertainty_hint')),
@@ -336,6 +393,7 @@ void main() {
 
     final context = tester.element(find.byType(NutritionRecommendationCard));
     final l10n = AppLocalizations.of(context)!;
+    await _expandExplanation(tester);
     expect(
       find.byKey(const Key('adaptive_recommendation_stabilizing_hint')),
       findsOneWidget,
@@ -374,6 +432,7 @@ void main() {
 
     final context = tester.element(find.byType(NutritionRecommendationCard));
     final l10n = AppLocalizations.of(context)!;
+    await _expandExplanation(tester);
     expect(find.text(l10n.adaptiveRecommendationUncertaintyHintModerate),
         findsOneWidget);
     expect(
@@ -478,6 +537,7 @@ void main() {
             ),
           ),
         );
+        await _expandExplanation(tester);
 
         final progressIndicators = tester.widgetList<LinearProgressIndicator>(
           find.byType(LinearProgressIndicator),
@@ -526,6 +586,7 @@ void main() {
     final context = tester.element(find.byType(NutritionRecommendationCard));
     final l10n = AppLocalizations.of(context)!;
     final expectedLabel = l10n.adaptiveConfidenceHigh;
+    await _expandExplanation(tester);
 
     // Find Semantics widgets that are ancestors of the LinearProgressIndicator.
     // The immediate ancestor is the one we added for the bar; verify that its
@@ -547,7 +608,8 @@ void main() {
     );
   });
 
-  testWidgets('renders effective energy density when present', (tester) async {
+  testWidgets('renders active trajectory correction and hides energy density',
+      (tester) async {
     final recommendation = _recommendation().copyWith(
       inputSummary: RecommendationInputSummary(
         windowDays: 21,
@@ -557,6 +619,9 @@ void main() {
         avgLoggedCalories: 2500,
         phaseEffectiveKcalPerKg: 5938.4,
       ),
+      trajectoryCorrectionCalories: 80,
+      trajectoryRateErrorKgPerWeek: 0.14,
+      trajectoryCorrectionStatus: 'active',
     );
 
     await tester.pumpWidget(
@@ -583,18 +648,42 @@ void main() {
 
     final context = tester.element(find.byType(NutritionRecommendationCard));
     final l10n = AppLocalizations.of(context)!;
+    await _expandExplanation(tester);
 
+    expect(find.textContaining('5938'), findsNothing);
     expect(
-        find.text(l10n.adaptiveRecommendationEnergyDensityLabel),
-        findsOneWidget);
-    expect(find.text(l10n.adaptiveRecommendationEnergyDensityValue(5938)),
-        findsOneWidget);
-    expect(
-      find.text(l10n.adaptiveRecommendationEnergyDensityExplanation),
+      find.text(l10n.adaptiveRecommendationTrajectoryCorrectionLine('+80')),
       findsOneWidget,
     );
+    expect(
+        find.text(l10n.adaptiveRecommendationTrajectoryCorrectionExplanation),
+        findsOneWidget);
   });
 }
+
+Future<void> _expandExplanation(WidgetTester tester) async {
+  final tile = find.byKey(
+    const PageStorageKey('adaptive_recommendation_explanation'),
+  );
+  expect(tile, findsOneWidget);
+  await tester.ensureVisible(tile);
+  await tester.tap(tile);
+  await tester.pumpAndSettle();
+}
+
+Widget _recommendationCard() => NutritionRecommendationCard(
+      goal: BodyweightGoal.maintainWeight,
+      targetRateKgPerWeek: 0,
+      recommendation: _recommendation(),
+      maintenanceEstimate: _estimate(),
+      generatedAt: DateTime(2026, 4, 5),
+      nextAdaptiveRecommendationDueAt: DateTime(2026, 4, 13),
+      isAdaptiveRecommendationDueNow: false,
+      isRecalculating: false,
+      isApplying: false,
+      onRecalculate: () {},
+      onApply: () {},
+    );
 
 NutritionRecommendation _recommendation() {
   return NutritionRecommendation(
@@ -705,6 +794,9 @@ extension on NutritionRecommendation {
     RecommendationInputSummary? inputSummary,
     int? baselineCalories,
     String? dueWeekKey,
+    int? trajectoryCorrectionCalories,
+    double? trajectoryRateErrorKgPerWeek,
+    String? trajectoryCorrectionStatus,
   }) {
     return NutritionRecommendation(
       recommendedCalories: recommendedCalories ?? this.recommendedCalories,
@@ -726,6 +818,12 @@ extension on NutritionRecommendation {
       inputSummary: inputSummary ?? this.inputSummary,
       baselineCalories: baselineCalories ?? this.baselineCalories,
       dueWeekKey: dueWeekKey ?? this.dueWeekKey,
+      trajectoryCorrectionCalories:
+          trajectoryCorrectionCalories ?? this.trajectoryCorrectionCalories,
+      trajectoryRateErrorKgPerWeek:
+          trajectoryRateErrorKgPerWeek ?? this.trajectoryRateErrorKgPerWeek,
+      trajectoryCorrectionStatus:
+          trajectoryCorrectionStatus ?? this.trajectoryCorrectionStatus,
     );
   }
 }

@@ -98,7 +98,12 @@ class _HealthExportSettingsScreenState
       }
     });
 
-    final result = await _healthExportService.exportNow(platform);
+    // A manual export is also the recovery path when permissions were revoked
+    // or a newer app version needs additional HealthKit read scopes.
+    final permission = await _healthExportService.requestPermissions(platform);
+    final result = permission.success
+        ? await _healthExportService.exportNow(platform)
+        : permission;
     await _loadHealthExportSettings();
     if (!mounted) return;
 
@@ -141,6 +146,8 @@ class _HealthExportSettingsScreenState
       HealthExportState.exporting => l10n.healthExportStateExporting,
       HealthExportState.success => l10n.healthExportStateSuccess,
       HealthExportState.failed => l10n.healthExportStateFailed,
+      HealthExportState.permissionRequired =>
+        l10n.healthExportStatePermissionRequired,
       HealthExportState.disabled => l10n.healthExportStateDisabled,
     };
   }
@@ -150,6 +157,7 @@ class _HealthExportSettingsScreenState
       HealthExportState.success => LucideIcons.circle_check,
       HealthExportState.exporting => LucideIcons.refresh_cw,
       HealthExportState.failed => LucideIcons.triangle_alert,
+      HealthExportState.permissionRequired => LucideIcons.shield_alert,
       HealthExportState.disabled => LucideIcons.toggle_left,
       HealthExportState.idle => LucideIcons.hourglass,
     };
@@ -161,6 +169,7 @@ class _HealthExportSettingsScreenState
       HealthExportState.success => Colors.green,
       HealthExportState.exporting => scheme.primary,
       HealthExportState.failed => scheme.error,
+      HealthExportState.permissionRequired => scheme.error,
       HealthExportState.disabled => scheme.outline,
       HealthExportState.idle => scheme.outline,
     };

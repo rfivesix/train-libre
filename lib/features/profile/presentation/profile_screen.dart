@@ -9,6 +9,7 @@ import '../../../data/drift_database.dart' as db; // Access to Profile class
 import '../../../generated/app_localizations.dart';
 import '../../settings/presentation/settings_screen.dart';
 import 'goals_screen.dart';
+import 'my_goals_screen.dart';
 import '../../../services/profile_service.dart';
 import '../../../services/unit_service.dart';
 import '../../app/presentation/about_screen.dart';
@@ -132,8 +133,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     labelText: l10n.onboardingNameLabel,
                     prefixIcon: const Icon(LucideIcons.user),
                     border: OutlineInputBorder(
-                      borderRadius:
-                          BorderRadius.circular(DesignConstants.borderRadiusM),
+                      borderRadius: BorderRadius.circular(
+                        DesignConstants.borderRadiusM,
+                      ),
                     ),
                   ),
                 ),
@@ -160,7 +162,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             prefixIcon: const Icon(LucideIcons.cake),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(
-                                  DesignConstants.borderRadiusM),
+                                DesignConstants.borderRadiusM,
+                              ),
                             ),
                           ),
                           child: Text(
@@ -178,7 +181,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           labelText: l10n.onboardingGenderLabel,
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(
-                                DesignConstants.borderRadiusM),
+                              DesignConstants.borderRadiusM,
+                            ),
                           ),
                           contentPadding: const EdgeInsets.symmetric(
                             horizontal: 10,
@@ -314,57 +318,63 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       padding: const EdgeInsets.all(DesignConstants.spacingL),
                       child: Row(
                         children: [
-                          GestureDetector(
-                            onTap: () async {
-                              await profileService.pickAndSaveProfileImage();
-                            },
-                            child: Stack(
-                              children: [
-                                CircleAvatar(
-                                  key: ValueKey(
-                                    '${profileService.profileImagePath ?? ''}${profileService.cacheBuster}',
+                          Semantics(
+                            label: l10n.profileEdit,
+                            button: true,
+                            excludeSemantics: true,
+                            child: GestureDetector(
+                              onTap: () async {
+                                await profileService.pickAndSaveProfileImage();
+                              },
+                              child: Stack(
+                                children: [
+                                  CircleAvatar(
+                                    key: ValueKey(
+                                      '${profileService.profileImagePath ?? ''}${profileService.cacheBuster}',
+                                    ),
+                                    radius: 40,
+                                    backgroundColor: theme.colorScheme.primary
+                                        .withValues(alpha: 0.1),
+                                    backgroundImage:
+                                        profileService.profileImagePath != null
+                                            ? FileImage(
+                                                File(
+                                                  profileService
+                                                      .profileImagePath!,
+                                                ),
+                                              )
+                                            : null,
+                                    child: profileService.profileImagePath ==
+                                            null
+                                        ? Icon(
+                                            LucideIcons.user,
+                                            size: 40,
+                                            color: theme.colorScheme.primary,
+                                          )
+                                        : null,
                                   ),
-                                  radius: 40,
-                                  backgroundColor: theme.colorScheme.primary
-                                      .withValues(alpha: 0.1),
-                                  backgroundImage:
-                                      profileService.profileImagePath != null
-                                          ? FileImage(
-                                              File(
-                                                profileService
-                                                    .profileImagePath!,
-                                              ),
-                                            )
-                                          : null,
-                                  child: profileService.profileImagePath == null
-                                      ? Icon(
-                                          LucideIcons.user,
-                                          size: 40,
-                                          color: theme.colorScheme.primary,
-                                        )
-                                      : null,
-                                ),
-                                Positioned(
-                                  bottom: 0,
-                                  right: 0,
-                                  child: Container(
-                                    padding: const EdgeInsets.all(4),
-                                    decoration: BoxDecoration(
-                                      color: theme.colorScheme.primary,
-                                      shape: BoxShape.circle,
-                                      border: Border.all(
-                                        color: theme.cardColor,
-                                        width: 2,
+                                  Positioned(
+                                    bottom: 0,
+                                    right: 0,
+                                    child: Container(
+                                      padding: const EdgeInsets.all(4),
+                                      decoration: BoxDecoration(
+                                        color: theme.colorScheme.primary,
+                                        shape: BoxShape.circle,
+                                        border: Border.all(
+                                          color: theme.cardColor,
+                                          width: 2,
+                                        ),
+                                      ),
+                                      child: const Icon(
+                                        LucideIcons.camera,
+                                        size: 12,
+                                        color: Colors.white,
                                       ),
                                     ),
-                                    child: const Icon(
-                                      LucideIcons.camera,
-                                      size: 12,
-                                      color: Colors.white,
-                                    ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
                           ),
                           const SizedBox(width: 20),
@@ -380,7 +390,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   overflow: TextOverflow.ellipsis,
                                 ),
                                 const SizedBox(
-                                    height: DesignConstants.spacingXS),
+                                  height: DesignConstants.spacingXS,
+                                ),
                                 if (subline.isNotEmpty)
                                   Text(
                                     subline,
@@ -441,8 +452,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   onTap: () {
                     Navigator.of(context).push(
                       MaterialPageRoute(
+                        builder: (context) => const MyGoalsScreen(),
+                      ),
+                    );
+                  },
+                ),
+                _buildNavigationCard(
+                  icon: LucideIcons.sliders_horizontal,
+                  title: l10n.dailyOperatingTargetsTitle,
+                  subtitle: l10n.dailyOperatingTargetsSubtitle,
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
                         builder: (context) =>
-                            GoalsScreen(repository: _repository),
+                            DailyTargetsScreen(repository: _repository),
                       ),
                     );
                   },
