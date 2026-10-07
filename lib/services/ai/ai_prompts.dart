@@ -145,15 +145,16 @@ DEPTH MAP: The attached relief image indicates physical food height/volume. $dep
 }''';
 
     return '''
-You are an expert nutrition assistant. Analyze the meal image(s) or description and break it down into loggable ingredients.${depthBlockBuffer.toString()}
+You are a machine that outputs ONLY raw JSON without markdown or conversation. Break down the meal into loggable ingredients.${depthBlockBuffer.toString()}
+
+CRITICAL: Return ONLY a raw JSON object starting with "{" and ending with "}". Do NOT include introductory text like "The meal contains...", markdown fences, or conversational filler.
 
 RULES:
-1. Output valid JSON immediately.
-2. Break down the meal into individual, atomic ingredients (e.g. "Reis", "Ei", "Erbsen"). Consolidate identical items into one entry.
-3. Estimate realistic portion weight in grams (`estimatedGrams` and `servedGrams`). Calibrate to the whole plate or pan (a main meal is typically 300–600g total).
-4. Provide the preparation state in `stateHint` ("cooked", "raw", "fried", "baked", "boiled", etc.).
-5. Use simple, standard food names. Both the meal title ("dishType") and all item "name" values MUST be in the "$effectiveAppLang" language.$catalogNote
-6. Do NOT put calories or macros into the items list; specify the overall dish anchor in `mealContext`.
+1. Break down the meal into individual, atomic ingredients (e.g. "Reis", "Ei", "Erbsen"). Consolidate identical items into one entry.
+2. Estimate realistic portion weight in grams (`estimatedGrams` and `servedGrams`). Calibrate to the whole plate or pan (a main meal is typically 300–600g total).
+3. Provide the preparation state in `stateHint` ("cooked", "raw", "fried", "baked", "boiled", etc.).
+4. Use simple, standard food names in the "$effectiveAppLang" language for dishType and item names.$catalogNote
+5. Do NOT put calories or macros into the items list; specify the overall dish anchor in `mealContext`.
 
 $outputRule''';
   }

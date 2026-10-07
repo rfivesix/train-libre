@@ -739,8 +739,9 @@ class AiService {
     AiUsageCollector? usageCollector,
   }) async {
     final structuredOutput = await _supportsMealSchema();
-    final userContent =
-        textHint ?? 'Analyze this meal and identify all food components.';
+    final userContent = textHint != null && textHint.trim().isNotEmpty
+        ? '$textHint. Return the identified ingredients as a JSON object.'
+        : 'Analyze this meal and identify all food components. Return ONLY a valid JSON object matching the requested format.';
     final attachDepthMap = depthMap != null &&
         depthMapLegend != null &&
         depthMapLegend.trim().isNotEmpty;

@@ -128,6 +128,37 @@ extension AiParsing on AiService {
       }
     }
 
+    // Final fallback: If model returned plain text bullet points (e.g. "- Bread\n- Tomato")
+    final bulletLines = cleaned
+        .split('\n')
+        .map((l) => l.trim())
+        .where((l) => RegExp(r'^[-*•\d\.]+\s+').hasMatch(l))
+        .map((l) => l.replaceFirst(RegExp(r'^[-*•\d\.]+\s+'), '').trim())
+        .where((l) => l.isNotEmpty && !l.toLowerCase().startsWith('the meal'))
+        .toList();
+
+    if (bulletLines.isNotEmpty) {
+      debugPrint('[AiParsing] Fallback parsing bullet points into candidate items: $bulletLines');
+      final fallbackItems = bulletLines.map((line) {
+        // Check for grams or amounts in bullet line if any (e.g. "Bread (50g)" or "50g Bread")
+        final gramMatch = RegExp(r'(\d+)\s*g\b', caseSensitive: false).firstMatch(line);
+        final grams = gramMatch != null ? int.tryParse(gramMatch.group(1)!) ?? 100 : 100;
+        final cleanName = line
+            .replaceAll(RegExp(r'\(\s*\d+\s*g\s*\)', caseSensitive: false), '')
+            .replaceAll(RegExp(r'\b\d+\s*g\b', caseSensitive: false), '')
+            .trim();
+        return AiMealCandidateItem(
+          name: cleanName.isNotEmpty ? cleanName : line,
+          grams: grams,
+          confidence: 0.8,
+        );
+      }).toList();
+
+      return AiMealCandidate(
+        items: fallbackItems,
+      );
+    }
+
     debugPrint('[AiParsing] Failed to parse meal candidate. Raw AI response:\n$content');
     throw const AiParseException(
         'No valid JSON object or array found in response.');
@@ -211,6 +242,32 @@ extension AiParsing on AiService {
       } catch (e) {
         debugPrint('[AiParsing] Items object extraction failed: $e');
       }
+    }
+
+    // Fourth attempt: If model returned plain text bullet points (e.g. "- Bread\n- Tomato")
+    final bulletLines = cleaned
+        .split('\n')
+        .map((l) => l.trim())
+        .where((l) => RegExp(r'^[-*•\d\.]+\s+').hasMatch(l))
+        .map((l) => l.replaceFirst(RegExp(r'^[-*•\d\.]+\s+'), '').trim())
+        .where((l) => l.isNotEmpty && !l.toLowerCase().startsWith('the meal'))
+        .toList();
+
+    if (bulletLines.isNotEmpty) {
+      debugPrint('[AiParsing] Fallback parsing bullet points into suggested items: $bulletLines');
+      return bulletLines.map((line) {
+        final gramMatch = RegExp(r'(\d+)\s*g\b', caseSensitive: false).firstMatch(line);
+        final grams = gramMatch != null ? int.tryParse(gramMatch.group(1)!) ?? 100 : 100;
+        final cleanName = line
+            .replaceAll(RegExp(r'\(\s*\d+\s*g\s*\)', caseSensitive: false), '')
+            .replaceAll(RegExp(r'\b\d+\s*g\b', caseSensitive: false), '')
+            .trim();
+        return AiSuggestedItem(
+          name: cleanName.isNotEmpty ? cleanName : line,
+          estimatedGrams: grams,
+          confidence: 0.8,
+        );
+      }).toList();
     }
 
     debugPrint('[AiParsing] Failed to parse items. Raw AI response:\n$content');
