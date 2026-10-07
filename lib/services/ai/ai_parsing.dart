@@ -122,6 +122,14 @@ List<AiSuggestedItem> _extractSuggestedItemsFromMap(Map<String, dynamic> map) {
 }
 
 extension AiParsing on AiService {
+  @visibleForTesting
+  AiMealCandidate parseMealCandidateForTesting(String content) =>
+      _parseMealCandidateFromContentSync(content);
+
+  @visibleForTesting
+  List<AiSuggestedItem> parseItemsForTesting(String content) =>
+      _parseItemsFromContentSync(content);
+
   /// Extracts the meal candidate (holistic context and items) from the AI response off the main thread.
   Future<AiMealCandidate> _parseMealCandidateFromContent(String content) async {
     return Isolate.run(() => _parseMealCandidateFromContentSync(content));
@@ -140,10 +148,21 @@ extension AiParsing on AiService {
       final decoded = jsonDecode(cleaned);
       if (decoded is Map<String, dynamic>) {
         final contextMap = decoded['mealContext'];
-        final AiMealContext? mealContext =
+        AiMealContext? mealContext =
             contextMap != null && contextMap is Map<String, dynamic>
                 ? AiMealContext.fromJson(contextMap)
                 : null;
+
+        if (mealContext == null && decoded.containsKey('dishType')) {
+          final dishType = decoded['dishType']?.toString().trim();
+          if (dishType != null && dishType.isNotEmpty) {
+            mealContext = AiMealContext(
+              dishType: dishType,
+              expectedKcalRange: const [0, 9999],
+              expectedMacroProfile: const {},
+            );
+          }
+        }
 
         final items = _extractCandidateItemsFromMap(decoded);
         if (items.isNotEmpty) {
@@ -198,10 +217,21 @@ extension AiParsing on AiService {
         final decoded = jsonDecode(jsonStr);
         if (decoded is Map<String, dynamic>) {
           final contextMap = decoded['mealContext'];
-          final AiMealContext? mealContext =
+          AiMealContext? mealContext =
               contextMap != null && contextMap is Map<String, dynamic>
                   ? AiMealContext.fromJson(contextMap)
                   : null;
+
+          if (mealContext == null && decoded.containsKey('dishType')) {
+            final dishType = decoded['dishType']?.toString().trim();
+            if (dishType != null && dishType.isNotEmpty) {
+              mealContext = AiMealContext(
+                dishType: dishType,
+                expectedKcalRange: const [0, 9999],
+                expectedMacroProfile: const {},
+              );
+            }
+          }
 
           final items = _extractCandidateItemsFromMap(decoded);
           if (items.isNotEmpty) {

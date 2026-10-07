@@ -1016,25 +1016,69 @@ ${semanticOnly ? 'Return only the listed items in the same order. Select the exa
       return candidate.copyWith(items: updated);
     }
 
-    return AiMealCandidate(
-      items: List.generate(repaired.length, (index) {
-        final item = repaired[index];
-        final previous =
-            index < candidate.items.length ? candidate.items[index] : null;
-        return AiMealCandidateItem(
+    final mergedItems = <AiMealCandidateItem>[];
+    final repairedByName = <String, AiSuggestedItem>{
+      for (final r in repaired) r.name.toLowerCase().trim(): r,
+    };
+    final usedRepairs = <AiSuggestedItem>{};
+
+    for (var i = 0; i < candidate.items.length; i++) {
+      final prev = candidate.items[i];
+      final prevNameLower = prev.name.toLowerCase().trim();
+
+      // Priority 1: Match by index if repaired length matches candidate length
+      // Priority 2: Match by exact lowercase name
+      // Priority 3: Match by index if i < repaired.length and repair candidate isn't used
+      AiSuggestedItem? matchedRepair;
+      if (repaired.length == candidate.items.length) {
+        matchedRepair = repaired[i];
+      } else if (repairedByName.containsKey(prevNameLower)) {
+        matchedRepair = repairedByName[prevNameLower];
+      } else if (i < repaired.length && !usedRepairs.contains(repaired[i])) {
+        matchedRepair = repaired[i];
+      }
+
+      if (matchedRepair != null) {
+        usedRepairs.add(matchedRepair);
+        mergedItems.add(AiMealCandidateItem(
+          name: matchedRepair.name,
+          grams: matchedRepair.estimatedGrams > 0
+              ? matchedRepair.estimatedGrams
+              : prev.grams,
+          servedGrams: matchedRepair.servedGrams ?? prev.servedGrams,
+          confidence: matchedRepair.confidence,
+          matchedBarcode: matchedRepair.matchedBarcode ?? prev.matchedBarcode,
+          stateHint: matchedRepair.stateHint ?? prev.stateHint,
+          catalogSearchTerm:
+              matchedRepair.catalogSearchTerm ?? prev.catalogSearchTerm,
+          searchTerms: matchedRepair.searchTerms.isNotEmpty
+              ? matchedRepair.searchTerms
+              : prev.searchTerms,
+        ));
+      } else {
+        // Keep the unmentioned original item intact
+        mergedItems.add(prev);
+      }
+    }
+
+    // Append any extra repaired items that didn't match an existing candidate item
+    for (final item in repaired) {
+      if (!usedRepairs.contains(item)) {
+        mergedItems.add(AiMealCandidateItem(
           name: item.name,
           grams: item.estimatedGrams,
-          servedGrams: item.servedGrams ?? previous?.servedGrams,
+          servedGrams: item.servedGrams,
           confidence: item.confidence,
           matchedBarcode: item.matchedBarcode,
-          stateHint: item.stateHint ?? previous?.stateHint,
-          catalogSearchTerm:
-              item.catalogSearchTerm ?? previous?.catalogSearchTerm,
-          searchTerms: item.searchTerms.isNotEmpty
-              ? item.searchTerms
-              : (previous?.searchTerms ?? const []),
-        );
-      }, growable: false),
+          stateHint: item.stateHint,
+          catalogSearchTerm: item.catalogSearchTerm,
+          searchTerms: item.searchTerms,
+        ));
+      }
+    }
+
+    return AiMealCandidate(
+      items: mergedItems,
       context: candidate.context,
     );
   }

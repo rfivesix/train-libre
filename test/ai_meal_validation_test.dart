@@ -3,6 +3,7 @@ import 'package:train_libre/features/diary/domain/models/food_item.dart';
 import 'package:train_libre/services/ai_meal_context.dart';
 import 'package:train_libre/services/ai_repair_candidate.dart';
 import 'package:train_libre/services/ai_meal_validation.dart';
+import 'package:train_libre/services/ai_service.dart';
 
 FoodItem food(
   String name, {
@@ -531,6 +532,64 @@ void main() {
         result.allIssues.any((issue) => issue.code == 'state_mismatch'),
         isFalse,
       );
+    });
+  });
+
+  group('AiParsing', () {
+    test('extracts dishType into AiMealContext from root JSON map', () {
+      const rawJson = '''
+{
+  "dishType": "Döner Kebab",
+  "items": [
+    {"name": "Fladenbrot", "estimatedGrams": 150},
+    {"name": "Dönerfleisch", "estimatedGrams": 180},
+    {"name": "Tomaten", "estimatedGrams": 50}
+  ]
+}''';
+      final candidate =
+          AiService.instance.parseMealCandidateForTesting(rawJson);
+      expect(candidate.context?.dishType, 'Döner Kebab');
+      expect(candidate.items.length, 3);
+      expect(candidate.items[0].name, 'Fladenbrot');
+      expect(candidate.items[0].grams, 150);
+      expect(candidate.items[1].name, 'Dönerfleisch');
+      expect(candidate.items[1].grams, 180);
+    });
+
+    test('parses food_components format gracefully', () {
+      const rawJson = '''
+```json
+{
+  "food_components": [
+    "bread",
+    "meat",
+    "tomatoes",
+    "red onions",
+    "parsley"
+  ]
+}
+```''';
+      final candidate =
+          AiService.instance.parseMealCandidateForTesting(rawJson);
+      expect(candidate.items.length, 5);
+      expect(candidate.items.map((i) => i.name).toList(), [
+        'bread',
+        'meat',
+        'tomatoes',
+        'red onions',
+        'parsley',
+      ]);
+    });
+
+    test('parses unbracketed comma-separated JSON objects', () {
+      const raw =
+          '{"name":"Banh Canh Nudel Bowl","estimatedGrams":120},{"name":"Tomato","estimatedGrams":30}';
+      final items = AiService.instance.parseItemsForTesting(raw);
+      expect(items.length, 2);
+      expect(items[0].name, 'Banh Canh Nudel Bowl');
+      expect(items[0].estimatedGrams, 120);
+      expect(items[1].name, 'Tomato');
+      expect(items[1].estimatedGrams, 30);
     });
   });
 }

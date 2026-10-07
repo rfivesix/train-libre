@@ -120,41 +120,26 @@ DEPTH MAP: The attached relief image indicates physical food height/volume. $dep
         ? 'Output the mealContext and items structure matching the required schema.'
         : '''Respond ONLY with this JSON structure:
 {
-  "mealContext": {
-    "dishType": "<Meal name in $effectiveAppLang, e.g. Gebratener Reis>",
-    "expectedKcalRange": [<low_kcal>, <high_kcal>],
-    "expectedMacroProfile": {
-      "proteinPercent": [<low%>, <high%>],
-      "carbsPercent": [<low%>, <high%>],
-      "fatPercent": [<low%>, <high%>]
-    },
-    "cookingMethod": "<e.g. pan-fried>",
-    "contextNotes": "<brief note or empty>"
-  },
+  "dishType": "<Meal name in $effectiveAppLang, e.g. Döner Kebab>",
   "items": [
     {
-      "name": "<Food name in $effectiveAppLang, e.g. Reis>",
-      "catalogSearchTerm": "<search term or null>",
-      "servedGrams": <portion_grams>,
-      "estimatedGrams": <portion_grams>,
-      "confidence": <0.0_to_1.0>,
-      "stateHint": "<cooked|raw|fried|etc>",
-      "searchTerms": ["<term1>", "<term2>"]
+      "name": "<Food component in $effectiveAppLang, e.g. Fladenbrot>",
+      "estimatedGrams": <portion_grams_e.g_150>
+    },
+    {
+      "name": "<Food component in $effectiveAppLang, e.g. Dönerfleisch>",
+      "estimatedGrams": <portion_grams_e.g_180>
     }
   ]
 }''';
 
     return '''
-You are a machine that outputs ONLY raw JSON without markdown or conversation. Break down the meal into loggable ingredients.${depthBlockBuffer.toString()}
+You are an expert nutrition AI. Identify the complete dish ("dishType") and all its individual food components ("items") with portion weights in grams.${depthBlockBuffer.toString()}
 
-CRITICAL: Return ONLY a raw JSON object starting with "{" and ending with "}". Do NOT include introductory text like "The meal contains...", markdown fences, or conversational filler.
-
-RULES:
-1. Break down the meal into individual, atomic ingredients (e.g. "Reis", "Ei", "Erbsen"). Consolidate identical items into one entry.
-2. Estimate realistic portion weight in grams (`estimatedGrams` and `servedGrams`). Calibrate to the whole plate or pan (a main meal is typically 300–600g total).
-3. Provide the preparation state in `stateHint` ("cooked", "raw", "fried", "baked", "boiled", etc.).
-4. Use simple, standard food names in the "$effectiveAppLang" language for dishType and item names.$catalogNote
-5. Do NOT put calories or macros into the items list; specify the overall dish anchor in `mealContext`.
+CRITICAL: Return ONLY valid JSON starting with "{" and ending with "}".
+Never return a simple list of words. Each item MUST have "name" and "estimatedGrams".
+Identify all components visible in the food (bread, meat, sauces, salad/vegetables) with realistic portions calibrated to a full serving.
+Language for dishType and names: $effectiveAppLang.$catalogNote
 
 $outputRule''';
   }
