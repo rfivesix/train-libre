@@ -88,18 +88,24 @@ class MealLocalDataSource {
         .getSingleOrNull();
     if (mealRow == null) return [];
 
-    final rows = await (dbInstance.select(
-      dbInstance.mealItems,
-    )..where((t) => t.mealId.equals(mealRow.id)))
-        .get();
+    final query = dbInstance.select(dbInstance.mealItems).join([
+      drift.leftOuterJoin(
+        dbInstance.products,
+        dbInstance.products.id.equalsExp(dbInstance.mealItems.productId),
+      ),
+    ])
+      ..where(dbInstance.mealItems.mealId.equals(mealRow.id));
+    final rows = await query.get();
 
     return rows
         .map(
-          (r) => {
-            'id': r.localId,
+          (row) => {
+            'id': row.readTable(dbInstance.mealItems).localId,
             'meal_id': mealLocalId,
-            'barcode': r.productBarcode,
-            'quantity_in_grams': r.quantityInGrams,
+            'barcode': row.readTable(dbInstance.mealItems).productBarcode ??
+                row.readTableOrNull(dbInstance.products)?.barcode,
+            'quantity_in_grams':
+                row.readTable(dbInstance.mealItems).quantityInGrams,
           },
         )
         .toList();

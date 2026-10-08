@@ -36,6 +36,7 @@ import '../domain/models/food_item.dart';
 import '../../supplements/domain/models/supplement.dart';
 import '../../supplements/domain/models/supplement_log.dart';
 import '../../app/presentation/widgets/glass_bottom_menu.dart';
+import '../../sharing/share_service.dart';
 import 'meal_screen.dart';
 import 'widgets/confirm_log_meal_bottom_sheet.dart';
 
@@ -582,6 +583,12 @@ class _NutritionHubScreenState extends State<NutritionHubScreen> {
                                     fontWeight: FontWeight.bold,
                                   ),
                         ),
+                      ),
+                      IconButton(
+                        tooltip: l10n.share,
+                        icon: const Icon(LucideIcons.link),
+                        onPressed: () => const ShareService()
+                            .showRecipeShareSheet(context: context, meal: meal),
                       ),
                       IconButton(
                         tooltip: l10n.mealsEdit,
